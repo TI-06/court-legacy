@@ -12,14 +12,19 @@ permissions:
 jobs:
   repair-match-engine:
     if: >-
-      github.event_name == 'push' &&
-      github.ref_name == 'integration/m1-match-engine' &&
-      github.actor != 'github-actions[bot]'
+      (github.event_name == 'push' &&
+       github.ref_name == 'integration/m1-match-engine' &&
+       github.actor != 'github-actions[bot]') ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: integration/m1-match-engine
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
