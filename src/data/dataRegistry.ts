@@ -89,14 +89,14 @@ function createReadOnlyMap<T>(
   const target = new Map(items.map((item) => [idOf(item), item]));
 
   return new Proxy(target, {
-    get(map, property, receiver) {
+    get(map, property) {
       if (property === "set" || property === "delete" || property === "clear") {
         return () => {
           throw new Error("Game data maps are read-only");
         };
       }
 
-      const value = Reflect.get(map, property, receiver);
+      const value = Reflect.get(map, property, map);
       return typeof value === "function" ? value.bind(map) : value;
     },
   });
