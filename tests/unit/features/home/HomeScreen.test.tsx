@@ -55,9 +55,12 @@ describe("home action dashboard", () => {
     expect(screen.getByText("2026年4月1日")).toBeInTheDocument();
     expect(screen.getByText(props.opponent.name)).toBeInTheDocument();
     expect(screen.getByText(`戦力 ${props.homeStrength}`)).toBeInTheDocument();
+    expect(screen.getByText("無名校")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /育成を決める/ }));
-    fireEvent.click(screen.getByRole("button", { name: /チーム編成を確認/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /チーム編成を確認/ }),
+    );
     fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
 
     expect(props.onOpenTraining).toHaveBeenCalledOnce();
