@@ -1,7 +1,4 @@
-import {
-  loadGameData,
-  type RawGameData,
-} from "../../../src/data/dataRegistry";
+import { loadGameData, type RawGameData } from "../../../src/data/dataRegistry";
 import { rawGameData } from "../../../src/data/rawGameData";
 
 function cloneRawGameData(): RawGameData {
@@ -80,9 +77,7 @@ describe("game data registry", () => {
     const raw = cloneRawGameData();
     raw.trainingMenus[0].targetAbilities = [];
 
-    expect(() => loadGameData(raw)).toThrow(
-      "trainingMenus[0].targetAbilities",
-    );
+    expect(() => loadGameData(raw)).toThrow("trainingMenus[0].targetAbilities");
   });
 
   it("returns read-only maps detached from the mutable raw input", () => {

@@ -221,12 +221,8 @@ export const rawGameDataSchema = z.object({
 
 export type AbilityKey = z.infer<typeof abilityKeySchema>;
 export type NameEntry = z.infer<typeof nameEntrySchema>;
-export type PersonalityDefinition = z.infer<
-  typeof personalityDefinitionSchema
->;
-export type GrowthTypeDefinition = z.infer<
-  typeof growthTypeDefinitionSchema
->;
+export type PersonalityDefinition = z.infer<typeof personalityDefinitionSchema>;
+export type GrowthTypeDefinition = z.infer<typeof growthTypeDefinitionSchema>;
 export type TraitDefinition = z.infer<typeof traitDefinitionSchema>;
 export type TrainingMenuDefinition = z.infer<
   typeof trainingMenuDefinitionSchema

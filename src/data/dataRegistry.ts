@@ -36,7 +36,9 @@ function formatZodError(error: z.ZodError): Error {
   const issue = error.issues[0];
   const path = formatPath(issue?.path ?? []);
   const location = path.length > 0 ? ` at ${path}` : "";
-  return new Error(`Invalid game data${location}: ${issue?.message ?? "unknown error"}`);
+  return new Error(
+    `Invalid game data${location}: ${issue?.message ?? "unknown error"}`,
+  );
 }
 
 function assertUniqueIds<T extends { id: string }>(
@@ -80,7 +82,10 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-function createReadOnlyMap<T>(items: readonly T[], idOf: (item: T) => string): Map<string, T> {
+function createReadOnlyMap<T>(
+  items: readonly T[],
+  idOf: (item: T) => string,
+): Map<string, T> {
   const target = new Map(items.map((item) => [idOf(item), item]));
 
   return new Proxy(target, {
