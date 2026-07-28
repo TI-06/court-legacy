@@ -2,8 +2,7 @@ import { loadGameData, type GameDataRegistry } from "./dataRegistry";
 import { rawGameData } from "./rawGameData";
 
 export type GameDataBootstrapResult =
-  | { ok: true; data: GameDataRegistry }
-  | { ok: false; message: string };
+  { ok: true; data: GameDataRegistry } | { ok: false; message: string };
 
 export function bootstrapGameData(
   input: typeof rawGameData,
