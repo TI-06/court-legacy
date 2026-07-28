@@ -179,6 +179,20 @@ function MatchScreenContent({
     );
   }
 
+  const visibleRawEvents = result.match.eventLog.slice(
+    0,
+    visibleEventIndex + 1,
+  );
+  const revealedHomeSets = visibleRawEvents.filter(
+    (event) =>
+      event.type === "set-end" &&
+      event.winnerSchoolId === result.match.homeSchoolId,
+  ).length;
+  const revealedAwaySets = visibleRawEvents.filter(
+    (event) =>
+      event.type === "set-end" &&
+      event.winnerSchoolId === result.match.awaySchoolId,
+  ).length;
   const currentEvent = presentedEvents.at(-1);
   const winner = state.schools[result.analysis.winnerSchoolId];
   const recentEvents = presentedEvents.slice(-4).reverse();
@@ -205,7 +219,7 @@ function MatchScreenContent({
             <article>
               <span>{homeSchool.shortName}</span>
               <strong>{currentEvent.score.split(" - ")[0]}</strong>
-              <small>セット {result.match.homeSetsWon}</small>
+              <small>セット {revealedHomeSets}</small>
             </article>
             <div>
               <span>
@@ -216,7 +230,7 @@ function MatchScreenContent({
             <article>
               <span>{opponent.shortName}</span>
               <strong>{currentEvent.score.split(" - ")[1]}</strong>
-              <small>セット {result.match.awaySetsWon}</small>
+              <small>セット {revealedAwaySets}</small>
             </article>
           </section>
 
