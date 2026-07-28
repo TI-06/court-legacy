@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import "../features/training/training-direct.css";
 
 interface ChoiceCardProps {
   title: string;
