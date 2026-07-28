@@ -15,7 +15,7 @@ const data = gameDataBootstrap.data;
 
 describe("generatePlayer", () => {
   it("reproduces the same player from the same seed and input", () => {
-    const input = {
+    const createInput = () => ({
       id: playerId("player-test-1"),
       schoolId: schoolId("school-test"),
       grade: 1 as const,
@@ -24,14 +24,14 @@ describe("generatePlayer", () => {
       data,
       excludedFullNames: new Set<string>(),
       excludedAppearanceSeeds: new Set<number>(),
-    };
+    });
 
     const first = generatePlayer({
-      ...input,
+      ...createInput(),
       random: new SeededRandom("same-player"),
     });
     const second = generatePlayer({
-      ...input,
+      ...createInput(),
       random: new SeededRandom("same-player"),
     });
 
