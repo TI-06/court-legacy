@@ -8,6 +8,15 @@ interface BottomSheetProps {
   children: ReactNode;
 }
 
+const focusableSelector = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 export function BottomSheet({
   open,
   title,
@@ -17,6 +26,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const sheetRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -25,19 +35,44 @@ export function BottomSheet({
     }
 
     const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
+        return;
       }
+
+      if (event.key !== "Tab" || !sheetRef.current) {
+        return;
+      }
+
+      const focusable = Array.from(
+        sheetRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      if (focusable.length === 0) {
+        return;
+      }
+
+      const currentIndex = focusable.indexOf(
+        document.activeElement as HTMLElement,
+      );
+      const baseIndex = currentIndex >= 0 ? currentIndex : 0;
+      const nextIndex = event.shiftKey
+        ? (baseIndex - 1 + focusable.length) % focusable.length
+        : (baseIndex + 1) % focusable.length;
+
+      event.preventDefault();
+      focusable[nextIndex]?.focus();
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
     };
   }, [onClose, open]);
 
@@ -58,6 +93,7 @@ export function BottomSheet({
         aria-labelledby={titleId}
         aria-modal="true"
         className="ui-bottom-sheet"
+        ref={sheetRef}
         role="dialog"
       >
         <div className="ui-sheet-handle" aria-hidden="true" />
