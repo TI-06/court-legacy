@@ -25,10 +25,15 @@ export interface TeamSelection {
 
 export type TeamSelectionIssueCode =
   | "rotation-size"
+  | "invalid-slot"
   | "duplicate-player"
   | "libero-in-rotation"
   | "bench-overlap"
-  | "serving-order-mismatch";
+  | "duplicate-bench-player"
+  | "serving-order-mismatch"
+  | "unknown-player"
+  | "player-not-in-school"
+  | "invalid-starter-lock";
 
 export interface TeamSelectionIssue {
   code: TeamSelectionIssueCode;
