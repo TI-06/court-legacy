@@ -90,6 +90,7 @@ describe("match flow", () => {
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
       `1 / ${fixture.result.match.eventLog.length}`,
     );
+    expect(screen.getAllByText("セット 0")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "次のプレー" }));
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
