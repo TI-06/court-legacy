@@ -1,5 +1,12 @@
 :root {
-  font-family: Inter, "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    "Noto Sans JP",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   color: #142332;
   background: #132536;
   font-synthesis: none;
@@ -124,8 +131,7 @@ button:focus-visible {
   padding: 18px;
   color: #f7fbfc;
   background:
-    linear-gradient(145deg, rgb(42 103 116 / 93%), rgb(20 51 66 / 98%)),
-    #163644;
+    linear-gradient(145deg, rgb(42 103 116 / 93%), rgb(20 51 66 / 98%)), #163644;
   border-color: rgb(255 255 255 / 8%);
 }
 
