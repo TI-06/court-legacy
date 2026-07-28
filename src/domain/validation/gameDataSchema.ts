@@ -113,6 +113,18 @@ export const trainingMenuDefinitionSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(30)).max(8),
 });
 
+export const individualTrainingInstructionDefinitionSchema = z.object({
+  id: dataIdSchema,
+  name: z.string().trim().min(1).max(30),
+  description: z.string().trim().min(1).max(180),
+  targetAbilities: z.array(abilityKeySchema).min(1).max(3),
+  baseGrowth: z.number().int().min(1).max(12),
+  fatigue: z.number().int().min(0).max(20),
+  injuryRisk: z.number().int().min(0).max(50),
+  trustGrowth: z.number().int().min(-10).max(20),
+  tags: z.array(z.string().trim().min(1).max(30)).max(8),
+});
+
 export const schoolArchetypeDefinitionSchema = z.object({
   id: dataIdSchema,
   name: z.string().trim().min(1).max(30),
@@ -215,6 +227,10 @@ export const rawGameDataSchema = z.object({
   growthTypes: z.array(growthTypeDefinitionSchema).min(1),
   traits: z.array(traitDefinitionSchema).min(1),
   trainingMenus: z.array(trainingMenuDefinitionSchema).min(1),
+  individualTrainingInstructions: z
+    .array(individualTrainingInstructionDefinitionSchema)
+    .min(1)
+    .optional(),
   schoolArchetypes: z.array(schoolArchetypeDefinitionSchema).min(1),
   events: z.array(eventDefinitionSchema).min(1),
 });
@@ -226,6 +242,9 @@ export type GrowthTypeDefinition = z.infer<typeof growthTypeDefinitionSchema>;
 export type TraitDefinition = z.infer<typeof traitDefinitionSchema>;
 export type TrainingMenuDefinition = z.infer<
   typeof trainingMenuDefinitionSchema
+>;
+export type IndividualTrainingInstructionDefinition = z.infer<
+  typeof individualTrainingInstructionDefinitionSchema
 >;
 export type SchoolArchetypeDefinition = z.infer<
   typeof schoolArchetypeDefinitionSchema

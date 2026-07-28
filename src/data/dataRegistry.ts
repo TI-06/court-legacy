@@ -3,6 +3,7 @@ import {
   rawGameDataSchema,
   type EventDefinition,
   type GrowthTypeDefinition,
+  type IndividualTrainingInstructionDefinition,
   type PersonalityDefinition,
   type RawGameData,
   type SchoolArchetypeDefinition,
@@ -18,6 +19,10 @@ export interface GameDataRegistry {
   growthTypes: ReadonlyMap<string, GrowthTypeDefinition>;
   traits: ReadonlyMap<string, TraitDefinition>;
   trainingMenus: ReadonlyMap<string, TrainingMenuDefinition>;
+  individualTrainingInstructions: ReadonlyMap<
+    string,
+    IndividualTrainingInstructionDefinition
+  >;
   schoolArchetypes: ReadonlyMap<string, SchoolArchetypeDefinition>;
   events: ReadonlyMap<string, EventDefinition>;
 }
@@ -166,12 +171,18 @@ export function loadGameData(input: unknown): GameDataRegistry {
   }
 
   const parsed = result.data;
+  const individualTrainingInstructions =
+    parsed.individualTrainingInstructions ?? [];
   assertUniqueNames("names.surnames", parsed.names.surnames);
   assertUniqueNames("names.givenNames", parsed.names.givenNames);
   assertUniqueIds("personalities", parsed.personalities);
   assertUniqueIds("growthTypes", parsed.growthTypes);
   assertUniqueIds("traits", parsed.traits);
   assertUniqueIds("trainingMenus", parsed.trainingMenus);
+  assertUniqueIds(
+    "individualTrainingInstructions",
+    individualTrainingInstructions,
+  );
   assertUniqueIds("schoolArchetypes", parsed.schoolArchetypes);
   assertUniqueIds("events", parsed.events);
   assertTraitReferences(parsed);
@@ -185,6 +196,10 @@ export function loadGameData(input: unknown): GameDataRegistry {
     growthTypes: createReadOnlyMap(parsed.growthTypes, (item) => item.id),
     traits: createReadOnlyMap(parsed.traits, (item) => item.id),
     trainingMenus: createReadOnlyMap(parsed.trainingMenus, (item) => item.id),
+    individualTrainingInstructions: createReadOnlyMap(
+      individualTrainingInstructions,
+      (item) => item.id,
+    ),
     schoolArchetypes: createReadOnlyMap(
       parsed.schoolArchetypes,
       (item) => item.id,
