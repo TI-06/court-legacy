@@ -213,6 +213,21 @@ function swapRotationPlayer(
     .concat(outgoingPlayerId);
 }
 
+function swapLiberoPlayer(
+  selection: TeamSelection,
+  outgoingPlayerId: PlayerId,
+  incomingPlayerId: PlayerId,
+): void {
+  if (selection.liberoPlayerId !== outgoingPlayerId) {
+    throw new Error(`libero player not found: ${outgoingPlayerId}`);
+  }
+
+  selection.liberoPlayerId = incomingPlayerId;
+  selection.benchPlayerIds = selection.benchPlayerIds
+    .filter((playerId) => playerId !== incomingPlayerId)
+    .concat(outgoingPlayerId);
+}
+
 function eligibleReplacementCandidates(
   state: GameState,
   selection: TeamSelection,
@@ -311,10 +326,11 @@ export function resolveLockedStarters(
   const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
 
   for (const lockedId of lockedIds) {
-    const assignment = selection.rotation.find(
+    const isRotationPlayer = selection.rotation.some(
       (item) => item.playerId === lockedId,
     );
-    if (!assignment) {
+    const isLibero = selection.liberoPlayerId === lockedId;
+    if (!isRotationPlayer && !isLibero) {
       continue;
     }
     const player = input.state.players[lockedId];
@@ -334,8 +350,15 @@ export function resolveLockedStarters(
     if (candidates.length === 0) {
       continue;
     }
-    const replacement = stableBest(candidates, player.preferredPosition);
-    swapRotationPlayer(selection, lockedId, replacement.id);
+    const replacement = stableBest(
+      candidates,
+      isLibero ? "L" : player.preferredPosition,
+    );
+    if (isLibero) {
+      swapLiberoPlayer(selection, lockedId, replacement.id);
+    } else {
+      swapRotationPlayer(selection, lockedId, replacement.id);
+    }
     replacements.push({
       playerId: lockedId,
       replacementPlayerId: replacement.id,

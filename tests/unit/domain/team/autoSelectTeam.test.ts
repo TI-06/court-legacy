@@ -316,6 +316,40 @@ describe("resolveLockedStarters", () => {
     ).toBe(true);
   });
 
+  it("benches an injured locked libero when injury exceptions are enabled", () => {
+    const { state, school } = prepareRoleRoster();
+    const base = autoSelectTeam({ state, schoolId: school.id });
+    const lockedId = base.liberoPlayerId!;
+    state.players[lockedId] = {
+      ...state.players[lockedId]!,
+      injury: {
+        injuryId: "injury.knee",
+        severity: "moderate",
+        remainingWeeks: 4,
+        recurrenceRisk: 25,
+      },
+    };
+
+    const result = resolveLockedStarters({
+      state,
+      schoolId: school.id,
+      selection: {
+        ...base,
+        substitutionPolicy: {
+          ...base.substitutionPolicy,
+          starterLockPlayerIds: [lockedId],
+          allowInjuryBenching: true,
+        },
+      },
+    });
+
+    expect(result.selection.liberoPlayerId).not.toBe(lockedId);
+    expect(result.selection.benchPlayerIds).toContain(lockedId);
+    expect(result.replacements).toContainEqual(
+      expect.objectContaining({ playerId: lockedId, reason: "injury" }),
+    );
+  });
+
   it("does not mutate the supplied selection", () => {
     const { state, school } = prepareRoleRoster();
     const base = autoSelectTeam({ state, schoolId: school.id });
