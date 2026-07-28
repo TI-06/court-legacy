@@ -22,7 +22,12 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 
-export function MatchScreen({
+export function MatchScreen(props: MatchScreenProps) {
+  const playbackKey = props.result?.match.id ?? "pre-match";
+  return <MatchScreenContent key={playbackKey} {...props} />;
+}
+
+function MatchScreenContent({
   state,
   opponent,
   homeSelection,
@@ -53,13 +58,6 @@ export function MatchScreen({
     selection: awaySelection,
   });
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
-
-  useEffect(() => {
-    setVisibleEventIndex(0);
-    setPlaying(false);
-    setSpeed(1);
-  }, [result?.match.id]);
-
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
   const matchComplete = Boolean(result && visibleEventIndex >= lastEventIndex);
