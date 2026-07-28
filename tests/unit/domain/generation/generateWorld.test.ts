@@ -54,9 +54,9 @@ describe("generateWorld", () => {
 
     for (const school of Object.values(world.schools)) {
       const shares = Object.values(school.tactics.attackDistribution);
-      expect(shares.every((share) => Number.isInteger(share) && share >= 0)).toBe(
-        true,
-      );
+      expect(
+        shares.every((share) => Number.isInteger(share) && share >= 0),
+      ).toBe(true);
       expect(shares.reduce((sum, share) => sum + share, 0)).toBe(100);
     }
   });
