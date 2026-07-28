@@ -14,12 +14,12 @@ export type { RawGameData } from "../domain/validation/gameDataSchema";
 
 export interface GameDataRegistry {
   names: RawGameData["names"];
-  personalities: Map<string, PersonalityDefinition>;
-  growthTypes: Map<string, GrowthTypeDefinition>;
-  traits: Map<string, TraitDefinition>;
-  trainingMenus: Map<string, TrainingMenuDefinition>;
-  schoolArchetypes: Map<string, SchoolArchetypeDefinition>;
-  events: Map<string, EventDefinition>;
+  personalities: ReadonlyMap<string, PersonalityDefinition>;
+  growthTypes: ReadonlyMap<string, GrowthTypeDefinition>;
+  traits: ReadonlyMap<string, TraitDefinition>;
+  trainingMenus: ReadonlyMap<string, TrainingMenuDefinition>;
+  schoolArchetypes: ReadonlyMap<string, SchoolArchetypeDefinition>;
+  events: ReadonlyMap<string, EventDefinition>;
 }
 
 function formatPath(path: PropertyKey[]): string {
@@ -85,7 +85,7 @@ function deepFreeze<T>(value: T): T {
 function createReadOnlyMap<T>(
   items: readonly T[],
   idOf: (item: T) => string,
-): Map<string, T> {
+): ReadonlyMap<string, T> {
   const target = new Map(items.map((item) => [idOf(item), item]));
 
   return new Proxy(target, {
