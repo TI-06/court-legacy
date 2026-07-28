@@ -1,9 +1,6 @@
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
-import type {
-  School,
-  SchoolReputation,
-} from "../../domain/model/School";
+import type { School, SchoolReputation } from "../../domain/model/School";
 import { summarizeSetScore } from "../match/matchPresentation";
 import "./home.css";
 
