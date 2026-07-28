@@ -15,7 +15,9 @@ export function StickyActionBar({
 }: StickyActionBarProps) {
   return (
     <div className="ui-sticky-action-bar">
-      {summary ? <div className="ui-sticky-action-bar__summary">{summary}</div> : null}
+      {summary ? (
+        <div className="ui-sticky-action-bar__summary">{summary}</div>
+      ) : null}
       <button disabled={disabled} onClick={onClick} type="button">
         {label}
       </button>

@@ -26,8 +26,7 @@ interface TeamScreenProps {
 }
 
 type PickerTarget =
-  | { type: "rotation"; slot: RotationSlot }
-  | { type: "libero" };
+  { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
@@ -215,8 +214,8 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
 
   const currentPickerPlayerId =
     pickerTarget?.type === "rotation"
-      ? selection.rotation.find((item) => item.slot === pickerTarget.slot)
-          ?.playerId ?? null
+      ? (selection.rotation.find((item) => item.slot === pickerTarget.slot)
+          ?.playerId ?? null)
       : pickerTarget?.type === "libero"
         ? selection.liberoPlayerId
         : null;
@@ -309,7 +308,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                   <button
                     aria-label={`先発固定 ${playerName(player)}`}
                     aria-pressed={locked}
-                    className={locked ? "starter-pin starter-pin--active" : "starter-pin"}
+                    className={
+                      locked ? "starter-pin starter-pin--active" : "starter-pin"
+                    }
                     onClick={() => toggleStarterLock(player.id)}
                     type="button"
                   >
@@ -345,7 +346,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                 <button
                   aria-label={`先発固定 ${playerName(player)}`}
                   aria-pressed={locked}
-                  className={locked ? "starter-pin starter-pin--active" : "starter-pin"}
+                  className={
+                    locked ? "starter-pin starter-pin--active" : "starter-pin"
+                  }
                   onClick={() => toggleStarterLock(player.id)}
                   type="button"
                 >
@@ -363,7 +366,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             <p className="section-kicker">SUBSTITUTES</p>
             <h3 id="bench-heading">ベンチ</h3>
           </div>
-          <span className="bench-count">{selection.benchPlayerIds.length}人</span>
+          <span className="bench-count">
+            {selection.benchPlayerIds.length}人
+          </span>
         </div>
         <div className="bench-rail">
           {selection.benchPlayerIds.map((playerId) => {

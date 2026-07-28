@@ -42,7 +42,9 @@ describe("weekly training direct-touch UI", () => {
     const dialog = screen.getByRole("dialog", {
       name: "個人指示2の選手を選択",
     });
-    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(12);
+    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
+      12,
+    );
     expect(
       within(dialog).getByRole("button", { name: /選択中/ }),
     ).toBeDisabled();

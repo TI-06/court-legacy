@@ -14,7 +14,9 @@ export function ChoiceChip({
   return (
     <button
       aria-pressed={selected}
-      className={selected ? "ui-choice-chip ui-choice-chip--selected" : "ui-choice-chip"}
+      className={
+        selected ? "ui-choice-chip ui-choice-chip--selected" : "ui-choice-chip"
+      }
       data-testid={testId}
       onClick={onClick}
       type="button"

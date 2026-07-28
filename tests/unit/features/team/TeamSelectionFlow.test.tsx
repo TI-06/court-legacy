@@ -31,7 +31,9 @@ describe("team selection direct-touch UI", () => {
     const dialog = screen.getByRole("dialog", {
       name: "ローテーション1の選手を選択",
     });
-    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(12);
+    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
+      12,
+    );
   });
 
   it("manually replaces a court player without duplicate active players", () => {

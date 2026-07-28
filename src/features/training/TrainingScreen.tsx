@@ -289,7 +289,10 @@ export function TrainingScreen({
               >;
 
               return (
-                <article data-testid="training-result-player" key={log.playerId}>
+                <article
+                  data-testid="training-result-player"
+                  key={log.playerId}
+                >
                   <div className="player-result__header">
                     <div>
                       <strong>
