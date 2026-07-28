@@ -3,6 +3,7 @@ import {
   generateInitialSquad,
   generatePlayer,
 } from "../../../../src/domain/generation/generatePlayer";
+import type { PlayerAbilities } from "../../../../src/domain/model/Player";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 
@@ -148,13 +149,17 @@ describe("generatePlayer", () => {
       excludedFullNames: new Set(),
       excludedAppearanceSeeds: new Set(),
     });
-    const average = (values: Record<string, number>) =>
+    const average = (values: PlayerAbilities) =>
       Object.values(values).reduce((sum, value) => sum + value, 0) /
       Object.values(values).length;
 
-    expect(average(generational.abilities) - average(normal.abilities)).toBeGreaterThanOrEqual(15);
+    expect(
+      average(generational.abilities) - average(normal.abilities),
+    ).toBeGreaterThanOrEqual(15);
     expect(generational.traitIds.length).toBeGreaterThanOrEqual(2);
-    expect(Math.max(...Object.values(generational.abilities))).toBeLessThanOrEqual(100);
+    expect(
+      Math.max(...Object.values(generational.abilities)),
+    ).toBeLessThanOrEqual(100);
   });
 });
 
@@ -174,7 +179,8 @@ describe("generateInitialSquad", () => {
     expect(squad.filter((player) => player.grade === 3)).toHaveLength(4);
     expect(new Set(squad.map((player) => player.appearanceSeed)).size).toBe(12);
     expect(
-      new Set(squad.map((player) => `${player.lastName} ${player.firstName}`)).size,
+      new Set(squad.map((player) => `${player.lastName} ${player.firstName}`))
+        .size,
     ).toBe(12);
     expect(new Set(squad.map((player) => player.id)).size).toBe(12);
   });
