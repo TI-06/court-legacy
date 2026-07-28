@@ -7,7 +7,14 @@ import type {
   WeeklyPlan,
 } from "../../domain/training/resolveWeeklyTraining";
 import type { AbilityKey } from "../../domain/validation/gameDataSchema";
+import { BottomSheet } from "../../ui/BottomSheet";
+import { ChoiceCard } from "../../ui/ChoiceCard";
+import { ChoiceChip } from "../../ui/ChoiceChip";
+import { PlayerTile } from "../../ui/PlayerTile";
+import { StickyActionBar } from "../../ui/StickyActionBar";
+import "../../ui/ui.css";
 import "./training.css";
+import "./training-direct.css";
 
 interface TrainingScreenProps {
   state: GameState;
@@ -15,6 +22,8 @@ interface TrainingScreenProps {
   latestResult: TrainingResult | null;
   onExecute: (plan: WeeklyPlan) => void;
 }
+
+type AssignmentSlot = 1 | 2;
 
 const abilityLabels: Record<AbilityKey, string> = {
   spike: "スパイク",
@@ -75,17 +84,19 @@ export function TrainingScreen({
   const [secondInstructionId, setSecondInstructionId] = useState(
     instructions[1]?.id ?? instructions[0]?.id ?? "",
   );
+  const [pickerSlot, setPickerSlot] = useState<AssignmentSlot | null>(null);
 
+  const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
+  const firstPlayer = state.players[firstPlayerId];
+  const secondPlayer = state.players[secondPlayerId];
   const duplicatePlayers = firstPlayerId === secondPlayerId;
   const canExecute =
     teamTrainingMenuId.length > 0 &&
-    firstPlayerId.length > 0 &&
-    secondPlayerId.length > 0 &&
+    Boolean(firstPlayer) &&
+    Boolean(secondPlayer) &&
     firstInstructionId.length > 0 &&
     secondInstructionId.length > 0 &&
     !duplicatePlayers;
-
-  const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
   const totalGrowth =
     latestResult?.playerLogs.reduce(
       (sum, log) => sum + log.totalAbilityGrowth,
@@ -109,6 +120,18 @@ export function TrainingScreen({
     });
   };
 
+  const selectPlayer = (playerId: PlayerId) => {
+    if (pickerSlot === 1) {
+      setFirstPlayerId(playerId);
+    } else if (pickerSlot === 2) {
+      setSecondPlayerId(playerId);
+    }
+    setPickerSlot(null);
+  };
+
+  const pickerCurrentId = pickerSlot === 1 ? firstPlayerId : secondPlayerId;
+  const pickerOtherId = pickerSlot === 1 ? secondPlayerId : firstPlayerId;
+
   return (
     <main className="app-content training-screen">
       <section className="training-hero" aria-labelledby="training-heading">
@@ -116,7 +139,7 @@ export function TrainingScreen({
         <div className="training-hero__title">
           <div>
             <h2 id="training-heading">週間練習</h2>
-            <p>チーム方針1件と、異なる選手への個人指示2件を設定します。</p>
+            <p>カードをタップして、今週の練習方針を決めます。</p>
           </div>
           <span>{school.shortName}</span>
         </div>
@@ -130,33 +153,29 @@ export function TrainingScreen({
           </div>
           <span className="training-step">1 / 3</span>
         </div>
-        <label className="field-label" htmlFor="team-training-menu">
-          チーム練習
-        </label>
-        <div className="select-wrap">
-          <select
-            aria-label="チーム練習"
-            id="team-training-menu"
-            onChange={(event) => setTeamTrainingMenuId(event.target.value)}
-            value={teamTrainingMenuId}
-          >
-            {menus.map((menu) => (
-              <option key={menu.id} value={menu.id}>
-                {menu.name}
-              </option>
-            ))}
-          </select>
+        <div
+          aria-label="チーム練習を選択"
+          className="training-choice-rail"
+          role="group"
+        >
+          {menus.map((menu) => (
+            <ChoiceCard
+              description={menu.description}
+              key={menu.id}
+              meta={
+                <>
+                  <span>成長 {menu.baseGrowth}</span>
+                  <span>疲労 {signed(menu.fatigue)}</span>
+                  <span>怪我 {menu.injuryRisk}%</span>
+                </>
+              }
+              onClick={() => setTeamTrainingMenuId(menu.id)}
+              selected={teamTrainingMenuId === menu.id}
+              testId="team-training-choice"
+              title={menu.name}
+            />
+          ))}
         </div>
-        {selectedMenu ? (
-          <div className="menu-summary">
-            <p>{selectedMenu.description}</p>
-            <div className="menu-summary__meta">
-              <span>成長 {selectedMenu.baseGrowth}</span>
-              <span>疲労 {signed(selectedMenu.fatigue)}</span>
-              <span>怪我 {selectedMenu.injuryRisk}%</span>
-            </div>
-          </div>
-        ) : null}
       </section>
 
       <section className="training-panel" aria-labelledby="individual-heading">
@@ -168,106 +187,69 @@ export function TrainingScreen({
           <span className="training-step">2–3 / 3</span>
         </div>
 
-        <div className="assignment-card">
-          <div className="assignment-card__number">1</div>
-          <div className="assignment-card__fields">
-            <label className="field-label" htmlFor="first-player">
-              選手
-            </label>
-            <div className="select-wrap">
-              <select
-                aria-label="個人指示1 選手"
-                id="first-player"
-                onChange={(event) =>
-                  setFirstPlayerId(event.target.value as PlayerId)
-                }
-                value={firstPlayerId}
-              >
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.lastName} {player.firstName}｜{player.grade}年・
-                    {player.preferredPosition}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="field-label" htmlFor="first-instruction">
-              指示内容
-            </label>
-            <div className="select-wrap">
-              <select
-                aria-label="個人指示1 内容"
-                id="first-instruction"
-                onChange={(event) => setFirstInstructionId(event.target.value)}
-                value={firstInstructionId}
+        <div className="direct-assignment-list">
+          {firstPlayer ? (
+            <article className="direct-assignment-card">
+              <div className="direct-assignment-card__heading">
+                <span>1</span>
+                <strong>重点選手</strong>
+              </div>
+              <PlayerTile
+                actionLabel="変更"
+                ariaLabel="個人指示1の選手を変更"
+                onClick={() => setPickerSlot(1)}
+                player={firstPlayer}
+                selected
+              />
+              <div
+                aria-label="個人指示1の内容"
+                className="instruction-chip-list"
+                role="group"
               >
                 {instructions.map((instruction) => (
-                  <option key={instruction.id} value={instruction.id}>
-                    {instruction.name}
-                  </option>
+                  <ChoiceChip
+                    key={instruction.id}
+                    label={instruction.name}
+                    onClick={() => setFirstInstructionId(instruction.id)}
+                    selected={firstInstructionId === instruction.id}
+                    testId="individual-instruction-1"
+                  />
                 ))}
-              </select>
-            </div>
-          </div>
-        </div>
+              </div>
+            </article>
+          ) : null}
 
-        <div className="assignment-card">
-          <div className="assignment-card__number">2</div>
-          <div className="assignment-card__fields">
-            <label className="field-label" htmlFor="second-player">
-              選手
-            </label>
-            <div className="select-wrap">
-              <select
-                aria-label="個人指示2 選手"
-                id="second-player"
-                onChange={(event) =>
-                  setSecondPlayerId(event.target.value as PlayerId)
-                }
-                value={secondPlayerId}
-              >
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.lastName} {player.firstName}｜{player.grade}年・
-                    {player.preferredPosition}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="field-label" htmlFor="second-instruction">
-              指示内容
-            </label>
-            <div className="select-wrap">
-              <select
-                aria-label="個人指示2 内容"
-                id="second-instruction"
-                onChange={(event) => setSecondInstructionId(event.target.value)}
-                value={secondInstructionId}
+          {secondPlayer ? (
+            <article className="direct-assignment-card">
+              <div className="direct-assignment-card__heading">
+                <span>2</span>
+                <strong>重点選手</strong>
+              </div>
+              <PlayerTile
+                actionLabel="変更"
+                ariaLabel="個人指示2の選手を変更"
+                onClick={() => setPickerSlot(2)}
+                player={secondPlayer}
+                selected
+              />
+              <div
+                aria-label="個人指示2の内容"
+                className="instruction-chip-list"
+                role="group"
               >
                 {instructions.map((instruction) => (
-                  <option key={instruction.id} value={instruction.id}>
-                    {instruction.name}
-                  </option>
+                  <ChoiceChip
+                    key={instruction.id}
+                    label={instruction.name}
+                    onClick={() => setSecondInstructionId(instruction.id)}
+                    selected={secondInstructionId === instruction.id}
+                    testId="individual-instruction-2"
+                  />
                 ))}
-              </select>
-            </div>
-          </div>
+              </div>
+            </article>
+          ) : null}
         </div>
-
-        {duplicatePlayers ? (
-          <p className="form-error" role="alert">
-            個人指示は異なる選手を選んでください。
-          </p>
-        ) : null}
-
-        <button
-          className="primary-action training-submit"
-          disabled={!canExecute}
-          onClick={submit}
-          type="button"
-        >
-          練習を実行
-        </button>
       </section>
 
       {latestResult ? (
@@ -369,6 +351,44 @@ export function TrainingScreen({
           </div>
         </section>
       ) : null}
+
+      <StickyActionBar
+        disabled={!canExecute}
+        label="練習を実行"
+        onClick={submit}
+        summary={
+          selectedMenu && firstPlayer && secondPlayer
+            ? `${selectedMenu.name}｜${firstPlayer.lastName}・${secondPlayer.lastName}`
+            : "練習内容を設定してください"
+        }
+      />
+
+      <BottomSheet
+        description="選手カードをタップすると、この枠へ設定します。"
+        onClose={() => setPickerSlot(null)}
+        open={pickerSlot !== null}
+        title={`個人指示${pickerSlot ?? ""}の選手を選択`}
+      >
+        <div className="ui-player-picker-list">
+          {players.map((player) => {
+            const isCurrent = player.id === pickerCurrentId;
+            const isOther = player.id === pickerOtherId;
+            return (
+              <PlayerTile
+                actionLabel={
+                  isCurrent ? "選択中" : isOther ? "別枠使用中" : "選ぶ"
+                }
+                disabled={isCurrent || isOther}
+                key={player.id}
+                onClick={() => selectPlayer(player.id)}
+                player={player}
+                selected={isCurrent}
+                testId="player-picker-option"
+              />
+            );
+          })}
+        </div>
+      </BottomSheet>
     </main>
   );
 }

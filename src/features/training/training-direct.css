@@ -1,0 +1,69 @@
+.training-screen {
+  padding-bottom: 0;
+}
+
+.training-choice-rail {
+  display: flex;
+  width: calc(100% + 34px);
+  margin: 13px -17px -2px;
+  padding: 2px 17px 10px;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.training-choice-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.direct-assignment-list {
+  display: grid;
+  margin-top: 13px;
+  gap: 12px;
+}
+
+.direct-assignment-card {
+  display: grid;
+  padding: 12px;
+  gap: 10px;
+  background: #f5f8f9;
+  border: 1px solid #dfe8eb;
+  border-radius: 17px;
+}
+
+.direct-assignment-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.direct-assignment-card__heading > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: #286f7c;
+  border-radius: 9px;
+  place-items: center;
+}
+
+.direct-assignment-card__heading strong {
+  font-size: 0.78rem;
+}
+
+.instruction-chip-list {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 350px) {
+  .training-choice-rail {
+    width: calc(100% + 28px);
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
+}
