@@ -1,0 +1,358 @@
+.ui-choice-card,
+.ui-choice-chip,
+.ui-player-tile,
+.ui-icon-button,
+.ui-sticky-action-bar button,
+.ui-sheet-backdrop {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ui-choice-card {
+  position: relative;
+  display: grid;
+  min-width: 176px;
+  min-height: 150px;
+  padding: 16px;
+  gap: 8px;
+  color: #213541;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #d6e1e5;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgb(17 43 55 / 6%);
+  scroll-snap-align: start;
+}
+
+.ui-choice-card--selected {
+  color: #123c47;
+  background: linear-gradient(150deg, #eff8f8, #fff);
+  border-color: #248090;
+  box-shadow: 0 8px 22px rgb(36 128 144 / 16%);
+}
+
+.ui-choice-card__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+  background: #258393;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.ui-choice-card:not(.ui-choice-card--selected) .ui-choice-card__check {
+  background: #e7eef1;
+}
+
+.ui-choice-card strong {
+  padding-right: 26px;
+  font-size: 0.95rem;
+}
+
+.ui-choice-card__description {
+  color: #627681;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.ui-choice-card__meta {
+  display: flex;
+  margin-top: auto;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ui-choice-card__meta span {
+  padding: 4px 7px;
+  color: #345763;
+  font-size: 0.66rem;
+  font-weight: 800;
+  background: #edf3f5;
+  border-radius: 999px;
+}
+
+.ui-choice-chip {
+  min-height: 42px;
+  padding: 9px 13px;
+  color: #586b76;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: #f1f5f6;
+  border: 1px solid #d9e2e5;
+  border-radius: 999px;
+}
+
+.ui-choice-chip--selected {
+  color: #fff;
+  background: #216c79;
+  border-color: #216c79;
+  box-shadow: 0 5px 14px rgb(33 108 121 / 20%);
+}
+
+.ui-player-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  padding: 11px;
+  gap: 10px;
+  color: #203743;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #d8e2e6;
+  border-radius: 16px;
+}
+
+button.ui-player-tile:not(:disabled) {
+  cursor: pointer;
+}
+
+button.ui-player-tile:disabled {
+  opacity: 0.48;
+}
+
+.ui-player-tile--selected {
+  background: #eef8f8;
+  border-color: #2a8491;
+}
+
+.ui-player-tile--compact {
+  min-width: 150px;
+  min-height: 72px;
+}
+
+.ui-player-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: linear-gradient(145deg, #1a5364, #2a8791);
+  border-radius: 14px;
+  place-items: center;
+}
+
+.ui-player-tile__main {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ui-player-tile__main strong,
+.ui-player-tile__main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-player-tile__main strong {
+  font-size: 0.82rem;
+}
+
+.ui-player-tile__main small {
+  color: #71818a;
+  font-size: 0.67rem;
+}
+
+.ui-player-tile__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 6px;
+  color: #664308;
+  font-size: 0.61rem;
+  font-weight: 900;
+  background: #ffedc8;
+  border-radius: 999px;
+}
+
+.ui-player-tile__action {
+  margin-left: auto;
+  color: #216c79;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.ui-status-pill {
+  justify-self: start;
+  margin-top: 3px;
+  padding: 3px 7px;
+  color: #44606c;
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: #edf3f5;
+  border-radius: 999px;
+}
+
+.ui-status-pill--warning {
+  color: #87550c;
+  background: #fff0ce;
+}
+
+.ui-status-pill--danger {
+  color: #8b3323;
+  background: #ffe3dc;
+}
+
+.ui-sheet-layer {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ui-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: rgb(8 25 35 / 55%);
+  border: 0;
+}
+
+.ui-bottom-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 520px);
+  max-height: min(82dvh, 720px);
+  padding: 8px 14px max(18px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: #f6f9fa;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -16px 50px rgb(6 24 33 / 24%);
+  animation: ui-sheet-enter 180ms ease-out;
+}
+
+.ui-sheet-handle {
+  width: 42px;
+  height: 4px;
+  margin: 2px auto 9px;
+  background: #b8c5ca;
+  border-radius: 999px;
+}
+
+.ui-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 6px 2px 12px;
+  gap: 12px;
+}
+
+.ui-sheet-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.ui-sheet-header p {
+  margin: 4px 0 0;
+  color: #697b84;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.ui-icon-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  color: #52666f;
+  font-size: 1.35rem;
+  background: #e7edef;
+  border: 0;
+  border-radius: 14px;
+  place-items: center;
+}
+
+.ui-sheet-content {
+  max-height: calc(min(82dvh, 720px) - 92px);
+  padding: 2px 0 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ui-player-picker-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ui-sticky-action-bar {
+  position: sticky;
+  z-index: 18;
+  bottom: 70px;
+  display: flex;
+  align-items: center;
+  width: calc(100% + 28px);
+  margin: 6px -14px -24px;
+  padding: 10px 14px 12px;
+  gap: 10px;
+  background: rgb(255 255 255 / 94%);
+  border-top: 1px solid #d7e1e5;
+  box-shadow: 0 -8px 24px rgb(18 45 57 / 10%);
+  backdrop-filter: blur(14px);
+}
+
+.ui-sticky-action-bar__summary {
+  min-width: 0;
+  color: #627580;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.ui-sticky-action-bar button {
+  min-width: 132px;
+  min-height: 48px;
+  margin-left: auto;
+  padding: 0 16px;
+  color: #fff;
+  font-weight: 900;
+  background: #1c6977;
+  border: 0;
+  border-radius: 15px;
+  box-shadow: 0 7px 18px rgb(28 105 119 / 22%);
+}
+
+.ui-sticky-action-bar button:disabled {
+  color: #8d9aa0;
+  background: #dce3e6;
+  box-shadow: none;
+}
+
+@keyframes ui-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 520px) {
+  .ui-bottom-sheet {
+    margin-bottom: 20px;
+    border-radius: 24px;
+  }
+
+  .ui-sticky-action-bar {
+    border-radius: 0 0 28px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-bottom-sheet {
+    animation: none;
+  }
+}
