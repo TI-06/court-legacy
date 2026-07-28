@@ -49,10 +49,7 @@ export function selectPlayerTraitIds(
   const weaknessChance =
     tier === "generational" ? 45 : tier === "prospect" ? 35 : 28;
 
-  if (
-    negativeTraits.length > 0 &&
-    random.int(1, 100) <= weaknessChance
-  ) {
+  if (negativeTraits.length > 0 && random.int(1, 100) <= weaknessChance) {
     selected.push(random.pick(negativeTraits));
   }
 
