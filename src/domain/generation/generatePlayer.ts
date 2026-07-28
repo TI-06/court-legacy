@@ -12,6 +12,7 @@ import type { PlayerId, SchoolId } from "../model/identifiers";
 import { playerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
+import { selectPlayerTraitIds } from "./selectPlayerTraits";
 
 const POSITION_WEIGHTS: ReadonlyArray<{ value: Position; weight: number }> = [
   { value: "OH", weight: 30 },
@@ -211,37 +212,6 @@ function generatePositionAptitudes(
   return aptitudes;
 }
 
-function selectTraitIds(
-  tier: PlayerTier,
-  data: GameDataRegistry,
-  random: RandomSource,
-): string[] {
-  const positive = [...data.traits.values()].filter(
-    (trait) => trait.polarity === "positive",
-  );
-  const negative = [...data.traits.values()].filter(
-    (trait) => trait.polarity === "negative",
-  );
-  const positiveCount =
-    tier === "generational"
-      ? random.int(2, 3)
-      : tier === "prospect"
-        ? random.int(1, 2)
-        : random.int(0, 2);
-  const selected = new Set<string>();
-
-  while (selected.size < positiveCount) {
-    selected.add(random.pick(positive).id);
-  }
-
-  const weaknessChance = tier === "generational" ? 45 : 28;
-  if (random.int(1, 100) <= weaknessChance) {
-    selected.add(random.pick(negative).id);
-  }
-
-  return [...selected];
-}
-
 function selectPreferredPosition(random: RandomSource): Position {
   const position = weightedChoice(POSITION_WEIGHTS, random);
   if (!position) {
@@ -266,7 +236,11 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
   );
   const personality = input.random.pick([...input.data.personalities.values()]);
   const growthType = input.random.pick([...input.data.growthTypes.values()]);
-  const traitIds = selectTraitIds(input.tier, input.data, input.random);
+  const traitIds = selectPlayerTraitIds(
+    input.tier,
+    input.data.traits,
+    input.random,
+  );
 
   return {
     id: input.id,
