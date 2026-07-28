@@ -1,0 +1,221 @@
+/* Shared mobile layout guardrails. Feature styles may define their visuals,
+   but no tab is allowed to expand the application grid beyond the viewport. */
+.app-shell,
+.app-content,
+.app-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-content {
+  grid-template-columns: minmax(0, 1fr);
+  overflow-x: clip;
+}
+
+/* Team */
+.team-screen,
+.team-screen > *,
+.team-hero > div,
+.team-summary,
+.team-panel,
+.team-section-heading,
+.volleyball-court,
+.court-slot,
+.libero-direct-row,
+.bench-rail,
+.policy-list {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-section-heading {
+  flex-wrap: wrap;
+}
+
+.volleyball-court {
+  padding: 10px;
+  gap: 7px;
+}
+
+.court-slot .ui-player-tile {
+  min-width: 0;
+  min-height: 98px;
+  padding: 8px 4px;
+  gap: 5px;
+}
+
+.court-slot .ui-player-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+}
+
+.court-slot .ui-player-tile__main strong {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.court-slot .ui-player-tile__main small {
+  font-size: 0.58rem;
+  line-height: 1.3;
+}
+
+.court-slot .ui-status-pill {
+  padding: 2px 5px;
+  font-size: 0.56rem;
+}
+
+.court-slot .ui-player-tile__badge {
+  top: 5px;
+  right: 5px;
+  padding: 2px 5px;
+  font-size: 0.55rem;
+}
+
+.starter-pin {
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 4px;
+  font-size: 0.6rem;
+}
+
+.bench-rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 0;
+  gap: 8px;
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.bench-rail .ui-player-tile {
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  padding: 9px;
+  gap: 8px;
+}
+
+.bench-rail .ui-player-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.bench-rail .ui-player-tile__main small {
+  overflow: visible;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+/* Training */
+.training-screen,
+.training-screen > *,
+.training-choice-rail,
+.direct-assignment-list,
+.direct-assignment-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.training-choice-rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  width: 100%;
+  margin: 13px 0 0;
+  padding: 0;
+  gap: 9px;
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.training-choice-rail .ui-choice-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 142px;
+  padding: 12px 10px;
+  gap: 7px;
+}
+
+.training-choice-rail .ui-choice-card strong {
+  padding-right: 22px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.training-choice-rail .ui-choice-card__description {
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.training-choice-rail .ui-choice-card__meta {
+  gap: 4px;
+}
+
+.training-choice-rail .ui-choice-card__meta span {
+  padding: 3px 6px;
+  font-size: 0.6rem;
+}
+
+/* Match */
+.match-scoreboard {
+  grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+}
+
+.match-scoreboard > div {
+  padding-inline: 4px;
+}
+
+/* Shared bottom sheet */
+.ui-sheet-layer,
+.ui-bottom-sheet,
+.ui-sheet-header,
+.ui-sheet-content,
+.ui-player-picker-list,
+.ui-player-picker-list > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ui-sheet-layer {
+  overflow-x: clip;
+}
+
+@media (max-width: 350px) {
+  .ui-sticky-action-bar {
+    width: calc(100% + 20px);
+    margin-inline: -10px;
+  }
+}
+
+@media (max-width: 340px) {
+  .volleyball-court {
+    padding: 6px;
+    gap: 4px;
+    border-width: 3px;
+  }
+
+  .court-slot .ui-player-tile {
+    min-height: 92px;
+    padding-inline: 3px;
+  }
+
+  .court-slot .ui-player-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .bench-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .training-choice-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .training-choice-rail .ui-choice-card {
+    min-height: 126px;
+  }
+}
