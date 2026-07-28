@@ -23,9 +23,9 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
 
-    const close = screen.getByRole("dialog").querySelector<HTMLButtonElement>(
-      ".ui-icon-button",
-    )!;
+    const close = screen
+      .getByRole("dialog")
+      .querySelector<HTMLButtonElement>(".ui-icon-button")!;
     const firstChoice = screen.getByRole("button", { name: "選手A" });
     const lastChoice = screen.getByRole("button", { name: "選手B" });
 
