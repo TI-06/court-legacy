@@ -75,7 +75,7 @@ describe("weekly training UI", () => {
       screen.getByRole("heading", { name: "今週の練習結果" }),
     ).toBeInTheDocument();
     expect(screen.getAllByTestId("training-result-player")).toHaveLength(12);
-    expect(screen.getByText(/能力成長/)).toBeInTheDocument();
-    expect(screen.getByText(/疲労/)).toBeInTheDocument();
+    expect(screen.getAllByText(/能力成長/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/疲労/).length).toBeGreaterThan(0);
   });
 });
