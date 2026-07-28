@@ -19,7 +19,18 @@ jobs:
           node-version-file: .node-version
       - run: npm install --legacy-peer-deps --silent
       - name: Run unit tests
+        id: unit-tests
         shell: bash
         run: |
-          set -o pipefail
-          npm run test -- --reporter=verbose 2>&1 | tail -120
+          set +e
+          npm run test -- --reporter=verbose > test-output.txt 2>&1
+          status=$?
+          tail -120 test-output.txt
+          exit $status
+      - name: Upload unit test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-diagnostics
+          path: test-output.txt
+          retention-days: 3
