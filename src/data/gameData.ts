@@ -1,5 +1,5 @@
+import { completeRawGameData } from "./completeRawGameData";
 import { loadGameData, type GameDataRegistry } from "./dataRegistry";
-import { rawGameData } from "./rawGameData";
 
 export type GameDataBootstrapResult =
   { ok: true; data: GameDataRegistry } | { ok: false; message: string };
@@ -16,4 +16,4 @@ export function bootstrapGameData(input: unknown): GameDataBootstrapResult {
   }
 }
 
-export const gameDataBootstrap = bootstrapGameData(rawGameData);
+export const gameDataBootstrap = bootstrapGameData(completeRawGameData);
