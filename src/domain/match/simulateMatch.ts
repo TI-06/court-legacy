@@ -620,9 +620,6 @@ function matchMetrics(
   const points = match.eventLog.filter(
     (event) => event.type === "point" && event.winnerSchoolId === schoolId,
   );
-  const opponentServeErrors = points.filter(
-    (event) => event.detailCode === "point.serve-error",
-  ).length;
   const ownServeErrors = match.eventLog.filter(
     (event) =>
       event.type === "point" &&
