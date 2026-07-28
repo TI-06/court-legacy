@@ -28,4 +28,52 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ["src/domain/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              message: "The simulation domain must remain independent of React.",
+            },
+            {
+              name: "react-dom",
+              message:
+                "The simulation domain must remain independent of React DOM.",
+            },
+            {
+              name: "pixi.js",
+              message: "The simulation domain must remain independent of PixiJS.",
+            },
+            {
+              name: "dexie",
+              message:
+                "The simulation domain must remain independent of persistence.",
+            },
+            {
+              name: "zustand",
+              message:
+                "The simulation domain must remain independent of application state stores.",
+            },
+          ],
+          patterns: [
+            {
+              group: [
+                "**/app/**",
+                "**/features/**",
+                "**/persistence/**",
+                "**/renderer/**",
+                "**/store/**",
+              ],
+              message:
+                "The simulation domain may only depend on domain modules and validated data contracts.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
