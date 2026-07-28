@@ -1,5 +1,6 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
+import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import type {
   RandomSnapshot,
   RandomSource,
@@ -61,7 +62,7 @@ function createState() {
   return generateWorld({ seed: "training-safety", userSchool, data });
 }
 
-function createAssignments(playerIds: readonly string[]) {
+function createAssignments(playerIds: readonly PlayerId[]) {
   return [
     {
       playerId: playerIds[0]!,
