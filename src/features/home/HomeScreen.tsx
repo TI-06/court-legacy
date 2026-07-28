@@ -1,6 +1,9 @@
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
-import type { School } from "../../domain/model/School";
+import type {
+  School,
+  SchoolReputation,
+} from "../../domain/model/School";
 import { summarizeSetScore } from "../match/matchPresentation";
 import "./home.css";
 
@@ -13,6 +16,15 @@ interface HomeScreenProps {
   onOpenTeam: () => void;
   onOpenMatch: () => void;
 }
+
+const reputationLabels: Record<SchoolReputation, string> = {
+  unknown: "無名校",
+  "district-contender": "地区有力校",
+  "prefectural-power": "県内強豪",
+  "national-qualifier": "全国大会出場校",
+  "national-regular": "全国常連校",
+  elite: "全国屈指",
+};
 
 function average(values: readonly number[]): number {
   if (values.length === 0) {
@@ -85,7 +97,7 @@ export function HomeScreen({
         <article className="metric-card">
           <span>学校評判</span>
           <strong>{school.reputationPoints}</strong>
-          <small>{school.reputation}</small>
+          <small>{reputationLabels[school.reputation]}</small>
         </article>
         <article className="metric-card">
           <span>平均疲労</span>
