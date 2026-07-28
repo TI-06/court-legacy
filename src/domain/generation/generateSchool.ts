@@ -1,10 +1,6 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import type { PlayerId, SchoolId } from "../model/identifiers";
-import type {
-  School,
-  SchoolReputation,
-  UniformColors,
-} from "../model/School";
+import type { School, SchoolReputation, UniformColors } from "../model/School";
 import type { RandomSource } from "../random/SeededRandom";
 
 export interface GenerateSchoolInput {
@@ -65,7 +61,8 @@ export function generateSchool(input: GenerateSchoolInput): School {
     uniform: input.uniform,
     reputation,
     reputationPoints:
-      reputationPoints(reputation) + (input.isUserSchool ? 0 : input.random.int(0, 50)),
+      reputationPoints(reputation) +
+      (input.isUserSchool ? 0 : input.random.int(0, 50)),
     funds: input.isUserSchool ? 300 : input.random.int(250, 700),
     playerIds: [...input.playerIds],
     alumniPlayerIds: [],

@@ -39,12 +39,18 @@ describe("generateWorld", () => {
     expect(world.schools[world.userSchoolId]?.name).toBe("蒼波高校");
     expect(new Set(schools.map((school) => school.name)).size).toBe(16);
     expect(new Set(schools.map((school) => school.shortName)).size).toBe(16);
-    expect(schools.every((school) => school.playerIds.length === 12)).toBe(true);
+    expect(schools.every((school) => school.playerIds.length === 12)).toBe(
+      true,
+    );
     expect(Object.values(world.players)).toHaveLength(192);
   });
 
   it("assigns every player to exactly one school", () => {
-    const world = generateWorld({ seed: "school-membership", userSchool, data });
+    const world = generateWorld({
+      seed: "school-membership",
+      userSchool,
+      data,
+    });
     const memberships = Object.values(world.schools).flatMap(
       (school) => school.playerIds,
     );

@@ -251,7 +251,8 @@ function selectPreferredPosition(random: RandomSource): Position {
 }
 
 export function generatePlayer(input: GeneratePlayerInput): Player {
-  const position = input.preferredPosition ?? selectPreferredPosition(input.random);
+  const position =
+    input.preferredPosition ?? selectPreferredPosition(input.random);
   const [minimumHeight, maximumHeight] = HEIGHT_RANGES[position];
   const heightCm = input.random.int(minimumHeight, maximumHeight);
   const generatedName = generateUniqueName(
@@ -352,7 +353,9 @@ export function generateInitialSquad(
 
 export function generateIntake(input: GenerateIntakeInput): Player[] {
   const excludedFullNames = new Set(
-    input.currentPlayers.map((player) => `${player.lastName} ${player.firstName}`),
+    input.currentPlayers.map(
+      (player) => `${player.lastName} ${player.firstName}`,
+    ),
   );
   const excludedAppearanceSeeds = new Set(
     input.currentPlayers.map((player) => player.appearanceSeed),
