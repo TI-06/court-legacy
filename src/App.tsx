@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
 import { SeededRandom } from "./domain/random/SeededRandom";
 import {
@@ -109,7 +110,10 @@ export default function App() {
 
   const content =
     activeTab === "home" ? (
-      <HomeScreen state={gameState} onOpenTraining={() => setActiveTab("training")} />
+      <HomeScreen
+        onOpenTraining={() => setActiveTab("training")}
+        state={gameState}
+      />
     ) : activeTab === "training" ? (
       <TrainingScreen
         data={gameData}
