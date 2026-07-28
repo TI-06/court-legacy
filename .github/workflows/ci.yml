@@ -20,6 +20,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Generate exact Prettier output
+        run: npx prettier src/data/gameData.ts --write
+      - name: Upload exact Prettier output
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-game-data-bootstrap
+          path: src/data/gameData.ts
+          retention-days: 3
       - name: Verify formatting, lint, types, tests, and build
         shell: bash
         run: |
