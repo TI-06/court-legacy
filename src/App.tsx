@@ -1,7 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
+import {
+  simulateMatch,
+  type SimulateMatchResult,
+} from "./domain/match/simulateMatch";
+import { matchId } from "./domain/model/identifiers";
 import { SeededRandom } from "./domain/random/SeededRandom";
+import {
+  calculateSelectionStrength,
+  selectPracticeOpponent,
+} from "./domain/selectors/matchSelectors";
 import { autoSelectTeam } from "./domain/team/autoSelectTeam";
 import {
   resolveWeeklyTraining,
@@ -9,6 +18,7 @@ import {
   type WeeklyPlan,
 } from "./domain/training/resolveWeeklyTraining";
 import { HomeScreen } from "./features/home/HomeScreen";
+import { MatchScreen } from "./features/match/MatchScreen";
 import { TeamScreen } from "./features/team/TeamScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 
@@ -65,29 +75,13 @@ function createInitialAppState() {
   return { gameState, teamSelection };
 }
 
-function PlaceholderScreen({
-  tab,
-}: {
-  tab: Exclude<AppTab, "home" | "team" | "training">;
-}) {
-  const labels: Record<typeof tab, { title: string; description: string }> = {
-    match: {
-      title: "試合",
-      description: "ラリー単位の試合シミュレーションを次の工程で実装します。",
-    },
-    school: {
-      title: "学校運営",
-      description: "設備、評判、スカウト、OB記録を順次追加します。",
-    },
-  };
-  const content = labels[tab];
-
+function SchoolPlaceholder() {
   return (
     <main className="app-content">
       <section className="placeholder-card">
         <p className="section-kicker">COMING NEXT</p>
-        <h2>{content.title}</h2>
-        <p>{content.description}</p>
+        <h2>学校運営</h2>
+        <p>設備、評判、スカウト、OB記録を順次追加します。</p>
       </section>
     </main>
   );
@@ -98,7 +92,27 @@ export default function App() {
   const [appState, setAppState] = useState(createInitialAppState);
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
+  const [latestMatchResult, setLatestMatchResult] =
+    useState<SimulateMatchResult | null>(null);
+  const [activeMatchResult, setActiveMatchResult] =
+    useState<SimulateMatchResult | null>(null);
   const { gameState, teamSelection } = appState;
+  const opponent = useMemo(
+    () => selectPracticeOpponent(gameState),
+    [gameState],
+  );
+  const opponentSelection = useMemo(
+    () => autoSelectTeam({ state: gameState, schoolId: opponent.id }),
+    [gameState, opponent.id],
+  );
+  const homeStrength = useMemo(
+    () => calculateSelectionStrength(gameState, teamSelection),
+    [gameState, teamSelection],
+  );
+  const awayStrength = useMemo(
+    () => calculateSelectionStrength(gameState, opponentSelection),
+    [gameState, opponentSelection],
+  );
 
   const executeTraining = (plan: WeeklyPlan) => {
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
@@ -117,10 +131,64 @@ export default function App() {
     setLatestTrainingResult(resolution.result);
   };
 
+  const openFreshPracticeMatch = () => {
+    setActiveMatchResult(null);
+    setActiveTab("match");
+  };
+
+  const startPracticeMatch = () => {
+    const id = matchId(
+      `practice-${gameState.date}-${gameState.randomCursor}`,
+    );
+    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
+    const simulation = simulateMatch({
+      state: gameState,
+      id,
+      homeSchoolId: gameState.userSchoolId,
+      awaySchoolId: opponent.id,
+      homeSelection: teamSelection,
+      awaySelection: opponentSelection,
+      bestOfSets: 3,
+      random,
+    });
+
+    setLatestMatchResult(simulation);
+    setActiveMatchResult(simulation);
+    setAppState((current) => ({
+      ...current,
+      gameState: {
+        ...current.gameState,
+        randomCursor: simulation.match.randomCursor,
+        activeMatch: simulation.match,
+        history: {
+          ...current.gameState.history,
+          matches: [
+            ...current.gameState.history.matches,
+            {
+              matchId: simulation.match.id,
+              date: current.gameState.date,
+              homeSchoolId: simulation.match.homeSchoolId,
+              awaySchoolId: simulation.match.awaySchoolId,
+              winnerSchoolId: simulation.analysis.winnerSchoolId,
+              homeSetsWon: simulation.match.homeSetsWon,
+              awaySetsWon: simulation.match.awaySetsWon,
+              tournamentId: null,
+            },
+          ],
+        },
+      },
+    }));
+  };
+
   const content =
     activeTab === "home" ? (
       <HomeScreen
+        homeStrength={homeStrength}
+        latestMatch={latestMatchResult}
+        onOpenMatch={openFreshPracticeMatch}
+        onOpenTeam={() => setActiveTab("team")}
         onOpenTraining={() => setActiveTab("training")}
+        opponent={opponent}
         state={gameState}
       />
     ) : activeTab === "team" ? (
@@ -141,8 +209,21 @@ export default function App() {
         onExecute={executeTraining}
         state={gameState}
       />
+    ) : activeTab === "match" ? (
+      <MatchScreen
+        awaySelection={opponentSelection}
+        awayStrength={awayStrength}
+        homeSelection={teamSelection}
+        homeStrength={homeStrength}
+        onReturnHome={() => setActiveTab("home")}
+        onStart={startPracticeMatch}
+        opponent={opponent}
+        reducedMotion={gameState.settings.reducedMotion}
+        result={activeMatchResult}
+        state={gameState}
+      />
     ) : (
-      <PlaceholderScreen tab={activeTab} />
+      <SchoolPlaceholder />
     );
 
   return (
