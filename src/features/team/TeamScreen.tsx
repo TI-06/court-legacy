@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player, Position } from "../../domain/model/Player";
+import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   RotationSlot,
@@ -13,7 +13,11 @@ import {
   type StarterReplacement,
 } from "../../domain/team/autoSelectTeam";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
+import { PlayerTile } from "../../ui/PlayerTile";
+import "../../ui/ui.css";
 import "./team.css";
+import "./team-direct.css";
 
 interface TeamScreenProps {
   state: GameState;
@@ -21,13 +25,9 @@ interface TeamScreenProps {
   onChange: (selection: TeamSelection) => void;
 }
 
-const positionLabels: Record<Position, string> = {
-  OH: "アウトサイド",
-  MB: "ミドル",
-  OP: "オポジット",
-  S: "セッター",
-  L: "リベロ",
-};
+type PickerTarget =
+  | { type: "rotation"; slot: RotationSlot }
+  | { type: "libero" };
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
@@ -75,6 +75,7 @@ function replacementText(
 export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
   const [replacements, setReplacements] = useState<StarterReplacement[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const school = state.schools[state.userSchoolId]!;
   const players = useMemo(
     () =>
@@ -110,6 +111,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
     const next = cloneSelection(selection);
     const assignment = next.rotation.find((item) => item.slot === slot);
     if (!assignment || assignment.playerId === incomingId) {
+      setPickerTarget(null);
       return;
     }
 
@@ -126,10 +128,12 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         (playerId) => playerId !== outgoingId,
       );
     emitSelection(next);
+    setPickerTarget(null);
   };
 
   const replaceLibero = (incomingId: PlayerId) => {
     if (!selection.liberoPlayerId || selection.liberoPlayerId === incomingId) {
+      setPickerTarget(null);
       return;
     }
 
@@ -144,6 +148,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         (playerId) => playerId !== outgoingId,
       );
     emitSelection(next);
+    setPickerTarget(null);
   };
 
   const toggleStarterLock = (playerId: PlayerId) => {
@@ -208,24 +213,36 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
     }
   };
 
-  const renderPlayerOptions = (currentPlayerId: PlayerId) =>
-    players.map((player) => (
-      <option
-        disabled={activeIds.has(player.id) && player.id !== currentPlayerId}
-        key={player.id}
-        value={player.id}
-      >
-        {playerName(player)} / {player.preferredPosition} / 疲労{player.fatigue}
-      </option>
-    ));
+  const currentPickerPlayerId =
+    pickerTarget?.type === "rotation"
+      ? selection.rotation.find((item) => item.slot === pickerTarget.slot)
+          ?.playerId ?? null
+      : pickerTarget?.type === "libero"
+        ? selection.liberoPlayerId
+        : null;
+
+  const choosePickerPlayer = (playerId: PlayerId) => {
+    if (pickerTarget?.type === "rotation") {
+      replaceRotationPlayer(pickerTarget.slot, playerId);
+    } else if (pickerTarget?.type === "libero") {
+      replaceLibero(playerId);
+    }
+  };
+
+  const pickerTitle =
+    pickerTarget?.type === "rotation"
+      ? `ローテーション${pickerTarget.slot}の選手を選択`
+      : pickerTarget?.type === "libero"
+        ? "リベロの選手を選択"
+        : "選手を選択";
 
   return (
-    <main className="app-content team-screen">
+    <main className="app-content team-screen team-screen--direct">
       <section className="team-hero" aria-labelledby="team-heading">
         <div>
           <p className="section-kicker">MATCH ROSTER</p>
           <h2 id="team-heading">チーム編成</h2>
-          <p>{school.name}の試合登録メンバーを調整します。</p>
+          <p>コート上の選手をタップして、直接入れ替えます。</p>
         </div>
         <button
           className="team-secondary-action"
@@ -259,7 +276,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         <div className="team-section-heading">
           <div>
             <p className="section-kicker">STARTING SIX</p>
-            <h3 id="rotation-heading">ローテーション</h3>
+            <h3 id="rotation-heading">コート配置</h3>
           </div>
           <span className={issues.length === 0 ? "team-valid" : "team-invalid"}>
             {issues.length === 0
@@ -268,67 +285,44 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
           </span>
         </div>
 
-        <div className="rotation-list">
+        <div className="volleyball-court" aria-label="スターティングコート">
           {[...selection.rotation]
             .sort((first, second) => first.slot - second.slot)
             .map((assignment) => {
               const player = playerById[assignment.playerId]!;
+              const locked = lockedIds.has(player.id);
               return (
-                <article className="rotation-card" key={assignment.slot}>
-                  <div className="rotation-number">{assignment.slot}</div>
-                  <div className="rotation-card__body">
-                    <label htmlFor={`rotation-${assignment.slot}`}>
-                      ローテーション{assignment.slot}
-                    </label>
-                    <select
-                      aria-label={`ローテーション${assignment.slot}`}
-                      id={`rotation-${assignment.slot}`}
-                      onChange={(event) =>
-                        replaceRotationPlayer(
-                          assignment.slot,
-                          event.target.value as PlayerId,
-                        )
-                      }
-                      value={assignment.playerId}
-                    >
-                      {renderPlayerOptions(assignment.playerId)}
-                    </select>
-                    <div className="player-status-line">
-                      <span>{positionLabels[player.preferredPosition]}</span>
-                      <span>身長 {player.heightCm}cm</span>
-                      <span>疲労 {player.fatigue}</span>
-                      <span>状態 {player.condition}</span>
-                    </div>
-                    <label className="lock-control">
-                      <input
-                        aria-label={`先発固定 ${playerName(player)}`}
-                        checked={lockedIds.has(player.id)}
-                        onChange={() => toggleStarterLock(player.id)}
-                        type="checkbox"
-                      />
-                      <span>先発固定</span>
-                    </label>
-                  </div>
-                  <span
-                    className={
-                      player.injury || player.fatigue >= 85
-                        ? "availability availability--danger"
-                        : "availability"
+                <div className="court-slot" key={assignment.slot}>
+                  <PlayerTile
+                    actionLabel="変更"
+                    ariaLabel={`ローテーション${assignment.slot}を変更`}
+                    badge={`R${assignment.slot}`}
+                    onClick={() =>
+                      setPickerTarget({
+                        type: "rotation",
+                        slot: assignment.slot,
+                      })
                     }
+                    player={player}
+                    selected
+                  />
+                  <button
+                    aria-label={`先発固定 ${playerName(player)}`}
+                    aria-pressed={locked}
+                    className={locked ? "starter-pin starter-pin--active" : "starter-pin"}
+                    onClick={() => toggleStarterLock(player.id)}
+                    type="button"
                   >
-                    {statusLabel(player)}
-                  </span>
-                </article>
+                    {locked ? "固定中" : "先発固定"}
+                  </button>
+                </div>
               );
             })}
         </div>
       </section>
 
       {selection.liberoPlayerId ? (
-        <section
-          className="team-panel libero-panel"
-          aria-labelledby="libero-heading"
-        >
+        <section className="team-panel" aria-labelledby="libero-heading">
           <div className="team-section-heading">
             <div>
               <p className="section-kicker">DEFENSE SPECIALIST</p>
@@ -337,38 +331,27 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
           </div>
           {(() => {
             const player = playerById[selection.liberoPlayerId]!;
+            const locked = lockedIds.has(player.id);
             return (
-              <article className="libero-card">
-                <div className="libero-mark">L</div>
-                <div className="rotation-card__body">
-                  <label htmlFor="libero-player">リベロ</label>
-                  <select
-                    aria-label="リベロ"
-                    id="libero-player"
-                    onChange={(event) =>
-                      replaceLibero(event.target.value as PlayerId)
-                    }
-                    value={selection.liberoPlayerId}
-                  >
-                    {renderPlayerOptions(selection.liberoPlayerId)}
-                  </select>
-                  <div className="player-status-line">
-                    <span>{positionLabels[player.preferredPosition]}</span>
-                    <span>レシーブ {player.abilities.receive}</span>
-                    <span>疲労 {player.fatigue}</span>
-                    <span>状態 {player.condition}</span>
-                  </div>
-                  <label className="lock-control">
-                    <input
-                      aria-label={`先発固定 ${playerName(player)}`}
-                      checked={lockedIds.has(player.id)}
-                      onChange={() => toggleStarterLock(player.id)}
-                      type="checkbox"
-                    />
-                    <span>先発固定</span>
-                  </label>
-                </div>
-              </article>
+              <div className="libero-direct-row">
+                <PlayerTile
+                  actionLabel="変更"
+                  ariaLabel="リベロを変更"
+                  badge="L"
+                  onClick={() => setPickerTarget({ type: "libero" })}
+                  player={player}
+                  selected
+                />
+                <button
+                  aria-label={`先発固定 ${playerName(player)}`}
+                  aria-pressed={locked}
+                  className={locked ? "starter-pin starter-pin--active" : "starter-pin"}
+                  onClick={() => toggleStarterLock(player.id)}
+                  type="button"
+                >
+                  {locked ? "固定中" : "先発固定"}
+                </button>
+              </div>
             );
           })()}
         </section>
@@ -380,25 +363,21 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             <p className="section-kicker">SUBSTITUTES</p>
             <h3 id="bench-heading">ベンチ</h3>
           </div>
-          <span className="bench-count">
-            {selection.benchPlayerIds.length}人
-          </span>
+          <span className="bench-count">{selection.benchPlayerIds.length}人</span>
         </div>
-        <div className="bench-grid">
+        <div className="bench-rail">
           {selection.benchPlayerIds.map((playerId) => {
             const player = playerById[playerId];
             if (!player) {
               return null;
             }
             return (
-              <article data-testid="bench-player" key={player.id}>
-                <strong>{playerName(player)}</strong>
-                <span>
-                  {player.preferredPosition}・{player.grade}年・疲労
-                  {player.fatigue}
-                </span>
-                <small>{statusLabel(player)}</small>
-              </article>
+              <PlayerTile
+                compact
+                key={player.id}
+                player={player}
+                testId="bench-player"
+              />
             );
           })}
         </div>
@@ -443,7 +422,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
           <label>
             <span>
               <strong>試合中の自動交代</strong>
-              <small>試合エンジン実装時に使用します。</small>
+              <small>試合中に状態を見て安全交代します。</small>
             </span>
             <input
               aria-label="試合中の自動交代"
@@ -512,6 +491,37 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
           ))}
         </section>
       ) : null}
+
+      <BottomSheet
+        description="コートで使用中の選手は重複選択できません。"
+        onClose={() => setPickerTarget(null)}
+        open={pickerTarget !== null}
+        title={pickerTitle}
+      >
+        <div className="ui-player-picker-list">
+          {players.map((player) => {
+            const isCurrent = player.id === currentPickerPlayerId;
+            const isActiveElsewhere = activeIds.has(player.id) && !isCurrent;
+            return (
+              <PlayerTile
+                actionLabel={
+                  isCurrent
+                    ? "選択中"
+                    : isActiveElsewhere
+                      ? "コート使用中"
+                      : "入れ替える"
+                }
+                disabled={isCurrent || isActiveElsewhere}
+                key={player.id}
+                onClick={() => choosePickerPlayer(player.id)}
+                player={player}
+                selected={isCurrent}
+                testId="player-picker-option"
+              />
+            );
+          })}
+        </div>
+      </BottomSheet>
     </main>
   );
 }
