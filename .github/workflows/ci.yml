@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: ["feature/m1-match-engine"]
 
 permissions:
   contents: write
@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/m1-match-engine
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
