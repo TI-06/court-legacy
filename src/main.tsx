@@ -1,7 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { GameDataErrorScreen } from "./app/GameDataErrorScreen";
 import "./app.css";
+import { gameDataBootstrap } from "./data/gameData";
 
 const rootElement = document.getElementById("root");
 
@@ -11,6 +13,10 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    {gameDataBootstrap.ok ? (
+      <App />
+    ) : (
+      <GameDataErrorScreen message={gameDataBootstrap.message} />
+    )}
   </StrictMode>,
 );
