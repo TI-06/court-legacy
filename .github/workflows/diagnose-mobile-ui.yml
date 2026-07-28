@@ -1,0 +1,32 @@
+name: Diagnose mobile UI branch
+
+on:
+  push:
+    branches:
+      - feature/m1-mobile-ui-foundation
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m1-mobile-ui-foundation
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Check formatting
+        run: npm run format:check
+      - name: Run lint
+        run: npm run lint
+      - name: Run type check
+        run: npm run typecheck
+      - name: Run unit tests
+        run: npm run test
+      - name: Build production bundle
+        run: npm run build
