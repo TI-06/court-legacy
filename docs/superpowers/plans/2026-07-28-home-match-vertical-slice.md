@@ -36,10 +36,12 @@
 ### Task 1: Deterministic Opponent and Strength Selectors
 
 **Files:**
+
 - Create: `src/domain/selectors/matchSelectors.ts`
 - Test: `tests/unit/domain/selectors/matchSelectors.test.ts`
 
 **Interfaces:**
+
 - Produces: `selectPracticeOpponent(state: GameState): School`
 - Produces: `calculateSelectionStrength(state: GameState, selection: TeamSelection): number`
 
@@ -54,10 +56,12 @@
 ### Task 2: Match Event Presentation Mapper
 
 **Files:**
+
 - Create: `src/features/match/matchPresentation.ts`
 - Test: `tests/unit/features/match/matchPresentation.test.ts`
 
 **Interfaces:**
+
 - Produces: `presentMatchEvent(event, context): PresentedMatchEvent`
 - Produces: `summarizeSetScore(match): string`
 
@@ -86,11 +90,13 @@ export interface PresentedMatchEvent {
 ### Task 3: Home Action Dashboard
 
 **Files:**
+
 - Modify: `src/features/home/HomeScreen.tsx`
 - Create: `src/features/home/home.css`
 - Test: `tests/unit/features/home/HomeScreen.test.tsx`
 
 **Interfaces:**
+
 - `HomeScreen` receives `opponent`, optional `latestMatch`, `onOpenTraining`, `onOpenTeam`, and `onOpenMatch`.
 
 - [ ] Write failing tests for real date rendering, three direct action buttons, rival school display, and latest-match summary.
@@ -104,11 +110,13 @@ export interface PresentedMatchEvent {
 ### Task 4: Match Preparation, Playback, and Result Screen
 
 **Files:**
+
 - Create: `src/features/match/MatchScreen.tsx`
 - Create: `src/features/match/match.css`
 - Test: `tests/unit/features/match/MatchFlow.test.tsx`
 
 **Interfaces:**
+
 - Preparation props include both schools, both selections, integer strength values, and `onStart`.
 - Playback consumes a completed immutable `SimulateMatchResult`.
 - Result view exposes principal factors, recommendations, replay, and return-home actions.
@@ -128,11 +136,13 @@ export interface PresentedMatchEvent {
 ### Task 5: App Integration and Mobile E2E
 
 **Files:**
+
 - Modify: `src/App.tsx`
 - Modify: `tests/e2e/app-shell.spec.ts`
 - Create: `tests/e2e/home-match-flow.spec.ts`
 
 **Interfaces:**
+
 - `App` owns `latestMatchResult` and creates a fresh deterministic random source from current state cursor.
 - `simulateMatch` receives the user selection and an automatically selected legal rival lineup.
 

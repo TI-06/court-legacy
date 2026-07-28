@@ -99,7 +99,9 @@ export function HomeScreen({
         <article className="metric-card">
           <span>部員</span>
           <strong>{players.length}</strong>
-          <small>{injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}</small>
+          <small>
+            {injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}
+          </small>
         </article>
       </section>
 
@@ -125,7 +127,11 @@ export function HomeScreen({
             </span>
             <span aria-hidden="true">›</span>
           </button>
-          <button className="home-action-card" onClick={onOpenTeam} type="button">
+          <button
+            className="home-action-card"
+            onClick={onOpenTeam}
+            type="button"
+          >
             <span className="home-action-card__icon" aria-hidden="true">
               編
             </span>
@@ -153,7 +159,10 @@ export function HomeScreen({
       </section>
 
       {latestMatch && latestWinner ? (
-        <section className="latest-match-card" aria-labelledby="latest-match-heading">
+        <section
+          className="latest-match-card"
+          aria-labelledby="latest-match-heading"
+        >
           <div className="section-heading">
             <div>
               <p className="section-kicker">LATEST MATCH</p>
@@ -181,7 +190,13 @@ export function HomeScreen({
         </div>
         <div className="home-report__list">
           <article>
-            <span className={injuredCount > 0 ? "report-dot report-dot--danger" : "report-dot"} />
+            <span
+              className={
+                injuredCount > 0
+                  ? "report-dot report-dot--danger"
+                  : "report-dot"
+              }
+            />
             <div>
               <strong>
                 {injuredCount > 0

@@ -1,5 +1,8 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { MatchEvent, MatchState } from "../../../../src/domain/model/Match";
+import type {
+  MatchEvent,
+  MatchState,
+} from "../../../../src/domain/model/Match";
 import { matchId, playerId } from "../../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
@@ -162,8 +165,6 @@ describe("match presentation", () => {
   it("summarizes the completed set score", () => {
     const context = createContext();
 
-    expect(summarizeSetScore(context.match)).toBe(
-      "2 - 0｜25-18 / 25-21",
-    );
+    expect(summarizeSetScore(context.match)).toBe("2 - 0｜25-18 / 25-21");
   });
 });

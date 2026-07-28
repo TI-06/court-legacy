@@ -137,9 +137,7 @@ export default function App() {
   };
 
   const startPracticeMatch = () => {
-    const id = matchId(
-      `practice-${gameState.date}-${gameState.randomCursor}`,
-    );
+    const id = matchId(`practice-${gameState.date}-${gameState.randomCursor}`);
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
     const simulation = simulateMatch({
       state: gameState,

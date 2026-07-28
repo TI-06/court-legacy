@@ -4,10 +4,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
-import {
-  presentMatchEvent,
-  summarizeSetScore,
-} from "./matchPresentation";
+import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -72,19 +69,22 @@ export function MatchScreen({
       return;
     }
 
-    const timer = window.setInterval(() => {
-      setVisibleEventIndex((current) => {
-        if (current >= lastEventIndex) {
-          setPlaying(false);
-          return current;
-        }
-        const next = current + 1;
-        if (next >= lastEventIndex) {
-          setPlaying(false);
-        }
-        return next;
-      });
-    }, Math.round(800 / speed));
+    const timer = window.setInterval(
+      () => {
+        setVisibleEventIndex((current) => {
+          if (current >= lastEventIndex) {
+            setPlaying(false);
+            return current;
+          }
+          const next = current + 1;
+          if (next >= lastEventIndex) {
+            setPlaying(false);
+          }
+          return next;
+        });
+      },
+      Math.round(800 / speed),
+    );
 
     return () => window.clearInterval(timer);
   }, [lastEventIndex, matchComplete, playing, reducedMotion, result, speed]);
@@ -95,9 +95,7 @@ export function MatchScreen({
     }
     return result.match.eventLog
       .slice(0, visibleEventIndex + 1)
-      .map((event) =>
-        presentMatchEvent(event, { state, match: result.match }),
-      );
+      .map((event) => presentMatchEvent(event, { state, match: result.match }));
   }, [result, state, visibleEventIndex]);
 
   if (!result) {
@@ -134,7 +132,10 @@ export function MatchScreen({
           </article>
         </section>
 
-        <section className="match-prep-panel" aria-labelledby="match-ready-heading">
+        <section
+          className="match-prep-panel"
+          aria-labelledby="match-ready-heading"
+        >
           <div className="section-heading">
             <div>
               <p className="section-kicker">LINEUP CHECK</p>
@@ -209,7 +210,9 @@ export function MatchScreen({
               <small>セット {result.match.homeSetsWon}</small>
             </article>
             <div>
-              <span>第{result.match.eventLog[visibleEventIndex]!.setNumber}セット</span>
+              <span>
+                第{result.match.eventLog[visibleEventIndex]!.setNumber}セット
+              </span>
               <strong>—</strong>
             </div>
             <article>
@@ -282,7 +285,10 @@ export function MatchScreen({
             ) : null}
           </section>
 
-          <section className="match-timeline" aria-labelledby="timeline-heading">
+          <section
+            className="match-timeline"
+            aria-labelledby="timeline-heading"
+          >
             <div className="section-heading">
               <div>
                 <p className="section-kicker">PLAY LOG</p>
@@ -304,7 +310,10 @@ export function MatchScreen({
         </>
       ) : (
         <>
-          <section className="match-result-hero" aria-labelledby="result-heading">
+          <section
+            className="match-result-hero"
+            aria-labelledby="result-heading"
+          >
             <p className="section-kicker">FULL TIME</p>
             <h2 id="result-heading">試合結果</h2>
             <strong>{winner.name} 勝利</strong>
@@ -338,7 +347,10 @@ export function MatchScreen({
             </div>
           </section>
 
-          <section className="match-analysis" aria-labelledby="recommend-heading">
+          <section
+            className="match-analysis"
+            aria-labelledby="recommend-heading"
+          >
             <div className="section-heading">
               <div>
                 <p className="section-kicker">NEXT PLAN</p>

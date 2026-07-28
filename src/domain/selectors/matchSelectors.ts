@@ -35,10 +35,8 @@ function activePlayerIds(selection: TeamSelection): PlayerId[] {
 
 function playerStrength(player: Player): number {
   const abilityAverage =
-    ABILITY_KEYS.reduce(
-      (sum, ability) => sum + player.abilities[ability],
-      0,
-    ) / ABILITY_KEYS.length;
+    ABILITY_KEYS.reduce((sum, ability) => sum + player.abilities[ability], 0) /
+    ABILITY_KEYS.length;
   const conditionAdjustment = (player.condition - 50) * 0.22;
   const fatigueAdjustment = player.fatigue * 0.3;
   const injuryAdjustment = player.injury ? 18 : 0;

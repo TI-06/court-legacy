@@ -49,15 +49,15 @@ describe("home action dashboard", () => {
 
     render(<HomeScreen {...props} />);
 
-    expect(screen.getByRole("heading", { name: "監督ホーム" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "監督ホーム" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("2026年4月1日")).toBeInTheDocument();
     expect(screen.getByText(props.opponent.name)).toBeInTheDocument();
     expect(screen.getByText(`戦力 ${props.homeStrength}`)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "育成を決める" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "チーム編成を確認" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "チーム編成を確認" }));
     fireEvent.click(screen.getByRole("button", { name: "練習試合へ" }));
 
     expect(props.onOpenTraining).toHaveBeenCalledOnce();
@@ -67,11 +67,14 @@ describe("home action dashboard", () => {
 
   it("shows the latest completed match result when one exists", () => {
     const props = createProps(true);
-    const winner = props.state.schools[props.latestMatch!.analysis.winnerSchoolId]!;
+    const winner =
+      props.state.schools[props.latestMatch!.analysis.winnerSchoolId]!;
 
     render(<HomeScreen {...props} />);
 
-    expect(screen.getByRole("heading", { name: "直近の試合" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "直近の試合" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(`${winner.name} 勝利`)).toBeInTheDocument();
     expect(
       screen.getByText(

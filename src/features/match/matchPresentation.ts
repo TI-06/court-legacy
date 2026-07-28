@@ -1,8 +1,5 @@
 import type { GameState } from "../../domain/model/GameState";
-import type {
-  MatchEvent,
-  MatchState,
-} from "../../domain/model/Match";
+import type { MatchEvent, MatchState } from "../../domain/model/Match";
 import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 
 export interface MatchPresentationContext {

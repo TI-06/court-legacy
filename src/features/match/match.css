@@ -26,7 +26,11 @@
 .match-result-hero {
   color: #f7fbfc;
   background:
-    radial-gradient(circle at top right, rgb(215 155 44 / 26%), transparent 34%),
+    radial-gradient(
+      circle at top right,
+      rgb(215 155 44 / 26%),
+      transparent 34%
+    ),
     linear-gradient(145deg, #173b52, #102b3c);
   border-color: rgb(255 255 255 / 8%);
 }

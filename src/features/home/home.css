@@ -17,7 +17,11 @@
 .home-hero {
   color: #f7fbfc;
   background:
-    radial-gradient(circle at top right, rgb(213 157 52 / 28%), transparent 36%),
+    radial-gradient(
+      circle at top right,
+      rgb(213 157 52 / 28%),
+      transparent 36%
+    ),
     linear-gradient(145deg, #173b52, #102b3c);
   border-color: rgb(255 255 255 / 8%);
 }
