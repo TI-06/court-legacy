@@ -11,43 +11,66 @@ permissions:
 
 jobs:
   repair-match-engine:
-    if: >-
-      (github.event_name == 'push' &&
-       github.ref_name == 'integration/m1-match-engine' &&
-       github.actor != 'github-actions[bot]') ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
-       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: integration/m1-match-engine
+          ref: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'integration/m1-match-engine') || (github.event_name == 'push' && github.ref_name == 'integration/m1-match-engine')) && 'integration/m1-match-engine' || github.ref }}
       - uses: actions/setup-node@v4
+        if: >-
+          (github.event_name == 'pull_request' &&
+           github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
+           github.event.pull_request.head.repo.full_name == github.repository) ||
+          (github.event_name == 'push' &&
+           github.ref_name == 'integration/m1-match-engine' &&
+           github.actor != 'github-actions[bot]')
         with:
           node-version-file: .node-version
           cache: npm
       - name: Install formatter
+        if: >-
+          (github.event_name == 'pull_request' &&
+           github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
+           github.event.pull_request.head.repo.full_name == github.repository) ||
+          (github.event_name == 'push' &&
+           github.ref_name == 'integration/m1-match-engine' &&
+           github.actor != 'github-actions[bot]')
         run: npm ci --legacy-peer-deps --ignore-scripts
       - name: Format and clean match engine
+        if: >-
+          (github.event_name == 'pull_request' &&
+           github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
+           github.event.pull_request.head.repo.full_name == github.repository) ||
+          (github.event_name == 'push' &&
+           github.ref_name == 'integration/m1-match-engine' &&
+           github.actor != 'github-actions[bot]')
         shell: bash
         run: |
           npx prettier src/domain/match/simulateMatch.ts tests/unit/domain/match/simulateMatch.test.ts --write
           python - <<'PY'
           from pathlib import Path
           path = Path('src/domain/match/simulateMatch.ts')
-          text = path.read_text()
-          block = '''  const opponentServeErrors = points.filter(
-            (event) => event.detailCode === "point.serve-error",
-          ).length;
-          '''
-          if block in text:
-              path.write_text(text.replace(block, '', 1))
+          lines = path.read_text().splitlines(keepends=True)
+          for index, line in enumerate(lines):
+              if 'const opponentServeErrors = points.filter(' in line:
+                  del lines[index:index + 3]
+                  break
+          text = ''.join(lines)
+          if 'opponentServeErrors' in text:
+              raise SystemExit('unused opponentServeErrors declaration remains')
+          path.write_text(text)
           PY
           npx prettier src/domain/match/simulateMatch.ts --write
       - name: Commit repair
+        if: >-
+          (github.event_name == 'pull_request' &&
+           github.event.pull_request.head.ref == 'integration/m1-match-engine' &&
+           github.event.pull_request.head.repo.full_name == github.repository) ||
+          (github.event_name == 'push' &&
+           github.ref_name == 'integration/m1-match-engine' &&
+           github.actor != 'github-actions[bot]')
         shell: bash
         run: |
           if git diff --quiet; then
@@ -56,10 +79,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/domain/match/simulateMatch.ts tests/unit/domain/match/simulateMatch.test.ts
-          git commit -m "fix: format and clean match engine"
+          git commit -m "fix: remove unused match metric"
           git push origin HEAD:integration/m1-match-engine
 
   quality:
+    needs: repair-match-engine
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
