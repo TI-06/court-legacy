@@ -29,7 +29,11 @@ function createState(seed = "auto-selection") {
   return generateWorld({ seed, userSchool, data });
 }
 
-function setRole(player: Player, role: Player["preferredPosition"], score: number): Player {
+function setRole(
+  player: Player,
+  role: Player["preferredPosition"],
+  score: number,
+): Player {
   return {
     ...player,
     preferredPosition: role,
@@ -195,9 +199,9 @@ describe("resolveLockedStarters", () => {
       },
     });
 
-    expect(result.selection.rotation.some((item) => item.playerId === lockedId)).toBe(
-      true,
-    );
+    expect(
+      result.selection.rotation.some((item) => item.playerId === lockedId),
+    ).toBe(true);
     expect(result.replacements).toEqual([]);
   });
 
@@ -228,9 +232,9 @@ describe("resolveLockedStarters", () => {
       },
     });
 
-    expect(result.selection.rotation.some((item) => item.playerId === lockedId)).toBe(
-      false,
-    );
+    expect(
+      result.selection.rotation.some((item) => item.playerId === lockedId),
+    ).toBe(false);
     expect(result.replacements).toContainEqual(
       expect.objectContaining({ playerId: lockedId, reason: "injury" }),
     );
@@ -263,9 +267,9 @@ describe("resolveLockedStarters", () => {
       },
     });
 
-    expect(result.selection.rotation.some((item) => item.playerId === lockedId)).toBe(
-      true,
-    );
+    expect(
+      result.selection.rotation.some((item) => item.playerId === lockedId),
+    ).toBe(true);
   });
 
   it("benches a severely fatigued locked starter only when enabled", () => {
@@ -302,15 +306,15 @@ describe("resolveLockedStarters", () => {
       },
     });
 
-    expect(enabled.selection.rotation.some((item) => item.playerId === lockedId)).toBe(
-      false,
-    );
+    expect(
+      enabled.selection.rotation.some((item) => item.playerId === lockedId),
+    ).toBe(false);
     expect(enabled.replacements).toContainEqual(
       expect.objectContaining({ playerId: lockedId, reason: "fatigue" }),
     );
-    expect(disabled.selection.rotation.some((item) => item.playerId === lockedId)).toBe(
-      true,
-    );
+    expect(
+      disabled.selection.rotation.some((item) => item.playerId === lockedId),
+    ).toBe(true);
   });
 
   it("does not mutate the supplied selection", () => {

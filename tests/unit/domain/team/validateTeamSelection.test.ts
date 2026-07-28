@@ -22,7 +22,11 @@ const userSchool = {
 };
 
 function createContext() {
-  const state = generateWorld({ seed: "selection-validation", userSchool, data });
+  const state = generateWorld({
+    seed: "selection-validation",
+    userSchool,
+    data,
+  });
   const school = state.schools[state.userSchoolId]!;
   const ids = school.playerIds;
   const selection: TeamSelection = {

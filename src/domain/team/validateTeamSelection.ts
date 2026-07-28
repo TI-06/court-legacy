@@ -1,9 +1,6 @@
 import type { GameState } from "../model/GameState";
 import type { PlayerId, SchoolId } from "../model/identifiers";
-import type {
-  TeamSelection,
-  TeamSelectionIssue,
-} from "../model/TeamSelection";
+import type { TeamSelection, TeamSelectionIssue } from "../model/TeamSelection";
 
 export interface ValidateTeamSelectionInput {
   state: GameState;
@@ -25,7 +22,10 @@ function duplicateIds(ids: readonly PlayerId[]): Set<PlayerId> {
   return duplicates;
 }
 
-function sameIdSet(first: readonly PlayerId[], second: readonly PlayerId[]): boolean {
+function sameIdSet(
+  first: readonly PlayerId[],
+  second: readonly PlayerId[],
+): boolean {
   if (first.length !== second.length) {
     return false;
   }
@@ -127,9 +127,7 @@ export function validateTeamSelection(
     ...rotationIds,
     ...input.selection.benchPlayerIds,
     ...input.selection.servingOrderPlayerIds,
-    ...(input.selection.liberoPlayerId
-      ? [input.selection.liberoPlayerId]
-      : []),
+    ...(input.selection.liberoPlayerId ? [input.selection.liberoPlayerId] : []),
   ]);
   for (const playerId of referencedIds) {
     if (!input.state.players[playerId]) {
@@ -150,9 +148,7 @@ export function validateTeamSelection(
   const selectedIds = new Set<PlayerId>([
     ...rotationIds,
     ...input.selection.benchPlayerIds,
-    ...(input.selection.liberoPlayerId
-      ? [input.selection.liberoPlayerId]
-      : []),
+    ...(input.selection.liberoPlayerId ? [input.selection.liberoPlayerId] : []),
   ]);
   for (const playerId of input.selection.substitutionPolicy
     .starterLockPlayerIds) {

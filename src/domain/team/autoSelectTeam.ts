@@ -169,7 +169,9 @@ export function autoSelectTeam(input: AutoSelectTeamInput): TeamSelection {
     selection,
   });
   if (issues.length > 0) {
-    throw new Error(`automatic team selection is invalid: ${issues[0]!.message}`);
+    throw new Error(
+      `automatic team selection is invalid: ${issues[0]!.message}`,
+    );
   }
 
   return selection;
@@ -204,8 +206,7 @@ function swapRotationPlayer(
   assignment.playerId = incomingPlayerId;
 
   selection.servingOrderPlayerIds = selection.servingOrderPlayerIds.map(
-    (playerId) =>
-      playerId === outgoingPlayerId ? incomingPlayerId : playerId,
+    (playerId) => (playerId === outgoingPlayerId ? incomingPlayerId : playerId),
   );
   selection.benchPlayerIds = selection.benchPlayerIds
     .filter((playerId) => playerId !== incomingPlayerId)
@@ -228,9 +229,7 @@ function promoteEligibleLockedPlayers(
   state: GameState,
   selection: TeamSelection,
 ): void {
-  const lockedIds = new Set(
-    selection.substitutionPolicy.starterLockPlayerIds,
-  );
+  const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
 
   for (const lockedId of lockedIds) {
     const player = state.players[lockedId];
@@ -253,7 +252,9 @@ function promoteEligibleLockedPlayers(
         player: state.players[assignment.playerId],
       }))
       .filter(
-        (candidate): candidate is {
+        (
+          candidate,
+        ): candidate is {
           assignment: RotationAssignment;
           player: Player;
         } => Boolean(candidate.player) && !lockedIds.has(candidate.player.id),
@@ -307,9 +308,7 @@ export function resolveLockedStarters(
   const selection = cloneSelection(input.selection);
   const replacements: StarterReplacement[] = [];
   promoteEligibleLockedPlayers(input.state, selection);
-  const lockedIds = new Set(
-    selection.substitutionPolicy.starterLockPlayerIds,
-  );
+  const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
 
   for (const lockedId of lockedIds) {
     const assignment = selection.rotation.find(
@@ -350,7 +349,9 @@ export function resolveLockedStarters(
     selection,
   });
   if (finalIssues.length > 0) {
-    throw new Error(`resolved team selection is invalid: ${finalIssues[0]!.message}`);
+    throw new Error(
+      `resolved team selection is invalid: ${finalIssues[0]!.message}`,
+    );
   }
 
   return { selection, replacements };
