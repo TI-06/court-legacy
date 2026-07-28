@@ -1,4 +1,4 @@
-import type { GameDate, MatchId } from "./identifiers";
+import type { GameDate, MatchId, PlayerId } from "./identifiers";
 
 export type ActivityType =
   | "practice"
@@ -38,6 +38,6 @@ export interface MonthlyReport {
   losses: number;
   averageFatigue: number;
   reputationChange: number;
-  highlightedPlayerIds: string[];
+  highlightedPlayerIds: PlayerId[];
   issueIds: string[];
 }
