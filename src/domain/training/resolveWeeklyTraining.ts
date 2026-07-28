@@ -70,7 +70,6 @@ function clampStateValue(value: number): number {
 }
 
 function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
-  schoolPlayerIds: Set<PlayerId>;
   menu: TrainingMenuDefinition;
   instructions: Map<PlayerId, IndividualTrainingInstructionDefinition>;
 } {
@@ -98,6 +97,19 @@ function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
   }
 
   const schoolPlayerIds = new Set(school.playerIds);
+  for (const playerId of school.playerIds) {
+    const player = input.state.players[playerId];
+    if (!player) {
+      throw new Error(`school references unknown player: ${playerId}`);
+    }
+    if (!input.data.growthTypes.has(player.growthTypeId)) {
+      throw new Error(`unknown player growth type: ${player.growthTypeId}`);
+    }
+    if (!input.data.personalities.has(player.personalityId)) {
+      throw new Error(`unknown player personality: ${player.personalityId}`);
+    }
+  }
+
   const instructions = new Map<
     PlayerId,
     IndividualTrainingInstructionDefinition
@@ -107,11 +119,6 @@ function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
     if (!schoolPlayerIds.has(assignment.playerId)) {
       throw new Error(
         `individual assignment player is not in school: ${assignment.playerId}`,
-      );
-    }
-    if (!input.state.players[assignment.playerId]) {
-      throw new Error(
-        `unknown individual assignment player: ${assignment.playerId}`,
       );
     }
 
@@ -126,7 +133,7 @@ function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
     instructions.set(assignment.playerId, instruction);
   }
 
-  return { schoolPlayerIds, menu, instructions };
+  return { menu, instructions };
 }
 
 function activityFromMenu(menu: TrainingMenuDefinition): TrainingActivity {
@@ -295,15 +302,8 @@ function applyActivity(
     return player;
   }
 
-  const growthType = data.growthTypes.get(player.growthTypeId);
-  const personality = data.personalities.get(player.personalityId);
-  if (!growthType) {
-    throw new Error(`unknown player growth type: ${player.growthTypeId}`);
-  }
-  if (!personality) {
-    throw new Error(`unknown player personality: ${player.personalityId}`);
-  }
-
+  const growthType = data.growthTypes.get(player.growthTypeId)!;
+  const personality = data.personalities.get(player.personalityId)!;
   const growth = calculateGrowth({
     baseGrowth: activity.baseGrowth,
     player,
@@ -372,11 +372,7 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
 
   for (const playerId of school.playerIds) {
-    const original = input.state.players[playerId];
-    if (!original) {
-      throw new Error(`school references unknown player: ${playerId}`);
-    }
-
+    const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
     let updated = applyActivity(
       original,
