@@ -1,0 +1,37 @@
+name: Refresh Cloudflare dependency lock
+
+on:
+  push:
+    branches:
+      - fix/cloudflare-dependency-resolution
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/cloudflare-dependency-resolution
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Refresh lock file
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Verify clean installation
+        run: npm clean-install --progress=false
+      - name: Verify application
+        run: npm run verify
+      - name: Remove temporary workflow
+        run: rm .github/workflows/refresh-cloudflare-lock.yml
+      - name: Commit lock file
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json .github/workflows/refresh-cloudflare-lock.yml
+          git commit -m "fix: refresh Cloudflare dependency lock"
+          git push origin HEAD:fix/cloudflare-dependency-resolution
