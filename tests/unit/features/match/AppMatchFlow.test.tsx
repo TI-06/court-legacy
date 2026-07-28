@@ -5,7 +5,7 @@ describe("app match integration", () => {
   it("runs a practice match from home and keeps the latest result", () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "練習試合へ" }));
+    fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
     expect(
       screen.getByRole("heading", { name: "練習試合" }),
     ).toBeInTheDocument();
