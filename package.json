@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "npm run build && vite preview",
+    "preview": "npm run build && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
