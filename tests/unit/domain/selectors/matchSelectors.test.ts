@@ -24,7 +24,7 @@ describe("match selectors", () => {
       schoolId: state.userSchoolId,
     });
     const restedStrength = calculateSelectionStrength(state, selection);
-    const exhaustedPlayers = new Set([
+    const exhaustedPlayers = new Set<string>([
       ...selection.rotation.map((assignment) => assignment.playerId),
       ...(selection.liberoPlayerId ? [selection.liberoPlayerId] : []),
     ]);
