@@ -1,0 +1,20 @@
+.placeholder-card {
+  min-width: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.placeholder-card h2 {
+  margin: 5px 0 0;
+  font-size: 1.12rem;
+}
+
+.placeholder-card > p:not(.section-kicker) {
+  margin: 10px 0 0;
+  color: #687984;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}

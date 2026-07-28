@@ -19,6 +19,26 @@ test("mobile shell keeps all primary navigation actions visible", async ({
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
+test("mobile training flow executes without horizontal overflow", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "育成" }).click();
+
+  await expect(page.getByRole("heading", { name: "週間練習" })).toBeVisible();
+  await page.getByRole("button", { name: "練習を実行" }).click();
+  await expect(
+    page.getByRole("heading", { name: "今週の練習結果" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("training-result-player")).toHaveCount(12);
+
+  const bodyWidth = await page
+    .locator("body")
+    .evaluate((body) => body.scrollWidth);
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
+});
+
 test("worker health endpoint reports ready status", async ({ request }) => {
   const response = await request.get("/api/health");
 

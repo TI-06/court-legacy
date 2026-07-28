@@ -1,5 +1,17 @@
-type IconName =
-  "home" | "team" | "training" | "match" | "school" | "calendar" | "arrow";
+import { useState } from "react";
+import "./app/app-shell.css";
+import { createDemoGame, gameData } from "./app/createDemoGame";
+import { SeededRandom } from "./domain/random/SeededRandom";
+import {
+  resolveWeeklyTraining,
+  type TrainingResult,
+  type WeeklyPlan,
+} from "./domain/training/resolveWeeklyTraining";
+import { HomeScreen } from "./features/home/HomeScreen";
+import { TrainingScreen } from "./features/training/TrainingScreen";
+
+type AppTab = "home" | "team" | "training" | "match" | "school";
+type IconName = "home" | "team" | "training" | "match" | "school" | "calendar";
 
 interface IconProps {
   name: IconName;
@@ -14,7 +26,6 @@ function Icon({ name }: IconProps) {
       "M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm10 2h3v2a4 4 0 0 1-4 4M7 6H4v2a4 4 0 0 0 4 4",
     school: "m3 10 9-6 9 6-9 6-9-6Zm3 4v5h12v-5M9 19v-4h6v4",
     calendar: "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
-    arrow: "m9 18 6-6-6-6",
   };
 
   return (
@@ -30,15 +41,87 @@ function Icon({ name }: IconProps) {
   );
 }
 
-const navigationItems: Array<{ label: string; icon: IconName }> = [
-  { label: "ホーム", icon: "home" },
-  { label: "チーム", icon: "team" },
-  { label: "育成", icon: "training" },
-  { label: "試合", icon: "match" },
-  { label: "学校", icon: "school" },
+const navigationItems: Array<{
+  id: AppTab;
+  label: string;
+  icon: IconName;
+}> = [
+  { id: "home", label: "ホーム", icon: "home" },
+  { id: "team", label: "チーム", icon: "team" },
+  { id: "training", label: "育成", icon: "training" },
+  { id: "match", label: "試合", icon: "match" },
+  { id: "school", label: "学校", icon: "school" },
 ];
 
+function PlaceholderScreen({
+  tab,
+}: {
+  tab: Exclude<AppTab, "home" | "training">;
+}) {
+  const labels: Record<typeof tab, { title: string; description: string }> = {
+    team: {
+      title: "チーム編成",
+      description: "スタメン、ローテーション、控え方針を次の工程で実装します。",
+    },
+    match: {
+      title: "試合",
+      description: "ラリー単位の試合シミュレーションを次の工程で実装します。",
+    },
+    school: {
+      title: "学校運営",
+      description: "設備、評判、スカウト、OB記録を順次追加します。",
+    },
+  };
+  const content = labels[tab];
+
+  return (
+    <main className="app-content">
+      <section className="placeholder-card">
+        <p className="section-kicker">COMING NEXT</p>
+        <h2>{content.title}</h2>
+        <p>{content.description}</p>
+      </section>
+    </main>
+  );
+}
+
 export default function App() {
+  const [activeTab, setActiveTab] = useState<AppTab>("home");
+  const [gameState, setGameState] = useState(createDemoGame);
+  const [latestTrainingResult, setLatestTrainingResult] =
+    useState<TrainingResult | null>(null);
+
+  const executeTraining = (plan: WeeklyPlan) => {
+    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
+    const resolution = resolveWeeklyTraining({
+      state: gameState,
+      schoolId: gameState.userSchoolId,
+      plan,
+      data: gameData,
+      random,
+    });
+
+    setGameState(resolution.state);
+    setLatestTrainingResult(resolution.result);
+  };
+
+  const content =
+    activeTab === "home" ? (
+      <HomeScreen
+        onOpenTraining={() => setActiveTab("training")}
+        state={gameState}
+      />
+    ) : activeTab === "training" ? (
+      <TrainingScreen
+        data={gameData}
+        latestResult={latestTrainingResult}
+        onExecute={executeTraining}
+        state={gameState}
+      />
+    ) : (
+      <PlaceholderScreen tab={activeTab} />
+    );
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -51,100 +134,25 @@ export default function App() {
         </button>
       </header>
 
-      <main className="app-content">
-        <section className="season-card" aria-labelledby="season-heading">
-          <div className="season-card__top">
-            <div>
-              <p className="section-kicker">1年目</p>
-              <h2 id="season-heading">4月 第1週</h2>
-            </div>
-            <span className="status-badge">新チーム始動</span>
-          </div>
-          <div className="next-match">
-            <div>
-              <span>次の練習試合</span>
-              <strong>青凪高校</strong>
-            </div>
-            <div className="countdown">
-              <strong>3</strong>
-              <span>週間後</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="metric-grid" aria-label="チーム状況">
-          <article className="metric-card">
-            <span>チーム評価</span>
-            <strong>C</strong>
-            <small>県内 12位</small>
-          </article>
-          <article className="metric-card">
-            <span>平均疲労</span>
-            <strong>18</strong>
-            <small>良好</small>
-          </article>
-          <article className="metric-card">
-            <span>部員</span>
-            <strong>12</strong>
-            <small>3年生 4人</small>
-          </article>
-        </section>
-
-        <section className="focus-card" aria-labelledby="focus-heading">
-          <div className="section-heading">
-            <div>
-              <p className="section-kicker">今週の判断</p>
-              <h2 id="focus-heading">練習方針を決める</h2>
-            </div>
-            <span className="required-label">必須</span>
-          </div>
-          <p>新入生を確認して、最初のチーム練習と個人指示を設定します。</p>
-          <button className="primary-action" type="button">
-            今週の方針を設定
-            <Icon name="arrow" />
-          </button>
-        </section>
-
-        <section className="issues" aria-labelledby="issues-heading">
-          <div className="section-heading">
-            <div>
-              <p className="section-kicker">監督レポート</p>
-              <h2 id="issues-heading">現在の課題</h2>
-            </div>
-            <button className="text-action" type="button">
-              詳細
-            </button>
-          </div>
-          <div className="issue-list">
-            <article>
-              <span className="issue-dot" />
-              <div>
-                <strong>セッター候補が定まっていません</strong>
-                <p>2人の適性を練習で確認しましょう。</p>
-              </div>
-            </article>
-            <article>
-              <span className="issue-dot issue-dot--warning" />
-              <div>
-                <strong>サーブレシーブが不安定です</strong>
-                <p>次戦までに守備連携を上げる必要があります。</p>
-              </div>
-            </article>
-          </div>
-        </section>
-      </main>
+      {content}
 
       <nav aria-label="主要メニュー" className="bottom-navigation">
-        {navigationItems.map((item, index) => (
-          <button
-            className={index === 0 ? "nav-item nav-item--active" : "nav-item"}
-            key={item.label}
-            type="button"
-          >
-            <Icon name={item.icon} />
-            <span>{item.label}</span>
-          </button>
-        ))}
+        {navigationItems.map((item) => {
+          const active = activeTab === item.id;
+
+          return (
+            <button
+              aria-current={active ? "page" : undefined}
+              className={active ? "nav-item nav-item--active" : "nav-item"}
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              type="button"
+            >
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
