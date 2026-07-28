@@ -19,7 +19,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
@@ -33,7 +33,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run mobile E2E tests
