@@ -2,12 +2,14 @@ import { useState } from "react";
 import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
 import { SeededRandom } from "./domain/random/SeededRandom";
+import { autoSelectTeam } from "./domain/team/autoSelectTeam";
 import {
   resolveWeeklyTraining,
   type TrainingResult,
   type WeeklyPlan,
 } from "./domain/training/resolveWeeklyTraining";
 import { HomeScreen } from "./features/home/HomeScreen";
+import { TeamScreen } from "./features/team/TeamScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 
 type AppTab = "home" | "team" | "training" | "match" | "school";
@@ -53,16 +55,22 @@ const navigationItems: Array<{
   { id: "school", label: "学校", icon: "school" },
 ];
 
+function createInitialAppState() {
+  const gameState = createDemoGame();
+  const teamSelection = autoSelectTeam({
+    state: gameState,
+    schoolId: gameState.userSchoolId,
+  });
+
+  return { gameState, teamSelection };
+}
+
 function PlaceholderScreen({
   tab,
 }: {
-  tab: Exclude<AppTab, "home" | "training">;
+  tab: Exclude<AppTab, "home" | "team" | "training">;
 }) {
   const labels: Record<typeof tab, { title: string; description: string }> = {
-    team: {
-      title: "チーム編成",
-      description: "スタメン、ローテーション、控え方針を次の工程で実装します。",
-    },
     match: {
       title: "試合",
       description: "ラリー単位の試合シミュレーションを次の工程で実装します。",
@@ -87,9 +95,10 @@ function PlaceholderScreen({
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
-  const [gameState, setGameState] = useState(createDemoGame);
+  const [appState, setAppState] = useState(createInitialAppState);
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
+  const { gameState, teamSelection } = appState;
 
   const executeTraining = (plan: WeeklyPlan) => {
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
@@ -101,7 +110,10 @@ export default function App() {
       random,
     });
 
-    setGameState(resolution.state);
+    setAppState((current) => ({
+      ...current,
+      gameState: resolution.state,
+    }));
     setLatestTrainingResult(resolution.result);
   };
 
@@ -109,6 +121,17 @@ export default function App() {
     activeTab === "home" ? (
       <HomeScreen
         onOpenTraining={() => setActiveTab("training")}
+        state={gameState}
+      />
+    ) : activeTab === "team" ? (
+      <TeamScreen
+        onChange={(selection) =>
+          setAppState((current) => ({
+            ...current,
+            teamSelection: selection,
+          }))
+        }
+        selection={teamSelection}
         state={gameState}
       />
     ) : activeTab === "training" ? (
