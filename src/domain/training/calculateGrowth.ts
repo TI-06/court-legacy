@@ -88,7 +88,11 @@ export function calculateGrowth(
     120,
   );
   const fatigue = clampPercent(100 - input.player.fatigue * 0.6, 40, 100);
-  const condition = clampPercent(75 + input.player.condition * 0.25, 60, 100);
+  const condition = clampPercent(
+    75 + input.player.condition * 0.25,
+    60,
+    100,
+  );
   const academic = academicMultiplier(input.player.academic);
   const nonAcademicModifiers: GrowthModifier[] = [
     { code: "grade", label: "学年成長", percent: grade },
