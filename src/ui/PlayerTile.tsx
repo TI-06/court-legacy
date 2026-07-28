@@ -7,6 +7,7 @@ interface PlayerTileProps {
   compact?: boolean;
   badge?: string;
   actionLabel?: string;
+  ariaLabel?: string;
   onClick?: () => void;
   testId?: string;
 }
@@ -31,6 +32,7 @@ export function PlayerTile({
   compact = false,
   badge,
   actionLabel,
+  ariaLabel,
   onClick,
   testId,
 }: PlayerTileProps) {
@@ -61,6 +63,7 @@ export function PlayerTile({
   if (onClick) {
     return (
       <button
+        aria-label={ariaLabel}
         aria-pressed={selected}
         className={[
           "ui-player-tile",
