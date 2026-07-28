@@ -226,6 +226,10 @@ function calculateInjuryRisk(
   conditioning: number,
   recoveryRoomLevel: number,
 ): number {
+  if (activity.injuryRisk === 0) {
+    return 0;
+  }
+
   return Math.max(
     0,
     Math.min(
@@ -361,6 +365,7 @@ export function resolveWeeklyTraining(
   input: ResolveWeeklyTrainingInput,
 ): WeeklyTrainingResolution {
   const validated = validateWeeklyPlan(input);
+  const initialRandomCursor = input.random.cursor;
   const school = input.state.schools[input.schoolId]!;
   const players = { ...input.state.players };
   const playerLogs: PlayerGrowthLog[] = [];
@@ -400,11 +405,13 @@ export function resolveWeeklyTraining(
     }
   }
 
+  const consumedRandomValues = input.random.cursor - initialRandomCursor;
+
   return {
     state: {
       ...input.state,
       players,
-      randomCursor: input.state.randomCursor + input.random.cursor,
+      randomCursor: input.state.randomCursor + consumedRandomValues,
     },
     result: {
       schoolId: input.schoolId,
