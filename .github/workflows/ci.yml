@@ -20,13 +20,31 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Generate formatted world source
+        run: >-
+          npx prettier
+          src/domain/generation/generatePlayer.ts
+          src/domain/generation/generateSchool.ts
+          tests/unit/domain/generation/generatePlayer.test.ts
+          tests/unit/domain/generation/generateWorld.test.ts
+          --write
+      - name: Upload formatted world source
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-world-source
+          path: |
+            src/domain/generation/generatePlayer.ts
+            src/domain/generation/generateSchool.ts
+            tests/unit/domain/generation/generatePlayer.test.ts
+            tests/unit/domain/generation/generateWorld.test.ts
+          retention-days: 3
       - name: Verify formatting, lint, types, tests, and build
         shell: bash
         run: |
           set +e
           npm run verify > verify-output.txt 2>&1
           status=$?
-          tail -200 verify-output.txt
+          tail -240 verify-output.txt
           exit $status
       - name: Upload verification diagnostics
         if: always()
