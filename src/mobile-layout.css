@@ -183,6 +183,13 @@
   overflow-x: clip;
 }
 
+@media (max-width: 350px) {
+  .ui-sticky-action-bar {
+    width: calc(100% + 20px);
+    margin-inline: -10px;
+  }
+}
+
 @media (max-width: 340px) {
   .volleyball-court {
     padding: 6px;
