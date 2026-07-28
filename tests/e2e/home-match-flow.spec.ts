@@ -58,7 +58,8 @@ test("360px home and match preparation stay within the viewport", async ({
   await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
-  await page.getByRole("button", { name: "試合" }).click();
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  await navigation.getByRole("button", { name: "試合", exact: true }).click();
   await expect(page.getByRole("heading", { name: "練習試合" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
