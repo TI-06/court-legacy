@@ -17,6 +17,9 @@ export function weightedChoice<T>(
     }
 
     totalWeight += item.weight;
+    if (!Number.isFinite(totalWeight)) {
+      throw new Error("total weight must be finite");
+    }
   }
 
   if (totalWeight === 0) {
