@@ -94,7 +94,9 @@ describe("resolveWeeklyTraining", () => {
     });
     const after = resolution.state.players[untouchedId]!;
 
-    expect(after.abilities.spike).toBeGreaterThanOrEqual(before.abilities.spike);
+    expect(after.abilities.spike).toBeGreaterThanOrEqual(
+      before.abilities.spike,
+    );
     expect(after.abilities.jump).toBeGreaterThanOrEqual(before.abilities.jump);
     for (const ability of [
       "receive",
@@ -109,7 +111,10 @@ describe("resolveWeeklyTraining", () => {
       expect(after.abilities[ability]).toBe(before.abilities[ability]);
     }
     expect(resolution.result.playerLogs).toHaveLength(12);
-    expect(resolution.result.playerLogs.find((log) => log.playerId === untouchedId)?.modifiers.length).toBeGreaterThan(0);
+    expect(
+      resolution.result.playerLogs.find((log) => log.playerId === untouchedId)
+        ?.modifiers.length,
+    ).toBeGreaterThan(0);
     expect(state.players[untouchedId]).toEqual(before);
   });
 
@@ -173,7 +178,9 @@ describe("resolveWeeklyTraining", () => {
     const school = state.schools[state.userSchoolId]!;
     const restrictedId = school.playerIds[2]!;
     const unrestrictedId = school.playerIds[3]!;
-    const sharedAbilities = structuredClone(state.players[restrictedId]!.abilities);
+    const sharedAbilities = structuredClone(
+      state.players[restrictedId]!.abilities,
+    );
     state.players[restrictedId] = {
       ...state.players[restrictedId]!,
       academic: 20,

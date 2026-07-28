@@ -1,10 +1,6 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import type { GameState } from "../model/GameState";
-import {
-  clampAbility,
-  type Player,
-  type PlayerInjury,
-} from "../model/Player";
+import { clampAbility, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import type {
@@ -13,10 +9,7 @@ import type {
   PersonalityDefinition,
   TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
-import {
-  calculateGrowth,
-  type GrowthModifier,
-} from "./calculateGrowth";
+import { calculateGrowth, type GrowthModifier } from "./calculateGrowth";
 
 export interface IndividualTrainingAssignment {
   playerId: PlayerId;
@@ -117,7 +110,9 @@ function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
       );
     }
     if (!input.state.players[assignment.playerId]) {
-      throw new Error(`unknown individual assignment player: ${assignment.playerId}`);
+      throw new Error(
+        `unknown individual assignment player: ${assignment.playerId}`,
+      );
     }
 
     const instruction = input.data.individualTrainingInstructions.get(

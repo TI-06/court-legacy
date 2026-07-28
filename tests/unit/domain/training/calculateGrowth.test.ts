@@ -143,9 +143,9 @@ describe("calculateGrowth", () => {
       "condition",
       "academic",
     ]);
-    expect(result.modifiers.every((modifier) => Number.isInteger(modifier.percent))).toBe(
-      true,
-    );
+    expect(
+      result.modifiers.every((modifier) => Number.isInteger(modifier.percent)),
+    ).toBe(true);
   });
 
   it("applies grade and growth-type differences", () => {
