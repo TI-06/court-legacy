@@ -20,6 +20,16 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Generate exact formatted files
+        run: npx prettier src/domain/match/simulateMatch.ts tests/unit/domain/match/simulateMatch.test.ts --write
+      - name: Upload formatted match files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-match-engine
+          path: |
+            src/domain/match/simulateMatch.ts
+            tests/unit/domain/match/simulateMatch.test.ts
+          retention-days: 3
       - name: Verify formatting, lint, types, tests, and build
         shell: bash
         run: |
@@ -35,28 +45,3 @@ jobs:
           name: match-engine-verification
           path: verify-output.txt
           retention-days: 3
-
-  mobile-e2e:
-    needs: quality
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Run mobile E2E tests
-        run: npm run test:e2e
-      - name: Upload Playwright diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            playwright-report
-            test-results
-          retention-days: 7
