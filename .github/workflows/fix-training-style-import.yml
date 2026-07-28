@@ -1,0 +1,39 @@
+name: Fix training style ownership
+
+on:
+  push:
+    branches:
+      - feature/m1-mobile-ui-foundation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m1-mobile-ui-foundation
+      - name: Move feature style import to training screen
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/training/TrainingScreen.tsx')
+          text = path.read_text(encoding='utf-8')
+          marker = 'import "./training.css";\n'
+          replacement = marker + 'import "./training-direct.css";\n'
+          if 'import "./training-direct.css";' not in text:
+              text = text.replace(marker, replacement)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Remove temporary workflow
+        run: rm -f .github/workflows/fix-training-style-import.yml
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "refactor: keep training styles inside feature"
+          git push origin HEAD:feature/m1-mobile-ui-foundation
