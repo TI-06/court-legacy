@@ -10,27 +10,34 @@ permissions:
   contents: read
 
 jobs:
-  unit:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-      - run: npm install --legacy-peer-deps --silent
-      - name: Run unit tests
-        id: unit-tests
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps --silent
+      - name: Upload generated dependency lock
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-lock
+          path: package-lock.json
+          retention-days: 3
+      - name: Run quality verification
+        id: verify
         shell: bash
         run: |
           set +e
-          npm run test -- --reporter=verbose > test-output.txt 2>&1
+          npm run verify > verify-output.txt 2>&1
           status=$?
-          tail -120 test-output.txt
+          tail -160 verify-output.txt
           exit $status
-      - name: Upload unit test diagnostics
+      - name: Upload verification diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-diagnostics
-          path: test-output.txt
+          name: verification-diagnostics
+          path: verify-output.txt
           retention-days: 3
