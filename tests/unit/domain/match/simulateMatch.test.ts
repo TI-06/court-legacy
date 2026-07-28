@@ -176,7 +176,9 @@ describe("simulateMatch", () => {
 
   it("records one point event per rally with contiguous event sequences", () => {
     const { match } = runMatch("event-log", 3);
-    const pointEvents = match.eventLog.filter((event) => event.type === "point");
+    const pointEvents = match.eventLog.filter(
+      (event) => event.type === "point",
+    );
     const totalPoints = match.sets.reduce(
       (sum, set) => sum + set.homeScore + set.awayScore,
       0,
@@ -209,7 +211,9 @@ describe("simulateMatch", () => {
     let homeWins = 0;
 
     for (let index = 0; index < 12; index += 1) {
-      const context = makeHomeDominant(createContext(`dominant-world-${index}`));
+      const context = makeHomeDominant(
+        createContext(`dominant-world-${index}`),
+      );
       const { match, analysis } = runMatch(
         `dominant-match-${index}`,
         3,

@@ -1,4 +1,10 @@
-import type { MatchAnalysis, MatchAnalysisFactor, MatchEvent, MatchSetState, MatchState } from "../model/Match";
+import type {
+  MatchAnalysis,
+  MatchAnalysisFactor,
+  MatchEvent,
+  MatchSetState,
+  MatchState,
+} from "../model/Match";
 import type { Player, PlayerAbilities, Position } from "../model/Player";
 import type { School } from "../model/School";
 import type { TeamSelection } from "../model/TeamSelection";
@@ -284,10 +290,12 @@ function chooseDigger(state: GameState, selection: TeamSelection): Player {
     return playerOrThrow(state, selection.liberoPlayerId);
   }
 
-  return bestPlayer(rotationPlayers(state, selection), (player) =>
-    effectiveAbility(player, "receive") * 1.6 +
-    effectiveAbility(player, "speed") * 0.7 +
-    effectiveAbility(player, "decision") * 0.45,
+  return bestPlayer(
+    rotationPlayers(state, selection),
+    (player) =>
+      effectiveAbility(player, "receive") * 1.6 +
+      effectiveAbility(player, "speed") * 0.7 +
+      effectiveAbility(player, "decision") * 0.45,
   );
 }
 
@@ -295,12 +303,7 @@ function rotateSelection(selection: TeamSelection): void {
   selection.rotation = selection.rotation.map((assignment) => ({
     ...assignment,
     slot: (assignment.slot === 1 ? 6 : assignment.slot - 1) as
-      | 1
-      | 2
-      | 3
-      | 4
-      | 5
-      | 6,
+      1 | 2 | 3 | 4 | 5 | 6,
   }));
 
   const firstServer = selection.servingOrderPlayerIds[0];
@@ -408,14 +411,7 @@ function simulateRally(
     0.17,
   );
 
-  writer.push(
-    "serve",
-    runtime,
-    server.id,
-    receiver.id,
-    null,
-    "serve.in-play",
-  );
+  writer.push("serve", runtime, server.id, receiver.id, null, "serve.in-play");
 
   if (random.next() < serveErrorChance) {
     writer.events.at(-1)!.detailCode = "serve.error";
@@ -525,14 +521,7 @@ function simulateRally(
     0.23,
   );
   if (random.next() < blockKillChance) {
-    writer.push(
-      "block",
-      runtime,
-      blocker.id,
-      attacker.id,
-      null,
-      "block.kill",
-    );
+    writer.push("block", runtime, blocker.id, attacker.id, null, "block.kill");
     awardPoint(runtime, runtime.servingSide);
     writer.push(
       "point",
@@ -545,14 +534,7 @@ function simulateRally(
     return runtime.servingSide;
   }
 
-  writer.push(
-    "block",
-    runtime,
-    blocker.id,
-    attacker.id,
-    null,
-    "block.touch",
-  );
+  writer.push("block", runtime, blocker.id, attacker.id, null, "block.touch");
   const defensivePower = blockPower * 0.42 + digPower * 0.58;
   const attackPointChance = clamp(
     0.5 + (attackPower - defensivePower) * 0.0032,
@@ -561,14 +543,7 @@ function simulateRally(
   );
 
   if (random.next() < attackPointChance) {
-    writer.push(
-      "dig",
-      runtime,
-      digger.id,
-      attacker.id,
-      null,
-      "dig.failed",
-    );
+    writer.push("dig", runtime, digger.id, attacker.id, null, "dig.failed");
     awardPoint(runtime, receivingSide);
     writer.push(
       "point",
@@ -581,14 +556,7 @@ function simulateRally(
     return receivingSide;
   }
 
-  writer.push(
-    "dig",
-    runtime,
-    digger.id,
-    attacker.id,
-    null,
-    "dig.counter",
-  );
+  writer.push("dig", runtime, digger.id, attacker.id, null, "dig.counter");
   awardPoint(runtime, runtime.servingSide);
   writer.push(
     "point",
@@ -664,7 +632,8 @@ function matchMetrics(
 
   return {
     totalPoints: points.length,
-    aces: points.filter((event) => event.detailCode === "point.serve-ace").length,
+    aces: points.filter((event) => event.detailCode === "point.serve-ace")
+      .length,
     serveErrors: ownServeErrors,
     attackPoints: points.filter((event) => event.detailCode === "point.attack")
       .length,
@@ -675,7 +644,9 @@ function matchMetrics(
     ).length,
     readiness: Math.round(
       average(
-        activePlayers(state, selection).map((player) => readiness(player) * 100),
+        activePlayers(state, selection).map(
+          (player) => readiness(player) * 100,
+        ),
       ),
     ),
   };
@@ -690,7 +661,10 @@ function factor(
   return { code, impact: Math.round(impact), title, detail };
 }
 
-function createMatchAnalysis(state: GameState, match: MatchState): MatchAnalysis {
+function createMatchAnalysis(
+  state: GameState,
+  match: MatchState,
+): MatchAnalysis {
   const winnerSchoolId =
     match.homeSetsWon > match.awaySetsWon
       ? match.homeSchoolId
@@ -707,12 +681,7 @@ function createMatchAnalysis(state: GameState, match: MatchState): MatchAnalysis
     loserSchoolId === match.homeSchoolId
       ? match.homeSelection
       : match.awaySelection;
-  const winner = matchMetrics(
-    state,
-    match,
-    winnerSchoolId,
-    winnerSelection,
-  );
+  const winner = matchMetrics(state, match, winnerSchoolId, winnerSelection);
   const loser = matchMetrics(state, match, loserSchoolId, loserSelection);
   const winnerName = state.schools[winnerSchoolId]!.shortName;
   const loserName = state.schools[loserSchoolId]!.shortName;
@@ -870,14 +839,7 @@ export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
       completed: true,
       winnerSchoolId,
     });
-    writer.push(
-      "set-end",
-      runtime,
-      null,
-      null,
-      winnerSchoolId,
-      "set.complete",
-    );
+    writer.push("set-end", runtime, null, null, winnerSchoolId, "set.complete");
     finalHomeSelection = runtime.home.selection;
     finalAwaySelection = runtime.away.selection;
     finalServingSide = runtime.servingSide;
