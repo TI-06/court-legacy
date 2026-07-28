@@ -13,7 +13,8 @@ export function bootstrapGameData(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unknown game data error",
+      message:
+        error instanceof Error ? error.message : "Unknown game data error",
     };
   }
 }
