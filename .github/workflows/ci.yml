@@ -25,6 +25,21 @@ jobs:
           name: dependency-lock
           path: package-lock.json
           retention-days: 3
+      - name: Generate formatted source snapshot
+        run: npm run format
+      - name: Upload formatted source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-source
+          path: |
+            src
+            tests
+            *.json
+            *.jsonc
+            *.ts
+            *.js
+            index.html
+          retention-days: 3
       - name: Run quality verification
         id: verify
         shell: bash
