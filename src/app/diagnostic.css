@@ -1,0 +1,43 @@
+.diagnostic-screen {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  background: #eef3f6;
+  place-items: center;
+}
+
+.diagnostic-card {
+  width: min(100%, 520px);
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  box-shadow: 0 12px 34px rgb(18 36 50 / 10%);
+}
+
+.diagnostic-card h1 {
+  margin: 6px 0 12px;
+  font-size: 1.25rem;
+}
+
+.diagnostic-card > p:not(.section-kicker) {
+  margin: 0;
+  color: #60717e;
+  line-height: 1.7;
+}
+
+.diagnostic-card pre {
+  max-width: 100%;
+  margin: 18px 0 0;
+  padding: 14px;
+  overflow-wrap: anywhere;
+  color: #762f21;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  background: #fff3ef;
+  border: 1px solid #f1c9bd;
+  border-radius: 12px;
+}
