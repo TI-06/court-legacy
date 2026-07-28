@@ -18,3 +18,10 @@ test("mobile shell keeps all primary navigation actions visible", async ({
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
+
+test("worker health endpoint reports ready status", async ({ request }) => {
+  const response = await request.get("/api/health");
+
+  expect(response.ok()).toBe(true);
+  await expect(response.json()).resolves.toEqual({ status: "ok" });
+});
