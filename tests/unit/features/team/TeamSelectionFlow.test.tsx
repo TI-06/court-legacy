@@ -14,7 +14,9 @@ describe("team selection UI", () => {
         screen.getByRole("combobox", { name: `ローテーション${slot}` }),
       ).toBeInTheDocument();
     }
-    expect(screen.getByRole("combobox", { name: "リベロ" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "リベロ" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByTestId("bench-player")).toHaveLength(5);
   });
 

@@ -46,7 +46,9 @@ test("mobile team selection stays valid without horizontal overflow", async ({
   await page.getByRole("button", { name: "チーム" }).click();
 
   await expect(page.getByRole("heading", { name: "チーム編成" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "ローテーション1" })).toBeVisible();
+  await expect(
+    page.getByRole("combobox", { name: "ローテーション1" }),
+  ).toBeVisible();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
   await page.getByRole("button", { name: "自動編成" }).click();
   await page.getByRole("button", { name: "安全調整" }).click();

@@ -227,7 +227,11 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
           <h2 id="team-heading">チーム編成</h2>
           <p>{school.name}の試合登録メンバーを調整します。</p>
         </div>
-        <button className="team-secondary-action" onClick={rebuildAutomatically} type="button">
+        <button
+          className="team-secondary-action"
+          onClick={rebuildAutomatically}
+          type="button"
+        >
           自動編成
         </button>
       </section>
@@ -258,7 +262,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             <h3 id="rotation-heading">ローテーション</h3>
           </div>
           <span className={issues.length === 0 ? "team-valid" : "team-invalid"}>
-            {issues.length === 0 ? "編成は有効です" : `${issues.length}件の問題`}
+            {issues.length === 0
+              ? "編成は有効です"
+              : `${issues.length}件の問題`}
           </span>
         </div>
 
@@ -319,7 +325,10 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
       </section>
 
       {selection.liberoPlayerId ? (
-        <section className="team-panel libero-panel" aria-labelledby="libero-heading">
+        <section
+          className="team-panel libero-panel"
+          aria-labelledby="libero-heading"
+        >
           <div className="team-section-heading">
             <div>
               <p className="section-kicker">DEFENSE SPECIALIST</p>
@@ -371,7 +380,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             <p className="section-kicker">SUBSTITUTES</p>
             <h3 id="bench-heading">ベンチ</h3>
           </div>
-          <span className="bench-count">{selection.benchPlayerIds.length}人</span>
+          <span className="bench-count">
+            {selection.benchPlayerIds.length}人
+          </span>
         </div>
         <div className="bench-grid">
           {selection.benchPlayerIds.map((playerId) => {
@@ -383,7 +394,8 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
               <article data-testid="bench-player" key={player.id}>
                 <strong>{playerName(player)}</strong>
                 <span>
-                  {player.preferredPosition}・{player.grade}年・疲労{player.fatigue}
+                  {player.preferredPosition}・{player.grade}年・疲労
+                  {player.fatigue}
                 </span>
                 <small>{statusLabel(player)}</small>
               </article>
@@ -457,22 +469,34 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             />
           </label>
         </div>
-        <button className="team-primary-action" onClick={applySafetyAdjustment} type="button">
+        <button
+          className="team-primary-action"
+          onClick={applySafetyAdjustment}
+          type="button"
+        >
           安全調整
         </button>
       </section>
 
       {issues.length > 0 ? (
-        <section className="selection-feedback selection-feedback--error" role="alert">
+        <section
+          className="selection-feedback selection-feedback--error"
+          role="alert"
+        >
           <strong>編成を確認してください</strong>
           {issues.map((issue, index) => (
-            <p key={`${issue.code}-${issue.playerId ?? index}`}>{issue.message}</p>
+            <p key={`${issue.code}-${issue.playerId ?? index}`}>
+              {issue.message}
+            </p>
           ))}
         </section>
       ) : null}
 
       {actionError ? (
-        <section className="selection-feedback selection-feedback--error" role="alert">
+        <section
+          className="selection-feedback selection-feedback--error"
+          role="alert"
+        >
           <strong>処理できませんでした</strong>
           <p>{actionError}</p>
         </section>
