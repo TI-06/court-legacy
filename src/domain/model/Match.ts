@@ -10,7 +10,11 @@ export type MatchPhase =
 
 export type CoachCommand =
   | { type: "timeout" }
-  | { type: "substitute"; outgoingPlayerId: PlayerId; incomingPlayerId: PlayerId }
+  | {
+      type: "substitute";
+      outgoingPlayerId: PlayerId;
+      incomingPlayerId: PlayerId;
+    }
   | { type: "serve-target"; targetPlayerId: PlayerId | null }
   | { type: "attack-focus"; position: "OH" | "MB" | "OP" | "S" }
   | { type: "block-system"; system: "read" | "commit" | "mixed" }

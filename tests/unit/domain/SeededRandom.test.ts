@@ -15,11 +15,8 @@ describe("SeededRandom", () => {
     const random = new SeededRandom("court-legacy");
 
     expect(Array.from({ length: 5 }, () => random.next())).toEqual([
-      0.8712830147705972,
-      0.8011873930227011,
-      0.5212099316995591,
-      0.5974441117141396,
-      0.4619873077608645,
+      0.8712830147705972, 0.8011873930227011, 0.5212099316995591,
+      0.5974441117141396, 0.4619873077608645,
     ]);
   });
 
@@ -60,7 +57,9 @@ describe("SeededRandom", () => {
     const random = new SeededRandom("pick-test");
 
     expect(["OH", "MB", "S"]).toContain(random.pick(["OH", "MB", "S"]));
-    expect(() => random.pick([])).toThrow("cannot pick from an empty collection");
+    expect(() => random.pick([])).toThrow(
+      "cannot pick from an empty collection",
+    );
   });
 });
 
@@ -97,11 +96,14 @@ describe("weightedChoice", () => {
   it("rejects negative and non-finite weights", () => {
     const random = new SeededRandom("weights-invalid");
 
+    expect(() => weightedChoice([{ value: "A", weight: -1 }], random)).toThrow(
+      "non-negative finite number",
+    );
     expect(() =>
-      weightedChoice([{ value: "A", weight: -1 }], random),
-    ).toThrow("non-negative finite number");
-    expect(() =>
-      weightedChoice([{ value: "A", weight: Number.POSITIVE_INFINITY }], random),
+      weightedChoice(
+        [{ value: "A", weight: Number.POSITIVE_INFINITY }],
+        random,
+      ),
     ).toThrow("non-negative finite number");
   });
 });

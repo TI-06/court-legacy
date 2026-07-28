@@ -37,7 +37,8 @@ export default tseslint.config(
           paths: [
             {
               name: "react",
-              message: "The simulation domain must remain independent of React.",
+              message:
+                "The simulation domain must remain independent of React.",
             },
             {
               name: "react-dom",
@@ -46,7 +47,8 @@ export default tseslint.config(
             },
             {
               name: "pixi.js",
-              message: "The simulation domain must remain independent of PixiJS.",
+              message:
+                "The simulation domain must remain independent of PixiJS.",
             },
             {
               name: "dexie",
