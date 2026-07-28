@@ -5,7 +5,7 @@ describe("weekly training direct-touch UI", () => {
   it("opens from the required home action and the training navigation", () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "今週の方針を設定" }));
+    fireEvent.click(screen.getByRole("button", { name: "育成を決める" }));
     expect(
       screen.getByRole("heading", { name: "週間練習" }),
     ).toBeInTheDocument();
