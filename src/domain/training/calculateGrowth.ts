@@ -90,7 +90,7 @@ export function calculateGrowth(
   const fatigue = clampPercent(100 - input.player.fatigue * 0.6, 40, 100);
   const condition = clampPercent(75 + input.player.condition * 0.25, 60, 100);
   const academic = academicMultiplier(input.player.academic);
-  const modifiers: GrowthModifier[] = [
+  const nonAcademicModifiers: GrowthModifier[] = [
     { code: "grade", label: "学年成長", percent: grade },
     { code: "growth-type", label: "成長タイプ", percent: growthType },
     { code: "personality", label: "性格安定", percent: personality },
@@ -98,15 +98,22 @@ export function calculateGrowth(
     { code: "coach", label: "監督育成力", percent: coach },
     { code: "fatigue", label: "疲労", percent: fatigue },
     { code: "condition", label: "コンディション", percent: condition },
+  ];
+  const modifiers: GrowthModifier[] = [
+    ...nonAcademicModifiers,
     { code: "academic", label: "学業参加制限", percent: academic },
   ];
-  const combinedMultiplier = modifiers.reduce(
+  const nonAcademicMultiplier = nonAcademicModifiers.reduce(
     (product, modifier) => product * (modifier.percent / 100),
     1,
   );
+  const unrestrictedAmount = Math.max(
+    0,
+    Math.round((input.baseGrowth * nonAcademicMultiplier) / 4),
+  );
   const amount = Math.max(
     0,
-    Math.round((input.baseGrowth * combinedMultiplier) / 4),
+    Math.floor(unrestrictedAmount * (academic / 100)),
   );
 
   return {
