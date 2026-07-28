@@ -1,3 +1,5 @@
+import "./diagnostic.css";
+
 interface GameDataErrorScreenProps {
   message: string;
 }
