@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "../features/training/training-direct.css";
 
 interface ChoiceCardProps {
   title: string;
@@ -20,7 +21,9 @@ export function ChoiceCard({
   return (
     <button
       aria-pressed={selected}
-      className={selected ? "ui-choice-card ui-choice-card--selected" : "ui-choice-card"}
+      className={
+        selected ? "ui-choice-card ui-choice-card--selected" : "ui-choice-card"
+      }
       data-testid={testId}
       onClick={onClick}
       type="button"
