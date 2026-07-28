@@ -19,6 +19,17 @@ describe("game data registry", () => {
     expect(registry.events.size).toBeGreaterThanOrEqual(6);
   });
 
+  it("accepts unknown input and rejects malformed external data", () => {
+    const externalData: unknown = {
+      names: null,
+      personalities: "invalid",
+    };
+
+    expect(() => loadGameData(externalData)).toThrow(
+      "Invalid game data at names",
+    );
+  });
+
   it("rejects duplicate IDs with a catalog-specific diagnostic", () => {
     const raw = cloneRawGameData();
     raw.traits.push(structuredClone(raw.traits[0]));
