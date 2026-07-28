@@ -10,12 +10,16 @@ permissions:
   contents: read
 
 jobs:
-  unit-red-check:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-      - run: npm install --legacy-peer-deps
-      - run: npm run test -- --reporter=verbose
+      - run: npm install --legacy-peer-deps --silent
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test -- --reporter=verbose 2>&1 | tail -120
