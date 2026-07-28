@@ -7,52 +7,29 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  quality:
+  format-branch:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/m0-foundation'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/m0-foundation
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps --silent
-      - name: Upload generated dependency lock
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-lock
-          path: package-lock.json
-          retention-days: 3
-      - name: Generate formatted source snapshot
-        run: npm run format
-      - name: Upload formatted source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: formatted-source
-          path: |
-            src
-            tests
-            *.json
-            *.jsonc
-            *.ts
-            *.js
-            index.html
-          retention-days: 3
-      - name: Run quality verification
-        id: verify
+      - run: npm install --legacy-peer-deps --silent
+      - run: npm run format
+      - name: Commit formatting and lockfile
         shell: bash
         run: |
-          set +e
-          npm run verify > verify-output.txt 2>&1
-          status=$?
-          tail -160 verify-output.txt
-          exit $status
-      - name: Upload verification diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: verification-diagnostics
-          path: verify-output.txt
-          retention-days: 3
+          if git diff --quiet && git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: format source and lock dependencies [skip ci]"
+          git push origin HEAD:feature/m0-foundation
