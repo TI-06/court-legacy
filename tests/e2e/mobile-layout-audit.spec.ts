@@ -32,23 +32,32 @@ async function captureState(
     const documentWidth = document.documentElement.scrollWidth;
     const issues: OverflowIssue[] = [];
 
-    for (const element of Array.from(document.querySelectorAll<HTMLElement>("body *"))) {
+    for (const element of Array.from(
+      document.querySelectorAll<HTMLElement>("body *"),
+    )) {
       const rect = element.getBoundingClientRect();
       const style = window.getComputedStyle(element);
-      const visuallyOutside = rect.right > viewportWidth + 0.5 || rect.left < -0.5;
-      const internallyScrollable = element.scrollWidth > element.clientWidth + 1;
-      const clipped = internallyScrollable && !["auto", "scroll"].includes(style.overflowX);
+      const visuallyOutside =
+        rect.right > viewportWidth + 0.5 || rect.left < -0.5;
+      const internallyScrollable =
+        element.scrollWidth > element.clientWidth + 1;
+      const clipped =
+        internallyScrollable && !["auto", "scroll"].includes(style.overflowX);
 
       if (!visuallyOutside && !clipped) {
         continue;
       }
 
-      const classes = typeof element.className === "string" ? element.className : "";
+      const classes =
+        typeof element.className === "string" ? element.className : "";
       issues.push({
         selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${classes ? `.${classes.trim().replace(/\\s+/g, ".")}` : ""}`,
         tag: element.tagName.toLowerCase(),
         className: classes,
-        text: (element.innerText || "").replace(/\\s+/g, " ").trim().slice(0, 120),
+        text: (element.innerText || "")
+          .replace(/\\s+/g, " ")
+          .trim()
+          .slice(0, 120),
         left: Math.round(rect.left * 10) / 10,
         right: Math.round(rect.right * 10) / 10,
         width: Math.round(rect.width * 10) / 10,
@@ -77,12 +86,21 @@ async function captureState(
 }
 
 for (const viewport of [360, 390]) {
-  test(`audit every mobile state at ${viewport}px`, async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: viewport, height: viewport === 360 ? 800 : 844 });
+  test(`audit every mobile state at ${viewport}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({
+      width: viewport,
+      height: viewport === 360 ? 800 : 844,
+    });
     await page.goto("/");
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-    const reports: Array<{ state: string; issueCount: number; bodyOverflow: number }> = [];
+    const reports: Array<{
+      state: string;
+      issueCount: number;
+      bodyOverflow: number;
+    }> = [];
 
     const capture = async (name: string) => {
       const report = await captureState(page, testInfo, viewport, name);
@@ -95,7 +113,9 @@ for (const viewport of [360, 390]) {
 
     await capture("home");
 
-    await navigation.getByRole("button", { name: "チーム", exact: true }).click();
+    await navigation
+      .getByRole("button", { name: "チーム", exact: true })
+      .click();
     await capture("team");
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await capture("team-picker");
