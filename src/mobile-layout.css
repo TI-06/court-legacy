@@ -103,6 +103,12 @@
   height: 38px;
 }
 
+.bench-rail .ui-player-tile__main small {
+  overflow: visible;
+  white-space: normal;
+  line-height: 1.35;
+}
+
 /* Training */
 .training-screen,
 .training-screen > *,
