@@ -138,4 +138,27 @@ describe("weekly training safety", () => {
     expect(consumed).toBeGreaterThan(0);
     expect(resolution.state.randomCursor).toBe(initialStateCursor + consumed);
   });
+
+  it("validates the complete school roster before consuming random values", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    const missingPlayerId = school.playerIds.at(-1)!;
+    delete state.players[missingPlayerId];
+    const random = new SeededRandom("invalid-roster-training", 40);
+    const initialCursor = random.cursor;
+
+    expect(() =>
+      resolveWeeklyTraining({
+        state,
+        schoolId: state.userSchoolId,
+        plan: {
+          teamTrainingMenuId: "training.spike",
+          individualAssignments: createAssignments(school.playerIds),
+        },
+        data,
+        random,
+      }),
+    ).toThrow(`school references unknown player: ${missingPlayerId}`);
+    expect(random.cursor).toBe(initialCursor);
+  });
 });
