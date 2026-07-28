@@ -1,0 +1,387 @@
+.team-screen {
+  gap: 12px;
+}
+
+.team-hero,
+.team-panel,
+.selection-feedback {
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.team-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 17px;
+  gap: 12px;
+  color: #f7fbfc;
+  background:
+    linear-gradient(145deg, rgb(41 100 113 / 95%), rgb(18 48 63 / 99%)),
+    #163644;
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.team-hero h2,
+.team-section-heading h3 {
+  margin: 3px 0 0;
+}
+
+.team-hero h2 {
+  font-size: 1.32rem;
+}
+
+.team-hero p:not(.section-kicker) {
+  max-width: 230px;
+  margin: 8px 0 0;
+  color: #c5dade;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.team-hero .section-kicker {
+  color: #a7d2d9;
+}
+
+.team-secondary-action,
+.team-primary-action {
+  min-height: 44px;
+  font-weight: 800;
+  border-radius: 13px;
+}
+
+.team-secondary-action {
+  flex: 0 0 auto;
+  padding: 0 13px;
+  color: #fff0ca;
+  background: rgb(255 255 255 / 9%);
+  border: 1px solid rgb(255 255 255 / 17%);
+}
+
+.team-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.team-summary article {
+  min-width: 0;
+  padding: 11px 6px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d8e2e7;
+  border-radius: 15px;
+}
+
+.team-summary span,
+.team-summary strong {
+  display: block;
+}
+
+.team-summary span {
+  overflow: hidden;
+  color: #758590;
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-summary strong {
+  margin-top: 4px;
+  color: #15394a;
+  font-size: 1.25rem;
+}
+
+.team-panel {
+  padding: 16px;
+}
+
+.team-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.team-section-heading h3 {
+  font-size: 1rem;
+}
+
+.team-valid,
+.team-invalid,
+.bench-count,
+.availability {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.team-valid {
+  color: #17623c;
+  background: #e3f5e9;
+}
+
+.team-invalid,
+.availability--danger {
+  color: #8e392f;
+  background: #fde9e6;
+}
+
+.bench-count,
+.availability {
+  color: #345d68;
+  background: #e9f1f3;
+}
+
+.rotation-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.rotation-card,
+.libero-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  padding: 12px;
+  gap: 10px;
+  background: #f5f8fa;
+  border: 1px solid #e0e8ec;
+  border-radius: 15px;
+}
+
+.rotation-number,
+.libero-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 900;
+  background: #1b6574;
+  border-radius: 12px;
+  place-items: center;
+}
+
+.libero-mark {
+  color: #6e4700;
+  background: #f2c66c;
+}
+
+.rotation-card__body {
+  min-width: 0;
+}
+
+.rotation-card__body > label:first-child {
+  display: block;
+  margin-bottom: 5px;
+  color: #72828e;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.rotation-card select,
+.libero-card select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 32px 0 10px;
+  overflow: hidden;
+  color: #173747;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  background: #fff;
+  border: 1px solid #cad8df;
+  border-radius: 11px;
+}
+
+.player-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 7px;
+  gap: 5px 9px;
+  color: #667985;
+  font-size: 0.65rem;
+}
+
+.lock-control {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  margin-top: 6px;
+  gap: 7px;
+  color: #244b58;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.lock-control input,
+.policy-list input {
+  width: 19px;
+  height: 19px;
+  accent-color: #1b6574;
+}
+
+.rotation-card > .availability {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: -4px;
+}
+
+.libero-panel {
+  border-color: #e6d4a7;
+  background: #fffdf7;
+}
+
+.libero-card {
+  margin-top: 12px;
+  background: #fff9e9;
+  border-color: #ead8ae;
+}
+
+.bench-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bench-grid article {
+  min-width: 0;
+  padding: 11px;
+  background: #f5f8fa;
+  border-radius: 13px;
+}
+
+.bench-grid strong,
+.bench-grid span,
+.bench-grid small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bench-grid strong {
+  color: #193b49;
+  font-size: 0.75rem;
+}
+
+.bench-grid span {
+  margin-top: 4px;
+  color: #71818d;
+  font-size: 0.64rem;
+}
+
+.bench-grid small {
+  margin-top: 5px;
+  color: #39707a;
+  font-size: 0.61rem;
+  font-weight: 800;
+}
+
+.policy-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.policy-list > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 10px 11px;
+  gap: 12px;
+  background: #f5f8fa;
+  border-radius: 13px;
+}
+
+.policy-list > label > span {
+  min-width: 0;
+}
+
+.policy-list strong,
+.policy-list small {
+  display: block;
+}
+
+.policy-list strong {
+  font-size: 0.75rem;
+}
+
+.policy-list small {
+  margin-top: 3px;
+  color: #73838e;
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+.policy-list input {
+  flex: 0 0 auto;
+}
+
+.team-primary-action {
+  width: 100%;
+  margin-top: 12px;
+  color: #fff;
+  background: #1b6574;
+  border: 0;
+  box-shadow: 0 7px 16px rgb(27 101 116 / 20%);
+}
+
+.selection-feedback {
+  padding: 14px 15px;
+  color: #245366;
+  background: #edf7f8;
+  border-color: #cce4e7;
+}
+
+.selection-feedback--error {
+  color: #813b34;
+  background: #fff2f0;
+  border-color: #efcfca;
+}
+
+.selection-feedback strong {
+  display: block;
+  font-size: 0.78rem;
+}
+
+.selection-feedback p {
+  margin: 5px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 350px) {
+  .team-hero {
+    padding: 14px;
+  }
+
+  .team-hero p:not(.section-kicker) {
+    max-width: 180px;
+  }
+
+  .team-secondary-action {
+    padding-inline: 9px;
+    font-size: 0.72rem;
+  }
+
+  .team-panel {
+    padding: 13px;
+  }
+
+  .bench-grid {
+    grid-template-columns: 1fr;
+  }
+}
