@@ -14,6 +14,7 @@ import { PlayerTile } from "../../ui/PlayerTile";
 import { StickyActionBar } from "../../ui/StickyActionBar";
 import "../../ui/ui.css";
 import "./training.css";
+import "./training-direct.css";
 
 interface TrainingScreenProps {
   state: GameState;
