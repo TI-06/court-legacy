@@ -4,9 +4,7 @@ import { rawGameData } from "./rawGameData";
 export type GameDataBootstrapResult =
   { ok: true; data: GameDataRegistry } | { ok: false; message: string };
 
-export function bootstrapGameData(
-  input: typeof rawGameData,
-): GameDataBootstrapResult {
+export function bootstrapGameData(input: unknown): GameDataBootstrapResult {
   try {
     return { ok: true, data: loadGameData(input) };
   } catch (error) {
