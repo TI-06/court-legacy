@@ -1,7 +1,7 @@
 :root {
   font-family: Inter, "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #152331;
-  background: #eef3f6;
+  color: #142332;
+  background: #132536;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -11,6 +11,7 @@
 }
 
 html {
+  min-width: 320px;
   background: #132536;
 }
 
@@ -18,7 +19,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #eef3f6;
+  overflow-x: hidden;
+  background: #dfe7ec;
 }
 
 button,
@@ -27,6 +29,397 @@ select {
   font: inherit;
 }
 
-main {
-  padding: 24px;
+button {
+  color: inherit;
+}
+
+button:focus-visible {
+  outline: 3px solid #eaa72d;
+  outline-offset: 2px;
+}
+
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 90% 4%, rgb(70 139 151 / 16%), transparent 34%),
+    #eef3f6;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76px;
+  padding: max(14px, env(safe-area-inset-top)) 18px 12px;
+  color: #f7fbfc;
+  background: #132536;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+.app-header h1,
+.section-heading h2,
+.season-card h2 {
+  margin: 0;
+}
+
+.app-header h1 {
+  margin-top: 2px;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.eyebrow,
+.section-kicker {
+  margin: 0;
+  color: #6098a3;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.app-header .eyebrow {
+  color: #8db8c0;
+}
+
+.header-action {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #f7fbfc;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 14px;
+  place-items: center;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.app-content {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 14px 24px;
+}
+
+.season-card,
+.focus-card,
+.issues {
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.season-card {
+  padding: 18px;
+  color: #f7fbfc;
+  background:
+    linear-gradient(145deg, rgb(42 103 116 / 93%), rgb(20 51 66 / 98%)),
+    #163644;
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.season-card__top,
+.section-heading,
+.next-match {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.season-card .section-kicker {
+  color: #9fced6;
+}
+
+.season-card h2 {
+  margin-top: 3px;
+  font-size: 1.45rem;
+}
+
+.status-badge,
+.required-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-badge {
+  color: #ffe8b3;
+  background: rgb(234 167 45 / 18%);
+  border: 1px solid rgb(255 213 120 / 28%);
+}
+
+.next-match {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid rgb(255 255 255 / 13%);
+}
+
+.next-match span {
+  display: block;
+  color: #b9d3d8;
+  font-size: 0.72rem;
+}
+
+.next-match strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 1rem;
+}
+
+.countdown {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  text-align: right;
+}
+
+.countdown strong {
+  color: #f4bb4d;
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.countdown span {
+  color: #d5e5e8;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metric-card {
+  min-width: 0;
+  padding: 13px 9px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d8e2e7;
+  border-radius: 16px;
+}
+
+.metric-card span,
+.metric-card small {
+  display: block;
+  overflow: hidden;
+  color: #71818e;
+  font-size: 0.67rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-card strong {
+  display: block;
+  margin: 5px 0 3px;
+  color: #15394a;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.focus-card,
+.issues {
+  padding: 17px;
+}
+
+.section-heading h2 {
+  margin-top: 3px;
+  font-size: 1.02rem;
+}
+
+.required-label {
+  color: #8d4f00;
+  background: #fff0ce;
+}
+
+.focus-card > p {
+  margin: 11px 0 15px;
+  color: #60717e;
+  font-size: 0.83rem;
+  line-height: 1.65;
+}
+
+.primary-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  gap: 7px;
+  color: #fff;
+  font-weight: 800;
+  background: #1b6574;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 7px 16px rgb(27 101 116 / 22%);
+}
+
+.primary-action .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.text-action {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  color: #1b6574;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: transparent;
+  border: 0;
+}
+
+.issue-list {
+  display: grid;
+  gap: 13px;
+  margin-top: 13px;
+}
+
+.issue-list article {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #f5f8fa;
+  border-radius: 14px;
+}
+
+.issue-list strong {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.issue-list p {
+  margin: 3px 0 0;
+  color: #72818c;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.issue-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  flex: 0 0 auto;
+  background: #2d8693;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgb(45 134 147 / 12%);
+}
+
+.issue-dot--warning {
+  background: #d89524;
+  box-shadow: 0 0 0 4px rgb(216 149 36 / 13%);
+}
+
+.bottom-navigation {
+  position: sticky;
+  z-index: 20;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  min-height: 70px;
+  padding: 5px 5px max(7px, env(safe-area-inset-bottom));
+  background: rgb(255 255 255 / 96%);
+  border-top: 1px solid #d5e0e5;
+  box-shadow: 0 -8px 22px rgb(16 40 54 / 8%);
+  backdrop-filter: blur(16px);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 54px;
+  padding: 5px 2px;
+  gap: 3px;
+  color: #768691;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  flex-direction: column;
+}
+
+.nav-item span {
+  font-size: 0.64rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nav-item .icon {
+  width: 21px;
+  height: 21px;
+}
+
+.nav-item--active {
+  color: #175e6b;
+  background: #e7f1f3;
+}
+
+.nav-item--active::before {
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 3px;
+  content: "";
+  background: #d8992b;
+  border-radius: 999px;
+}
+
+@media (min-width: 520px) {
+  body {
+    padding: 20px 0;
+  }
+
+  .app-shell {
+    max-width: 480px;
+    min-height: calc(100vh - 40px);
+    min-height: calc(100dvh - 40px);
+    border-radius: 28px;
+    box-shadow: 0 24px 80px rgb(5 20 30 / 28%);
+  }
+
+  .app-header {
+    border-radius: 28px 28px 0 0;
+  }
+
+  .bottom-navigation {
+    border-radius: 0 0 28px 28px;
+  }
+}
+
+@media (max-width: 350px) {
+  .app-content {
+    padding-inline: 10px;
+  }
+
+  .season-card,
+  .focus-card,
+  .issues {
+    border-radius: 17px;
+  }
+
+  .nav-item span {
+    font-size: 0.58rem;
+  }
 }
