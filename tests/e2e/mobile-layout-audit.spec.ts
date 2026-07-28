@@ -51,11 +51,11 @@ async function captureState(
       const classes =
         typeof element.className === "string" ? element.className : "";
       issues.push({
-        selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${classes ? `.${classes.trim().replace(/\\s+/g, ".")}` : ""}`,
+        selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${classes ? `.${classes.trim().replace(/\s+/g, ".")}` : ""}`,
         tag: element.tagName.toLowerCase(),
         className: classes,
         text: (element.innerText || "")
-          .replace(/\\s+/g, " ")
+          .replace(/\s+/g, " ")
           .trim()
           .slice(0, 120),
         left: Math.round(rect.left * 10) / 10,
@@ -119,13 +119,19 @@ for (const viewport of [360, 390]) {
     await capture("team");
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await capture("team-picker");
-    await page.getByRole("button", { name: "閉じる" }).click();
+    await page
+      .getByRole("dialog", { name: "ローテーション1の選手を選択" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
 
     await navigation.getByRole("button", { name: "育成", exact: true }).click();
     await capture("training");
     await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
     await capture("training-picker");
-    await page.getByRole("button", { name: "閉じる" }).click();
+    await page
+      .getByRole("dialog", { name: "個人指示2の選手を選択" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
     await capture("match-prep");
