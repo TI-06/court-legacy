@@ -57,9 +57,7 @@ describe("home action dashboard", () => {
     expect(screen.getByText(`戦力 ${props.homeStrength}`)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /育成を決める/ }));
-    fireEvent.click(
-      screen.getByRole("button", { name: /チーム編成を確認/ }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /チーム編成を確認/ }));
     fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
 
     expect(props.onOpenTraining).toHaveBeenCalledOnce();
