@@ -90,7 +90,11 @@ describe("game data registry", () => {
       "熱血",
     );
     expect(() => {
-      registry.personalities.set("personality.invalid", {
+      const mutableView = registry.personalities as Map<
+        string,
+        (typeof raw.personalities)[number]
+      >;
+      mutableView.set("personality.invalid", {
         ...registry.personalities.get("personality.passionate")!,
         id: "personality.invalid",
       });
