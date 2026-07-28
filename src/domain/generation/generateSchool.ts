@@ -51,6 +51,7 @@ export function generateSchool(input: GenerateSchoolInput): School {
     ? "unknown"
     : input.random.pick(RIVAL_REPUTATIONS);
   const facilityBase = input.isUserSchool ? 0 : input.random.int(0, 2);
+  const usesFastAttack = archetype.attackTempo === "fast";
 
   return {
     id: input.id,
@@ -93,10 +94,10 @@ export function generateSchool(input: GenerateSchoolInput): School {
       serveTargetPlayerId: null,
       attackTempo: archetype.attackTempo,
       attackDistribution: {
-        OH: 34,
-        MB: archetype.attackTempo === "fast" ? 25 : 18,
-        OP: 25,
-        S: 3,
+        OH: usesFastAttack ? 38 : 42,
+        MB: usesFastAttack ? 28 : 20,
+        OP: usesFastAttack ? 30 : 34,
+        S: 4,
         L: 0,
       },
       blockSystem: archetype.blockSystem,
