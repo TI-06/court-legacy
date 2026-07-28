@@ -4,6 +4,7 @@ import type { GameDate, MatchId, PlayerId, SchoolId } from "./identifiers";
 import type { MatchState } from "./Match";
 import type { Player } from "./Player";
 import type { School } from "./School";
+import type { WorldState } from "./World";
 
 export interface GameSettings {
   matchDisplayMode: "normal" | "fast" | "text" | "instant";
@@ -59,6 +60,7 @@ export interface GameState {
   history: GameHistory;
   eventMemory: EventMemory;
   settings: GameSettings;
+  world: WorldState;
 }
 
 export const CURRENT_GAME_SCHEMA_VERSION = 1;

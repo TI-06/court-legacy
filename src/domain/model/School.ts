@@ -9,6 +9,12 @@ export type SchoolReputation =
   | "national-regular"
   | "elite";
 
+export interface UniformColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
 export interface SchoolFacilities {
   gym: number;
   trainingRoom: number;
@@ -56,6 +62,7 @@ export interface School {
   shortName: string;
   regionId: string;
   archetypeId: string;
+  uniform: UniformColors;
   reputation: SchoolReputation;
   reputationPoints: number;
   funds: number;
