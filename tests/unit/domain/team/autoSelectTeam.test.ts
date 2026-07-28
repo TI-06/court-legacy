@@ -1,7 +1,6 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
 import type { Player } from "../../../../src/domain/model/Player";
-import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import {
   autoSelectTeam,
   resolveLockedStarters,
