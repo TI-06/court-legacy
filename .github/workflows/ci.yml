@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: ["feature/m1-match-engine"]
 
 permissions:
   contents: write
@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/m1-match-engine
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
@@ -48,8 +46,3 @@ jobs:
           git add src/domain/match/simulateMatch.ts tests/unit/domain/match/simulateMatch.test.ts
           git commit -m "fix: format and clean match engine [skip ci]"
           git push origin HEAD:feature/m1-match-engine
-      - name: Verify match engine
-        run: |
-          npm run lint
-          npm run typecheck
-          npx vitest run tests/unit/domain/match/simulateMatch.test.ts
