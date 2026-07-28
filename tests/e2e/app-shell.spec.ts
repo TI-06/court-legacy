@@ -9,7 +9,9 @@ test("mobile shell keeps all primary navigation actions visible", async ({
   await expect(navigation).toBeVisible();
 
   for (const label of ["ホーム", "チーム", "育成", "試合", "学校"]) {
-    await expect(page.getByRole("button", { name: label })).toBeVisible();
+    await expect(
+      navigation.getByRole("button", { name: label, exact: true }),
+    ).toBeVisible();
   }
 
   const bodyWidth = await page
@@ -23,7 +25,8 @@ test("mobile training uses direct cards and executes without overflow", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "育成" }).click();
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  await navigation.getByRole("button", { name: "育成", exact: true }).click();
 
   await expect(page.getByRole("heading", { name: "週間練習" })).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
@@ -54,7 +57,8 @@ test("mobile team selection uses a court picker without overflow", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "チーム" }).click();
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  await navigation.getByRole("button", { name: "チーム", exact: true }).click();
 
   await expect(page.getByRole("heading", { name: "チーム編成" })).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
