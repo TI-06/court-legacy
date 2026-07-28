@@ -19,8 +19,17 @@ jobs:
       - name: Formatting
         run: npm run format:check
       - name: Lint
-        run: npm run lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee lint-output.txt
+      - name: Upload lint diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-match-lint
+          path: lint-output.txt
+          if-no-files-found: error
       - name: Type check
+        continue-on-error: true
         run: npm run typecheck 2>&1 | tee typecheck-output.txt
       - name: Upload typecheck diagnostics
         if: always()
@@ -30,6 +39,14 @@ jobs:
           path: typecheck-output.txt
           if-no-files-found: error
       - name: Unit tests
-        run: npm run test
+        continue-on-error: true
+        run: npm run test 2>&1 | tee unit-output.txt
+      - name: Upload unit diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: home-match-unit
+          path: unit-output.txt
+          if-no-files-found: error
       - name: Production build
         run: npm run build
