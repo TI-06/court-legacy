@@ -9,9 +9,10 @@ describe("weekly training UI", () => {
     expect(
       screen.getByRole("heading", { name: "週間練習" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "育成" }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "育成" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     expect(
@@ -40,9 +41,9 @@ describe("weekly training UI", () => {
     expect(within(firstInstruction).getAllByRole("option")).toHaveLength(6);
     expect(within(secondInstruction).getAllByRole("option")).toHaveLength(6);
     expect(
-      within(screen.getByRole("combobox", { name: "個人指示1 選手" })).getAllByRole(
-        "option",
-      ),
+      within(
+        screen.getByRole("combobox", { name: "個人指示1 選手" }),
+      ).getAllByRole("option"),
     ).toHaveLength(12);
   });
 
@@ -62,9 +63,7 @@ describe("weekly training UI", () => {
     expect(
       screen.getByText("個人指示は異なる選手を選んでください。"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "練習を実行" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "練習を実行" })).toBeDisabled();
   });
 
   it("executes training and shows an explainable result for every player", () => {

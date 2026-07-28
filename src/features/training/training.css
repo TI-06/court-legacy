@@ -16,8 +16,7 @@
 .training-hero {
   color: #f7fbfc;
   background:
-    linear-gradient(145deg, rgb(42 103 116 / 96%), rgb(20 51 66 / 99%)),
-    #163644;
+    linear-gradient(145deg, rgb(42 103 116 / 96%), rgb(20 51 66 / 99%)), #163644;
   border-color: rgb(255 255 255 / 8%);
 }
 

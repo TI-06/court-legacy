@@ -9,7 +9,9 @@ function average(values: readonly number[]): number {
   if (values.length === 0) {
     return 0;
   }
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  return Math.round(
+    values.reduce((sum, value) => sum + value, 0) / values.length,
+  );
 }
 
 export function HomeScreen({ state, onOpenTraining }: HomeScreenProps) {
@@ -55,12 +57,16 @@ export function HomeScreen({ state, onOpenTraining }: HomeScreenProps) {
         <article className="metric-card">
           <span>平均疲労</span>
           <strong>{averageFatigue}</strong>
-          <small>{injuredCount > 0 ? `怪我 ${injuredCount}人` : "全員参加可"}</small>
+          <small>
+            {injuredCount > 0 ? `怪我 ${injuredCount}人` : "全員参加可"}
+          </small>
         </article>
         <article className="metric-card">
           <span>部員</span>
           <strong>{players.length}</strong>
-          <small>3年生 {players.filter((player) => player?.grade === 3).length}人</small>
+          <small>
+            3年生 {players.filter((player) => player?.grade === 3).length}人
+          </small>
         </article>
       </section>
 
@@ -73,7 +79,11 @@ export function HomeScreen({ state, onOpenTraining }: HomeScreenProps) {
           <span className="required-label">必須</span>
         </div>
         <p>チーム練習を1件、異なる選手への個人指示を2件設定します。</p>
-        <button className="primary-action" onClick={onOpenTraining} type="button">
+        <button
+          className="primary-action"
+          onClick={onOpenTraining}
+          type="button"
+        >
           今週の方針を設定
           <span aria-hidden="true">›</span>
         </button>

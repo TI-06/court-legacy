@@ -11,13 +11,7 @@ import { HomeScreen } from "./features/home/HomeScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 
 type AppTab = "home" | "team" | "training" | "match" | "school";
-type IconName =
-  | "home"
-  | "team"
-  | "training"
-  | "match"
-  | "school"
-  | "calendar";
+type IconName = "home" | "team" | "training" | "match" | "school" | "calendar";
 
 interface IconProps {
   name: IconName;
@@ -31,8 +25,7 @@ function Icon({ name }: IconProps) {
     match:
       "M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm10 2h3v2a4 4 0 0 1-4 4M7 6H4v2a4 4 0 0 0 4 4",
     school: "m3 10 9-6 9 6-9 6-9-6Zm3 4v5h12v-5M9 19v-4h6v4",
-    calendar:
-      "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
+    calendar: "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
   };
 
   return (
@@ -60,7 +53,11 @@ const navigationItems: Array<{
   { id: "school", label: "学校", icon: "school" },
 ];
 
-function PlaceholderScreen({ tab }: { tab: Exclude<AppTab, "home" | "training"> }) {
+function PlaceholderScreen({
+  tab,
+}: {
+  tab: Exclude<AppTab, "home" | "training">;
+}) {
   const labels: Record<typeof tab, { title: string; description: string }> = {
     team: {
       title: "チーム編成",

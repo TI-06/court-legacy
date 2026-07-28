@@ -301,12 +301,17 @@ export function TrainingScreen({
               if (!player) {
                 return null;
               }
-              const changedAbilities = Object.entries(log.abilityChanges).filter(
-                ([, value]) => (value ?? 0) !== 0,
-              ) as Array<[AbilityKey, number]>;
+              const changedAbilities = Object.entries(
+                log.abilityChanges,
+              ).filter(([, value]) => (value ?? 0) !== 0) as Array<
+                [AbilityKey, number]
+              >;
 
               return (
-                <article data-testid="training-result-player" key={log.playerId}>
+                <article
+                  data-testid="training-result-player"
+                  key={log.playerId}
+                >
                   <div className="player-result__header">
                     <div>
                       <strong>
