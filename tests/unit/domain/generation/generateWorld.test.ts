@@ -45,6 +45,22 @@ describe("generateWorld", () => {
     expect(Object.values(world.players)).toHaveLength(192);
   });
 
+  it("normalizes every school attack distribution to one hundred percent", () => {
+    const world = generateWorld({
+      seed: "attack-distribution",
+      userSchool,
+      data,
+    });
+
+    for (const school of Object.values(world.schools)) {
+      const shares = Object.values(school.tactics.attackDistribution);
+      expect(shares.every((share) => Number.isInteger(share) && share >= 0)).toBe(
+        true,
+      );
+      expect(shares.reduce((sum, share) => sum + share, 0)).toBe(100);
+    }
+  });
+
   it("assigns every player to exactly one school", () => {
     const world = generateWorld({
       seed: "school-membership",
