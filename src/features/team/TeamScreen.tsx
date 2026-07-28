@@ -47,19 +47,6 @@ function cloneSelection(selection: TeamSelection): TeamSelection {
   };
 }
 
-function statusLabel(player: Player): string {
-  if (player.injury) {
-    return `怪我 ${player.injury.remainingWeeks}週`;
-  }
-  if (player.fatigue >= 85) {
-    return "疲労危険";
-  }
-  if (player.fatigue >= 65) {
-    return "疲労注意";
-  }
-  return "出場可能";
-}
-
 function replacementText(
   replacement: StarterReplacement,
   players: Readonly<Record<PlayerId, Player>>,
