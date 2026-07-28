@@ -159,7 +159,7 @@ function assertEventReferences(parsed: RawGameData): void {
   }
 }
 
-export function loadGameData(input: RawGameData): GameDataRegistry {
+export function loadGameData(input: unknown): GameDataRegistry {
   const result = rawGameDataSchema.safeParse(input);
   if (!result.success) {
     throw formatZodError(result.error);
