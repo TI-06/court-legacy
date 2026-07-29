@@ -30,9 +30,7 @@ describe("weekly calendar sheet", () => {
     expect(screen.getByText("第1週")).toBeVisible();
     expect(screen.getByText("練習 未実施")).toBeVisible();
     expect(screen.getByText("練習試合 完了")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "次の週へ進む" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "次の週へ進む" })).toBeDisabled();
     expect(screen.getByText("練習を完了すると進めます")).toBeVisible();
   });
 
@@ -132,13 +130,19 @@ describe("weekly calendar sheet", () => {
       />,
     );
 
+    expect(screen.getByText("登録された公式予定はありません")).toBeVisible();
     expect(
-      screen.getByText("登録された公式予定はありません"),
+      screen.getByText("2026年4月1日", { selector: "time" }),
     ).toBeVisible();
-    expect(screen.getByText("2026年4月1日", { selector: "time" })).toBeVisible();
-    expect(screen.getByText("2026年4月8日", { selector: "time" })).toBeVisible();
-    expect(screen.getByText("2026年4月15日", { selector: "time" })).toBeVisible();
-    expect(screen.getByText("2026年4月22日", { selector: "time" })).toBeVisible();
+    expect(
+      screen.getByText("2026年4月8日", { selector: "time" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("2026年4月15日", { selector: "time" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("2026年4月22日", { selector: "time" }),
+    ).toBeVisible();
   });
 
   it("does not render when closed", () => {
