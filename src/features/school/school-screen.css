@@ -15,8 +15,7 @@
 .school-hero {
   color: #f7fbfc;
   background:
-    linear-gradient(145deg, rgb(42 103 116 / 94%), rgb(20 51 66 / 98%)),
-    #163644;
+    linear-gradient(145deg, rgb(42 103 116 / 94%), rgb(20 51 66 / 98%)), #163644;
   border-color: rgb(255 255 255 / 8%);
 }
 
