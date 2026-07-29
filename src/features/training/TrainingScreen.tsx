@@ -262,9 +262,7 @@ export function TrainingScreen({
           </div>
           <details
             className="training-result-details"
-            onToggle={(event) =>
-              setResultsExpanded(event.currentTarget.open)
-            }
+            onToggle={(event) => setResultsExpanded(event.currentTarget.open)}
           >
             <summary>選手別の結果を確認</summary>
             {resultsExpanded ? (

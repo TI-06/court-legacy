@@ -14,7 +14,9 @@ test("mobile shell keeps all primary navigation actions visible", async ({
     ).toBeVisible();
   }
 
-  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page
+    .locator("body")
+    .evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
@@ -40,7 +42,9 @@ test("mobile training uses compact sheets and advances to the next week", async 
   const playerPicker = page.getByRole("dialog", {
     name: "個人指示2の選手を選択",
   });
-  await expect(playerPicker.getByTestId("player-picker-option")).toHaveCount(12);
+  await expect(playerPicker.getByTestId("player-picker-option")).toHaveCount(
+    12,
+  );
   await playerPicker.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
@@ -72,7 +76,9 @@ test("mobile training uses compact sheets and advances to the next week", async 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(page.getByRole("button", { name: "練習を実行" })).toBeEnabled();
 
-  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page
+    .locator("body")
+    .evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
@@ -103,7 +109,9 @@ test("mobile team selection uses a court picker without overflow", async ({
   await page.getByRole("button", { name: "安全調整" }).click();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
-  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page
+    .locator("body")
+    .evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });

@@ -127,7 +127,11 @@ for (const viewport of [320, 360, 390]) {
       .click();
 
     await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-training-player-picker`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport}-training-player-picker`,
+    );
     await page
       .getByRole("dialog", { name: "個人指示2の選手を選択" })
       .getByRole("button", { name: "閉じる" })
