@@ -4,6 +4,7 @@ import {
   CURRENT_GAME_SCHEMA_VERSION,
   createDefaultGameSettings,
   createEmptyGameHistory,
+  relationshipKey,
   type GameState,
 } from "../model/GameState";
 import type { Player } from "../model/Player";
@@ -163,6 +164,33 @@ export function scheduleNextGenerationalTalentYear(
   return currentAcademicYear + random.int(4, 6);
 }
 
+function createInitialRelationships(
+  schools: Record<SchoolId, School>,
+  random: RandomSource,
+): Record<string, number> {
+  const relationships: Record<string, number> = {};
+  for (const school of Object.values(schools)) {
+    for (
+      let leftIndex = 0;
+      leftIndex < school.playerIds.length;
+      leftIndex += 1
+    ) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < school.playerIds.length;
+        rightIndex += 1
+      ) {
+        const left = school.playerIds[leftIndex];
+        const right = school.playerIds[rightIndex];
+        if (left && right) {
+          relationships[relationshipKey(left, right)] = random.int(35, 65);
+        }
+      }
+    }
+  }
+  return relationships;
+}
+
 export function generateWorld(input: GenerateWorldInput): GameState {
   const random = new SeededRandom(input.seed);
   const schools = {} as Record<SchoolId, School>;
@@ -233,6 +261,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     1,
     random,
   );
+  const playerRelationships = createInitialRelationships(schools, random);
 
   return {
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
@@ -243,6 +272,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     userSchoolId,
     schools,
     players,
+    playerRelationships,
     calendar: {
       currentDate: "2026-04-01",
       academicYear: 1,
@@ -267,48 +297,39 @@ export function generateWorld(input: GenerateWorldInput): GameState {
 export function assignGenerationalTalent(
   input: AssignGenerationalTalentInput,
 ): GenerationalTalentAssignment {
-  const schoolEntries = Object.values(input.state.schools);
-  const selectedSchool = weightedChoice(
-    schoolEntries.map((school) => ({
-      value: school,
-      weight:
-        10 +
-        Math.floor(school.reputationPoints / 50) +
-        school.facilities.scoutingNetwork * 3,
+  const school = weightedChoice(
+    Object.values(input.state.schools).map((candidate) => ({
+      value: candidate,
+      weight: Math.max(1, 40 + candidate.reputationPoints / 5),
     })),
     input.random,
   );
-
-  if (!selectedSchool) {
-    throw new Error("world must contain at least one eligible school");
+  if (!school) {
+    throw new Error("generational talent requires at least one school");
   }
-
-  const currentPlayers = selectedSchool.playerIds
-    .map((id) => input.state.players[id])
-    .filter((player): player is Player => Boolean(player));
-  const excludedFullNames = new Set(
-    currentPlayers.map((player) => `${player.lastName} ${player.firstName}`),
-  );
-  const excludedAppearanceSeeds = new Set(
-    currentPlayers.map((player) => player.appearanceSeed),
-  );
-  const generated = generatePlayer({
-    id: playerId(
-      `player-${String(nextPlayerNumber(input.state)).padStart(4, "0")}`,
-    ),
-    schoolId: selectedSchool.id,
-    grade: 1,
+  const existingPlayers = Object.values(input.state.players);
+  const nextNumber = nextPlayerNumber(input.state);
+  const player = generatePlayer({
+    id: playerId(`player-${nextNumber}`),
+    schoolId: school.id,
     enrolledYear: input.academicYear,
-    tier: "generational",
+    grade: 1,
     data: input.data,
     random: input.random,
-    excludedFullNames,
-    excludedAppearanceSeeds,
+    tier: "generational",
+    excludedFullNames: new Set(
+      existingPlayers.map(
+        (candidate) => `${candidate.lastName} ${candidate.firstName}`,
+      ),
+    ),
+    excludedAppearanceSeeds: new Set(
+      existingPlayers.map((candidate) => candidate.appearanceSeed),
+    ),
   });
 
   return {
-    schoolId: selectedSchool.id,
-    player: generated,
+    schoolId: school.id,
+    player,
     nextGenerationalTalentYear: scheduleNextGenerationalTalentYear(
       input.academicYear,
       input.random,

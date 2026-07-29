@@ -26,6 +26,7 @@ const gameStateSchema = z
     userSchoolId: z.string().min(1),
     schools: z.record(z.string(), objectSchema),
     players: z.record(z.string(), objectSchema),
+    playerRelationships: z.record(z.string(), z.number().min(0).max(100)),
     calendar: objectSchema,
     activeMatch: z.unknown().nullable(),
     pendingEvent: z.unknown().nullable(),
@@ -42,6 +43,31 @@ const versionProbeSchema = z
   })
   .passthrough();
 
+function migrateVersionZero(legacy: Record<string, unknown>): unknown {
+  const legacySettings =
+    legacy.settings && typeof legacy.settings === "object"
+      ? (legacy.settings as Record<string, unknown>)
+      : {};
+
+  return {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    playerRelationships: {},
+    settings: {
+      ...createDefaultGameSettings(),
+      ...legacySettings,
+    },
+  };
+}
+
+function migrateVersionOne(legacy: Record<string, unknown>): unknown {
+  return {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    playerRelationships: {},
+  };
+}
+
 function migrateLegacyState(value: unknown): unknown {
   const probe = versionProbeSchema.safeParse(value);
   if (!probe.success) {
@@ -57,21 +83,12 @@ function migrateLegacyState(value: unknown): unknown {
     return value;
   }
 
+  const legacy = value as Record<string, unknown>;
   if (version === 0) {
-    const legacy = value as Record<string, unknown>;
-    const legacySettings =
-      legacy.settings && typeof legacy.settings === "object"
-        ? (legacy.settings as Record<string, unknown>)
-        : {};
-
-    return {
-      ...legacy,
-      schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
-      settings: {
-        ...createDefaultGameSettings(),
-        ...legacySettings,
-      },
-    };
+    return migrateVersionZero(legacy);
+  }
+  if (version === 1) {
+    return migrateVersionOne(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);

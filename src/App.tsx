@@ -6,6 +6,8 @@ import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
 } from "./domain/calendar/weekProgression";
+import { surfaceWeeklyEvent } from "./domain/events/eventPipeline";
+import { resolveEventChoice } from "./domain/events/resolveEventChoice";
 import {
   simulateMatch,
   type SimulateMatchResult,
@@ -28,6 +30,7 @@ import {
   type WeeklyPlan,
 } from "./domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "./features/calendar/CalendarSheet";
+import { EventDialog } from "./features/home/EventDialog";
 import { HomeScreen } from "./features/home/HomeScreen";
 import { MatchScreen } from "./features/match/MatchScreen";
 import { SaveSheet } from "./features/save/SaveSheet";
@@ -274,7 +277,8 @@ export default function App() {
       return;
     }
 
-    const nextState = advanceOneWeek(gameState).state;
+    const advancedState = advanceOneWeek(gameState).state;
+    const nextState = surfaceWeeklyEvent(advancedState, gameData);
     setAppState((current) => ({ ...current, gameState: nextState }));
     if (nextState.settings.autosaveEnabled) {
       setSaveNotice("自動保存中");
@@ -287,6 +291,24 @@ export default function App() {
     setActiveMatchResult(null);
     setCalendarOpen(false);
     setActiveTab("home");
+  };
+
+  const chooseEvent = (choiceId: string) => {
+    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
+    const nextState = resolveEventChoice(
+      gameState,
+      choiceId,
+      gameData,
+      random,
+    ).state;
+    setAppState((current) => ({ ...current, gameState: nextState }));
+    if (nextState.settings.autosaveEnabled) {
+      setSaveNotice("イベント結果を保存中");
+      void browserGameRepository
+        .save(activeSaveSlotId, nextState, "autosave")
+        .then(() => setSaveNotice("イベント結果を保存済み"))
+        .catch(() => setSaveNotice("イベント結果の保存に失敗"));
+    }
   };
 
   const content =
@@ -410,6 +432,7 @@ export default function App() {
         repository={browserGameRepository}
         state={gameState}
       />
+      <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
     </div>
   );
 }

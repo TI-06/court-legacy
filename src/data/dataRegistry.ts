@@ -160,6 +160,13 @@ function assertEventReferences(parsed: RawGameData): void {
           `event ${event.id} references unknown follow-up: ${choice.followUp.eventId}`,
         );
       }
+      for (const effect of choice.effects) {
+        if (effect.type === "schedule-event" && !eventIds.has(effect.eventId)) {
+          throw new Error(
+            `event ${event.id} references unknown scheduled event: ${effect.eventId}`,
+          );
+        }
+      }
     }
   }
 }

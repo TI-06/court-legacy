@@ -54,6 +54,7 @@ export interface GameState {
   userSchoolId: SchoolId;
   schools: Record<SchoolId, School>;
   players: Record<PlayerId, Player>;
+  playerRelationships: Record<string, number>;
   calendar: CalendarState;
   activeMatch: MatchState | null;
   pendingEvent: PendingEvent | null;
@@ -63,7 +64,7 @@ export interface GameState {
   world: WorldState;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 1;
+export const CURRENT_GAME_SCHEMA_VERSION = 2;
 
 export function createDefaultGameSettings(): GameSettings {
   return {
@@ -82,4 +83,8 @@ export function createEmptyGameHistory(): GameHistory {
     nationalChampionSchoolIdsByYear: {},
     schoolRecordValues: {},
   };
+}
+
+export function relationshipKey(left: PlayerId, right: PlayerId): string {
+  return [left, right].sort().join("::");
 }

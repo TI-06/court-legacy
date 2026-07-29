@@ -4,6 +4,7 @@ import {
   generateWorld,
   scheduleNextGenerationalTalentYear,
 } from "../../../../src/domain/generation/generateWorld";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../../src/domain/model/GameState";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 
 if (!gameDataBootstrap.ok) {
@@ -83,7 +84,7 @@ describe("generateWorld", () => {
   it("initializes an endless-game state with a future generational year", () => {
     const world = generateWorld({ seed: "world-state", userSchool, data });
 
-    expect(world.schemaVersion).toBe(1);
+    expect(world.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(world.yearIndex).toBe(1);
     expect(world.date).toBe("2026-04-01");
     expect(world.activeMatch).toBeNull();

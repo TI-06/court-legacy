@@ -6,6 +6,7 @@ interface BottomSheetProps {
   description?: string;
   onClose: () => void;
   children: ReactNode;
+  dismissible?: boolean;
 }
 
 const focusableSelector = [
@@ -23,6 +24,7 @@ export function BottomSheet({
   description,
   onClose,
   children,
+  dismissible = true,
 }: BottomSheetProps) {
   const titleId = useId();
   const descriptionId = useId();
@@ -37,10 +39,12 @@ export function BottomSheet({
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    closeButtonRef.current?.focus();
+    const firstFocusable =
+      sheetRef.current?.querySelector<HTMLElement>(focusableSelector);
+    (dismissible ? closeButtonRef.current : firstFocusable)?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && dismissible) {
         onClose();
         return;
       }
@@ -74,7 +78,7 @@ export function BottomSheet({
       document.removeEventListener("keydown", handleKeyDown);
       previousFocus?.focus();
     };
-  }, [onClose, open]);
+  }, [dismissible, onClose, open]);
 
   if (!open) {
     return null;
@@ -82,12 +86,16 @@ export function BottomSheet({
 
   return (
     <div className="ui-sheet-layer">
-      <button
-        aria-label="閉じる"
-        className="ui-sheet-backdrop"
-        onClick={onClose}
-        type="button"
-      />
+      {dismissible ? (
+        <button
+          aria-label="閉じる"
+          className="ui-sheet-backdrop"
+          onClick={onClose}
+          type="button"
+        />
+      ) : (
+        <div aria-hidden="true" className="ui-sheet-backdrop" />
+      )}
       <section
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
@@ -102,15 +110,17 @@ export function BottomSheet({
             <h2 id={titleId}>{title}</h2>
             {description ? <p id={descriptionId}>{description}</p> : null}
           </div>
-          <button
-            aria-label="閉じる"
-            className="ui-icon-button"
-            onClick={onClose}
-            ref={closeButtonRef}
-            type="button"
-          >
-            ×
-          </button>
+          {dismissible ? (
+            <button
+              aria-label="閉じる"
+              className="ui-icon-button"
+              onClick={onClose}
+              ref={closeButtonRef}
+              type="button"
+            >
+              ×
+            </button>
+          ) : null}
         </header>
         <div className="ui-sheet-content">{children}</div>
       </section>
