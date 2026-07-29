@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { matchId } from "../../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type GameDate,
+} from "../../../../src/domain/model/identifiers";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 
 function createState() {
@@ -64,7 +67,7 @@ describe("school management screen", () => {
     );
     state.history.matches = Array.from({ length: 6 }, (_, index) => ({
       matchId: matchId(`school-record-${index}`),
-      date: `2026-04-${String(index + 1).padStart(2, "0")}`,
+      date: `2026-04-${String(index + 1).padStart(2, "0")}` as GameDate,
       homeSchoolId: state.userSchoolId,
       awaySchoolId: rivals[index]!.id,
       winnerSchoolId: index % 2 === 0 ? state.userSchoolId : rivals[index]!.id,
