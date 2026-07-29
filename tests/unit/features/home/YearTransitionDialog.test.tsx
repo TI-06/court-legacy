@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
@@ -25,9 +25,19 @@ describe("year transition dialog", () => {
       />,
     );
 
-    expect(screen.getByRole("dialog", { name: "2年目の新年度" })).toBeVisible();
-    expect(screen.getByText("卒業 4名")).toBeVisible();
-    expect(screen.getByText(/新入生 \d+名/)).toBeVisible();
+    expect(
+      screen.getByRole("dialog", { name: "2年目の新年度" }),
+    ).toBeVisible();
+    const graduationMetric = screen
+      .getByText("卒業", { selector: ".year-transition-metrics span" })
+      .closest("div");
+    const intakeMetric = screen
+      .getByText("新入生", { selector: ".year-transition-metrics span" })
+      .closest("div");
+    expect(graduationMetric).not.toBeNull();
+    expect(intakeMetric).not.toBeNull();
+    expect(within(graduationMetric!).getByText("4名")).toBeVisible();
+    expect(within(intakeMetric!).getByText(/\d+名/)).toBeVisible();
     expect(screen.getByText("新主将")).toBeVisible();
     expect(screen.getByText("世代級選手が入学")).toBeVisible();
 
