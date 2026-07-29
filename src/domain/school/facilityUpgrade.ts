@@ -12,10 +12,7 @@ export interface FacilityDefinition {
 }
 
 export type FacilityUpgradeReason =
-  | "available"
-  | "insufficient-funds"
-  | "max-level"
-  | "invalid-level";
+  "available" | "insufficient-funds" | "max-level" | "invalid-level";
 
 export interface FacilityUpgradeEvaluation {
   allowed: boolean;
