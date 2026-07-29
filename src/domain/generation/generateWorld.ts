@@ -296,11 +296,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
 
 export function assignGenerationalTalent(
   input: AssignGenerationalTalentInput,
-): GenerationalTalentAssignment | null {
-  if (input.academicYear < input.state.world.nextGenerationalTalentYear) {
-    return null;
-  }
-
+): GenerationalTalentAssignment {
   const school = weightedChoice(
     Object.values(input.state.schools).map((candidate) => ({
       value: candidate,
@@ -308,15 +304,27 @@ export function assignGenerationalTalent(
     })),
     input.random,
   );
+  if (!school) {
+    throw new Error("generational talent requires at least one school");
+  }
+  const existingPlayers = Object.values(input.state.players);
   const nextNumber = nextPlayerNumber(input.state);
   const player = generatePlayer({
     id: playerId(`player-${nextNumber}`),
     schoolId: school.id,
-    academicYear: input.academicYear,
+    enrolledYear: input.academicYear,
     grade: 1,
     data: input.data,
     random: input.random,
     tier: "generational",
+    excludedFullNames: new Set(
+      existingPlayers.map(
+        (candidate) => `${candidate.lastName} ${candidate.firstName}`,
+      ),
+    ),
+    excludedAppearanceSeeds: new Set(
+      existingPlayers.map((candidate) => candidate.appearanceSeed),
+    ),
   });
 
   return {

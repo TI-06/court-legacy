@@ -161,7 +161,9 @@ export const eventTriggerSchema = z.object({
   maxGrade: z.number().int().min(1).max(3).optional(),
   requiredTraitIds: z.array(dataIdSchema).max(6).optional(),
   excludedTraitIds: z.array(dataIdSchema).max(6).optional(),
-  abilityRanges: z.record(abilityKeySchema, numericRangeSchema).optional(),
+  abilityRanges: z
+    .partialRecord(abilityKeySchema, numericRangeSchema)
+    .optional(),
   morale: numericRangeSchema.optional(),
   fatigue: numericRangeSchema.optional(),
   trust: numericRangeSchema.optional(),

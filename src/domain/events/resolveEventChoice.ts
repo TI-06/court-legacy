@@ -9,7 +9,7 @@ import { eventCareerKey } from "./eventEligibility";
 import { relationshipKey, type GameState } from "../model/GameState";
 import { clampAbility, type Player } from "../model/Player";
 import type { SchoolFacilities } from "../model/School";
-import type { EventId, PlayerId } from "../model/identifiers";
+import type { PlayerId } from "../model/identifiers";
 import { eventId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { addWeeks } from "./eventDate";
@@ -297,7 +297,7 @@ export function resolveEventChoice(
   }
 
   const occurrence: EventOccurrence = {
-    eventId: pending.eventId as EventId,
+    eventId: pending.eventId,
     date: state.date,
     actorPlayerIds: [...pending.actorPlayerIds],
     choiceId,
@@ -317,12 +317,13 @@ export function resolveEventChoice(
       ...nextState.eventMemory,
       lastOccurredDateByEventId: {
         ...nextState.eventMemory.lastOccurredDateByEventId,
-        [event.id]: state.date,
+        [pending.eventId]: state.date,
       },
       occurrenceCountByEventId: {
         ...nextState.eventMemory.occurrenceCountByEventId,
-        [event.id]:
-          (nextState.eventMemory.occurrenceCountByEventId[event.id] ?? 0) + 1,
+        [pending.eventId]:
+          (nextState.eventMemory.occurrenceCountByEventId[pending.eventId] ??
+            0) + 1,
       },
       occurredCareerKeys,
       recentEventIds: pushLimited(

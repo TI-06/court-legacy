@@ -192,6 +192,9 @@ export function selectNextEvent(
     })),
     random,
   );
+  if (!selected) {
+    return { state, pendingEvent: null };
+  }
   const pendingEvent = createPendingEvent(
     state,
     selected.event,

@@ -6,6 +6,7 @@ import type { ActivityType } from "../model/Calendar";
 import { relationshipKey, type GameState } from "../model/GameState";
 import type { Player } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
+import { eventId } from "../model/identifiers";
 import { monthOf, weeksBetween } from "./eventDate";
 
 const TOURNAMENT_TYPES: readonly ActivityType[] = [
@@ -102,7 +103,8 @@ export function isEventOnCooldown(
   state: GameState,
   event: EventDefinition,
 ): boolean {
-  const lastDate = state.eventMemory.lastOccurredDateByEventId[event.id];
+  const lastDate =
+    state.eventMemory.lastOccurredDateByEventId[eventId(event.id)];
   return Boolean(
     lastDate && weeksBetween(lastDate, state.date) < event.cooldownWeeks,
   );
