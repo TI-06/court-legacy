@@ -1,7 +1,10 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
-import type { PlayerId } from "../../../../src/domain/model/identifiers";
+import type {
+  GameDate,
+  PlayerId,
+} from "../../../../src/domain/model/identifiers";
 
 describe("academic year progression", () => {
   it("advances a normal week without changing the academic year", () => {
@@ -105,5 +108,35 @@ describe("academic year progression", () => {
       result.academicYearTransition?.generationalTalentPlayerId,
     ).toBeNull();
     expect(result.state.world.generationalTalentPlayerIds).toEqual([]);
+  });
+
+  it("keeps every school roster bounded across ten season changes", () => {
+    let state = createDemoGame();
+
+    for (let calendarYear = 2027; calendarYear <= 2036; calendarYear += 1) {
+      const rolloverDate = `${calendarYear}-03-31` as GameDate;
+      state = {
+        ...state,
+        date: rolloverDate,
+        calendar: {
+          ...state.calendar,
+          currentDate: rolloverDate,
+          weekOfYear: 52,
+        },
+      };
+
+      const result = advanceGameWeek(state, gameData);
+      expect(result.academicYearTransition).not.toBeNull();
+      state = result.state;
+
+      const activePlayerIdList = Object.values(state.schools).flatMap(
+        (school) => school.playerIds,
+      );
+      expect(new Set(activePlayerIdList).size).toBe(activePlayerIdList.length);
+      for (const school of Object.values(state.schools)) {
+        expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
+        expect(school.playerIds.length).toBeLessThanOrEqual(16);
+      }
+    }
   });
 });
