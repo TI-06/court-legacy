@@ -90,17 +90,26 @@ function recoverPlayer(
   };
 }
 
+function recoveryRoomLevelsByPlayer(state: GameState): Map<PlayerId, number> {
+  const levels = new Map<PlayerId, number>();
+  for (const school of Object.values(state.schools)) {
+    for (const playerId of school.playerIds) {
+      levels.set(playerId, school.facilities.recoveryRoom);
+    }
+  }
+  return levels;
+}
+
 export function advanceOneWeek(state: GameState): WeekProgressionResult {
   const players = { ...state.players };
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
+  const recoveryLevels = recoveryRoomLevelsByPlayer(state);
 
   for (const [playerId, player] of Object.entries(state.players) as Array<
     [PlayerId, Player]
   >) {
-    const school = state.schools[player.schoolId];
-    const recoveryRoomLevel = school?.facilities.recoveryRoom ?? 0;
-    const result = recoverPlayer(player, recoveryRoomLevel);
+    const result = recoverPlayer(player, recoveryLevels.get(playerId) ?? 0);
     players[playerId] = result.player;
     if (result.recovered) {
       recoveredPlayerIds.push(playerId);
