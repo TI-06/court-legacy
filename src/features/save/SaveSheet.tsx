@@ -76,7 +76,6 @@ export function SaveSheet({
   onClose,
 }: SaveSheetProps) {
   const [slots, setSlots] = useState<SaveSlotSummary[]>(emptySlots);
-  const [loading, setLoading] = useState(false);
   const [busySlotId, setBusySlotId] = useState<SaveSlotId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,9 +91,6 @@ export function SaveSheet({
     }
 
     let active = true;
-    setLoading(true);
-    setMessage(null);
-    setError(null);
     repository
       .listSlots()
       .then((nextSlots) => {
@@ -109,11 +105,6 @@ export function SaveSheet({
               ? reason.message
               : "セーブ情報を取得できません",
           );
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
         }
       });
 
@@ -226,9 +217,6 @@ export function SaveSheet({
       title="セーブ・ロード"
     >
       <div className="save-sheet-body">
-        {loading ? (
-          <p className="save-sheet-status">セーブ情報を確認中です</p>
-        ) : null}
         {error ? (
           <p
             className="save-sheet-feedback save-sheet-feedback--error"
