@@ -9,9 +9,12 @@ interface HomeScreenProps {
   opponent: School;
   latestMatch: SimulateMatchResult | null;
   homeStrength: number;
+  trainingCompleted: boolean;
+  practiceMatchCompleted: boolean;
   onOpenTraining: () => void;
   onOpenTeam: () => void;
   onOpenMatch: () => void;
+  onAdvanceWeek: () => void;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -45,9 +48,12 @@ export function HomeScreen({
   opponent,
   latestMatch,
   homeStrength,
+  trainingCompleted,
+  practiceMatchCompleted,
   onOpenTraining,
   onOpenTeam,
   onOpenMatch,
+  onAdvanceWeek,
 }: HomeScreenProps) {
   const school = state.schools[state.userSchoolId];
   if (!school) {
@@ -81,7 +87,7 @@ export function HomeScreen({
           <div>
             <span>練習試合候補</span>
             <strong>{opponent.name}</strong>
-            <small>編成を確認して、いつでも試合を開始できます。</small>
+            <small>週が変わると、次の対戦候補も更新されます。</small>
           </div>
           <div className="home-strength-badge">
             <span>自校</span>
@@ -123,7 +129,8 @@ export function HomeScreen({
         </div>
         <div className="home-action-grid">
           <button
-            className="home-action-card home-action-card--primary"
+            className={`home-action-card home-action-card--primary${trainingCompleted ? " home-action-card--completed" : ""}`}
+            disabled={trainingCompleted}
             onClick={onOpenTraining}
             type="button"
           >
@@ -131,10 +138,16 @@ export function HomeScreen({
               育
             </span>
             <span>
-              <strong>育成を決める</strong>
-              <small>チーム練習と重点選手を選択</small>
+              <strong>
+                {trainingCompleted ? "今週の育成は完了" : "育成を決める"}
+              </strong>
+              <small>
+                {trainingCompleted
+                  ? "結果は育成タブで確認できます"
+                  : "チーム練習と重点選手を選択"}
+              </small>
             </span>
-            <span aria-hidden="true">›</span>
+            <span aria-hidden="true">{trainingCompleted ? "✓" : "›"}</span>
           </button>
           <button
             className="home-action-card"
@@ -151,7 +164,8 @@ export function HomeScreen({
             <span aria-hidden="true">›</span>
           </button>
           <button
-            className="home-action-card home-action-card--match"
+            className={`home-action-card home-action-card--match${practiceMatchCompleted ? " home-action-card--completed" : ""}`}
+            disabled={practiceMatchCompleted}
             onClick={onOpenMatch}
             type="button"
           >
@@ -159,12 +173,50 @@ export function HomeScreen({
               試
             </span>
             <span>
-              <strong>練習試合へ</strong>
-              <small>{opponent.shortName}との戦力比較を確認</small>
+              <strong>
+                {practiceMatchCompleted ? "今週の練習試合は完了" : "練習試合へ"}
+              </strong>
+              <small>
+                {practiceMatchCompleted
+                  ? "次週になると再び実施できます"
+                  : `${opponent.shortName}との戦力比較を確認`}
+              </small>
             </span>
-            <span aria-hidden="true">›</span>
+            <span aria-hidden="true">{practiceMatchCompleted ? "✓" : "›"}</span>
           </button>
         </div>
+      </section>
+
+      <section className="home-week-progress" aria-labelledby="week-heading">
+        <div className="section-heading">
+          <div>
+            <p className="section-kicker">WEEK PROGRESS</p>
+            <h2 id="week-heading">今週を終える</h2>
+          </div>
+          <span>{state.calendar.weekOfYear}週目</span>
+        </div>
+        <div className="home-week-status">
+          <span className={trainingCompleted ? "is-complete" : ""}>
+            練習 {trainingCompleted ? "完了" : "未実施"}
+          </span>
+          <span className={practiceMatchCompleted ? "is-complete" : ""}>
+            試合 {practiceMatchCompleted ? "完了" : "任意"}
+          </span>
+        </div>
+        <button
+          aria-label="次の週へ進む"
+          className="home-next-week-button"
+          disabled={!trainingCompleted}
+          onClick={onAdvanceWeek}
+          type="button"
+        >
+          次の週へ進む
+        </button>
+        <p>
+          {trainingCompleted
+            ? "次週へ進むと疲労と状態が回復し、怪我の残り週数も進みます。"
+            : "今週の練習を終えると、次の週へ進めます。"}
+        </p>
       </section>
 
       {latestMatch && latestWinner ? (

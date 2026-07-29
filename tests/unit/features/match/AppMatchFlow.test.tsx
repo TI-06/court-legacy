@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("app match integration", () => {
-  it("runs a practice match from home and keeps the latest result", () => {
+  it("runs one practice match, keeps the result, and closes the weekly action", () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
@@ -27,6 +27,9 @@ describe("app match integration", () => {
     expect(
       screen.getByRole("heading", { name: "直近の試合" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /今週の練習試合は完了/ }),
+    ).toBeDisabled();
   });
 
   it("opens match preparation from the bottom navigation before a match", () => {

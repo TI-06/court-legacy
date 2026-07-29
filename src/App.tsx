@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
 import {
+  advanceOneWeek,
+  isWeeklyActionCompleted,
+  markWeeklyActionCompleted,
+} from "./domain/calendar/weekProgression";
+import {
   simulateMatch,
   type SimulateMatchResult,
 } from "./domain/match/simulateMatch";
@@ -97,6 +102,11 @@ export default function App() {
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
   const { gameState, teamSelection } = appState;
+  const trainingCompleted = isWeeklyActionCompleted(gameState, "training");
+  const practiceMatchCompleted = isWeeklyActionCompleted(
+    gameState,
+    "practice-match",
+  );
   const opponent = useMemo(
     () => selectPracticeOpponent(gameState),
     [gameState],
@@ -115,6 +125,10 @@ export default function App() {
   );
 
   const executeTraining = (plan: WeeklyPlan) => {
+    if (trainingCompleted) {
+      return;
+    }
+
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
     const resolution = resolveWeeklyTraining({
       state: gameState,
@@ -123,20 +137,31 @@ export default function App() {
       data: gameData,
       random,
     });
+    const completedState = markWeeklyActionCompleted(
+      resolution.state,
+      "training",
+    );
 
     setAppState((current) => ({
       ...current,
-      gameState: resolution.state,
+      gameState: completedState,
     }));
     setLatestTrainingResult(resolution.result);
   };
 
   const openFreshPracticeMatch = () => {
+    if (practiceMatchCompleted) {
+      return;
+    }
     setActiveMatchResult(null);
     setActiveTab("match");
   };
 
   const startPracticeMatch = () => {
+    if (practiceMatchCompleted) {
+      return;
+    }
+
     const id = matchId(`practice-${gameState.date}-${gameState.randomCursor}`);
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
     const simulation = simulateMatch({
@@ -152,9 +177,8 @@ export default function App() {
 
     setLatestMatchResult(simulation);
     setActiveMatchResult(simulation);
-    setAppState((current) => ({
-      ...current,
-      gameState: {
+    setAppState((current) => {
+      const updatedState = {
         ...current.gameState,
         randomCursor: simulation.match.randomCursor,
         activeMatch: simulation.match,
@@ -174,8 +198,27 @@ export default function App() {
             },
           ],
         },
-      },
+      };
+
+      return {
+        ...current,
+        gameState: markWeeklyActionCompleted(updatedState, "practice-match"),
+      };
+    });
+  };
+
+  const advanceWeek = () => {
+    if (!trainingCompleted) {
+      return;
+    }
+
+    setAppState((current) => ({
+      ...current,
+      gameState: advanceOneWeek(current.gameState).state,
     }));
+    setLatestTrainingResult(null);
+    setActiveMatchResult(null);
+    setActiveTab("home");
   };
 
   const content =
@@ -183,11 +226,14 @@ export default function App() {
       <HomeScreen
         homeStrength={homeStrength}
         latestMatch={latestMatchResult}
+        onAdvanceWeek={advanceWeek}
         onOpenMatch={openFreshPracticeMatch}
         onOpenTeam={() => setActiveTab("team")}
         onOpenTraining={() => setActiveTab("training")}
         opponent={opponent}
+        practiceMatchCompleted={practiceMatchCompleted}
         state={gameState}
+        trainingCompleted={trainingCompleted}
       />
     ) : activeTab === "team" ? (
       <TeamScreen
@@ -202,6 +248,7 @@ export default function App() {
       />
     ) : activeTab === "training" ? (
       <TrainingScreen
+        completed={trainingCompleted}
         data={gameData}
         latestResult={latestTrainingResult}
         onExecute={executeTraining}

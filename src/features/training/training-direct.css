@@ -1,69 +1,215 @@
-.training-screen {
+.training-screen--compact {
   padding-bottom: 0;
 }
 
-.training-choice-rail {
-  display: flex;
-  width: calc(100% + 34px);
-  margin: 13px -17px -2px;
-  padding: 2px 17px 10px;
+.training-plan-card {
+  display: grid;
   gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
 }
 
-.training-choice-rail::-webkit-scrollbar {
-  display: none;
-}
-
-.direct-assignment-list {
-  display: grid;
-  margin-top: 13px;
-  gap: 12px;
-}
-
-.direct-assignment-card {
-  display: grid;
+.training-setting-row,
+.training-assignment-summary {
+  min-width: 0;
   padding: 12px;
-  gap: 10px;
   background: #f5f8f9;
   border: 1px solid #dfe8eb;
-  border-radius: 17px;
+  border-radius: 16px;
 }
 
-.direct-assignment-card__heading {
+.training-setting-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.direct-assignment-card__heading > span {
+.training-setting-row > div {
+  min-width: 0;
+}
+
+.training-setting-row span,
+.training-setting-row strong,
+.training-setting-row small {
+  display: block;
+}
+
+.training-setting-row span,
+.training-assignment-summary small {
+  color: #71818a;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.training-setting-row strong {
+  margin-top: 3px;
+  font-size: 0.86rem;
+}
+
+.training-setting-row small {
+  margin-top: 4px;
+  color: #667982;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.training-setting-row > button,
+.training-assignment-summary__actions button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 11px;
+  color: #226775;
+  font-size: 0.7rem;
+  font-weight: 900;
+  background: #e7f1f3;
+  border: 1px solid #c9dde1;
+  border-radius: 11px;
+}
+
+.training-setting-row > button:disabled,
+.training-assignment-summary__actions button:disabled {
+  color: #8d999e;
+  background: #edf0f1;
+  border-color: #e0e5e7;
+}
+
+.training-assignment-summary {
   display: grid;
-  width: 28px;
-  height: 28px;
+  gap: 9px;
+}
+
+.training-assignment-summary__heading {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 9px;
+}
+
+.training-assignment-summary__heading > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
   color: #fff;
   font-size: 0.72rem;
   font-weight: 900;
   background: #286f7c;
-  border-radius: 9px;
+  border-radius: 10px;
   place-items: center;
 }
 
-.direct-assignment-card__heading strong {
-  font-size: 0.78rem;
+.training-assignment-summary__heading > div {
+  min-width: 0;
 }
 
-.instruction-chip-list {
-  display: flex;
+.training-assignment-summary__heading strong {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-assignment-summary > p {
+  margin: 0;
+  color: #4f6570;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.training-assignment-summary__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
+}
+
+.training-sheet-choice-list {
+  display: grid;
+  gap: 9px;
+}
+
+.training-sheet-choice-list .ui-choice-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 116px;
+}
+
+.training-instruction-sheet {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
+.training-confirmation {
+  display: grid;
+  gap: 9px;
+}
+
+.training-confirmation article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 11px 12px;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #dce5e8;
+  border-radius: 13px;
+}
+
+.training-confirmation span {
+  color: #71818a;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.training-confirmation strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-confirm-button {
+  min-height: 48px;
+  margin-top: 3px;
+  color: #fff;
+  font-weight: 900;
+  background: #1c6977;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 7px 18px rgb(28 105 119 / 22%);
+}
+
+.training-result-details {
+  margin-top: 12px;
+}
+
+.training-result-details > button {
+  width: 100%;
+  min-height: 42px;
+  padding: 11px 12px;
+  color: #246572;
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-align: left;
+  background: #edf5f6;
+  border: 0;
+  border-radius: 12px;
+}
+
+.training-result-details--open > button {
+  margin-bottom: 10px;
+}
+
 @media (max-width: 350px) {
-  .training-choice-rail {
-    width: calc(100% + 28px);
-    margin-inline: -14px;
-    padding-inline: 14px;
+  .training-setting-row {
+    align-items: flex-start;
+  }
+
+  .training-setting-row > button {
+    padding-inline: 9px;
   }
 }

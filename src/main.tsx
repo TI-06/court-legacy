@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { GameDataErrorScreen } from "./app/GameDataErrorScreen";
 import "./app.css";
+import "./features/home/home-week.css";
 import "./mobile-layout.css";
 import { gameDataBootstrap } from "./data/gameData";
 
