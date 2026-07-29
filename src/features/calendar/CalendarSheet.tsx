@@ -87,7 +87,11 @@ export function CalendarSheet({
             <span>第{state.calendar.weekOfYear}週</span>
           </div>
           <div className="calendar-action-status">
-            <span className={trainingCompleted ? "calendar-status--done" : undefined}>
+            <span
+              className={
+                trainingCompleted ? "calendar-status--done" : undefined
+              }
+            >
               練習 {trainingCompleted ? "完了" : "未実施"}
             </span>
             <span
@@ -100,7 +104,10 @@ export function CalendarSheet({
           </div>
         </section>
 
-        <section className="calendar-section" aria-labelledby="schedule-heading">
+        <section
+          className="calendar-section"
+          aria-labelledby="schedule-heading"
+        >
           <div className="calendar-section-heading">
             <div>
               <p className="section-kicker">SCHEDULE</p>
