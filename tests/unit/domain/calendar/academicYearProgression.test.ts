@@ -44,10 +44,11 @@ describe("academic year progression", () => {
     expect(transition.graduatedPlayerIds).toHaveLength(originalThirdYears.length);
     expect(result.state.history.graduates).toHaveLength(originalThirdYears.length);
 
-    const activePlayerIds = new Set(
-      Object.values(result.state.schools).flatMap((school) => school.playerIds),
+    const activePlayerIdList = Object.values(result.state.schools).flatMap(
+      (school) => school.playerIds,
     );
-    expect(new Set(activePlayerIds).size).toBe(activePlayerIds.size);
+    const activePlayerIds = new Set(activePlayerIdList);
+    expect(activePlayerIds.size).toBe(activePlayerIdList.length);
     for (const playerId of originalThirdYears) {
       expect(activePlayerIds.has(playerId)).toBe(false);
     }
