@@ -1,10 +1,11 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
-import { generateWorld } from "../../../../src/domain/generation/generateWorld";
 import {
   advanceOneWeek,
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
 } from "../../../../src/domain/calendar/weekProgression";
+import { generateWorld } from "../../../../src/domain/generation/generateWorld";
+import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 
 if (!gameDataBootstrap.ok) {
   throw new Error(gameDataBootstrap.message);
@@ -39,6 +40,16 @@ describe("weekly progression", () => {
     expect(result.state.calendar.weekOfYear).toBe(2);
     expect(result.state.activeMatch).toBeNull();
     expect(state.date).toBe("2026-04-01");
+  });
+
+  it("selects a new practice opponent for the next week", () => {
+    const state = createState();
+    const currentOpponent = selectPracticeOpponent(state);
+
+    const nextWeek = advanceOneWeek(state).state;
+    const nextOpponent = selectPracticeOpponent(nextWeek);
+
+    expect(nextOpponent.id).not.toBe(currentOpponent.id);
   });
 
   it("reduces injuries and clears an injury after its final week", () => {
