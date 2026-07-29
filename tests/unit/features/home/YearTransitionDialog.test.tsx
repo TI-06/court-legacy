@@ -25,9 +25,7 @@ describe("year transition dialog", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("dialog", { name: "2年目の新年度" }),
-    ).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "2年目の新年度" })).toBeVisible();
     const graduationMetric = screen
       .getByText("卒業", { selector: ".year-transition-metrics span" })
       .closest("div");
