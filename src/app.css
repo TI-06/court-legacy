@@ -46,6 +46,9 @@ button:focus-visible {
 }
 
 .app-shell {
+  --bottom-navigation-offset: 0px;
+  --bottom-navigation-height: calc(70px + env(safe-area-inset-bottom));
+
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
@@ -115,7 +118,10 @@ button:focus-visible {
   display: grid;
   gap: 14px;
   width: 100%;
-  padding: 16px 14px 24px;
+  padding: 16px 14px
+    calc(
+      24px + var(--bottom-navigation-height) + var(--bottom-navigation-offset)
+    );
 }
 
 .season-card,
@@ -336,13 +342,17 @@ button:focus-visible {
 }
 
 .bottom-navigation {
-  position: sticky;
-  z-index: 20;
-  bottom: 0;
+  position: fixed;
+  z-index: 30;
+  right: 0;
+  bottom: var(--bottom-navigation-offset);
+  left: 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
+  max-width: 480px;
   min-height: 70px;
+  margin-inline: auto;
   padding: 5px 5px max(7px, env(safe-area-inset-bottom));
   background: rgb(255 255 255 / 96%);
   border-top: 1px solid #d5e0e5;
@@ -398,6 +408,8 @@ button:focus-visible {
   }
 
   .app-shell {
+    --bottom-navigation-offset: 20px;
+
     max-width: 480px;
     min-height: calc(100vh - 40px);
     min-height: calc(100dvh - 40px);

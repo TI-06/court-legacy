@@ -1,0 +1,378 @@
+.school-screen {
+  align-content: start;
+}
+
+.school-hero,
+.school-panel {
+  min-width: 0;
+  padding: 17px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.school-hero {
+  color: #f7fbfc;
+  background:
+    linear-gradient(145deg, rgb(42 103 116 / 94%), rgb(20 51 66 / 98%)), #163644;
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.school-hero .section-kicker {
+  color: #9fced6;
+}
+
+.school-hero__heading,
+.school-section-heading,
+.facility-card,
+.facility-card__title,
+.school-match-record,
+.alumni-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 12px;
+}
+
+.school-hero__heading {
+  margin-top: 5px;
+  align-items: flex-start;
+}
+
+.school-hero__heading h2,
+.school-section-heading h3,
+.school-panel h4 {
+  margin: 0;
+}
+
+.school-hero__heading h2 {
+  font-size: 1.35rem;
+}
+
+.school-hero__heading p {
+  margin: 4px 0 0;
+  color: #c5dadd;
+  font-size: 0.72rem;
+}
+
+.school-hero__heading > strong {
+  padding: 7px 10px;
+  color: #ffe8b3;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  background: rgb(234 167 45 / 18%);
+  border: 1px solid rgb(255 213 120 / 28%);
+  border-radius: 999px;
+}
+
+.school-summary-grid,
+.school-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  margin-top: 15px;
+  gap: 8px;
+}
+
+.school-summary-grid span,
+.school-record-grid span {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 3px;
+  font-size: 0.66rem;
+  border-radius: 13px;
+}
+
+.school-summary-grid span {
+  color: #c4d8dc;
+  background: rgb(255 255 255 / 8%);
+}
+
+.school-summary-grid strong,
+.school-record-grid strong {
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+}
+
+.school-segments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  padding: 4px;
+  gap: 4px;
+  background: #dde7eb;
+  border-radius: 15px;
+}
+
+.school-segments button {
+  min-height: 42px;
+  padding: 8px;
+  color: #60727d;
+  font-size: 0.75rem;
+  font-weight: 900;
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+}
+
+.school-segments .school-segment--active {
+  color: #174f5c;
+  background: #fff;
+  box-shadow: 0 3px 10px rgb(18 45 57 / 10%);
+}
+
+.school-section-heading {
+  align-items: flex-start;
+}
+
+.school-section-heading h3 {
+  margin-top: 3px;
+  font-size: 1.02rem;
+}
+
+.school-section-heading > span {
+  color: #75858e;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.facility-list,
+.school-match-list,
+.alumni-list {
+  display: grid;
+  min-width: 0;
+  margin-top: 13px;
+  gap: 9px;
+}
+
+.facility-card {
+  align-items: stretch;
+  padding: 12px;
+  background: #f5f8fa;
+  border: 1px solid #e0e8eb;
+  border-radius: 15px;
+}
+
+.facility-card__body {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.facility-card__title {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.facility-card__title strong {
+  font-size: 0.82rem;
+}
+
+.facility-card__title span {
+  padding: 3px 7px;
+  color: #285d68;
+  font-size: 0.63rem;
+  font-weight: 900;
+  background: #dcecef;
+  border-radius: 999px;
+}
+
+.facility-card p {
+  margin: 0;
+  color: #697b85;
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.facility-card small {
+  color: #4f6974;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.facility-card .facility-card__warning {
+  color: #9a5f08;
+}
+
+.facility-card > button {
+  min-width: 64px;
+  min-height: 44px;
+  align-self: center;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: #1c6977;
+  border: 0;
+  border-radius: 12px;
+}
+
+.facility-card > button:disabled {
+  color: #89979e;
+  background: #e2e8ea;
+}
+
+.school-record-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.school-record-grid span {
+  color: #6d7d86;
+  text-align: center;
+  background: #f3f7f8;
+}
+
+.school-record-grid strong {
+  color: #174d5a;
+  font-size: 1rem;
+}
+
+.school-panel h4 {
+  margin-top: 17px;
+  font-size: 0.8rem;
+}
+
+.school-match-record,
+.alumni-list article {
+  padding: 11px;
+  background: #f5f8fa;
+  border-radius: 14px;
+}
+
+.school-match-record > div,
+.alumni-list article > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.school-match-record time,
+.alumni-list article span {
+  color: #778790;
+  font-size: 0.64rem;
+}
+
+.school-match-record strong,
+.alumni-list article strong {
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+}
+
+.school-match-record > span {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.school-result--win {
+  color: #18715e;
+}
+
+.school-result--loss {
+  color: #a24f3b;
+}
+
+.school-empty-state {
+  margin: 14px 0 0;
+  padding: 20px 12px;
+  color: #72828b;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #f5f8fa;
+  border-radius: 14px;
+}
+
+.alumni-list article {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.alumni-metrics {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.alumni-metrics span {
+  padding: 4px 7px;
+  color: #47636e;
+  font-weight: 800;
+  background: #e6eef1;
+  border-radius: 999px;
+}
+
+.facility-confirmation {
+  display: grid;
+  gap: 13px;
+}
+
+.facility-confirmation > strong {
+  font-size: 1rem;
+}
+
+.facility-confirmation > p {
+  margin: 0;
+  color: #1c5965;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.facility-confirmation dl {
+  display: grid;
+  margin: 0;
+  gap: 7px;
+}
+
+.facility-confirmation dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #eaf1f3;
+  border-radius: 12px;
+}
+
+.facility-confirmation dt {
+  color: #657982;
+  font-size: 0.72rem;
+}
+
+.facility-confirmation dd {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.school-error {
+  padding: 18px;
+  color: #8b3323;
+  background: #ffe8e2;
+  border: 1px solid #efb8aa;
+  border-radius: 16px;
+}
+
+@media (max-width: 350px) {
+  .school-hero,
+  .school-panel {
+    padding: 14px;
+    border-radius: 17px;
+  }
+
+  .school-hero__heading {
+    gap: 8px;
+  }
+
+  .school-hero__heading h2 {
+    font-size: 1.15rem;
+  }
+
+  .school-record-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .facility-card {
+    gap: 8px;
+  }
+}

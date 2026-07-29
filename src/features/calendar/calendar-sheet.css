@@ -1,0 +1,229 @@
+.calendar-sheet-body {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.calendar-current-week,
+.calendar-section,
+.calendar-advance-panel {
+  min-width: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #dbe5e8;
+  border-radius: 16px;
+}
+
+.calendar-current-week {
+  color: #f6fbfc;
+  background: linear-gradient(145deg, #276d7b, #173a4a);
+  border-color: rgb(255 255 255 / 10%);
+}
+
+.calendar-current-week .section-kicker {
+  color: #a9d0d7;
+}
+
+.calendar-current-week > strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+}
+
+.calendar-week-meta,
+.calendar-action-status,
+.calendar-section-heading,
+.calendar-activity-list article,
+.calendar-advance-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.calendar-week-meta {
+  margin-top: 8px;
+  justify-content: flex-start;
+}
+
+.calendar-week-meta span,
+.calendar-action-status span {
+  padding: 4px 8px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  border-radius: 999px;
+}
+
+.calendar-week-meta span {
+  color: #d1e4e8;
+  background: rgb(255 255 255 / 9%);
+}
+
+.calendar-action-status {
+  margin-top: 10px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.calendar-action-status span {
+  color: #ffe3b0;
+  background: rgb(234 167 45 / 18%);
+  border: 1px solid rgb(255 213 120 / 24%);
+}
+
+.calendar-action-status .calendar-status--done {
+  color: #c8f1e7;
+  background: rgb(44 151 126 / 18%);
+  border-color: rgb(136 226 204 / 24%);
+}
+
+.calendar-section-heading {
+  align-items: flex-start;
+}
+
+.calendar-section-heading h3 {
+  margin: 3px 0 0;
+  font-size: 0.94rem;
+}
+
+.calendar-section-heading > span {
+  color: #778790;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.calendar-empty-state {
+  margin: 12px 0 0;
+  padding: 18px 10px;
+  color: #72828b;
+  font-size: 0.72rem;
+  text-align: center;
+  background: #f3f7f8;
+  border-radius: 13px;
+}
+
+.calendar-activity-list,
+.calendar-week-guide {
+  display: grid;
+  min-width: 0;
+  margin-top: 11px;
+  gap: 7px;
+}
+
+.calendar-activity-list article {
+  padding: 10px;
+  justify-content: flex-start;
+  background: #f4f8f9;
+  border-radius: 13px;
+}
+
+.calendar-activity-list time {
+  width: 78px;
+  flex: 0 0 auto;
+  color: #55717b;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.calendar-activity-list article > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.calendar-activity-list strong {
+  overflow-wrap: anywhere;
+  font-size: 0.75rem;
+}
+
+.calendar-activity-list article > div span {
+  color: #73848d;
+  font-size: 0.63rem;
+}
+
+.calendar-activity-list em {
+  margin-left: auto;
+  padding: 3px 6px;
+  color: #8b5706;
+  font-size: 0.6rem;
+  font-style: normal;
+  font-weight: 900;
+  background: #ffedc8;
+  border-radius: 999px;
+}
+
+.calendar-week-guide {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.calendar-week-guide article {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 3px;
+  background: #f4f8f9;
+  border-radius: 13px;
+}
+
+.calendar-week-guide span {
+  color: #75858e;
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.calendar-week-guide time {
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.calendar-guide-note {
+  margin: 9px 0 0;
+  color: #7a8991;
+  font-size: 0.63rem;
+  line-height: 1.5;
+}
+
+.calendar-advance-panel {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.calendar-advance-panel > div {
+  display: grid;
+  gap: 3px;
+}
+
+.calendar-advance-panel strong {
+  font-size: 0.82rem;
+}
+
+.calendar-advance-panel p {
+  margin: 0;
+  color: #6f8089;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.calendar-advance-panel .primary-action:disabled {
+  color: #89979e;
+  background: #e1e8ea;
+  box-shadow: none;
+}
+
+@media (max-width: 350px) {
+  .calendar-current-week,
+  .calendar-section,
+  .calendar-advance-panel {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .calendar-activity-list time {
+    width: 68px;
+  }
+
+  .calendar-week-guide {
+    grid-template-columns: 1fr;
+  }
+}
