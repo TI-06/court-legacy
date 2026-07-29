@@ -289,7 +289,9 @@ button.ui-player-tile:disabled {
 .ui-sticky-action-bar {
   position: sticky;
   z-index: 18;
-  bottom: 70px;
+  bottom: calc(
+    var(--bottom-navigation-height, 70px) + var(--bottom-navigation-offset, 0px)
+  );
   display: flex;
   align-items: center;
   width: calc(100% + 28px);
