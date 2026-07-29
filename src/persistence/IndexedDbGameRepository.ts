@@ -55,7 +55,11 @@ function transactionAsPromise(transaction: IDBTransaction): Promise<void> {
 }
 
 function createBackupId(slotId: SaveSlotId, createdAt: string): string {
-  return `${slotId}-${createdAt}-${crypto.randomUUID()}`;
+  const randomPart =
+    typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
+  return `${slotId}-${createdAt}-${randomPart}`;
 }
 
 export class IndexedDbGameRepository implements GameRepository {
@@ -67,13 +71,14 @@ export class IndexedDbGameRepository implements GameRepository {
       [SAVE_STORE, BACKUP_STORE],
       "readonly",
     );
+    const done = transactionAsPromise(transaction);
     const saves = await requestAsPromise(
       transaction.objectStore(SAVE_STORE).getAll() as IDBRequest<SaveRecord[]>,
     );
     const backups = await requestAsPromise(
       transaction.objectStore(BACKUP_STORE).getAll() as IDBRequest<BackupRecord[]>,
     );
-    await transactionAsPromise(transaction);
+    await done;
 
     const saveBySlot = new Map(saves.map((save) => [save.slotId, save]));
     const backupCountBySlot = new Map<SaveSlotId, number>();
@@ -102,12 +107,13 @@ export class IndexedDbGameRepository implements GameRepository {
     assertSaveSlotId(slotId);
     const database = await this.openDatabase();
     const transaction = database.transaction(SAVE_STORE, "readonly");
+    const done = transactionAsPromise(transaction);
     const record = await requestAsPromise(
       transaction.objectStore(SAVE_STORE).get(slotId) as IDBRequest<
         SaveRecord | undefined
       >,
     );
-    await transactionAsPromise(transaction);
+    await done;
 
     if (!record) {
       throw new Error("セーブデータがありません");
@@ -133,6 +139,7 @@ export class IndexedDbGameRepository implements GameRepository {
       [SAVE_STORE, BACKUP_STORE],
       "readwrite",
     );
+    const done = transactionAsPromise(transaction);
     const saveStore = transaction.objectStore(SAVE_STORE);
     const backupStore = transaction.objectStore(BACKUP_STORE);
     const existing = await requestAsPromise(
@@ -141,26 +148,24 @@ export class IndexedDbGameRepository implements GameRepository {
     const updatedAt = new Date().toISOString();
 
     if (existing) {
-      const backup: BackupRecord = {
+      backupStore.put({
         id: createBackupId(slotId, updatedAt),
         slotId,
         payload: existing.payload,
         createdAt: updatedAt,
         reason,
-      };
-      backupStore.put(backup);
+      } satisfies BackupRecord);
     }
 
-    const record: SaveRecord = {
+    saveStore.put({
       slotId,
       payload,
       updatedAt,
       schoolName: userSchool.name,
       gameDate: state.date,
       yearIndex: state.yearIndex,
-    };
-    saveStore.put(record);
-    await transactionAsPromise(transaction);
+    } satisfies SaveRecord);
+    await done;
     await this.pruneBackups(slotId);
   }
 
@@ -174,6 +179,7 @@ export class IndexedDbGameRepository implements GameRepository {
       [SAVE_STORE, BACKUP_STORE],
       "readwrite",
     );
+    const done = transactionAsPromise(transaction);
     const saveStore = transaction.objectStore(SAVE_STORE);
     const existing = await requestAsPromise(
       saveStore.get(slotId) as IDBRequest<SaveRecord | undefined>,
@@ -190,7 +196,7 @@ export class IndexedDbGameRepository implements GameRepository {
       } satisfies BackupRecord);
     }
 
-    await transactionAsPromise(transaction);
+    await done;
     await this.pruneBackups(slotId);
   }
 
@@ -201,11 +207,13 @@ export class IndexedDbGameRepository implements GameRepository {
       [SAVE_STORE, BACKUP_STORE],
       "readwrite",
     );
+    const done = transactionAsPromise(transaction);
     transaction.objectStore(SAVE_STORE).delete(slotId);
 
     const backupStore = transaction.objectStore(BACKUP_STORE);
-    const index = backupStore.index("slotId");
-    const cursorRequest = index.openKeyCursor(IDBKeyRange.only(slotId));
+    const cursorRequest = backupStore
+      .index("slotId")
+      .openKeyCursor(IDBKeyRange.only(slotId));
     cursorRequest.addEventListener("success", () => {
       const cursor = cursorRequest.result;
       if (!cursor) {
@@ -215,19 +223,20 @@ export class IndexedDbGameRepository implements GameRepository {
       cursor.continue();
     });
 
-    await transactionAsPromise(transaction);
+    await done;
   }
 
   private async pruneBackups(slotId: SaveSlotId): Promise<void> {
     const database = await this.openDatabase();
     const readTransaction = database.transaction(BACKUP_STORE, "readonly");
+    const readDone = transactionAsPromise(readTransaction);
     const records = await requestAsPromise(
       readTransaction
         .objectStore(BACKUP_STORE)
         .index("slotId")
         .getAll(IDBKeyRange.only(slotId)) as IDBRequest<BackupRecord[]>,
     );
-    await transactionAsPromise(readTransaction);
+    await readDone;
 
     const idsToDelete = selectBackupIdsToDelete(records, BACKUP_LIMIT);
     if (idsToDelete.length === 0) {
@@ -235,9 +244,10 @@ export class IndexedDbGameRepository implements GameRepository {
     }
 
     const writeTransaction = database.transaction(BACKUP_STORE, "readwrite");
+    const writeDone = transactionAsPromise(writeTransaction);
     const store = writeTransaction.objectStore(BACKUP_STORE);
     idsToDelete.forEach((id) => store.delete(id));
-    await transactionAsPromise(writeTransaction);
+    await writeDone;
   }
 
   private openDatabase(): Promise<IDBDatabase> {
