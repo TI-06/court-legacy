@@ -1,8 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
-import {
-  assignGenerationalTalent,
-  scheduleNextGenerationalTalentYear,
-} from "../generation/generateWorld";
+import { assignGenerationalTalent } from "../generation/generateWorld";
 import { generateIntake } from "../generation/generatePlayer";
 import {
   relationshipKey,
@@ -58,7 +55,10 @@ function nextPlayerNumber(players: GameState["players"]): number {
   );
 }
 
-function graduateSummary(player: Player, graduationYear: number): GraduatedPlayerSummary {
+function graduateSummary(
+  player: Player,
+  graduationYear: number,
+): GraduatedPlayerSummary {
   return {
     playerId: player.id,
     schoolId: player.career.schoolId,
@@ -219,7 +219,6 @@ export function advanceAcademicYear(
 
   let nextState: GameState = {
     ...state,
-    randomCursor: random.cursor,
     yearIndex: state.yearIndex + 1,
     schools,
     players,
@@ -281,23 +280,13 @@ export function advanceAcademicYear(
       ...intakePlayerIdsBySchool[assignment.schoolId],
       assignment.player.id,
     ];
-  } else if (nextState.world.nextGenerationalTalentYear <= nextAcademicYear) {
-    nextState = {
-      ...nextState,
-      world: {
-        ...nextState.world,
-        nextGenerationalTalentYear: scheduleNextGenerationalTalentYear(
-          nextAcademicYear,
-          random,
-        ),
-      },
-    };
   }
 
+  const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,
     randomCursor: random.cursor,
-    playerRelationships: rebuildRelationships(nextState, random),
+    playerRelationships,
   };
 
   return {
