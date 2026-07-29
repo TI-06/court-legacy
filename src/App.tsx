@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
 import {
-  advanceOneWeek,
+  advanceGameWeek,
+  type AcademicYearTransitionSummary,
+} from "./domain/calendar/academicYearProgression";
+import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
 } from "./domain/calendar/weekProgression";
@@ -32,6 +35,7 @@ import {
 import { CalendarSheet } from "./features/calendar/CalendarSheet";
 import { EventDialog } from "./features/home/EventDialog";
 import { HomeScreen } from "./features/home/HomeScreen";
+import { YearTransitionDialog } from "./features/home/YearTransitionDialog";
 import { MatchScreen } from "./features/match/MatchScreen";
 import { SaveSheet } from "./features/save/SaveSheet";
 import { SchoolScreen } from "./features/school/SchoolScreen";
@@ -111,6 +115,8 @@ export default function App() {
     useState<SimulateMatchResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
+  const [latestYearTransition, setLatestYearTransition] =
+    useState<AcademicYearTransitionSummary | null>(null);
   const { gameState, teamSelection } = appState;
   const trainingCompleted = isWeeklyActionCompleted(gameState, "training");
   const practiceMatchCompleted = isWeeklyActionCompleted(
@@ -174,6 +180,7 @@ export default function App() {
     setLatestTrainingResult(null);
     setLatestMatchResult(null);
     setActiveMatchResult(null);
+    setLatestYearTransition(null);
     setActiveTab("home");
     setCalendarOpen(false);
   };
@@ -277,9 +284,16 @@ export default function App() {
       return;
     }
 
-    const advancedState = advanceOneWeek(gameState).state;
-    const nextState = surfaceWeeklyEvent(advancedState, gameData);
-    setAppState((current) => ({ ...current, gameState: nextState }));
+    const progression = advanceGameWeek(gameState, gameData);
+    const nextState = progression.academicYearTransition
+      ? progression.state
+      : surfaceWeeklyEvent(progression.state, gameData);
+    if (progression.academicYearTransition) {
+      setAppState(createAppState(nextState));
+      setLatestYearTransition(progression.academicYearTransition);
+    } else {
+      setAppState((current) => ({ ...current, gameState: nextState }));
+    }
     if (nextState.settings.autosaveEnabled) {
       setSaveNotice("自動保存中");
       void browserGameRepository
@@ -433,6 +447,13 @@ export default function App() {
         state={gameState}
       />
       <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
+      {latestYearTransition ? (
+        <YearTransitionDialog
+          onClose={() => setLatestYearTransition(null)}
+          state={gameState}
+          summary={latestYearTransition}
+        />
+      ) : null}
     </div>
   );
 }
