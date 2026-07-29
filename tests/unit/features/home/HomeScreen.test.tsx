@@ -37,14 +37,17 @@ function createProps(withLatestMatch = false) {
     opponent,
     latestMatch,
     homeStrength: calculateSelectionStrength(state, homeSelection),
+    trainingCompleted: false,
+    practiceMatchCompleted: false,
     onOpenTraining: vi.fn(),
     onOpenTeam: vi.fn(),
     onOpenMatch: vi.fn(),
+    onAdvanceWeek: vi.fn(),
   };
 }
 
 describe("home action dashboard", () => {
-  it("shows the real date, selected rival, and three direct actions", () => {
+  it("shows the real date, selected rival, and direct weekly actions", () => {
     const props = createProps();
 
     render(<HomeScreen {...props} />);
@@ -56,6 +59,7 @@ describe("home action dashboard", () => {
     expect(screen.getByText(props.opponent.name)).toBeInTheDocument();
     expect(screen.getByText(`戦力 ${props.homeStrength}`)).toBeInTheDocument();
     expect(screen.getByText("無名校")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "次の週へ進む" })).toBeDisabled();
 
     fireEvent.click(screen.getByRole("button", { name: /育成を決める/ }));
     fireEvent.click(screen.getByRole("button", { name: /チーム編成を確認/ }));
@@ -64,6 +68,18 @@ describe("home action dashboard", () => {
     expect(props.onOpenTraining).toHaveBeenCalledOnce();
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
     expect(props.onOpenMatch).toHaveBeenCalledOnce();
+  });
+
+  it("enables the next week action after training", () => {
+    const props = createProps();
+    props.trainingCompleted = true;
+
+    render(<HomeScreen {...props} />);
+
+    const nextWeek = screen.getByRole("button", { name: "次の週へ進む" });
+    expect(nextWeek).toBeEnabled();
+    fireEvent.click(nextWeek);
+    expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
   });
 
   it("shows the latest completed match result when one exists", () => {
