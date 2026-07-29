@@ -20,16 +20,19 @@ describe("school and calendar app integration", () => {
     );
 
     expect(screen.getByText("資金 230")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "トレーニング設備を強化" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Lv.1")).toBeInTheDocument();
+    const trainingUpgradeButton = screen.getByRole("button", {
+      name: "トレーニング設備を強化",
+    });
+    const trainingFacilityCard = trainingUpgradeButton.closest("article");
+    expect(trainingFacilityCard).not.toBeNull();
+    expect(within(trainingFacilityCard!).getByText("Lv.1")).toBeInTheDocument();
   });
 
   it("opens the calendar from the header and returns focus when closed", () => {
     render(<App />);
 
     const opener = screen.getByRole("button", { name: "予定を確認" });
+    opener.focus();
     fireEvent.click(opener);
     const dialog = screen.getByRole("dialog", { name: "週間カレンダー" });
     expect(dialog).toBeInTheDocument();
