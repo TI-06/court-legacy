@@ -182,9 +182,7 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectLayoutFits(page, testInfo, `${viewport}-school-facilities`);
     await expectNavigationFixed(page, `${viewport}-school-facilities`);
 
-    await page
-      .getByRole("button", { name: "トレーニング設備を強化" })
-      .click();
+    await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-school-upgrade`);
     await page
       .getByRole("dialog", { name: "設備を強化" })
