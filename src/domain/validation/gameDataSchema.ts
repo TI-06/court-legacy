@@ -137,17 +137,60 @@ export const schoolArchetypeDefinitionSchema = z.object({
   preferredTraitIds: z.array(dataIdSchema).max(8),
 });
 
-const eventTriggerSchema = z.object({
+const activityTypeSchema = z.enum([
+  "practice",
+  "exam",
+  "camp",
+  "practice-match",
+  "qualifier",
+  "prefectural-tournament",
+  "national-tournament",
+  "graduation",
+  "intake",
+  "recovery",
+]);
+
+const numericRangeSchema = z.object({
+  min: z.number().int().min(0).max(100).optional(),
+  max: z.number().int().min(0).max(100).optional(),
+});
+
+export const eventTriggerSchema = z.object({
   months: z.array(z.number().int().min(1).max(12)).max(12).optional(),
   minGrade: z.number().int().min(1).max(3).optional(),
   maxGrade: z.number().int().min(1).max(3).optional(),
   requiredTraitIds: z.array(dataIdSchema).max(6).optional(),
   excludedTraitIds: z.array(dataIdSchema).max(6).optional(),
+  abilityRanges: z.record(abilityKeySchema, numericRangeSchema).optional(),
+  morale: numericRangeSchema.optional(),
+  fatigue: numericRangeSchema.optional(),
+  trust: numericRangeSchema.optional(),
+  academic: numericRangeSchema.optional(),
+  relationship: numericRangeSchema.optional(),
+  injuryState: z.enum(["healthy", "injured"]).optional(),
   schoolReputationMin: z.number().int().min(0).max(1000).optional(),
+  schoolReputationMax: z.number().int().min(0).max(1000).optional(),
+  schoolFundsMin: z.number().int().min(0).max(1_000_000).optional(),
+  schoolFundsMax: z.number().int().min(0).max(1_000_000).optional(),
+  recordKey: z.string().trim().min(1).max(80).optional(),
+  recordMin: z.number().int().min(0).max(1_000_000).optional(),
+  recentMatchResult: z.enum(["win", "loss"]).optional(),
+  tournamentStages: z.array(activityTypeSchema).max(10).optional(),
   tournamentOnly: z.boolean().optional(),
 });
 
-const eventEffectSchema = z.discriminatedUnion("type", [
+const facilityKeySchema = z.enum([
+  "gym",
+  "trainingRoom",
+  "analysisRoom",
+  "recoveryRoom",
+  "dormitory",
+  "scoutingNetwork",
+  "alumniAssociation",
+  "studyRoom",
+]);
+
+export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("ability-change"),
     ability: abilityKeySchema,
@@ -166,9 +209,29 @@ const eventEffectSchema = z.discriminatedUnion("type", [
     amount: z.number().int().min(-50).max(50),
   }),
   z.object({
+    type: z.literal("relationship-change"),
+    amount: z.number().int().min(-50).max(50),
+  }),
+  z.object({
     type: z.literal("reputation-change"),
     amount: z.number().int().min(-100).max(100),
   }),
+  z.object({
+    type: z.literal("funds-change"),
+    amount: z.number().int().min(-100_000).max(100_000),
+  }),
+  z.object({
+    type: z.literal("facility-change"),
+    facility: facilityKeySchema,
+    amount: z.number().int().min(-5).max(5),
+  }),
+  z.object({
+    type: z.literal("injury-set"),
+    severity: z.enum(["minor", "moderate", "severe"]),
+    weeks: z.number().int().min(1).max(52),
+    recurrenceRisk: z.number().int().min(0).max(100),
+  }),
+  z.object({ type: z.literal("injury-clear") }),
   z.object({
     type: z.literal("add-trait"),
     traitId: dataIdSchema,
@@ -177,15 +240,21 @@ const eventEffectSchema = z.discriminatedUnion("type", [
     type: z.literal("remove-trait"),
     traitId: dataIdSchema,
   }),
+  z.object({
+    type: z.literal("schedule-event"),
+    eventId: dataIdSchema,
+    afterWeeks: z.number().int().min(1).max(52),
+    probability: z.number().int().min(0).max(100),
+  }),
 ]);
 
-const eventFollowUpSchema = z.object({
+export const eventFollowUpSchema = z.object({
   eventId: dataIdSchema,
   afterWeeks: z.number().int().min(1).max(52),
   probability: z.number().int().min(0).max(100),
 });
 
-const eventChoiceSchema = z.object({
+export const eventChoiceSchema = z.object({
   id: z.string().regex(/^[a-z][a-z0-9-]*$/),
   label: z.string().trim().min(1).max(80),
   detail: z.string().trim().min(1).max(180),
@@ -249,5 +318,8 @@ export type IndividualTrainingInstructionDefinition = z.infer<
 export type SchoolArchetypeDefinition = z.infer<
   typeof schoolArchetypeDefinitionSchema
 >;
+export type EventTrigger = z.infer<typeof eventTriggerSchema>;
+export type EventEffect = z.infer<typeof eventEffectSchema>;
+export type EventChoiceDefinition = z.infer<typeof eventChoiceSchema>;
 export type EventDefinition = z.infer<typeof eventDefinitionSchema>;
 export type RawGameData = z.infer<typeof rawGameDataSchema>;
