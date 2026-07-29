@@ -1,0 +1,63 @@
+name: Patch annual progression
+
+on:
+  push:
+    branches: [feature/m3-annual-progression]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m3-annual-progression
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Connect academic year progression
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/App.tsx')
+          text = path.read_text()
+          text = text.replace(
+            '''import {\n  advanceOneWeek,\n  isWeeklyActionCompleted,\n  markWeeklyActionCompleted,\n} from "./domain/calendar/weekProgression";''',
+            '''import {\n  advanceGameWeek,\n  type AcademicYearTransitionSummary,\n} from "./domain/calendar/academicYearProgression";\nimport {\n  isWeeklyActionCompleted,\n  markWeeklyActionCompleted,\n} from "./domain/calendar/weekProgression";''',
+          )
+          text = text.replace(
+            'import { HomeScreen } from "./features/home/HomeScreen";',
+            'import { HomeScreen } from "./features/home/HomeScreen";\nimport { YearTransitionDialog } from "./features/home/YearTransitionDialog";',
+          )
+          text = text.replace(
+            '''  const [activeMatchResult, setActiveMatchResult] =\n    useState<SimulateMatchResult | null>(null);''',
+            '''  const [activeMatchResult, setActiveMatchResult] =\n    useState<SimulateMatchResult | null>(null);\n  const [latestYearTransition, setLatestYearTransition] =\n    useState<AcademicYearTransitionSummary | null>(null);''',
+          )
+          text = text.replace(
+            '''    setActiveMatchResult(null);\n    setActiveTab("home");''',
+            '''    setActiveMatchResult(null);\n    setLatestYearTransition(null);\n    setActiveTab("home");''',
+            1,
+          )
+          text = text.replace(
+            '''    const advancedState = advanceOneWeek(gameState).state;\n    const nextState = surfaceWeeklyEvent(advancedState, gameData);\n    setAppState((current) => ({ ...current, gameState: nextState }));''',
+            '''    const progression = advanceGameWeek(gameState, gameData);\n    const nextState = progression.academicYearTransition\n      ? progression.state\n      : surfaceWeeklyEvent(progression.state, gameData);\n    if (progression.academicYearTransition) {\n      setAppState(createAppState(nextState));\n      setLatestYearTransition(progression.academicYearTransition);\n    } else {\n      setAppState((current) => ({ ...current, gameState: nextState }));\n    }''',
+          )
+          text = text.replace(
+            '''      <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />''',
+            '''      <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />\n      {latestYearTransition ? (\n        <YearTransitionDialog\n          onClose={() => setLatestYearTransition(null)}\n          state={gameState}\n          summary={latestYearTransition}\n        />\n      ) : null}''',
+          )
+          path.write_text(text)
+          PY
+          npx prettier src/App.tsx --write
+      - name: Commit app integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx
+          git commit -m "feat: 週送りへ年度更新を接続"
+          git push origin HEAD:feature/m3-annual-progression
