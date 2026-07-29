@@ -27,8 +27,9 @@ test("crossing April graduates seniors and opens the new-year summary", async ({
   await page.getByRole("button", { name: "次の週へ進む" }).click();
   const yearDialog = page.getByRole("dialog", { name: "2年目の新年度" });
   await expect(yearDialog).toBeVisible();
-  await expect(yearDialog.getByText("卒業")).toBeVisible();
-  await expect(yearDialog.getByText("新入生")).toBeVisible();
+  const metrics = yearDialog.locator(".year-transition-metrics");
+  await expect(metrics.getByText("卒業")).toBeVisible();
+  await expect(metrics.getByText("新入生")).toBeVisible();
   await expect(yearDialog.getByText("世代級選手が入学")).toBeVisible();
   await expect(yearDialog.getByRole("button", { name: "閉じる" })).toHaveCount(
     0,
