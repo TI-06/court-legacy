@@ -8,11 +8,7 @@ import {
 } from "../../../../src/domain/school/facilityUpgrade";
 import { schoolId } from "../../../../src/domain/model/identifiers";
 
-function withFacility(
-  key: FacilityKey,
-  level: number,
-  funds: number,
-) {
+function withFacility(key: FacilityKey, level: number, funds: number) {
   const state = createDemoGame();
   const school = state.schools[state.userSchoolId]!;
   return {
@@ -85,11 +81,7 @@ describe("facility upgrades", () => {
       (school) => school.id !== state.userSchoolId,
     )!;
 
-    const result = upgradeFacility(
-      state,
-      state.userSchoolId,
-      "trainingRoom",
-    );
+    const result = upgradeFacility(state, state.userSchoolId, "trainingRoom");
 
     expect(result).not.toBe(state);
     expect(result.schools[state.userSchoolId]).not.toBe(originalSchool);
