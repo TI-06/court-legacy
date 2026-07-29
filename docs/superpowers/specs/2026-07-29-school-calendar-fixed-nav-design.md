@@ -56,29 +56,29 @@
 
 評判ラベルは次の対応とする。
 
-| 内部値 | 表示 |
-|---|---|
-| unknown | 無名校 |
+| 内部値             | 表示       |
+| ------------------ | ---------- |
+| unknown            | 無名校     |
 | district-contender | 地区有力校 |
-| prefectural-power | 県内強豪 |
+| prefectural-power  | 県内強豪   |
 | national-qualifier | 全国出場校 |
-| national-regular | 全国常連 |
-| elite | 全国名門 |
+| national-regular   | 全国常連   |
+| elite              | 全国名門   |
 
 ### 設備一覧
 
 次の8設備をコンパクトなカードまたは行として表示する。費用の単位は既存の`School.funds`と同じゲーム内資金単位とし、円換算は行わない。
 
-| キー | 表示名 | 基本費用 |
-|---|---|---:|
-| gym | 体育館 | 80 |
-| trainingRoom | トレーニング設備 | 70 |
-| analysisRoom | 分析室 | 55 |
-| recoveryRoom | 回復設備 | 60 |
-| dormitory | 寮 | 90 |
-| scoutingNetwork | スカウト網 | 75 |
-| alumniAssociation | OB会 | 50 |
-| studyRoom | 学習設備 | 45 |
+| キー              | 表示名           | 基本費用 |
+| ----------------- | ---------------- | -------: |
+| gym               | 体育館           |       80 |
+| trainingRoom      | トレーニング設備 |       70 |
+| analysisRoom      | 分析室           |       55 |
+| recoveryRoom      | 回復設備         |       60 |
+| dormitory         | 寮               |       90 |
+| scoutingNetwork   | スカウト網       |       75 |
+| alumniAssociation | OB会             |       50 |
+| studyRoom         | 学習設備         |       45 |
 
 - 設備レベルは0〜5。
 - 強化費用は`基本費用 × (現在レベル + 1)`とする。
@@ -132,18 +132,18 @@
 
 予定種別は次の日本語ラベルで表示する。
 
-| 内部値 | 表示 |
-|---|---|
-| practice | 練習 |
-| exam | 定期試験 |
-| camp | 合宿 |
-| practice-match | 練習試合 |
-| qualifier | 予選 |
-| prefectural-tournament | 県大会 |
-| national-tournament | 全国大会 |
-| graduation | 卒業式 |
-| intake | 新入生入部 |
-| recovery | 休養 |
+| 内部値                 | 表示       |
+| ---------------------- | ---------- |
+| practice               | 練習       |
+| exam                   | 定期試験   |
+| camp                   | 合宿       |
+| practice-match         | 練習試合   |
+| qualifier              | 予選       |
+| prefectural-tournament | 県大会     |
+| national-tournament    | 全国大会   |
+| graduation             | 卒業式     |
+| intake                 | 新入生入部 |
+| recovery               | 休養       |
 
 4週間表示は公式大会日程ではなく、現在の7日単位進行を理解するためのガイドとする。
 

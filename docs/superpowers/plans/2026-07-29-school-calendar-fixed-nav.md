@@ -24,11 +24,13 @@
 ### Task 1: 下部ナビをビューポートへ固定する
 
 **Files:**
+
 - Modify: `src/app.css`
 - Modify: `src/mobile-layout.css`
 - Modify: `tests/e2e/mobile-layout-audit.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `.app-shell`, `.app-content`, `.bottom-navigation`
 - Produces: 固定ナビのCSS契約と、全幅での位置・重なり回帰テスト
 
@@ -38,7 +40,9 @@
 const nav = page.getByRole("navigation", { name: "主要メニュー" });
 const box = await nav.boundingBox();
 expect(box).not.toBeNull();
-expect(Math.abs((box?.y ?? 0) + (box?.height ?? 0) - page.viewportSize()!.height)).toBeLessThanOrEqual(1);
+expect(
+  Math.abs((box?.y ?? 0) + (box?.height ?? 0) - page.viewportSize()!.height),
+).toBeLessThanOrEqual(1);
 ```
 
 各幅`320 / 360 / 390 / 480`で、ページ最下部までスクロール後も同じ検査を行う。最後の操作要素について`elementBox.y + elementBox.height <= navBox.y`も検証する。
@@ -94,10 +98,12 @@ git commit -m "fix: 下部ナビを画面下へ固定"
 ### Task 2: 設備強化ドメインを実装する
 
 **Files:**
+
 - Create: `src/domain/school/facilityUpgrade.ts`
 - Create: `tests/unit/domain/school/facilityUpgrade.test.ts`
 
 **Interfaces:**
+
 - Consumes: `GameState`, `SchoolId`, `SchoolFacilities`
 - Produces:
   - `type FacilityKey = keyof SchoolFacilities`
@@ -171,11 +177,13 @@ git commit -m "feat: 設備強化ドメインを追加"
 ### Task 3: 学校運営画面を実装する
 
 **Files:**
+
 - Create: `src/features/school/SchoolScreen.tsx`
 - Create: `src/features/school/school-screen.css`
 - Create: `tests/unit/features/school/SchoolScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `GameState`, `FacilityKey`, `FACILITY_DEFINITIONS`, `evaluateFacilityUpgrade`
 - Produces: `SchoolScreen({ state, onUpgradeFacility })`
 
@@ -190,11 +198,19 @@ interface SchoolScreenProps {
 
 ```tsx
 render(<SchoolScreen state={state} onUpgradeFacility={onUpgradeFacility} />);
-expect(screen.getByRole("heading", { name: state.schools[state.userSchoolId]!.name })).toBeVisible();
+expect(
+  screen.getByRole("heading", {
+    name: state.schools[state.userSchoolId]!.name,
+  }),
+).toBeVisible();
 expect(screen.getByText("無名校")).toBeVisible();
-expect(screen.getByRole("button", { name: "トレーニング設備を強化" })).toBeVisible();
+expect(
+  screen.getByRole("button", { name: "トレーニング設備を強化" }),
+).toBeVisible();
 
-await user.click(screen.getByRole("button", { name: "トレーニング設備を強化" }));
+await user.click(
+  screen.getByRole("button", { name: "トレーニング設備を強化" }),
+);
 expect(screen.getByRole("dialog", { name: "設備を強化" })).toBeVisible();
 expect(screen.getByText("Lv.0 → Lv.1")).toBeVisible();
 await user.click(screen.getByRole("button", { name: "70を使って強化" }));
@@ -234,11 +250,13 @@ git commit -m "feat: 学校運営画面を追加"
 ### Task 4: 週間カレンダーシートを実装する
 
 **Files:**
+
 - Create: `src/features/calendar/CalendarSheet.tsx`
 - Create: `src/features/calendar/calendar-sheet.css`
 - Create: `tests/unit/features/calendar/CalendarSheet.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `GameState`, `BottomSheet`
 - Produces:
 
@@ -304,12 +322,14 @@ git commit -m "feat: 週間カレンダーシートを追加"
 ### Task 5: Appへ学校運営とカレンダーを接続する
 
 **Files:**
+
 - Modify: `src/App.tsx`
 - Modify: `src/main.tsx`
 - Modify: `tests/unit/features/home/HomeScreen.test.tsx`
 - Create: `tests/unit/features/school/AppSchoolCalendarFlow.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `SchoolScreen`, `CalendarSheet`, `upgradeFacility`, 既存`advanceWeek`
 - Produces: 右上カレンダー、学校タブ、設備状態更新、共通週送りの統合フロー
 
@@ -320,7 +340,9 @@ render(<App />);
 await user.click(screen.getByRole("button", { name: "学校" }));
 expect(screen.getByRole("heading", { name: "蒼波高校" })).toBeVisible();
 
-await user.click(screen.getByRole("button", { name: "トレーニング設備を強化" }));
+await user.click(
+  screen.getByRole("button", { name: "トレーニング設備を強化" }),
+);
 await user.click(screen.getByRole("button", { name: "70を使って強化" }));
 expect(screen.getByText("Lv.1")).toBeVisible();
 expect(screen.getByText("資金 230")).toBeVisible();
@@ -342,9 +364,13 @@ Expected: 学校プレースホルダーと無反応カレンダーボタンの�
 const [calendarOpen, setCalendarOpen] = useState(false);
 
 const upgradeSchoolFacility = (key: FacilityKey) => {
-  setAppState(current => ({
+  setAppState((current) => ({
     ...current,
-    gameState: upgradeFacility(current.gameState, current.gameState.userSchoolId, key),
+    gameState: upgradeFacility(
+      current.gameState,
+      current.gameState.userSchoolId,
+      key,
+    ),
   }));
 };
 ```
@@ -370,11 +396,13 @@ git commit -m "feat: 学校運営とカレンダーをアプリへ接続"
 ### Task 6: 全幅E2E・回帰検証・レビューを完了する
 
 **Files:**
+
 - Modify: `tests/e2e/app-shell.spec.ts`
 - Modify: `tests/e2e/mobile-layout-audit.spec.ts`
 - Review: 全変更ファイル
 
 **Interfaces:**
+
 - Consumes: Tasks 1〜5の完成機能
 - Produces: 公開可能なPRと検証証跡
 
@@ -388,7 +416,9 @@ await page.getByRole("button", { name: "トレーニング設備を強化" }).cl
 await expect(page.getByRole("dialog", { name: "設備を強化" })).toBeVisible();
 await page.getByRole("button", { name: "閉じる" }).last().click();
 await page.getByRole("button", { name: "予定を確認" }).click();
-await expect(page.getByRole("dialog", { name: "週間カレンダー" })).toBeVisible();
+await expect(
+  page.getByRole("dialog", { name: "週間カレンダー" }),
+).toBeVisible();
 ```
 
 全タブで固定ナビ位置、最下部コンテンツとの非重複、画面外DOM、内部横スクロール、文字切れを検査する。
