@@ -20,12 +20,25 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npx prettier src/domain/events src/domain/generation/generateWorld.ts src/features/home/EventDialog.tsx src/ui/BottomSheet.tsx tests/unit/domain/events --write
+      - run: >-
+          npx prettier
+          src/App.tsx
+          src/domain/events
+          src/domain/generation/generateWorld.ts
+          src/domain/model/GameState.ts
+          src/domain/validation/gameDataSchema.ts
+          src/features/home/EventDialog.tsx
+          src/persistence/gameStateCodec.ts
+          src/ui/BottomSheet.tsx
+          tests/unit/domain/events
+          tests/integration/eventPipeline.test.ts
+          tests/e2e/event-dialog.spec.ts
+          --write
       - name: Commit formatting
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/domain/events src/domain/generation/generateWorld.ts src/features/home/EventDialog.tsx src/ui/BottomSheet.tsx tests/unit/domain/events
+          git add src tests/unit/domain/events tests/integration/eventPipeline.test.ts tests/e2e/event-dialog.spec.ts
           if ! git diff --cached --quiet; then
             git commit -m "style: format event engine"
             git push origin HEAD:feature/m2-event-engine
