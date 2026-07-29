@@ -19,7 +19,9 @@ test("crossing April graduates seniors and opens the new-year summary", async ({
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(state)),
   });
-  await expect(saveSheet.getByText("スロット1へインポートしました")).toBeVisible();
+  await expect(
+    saveSheet.getByText("スロット1へインポートしました"),
+  ).toBeVisible();
   await saveSheet.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "次の週へ進む" }).click();
@@ -28,13 +30,17 @@ test("crossing April graduates seniors and opens the new-year summary", async ({
   await expect(yearDialog.getByText("卒業")).toBeVisible();
   await expect(yearDialog.getByText("新入生")).toBeVisible();
   await expect(yearDialog.getByText("世代級選手が入学")).toBeVisible();
-  await expect(yearDialog.getByRole("button", { name: "閉じる" })).toHaveCount(0);
+  await expect(yearDialog.getByRole("button", { name: "閉じる" })).toHaveCount(
+    0,
+  );
 
-  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page
+    .locator("body")
+    .evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 
   await yearDialog.getByRole("button", { name: "新年度を始める" }).click();
   await expect(yearDialog).toBeHidden();
-  await expect(page.getByText("2年目")).toBeVisible();
+  await expect(page.getByText("YEAR 2")).toBeVisible();
 });

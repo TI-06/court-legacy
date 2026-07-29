@@ -1,5 +1,6 @@
 import type { AcademicYearTransitionSummary } from "../../domain/calendar/academicYearProgression";
 import type { GameState } from "../../domain/model/GameState";
+import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
@@ -22,8 +23,8 @@ function playerNames(
 ): string[] {
   return playerIds
     .map((playerId) => state.players[playerId])
-    .filter((player) => Boolean(player))
-    .map((player) => `${player!.lastName} ${player!.firstName}`);
+    .filter((player): player is Player => Boolean(player))
+    .map((player) => `${player.lastName} ${player.firstName}`);
 }
 
 export function YearTransitionDialog({

@@ -41,8 +41,12 @@ describe("academic year progression", () => {
     expect(result.state.yearIndex).toBe(2);
     expect(result.state.calendar.academicYear).toBe(2);
     expect(result.state.calendar.weekOfYear).toBe(1);
-    expect(transition.graduatedPlayerIds).toHaveLength(originalThirdYears.length);
-    expect(result.state.history.graduates).toHaveLength(originalThirdYears.length);
+    expect(transition.graduatedPlayerIds).toHaveLength(
+      originalThirdYears.length,
+    );
+    expect(result.state.history.graduates).toHaveLength(
+      originalThirdYears.length,
+    );
 
     const activePlayerIdList = Object.values(result.state.schools).flatMap(
       (school) => school.playerIds,
@@ -76,7 +80,9 @@ describe("academic year progression", () => {
     );
     expect(result.state.randomCursor).toBeGreaterThan(state.randomCursor);
 
-    for (const [key, value] of Object.entries(result.state.playerRelationships)) {
+    for (const [key, value] of Object.entries(
+      result.state.playerRelationships,
+    )) {
       const [left, right] = key.split("::") as [PlayerId, PlayerId];
       expect(activePlayerIds.has(left)).toBe(true);
       expect(activePlayerIds.has(right)).toBe(true);
@@ -95,7 +101,9 @@ describe("academic year progression", () => {
 
     const result = advanceGameWeek(state, gameData);
 
-    expect(result.academicYearTransition?.generationalTalentPlayerId).toBeNull();
+    expect(
+      result.academicYearTransition?.generationalTalentPlayerId,
+    ).toBeNull();
     expect(result.state.world.generationalTalentPlayerIds).toEqual([]);
   });
 });

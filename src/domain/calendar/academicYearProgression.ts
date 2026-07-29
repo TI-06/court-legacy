@@ -107,7 +107,11 @@ function rebuildRelationships(
 ): Record<string, number> {
   const relationships: Record<string, number> = {};
   for (const school of Object.values(state.schools)) {
-    for (let leftIndex = 0; leftIndex < school.playerIds.length; leftIndex += 1) {
+    for (
+      let leftIndex = 0;
+      leftIndex < school.playerIds.length;
+      leftIndex += 1
+    ) {
       for (
         let rightIndex = leftIndex + 1;
         rightIndex < school.playerIds.length;
@@ -119,7 +123,8 @@ function rebuildRelationships(
           continue;
         }
         const key = relationshipKey(left, right);
-        relationships[key] = state.playerRelationships[key] ?? random.int(35, 65);
+        relationships[key] =
+          state.playerRelationships[key] ?? random.int(35, 65);
       }
     }
   }
@@ -177,7 +182,9 @@ export function advanceAcademicYear(
       firstPlayerNumber: playerNumber,
       data,
       random,
-      currentPlayers: Object.values(players),
+      currentPlayers: returningPlayerIds
+        .map((playerId) => players[playerId])
+        .filter((player): player is Player => Boolean(player)),
     });
     playerNumber += intake.length;
     for (const player of intake) {
@@ -313,10 +320,7 @@ export function advanceGameWeek(
     return { ...weekly, academicYearTransition: null };
   }
 
-  const random = new SeededRandom(
-    weekly.state.seed,
-    weekly.state.randomCursor,
-  );
+  const random = new SeededRandom(weekly.state.seed, weekly.state.randomCursor);
   const transition = advanceAcademicYear(weekly.state, data, random);
   return {
     ...weekly,

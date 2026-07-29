@@ -25,9 +25,7 @@ describe("year transition dialog", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("dialog", { name: "2年目の新年度" }),
-    ).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "2年目の新年度" })).toBeVisible();
     expect(screen.getByText("卒業 4名")).toBeVisible();
     expect(screen.getByText(/新入生 \d+名/)).toBeVisible();
     expect(screen.getByText("新主将")).toBeVisible();
