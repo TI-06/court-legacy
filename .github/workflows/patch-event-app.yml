@@ -1,0 +1,58 @@
+name: Patch event app
+
+on:
+  push:
+    branches: [feature/m2-event-engine]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m2-event-engine
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Connect event pipeline and dialog
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/App.tsx')
+          text = path.read_text()
+          text = text.replace(
+            'import {\n  simulateMatch,',
+            'import { surfaceWeeklyEvent } from "./domain/events/eventPipeline";\nimport { resolveEventChoice } from "./domain/events/resolveEventChoice";\nimport {\n  simulateMatch,',
+          )
+          text = text.replace(
+            'import { CalendarSheet } from "./features/calendar/CalendarSheet";\nimport { HomeScreen } from "./features/home/HomeScreen";',
+            'import { CalendarSheet } from "./features/calendar/CalendarSheet";\nimport { EventDialog } from "./features/home/EventDialog";\nimport { HomeScreen } from "./features/home/HomeScreen";',
+          )
+          text = text.replace(
+            '    const nextState = advanceOneWeek(gameState).state;\n    setAppState((current) => ({ ...current, gameState: nextState }));',
+            '    const advancedState = advanceOneWeek(gameState).state;\n    const nextState = surfaceWeeklyEvent(advancedState, gameData);\n    setAppState((current) => ({ ...current, gameState: nextState }));',
+          )
+          marker = '  const content =\n'
+          handler = '''  const chooseEvent = (choiceId: string) => {\n    const random = new SeededRandom(gameState.seed, gameState.randomCursor);\n    const nextState = resolveEventChoice(\n      gameState,\n      choiceId,\n      gameData,\n      random,\n    ).state;\n    setAppState((current) => ({ ...current, gameState: nextState }));\n    if (nextState.settings.autosaveEnabled) {\n      setSaveNotice("イベント結果を保存中");\n      void browserGameRepository\n        .save(activeSaveSlotId, nextState, "autosave")\n        .then(() => setSaveNotice("イベント結果を保存済み"))\n        .catch(() => setSaveNotice("イベント結果の保存に失敗"));\n    }\n  };\n\n'''
+          if handler not in text:
+            text = text.replace(marker, handler + marker)
+          text = text.replace(
+            '      <SaveSheet\n        activeSlotId={activeSaveSlotId}\n        onActiveSlotChange={setActiveSaveSlotId}\n        onClose={() => setSaveOpen(false)}\n        onLoadState={loadGameState}\n        open={saveOpen}\n        repository={browserGameRepository}\n        state={gameState}\n      />',
+            '      <SaveSheet\n        activeSlotId={activeSaveSlotId}\n        onActiveSlotChange={setActiveSaveSlotId}\n        onClose={() => setSaveOpen(false)}\n        onLoadState={loadGameState}\n        open={saveOpen}\n        repository={browserGameRepository}\n        state={gameState}\n      />\n      <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />',
+          )
+          path.write_text(text)
+          PY
+          npx prettier src/App.tsx --write
+      - name: Commit app integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx
+          git commit -m "feat: 週間進行へイベントを接続"
+          git push origin HEAD:feature/m2-event-engine
