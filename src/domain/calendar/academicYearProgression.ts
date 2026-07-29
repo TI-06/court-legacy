@@ -147,6 +147,9 @@ export function advanceAcademicYear(
   random: RandomSource,
 ): { state: GameState; summary: AcademicYearTransitionSummary } {
   const nextAcademicYear = state.calendar.academicYear + 1;
+  const generationalTalentDue =
+    nextAcademicYear >= state.world.nextGenerationalTalentYear;
+  const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
   const players = { ...state.players };
   const schools = { ...state.schools };
   const graduatedPlayerIds: PlayerId[] = [];
@@ -176,12 +179,19 @@ export function advanceAcademicYear(
       }
     }
 
+    const desiredIntakeCount = random.int(4, 7);
+    const availableRosterSlots = Math.max(
+      0,
+      maximumBaseRosterSize - returningPlayerIds.length,
+    );
+    const intakeCount = Math.min(desiredIntakeCount, availableRosterSlots);
     const intake = generateIntake({
       schoolId: school.id,
       academicYear: nextAcademicYear,
       firstPlayerNumber: playerNumber,
       data,
       random,
+      count: intakeCount,
       currentPlayers: returningPlayerIds
         .map((playerId) => players[playerId])
         .filter((player): player is Player => Boolean(player)),
@@ -248,7 +258,7 @@ export function advanceAcademicYear(
 
   let generationalTalentPlayerId: PlayerId | null = null;
   let generationalTalentSchoolId: SchoolId | null = null;
-  if (nextAcademicYear >= nextState.world.nextGenerationalTalentYear) {
+  if (generationalTalentDue) {
     const assignment = assignGenerationalTalent({
       state: nextState,
       academicYear: nextAcademicYear,
