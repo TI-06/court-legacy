@@ -1,0 +1,40 @@
+name: Format local save branch
+
+on:
+  push:
+    branches: [feature/m1-local-save-recovery]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m1-local-save-recovery
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format changed files
+        run: >-
+          npx prettier
+          src/App.tsx
+          src/features/save/SaveSheet.tsx
+          src/persistence/IndexedDbGameRepository.ts
+          tests/unit/features/save/SaveSheet.test.tsx
+          tests/e2e/save-recovery.spec.ts
+          --write
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx src/features/save/SaveSheet.tsx src/persistence/IndexedDbGameRepository.ts tests/unit/features/save/SaveSheet.test.tsx tests/e2e/save-recovery.spec.ts
+          if ! git diff --cached --quiet; then
+            git commit -m "style: format local save changes"
+            git push origin HEAD:feature/m1-local-save-recovery
+          fi
