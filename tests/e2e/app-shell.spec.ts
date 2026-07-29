@@ -116,6 +116,44 @@ test("mobile team selection uses a court picker without overflow", async ({
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
+test("school management upgrades a facility and calendar advances the shared week", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+
+  await navigation.getByRole("button", { name: "学校", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "蒼波高校" })).toBeVisible();
+  await expect(page.getByText("資金 300")).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "トレーニング設備を強化" })
+    .click();
+  const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
+  await facilityDialog
+    .getByRole("button", { name: "70を使って強化" })
+    .click();
+  await expect(page.getByText("資金 230")).toBeVisible();
+  await expect(page.getByText("Lv.1")).toBeVisible();
+
+  await navigation.getByRole("button", { name: "育成", exact: true }).click();
+  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page
+    .getByRole("dialog", { name: "練習内容を確認" })
+    .getByRole("button", { name: "この内容で実行" })
+    .click();
+
+  await page.getByRole("button", { name: "予定を確認" }).click();
+  const calendar = page.getByRole("dialog", { name: "週間カレンダー" });
+  await expect(calendar).toBeVisible();
+  await expect(calendar.getByText("練習 完了")).toBeVisible();
+  await calendar.getByRole("button", { name: "次の週へ進む" }).click();
+
+  await expect(calendar).toBeHidden();
+  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByText("2026年4月8日")).toBeVisible();
+});
+
 test("worker health endpoint reports ready status", async ({ request }) => {
   const response = await request.get("/api/health");
 
