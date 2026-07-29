@@ -22,9 +22,7 @@ describe("weekly training bottom-sheet flow", () => {
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     expect(screen.queryAllByTestId("team-training-choice")).toHaveLength(0);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "チーム練習を変更" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "チーム練習を変更" }));
     const dialog = screen.getByRole("dialog", {
       name: "チーム練習を選択",
     });
@@ -34,7 +32,9 @@ describe("weekly training bottom-sheet flow", () => {
 
     const choices = within(dialog).getAllByTestId("team-training-choice");
     fireEvent.click(choices[1]!);
-    expect(screen.queryByRole("dialog", { name: "チーム練習を選択" })).toBeNull();
+    expect(
+      screen.queryByRole("dialog", { name: "チーム練習を選択" }),
+    ).toBeNull();
   });
 
   it("opens player and instruction pickers without duplicate assignments", () => {
@@ -53,7 +53,9 @@ describe("weekly training bottom-sheet flow", () => {
     expect(
       within(playerDialog).getByRole("button", { name: /選択中/ }),
     ).toBeDisabled();
-    fireEvent.click(within(playerDialog).getByRole("button", { name: "閉じる" }));
+    fireEvent.click(
+      within(playerDialog).getByRole("button", { name: "閉じる" }),
+    );
 
     fireEvent.click(
       screen.getByRole("button", { name: "個人指示1の内容を変更" }),

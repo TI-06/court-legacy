@@ -99,12 +99,10 @@ export function TrainingScreen({
   const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
   const firstPlayer = state.players[firstPlayerId];
   const secondPlayer = state.players[secondPlayerId];
-  const firstInstruction = data.individualTrainingInstructions.get(
-    firstInstructionId,
-  );
-  const secondInstruction = data.individualTrainingInstructions.get(
-    secondInstructionId,
-  );
+  const firstInstruction =
+    data.individualTrainingInstructions.get(firstInstructionId);
+  const secondInstruction =
+    data.individualTrainingInstructions.get(secondInstructionId);
   const duplicatePlayers = firstPlayerId === secondPlayerId;
   const canExecute =
     teamTrainingMenuId.length > 0 &&
@@ -201,8 +199,7 @@ export function TrainingScreen({
         {[1, 2].map((slotValue) => {
           const slot = slotValue as AssignmentSlot;
           const player = slot === 1 ? firstPlayer : secondPlayer;
-          const instruction =
-            slot === 1 ? firstInstruction : secondInstruction;
+          const instruction = slot === 1 ? firstInstruction : secondInstruction;
           return player ? (
             <article className="training-assignment-summary" key={slot}>
               <div className="training-assignment-summary__heading">
@@ -275,7 +272,10 @@ export function TrainingScreen({
                   [AbilityKey, number]
                 >;
                 return (
-                  <article data-testid="training-result-player" key={log.playerId}>
+                  <article
+                    data-testid="training-result-player"
+                    key={log.playerId}
+                  >
                     <div className="player-result__header">
                       <div>
                         <strong>
@@ -285,8 +285,12 @@ export function TrainingScreen({
                           {player.grade}年・{player.preferredPosition}
                         </span>
                       </div>
-                      <span className={log.injury ? "injury-label" : "growth-label"}>
-                        {log.injury ? "怪我" : `能力成長 +${log.totalAbilityGrowth}`}
+                      <span
+                        className={log.injury ? "injury-label" : "growth-label"}
+                      >
+                        {log.injury
+                          ? "怪我"
+                          : `能力成長 +${log.totalAbilityGrowth}`}
                       </span>
                     </div>
                     <div className="player-result__metrics">

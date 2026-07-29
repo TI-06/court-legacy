@@ -138,7 +138,9 @@ export function HomeScreen({
               育
             </span>
             <span>
-              <strong>{trainingCompleted ? "今週の育成は完了" : "育成を決める"}</strong>
+              <strong>
+                {trainingCompleted ? "今週の育成は完了" : "育成を決める"}
+              </strong>
               <small>
                 {trainingCompleted
                   ? "結果は育成タブで確認できます"

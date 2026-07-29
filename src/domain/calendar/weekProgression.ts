@@ -36,7 +36,9 @@ export function isWeeklyActionCompleted(
   state: GameState,
   action: WeeklyAction,
 ): boolean {
-  return state.calendar.completedActivityIds.includes(actionId(state.date, action));
+  return state.calendar.completedActivityIds.includes(
+    actionId(state.date, action),
+  );
 }
 
 export function markWeeklyActionCompleted(
