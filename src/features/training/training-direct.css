@@ -186,18 +186,21 @@
   margin-top: 12px;
 }
 
-.training-result-details > summary {
+.training-result-details > button {
+  width: 100%;
   min-height: 42px;
   padding: 11px 12px;
   color: #246572;
   cursor: pointer;
   font-size: 0.74rem;
   font-weight: 900;
+  text-align: left;
   background: #edf5f6;
+  border: 0;
   border-radius: 12px;
 }
 
-.training-result-details[open] > summary {
+.training-result-details--open > button {
   margin-bottom: 10px;
 }
 
