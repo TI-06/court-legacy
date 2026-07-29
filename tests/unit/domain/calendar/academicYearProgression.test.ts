@@ -1,6 +1,7 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
+import type { PlayerId } from "../../../../src/domain/model/identifiers";
 
 describe("academic year progression", () => {
   it("advances a normal week without changing the academic year", () => {
@@ -66,8 +67,8 @@ describe("academic year progression", () => {
       expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
     }
 
-    expect(transition.intakePlayerIds.length).toBeGreaterThanOrEqual(64);
-    expect(transition.intakePlayerIds.length).toBeLessThanOrEqual(112);
+    expect(transition.intakePlayerIds.length).toBeGreaterThanOrEqual(65);
+    expect(transition.intakePlayerIds.length).toBeLessThanOrEqual(113);
     expect(transition.generationalTalentPlayerId).not.toBeNull();
     expect(result.state.world.generationalTalentPlayerIds).toContain(
       transition.generationalTalentPlayerId,
@@ -75,14 +76,12 @@ describe("academic year progression", () => {
     expect(result.state.randomCursor).toBeGreaterThan(state.randomCursor);
 
     for (const [key, value] of Object.entries(result.state.playerRelationships)) {
-      const [left, right] = key.split("::");
-      expect(activePlayerIds.has(left as never)).toBe(true);
-      expect(activePlayerIds.has(right as never)).toBe(true);
+      const [left, right] = key.split("::") as [PlayerId, PlayerId];
+      expect(activePlayerIds.has(left)).toBe(true);
+      expect(activePlayerIds.has(right)).toBe(true);
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThanOrEqual(100);
-      if (left && right) {
-        expect(key).toBe(relationshipKey(left as never, right as never));
-      }
+      expect(key).toBe(relationshipKey(left, right));
     }
   });
 
