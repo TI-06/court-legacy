@@ -260,11 +260,16 @@ export function TrainingScreen({
               <strong>{latestResult.injuredPlayerIds.length}人</strong>
             </article>
           </div>
-          <details
-            className="training-result-details"
-            onToggle={(event) => setResultsExpanded(event.currentTarget.open)}
+          <div
+            className={`training-result-details${resultsExpanded ? " training-result-details--open" : ""}`}
           >
-            <summary>選手別の結果を確認</summary>
+            <button
+              aria-expanded={resultsExpanded}
+              onClick={() => setResultsExpanded((current) => !current)}
+              type="button"
+            >
+              選手別の結果を確認
+            </button>
             {resultsExpanded ? (
               <div className="player-result-list">
                 {latestResult.playerLogs.map((log) => {
@@ -320,7 +325,7 @@ export function TrainingScreen({
                 })}
               </div>
             ) : null}
-          </details>
+          </div>
         </section>
       ) : null}
 
