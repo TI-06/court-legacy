@@ -16,14 +16,20 @@ import {
   calculateSelectionStrength,
   selectPracticeOpponent,
 } from "./domain/selectors/matchSelectors";
+import {
+  upgradeFacility,
+  type FacilityKey,
+} from "./domain/school/facilityUpgrade";
 import { autoSelectTeam } from "./domain/team/autoSelectTeam";
 import {
   resolveWeeklyTraining,
   type TrainingResult,
   type WeeklyPlan,
 } from "./domain/training/resolveWeeklyTraining";
+import { CalendarSheet } from "./features/calendar/CalendarSheet";
 import { HomeScreen } from "./features/home/HomeScreen";
 import { MatchScreen } from "./features/match/MatchScreen";
+import { SchoolScreen } from "./features/school/SchoolScreen";
 import { TeamScreen } from "./features/team/TeamScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 
@@ -80,20 +86,9 @@ function createInitialAppState() {
   return { gameState, teamSelection };
 }
 
-function SchoolPlaceholder() {
-  return (
-    <main className="app-content">
-      <section className="placeholder-card">
-        <p className="section-kicker">COMING NEXT</p>
-        <h2>学校運営</h2>
-        <p>設備、評判、スカウト、OB記録を順次追加します。</p>
-      </section>
-    </main>
-  );
-}
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [appState, setAppState] = useState(createInitialAppState);
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
@@ -207,6 +202,17 @@ export default function App() {
     });
   };
 
+  const upgradeSchoolFacility = (key: FacilityKey) => {
+    setAppState((current) => ({
+      ...current,
+      gameState: upgradeFacility(
+        current.gameState,
+        current.gameState.userSchoolId,
+        key,
+      ),
+    }));
+  };
+
   const advanceWeek = () => {
     if (!trainingCompleted) {
       return;
@@ -218,6 +224,7 @@ export default function App() {
     }));
     setLatestTrainingResult(null);
     setActiveMatchResult(null);
+    setCalendarOpen(false);
     setActiveTab("home");
   };
 
@@ -268,7 +275,10 @@ export default function App() {
         state={gameState}
       />
     ) : (
-      <SchoolPlaceholder />
+      <SchoolScreen
+        onUpgradeFacility={upgradeSchoolFacility}
+        state={gameState}
+      />
     );
 
   return (
@@ -278,7 +288,12 @@ export default function App() {
           <p className="eyebrow">COURT LEGACY</p>
           <h1>継承のコート</h1>
         </div>
-        <button aria-label="予定を確認" className="header-action" type="button">
+        <button
+          aria-label="予定を確認"
+          className="header-action"
+          onClick={() => setCalendarOpen(true)}
+          type="button"
+        >
           <Icon name="calendar" />
         </button>
       </header>
@@ -303,6 +318,15 @@ export default function App() {
           );
         })}
       </nav>
+
+      <CalendarSheet
+        onAdvanceWeek={advanceWeek}
+        onClose={() => setCalendarOpen(false)}
+        open={calendarOpen}
+        practiceMatchCompleted={practiceMatchCompleted}
+        state={gameState}
+        trainingCompleted={trainingCompleted}
+      />
     </div>
   );
 }
