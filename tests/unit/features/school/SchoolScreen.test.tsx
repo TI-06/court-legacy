@@ -22,7 +22,7 @@ describe("school management screen", () => {
     );
 
     expect(screen.getByRole("heading", { name: school.name })).toBeVisible();
-    expect(screen.getByText("無名校")).toBeVisible();
+    expect(screen.getByText(/無名校/)).toBeVisible();
     expect(screen.getByText("資金 300")).toBeVisible();
 
     fireEvent.click(
@@ -77,7 +77,7 @@ describe("school management screen", () => {
     }));
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
-    fireEvent.click(screen.getByRole("button", { name: "記録" }));
+    fireEvent.click(screen.getByRole("tab", { name: "記録" }));
 
     const rows = screen.getAllByTestId("school-match-record");
     expect(rows).toHaveLength(5);
@@ -94,7 +94,7 @@ describe("school management screen", () => {
     const { rerender } = render(
       <SchoolScreen onUpgradeFacility={vi.fn()} state={state} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "OB" }));
+    fireEvent.click(screen.getByRole("tab", { name: "OB" }));
     expect(screen.getByText("卒業生の記録はまだありません")).toBeVisible();
 
     const withGraduate = {
