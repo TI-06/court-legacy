@@ -15,10 +15,7 @@ describe("school management screen", () => {
     const onUpgradeFacility = vi.fn();
 
     render(
-      <SchoolScreen
-        onUpgradeFacility={onUpgradeFacility}
-        state={state}
-      />,
+      <SchoolScreen onUpgradeFacility={onUpgradeFacility} state={state} />,
     );
 
     expect(screen.getByRole("heading", { name: school.name })).toBeVisible();
@@ -29,9 +26,7 @@ describe("school management screen", () => {
       screen.getByRole("button", { name: "トレーニング設備を強化" }),
     );
 
-    expect(
-      screen.getByRole("dialog", { name: "設備を強化" }),
-    ).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "設備を強化" })).toBeVisible();
     expect(screen.getByText("Lv.0 → Lv.1")).toBeVisible();
     expect(screen.getByText("強化後の資金 230")).toBeVisible();
 
@@ -90,9 +85,8 @@ describe("school management screen", () => {
 
   it("shows an empty alumni state and then a graduate record", () => {
     const state = createState();
-    const player = state.players[
-      state.schools[state.userSchoolId]!.playerIds[0]!
-    ]!;
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
 
     const { rerender } = render(
       <SchoolScreen onUpgradeFacility={vi.fn()} state={state} />,
@@ -121,9 +115,7 @@ describe("school management screen", () => {
       },
     };
 
-    rerender(
-      <SchoolScreen onUpgradeFacility={vi.fn()} state={withGraduate} />,
-    );
+    rerender(<SchoolScreen onUpgradeFacility={vi.fn()} state={withGraduate} />);
     expect(
       screen.getByText(`${player.lastName} ${player.firstName}`),
     ).toBeVisible();
