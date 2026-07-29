@@ -118,10 +118,36 @@ for (const viewport of [320, 360, 390]) {
 
     await navigation.getByRole("button", { name: "育成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-training`);
+
+    await page.getByRole("button", { name: "チーム練習を変更" }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-training-menu`);
+    await page
+      .getByRole("dialog", { name: "チーム練習を選択" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
     await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-training-picker`);
+    await expectLayoutFits(page, testInfo, `${viewport}-training-player-picker`);
     await page
       .getByRole("dialog", { name: "個人指示2の選手を選択" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
+    await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport}-training-instruction-picker`,
+    );
+    await page
+      .getByRole("dialog", { name: "個人指示1の内容を選択" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
+    await page.getByRole("button", { name: "練習を実行" }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-training-confirm`);
+    await page
+      .getByRole("dialog", { name: "練習内容を確認" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
