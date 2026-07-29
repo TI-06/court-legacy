@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
@@ -29,11 +29,15 @@ describe("school management screen", () => {
       screen.getByRole("button", { name: "トレーニング設備を強化" }),
     );
 
-    expect(screen.getByRole("dialog", { name: "設備を強化" })).toBeVisible();
-    expect(screen.getByText("Lv.0 → Lv.1")).toBeVisible();
-    expect(screen.getByText("強化後の資金 230")).toBeVisible();
+    const dialog = screen.getByRole("dialog", { name: "設備を強化" });
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByText("Lv.0 → Lv.1")).toBeVisible();
+    expect(within(dialog).getByText("強化後の資金")).toBeVisible();
+    expect(within(dialog).getByText("230")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "70を使って強化" }));
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "70を使って強化" }),
+    );
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom");
   });
 
