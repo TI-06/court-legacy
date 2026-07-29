@@ -95,6 +95,7 @@ export function TrainingScreen({
     instructions[1]?.id ?? instructions[0]?.id ?? "",
   );
   const [sheet, setSheet] = useState<TrainingSheet>(null);
+  const [resultsExpanded, setResultsExpanded] = useState(false);
 
   const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
   const firstPlayer = state.players[firstPlayerId];
@@ -137,6 +138,7 @@ export function TrainingScreen({
       return;
     }
     setSheet(null);
+    setResultsExpanded(false);
     onExecute(plan);
   };
 
@@ -258,59 +260,68 @@ export function TrainingScreen({
               <strong>{latestResult.injuredPlayerIds.length}人</strong>
             </article>
           </div>
-          <details className="training-result-details">
+          <details
+            className="training-result-details"
+            onToggle={(event) =>
+              setResultsExpanded(event.currentTarget.open)
+            }
+          >
             <summary>選手別の結果を確認</summary>
-            <div className="player-result-list">
-              {latestResult.playerLogs.map((log) => {
-                const player = state.players[log.playerId];
-                if (!player) {
-                  return null;
-                }
-                const changedAbilities = Object.entries(
-                  log.abilityChanges,
-                ).filter(([, value]) => (value ?? 0) !== 0) as Array<
-                  [AbilityKey, number]
-                >;
-                return (
-                  <article
-                    data-testid="training-result-player"
-                    key={log.playerId}
-                  >
-                    <div className="player-result__header">
-                      <div>
-                        <strong>
-                          {player.lastName} {player.firstName}
-                        </strong>
-                        <span>
-                          {player.grade}年・{player.preferredPosition}
+            {resultsExpanded ? (
+              <div className="player-result-list">
+                {latestResult.playerLogs.map((log) => {
+                  const player = state.players[log.playerId];
+                  if (!player) {
+                    return null;
+                  }
+                  const changedAbilities = Object.entries(
+                    log.abilityChanges,
+                  ).filter(([, value]) => (value ?? 0) !== 0) as Array<
+                    [AbilityKey, number]
+                  >;
+                  return (
+                    <article
+                      data-testid="training-result-player"
+                      key={log.playerId}
+                    >
+                      <div className="player-result__header">
+                        <div>
+                          <strong>
+                            {player.lastName} {player.firstName}
+                          </strong>
+                          <span>
+                            {player.grade}年・{player.preferredPosition}
+                          </span>
+                        </div>
+                        <span
+                          className={
+                            log.injury ? "injury-label" : "growth-label"
+                          }
+                        >
+                          {log.injury
+                            ? "怪我"
+                            : `能力成長 +${log.totalAbilityGrowth}`}
                         </span>
                       </div>
-                      <span
-                        className={log.injury ? "injury-label" : "growth-label"}
-                      >
-                        {log.injury
-                          ? "怪我"
-                          : `能力成長 +${log.totalAbilityGrowth}`}
-                      </span>
-                    </div>
-                    <div className="player-result__metrics">
-                      <span>疲労 {signed(log.fatigueChange)}</span>
-                      <span>状態 {signed(log.conditionChange)}</span>
-                      <span>信頼 {signed(log.trustChange)}</span>
-                    </div>
-                    {changedAbilities.length > 0 ? (
-                      <div className="ability-change-list">
-                        {changedAbilities.map(([ability, value]) => (
-                          <span key={ability}>
-                            {abilityLabels[ability]} {signed(value)}
-                          </span>
-                        ))}
+                      <div className="player-result__metrics">
+                        <span>疲労 {signed(log.fatigueChange)}</span>
+                        <span>状態 {signed(log.conditionChange)}</span>
+                        <span>信頼 {signed(log.trustChange)}</span>
                       </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
+                      {changedAbilities.length > 0 ? (
+                        <div className="ability-change-list">
+                          {changedAbilities.map(([ability, value]) => (
+                            <span key={ability}>
+                              {abilityLabels[ability]} {signed(value)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
           </details>
         </section>
       ) : null}
