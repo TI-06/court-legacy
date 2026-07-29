@@ -1,0 +1,124 @@
+.year-transition-body {
+  display: grid;
+  gap: 13px;
+}
+
+.year-transition-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.year-transition-metrics > div {
+  display: grid;
+  padding: 10px 7px;
+  gap: 4px;
+  text-align: center;
+  background: #eef4f5;
+  border-radius: 12px;
+}
+
+.year-transition-metrics span {
+  color: #71828a;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.year-transition-metrics strong {
+  color: #214a57;
+  font-size: 0.86rem;
+}
+
+.year-transition-section {
+  padding: 11px 12px;
+  background: #fff;
+  border: 1px solid #d7e3e6;
+  border-radius: 14px;
+}
+
+.year-transition-section h3 {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+.year-transition-section__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.year-transition-section__heading span {
+  padding: 3px 7px;
+  color: #285563;
+  font-size: 0.6rem;
+  font-weight: 900;
+  background: #e6f1f3;
+  border-radius: 999px;
+}
+
+.year-transition-captain {
+  margin: 8px 0 0;
+  color: #1d4552;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.year-transition-name-list {
+  display: flex;
+  margin-top: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.year-transition-name-list span {
+  padding: 5px 8px;
+  color: #526a74;
+  font-size: 0.66rem;
+  font-weight: 800;
+  background: #f1f5f6;
+  border-radius: 999px;
+}
+
+.year-transition-special {
+  padding: 12px;
+  color: #744917;
+  background: #fff4dc;
+  border: 1px solid #e8c678;
+  border-radius: 14px;
+}
+
+.year-transition-special strong {
+  font-size: 0.76rem;
+}
+
+.year-transition-special p {
+  margin: 5px 0 0;
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.year-transition-start {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  background: #1c6977;
+  border: 0;
+  border-radius: 13px;
+}
+
+@media (max-width: 350px) {
+  .year-transition-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .year-transition-metrics > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
