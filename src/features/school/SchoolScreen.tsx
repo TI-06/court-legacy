@@ -53,8 +53,9 @@ function facilityActionLabel(
 
 export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>("facilities");
-  const [selectedFacility, setSelectedFacility] =
-    useState<FacilityKey | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
+    null,
+  );
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -115,7 +116,8 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
           <div>
             <h2>{school.name}</h2>
             <p>
-              {reputationLabels[school.reputation]}・評判 {school.reputationPoints}
+              {reputationLabels[school.reputation]}・評判{" "}
+              {school.reputationPoints}
             </p>
           </div>
           <strong>資金 {school.funds}</strong>
@@ -248,9 +250,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
                   ? match.awaySchoolId
                   : match.homeSchoolId;
                 const opponent = state.schools[opponentId]!;
-                const userSets = home
-                  ? match.homeSetsWon
-                  : match.awaySetsWon;
+                const userSets = home ? match.homeSetsWon : match.awaySetsWon;
                 const opponentSets = home
                   ? match.awaySetsWon
                   : match.homeSetsWon;
@@ -265,7 +265,11 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
                       <time>{formatDate(match.date)}</time>
                       <strong>{opponent.name}</strong>
                     </div>
-                    <span className={won ? "school-result--win" : "school-result--loss"}>
+                    <span
+                      className={
+                        won ? "school-result--win" : "school-result--loss"
+                      }
+                    >
                       {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
                     </span>
                   </article>
@@ -285,13 +289,13 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             </div>
           </div>
           {graduates.length === 0 ? (
-            <p className="school-empty-state">
-              卒業生の記録はまだありません
-            </p>
+            <p className="school-empty-state">卒業生の記録はまだありません</p>
           ) : (
             <div className="alumni-list">
               {graduates.map((graduate) => (
-                <article key={`${graduate.playerId}-${graduate.graduationYear}`}>
+                <article
+                  key={`${graduate.playerId}-${graduate.graduationYear}`}
+                >
                   <div>
                     <strong>{graduate.displayName}</strong>
                     <span>
