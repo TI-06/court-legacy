@@ -126,13 +126,9 @@ test("school management upgrades a facility and calendar advances the shared wee
   await expect(page.getByRole("heading", { name: "蒼波高校" })).toBeVisible();
   await expect(page.getByText("資金 300")).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "トレーニング設備を強化" })
-    .click();
+  await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
   const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
-  await facilityDialog
-    .getByRole("button", { name: "70を使って強化" })
-    .click();
+  await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
   await expect(page.getByText("資金 230")).toBeVisible();
   await expect(page.getByText("Lv.1")).toBeVisible();
 
