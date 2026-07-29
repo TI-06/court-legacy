@@ -129,7 +129,9 @@ test("school management upgrades a facility and calendar advances the shared wee
   const trainingUpgrade = page.getByRole("button", {
     name: "トレーニング設備を強化",
   });
-  const trainingFacilityCard = trainingUpgrade.locator("xpath=ancestor::article");
+  const trainingFacilityCard = trainingUpgrade.locator(
+    "xpath=ancestor::article",
+  );
   await trainingUpgrade.click();
   const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
   await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
