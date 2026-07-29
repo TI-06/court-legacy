@@ -1,4 +1,7 @@
-import type { EventDefinition, EventTrigger } from "../validation/gameDataSchema";
+import type {
+  EventDefinition,
+  EventTrigger,
+} from "../validation/gameDataSchema";
 import type { ActivityType } from "../model/Calendar";
 import { relationshipKey, type GameState } from "../model/GameState";
 import type { Player } from "../model/Player";
@@ -18,8 +21,10 @@ function withinRange(
   if (!range) {
     return true;
   }
-  return (range.min === undefined || value >= range.min) &&
-    (range.max === undefined || value <= range.max);
+  return (
+    (range.min === undefined || value >= range.min) &&
+    (range.max === undefined || value <= range.max)
+  );
 }
 
 function currentActivityTypes(state: GameState): ActivityType[] {
@@ -180,7 +185,9 @@ export function isEventEligibleForActors(
   ) {
     return false;
   }
-  if (!actors.every((actor) => playerMatchesTrigger(actor as Player, trigger))) {
+  if (
+    !actors.every((actor) => playerMatchesTrigger(actor as Player, trigger))
+  ) {
     return false;
   }
   if (trigger.relationship && actorPlayerIds.length >= 2) {
@@ -188,7 +195,8 @@ export function isEventEligibleForActors(
     if (!left || !right) {
       return false;
     }
-    const relationship = state.playerRelationships[relationshipKey(left, right)] ?? 50;
+    const relationship =
+      state.playerRelationships[relationshipKey(left, right)] ?? 50;
     if (!withinRange(relationship, trigger.relationship)) {
       return false;
     }

@@ -119,11 +119,8 @@ function normalCandidates(
       )
         ? 0.2
         : 1;
-      const recentCategoryPenalty = state.eventMemory.recentCategoryIds.includes(
-        event.category,
-      )
-        ? 0.35
-        : 1;
+      const recentCategoryPenalty =
+        state.eventMemory.recentCategoryIds.includes(event.category) ? 0.35 : 1;
       candidates.push({
         event,
         actorPlayerIds,

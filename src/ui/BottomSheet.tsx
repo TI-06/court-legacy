@@ -39,9 +39,8 @@ export function BottomSheet({
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    const firstFocusable = sheetRef.current?.querySelector<HTMLElement>(
-      focusableSelector,
-    );
+    const firstFocusable =
+      sheetRef.current?.querySelector<HTMLElement>(focusableSelector);
     (dismissible ? closeButtonRef.current : firstFocusable)?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {

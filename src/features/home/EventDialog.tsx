@@ -76,7 +76,9 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
                       <strong>{definition?.title ?? "出来事"}</strong>
                       <span>
                         {occurrence.date}・
-                        {actor ? `${actor.lastName} ${actor.firstName}` : "選手"}
+                        {actor
+                          ? `${actor.lastName} ${actor.firstName}`
+                          : "選手"}
                       </span>
                     </div>
                     <p>{choice?.label ?? occurrence.choiceId}</p>

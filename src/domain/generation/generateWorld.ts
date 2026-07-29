@@ -170,7 +170,11 @@ function createInitialRelationships(
 ): Record<string, number> {
   const relationships: Record<string, number> = {};
   for (const school of Object.values(schools)) {
-    for (let leftIndex = 0; leftIndex < school.playerIds.length; leftIndex += 1) {
+    for (
+      let leftIndex = 0;
+      leftIndex < school.playerIds.length;
+      leftIndex += 1
+    ) {
       for (
         let rightIndex = leftIndex + 1;
         rightIndex < school.playerIds.length;

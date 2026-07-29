@@ -5,13 +5,8 @@ import type {
   EventEffect,
 } from "../validation/gameDataSchema";
 import type { EventOccurrence, ScheduledEventFollowUp } from "../model/Event";
-import {
-  eventCareerKey,
-} from "./eventEligibility";
-import {
-  relationshipKey,
-  type GameState,
-} from "../model/GameState";
+import { eventCareerKey } from "./eventEligibility";
+import { relationshipKey, type GameState } from "../model/GameState";
 import { clampAbility, type Player } from "../model/Player";
 import type { SchoolFacilities } from "../model/School";
 import type { EventId, PlayerId } from "../model/identifiers";
@@ -47,7 +42,11 @@ function applyEffect(
   actorPlayerIds: readonly PlayerId[],
   event: EventDefinition,
   random: RandomSource,
-): { state: GameState; visibleResult: string; followUp?: ScheduledEventFollowUp } {
+): {
+  state: GameState;
+  visibleResult: string;
+  followUp?: ScheduledEventFollowUp;
+} {
   switch (effect.type) {
     case "ability-change":
       return {
@@ -66,9 +65,7 @@ function applyEffect(
     case "fatigue-change":
     case "trust-change": {
       const key = effect.type.replace("-change", "") as
-        | "morale"
-        | "fatigue"
-        | "trust";
+        "morale" | "fatigue" | "trust";
       const label =
         key === "morale" ? "士気" : key === "fatigue" ? "疲労" : "信頼";
       return {
