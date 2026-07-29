@@ -76,7 +76,9 @@ export class IndexedDbGameRepository implements GameRepository {
       transaction.objectStore(SAVE_STORE).getAll() as IDBRequest<SaveRecord[]>,
     );
     const backups = await requestAsPromise(
-      transaction.objectStore(BACKUP_STORE).getAll() as IDBRequest<BackupRecord[]>,
+      transaction.objectStore(BACKUP_STORE).getAll() as IDBRequest<
+        BackupRecord[]
+      >,
     );
     await done;
 
@@ -169,10 +171,7 @@ export class IndexedDbGameRepository implements GameRepository {
     await this.pruneBackups(slotId);
   }
 
-  async createBackup(
-    slotId: SaveSlotId,
-    reason: BackupReason,
-  ): Promise<void> {
+  async createBackup(slotId: SaveSlotId, reason: BackupReason): Promise<void> {
     assertSaveSlotId(slotId);
     const database = await this.openDatabase();
     const transaction = database.transaction(

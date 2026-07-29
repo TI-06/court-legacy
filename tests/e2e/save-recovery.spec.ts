@@ -38,8 +38,8 @@ test("manual save survives reload and keeps the previous version as backup", asy
 
   await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
   await expect(
-    page.getByRole("dialog", { name: "セーブ・ロード" }).getByText(
-      "バックアップ 1件",
-    ),
+    page
+      .getByRole("dialog", { name: "セーブ・ロード" })
+      .getByText("バックアップ 1件"),
   ).toBeVisible();
 });

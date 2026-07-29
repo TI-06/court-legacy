@@ -39,7 +39,9 @@ function createSlots(): SaveSlotSummary[] {
   ];
 }
 
-function createRepository(overrides: Partial<GameRepository> = {}): GameRepository {
+function createRepository(
+  overrides: Partial<GameRepository> = {},
+): GameRepository {
   return {
     listSlots: vi.fn().mockResolvedValue(createSlots()),
     load: vi.fn().mockResolvedValue(createDemoGame()),
@@ -92,7 +94,9 @@ describe("save sheet", () => {
       />,
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "スロット1に保存" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "スロット1に保存" }),
+    );
 
     await waitFor(() =>
       expect(repository.save).toHaveBeenCalledWith("slot-1", state, "manual"),
@@ -121,7 +125,9 @@ describe("save sheet", () => {
       />,
     );
 
-    fireEvent.click(await screen.findByRole("button", { name: "スロット1を読込" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "スロット1を読込" }),
+    );
 
     await waitFor(() => expect(onLoadState).toHaveBeenCalledWith(loaded));
     expect(onActiveSlotChange).toHaveBeenCalledWith("slot-1");
@@ -145,7 +151,9 @@ describe("save sheet", () => {
     const input = await screen.findByLabelText("JSONファイルをインポート");
     fireEvent.change(input, {
       target: {
-        files: [new File(["not-json"], "broken.json", { type: "application/json" })],
+        files: [
+          new File(["not-json"], "broken.json", { type: "application/json" }),
+        ],
       },
     });
 

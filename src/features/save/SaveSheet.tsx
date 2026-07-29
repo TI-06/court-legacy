@@ -6,7 +6,10 @@ import {
   type SaveSlotId,
   type SaveSlotSummary,
 } from "../../persistence/GameRepository";
-import { decodeGameState, encodeGameState } from "../../persistence/gameStateCodec";
+import {
+  decodeGameState,
+  encodeGameState,
+} from "../../persistence/gameStateCodec";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import "./save-sheet.css";
@@ -102,7 +105,9 @@ export function SaveSheet({
       .catch((reason: unknown) => {
         if (active) {
           setError(
-            reason instanceof Error ? reason.message : "セーブ情報を取得できません",
+            reason instanceof Error
+              ? reason.message
+              : "セーブ情報を取得できません",
           );
         }
       })
@@ -221,9 +226,14 @@ export function SaveSheet({
       title="セーブ・ロード"
     >
       <div className="save-sheet-body">
-        {loading ? <p className="save-sheet-status">セーブ情報を確認中です</p> : null}
+        {loading ? (
+          <p className="save-sheet-status">セーブ情報を確認中です</p>
+        ) : null}
         {error ? (
-          <p className="save-sheet-feedback save-sheet-feedback--error" role="alert">
+          <p
+            className="save-sheet-feedback save-sheet-feedback--error"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}
@@ -243,9 +253,15 @@ export function SaveSheet({
                   <div>
                     <div className="save-slot-card__title">
                       <h3>{label}</h3>
-                      {activeSlotId === slot.slotId ? <span>使用中</span> : null}
+                      {activeSlotId === slot.slotId ? (
+                        <span>使用中</span>
+                      ) : null}
                     </div>
-                    <p>{slot.exists ? formatSavedAt(slot.updatedAt) : "空きスロット"}</p>
+                    <p>
+                      {slot.exists
+                        ? formatSavedAt(slot.updatedAt)
+                        : "空きスロット"}
+                    </p>
                   </div>
                   <strong>{slot.schoolName ?? "---"}</strong>
                 </header>
@@ -253,7 +269,9 @@ export function SaveSheet({
                 <div className="save-slot-card__meta">
                   <span>{slot.gameDate ?? "日付なし"}</span>
                   <span>
-                    {slot.yearIndex === null ? "年度なし" : `${slot.yearIndex}年目`}
+                    {slot.yearIndex === null
+                      ? "年度なし"
+                      : `${slot.yearIndex}年目`}
                   </span>
                   <span>バックアップ {slot.backupCount}件</span>
                 </div>
