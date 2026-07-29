@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./app/app-shell.css";
 import { createDemoGame, gameData } from "./app/createDemoGame";
 import {
@@ -10,6 +10,7 @@ import {
   simulateMatch,
   type SimulateMatchResult,
 } from "./domain/match/simulateMatch";
+import type { GameState } from "./domain/model/GameState";
 import { matchId } from "./domain/model/identifiers";
 import { SeededRandom } from "./domain/random/SeededRandom";
 import {
@@ -29,12 +30,22 @@ import {
 import { CalendarSheet } from "./features/calendar/CalendarSheet";
 import { HomeScreen } from "./features/home/HomeScreen";
 import { MatchScreen } from "./features/match/MatchScreen";
+import { SaveSheet } from "./features/save/SaveSheet";
 import { SchoolScreen } from "./features/school/SchoolScreen";
 import { TeamScreen } from "./features/team/TeamScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
+import type { SaveSlotId } from "./persistence/GameRepository";
+import { browserGameRepository } from "./persistence/IndexedDbGameRepository";
 
 type AppTab = "home" | "team" | "training" | "match" | "school";
-type IconName = "home" | "team" | "training" | "match" | "school" | "calendar";
+type IconName =
+  | "home"
+  | "team"
+  | "training"
+  | "match"
+  | "school"
+  | "calendar"
+  | "save";
 
 interface IconProps {
   name: IconName;
@@ -48,7 +59,9 @@ function Icon({ name }: IconProps) {
     match:
       "M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm10 2h3v2a4 4 0 0 1-4 4M7 6H4v2a4 4 0 0 0 4 4",
     school: "m3 10 9-6 9 6-9 6-9-6Zm3 4v5h12v-5M9 19v-4h6v4",
-    calendar: "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
+    calendar:
+      "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
+    save: "M5 3h12l2 2v16H5V3Zm3 0v6h8V3M8 21v-7h8v7",
   };
 
   return (
@@ -76,19 +89,25 @@ const navigationItems: Array<{
   { id: "school", label: "学校", icon: "school" },
 ];
 
-function createInitialAppState() {
-  const gameState = createDemoGame();
+function createAppState(gameState: GameState) {
   const teamSelection = autoSelectTeam({
     state: gameState,
     schoolId: gameState.userSchoolId,
   });
-
   return { gameState, teamSelection };
+}
+
+function createInitialAppState() {
+  return createAppState(createDemoGame());
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [activeSaveSlotId, setActiveSaveSlotId] =
+    useState<SaveSlotId>("slot-1");
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [appState, setAppState] = useState(createInitialAppState);
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
@@ -102,6 +121,41 @@ export default function App() {
     gameState,
     "practice-match",
   );
+
+  useEffect(() => {
+    let active = true;
+
+    void (async () => {
+      try {
+        const slots = await browserGameRepository.listSlots();
+        const newest = slots
+          .filter((slot) => slot.exists && slot.updatedAt)
+          .sort((left, right) =>
+            (right.updatedAt ?? "").localeCompare(left.updatedAt ?? ""),
+          )[0];
+        if (!newest) {
+          return;
+        }
+
+        const loaded = await browserGameRepository.load(newest.slotId);
+        if (!active) {
+          return;
+        }
+        setAppState(createAppState(loaded));
+        setActiveSaveSlotId(newest.slotId);
+        setSaveNotice(`${newest.slotId.replace("slot-", "スロット")}を復元`);
+      } catch {
+        if (active && typeof indexedDB !== "undefined") {
+          setSaveNotice("ローカル保存を確認できませんでした");
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const opponent = useMemo(
     () => selectPracticeOpponent(gameState),
     [gameState],
@@ -118,6 +172,15 @@ export default function App() {
     () => calculateSelectionStrength(gameState, opponentSelection),
     [gameState, opponentSelection],
   );
+
+  const loadGameState = (loadedState: GameState) => {
+    setAppState(createAppState(loadedState));
+    setLatestTrainingResult(null);
+    setLatestMatchResult(null);
+    setActiveMatchResult(null);
+    setActiveTab("home");
+    setCalendarOpen(false);
+  };
 
   const executeTraining = (plan: WeeklyPlan) => {
     if (trainingCompleted) {
@@ -218,10 +281,15 @@ export default function App() {
       return;
     }
 
-    setAppState((current) => ({
-      ...current,
-      gameState: advanceOneWeek(current.gameState).state,
-    }));
+    const nextState = advanceOneWeek(gameState).state;
+    setAppState((current) => ({ ...current, gameState: nextState }));
+    if (nextState.settings.autosaveEnabled) {
+      setSaveNotice("自動保存中");
+      void browserGameRepository
+        .save(activeSaveSlotId, nextState, "autosave")
+        .then(() => setSaveNotice("自動保存済み"))
+        .catch(() => setSaveNotice("自動保存に失敗"));
+    }
     setLatestTrainingResult(null);
     setActiveMatchResult(null);
     setCalendarOpen(false);
@@ -288,14 +356,27 @@ export default function App() {
           <p className="eyebrow">COURT LEGACY</p>
           <h1>継承のコート</h1>
         </div>
-        <button
-          aria-label="予定を確認"
-          className="header-action"
-          onClick={() => setCalendarOpen(true)}
-          type="button"
-        >
-          <Icon name="calendar" />
-        </button>
+        <div className="header-actions">
+          <span aria-live="polite" className="header-save-status">
+            {saveNotice}
+          </span>
+          <button
+            aria-label="セーブ・ロードを開く"
+            className="header-action"
+            onClick={() => setSaveOpen(true)}
+            type="button"
+          >
+            <Icon name="save" />
+          </button>
+          <button
+            aria-label="予定を確認"
+            className="header-action"
+            onClick={() => setCalendarOpen(true)}
+            type="button"
+          >
+            <Icon name="calendar" />
+          </button>
+        </div>
       </header>
 
       {content}
@@ -326,6 +407,15 @@ export default function App() {
         practiceMatchCompleted={practiceMatchCompleted}
         state={gameState}
         trainingCompleted={trainingCompleted}
+      />
+      <SaveSheet
+        activeSlotId={activeSaveSlotId}
+        onActiveSlotChange={setActiveSaveSlotId}
+        onClose={() => setSaveOpen(false)}
+        onLoadState={loadGameState}
+        open={saveOpen}
+        repository={browserGameRepository}
+        state={gameState}
       />
     </div>
   );
