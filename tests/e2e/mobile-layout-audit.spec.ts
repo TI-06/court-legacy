@@ -189,9 +189,9 @@ for (const viewport of [320, 360, 390, 480]) {
       .getByRole("button", { name: "閉じる" })
       .click();
 
-    await page.getByRole("button", { name: "記録", exact: true }).click();
+    await page.getByRole("tab", { name: "記録", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-school-records`);
-    await page.getByRole("button", { name: "OB", exact: true }).click();
+    await page.getByRole("tab", { name: "OB", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-school-alumni`);
 
     await page.getByRole("button", { name: "予定を確認" }).click();
