@@ -179,7 +179,31 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectLayoutFits(page, testInfo, `${viewport}-match-result`);
 
     await navigation.getByRole("button", { name: "学校", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-school`);
-    await expectNavigationFixed(page, `${viewport}-school`);
+    await expectLayoutFits(page, testInfo, `${viewport}-school-facilities`);
+    await expectNavigationFixed(page, `${viewport}-school-facilities`);
+
+    await page
+      .getByRole("button", { name: "トレーニング設備を強化" })
+      .click();
+    await expectLayoutFits(page, testInfo, `${viewport}-school-upgrade`);
+    await page
+      .getByRole("dialog", { name: "設備を強化" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
+    await page.getByRole("button", { name: "記録", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-school-records`);
+    await page.getByRole("button", { name: "OB", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-school-alumni`);
+
+    await page.getByRole("button", { name: "予定を確認" }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-calendar`);
+    await page
+      .getByRole("dialog", { name: "週間カレンダー" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await expectNavigationFixed(page, `${viewport}-school-after-scroll`);
   });
 }
