@@ -14,14 +14,12 @@ test("mobile shell keeps all primary navigation actions visible", async ({
     ).toBeVisible();
   }
 
-  const bodyWidth = await page
-    .locator("body")
-    .evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
-test("mobile training uses direct cards and executes without overflow", async ({
+test("mobile training uses compact sheets and advances to the next week", async ({
   page,
 }) => {
   await page.goto("/");
@@ -30,25 +28,51 @@ test("mobile training uses direct cards and executes without overflow", async ({
 
   await expect(page.getByRole("heading", { name: "週間練習" })).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
-  await expect(page.getByTestId("team-training-choice")).toHaveCount(12);
+  await expect(page.getByTestId("team-training-choice")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "チーム練習を変更" }).click();
+  const teamMenu = page.getByRole("dialog", { name: "チーム練習を選択" });
+  await expect(teamMenu.getByTestId("team-training-choice")).toHaveCount(12);
+  await teamMenu.getByTestId("team-training-choice").nth(1).click();
+  await expect(teamMenu).toBeHidden();
 
   await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
-  const picker = page.getByRole("dialog", {
+  const playerPicker = page.getByRole("dialog", {
     name: "個人指示2の選手を選択",
   });
-  await expect(picker).toBeVisible();
-  await expect(picker.getByTestId("player-picker-option")).toHaveCount(12);
-  await picker.getByRole("button", { name: "閉じる" }).click();
+  await expect(playerPicker.getByTestId("player-picker-option")).toHaveCount(12);
+  await playerPicker.getByRole("button", { name: "閉じる" }).click();
+
+  await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
+  const instructionPicker = page.getByRole("dialog", {
+    name: "個人指示1の内容を選択",
+  });
+  await expect(
+    instructionPicker.getByTestId("individual-instruction-choice"),
+  ).toHaveCount(6);
+  await instructionPicker.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "練習を実行" }).click();
+  const confirmation = page.getByRole("dialog", { name: "練習内容を確認" });
+  await confirmation.getByRole("button", { name: "この内容で実行" }).click();
   await expect(
     page.getByRole("heading", { name: "今週の練習結果" }),
   ).toBeVisible();
+  await expect(page.getByTestId("training-result-player")).toHaveCount(0);
+  await page.getByText("選手別の結果を確認").click();
   await expect(page.getByTestId("training-result-player")).toHaveCount(12);
+  await expect(
+    page.getByRole("button", { name: "今週の練習は完了" }),
+  ).toBeDisabled();
 
-  const bodyWidth = await page
-    .locator("body")
-    .evaluate((body) => body.scrollWidth);
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await expect(page.getByText("2026年4月8日")).toBeVisible();
+
+  await navigation.getByRole("button", { name: "育成", exact: true }).click();
+  await expect(page.getByRole("button", { name: "練習を実行" })).toBeEnabled();
+
+  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
@@ -79,9 +103,7 @@ test("mobile team selection uses a court picker without overflow", async ({
   await page.getByRole("button", { name: "安全調整" }).click();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
-  const bodyWidth = await page
-    .locator("body")
-    .evaluate((body) => body.scrollWidth);
+  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
   const viewportWidth = page.viewportSize()?.width ?? 0;
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
