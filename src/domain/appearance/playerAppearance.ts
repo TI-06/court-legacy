@@ -132,16 +132,10 @@ function expressionFor(player: Player): CharacterExpression {
 }
 
 function poseFor(player: Player): CharacterPose {
-  if (player.injury || player.fatigue >= 85) {
-    return "upright";
-  }
-  if (player.morale >= 85) {
-    return "celebration";
-  }
   if (player.preferredPosition === "L" || player.preferredPosition === "S") {
     return "ready";
   }
-  return pick(player.appearanceSeed, 29, POSES.slice(0, 3));
+  return pick(player.appearanceSeed, 29, POSES);
 }
 
 export function assemblePlayerAppearance(player: Player): PlayerAppearance {
