@@ -2,6 +2,7 @@ import type { GameDataRegistry } from "../../data/dataRegistry";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
 import { BottomSheet } from "../../ui/BottomSheet";
+import { PlayerCharacter } from "../../ui/PlayerCharacter";
 import "../../ui/ui.css";
 import "./event-dialog.css";
 
@@ -20,10 +21,11 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
   if (!event) {
     return null;
   }
-  const actorNames = pending.actorPlayerIds.map((playerId) => {
-    const player = state.players[playerId];
-    return player ? `${player.lastName} ${player.firstName}` : "不明な選手";
-  });
+  const actors = pending.actorPlayerIds.map((playerId) => ({
+    playerId,
+    player: state.players[playerId],
+  }));
+  const school = state.schools[state.userSchoolId];
   const recentHistory = [...state.eventMemory.history].slice(-5).reverse();
 
   return (
@@ -36,9 +38,20 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
     >
       <div className="event-dialog-body">
         <div className="event-actors" aria-label="関係する選手">
-          {actorNames.map((name) => (
-            <span key={name}>{name}</span>
-          ))}
+          {actors.map(({ playerId, player }) =>
+            player ? (
+              <figure className="event-actor-card" key={playerId}>
+                <span className="event-actor-character" aria-hidden="true">
+                  <PlayerCharacter player={player} uniform={school?.uniform} />
+                </span>
+                <figcaption>
+                  {player.lastName} {player.firstName}
+                </figcaption>
+              </figure>
+            ) : (
+              <span key={playerId}>不明な選手</span>
+            ),
+          )}
         </div>
         <p className="event-story">
           {renderEventText(event.bodyTemplate, state, pending.actorPlayerIds)}
