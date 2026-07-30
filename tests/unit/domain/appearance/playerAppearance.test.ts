@@ -27,7 +27,7 @@ describe("player appearance assembly", () => {
     const healthy = assemblePlayerAppearance(
       withChanges(player, {
         fatigue: 10,
-        morale: 50,
+        morale: 90,
         condition: 90,
         injury: null,
       }),
@@ -35,6 +35,7 @@ describe("player appearance assembly", () => {
     const injured = assemblePlayerAppearance(
       withChanges(player, {
         fatigue: 90,
+        morale: 90,
         injury: {
           injuryId: "test-injury",
           severity: "moderate",
@@ -45,7 +46,7 @@ describe("player appearance assembly", () => {
     );
 
     expect(appearanceSignature(healthy)).toBe(appearanceSignature(injured));
-    expect(healthy.expression).not.toBe("pained");
+    expect(healthy.expression).toBe("confident");
     expect(injured.expression).toBe("pained");
   });
 
