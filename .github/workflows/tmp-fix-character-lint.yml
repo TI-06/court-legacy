@@ -1,0 +1,34 @@
+name: Temporary Character Lint Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m4-character-assembly
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Apply character lint fix
+        run: |
+          npm ci
+          node scripts/tmp-fix-character-lint.mjs
+          npm run format
+          rm scripts/tmp-fix-character-lint.mjs
+          rm .github/workflows/tmp-fix-character-lint.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix: キャラクター描画のFast Refresh警告を解消"
+          git push origin HEAD:feature/m4-character-assembly
