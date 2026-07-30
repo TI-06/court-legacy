@@ -18,6 +18,7 @@ import {
 import type { GameState } from "./domain/model/GameState";
 import { matchId } from "./domain/model/identifiers";
 import { SeededRandom } from "./domain/random/SeededRandom";
+import { recordMatchOutcome } from "./domain/world/rivalWorldProgression";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -239,27 +240,21 @@ export default function App() {
     setLatestMatchResult(simulation);
     setActiveMatchResult(simulation);
     setAppState((current) => {
-      const updatedState = {
+      const matchState = {
         ...current.gameState,
         randomCursor: simulation.match.randomCursor,
         activeMatch: simulation.match,
-        history: {
-          ...current.gameState.history,
-          matches: [
-            ...current.gameState.history.matches,
-            {
-              matchId: simulation.match.id,
-              date: current.gameState.date,
-              homeSchoolId: simulation.match.homeSchoolId,
-              awaySchoolId: simulation.match.awaySchoolId,
-              winnerSchoolId: simulation.analysis.winnerSchoolId,
-              homeSetsWon: simulation.match.homeSetsWon,
-              awaySetsWon: simulation.match.awaySetsWon,
-              tournamentId: null,
-            },
-          ],
-        },
       };
+      const updatedState = recordMatchOutcome(matchState, {
+        matchId: simulation.match.id,
+        date: current.gameState.date,
+        homeSchoolId: simulation.match.homeSchoolId,
+        awaySchoolId: simulation.match.awaySchoolId,
+        winnerSchoolId: simulation.analysis.winnerSchoolId,
+        homeSetsWon: simulation.match.homeSetsWon,
+        awaySetsWon: simulation.match.awaySetsWon,
+        tournamentId: null,
+      });
 
       return {
         ...current,

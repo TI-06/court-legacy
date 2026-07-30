@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
+import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
@@ -88,6 +89,13 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
     );
   }
 
+  const destinyRivalId = state.world.destinyRivalSchoolId;
+  const destinyRival = destinyRivalId
+    ? state.schools[destinyRivalId]
+    : undefined;
+  const destinyRivalScore = destinyRival
+    ? (state.world.rivalryScores[rivalryKey(school.id, destinyRival.id)] ?? 0)
+    : 0;
   const graduates = state.history.graduates.filter(
     (graduate) => graduate.schoolId === school.id,
   );
@@ -126,6 +134,14 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
           <span>
             監督<strong>{school.coach.name}</strong>
           </span>
+          {destinyRival ? (
+            <span>
+              宿命校
+              <strong>
+                {destinyRival.name}・因縁 {destinyRivalScore}
+              </strong>
+            </span>
+          ) : null}
           <span>
             通算シーズン<strong>{school.history.seasons}</strong>
           </span>
