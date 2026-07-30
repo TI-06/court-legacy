@@ -182,13 +182,10 @@ export function applyFeaturedPlayerProfile(
     }
 
     const abilities = { ...player.abilities };
-    for (const [ability, minimum] of Object.entries(profile.abilityMinimums) as [
-      keyof PlayerAbilities,
-      number,
-    ][]) {
-      abilities[ability] = clampAbility(
-        Math.max(abilities[ability], minimum),
-      );
+    for (const [ability, minimum] of Object.entries(
+      profile.abilityMinimums,
+    ) as [keyof PlayerAbilities, number][]) {
+      abilities[ability] = clampAbility(Math.max(abilities[ability], minimum));
     }
 
     return {
