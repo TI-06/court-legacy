@@ -1,6 +1,9 @@
+import { resolveFeaturedCharacter } from "../../domain/appearance/characterWorld";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
+import type { Player } from "../../domain/model/Player";
 import type { School, SchoolReputation } from "../../domain/model/School";
+import { FeaturedPlayerHero } from "../../ui/FeaturedPlayerHero";
 import { summarizeSetScore } from "../match/matchPresentation";
 import "./home.css";
 
@@ -43,6 +46,18 @@ function formatDate(value: string): string {
   return `${year}年${month}月${day}日`;
 }
 
+function selectTeamFace(
+  players: readonly Player[],
+  school: School,
+): Player | null {
+  return (
+    players.find((player) => resolveFeaturedCharacter(player, school)) ??
+    players.find((player) => player.id === school.captainPlayerId) ??
+    players[0] ??
+    null
+  );
+}
+
 export function HomeScreen({
   state,
   opponent,
@@ -62,11 +77,12 @@ export function HomeScreen({
 
   const players = school.playerIds
     .map((playerId) => state.players[playerId])
-    .filter((player) => Boolean(player));
-  const averageFatigue = average(players.map((player) => player!.fatigue));
-  const injuredCount = players.filter((player) => player?.injury).length;
+    .filter((player): player is Player => Boolean(player));
+  const teamFace = selectTeamFace(players, school);
+  const averageFatigue = average(players.map((player) => player.fatigue));
+  const injuredCount = players.filter((player) => player.injury).length;
   const fatigueWarningCount = players.filter(
-    (player) => (player?.fatigue ?? 0) >= 65,
+    (player) => player.fatigue >= 65,
   ).length;
   const latestWinner = latestMatch
     ? state.schools[latestMatch.analysis.winnerSchoolId]
@@ -95,6 +111,14 @@ export function HomeScreen({
           </div>
         </div>
       </section>
+
+      {teamFace ? (
+        <FeaturedPlayerHero
+          onOpenTeam={onOpenTeam}
+          player={teamFace}
+          school={school}
+        />
+      ) : null}
 
       <section className="metric-grid" aria-label="チーム状況">
         <article className="metric-card">
