@@ -1,6 +1,7 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { HistoricalMatchSummary } from "../../../../src/domain/model/GameState";
 import type { Player } from "../../../../src/domain/model/Player";
+import type { GameDate } from "../../../../src/domain/model/identifiers";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import {
@@ -65,7 +66,7 @@ describe("rival world progression", () => {
     for (let index = 0; index < 4; index += 1) {
       const summary: HistoricalMatchSummary = {
         matchId: matchId(`rivalry-${index}`),
-        date: `2026-${String(index + 5).padStart(2, "0")}-01`,
+        date: `2026-${String(index + 5).padStart(2, "0")}-01` as GameDate,
         homeSchoolId: user.id,
         awaySchoolId: rival.id,
         winnerSchoolId: user.id,
