@@ -1,0 +1,274 @@
+[
+  {
+    "id": "event.alumni-fundraising",
+    "version": 1,
+    "category": "ob",
+    "title": "OB会の募金計画",
+    "bodyTemplate": "OB会から、老朽化した練習環境を変える募金計画が提案された。",
+    "tags": ["alumni", "facility", "expansion", "chain", "stage-1"],
+    "trigger": {
+      "schoolReputationMin": 40
+    },
+    "weight": 26,
+    "cooldownWeeks": 78,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "gym",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-plan",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-plan",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-plan",
+    "version": 1,
+    "category": "ob",
+    "title": "新施設の設計",
+    "bodyTemplate": "集まった意見を基に、新しい練習設備の設計案が三つまで絞られた。",
+    "tags": ["alumni", "facility", "expansion", "chain", "stage-2"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "trainingRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-workday",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-workday",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-workday",
+    "version": 1,
+    "category": "ob",
+    "title": "世代を越えた作業日",
+    "bodyTemplate": "現役とOBが一緒に準備を進める中、方針の違いも見え始めた。",
+    "tags": ["alumni", "facility", "expansion", "chain", "stage-3"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "analysisRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-opening",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-opening",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-opening",
+    "version": 1,
+    "category": "ob",
+    "title": "新設備の完成",
+    "bodyTemplate": "長く待った設備が完成し、最初に使う練習内容を決めることになった。",
+    "tags": ["alumni", "facility", "expansion", "chain", "stage-4"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "recoveryRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-legacy-day",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.alumni-legacy-day",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-legacy-day",
+    "version": 1,
+    "category": "ob",
+    "title": "受け継ぐ場所",
+    "bodyTemplate": "新しい場所に歴代主将が集まり、次の世代へ残す言葉を選んでいる。",
+    "tags": ["alumni", "facility", "expansion", "chain", "stage-5"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "studyRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

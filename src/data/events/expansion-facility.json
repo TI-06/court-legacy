@@ -1,0 +1,674 @@
+[
+  {
+    "id": "event.facility-gym-floor-crack",
+    "version": 1,
+    "category": "seasonal",
+    "title": "体育館床の亀裂",
+    "bodyTemplate": "コート中央に小さな亀裂が見つかり、安全と練習日程の両方が問題になった。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "gym",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-lighting-upgrade",
+    "version": 1,
+    "category": "seasonal",
+    "title": "照明更新の機会",
+    "bodyTemplate": "体育館照明の更新予算が出たが、部の負担も必要だと言われた。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "trainingRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-net-system",
+    "version": 1,
+    "category": "practice",
+    "title": "新しいネット支柱",
+    "bodyTemplate": "公式規格のネット設備を導入できる期間限定の提案が届いた。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "analysisRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-analysis-tablet",
+    "version": 1,
+    "category": "practice",
+    "title": "分析用タブレット",
+    "bodyTemplate": "試合中に映像を確認できる端末を導入する案が持ち上がった。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "recoveryRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-recovery-bath",
+    "version": 1,
+    "category": "injury",
+    "title": "回復設備の提案",
+    "bodyTemplate": "疲労対策用の回復設備を設置するか、遠征費を残すか判断が必要だ。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 70,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "studyRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-weight-room",
+    "version": 1,
+    "category": "practice",
+    "title": "空き倉庫のトレーニング室",
+    "bodyTemplate": "使われていない倉庫を筋力トレーニング室へ変えられる可能性が出た。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "dormitory",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-study-room-renovation",
+    "version": 1,
+    "category": "academic",
+    "title": "学習室の改修",
+    "bodyTemplate": "部員専用の学習室を整備すれば、補習による欠席を減らせそうだ。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "scoutingNetwork",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-dorm-kitchen",
+    "version": 1,
+    "category": "seasonal",
+    "title": "寮の食事環境",
+    "bodyTemplate": "寮の厨房設備を改善し、選手の体づくりを支える案が出ている。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "alumniAssociation",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-scouting-database",
+    "version": 1,
+    "category": "scouting",
+    "title": "スカウト情報のデータ化",
+    "bodyTemplate": "地域大会の選手情報を蓄積する仕組みを導入できることになった。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "gym",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-alumni-display",
+    "version": 1,
+    "category": "ob",
+    "title": "栄光の展示棚",
+    "bodyTemplate": "OBの記念品を展示し、学校の歴史を伝えるスペースを作る案が出た。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "trainingRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-ball-machine",
+    "version": 1,
+    "category": "practice",
+    "title": "サーブマシン導入",
+    "bodyTemplate": "高精度のサーブマシンを中古で譲り受けられる話が来た。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "analysisRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-air-conditioning",
+    "version": 1,
+    "category": "seasonal",
+    "title": "真夏の空調工事",
+    "bodyTemplate": "熱中症対策の空調工事を入れるには、夏合宿の日程変更が必要になる。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "recoveryRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-emergency-repair",
+    "version": 1,
+    "category": "seasonal",
+    "title": "緊急修繕",
+    "bodyTemplate": "大雨で体育館の一部が使えなくなり、応急工事か外部施設利用を迫られた。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "studyRoom",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.facility-shared-gym-schedule",
+    "version": 1,
+    "category": "relationship",
+    "title": "体育館の共同利用",
+    "bodyTemplate": "他部との利用時間調整で、朝練か夜練のどちらかを選ぶ必要がある。",
+    "tags": ["facility", "expansion"],
+    "trigger": {
+      "months": [4, 5, 8, 9, 12, 1, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "renovate",
+        "label": "今すぐ整備する",
+        "detail": "資金を使って環境を改善し、長期的な育成基盤を作る。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "dormitory",
+            "amount": 1
+          },
+          {
+            "type": "funds-change",
+            "amount": -70
+          }
+        ]
+      },
+      {
+        "id": "temporary",
+        "label": "応急対応でつなぐ",
+        "detail": "評判を保つ工夫はするが、選手の納得感には課題が残る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,674 @@
+[
+  {
+    "id": "event.tournament-draw-tension",
+    "version": 1,
+    "category": "match",
+    "title": "組み合わせ抽選会",
+    "bodyTemplate": "大会の組み合わせが発表され、序盤から強豪と当たる可能性が見えてきた。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 42,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-opening-ceremony",
+    "version": 1,
+    "category": "match",
+    "title": "開会式の視線",
+    "bodyTemplate": "会場へ入った{{player}}が、全国の強豪校の体格に目を奪われている。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 49,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-hostile-crowd",
+    "version": 1,
+    "category": "rivalry",
+    "title": "完全アウェー",
+    "bodyTemplate": "次の相手は地元校で、会場のほとんどが相手を応援する見込みだ。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 56,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-video-scouting",
+    "version": 1,
+    "category": "match",
+    "title": "深夜の映像分析",
+    "bodyTemplate": "翌日の相手映像が届いたが、確認すれば選手の睡眠時間を削ることになる。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 63,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-travel-fatigue",
+    "version": 1,
+    "category": "match",
+    "title": "移動日の疲労",
+    "bodyTemplate": "長距離移動で{{player}}の足が重く、前日練習の内容を再検討する必要がある。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 70,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-first-set-nerves",
+    "version": 1,
+    "category": "captaincy",
+    "title": "初戦の硬さ",
+    "bodyTemplate": "大会初戦を前に、{{player}}の手が普段より冷たくなっている。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 42,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-upset-window",
+    "version": 1,
+    "category": "match",
+    "title": "番狂わせの気配",
+    "bodyTemplate": "優勝候補が前試合で消耗し、勝負を仕掛ける好機が訪れた。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 49,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-quarterfinal-wall",
+    "version": 1,
+    "category": "rivalry",
+    "title": "ベスト8の壁",
+    "bodyTemplate": "学校史上何度も敗れてきた準々決勝が、再び目の前に来た。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 56,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-semifinal-night",
+    "version": 1,
+    "category": "captaincy",
+    "title": "準決勝前夜",
+    "bodyTemplate": "眠れない{{player}}が宿舎の廊下で、一人試合映像を見返している。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 63,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-final-morning",
+    "version": 1,
+    "category": "match",
+    "title": "決勝の朝",
+    "bodyTemplate": "決勝当日の朝、チームは静かすぎるほど集中している。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-match-point-timeout",
+    "version": 1,
+    "category": "match",
+    "title": "マッチポイントの間",
+    "bodyTemplate": "相手のマッチポイントでタイムアウトを取り、最後の指示を伝える時間が来た。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-bench-ready",
+    "version": 1,
+    "category": "individual",
+    "title": "控えの準備",
+    "bodyTemplate": "長期戦を見越し、控えの{{player}}へ早めに出番を伝えるか判断が必要だ。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 49,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-injury-choice",
+    "version": 1,
+    "category": "injury",
+    "title": "大会中の違和感",
+    "bodyTemplate": "{{player}}が膝の違和感を訴えたが、本人は次戦への出場を望んでいる。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 56,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-post-review",
+    "version": 1,
+    "category": "practice",
+    "title": "大会後のレビュー",
+    "bodyTemplate": "大会の結果を、すぐ映像で振り返るか休養を優先するか意見が分かれた。",
+    "tags": ["tournament", "expansion"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 63,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,660 @@
+[
+  {
+    "id": "event.school-life-exam-week",
+    "version": 1,
+    "category": "academic",
+    "title": "定期試験前の一週間",
+    "bodyTemplate": "部員の成績に差があり、全員同じ練習量で進めるか判断が必要だ。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 42,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-culture-festival",
+    "version": 1,
+    "category": "seasonal",
+    "title": "文化祭のステージ",
+    "bodyTemplate": "バレー部へ学校紹介ステージへの出演依頼が届いた。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 49,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-typhoon-closure",
+    "version": 1,
+    "category": "seasonal",
+    "title": "台風による休校",
+    "bodyTemplate": "体育館が使えない数日間を、休養か自主トレに充てることになった。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 56,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-summer-homework",
+    "version": 1,
+    "category": "academic",
+    "title": "終わらない夏休み課題",
+    "bodyTemplate": "{{player}}の課題が大量に残り、合宿参加に影響する可能性がある。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 63,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-class-election",
+    "version": 1,
+    "category": "individual",
+    "title": "学級委員への推薦",
+    "bodyTemplate": "{{player}}が学級委員に推薦され、部活との両立を相談してきた。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 70,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-teacher-request",
+    "version": 1,
+    "category": "academic",
+    "title": "担任からの相談",
+    "bodyTemplate": "担任教員が、最近眠そうな{{player}}の生活リズムを心配している。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 42,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-morning-cleanup",
+    "version": 1,
+    "category": "seasonal",
+    "title": "朝の校内清掃",
+    "bodyTemplate": "学校行事の清掃当番と朝練が重なり、部としての対応を求められた。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 49,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-transfer-student",
+    "version": 1,
+    "category": "scouting",
+    "title": "転校生の見学",
+    "bodyTemplate": "バレー経験のある転校生が練習を見学し、部員たちが落ち着かない。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 56,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-budget-hearing",
+    "version": 1,
+    "category": "captaincy",
+    "title": "部活動予算ヒアリング",
+    "bodyTemplate": "生徒会へ来年度予算の使い道を説明する機会が来た。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 63,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-winter-flu",
+    "version": 1,
+    "category": "injury",
+    "title": "冬の感染症流行",
+    "bodyTemplate": "校内で感染症が広がり、練習参加基準を厳しくする必要がある。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-graduation-speech",
+    "version": 1,
+    "category": "captaincy",
+    "title": "卒業式の答辞",
+    "bodyTemplate": "主将候補の{{player}}が卒業式の在校生代表に選ばれた。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-family-observation",
+    "version": 1,
+    "category": "relationship",
+    "title": "保護者の練習見学",
+    "bodyTemplate": "保護者向けの公開練習を行う案に、選手たちが緊張している。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 49,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-lost-uniform",
+    "version": 1,
+    "category": "individual",
+    "title": "消えたユニフォーム",
+    "bodyTemplate": "大会前日に{{player}}のユニフォームが見つからず、部内が慌ただしくなった。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 56,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-life-local-volunteer",
+    "version": 1,
+    "category": "seasonal",
+    "title": "地域ボランティア",
+    "bodyTemplate": "地域清掃への参加依頼が届き、練習試合と日程が重なっている。",
+    "tags": ["school-life", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 9, 10, 11, 12, 1, 2, 3]
+    },
+    "weight": 63,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "engage",
+        "label": "部として向き合う",
+        "detail": "学校生活へ貢献して信頼を得るが、練習時間は削られる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "疲労を抑えて競技へ集中する一方、チームの空気が少し重くなる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]
