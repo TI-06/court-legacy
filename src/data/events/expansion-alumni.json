@@ -1,0 +1,660 @@
+[
+  {
+    "id": "event.alumni-open-practice",
+    "version": 1,
+    "category": "ob",
+    "title": "OBの練習参加",
+    "bodyTemplate": "実業団でプレーするOBが、休日の練習へ参加したいと連絡してきた。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-donation",
+    "version": 1,
+    "category": "ob",
+    "title": "匿名の寄付",
+    "bodyTemplate": "卒業生から部へ寄付が届いたが、使い道を巡って意見が分かれている。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-setter-session",
+    "version": 1,
+    "category": "ob",
+    "title": "元セッターの特別講習",
+    "bodyTemplate": "大学で活躍したOBセッターが、{{player}}へ個別指導を申し出た。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-block-clinic",
+    "version": 1,
+    "category": "ob",
+    "title": "ブロックの記憶",
+    "bodyTemplate": "全国経験のあるOBが、昔の読み合いを現役選手へ伝えている。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-career-talk",
+    "version": 1,
+    "category": "ob",
+    "title": "卒業後の進路講話",
+    "bodyTemplate": "競技を続けるOBと就職したOBが、選手たちへ異なる将来像を語った。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 70,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-parents-network",
+    "version": 1,
+    "category": "ob",
+    "title": "OB保護者の支援網",
+    "bodyTemplate": "卒業生の保護者たちが、遠征時の支援を組織したいと申し出た。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-bus-support",
+    "version": 1,
+    "category": "ob",
+    "title": "遠征バスの提案",
+    "bodyTemplate": "OB会から専用バス購入の支援案が届き、維持費の検討が必要になった。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-old-video",
+    "version": 1,
+    "category": "ob",
+    "title": "倉庫の全国大会映像",
+    "bodyTemplate": "倉庫から過去の全国大会映像が見つかり、現在の戦術にも使えそうだ。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-national-medalist",
+    "version": 1,
+    "category": "ob",
+    "title": "メダリストの帰校",
+    "bodyTemplate": "国際大会で表彰台に立ったOBが、母校を訪問することになった。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-coach-conflict",
+    "version": 1,
+    "category": "ob",
+    "title": "昔の指導、今の指導",
+    "bodyTemplate": "古い練習方法を勧めるOBと現スタッフの間で、方針の違いが表面化した。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-recruiting-help",
+    "version": 1,
+    "category": "ob",
+    "title": "OBからの推薦選手",
+    "bodyTemplate": "地域クラブを指導するOBが、有望な中学生を紹介してきた。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-study-room",
+    "version": 1,
+    "category": "ob",
+    "title": "OB会の学習室案",
+    "bodyTemplate": "成績支援のため、OB会が空き教室を学習室に改修する案を出した。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 49,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-anniversary",
+    "version": 1,
+    "category": "ob",
+    "title": "創部記念試合",
+    "bodyTemplate": "創部記念日にOBチームとの交流試合を開催する話が進んでいる。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 56,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.alumni-returning-captain",
+    "version": 1,
+    "category": "ob",
+    "title": "元主将の帰還",
+    "bodyTemplate": "かつての主将が、今のチームに欠けている声について率直に話し始めた。",
+    "tags": ["alumni", "expansion"],
+    "trigger": {
+      "months": [4, 6, 8, 10, 12, 2]
+    },
+    "weight": 63,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "力を借りる",
+        "detail": "OBの支援を受けて活動の幅を広げるが、対応負荷も増える。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": 35
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "independent",
+        "label": "現役主体で進める",
+        "detail": "自分たちで決める経験を得る一方、学校外からの評価は下がる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,274 @@
+[
+  {
+    "id": "event.tournament-draw",
+    "version": 1,
+    "category": "match",
+    "title": "運命の抽選",
+    "bodyTemplate": "大会抽選で、勝ち上がれば因縁校と当たる山に入った。",
+    "tags": ["tournament", "expansion", "chain", "stage-1"],
+    "trigger": {
+      "months": [5, 6, 7, 10, 11, 1]
+    },
+    "weight": 28,
+    "cooldownWeeks": 52,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-opening",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-opening",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-opening",
+    "version": 1,
+    "category": "match",
+    "title": "大会初戦",
+    "bodyTemplate": "初戦の会場へ入ると、{{player}}の表情が普段より硬い。",
+    "tags": ["tournament", "expansion", "chain", "stage-2"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-quarterfinal",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-quarterfinal",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-quarterfinal",
+    "version": 1,
+    "category": "rivalry",
+    "title": "準々決勝の壁",
+    "bodyTemplate": "過去に何度も阻まれた準々決勝へ、今年もたどり着いた。",
+    "tags": ["tournament", "expansion", "chain", "stage-3"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-semifinal",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-semifinal",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-semifinal",
+    "version": 1,
+    "category": "captaincy",
+    "title": "準決勝の夜",
+    "bodyTemplate": "決勝進出を懸けた前夜、{{player}}が眠れずに戦術ノートを開いている。",
+    "tags": ["tournament", "expansion", "chain", "stage-4"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-final",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.tournament-final",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.tournament-final",
+    "version": 1,
+    "category": "match",
+    "title": "決勝のコート",
+    "bodyTemplate": "満員の会場で決勝が始まる。三年間の選択がこの一戦へ集まっている。",
+    "tags": ["tournament", "expansion", "chain", "stage-5"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "勝負へ踏み込む",
+        "detail": "目の前の勝利を優先し、主力の集中力を引き上げる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "prepare",
+        "label": "次戦を見据える",
+        "detail": "余力と分析材料を残す代わりに、周囲の期待は少し下がる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,674 @@
+[
+  {
+    "id": "event.generation-first-year-impact",
+    "version": 1,
+    "category": "rare",
+    "title": "一年生の衝撃",
+    "bodyTemplate": "{{player}}が入学直後の紅白戦で、上級生のブロックを打ち抜いた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 42,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-high-contact-point",
+    "version": 1,
+    "category": "rare",
+    "title": "届かない打点",
+    "bodyTemplate": "{{player}}の打点は校内の記録を越え、練習の空気を一変させた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 49,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-national-scout-eyes",
+    "version": 1,
+    "category": "rare",
+    "title": "全国スカウトの視線",
+    "bodyTemplate": "全国大会常連校の関係者が、{{player}}の練習を見に来ている。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 56,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-special-treatment-line",
+    "version": 1,
+    "category": "rare",
+    "title": "特別扱いの境界",
+    "bodyTemplate": "世代級の{{player}}へ個別メニューを与える案に、部内で意見が割れた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 63,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-senior-pride",
+    "version": 1,
+    "category": "rare",
+    "title": "上級生の意地",
+    "bodyTemplate": "{{player}}の急成長に刺激され、上級生たちが練習後もコートへ残っている。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 70,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "set",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-talent-loneliness",
+    "version": 1,
+    "category": "rare",
+    "title": "才能の孤独",
+    "bodyTemplate": "周囲の期待が高まるほど、{{player}}はチーム内で言葉を減らしている。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 42,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "block",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-first-slump",
+    "version": 1,
+    "category": "rare",
+    "title": "初めての停滞",
+    "bodyTemplate": "何でもできていた{{player}}が、初めて思うように結果を出せずにいる。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 49,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "speed",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-form-rebuild",
+    "version": 1,
+    "category": "rare",
+    "title": "フォーム改造の誘惑",
+    "bodyTemplate": "{{player}}の潜在能力をさらに引き出す、大幅なフォーム改造案が出た。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 56,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-number-one-jersey",
+    "version": 1,
+    "category": "rare",
+    "title": "背番号1の重み",
+    "bodyTemplate": "早くも{{player}}を中心選手として扱うべきだという声が上がっている。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 63,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-representative-camp",
+    "version": 1,
+    "category": "rare",
+    "title": "代表候補合宿",
+    "bodyTemplate": "{{player}}へ年代別代表候補合宿の招集状が届いた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-rival-school-star",
+    "version": 1,
+    "category": "rare",
+    "title": "向こうの世代級",
+    "bodyTemplate": "ライバル校にも同世代の怪物が入学したという情報が入った。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-load-management",
+    "version": 1,
+    "category": "rare",
+    "title": "才能を守る休養",
+    "bodyTemplate": "試合と練習が続く{{player}}に、計画的な休養を入れる必要が出てきた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 49,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-three-year-promise",
+    "version": 1,
+    "category": "rare",
+    "title": "三年間の約束",
+    "bodyTemplate": "{{player}}が監督室を訪れ、三年間で全国へ行きたいと口にした。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 56,
+    "cooldownWeeks": 18,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.generation-shares-advice",
+    "version": 1,
+    "category": "rare",
+    "title": "天才が教える日",
+    "bodyTemplate": "{{player}}が後輩へ技術を言葉で伝えようと、初めて練習を止めた。",
+    "tags": ["generational", "expansion"],
+    "trigger": {
+      "months": [4, 5, 6, 7, 8, 9, 10, 11]
+    },
+    "weight": 63,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -56,5 +56,5 @@ describe("event catalog long-run simulation", () => {
     expect(rootEventsPerYear).toBeLessThanOrEqual(18);
     expect(chainOccurrences).toBeGreaterThan(0);
     expect(occurredEventIds.size).toBeGreaterThanOrEqual(30);
-  });
+  }, 15_000);
 });

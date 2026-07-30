@@ -1,0 +1,274 @@
+[
+  {
+    "id": "event.generation-arrival",
+    "version": 1,
+    "category": "rare",
+    "title": "怪物の入学",
+    "bodyTemplate": "{{player}}の入学初日、誰も届かなかったトスを強烈に打ち切った。",
+    "tags": ["generational", "expansion", "chain", "stage-1"],
+    "trigger": {
+      "minGrade": 1
+    },
+    "weight": 24,
+    "cooldownWeeks": 78,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-spotlight",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-spotlight",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.generation-spotlight",
+    "version": 1,
+    "category": "rare",
+    "title": "集まる視線",
+    "bodyTemplate": "{{player}}への取材と視察が増え、日常の練習にも緊張が入り込んだ。",
+    "tags": ["generational", "expansion", "chain", "stage-2"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-friction",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-friction",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.generation-friction",
+    "version": 1,
+    "category": "relationship",
+    "title": "才能への反発",
+    "bodyTemplate": "特別メニューを続ける{{player}}と、他の部員との間に距離が生まれている。",
+    "tags": ["generational", "expansion", "chain", "stage-3"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-trial",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-trial",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.generation-trial",
+    "version": 1,
+    "category": "match",
+    "title": "全国での試練",
+    "bodyTemplate": "全国級の相手に{{player}}の武器が封じられ、初めて明確な課題が見えた。",
+    "tags": ["generational", "expansion", "chain", "stage-4"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-legacy",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.generation-legacy",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.generation-legacy",
+    "version": 1,
+    "category": "captaincy",
+    "title": "世代の旗",
+    "bodyTemplate": "試練を越えた{{player}}が、自分だけでなく世代全体を引っ張る覚悟を語った。",
+    "tags": ["generational", "expansion", "chain", "stage-5"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "develop",
+        "label": "才能を伸ばす",
+        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "set",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "負荷を抑える",
+        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

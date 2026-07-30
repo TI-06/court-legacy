@@ -1,0 +1,274 @@
+[
+  {
+    "id": "event.scouting-rumor",
+    "version": 1,
+    "category": "scouting",
+    "title": "有望選手の噂",
+    "bodyTemplate": "地域大会に特別な中学生がいるという噂が、複数の学校へ広がった。",
+    "tags": ["scouting-conflict", "expansion", "chain", "stage-1"],
+    "trigger": {
+      "months": [6, 7, 8, 9, 10, 11]
+    },
+    "weight": 32,
+    "cooldownWeeks": 52,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "compete",
+        "label": "正面から競う",
+        "detail": "判断材料を増やして獲得へ動くが、現場の負担は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-visit",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "withdraw",
+        "label": "別の候補へ切り替える",
+        "detail": "体制を立て直せる一方、選手との信頼には小さな傷が残る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-visit",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.scouting-visit",
+    "version": 1,
+    "category": "rivalry",
+    "title": "同日の視察",
+    "bodyTemplate": "視察会場で因縁校の監督と鉢合わせし、互いの狙いが明確になった。",
+    "tags": ["scouting-conflict", "expansion", "chain", "stage-2"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "compete",
+        "label": "正面から競う",
+        "detail": "判断材料を増やして獲得へ動くが、現場の負担は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-counteroffer",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "withdraw",
+        "label": "別の候補へ切り替える",
+        "detail": "体制を立て直せる一方、選手との信頼には小さな傷が残る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-counteroffer",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.scouting-counteroffer",
+    "version": 1,
+    "category": "scouting",
+    "title": "強豪校の誘い",
+    "bodyTemplate": "強豪校が施設と実績を前面に出し、候補選手へ強い印象を残した。",
+    "tags": ["scouting-conflict", "expansion", "chain", "stage-3"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "compete",
+        "label": "正面から競う",
+        "detail": "判断材料を増やして獲得へ動くが、現場の負担は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-decision",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "withdraw",
+        "label": "別の候補へ切り替える",
+        "detail": "体制を立て直せる一方、選手との信頼には小さな傷が残る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-decision",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.scouting-decision",
+    "version": 1,
+    "category": "scouting",
+    "title": "進路決断の日",
+    "bodyTemplate": "候補選手が進路を決める日を迎え、最後に伝える言葉を選ぶ必要がある。",
+    "tags": ["scouting-conflict", "expansion", "chain", "stage-4"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "compete",
+        "label": "正面から競う",
+        "detail": "判断材料を増やして獲得へ動くが、現場の負担は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-aftermath",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "withdraw",
+        "label": "別の候補へ切り替える",
+        "detail": "体制を立て直せる一方、選手との信頼には小さな傷が残る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.scouting-aftermath",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.scouting-aftermath",
+    "version": 1,
+    "category": "rivalry",
+    "title": "残った因縁",
+    "bodyTemplate": "獲得結果にかかわらず、今回の競合は両校の間に新しい火種を残した。",
+    "tags": ["scouting-conflict", "expansion", "chain", "stage-5"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "compete",
+        "label": "正面から競う",
+        "detail": "判断材料を増やして獲得へ動くが、現場の負担は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "withdraw",
+        "label": "別の候補へ切り替える",
+        "detail": "体制を立て直せる一方、選手との信頼には小さな傷が残る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]

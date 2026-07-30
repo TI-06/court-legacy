@@ -1,0 +1,282 @@
+[
+  {
+    "id": "event.ace-injury",
+    "version": 1,
+    "category": "injury",
+    "title": "エースの負傷",
+    "bodyTemplate": "{{player}}が着地で足を痛め、会場が一瞬静まり返った。",
+    "tags": ["comeback", "expansion", "chain", "stage-1"],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 24,
+    "cooldownWeeks": 78,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "examine",
+        "label": "すぐ検査する",
+        "detail": "離脱を受け入れて原因を確認し、選手との信頼を守る。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "injury-set",
+            "severity": "minor",
+            "weeks": 4,
+            "recurrenceRisk": 15
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-rehab",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "observe",
+        "label": "本人の感覚を尊重する",
+        "detail": "気持ちは前向きになるが、長めの離脱につながる危険がある。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 3
+          },
+          {
+            "type": "injury-set",
+            "severity": "moderate",
+            "weeks": 6,
+            "recurrenceRisk": 30
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-rehab",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.ace-rehab",
+    "version": 1,
+    "category": "injury",
+    "title": "長いリハビリ",
+    "bodyTemplate": "復帰を急ぐ{{player}}と医療スタッフの見立てに、少しずれがある。",
+    "tags": ["comeback", "expansion", "chain", "stage-2"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "patient",
+        "label": "段階的に進める",
+        "detail": "回復を最優先して負荷を抑えるが、本人の焦りには向き合う必要がある。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -6
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-return-practice",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "accelerate",
+        "label": "復帰時期を優先する",
+        "detail": "体力づくりを前倒しすることで復帰を近づけるが、疲労は大きくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-return-practice",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.ace-return-practice",
+    "version": 1,
+    "category": "practice",
+    "title": "コートへの一歩",
+    "bodyTemplate": "{{player}}が限定メニューでコートへ戻り、仲間が自然に集まってきた。",
+    "tags": ["comeback", "expansion", "chain", "stage-3"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "controlled",
+        "label": "限定メニューを続ける",
+        "detail": "負傷状態を解除して慎重に練習へ戻すが、本人の勢いはまだ抑える。",
+        "effects": [
+          {
+            "type": "injury-clear"
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-selection",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "full",
+        "label": "通常練習へ戻す",
+        "detail": "負傷状態を解除して実戦感覚を取り戻す一方、再び疲労が増える。",
+        "effects": [
+          {
+            "type": "injury-clear"
+          },
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 6
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-selection",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.ace-selection",
+    "version": 1,
+    "category": "match",
+    "title": "復帰戦の選択",
+    "bodyTemplate": "次戦で{{player}}を先発へ戻すか、途中起用から始めるか決断が必要だ。",
+    "tags": ["comeback", "expansion", "chain", "stage-4"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "starter",
+        "label": "先発で戻す",
+        "detail": "エースとしての自信を取り戻させるが、復帰直後から大きな負荷をかける。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 5
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 7
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-comeback",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "substitute",
+        "label": "途中出場から始める",
+        "detail": "負荷を管理しながら試合へ戻す一方、本人には慎重すぎる判断と映る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-comeback",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.ace-comeback",
+    "version": 1,
+    "category": "individual",
+    "title": "戻ってきた一打",
+    "bodyTemplate": "長い離脱を越えた{{player}}が、重要な場面で再びトスを呼んだ。",
+    "tags": ["comeback", "expansion", "chain", "stage-5"],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "ace",
+        "label": "エースへ託す",
+        "detail": "復活を象徴する一打を任せるが、復帰直後の身体へ再び負荷がかかる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "id": "team",
+        "label": "全員で攻める",
+        "detail": "復帰したエースを支える形を選び、信頼を深める一方で本人の高揚感は抑える。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]
