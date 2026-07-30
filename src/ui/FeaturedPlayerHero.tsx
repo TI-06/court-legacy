@@ -101,9 +101,7 @@ export function FeaturedPlayerHero({
               <span>{ability.label}</span>
               <strong>{player.abilities[ability.key]}</strong>
               <span className="featured-player-hero__bar" aria-hidden="true">
-                <span
-                  style={{ width: `${player.abilities[ability.key]}%` }}
-                />
+                <span style={{ width: `${player.abilities[ability.key]}%` }} />
               </span>
             </div>
           ))}

@@ -5,7 +5,11 @@
   overflow: hidden;
   color: #f8fbfc;
   background:
-    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--featured-glow) 34%, transparent), transparent 38%),
+    radial-gradient(
+      circle at 18% 18%,
+      color-mix(in srgb, var(--featured-glow) 34%, transparent),
+      transparent 38%
+    ),
     linear-gradient(135deg, var(--featured-primary), #102332 78%);
   border: 1px solid color-mix(in srgb, var(--featured-accent) 46%, #ffffff 12%);
   border-radius: 22px;
@@ -17,7 +21,12 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(118deg, transparent 38%, rgb(255 255 255 / 7%) 38.5%, transparent 39%);
+  background: linear-gradient(
+    118deg,
+    transparent 38%,
+    rgb(255 255 255 / 7%) 38.5%,
+    transparent 39%
+  );
   content: "";
 }
 
@@ -151,7 +160,11 @@
 .featured-player-hero__bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--featured-accent), var(--featured-glow));
+  background: linear-gradient(
+    90deg,
+    var(--featured-accent),
+    var(--featured-glow)
+  );
   border-radius: inherit;
 }
 

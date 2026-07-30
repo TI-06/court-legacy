@@ -74,10 +74,10 @@ const RIVAL_SCHOOLS: ReadonlyArray<RivalSchoolDefinition> = [
   { shortName: "城南", fullName: "城南商業" },
   { shortName: "港西", fullName: "港西高校" },
   { shortName: "瑞穂", fullName: "瑞穂学院" },
-  { shortName: "梟谷", fullName: "梟谷学院" },
-  { shortName: "雷門", fullName: "雷門工業" },
+  { shortName: "梟峰", fullName: "梟峰学院" },
+  { shortName: "雷煌", fullName: "雷煌工業" },
   { shortName: "月影", fullName: "月影高校" },
-  { shortName: "翔陽", fullName: "翔陽学園" },
+  { shortName: "翔陵", fullName: "翔陵学園" },
   { shortName: "風早", fullName: "風早商業" },
 ];
 

@@ -25,9 +25,7 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
   }
   const actors = pending.actorPlayerIds.map((playerId) => {
     const player = state.players[playerId];
-    const school = player
-      ? state.schools[player.career.schoolId]
-      : undefined;
+    const school = player ? state.schools[player.career.schoolId] : undefined;
     return { playerId, player, school };
   });
   const recentHistory = [...state.eventMemory.history].slice(-5).reverse();
