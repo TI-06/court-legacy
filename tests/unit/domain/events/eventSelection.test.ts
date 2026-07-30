@@ -66,7 +66,9 @@ describe("event selection", () => {
     const sourceEvent = {
       ...baseEvent,
       id: "event.follow-up-source-test",
-      trigger: { schoolReputationMin: Number.MAX_SAFE_INTEGER },
+      trigger: {
+        schoolReputationMin: Number.MAX_SAFE_INTEGER,
+      },
       choices: baseEvent.choices.map((choice) => ({
         ...choice,
         followUp: {
