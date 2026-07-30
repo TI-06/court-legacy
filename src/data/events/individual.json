@@ -1,0 +1,616 @@
+[
+  {
+    "id": "event.first-position-request",
+    "version": 1,
+    "category": "individual",
+    "title": "希望ポジション",
+    "bodyTemplate": "{{player}}が、現在とは異なるポジションにも挑戦したいと相談してきた。",
+    "tags": [
+      "position",
+      "growth"
+    ],
+    "trigger": {
+      "minGrade": 1,
+      "maxGrade": 2
+    },
+    "weight": 100,
+    "cooldownWeeks": 24,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "try",
+        "label": "適性を確認する",
+        "detail": "将来性を広げるため、短期間だけ別ポジションを試す。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "stay",
+        "label": "現在の役割を深める",
+        "detail": "今の長所を磨き、チーム内での役割を明確にする。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.position-trial-result",
+    "version": 1,
+    "category": "individual",
+    "title": "転向練習の手応え",
+    "bodyTemplate": "{{player}}の転向練習で、意外な適性が見えてきた。",
+    "tags": [
+      "position",
+      "growth"
+    ],
+    "trigger": {},
+    "weight": 20,
+    "cooldownWeeks": 52,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "continue",
+        "label": "新しい武器として伸ばす",
+        "detail": "完全転向ではなく、試合中の選択肢として育てる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "return",
+        "label": "本職へ集中させる",
+        "detail": "得た経験を本職に持ち帰り、完成度を優先する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.serve-form-rebuild",
+    "version": 1,
+    "category": "individual",
+    "title": "サーブフォームの迷い",
+    "bodyTemplate": "{{player}}がサーブの感覚を失い、フォームを変えるべきか悩んでいる。",
+    "tags": [
+      "serve",
+      "form"
+    ],
+    "trigger": {
+      "abilityRanges": {
+        "serve": {
+          "min": 35
+        }
+      }
+    },
+    "weight": 75,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "rebuild",
+        "label": "基礎から組み直す",
+        "detail": "短期的な不安定さを受け入れ、再現性を作り直す。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "simplify",
+        "label": "安全なフォームに戻す",
+        "detail": "威力を追わず、試合で入る形を優先する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 1
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.blocker-footwork",
+    "version": 1,
+    "category": "individual",
+    "title": "ブロッカーの一歩目",
+    "bodyTemplate": "{{player}}は高さがある一方、相手の速攻に一歩遅れている。",
+    "tags": [
+      "block",
+      "footwork"
+    ],
+    "trigger": {
+      "abilityRanges": {
+        "block": {
+          "min": 40
+        }
+      }
+    },
+    "weight": 70,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "read",
+        "label": "相手を見る練習を増やす",
+        "detail": "判断を優先し、飛ぶタイミングを整える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "block",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "commit",
+        "label": "得意コースを消す",
+        "detail": "守る範囲を限定し、確実に壁を作る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "block",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "speed",
+            "amount": -1
+          },
+          {
+            "type": "morale-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.libero-voice",
+    "version": 1,
+    "category": "individual",
+    "title": "リベロの声",
+    "bodyTemplate": "{{player}}の守備は安定しているが、後衛からの指示が味方に届いていない。",
+    "tags": [
+      "receive",
+      "leadership"
+    ],
+    "trigger": {
+      "maxGrade": 3
+    },
+    "weight": 68,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "lead",
+        "label": "コート全体を動かす役目を与える",
+        "detail": "負担は増えるが、守備組織の中心として育てる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "focus",
+        "label": "守備技術に集中させる",
+        "detail": "声掛けは周囲に任せ、本人の強みを磨く。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 3
+          },
+          {
+            "type": "relationship-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.ace-pressure",
+    "version": 1,
+    "category": "individual",
+    "title": "エースへの重圧",
+    "bodyTemplate": "得点を任される{{player}}が、失敗を恐れて思い切りを失っている。",
+    "tags": [
+      "ace",
+      "pressure"
+    ],
+    "trigger": {
+      "abilityRanges": {
+        "spike": {
+          "min": 55
+        }
+      },
+      "morale": {
+        "max": 65
+      }
+    },
+    "weight": 62,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "entrust",
+        "label": "勝負球を託し続ける",
+        "detail": "信頼を明言し、重圧ごと乗り越えさせる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 3
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "share",
+        "label": "攻撃負担を分散する",
+        "detail": "立て直す時間を作る代わりに、中心選手としての自覚は薄れる。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.jump-landing",
+    "version": 1,
+    "category": "individual",
+    "title": "着地の癖",
+    "bodyTemplate": "{{player}}の高い跳躍は武器だが、着地時に身体が流れる癖が見つかった。",
+    "tags": [
+      "jump",
+      "injury-prevention"
+    ],
+    "trigger": {
+      "abilityRanges": {
+        "jump": {
+          "min": 55
+        }
+      },
+      "injuryState": "healthy"
+    },
+    "weight": 60,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "correct",
+        "label": "着地動作を矯正する",
+        "detail": "怪我予防を優先し、跳躍練習を一時的に抑える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": -1
+          },
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          }
+        ]
+      },
+      {
+        "id": "maintain",
+        "label": "今の感覚を保つ",
+        "detail": "強みを維持するが、身体への負担は残る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.study-leader",
+    "version": 1,
+    "category": "individual",
+    "title": "意外な学習リーダー",
+    "bodyTemplate": "{{player}}が後輩へ勉強を教え、チームの空気を落ち着かせている。",
+    "tags": [
+      "academic",
+      "leadership"
+    ],
+    "trigger": {
+      "academic": {
+        "min": 65
+      }
+    },
+    "weight": 55,
+    "cooldownWeeks": 24,
+    "oncePerCareer": true,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "support",
+        "label": "学習係を正式に任せる",
+        "detail": "本人の練習時間は減るが、周囲からの信頼が増す。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 5
+          },
+          {
+            "type": "relationship-change",
+            "amount": 5
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -2
+          }
+        ]
+      },
+      {
+        "id": "protect",
+        "label": "競技への集中を優先する",
+        "detail": "役割を広げず、本人の成長時間を守る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.sophomore-stagnation",
+    "version": 1,
+    "category": "individual",
+    "title": "二年目の停滞",
+    "bodyTemplate": "{{player}}は基礎能力が伸びた一方、昨年ほど成長を実感できずにいる。",
+    "tags": [
+      "growth",
+      "grade2"
+    ],
+    "trigger": {
+      "minGrade": 2,
+      "maxGrade": 2
+    },
+    "weight": 68,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "specialize",
+        "label": "一つの武器に絞る",
+        "detail": "万能さを手放し、試合で使える明確な強みを作る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": -1
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "persist",
+        "label": "基礎を続ける",
+        "detail": "即効性は低いが、長期的な安定を選ぶ。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.third-year-role",
+    "version": 1,
+    "category": "individual",
+    "title": "三年生の役割",
+    "bodyTemplate": "引退が近づく{{player}}が、自分の経験を後輩へ残したいと申し出た。",
+    "tags": [
+      "grade3",
+      "legacy"
+    ],
+    "trigger": {
+      "minGrade": 3,
+      "maxGrade": 3,
+      "months": [
+        9,
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    "weight": 60,
+    "cooldownWeeks": 30,
+    "oncePerCareer": true,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "mentor",
+        "label": "後輩指導を任せる",
+        "detail": "本人の個人成長より、チーム全体への継承を優先する。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 7
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "compete",
+        "label": "最後まで選手として競わせる",
+        "detail": "出場争いを続け、本人の競技力を最大化する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          },
+          {
+            "type": "relationship-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]
