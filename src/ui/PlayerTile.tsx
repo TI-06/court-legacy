@@ -1,9 +1,11 @@
+import { resolveJerseyNumber } from "../domain/appearance/characterWorld";
 import type { Player } from "../domain/model/Player";
-import type { UniformColors } from "../domain/model/School";
+import type { School, UniformColors } from "../domain/model/School";
 import { PlayerCharacter } from "./PlayerCharacter";
 
 interface PlayerTileProps {
   player: Player;
+  school?: School | null;
   uniform?: UniformColors;
   selected?: boolean;
   disabled?: boolean;
@@ -30,6 +32,7 @@ function playerStatus(player: Player): { label: string; tone: string } {
 
 export function PlayerTile({
   player,
+  school,
   uniform,
   selected = false,
   disabled = false,
@@ -41,10 +44,11 @@ export function PlayerTile({
   testId,
 }: PlayerTileProps) {
   const status = playerStatus(player);
+  const jerseyNumber = resolveJerseyNumber(player);
   const content = (
     <>
       <span className="ui-player-avatar" aria-hidden="true">
-        <PlayerCharacter player={player} uniform={uniform} />
+        <PlayerCharacter player={player} school={school} uniform={uniform} />
       </span>
       <span className="ui-player-tile__main">
         <strong>
@@ -53,6 +57,7 @@ export function PlayerTile({
         <small>
           {player.grade}年・{player.preferredPosition}・{player.heightCm}cm
         </small>
+        <small className="ui-player-tile__number">背番号 {jerseyNumber}</small>
         <span className={`ui-status-pill ui-status-pill--${status.tone}`}>
           {status.label}
         </span>
