@@ -50,9 +50,11 @@ describe("EventDialog", () => {
       "data-character-id",
       "kuroba-hayato",
     );
-    expect(within(actorCard!).getByTestId("school-emblem")).toHaveAttribute(
-      "data-school-motif",
-      "wing",
-    );
+
+    const emblems = within(actorCard!).getAllByTestId("school-emblem");
+    expect(emblems).toHaveLength(2);
+    for (const emblem of emblems) {
+      expect(emblem).toHaveAttribute("data-school-motif", "wing");
+    }
   });
 });
