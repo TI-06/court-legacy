@@ -36,7 +36,7 @@ describe("PlayerCharacter", () => {
     expect(character).toHaveAttribute("data-hair-style");
     expect(screen.getByTestId("player-character-uniform")).toHaveAttribute(
       "fill",
-      school.uniform.primary,
+      `url(#jersey-${player.id})`,
     );
     expect(screen.getByTestId("player-character-accent")).toHaveAttribute(
       "fill",
