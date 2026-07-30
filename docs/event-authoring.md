@@ -80,4 +80,4 @@ npm run test:e2e
 
 JSONファイルの静的インポートには import attributes を付け、ブラウザビルドだけでなくNode上で起動するPlaywrightからも読み込める状態を維持します。
 
-`eventCatalog.test.ts` は件数、カテゴリ網羅、連鎖参照、選択肢のトレードオフを検証します。`eventCatalogSimulation.test.ts` は100年間の決定論的シミュレーションで、イベント枯渇と発生頻度を検証します。`eventDistributionReport.test.ts` は1000シーズンの分布、決定論、網羅性、最大占有率を検証します。カタログ件数を変更する場合は、各テストと本ガイドの件数も同じコミットで更新します。
+`eventCatalog.test.ts` は件数、カテゴリ網羅、連鎖参照、選択肢のトレードオフを検証します。`eventCatalogSimulation.test.ts` は100年間の決定論的シミュレーションで、イベント枯渇と発生頻度を検証します。180本を実ゲームと同じ選出経路で処理するため、この長期テストは15秒の明示的な上限を持ちます。`eventDistributionReport.test.ts` は1000シーズンの分布、決定論、網羅性、最大占有率を検証します。カタログ件数を変更する場合は、各テストと本ガイドの件数も同じコミットで更新します。
