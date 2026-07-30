@@ -1,1 +1,75 @@
-[{"id":"event.rare-zone-training","version":1,"category":"rare","title":"誰も止められない一日","bodyTemplate":"{{player}}が練習中、どんなトスからでも得点を決める特別な集中状態に入った。","tags":["rare","zone"],"trigger":{"abilityRanges":{"spike":{"min":65}},"morale":{"min":65}},"weight":8,"cooldownWeeks":100,"oncePerCareer":true,"actorCount":1,"choices":[{"id":"push","label":"成功体験を限界まで積ませる","detail":"大きく成長する可能性と疲労を受け入れる。","effects":[{"type":"ability-change","ability":"spike","amount":4},{"type":"ability-change","ability":"mental","amount":2},{"type":"fatigue-change","amount":9}]},{"id":"preserve","label":"良い感覚のまま切り上げる","detail":"成長幅は抑え、次へ感覚を残す。","effects":[{"type":"ability-change","ability":"spike","amount":2},{"type":"morale-change","amount":5},{"type":"fatigue-change","amount":1}]}]},{"id":"event.rare-team-synchrony","version":1,"category":"rare","title":"六人の呼吸","bodyTemplate":"紅白戦で六人の判断が重なり、指示なしでも守備から攻撃まで繋がった。","tags":["rare","team"],"trigger":{"relationship":{"min":70},"morale":{"min":70}},"weight":6,"cooldownWeeks":120,"oncePerCareer":true,"actorCount":2,"choices":[{"id":"record","label":"動きを映像とノートに残す","detail":"再現性を高めるが、分析に時間を使う。","effects":[{"type":"ability-change","ability":"decision","amount":3},{"type":"relationship-change","amount":6},{"type":"fatigue-change","amount":3}]},{"id":"feel","label":"言語化せず感覚を守る","detail":"勢いと自信を保つが、再現方法は曖昧なままになる。","effects":[{"type":"morale-change","amount":6},{"type":"ability-change","ability":"mental","amount":2},{"type":"reputation-change","amount":-1}]}]}]
+[
+  {
+    "id": "event.rare-zone-training",
+    "version": 1,
+    "category": "rare",
+    "title": "誰も止められない一日",
+    "bodyTemplate": "{{player}}が練習中、どんなトスからでも得点を決める特別な集中状態に入った。",
+    "tags": ["rare", "zone"],
+    "trigger": {
+      "abilityRanges": { "spike": { "min": 65 } },
+      "morale": { "min": 65 }
+    },
+    "weight": 8,
+    "cooldownWeeks": 100,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "push",
+        "label": "成功体験を限界まで積ませる",
+        "detail": "大きく成長する可能性と疲労を受け入れる。",
+        "effects": [
+          { "type": "ability-change", "ability": "spike", "amount": 4 },
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "fatigue-change", "amount": 9 }
+        ]
+      },
+      {
+        "id": "preserve",
+        "label": "良い感覚のまま切り上げる",
+        "detail": "成長幅は抑え、次へ感覚を残す。",
+        "effects": [
+          { "type": "ability-change", "ability": "spike", "amount": 2 },
+          { "type": "morale-change", "amount": 5 },
+          { "type": "fatigue-change", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.rare-team-synchrony",
+    "version": 1,
+    "category": "rare",
+    "title": "六人の呼吸",
+    "bodyTemplate": "紅白戦で六人の判断が重なり、指示なしでも守備から攻撃まで繋がった。",
+    "tags": ["rare", "team"],
+    "trigger": { "relationship": { "min": 70 }, "morale": { "min": 70 } },
+    "weight": 6,
+    "cooldownWeeks": 120,
+    "oncePerCareer": true,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "record",
+        "label": "動きを映像とノートに残す",
+        "detail": "再現性を高めるが、分析に時間を使う。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 3 },
+          { "type": "relationship-change", "amount": 6 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "feel",
+        "label": "言語化せず感覚を守る",
+        "detail": "勢いと自信を保つが、再現方法は曖昧なままになる。",
+        "effects": [
+          { "type": "morale-change", "amount": 6 },
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  }
+]

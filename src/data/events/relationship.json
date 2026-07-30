@@ -5,10 +5,7 @@
     "category": "relationship",
     "title": "寮部屋の温度差",
     "bodyTemplate": "生活リズムの違う{{player}}と{{player2}}の間に、小さな不満が積み重なっている。",
-    "tags": [
-      "dormitory",
-      "relationship"
-    ],
+    "tags": ["dormitory", "relationship"],
     "trigger": {
       "relationship": {
         "max": 55
@@ -65,10 +62,7 @@
     "category": "relationship",
     "title": "同ポジションの火花",
     "bodyTemplate": "先発を争う{{player}}と{{player2}}の競争が、練習の緊張感を高めている。",
-    "tags": [
-      "competition",
-      "position"
-    ],
+    "tags": ["competition", "position"],
     "trigger": {},
     "weight": 80,
     "cooldownWeeks": 14,
@@ -123,10 +117,7 @@
     "category": "relationship",
     "title": "一年生の壁",
     "bodyTemplate": "一年生の{{player}}が上級生の強度についていけず、練習後に落ち込んでいる。",
-    "tags": [
-      "grade1",
-      "adaptation"
-    ],
+    "tags": ["grade1", "adaptation"],
     "trigger": {
       "minGrade": 1,
       "maxGrade": 1
@@ -183,10 +174,7 @@
     "category": "relationship",
     "title": "先輩のサーブ指導",
     "bodyTemplate": "{{player}}が{{player2}}へ自主的にサーブを教え始めた。",
-    "tags": [
-      "mentor",
-      "serve"
-    ],
+    "tags": ["mentor", "serve"],
     "trigger": {},
     "weight": 62,
     "cooldownWeeks": 16,
@@ -240,10 +228,7 @@
     "category": "relationship",
     "title": "冗談のすれ違い",
     "bodyTemplate": "何気ない冗談をきっかけに、{{player}}と{{player2}}の会話が減っている。",
-    "tags": [
-      "communication",
-      "team"
-    ],
+    "tags": ["communication", "team"],
     "trigger": {
       "relationship": {
         "max": 60
@@ -296,10 +281,7 @@
     "category": "relationship",
     "title": "二人だけの映像研究",
     "bodyTemplate": "{{player}}と{{player2}}が対戦映像を見ながら、互いの動きを細かく確認している。",
-    "tags": [
-      "analysis",
-      "pair"
-    ],
+    "tags": ["analysis", "pair"],
     "trigger": {},
     "weight": 55,
     "cooldownWeeks": 18,
@@ -353,10 +335,7 @@
     "category": "relationship",
     "title": "ベンチからの一声",
     "bodyTemplate": "苦しい練習中、控えの{{player}}が主力の{{player2}}へ声を掛け続けている。",
-    "tags": [
-      "bench",
-      "voice"
-    ],
+    "tags": ["bench", "voice"],
     "trigger": {},
     "weight": 66,
     "cooldownWeeks": 15,
@@ -409,10 +388,7 @@
     "category": "relationship",
     "title": "練習班の分断",
     "bodyTemplate": "練習班ごとに空気が固まり、班を越えた会話が減っている。",
-    "tags": [
-      "group",
-      "teamwork"
-    ],
+    "tags": ["group", "teamwork"],
     "trigger": {},
     "weight": 58,
     "cooldownWeeks": 22,

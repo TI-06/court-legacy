@@ -5,10 +5,7 @@
     "category": "practice",
     "title": "守備連携の発見",
     "bodyTemplate": "レシーブ隊形を変えたことで、選手同士の守備範囲が整理された。",
-    "tags": [
-      "receive",
-      "teamwork"
-    ],
+    "tags": ["receive", "teamwork"],
     "trigger": {},
     "weight": 80,
     "cooldownWeeks": 12,
@@ -59,10 +56,7 @@
     "category": "practice",
     "title": "速攻テンポの刷新",
     "bodyTemplate": "セッターとミドルの助走が噛み合い、より速い攻撃を試せそうだ。",
-    "tags": [
-      "quick",
-      "tempo"
-    ],
+    "tags": ["quick", "tempo"],
     "trigger": {},
     "weight": 72,
     "cooldownWeeks": 14,
@@ -114,10 +108,7 @@
     "category": "practice",
     "title": "ブロックシステムの選択",
     "bodyTemplate": "相手の速い攻撃に対し、リードブロックかコミットかで意見が分かれた。",
-    "tags": [
-      "block",
-      "system"
-    ],
+    "tags": ["block", "system"],
     "trigger": {},
     "weight": 70,
     "cooldownWeeks": 16,
@@ -170,10 +161,7 @@
     "category": "practice",
     "title": "サーブ狙いの地図",
     "bodyTemplate": "分析担当が、相手レセプションの弱点をコース別に整理した。",
-    "tags": [
-      "serve",
-      "analysis"
-    ],
+    "tags": ["serve", "analysis"],
     "trigger": {
       "schoolReputationMin": 30
     },
@@ -227,10 +215,7 @@
     "category": "practice",
     "title": "体力づくりの見直し",
     "bodyTemplate": "終盤の失速を減らすため、走り込み中心の期間を設ける案が出た。",
-    "tags": [
-      "stamina",
-      "conditioning"
-    ],
+    "tags": ["stamina", "conditioning"],
     "trigger": {},
     "weight": 74,
     "cooldownWeeks": 18,
@@ -285,10 +270,7 @@
     "category": "practice",
     "title": "紅白戦の特殊ルール",
     "bodyTemplate": "練習の目的を明確にするため、得点条件を限定した紅白戦を試せる。",
-    "tags": [
-      "scrimmage",
-      "rules"
-    ],
+    "tags": ["scrimmage", "rules"],
     "trigger": {},
     "weight": 69,
     "cooldownWeeks": 13,
@@ -345,10 +327,7 @@
     "category": "practice",
     "title": "映像分析の遅れ",
     "bodyTemplate": "練習映像が溜まり、確認作業が選手の負担になっている。",
-    "tags": [
-      "video",
-      "analysis"
-    ],
+    "tags": ["video", "analysis"],
     "trigger": {
       "schoolFundsMin": 0
     },
@@ -401,10 +380,7 @@
     "category": "practice",
     "title": "体育館の共同利用",
     "bodyTemplate": "他部との調整で、今週はコートを半面しか使えない。",
-    "tags": [
-      "facility",
-      "schedule"
-    ],
+    "tags": ["facility", "schedule"],
     "trigger": {},
     "weight": 62,
     "cooldownWeeks": 20,
@@ -459,10 +435,7 @@
     "category": "practice",
     "title": "朝練の提案",
     "bodyTemplate": "選手から、サーブとレシーブに絞った自主朝練の提案が出た。",
-    "tags": [
-      "morning",
-      "自主練"
-    ],
+    "tags": ["morning", "自主練"],
     "trigger": {},
     "weight": 64,
     "cooldownWeeks": 16,
@@ -516,10 +489,7 @@
     "category": "practice",
     "title": "練習メニューへの意見",
     "bodyTemplate": "選手たちから、今週の重点練習を自分たちで決めたいという声が上がった。",
-    "tags": [
-      "leadership",
-      "practice"
-    ],
+    "tags": ["leadership", "practice"],
     "trigger": {},
     "weight": 60,
     "cooldownWeeks": 18,

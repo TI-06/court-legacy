@@ -5,10 +5,7 @@
     "category": "individual",
     "title": "希望ポジション",
     "bodyTemplate": "{{player}}が、現在とは異なるポジションにも挑戦したいと相談してきた。",
-    "tags": [
-      "position",
-      "growth"
-    ],
+    "tags": ["position", "growth"],
     "trigger": {
       "minGrade": 1,
       "maxGrade": 2
@@ -66,10 +63,7 @@
     "category": "individual",
     "title": "転向練習の手応え",
     "bodyTemplate": "{{player}}の転向練習で、意外な適性が見えてきた。",
-    "tags": [
-      "position",
-      "growth"
-    ],
+    "tags": ["position", "growth"],
     "trigger": {},
     "weight": 20,
     "cooldownWeeks": 52,
@@ -116,10 +110,7 @@
     "category": "individual",
     "title": "サーブフォームの迷い",
     "bodyTemplate": "{{player}}がサーブの感覚を失い、フォームを変えるべきか悩んでいる。",
-    "tags": [
-      "serve",
-      "form"
-    ],
+    "tags": ["serve", "form"],
     "trigger": {
       "abilityRanges": {
         "serve": {
@@ -181,10 +172,7 @@
     "category": "individual",
     "title": "ブロッカーの一歩目",
     "bodyTemplate": "{{player}}は高さがある一方、相手の速攻に一歩遅れている。",
-    "tags": [
-      "block",
-      "footwork"
-    ],
+    "tags": ["block", "footwork"],
     "trigger": {
       "abilityRanges": {
         "block": {
@@ -247,10 +235,7 @@
     "category": "individual",
     "title": "リベロの声",
     "bodyTemplate": "{{player}}の守備は安定しているが、後衛からの指示が味方に届いていない。",
-    "tags": [
-      "receive",
-      "leadership"
-    ],
+    "tags": ["receive", "leadership"],
     "trigger": {
       "maxGrade": 3
     },
@@ -303,10 +288,7 @@
     "category": "individual",
     "title": "エースへの重圧",
     "bodyTemplate": "得点を任される{{player}}が、失敗を恐れて思い切りを失っている。",
-    "tags": [
-      "ace",
-      "pressure"
-    ],
+    "tags": ["ace", "pressure"],
     "trigger": {
       "abilityRanges": {
         "spike": {
@@ -369,10 +351,7 @@
     "category": "individual",
     "title": "着地の癖",
     "bodyTemplate": "{{player}}の高い跳躍は武器だが、着地時に身体が流れる癖が見つかった。",
-    "tags": [
-      "jump",
-      "injury-prevention"
-    ],
+    "tags": ["jump", "injury-prevention"],
     "trigger": {
       "abilityRanges": {
         "jump": {
@@ -431,10 +410,7 @@
     "category": "individual",
     "title": "意外な学習リーダー",
     "bodyTemplate": "{{player}}が後輩へ勉強を教え、チームの空気を落ち着かせている。",
-    "tags": [
-      "academic",
-      "leadership"
-    ],
+    "tags": ["academic", "leadership"],
     "trigger": {
       "academic": {
         "min": 65
@@ -488,10 +464,7 @@
     "category": "individual",
     "title": "二年目の停滞",
     "bodyTemplate": "{{player}}は基礎能力が伸びた一方、昨年ほど成長を実感できずにいる。",
-    "tags": [
-      "growth",
-      "grade2"
-    ],
+    "tags": ["growth", "grade2"],
     "trigger": {
       "minGrade": 2,
       "maxGrade": 2
@@ -550,21 +523,11 @@
     "category": "individual",
     "title": "三年生の役割",
     "bodyTemplate": "引退が近づく{{player}}が、自分の経験を後輩へ残したいと申し出た。",
-    "tags": [
-      "grade3",
-      "legacy"
-    ],
+    "tags": ["grade3", "legacy"],
     "trigger": {
       "minGrade": 3,
       "maxGrade": 3,
-      "months": [
-        9,
-        10,
-        11,
-        12,
-        1,
-        2
-      ]
+      "months": [9, 10, 11, 12, 1, 2]
     },
     "weight": 60,
     "cooldownWeeks": 30,

@@ -5,18 +5,9 @@
     "category": "academic",
     "title": "補習の可能性",
     "bodyTemplate": "{{player}}の成績が下がり、このままでは練習参加が制限される可能性がある。",
-    "tags": [
-      "academic",
-      "choice"
-    ],
+    "tags": ["academic", "choice"],
     "trigger": {
-      "months": [
-        5,
-        7,
-        10,
-        12,
-        2
-      ],
+      "months": [5, 7, 10, 12, 2],
       "academic": {
         "max": 55
       }
@@ -70,18 +61,9 @@
     "category": "academic",
     "title": "試験前の勉強会",
     "bodyTemplate": "試験前、部員同士で勉強会を開く案が出た。",
-    "tags": [
-      "exam",
-      "team"
-    ],
+    "tags": ["exam", "team"],
     "trigger": {
-      "months": [
-        5,
-        7,
-        10,
-        12,
-        2
-      ]
+      "months": [5, 7, 10, 12, 2]
     },
     "weight": 62,
     "cooldownWeeks": 16,
@@ -131,10 +113,7 @@
     "category": "academic",
     "title": "担任からの相談",
     "bodyTemplate": "担任から、{{player}}が授業中に疲れていると連絡があった。",
-    "tags": [
-      "teacher",
-      "balance"
-    ],
+    "tags": ["teacher", "balance"],
     "trigger": {
       "fatigue": {
         "min": 65
@@ -193,20 +172,11 @@
     "category": "academic",
     "title": "進路面談",
     "bodyTemplate": "三年生の{{player}}が、競技を続けるか学業へ集中するか迷っている。",
-    "tags": [
-      "career",
-      "grade3"
-    ],
+    "tags": ["career", "grade3"],
     "trigger": {
       "minGrade": 3,
       "maxGrade": 3,
-      "months": [
-        9,
-        10,
-        11,
-        12,
-        1
-      ]
+      "months": [9, 10, 11, 12, 1]
     },
     "weight": 52,
     "cooldownWeeks": 40,
@@ -259,15 +229,9 @@
     "category": "academic",
     "title": "文化祭の係",
     "bodyTemplate": "部員の多くが文化祭準備を担当し、練習時間との両立が難しくなった。",
-    "tags": [
-      "festival",
-      "school"
-    ],
+    "tags": ["festival", "school"],
     "trigger": {
-      "months": [
-        9,
-        10
-      ]
+      "months": [9, 10]
     },
     "weight": 68,
     "cooldownWeeks": 45,

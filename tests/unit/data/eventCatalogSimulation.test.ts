@@ -39,7 +39,9 @@ describe("event catalog long-run simulation", () => {
       }
 
       const choiceId =
-        state.pendingEvent.choiceIds[week % state.pendingEvent.choiceIds.length];
+        state.pendingEvent.choiceIds[
+          week % state.pendingEvent.choiceIds.length
+        ];
       expect(choiceId).toBeDefined();
       state = resolveEventChoice(
         state,

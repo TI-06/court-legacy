@@ -1,1 +1,127 @@
-[{"id":"event.rival-rematch","version":1,"category":"rivalry","title":"因縁校との再戦決定","bodyTemplate":"前回敗れた宿敵校との練習試合が決まり、選手たちの意識が急に高まった。","tags":["rivalry","rematch","chain"],"trigger":{},"weight":40,"cooldownWeeks":34,"oncePerCareer":false,"actorCount":2,"choices":[{"id":"revenge","label":"勝敗にこだわる準備を始める","detail":"主力中心で対策し、苦手意識の払拭を狙う。","effects":[{"type":"morale-change","amount":5},{"type":"fatigue-change","amount":5},{"type":"reputation-change","amount":1}],"followUp":{"eventId":"event.rival-analysis-week","afterWeeks":2,"probability":100}},{"id":"develop","label":"新戦術の検証機会にする","detail":"結果より将来の対策材料を優先する。","effects":[{"type":"ability-change","ability":"decision","amount":2},{"type":"reputation-change","amount":-1},{"type":"morale-change","amount":1}],"followUp":{"eventId":"event.rival-analysis-week","afterWeeks":2,"probability":100}}]},{"id":"event.rival-analysis-week","version":1,"category":"rivalry","title":"宿敵対策の一週間","bodyTemplate":"宿敵校の映像を見直し、サーブ狙いとブロック配置のどちらを軸にするか意見が割れた。","tags":["rivalry","analysis","chain"],"trigger":{},"weight":6,"cooldownWeeks":70,"oncePerCareer":false,"actorCount":2,"choices":[{"id":"serve","label":"レセプションを崩す","detail":"主導権を狙えるが、サーブミスの危険が増える。","effects":[{"type":"ability-change","ability":"serve","amount":3},{"type":"fatigue-change","amount":4},{"type":"morale-change","amount":-1}],"followUp":{"eventId":"event.rival-rematch-result","afterWeeks":3,"probability":100}},{"id":"block","label":"主砲をブロックで止める","detail":"守備の狙いは明確になるが、他の攻撃へ対応しにくい。","effects":[{"type":"ability-change","ability":"block","amount":3},{"type":"ability-change","ability":"decision","amount":1},{"type":"ability-change","ability":"receive","amount":-1}],"followUp":{"eventId":"event.rival-rematch-result","afterWeeks":3,"probability":100}}]},{"id":"event.rival-rematch-result","version":1,"category":"rivalry","title":"再戦が残したもの","bodyTemplate":"宿敵校との再戦を終え、勝敗以上に今後の向き合い方が問われている。","tags":["rivalry","result","chain"],"trigger":{},"weight":5,"cooldownWeeks":100,"oncePerCareer":false,"actorCount":2,"choices":[{"id":"declare","label":"次の公式戦での勝利を誓う","detail":"目標を強く共有するが、相手への意識も固定される。","effects":[{"type":"morale-change","amount":6},{"type":"reputation-change","amount":4},{"type":"fatigue-change","amount":2}]},{"id":"learn","label":"得た課題を通常育成へ戻す","detail":"冷静に成長へ繋げるが、劇的な盛り上がりは小さい。","effects":[{"type":"ability-change","ability":"decision","amount":3},{"type":"trust-change","amount":3},{"type":"reputation-change","amount":1}]}]}]
+[
+  {
+    "id": "event.rival-rematch",
+    "version": 1,
+    "category": "rivalry",
+    "title": "因縁校との再戦決定",
+    "bodyTemplate": "前回敗れた宿敵校との練習試合が決まり、選手たちの意識が急に高まった。",
+    "tags": ["rivalry", "rematch", "chain"],
+    "trigger": {},
+    "weight": 40,
+    "cooldownWeeks": 34,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "revenge",
+        "label": "勝敗にこだわる準備を始める",
+        "detail": "主力中心で対策し、苦手意識の払拭を狙う。",
+        "effects": [
+          { "type": "morale-change", "amount": 5 },
+          { "type": "fatigue-change", "amount": 5 },
+          { "type": "reputation-change", "amount": 1 }
+        ],
+        "followUp": {
+          "eventId": "event.rival-analysis-week",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      },
+      {
+        "id": "develop",
+        "label": "新戦術の検証機会にする",
+        "detail": "結果より将来の対策材料を優先する。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 },
+          { "type": "morale-change", "amount": 1 }
+        ],
+        "followUp": {
+          "eventId": "event.rival-analysis-week",
+          "afterWeeks": 2,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.rival-analysis-week",
+    "version": 1,
+    "category": "rivalry",
+    "title": "宿敵対策の一週間",
+    "bodyTemplate": "宿敵校の映像を見直し、サーブ狙いとブロック配置のどちらを軸にするか意見が割れた。",
+    "tags": ["rivalry", "analysis", "chain"],
+    "trigger": {},
+    "weight": 6,
+    "cooldownWeeks": 70,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "serve",
+        "label": "レセプションを崩す",
+        "detail": "主導権を狙えるが、サーブミスの危険が増える。",
+        "effects": [
+          { "type": "ability-change", "ability": "serve", "amount": 3 },
+          { "type": "fatigue-change", "amount": 4 },
+          { "type": "morale-change", "amount": -1 }
+        ],
+        "followUp": {
+          "eventId": "event.rival-rematch-result",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "block",
+        "label": "主砲をブロックで止める",
+        "detail": "守備の狙いは明確になるが、他の攻撃へ対応しにくい。",
+        "effects": [
+          { "type": "ability-change", "ability": "block", "amount": 3 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 },
+          { "type": "ability-change", "ability": "receive", "amount": -1 }
+        ],
+        "followUp": {
+          "eventId": "event.rival-rematch-result",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.rival-rematch-result",
+    "version": 1,
+    "category": "rivalry",
+    "title": "再戦が残したもの",
+    "bodyTemplate": "宿敵校との再戦を終え、勝敗以上に今後の向き合い方が問われている。",
+    "tags": ["rivalry", "result", "chain"],
+    "trigger": {},
+    "weight": 5,
+    "cooldownWeeks": 100,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "declare",
+        "label": "次の公式戦での勝利を誓う",
+        "detail": "目標を強く共有するが、相手への意識も固定される。",
+        "effects": [
+          { "type": "morale-change", "amount": 6 },
+          { "type": "reputation-change", "amount": 4 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "learn",
+        "label": "得た課題を通常育成へ戻す",
+        "detail": "冷静に成長へ繋げるが、劇的な盛り上がりは小さい。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 3 },
+          { "type": "trust-change", "amount": 3 },
+          { "type": "reputation-change", "amount": 1 }
+        ]
+      }
+    ]
+  }
+]

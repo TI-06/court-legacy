@@ -1,1 +1,138 @@
-[{"id":"event.rival-scouting-rumor","version":1,"category":"rivalry","title":"宿敵校の新戦力","bodyTemplate":"宿敵校に大型新人が入ったという噂が広まり、選手たちが落ち着かない。","tags":["rival","rumor"],"trigger":{},"weight":55,"cooldownWeeks":24,"oncePerCareer":false,"actorCount":1,"choices":[{"id":"research","label":"早めに情報を集める","detail":"対策を進めるが、相手を意識しすぎる。","effects":[{"type":"ability-change","ability":"decision","amount":2},{"type":"morale-change","amount":-2},{"type":"funds-change","amount":-3000}]},{"id":"ignore","label":"自分たちの成長へ集中する","detail":"平常心を保つが、初対戦で驚く可能性がある。","effects":[{"type":"morale-change","amount":3},{"type":"reputation-change","amount":-1}]}]},{"id":"event.rival-joint-camp","version":1,"category":"rivalry","title":"合同合宿の提案","bodyTemplate":"宿敵校から、互いに刺激を得る合同合宿の提案が届いた。","tags":["camp","rival"],"trigger":{"schoolFundsMin":10000,"months":[7,8]},"weight":38,"cooldownWeeks":52,"oncePerCareer":false,"actorCount":1,"choices":[{"id":"accept","label":"合同合宿を受ける","detail":"成長と関係改善を得るが、手の内も見せる。","effects":[{"type":"ability-change","ability":"mental","amount":2},{"type":"reputation-change","amount":4},{"type":"fatigue-change","amount":6}]},{"id":"decline","label":"独自調整を優先する","detail":"戦術を隠せるが、閉鎖的と見られる。","effects":[{"type":"ability-change","ability":"decision","amount":1},{"type":"reputation-change","amount":-2}]}]},{"id":"event.rival-coach-comment","version":1,"category":"rivalry","title":"相手監督の発言","bodyTemplate":"宿敵校の監督が、次戦への自信を公の場で語った。","tags":["media","rival"],"trigger":{},"weight":50,"cooldownWeeks":20,"oncePerCareer":false,"actorCount":1,"choices":[{"id":"respond","label":"こちらも目標を明言する","detail":"選手の闘志を高めるが、重圧も増える。","effects":[{"type":"morale-change","amount":5},{"type":"reputation-change","amount":3},{"type":"fatigue-change","amount":2}]},{"id":"silence","label":"言葉では反応しない","detail":"平常心を守るが、消極的と受け取られる。","effects":[{"type":"ability-change","ability":"mental","amount":2},{"type":"reputation-change","amount":-1}]}]},{"id":"event.rival-player-friendship","version":1,"category":"rivalry","title":"コート外の友情","bodyTemplate":"{{player}}が宿敵校の選手と交流し、練習方法を語り合っている。","tags":["friendship","rival"],"trigger":{},"weight":42,"cooldownWeeks":30,"oncePerCareer":false,"actorCount":1,"choices":[{"id":"allow","label":"交流を尊重する","detail":"視野を広げるが、戦術情報が漏れる不安がある。","effects":[{"type":"ability-change","ability":"decision","amount":2},{"type":"morale-change","amount":3},{"type":"reputation-change","amount":-1}]},{"id":"limit","label":"大会前は距離を置かせる","detail":"情報を守る代わりに、本人の信頼を損なう。","effects":[{"type":"trust-change","amount":-3},{"type":"ability-change","ability":"mental","amount":1}]}]}]
+[
+  {
+    "id": "event.rival-scouting-rumor",
+    "version": 1,
+    "category": "rivalry",
+    "title": "宿敵校の新戦力",
+    "bodyTemplate": "宿敵校に大型新人が入ったという噂が広まり、選手たちが落ち着かない。",
+    "tags": ["rival", "rumor"],
+    "trigger": {},
+    "weight": 55,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "research",
+        "label": "早めに情報を集める",
+        "detail": "対策を進めるが、相手を意識しすぎる。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "morale-change", "amount": -2 },
+          { "type": "funds-change", "amount": -3000 }
+        ]
+      },
+      {
+        "id": "ignore",
+        "label": "自分たちの成長へ集中する",
+        "detail": "平常心を保つが、初対戦で驚く可能性がある。",
+        "effects": [
+          { "type": "morale-change", "amount": 3 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.rival-joint-camp",
+    "version": 1,
+    "category": "rivalry",
+    "title": "合同合宿の提案",
+    "bodyTemplate": "宿敵校から、互いに刺激を得る合同合宿の提案が届いた。",
+    "tags": ["camp", "rival"],
+    "trigger": { "schoolFundsMin": 10000, "months": [7, 8] },
+    "weight": 38,
+    "cooldownWeeks": 52,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "accept",
+        "label": "合同合宿を受ける",
+        "detail": "成長と関係改善を得るが、手の内も見せる。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "reputation-change", "amount": 4 },
+          { "type": "fatigue-change", "amount": 6 }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "独自調整を優先する",
+        "detail": "戦術を隠せるが、閉鎖的と見られる。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 1 },
+          { "type": "reputation-change", "amount": -2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.rival-coach-comment",
+    "version": 1,
+    "category": "rivalry",
+    "title": "相手監督の発言",
+    "bodyTemplate": "宿敵校の監督が、次戦への自信を公の場で語った。",
+    "tags": ["media", "rival"],
+    "trigger": {},
+    "weight": 50,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "respond",
+        "label": "こちらも目標を明言する",
+        "detail": "選手の闘志を高めるが、重圧も増える。",
+        "effects": [
+          { "type": "morale-change", "amount": 5 },
+          { "type": "reputation-change", "amount": 3 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "silence",
+        "label": "言葉では反応しない",
+        "detail": "平常心を守るが、消極的と受け取られる。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.rival-player-friendship",
+    "version": 1,
+    "category": "rivalry",
+    "title": "コート外の友情",
+    "bodyTemplate": "{{player}}が宿敵校の選手と交流し、練習方法を語り合っている。",
+    "tags": ["friendship", "rival"],
+    "trigger": {},
+    "weight": 42,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "allow",
+        "label": "交流を尊重する",
+        "detail": "視野を広げるが、戦術情報が漏れる不安がある。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "limit",
+        "label": "大会前は距離を置かせる",
+        "detail": "情報を守る代わりに、本人の信頼を損なう。",
+        "effects": [
+          { "type": "trust-change", "amount": -3 },
+          { "type": "ability-change", "ability": "mental", "amount": 1 }
+        ]
+      }
+    ]
+  }
+]

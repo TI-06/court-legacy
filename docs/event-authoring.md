@@ -14,19 +14,19 @@ Court Legacy のイベントは `src/data/events/*.json` に定義し、`eventCa
 
 ## 必須フィールド
 
-| フィールド | ルール |
-| --- | --- |
-| `id` | `event.<lowercase-id>`。全カタログで一意 |
-| `version` | 現在は `1` |
-| `category` | スキーマで定義された12カテゴリのいずれか |
-| `title` | 画面に表示する短い題名 |
-| `bodyTemplate` | `{{player}}`、`{{player2}}`、`{{player3}}`、`{{school}}` を利用可能 |
-| `trigger` | 月、学年、能力、士気、疲労、信頼、怪我、学校状況など |
-| `weight` | 同時に発火可能な候補内での相対確率 |
-| `cooldownWeeks` | 同じイベントの再発防止期間 |
-| `oncePerCareer` | 選手単位で一度だけなら `true` |
-| `actorCount` | 1〜4。本文で利用する選手数と一致させる |
-| `choices` | 2〜4個。各選択肢に効果を1つ以上持たせる |
+| フィールド      | ルール                                                              |
+| --------------- | ------------------------------------------------------------------- |
+| `id`            | `event.<lowercase-id>`。全カタログで一意                            |
+| `version`       | 現在は `1`                                                          |
+| `category`      | スキーマで定義された12カテゴリのいずれか                            |
+| `title`         | 画面に表示する短い題名                                              |
+| `bodyTemplate`  | `{{player}}`、`{{player2}}`、`{{player3}}`、`{{school}}` を利用可能 |
+| `trigger`       | 月、学年、能力、士気、疲労、信頼、怪我、学校状況など                |
+| `weight`        | 同時に発火可能な候補内での相対確率                                  |
+| `cooldownWeeks` | 同じイベントの再発防止期間                                          |
+| `oncePerCareer` | 選手単位で一度だけなら `true`                                       |
+| `actorCount`    | 1〜4。本文で利用する選手数と一致させる                              |
+| `choices`       | 2〜4個。各選択肢に効果を1つ以上持たせる                             |
 
 ## 選択肢の設計原則
 

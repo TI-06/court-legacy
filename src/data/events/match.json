@@ -6,14 +6,31 @@
     "title": "練習試合の招待",
     "bodyTemplate": "県外の強豪校から、急な練習試合の打診が届いた。",
     "tags": ["practice-match", "travel"],
-    "trigger": {"schoolFundsMin": 15000},
+    "trigger": { "schoolFundsMin": 15000 },
     "weight": 66,
     "cooldownWeeks": 20,
     "oncePerCareer": false,
     "actorCount": 1,
     "choices": [
-      {"id": "accept", "label": "遠征して受ける", "detail": "経験と評判を得られるが、費用と疲労が増える。", "effects": [{"type": "reputation-change", "amount": 5}, {"type": "funds-change", "amount": -12000}, {"type": "fatigue-change", "amount": 7}]},
-      {"id": "decline", "label": "今週の育成を優先する", "detail": "成長計画を守る代わりに、外部評価の機会を逃す。", "effects": [{"type": "ability-change", "ability": "stamina", "amount": 2}, {"type": "reputation-change", "amount": -1}]}
+      {
+        "id": "accept",
+        "label": "遠征して受ける",
+        "detail": "経験と評判を得られるが、費用と疲労が増える。",
+        "effects": [
+          { "type": "reputation-change", "amount": 5 },
+          { "type": "funds-change", "amount": -12000 },
+          { "type": "fatigue-change", "amount": 7 }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "今週の育成を優先する",
+        "detail": "成長計画を守る代わりに、外部評価の機会を逃す。",
+        "effects": [
+          { "type": "ability-change", "ability": "stamina", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
     ]
   },
   {
@@ -23,14 +40,31 @@
     "title": "接戦の記憶",
     "bodyTemplate": "前の試合で終盤に逆転され、選手たちが一点の重さを意識している。",
     "tags": ["close-set", "mental"],
-    "trigger": {"recentMatchResult": "loss"},
+    "trigger": { "recentMatchResult": "loss" },
     "weight": 78,
     "cooldownWeeks": 12,
     "oncePerCareer": false,
     "actorCount": 2,
     "choices": [
-      {"id": "pressure", "label": "終盤想定の練習を増やす", "detail": "勝負強さを鍛えるが、精神的な負荷が高い。", "effects": [{"type": "ability-change", "ability": "mental", "amount": 3}, {"type": "fatigue-change", "amount": 4}, {"type": "morale-change", "amount": -2}]},
-      {"id": "reset", "label": "失敗映像を見ず次へ進む", "detail": "気持ちを切り替える代わりに、原因分析は浅くなる。", "effects": [{"type": "morale-change", "amount": 4}, {"type": "ability-change", "ability": "decision", "amount": -1}]}
+      {
+        "id": "pressure",
+        "label": "終盤想定の練習を増やす",
+        "detail": "勝負強さを鍛えるが、精神的な負荷が高い。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 3 },
+          { "type": "fatigue-change", "amount": 4 },
+          { "type": "morale-change", "amount": -2 }
+        ]
+      },
+      {
+        "id": "reset",
+        "label": "失敗映像を見ず次へ進む",
+        "detail": "気持ちを切り替える代わりに、原因分析は浅くなる。",
+        "effects": [
+          { "type": "morale-change", "amount": 4 },
+          { "type": "ability-change", "ability": "decision", "amount": -1 }
+        ]
+      }
     ]
   },
   {
@@ -40,14 +74,31 @@
     "title": "番狂わせの注目",
     "bodyTemplate": "格上を破ったことで、周囲からの注目と取材依頼が増えている。",
     "tags": ["upset", "media"],
-    "trigger": {"recentMatchResult": "win", "schoolReputationMin": 50},
+    "trigger": { "recentMatchResult": "win", "schoolReputationMin": 50 },
     "weight": 45,
     "cooldownWeeks": 30,
     "oncePerCareer": false,
     "actorCount": 1,
     "choices": [
-      {"id": "accept", "label": "取材を受ける", "detail": "評判と資金を得るが、練習への集中が乱れる。", "effects": [{"type": "reputation-change", "amount": 8}, {"type": "funds-change", "amount": 8000}, {"type": "morale-change", "amount": -2}]},
-      {"id": "decline", "label": "競技へ集中する", "detail": "チームを守る代わりに、知名度向上の機会を逃す。", "effects": [{"type": "trust-change", "amount": 3}, {"type": "reputation-change", "amount": -2}]}
+      {
+        "id": "accept",
+        "label": "取材を受ける",
+        "detail": "評判と資金を得るが、練習への集中が乱れる。",
+        "effects": [
+          { "type": "reputation-change", "amount": 8 },
+          { "type": "funds-change", "amount": 8000 },
+          { "type": "morale-change", "amount": -2 }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "競技へ集中する",
+        "detail": "チームを守る代わりに、知名度向上の機会を逃す。",
+        "effects": [
+          { "type": "trust-change", "amount": 3 },
+          { "type": "reputation-change", "amount": -2 }
+        ]
+      }
     ]
   },
   {
@@ -63,8 +114,26 @@
     "oncePerCareer": false,
     "actorCount": 2,
     "choices": [
-      {"id": "experience", "label": "上級生を信頼する", "detail": "試合運びを優先するが、若手の勢いを抑える。", "effects": [{"type": "ability-change", "ability": "mental", "amount": 2}, {"type": "morale-change", "amount": -2}, {"type": "trust-change", "amount": 2}]},
-      {"id": "youth", "label": "下級生を抜擢する", "detail": "成長機会を与えるが、試合の安定性は下がる。", "effects": [{"type": "ability-change", "ability": "decision", "amount": 2}, {"type": "morale-change", "amount": 3}, {"type": "reputation-change", "amount": -1}]}
+      {
+        "id": "experience",
+        "label": "上級生を信頼する",
+        "detail": "試合運びを優先するが、若手の勢いを抑える。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "morale-change", "amount": -2 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "youth",
+        "label": "下級生を抜擢する",
+        "detail": "成長機会を与えるが、試合の安定性は下がる。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
     ]
   },
   {
@@ -80,8 +149,25 @@
     "oncePerCareer": false,
     "actorCount": 2,
     "choices": [
-      {"id": "early", "label": "二連続失点で止める", "detail": "流れを切りやすいが、選手の自律性は育ちにくい。", "effects": [{"type": "ability-change", "ability": "mental", "amount": 2}, {"type": "trust-change", "amount": -1}]},
-      {"id": "trust", "label": "コート内判断を待つ", "detail": "自律性は伸びるが、崩れた時の失点が増える。", "effects": [{"type": "ability-change", "ability": "decision", "amount": 3}, {"type": "morale-change", "amount": -2}, {"type": "trust-change", "amount": 2}]}
+      {
+        "id": "early",
+        "label": "二連続失点で止める",
+        "detail": "流れを切りやすいが、選手の自律性は育ちにくい。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "trust-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "trust",
+        "label": "コート内判断を待つ",
+        "detail": "自律性は伸びるが、崩れた時の失点が増える。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 3 },
+          { "type": "morale-change", "amount": -2 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      }
     ]
   },
   {
@@ -91,14 +177,32 @@
     "title": "完全アウェーの声援",
     "bodyTemplate": "次戦は相手校の応援が大きく、普段通りの声が通らない可能性がある。",
     "tags": ["away", "communication"],
-    "trigger": {"tournamentOnly": true},
+    "trigger": { "tournamentOnly": true },
     "weight": 64,
     "cooldownWeeks": 16,
     "oncePerCareer": false,
     "actorCount": 2,
     "choices": [
-      {"id": "simulate", "label": "大音量で練習する", "detail": "対応力を得るが、練習疲労とストレスが増える。", "effects": [{"type": "ability-change", "ability": "mental", "amount": 3}, {"type": "fatigue-change", "amount": 4}, {"type": "morale-change", "amount": -1}]},
-      {"id": "signals", "label": "ハンドサインを増やす", "detail": "連携手段を増やすが、覚える負担がある。", "effects": [{"type": "ability-change", "ability": "decision", "amount": 2}, {"type": "relationship-change", "amount": 3}, {"type": "fatigue-change", "amount": 2}]}
+      {
+        "id": "simulate",
+        "label": "大音量で練習する",
+        "detail": "対応力を得るが、練習疲労とストレスが増える。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 3 },
+          { "type": "fatigue-change", "amount": 4 },
+          { "type": "morale-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "signals",
+        "label": "ハンドサインを増やす",
+        "detail": "連携手段を増やすが、覚える負担がある。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "relationship-change", "amount": 3 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
     ]
   },
   {
@@ -108,14 +212,30 @@
     "title": "偵察情報の食い違い",
     "bodyTemplate": "二つの偵察報告で相手の主戦術が異なり、対策を一本化できない。",
     "tags": ["scouting", "analysis"],
-    "trigger": {"schoolReputationMin": 40},
+    "trigger": { "schoolReputationMin": 40 },
     "weight": 55,
     "cooldownWeeks": 18,
     "oncePerCareer": false,
     "actorCount": 1,
     "choices": [
-      {"id": "latest", "label": "最新試合の情報を採用する", "detail": "変化へ対応するが、サンプル数が少ない。", "effects": [{"type": "ability-change", "ability": "decision", "amount": 2}, {"type": "morale-change", "amount": -1}]},
-      {"id": "base", "label": "長期傾向を優先する", "detail": "安定した対策になるが、新戦術へ遅れる可能性がある。", "effects": [{"type": "ability-change", "ability": "receive", "amount": 2}, {"type": "reputation-change", "amount": -1}]}
+      {
+        "id": "latest",
+        "label": "最新試合の情報を採用する",
+        "detail": "変化へ対応するが、サンプル数が少ない。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "morale-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "base",
+        "label": "長期傾向を優先する",
+        "detail": "安定した対策になるが、新戦術へ遅れる可能性がある。",
+        "effects": [
+          { "type": "ability-change", "ability": "receive", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
     ]
   },
   {
@@ -125,14 +245,31 @@
     "title": "試合後ミーティング",
     "bodyTemplate": "敗戦直後、選手から今すぐ全員で話したいという声が上がった。",
     "tags": ["review", "loss"],
-    "trigger": {"recentMatchResult": "loss"},
+    "trigger": { "recentMatchResult": "loss" },
     "weight": 72,
     "cooldownWeeks": 10,
     "oncePerCareer": false,
     "actorCount": 2,
     "choices": [
-      {"id": "now", "label": "感情が残るうちに話す", "detail": "本音が出るが、衝突も起こりやすい。", "effects": [{"type": "relationship-change", "amount": 4}, {"type": "morale-change", "amount": -2}, {"type": "trust-change", "amount": 2}]},
-      {"id": "tomorrow", "label": "一晩置いて整理する", "detail": "冷静に振り返れるが、問題意識が薄れる。", "effects": [{"type": "morale-change", "amount": 2}, {"type": "ability-change", "ability": "decision", "amount": 1}]}
+      {
+        "id": "now",
+        "label": "感情が残るうちに話す",
+        "detail": "本音が出るが、衝突も起こりやすい。",
+        "effects": [
+          { "type": "relationship-change", "amount": 4 },
+          { "type": "morale-change", "amount": -2 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "tomorrow",
+        "label": "一晩置いて整理する",
+        "detail": "冷静に振り返れるが、問題意識が薄れる。",
+        "effects": [
+          { "type": "morale-change", "amount": 2 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      }
     ]
   }
 ]

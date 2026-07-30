@@ -5,10 +5,7 @@
     "category": "injury",
     "title": "足首の違和感",
     "bodyTemplate": "{{player}}が着地時に軽い違和感を訴えた。まだ負傷ではないが、放置は危険だ。",
-    "tags": [
-      "ankle",
-      "prevention"
-    ],
+    "tags": ["ankle", "prevention"],
     "trigger": {
       "injuryState": "healthy",
       "fatigue": {
@@ -69,10 +66,7 @@
     "category": "injury",
     "title": "肩の投球制限",
     "bodyTemplate": "{{player}}のスパイク本数が増え、肩周りの張りが強くなっている。",
-    "tags": [
-      "shoulder",
-      "load"
-    ],
+    "tags": ["shoulder", "load"],
     "trigger": {
       "abilityRanges": {
         "spike": {
@@ -138,10 +132,7 @@
     "category": "injury",
     "title": "指の突き指",
     "bodyTemplate": "ブロック練習で{{player}}が指を痛めた。試合出場は可能だが、無理はできない。",
-    "tags": [
-      "finger",
-      "block"
-    ],
+    "tags": ["finger", "block"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -200,10 +191,7 @@
     "category": "injury",
     "title": "復帰時期の食い違い",
     "bodyTemplate": "負傷中の{{player}}は早期復帰を望むが、医療担当は慎重な判断を勧めている。",
-    "tags": [
-      "recovery",
-      "medical"
-    ],
+    "tags": ["recovery", "medical"],
     "trigger": {
       "injuryState": "injured"
     },
@@ -258,17 +246,9 @@
     "category": "injury",
     "title": "体調不良の連鎖",
     "bodyTemplate": "数人に発熱と倦怠感が出て、チーム内での感染が心配されている。",
-    "tags": [
-      "illness",
-      "team"
-    ],
+    "tags": ["illness", "team"],
     "trigger": {
-      "months": [
-        11,
-        12,
-        1,
-        2
-      ]
+      "months": [11, 12, 1, 2]
     },
     "weight": 50,
     "cooldownWeeks": 30,
