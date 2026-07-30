@@ -20,6 +20,11 @@
   height: 24px;
 }
 
+.ui-player-character .ui-school-emblem[height="8"] {
+  width: 8px;
+  height: 8px;
+}
+
 .ui-player-tile__number {
   color: #41606d !important;
   font-weight: 800;
