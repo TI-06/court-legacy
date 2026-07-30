@@ -74,18 +74,17 @@
     "actorCount": 1,
     "choices": [
       {
-        "id": "develop",
-        "label": "才能を伸ばす",
-        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "id": "patient",
+        "label": "段階的に進める",
+        "detail": "回復を最優先して負荷を抑えるが、本人の焦りには向き合う必要がある。",
         "effects": [
           {
-            "type": "ability-change",
-            "ability": "jump",
-            "amount": 2
+            "type": "fatigue-change",
+            "amount": -6
           },
           {
-            "type": "fatigue-change",
-            "amount": 4
+            "type": "morale-change",
+            "amount": -2
           }
         ],
         "followUp": {
@@ -95,17 +94,18 @@
         }
       },
       {
-        "id": "protect",
-        "label": "負荷を抑える",
-        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "id": "accelerate",
+        "label": "復帰時期を優先する",
+        "detail": "体力づくりを前倒しすることで復帰を近づけるが、疲労は大きくなる。",
         "effects": [
           {
-            "type": "trust-change",
-            "amount": 3
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
           },
           {
-            "type": "morale-change",
-            "amount": -2
+            "type": "fatigue-change",
+            "amount": 5
           }
         ],
         "followUp": {
@@ -130,31 +130,13 @@
     "actorCount": 1,
     "choices": [
       {
-        "id": "develop",
-        "label": "才能を伸ばす",
-        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "id": "controlled",
+        "label": "限定メニューを続ける",
+        "detail": "負傷状態を解除して慎重に練習へ戻すが、本人の勢いはまだ抑える。",
         "effects": [
           {
-            "type": "ability-change",
-            "ability": "receive",
-            "amount": 2
+            "type": "injury-clear"
           },
-          {
-            "type": "fatigue-change",
-            "amount": 4
-          }
-        ],
-        "followUp": {
-          "eventId": "event.ace-selection",
-          "afterWeeks": 4,
-          "probability": 100
-        }
-      },
-      {
-        "id": "protect",
-        "label": "負荷を抑える",
-        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
-        "effects": [
           {
             "type": "trust-change",
             "amount": 3
@@ -166,7 +148,31 @@
         ],
         "followUp": {
           "eventId": "event.ace-selection",
-          "afterWeeks": 4,
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "full",
+        "label": "通常練習へ戻す",
+        "detail": "負傷状態を解除して実戦感覚を取り戻す一方、再び疲労が増える。",
+        "effects": [
+          {
+            "type": "injury-clear"
+          },
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 6
+          }
+        ],
+        "followUp": {
+          "eventId": "event.ace-selection",
+          "afterWeeks": 3,
           "probability": 100
         }
       }
@@ -186,43 +192,42 @@
     "actorCount": 1,
     "choices": [
       {
-        "id": "develop",
-        "label": "才能を伸ばす",
-        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "id": "starter",
+        "label": "先発で戻す",
+        "detail": "エースとしての自信を取り戻させるが、復帰直後から大きな負荷をかける。",
         "effects": [
           {
-            "type": "ability-change",
-            "ability": "serve",
-            "amount": 2
+            "type": "morale-change",
+            "amount": 5
           },
           {
             "type": "fatigue-change",
-            "amount": 4
+            "amount": 7
           }
         ],
         "followUp": {
           "eventId": "event.ace-comeback",
-          "afterWeeks": 4,
+          "afterWeeks": 2,
           "probability": 100
         }
       },
       {
-        "id": "protect",
-        "label": "負荷を抑える",
-        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "id": "substitute",
+        "label": "途中出場から始める",
+        "detail": "負荷を管理しながら試合へ戻す一方、本人には慎重すぎる判断と映る。",
         "effects": [
           {
-            "type": "trust-change",
-            "amount": 3
+            "type": "fatigue-change",
+            "amount": -4
           },
           {
-            "type": "morale-change",
+            "type": "trust-change",
             "amount": -2
           }
         ],
         "followUp": {
           "eventId": "event.ace-comeback",
-          "afterWeeks": 4,
+          "afterWeeks": 2,
           "probability": 100
         }
       }
@@ -242,29 +247,29 @@
     "actorCount": 1,
     "choices": [
       {
-        "id": "develop",
-        "label": "才能を伸ばす",
-        "detail": "長所へ負荷をかけて成長を促すが、疲労が蓄積する。",
+        "id": "ace",
+        "label": "エースへ託す",
+        "detail": "復活を象徴する一打を任せるが、復帰直後の身体へ再び負荷がかかる。",
         "effects": [
           {
             "type": "ability-change",
-            "ability": "set",
-            "amount": 2
+            "ability": "spike",
+            "amount": 3
           },
           {
             "type": "fatigue-change",
-            "amount": 4
+            "amount": 5
           }
         ]
       },
       {
-        "id": "protect",
-        "label": "負荷を抑える",
-        "detail": "信頼を積み上げながら守る一方、本人の勢いは少し落ちる。",
+        "id": "team",
+        "label": "全員で攻める",
+        "detail": "復帰したエースを支える形を選び、信頼を深める一方で本人の高揚感は抑える。",
         "effects": [
           {
             "type": "trust-change",
-            "amount": 3
+            "amount": 4
           },
           {
             "type": "morale-change",
