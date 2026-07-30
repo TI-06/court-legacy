@@ -1,7 +1,10 @@
 import type { Player } from "../domain/model/Player";
+import type { UniformColors } from "../domain/model/School";
+import { PlayerCharacter } from "./PlayerCharacter";
 
 interface PlayerTileProps {
   player: Player;
+  uniform?: UniformColors;
   selected?: boolean;
   disabled?: boolean;
   compact?: boolean;
@@ -27,6 +30,7 @@ function playerStatus(player: Player): { label: string; tone: string } {
 
 export function PlayerTile({
   player,
+  uniform,
   selected = false,
   disabled = false,
   compact = false,
@@ -40,7 +44,7 @@ export function PlayerTile({
   const content = (
     <>
       <span className="ui-player-avatar" aria-hidden="true">
-        {player.preferredPosition}
+        <PlayerCharacter player={player} uniform={uniform} />
       </span>
       <span className="ui-player-tile__main">
         <strong>
