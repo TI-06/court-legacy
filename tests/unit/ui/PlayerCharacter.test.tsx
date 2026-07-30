@@ -34,6 +34,10 @@ describe("PlayerCharacter", () => {
     render(<PlayerTile player={player} uniform={school.uniform} />);
 
     expect(screen.getByTestId("player-character")).toBeVisible();
-    expect(screen.getByText(`${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`)).toBeVisible();
+    expect(
+      screen.getByText(
+        `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
+      ),
+    ).toBeVisible();
   });
 });
