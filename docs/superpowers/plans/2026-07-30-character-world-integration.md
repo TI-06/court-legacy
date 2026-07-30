@@ -22,12 +22,14 @@
 ### Task 1: 主要校・看板選手の世界生成
 
 **Files:**
+
 - Create: `src/domain/generation/featuredWorldCatalog.ts`
 - Modify: `src/app/createDemoGame.ts`
 - Modify: `src/domain/generation/generateWorld.ts`
 - Test: `tests/unit/domain/generation/generateWorld.test.ts`
 
 **Interfaces:**
+
 - Produces: `FEATURED_SCHOOL_SETUPS`, `applyFeaturedPlayerProfile(school, squad)`
 - Consumes: `School`, `Player`, `UniformColors`, `Position`
 
@@ -112,10 +114,12 @@ git commit -m "feat: 主要校と看板選手を世界生成へ追加"
 ### Task 2: 学校テーマ・専用キャラクター解決
 
 **Files:**
+
 - Create: `src/domain/appearance/characterWorld.ts`
 - Test: `tests/unit/domain/appearance/characterWorld.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `resolveFeaturedCharacter(player): FeaturedCharacterVisual | null`
   - `resolveSchoolVisualTheme(school): SchoolVisualTheme`
@@ -183,6 +187,7 @@ git commit -m "feat: キャラクター世界観の表示定義を追加"
 ### Task 3: SVGキャラクターと学校エンブレム
 
 **Files:**
+
 - Create: `src/ui/SchoolEmblem.tsx`
 - Modify: `src/ui/PlayerCharacter.tsx`
 - Modify: `src/ui/PlayerTile.tsx`
@@ -190,6 +195,7 @@ git commit -m "feat: キャラクター世界観の表示定義を追加"
 - Test: `tests/unit/ui/PlayerCharacter.test.tsx`
 
 **Interfaces:**
+
 - `PlayerCharacter` adds `school?: School` and `variant?: "chibi" | "portrait"`
 - `PlayerTile` adds `school?: School` while retaining `uniform?` compatibility
 - `SchoolEmblem` consumes `school` and optional `compact`
@@ -266,6 +272,7 @@ git commit -m "feat: 学校別アニメキャラクター描画を追加"
 ### Task 4: ホーム・編成・イベント統合
 
 **Files:**
+
 - Create: `src/ui/FeaturedPlayerHero.tsx`
 - Modify: `src/features/home/HomeScreen.tsx`
 - Modify: `src/features/home/home.css`
@@ -279,6 +286,7 @@ git commit -m "feat: 学校別アニメキャラクター描画を追加"
 - Test: `tests/unit/features/home/EventDialog.test.tsx`
 
 **Interfaces:**
+
 - `FeaturedPlayerHero` consumes `player`, `school`, and optional `onOpenTeam`
 - Home selects a named featured player, otherwise captain, otherwise first player
 
@@ -336,6 +344,7 @@ git commit -m "feat: キャラクター世界観を主要画面へ統合"
 ### Task 5: 全体検証・レビュー・PR
 
 **Files:**
+
 - Modify only files required by verification findings
 - Review: all branch changes against `docs/superpowers/specs/2026-07-30-character-world-integration-design.md`
 

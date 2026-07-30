@@ -72,7 +72,10 @@ describe("generateWorld", () => {
             : false,
         );
 
-      expect(player, `${playerName} must belong to ${schoolName}`).toBeDefined();
+      expect(
+        player,
+        `${playerName} must belong to ${schoolName}`,
+      ).toBeDefined();
       expect(player?.preferredPosition).toBe(position);
       expect(player?.career.schoolId).toBe(school?.id);
     }
