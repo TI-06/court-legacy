@@ -1,8 +1,4 @@
-import {
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const DEFAULT_SEASONS = 1000;
@@ -97,9 +93,7 @@ function increment(record, key) {
 
 function sortedRecord(record) {
   return Object.fromEntries(
-    Object.entries(record).sort(([left], [right]) =>
-      left.localeCompare(right),
-    ),
+    Object.entries(record).sort(([left], [right]) => left.localeCompare(right)),
   );
 }
 
@@ -204,7 +198,9 @@ function analyze(events, seasons = DEFAULT_SEASONS) {
   const selectedRootCounts = roots.map(
     (event) => report.eventCounts[event.id] ?? 0,
   );
-  report.uniqueRootEvents = selectedRootCounts.filter((count) => count > 0).length;
+  report.uniqueRootEvents = selectedRootCounts.filter(
+    (count) => count > 0,
+  ).length;
   report.maximumRootShare =
     Math.max(...selectedRootCounts) / report.rootOccurrences;
   report.unseenRootEventIds = roots
@@ -224,7 +220,8 @@ function formatMarkdown(report) {
     report.unseenRootEventIds.length === 0
       ? "なし"
       : report.unseenRootEventIds.map((id) => `\`${id}\``).join(", ");
-  return `# Event Distribution Report\n\n` +
+  return (
+    `# Event Distribution Report\n\n` +
     `- シミュレーション: ${report.seasons}シーズン\n` +
     `- カタログ総数: ${report.catalogEvents}本\n` +
     `- 通常抽選の起点定義: ${report.rootEventDefinitions}本\n` +
@@ -235,7 +232,8 @@ function formatMarkdown(report) {
     `- 未発生の起点イベント: ${unseen}\n\n` +
     `## カテゴリ別発生数\n\n` +
     `| カテゴリ | 発生数 |\n| --- | ---: |\n${categoryRows}\n\n` +
-    `このレポートは3週ごとの通常イベント抽選を1シーズン17回として、重み、月条件、クールダウン、直近イベント・カテゴリ抑制、連鎖選択を決定論的に再現しています。選手能力など個別セーブ依存の発火条件は、カタログ全体の偏りを確認するため分布分析では固定しません。\n`;
+    `このレポートは3週ごとの通常イベント抽選を1シーズン17回として、重み、月条件、クールダウン、直近イベント・カテゴリ抑制、連鎖選択を決定論的に再現しています。選手能力など個別セーブ依存の発火条件は、カタログ全体の偏りを確認するため分布分析では固定しません。\n`
+  );
 }
 
 const events = loadEvents();
