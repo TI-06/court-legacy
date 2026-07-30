@@ -107,9 +107,7 @@ describe("event selection", () => {
       isolatedData,
       new SeededRandom(state.seed, state.randomCursor),
     );
-    expect(dueResult.pendingEvent?.eventId).toBe(
-      eventId(followUpOnlyEvent.id),
-    );
+    expect(dueResult.pendingEvent?.eventId).toBe(eventId(followUpOnlyEvent.id));
     expect(dueResult.pendingEvent?.chainId).toBe("follow-up-only-chain");
   });
 });
