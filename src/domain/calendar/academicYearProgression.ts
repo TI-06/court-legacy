@@ -9,6 +9,7 @@ import {
 import type { Grade, Player } from "../model/Player";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
+import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
 export interface AcademicYearTransitionSummary {
@@ -299,6 +300,7 @@ export function advanceAcademicYear(
     ];
   }
 
+  nextState = advanceRivalWorld(nextState, data, random);
   const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,
