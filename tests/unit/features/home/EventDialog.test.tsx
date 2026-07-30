@@ -21,7 +21,9 @@ describe("EventDialog", () => {
     render(<EventDialog data={gameData} onChoose={vi.fn()} state={state} />);
 
     const player = state.players[actor]!;
-    expect(screen.getByText(`${player.lastName} ${player.firstName}`)).toBeVisible();
+    expect(
+      screen.getByText(`${player.lastName} ${player.firstName}`),
+    ).toBeVisible();
     expect(screen.getAllByTestId("player-character")).toHaveLength(1);
   });
 });
