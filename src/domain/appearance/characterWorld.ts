@@ -156,8 +156,17 @@ export function resolveFeaturedCharacter(
     return null;
   }
 
-  const { fullName: _fullName, schoolName: _schoolName, ...visual } = entry;
-  return visual;
+  return {
+    characterId: entry.characterId,
+    jerseyNumber: entry.jerseyNumber,
+    roleLabel: entry.roleLabel,
+    hairColor: entry.hairColor,
+    hairAccent: entry.hairAccent,
+    eyeColor: entry.eyeColor,
+    skinShadow: entry.skinShadow,
+    uniformPattern: entry.uniformPattern,
+    signaturePose: entry.signaturePose,
+  };
 }
 
 export function resolveSchoolVisualTheme(
