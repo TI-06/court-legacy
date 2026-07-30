@@ -13,6 +13,11 @@ import type { PlayerId, SchoolId } from "../model/identifiers";
 import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
+import {
+  applyFeaturedPlayerProfile,
+  FEATURED_SCHOOL_SETUPS,
+  findFeaturedSchoolSetup,
+} from "./featuredWorldCatalog";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
 import { generateSchool } from "./generateSchool";
 
@@ -43,10 +48,12 @@ export interface GenerationalTalentAssignment {
   nextGenerationalTalentYear: number;
 }
 
-const RIVAL_SCHOOLS: ReadonlyArray<{
+interface RivalSchoolDefinition {
   shortName: string;
   fullName: string;
-}> = [
+}
+
+const RIVAL_SCHOOLS: ReadonlyArray<RivalSchoolDefinition> = [
   { shortName: "青凪", fullName: "青凪高校" },
   { shortName: "白峰", fullName: "白峰学園" },
   { shortName: "黒潮", fullName: "黒潮高校" },
@@ -67,6 +74,11 @@ const RIVAL_SCHOOLS: ReadonlyArray<{
   { shortName: "城南", fullName: "城南商業" },
   { shortName: "港西", fullName: "港西高校" },
   { shortName: "瑞穂", fullName: "瑞穂学院" },
+  { shortName: "梟谷", fullName: "梟谷学院" },
+  { shortName: "雷門", fullName: "雷門工業" },
+  { shortName: "月影", fullName: "月影高校" },
+  { shortName: "翔陽", fullName: "翔陽学園" },
+  { shortName: "風早", fullName: "風早商業" },
 ];
 
 const COACH_NAMES = [
@@ -121,13 +133,29 @@ function createEmptyEventMemory(): EventMemory {
 function selectRivalSchools(
   userSchool: UserSchoolSetup,
   random: RandomSource,
-): Array<{ shortName: string; fullName: string }> {
+): RivalSchoolDefinition[] {
+  const featuredRivals = FEATURED_SCHOOL_SETUPS.filter(
+    (candidate) =>
+      candidate.shortName !== userSchool.shortName &&
+      candidate.name !== userSchool.name,
+  ).map((candidate) => ({
+    shortName: candidate.shortName,
+    fullName: candidate.name,
+  }));
+  const featuredNames = new Set(
+    featuredRivals.flatMap((candidate) => [
+      candidate.shortName,
+      candidate.fullName,
+    ]),
+  );
   const candidates = RIVAL_SCHOOLS.filter(
     (candidate) =>
       candidate.shortName !== userSchool.shortName &&
-      candidate.fullName !== userSchool.name,
+      candidate.fullName !== userSchool.name &&
+      !featuredNames.has(candidate.shortName) &&
+      !featuredNames.has(candidate.fullName),
   );
-  const selected: Array<{ shortName: string; fullName: string }> = [];
+  const selected: RivalSchoolDefinition[] = [...featuredRivals];
 
   while (selected.length < 15) {
     const index = random.int(0, candidates.length - 1);
@@ -205,13 +233,18 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     isUserSchool: boolean,
     uniform: UniformColors,
   ): void => {
-    const squad = generateInitialSquad({
+    const generatedSquad = generateInitialSquad({
       schoolId: id,
       academicYear: 1,
       firstPlayerNumber: playerNumber,
       data: input.data,
       random,
     });
+    const featuredSetup = findFeaturedSchoolSetup(setup.name, setup.shortName);
+    const squad = applyFeaturedPlayerProfile(
+      generatedSquad,
+      featuredSetup?.featuredPlayer ?? null,
+    );
     playerNumber += squad.length;
 
     for (const player of squad) {
@@ -243,17 +276,28 @@ export function generateWorld(input: GenerateWorldInput): GameState {
 
   rivalDefinitions.forEach((definition, index) => {
     const id = schoolId(`school-${String(index + 1).padStart(3, "0")}`);
+    const featuredSetup = findFeaturedSchoolSetup(
+      definition.fullName,
+      definition.shortName,
+    );
+    const uniform =
+      featuredSetup?.uniform ??
+      RIVAL_UNIFORMS[index % RIVAL_UNIFORMS.length] ??
+      RIVAL_UNIFORMS[0]!;
     createSchoolAndSquad(
       id,
       {
         name: definition.fullName,
         shortName: definition.shortName,
         regionId: input.userSchool.regionId,
-        coachName: COACH_NAMES[index % COACH_NAMES.length],
-        uniform: RIVAL_UNIFORMS[index % RIVAL_UNIFORMS.length],
+        coachName:
+          featuredSetup?.coachName ??
+          COACH_NAMES[index % COACH_NAMES.length] ??
+          COACH_NAMES[0],
+        uniform,
       },
       false,
-      RIVAL_UNIFORMS[index % RIVAL_UNIFORMS.length],
+      uniform,
     );
   });
 
