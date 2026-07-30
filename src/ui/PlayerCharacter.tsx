@@ -112,9 +112,7 @@ function hairShape(style: HairStyle, color: string): ReactNode {
         />
       );
     case "buzz":
-      return (
-        <path d="M26 18Q28 7 40 7t14 11q-14-6-28 0Z" fill={color} />
-      );
+      return <path d="M26 18Q28 7 40 7t14 11q-14-6-28 0Z" fill={color} />;
     case "curly":
       return (
         <g fill={color}>
@@ -148,10 +146,7 @@ function hairShape(style: HairStyle, color: string): ReactNode {
       );
     case "crew":
       return (
-        <path
-          d="m27 18 2-9 5-2 6-1 7 2 6 4 2 7q-14-6-28-1Z"
-          fill={color}
-        />
+        <path d="m27 18 2-9 5-2 6-1 7 2 6 4 2 7q-14-6-28-1Z" fill={color} />
       );
   }
 }
@@ -231,12 +226,7 @@ function brows(style: BrowStyle, expression: CharacterExpression) {
   const width = style === "bold" ? 2.4 : style === "soft" ? 1.2 : 1.65;
   const worried = expression === "worried" || expression === "pained";
   return (
-    <g
-      fill="none"
-      stroke="#3B2925"
-      strokeLinecap="round"
-      strokeWidth={width}
-    >
+    <g fill="none" stroke="#3B2925" strokeLinecap="round" strokeWidth={width}>
       <path d={worried ? "M30 20 37 22" : "M30 21 37 19.5"} />
       <path d={worried ? "M43 22 50 20" : "M43 19.5 50 21"} />
     </g>
@@ -276,10 +266,7 @@ function accessory(
   switch (style) {
     case "headband":
       return (
-        <path
-          d="M26 16q14-6 28 0l-1 3q-13-5-26 0Z"
-          fill={uniform.accent}
-        />
+        <path d="M26 16q14-6 28 0l-1 3q-13-5-26 0Z" fill={uniform.accent} />
       );
     case "sports-glasses":
       return (
@@ -381,7 +368,8 @@ export function PlayerCharacter({
 }: PlayerCharacterProps) {
   const visual = resolveCharacterVisual(player, school);
   const appearance = visual.appearance;
-  const uniform = school?.uniform ?? uniformOverride ?? DEFAULT_CHARACTER_UNIFORM;
+  const uniform =
+    school?.uniform ?? uniformOverride ?? DEFAULT_CHARACTER_UNIFORM;
   const skinColor = SKIN_COLORS[appearance.skinTone];
   const halfWidth = BODY_HALF_WIDTH[appearance.bodyType];
   const classNames = [
@@ -430,10 +418,7 @@ export function PlayerCharacter({
       ) : null}
       <ellipse cx="40" cy="108" fill="#152832" opacity="0.16" rx="20" ry="4" />
       <g transform={poseTransform(appearance)}>
-        <path
-          d={`M${31 - armLift * 0.3} 73 30 103h7l3-25Z`}
-          fill={skinColor}
-        />
+        <path d={`M${31 - armLift * 0.3} 73 30 103h7l3-25Z`} fill={skinColor} />
         <path
           d={`M${49 + armLift * 0.3} 73 50 103h-7l-3-25Z`}
           fill={skinColor}

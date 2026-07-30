@@ -7,7 +7,9 @@ interface SchoolEmblemProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
   compact?: boolean;
 }
 
-function motifPath(motif: ReturnType<typeof resolveSchoolVisualTheme>["motif"]) {
+function motifPath(
+  motif: ReturnType<typeof resolveSchoolVisualTheme>["motif"],
+) {
   switch (motif) {
     case "wave":
       return (
@@ -54,7 +56,11 @@ export function SchoolEmblem({
     <svg
       {...props}
       aria-hidden="true"
-      className={["ui-school-emblem", compact ? "ui-school-emblem--compact" : "", className]
+      className={[
+        "ui-school-emblem",
+        compact ? "ui-school-emblem--compact" : "",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
       data-school-motif={theme.motif}
