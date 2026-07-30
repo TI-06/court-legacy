@@ -1,8 +1,10 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { resolveCharacterVisual } from "../../domain/appearance/characterWorld";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { PlayerCharacter } from "../../ui/PlayerCharacter";
+import { SchoolEmblem } from "../../ui/SchoolEmblem";
 import "../../ui/ui.css";
 import "./event-dialog.css";
 
@@ -21,11 +23,13 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
   if (!event) {
     return null;
   }
-  const actors = pending.actorPlayerIds.map((playerId) => ({
-    playerId,
-    player: state.players[playerId],
-  }));
-  const school = state.schools[state.userSchoolId];
+  const actors = pending.actorPlayerIds.map((playerId) => {
+    const player = state.players[playerId];
+    const school = player
+      ? state.schools[player.career.schoolId]
+      : undefined;
+    return { playerId, player, school };
+  });
   const recentHistory = [...state.eventMemory.history].slice(-5).reverse();
 
   return (
@@ -38,20 +42,30 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
     >
       <div className="event-dialog-body">
         <div className="event-actors" aria-label="関係する選手">
-          {actors.map(({ playerId, player }) =>
-            player ? (
-              <figure className="event-actor-card" key={playerId}>
+          {actors.map(({ playerId, player, school }) => {
+            if (!player) {
+              return <span key={playerId}>不明な選手</span>;
+            }
+
+            const visual = resolveCharacterVisual(player, school);
+            return (
+              <article className="event-actor-card" key={playerId}>
                 <span className="event-actor-character" aria-hidden="true">
-                  <PlayerCharacter player={player} uniform={school?.uniform} />
+                  <PlayerCharacter player={player} school={school} />
                 </span>
-                <figcaption>
-                  {player.lastName} {player.firstName}
-                </figcaption>
-              </figure>
-            ) : (
-              <span key={playerId}>不明な選手</span>
-            ),
-          )}
+                <div className="event-actor-card__identity">
+                  <span className="event-actor-card__school">
+                    <SchoolEmblem compact school={school} />
+                    {school?.name ?? "所属校不明"}
+                  </span>
+                  <strong>
+                    {player.lastName} {player.firstName}
+                  </strong>
+                  <small>{visual.roleLabel}</small>
+                </div>
+              </article>
+            );
+          })}
         </div>
         <p className="event-story">
           {renderEventText(event.bodyTemplate, state, pending.actorPlayerIds)}
