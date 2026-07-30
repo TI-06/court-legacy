@@ -1,0 +1,22 @@
+name: Temporary Character Inspection
+
+on:
+  push:
+    branches: ["feature/m4-character-assembly"]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect player UI and appearance usage
+        run: |
+          echo '=== FEATURE FILES ==='
+          find src/features src/ui tests -type f | sort
+          echo '=== APPEARANCE REFERENCES ==='
+          grep -R -n "appearanceSeed\|PlayerCard\|player.*avatar\|portrait\|選手詳細\|選手一覧" src tests || true
+          echo '=== APP SCREEN IMPORTS ==='
+          grep -n "features/\|Screen" src/App.tsx | head -n 200
