@@ -1,0 +1,315 @@
+[
+  {
+    "id": "event.exam-warning",
+    "version": 1,
+    "category": "academic",
+    "title": "補習の可能性",
+    "bodyTemplate": "{{player}}の成績が下がり、このままでは練習参加が制限される可能性がある。",
+    "tags": [
+      "academic",
+      "choice"
+    ],
+    "trigger": {
+      "months": [
+        5,
+        7,
+        10,
+        12,
+        2
+      ],
+      "academic": {
+        "max": 55
+      }
+    },
+    "weight": 65,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "study",
+        "label": "学習時間を確保する",
+        "detail": "練習量は減るが、出場停止の危険を抑える。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -5
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習を優先する",
+        "detail": "直近の戦力を維持するが、補習の危険が残る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 1
+          },
+          {
+            "type": "morale-change",
+            "amount": -3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.group-study",
+    "version": 1,
+    "category": "academic",
+    "title": "試験前の勉強会",
+    "bodyTemplate": "試験前、部員同士で勉強会を開く案が出た。",
+    "tags": [
+      "exam",
+      "team"
+    ],
+    "trigger": {
+      "months": [
+        5,
+        7,
+        10,
+        12,
+        2
+      ]
+    },
+    "weight": 62,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "organize",
+        "label": "部として時間を設ける",
+        "detail": "練習時間を削るが、全員の不安を減らす。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 5
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "optional",
+        "label": "自主参加にする",
+        "detail": "練習を維持できるが、成績差は残りやすい。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.teacher-consultation",
+    "version": 1,
+    "category": "academic",
+    "title": "担任からの相談",
+    "bodyTemplate": "担任から、{{player}}が授業中に疲れていると連絡があった。",
+    "tags": [
+      "teacher",
+      "balance"
+    ],
+    "trigger": {
+      "fatigue": {
+        "min": 65
+      }
+    },
+    "weight": 55,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "reduce",
+        "label": "練習負荷を下げる",
+        "detail": "競技成長を少し譲り、学校生活を立て直す。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -8
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "monitor",
+        "label": "本人と目標を決めて継続する",
+        "detail": "練習を保つ代わりに、改善責任を本人へ求める。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.career-counseling",
+    "version": 1,
+    "category": "academic",
+    "title": "進路面談",
+    "bodyTemplate": "三年生の{{player}}が、競技を続けるか学業へ集中するか迷っている。",
+    "tags": [
+      "career",
+      "grade3"
+    ],
+    "trigger": {
+      "minGrade": 3,
+      "maxGrade": 3,
+      "months": [
+        9,
+        10,
+        11,
+        12,
+        1
+      ]
+    },
+    "weight": 52,
+    "cooldownWeeks": 40,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "sport",
+        "label": "競技継続の道を一緒に探す",
+        "detail": "競技意欲は高まるが、進路準備の時間は減る。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 5
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "study",
+        "label": "学業優先を支持する",
+        "detail": "安心感は増すが、部活動への熱量は下がる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -4
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.school-festival-duty",
+    "version": 1,
+    "category": "academic",
+    "title": "文化祭の係",
+    "bodyTemplate": "部員の多くが文化祭準備を担当し、練習時間との両立が難しくなった。",
+    "tags": [
+      "festival",
+      "school"
+    ],
+    "trigger": {
+      "months": [
+        9,
+        10
+      ]
+    },
+    "weight": 68,
+    "cooldownWeeks": 45,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "participate",
+        "label": "学校行事を優先する",
+        "detail": "地域と学校内の評判は上がるが、練習量は減る。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 4
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "最低限の担当に留める",
+        "detail": "競技準備を優先するが、周囲から反発を受ける。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -3
+          }
+        ]
+      }
+    ]
+  }
+]
