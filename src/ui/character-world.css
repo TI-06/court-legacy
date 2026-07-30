@@ -1,0 +1,32 @@
+.ui-player-character--portrait {
+  width: min(100%, 240px);
+  height: auto;
+  aspect-ratio: 8 / 9;
+}
+
+.ui-player-character--featured {
+  filter: drop-shadow(0 5px 6px rgb(20 45 58 / 24%));
+}
+
+.ui-school-emblem {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+}
+
+.ui-school-emblem--compact {
+  width: 24px;
+  height: 24px;
+}
+
+.ui-player-tile__number {
+  color: #41606d !important;
+  font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .ui-player-character--portrait {
+    width: min(100%, 190px);
+  }
+}
