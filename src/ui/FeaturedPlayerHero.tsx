@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   resolveCharacterVisual,
   resolveFeaturedCharacter,
@@ -57,19 +58,18 @@ export function FeaturedPlayerHero({
   const visual = resolveCharacterVisual(player, school);
   const featured = resolveFeaturedCharacter(player, school);
   const abilities = highlightedAbilities(player);
+  const style = {
+    "--featured-primary": visual.theme.primary,
+    "--featured-secondary": visual.theme.secondary,
+    "--featured-accent": visual.theme.accent,
+    "--featured-glow": visual.theme.glow,
+  } as CSSProperties;
 
   return (
     <section
       aria-label="チームフェイス"
       className="featured-player-hero"
-      style={
-        {
-          "--featured-primary": visual.theme.primary,
-          "--featured-secondary": visual.theme.secondary,
-          "--featured-accent": visual.theme.accent,
-          "--featured-glow": visual.theme.glow,
-        } as React.CSSProperties
-      }
+      style={style}
     >
       <div className="featured-player-hero__art">
         <PlayerCharacter player={player} school={school} variant="portrait" />
