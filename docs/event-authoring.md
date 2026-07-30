@@ -65,4 +65,4 @@ npm run verify
 npm run test:e2e
 ```
 
-`eventCatalog.test.ts` は件数、カテゴリ網羅、連鎖参照、選択肢のトレードオフを検証します。`eventCatalogSimulation.test.ts` は100年間の決定論的シミュレーションで、イベント枯渇と発生頻度を検証します。
+`eventCatalog.test.ts` は件数、カテゴリ網羅、連鎖参照、選択肢のトレードオフを検証します。`eventCatalogSimulation.test.ts` は100年間の決定論的シミュレーションで、イベント枯渇と発生頻度を検証します。カタログ件数を変更する場合は、両テストと本ガイドの件数も同じコミットで更新します。
