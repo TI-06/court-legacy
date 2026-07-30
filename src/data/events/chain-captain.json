@@ -1,0 +1,126 @@
+[
+  {
+    "id": "event.captain-confidence-crack",
+    "version": 1,
+    "category": "captaincy",
+    "title": "主将の自信の揺らぎ",
+    "bodyTemplate": "連敗が続き、主将の{{player}}が自分の声掛けに迷い始めている。",
+    "tags": ["captain", "confidence", "chain"],
+    "trigger": { "morale": { "max": 58 }, "recentMatchResult": "loss" },
+    "weight": 70,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "support",
+        "label": "監督が責任を分け合う",
+        "detail": "安心感を与えるが、主将の自立には時間がかかる。",
+        "effects": [
+          { "type": "trust-change", "amount": 6 },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "ability-change", "ability": "mental", "amount": -1 }
+        ],
+        "followUp": {
+          "eventId": "event.captain-small-success",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      },
+      {
+        "id": "challenge",
+        "label": "小さな判断を任せ続ける",
+        "detail": "負担は増えるが、自力で立て直す機会を作る。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "fatigue-change", "amount": 3 },
+          { "type": "morale-change", "amount": -2 }
+        ],
+        "followUp": {
+          "eventId": "event.captain-small-success",
+          "afterWeeks": 3,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.captain-small-success",
+    "version": 1,
+    "category": "captaincy",
+    "title": "主将の小さな成功",
+    "bodyTemplate": "練習中、{{player}}の一声で崩れかけた隊形が立て直された。",
+    "tags": ["captain", "confidence", "chain"],
+    "trigger": {},
+    "weight": 7,
+    "cooldownWeeks": 70,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "praise",
+        "label": "全員の前で評価する",
+        "detail": "自信は戻るが、周囲に特別扱いと映る可能性がある。",
+        "effects": [
+          { "type": "morale-change", "amount": 5 },
+          { "type": "trust-change", "amount": 4 },
+          { "type": "reputation-change", "amount": -1 }
+        ],
+        "followUp": {
+          "eventId": "event.captain-leadership-choice",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      },
+      {
+        "id": "reflect",
+        "label": "本人と静かに振り返る",
+        "detail": "再現性を高めるが、チーム全体への波及は小さい。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "trust-change", "amount": 3 }
+        ],
+        "followUp": {
+          "eventId": "event.captain-leadership-choice",
+          "afterWeeks": 4,
+          "probability": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "event.captain-leadership-choice",
+    "version": 1,
+    "category": "captaincy",
+    "title": "主将としての型",
+    "bodyTemplate": "{{player}}が、自分は声で引っ張るべきか、プレーで示すべきか相談してきた。",
+    "tags": ["captain", "confidence", "chain"],
+    "trigger": {},
+    "weight": 5,
+    "cooldownWeeks": 100,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "voice",
+        "label": "言葉で全員を動かす型を選ぶ",
+        "detail": "連携と信頼を伸ばすが、本人の負担は増える。",
+        "effects": [
+          { "type": "reputation-change", "amount": 7 },
+          { "type": "trust-change", "amount": 5 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "play",
+        "label": "プレーで基準を示す型を選ぶ",
+        "detail": "競技力を伸ばすが、対話不足が残る。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 3 },
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "reputation-change", "amount": -2 }
+        ]
+      }
+    ]
+  }
+]

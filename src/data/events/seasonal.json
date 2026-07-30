@@ -1,0 +1,106 @@
+[
+  {
+    "id": "event.rainy-season-laundry",
+    "version": 1,
+    "category": "seasonal",
+    "title": "梅雨の洗濯問題",
+    "bodyTemplate": "雨が続き、ユニフォームとタオルの乾燥が追いつかない。",
+    "tags": ["rain", "daily-life"],
+    "trigger": { "months": [6, 7] },
+    "weight": 65,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "service",
+        "label": "コインランドリーを利用する",
+        "detail": "衛生と練習環境を守るが、費用がかかる。",
+        "effects": [
+          { "type": "funds-change", "amount": -4000 },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "reputation-change", "amount": 1 }
+        ]
+      },
+      {
+        "id": "rotate",
+        "label": "練習着を交代で使う",
+        "detail": "費用は抑えられるが、練習の快適さが落ちる。",
+        "effects": [
+          { "type": "funds-change", "amount": 1000 },
+          { "type": "morale-change", "amount": -2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.summer-heat",
+    "version": 1,
+    "category": "seasonal",
+    "title": "猛暑の体育館",
+    "bodyTemplate": "体育館の温度が上がり、通常メニューでは体調不良の危険がある。",
+    "tags": ["summer", "heat"],
+    "trigger": { "months": [7, 8] },
+    "weight": 82,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "shorten",
+        "label": "練習時間を短縮する",
+        "detail": "成長量を抑え、健康を守る。",
+        "effects": [
+          { "type": "fatigue-change", "amount": -8 },
+          { "type": "ability-change", "ability": "stamina", "amount": -1 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "cooling",
+        "label": "冷却用品を購入する",
+        "detail": "練習を維持できるが、資金を使う。",
+        "effects": [
+          { "type": "funds-change", "amount": -8000 },
+          { "type": "ability-change", "ability": "stamina", "amount": 2 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.winter-floor",
+    "version": 1,
+    "category": "seasonal",
+    "title": "冬の冷えた床",
+    "bodyTemplate": "冬場の体育館で身体が温まらず、序盤の動きが重い。",
+    "tags": ["winter", "facility"],
+    "trigger": { "months": [12, 1, 2] },
+    "weight": 70,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "warmup",
+        "label": "準備運動を長くする",
+        "detail": "怪我を防ぐが、技術練習の時間が減る。",
+        "effects": [
+          { "type": "fatigue-change", "amount": -3 },
+          { "type": "ability-change", "ability": "stamina", "amount": 1 },
+          { "type": "ability-change", "ability": "serve", "amount": -1 }
+        ]
+      },
+      {
+        "id": "heater",
+        "label": "暖房設備を追加利用する",
+        "detail": "練習効率を保つが、費用が増える。",
+        "effects": [
+          { "type": "funds-change", "amount": -6000 },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "reputation-change", "amount": 1 }
+        ]
+      }
+    ]
+  }
+]

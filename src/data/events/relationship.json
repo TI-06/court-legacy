@@ -1,0 +1,436 @@
+[
+  {
+    "id": "event.roommate-tension",
+    "version": 1,
+    "category": "relationship",
+    "title": "寮部屋の温度差",
+    "bodyTemplate": "生活リズムの違う{{player}}と{{player2}}の間に、小さな不満が積み重なっている。",
+    "tags": ["dormitory", "relationship"],
+    "trigger": {
+      "relationship": {
+        "max": 55
+      }
+    },
+    "weight": 72,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "mediate",
+        "label": "ルールを一緒に決める",
+        "detail": "互いの事情を言葉にし、妥協点を作る。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 8
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "separate",
+        "label": "一時的に距離を置かせる",
+        "detail": "衝突は避けられるが、関係改善の機会は失う。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 3
+          },
+          {
+            "type": "relationship-change",
+            "amount": -3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.position-rivalry",
+    "version": 1,
+    "category": "relationship",
+    "title": "同ポジションの火花",
+    "bodyTemplate": "先発を争う{{player}}と{{player2}}の競争が、練習の緊張感を高めている。",
+    "tags": ["competition", "position"],
+    "trigger": {},
+    "weight": 80,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "competition",
+        "label": "数字で競わせる",
+        "detail": "成長は加速するが、助け合いは減る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          },
+          {
+            "type": "relationship-change",
+            "amount": -5
+          }
+        ]
+      },
+      {
+        "id": "pair",
+        "label": "ペア練習を組む",
+        "detail": "互いの長所を学ばせ、競争を協力へ変える。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 7
+          },
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 1
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.first-year-wall",
+    "version": 1,
+    "category": "relationship",
+    "title": "一年生の壁",
+    "bodyTemplate": "一年生の{{player}}が上級生の強度についていけず、練習後に落ち込んでいる。",
+    "tags": ["grade1", "adaptation"],
+    "trigger": {
+      "minGrade": 1,
+      "maxGrade": 1
+    },
+    "weight": 78,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "buddy",
+        "label": "上級生を相談役につける",
+        "detail": "関係づくりを優先し、適応を助ける。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 8
+          },
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "id": "adapt",
+        "label": "本人に乗り越えさせる",
+        "detail": "自立を促すが、孤立する危険がある。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 3
+          },
+          {
+            "type": "morale-change",
+            "amount": -3
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.senior-junior-serve",
+    "version": 1,
+    "category": "relationship",
+    "title": "先輩のサーブ指導",
+    "bodyTemplate": "{{player}}が{{player2}}へ自主的にサーブを教え始めた。",
+    "tags": ["mentor", "serve"],
+    "trigger": {},
+    "weight": 62,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "encourage",
+        "label": "継続を後押しする",
+        "detail": "教える側にも学びが生まれるが、疲労は増える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": 6
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "limit",
+        "label": "練習量を管理する",
+        "detail": "負荷を抑える代わりに、関係の深まりは緩やかになる。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          },
+          {
+            "type": "relationship-change",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.misread-joke",
+    "version": 1,
+    "category": "relationship",
+    "title": "冗談のすれ違い",
+    "bodyTemplate": "何気ない冗談をきっかけに、{{player}}と{{player2}}の会話が減っている。",
+    "tags": ["communication", "team"],
+    "trigger": {
+      "relationship": {
+        "max": 60
+      }
+    },
+    "weight": 65,
+    "cooldownWeeks": 12,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "talk",
+        "label": "その日のうちに話し合わせる",
+        "detail": "気まずさに向き合わせ、誤解を解く。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 7
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "wait",
+        "label": "自然に戻るのを待つ",
+        "detail": "大事にしない代わりに、わだかまりが残る可能性がある。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.shared-video-review",
+    "version": 1,
+    "category": "relationship",
+    "title": "二人だけの映像研究",
+    "bodyTemplate": "{{player}}と{{player2}}が対戦映像を見ながら、互いの動きを細かく確認している。",
+    "tags": ["analysis", "pair"],
+    "trigger": {},
+    "weight": 55,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "formalize",
+        "label": "分析ペアとして任せる",
+        "detail": "判断力と連携を伸ばすが、練習外の負担が増える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": 5
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "spread",
+        "label": "内容を全体へ共有させる",
+        "detail": "チームの財産にする代わりに、二人の特別感は薄れる。",
+        "effects": [
+          {
+            "type": "reputation-change",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.bench-encouragement",
+    "version": 1,
+    "category": "relationship",
+    "title": "ベンチからの一声",
+    "bodyTemplate": "苦しい練習中、控えの{{player}}が主力の{{player2}}へ声を掛け続けている。",
+    "tags": ["bench", "voice"],
+    "trigger": {},
+    "weight": 66,
+    "cooldownWeeks": 15,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "recognize",
+        "label": "全員の前で称える",
+        "detail": "ベンチの価値を明確にし、結束を高める。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 6
+          },
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "reputation-change",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "id": "quiet",
+        "label": "本人へだけ感謝を伝える",
+        "detail": "過度な注目を避けるが、チーム全体への波及は小さい。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 5
+          },
+          {
+            "type": "relationship-change",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.group-split",
+    "version": 1,
+    "category": "relationship",
+    "title": "練習班の分断",
+    "bodyTemplate": "練習班ごとに空気が固まり、班を越えた会話が減っている。",
+    "tags": ["group", "teamwork"],
+    "trigger": {},
+    "weight": 58,
+    "cooldownWeeks": 22,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "rotate",
+        "label": "班を毎週入れ替える",
+        "detail": "連携の幅を広げるが、当面は練習効率が下がる。",
+        "effects": [
+          {
+            "type": "relationship-change",
+            "amount": 7
+          },
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": -1
+          },
+          {
+            "type": "morale-change",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "id": "preserve",
+        "label": "相性の良い班を維持する",
+        "detail": "完成度を優先する代わりに、チーム全体の一体感は弱まる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": -3
+          }
+        ]
+      }
+    ]
+  }
+]

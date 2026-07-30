@@ -1,0 +1,174 @@
+[
+  {
+    "id": "event.captain-discipline",
+    "version": 1,
+    "category": "captaincy",
+    "title": "遅刻への対応",
+    "bodyTemplate": "主力選手の遅刻に対し、主将が厳しい処分を求めている。",
+    "tags": ["captain", "discipline"],
+    "trigger": {},
+    "weight": 66,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "back",
+        "label": "主将の判断を支持する",
+        "detail": "規律は強まるが、対象選手との溝が広がる。",
+        "effects": [
+          { "type": "trust-change", "amount": 4 },
+          { "type": "relationship-change", "amount": -4 },
+          { "type": "morale-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "mediate",
+        "label": "監督が間に入る",
+        "detail": "対立を抑えるが、主将の権限は弱く見える。",
+        "effects": [
+          { "type": "relationship-change", "amount": 5 },
+          { "type": "trust-change", "amount": -2 },
+          { "type": "morale-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.captain-tactics",
+    "version": 1,
+    "category": "captaincy",
+    "title": "主将からの戦術提案",
+    "bodyTemplate": "主将が、自分たちで考えた守備配置を次の試合で試したいと提案した。",
+    "tags": ["captain", "tactics"],
+    "trigger": {},
+    "weight": 58,
+    "cooldownWeeks": 22,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "adopt",
+        "label": "一部を採用する",
+        "detail": "主体性を高めるが、完成度には不安が残る。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 3 },
+          { "type": "trust-change", "amount": 4 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      },
+      {
+        "id": "reject",
+        "label": "監督案を優先する",
+        "detail": "戦術の統一を守る代わりに、主将の自信を削る。",
+        "effects": [
+          { "type": "ability-change", "ability": "receive", "amount": 2 },
+          { "type": "trust-change", "amount": -3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.vice-captain-role",
+    "version": 1,
+    "category": "captaincy",
+    "title": "副主将の役割",
+    "bodyTemplate": "主将への負担が集中し、副主将が動き方を迷っている。",
+    "tags": ["vice-captain", "leadership"],
+    "trigger": {},
+    "weight": 54,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "delegate",
+        "label": "練習運営を分担する",
+        "detail": "主将を支え、次世代のリーダーを育てる。",
+        "effects": [
+          { "type": "relationship-change", "amount": 6 },
+          { "type": "trust-change", "amount": 3 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "centralize",
+        "label": "主将へ情報を集める",
+        "detail": "判断は速くなるが、依存が強まる。",
+        "effects": [
+          { "type": "ability-change", "ability": "decision", "amount": 2 },
+          { "type": "relationship-change", "amount": -2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.captain-bench",
+    "version": 1,
+    "category": "captaincy",
+    "title": "主将をベンチへ置く判断",
+    "bodyTemplate": "主将の調子が落ちているが、試合中の声はチームに欠かせない。",
+    "tags": ["captain", "lineup"],
+    "trigger": { "morale": { "max": 60 } },
+    "weight": 48,
+    "cooldownWeeks": 26,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "bench",
+        "label": "役割を説明して控えに回す",
+        "detail": "戦力を優先するが、本人の誇りを傷つける。",
+        "effects": [
+          { "type": "morale-change", "amount": -4 },
+          { "type": "trust-change", "amount": 2 },
+          { "type": "ability-change", "ability": "mental", "amount": 1 }
+        ]
+      },
+      {
+        "id": "start",
+        "label": "先発で立て直しを待つ",
+        "detail": "信頼を示す代わりに、試合の不安定さを受け入れる。",
+        "effects": [
+          { "type": "morale-change", "amount": 4 },
+          { "type": "fatigue-change", "amount": 4 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.captain-successor",
+    "version": 1,
+    "category": "captaincy",
+    "title": "次期主将候補",
+    "bodyTemplate": "二年生の中で、次の主将候補を意識させる時期になった。",
+    "tags": ["succession", "grade2"],
+    "trigger": { "minGrade": 2, "maxGrade": 2, "months": [10, 11, 12, 1, 2] },
+    "weight": 52,
+    "cooldownWeeks": 40,
+    "oncePerCareer": true,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "name",
+        "label": "候補を明確に伝える",
+        "detail": "準備は進むが、周囲との競争が生まれる。",
+        "effects": [
+          { "type": "ability-change", "ability": "mental", "amount": 2 },
+          { "type": "trust-change", "amount": 4 },
+          { "type": "relationship-change", "amount": -3 }
+        ]
+      },
+      {
+        "id": "observe",
+        "label": "役割を回して見極める",
+        "detail": "公平感は保てるが、覚悟が育つまで時間がかかる。",
+        "effects": [
+          { "type": "relationship-change", "amount": 4 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      }
+    ]
+  }
+]

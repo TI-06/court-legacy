@@ -92,10 +92,28 @@ function pruneInvalidDueFollowUps(
   });
 }
 
+function collectFollowUpOnlyEventIds(data: GameDataRegistry): Set<string> {
+  const followUpOnlyIds = new Set<string>();
+  for (const event of data.events.values()) {
+    for (const choice of event.choices) {
+      if (choice.followUp) {
+        followUpOnlyIds.add(choice.followUp.eventId);
+      }
+      for (const effect of choice.effects) {
+        if (effect.type === "schedule-event") {
+          followUpOnlyIds.add(effect.eventId);
+        }
+      }
+    }
+  }
+  return followUpOnlyIds;
+}
+
 function normalCandidates(
   state: GameState,
   data: GameDataRegistry,
   avoidRecentActors: boolean,
+  followUpOnlyIds: ReadonlySet<string>,
 ): EventCandidate[] {
   const school = state.schools[state.userSchoolId];
   if (!school) {
@@ -106,6 +124,9 @@ function normalCandidates(
   const candidates: EventCandidate[] = [];
 
   for (const event of data.events.values()) {
+    if (followUpOnlyIds.has(event.id)) {
+      continue;
+    }
     for (const actorPlayerIds of combinations(playerIds, event.actorCount)) {
       const primaryActor = actorPlayerIds[0];
       if (avoidRecentActors && primaryActor && recentActors.has(primaryActor)) {
@@ -167,9 +188,10 @@ export function selectNextEvent(
     return { state: nextState, pendingEvent };
   }
 
-  let candidates = normalCandidates(state, data, true);
+  const followUpOnlyIds = collectFollowUpOnlyEventIds(data);
+  let candidates = normalCandidates(state, data, true, followUpOnlyIds);
   if (candidates.length === 0) {
-    candidates = normalCandidates(state, data, false);
+    candidates = normalCandidates(state, data, false, followUpOnlyIds);
   }
   if (candidates.length === 0) {
     return {

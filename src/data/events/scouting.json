@@ -1,0 +1,176 @@
+[
+  {
+    "id": "event.local-talent",
+    "version": 1,
+    "category": "scouting",
+    "title": "地元中学の有望選手",
+    "bodyTemplate": "地元中学に将来性の高い選手がいると、顧問から情報が入った。",
+    "tags": ["recruitment", "local"],
+    "trigger": { "schoolFundsMin": 7000 },
+    "weight": 62,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "visit",
+        "label": "練習を見に行く",
+        "detail": "関係を作れるが、遠征費と時間が必要になる。",
+        "effects": [
+          { "type": "reputation-change", "amount": 4 },
+          { "type": "funds-change", "amount": -6000 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "wait",
+        "label": "大会結果を待つ",
+        "detail": "費用は抑えられるが、他校に先を越される可能性がある。",
+        "effects": [
+          { "type": "funds-change", "amount": 1000 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.scout-network",
+    "version": 1,
+    "category": "scouting",
+    "title": "スカウト網の拡大",
+    "bodyTemplate": "OBから、県外の大会も継続して視察する仕組みを提案された。",
+    "tags": ["network", "facility"],
+    "trigger": { "schoolFundsMin": 30000 },
+    "weight": 40,
+    "cooldownWeeks": 52,
+    "oncePerCareer": true,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "invest",
+        "label": "交通費を予算化する",
+        "detail": "将来の獲得力と評判を高めるが、資金を使う。",
+        "effects": [
+          {
+            "type": "facility-change",
+            "facility": "scoutingNetwork",
+            "amount": 1
+          },
+          { "type": "funds-change", "amount": -25000 },
+          { "type": "reputation-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "local",
+        "label": "地元密着を続ける",
+        "detail": "費用を抑え、地域との関係を深める。",
+        "effects": [
+          { "type": "reputation-change", "amount": 2 },
+          { "type": "funds-change", "amount": 3000 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.open-practice",
+    "version": 1,
+    "category": "scouting",
+    "title": "中学生向け公開練習",
+    "bodyTemplate": "学校から、部活動体験会で練習を公開してほしいと依頼された。",
+    "tags": ["open-practice", "school"],
+    "trigger": { "months": [7, 8, 9] },
+    "weight": 60,
+    "cooldownWeeks": 35,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "host",
+        "label": "体験メニューを用意する",
+        "detail": "評判と将来の勧誘機会を得るが、通常練習を削る。",
+        "effects": [
+          { "type": "reputation-change", "amount": 6 },
+          { "type": "funds-change", "amount": -3000 },
+          { "type": "ability-change", "ability": "receive", "amount": -1 }
+        ]
+      },
+      {
+        "id": "observe",
+        "label": "見学だけ受け入れる",
+        "detail": "負担は小さいが、印象に残りにくい。",
+        "effects": [
+          { "type": "reputation-change", "amount": 2 },
+          { "type": "trust-change", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.recruit-height",
+    "version": 1,
+    "category": "scouting",
+    "title": "高さか完成度か",
+    "bodyTemplate": "新入生候補に、未完成だが長身の選手と、完成度の高い小柄な選手がいる。",
+    "tags": ["recruit", "choice"],
+    "trigger": { "months": [10, 11, 12, 1] },
+    "weight": 55,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "height",
+        "label": "将来性を優先する",
+        "detail": "育成負担を受け入れ、高さのあるチームを目指す。",
+        "effects": [
+          { "type": "reputation-change", "amount": 2 },
+          { "type": "funds-change", "amount": -4000 },
+          { "type": "ability-change", "ability": "block", "amount": 1 }
+        ]
+      },
+      {
+        "id": "skill",
+        "label": "即戦力を優先する",
+        "detail": "早く戦力化できるが、長期的な上限は低い。",
+        "effects": [
+          { "type": "ability-change", "ability": "receive", "amount": 2 },
+          { "type": "reputation-change", "amount": -1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.scouting-conflict",
+    "version": 1,
+    "category": "scouting",
+    "title": "他校との視察競合",
+    "bodyTemplate": "同じ有望選手を宿敵校も追っていることが分かった。",
+    "tags": ["rival", "recruit"],
+    "trigger": { "schoolReputationMin": 40 },
+    "weight": 45,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "direct",
+        "label": "早めに学校方針を伝える",
+        "detail": "熱意は示せるが、過度な競争と見られる危険がある。",
+        "effects": [
+          { "type": "reputation-change", "amount": 3 },
+          { "type": "funds-change", "amount": -5000 },
+          { "type": "morale-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "patient",
+        "label": "本人の判断を尊重する",
+        "detail": "評判を守る代わりに、獲得機会を失う可能性がある。",
+        "effects": [
+          { "type": "reputation-change", "amount": 2 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      }
+    ]
+  }
+]
