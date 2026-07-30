@@ -1,19 +1,40 @@
 import { expect, test } from "@playwright/test";
-import { createDemoGame } from "../../src/app/createDemoGame";
+import type { GameState } from "../../src/domain/model/GameState";
+
+async function readDownloadText(
+  download: import("@playwright/test").Download,
+): Promise<string> {
+  const stream = await download.createReadStream();
+  if (!stream) {
+    throw new Error("エクスポートファイルを読み取れません");
+  }
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
 
 test("crossing April graduates seniors and opens the new-year summary", async ({
   page,
 }) => {
-  const state = createDemoGame();
+  await page.goto("/");
+  await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
+  const saveSheet = page.getByRole("dialog", { name: "セーブ・ロード" });
+
+  const downloadPromise = page.waitForEvent("download");
+  await saveSheet
+    .getByRole("button", { name: "現在のデータをエクスポート" })
+    .click();
+  const state = JSON.parse(
+    await readDownloadText(await downloadPromise),
+  ) as GameState;
   state.date = "2027-03-31";
   state.calendar.currentDate = state.date;
   state.calendar.weekOfYear = 52;
   state.calendar.completedActivityIds = ["week:2027-03-31:training"];
   state.world.nextGenerationalTalentYear = 2;
 
-  await page.goto("/");
-  await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
-  const saveSheet = page.getByRole("dialog", { name: "セーブ・ロード" });
   await saveSheet.getByLabel("JSONファイルをインポート").setInputFiles({
     name: "academic-year.json",
     mimeType: "application/json",
