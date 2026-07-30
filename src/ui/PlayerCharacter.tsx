@@ -16,7 +16,7 @@ import {
 import type { Player } from "../domain/model/Player";
 import type { UniformColors } from "../domain/model/School";
 
-export const DEFAULT_CHARACTER_UNIFORM: UniformColors = {
+const DEFAULT_CHARACTER_UNIFORM: UniformColors = {
   primary: "#1a5364",
   secondary: "#f4f7f8",
   accent: "#d89a2b",
@@ -287,7 +287,7 @@ function accessory(
         <g fill="none" stroke={uniform.secondary} strokeWidth="1.8">
           <rect height="7" rx="3" width="12" x="28" y="22" />
           <rect height="7" rx="3" width="12" x="40" y="22" />
-          <path d="M40 25H40" />
+          <path d="M39 25H41" />
         </g>
       );
     case "ear-tape":
