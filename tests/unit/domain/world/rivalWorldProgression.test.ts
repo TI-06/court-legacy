@@ -8,6 +8,7 @@ import {
   MAX_MATCH_HISTORY,
   advanceRivalWorld,
   recordMatchOutcome,
+  recordScoutingConflict,
   rivalryKey,
 } from "../../../../src/domain/world/rivalWorldProgression";
 
@@ -83,6 +84,52 @@ describe("rival world progression", () => {
     expect(state.world.destinyRivalSchoolId).toBe(rival.id);
     expect(state.schools[user.id]!.history.officialWins).toBe(1);
     expect(state.schools[rival.id]!.history.officialLosses).toBe(1);
+  });
+
+  it("adds scouting conflicts to rivalry and can create a destiny rival", () => {
+    let state = createDemoGame();
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+
+    for (let conflict = 0; conflict < 5; conflict += 1) {
+      state = recordScoutingConflict(state, rival.id, 12);
+    }
+
+    expect(
+      state.world.rivalryScores[rivalryKey(state.userSchoolId, rival.id)],
+    ).toBe(60);
+    expect(state.world.destinyRivalSchoolId).toBe(rival.id);
+  });
+
+  it("does not count the same match twice", () => {
+    let state = createDemoGame();
+    const user = state.schools[state.userSchoolId]!;
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    const summary: HistoricalMatchSummary = {
+      matchId: matchId("idempotent-final"),
+      date: "2026-08-01",
+      homeSchoolId: user.id,
+      awaySchoolId: rival.id,
+      winnerSchoolId: user.id,
+      homeSetsWon: 2,
+      awaySetsWon: 1,
+      tournamentId: "prefectural-final",
+    };
+
+    state = recordMatchOutcome(state, summary);
+    const rivalryAfterFirst =
+      state.world.rivalryScores[rivalryKey(user.id, rival.id)];
+    state = recordMatchOutcome(state, summary);
+
+    expect(state.history.matches).toHaveLength(1);
+    expect(state.schools[user.id]!.history.officialWins).toBe(1);
+    expect(state.schools[rival.id]!.history.officialLosses).toBe(1);
+    expect(state.world.rivalryScores[rivalryKey(user.id, rival.id)]).toBe(
+      rivalryAfterFirst,
+    );
   });
 
   it("keeps match history bounded while retaining the newest result", () => {
