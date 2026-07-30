@@ -5,6 +5,7 @@ import {
   matchId,
   type GameDate,
 } from "../../../../src/domain/model/identifiers";
+import { rivalryKey } from "../../../../src/domain/world/rivalWorldProgression";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 
 function createState() {
@@ -62,6 +63,20 @@ describe("school management screen", () => {
       screen.getByRole("button", { name: "トレーニング設備は資金不足" }),
     ).toBeDisabled();
     expect(screen.getByText("あと60必要")).toBeVisible();
+  });
+
+  it("shows the destiny rival and current rivalry score", () => {
+    const state = createState();
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    state.world.destinyRivalSchoolId = rival.id;
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, rival.id)] = 73;
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    expect(screen.getByText("宿命校")).toBeVisible();
+    expect(screen.getByText(`${rival.name}・因縁 73`)).toBeVisible();
   });
 
   it("shows the five most recent school matches in date order", () => {
