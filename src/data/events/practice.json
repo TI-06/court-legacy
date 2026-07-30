@@ -1,0 +1,567 @@
+[
+  {
+    "id": "event.receive-breakthrough",
+    "version": 1,
+    "category": "practice",
+    "title": "守備連携の発見",
+    "bodyTemplate": "レシーブ隊形を変えたことで、選手同士の守備範囲が整理された。",
+    "tags": [
+      "receive",
+      "teamwork"
+    ],
+    "trigger": {},
+    "weight": 80,
+    "cooldownWeeks": 12,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "fix",
+        "label": "新しい隊形を定着させる",
+        "detail": "守備の安定を優先して反復する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "experiment",
+        "label": "別の配置も試す",
+        "detail": "完成は遅れるが戦術の幅を増やす。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.quick-tempo",
+    "version": 1,
+    "category": "practice",
+    "title": "速攻テンポの刷新",
+    "bodyTemplate": "セッターとミドルの助走が噛み合い、より速い攻撃を試せそうだ。",
+    "tags": [
+      "quick",
+      "tempo"
+    ],
+    "trigger": {},
+    "weight": 72,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "accelerate",
+        "label": "新テンポへ切り替える",
+        "detail": "決まれば武器になるが、ミスも増える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "set",
+            "amount": 2
+          },
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "retain",
+        "label": "現行テンポを磨く",
+        "detail": "安定を優先し、今の成功率を高める。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.block-system-choice",
+    "version": 1,
+    "category": "practice",
+    "title": "ブロックシステムの選択",
+    "bodyTemplate": "相手の速い攻撃に対し、リードブロックかコミットかで意見が分かれた。",
+    "tags": [
+      "block",
+      "system"
+    ],
+    "trigger": {},
+    "weight": 70,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "read",
+        "label": "相手を見て反応する",
+        "detail": "対応範囲は広いが、判断負荷が高い。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "ability-change",
+            "ability": "block",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "commit",
+        "label": "狙いを絞って跳ぶ",
+        "detail": "速攻を止めやすいが、サイドが手薄になる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "block",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": -1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.serve-target-map",
+    "version": 1,
+    "category": "practice",
+    "title": "サーブ狙いの地図",
+    "bodyTemplate": "分析担当が、相手レセプションの弱点をコース別に整理した。",
+    "tags": [
+      "serve",
+      "analysis"
+    ],
+    "trigger": {
+      "schoolReputationMin": 30
+    },
+    "weight": 65,
+    "cooldownWeeks": 15,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "target",
+        "label": "弱点を徹底して狙う",
+        "detail": "得点機会を増やすが、コースが読まれやすくなる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 3
+          },
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "disperse",
+        "label": "全コースを使う",
+        "detail": "相手に的を絞らせず、安定性を優先する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.conditioning-overhaul",
+    "version": 1,
+    "category": "practice",
+    "title": "体力づくりの見直し",
+    "bodyTemplate": "終盤の失速を減らすため、走り込み中心の期間を設ける案が出た。",
+    "tags": [
+      "stamina",
+      "conditioning"
+    ],
+    "trigger": {},
+    "weight": 74,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "load",
+        "label": "高負荷期間を設ける",
+        "detail": "持久力を伸ばす代わりに、直近の疲労を受け入れる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 8
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      },
+      {
+        "id": "balance",
+        "label": "技術練習と分散する",
+        "detail": "成長幅は小さいが、コンディションを保つ。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.scrimmage-rules",
+    "version": 1,
+    "category": "practice",
+    "title": "紅白戦の特殊ルール",
+    "bodyTemplate": "練習の目的を明確にするため、得点条件を限定した紅白戦を試せる。",
+    "tags": [
+      "scrimmage",
+      "rules"
+    ],
+    "trigger": {},
+    "weight": 69,
+    "cooldownWeeks": 13,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "defense",
+        "label": "守備からの得点だけを数える",
+        "detail": "ラリー耐性を鍛えるが、攻撃練習は減る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 1
+          },
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "serve",
+        "label": "サーブ得点を重くする",
+        "detail": "攻める意識を高めるが、ミスが増える。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.video-delay",
+    "version": 1,
+    "category": "practice",
+    "title": "映像分析の遅れ",
+    "bodyTemplate": "練習映像が溜まり、確認作業が選手の負担になっている。",
+    "tags": [
+      "video",
+      "analysis"
+    ],
+    "trigger": {
+      "schoolFundsMin": 0
+    },
+    "weight": 58,
+    "cooldownWeeks": 14,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "focus",
+        "label": "重要場面だけに絞る",
+        "detail": "分析量を減らし、改善点を明確にする。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -2
+          }
+        ]
+      },
+      {
+        "id": "complete",
+        "label": "全映像を見切る",
+        "detail": "情報は増えるが、休養時間を削る。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.gym-sharing",
+    "version": 1,
+    "category": "practice",
+    "title": "体育館の共同利用",
+    "bodyTemplate": "他部との調整で、今週はコートを半面しか使えない。",
+    "tags": [
+      "facility",
+      "schedule"
+    ],
+    "trigger": {},
+    "weight": 62,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "skills",
+        "label": "個人技術へ切り替える",
+        "detail": "連携練習は減るが、基礎を細かく見直せる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "relationship-change",
+            "amount": -1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "negotiate",
+        "label": "利用時間を延長する",
+        "detail": "費用と負担は増えるが、通常練習を確保する。",
+        "effects": [
+          {
+            "type": "funds-change",
+            "amount": -5000
+          },
+          {
+            "type": "ability-change",
+            "ability": "receive",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.morning-practice",
+    "version": 1,
+    "category": "practice",
+    "title": "朝練の提案",
+    "bodyTemplate": "選手から、サーブとレシーブに絞った自主朝練の提案が出た。",
+    "tags": [
+      "morning",
+      "自主練"
+    ],
+    "trigger": {},
+    "weight": 64,
+    "cooldownWeeks": 16,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "approve",
+        "label": "週二回だけ認める",
+        "detail": "自主性を尊重しつつ、負荷を管理する。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "serve",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "休養を優先する",
+        "detail": "成長機会は減るが、学校生活との両立を守る。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -5
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.practice-menu-vote",
+    "version": 1,
+    "category": "practice",
+    "title": "練習メニューへの意見",
+    "bodyTemplate": "選手たちから、今週の重点練習を自分たちで決めたいという声が上がった。",
+    "tags": [
+      "leadership",
+      "practice"
+    ],
+    "trigger": {},
+    "weight": 60,
+    "cooldownWeeks": 18,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "delegate",
+        "label": "選手に一部を任せる",
+        "detail": "主体性を育てるが、監督の狙いとはずれる可能性がある。",
+        "effects": [
+          {
+            "type": "trust-change",
+            "amount": 5
+          },
+          {
+            "type": "ability-change",
+            "ability": "decision",
+            "amount": 2
+          },
+          {
+            "type": "reputation-change",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "direct",
+        "label": "監督方針を貫く",
+        "detail": "練習効率を保つ代わりに、自主性は伸びにくい。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": -2
+          }
+        ]
+      }
+    ]
+  }
+]
