@@ -290,6 +290,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       nextGenerationalTalentYear,
       generationalTalentPlayerIds: [],
       rivalryScores: {},
+      destinyRivalSchoolId: null,
     },
   };
 }

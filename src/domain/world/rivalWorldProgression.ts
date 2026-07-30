@@ -1,8 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
-import type {
-  GameState,
-  HistoricalMatchSummary,
-} from "../model/GameState";
+import type { GameState, HistoricalMatchSummary } from "../model/GameState";
 import {
   ABILITY_KEYS,
   clampAbility,
@@ -193,9 +190,7 @@ export function recordMatchOutcome(
       RIVALRY_SCORE_LIMIT,
     ),
   };
-  const matches = [...state.history.matches, summary].slice(
-    -MAX_MATCH_HISTORY,
-  );
+  const matches = [...state.history.matches, summary].slice(-MAX_MATCH_HISTORY);
   const schools = updateOfficialRecords(state.schools, summary);
   const nextState = {
     ...state,
@@ -453,10 +448,9 @@ function retainBoundedArchives(state: GameState): GameState {
       retainedPlayerIds.has(playerId as PlayerId),
     ),
   ) as GameState["players"];
-  const generationalTalentPlayerIds =
-    state.world.generationalTalentPlayerIds
-      .filter((playerId) => retainedPlayerIds.has(playerId))
-      .slice(-MAX_GENERATIONAL_TALENTS);
+  const generationalTalentPlayerIds = state.world.generationalTalentPlayerIds
+    .filter((playerId) => retainedPlayerIds.has(playerId))
+    .slice(-MAX_GENERATIONAL_TALENTS);
 
   return {
     ...state,
