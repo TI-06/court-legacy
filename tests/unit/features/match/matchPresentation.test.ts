@@ -148,7 +148,7 @@ describe("match presentation", () => {
     expect(setEnd.title).toBe("第1セット終了");
     expect(setEnd.tone).toBe("important");
     expect(matchEnd.title).toBe("試合終了");
-    expect(matchEnd.detail).toContain("蒼波高校");
+    expect(matchEnd.detail).toContain("青嵐高校");
   });
 
   it("falls back safely when an event references a missing player", () => {
