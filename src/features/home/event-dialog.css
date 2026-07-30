@@ -5,17 +5,49 @@
 
 .event-actors {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.event-actors span {
+.event-actors > span {
   padding: 5px 9px;
   color: #285563;
   font-size: 0.68rem;
   font-weight: 900;
   background: #e6f1f3;
   border-radius: 999px;
+}
+
+.event-actor-card {
+  display: grid;
+  min-width: 132px;
+  margin: 0;
+  padding: 4px 10px 4px 4px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  color: #285563;
+  background: #e6f1f3;
+  border: 1px solid #d0e2e6;
+  border-radius: 14px;
+}
+
+.event-actor-character {
+  display: grid;
+  width: 44px;
+  height: 56px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #f7fbfc, #dbe9ec);
+  border-radius: 11px;
+  place-items: center;
+}
+
+.event-actor-card figcaption {
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .event-story {
