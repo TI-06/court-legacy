@@ -1,0 +1,229 @@
+.featured-player-hero {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  color: #f8fbfc;
+  background:
+    radial-gradient(
+      circle at 18% 18%,
+      color-mix(in srgb, var(--featured-glow) 34%, transparent),
+      transparent 38%
+    ),
+    linear-gradient(135deg, var(--featured-primary), #102332 78%);
+  border: 1px solid color-mix(in srgb, var(--featured-accent) 46%, #ffffff 12%);
+  border-radius: 22px;
+  grid-template-columns: minmax(150px, 0.78fr) minmax(0, 1.22fr);
+  box-shadow: 0 12px 30px rgb(18 39 53 / 16%);
+}
+
+.featured-player-hero::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    transparent 38%,
+    rgb(255 255 255 / 7%) 38.5%,
+    transparent 39%
+  );
+  content: "";
+}
+
+.featured-player-hero__art {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 250px;
+  padding: 12px 4px 0;
+  align-items: end;
+  justify-items: center;
+}
+
+.featured-player-hero__art .ui-player-character {
+  width: min(100%, 220px);
+  max-height: 260px;
+}
+
+.featured-player-hero__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  padding: 22px 20px 20px 4px;
+  gap: 12px;
+  align-content: center;
+}
+
+.featured-player-hero__school {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.featured-player-hero__school .ui-school-emblem {
+  width: 40px;
+  height: 40px;
+}
+
+.featured-player-hero__school div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.featured-player-hero__school span {
+  color: color-mix(in srgb, var(--featured-glow) 75%, #ffffff);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.featured-player-hero__school strong {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.featured-player-hero__identity {
+  display: grid;
+  gap: 2px;
+}
+
+.featured-player-hero__identity > span {
+  justify-self: start;
+  padding: 4px 8px;
+  color: #fff;
+  font-size: 0.67rem;
+  font-weight: 900;
+  background: var(--featured-accent);
+  border-radius: 999px;
+}
+
+.featured-player-hero__identity h2 {
+  margin: 3px 0 0;
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  letter-spacing: 0.03em;
+}
+
+.featured-player-hero__identity p {
+  margin: 0;
+  color: rgb(255 255 255 / 68%);
+  font-size: 0.67rem;
+}
+
+.featured-player-hero__meta,
+.featured-player-hero__condition {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.featured-player-hero__meta span,
+.featured-player-hero__condition span {
+  padding: 4px 7px;
+  color: rgb(255 255 255 / 86%);
+  font-size: 0.63rem;
+  font-weight: 800;
+  background: rgb(255 255 255 / 9%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+}
+
+.featured-player-hero__abilities {
+  display: grid;
+  gap: 7px;
+}
+
+.featured-player-hero__abilities > div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 54px 26px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  font-size: 0.65rem;
+}
+
+.featured-player-hero__abilities strong {
+  text-align: right;
+}
+
+.featured-player-hero__bar {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 14%);
+  border-radius: 999px;
+}
+
+.featured-player-hero__bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--featured-accent),
+    var(--featured-glow)
+  );
+  border-radius: inherit;
+}
+
+.featured-player-hero button {
+  min-height: 42px;
+  padding: 0 14px;
+  color: var(--featured-primary);
+  font-size: 0.75rem;
+  font-weight: 900;
+  background: var(--featured-secondary);
+  border: 0;
+  border-radius: 13px;
+}
+
+@media (max-width: 520px) {
+  .featured-player-hero {
+    grid-template-columns: 124px minmax(0, 1fr);
+  }
+
+  .featured-player-hero__art {
+    min-height: 214px;
+    padding-left: 2px;
+  }
+
+  .featured-player-hero__art .ui-player-character {
+    width: 124px;
+    max-width: 100%;
+  }
+
+  .featured-player-hero__content {
+    padding: 16px 12px 16px 0;
+    gap: 9px;
+  }
+
+  .featured-player-hero__identity h2 {
+    font-size: 1.18rem;
+  }
+
+  .featured-player-hero__abilities > div {
+    grid-template-columns: 48px 22px minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+@media (max-width: 350px) {
+  .featured-player-hero {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+
+  .featured-player-hero__art .ui-player-character {
+    width: 104px;
+  }
+
+  .featured-player-hero__school .ui-school-emblem {
+    width: 32px;
+    height: 32px;
+  }
+
+  .featured-player-hero__meta span:nth-child(3) {
+    display: none;
+  }
+}

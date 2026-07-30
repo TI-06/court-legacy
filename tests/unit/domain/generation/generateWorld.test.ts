@@ -1,3 +1,4 @@
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import {
   assignGenerationalTalent,
@@ -44,6 +45,40 @@ describe("generateWorld", () => {
       true,
     );
     expect(Object.values(world.players)).toHaveLength(192);
+  });
+
+  it("creates the four featured schools and their signature players", () => {
+    const world = createDemoGame();
+    const featured = [
+      ["青嵐高校", "瀬戸 蒼真", "S"],
+      ["烏峰高校", "黒羽 隼斗", "OH"],
+      ["紅耀高校", "火神 蓮", "OP"],
+      ["白凪高校", "白間 湊", "L"],
+    ] as const;
+
+    expect(world.schools[world.userSchoolId]?.name).toBe("青嵐高校");
+
+    for (const [schoolName, playerName, position] of featured) {
+      const school = Object.values(world.schools).find(
+        (candidate) => candidate.name === schoolName,
+      );
+      expect(school, `${schoolName} must exist`).toBeDefined();
+
+      const player = school?.playerIds
+        .map((id) => world.players[id])
+        .find((candidate) =>
+          candidate
+            ? `${candidate.lastName} ${candidate.firstName}` === playerName
+            : false,
+        );
+
+      expect(
+        player,
+        `${playerName} must belong to ${schoolName}`,
+      ).toBeDefined();
+      expect(player?.preferredPosition).toBe(position);
+      expect(player?.career.schoolId).toBe(school?.id);
+    }
   });
 
   it("normalizes every school attack distribution to one hundred percent", () => {

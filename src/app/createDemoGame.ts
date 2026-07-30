@@ -1,4 +1,5 @@
 import { gameDataBootstrap } from "../data/gameData";
+import { FEATURED_SCHOOL_SETUPS } from "../domain/generation/featuredWorldCatalog";
 import { generateWorld } from "../domain/generation/generateWorld";
 
 if (!gameDataBootstrap.ok) {
@@ -8,19 +9,20 @@ if (!gameDataBootstrap.ok) {
 export const gameData = gameDataBootstrap.data;
 
 export function createDemoGame() {
+  const userSchool = FEATURED_SCHOOL_SETUPS[0];
+  if (!userSchool) {
+    throw new Error("featured school catalog must include the demo school");
+  }
+
   return generateWorld({
     seed: "court-legacy-demo",
     data: gameData,
     userSchool: {
-      name: "蒼波高校",
-      shortName: "蒼波",
+      name: userSchool.name,
+      shortName: userSchool.shortName,
       regionId: "region.okinawa",
-      coachName: "高城 監督",
-      uniform: {
-        primary: "#173B52",
-        secondary: "#F4F7F8",
-        accent: "#D89A2B",
-      },
+      coachName: userSchool.coachName,
+      uniform: userSchool.uniform,
     },
   });
 }

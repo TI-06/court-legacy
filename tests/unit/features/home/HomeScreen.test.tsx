@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
@@ -47,6 +47,24 @@ function createProps(withLatestMatch = false) {
 }
 
 describe("home action dashboard", () => {
+  it("shows the signature player as the team face", () => {
+    const props = createProps();
+
+    render(<HomeScreen {...props} />);
+
+    const hero = screen.getByRole("region", { name: "チームフェイス" });
+    expect(within(hero).getByText("青嵐高校")).toBeVisible();
+    expect(within(hero).getByText("瀬戸 蒼真")).toBeVisible();
+    expect(within(hero).getByText("司令塔")).toBeVisible();
+    expect(within(hero).getByTestId("player-character")).toHaveAttribute(
+      "data-character-id",
+      "seto-soma",
+    );
+
+    fireEvent.click(within(hero).getByRole("button", { name: "チームを見る" }));
+    expect(props.onOpenTeam).toHaveBeenCalledOnce();
+  });
+
   it("shows the real date, selected rival, and direct weekly actions", () => {
     const props = createProps();
 
