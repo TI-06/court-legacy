@@ -160,8 +160,12 @@ describe("event catalog", () => {
     expect(tagged("tournament")).toBeGreaterThanOrEqual(12);
     expect(tagged("alumni")).toBeGreaterThanOrEqual(12);
     expect(tagged("facility")).toBeGreaterThanOrEqual(12);
-    expect(events.filter((event) => event.category === "rare").length).toBeGreaterThanOrEqual(10);
-    expect(events.filter((event) => event.category === "ob").length).toBeGreaterThanOrEqual(10);
+    expect(
+      events.filter((event) => event.category === "rare").length,
+    ).toBeGreaterThanOrEqual(10);
+    expect(
+      events.filter((event) => event.category === "ob").length,
+    ).toBeGreaterThanOrEqual(10);
   });
 
   it("keeps every follow-up reference inside the catalog", () => {
