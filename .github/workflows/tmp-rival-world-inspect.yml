@@ -3,6 +3,8 @@ name: Temporary Rival World Inspection
 on:
   push:
     branches: ["feature/m3-rival-world-progression"]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
