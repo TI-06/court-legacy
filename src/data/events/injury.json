@@ -1,0 +1,319 @@
+[
+  {
+    "id": "event.ankle-prevention",
+    "version": 1,
+    "category": "injury",
+    "title": "足首の違和感",
+    "bodyTemplate": "{{player}}が着地時に軽い違和感を訴えた。まだ負傷ではないが、放置は危険だ。",
+    "tags": [
+      "ankle",
+      "prevention"
+    ],
+    "trigger": {
+      "injuryState": "healthy",
+      "fatigue": {
+        "min": 55
+      }
+    },
+    "weight": 58,
+    "cooldownWeeks": 20,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "rest",
+        "label": "今週は跳躍を制限する",
+        "detail": "成長を止めてでも悪化を防ぐ。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -8
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "tape",
+        "label": "固定して練習を続ける",
+        "detail": "戦力を維持するが、再発リスクを残す。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "jump",
+            "amount": 1
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          },
+          {
+            "type": "injury-set",
+            "severity": "minor",
+            "weeks": 1,
+            "recurrenceRisk": 25
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.shoulder-load",
+    "version": 1,
+    "category": "injury",
+    "title": "肩の投球制限",
+    "bodyTemplate": "{{player}}のスパイク本数が増え、肩周りの張りが強くなっている。",
+    "tags": [
+      "shoulder",
+      "load"
+    ],
+    "trigger": {
+      "abilityRanges": {
+        "spike": {
+          "min": 55
+        }
+      },
+      "fatigue": {
+        "min": 50
+      }
+    },
+    "weight": 55,
+    "cooldownWeeks": 22,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "limit",
+        "label": "打数を制限する",
+        "detail": "直近の攻撃練習を減らし、長期離脱を防ぐ。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -6
+          },
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": -1
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "continue",
+        "label": "フォーム調整で続ける",
+        "detail": "感覚を保つが、軽傷の可能性を受け入れる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "spike",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 4
+          },
+          {
+            "type": "injury-set",
+            "severity": "minor",
+            "weeks": 1,
+            "recurrenceRisk": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.finger-jam",
+    "version": 1,
+    "category": "injury",
+    "title": "指の突き指",
+    "bodyTemplate": "ブロック練習で{{player}}が指を痛めた。試合出場は可能だが、無理はできない。",
+    "tags": [
+      "finger",
+      "block"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 45,
+    "cooldownWeeks": 26,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "protect",
+        "label": "完全休養させる",
+        "detail": "回復を優先し、悪化を防ぐ。",
+        "effects": [
+          {
+            "type": "injury-set",
+            "severity": "minor",
+            "weeks": 1,
+            "recurrenceRisk": 5
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -6
+          },
+          {
+            "type": "morale-change",
+            "amount": -1
+          }
+        ]
+      },
+      {
+        "id": "manage",
+        "label": "テーピングで参加させる",
+        "detail": "連携を保つ代わりに、回復は遅れる。",
+        "effects": [
+          {
+            "type": "injury-set",
+            "severity": "minor",
+            "weeks": 2,
+            "recurrenceRisk": 20
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.recovery-disagreement",
+    "version": 1,
+    "category": "injury",
+    "title": "復帰時期の食い違い",
+    "bodyTemplate": "負傷中の{{player}}は早期復帰を望むが、医療担当は慎重な判断を勧めている。",
+    "tags": [
+      "recovery",
+      "medical"
+    ],
+    "trigger": {
+      "injuryState": "injured"
+    },
+    "weight": 72,
+    "cooldownWeeks": 10,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "medical",
+        "label": "回復基準を守る",
+        "detail": "本人の焦りは増えるが、再発を防ぐ。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -5
+          },
+          {
+            "type": "morale-change",
+            "amount": -3
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "partial",
+        "label": "限定メニューへ戻す",
+        "detail": "納得感は高まるが、負傷期間が延びる可能性がある。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.team-illness",
+    "version": 1,
+    "category": "injury",
+    "title": "体調不良の連鎖",
+    "bodyTemplate": "数人に発熱と倦怠感が出て、チーム内での感染が心配されている。",
+    "tags": [
+      "illness",
+      "team"
+    ],
+    "trigger": {
+      "months": [
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    "weight": 50,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 2,
+    "choices": [
+      {
+        "id": "suspend",
+        "label": "全体練習を休止する",
+        "detail": "技術練習を失う代わりに、回復と拡大防止を優先する。",
+        "effects": [
+          {
+            "type": "fatigue-change",
+            "amount": -10
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          },
+          {
+            "type": "reputation-change",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "id": "split",
+        "label": "少人数班へ分ける",
+        "detail": "練習は続けられるが、連携練習の質が落ちる。",
+        "effects": [
+          {
+            "type": "ability-change",
+            "ability": "stamina",
+            "amount": 1
+          },
+          {
+            "type": "relationship-change",
+            "amount": -2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": -3
+          }
+        ]
+      }
+    ]
+  }
+]
