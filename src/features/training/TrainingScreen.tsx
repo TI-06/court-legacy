@@ -384,6 +384,7 @@ export function TrainingScreen({
             const isOther = player.id === pickerOtherId;
             return (
               <PlayerTile
+                uniform={school.uniform}
                 actionLabel={
                   isCurrent ? "選択中" : isOther ? "別枠使用中" : "選ぶ"
                 }

@@ -46,7 +46,7 @@
 
 .court-slot .ui-player-avatar {
   width: 34px;
-  height: 34px;
+  height: 46px;
   border-radius: 11px;
 }
 
@@ -100,7 +100,7 @@
 
 .bench-rail .ui-player-avatar {
   width: 38px;
-  height: 38px;
+  height: 50px;
 }
 
 .bench-rail .ui-player-tile__main small {
@@ -204,7 +204,7 @@
 
   .court-slot .ui-player-avatar {
     width: 30px;
-    height: 30px;
+    height: 42px;
   }
 
   .bench-rail {

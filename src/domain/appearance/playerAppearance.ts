@@ -1,9 +1,4 @@
-import type {
-  BodyType,
-  Player,
-  PlayerTier,
-  Position,
-} from "../model/Player";
+import type { BodyType, Player, PlayerTier, Position } from "../model/Player";
 
 export type HeightBand = "compact" | "average" | "tall" | "towering";
 export type FaceShape = "round" | "oval" | "angular" | "wide";
@@ -22,11 +17,7 @@ export type HairStyle =
 export type HairColor = "black" | "blue-black" | "dark-brown" | "brown";
 export type SkinTone = "fair" | "light" | "medium" | "tan" | "deep";
 export type AccessoryStyle =
-  | "none"
-  | "headband"
-  | "sports-glasses"
-  | "ear-tape"
-  | "wristband";
+  "none" | "headband" | "sports-glasses" | "ear-tape" | "wristband";
 export type UniformPattern = "classic" | "side-stripe" | "chevron" | "split";
 export type CharacterPose = "ready" | "upright" | "leaning" | "celebration";
 export type CharacterExpression =

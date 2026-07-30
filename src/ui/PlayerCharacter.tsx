@@ -101,10 +101,7 @@ function hair(style: HairStyle, color: string): ReactNode {
       );
     case "buzz":
       return (
-        <path
-          d="M26 18 Q28 7 40 7 Q52 7 54 18 Q40 12 26 18Z"
-          fill={color}
-        />
+        <path d="M26 18 Q28 7 40 7 Q52 7 54 18 Q40 12 26 18Z" fill={color} />
       );
     case "curly":
       return (
@@ -200,7 +197,12 @@ function brows(style: BrowStyle, expression: CharacterExpression): ReactNode {
   const strokeWidth = style === "bold" ? 2.3 : 1.6;
   if (expression === "worried" || expression === "pained") {
     return (
-      <g fill="none" stroke="#3c2d27" strokeLinecap="round" strokeWidth={strokeWidth}>
+      <g
+        fill="none"
+        stroke="#3c2d27"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      >
         <path d="M31 20 37 22" />
         <path d="M43 22 49 20" />
       </g>
@@ -208,7 +210,12 @@ function brows(style: BrowStyle, expression: CharacterExpression): ReactNode {
   }
   if (style === "arched") {
     return (
-      <g fill="none" stroke="#3c2d27" strokeLinecap="round" strokeWidth={strokeWidth}>
+      <g
+        fill="none"
+        stroke="#3c2d27"
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+      >
         <path d="M31 21 Q34 18 37 21" />
         <path d="M43 21 Q46 18 49 21" />
       </g>
@@ -223,17 +230,19 @@ function brows(style: BrowStyle, expression: CharacterExpression): ReactNode {
     );
   }
   return (
-    <g fill="none" stroke="#3c2d27" strokeLinecap="round" strokeWidth={strokeWidth}>
+    <g
+      fill="none"
+      stroke="#3c2d27"
+      strokeLinecap="round"
+      strokeWidth={strokeWidth}
+    >
       <path d="M31 21 37 20" />
       <path d="M43 20 49 21" />
     </g>
   );
 }
 
-function mouth(
-  style: MouthStyle,
-  expression: CharacterExpression,
-): ReactNode {
+function mouth(style: MouthStyle, expression: CharacterExpression): ReactNode {
   const halfWidth = style === "wide" ? 6 : style === "small" ? 3.5 : 5;
   const left = 40 - halfWidth;
   const right = 40 + halfWidth;
@@ -421,10 +430,7 @@ export function PlayerCharacter({
           d="M28 99 38 99 37 107 25 107 Q24 104 28 99Z"
           fill={uniform.secondary}
         />
-        <path
-          d="M42 99 52 99 55 107 43 107Z"
-          fill={uniform.secondary}
-        />
+        <path d="M42 99 52 99 55 107 43 107Z" fill={uniform.secondary} />
         <path
           d={`M${40 - halfWidth} 69 H${40 + halfWidth} L${50 + halfWidth * 0.2} 86 H41 L40 78 39 86 H${30 - halfWidth * 0.2}Z`}
           fill={uniform.primary}
