@@ -1,9 +1,9 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { Player } from "../../../../src/domain/model/Player";
 import {
   appearanceSignature,
   assemblePlayerAppearance,
 } from "../../../../src/domain/appearance/playerAppearance";
+import type { Player } from "../../../../src/domain/model/Player";
 
 function withChanges(player: Player, changes: Partial<Player>): Player {
   return { ...player, ...changes };
@@ -12,7 +12,8 @@ function withChanges(player: Player, changes: Partial<Player>): Player {
 describe("player appearance assembly", () => {
   it("is deterministic for the same appearance seed", () => {
     const state = createDemoGame();
-    const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
 
     expect(assemblePlayerAppearance(player)).toEqual(
       assemblePlayerAppearance({ ...player }),
@@ -21,9 +22,15 @@ describe("player appearance assembly", () => {
 
   it("keeps identity stable while state changes only alter the expression", () => {
     const state = createDemoGame();
-    const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
     const healthy = assemblePlayerAppearance(
-      withChanges(player, { fatigue: 10, morale: 50, condition: 90, injury: null }),
+      withChanges(player, {
+        fatigue: 10,
+        morale: 50,
+        condition: 90,
+        injury: null,
+      }),
     );
     const injured = assemblePlayerAppearance(
       withChanges(player, {
@@ -44,7 +51,8 @@ describe("player appearance assembly", () => {
 
   it("reflects height bands and body types in the descriptor", () => {
     const state = createDemoGame();
-    const base = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const base =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
 
     expect(
       assemblePlayerAppearance(
