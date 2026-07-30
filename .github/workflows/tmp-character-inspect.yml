@@ -1,8 +1,8 @@
 name: Temporary Character Inspection
 
 on:
-  push:
-    branches: ["feature/m4-character-assembly"]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
