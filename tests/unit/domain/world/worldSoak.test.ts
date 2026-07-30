@@ -56,9 +56,9 @@ describe("rival world long-run soak", () => {
       expect(school.alumniPlayerIds.length).toBeLessThanOrEqual(
         MAX_ALUMNI_PER_SCHOOL,
       );
-      expect(school.history.recentSeasonRatings?.length ?? 0).toBeLessThanOrEqual(
-        3,
-      );
+      expect(
+        school.history.recentSeasonRatings?.length ?? 0,
+      ).toBeLessThanOrEqual(3);
       expect(school.reputationPoints).toBeGreaterThanOrEqual(0);
       expect(school.reputationPoints).toBeLessThanOrEqual(1000);
     }
@@ -72,8 +72,8 @@ describe("rival world long-run soak", () => {
     expect(Object.keys(state.players).length).toBeLessThanOrEqual(
       activePlayerIds.size + retainedAlumniIds.size,
     );
-    expect(Math.max(...reputationPoints) - Math.min(...reputationPoints)).toBeGreaterThan(
-      100,
-    );
+    expect(
+      Math.max(...reputationPoints) - Math.min(...reputationPoints),
+    ).toBeGreaterThan(100);
   });
 });
