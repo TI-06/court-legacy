@@ -33,8 +33,8 @@ describe("1000-season event distribution report", () => {
     expect(first.report.chainStageOccurrences).toBeGreaterThan(500);
     expect(first.report.uniqueRootEvents).toBeGreaterThanOrEqual(130);
     expect(first.report.maximumRootShare).toBeLessThan(0.04);
-    expect(Object.values(first.report.categoryCounts).every((count) => count > 0)).toBe(
-      true,
-    );
+    expect(
+      Object.values(first.report.categoryCounts).every((count) => count > 0),
+    ).toBe(true);
   });
 });
