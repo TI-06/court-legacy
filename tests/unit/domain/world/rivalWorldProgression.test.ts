@@ -1,5 +1,6 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { HistoricalMatchSummary } from "../../../../src/domain/model/GameState";
+import type { Player } from "../../../../src/domain/model/Player";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import {
@@ -10,8 +11,8 @@ import {
 } from "../../../../src/domain/world/rivalWorldProgression";
 
 function abilityTotal(
-  player: ReturnType<typeof createDemoGame>["players"][string],
-  keys: readonly (keyof typeof player.abilities)[],
+  player: Player,
+  keys: readonly (keyof Player["abilities"])[],
 ): number {
   return keys.reduce((total, key) => total + player.abilities[key], 0);
 }
@@ -28,8 +29,8 @@ describe("rival world progression", () => {
     const player = state.players[rival.playerIds[0]!]!;
     const priorityKeys = archetype.trainingPriorities;
     const otherKeys = Object.keys(player.abilities).filter(
-      (key) => !priorityKeys.includes(key as keyof typeof player.abilities),
-    ) as (keyof typeof player.abilities)[];
+      (key) => !priorityKeys.includes(key as keyof Player["abilities"]),
+    ) as (keyof Player["abilities"])[];
     const priorityBefore = abilityTotal(player, priorityKeys);
     const otherBefore = abilityTotal(player, otherKeys);
 
@@ -46,8 +47,9 @@ describe("rival world progression", () => {
     expect(priorityGrowth / priorityKeys.length).toBeGreaterThan(
       otherGrowth / otherKeys.length,
     );
-    expect(result.players[state.schools[state.userSchoolId]!.playerIds[0]!]!.abilities).toEqual(
-      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!.abilities,
+    const userPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    expect(result.players[userPlayerId]!.abilities).toEqual(
+      state.players[userPlayerId]!.abilities,
     );
   });
 
@@ -74,9 +76,9 @@ describe("rival world progression", () => {
       state = recordMatchOutcome(state, summary);
     }
 
-    expect(state.world.rivalryScores[rivalryKey(user.id, rival.id)]).toBeGreaterThanOrEqual(
-      60,
-    );
+    expect(
+      state.world.rivalryScores[rivalryKey(user.id, rival.id)],
+    ).toBeGreaterThanOrEqual(60);
     expect(state.world.destinyRivalSchoolId).toBe(rival.id);
     expect(state.schools[user.id]!.history.officialWins).toBe(1);
     expect(state.schools[rival.id]!.history.officialLosses).toBe(1);
@@ -88,16 +90,19 @@ describe("rival world progression", () => {
     const rival = Object.values(state.schools).find(
       (school) => school.id !== state.userSchoolId,
     )!;
-    state.history.matches = Array.from({ length: MAX_MATCH_HISTORY }, (_, index) => ({
-      matchId: matchId(`old-${index}`),
-      date: "2026-04-01",
-      homeSchoolId: user.id,
-      awaySchoolId: rival.id,
-      winnerSchoolId: index % 2 === 0 ? user.id : rival.id,
-      homeSetsWon: index % 2 === 0 ? 2 : 1,
-      awaySetsWon: index % 2 === 0 ? 1 : 2,
-      tournamentId: null,
-    }));
+    state.history.matches = Array.from(
+      { length: MAX_MATCH_HISTORY },
+      (_, index) => ({
+        matchId: matchId(`old-${index}`),
+        date: "2026-04-01",
+        homeSchoolId: user.id,
+        awaySchoolId: rival.id,
+        winnerSchoolId: index % 2 === 0 ? user.id : rival.id,
+        homeSetsWon: index % 2 === 0 ? 2 : 1,
+        awaySetsWon: index % 2 === 0 ? 1 : 2,
+        tournamentId: null,
+      }),
+    );
     const latest: HistoricalMatchSummary = {
       matchId: matchId("latest"),
       date: "2027-03-01",
