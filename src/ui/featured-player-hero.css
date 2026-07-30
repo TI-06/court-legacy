@@ -181,7 +181,7 @@
 
 @media (max-width: 520px) {
   .featured-player-hero {
-    grid-template-columns: 116px minmax(0, 1fr);
+    grid-template-columns: 124px minmax(0, 1fr);
   }
 
   .featured-player-hero__art {
@@ -190,8 +190,8 @@
   }
 
   .featured-player-hero__art .ui-player-character {
-    width: 150px;
-    max-width: none;
+    width: 124px;
+    max-width: 100%;
   }
 
   .featured-player-hero__content {
@@ -211,11 +211,11 @@
 
 @media (max-width: 350px) {
   .featured-player-hero {
-    grid-template-columns: 102px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
   }
 
   .featured-player-hero__art .ui-player-character {
-    width: 132px;
+    width: 104px;
   }
 
   .featured-player-hero__school .ui-school-emblem {
