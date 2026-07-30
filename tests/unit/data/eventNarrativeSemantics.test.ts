@@ -1,7 +1,9 @@
 import { completeRawGameData } from "../../../src/data/completeRawGameData";
 
 function eventById(id: string) {
-  const event = completeRawGameData.events.find((candidate) => candidate.id === id);
+  const event = completeRawGameData.events.find(
+    (candidate) => candidate.id === id,
+  );
   expect(event).toBeDefined();
   return event!;
 }
