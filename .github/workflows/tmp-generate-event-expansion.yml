@@ -1,0 +1,34 @@
+name: Temporary Event Expansion Generator
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m3-event-catalog-180
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Generate expanded event catalog
+        run: |
+          npm ci
+          node scripts/tmp-generate-event-expansion.mjs
+          npm run format
+          rm scripts/tmp-generate-event-expansion.mjs
+          rm .github/workflows/tmp-generate-event-expansion.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "feat: 単発70本と連鎖25段階を追加"
+          git push origin HEAD:feature/m3-event-catalog-180
