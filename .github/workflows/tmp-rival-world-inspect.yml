@@ -1,0 +1,26 @@
+name: Temporary Rival World Inspection
+
+on:
+  push:
+    branches: ["feature/m3-rival-world-progression"]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect relevant files
+        run: |
+          echo '=== FILES ==='
+          find src tests -type f | sort
+          echo '=== MATCH HISTORY WRITES ==='
+          grep -R -n "history.matches\|officialWins\|officialLosses\|rivalryScores\|nationalChampion" src tests || true
+          echo '=== ACADEMIC YEAR PROGRESSION ==='
+          sed -n '1,380p' src/domain/calendar/academicYearProgression.ts
+          echo '=== GAME STATE CODEC ==='
+          sed -n '1,360p' src/persistence/gameStateCodec.ts
+          echo '=== APP MATCH FLOW REFERENCES ==='
+          grep -R -n "activeMatch\|match-complete\|winnerSchoolId" src/App.tsx src/features src/domain | head -n 300 || true
