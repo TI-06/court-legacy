@@ -280,6 +280,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
               return (
                 <div className="court-slot" key={assignment.slot}>
                   <PlayerTile
+                    uniform={school.uniform}
                     actionLabel="変更"
                     ariaLabel={`ローテーション${assignment.slot}を変更`}
                     badge={`R${assignment.slot}`}
@@ -323,6 +324,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             return (
               <div className="libero-direct-row">
                 <PlayerTile
+                  uniform={school.uniform}
                   actionLabel="変更"
                   ariaLabel="リベロを変更"
                   badge="L"
@@ -365,6 +367,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             }
             return (
               <PlayerTile
+                uniform={school.uniform}
                 compact
                 key={player.id}
                 player={player}
@@ -496,6 +499,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             const isActiveElsewhere = activeIds.has(player.id) && !isCurrent;
             return (
               <PlayerTile
+                uniform={school.uniform}
                 actionLabel={
                   isCurrent
                     ? "選択中"
