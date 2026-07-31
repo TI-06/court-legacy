@@ -3,7 +3,7 @@ import { resolveCharacterVisual } from "../../domain/appearance/characterWorld";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { PlayerCharacter } from "../../ui/PlayerCharacter";
+import { PlayerArt } from "../../ui/player-art/PlayerArt";
 import { SchoolEmblem } from "../../ui/SchoolEmblem";
 import "../../ui/ui.css";
 import "./event-dialog.css";
@@ -49,7 +49,7 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
             return (
               <article className="event-actor-card" key={playerId}>
                 <span className="event-actor-character" aria-hidden="true">
-                  <PlayerCharacter player={player} school={school} />
+                  <PlayerArt player={player} school={school} variant="full" />
                 </span>
                 <div className="event-actor-card__identity">
                   <span className="event-actor-card__school">
