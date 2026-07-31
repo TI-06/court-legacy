@@ -5,6 +5,7 @@ import { GameDataErrorScreen } from "./app/GameDataErrorScreen";
 import "./app.css";
 import "./features/home/home-week.css";
 import "./mobile-layout.css";
+import "./ui/theme/game-theme.css";
 import { gameDataBootstrap } from "./data/gameData";
 
 const rootElement = document.getElementById("root");
