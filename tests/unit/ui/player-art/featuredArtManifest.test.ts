@@ -40,7 +40,9 @@ describe("featured player art manifest", () => {
   it("returns null for a generated player", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
-    const featuredIds = new Set(featuredPlayers().map(({ player }) => player.id));
+    const featuredIds = new Set(
+      featuredPlayers().map(({ player }) => player.id),
+    );
     const player = school.playerIds
       .map((playerId) => state.players[playerId])
       .find((candidate) => candidate && !featuredIds.has(candidate.id));
