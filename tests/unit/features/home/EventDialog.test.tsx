@@ -44,9 +44,11 @@ describe("EventDialog", () => {
       .getByText(`${player.lastName} ${player.firstName}`)
       .closest("article");
     expect(actorCard).not.toBeNull();
-    expect(within(actorCard!).getByText(school.name)).toBeVisible();
-    expect(within(actorCard!).getByText("閃光のエース")).toBeVisible();
-    expect(within(actorCard!).getByTestId("featured-player-art")).toHaveAttribute(
+    const actor = within(actorCard!);
+    expect(actor.getByText(school.name)).toBeVisible();
+    expect(actor.getByText("閃光のエース")).toBeVisible();
+    const art = actor.getByTestId("featured-player-art");
+    expect(art).toHaveAttribute(
       "src",
       expect.stringContaining("kuroba-hayato/full-neutral.webp"),
     );
@@ -54,7 +56,7 @@ describe("EventDialog", () => {
       actorCard!.querySelector("svg[data-testid='player-character']"),
     ).toBeNull();
 
-    const emblems = within(actorCard!).getAllByTestId("school-emblem");
+    const emblems = actor.getAllByTestId("school-emblem");
     expect(emblems).toHaveLength(1);
     expect(emblems[0]).toHaveAttribute("data-school-motif", "wing");
   });
