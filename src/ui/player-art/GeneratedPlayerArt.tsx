@@ -29,14 +29,18 @@ function percentage(offset: number, maximum: number): number {
 
 function layerStyle(layer: GeneratedArtLayer): CSSProperties {
   const { sourceRect } = layer;
-  const size = `${(sourceRect.atlasWidth / sourceRect.width) * 100}% ${(sourceRect.atlasHeight / sourceRect.height) * 100}%`;
-  const position = `${percentage(
+  const widthScale = (sourceRect.atlasWidth / sourceRect.width) * 100;
+  const heightScale = (sourceRect.atlasHeight / sourceRect.height) * 100;
+  const horizontal = percentage(
     sourceRect.x,
     sourceRect.atlasWidth - sourceRect.width,
-  )}% ${percentage(
+  );
+  const vertical = percentage(
     sourceRect.y,
     sourceRect.atlasHeight - sourceRect.height,
-  )}%`;
+  );
+  const size = `${widthScale}% ${heightScale}%`;
+  const position = `${horizontal}% ${vertical}%`;
   const image = `url("${layer.url}")`;
 
   if (layer.mode === "image") {
@@ -86,9 +90,8 @@ export function GeneratedPlayerArt({
     : recipe;
   const layers = resolveGeneratedArtLayers(effectiveRecipe);
   const masksSupported = supportsRasterMasks();
-  const status = useAssetBatchStatus(
-    masksSupported ? layers.map((layer) => layer.url) : [],
-  );
+  const urls = masksSupported ? layers.map((layer) => layer.url) : [];
+  const status = useAssetBatchStatus(urls);
 
   if (!masksSupported || status !== "loaded") {
     return null;
