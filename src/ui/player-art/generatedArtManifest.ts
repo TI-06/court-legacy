@@ -1,4 +1,4 @@
-import allPartsAtlasUrl from "../../assets/player-parts/v1/all-parts-atlas";
+import allPartsAtlasUrl from "../../assets/player-parts/v1/all-parts-atlas.webp";
 import type { PlayerArtRecipe } from "../../domain/appearance/playerArtRecipe";
 
 export type GeneratedArtLayerSlot =
