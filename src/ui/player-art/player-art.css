@@ -1,0 +1,71 @@
+.player-art {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  max-width: 100%;
+  isolation: isolate;
+}
+
+.player-art--card {
+  width: 64px;
+}
+
+.player-art--portrait {
+  width: 180px;
+}
+
+.player-art--full {
+  width: 260px;
+}
+
+.player-art__layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-repeat: no-repeat;
+  transform-origin: center;
+}
+
+.player-art__number {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  z-index: 20;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(7px, 8%, 18px);
+  line-height: 1;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+  transform: translateX(-50%);
+}
+
+.player-art[data-expression="focused"] .player-art__layer--eyes,
+.player-art[data-expression="focused"] .player-art__layer--brows {
+  transform: translateY(-1.2%);
+}
+
+.player-art[data-expression="tired"] .player-art__layer--eyes {
+  transform: scaleY(0.72);
+}
+
+.player-art[data-expression="exhausted"] .player-art__layer--eyes {
+  transform: translateY(1%) scaleY(0.5);
+}
+
+.player-art[data-expression="worried"] .player-art__layer--brows,
+.player-art[data-expression="pained"] .player-art__layer--brows {
+  transform: translateY(1%) rotate(2deg);
+}
+
+.player-art[data-expression="confident"] .player-art__layer--mouth {
+  transform: translateY(-0.5%) scaleX(1.05);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .player-art__layer {
+    transition: transform 140ms ease-out;
+  }
+}
