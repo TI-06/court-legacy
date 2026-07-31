@@ -53,7 +53,9 @@ describe("player art recipe", () => {
     const state = createDemoGame();
     const schools = Object.values(state.schools);
     const { player, school } = firstPlayer();
-    const otherSchool = schools.find((candidate) => candidate.id !== school.id)!;
+    const otherSchool = schools.find(
+      (candidate) => candidate.id !== school.id,
+    )!;
 
     const homeRecipe = createPlayerArtRecipe(player, school);
     const awayRecipe = createPlayerArtRecipe(player, otherSchool);
