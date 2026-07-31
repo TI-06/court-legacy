@@ -5,7 +5,7 @@ import {
 } from "../domain/appearance/characterWorld";
 import type { Player, PlayerAbilities } from "../domain/model/Player";
 import type { School } from "../domain/model/School";
-import { PlayerCharacter } from "./PlayerCharacter";
+import { PlayerArt } from "./player-art/PlayerArt";
 import { SchoolEmblem } from "./SchoolEmblem";
 import "./featured-player-hero.css";
 
@@ -72,7 +72,12 @@ export function FeaturedPlayerHero({
       style={style}
     >
       <div className="featured-player-hero__art">
-        <PlayerCharacter player={player} school={school} variant="portrait" />
+        <PlayerArt
+          loading="eager"
+          player={player}
+          school={school}
+          variant="portrait"
+        />
       </div>
       <div className="featured-player-hero__content">
         <div className="featured-player-hero__school">
