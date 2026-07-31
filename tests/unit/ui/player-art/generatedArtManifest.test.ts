@@ -35,6 +35,15 @@ describe("generated art manifest", () => {
     expect(layers.length).toBeLessThanOrEqual(10);
     expect(layers.every((layer) => layer.url.endsWith(".webp"))).toBe(true);
     expect(layers.map((layer) => layer.slot)).toEqual(expectedSlots);
+    expect(
+      layers.every(
+        (layer) =>
+          layer.sourceRect.width === 768 &&
+          layer.sourceRect.height === 1024 &&
+          layer.sourceRect.atlasWidth >= layer.sourceRect.width &&
+          layer.sourceRect.atlasHeight >= layer.sourceRect.height,
+      ),
+    ).toBe(true);
   });
 
   it("assigns school colors only to mask layers", () => {
