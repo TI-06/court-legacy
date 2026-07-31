@@ -5,10 +5,7 @@ export type AssetBatchStatus = "loading" | "loaded" | "failed";
 
 export function useAssetBatchStatus(urls: readonly string[]): AssetBatchStatus {
   const key = [...new Set(urls)].sort().join("\u0000");
-  const stableUrls = useMemo(
-    () => (key ? key.split("\u0000") : []),
-    [key],
-  );
+  const stableUrls = useMemo(() => (key ? key.split("\u0000") : []), [key]);
   const [status, setStatus] = useState<AssetBatchStatus>(() =>
     stableUrls.length === 0 ? "loaded" : "loading",
   );
@@ -25,9 +22,7 @@ export function useAssetBatchStatus(urls: readonly string[]): AssetBatchStatus {
     void Promise.all(requests).then((results) => {
       if (active) {
         setStatus(
-          results.every((result) => result === "loaded")
-            ? "loaded"
-            : "failed",
+          results.every((result) => result === "loaded") ? "loaded" : "failed",
         );
       }
     });
