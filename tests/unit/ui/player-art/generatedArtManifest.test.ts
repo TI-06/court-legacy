@@ -33,13 +33,17 @@ describe("generated art manifest", () => {
 
     expect(layers.length).toBeGreaterThanOrEqual(8);
     expect(layers.length).toBeLessThanOrEqual(10);
-    expect(layers.every((layer) => layer.url.endsWith(".webp"))).toBe(true);
+    expect(
+      layers.every((layer) =>
+        layer.url.startsWith("data:image/webp;base64,"),
+      ),
+    ).toBe(true);
     expect(layers.map((layer) => layer.slot)).toEqual(expectedSlots);
     expect(
       layers.every(
         (layer) =>
-          layer.sourceRect.width === 768 &&
-          layer.sourceRect.height === 1024 &&
+          layer.sourceRect.width === 96 &&
+          layer.sourceRect.height === 128 &&
           layer.sourceRect.atlasWidth >= layer.sourceRect.width &&
           layer.sourceRect.atlasHeight >= layer.sourceRect.height,
       ),
