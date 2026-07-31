@@ -138,7 +138,9 @@ const EFFECT_POSITIONS = {
   prospect: [320, 672],
 } as const;
 
-function sourceRect(position: readonly [number, number]): GeneratedArtSourceRect {
+function sourceRect(
+  position: readonly [number, number],
+): GeneratedArtSourceRect {
   return {
     x: position[0],
     y: position[1],
@@ -175,11 +177,7 @@ export function resolveGeneratedArtLayers(
       "mask",
       hairColor,
     ),
-    layer(
-      "body",
-      BODY_POSITIONS[recipe.pose][recipe.bodyType],
-      "image",
-    ),
+    layer("body", BODY_POSITIONS[recipe.pose][recipe.bodyType], "image"),
     layer(
       "uniform",
       UNIFORM_POSITIONS[recipe.uniformPattern],
