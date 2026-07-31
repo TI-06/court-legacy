@@ -54,7 +54,9 @@ describe("FeaturedPlayerArt", () => {
     fireEvent.error(screen.getByTestId("featured-art"));
 
     expect(screen.queryByTestId("featured-art")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("generated-player-art")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("generated-player-art"),
+    ).not.toBeInTheDocument();
     expect(
       document.querySelector("svg[data-testid='player-character']"),
     ).toBeNull();
@@ -65,11 +67,12 @@ describe("FeaturedPlayerArt", () => {
     const school = state.schools[state.userSchoolId]!;
     const player = school.playerIds
       .map((playerId) => state.players[playerId])
-      .find(
-        (candidate) =>
+      .find((candidate) => {
+        return (
           candidate &&
-          `${candidate.lastName} ${candidate.firstName}` !== "瀬戸 蒼真",
-      );
+          `${candidate.lastName} ${candidate.firstName}` !== "瀬戸 蒼真"
+        );
+      });
 
     expect(player).toBeDefined();
     const { container } = render(
