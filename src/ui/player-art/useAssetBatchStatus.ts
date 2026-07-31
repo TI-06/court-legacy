@@ -3,34 +3,45 @@ import { loadAsset } from "./assetLoadCache";
 
 export type AssetBatchStatus = "loading" | "loaded" | "failed";
 
+interface AssetBatchResult {
+  key: string;
+  status: AssetBatchStatus;
+}
+
 export function useAssetBatchStatus(urls: readonly string[]): AssetBatchStatus {
   const key = [...new Set(urls)].sort().join("\u0000");
   const stableUrls = useMemo(() => (key ? key.split("\u0000") : []), [key]);
-  const [status, setStatus] = useState<AssetBatchStatus>(() =>
-    stableUrls.length === 0 ? "loaded" : "loading",
-  );
+  const [result, setResult] = useState<AssetBatchResult>({
+    key: "",
+    status: "loaded",
+  });
 
   useEffect(() => {
-    if (stableUrls.length === 0) {
-      setStatus("loaded");
+    if (!key) {
       return undefined;
     }
 
     let active = true;
-    setStatus("loading");
     const requests = stableUrls.map((url) => loadAsset(url));
-    void Promise.all(requests).then((results) => {
+    void Promise.all(requests).then((statuses) => {
       if (active) {
-        setStatus(
-          results.every((result) => result === "loaded") ? "loaded" : "failed",
-        );
+        setResult({
+          key,
+          status: statuses.every((status) => status === "loaded")
+            ? "loaded"
+            : "failed",
+        });
       }
     });
 
     return () => {
       active = false;
     };
-  }, [stableUrls]);
+  }, [key, stableUrls]);
 
-  return status;
+  if (!key) {
+    return "loaded";
+  }
+
+  return result.key === key ? result.status : "loading";
 }
