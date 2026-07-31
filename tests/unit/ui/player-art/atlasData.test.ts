@@ -1,13 +1,9 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 describe("generated player WebP atlas", () => {
   it("contains a valid 512 by 768 RIFF WebP payload", () => {
     const bytes = readFileSync(
-      resolve(
-        process.cwd(),
-        "src/assets/player-parts/v1/all-parts-atlas.webp",
-      ),
+      "src/assets/player-parts/v1/all-parts-atlas.webp",
     );
 
     expect(bytes.byteLength).toBeGreaterThan(1_000);
