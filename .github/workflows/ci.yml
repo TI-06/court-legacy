@@ -20,6 +20,20 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Format Task 2 files
+        run: >-
+          npx prettier
+          src/ui/player-art/generatedArtManifest.ts
+          tests/unit/ui/player-art/generatedArtManifest.test.ts
+          --write
+      - name: Upload Task 2 formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: formatted-task-2
+          path: |
+            src/ui/player-art/generatedArtManifest.ts
+            tests/unit/ui/player-art/generatedArtManifest.test.ts
+          retention-days: 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
