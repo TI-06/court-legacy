@@ -30,10 +30,9 @@ function generatedPlayerFixture() {
   const school = state.schools[state.userSchoolId]!;
   const player = school.playerIds
     .map((playerId) => state.players[playerId])
-    .find(
-      (candidate) =>
-        candidate && resolveFeaturedCharacter(candidate, school) === null,
-    );
+    .find((candidate) => {
+      return candidate && resolveFeaturedCharacter(candidate, school) === null;
+    });
 
   if (!player) {
     throw new Error("a generated player fixture is required");
@@ -54,7 +53,7 @@ describe("GeneratedPlayerArt", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders at most ten layers only after every asset loads", async () => {
+  it("renders only after every asset loads", async () => {
     const { player, school } = generatedPlayerFixture();
 
     render(
@@ -75,15 +74,13 @@ describe("GeneratedPlayerArt", () => {
     });
 
     expect(await screen.findByTestId("generated-art")).toBeVisible();
-    expect(screen.getAllByTestId("player-art-layer").length).toBeLessThanOrEqual(
-      10,
-    );
-    expect(
-      document.querySelector("svg[data-testid='player-character']"),
-    ).toBeNull();
+    const layers = screen.getAllByTestId("player-art-layer");
+    expect(layers.length).toBeLessThanOrEqual(10);
+    const svg = document.querySelector("svg[data-testid='player-character']");
+    expect(svg).toBeNull();
   });
 
-  it("keeps the complete character hidden when one required asset fails", async () => {
+  it("hides the character when a required asset fails", async () => {
     const { player, school } = generatedPlayerFixture();
 
     render(
@@ -104,16 +101,15 @@ describe("GeneratedPlayerArt", () => {
     });
 
     await expect(loadAsset(failedUrl)).resolves.toBe("failed");
-    await waitFor(() =>
-      expect(screen.queryByTestId("generated-art")).not.toBeInTheDocument(),
-    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("generated-art")).not.toBeInTheDocument();
+    });
     expect(screen.queryAllByTestId("player-art-layer")).toHaveLength(0);
-    expect(
-      document.querySelector("svg[data-testid='player-character']"),
-    ).toBeNull();
+    const svg = document.querySelector("svg[data-testid='player-character']");
+    expect(svg).toBeNull();
   });
 
-  it("does not request assets when raster masks are unsupported", () => {
+  it("does not request assets without raster mask support", () => {
     vi.stubGlobal("CSS", { supports: vi.fn(() => false) });
     const { player, school } = generatedPlayerFixture();
 
