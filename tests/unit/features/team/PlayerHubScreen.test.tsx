@@ -10,11 +10,7 @@ function renderPlayerHub() {
     schoolId: state.userSchoolId,
   });
   const view = render(
-    <PlayerHubScreen
-      onChange={vi.fn()}
-      selection={selection}
-      state={state}
-    />,
+    <PlayerHubScreen onChange={vi.fn()} selection={selection} state={state} />,
   );
 
   return { state, selection, view };
@@ -48,8 +44,6 @@ describe("PlayerHubScreen", () => {
     renderPlayerHub();
 
     fireEvent.click(screen.getByRole("button", { name: "編成" }));
-    expect(
-      screen.getByRole("heading", { name: "チーム編成" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "チーム編成" })).toBeVisible();
   });
 });
