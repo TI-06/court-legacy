@@ -42,10 +42,10 @@ describe("generated art manifest", () => {
     expect(
       layers.every(
         (layer) =>
-          layer.sourceRect.width === 96 &&
-          layer.sourceRect.height === 128 &&
-          layer.sourceRect.atlasWidth >= layer.sourceRect.width &&
-          layer.sourceRect.atlasHeight >= layer.sourceRect.height,
+          layer.sourceRect.width === 64 &&
+          layer.sourceRect.height === 96 &&
+          layer.sourceRect.atlasWidth === 512 &&
+          layer.sourceRect.atlasHeight === 768,
       ),
     ).toBe(true);
   });
