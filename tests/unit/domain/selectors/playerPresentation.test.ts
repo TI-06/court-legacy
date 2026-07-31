@@ -10,7 +10,8 @@ describe("player presentation selectors", () => {
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
     const values = Object.values(player.abilities);
-    const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const average =
+      values.reduce((sum, value) => sum + value, 0) / values.length;
 
     expect(calculatePlayerDisplayPower(player)).toBe(Math.round(average) * 100);
   });
