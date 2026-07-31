@@ -8,12 +8,7 @@ import {
 
 function featuredPlayers(): Array<{ player: Player; school: School }> {
   const state = createDemoGame();
-  const names = new Set([
-    "黒羽 隼斗",
-    "瀬戸 蒼真",
-    "火神 蓮",
-    "白間 湊",
-  ]);
+  const names = new Set(["黒羽 隼斗", "瀬戸 蒼真", "火神 蓮", "白間 湊"]);
 
   return Object.values(state.players)
     .filter((player) => names.has(`${player.lastName} ${player.firstName}`))
