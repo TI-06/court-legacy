@@ -61,11 +61,7 @@ describe("PlayerArt", () => {
     const { featured, featuredSchool } = fixtures();
 
     render(
-      <PlayerArt
-        player={featured}
-        school={featuredSchool}
-        variant="card"
-      />,
+      <PlayerArt player={featured} school={featuredSchool} variant="card" />,
     );
 
     expect(screen.getByTestId("featured-player-art")).toBeVisible();
@@ -77,11 +73,11 @@ describe("PlayerArt", () => {
   it("uses generated WebP layers for a normal player", async () => {
     const { normal, normalSchool } = fixtures();
 
-    render(
-      <PlayerArt player={normal} school={normalSchool} variant="card" />,
-    );
+    render(<PlayerArt player={normal} school={normalSchool} variant="card" />);
 
-    expect(screen.queryByTestId("generated-player-art")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("generated-player-art"),
+    ).not.toBeInTheDocument();
     expect(createdImages).toHaveLength(1);
 
     await act(async () => {
@@ -90,8 +86,6 @@ describe("PlayerArt", () => {
     });
 
     expect(await screen.findByTestId("generated-player-art")).toBeVisible();
-    expect(
-      screen.queryByTestId("featured-player-art"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("featured-player-art")).not.toBeInTheDocument();
   });
 });
