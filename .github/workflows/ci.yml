@@ -20,6 +20,16 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Render Prettier diagnostic
+        run: |
+          mkdir -p .diagnostics
+          npx prettier tests/unit/ui/player-art/PlayerArt.test.tsx > .diagnostics/PlayerArt.test.tsx
+      - name: Upload Prettier diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-art-prettier
+          path: .diagnostics/PlayerArt.test.tsx
+          retention-days: 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
