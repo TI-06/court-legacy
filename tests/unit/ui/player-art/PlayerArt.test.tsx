@@ -1,9 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { resolveFeaturedCharacter } from "../../../../src/domain/appearance/characterWorld";
-import {
-  resetAssetLoadCacheForTests,
-} from "../../../../src/ui/player-art/assetLoadCache";
+import { resetAssetLoadCacheForTests } from "../../../../src/ui/player-art/assetLoadCache";
 import { PlayerArt } from "../../../../src/ui/player-art/PlayerArt";
 
 interface FakeImageInstance {
@@ -26,7 +24,6 @@ class FakeImage implements FakeImageInstance {
 
 function fixtures() {
   const state = createDemoGame();
-  const schools = Object.values(state.schools);
   const featured = Object.values(state.players).find((player) => {
     const school = state.schools[player.career.schoolId];
     return resolveFeaturedCharacter(player, school) !== null;
@@ -45,7 +42,6 @@ function fixtures() {
     featuredSchool: state.schools[featured.career.schoolId]!,
     normal,
     normalSchool: state.schools[normal.career.schoolId]!,
-    schools,
   };
 }
 
