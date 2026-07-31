@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 
 function readUint24LittleEndian(bytes: Buffer, offset: number): number {
-  return bytes[offset]! | (bytes[offset + 1]! << 8) | (bytes[offset + 2]! << 16);
+  return (
+    bytes[offset]! |
+    (bytes[offset + 1]! << 8) |
+    (bytes[offset + 2]! << 16)
+  );
 }
 
 describe("generated player WebP atlas", () => {
