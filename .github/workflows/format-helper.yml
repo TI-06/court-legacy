@@ -1,0 +1,29 @@
+name: Format helper
+
+on:
+  push:
+    branches:
+      - feature/m6-game-ui-refresh
+    paths:
+      - src/ui/player-art/useAssetBatchStatus.ts
+      - .github/workflows/format-helper.yml
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier src/ui/player-art/useAssetBatchStatus.ts --write
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prettier-output
+          path: src/ui/player-art/useAssetBatchStatus.ts
+          retention-days: 1
