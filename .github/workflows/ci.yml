@@ -20,16 +20,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Render Prettier diagnostic
-        run: |
-          mkdir -p .diagnostics
-          npx prettier src/ui/player-art/useAssetBatchStatus.ts > .diagnostics/useAssetBatchStatus.ts
-      - name: Upload Prettier diagnostic
-        uses: actions/upload-artifact@v4
-        with:
-          name: prettier-diagnostic
-          path: .diagnostics/useAssetBatchStatus.ts
-          retention-days: 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
