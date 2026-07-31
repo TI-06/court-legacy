@@ -56,10 +56,13 @@ describe("home action dashboard", () => {
     expect(within(hero).getByText("青嵐高校")).toBeVisible();
     expect(within(hero).getByText("瀬戸 蒼真")).toBeVisible();
     expect(within(hero).getByText("司令塔")).toBeVisible();
-    expect(within(hero).getByTestId("player-character")).toHaveAttribute(
-      "data-character-id",
-      "seto-soma",
+    expect(within(hero).getByTestId("featured-player-art")).toHaveAttribute(
+      "src",
+      expect.stringContaining("seto-soma/bust-neutral.webp"),
     );
+    expect(
+      hero.querySelector("svg[data-testid='player-character']"),
+    ).toBeNull();
 
     fireEvent.click(within(hero).getByRole("button", { name: "チームを見る" }));
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
