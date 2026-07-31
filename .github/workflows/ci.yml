@@ -22,14 +22,14 @@ jobs:
         run: npm ci
       - name: Render Prettier diagnostics
         run: |
-          mkdir -p .diagnostics
-          npx prettier tests/unit/domain/selectors/playerPresentation.test.ts > .diagnostics/playerPresentation.test.ts
-          npx prettier tests/unit/features/team/PlayerHubScreen.test.tsx > .diagnostics/PlayerHubScreen.test.tsx
+          mkdir -p diagnostics
+          npx prettier tests/unit/domain/selectors/playerPresentation.test.ts > diagnostics/playerPresentation.test.ts
+          npx prettier tests/unit/features/team/PlayerHubScreen.test.tsx > diagnostics/PlayerHubScreen.test.tsx
       - name: Upload Prettier diagnostics
         uses: actions/upload-artifact@v4
         with:
           name: player-hub-prettier
-          path: .diagnostics
+          path: diagnostics
           retention-days: 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
