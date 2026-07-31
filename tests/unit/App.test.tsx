@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import App from "../../src/App";
 
-const menuLabels = ["ホーム", "チーム", "育成", "試合", "学校"];
+const menuLabels = ["ホーム", "選手", "育成", "試合", "学校"];
 
 describe("mobile application shell", () => {
   it("shows the five primary navigation actions", () => {
