@@ -23,8 +23,10 @@ jobs:
       - name: Capture player hub diagnostics
         run: |
           mkdir -p diagnostics
+          npm run lint > diagnostics/lint.txt 2>&1 || true
           npm run typecheck > diagnostics/typecheck.txt 2>&1 || true
-          npm run test -- tests/unit/domain/selectors/playerPresentation.test.ts tests/unit/features/team/PlayerHubScreen.test.tsx > diagnostics/player-hub-tests.txt 2>&1 || true
+          npm run test > diagnostics/full-tests.txt 2>&1 || true
+          npm run build > diagnostics/build.txt 2>&1 || true
       - name: Upload player hub diagnostics
         uses: actions/upload-artifact@v4
         with:
