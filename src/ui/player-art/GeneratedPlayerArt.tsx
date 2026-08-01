@@ -28,6 +28,13 @@ function percentage(offset: number, maximum: number): number {
   return maximum <= 0 ? 0 : (offset / maximum) * 100;
 }
 
+function sharedLayerStyle(layer: GeneratedArtLayer): CSSProperties {
+  return {
+    mixBlendMode: layer.blendMode,
+    opacity: layer.opacity,
+  };
+}
+
 function layerStyle(layer: GeneratedArtLayer): CSSProperties {
   const { sourceRect } = layer;
   const widthScale = (sourceRect.atlasWidth / sourceRect.width) * 100;
@@ -49,6 +56,7 @@ function layerStyle(layer: GeneratedArtLayer): CSSProperties {
       backgroundImage: image,
       backgroundPosition: position,
       backgroundSize: size,
+      ...sharedLayerStyle(layer),
     };
   }
 
@@ -62,6 +70,7 @@ function layerStyle(layer: GeneratedArtLayer): CSSProperties {
     WebkitMaskPosition: position,
     WebkitMaskRepeat: "no-repeat",
     WebkitMaskSize: size,
+    ...sharedLayerStyle(layer),
   };
 }
 
