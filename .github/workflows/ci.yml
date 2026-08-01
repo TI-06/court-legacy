@@ -25,6 +25,7 @@ jobs:
           mkdir -p diagnostics
           npx prettier tests/unit/domain/selectors/playerPresentation.test.ts > diagnostics/playerPresentation.test.ts
           npx prettier tests/unit/features/team/PlayerHubScreen.test.tsx > diagnostics/PlayerHubScreen.test.tsx
+          npx prettier src/ui/player-art/generatedArtManifest.ts > diagnostics/generatedArtManifest.ts
       - name: Upload Prettier diagnostics
         uses: actions/upload-artifact@v4
         with:
