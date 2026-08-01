@@ -1,0 +1,38 @@
+name: Apply player hub
+
+on:
+  push:
+    branches:
+      - feature/m6-game-ui-refresh
+    paths:
+      - .github/workflows/apply-player-hub.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m6-game-ui-refresh
+      - name: Connect player hub to App
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/App.tsx")
+          content = path.read_text(encoding="utf-8")
+          updated = content.replace("TeamScreen", "PlayerHubScreen")
+          if updated == content:
+              raise SystemExit("TeamScreen reference was not found")
+          path.write_text(updated, encoding="utf-8")
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx
+          git commit -m "feat: connect player roster hub to app"
+          git push
