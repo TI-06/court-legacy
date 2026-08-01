@@ -119,8 +119,11 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectNavigationFixed(page, `${viewport}-home`);
 
     await navigation
-      .getByRole("button", { name: "チーム", exact: true })
+      .getByRole("button", { name: "選手", exact: true })
       .click();
+    await expectLayoutFits(page, testInfo, `${viewport}-players`);
+    await expectNavigationFixed(page, `${viewport}-players`);
+    await page.getByRole("button", { name: "編成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-team`);
     await expectNavigationFixed(page, `${viewport}-team`);
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
