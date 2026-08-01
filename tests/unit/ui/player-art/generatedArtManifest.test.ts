@@ -10,18 +10,14 @@ function generatedRecipe() {
 }
 
 describe("generated art manifest", () => {
-  it("resolves a complete ordered WebP layer set", () => {
+  it("resolves a source-quality ordered WebP layer set", () => {
     const recipe = generatedRecipe();
     const layers = resolveGeneratedArtLayers(recipe);
     const expectedSlots = [
-      "hair-back",
-      "body",
-      "uniform",
-      "face",
-      "eyes",
-      "brows",
-      "mouth",
-      "hair-front",
+      "base",
+      "hair-color",
+      "uniform-primary",
+      "uniform-accent",
     ];
 
     if (recipe.accessory !== "none") {
@@ -31,26 +27,40 @@ describe("generated art manifest", () => {
       expectedSlots.push("effect");
     }
 
-    expect(layers.length).toBeGreaterThanOrEqual(8);
-    expect(layers.length).toBeLessThanOrEqual(10);
+    expect(layers.length).toBeGreaterThanOrEqual(4);
+    expect(layers.length).toBeLessThanOrEqual(6);
     expect(layers.every((layer) => layer.url.endsWith(".webp"))).toBe(true);
     expect(layers.map((layer) => layer.slot)).toEqual(expectedSlots);
     expect(
       layers.every(
         (layer) =>
-          layer.sourceRect.width === 64 &&
-          layer.sourceRect.height === 96 &&
-          layer.sourceRect.atlasWidth === 512 &&
-          layer.sourceRect.atlasHeight === 768,
+          layer.sourceRect.width === 256 &&
+          layer.sourceRect.height === 384 &&
+          layer.sourceRect.atlasWidth === 2048 &&
+          layer.sourceRect.atlasHeight === 6528,
       ),
     ).toBe(true);
   });
 
-  it("assigns school colors only to mask layers", () => {
+  it("uses color blending only for tint mask layers", () => {
     const recipe = generatedRecipe();
     const layers = resolveGeneratedArtLayers(recipe);
+    const tintSlots = new Set([
+      "hair-color",
+      "uniform-primary",
+      "uniform-accent",
+    ]);
 
-    expect(layers.filter((layer) => layer.mode === "mask")).not.toHaveLength(0);
+    expect(
+      layers
+        .filter((layer) => tintSlots.has(layer.slot))
+        .every(
+          (layer) =>
+            layer.mode === "mask" &&
+            layer.color !== undefined &&
+            layer.blendMode === "color",
+        ),
+    ).toBe(true);
     expect(
       layers
         .filter((layer) => layer.mode === "image")
