@@ -20,19 +20,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Capture player hub diagnostics
-        run: |
-          mkdir -p diagnostics
-          npm run lint > diagnostics/lint.txt 2>&1 || true
-          npm run typecheck > diagnostics/typecheck.txt 2>&1 || true
-          npm run test > diagnostics/full-tests.txt 2>&1 || true
-          npm run build > diagnostics/build.txt 2>&1 || true
-      - name: Upload player hub diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: player-hub-quality
-          path: diagnostics
-          retention-days: 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
