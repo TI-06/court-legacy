@@ -19,9 +19,7 @@ export function calculatePlayerDisplayPower(player: Player): number {
   return Math.round(average(Object.values(player.abilities))) * 100;
 }
 
-export function summarizePlayerAbilities(
-  player: Player,
-): PlayerAbilitySummary {
+export function summarizePlayerAbilities(player: Player): PlayerAbilitySummary {
   return {
     attack: Math.round((player.abilities.spike + player.abilities.serve) / 2),
     defense: Math.round(

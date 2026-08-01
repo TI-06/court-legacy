@@ -64,8 +64,7 @@
   color: var(--game-text, #f4f7fb);
   text-align: left;
   background:
-    linear-gradient(135deg, rgb(16 41 69 / 92%), rgb(11 26 45 / 96%)),
-    #0b1a2d;
+    linear-gradient(135deg, rgb(16 41 69 / 92%), rgb(11 26 45 / 96%)), #0b1a2d;
   box-shadow: 0 10px 24px rgb(0 0 0 / 20%);
 }
 

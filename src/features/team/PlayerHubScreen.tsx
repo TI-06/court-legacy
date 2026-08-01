@@ -167,7 +167,8 @@ export function PlayerHubScreen({
               <span className="player-hub-card__identity">
                 <strong>{playerName(player)}</strong>
                 <small>
-                  {player.grade}年・{player.preferredPosition}・{player.heightCm}
+                  {player.grade}年・{player.preferredPosition}・
+                  {player.heightCm}
                   cm
                 </small>
                 <span>総合力 {calculatePlayerDisplayPower(player)}</span>
