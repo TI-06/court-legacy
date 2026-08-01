@@ -138,6 +138,13 @@ body {
   padding-bottom: calc(24px + var(--bottom-navigation-height));
 }
 
+.game-page-frame .ui-sticky-action-bar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: 0;
+}
+
 .game-header {
   position: sticky;
   top: 0;
