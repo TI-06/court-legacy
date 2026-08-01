@@ -75,7 +75,8 @@ describe("GeneratedPlayerArt", () => {
 
     expect(await screen.findByTestId("generated-art")).toBeVisible();
     const layers = screen.getAllByTestId("player-art-layer");
-    expect(layers.length).toBeLessThanOrEqual(10);
+    expect(layers.length).toBeGreaterThanOrEqual(4);
+    expect(layers.length).toBeLessThanOrEqual(6);
     const svg = document.querySelector("svg[data-testid='player-character']");
     expect(svg).toBeNull();
   });
