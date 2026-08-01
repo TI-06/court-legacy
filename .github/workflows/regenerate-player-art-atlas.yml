@@ -1,0 +1,167 @@
+name: Regenerate player art atlas
+
+on:
+  push:
+    branches:
+      - feature/m6-game-ui-refresh
+    paths:
+      - .github/workflows/regenerate-player-art-atlas.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/m6-game-ui-refresh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image dependencies
+        run: pip install pillow numpy opencv-python-headless
+      - name: Generate source-quality atlas
+        run: |
+          cat > /tmp/generate_player_art.py <<'PY'
+          from PIL import Image, ImageDraw, ImageFilter
+          from pathlib import Path
+          import numpy as np, cv2, math
+
+          TILE_W,TILE_H,COLS=256,384,8
+          TRAN=(0,0,0,0)
+          ROOT = Path.cwd()
+          SRC = ROOT / 'src/assets/characters/featured'
+          OUT = ROOT / 'src/assets/player-parts/v1'
+          OUT.mkdir(parents=True, exist_ok=True)
+          CHARS=['kuroba-hayato','seto-soma','higami-ren','shiroma-minato']
+          HAIR_STYLES=['buzz','center-part','crew','curly','shaggy','short-spike','side-swept','undercut']
+          BODY_TYPES=['large','muscular','slim','standard']
+
+          def trim(im):
+           b=im.getbbox();return im.crop(b) if b else im
+
+          def normalize(im):
+           im=trim(im.convert('RGBA'))
+           scale=min(220/im.width,350/im.height)
+           im=im.resize((max(1,int(im.width*scale)),max(1,int(im.height*scale))),Image.Resampling.LANCZOS)
+           c=Image.new('RGBA',(TILE_W,TILE_H),TRAN);c.alpha_composite(im,((TILE_W-im.width)//2,TILE_H-im.height-6))
+           arr=np.array(c).copy();a=arr[:,:,3];closed=cv2.morphologyEx(a,cv2.MORPH_CLOSE,np.ones((13,13),np.uint8))
+           holes=((closed>20)&(a<20)&(np.indices(a.shape)[0]<190)).astype(np.uint8)*255
+           if holes.any():
+            for ch in range(3):arr[:,:,ch]=cv2.inpaint(arr[:,:,ch],holes,3,cv2.INPAINT_TELEA)
+            arr[:,:,3]=np.maximum(a,np.where(holes>0,closed,0).astype(np.uint8))
+           return Image.fromarray(arr)
+
+          def skin_mask(arr):
+           rgb=arr[:,:,:3];alpha=arr[:,:,3];hsv=cv2.cvtColor(rgb,cv2.COLOR_RGB2HSV);h,s,v=cv2.split(hsv)
+           return ((((h<25)|(h>170))&(s>18)&(s<190)&(v>95)&(alpha>15)).astype(np.uint8)*255)
+
+          def largest(mask,ratio=.02):
+           n,l,st,_=cv2.connectedComponentsWithStats((mask>0).astype(np.uint8),8);comps=sorted([(st[i,4],i) for i in range(1,n)],reverse=True)
+           if not comps:return mask
+           mx=comps[0][0];keep=[i for area,i in comps if area>=mx*ratio]
+           return np.isin(l,keep).astype(np.uint8)*255
+
+          def hair_mask(im,idx):
+           arr=np.array(im);alpha=arr[:,:,3];yy,xx=np.mgrid[0:TILE_H,0:TILE_W];skin=skin_mask(arr)>0
+           rgb=arr[:,:,:3];hsv=cv2.cvtColor(rgb,cv2.COLOR_RGB2HSV);h,s,v=cv2.split(hsv)
+           zone=(alpha>20)&(~skin)&(((yy<145)|((yy<180)&((xx<82)|(xx>174))))&(((xx-128)/115)**2+((yy-95)/125)**2<1.3))
+           if idx==0:color=((v<145)&(s<150))|((h<20)&(s>70)&(v<220))
+           elif idx==1:color=((h>85)&(h<135)&(s>25)&(v<190))|((v<95)&(s<130))
+           elif idx==2:color=(((h<15)|(h>165))&(s>55)&(v<210))|((v<80)&(s>40))
+           else:color=(s<80)&(v>100)&(yy<170)
+           zone &= ~((xx>96)&(xx<160)&(yy>145))
+           m=(zone&color).astype(np.uint8)*255;m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,np.ones((3,3),np.uint8));m=largest(m,.015);m=cv2.dilate(m,np.ones((3,3),np.uint8));return Image.fromarray(cv2.GaussianBlur(m,(0,0),.6),'L')
+
+          def uniform_masks(im,idx):
+           arr=np.array(im);alpha=arr[:,:,3];yy,xx=np.mgrid[0:TILE_H,0:TILE_W];skin=skin_mask(arr)>0
+           rgb=arr[:,:,:3];hsv=cv2.cvtColor(rgb,cv2.COLOR_RGB2HSV);h,s,v=cv2.split(hsv)
+           zone=(alpha>20)&(~skin)&(yy>168)&(yy<330)&(xx>30)&(xx<226)
+           primary=zone.copy()
+           if idx==0:accent=zone&(((h<25)&(s>85)&(v>70))|(v>205))
+           elif idx==1:accent=zone&(((h>80)&(h<110)&(s>65)&(v>80))|(v>210))
+           elif idx==2:accent=zone&(((h<12)|(h>165))&(s>75)&(v>65))
+           else:accent=zone&(((h>85)&(h<115)&(s>40)&(v>90))|(v>220))
+           primary &= ~((yy>315)&(v<120));accent &= yy<315
+           return Image.fromarray(cv2.GaussianBlur(primary.astype(np.uint8)*255,(0,0),.5),'L'),Image.fromarray(cv2.GaussianBlur(accent.astype(np.uint8)*255,(0,0),.5),'L')
+
+          def remove_prints(im,idx):
+           arr=np.array(im).copy();rgb=arr[:,:,:3];a=arr[:,:,3];hsv=cv2.cvtColor(rgb,cv2.COLOR_RGB2HSV);h,s,v=cv2.split(hsv);yy,xx=np.mgrid[0:TILE_H,0:TILE_W]
+           chest=(xx>88)&(xx<170)&(yy>195)&(yy<252)&(a>20)
+           shorts=(xx>90)&(xx<168)&(yy>=265)&(yy<318)&(a>20)
+           region=chest|shorts
+           if idx==3:ink=(v<130)&(s>20)
+           else:ink=(v>155)&(s<100)
+           mask=(region&ink).astype(np.uint8)*255;mask=cv2.dilate(mask,np.ones((5,5),np.uint8),iterations=1)
+           if mask.any():rgb=cv2.inpaint(rgb,mask,3,cv2.INPAINT_TELEA)
+           arr[:,:,:3]=rgb;arr[:,:,3]=a;return Image.fromarray(arr)
+
+          def grayscale_region(im,mask):
+           arr=np.array(im).copy();m=np.array(mask).astype(np.float32)/255;rgb=arr[:,:,:3].astype(np.float32);lum=.2126*rgb[:,:,0]+.7152*rgb[:,:,1]+.0722*rgb[:,:,2];g=np.stack([lum]*3,2);rgb=rgb*(1-m[:,:,None])+g*m[:,:,None];arr[:,:,:3]=np.clip(rgb,0,255).astype(np.uint8);return Image.fromarray(arr)
+
+          def transform(im,sx=1,flip=False):
+           src=im.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if flip else im;nw=max(1,int(TILE_W*sx));r=src.resize((nw,TILE_H),Image.Resampling.LANCZOS);c=Image.new('RGBA',(TILE_W,TILE_H),TRAN);c.alpha_composite(r,((TILE_W-nw)//2,0));return c
+
+          def transform_mask(mask,sx=1,flip=False):
+           src=mask.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if flip else mask;nw=max(1,int(TILE_W*sx));r=src.resize((nw,TILE_H),Image.Resampling.LANCZOS);c=Image.new('L',(TILE_W,TILE_H),0);c.paste(r,((TILE_W-nw)//2,0));return c
+
+          def mask_rgba(mask):
+           a=np.array(mask);o=np.zeros((TILE_H,TILE_W,4),np.uint8);o[:,:,:3]=255;o[:,:,3]=a;return Image.fromarray(o)
+
+          def accessory(kind):
+           c=Image.new('RGBA',(TILE_W,TILE_H),TRAN);d=ImageDraw.Draw(c)
+           if kind=='headband':d.rounded_rectangle((70,62,186,78),7,fill=(255,255,255,235))
+           elif kind=='sports-glasses':
+            d.rounded_rectangle((76,96,118,120),8,outline='white',width=6);d.rounded_rectangle((138,96,180,120),8,outline='white',width=6);d.line((118,107,138,107),fill='white',width=5)
+           elif kind=='ear-tape':d.rounded_rectangle((58,108,73,135),5,fill=(255,255,255,230))
+           elif kind=='wristband':d.rounded_rectangle((48,238,75,256),5,fill=(255,255,255,230))
+           return c
+
+          def effect(kind):
+           c=Image.new('RGBA',(TILE_W,TILE_H),TRAN);d=ImageDraw.Draw(c);col=(255,190,45,145) if kind=='prospect' else (255,100,25,175)
+           for i in range(4):d.rounded_rectangle((12+i*8,12+i*8,TILE_W-12-i*8,TILE_H-12-i*8),20,outline=col,width=4-i)
+           return c.filter(ImageFilter.GaussianBlur(.7))
+
+          source=[]
+          for idx,ch in enumerate(CHARS):
+           im=normalize(Image.open(SRC / ch / 'chibi-neutral.webp'))
+           im=remove_prints(im,idx)
+           hm=hair_mask(im,idx);pm,am=uniform_masks(im,idx)
+           base=grayscale_region(grayscale_region(im,hm),pm)
+           source.append((base,hm,pm,am))
+
+          style_source={
+           'buzz':(0,False,.90),'center-part':(1,False,1.0),'crew':(0,False,.95),'curly':(1,False,1.08),
+           'shaggy':(0,True,1.04),'short-spike':(0,False,1.05),'side-swept':(1,True,1.03),'undercut':(2,True,.98),
+          }
+          body_scale={'large':1.10,'muscular':1.05,'slim':.93,'standard':1.0}
+          entries=[]
+          def add(im):
+           entries.append(im)
+          for hs in HAIR_STYLES:
+           idx,flip,ss=style_source[hs]
+           base,hm,pm,am=source[idx]
+           for bt in BODY_TYPES:
+            sx=ss*body_scale[bt]
+            add(transform(base,sx,flip))
+            add(mask_rgba(transform_mask(hm,sx,flip)))
+            add(mask_rgba(transform_mask(pm,sx,flip)))
+            add(mask_rgba(transform_mask(am,sx,flip)))
+          for acc in ['ear-tape','headband','sports-glasses','wristband']:add(accessory(acc))
+          for ef in ['generational','prospect']:add(effect(ef))
+          rows=math.ceil(len(entries)/COLS);atlas=Image.new('RGBA',(COLS*TILE_W,rows*TILE_H),TRAN)
+          for i,t in enumerate(entries):atlas.alpha_composite(t,((i%COLS)*TILE_W,(i//COLS)*TILE_H))
+          atlas.save(OUT / 'all-parts-atlas.webp','WEBP',quality=92,method=4)
+          print(f'generated {len(entries)} tiles at {atlas.width}x{atlas.height}')
+          PY
+          python /tmp/generate_player_art.py
+      - name: Commit generated atlas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/assets/player-parts/v1/all-parts-atlas.webp
+          git commit -m "feat: regenerate source-quality player art atlas"
+          git push
