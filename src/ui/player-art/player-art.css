@@ -29,43 +29,51 @@
   transform-origin: center;
 }
 
+.player-art__layer--effect {
+  mix-blend-mode: screen;
+}
+
 .player-art__number {
   position: absolute;
-  top: 48%;
+  top: 52%;
   left: 50%;
-  z-index: 20;
+  z-index: 30;
   color: #ffffff;
-  font-weight: 800;
-  font-size: clamp(7px, 8%, 18px);
+  font-weight: 900;
+  font-size: clamp(8px, 9%, 20px);
   line-height: 1;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 90%),
+    0 0 3px rgb(0 0 0 / 70%);
   transform: translateX(-50%);
+  -webkit-text-stroke: 0.35px rgb(0 0 0 / 60%);
 }
 
-.player-art[data-expression="focused"] .player-art__layer--eyes,
-.player-art[data-expression="focused"] .player-art__layer--brows {
-  transform: translateY(-1.2%);
+.player-art[data-expression="focused"] .player-art__layer--base {
+  transform: translateY(-0.5%);
 }
 
-.player-art[data-expression="tired"] .player-art__layer--eyes {
-  transform: scaleY(0.72);
+.player-art[data-expression="tired"] .player-art__layer--base {
+  filter: saturate(0.88) brightness(0.98);
 }
 
-.player-art[data-expression="exhausted"] .player-art__layer--eyes {
-  transform: translateY(1%) scaleY(0.5);
+.player-art[data-expression="exhausted"] .player-art__layer--base {
+  filter: saturate(0.7) brightness(0.92);
 }
 
-.player-art[data-expression="worried"] .player-art__layer--brows,
-.player-art[data-expression="pained"] .player-art__layer--brows {
-  transform: translateY(1%) rotate(2deg);
+.player-art[data-expression="worried"] .player-art__layer--base,
+.player-art[data-expression="pained"] .player-art__layer--base {
+  filter: saturate(0.82) contrast(1.04);
 }
 
-.player-art[data-expression="confident"] .player-art__layer--mouth {
-  transform: translateY(-0.5%) scaleX(1.05);
+.player-art[data-expression="confident"] .player-art__layer--base {
+  filter: saturate(1.08) contrast(1.03);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .player-art__layer {
-    transition: transform 140ms ease-out;
+    transition:
+      transform 140ms ease-out,
+      filter 140ms ease-out;
   }
 }
