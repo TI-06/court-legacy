@@ -65,7 +65,10 @@ const ACCESSORY_INDEX: Record<
   wristband: ACCESSORY_START_INDEX + 3,
 };
 
-const EFFECT_INDEX: Record<Exclude<PlayerArtRecipe["tier"], "normal">, number> = {
+const EFFECT_INDEX: Record<
+  Exclude<PlayerArtRecipe["tier"], "normal">,
+  number
+> = {
   generational: EFFECT_START_INDEX,
   prospect: EFFECT_START_INDEX + 1,
 };
@@ -92,10 +95,7 @@ function layer(
   slot: GeneratedArtLayerSlot,
   entryIndex: number,
   mode: GeneratedArtLayer["mode"],
-  options: Pick<
-    GeneratedArtLayer,
-    "color" | "blendMode" | "opacity"
-  > = {},
+  options: Pick<GeneratedArtLayer, "color" | "blendMode" | "opacity"> = {},
 ): GeneratedArtLayer {
   return {
     slot,
