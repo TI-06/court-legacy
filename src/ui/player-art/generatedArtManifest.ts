@@ -108,8 +108,7 @@ function layer(
 
 function combinationStartIndex(recipe: PlayerArtRecipe): number {
   const combinationIndex =
-    HAIR_STYLE_INDEX[recipe.hairStyle] * 4 +
-    BODY_TYPE_INDEX[recipe.bodyType];
+    HAIR_STYLE_INDEX[recipe.hairStyle] * 4 + BODY_TYPE_INDEX[recipe.bodyType];
   return combinationIndex * LAYERS_PER_COMBINATION;
 }
 
