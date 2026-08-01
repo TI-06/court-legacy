@@ -40,7 +40,7 @@ import { YearTransitionDialog } from "./features/home/YearTransitionDialog";
 import { MatchScreen } from "./features/match/MatchScreen";
 import { SaveSheet } from "./features/save/SaveSheet";
 import { SchoolScreen } from "./features/school/SchoolScreen";
-import { TeamScreen } from "./features/team/TeamScreen";
+import { PlayerHubScreen } from "./features/team/PlayerHubScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 import type { SaveSlotId } from "./persistence/GameRepository";
 import { browserGameRepository } from "./persistence/IndexedDbGameRepository";
@@ -292,7 +292,7 @@ export default function App() {
         trainingCompleted={trainingCompleted}
       />
     ) : activeTab === "team" ? (
-      <TeamScreen
+      <PlayerHubScreen
         onChange={(selection) =>
           setAppState((current) => ({
             ...current,
