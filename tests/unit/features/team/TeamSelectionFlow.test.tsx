@@ -1,10 +1,15 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../../../src/App";
 
+function openLineupScreen(): void {
+  fireEvent.click(screen.getByRole("button", { name: "選手" }));
+  fireEvent.click(screen.getByRole("button", { name: "編成" }));
+}
+
 describe("team selection direct-touch UI", () => {
-  it("opens the Team tab with a court, libero, and bench rail", () => {
+  it("opens the player tab with a court, libero, and bench rail", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
 
     expect(
       screen.getByRole("heading", { name: "チーム編成" }),
@@ -23,7 +28,7 @@ describe("team selection direct-touch UI", () => {
 
   it("opens every school player in the replacement bottom sheet", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
     fireEvent.click(
       screen.getByRole("button", { name: "ローテーション1を変更" }),
     );
@@ -38,7 +43,7 @@ describe("team selection direct-touch UI", () => {
 
   it("manually replaces a court player without duplicate active players", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
     fireEvent.click(
       screen.getByRole("button", { name: "ローテーション1を変更" }),
     );
@@ -63,7 +68,7 @@ describe("team selection direct-touch UI", () => {
 
   it("persists starter locks and safety settings across tab changes", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
 
     const starterLock = screen.getAllByRole("button", {
       name: /先発固定/,
@@ -75,7 +80,7 @@ describe("team selection direct-touch UI", () => {
     fireEvent.click(injurySafety);
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
 
     expect(
       screen.getAllByRole("button", { name: /先発固定/ })[0],
@@ -87,7 +92,7 @@ describe("team selection direct-touch UI", () => {
 
   it("can rebuild and safety-adjust the lineup", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
+    openLineupScreen();
 
     fireEvent.click(screen.getByRole("button", { name: "自動編成" }));
     fireEvent.click(screen.getByRole("button", { name: "安全調整" }));

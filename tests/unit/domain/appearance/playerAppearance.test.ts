@@ -2,6 +2,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   appearanceSignature,
   assemblePlayerAppearance,
+  seedAppearanceSignature,
 } from "../../../../src/domain/appearance/playerAppearance";
 import type { Player } from "../../../../src/domain/model/Player";
 
@@ -17,6 +18,27 @@ describe("player appearance assembly", () => {
 
     expect(assemblePlayerAppearance(player)).toEqual(
       assemblePlayerAppearance({ ...player }),
+    );
+  });
+
+  it("derives the same identity catalog values from the seed alone", () => {
+    const state = createDemoGame();
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const appearance = assemblePlayerAppearance(player);
+
+    expect(seedAppearanceSignature(player.appearanceSeed)).toBe(
+      [
+        appearance.faceShape,
+        appearance.eyeStyle,
+        appearance.browStyle,
+        appearance.mouthStyle,
+        appearance.hairStyle,
+        appearance.hairColor,
+        appearance.skinTone,
+        appearance.accessory,
+        appearance.uniformPattern,
+      ].join("|"),
     );
   });
 

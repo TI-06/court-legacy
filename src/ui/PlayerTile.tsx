@@ -1,7 +1,7 @@
 import { resolveJerseyNumber } from "../domain/appearance/characterWorld";
 import type { Player } from "../domain/model/Player";
 import type { School, UniformColors } from "../domain/model/School";
-import { PlayerCharacter } from "./PlayerCharacter";
+import { PlayerArt } from "./player-art/PlayerArt";
 
 interface PlayerTileProps {
   player: Player;
@@ -33,7 +33,6 @@ function playerStatus(player: Player): { label: string; tone: string } {
 export function PlayerTile({
   player,
   school,
-  uniform,
   selected = false,
   disabled = false,
   compact = false,
@@ -48,7 +47,7 @@ export function PlayerTile({
   const content = (
     <>
       <span className="ui-player-avatar" aria-hidden="true">
-        <PlayerCharacter player={player} school={school} uniform={uniform} />
+        <PlayerArt player={player} school={school} variant="card" />
       </span>
       <span className="ui-player-tile__main">
         <strong>

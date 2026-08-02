@@ -1,0 +1,230 @@
+.player-hub {
+  display: grid;
+  gap: 16px;
+}
+
+.player-hub__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--game-radius-small, 12px);
+  background: rgb(5 11 20 / 75%);
+}
+
+.player-hub__tabs button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--game-text-muted, #a9b8ca);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+}
+
+.player-hub__tabs button[aria-current="page"] {
+  color: #ffffff;
+  background: linear-gradient(135deg, #f47a18, #d9570d);
+  box-shadow: 0 8px 20px rgb(244 122 24 / 25%);
+}
+
+.player-hub__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.player-hub__heading h2,
+.player-hub__heading p {
+  margin: 0;
+}
+
+.player-hub__heading > span {
+  color: var(--game-accent, #f47a18);
+  font-weight: 900;
+}
+
+.player-hub__grid {
+  display: grid;
+  gap: 10px;
+}
+
+.player-hub-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 104px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  color: var(--game-text, #f4f7fb);
+  text-align: left;
+  background:
+    linear-gradient(135deg, rgb(16 41 69 / 92%), rgb(11 26 45 / 96%)), #0b1a2d;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 20%);
+}
+
+.player-hub-card:focus-visible,
+.player-hub-card:hover {
+  border-color: rgb(244 122 24 / 70%);
+  transform: translateY(-1px);
+}
+
+.player-hub-card__art {
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  width: 68px;
+  height: 88px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgb(46 139 216 / 18%), transparent);
+}
+
+.player-hub-card__identity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.player-hub-card__identity strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-hub-card__identity small,
+.player-hub-card__stats small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.player-hub-card__identity > span {
+  color: var(--game-accent, #f47a18);
+  font-weight: 900;
+}
+
+.player-hub-card__stats {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.player-detail {
+  padding-bottom: 24px;
+}
+
+.player-detail__back {
+  justify-self: start;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgb(11 26 45 / 92%);
+  font: inherit;
+  font-weight: 800;
+}
+
+.player-detail__hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(120px, 42%) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  overflow: hidden;
+  min-height: 300px;
+  padding: 18px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(46 139 216 / 24%), transparent 42%),
+    linear-gradient(145deg, #102945, #050b14 72%);
+}
+
+.player-detail__art {
+  align-self: end;
+  justify-self: center;
+  max-height: 270px;
+}
+
+.player-detail__identity {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+  align-self: center;
+}
+
+.player-detail__identity h2,
+.player-detail__identity p {
+  margin: 0;
+}
+
+.player-detail__identity > span,
+.player-detail__identity p {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.player-detail__power {
+  display: grid;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.player-detail__power span {
+  color: var(--game-accent, #f47a18);
+  font-weight: 800;
+}
+
+.player-detail__power strong {
+  font-size: clamp(30px, 9vw, 48px);
+  line-height: 1;
+}
+
+.player-detail__stats {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 16px;
+  background: var(--game-panel, #0b1a2d);
+}
+
+.player-detail__condition {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.player-detail__condition article {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #102945;
+}
+
+.player-detail__condition span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 12px;
+}
+
+@media (max-width: 360px) {
+  .player-hub-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .player-hub-card__stats {
+    display: none;
+  }
+
+  .player-detail__hero {
+    grid-template-columns: 42% minmax(0, 1fr);
+    min-height: 250px;
+    padding: 12px;
+  }
+}

@@ -18,7 +18,6 @@ import {
 import type { GameState } from "./domain/model/GameState";
 import { matchId } from "./domain/model/identifiers";
 import { SeededRandom } from "./domain/random/SeededRandom";
-import { recordMatchOutcome } from "./domain/world/rivalWorldProgression";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -33,6 +32,7 @@ import {
   type TrainingResult,
   type WeeklyPlan,
 } from "./domain/training/resolveWeeklyTraining";
+import { recordMatchOutcome } from "./domain/world/rivalWorldProgression";
 import { CalendarSheet } from "./features/calendar/CalendarSheet";
 import { EventDialog } from "./features/home/EventDialog";
 import { HomeScreen } from "./features/home/HomeScreen";
@@ -40,55 +40,12 @@ import { YearTransitionDialog } from "./features/home/YearTransitionDialog";
 import { MatchScreen } from "./features/match/MatchScreen";
 import { SaveSheet } from "./features/save/SaveSheet";
 import { SchoolScreen } from "./features/school/SchoolScreen";
-import { TeamScreen } from "./features/team/TeamScreen";
+import { PlayerHubScreen } from "./features/team/PlayerHubScreen";
 import { TrainingScreen } from "./features/training/TrainingScreen";
 import type { SaveSlotId } from "./persistence/GameRepository";
 import { browserGameRepository } from "./persistence/IndexedDbGameRepository";
-
-type AppTab = "home" | "team" | "training" | "match" | "school";
-type IconName =
-  "home" | "team" | "training" | "match" | "school" | "calendar" | "save";
-
-interface IconProps {
-  name: IconName;
-}
-
-function Icon({ name }: IconProps) {
-  const paths: Record<IconName, string> = {
-    home: "M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10.5Z",
-    team: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
-    training: "M6.5 6.5h11v11h-11zM3 9v6M21 9v6M9 3h6M9 21h6",
-    match:
-      "M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm10 2h3v2a4 4 0 0 1-4 4M7 6H4v2a4 4 0 0 0 4 4",
-    school: "m3 10 9-6 9 6-9 6-9-6Zm3 4v5h12v-5M9 19v-4h6v4",
-    calendar: "M6 2v4M18 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z",
-    save: "M5 3h12l2 2v16H5V3Zm3 0v6h8V3M8 21v-7h8v7",
-  };
-
-  return (
-    <svg aria-hidden="true" className="icon" fill="none" viewBox="0 0 24 24">
-      <path
-        d={paths[name]}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-const navigationItems: Array<{
-  id: AppTab;
-  label: string;
-  icon: IconName;
-}> = [
-  { id: "home", label: "ホーム", icon: "home" },
-  { id: "team", label: "チーム", icon: "team" },
-  { id: "training", label: "育成", icon: "training" },
-  { id: "match", label: "試合", icon: "match" },
-  { id: "school", label: "学校", icon: "school" },
-];
+import { GamePageFrame } from "./ui/shell/GamePageFrame";
+import type { AppTab } from "./ui/shell/appNavigation";
 
 function createAppState(gameState: GameState) {
   const teamSelection = autoSelectTeam({
@@ -335,7 +292,7 @@ export default function App() {
         trainingCompleted={trainingCompleted}
       />
     ) : activeTab === "team" ? (
-      <TeamScreen
+      <PlayerHubScreen
         onChange={(selection) =>
           setAppState((current) => ({
             ...current,
@@ -374,55 +331,16 @@ export default function App() {
     );
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">COURT LEGACY</p>
-          <h1>継承のコート</h1>
-        </div>
-        <div className="header-actions">
-          <span aria-live="polite" className="header-save-status">
-            {saveNotice}
-          </span>
-          <button
-            aria-label="セーブ・ロードを開く"
-            className="header-action"
-            onClick={() => setSaveOpen(true)}
-            type="button"
-          >
-            <Icon name="save" />
-          </button>
-          <button
-            aria-label="予定を確認"
-            className="header-action"
-            onClick={() => setCalendarOpen(true)}
-            type="button"
-          >
-            <Icon name="calendar" />
-          </button>
-        </div>
-      </header>
-
-      {content}
-
-      <nav aria-label="主要メニュー" className="bottom-navigation">
-        {navigationItems.map((item) => {
-          const active = activeTab === item.id;
-
-          return (
-            <button
-              aria-current={active ? "page" : undefined}
-              className={active ? "nav-item nav-item--active" : "nav-item"}
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              type="button"
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+    <>
+      <GamePageFrame
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+        onOpenCalendar={() => setCalendarOpen(true)}
+        onOpenSave={() => setSaveOpen(true)}
+        saveNotice={saveNotice}
+      >
+        {content}
+      </GamePageFrame>
 
       <CalendarSheet
         onAdvanceWeek={advanceWeek}
@@ -449,6 +367,6 @@ export default function App() {
           summary={latestYearTransition}
         />
       ) : null}
-    </div>
+    </>
   );
 }

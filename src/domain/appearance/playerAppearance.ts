@@ -138,6 +138,20 @@ function poseFor(player: Player): CharacterPose {
   return pick(player.appearanceSeed, 29, POSES);
 }
 
+export function seedAppearanceSignature(seed: number): string {
+  return [
+    pick(seed, 1, FACE_SHAPES),
+    pick(seed, 3, EYE_STYLES),
+    pick(seed, 5, BROW_STYLES),
+    pick(seed, 7, MOUTH_STYLES),
+    pick(seed, 11, HAIR_STYLES),
+    pick(seed, 13, HAIR_COLORS),
+    pick(seed, 17, SKIN_TONES),
+    pick(seed, 19, ACCESSORIES),
+    pick(seed, 23, UNIFORM_PATTERNS),
+  ].join("|");
+}
+
 export function assemblePlayerAppearance(player: Player): PlayerAppearance {
   return {
     appearanceSeed: player.appearanceSeed,
