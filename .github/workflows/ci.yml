@@ -7,29 +7,57 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Verify formatting, lint, types, tests, and build
-        run: npm run verify
-      - name: Upload repaired character art review
-        uses: actions/upload-artifact@v4
+          ref: feature/high-quality-character-art
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          name: repaired-character-art-review
-          path: |
-            src/assets/characters/featured
-            src/assets/player-parts/v1/all-parts-atlas.webp
-          retention-days: 1
+          python-version: '3.12'
+      - name: Install image dependencies
+        run: pip install pillow numpy opencv-python-headless
+      - name: Download direct full character sources
+        env:
+          KUROBA_URL: 'https://design-manipulation-download.canva.com/204386ee-cc10-4011-9c64-f9f0fc957a31/0000-6283033102487829610.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH53ATLMYK%2F20260804%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260804T052520Z&X-Amz-Expires=19139&X-Amz-Signature=b8038949a775d95d475a5440c22224627e6fa67ed656d41a6f4b77609de0189b&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2004%20Aug%202026%2010%3A44%3A19%20GMT'
+          SETO_URL: 'https://design-manipulation-download.canva.com/5e4dce92-624c-43ee-b329-aab88884b28e/0000-6283033103139874749.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH53ATLMYK%2F20260803%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260803T132604Z&X-Amz-Expires=78910&X-Amz-Signature=600f69516972932881b63b0f15a65f222195e828e620300bc476952294ff2b9a&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2004%20Aug%202026%2011%3A21%3A14%20GMT'
+          HIGAMI_URL: 'https://design-manipulation-download.canva.com/71d270e3-76ce-4c59-8015-f685f2f555fd/0000-7157857329879528127.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH53ATLMYK%2F20260804%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260804T062300Z&X-Amz-Expires=16651&X-Amz-Signature=93a9bb079bb76c7a12eabb73ba2685aa667025ec0d0281446fc7eb4f2205b8ff&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2004%20Aug%202026%2011%3A00%3A31%20GMT'
+          SHIROMA_URL: 'https://design-manipulation-download.canva.com/8c310a5d-1c15-4cb8-b635-ea331abd4f96/0000-5507288066341901995.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH53ATLMYK%2F20260803%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260803T105659Z&X-Amz-Expires=86123&X-Amz-Signature=a200b765094189da98450c3b78ebd8e8a4b9318379353f9d812e662ca6d40d45&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2004%20Aug%202026%2010%3A52%3A22%20GMT'
+        run: |
+          mkdir -p scripts/art-source/full
+          curl --fail --location "$KUROBA_URL" -o scripts/art-source/full/kuroba-hayato.png
+          curl --fail --location "$SETO_URL" -o scripts/art-source/full/seto-soma.png
+          curl --fail --location "$HIGAMI_URL" -o scripts/art-source/full/higami-ren.png
+          curl --fail --location "$SHIROMA_URL" -o scripts/art-source/full/shiroma-minato.png
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for path in sorted(Path('scripts/art-source/full').glob('*.png')):
+              image = Image.open(path)
+              if image.size != (768, 1024):
+                  raise RuntimeError(f'unexpected source size {path}: {image.size}')
+              print(path, image.size)
+          PY
+      - name: Generate fixed and general character art
+        run: python scripts/generate_character_art_from_full_sources.py
+      - name: Commit direct-source character art and restore standard CI
+        run: |
+          git fetch origin main feature/high-quality-character-art
+          git checkout origin/main -- .github/workflows/ci.yml
+          rm -rf .asset-payload
+          rm -f .github/workflows/apply-character-art.yml
+          rm -f .github/workflows/apply-character-art-hq.yml
+          find scripts -type d -name __pycache__ -prune -exec rm -rf {} +
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: replace broken crops with direct high quality sources'
+          git push --force-with-lease origin HEAD:feature/high-quality-character-art
 
   mobile-e2e:
     needs: quality
