@@ -7,52 +7,13 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/high-quality-character-art
-          fetch-depth: 0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install image dependencies
-        run: pip install pillow numpy opencv-python-headless
-      - name: Regenerate original resolution character art
-        env:
-          SOURCE_URL: >-
-            https://design-manipulation-download.canva.com/d2fd2ee0-4ef6-42b3-b4a9-a55eb503b757/0000-4495104049808836406.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH53ATLMYK%2F20260804%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260804T030842Z&X-Amz-Expires=27883&X-Amz-Signature=95a00361a277b19cb3798870c3a37f295489f865ed294e5ce4d4426ee6fa0286&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C%2004%20Aug%202026%2010%3A53%3A25%20GMT
-        run: |
-          mkdir -p scripts/art-source
-          curl --fail --location "$SOURCE_URL" -o /tmp/character-setting-sheet.png
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          image = Image.open('/tmp/character-setting-sheet.png').convert('RGB')
-          original_size = image.size
-          if image.size != (1491, 1055):
-              image = image.resize((1491, 1055), Image.Resampling.LANCZOS)
-          target = Path('scripts/art-source/character-setting-sheet.webp')
-          image.save(target, 'WEBP', quality=96, method=4)
-          print('source', original_size, 'normalized', image.size, target.stat().st_size)
-          PY
-          python scripts/generate_character_art_assets_hq.py
-      - name: Commit regenerated assets and restore CI
-        run: |
-          git fetch origin main
-          git checkout origin/main -- .github/workflows/ci.yml
-          rm -rf .asset-payload
-          rm -f .github/workflows/apply-character-art.yml
-          rm -f .github/workflows/apply-character-art-hq.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'feat: regenerate character art from original resolution [character-art-hq-generated]'
-          git push origin HEAD:feature/high-quality-character-art
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
@@ -61,14 +22,6 @@ jobs:
         run: npm ci
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
-      - name: Upload character art review bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: character-art-review-hq
-          path: |
-            src/assets/characters/featured
-            src/assets/player-parts/v1/all-parts-atlas.webp
-          retention-days: 1
 
   mobile-e2e:
     needs: quality
