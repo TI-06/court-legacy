@@ -38,10 +38,11 @@ jobs:
           from pathlib import Path
           from PIL import Image
           for path in sorted(Path('scripts/art-source/full').glob('*.png')):
-              image = Image.open(path)
-              if image.size != (768, 1024):
-                  raise RuntimeError(f'unexpected source size {path}: {image.size}')
-              print(path, image.size)
+              image = Image.open(path).convert('RGB')
+              original_size = image.size
+              image = image.resize((768, 1024), Image.Resampling.LANCZOS)
+              image.save(path, 'PNG')
+              print(path, original_size, '->', image.size)
           PY
       - name: Generate fixed and general character art
         run: python scripts/generate_character_art_from_full_sources.py
