@@ -1,0 +1,52 @@
+name: Apply High Quality Character Art
+
+on:
+  push:
+    branches:
+      - feature/high-quality-character-art
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[character-art-generated]') }}
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_URL: 'https://media.canva.com/v2/document-image/hash:374614144/height:376/id:DAHRUDPykVU/type:B/width:531?brand=BAGmT-QnVxY&csig=AAAAAAAAAAAAAAAAAAAAAD1Qzgc66pW7CTzr1Rccpd8OMy84rqu_d4GWGnwIOBDi&disableexport=T&exp=1785837090&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2FPykVU%2FDAHRUDPykVU%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHYGFFNMW3%252F20260803%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260803T223137Z%26X-Amz-Expires%3D40793%26X-Amz-Signature%3D839329ca3609c1feb9795484aefa877aacbfd4d979ce894d4d2cc5a6cf8fc56d%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DTue%252C%252004%2520Aug%25202026%252009%253A51%253A30%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAAYTgiMAcf_B5VjlbdnpHGV86qxZ-2tRMbLT-8Gmd5Lx&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image dependencies
+        run: pip install pillow numpy opencv-python-headless
+      - name: Download and normalize source sheet
+        run: |
+          mkdir -p scripts/art-source
+          curl --fail --location "$SOURCE_URL" -o /tmp/character-source.png
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          source = Image.open('/tmp/character-source.png').convert('RGB')
+          source = source.resize((1491, 1055), Image.Resampling.LANCZOS)
+          target = Path('scripts/art-source/character-setting-sheet.webp')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          source.save(target, 'WEBP', quality=92, method=4)
+          print('source', source.size, target.stat().st_size)
+          PY
+      - name: Generate featured and general player art
+        run: python scripts/generate_character_art_assets.py
+      - name: Restore CI and commit generated assets
+        run: |
+          git fetch origin main
+          git checkout origin/main -- .github/workflows/ci.yml
+          rm -rf .asset-payload
+          rm -f .github/workflows/apply-character-art.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: replace character art with high quality assets [character-art-generated]'
+          git push origin HEAD:feature/high-quality-character-art
