@@ -57,6 +57,63 @@ jobs:
           card_grid.convert('RGB').save('/tmp/player-art-diagnostics/base-tiles-card-size.jpg', quality=92)
           print('atlas', atlas.size)
           PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install application dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture built roster rendering
+        run: |
+          cat > tests/e2e/player-art-diagnostic.spec.ts <<'TS'
+          import { writeFileSync } from "node:fs";
+          import { expect, test } from "@playwright/test";
+
+          test("capture current roster player art", async ({ page }) => {
+            await page.goto("/");
+            const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+            await navigation.getByRole("button", { name: "選手", exact: true }).click();
+            await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+            await page.locator(".player-hub-card .player-art").first().waitFor();
+
+            await page.screenshot({
+              path: "/tmp/player-art-diagnostics/roster-browser.png",
+              fullPage: true,
+            });
+            await page.locator(".player-hub-card").first().screenshot({
+              path: "/tmp/player-art-diagnostics/first-card-browser.png",
+            });
+
+            const rendering = await page
+              .locator(".player-hub-card .player-art")
+              .evaluateAll((elements) =>
+                elements.slice(0, 8).map((element) => {
+                  const rect = element.getBoundingClientRect();
+                  const base = element.querySelector<HTMLElement>(
+                    ".player-art__layer--base",
+                  );
+                  const style = base ? getComputedStyle(base) : null;
+                  return {
+                    signature: element.getAttribute("data-art-signature"),
+                    width: rect.width,
+                    height: rect.height,
+                    layerCount: element.querySelectorAll(".player-art__layer").length,
+                    backgroundImage: style?.backgroundImage ?? null,
+                    backgroundPosition: style?.backgroundPosition ?? null,
+                    backgroundSize: style?.backgroundSize ?? null,
+                  };
+                }),
+              );
+            writeFileSync(
+              "/tmp/player-art-diagnostics/browser-rendering.json",
+              JSON.stringify(rendering, null, 2),
+            );
+          });
+          TS
+          npx playwright test tests/e2e/player-art-diagnostic.spec.ts --project=mobile-chromium
+          rm tests/e2e/player-art-diagnostic.spec.ts
       - uses: actions/upload-artifact@v4
         with:
           name: player-art-diagnostics
