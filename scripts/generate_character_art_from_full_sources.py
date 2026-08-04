@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 import importlib.util
 from pathlib import Path
 
@@ -24,13 +25,70 @@ CHARACTERS = (
     "shiroma-minato",
 )
 
+ACCENT_COLORS = {
+    "kuroba-hayato": (244, 122, 24),
+    "seto-soma": (34, 153, 214),
+    "higami-ren": (196, 52, 63),
+    "shiroma-minato": (62, 170, 221),
+}
 
-def remove_key_background(image: Image.Image) -> Image.Image:
+
+def remove_key_background(
+    image: Image.Image,
+    character_id: str,
+) -> Image.Image:
     rgba = np.array(image.convert("RGBA"))
-    red, green, blue = [rgba[:, :, index] for index in range(3)]
-    key = (red > 235) & (green < 45) & (blue > 235)
-    alpha = np.where(key, 0, 255).astype(np.uint8)
+    rgb = rgba[:, :, :3]
+    height, width = rgb.shape[:2]
+    red, green, blue = [rgb[:, :, index].astype(np.int16) for index in range(3)]
+
+    key_candidate = (red > 175) & (green < 115) & (blue > 175)
+    background = np.zeros((height, width), np.uint8)
+    queue: deque[tuple[int, int]] = deque()
+    for x in range(width):
+        for y in (0, height - 1):
+            if key_candidate[y, x] and not background[y, x]:
+                background[y, x] = 1
+                queue.append((y, x))
+    for y in range(height):
+        for x in (0, width - 1):
+            if key_candidate[y, x] and not background[y, x]:
+                background[y, x] = 1
+                queue.append((y, x))
+    while queue:
+        y, x = queue.popleft()
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if not (dx or dy):
+                    continue
+                ny, nx = y + dy, x + dx
+                if (
+                    0 <= ny < height
+                    and 0 <= nx < width
+                    and key_candidate[ny, nx]
+                    and not background[ny, nx]
+                ):
+                    background[ny, nx] = 1
+                    queue.append((ny, nx))
+
+    alpha = np.where(background, 0, 255).astype(np.uint8)
     alpha = cv2.GaussianBlur(alpha, (3, 3), 0)
+
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    hue, saturation, value = [hsv[:, :, index] for index in range(3)]
+    remaining_magenta = (
+        (alpha > 32)
+        & (hue > 135)
+        & (hue < 175)
+        & (saturation > 70)
+        & (value > 45)
+    )
+    target = np.array(ACCENT_COLORS[character_id], dtype=np.float32)
+    luminance = np.clip(value.astype(np.float32) / 210.0, 0.35, 1.18)
+    recolored = np.clip(luminance[:, :, None] * target[None, None, :], 0, 255)
+    rgb[remaining_magenta] = recolored[remaining_magenta].astype(np.uint8)
+
+    rgba[:, :, :3] = rgb
     rgba[:, :, 3] = alpha
     result = Image.fromarray(rgba)
     bounds = result.getbbox()
@@ -70,7 +128,7 @@ def main() -> None:
         source = SOURCE_ROOT / f"{character_id}.png"
         if not source.exists():
             raise FileNotFoundError(source)
-        full = remove_key_background(Image.open(source))
+        full = remove_key_background(Image.open(source), character_id)
         full_images[character_id] = full
         directory = generator.FEATURED_ROOT / character_id
         generator.save_webp(
