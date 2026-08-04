@@ -20,11 +20,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Verify formatting, lint, types, tests, and build
-        run: npm run verify
       - name: Probe original Canva asset
         env:
-          ORIGINAL_URL: 'https://media.canva.com/v2/image-resize/format:PNG/height:1055/quality:100/uri:ifs%3A%2F%2FM%2Ff53b1c60-a41a-4b5c-a2fb-a3eb5c9fd5aa/watermark:F/width:1491?csig=AAAAAAAAAAAAAAAAAAAAAEXsuE6tmdosk2ilT-EeQBCvkiUoEDvGLns63PpwMC2e&exp=1785848501&osig=AAAAAAAAAAAAAAAAAAAAALRKoBAABDOYsLaWG9S_EL3DdN1tewA1kFIHd29YNdlw&signer=media-rpc&x-canva-quality=thumbnail'
+          ORIGINAL_URL: >-
+            https://media.canva.com/v2/image-resize/format:PNG/height:1055/quality:100/uri:ifs%3A%2F%2FM%2Ff53b1c60-a41a-4b5c-a2fb-a3eb5c9fd5aa/watermark:F/width:1491?csig=AAAAAAAAAAAAAAAAAAAAAEXsuE6tmdosk2ilT-EeQBCvkiUoEDvGLns63PpwMC2e&exp=1785848501&osig=AAAAAAAAAAAAAAAAAAAAALRKoBAABDOYsLaWG9S_EL3DdN1tewA1kFIHd29YNdlw&signer=media-rpc&x-canva-quality=thumbnail
         run: |
           mkdir -p /tmp/canva-probe
           status=$(curl --location --silent --show-error --write-out '%{http_code}' --output /tmp/canva-probe/original.png "$ORIGINAL_URL" || true)
@@ -41,6 +40,8 @@ jobs:
           name: canva-original-probe
           path: /tmp/canva-probe
           retention-days: 1
+      - name: Verify formatting, lint, types, tests, and build
+        run: npm run verify
       - name: Upload character art review bundle
         uses: actions/upload-artifact@v4
         with:
