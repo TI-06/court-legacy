@@ -22,6 +22,14 @@ jobs:
         run: npm ci
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
+      - name: Upload character art review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: character-art-review
+          path: |
+            src/assets/characters/featured
+            src/assets/player-parts/v1/all-parts-atlas.webp
+          retention-days: 1
 
   mobile-e2e:
     needs: quality
