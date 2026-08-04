@@ -1,0 +1,61 @@
+name: Diagnose Player Art
+
+on:
+  push:
+    branches:
+      - fix/player-art-rendering
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image tools
+        run: pip install pillow
+      - name: Build atlas diagnostics
+        run: |
+          mkdir -p /tmp/player-art-diagnostics
+          cp src/assets/player-parts/v1/all-parts-atlas.webp /tmp/player-art-diagnostics/
+          cp src/assets/characters/featured/*/full-neutral.webp /tmp/player-art-diagnostics/ || true
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+
+          atlas_path = Path('src/assets/player-parts/v1/all-parts-atlas.webp')
+          atlas = Image.open(atlas_path).convert('RGBA')
+          tile_w, tile_h = 256, 384
+          indices = [index * 4 for index in range(32)]
+
+          full_grid = Image.new('RGBA', (8 * tile_w, 4 * tile_h), (5, 11, 20, 255))
+          card_grid = Image.new('RGBA', (8 * 96, 4 * 128), (5, 11, 20, 255))
+
+          for position, index in enumerate(indices):
+              x = (index % 8) * tile_w
+              y = (index // 8) * tile_h
+              tile = atlas.crop((x, y, x + tile_w, y + tile_h))
+              gx = (position % 8) * tile_w
+              gy = (position // 8) * tile_h
+              full_grid.alpha_composite(tile, (gx, gy))
+
+              card = tile.resize((64, 96), Image.Resampling.LANCZOS)
+              cell_x = (position % 8) * 96
+              cell_y = (position // 8) * 128
+              card_grid.alpha_composite(card, (cell_x + 16, cell_y + 8))
+              draw = ImageDraw.Draw(card_grid)
+              draw.text((cell_x + 4, cell_y + 108), str(index), fill=(255, 255, 255, 255))
+
+          full_grid.convert('RGB').save('/tmp/player-art-diagnostics/base-tiles-full.jpg', quality=92)
+          card_grid.convert('RGB').save('/tmp/player-art-diagnostics/base-tiles-card-size.jpg', quality=92)
+          print('atlas', atlas.size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: player-art-diagnostics
+          path: /tmp/player-art-diagnostics
+          retention-days: 1
