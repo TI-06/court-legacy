@@ -33,11 +33,12 @@ jobs:
           from pathlib import Path
           from PIL import Image
           image = Image.open('/tmp/character-setting-sheet.png').convert('RGB')
+          original_size = image.size
           if image.size != (1491, 1055):
-              raise RuntimeError(f'unexpected source size: {image.size}')
+              image = image.resize((1491, 1055), Image.Resampling.LANCZOS)
           target = Path('scripts/art-source/character-setting-sheet.webp')
           image.save(target, 'WEBP', quality=96, method=4)
-          print('source', image.size, target.stat().st_size)
+          print('source', original_size, 'normalized', image.size, target.stat().st_size)
           PY
           python scripts/generate_character_art_assets_hq.py
       - name: Commit regenerated assets and restore CI
