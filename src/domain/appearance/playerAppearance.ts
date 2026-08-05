@@ -3,18 +3,8 @@ import type { BodyType, Player, PlayerTier, Position } from "../model/Player";
 export type HeightBand = "compact" | "average" | "tall" | "towering";
 export type FaceShape = "round" | "oval" | "angular" | "wide";
 export type EyeStyle =
-  | "round"
-  | "sharp"
-  | "narrow"
-  | "droop"
-  | "bright"
-  | "deep-set";
-export type BrowStyle =
-  | "straight"
-  | "arched"
-  | "bold"
-  | "soft"
-  | "angled";
+  "round" | "sharp" | "narrow" | "droop" | "bright" | "deep-set";
+export type BrowStyle = "straight" | "arched" | "bold" | "soft" | "angled";
 export type MouthStyle = "small" | "wide" | "soft" | "firm" | "grin";
 export type FrontHairStyle =
   | "short-spike"
@@ -26,12 +16,7 @@ export type FrontHairStyle =
   | "undercut"
   | "crew";
 export type BackHairStyle =
-  | "cropped"
-  | "rounded"
-  | "layered"
-  | "tapered"
-  | "long-nape"
-  | "undercut-back";
+  "cropped" | "rounded" | "layered" | "tapered" | "long-nape" | "undercut-back";
 export type HairStyle = FrontHairStyle;
 export type HairColor = "black" | "blue-black" | "dark-brown" | "brown";
 export type SkinTone = "fair" | "light" | "medium" | "tan" | "deep";
@@ -79,13 +64,7 @@ const EYE_STYLES = [
   "bright",
   "deep-set",
 ] as const;
-const BROW_STYLES = [
-  "straight",
-  "arched",
-  "bold",
-  "soft",
-  "angled",
-] as const;
+const BROW_STYLES = ["straight", "arched", "bold", "soft", "angled"] as const;
 const MOUTH_STYLES = ["small", "wide", "soft", "firm", "grin"] as const;
 const FRONT_HAIR_STYLES = [
   "short-spike",
