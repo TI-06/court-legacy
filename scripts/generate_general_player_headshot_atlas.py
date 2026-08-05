@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from pathlib import Path
 
 import cv2
@@ -23,6 +24,52 @@ SOURCE_FILES = (
     "higami-ren.png",
     "shiroma-minato.png",
 )
+
+
+def remove_key_background(image: Image.Image) -> Image.Image:
+    rgba = np.array(image.convert("RGBA"))
+    rgb = rgba[:, :, :3]
+    original_alpha = rgba[:, :, 3]
+    height, width = original_alpha.shape
+    red, green, blue = [rgb[:, :, index].astype(np.int16) for index in range(3)]
+    key_candidate = (red > 175) & (green < 115) & (blue > 175)
+
+    background = np.zeros((height, width), np.uint8)
+    queue: deque[tuple[int, int]] = deque()
+    for x in range(width):
+        for y in (0, height - 1):
+            if key_candidate[y, x] and not background[y, x]:
+                background[y, x] = 1
+                queue.append((y, x))
+    for y in range(height):
+        for x in (0, width - 1):
+            if key_candidate[y, x] and not background[y, x]:
+                background[y, x] = 1
+                queue.append((y, x))
+
+    while queue:
+        y, x = queue.popleft()
+        for delta_y in (-1, 0, 1):
+            for delta_x in (-1, 0, 1):
+                if delta_x == 0 and delta_y == 0:
+                    continue
+                next_y = y + delta_y
+                next_x = x + delta_x
+                if (
+                    0 <= next_y < height
+                    and 0 <= next_x < width
+                    and key_candidate[next_y, next_x]
+                    and not background[next_y, next_x]
+                ):
+                    background[next_y, next_x] = 1
+                    queue.append((next_y, next_x))
+
+    alpha = np.where(background, 0, original_alpha).astype(np.uint8)
+    alpha = cv2.GaussianBlur(alpha, (3, 3), 0)
+    rgba[:, :, 3] = alpha
+    result = Image.fromarray(rgba)
+    bounds = result.getbbox()
+    return result.crop(bounds) if bounds else result
 
 
 def normalize_headshot(
@@ -175,7 +222,10 @@ def effect_layers() -> list[Image.Image]:
 
 
 def main() -> None:
-    sources = [Image.open(SOURCE_ROOT / name).convert("RGBA") for name in SOURCE_FILES]
+    sources = [
+        remove_key_background(Image.open(SOURCE_ROOT / name).convert("RGBA"))
+        for name in SOURCE_FILES
+    ]
     entries: list[Image.Image] = []
 
     for head_index in range(8):
