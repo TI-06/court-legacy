@@ -33,13 +33,48 @@ describe("player appearance assembly", () => {
         appearance.eyeStyle,
         appearance.browStyle,
         appearance.mouthStyle,
-        appearance.hairStyle,
+        appearance.frontHairStyle,
+        appearance.backHairStyle,
         appearance.hairColor,
         appearance.skinTone,
         appearance.accessory,
         appearance.uniformPattern,
       ].join("|"),
     );
+  });
+
+  it("exposes the Issue 29 minimum modular catalog sizes", () => {
+    const state = createDemoGame();
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const appearances = Array.from({ length: 2048 }, (_, appearanceSeed) =>
+      assemblePlayerAppearance({ ...player, appearanceSeed }),
+    );
+
+    expect(
+      new Set(appearances.map((item) => item.faceShape)).size,
+    ).toBeGreaterThanOrEqual(4);
+    expect(
+      new Set(appearances.map((item) => item.frontHairStyle)).size,
+    ).toBeGreaterThanOrEqual(8);
+    expect(
+      new Set(appearances.map((item) => item.backHairStyle)).size,
+    ).toBeGreaterThanOrEqual(6);
+    expect(
+      new Set(appearances.map((item) => item.eyeStyle)).size,
+    ).toBeGreaterThanOrEqual(6);
+    expect(
+      new Set(appearances.map((item) => item.browStyle)).size,
+    ).toBeGreaterThanOrEqual(5);
+    expect(
+      new Set(appearances.map((item) => item.mouthStyle)).size,
+    ).toBeGreaterThanOrEqual(5);
+    expect(
+      new Set(appearances.map((item) => item.skinTone)).size,
+    ).toBeGreaterThanOrEqual(4);
+    expect(
+      new Set(appearances.map((item) => item.pose)).size,
+    ).toBeGreaterThanOrEqual(4);
   });
 
   it("keeps identity stable while state changes only alter the expression", () => {

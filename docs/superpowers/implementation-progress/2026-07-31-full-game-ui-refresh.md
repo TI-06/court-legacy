@@ -1,38 +1,75 @@
 # 全面UI・選手アート刷新 実装進捗
 
-- Plan: `docs/superpowers/plans/2026-07-31-full-game-ui-refresh.md`
-- Branch: `feature/m6-game-ui-refresh`
+- Current plan: `docs/superpowers/plans/2026-08-05-general-player-modular-art.md`
+- Branch: `fix/player-art-rendering`
+- Pull request: `#28`
+- Issue: `#29`
 
 ## Task 1: 決定論的な選手アートレシピ
 
 - Status: complete
-- Recipe RED: `91fb0ec3fd7fe4d45f255355c7bf8cd14e2f425f`
-- Recipe RED result: missing `playerArtRecipe` module
-- Seed signature RED: `c5258458f04c2d045ac7b628784a999bb66c6898`
-- Seed signature RED result: missing `seedAppearanceSignature` export
-- GREEN: `4342bffaa7ee8181019789ac833f726a7083c4ef`
-- Verification: formatting, lint, typecheck, unit tests, build, mobile E2E passed
-- Review: specification compliant; no blocking quality findings
+- `PlayerArtRecipe.catalogVersion = 2`
+- 既存の`appearanceSeed`と選手IDから描画専用`variationSalt`を導出
+- 保存スキーマを変更せず、同一選手の外見を再現
+- 同一チーム内の近似外見を決定論的に抑制
 
-## Task 2: WebPパーツカタログと静的マニフェスト
-
-- Status: complete with visual-quality follow-up
-- Manifest and catalog: `a036375a8660fe148a477566b8c74c19b933cb2c`
-- Binary WebP atlas recovery: `58ea4dfadd3a5020f4143cbe9de8f1952df2d40f`
-- GREEN verification: `42f9249bc49def6daf66cbad09fbf4f1a8497e4b`
-- Verification: formatting, lint, typecheck, unit tests, build, mobile E2E passed
-- Review: deterministic layer resolution, school colors, tier effects, and WebP integrity are covered
-- Follow-up: current atlas is an implementation-grade provisional catalog; approved anime-quality parts must replace it before final visual acceptance
-
-## Task 3: アセットロードキャッシュと一般選手レイヤー描画
+## Task 2: 外見カタログの拡張
 
 - Status: complete
-- RED: `c7d7c0ff306aa4071c13b8880bb69b24c146055f`
-- RED result: missing `assetLoadCache` and `GeneratedPlayerArt` modules
-- GREEN: `47608e6f374c3746074c7c5ad52f88ad66077b07`
-- Verification: formatting, lint, typecheck, unit tests, build, mobile E2E passed
-- Review: duplicate requests are cached; failed or unsupported raster assets keep the complete character hidden; no player SVG fallback is produced
+- 顔型4種
+- 前髪8種
+- 後ろ髪6種
+- 目6種
+- 眉5種
+- 口5種
+- 肌色5段階
+- 体格4種
+- ポーズ4種
+- 状態表情を4描画系統へ対応
 
-## Task 4: 主要4名の専用アート
+## Task 3: 独立WebPパーツカタログ
 
-- Status: pending
+- Status: complete
+- 一般選手専用の11アトラスを追加
+- 体格、肌、顔陰影、後ろ髪、前髪、目、眉、口、ユニフォーム、装飾、演出を独立化
+- 256×384pxタイル、4倍解像度描画、Lanczos縮小
+- 寸法、透明背景、空タイル、端切れを自動検証
+
+## Task 4: 独立レイヤー描画
+
+- Status: complete
+- `GeneratedPlayerArt`をv2独立レイヤーへ変更
+- カード、詳細、編成で同一レシピを共有
+- 必須画像の全読込後だけ人物を表示
+- 読込失敗時は画像全体を非表示
+- SVG・汎用シルエットへのフォールバックなし
+
+## Task 5: 回帰テスト
+
+- Status: implementation complete; final visual gate pending
+- 同一seedの決定論的生成
+- 異なる外見パーツの独立差分
+- 同一チーム内の近似重複抑制
+- 画像読込失敗時の全体非表示
+- 10年間の年度更新・新入生生成
+- 選手一覧、詳細、編成のレシピ共有
+
+## Verification
+
+反映コミット: `46023a26f791447ad1cc09a5be900e5cc89c6e3a`
+
+- Modular WebP generation: PASS
+- Modular WebP asset verification: PASS
+- Formatting: PASS
+- Lint: PASS
+- Type check: PASS
+- Unit tests: PASS（60 files / 229 tests）
+- Production build: PASS
+- Standard mobile E2E: running on the latest user-origin commit
+- 390px actual-screen review: pending screenshot artifact
+
+## Remaining gate
+
+- 標準CIのmobile E2Eを通過させる
+- 390pxの選手一覧・詳細・編成スクリーンショットをレビューする
+- Issue #29の受け入れ基準とPR #28を最終更新する

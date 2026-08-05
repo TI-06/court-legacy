@@ -1,5 +1,7 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import { createPlayerArtRecipe } from "../../../../src/domain/appearance/playerArtRecipe";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
+import { resolveGeneratedArtLayers } from "../../../../src/ui/player-art/generatedArtManifest";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
 import type {
   GameDate,
@@ -108,6 +110,40 @@ describe("academic year progression", () => {
       result.academicYearTransition?.generationalTalentPlayerId,
     ).toBeNull();
     expect(result.state.world.generationalTalentPlayerIds).toEqual([]);
+  });
+
+  it("keeps every generated player art recipe valid across ten season changes", () => {
+    let state = createDemoGame();
+
+    for (let calendarYear = 2027; calendarYear <= 2036; calendarYear += 1) {
+      const rolloverDate = `${calendarYear}-03-31` as GameDate;
+      state = {
+        ...state,
+        date: rolloverDate,
+        calendar: {
+          ...state.calendar,
+          currentDate: rolloverDate,
+          weekOfYear: 52,
+        },
+      };
+      state = advanceGameWeek(state, gameData).state;
+
+      for (const school of Object.values(state.schools)) {
+        for (const playerId of school.playerIds) {
+          const player = state.players[playerId]!;
+          const recipe = createPlayerArtRecipe(player, school);
+          const repeated = createPlayerArtRecipe({ ...player }, school);
+          const layers = resolveGeneratedArtLayers(recipe);
+
+          expect(recipe.catalogVersion).toBe(2);
+          expect(repeated).toEqual(recipe);
+          expect(layers.length).toBeGreaterThanOrEqual(10);
+          expect(layers.every((layer) => layer.url.endsWith(".webp"))).toBe(
+            true,
+          );
+        }
+      }
+    }
   });
 
   it("keeps every school roster bounded across ten season changes", () => {

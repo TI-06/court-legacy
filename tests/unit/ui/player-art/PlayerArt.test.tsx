@@ -1,7 +1,9 @@
 import { act, render, screen } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { resolveFeaturedCharacter } from "../../../../src/domain/appearance/characterWorld";
+import { createPlayerArtRecipe } from "../../../../src/domain/appearance/playerArtRecipe";
 import { resetAssetLoadCacheForTests } from "../../../../src/ui/player-art/assetLoadCache";
+import { resolveGeneratedArtLayers } from "../../../../src/ui/player-art/generatedArtManifest";
 import { PlayerArt } from "../../../../src/ui/player-art/PlayerArt";
 
 interface FakeImageInstance {
@@ -78,10 +80,17 @@ describe("PlayerArt", () => {
     expect(
       screen.queryByTestId("generated-player-art"),
     ).not.toBeInTheDocument();
-    expect(createdImages).toHaveLength(1);
+    const expectedAssetCount = new Set(
+      resolveGeneratedArtLayers(
+        createPlayerArtRecipe(normal, normalSchool),
+      ).map((layer) => layer.url),
+    ).size;
+    expect(createdImages).toHaveLength(expectedAssetCount);
 
     await act(async () => {
-      createdImages[0]!.onload?.();
+      for (const image of createdImages) {
+        image.onload?.();
+      }
       await Promise.resolve();
     });
 

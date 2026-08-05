@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { resolveDistinctPlayerArtRecipes } from "../../domain/appearance/playerArtDiversity";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -49,6 +50,10 @@ export function PlayerHubScreen({
         .filter((player): player is Player => Boolean(player)),
     [school.playerIds, state.players],
   );
+  const artRecipes = useMemo(
+    () => resolveDistinctPlayerArtRecipes(players, school),
+    [players, school],
+  );
   const selectedPlayer = selectedPlayerId
     ? (state.players[selectedPlayerId] ?? null)
     : null;
@@ -85,6 +90,7 @@ export function PlayerHubScreen({
             className="player-detail__art"
             loading="eager"
             player={selectedPlayer}
+            recipeOverride={artRecipes.get(selectedPlayer.id)}
             school={school}
             variant="portrait"
           />
@@ -160,6 +166,7 @@ export function PlayerHubScreen({
                 <PlayerArt
                   loading="lazy"
                   player={player}
+                  recipeOverride={artRecipes.get(player.id)}
                   school={school}
                   variant="card"
                 />

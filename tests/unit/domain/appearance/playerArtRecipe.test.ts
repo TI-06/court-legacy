@@ -12,12 +12,13 @@ function firstPlayer() {
 }
 
 describe("player art recipe", () => {
-  it("creates the same recipe for the same saved player", () => {
+  it("creates the same catalog-v2 recipe for the same saved player", () => {
     const { player, school } = firstPlayer();
+    const recipe = createPlayerArtRecipe(player, school);
 
-    expect(createPlayerArtRecipe(player, school)).toEqual(
-      createPlayerArtRecipe({ ...player }, school),
-    );
+    expect(recipe).toEqual(createPlayerArtRecipe({ ...player }, school));
+    expect(recipe.catalogVersion).toBe(2);
+    expect(recipe.variationSalt).toBeTypeOf("number");
   });
 
   it("keeps identity stable while condition changes the expression", () => {

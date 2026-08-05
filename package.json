@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "art:generate": "python scripts/generate_general_player_modular_atlases.py",
+    "art:verify": "python scripts/verify_general_player_modular_atlases.py"
   },
   "dependencies": {
     "react": "^19.0.0",

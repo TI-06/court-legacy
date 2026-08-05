@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import {
   createPlayerArtRecipe,
   playerArtIdentitySignature,
+  type PlayerArtRecipe,
   type PlayerArtVariant,
 } from "../../domain/appearance/playerArtRecipe";
 import type { CharacterExpression } from "../../domain/appearance/playerAppearance";
@@ -20,6 +21,7 @@ interface GeneratedPlayerArtProps {
   school?: School | null;
   variant: PlayerArtVariant;
   expressionOverride?: CharacterExpression;
+  recipeOverride?: PlayerArtRecipe;
   className?: string;
   testId?: string;
 }
@@ -79,10 +81,11 @@ export function GeneratedPlayerArt({
   school,
   variant,
   expressionOverride,
+  recipeOverride,
   className,
   testId,
 }: GeneratedPlayerArtProps) {
-  const recipe = createPlayerArtRecipe(player, school);
+  const recipe = recipeOverride ?? createPlayerArtRecipe(player, school);
   const effectiveRecipe = expressionOverride
     ? { ...recipe, expression: expressionOverride }
     : recipe;
@@ -103,8 +106,10 @@ export function GeneratedPlayerArt({
     <span
       aria-hidden="true"
       className={classNames}
+      data-art-catalog={effectiveRecipe.catalogVersion}
       data-art-signature={playerArtIdentitySignature(effectiveRecipe)}
       data-expression={effectiveRecipe.expression}
+      data-height-band={effectiveRecipe.heightBand}
       data-testid={testId}
     >
       {layers.map((layer) => (
