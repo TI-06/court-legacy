@@ -21,6 +21,7 @@ describe("player art diversity", () => {
       visualPartSignature(recipes.get(player.id)!),
     );
 
+    // Input order must not alter any saved player's resolved appearance.
     expect(recipes.size).toBe(players.length);
     expect(new Set(signatures).size).toBeGreaterThanOrEqual(
       Math.ceil(players.length * 0.85),
