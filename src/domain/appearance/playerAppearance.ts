@@ -2,10 +2,21 @@ import type { BodyType, Player, PlayerTier, Position } from "../model/Player";
 
 export type HeightBand = "compact" | "average" | "tall" | "towering";
 export type FaceShape = "round" | "oval" | "angular" | "wide";
-export type EyeStyle = "round" | "sharp" | "narrow" | "droop";
-export type BrowStyle = "straight" | "arched" | "bold" | "soft";
-export type MouthStyle = "small" | "wide" | "soft" | "firm";
-export type HairStyle =
+export type EyeStyle =
+  | "round"
+  | "sharp"
+  | "narrow"
+  | "droop"
+  | "bright"
+  | "deep-set";
+export type BrowStyle =
+  | "straight"
+  | "arched"
+  | "bold"
+  | "soft"
+  | "angled";
+export type MouthStyle = "small" | "wide" | "soft" | "firm" | "grin";
+export type FrontHairStyle =
   | "short-spike"
   | "side-swept"
   | "buzz"
@@ -14,6 +25,14 @@ export type HairStyle =
   | "shaggy"
   | "undercut"
   | "crew";
+export type BackHairStyle =
+  | "cropped"
+  | "rounded"
+  | "layered"
+  | "tapered"
+  | "long-nape"
+  | "undercut-back";
+export type HairStyle = FrontHairStyle;
 export type HairColor = "black" | "blue-black" | "dark-brown" | "brown";
 export type SkinTone = "fair" | "light" | "medium" | "tan" | "deep";
 export type AccessoryStyle =
@@ -37,6 +56,9 @@ export interface PlayerAppearance {
   eyeStyle: EyeStyle;
   browStyle: BrowStyle;
   mouthStyle: MouthStyle;
+  frontHairStyle: FrontHairStyle;
+  backHairStyle: BackHairStyle;
+  /** Compatibility alias used by the v1 renderer while v2 assets are wired. */
   hairStyle: HairStyle;
   hairColor: HairColor;
   skinTone: SkinTone;
@@ -49,10 +71,23 @@ export interface PlayerAppearance {
 }
 
 const FACE_SHAPES = ["round", "oval", "angular", "wide"] as const;
-const EYE_STYLES = ["round", "sharp", "narrow", "droop"] as const;
-const BROW_STYLES = ["straight", "arched", "bold", "soft"] as const;
-const MOUTH_STYLES = ["small", "wide", "soft", "firm"] as const;
-const HAIR_STYLES = [
+const EYE_STYLES = [
+  "round",
+  "sharp",
+  "narrow",
+  "droop",
+  "bright",
+  "deep-set",
+] as const;
+const BROW_STYLES = [
+  "straight",
+  "arched",
+  "bold",
+  "soft",
+  "angled",
+] as const;
+const MOUTH_STYLES = ["small", "wide", "soft", "firm", "grin"] as const;
+const FRONT_HAIR_STYLES = [
   "short-spike",
   "side-swept",
   "buzz",
@@ -61,6 +96,14 @@ const HAIR_STYLES = [
   "shaggy",
   "undercut",
   "crew",
+] as const;
+const BACK_HAIR_STYLES = [
+  "cropped",
+  "rounded",
+  "layered",
+  "tapered",
+  "long-nape",
+  "undercut-back",
 ] as const;
 const HAIR_COLORS = ["black", "blue-black", "dark-brown", "brown"] as const;
 const SKIN_TONES = ["fair", "light", "medium", "tan", "deep"] as const;
@@ -132,10 +175,15 @@ function expressionFor(player: Player): CharacterExpression {
 }
 
 function poseFor(player: Player): CharacterPose {
+  const value = mixedValue(player.appearanceSeed, 29);
+
   if (player.preferredPosition === "L" || player.preferredPosition === "S") {
-    return "ready";
+    return value % 3 === 0 ? "upright" : "ready";
   }
-  return pick(player.appearanceSeed, 29, POSES);
+  if (player.preferredPosition === "MB") {
+    return value % 3 === 0 ? "ready" : "upright";
+  }
+  return POSES[value % POSES.length] ?? "ready";
 }
 
 export function seedAppearanceSignature(seed: number): string {
@@ -144,7 +192,8 @@ export function seedAppearanceSignature(seed: number): string {
     pick(seed, 3, EYE_STYLES),
     pick(seed, 5, BROW_STYLES),
     pick(seed, 7, MOUTH_STYLES),
-    pick(seed, 11, HAIR_STYLES),
+    pick(seed, 11, FRONT_HAIR_STYLES),
+    pick(seed, 12, BACK_HAIR_STYLES),
     pick(seed, 13, HAIR_COLORS),
     pick(seed, 17, SKIN_TONES),
     pick(seed, 19, ACCESSORIES),
@@ -153,6 +202,8 @@ export function seedAppearanceSignature(seed: number): string {
 }
 
 export function assemblePlayerAppearance(player: Player): PlayerAppearance {
+  const frontHairStyle = pick(player.appearanceSeed, 11, FRONT_HAIR_STYLES);
+
   return {
     appearanceSeed: player.appearanceSeed,
     heightBand: heightBandFor(player.heightCm),
@@ -161,7 +212,9 @@ export function assemblePlayerAppearance(player: Player): PlayerAppearance {
     eyeStyle: pick(player.appearanceSeed, 3, EYE_STYLES),
     browStyle: pick(player.appearanceSeed, 5, BROW_STYLES),
     mouthStyle: pick(player.appearanceSeed, 7, MOUTH_STYLES),
-    hairStyle: pick(player.appearanceSeed, 11, HAIR_STYLES),
+    frontHairStyle,
+    backHairStyle: pick(player.appearanceSeed, 12, BACK_HAIR_STYLES),
+    hairStyle: frontHairStyle,
     hairColor: pick(player.appearanceSeed, 13, HAIR_COLORS),
     skinTone: pick(player.appearanceSeed, 17, SKIN_TONES),
     accessory: pick(player.appearanceSeed, 19, ACCESSORIES),
@@ -181,7 +234,8 @@ export function appearanceSignature(appearance: PlayerAppearance): string {
     appearance.eyeStyle,
     appearance.browStyle,
     appearance.mouthStyle,
-    appearance.hairStyle,
+    appearance.frontHairStyle,
+    appearance.backHairStyle,
     appearance.hairColor,
     appearance.skinTone,
     appearance.accessory,
