@@ -67,6 +67,8 @@ const EYE_STYLE_INDEX: Record<PlayerArtRecipe["eyeStyle"], number> = {
   sharp: 1,
   narrow: 2,
   droop: 3,
+  bright: 0,
+  "deep-set": 2,
 };
 
 const BROW_STYLE_INDEX: Record<PlayerArtRecipe["browStyle"], number> = {
@@ -74,6 +76,7 @@ const BROW_STYLE_INDEX: Record<PlayerArtRecipe["browStyle"], number> = {
   arched: 1,
   bold: 2,
   soft: 3,
+  angled: 2,
 };
 
 const MOUTH_STYLE_INDEX: Record<PlayerArtRecipe["mouthStyle"], number> = {
@@ -81,6 +84,7 @@ const MOUTH_STYLE_INDEX: Record<PlayerArtRecipe["mouthStyle"], number> = {
   wide: 1,
   soft: 2,
   firm: 3,
+  grin: 1,
 };
 
 const HEIGHT_BAND_INDEX: Record<PlayerArtRecipe["heightBand"], number> = {
