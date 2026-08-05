@@ -97,15 +97,13 @@ const POSE_INDEX: Record<PlayerArtRecipe["pose"], number> = {
   celebration: 3,
 };
 
-const UNIFORM_PATTERN_INDEX: Record<
-  PlayerArtRecipe["uniformPattern"],
-  number
-> = {
-  classic: 0,
-  "side-stripe": 1,
-  chevron: 2,
-  split: 3,
-};
+const UNIFORM_PATTERN_INDEX: Record<PlayerArtRecipe["uniformPattern"], number> =
+  {
+    classic: 0,
+    "side-stripe": 1,
+    chevron: 2,
+    split: 3,
+  };
 
 const ACCESSORY_INDEX: Record<
   Exclude<PlayerArtRecipe["accessory"], "none">,
@@ -160,21 +158,23 @@ function layer(
 
 function headVariantIndex(recipe: PlayerArtRecipe): number {
   return (
-    HAIR_STYLE_INDEX[recipe.hairStyle] +
-    FACE_SHAPE_INDEX[recipe.faceShape] * 3 +
-    EYE_STYLE_INDEX[recipe.eyeStyle] * 5 +
-    BROW_STYLE_INDEX[recipe.browStyle] * 7 +
-    MOUTH_STYLE_INDEX[recipe.mouthStyle] * 11
-  ) % 8;
+    (HAIR_STYLE_INDEX[recipe.hairStyle] +
+      FACE_SHAPE_INDEX[recipe.faceShape] * 3 +
+      EYE_STYLE_INDEX[recipe.eyeStyle] * 5 +
+      BROW_STYLE_INDEX[recipe.browStyle] * 7 +
+      MOUTH_STYLE_INDEX[recipe.mouthStyle] * 11) %
+    8
+  );
 }
 
 function bodyVariantIndex(recipe: PlayerArtRecipe): number {
   return (
-    BODY_TYPE_INDEX[recipe.bodyType] +
-    HEIGHT_BAND_INDEX[recipe.heightBand] +
-    POSE_INDEX[recipe.pose] * 3 +
-    UNIFORM_PATTERN_INDEX[recipe.uniformPattern] * 2
-  ) % 4;
+    (BODY_TYPE_INDEX[recipe.bodyType] +
+      HEIGHT_BAND_INDEX[recipe.heightBand] +
+      POSE_INDEX[recipe.pose] * 3 +
+      UNIFORM_PATTERN_INDEX[recipe.uniformPattern] * 2) %
+    4
+  );
 }
 
 function combinationStartIndex(recipe: PlayerArtRecipe): number {

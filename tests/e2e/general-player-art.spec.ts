@@ -20,9 +20,7 @@ test("general roster players render portrait WebP layers without an SVG fallback
   expect(bounds?.height ?? 0).toBeGreaterThanOrEqual(80);
   await expect(firstPortrait.locator("svg")).toHaveCount(0);
 
-  const baseLayers = page.locator(
-    ".player-hub-card .player-art__layer--base",
-  );
+  const baseLayers = page.locator(".player-hub-card .player-art__layer--base");
   const inspectedLayerCount = Math.min(await baseLayers.count(), 8);
   for (let index = 0; index < inspectedLayerCount; index += 1) {
     const backgroundImage = await baseLayers
