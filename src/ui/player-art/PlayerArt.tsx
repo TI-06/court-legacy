@@ -1,5 +1,6 @@
 import { resolveFeaturedCharacter } from "../../domain/appearance/characterWorld";
 import type { CharacterExpression } from "../../domain/appearance/playerAppearance";
+import type { PlayerArtRecipe } from "../../domain/appearance/playerArtRecipe";
 import type { Player } from "../../domain/model/Player";
 import type { School } from "../../domain/model/School";
 import { FeaturedPlayerArt } from "./FeaturedPlayerArt";
@@ -12,6 +13,7 @@ interface PlayerArtProps {
   school?: School | null;
   variant: PlayerArtVariant;
   expressionOverride?: CharacterExpression;
+  recipeOverride?: PlayerArtRecipe;
   className?: string;
   loading?: "eager" | "lazy";
 }
@@ -27,6 +29,7 @@ export function PlayerArt({
   school,
   variant,
   expressionOverride,
+  recipeOverride,
   className,
   loading,
 }: PlayerArtProps) {
@@ -48,6 +51,7 @@ export function PlayerArt({
       className={className}
       expressionOverride={expressionOverride}
       player={player}
+      recipeOverride={recipeOverride}
       school={school}
       testId="generated-player-art"
       variant={variant}

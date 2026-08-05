@@ -1,4 +1,6 @@
 .player-art {
+  --player-height-scale: 1;
+  --player-height-offset: 0%;
   position: relative;
   display: inline-block;
   flex: 0 0 auto;
@@ -23,12 +25,29 @@
   width: 260px;
 }
 
+.player-art[data-height-band="compact"] {
+  --player-height-scale: 0.96;
+  --player-height-offset: 2%;
+}
+
+.player-art[data-height-band="tall"] {
+  --player-height-scale: 1.02;
+  --player-height-offset: -1%;
+}
+
+.player-art[data-height-band="towering"] {
+  --player-height-scale: 1.04;
+  --player-height-offset: -2%;
+}
+
 .player-art__layer {
   position: absolute;
   inset: 0;
   display: block;
   background-repeat: no-repeat;
-  transform-origin: center;
+  transform: translateY(var(--player-height-offset))
+    scaleY(var(--player-height-scale));
+  transform-origin: center bottom;
 }
 
 .player-art__layer--effect {
@@ -56,24 +75,24 @@
   font-size: 9px;
 }
 
-.player-art[data-expression="focused"] .player-art__layer--base {
-  transform: translateY(-0.5%);
+.player-art[data-expression="focused"] .player-art__layer {
+  filter: contrast(1.03);
 }
 
-.player-art[data-expression="tired"] .player-art__layer--base {
+.player-art[data-expression="tired"] .player-art__layer {
   filter: saturate(0.88) brightness(0.98);
 }
 
-.player-art[data-expression="exhausted"] .player-art__layer--base {
+.player-art[data-expression="exhausted"] .player-art__layer {
   filter: saturate(0.7) brightness(0.92);
 }
 
-.player-art[data-expression="worried"] .player-art__layer--base,
-.player-art[data-expression="pained"] .player-art__layer--base {
+.player-art[data-expression="worried"] .player-art__layer,
+.player-art[data-expression="pained"] .player-art__layer {
   filter: saturate(0.82) contrast(1.04);
 }
 
-.player-art[data-expression="confident"] .player-art__layer--base {
+.player-art[data-expression="confident"] .player-art__layer {
   filter: saturate(1.08) contrast(1.03);
 }
 

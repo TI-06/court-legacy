@@ -1,10 +1,12 @@
 import { resolveJerseyNumber } from "../domain/appearance/characterWorld";
+import type { PlayerArtRecipe } from "../domain/appearance/playerArtRecipe";
 import type { Player } from "../domain/model/Player";
 import type { School, UniformColors } from "../domain/model/School";
 import { PlayerArt } from "./player-art/PlayerArt";
 
 interface PlayerTileProps {
   player: Player;
+  recipeOverride?: PlayerArtRecipe;
   school?: School | null;
   uniform?: UniformColors;
   selected?: boolean;
@@ -32,6 +34,7 @@ function playerStatus(player: Player): { label: string; tone: string } {
 
 export function PlayerTile({
   player,
+  recipeOverride,
   school,
   selected = false,
   disabled = false,
@@ -47,7 +50,12 @@ export function PlayerTile({
   const content = (
     <>
       <span className="ui-player-avatar" aria-hidden="true">
-        <PlayerArt player={player} school={school} variant="card" />
+        <PlayerArt
+          player={player}
+          recipeOverride={recipeOverride}
+          school={school}
+          variant="card"
+        />
       </span>
       <span className="ui-player-tile__main">
         <strong>

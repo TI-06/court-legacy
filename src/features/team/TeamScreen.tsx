@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { resolveDistinctPlayerArtRecipes } from "../../domain/appearance/playerArtDiversity";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -69,6 +70,10 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         .map((playerId) => state.players[playerId])
         .filter((player): player is Player => Boolean(player)),
     [school.playerIds, state.players],
+  );
+  const artRecipes = useMemo(
+    () => resolveDistinctPlayerArtRecipes(players, school),
+    [players, school],
   );
   const playerById = state.players;
   const activeIds = useMemo(() => {
@@ -291,6 +296,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                       })
                     }
                     player={player}
+                    recipeOverride={artRecipes.get(player.id)}
                     selected
                   />
                   <button
@@ -330,6 +336,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                   badge="L"
                   onClick={() => setPickerTarget({ type: "libero" })}
                   player={player}
+                  recipeOverride={artRecipes.get(player.id)}
                   selected
                 />
                 <button
@@ -371,6 +378,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                 compact
                 key={player.id}
                 player={player}
+                recipeOverride={artRecipes.get(player.id)}
                 testId="bench-player"
               />
             );
@@ -511,6 +519,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                 key={player.id}
                 onClick={() => choosePickerPlayer(player.id)}
                 player={player}
+                recipeOverride={artRecipes.get(player.id)}
                 selected={isCurrent}
                 testId="player-picker-option"
               />

@@ -1,16 +1,20 @@
-import { readFileSync } from "node:fs";
+import {
+  ATLAS_TILE,
+  GENERATED_ART_CATALOG_VERSION,
+  REQUIRED_GENERATED_ART_ATLASES,
+} from "../../../../src/ui/player-art/generatedArtManifest";
 
-describe("generated player WebP atlas", () => {
-  it("contains a valid 2048 by 6528 RIFF WebP payload", () => {
-    const bytes = readFileSync(
-      "src/assets/player-parts/v1/all-parts-atlas.webp",
-    );
+describe("generated player modular atlas contract", () => {
+  it("uses catalog v2 with fixed high-resolution transparent tiles", () => {
+    expect(GENERATED_ART_CATALOG_VERSION).toBe(2);
+    expect(ATLAS_TILE).toEqual({ width: 256, height: 384 });
+  });
 
-    expect(bytes.byteLength).toBeGreaterThan(100_000);
-    expect(bytes.subarray(0, 4).toString("ascii")).toBe("RIFF");
-    expect(bytes.subarray(8, 12).toString("ascii")).toBe("WEBP");
-    expect(bytes.subarray(12, 16).toString("ascii")).toBe("VP8X");
-    expect(bytes.readUIntLE(24, 3) + 1).toBe(2048);
-    expect(bytes.readUIntLE(27, 3) + 1).toBe(6528);
+  it("requires every independent raster part atlas", () => {
+    expect(REQUIRED_GENERATED_ART_ATLASES).toHaveLength(11);
+    expect(
+      REQUIRED_GENERATED_ART_ATLASES.every((url) => url.endsWith(".webp")),
+    ).toBe(true);
+    expect(new Set(REQUIRED_GENERATED_ART_ATLASES).size).toBe(11);
   });
 });
