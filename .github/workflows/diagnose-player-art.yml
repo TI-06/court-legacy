@@ -70,6 +70,37 @@ jobs:
             git commit -m "feat: generate high-quality general player portraits"
             git push origin HEAD:fix/player-art-rendering
           fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install application dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture roster with generated portraits
+        run: |
+          cat > tests/e2e/general-player-portrait-review.spec.ts <<'TS'
+          import { expect, test } from "@playwright/test";
+
+          test("capture roster portraits", async ({ page }) => {
+            await page.goto("/");
+            const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+            await navigation.getByRole("button", { name: "選手", exact: true }).click();
+            await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+            await page.locator(".player-hub-card .player-art").first().waitFor();
+            await page.waitForTimeout(600);
+            await page.screenshot({
+              path: "/tmp/player-art-review/roster-browser.png",
+              fullPage: true,
+            });
+            await page.locator(".player-hub-card").nth(1).screenshot({
+              path: "/tmp/player-art-review/general-player-card.png",
+            });
+          });
+          TS
+          npx playwright test tests/e2e/general-player-portrait-review.spec.ts --project=mobile-chromium
+          rm tests/e2e/general-player-portrait-review.spec.ts
       - uses: actions/upload-artifact@v4
         with:
           name: general-player-portrait-review
