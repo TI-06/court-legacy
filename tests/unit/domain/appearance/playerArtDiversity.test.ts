@@ -8,10 +8,15 @@ describe("player art diversity", () => {
   it("resolves deterministic near-duplicate suppression for a school roster", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
-    const players = school.playerIds.map((playerId) => state.players[playerId]!);
+    const players = school.playerIds.map(
+      (playerId) => state.players[playerId]!,
+    );
 
     const recipes = resolveDistinctPlayerArtRecipes(players, school);
-    const repeated = resolveDistinctPlayerArtRecipes([...players].reverse(), school);
+    const repeated = resolveDistinctPlayerArtRecipes(
+      [...players].reverse(),
+      school,
+    );
     const signatures = players.map((player) =>
       visualPartSignature(recipes.get(player.id)!),
     );
@@ -28,7 +33,9 @@ describe("player art diversity", () => {
   it("does not change gameplay-linked body, expression, tier, or jersey values", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
-    const players = school.playerIds.map((playerId) => state.players[playerId]!);
+    const players = school.playerIds.map(
+      (playerId) => state.players[playerId]!,
+    );
     const recipes = resolveDistinctPlayerArtRecipes(players, school);
 
     for (const player of players) {

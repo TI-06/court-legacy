@@ -51,14 +51,30 @@ describe("player appearance assembly", () => {
       assemblePlayerAppearance({ ...player, appearanceSeed }),
     );
 
-    expect(new Set(appearances.map((item) => item.faceShape)).size).toBeGreaterThanOrEqual(4);
-    expect(new Set(appearances.map((item) => item.frontHairStyle)).size).toBeGreaterThanOrEqual(8);
-    expect(new Set(appearances.map((item) => item.backHairStyle)).size).toBeGreaterThanOrEqual(6);
-    expect(new Set(appearances.map((item) => item.eyeStyle)).size).toBeGreaterThanOrEqual(6);
-    expect(new Set(appearances.map((item) => item.browStyle)).size).toBeGreaterThanOrEqual(5);
-    expect(new Set(appearances.map((item) => item.mouthStyle)).size).toBeGreaterThanOrEqual(5);
-    expect(new Set(appearances.map((item) => item.skinTone)).size).toBeGreaterThanOrEqual(4);
-    expect(new Set(appearances.map((item) => item.pose)).size).toBeGreaterThanOrEqual(4);
+    expect(
+      new Set(appearances.map((item) => item.faceShape)).size,
+    ).toBeGreaterThanOrEqual(4);
+    expect(
+      new Set(appearances.map((item) => item.frontHairStyle)).size,
+    ).toBeGreaterThanOrEqual(8);
+    expect(
+      new Set(appearances.map((item) => item.backHairStyle)).size,
+    ).toBeGreaterThanOrEqual(6);
+    expect(
+      new Set(appearances.map((item) => item.eyeStyle)).size,
+    ).toBeGreaterThanOrEqual(6);
+    expect(
+      new Set(appearances.map((item) => item.browStyle)).size,
+    ).toBeGreaterThanOrEqual(5);
+    expect(
+      new Set(appearances.map((item) => item.mouthStyle)).size,
+    ).toBeGreaterThanOrEqual(5);
+    expect(
+      new Set(appearances.map((item) => item.skinTone)).size,
+    ).toBeGreaterThanOrEqual(4);
+    expect(
+      new Set(appearances.map((item) => item.pose)).size,
+    ).toBeGreaterThanOrEqual(4);
   });
 
   it("keeps identity stable while state changes only alter the expression", () => {

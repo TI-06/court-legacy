@@ -44,12 +44,14 @@
 ### Task 1: Version the recipe and add stable diversity adjustment
 
 **Files:**
+
 - Modify: `src/domain/appearance/playerArtRecipe.ts`
 - Create: `src/domain/appearance/playerArtDiversity.ts`
 - Modify: `tests/unit/domain/appearance/playerArtRecipe.test.ts`
 - Create: `tests/unit/domain/appearance/playerArtDiversity.test.ts`
 
 **Interfaces:**
+
 - Consumes: `createPlayerArtRecipe(player, school)` and existing `PlayerArtRecipe` traits.
 - Produces: `resolveDistinctPlayerArtRecipes(players, school): Map<string, PlayerArtRecipe>` and `visualPartSignature(recipe): string`.
 
@@ -102,10 +104,12 @@ Commit: `feat: add deterministic player art diversity resolver`
 ### Task 2: Expand semantic catalogs to Issue #29 minimums
 
 **Files:**
+
 - Modify: `src/domain/appearance/playerAppearance.ts`
 - Modify: `tests/unit/domain/appearance/playerAppearance.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing `appearanceSeed`, position, height, body type, fatigue, morale, condition, and injury.
 - Produces: at least 4 face shapes, 8 front-hair styles, 6 back-hair styles, 6 eye styles, 5 brow styles, 5 mouth styles, 5 skin tones, 4 poses, and 4 expression families.
 
@@ -115,11 +119,21 @@ Commit: `feat: add deterministic player art diversity resolver`
 const appearances = Array.from({ length: 2048 }, (_, seed) =>
   assemblePlayerAppearance({ ...player, appearanceSeed: seed }),
 );
-expect(new Set(appearances.map((item) => item.frontHairStyle)).size).toBeGreaterThanOrEqual(8);
-expect(new Set(appearances.map((item) => item.backHairStyle)).size).toBeGreaterThanOrEqual(6);
-expect(new Set(appearances.map((item) => item.eyeStyle)).size).toBeGreaterThanOrEqual(6);
-expect(new Set(appearances.map((item) => item.browStyle)).size).toBeGreaterThanOrEqual(5);
-expect(new Set(appearances.map((item) => item.mouthStyle)).size).toBeGreaterThanOrEqual(5);
+expect(
+  new Set(appearances.map((item) => item.frontHairStyle)).size,
+).toBeGreaterThanOrEqual(8);
+expect(
+  new Set(appearances.map((item) => item.backHairStyle)).size,
+).toBeGreaterThanOrEqual(6);
+expect(
+  new Set(appearances.map((item) => item.eyeStyle)).size,
+).toBeGreaterThanOrEqual(6);
+expect(
+  new Set(appearances.map((item) => item.browStyle)).size,
+).toBeGreaterThanOrEqual(5);
+expect(
+  new Set(appearances.map((item) => item.mouthStyle)).size,
+).toBeGreaterThanOrEqual(5);
 ```
 
 - [ ] **Step 2: Verify the tests fail**
@@ -149,6 +163,7 @@ Commit: `feat: expand generated player appearance catalog`
 ### Task 3: Generate independent transparent WebP atlases
 
 **Files:**
+
 - Create: `scripts/generate_general_player_modular_atlases.py`
 - Create: `scripts/verify_general_player_modular_atlases.py`
 - Create/Replace binary assets under: `src/assets/player-parts/v2/`
@@ -156,6 +171,7 @@ Commit: `feat: expand generated player appearance catalog`
 - Test: `tests/unit/ui/player-art/atlasData.test.ts`
 
 **Interfaces:**
+
 - Produces these bundled assets with 256×384 tiles and fixed metadata:
   - `body-atlas.webp`
   - `skin-atlas.webp`
@@ -218,6 +234,7 @@ Commit: `feat: add modular generated player art atlases`
 ### Task 4: Resolve and render independent layers
 
 **Files:**
+
 - Modify: `src/ui/player-art/generatedArtManifest.ts`
 - Modify: `src/ui/player-art/GeneratedPlayerArt.tsx`
 - Modify: `src/ui/player-art/player-art.css`
@@ -225,6 +242,7 @@ Commit: `feat: add modular generated player art atlases`
 - Modify: `tests/unit/ui/player-art/GeneratedPlayerArt.test.tsx`
 
 **Interfaces:**
+
 - `resolveGeneratedArtLayers(recipe)` returns ordered slots:
   `body`, `skin`, `face-shadow`, `back-hair`, `uniform-primary`, `uniform-accent`, `front-hair`, `eyes`, `brows`, `mouth`, optional `accessory`, optional `effect`.
 
@@ -278,6 +296,7 @@ Commit: `feat: render generated players from independent raster parts`
 ### Task 5: Apply roster diversity and complete regression coverage
 
 **Files:**
+
 - Modify player-list/team components that render roster cards to pass a resolved recipe override.
 - Modify: `src/ui/player-art/PlayerArt.tsx`
 - Modify: `src/ui/player-art/GeneratedPlayerArt.tsx`
@@ -287,6 +306,7 @@ Commit: `feat: render generated players from independent raster parts`
 - Modify: `docs/superpowers/implementation-progress/2026-07-31-full-game-ui-refresh.md`
 
 **Interfaces:**
+
 - `PlayerArt` accepts optional `recipeOverride?: PlayerArtRecipe`.
 - Roster screens compute one `Map<playerId, PlayerArtRecipe>` per school and reuse it across card/detail/lineup views.
 
