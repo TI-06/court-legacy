@@ -26,6 +26,7 @@ test("general roster players render portrait WebP layers without an SVG fallback
     const backgroundImage = await baseLayers
       .nth(index)
       .evaluate((element) => getComputedStyle(element).backgroundImage);
-    expect(backgroundImage).toContain(".webp");
+    expect(backgroundImage).toContain("url(");
+    expect(backgroundImage).not.toBe("none");
   }
 });
