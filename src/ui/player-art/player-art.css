@@ -10,7 +10,7 @@
 }
 
 .player-art--card {
-  width: 68px;
+  width: 100%;
   max-width: 68px;
   max-height: 100%;
 }
