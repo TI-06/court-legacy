@@ -9,6 +9,16 @@ function generatedRecipe() {
   return createPlayerArtRecipe(player, school);
 }
 
+function baseLayer(recipe: ReturnType<typeof generatedRecipe>) {
+  const layer = resolveGeneratedArtLayers(recipe).find(
+    (candidate) => candidate.slot === "base",
+  );
+  if (!layer) {
+    throw new Error("generated art must contain a base layer");
+  }
+  return layer;
+}
+
 describe("generated art manifest", () => {
   it("resolves a source-quality ordered WebP layer set", () => {
     const recipe = generatedRecipe();
@@ -66,5 +76,24 @@ describe("generated art manifest", () => {
         .filter((layer) => layer.mode === "image")
         .every((layer) => layer.color === undefined),
     ).toBe(true);
+  });
+
+  it("uses facial and posture traits when selecting the portrait source", () => {
+    const recipe = generatedRecipe();
+    const changedFace = {
+      ...recipe,
+      faceShape: recipe.faceShape === "round" ? "oval" : "round",
+    } as const;
+    const changedPose = {
+      ...recipe,
+      pose: recipe.pose === "ready" ? "upright" : "ready",
+    } as const;
+
+    expect(baseLayer(changedFace).sourceRect).not.toEqual(
+      baseLayer(recipe).sourceRect,
+    );
+    expect(baseLayer(changedPose).sourceRect).not.toEqual(
+      baseLayer(recipe).sourceRect,
+    );
   });
 });
