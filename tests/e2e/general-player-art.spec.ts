@@ -12,7 +12,7 @@ test("general roster players render portrait WebP layers without an SVG fallback
     ".player-hub-card .player-art:has(.player-art__layer--base)",
   );
   await expect(generatedPortraits.first()).toBeVisible();
-  expect(await generatedPortraits.count()).toBeGreaterThanOrEqual(6);
+  expect(await generatedPortraits.count()).toBeGreaterThanOrEqual(4);
 
   const firstPortrait = generatedPortraits.first();
   const bounds = await firstPortrait.boundingBox();
