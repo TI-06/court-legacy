@@ -15,12 +15,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/player-art-rendering
-      - name: Inspect staged chunks
+      - name: Verify staged chunks
         run: |
-          wc -c .github/modular-player-art/part-*
-          sha256sum .github/modular-player-art/part-*
-          printf 'invalid characters:\n'
-          LC_ALL=C grep -nH '[^A-Za-z0-9+/=[:space:]]' .github/modular-player-art/part-* || true
+          echo "2f8c374cbf996fb39039fd3dc794cab7436329d1232bf8bb78b9d2d0e60c4072  .github/modular-player-art/part-03a" | sha256sum -c -
+          echo "febe22d76f9073bdcf96bccf5f7aaa94e03bf76c7f10c5d7236be9cad21b31ba  .github/modular-player-art/part-03b" | sha256sum -c -
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -32,7 +30,17 @@ jobs:
       - run: npm ci
       - name: Apply staged source update
         run: |
-          cat .github/modular-player-art/part-* | tr -d '\r\n\t ' | base64 -d > /tmp/modular-player-art.tar.gz
+          cat \
+            .github/modular-player-art/part-00 \
+            .github/modular-player-art/part-01 \
+            .github/modular-player-art/part-02 \
+            .github/modular-player-art/part-03a \
+            .github/modular-player-art/part-03b \
+            .github/modular-player-art/part-04 \
+            .github/modular-player-art/part-05 \
+            .github/modular-player-art/part-06 \
+            | tr -d '\r\n\t ' \
+            | base64 -d > /tmp/modular-player-art.tar.gz
           echo "aea184c15740ec0abd765b91a7fd8c23565a26a0a4b872f86d9963eb6e46de23  /tmp/modular-player-art.tar.gz" | sha256sum -c -
           tar -xzf /tmp/modular-player-art.tar.gz -C .
           rm -rf .github/modular-player-art
