@@ -1,9 +1,6 @@
 import type { Player } from "../model/Player";
 import type { School } from "../model/School";
-import {
-  createPlayerArtRecipe,
-  type PlayerArtRecipe,
-} from "./playerArtRecipe";
+import { createPlayerArtRecipe, type PlayerArtRecipe } from "./playerArtRecipe";
 import type {
   AccessoryStyle,
   BackHairStyle,
@@ -104,11 +101,7 @@ function variedRecipe(base: PlayerArtRecipe, attempt: number): PlayerArtRecipe {
     browStyle: rotate(BROW_STYLES, base.browStyle, attempt * 7),
     mouthStyle: rotate(MOUTH_STYLES, base.mouthStyle, attempt * 11),
     accessory: rotate(ACCESSORIES, base.accessory, attempt * 13),
-    uniformPattern: rotate(
-      UNIFORM_PATTERNS,
-      base.uniformPattern,
-      attempt * 17,
-    ),
+    uniformPattern: rotate(UNIFORM_PATTERNS, base.uniformPattern, attempt * 17),
     pose: rotate(POSES, base.pose, attempt * 19),
   };
 }
