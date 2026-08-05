@@ -26,7 +26,7 @@ jobs:
       - run: npm ci
       - name: Apply staged source update
         run: |
-          cat .github/modular-player-art/part-* | base64 -d > /tmp/modular-player-art.tar.gz
+          cat .github/modular-player-art/part-* | tr -d '\r\n\t ' | base64 -d > /tmp/modular-player-art.tar.gz
           echo "aea184c15740ec0abd765b91a7fd8c23565a26a0a4b872f86d9963eb6e46de23  /tmp/modular-player-art.tar.gz" | sha256sum -c -
           tar -xzf /tmp/modular-player-art.tar.gz -C .
           rm -rf .github/modular-player-art
