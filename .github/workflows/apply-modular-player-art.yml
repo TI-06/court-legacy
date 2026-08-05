@@ -15,6 +15,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/player-art-rendering
+      - name: Inspect staged chunks
+        run: |
+          wc -c .github/modular-player-art/part-*
+          sha256sum .github/modular-player-art/part-*
+          printf 'invalid characters:\n'
+          LC_ALL=C grep -nH '[^A-Za-z0-9+/=[:space:]]' .github/modular-player-art/part-* || true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
