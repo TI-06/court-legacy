@@ -10,8 +10,8 @@
 }
 
 .player-art--card {
-  width: 100%;
-  max-width: 64px;
+  width: 68px;
+  max-width: 68px;
   max-height: 100%;
 }
 
@@ -37,7 +37,7 @@
 
 .player-art__number {
   position: absolute;
-  top: 52%;
+  top: 74%;
   left: 50%;
   z-index: 30;
   color: #ffffff;
@@ -49,6 +49,11 @@
     0 0 3px rgb(0 0 0 / 70%);
   transform: translateX(-50%);
   -webkit-text-stroke: 0.35px rgb(0 0 0 / 60%);
+}
+
+.player-art--card .player-art__number {
+  top: 76%;
+  font-size: 9px;
 }
 
 .player-art[data-expression="focused"] .player-art__layer--base {
