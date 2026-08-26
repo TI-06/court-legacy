@@ -7,6 +7,7 @@ import type {
   CloudGameSnapshot,
   CreateCloudGameInput,
   GameStore,
+  PersistOperationInput,
 } from "./GameStore";
 import { GameAlreadyExistsError, GameStoreDataError } from "./GameStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
@@ -175,7 +176,8 @@ export class SupabaseGameStore implements GameStore {
     };
   }
 
-  async applyOperation(): Promise<CloudGameSnapshot> {
+  async applyOperation(input: PersistOperationInput): Promise<CloudGameSnapshot> {
+    void input;
     throw new Error("revisioned game operations are not enabled yet");
   }
 }
