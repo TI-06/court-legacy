@@ -5,7 +5,7 @@ import { createRouter } from "./router";
 export default {
   fetch(request, env) {
     const router = createRouter({
-      verifyAccessToken: createVerifyAccessToken(env),
+      verifyAccessToken: (token) => createVerifyAccessToken(env)(token),
     });
     return router(request);
   },
