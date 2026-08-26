@@ -7,7 +7,6 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
-import { PlayerArt } from "../../ui/player-art/PlayerArt";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamScreen } from "./TeamScreen";
 import "./player-hub.css";
@@ -30,6 +29,10 @@ const abilityLabels = {
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
+}
+
+function playerInitials(player: Player): string {
+  return `${player.lastName.slice(0, 1)}${player.firstName.slice(0, 1)}`;
 }
 
 export function PlayerHubScreen({
@@ -81,22 +84,21 @@ export function PlayerHubScreen({
           選手一覧へ戻る
         </button>
         <section className="player-detail__hero">
-          <PlayerArt
-            className="player-detail__art"
-            loading="eager"
-            player={selectedPlayer}
-            school={school}
-            variant="portrait"
-          />
+          <div className="player-detail__identity-mark" aria-hidden="true">
+            {playerInitials(selectedPlayer)}
+          </div>
           <div className="player-detail__identity">
             <span>
-              {selectedPlayer.grade}年・{selectedPlayer.preferredPosition}
+              {selectedPlayer.grade}年・{selectedPlayer.preferredPosition}・
+              {selectedPlayer.heightCm}cm
             </span>
             <h2>{playerName(selectedPlayer)}</h2>
             <p>{selectedPlayer.reading}</p>
             <div className="player-detail__power">
               <span>総合力</span>
-              <strong>{calculatePlayerDisplayPower(selectedPlayer)}</strong>
+              <strong>
+                {Math.round(calculatePlayerDisplayPower(selectedPlayer) / 100)}
+              </strong>
             </div>
           </div>
         </section>
@@ -156,13 +158,8 @@ export function PlayerHubScreen({
               onClick={() => setSelectedPlayerId(player.id)}
               type="button"
             >
-              <span className="player-hub-card__art">
-                <PlayerArt
-                  loading="lazy"
-                  player={player}
-                  school={school}
-                  variant="card"
-                />
+              <span className="player-hub-card__art" aria-hidden="true">
+                {playerInitials(player)}
               </span>
               <span className="player-hub-card__identity">
                 <strong>{playerName(player)}</strong>
@@ -171,7 +168,9 @@ export function PlayerHubScreen({
                   {player.heightCm}
                   cm
                 </small>
-                <span>総合力 {calculatePlayerDisplayPower(player)}</span>
+                <span>
+                  総合力 {Math.round(calculatePlayerDisplayPower(player) / 100)}
+                </span>
               </span>
               <span className="player-hub-card__stats">
                 <small>攻撃 {abilities.attack}</small>
