@@ -1,9 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-import type {
-  AuthGateway,
-  AuthSession,
-} from "../../../src/auth/AuthGateway";
+import type { AuthGateway, AuthSession } from "../../../src/auth/AuthGateway";
 import { AuthGate } from "../../../src/auth/AuthGate";
 
 const session: AuthSession = {
@@ -54,7 +51,9 @@ describe("AuthGate", () => {
     expect(screen.queryByText("GAME")).not.toBeInTheDocument();
 
     pending.resolve(null);
-    expect(await screen.findByRole("heading", { name: "ログイン" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "ログイン" }),
+    ).toBeVisible();
   });
 
   it("requires authentication before rendering the game", async () => {
@@ -66,7 +65,9 @@ describe("AuthGate", () => {
       </AuthGate>,
     );
 
-    expect(await screen.findByRole("heading", { name: "ログイン" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "ログイン" }),
+    ).toBeVisible();
     expect(screen.queryByText("GAME")).not.toBeInTheDocument();
   });
 
