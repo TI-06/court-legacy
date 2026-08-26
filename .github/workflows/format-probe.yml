@@ -1,0 +1,24 @@
+name: Format Probe
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase1
+    paths:
+      - .github/workflows/format-probe.yml
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier tests/unit/auth/SupabaseHttpAuthGateway.test.ts --write
+      - run: |
+          echo '---FORMATTED_START---'
+          cat tests/unit/auth/SupabaseHttpAuthGateway.test.ts
+          echo '---FORMATTED_END---'
