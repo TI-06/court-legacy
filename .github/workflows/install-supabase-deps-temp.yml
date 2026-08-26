@@ -1,0 +1,35 @@
+name: Temporary Supabase Dependency Installer
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase1
+    paths:
+      - .github/workflows/install-supabase-deps-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Install runtime dependencies
+        run: npm install @supabase/supabase-js jose
+      - name: Commit lockfile update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes needed"
+            exit 0
+          fi
+          git commit -m "chore: add Supabase and JWT dependencies"
+          git push
