@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const joseMocks = vi.hoisted(() => ({
-  createRemoteJWKSet: vi.fn((_url: URL) => "jwks-resolver"),
+  createRemoteJWKSet: vi.fn((url: URL) => {
+    void url;
+    return "jwks-resolver";
+  }),
   jwtVerify: vi.fn(),
 }));
 
