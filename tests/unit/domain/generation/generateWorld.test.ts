@@ -1,4 +1,4 @@
-import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { createInitialGame } from "../../../../src/app/createInitialGame";
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import {
   assignGenerationalTalent,
@@ -47,37 +47,34 @@ describe("generateWorld", () => {
     expect(Object.values(world.players)).toHaveLength(192);
   });
 
-  it("creates the four featured schools and their signature players", () => {
-    const world = createDemoGame();
-    const featured = [
-      ["青嵐高校", "瀬戸 蒼真", "S"],
-      ["烏峰高校", "黒羽 隼斗", "OH"],
-      ["紅耀高校", "火神 蓮", "OP"],
-      ["白凪高校", "白間 湊", "L"],
-    ] as const;
+  it("creates a generic user-defined initial game without featured characters", () => {
+    const input = {
+      seed: "user-123:2026",
+      schoolName: "青葉高校",
+      schoolShortName: "青葉",
+      coachName: "高橋 監督",
+      regionId: "region.test",
+      uniform: {
+        primary: "#17365D",
+        secondary: "#FFFFFF",
+        accent: "#D99B2B",
+      },
+    };
 
-    expect(world.schools[world.userSchoolId]?.name).toBe("青嵐高校");
+    const first = createInitialGame(input);
+    const second = createInitialGame(input);
 
-    for (const [schoolName, playerName, position] of featured) {
-      const school = Object.values(world.schools).find(
-        (candidate) => candidate.name === schoolName,
-      );
-      expect(school, `${schoolName} must exist`).toBeDefined();
+    expect(first).toEqual(second);
+    expect(first.schools[first.userSchoolId]?.name).toBe("青葉高校");
+    expect(first.schools[first.userSchoolId]?.shortName).toBe("青葉");
+    expect(first.schools[first.userSchoolId]?.coach.name).toBe("高橋 監督");
+    expect(Object.keys(first.schools)).toHaveLength(16);
 
-      const player = school?.playerIds
-        .map((id) => world.players[id])
-        .find((candidate) =>
-          candidate
-            ? `${candidate.lastName} ${candidate.firstName}` === playerName
-            : false,
-        );
-
-      expect(
-        player,
-        `${playerName} must belong to ${schoolName}`,
-      ).toBeDefined();
-      expect(player?.preferredPosition).toBe(position);
-      expect(player?.career.schoolId).toBe(school?.id);
+    const fullNames = Object.values(first.players).map(
+      (player) => `${player.lastName} ${player.firstName}`,
+    );
+    for (const featuredName of ["瀬戸 蒼真", "黒羽 隼斗", "火神 蓮", "白間 湊"]) {
+      expect(fullNames).not.toContain(featuredName);
     }
   });
 
