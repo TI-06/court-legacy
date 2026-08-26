@@ -333,7 +333,6 @@ function developRivalPlayer(
 
 function promoteProspect(
   player: Player,
-  school: School,
   priorityAbilities: readonly (keyof PlayerAbilities)[],
 ): Player {
   const abilities = { ...player.abilities };
@@ -347,7 +346,6 @@ function promoteProspect(
     morale: clamp(player.morale + 5, 0, 100),
     trust: clamp(player.trust + 3, 0, 100),
     hiddenTraitIds: [...new Set([...player.hiddenTraitIds, "world.prospect"])],
-    appearanceSeed: player.appearanceSeed + school.history.seasons,
   };
 }
 
@@ -369,7 +367,7 @@ function maybePromoteIntakeProspect(
     30,
   );
   return random.int(1, 100) <= chance
-    ? promoteProspect(player, school, priorityAbilities)
+    ? promoteProspect(player, priorityAbilities)
     : player;
 }
 
