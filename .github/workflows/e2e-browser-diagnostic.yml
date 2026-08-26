@@ -1,0 +1,72 @@
+name: E2E Browser Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase1
+    paths:
+      - .github/workflows/e2e-browser-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Build E2E app
+        env:
+          VITE_E2E_AUTH_BYPASS: "true"
+        run: npm run build
+      - name: Start preview server
+        run: |
+          npm run preview > /tmp/court-preview.log 2>&1 &
+          echo $! > /tmp/court-preview.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/court-preview.log
+          exit 1
+      - name: Inspect rendered browser state
+        run: |
+          node --input-type=module <<'EOF'
+          import { chromium } from '@playwright/test';
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+          const consoleMessages = [];
+          const pageErrors = [];
+          page.on('console', (message) => consoleMessages.push(`${message.type()}: ${message.text()}`));
+          page.on('pageerror', (error) => pageErrors.push(error.stack || error.message));
+
+          const response = await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+          await page.waitForTimeout(1000);
+
+          console.log('---DIAGNOSTIC_START---');
+          console.log('status=', response?.status());
+          console.log('url=', page.url());
+          console.log('title=', await page.title());
+          console.log('body=', (await page.locator('body').innerText()).slice(0, 3000));
+          console.log('headings=', await page.locator('h1,h2,h3').allInnerTexts());
+          console.log('navCount=', await page.locator('nav').count());
+          console.log('buttons=', (await page.getByRole('button').allInnerTexts()).slice(0, 30));
+          console.log('console=', consoleMessages);
+          console.log('pageErrors=', pageErrors);
+          console.log('rootHtml=', (await page.locator('#root').innerHTML()).slice(0, 5000));
+          console.log('---DIAGNOSTIC_END---');
+
+          await browser.close();
+          EOF
+      - name: Show preview log
+        if: always()
+        run: cat /tmp/court-preview.log || true
