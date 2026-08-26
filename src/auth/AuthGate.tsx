@@ -8,11 +8,7 @@ interface AuthGateProps {
 }
 
 type AuthPhase =
-  | "checking"
-  | "signed-out"
-  | "signing-in"
-  | "signing-up"
-  | "signed-in";
+  "checking" | "signed-out" | "signing-in" | "signing-up" | "signed-in";
 
 export function AuthGate({ gateway, children }: AuthGateProps) {
   const [phase, setPhase] = useState<AuthPhase>("checking");
@@ -38,7 +34,9 @@ export function AuthGate({ gateway, children }: AuthGateProps) {
         if (!active) {
           return;
         }
-        setError("ログイン状態を確認できませんでした。もう一度お試しください。");
+        setError(
+          "ログイン状態を確認できませんでした。もう一度お試しください。",
+        );
         setPhase("signed-out");
       });
 
@@ -61,7 +59,9 @@ export function AuthGate({ gateway, children }: AuthGateProps) {
       setSession(signedIn);
       setPhase("signed-in");
     } catch {
-      setError("ログインできませんでした。メールアドレスとパスワードをご確認ください。");
+      setError(
+        "ログインできませんでした。メールアドレスとパスワードをご確認ください。",
+      );
       setPhase("signed-out");
     }
   };
@@ -81,7 +81,9 @@ export function AuthGate({ gateway, children }: AuthGateProps) {
         setPhase("signed-in");
         return;
       }
-      setNotice("確認メールを送信しました。メール内のリンクから登録を完了してください。");
+      setNotice(
+        "確認メールを送信しました。メール内のリンクから登録を完了してください。",
+      );
       setPhase("signed-out");
     } catch {
       setError("アカウントを作成できませんでした。入力内容をご確認ください。");
@@ -113,18 +115,30 @@ export function AuthGate({ gateway, children }: AuthGateProps) {
         <div className="auth-brand">
           <span>COURT LEGACY</span>
           <h1 id="auth-heading">ログイン</h1>
-          <p>監督データをクラウドに保存するため、アカウントでログインしてください。</p>
+          <p>
+            監督データをクラウドに保存するため、アカウントでログインしてください。
+          </p>
         </div>
 
         {busy ? (
           <div className="auth-progress" role="status">
             <span className="auth-spinner" aria-hidden="true" />
-            <strong>{phase === "signing-up" ? "アカウント作成中" : "ログイン中"}</strong>
+            <strong>
+              {phase === "signing-up" ? "アカウント作成中" : "ログイン中"}
+            </strong>
           </div>
         ) : null}
 
-        {error ? <p role="alert" className="auth-message auth-message--error">{error}</p> : null}
-        {notice ? <p role="status" className="auth-message">{notice}</p> : null}
+        {error ? (
+          <p role="alert" className="auth-message auth-message--error">
+            {error}
+          </p>
+        ) : null}
+        {notice ? (
+          <p role="status" className="auth-message">
+            {notice}
+          </p>
+        ) : null}
 
         <form className="auth-form" onSubmit={submitSignIn}>
           <label>
@@ -161,7 +175,9 @@ export function AuthGate({ gateway, children }: AuthGateProps) {
             onClick={() => void submitSignUp()}
             type="button"
           >
-            {phase === "signing-up" ? "アカウント作成中" : "新規アカウントを作成"}
+            {phase === "signing-up"
+              ? "アカウント作成中"
+              : "新規アカウントを作成"}
           </button>
         </form>
 
