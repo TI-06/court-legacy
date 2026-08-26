@@ -13,7 +13,5 @@ export function ApplicationRoot({ authGateway }: ApplicationRootProps) {
     return <GameDataErrorScreen message={gameDataBootstrap.message} />;
   }
 
-  return (
-    <AuthGate gateway={authGateway}>{() => <App />}</AuthGate>
-  );
+  return <AuthGate gateway={authGateway}>{() => <App />}</AuthGate>;
 }
