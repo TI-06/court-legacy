@@ -9,10 +9,7 @@ export type VerifyAccessToken = (token: string) => Promise<AuthenticatedUser>;
 
 type AccessTokenEnvironment = Pick<Env, "SUPABASE_URL">;
 
-const jwksResolvers = new Map<
-  string,
-  ReturnType<typeof createRemoteJWKSet>
->();
+const jwksResolvers = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
 
 function normalizeSupabaseUrl(value: string): string {
   const normalized = value.trim().replace(/\/+$/, "");
