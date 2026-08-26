@@ -332,9 +332,6 @@ export function assignGenerationalTalent(
         (candidate) => `${candidate.lastName} ${candidate.firstName}`,
       ),
     ),
-    excludedAppearanceSeeds: new Set(
-      existingPlayers.map((candidate) => candidate.appearanceSeed),
-    ),
   });
 
   return {
