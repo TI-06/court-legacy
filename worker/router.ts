@@ -2,7 +2,10 @@ import type {
   AuthenticatedUser,
   VerifyAccessToken,
 } from "./auth/verifyAccessToken";
+import type { GameStore } from "./data/GameStore";
 import { json, jsonError } from "./http/json";
+import { createBootstrapHandler } from "./routes/bootstrap";
+import { createOnboardingHandler } from "./routes/onboarding";
 
 export type AuthenticatedRequestHandler = (
   request: Request,
@@ -11,7 +14,8 @@ export type AuthenticatedRequestHandler = (
 
 export interface WorkerDependencies {
   verifyAccessToken: VerifyAccessToken;
-  handleAuthenticatedRequest?: AuthenticatedRequestHandler;
+  store: GameStore;
+  createCreationNonce?: () => string;
 }
 
 function bearerToken(request: Request): string | null {
@@ -31,6 +35,12 @@ function notFound(): Response {
 export function createRouter(
   deps: WorkerDependencies,
 ): (request: Request) => Promise<Response> {
+  const bootstrap = createBootstrapHandler(deps.store);
+  const onboarding = createOnboardingHandler({
+    store: deps.store,
+    createCreationNonce: deps.createCreationNonce,
+  });
+
   return async (request) => {
     const url = new URL(request.url);
 
@@ -58,10 +68,16 @@ export function createRouter(
       return jsonError(401, "unauthenticated", "Authentication is required");
     }
 
-    if (!deps.handleAuthenticatedRequest) {
+    try {
+      if (url.pathname === "/api/bootstrap" && request.method === "GET") {
+        return await bootstrap(request, user);
+      }
+      if (url.pathname === "/api/onboarding" && request.method === "POST") {
+        return await onboarding(request, user);
+      }
       return notFound();
+    } catch {
+      return jsonError(500, "server_error", "サーバー処理に失敗しました");
     }
-
-    return deps.handleAuthenticatedRequest(request, user);
   };
 }
