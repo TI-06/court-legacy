@@ -34,8 +34,7 @@ function renderGate(auth: AuthGateway) {
   return render(
     createElement(AuthGate, {
       gateway: auth,
-      children: ({ user }) =>
-        createElement("div", null, `GAME ${user.email}`),
+      children: ({ user }) => createElement("div", null, `GAME ${user.email}`),
     }),
   );
 }
