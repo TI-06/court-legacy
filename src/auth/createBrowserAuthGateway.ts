@@ -65,8 +65,8 @@ class UnavailableAuthGateway implements AuthGateway {
 function browserEnvironment(): BrowserAuthEnvironment {
   return {
     VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-    VITE_SUPABASE_PUBLISHABLE_KEY:
-      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env
+      .VITE_SUPABASE_PUBLISHABLE_KEY,
     VITE_E2E_AUTH_BYPASS: import.meta.env.VITE_E2E_AUTH_BYPASS,
   };
 }
