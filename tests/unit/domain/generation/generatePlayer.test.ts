@@ -23,7 +23,6 @@ describe("generatePlayer", () => {
       tier: "normal" as const,
       data,
       excludedFullNames: new Set<string>(),
-      excludedAppearanceSeeds: new Set<number>(),
     });
 
     const first = generatePlayer({
@@ -36,6 +35,7 @@ describe("generatePlayer", () => {
     });
 
     expect(first).toEqual(second);
+    expect("appearanceSeed" in first).toBe(false);
   });
 
   it("creates integer abilities and player state inside supported ranges", () => {
@@ -48,7 +48,6 @@ describe("generatePlayer", () => {
       data,
       random: new SeededRandom("range-player"),
       excludedFullNames: new Set(),
-      excludedAppearanceSeeds: new Set(),
     });
 
     expect(player.grade).toBe(2);
@@ -93,7 +92,6 @@ describe("generatePlayer", () => {
           data,
           random: new SeededRandom(`height-${position}-${index}`),
           excludedFullNames: new Set(),
-          excludedAppearanceSeeds: new Set(),
         });
 
         expect(player.heightCm).toBeGreaterThanOrEqual(minimum);
@@ -113,7 +111,6 @@ describe("generatePlayer", () => {
         data,
         random: new SeededRandom(`hand-${index}`),
         excludedFullNames: new Set(),
-        excludedAppearanceSeeds: new Set(),
       }),
     );
     const leftHandedCount = players.filter(
@@ -135,7 +132,6 @@ describe("generatePlayer", () => {
       data,
       random: new SeededRandom("tier-comparison"),
       excludedFullNames: new Set(),
-      excludedAppearanceSeeds: new Set(),
     });
     const generational = generatePlayer({
       id: playerId("player-generational"),
@@ -147,7 +143,6 @@ describe("generatePlayer", () => {
       data,
       random: new SeededRandom("tier-comparison"),
       excludedFullNames: new Set(),
-      excludedAppearanceSeeds: new Set(),
     });
     const average = (values: PlayerAbilities) =>
       Object.values(values).reduce((sum, value) => sum + value, 0) /
@@ -164,7 +159,7 @@ describe("generatePlayer", () => {
 });
 
 describe("generateInitialSquad", () => {
-  it("creates twelve visually distinct players with four players per grade", () => {
+  it("creates twelve distinct players with four players per grade", () => {
     const squad = generateInitialSquad({
       schoolId: schoolId("school-squad"),
       academicYear: 1,
@@ -177,12 +172,12 @@ describe("generateInitialSquad", () => {
     expect(squad.filter((player) => player.grade === 1)).toHaveLength(4);
     expect(squad.filter((player) => player.grade === 2)).toHaveLength(4);
     expect(squad.filter((player) => player.grade === 3)).toHaveLength(4);
-    expect(new Set(squad.map((player) => player.appearanceSeed)).size).toBe(12);
     expect(
       new Set(squad.map((player) => `${player.lastName} ${player.firstName}`))
         .size,
     ).toBe(12);
     expect(new Set(squad.map((player) => player.id)).size).toBe(12);
+    expect(squad.every((player) => !("appearanceSeed" in player))).toBe(true);
   });
 
   it("includes all essential court roles in the initial squad", () => {
