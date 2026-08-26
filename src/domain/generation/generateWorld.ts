@@ -13,11 +13,6 @@ import type { PlayerId, SchoolId } from "../model/identifiers";
 import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
-import {
-  applyFeaturedPlayerProfile,
-  FEATURED_SCHOOL_SETUPS,
-  findFeaturedSchoolSetup,
-} from "./featuredWorldCatalog";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
 import { generateSchool } from "./generateSchool";
 
@@ -134,28 +129,12 @@ function selectRivalSchools(
   userSchool: UserSchoolSetup,
   random: RandomSource,
 ): RivalSchoolDefinition[] {
-  const featuredRivals = FEATURED_SCHOOL_SETUPS.filter(
-    (candidate) =>
-      candidate.shortName !== userSchool.shortName &&
-      candidate.name !== userSchool.name,
-  ).map((candidate) => ({
-    shortName: candidate.shortName,
-    fullName: candidate.name,
-  }));
-  const featuredNames = new Set(
-    featuredRivals.flatMap((candidate) => [
-      candidate.shortName,
-      candidate.fullName,
-    ]),
-  );
   const candidates = RIVAL_SCHOOLS.filter(
     (candidate) =>
       candidate.shortName !== userSchool.shortName &&
-      candidate.fullName !== userSchool.name &&
-      !featuredNames.has(candidate.shortName) &&
-      !featuredNames.has(candidate.fullName),
+      candidate.fullName !== userSchool.name,
   );
-  const selected: RivalSchoolDefinition[] = [...featuredRivals];
+  const selected: RivalSchoolDefinition[] = [];
 
   while (selected.length < 15) {
     const index = random.int(0, candidates.length - 1);
@@ -233,18 +212,13 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     isUserSchool: boolean,
     uniform: UniformColors,
   ): void => {
-    const generatedSquad = generateInitialSquad({
+    const squad = generateInitialSquad({
       schoolId: id,
       academicYear: 1,
       firstPlayerNumber: playerNumber,
       data: input.data,
       random,
     });
-    const featuredSetup = findFeaturedSchoolSetup(setup.name, setup.shortName);
-    const squad = applyFeaturedPlayerProfile(
-      generatedSquad,
-      featuredSetup?.featuredPlayer ?? null,
-    );
     playerNumber += squad.length;
 
     for (const player of squad) {
@@ -276,14 +250,8 @@ export function generateWorld(input: GenerateWorldInput): GameState {
 
   rivalDefinitions.forEach((definition, index) => {
     const id = schoolId(`school-${String(index + 1).padStart(3, "0")}`);
-    const featuredSetup = findFeaturedSchoolSetup(
-      definition.fullName,
-      definition.shortName,
-    );
     const uniform =
-      featuredSetup?.uniform ??
-      RIVAL_UNIFORMS[index % RIVAL_UNIFORMS.length] ??
-      RIVAL_UNIFORMS[0]!;
+      RIVAL_UNIFORMS[index % RIVAL_UNIFORMS.length] ?? RIVAL_UNIFORMS[0]!;
     createSchoolAndSquad(
       id,
       {
@@ -291,9 +259,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
         shortName: definition.shortName,
         regionId: input.userSchool.regionId,
         coachName:
-          featuredSetup?.coachName ??
-          COACH_NAMES[index % COACH_NAMES.length] ??
-          COACH_NAMES[0],
+          COACH_NAMES[index % COACH_NAMES.length] ?? COACH_NAMES[0],
         uniform,
       },
       false,
