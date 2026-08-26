@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
@@ -47,25 +47,16 @@ function createProps(withLatestMatch = false) {
 }
 
 describe("home action dashboard", () => {
-  it("shows the signature player as the team face", () => {
+  it("renders the information-first dashboard without a featured-player hero", () => {
     const props = createProps();
 
-    render(<HomeScreen {...props} />);
+    const { container } = render(<HomeScreen {...props} />);
 
-    const hero = screen.getByRole("region", { name: "チームフェイス" });
-    expect(within(hero).getByText("青嵐高校")).toBeVisible();
-    expect(within(hero).getByText("瀬戸 蒼真")).toBeVisible();
-    expect(within(hero).getByText("司令塔")).toBeVisible();
-    expect(within(hero).getByTestId("featured-player-art")).toHaveAttribute(
-      "src",
-      expect.stringContaining("seto-soma/bust-neutral.webp"),
-    );
-    expect(
-      hero.querySelector("svg[data-testid='player-character']"),
-    ).toBeNull();
-
-    fireEvent.click(within(hero).getByRole("button", { name: "チームを見る" }));
-    expect(props.onOpenTeam).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("region", { name: "チームフェイス" })).toBeNull();
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByText("学校評判")).toBeVisible();
+    expect(screen.getByText("平均疲労")).toBeVisible();
+    expect(screen.getByText("部員")).toBeVisible();
   });
 
   it("shows the real date, selected rival, and direct weekly actions", () => {
