@@ -1,0 +1,35 @@
+name: Temporary Auth Formatter
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase1
+    paths:
+      - .github/workflows/format-auth-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format auth gateway
+        run: npx prettier src/auth/createBrowserAuthGateway.ts --write
+      - name: Commit formatting
+        run: |
+          if git diff --quiet -- src/auth/createBrowserAuthGateway.ts; then
+            echo "No formatting changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/auth/createBrowserAuthGateway.ts
+          git commit -m "style: format auth gateway with Prettier"
+          git push
