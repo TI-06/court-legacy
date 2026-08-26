@@ -4,16 +4,51 @@
 
 ## Development status
 
-- Milestone: M0 foundation
+- Milestone: V2 Phase 1 foundation
 - Runtime: React + TypeScript + Vite
-- Hosting target: Cloudflare Workers
+- API/runtime: Cloudflare Workers
+- Authentication/database: Supabase Auth + PostgreSQL
 - Repository: `TI-06/court-legacy`
 
 ## Commands
 
 ```bash
-npm install
+npm ci
 npm run dev
 npm run verify
 npm run test:e2e
 ```
+
+## Supabase configuration
+
+V2 production play requires an authenticated account. The browser receives only a Supabase **publishable key**. Elevated credentials are Worker-only and must never be bundled into the client.
+
+Create a local browser environment file from `.env.example`:
+
+```dotenv
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+Create local Worker variables from `.dev.vars.example`:
+
+```dotenv
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+```
+
+For a deployed Cloudflare Worker, configure `SUPABASE_URL` as a Worker environment variable and store the elevated key as a secret:
+
+```bash
+npx wrangler secret put SUPABASE_SECRET_KEY
+```
+
+Do not place `SUPABASE_SECRET_KEY` in any `VITE_*` variable, committed file, or browser bundle.
+
+Apply `supabase/migrations/202608260001_v2_foundation.sql` to the Supabase project before using cloud saves. The Phase 1 schema keeps game state behind the Worker, enables RLS on all game tables, and does not grant direct browser table access.
+
+Configure the intended sign-in providers in Supabase Auth. Google is the primary OAuth provider; email authentication remains available as the secondary login path.
+
+## E2E authentication
+
+Playwright uses the dedicated Vite `e2e` mode and `.env.e2e`. This bypass is test-only and is not used by `npm run build` or production deployment.
