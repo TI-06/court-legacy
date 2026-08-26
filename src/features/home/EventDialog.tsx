@@ -1,9 +1,7 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
-import { resolveCharacterVisual } from "../../domain/appearance/characterWorld";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { PlayerArt } from "../../ui/player-art/PlayerArt";
 import { SchoolEmblem } from "../../ui/SchoolEmblem";
 import "../../ui/ui.css";
 import "./event-dialog.css";
@@ -45,11 +43,11 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
               return <span key={playerId}>不明な選手</span>;
             }
 
-            const visual = resolveCharacterVisual(player, school);
             return (
               <article className="event-actor-card" key={playerId}>
                 <span className="event-actor-character" aria-hidden="true">
-                  <PlayerArt player={player} school={school} variant="full" />
+                  {player.lastName.slice(0, 1)}
+                  {player.firstName.slice(0, 1)}
                 </span>
                 <div className="event-actor-card__identity">
                   <span className="event-actor-card__school">
@@ -59,7 +57,9 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
                   <strong>
                     {player.lastName} {player.firstName}
                   </strong>
-                  <small>{visual.roleLabel}</small>
+                  <small>
+                    {player.grade}年・{player.preferredPosition}
+                  </small>
                 </div>
               </article>
             );
