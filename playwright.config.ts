@@ -11,10 +11,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "npm run preview",
-    env: {
-      VITE_E2E_AUTH_BYPASS: "true",
-    },
+    command: "npm run preview:e2e",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
