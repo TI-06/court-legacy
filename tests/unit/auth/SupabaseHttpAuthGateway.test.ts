@@ -51,7 +51,9 @@ function createGateway(fetchImpl: typeof fetch, storage = new MemoryStorage()) {
 
 describe("SupabaseHttpAuthGateway", () => {
   it("signs in with password, sends the publishable key, and persists the session", async () => {
-    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response(authPayload));
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(response(authPayload));
     const { gateway, storage } = createGateway(fetchImpl);
 
     const session = await gateway.signInWithPassword(
@@ -92,7 +94,9 @@ describe("SupabaseHttpAuthGateway", () => {
     );
     const fetchImpl = vi
       .fn<typeof fetch>()
-      .mockResolvedValue(response({ id: "user-1", email: "coach@example.com" }));
+      .mockResolvedValue(
+        response({ id: "user-1", email: "coach@example.com" }),
+      );
     const { gateway } = createGateway(fetchImpl, storage);
 
     const restored = await gateway.restoreSession();
