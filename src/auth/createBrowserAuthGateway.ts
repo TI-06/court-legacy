@@ -1,8 +1,4 @@
-import type {
-  AuthGateway,
-  AuthSession,
-  SignUpResult,
-} from "./AuthGateway";
+import type { AuthGateway, AuthSession, SignUpResult } from "./AuthGateway";
 import { SupabaseHttpAuthGateway } from "./SupabaseHttpAuthGateway";
 
 interface BrowserAuthEnvironment {
