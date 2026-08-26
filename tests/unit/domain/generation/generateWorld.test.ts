@@ -73,7 +73,12 @@ describe("generateWorld", () => {
     const fullNames = Object.values(first.players).map(
       (player) => `${player.lastName} ${player.firstName}`,
     );
-    for (const featuredName of ["瀬戸 蒼真", "黒羽 隼斗", "火神 蓮", "白間 湊"]) {
+    for (const featuredName of [
+      "瀬戸 蒼真",
+      "黒羽 隼斗",
+      "火神 蓮",
+      "白間 湊",
+    ]) {
       expect(fullNames).not.toContain(featuredName);
     }
   });
