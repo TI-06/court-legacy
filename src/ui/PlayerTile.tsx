@@ -39,7 +39,6 @@ function playerInitials(player: Player): string {
 export function PlayerTile({
   player,
   school,
-  uniform: _uniform,
   selected = false,
   disabled = false,
   compact = false,
