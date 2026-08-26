@@ -124,7 +124,7 @@ test("school management upgrades a facility and calendar advances the shared wee
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
 
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "青嵐高校" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
   await expect(page.getByText("資金 300")).toBeVisible();
 
   const trainingUpgrade = page.getByRole("button", {
