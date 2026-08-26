@@ -1,0 +1,24 @@
+name: Task 3 RED Check
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase1
+    paths:
+      - .github/workflows/task3-red-temp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Run focused Worker auth tests
+        run: npm test -- tests/unit/worker/router.test.ts tests/unit/worker/verifyAccessToken.test.ts
