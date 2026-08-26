@@ -5,9 +5,7 @@ export interface AuthenticatedUser {
   id: string;
 }
 
-export type VerifyAccessToken = (
-  token: string,
-) => Promise<AuthenticatedUser>;
+export type VerifyAccessToken = (token: string) => Promise<AuthenticatedUser>;
 
 type AccessTokenEnvironment = Pick<Env, "SUPABASE_URL">;
 
