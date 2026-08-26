@@ -258,8 +258,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
         name: definition.fullName,
         shortName: definition.shortName,
         regionId: input.userSchool.regionId,
-        coachName:
-          COACH_NAMES[index % COACH_NAMES.length] ?? COACH_NAMES[0],
+        coachName: COACH_NAMES[index % COACH_NAMES.length] ?? COACH_NAMES[0],
         uniform,
       },
       false,
