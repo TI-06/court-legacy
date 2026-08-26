@@ -7,7 +7,7 @@ describe("school and calendar app integration", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "学校" }));
     expect(
-      screen.getByRole("heading", { name: "青嵐高校" }),
+      screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
     expect(screen.getByText("資金 300")).toBeInTheDocument();
 
