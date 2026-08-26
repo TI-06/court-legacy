@@ -110,6 +110,7 @@ describe("match presentation", () => {
 
   it("presents rotation, set end, and match end as important moments", () => {
     const context = createContext();
+    const homeSchool = context.state.schools[context.state.userSchoolId]!;
 
     const rotation = presentMatchEvent(
       event({
@@ -148,7 +149,7 @@ describe("match presentation", () => {
     expect(setEnd.title).toBe("第1セット終了");
     expect(setEnd.tone).toBe("important");
     expect(matchEnd.title).toBe("試合終了");
-    expect(matchEnd.detail).toContain("青嵐高校");
+    expect(matchEnd.detail).toContain(homeSchool.name);
   });
 
   it("falls back safely when an event references a missing player", () => {
