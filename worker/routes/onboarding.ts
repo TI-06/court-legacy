@@ -57,7 +57,10 @@ export const REGION_IDS = [
 ] as const;
 
 const trimmedString = (minimum: number, maximum: number) =>
-  z.string().transform((value) => value.trim()).pipe(z.string().min(minimum).max(maximum));
+  z
+    .string()
+    .transform((value) => value.trim())
+    .pipe(z.string().min(minimum).max(maximum));
 
 const onboardingSchema = z.object({
   displayName: trimmedString(1, 40),

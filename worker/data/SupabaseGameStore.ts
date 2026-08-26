@@ -8,10 +8,7 @@ import type {
   CreateCloudGameInput,
   GameStore,
 } from "./GameStore";
-import {
-  GameAlreadyExistsError,
-  GameStoreDataError,
-} from "./GameStore";
+import { GameAlreadyExistsError, GameStoreDataError } from "./GameStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
 
 const rotationSlotSchema = z.union([
@@ -106,7 +103,10 @@ function mapSnapshot(value: unknown): CloudGameSnapshot {
   }
 
   const state = decodeStoredState(parsed.data.state);
-  const teamSelection = decodeStoredSelection(parsed.data.team_selection, state);
+  const teamSelection = decodeStoredSelection(
+    parsed.data.team_selection,
+    state,
+  );
 
   return {
     userId: parsed.data.user_id,

@@ -65,7 +65,9 @@ describe("onboarding route", () => {
     expect(input.coachName).toBe("高橋 監督");
     expect(input.regionId).toBe("region.chiba");
     expect(input.state.seed).toBe("user-123:creation-001");
-    expect(input.state.schools[input.state.userSchoolId]?.name).toBe("青葉高校");
+    expect(input.state.schools[input.state.userSchoolId]?.name).toBe(
+      "青葉高校",
+    );
     expect(input.teamSelection.rotation).toHaveLength(6);
     expect(input.teamSelection.liberoPlayerId).not.toBeNull();
 

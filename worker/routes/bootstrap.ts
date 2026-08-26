@@ -3,8 +3,7 @@ import type { CloudGameSnapshot, GameStore } from "../data/GameStore";
 import { json } from "../http/json";
 
 export type BootstrapResponse =
-  | { status: "needs-onboarding" }
-  | { status: "ready"; game: CloudGameSnapshot };
+  { status: "needs-onboarding" } | { status: "ready"; game: CloudGameSnapshot };
 
 export function createBootstrapHandler(
   store: GameStore,
