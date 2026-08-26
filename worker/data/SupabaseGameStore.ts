@@ -176,7 +176,9 @@ export class SupabaseGameStore implements GameStore {
     };
   }
 
-  async applyOperation(input: PersistOperationInput): Promise<CloudGameSnapshot> {
+  async applyOperation(
+    input: PersistOperationInput,
+  ): Promise<CloudGameSnapshot> {
     void input;
     throw new Error("revisioned game operations are not enabled yet");
   }
