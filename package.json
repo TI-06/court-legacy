@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:e2e": "tsc -b && vite build --mode e2e",
     "preview": "npm run build && vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -35,7 +37,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.0.0",
-    "eslint-plugin-react-hooks": "^7.0.0",
+    "eslint-plugin-react-hooks": "^0.4.0",
     "eslint-plugin-react-refresh": "^0.4.0",
     "globals": "^16.0.0",
     "jsdom": "^27.0.0",
