@@ -87,7 +87,9 @@ export function generateServerScoutingCandidates(
   return Array.from({ length: CANDIDATE_COUNT }, (_, index) => {
     const tier = selectRecruitTier(probabilities, random);
     const player = generatePlayer({
-      id: playerId(`scout-${state.userSchoolId}-${state.yearIndex}-${index + 1}`),
+      id: playerId(
+        `scout-${state.userSchoolId}-${state.yearIndex}-${index + 1}`,
+      ),
       schoolId: state.userSchoolId,
       grade: 1,
       enrolledYear: state.yearIndex + 1,
