@@ -1,43 +1,34 @@
 import { render, screen } from "@testing-library/react";
-import { createElement } from "react";
-import type { AuthGateway, AuthSession } from "../../../src/auth/AuthGateway";
+import { vi } from "vitest";
 import { ApplicationRoot } from "../../../src/app/ApplicationRoot";
+import type { AuthClient } from "../../../src/services/auth/AuthClient";
+import type { GameApiClient } from "../../../src/services/api/GameApiClient";
 
-const session: AuthSession = {
-  accessToken: "access-token",
-  refreshToken: "refresh-token",
-  expiresAt: 2_000_000_000,
-  user: { id: "user-1", email: "coach@example.com" },
-};
-
-function gateway(restored: AuthSession | null): AuthGateway {
+function authClient(): AuthClient {
   return {
-    restoreSession: async () => restored,
-    signInWithPassword: async () => session,
-    signUpWithPassword: async () => ({ session }),
-    signInWithGoogle: () => undefined,
-    signOut: async () => undefined,
+    getSession: vi.fn(() => new Promise(() => undefined)),
+    subscribe: vi.fn().mockReturnValue(() => undefined),
+    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+    signInWithEmail: vi.fn().mockResolvedValue(undefined),
+    signOut: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+function apiClient(): GameApiClient {
+  return {
+    bootstrap: vi.fn(),
+    onboard: vi.fn(),
+    applyAction: vi.fn(),
   };
 }
 
 describe("ApplicationRoot", () => {
-  it("does not render the game before authentication", async () => {
-    render(createElement(ApplicationRoot, { authGateway: gateway(null) }));
+  it("delegates startup to the cloud-first application without a second auth gate", () => {
+    render(<ApplicationRoot auth={authClient()} api={apiClient()} />);
 
-    expect(
-      await screen.findByRole("heading", { name: "ログイン" }),
-    ).toBeVisible();
-    expect(
-      screen.queryByRole("navigation", { name: "主要メニュー" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("renders the game only after authentication succeeds", async () => {
-    render(createElement(ApplicationRoot, { authGateway: gateway(session) }));
-
-    expect(
-      await screen.findByRole("navigation", { name: "主要メニュー" }),
-    ).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "アカウントを確認しています…",
+    );
     expect(screen.queryByRole("heading", { name: "ログイン" })).toBeNull();
   });
 });
