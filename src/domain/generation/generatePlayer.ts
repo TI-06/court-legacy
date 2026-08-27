@@ -40,8 +40,29 @@ const POSITION_BOOSTS: Record<Position, Partial<PlayerAbilities>> = {
 
 const TIER_ABILITY_OFFSET: Record<PlayerTier, number> = {
   normal: 0,
-  prospect: 11,
-  generational: 22,
+  promising: 5,
+  prospect: 5,
+  elite: 10,
+  generational: 16,
+  monster: 22,
+};
+
+const TIER_APTITUDE_BOOST: Record<PlayerTier, number> = {
+  normal: 0,
+  promising: 2,
+  prospect: 2,
+  elite: 4,
+  generational: 6,
+  monster: 8,
+};
+
+const TIER_DEVELOPMENT_BONUS: Record<PlayerTier, number> = {
+  normal: 0,
+  promising: 4,
+  prospect: 4,
+  elite: 8,
+  generational: 12,
+  monster: 16,
 };
 
 const ABILITY_KEYS: ReadonlyArray<keyof PlayerAbilities> = [
@@ -85,6 +106,17 @@ export interface GenerateIntakeInput {
   random: RandomSource;
   currentPlayers: readonly Player[];
   count?: number;
+}
+
+interface PlayerDevelopmentCharacteristics {
+  potential: number;
+  trainingEfficiency: number;
+  matchConsistency: number;
+  bigMatch: number;
+  injuryResistance: number;
+  leadership: number;
+  teamAdaptation: number;
+  growthPeakGrade: Grade;
 }
 
 function chooseWeightedName(
@@ -173,7 +205,7 @@ function generatePositionAptitudes(
   tier: PlayerTier,
   random: RandomSource,
 ): Record<Position, number> {
-  const tierBoost = tier === "generational" ? 6 : tier === "prospect" ? 3 : 0;
+  const tierBoost = TIER_APTITUDE_BOOST[tier];
   const positions: Position[] = ["OH", "MB", "OP", "S", "L"];
   const aptitudes = {} as Record<Position, number>;
 
@@ -181,7 +213,7 @@ function generatePositionAptitudes(
     aptitudes[position] =
       position === preferredPosition
         ? clampAbility(random.int(78, 94) + tierBoost)
-        : random.int(18, 58);
+        : clampAbility(random.int(18, 58) + Math.floor(tierBoost / 2));
   }
 
   const secondaryCandidates = positions.filter(
@@ -190,10 +222,41 @@ function generatePositionAptitudes(
   const secondary = random.pick(secondaryCandidates);
   aptitudes[secondary] = Math.max(
     aptitudes[secondary],
-    random.int(50, 68) + Math.floor(tierBoost / 2),
+    clampAbility(random.int(50, 68) + Math.floor(tierBoost / 2)),
   );
 
   return aptitudes;
+}
+
+function growthPeakGrade(growthTypeId: string, random: RandomSource): Grade {
+  if (growthTypeId === "growth.early" || growthTypeId === "growth.complete") {
+    return 1;
+  }
+  if (growthTypeId === "growth.late") {
+    return 3;
+  }
+  return random.int(1, 3) as Grade;
+}
+
+function generateDevelopmentCharacteristics(
+  tier: PlayerTier,
+  growthTypeId: string,
+  random: RandomSource,
+): PlayerDevelopmentCharacteristics {
+  const bonus = TIER_DEVELOPMENT_BONUS[tier];
+  const value = (minimum: number, maximum: number, extra = 0) =>
+    clampAbility(random.int(minimum, maximum) + bonus + extra);
+
+  return {
+    potential: value(36, 78, tier === "monster" ? 4 : 0),
+    trainingEfficiency: value(30, 82),
+    matchConsistency: value(28, 84),
+    bigMatch: value(24, 82),
+    injuryResistance: value(32, 86),
+    leadership: value(20, 78),
+    teamAdaptation: value(30, 88),
+    growthPeakGrade: growthPeakGrade(growthTypeId, random),
+  };
 }
 
 function selectPreferredPosition(random: RandomSource): Position {
@@ -219,6 +282,11 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
   const traitIds = selectPlayerTraitIds(
     input.tier,
     input.data.traits,
+    input.random,
+  );
+  const development = generateDevelopmentCharacteristics(
+    input.tier,
+    growthType.id,
     input.random,
   );
 
@@ -248,6 +316,7 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
     traitIds,
     hiddenTraitIds: [],
     tier: input.tier,
+    ...development,
     injury: null,
     career: {
       schoolId: input.schoolId,
