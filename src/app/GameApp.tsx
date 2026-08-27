@@ -30,10 +30,9 @@ import {
   type FacilityKey,
 } from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-import {
-  resolveWeeklyTraining,
-  type TrainingResult,
-  type WeeklyPlan,
+import type {
+  TrainingResult,
+  WeeklyPlan,
 } from "../domain/training/resolveWeeklyTraining";
 import { recordMatchOutcome } from "../domain/world/rivalWorldProgression";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
@@ -134,22 +133,21 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab(tab);
   };
 
-  const executeTraining = (plan: WeeklyPlan) => {
+  const executeTraining = async (plan: WeeklyPlan) => {
     if (trainingCompleted) return;
-    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
-    const resolution = resolveWeeklyTraining({
-      state: gameState,
-      schoolId: gameState.userSchoolId,
-      plan,
-      data: gameData,
-      random,
-    });
-    const completedState = markWeeklyActionCompleted(
-      resolution.state,
-      "training",
+    const response = await cloudSession.runAction(
+      { type: "training", plan },
+      "練習結果を保存しています…",
     );
-    setAppState((current) => ({ ...current, gameState: completedState }));
-    setLatestTrainingResult(resolution.result);
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
+    });
+    if (response.outcome !== undefined) {
+      setLatestTrainingResult(response.outcome as TrainingResult);
+    }
   };
 
   const openFreshPracticeMatch = () => {
