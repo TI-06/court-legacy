@@ -4,7 +4,10 @@ import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { eventId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type { GameApiClient } from "../../../src/services/api/GameApiClient";
+import {
+  ApiError,
+  type GameApiClient,
+} from "../../../src/services/api/GameApiClient";
 import type {
   AuthClient,
   AuthSession,
@@ -319,5 +322,48 @@ describe("GameApp cloud actions", () => {
         : [],
     ).toHaveLength(1);
     expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+  });
+
+  it("renders the refreshed cloud snapshot after a revision conflict", async () => {
+    const snapshot = createSnapshot();
+    const refreshed = createSnapshot();
+    refreshed.revision = 7;
+    refreshed.state.schools[refreshed.state.userSchoolId]!.funds = 777;
+    const api: GameApiClient = {
+      bootstrap: vi.fn().mockResolvedValue({ status: "ready", game: refreshed }),
+      onboard: vi.fn(),
+      applyAction: vi
+        .fn()
+        .mockRejectedValue(
+          new ApiError(409, "revision_conflict", "データが更新されています"),
+        ),
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={snapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "その他" }));
+    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
+    expect(screen.getByText("資金 300")).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "トレーニング設備を強化" }),
+    );
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
+        "button",
+        { name: "70を使って強化" },
+      ),
+    );
+
+    expect(await screen.findByText("資金 777")).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "他の端末の更新を読み込みました。もう一度実行してください",
+    );
   });
 });
