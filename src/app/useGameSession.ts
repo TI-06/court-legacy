@@ -50,6 +50,7 @@ export function useGameSession({
 }: UseGameSessionInput): GameSessionController {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const snapshotRef = useRef(initialSnapshot);
+  const actionPendingRef = useRef(false);
   const [operation, setOperation] = useState<OperationState>({
     status: "idle",
   });
@@ -144,6 +145,11 @@ export function useGameSession({
     action: GameAction,
     label: string,
   ): Promise<GameActionResponse | null> {
+    if (actionPendingRef.current) {
+      return Promise.resolve(null);
+    }
+
+    actionPendingRef.current = true;
     const current = snapshotRef.current;
     return submitRequest(
       {
@@ -152,7 +158,9 @@ export function useGameSession({
         action,
       },
       label,
-    );
+    ).finally(() => {
+      actionPendingRef.current = false;
+    });
   }
 
   return { snapshot, operation, runAction };
