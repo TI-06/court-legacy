@@ -1,0 +1,17 @@
+name: Phase 2 Scout Report Format
+
+on:
+  pull_request:
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier tests/unit/domain/scouting/scoutReport.test.ts --write
+      - run: git diff -- tests/unit/domain/scouting/scoutReport.test.ts
