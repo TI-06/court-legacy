@@ -5,6 +5,7 @@ on:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
+      - tests/unit/App.test.tsx
       - tests/unit/services/GameApiClient.test.ts
       - tests/unit/app/AppBootstrap.test.tsx
       - tests/unit/features/onboarding/SchoolSetupScreen.test.tsx
@@ -21,4 +22,4 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run focused Task 7 tests
-        run: npm test -- tests/unit/services/GameApiClient.test.ts tests/unit/app/AppBootstrap.test.tsx tests/unit/features/onboarding/SchoolSetupScreen.test.tsx
+        run: npm test -- tests/unit/App.test.tsx tests/unit/services/GameApiClient.test.ts tests/unit/app/AppBootstrap.test.tsx tests/unit/features/onboarding/SchoolSetupScreen.test.tsx
