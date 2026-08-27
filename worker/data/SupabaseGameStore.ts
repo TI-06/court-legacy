@@ -178,7 +178,10 @@ function mapOperationResponse(value: unknown): PersistedOperationResponse {
   return response;
 }
 
-function isRevisionConflict(error: { code?: string; message?: string }): boolean {
+function isRevisionConflict(error: {
+  code?: string;
+  message?: string;
+}): boolean {
   return (
     error.message?.includes("revision_conflict") === true ||
     error.code === "40001"

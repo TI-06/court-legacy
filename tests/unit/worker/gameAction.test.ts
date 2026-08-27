@@ -51,7 +51,9 @@ function createStore(snapshot: CloudGameSnapshot): GameStore {
       throw new Error("not used");
     }),
     applyOperation: vi.fn(
-      async (input: PersistOperationInput): Promise<PersistOperationResult> => ({
+      async (
+        input: PersistOperationInput,
+      ): Promise<PersistOperationResult> => ({
         response: input.response,
         replayed: false,
       }),
@@ -172,7 +174,9 @@ describe("game action route", () => {
   it("maps an atomic persistence race to revision_conflict", async () => {
     const snapshot = createSnapshot();
     const store = createStore(snapshot);
-    vi.mocked(store.applyOperation).mockRejectedValue(new RevisionConflictError());
+    vi.mocked(store.applyOperation).mockRejectedValue(
+      new RevisionConflictError(),
+    );
     const handler = createGameActionHandler(store);
 
     const response = await handler(

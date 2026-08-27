@@ -62,8 +62,12 @@ describe("applyGameAction", () => {
     });
 
     expect(isWeeklyActionCompleted(result.state, "training")).toBe(true);
-    expect(result.state.randomCursor).toBeGreaterThan(snapshot.state.randomCursor);
-    expect(result.outcome).toMatchObject({ schoolId: snapshot.state.userSchoolId });
+    expect(result.state.randomCursor).toBeGreaterThan(
+      snapshot.state.randomCursor,
+    );
+    expect(result.outcome).toMatchObject({
+      schoolId: snapshot.state.userSchoolId,
+    });
     expect(snapshot).toEqual(before);
   });
 
