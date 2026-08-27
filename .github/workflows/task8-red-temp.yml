@@ -1,10 +1,13 @@
-name: Task 8 RED Check
+name: Task 8 Focused Check
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
+      - src/persistence/RecoveryCache.ts
+      - src/app/useGameSession.ts
+      - src/ui/status/OperationStatusBar.tsx
       - tests/unit/persistence/RecoveryCache.test.ts
       - tests/unit/app/useGameSession.test.tsx
       - tests/unit/ui/OperationStatusBar.test.tsx
@@ -14,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  red:
+  focused:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
