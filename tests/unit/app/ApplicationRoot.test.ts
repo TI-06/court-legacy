@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { createElement } from "react";
 import { vi } from "vitest";
 import { ApplicationRoot } from "../../../src/app/ApplicationRoot";
 import type { AuthClient } from "../../../src/services/auth/AuthClient";
@@ -24,7 +25,12 @@ function apiClient(): GameApiClient {
 
 describe("ApplicationRoot", () => {
   it("delegates startup to the cloud-first application without a second auth gate", () => {
-    render(<ApplicationRoot auth={authClient()} api={apiClient()} />);
+    render(
+      createElement(ApplicationRoot, {
+        auth: authClient(),
+        api: apiClient(),
+      }),
+    );
 
     expect(screen.getByRole("status")).toHaveTextContent(
       "アカウントを確認しています…",
