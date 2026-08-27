@@ -107,9 +107,12 @@ export class SupabaseScoutingStore implements ScoutingStore {
     );
 
     if (error) {
-      throw new ScoutingStoreDataError("scouting candidate pool creation failed", {
-        cause: error,
-      });
+      throw new ScoutingStoreDataError(
+        "scouting candidate pool creation failed",
+        {
+          cause: error,
+        },
+      );
     }
 
     const parsed = createPoolRpcSchema.safeParse(data);
