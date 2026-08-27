@@ -1,12 +1,12 @@
-name: Task 9 App Focused Check
+name: Task 10 Cloud Actions Focused Check
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
-      - src/App.tsx
-      - tests/unit/App.test.tsx
+      - src/app/GameApp.tsx
+      - tests/unit/app/GameAppActions.test.tsx
       - .github/workflows/task8-red-temp.yml
 
 permissions:
@@ -22,5 +22,5 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Run App composition test
-        run: npm test -- tests/unit/App.test.tsx
+      - name: Run cloud action integration tests
+        run: npm test -- tests/unit/app/GameAppActions.test.tsx
