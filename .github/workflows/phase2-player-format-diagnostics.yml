@@ -1,0 +1,19 @@
+name: Phase 2 Player Format Diagnostics
+
+on:
+  pull_request:
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format player model
+        run: npx prettier src/domain/model/Player.ts --write
+      - name: Show formatting diff
+        run: git diff -- src/domain/model/Player.ts
