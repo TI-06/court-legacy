@@ -241,11 +241,15 @@ export function advanceAcademicYear(
     }
 
     const desiredIntakeCount = random.int(4, 7);
+    const minimumIntakeCount = Math.max(0, 12 - returningPlayerIds.length);
     const availableRosterSlots = Math.max(
       0,
       maximumBaseRosterSize - returningPlayerIds.length,
     );
-    const intakeCount = Math.min(desiredIntakeCount, availableRosterSlots);
+    const intakeCount = Math.min(
+      Math.max(desiredIntakeCount, minimumIntakeCount),
+      availableRosterSlots,
+    );
     const intake = generateIntake({
       schoolId: school.id,
       academicYear: nextAcademicYear,
