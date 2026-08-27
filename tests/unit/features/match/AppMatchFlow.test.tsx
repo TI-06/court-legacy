@@ -12,7 +12,7 @@ describe("app match integration", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "試合開始" }));
     expect(
-      screen.getByRole("heading", { name: "試合ダイジェスト" }),
+      await screen.findByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
