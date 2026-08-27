@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import "./app-shell.css";
 import { gameData } from "./createDemoGame";
+import { useGameSession } from "./useGameSession";
 import {
   advanceGameWeek,
   type AcademicYearTransitionSummary,
@@ -17,6 +18,7 @@ import {
   type SimulateMatchResult,
 } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
+import type { SchoolReputation } from "../domain/model/School";
 import { matchId } from "../domain/model/identifiers";
 import { SeededRandom } from "../domain/random/SeededRandom";
 import {
@@ -39,11 +41,32 @@ import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchScreen } from "../features/match/MatchScreen";
+import { MoreScreen } from "../features/more/MoreScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
+import type { GameApiClient } from "../services/api/GameApiClient";
+import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
+
+interface GameAppProps {
+  snapshot: CloudGameSnapshot;
+  session: AuthSession;
+  auth: AuthClient;
+  api: GameApiClient;
+}
+
+type MoreView = "menu" | "school";
+
+const reputationLabels: Record<SchoolReputation, string> = {
+  unknown: "E 無名",
+  "district-contender": "D 地区レベル",
+  "prefectural-power": "C 県大会常連",
+  "national-qualifier": "B 県内強豪",
+  "national-regular": "A 全国出場級",
+  elite: "S 全国常連",
+};
 
 function createAppState(gameState: GameState) {
   return {
@@ -55,8 +78,20 @@ function createAppState(gameState: GameState) {
   };
 }
 
-export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
+function formatGameDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  if (!year || !month || !day) return date;
+  return `${year}年${month}月${day}日`;
+}
+
+export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
+  const cloudSession = useGameSession({
+    accessToken: session.accessToken,
+    initialSnapshot: snapshot,
+    api,
+  });
   const [activeTab, setActiveTab] = useState<AppTab>("home");
+  const [moreView, setMoreView] = useState<MoreView>("menu");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [appState, setAppState] = useState(() => ({
     gameState: snapshot.state,
@@ -71,6 +106,7 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
   const { gameState, teamSelection } = appState;
+  const school = gameState.schools[gameState.userSchoolId]!;
   const trainingCompleted = isWeeklyActionCompleted(gameState, "training");
   const practiceMatchCompleted = isWeeklyActionCompleted(
     gameState,
@@ -92,6 +128,11 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
     () => calculateSelectionStrength(gameState, opponentSelection),
     [gameState, opponentSelection],
   );
+
+  const changeTab = (tab: AppTab) => {
+    if (tab !== "more") setMoreView("menu");
+    setActiveTab(tab);
+  };
 
   const executeTraining = (plan: WeeklyPlan) => {
     if (trainingCompleted) return;
@@ -239,10 +280,25 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
         result={activeMatchResult}
         state={gameState}
       />
+    ) : moreView === "school" ? (
+      <main className="app-content more-school-view">
+        <button
+          className="more-school-view__back"
+          onClick={() => setMoreView("menu")}
+          type="button"
+        >
+          その他へ戻る
+        </button>
+        <SchoolScreen
+          onUpgradeFacility={upgradeSchoolFacility}
+          state={gameState}
+        />
+      </main>
     ) : (
-      <SchoolScreen
-        onUpgradeFacility={upgradeSchoolFacility}
-        state={gameState}
+      <MoreScreen
+        accountLabel={session.email ?? "ログイン済みアカウント"}
+        onOpenSchool={() => setMoreView("school")}
+        onSignOut={() => void auth.signOut()}
       />
     );
 
@@ -250,10 +306,12 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
     <>
       <GamePageFrame
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
+        dateLabel={formatGameDate(gameState.date)}
+        onChangeTab={changeTab}
         onOpenCalendar={() => setCalendarOpen(true)}
-        onOpenSave={() => undefined}
-        saveNotice={null}
+        operation={cloudSession.operation}
+        reputationLabel={reputationLabels[school.reputation]}
+        schoolName={school.name}
       >
         {content}
       </GamePageFrame>
