@@ -147,7 +147,7 @@ export function PlayerHubScreen({
         </div>
         <span>{players.length}人</span>
       </section>
-      <div className="player-roster" role="list">
+      <div className="player-roster">
         <div aria-hidden="true" className="player-roster__header">
           <span>No.</span>
           <span>選手</span>
@@ -164,7 +164,6 @@ export function PlayerHubScreen({
             data-testid="roster-player-row"
             key={player.id}
             onClick={() => setSelectedPlayerId(player.id)}
-            role="listitem"
             type="button"
           >
             <span className="player-roster__number">{index + 1}</span>
