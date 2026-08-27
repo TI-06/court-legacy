@@ -1,12 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import App from "../../src/App";
-import type { AuthClient } from "../../src/services/auth/AuthClient";
+import type {
+  AuthClient,
+  AuthSession,
+} from "../../src/services/auth/AuthClient";
 import type { GameApiClient } from "../../src/services/api/GameApiClient";
 
 function authClient(): AuthClient {
   return {
-    getSession: vi.fn(() => new Promise(() => undefined)),
+    getSession: vi.fn(
+      () => new Promise<AuthSession | null>(() => undefined),
+    ),
     subscribe: vi.fn().mockReturnValue(() => undefined),
     signInWithGoogle: vi.fn().mockResolvedValue(undefined),
     signInWithEmail: vi.fn().mockResolvedValue(undefined),
