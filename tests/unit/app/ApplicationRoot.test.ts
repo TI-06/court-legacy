@@ -10,9 +10,7 @@ import type { GameApiClient } from "../../../src/services/api/GameApiClient";
 
 function authClient(): AuthClient {
   return {
-    getSession: vi.fn(
-      () => new Promise<AuthSession | null>(() => undefined),
-    ),
+    getSession: vi.fn(() => new Promise<AuthSession | null>(() => undefined)),
     subscribe: vi.fn().mockReturnValue(() => undefined),
     signInWithGoogle: vi.fn().mockResolvedValue(undefined),
     signInWithEmail: vi.fn().mockResolvedValue(undefined),
