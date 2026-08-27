@@ -5,10 +5,8 @@ import { gameData } from "./createDemoGame";
 import { useGameSession } from "./useGameSession";
 import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
-import { resolveEventChoice } from "../domain/events/resolveEventChoice";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
 import type { SchoolReputation } from "../domain/model/School";
-import { SeededRandom } from "../domain/random/SeededRandom";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -187,15 +185,17 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab("home");
   };
 
-  const chooseEvent = (choiceId: string) => {
-    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
-    const nextState = resolveEventChoice(
-      gameState,
-      choiceId,
-      gameData,
-      random,
-    ).state;
-    setAppState((current) => ({ ...current, gameState: nextState }));
+  const chooseEvent = async (choiceId: string) => {
+    const response = await cloudSession.runAction(
+      { type: "event-choice", choiceId },
+      "イベント結果を保存しています…",
+    );
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
+    });
   };
 
   const content =
