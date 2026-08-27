@@ -4,12 +4,7 @@ export type Position = "OH" | "MB" | "OP" | "S" | "L";
 export type Grade = 1 | 2 | 3;
 export type Handedness = "right" | "left";
 export type PlayerTier =
-  | "normal"
-  | "promising"
-  | "elite"
-  | "generational"
-  | "monster"
-  | "prospect";
+  "normal" | "promising" | "elite" | "generational" | "monster" | "prospect";
 export type BodyType = "slim" | "standard" | "muscular" | "large";
 
 export interface PlayerAbilities {
