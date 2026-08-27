@@ -126,7 +126,8 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             <h2>{school.name}</h2>
             <p>
               {reputationLabels[school.reputation]}・評判{" "}
-              {reputationGrade(school.reputationPoints)} {school.reputationPoints}
+              {reputationGrade(school.reputationPoints)}{" "}
+              {school.reputationPoints}
             </p>
           </div>
           <strong>資金 {school.funds}</strong>
