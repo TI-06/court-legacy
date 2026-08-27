@@ -7,10 +7,7 @@ import type {
 } from "../../worker/game/actionSchema";
 import type { RecoveryCachePort } from "../persistence/RecoveryCache";
 import { browserRecoveryCache } from "../persistence/RecoveryCache";
-import {
-  ApiError,
-  type GameApiClient,
-} from "../services/api/GameApiClient";
+import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 
 export type OperationState =
   | { status: "idle" }
@@ -30,7 +27,10 @@ interface UseGameSessionInput {
 export interface GameSessionController {
   snapshot: CloudGameSnapshot;
   operation: OperationState;
-  runAction(action: GameAction, label: string): Promise<GameActionResponse | null>;
+  runAction(
+    action: GameAction,
+    label: string,
+  ): Promise<GameActionResponse | null>;
 }
 
 function isNetworkAmbiguous(error: unknown): boolean {
@@ -50,7 +50,9 @@ export function useGameSession({
 }: UseGameSessionInput): GameSessionController {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const snapshotRef = useRef(initialSnapshot);
-  const [operation, setOperation] = useState<OperationState>({ status: "idle" });
+  const [operation, setOperation] = useState<OperationState>({
+    status: "idle",
+  });
 
   const replaceSnapshot = useCallback((next: CloudGameSnapshot) => {
     snapshotRef.current = next;

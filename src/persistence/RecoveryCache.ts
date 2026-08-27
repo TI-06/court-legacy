@@ -105,8 +105,7 @@ class IndexedDbRecoveryRecordStore implements RecoveryRecordStore {
 
 export class RecoveryCache implements RecoveryCachePort {
   constructor(
-    private readonly store: RecoveryRecordStore =
-      new IndexedDbRecoveryRecordStore(),
+    private readonly store: RecoveryRecordStore = new IndexedDbRecoveryRecordStore(),
   ) {}
 
   read(userId: string): Promise<RecoveryRecord | null> {

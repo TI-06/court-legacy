@@ -60,7 +60,8 @@ function api(overrides: Partial<GameApiClient>): GameApiClient {
 
 describe("useGameSession", () => {
   it("sets submitting before awaiting the server and replaces the snapshot on success", async () => {
-    const response = deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();
+    const response =
+      deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();
     const recovery = cache();
     const gameApi = api({ applyAction: vi.fn(() => response.promise) });
     const initialSnapshot = createSnapshot(1);
@@ -133,16 +134,16 @@ describe("useGameSession", () => {
     );
 
     await act(async () => {
-      await result.current.runAction(
-        { type: "advance-week" },
-        "週進行を保存",
-      );
+      await result.current.runAction({ type: "advance-week" }, "週進行を保存");
     });
 
     expect(result.current.operation.status).toBe("offline");
     expect(recovery.write).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        pendingOperation: expect.objectContaining({ operationId: "op-keep", revision: 1 }),
+        pendingOperation: expect.objectContaining({
+          operationId: "op-keep",
+          revision: 1,
+        }),
       }),
     );
 
@@ -153,17 +154,23 @@ describe("useGameSession", () => {
     });
 
     await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(2));
-    expect(applyAction.mock.calls[0]?.[1]).toEqual(applyAction.mock.calls[1]?.[1]);
+    expect(applyAction.mock.calls[0]?.[1]).toEqual(
+      applyAction.mock.calls[1]?.[1],
+    );
     await waitFor(() => expect(result.current.snapshot.revision).toBe(2));
   });
 
   it("reloads the authoritative cloud snapshot after a revision conflict", async () => {
     const latestSnapshot = createSnapshot(4);
     const gameApi = api({
-      applyAction: vi.fn().mockRejectedValue(
-        new ApiError(409, "revision_conflict", "他の端末で更新されています"),
-      ),
-      bootstrap: vi.fn().mockResolvedValue({ status: "ready", game: latestSnapshot }),
+      applyAction: vi
+        .fn()
+        .mockRejectedValue(
+          new ApiError(409, "revision_conflict", "他の端末で更新されています"),
+        ),
+      bootstrap: vi
+        .fn()
+        .mockResolvedValue({ status: "ready", game: latestSnapshot }),
     });
     const recovery = cache();
     const { result } = renderHook(() =>
@@ -187,7 +194,10 @@ describe("useGameSession", () => {
     expect(result.current.snapshot.revision).toBe(4);
     expect(result.current.operation.status).toBe("error");
     expect(recovery.write).toHaveBeenLastCalledWith(
-      expect.objectContaining({ snapshot: latestSnapshot, pendingOperation: null }),
+      expect.objectContaining({
+        snapshot: latestSnapshot,
+        pendingOperation: null,
+      }),
     );
   });
 });

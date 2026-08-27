@@ -6,7 +6,11 @@ describe("OperationStatusBar", () => {
   it("shows a non-blocking saving state", () => {
     render(
       <OperationStatusBar
-        state={{ status: "submitting", label: "週進行を保存", operationId: "op-1" }}
+        state={{
+          status: "submitting",
+          label: "週進行を保存",
+          operationId: "op-1",
+        }}
       />,
     );
 
@@ -15,7 +19,9 @@ describe("OperationStatusBar", () => {
 
   it("shows the saved state after a successful operation", () => {
     render(
-      <OperationStatusBar state={{ status: "success", label: "週進行を保存" }} />,
+      <OperationStatusBar
+        state={{ status: "success", label: "週進行を保存" }}
+      />,
     );
 
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
