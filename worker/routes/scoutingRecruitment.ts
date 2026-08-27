@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-  GameStore,
-  PersistedOperationResponse,
-} from "../data/GameStore";
+import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import { json, jsonError } from "../http/json";
