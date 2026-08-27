@@ -1,0 +1,17 @@
+.operation-status {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  min-height: 2rem;
+  white-space: nowrap;
+}
+
+.operation-status button {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.2rem 0.65rem;
+}
