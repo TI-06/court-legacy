@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { GameState } from "../../src/domain/model/GameState";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
@@ -65,6 +66,32 @@ function candidateAlreadyCommitted(): Response {
   );
 }
 
+function recruitmentCapacityReached(): Response {
+  return jsonError(
+    409,
+    "recruitment_capacity_reached",
+    "翌年度の選手枠が上限に達しています",
+  );
+}
+
+function projectedRecruitmentCapacity(state: GameState): number {
+  const school = state.schools[state.userSchoolId];
+  if (!school) {
+    return 0;
+  }
+
+  const returningPlayers = school.playerIds.filter((playerId) => {
+    const player = state.players[playerId];
+    return Boolean(player && player.grade !== 3);
+  }).length;
+  const nextAcademicYear = state.calendar.academicYear + 1;
+  const generationalTalentDue =
+    nextAcademicYear >= state.world.nextGenerationalTalentYear;
+  const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
+
+  return Math.max(0, maximumBaseRosterSize - returningPlayers);
+}
+
 export function createScoutingRecruitmentHandler(
   deps: ScoutingRecruitmentHandlerDependencies,
 ): AuthenticatedRequestHandler {
@@ -120,6 +147,9 @@ export function createScoutingRecruitmentHandler(
         : [];
     if (currentCommitments.includes(candidate.player.id)) {
       return candidateAlreadyCommitted();
+    }
+    if (currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)) {
+      return recruitmentCapacityReached();
     }
 
     const committedCandidateIds = [...currentCommitments, candidate.player.id];
