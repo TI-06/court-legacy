@@ -37,7 +37,9 @@ describe("createBrowserAppDependencies E2E harness", () => {
   });
 
   it("restores the E2E server snapshot when a new browser API client is created", async () => {
-    const first = createBrowserAppDependencies({ VITE_E2E_AUTH_BYPASS: "true" });
+    const first = createBrowserAppDependencies({
+      VITE_E2E_AUTH_BYPASS: "true",
+    });
     const initial = await first.api.bootstrap("e2e-access-token");
     expect(initial.status).toBe("ready");
     if (initial.status !== "ready") return;
