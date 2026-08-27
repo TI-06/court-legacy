@@ -6,7 +6,6 @@ import { createSupabaseAuthClient } from "../services/auth/SupabaseAuthClient";
 import {
   HttpGameApiClient,
   type GameApiClient,
-  type OnboardingInput,
 } from "../services/api/GameApiClient";
 import { createDemoGame } from "./createDemoGame";
 
@@ -60,7 +59,7 @@ class StaticGameApiClient implements GameApiClient {
     return { status: "ready" as const, game: createHarnessSnapshot() };
   }
 
-  async onboard(_accessToken: string, _input: OnboardingInput) {
+  async onboard() {
     return { status: "ready" as const, game: createHarnessSnapshot() };
   }
 
