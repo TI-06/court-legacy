@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("school and calendar app integration", () => {
-  it("opens school management and keeps a facility upgrade in app state", async () => {
+  it("opens school management and keeps a facility upgrade in cloud state", async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole("button", { name: "その他" }));
@@ -20,7 +20,7 @@ describe("school and calendar app integration", () => {
       within(dialog).getByRole("button", { name: "70を使って強化" }),
     );
 
-    expect(screen.getByText("資金 230")).toBeInTheDocument();
+    expect(await screen.findByText("資金 230")).toBeInTheDocument();
     const trainingUpgradeButton = screen.getByRole("button", {
       name: "トレーニング設備を強化",
     });
@@ -56,6 +56,7 @@ describe("school and calendar app integration", () => {
         { name: "この内容で実行" },
       ),
     );
+    await screen.findByRole("heading", { name: "今週の練習結果" });
 
     fireEvent.click(screen.getByRole("button", { name: "予定を確認" }));
     const calendar = screen.getByRole("dialog", { name: "週間カレンダー" });
@@ -66,11 +67,11 @@ describe("school and calendar app integration", () => {
     fireEvent.click(advance);
 
     expect(
+      await screen.findByRole("heading", { name: "監督ホーム" }),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole("dialog", { name: "週間カレンダー" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "監督ホーム" }),
-    ).toBeInTheDocument();
     expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
   });
 });
