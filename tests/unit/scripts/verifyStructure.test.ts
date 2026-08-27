@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, test } from "vitest";
 
 type StructureOptions = {
@@ -18,9 +19,8 @@ type VerifyStructureModule = {
 const temporaryRoots: string[] = [];
 
 async function loadVerifier(): Promise<VerifyStructureModule> {
-  const moduleUrl = new URL(
-    "../../../scripts/verifyStructure.mjs",
-    import.meta.url,
+  const moduleUrl = pathToFileURL(
+    join(process.cwd(), "scripts", "verifyStructure.mjs"),
   );
   return (await import(moduleUrl.href)) as VerifyStructureModule;
 }
