@@ -16,6 +16,11 @@ const gameSettingsSchema = z.object({
   autosaveEnabled: z.boolean(),
 });
 
+const recruitingStateSchema = z.object({
+  cycleKey: z.string().min(1),
+  committedCandidateIds: z.array(z.string().min(1)),
+});
+
 const gameStateSchema = z
   .object({
     schemaVersion: z.number().int().nonnegative(),
@@ -34,6 +39,7 @@ const gameStateSchema = z
     eventMemory: objectSchema,
     settings: gameSettingsSchema,
     world: objectSchema,
+    recruiting: recruitingStateSchema.optional(),
   })
   .passthrough();
 
