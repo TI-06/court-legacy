@@ -1,9 +1,14 @@
-import type { CloudGameSnapshot } from "../../worker/data/GameStore";
+import type {
+  CloudGameSnapshot,
+  PersistedOperationResponse,
+} from "../../worker/data/GameStore";
 import type { GameActionRequest } from "../../worker/game/actionSchema";
+import { applyGameAction } from "../../worker/game/applyGameAction";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { createSupabaseAuthClient } from "../services/auth/SupabaseAuthClient";
 import {
+  ApiError,
   HttpGameApiClient,
   type GameApiClient,
 } from "../services/api/GameApiClient";
@@ -55,19 +60,49 @@ class StaticAuthClient implements AuthClient {
 }
 
 class StaticGameApiClient implements GameApiClient {
+  private snapshot = createHarnessSnapshot();
+  private readonly operationResponses = new Map<
+    string,
+    PersistedOperationResponse
+  >();
+
   async bootstrap() {
-    return { status: "ready" as const, game: createHarnessSnapshot() };
+    return { status: "ready" as const, game: this.snapshot };
   }
 
   async onboard() {
-    return { status: "ready" as const, game: createHarnessSnapshot() };
+    return { status: "ready" as const, game: this.snapshot };
   }
 
   async applyAction(_accessToken: string, request: GameActionRequest) {
-    return {
-      game: createHarnessSnapshot(),
+    const cached = this.operationResponses.get(request.operationId);
+    if (cached) {
+      return cached;
+    }
+    if (request.revision !== this.snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+
+    const applied = applyGameAction(this.snapshot, request.action);
+    this.snapshot = {
+      ...this.snapshot,
+      revision: this.snapshot.revision + 1,
+      state: applied.state,
+      teamSelection: applied.teamSelection,
+    };
+    const response: PersistedOperationResponse = {
+      game: this.snapshot,
       operationId: request.operationId,
     };
+    if (applied.outcome !== undefined) {
+      response.outcome = applied.outcome;
+    }
+    this.operationResponses.set(request.operationId, response);
+    return response;
   }
 }
 
