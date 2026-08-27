@@ -2,21 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ApplicationRoot } from "./app/ApplicationRoot";
 import "./app.css";
-import { createBrowserAuthGateway } from "./auth/createBrowserAuthGateway";
 import "./features/home/home-week.css";
 import "./mobile-layout.css";
 import "./ui/theme/game-theme.css";
 
 const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Application root element was not found");
 
-if (!rootElement) {
-  throw new Error("Application root element was not found");
-}
-
-const authGateway = createBrowserAuthGateway();
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <ApplicationRoot authGateway={authGateway} />
-  </StrictMode>,
-);
+createRoot(rootElement).render(<StrictMode><ApplicationRoot /></StrictMode>);

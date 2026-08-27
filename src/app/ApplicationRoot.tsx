@@ -1,17 +1,15 @@
 import App from "../App";
-import type { AuthGateway } from "../auth/AuthGateway";
-import { AuthGate } from "../auth/AuthGate";
 import { gameDataBootstrap } from "../data/gameData";
+import type { GameApiClient } from "../services/api/GameApiClient";
+import type { AuthClient } from "../services/auth/AuthClient";
 import { GameDataErrorScreen } from "./GameDataErrorScreen";
 
 interface ApplicationRootProps {
-  authGateway: AuthGateway;
+  auth?: AuthClient;
+  api?: GameApiClient;
 }
 
-export function ApplicationRoot({ authGateway }: ApplicationRootProps) {
-  if (!gameDataBootstrap.ok) {
-    return <GameDataErrorScreen message={gameDataBootstrap.message} />;
-  }
-
-  return <AuthGate gateway={authGateway}>{() => <App />}</AuthGate>;
+export function ApplicationRoot({ auth, api }: ApplicationRootProps = {}) {
+  if (!gameDataBootstrap.ok) return <GameDataErrorScreen message={gameDataBootstrap.message} />;
+  return <App auth={auth} api={api} />;
 }
