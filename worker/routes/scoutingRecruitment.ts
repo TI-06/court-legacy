@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
+import type {
+  GameStore,
+  PersistedOperationResponse,
+} from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import { json, jsonError } from "../http/json";
@@ -26,7 +29,11 @@ export interface ScoutingRecruitmentHandlerDependencies {
 }
 
 function invalidRequest(): Response {
-  return jsonError(400, "invalid_recruitment_request", "獲得候補を確認してください");
+  return jsonError(
+    400,
+    "invalid_recruitment_request",
+    "獲得候補を確認してください",
+  );
 }
 
 function revisionConflict(): Response {
@@ -118,10 +125,7 @@ export function createScoutingRecruitmentHandler(
       return candidateAlreadyCommitted();
     }
 
-    const committedCandidateIds = [
-      ...currentCommitments,
-      candidate.player.id,
-    ];
+    const committedCandidateIds = [...currentCommitments, candidate.player.id];
     const nextState = {
       ...snapshot.state,
       recruiting: {
