@@ -26,7 +26,9 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Googleで始める" }).click();
-  await expect(page.getByRole("heading", { name: "学校をつくる" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "学校をつくる" }),
+  ).toBeVisible();
 
   await page.getByLabel("表示名").fill("E2E監督");
   await page.getByLabel("学校名").fill("E2E高校");
@@ -46,7 +48,9 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
     .getByRole("button", { name: "この内容で実行" })
     .click();
 
-  await expect(page.getByRole("heading", { name: "今週の練習結果" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "今週の練習結果" }),
+  ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
   await expect
     .poll(() =>

@@ -96,8 +96,8 @@ class StaticGameApiClient implements GameApiClient {
     this.snapshot =
       explicitGameState === "needs-onboarding"
         ? null
-        : (persistAcrossReloads ? readPersistedHarnessSnapshot() : null) ??
-          createHarnessSnapshot();
+        : ((persistAcrossReloads ? readPersistedHarnessSnapshot() : null) ??
+          createHarnessSnapshot());
     if (persistAcrossReloads && this.snapshot) {
       writePersistedHarnessSnapshot(this.snapshot);
     }
