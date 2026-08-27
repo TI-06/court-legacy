@@ -4,11 +4,13 @@
 
 ## Development status
 
-- Milestone: V2 Phase 1 foundation
+- Milestone: V2 Phase 2 core loop
 - Runtime: React + TypeScript + Vite
 - API/runtime: Cloudflare Workers
 - Authentication/database: Supabase Auth + PostgreSQL
 - Repository: `TI-06/court-legacy`
+
+Phase 2では、学校評判 E〜SS、選手Tierと長期個体差、評判・実績・設備・監督能力に連動するスカウト確率、不完全情報の候補レポート、サーバー権威の候補保存・獲得・年度入学までを年度進行へ統合しています。
 
 ## Commands
 
@@ -47,14 +49,23 @@ npx wrangler secret put SUPABASE_SECRET_KEY
 
 Do not place `SUPABASE_SECRET_KEY` in any `VITE_*` variable, committed file, or browser bundle.
 
-Apply the Phase 1 migrations to the Supabase project in order before using cloud saves:
+Apply the V2 migrations to the Supabase project in order before using cloud saves and scouting:
 
 1. `supabase/migrations/202608260001_v2_foundation.sql`
 2. `supabase/migrations/202608260002_game_operations.sql`
+3. `supabase/migrations/202608270003_scouting_candidate_pools.sql`
 
 The Phase 1 schema keeps game state behind the Worker, enables RLS on all game tables, does not grant direct browser table access, and applies game mutations with revision checks and operation-id idempotency.
 
+The Phase 2 scouting migration stores the authoritative candidate pool separately from `GameState`. Exact ability values, potential, hidden traits, and other candidate truth are readable only through the Worker/service role. Browser roles have no direct table privileges. Recruitment commits candidate IDs only; the Worker resolves those IDs against the server-side candidate pool when the academic year changes and then enrolls the selected players as new first-years.
+
+Recruitment capacity is checked before a commitment is persisted, including reserving the extra roster slot when a scheduled generational talent may arrive. This prevents a valid scouting action from creating an impossible April rollover.
+
 Configure the intended sign-in providers in Supabase Auth. Google is the primary OAuth provider; email authentication remains available as the secondary login path.
+
+## Long-run verification
+
+The unit suite includes deterministic 30-year and bounded 100-year world simulations. Phase 2 also exercises 30 consecutive recruiting cycles to verify that annual candidate generation, enrollment, graduation, recruiting-state reset, and user-school roster bounds continue to work across generations.
 
 ## E2E authentication
 
