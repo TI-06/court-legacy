@@ -9,6 +9,7 @@ import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
 import { createScoutingBoardHandler } from "./routes/scoutingBoard";
+import { createScoutingRecruitmentHandler } from "./routes/scoutingRecruitment";
 
 export type AuthenticatedRequestHandler = (
   request: Request,
@@ -47,6 +48,12 @@ export function createRouter(
   const gameAction = createGameActionHandler(deps.store);
   const scoutingBoard = deps.scoutingStore
     ? createScoutingBoardHandler({
+        gameStore: deps.store,
+        scoutingStore: deps.scoutingStore,
+      })
+    : null;
+  const scoutingRecruitment = deps.scoutingStore
+    ? createScoutingRecruitmentHandler({
         gameStore: deps.store,
         scoutingStore: deps.scoutingStore,
       })
@@ -95,6 +102,13 @@ export function createRouter(
         scoutingBoard
       ) {
         return await scoutingBoard(request, user);
+      }
+      if (
+        url.pathname === "/api/scouting/recruit" &&
+        request.method === "POST" &&
+        scoutingRecruitment
+      ) {
+        return await scoutingRecruitment(request, user);
       }
       return notFound();
     } catch {
