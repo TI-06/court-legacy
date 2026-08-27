@@ -1,6 +1,6 @@
-import type { TraitDefinition } from "../validation/gameDataSchema";
 import type { PlayerTier } from "../model/Player";
 import type { RandomSource } from "../random/SeededRandom";
+import type { TraitDefinition } from "../validation/gameDataSchema";
 
 function takeDistinctTraits(
   traits: readonly TraitDefinition[],
@@ -24,6 +24,41 @@ function takeDistinctTraits(
   return selected;
 }
 
+function requestedPositiveTraitCount(
+  tier: PlayerTier,
+  random: RandomSource,
+): number {
+  switch (tier) {
+    case "normal":
+      return random.int(0, 1);
+    case "promising":
+    case "prospect":
+      return random.int(1, 2);
+    case "elite":
+      return 2;
+    case "generational":
+      return random.int(2, 3);
+    case "monster":
+      return random.int(3, 4);
+  }
+}
+
+function weaknessChance(tier: PlayerTier): number {
+  switch (tier) {
+    case "normal":
+      return 28;
+    case "promising":
+    case "prospect":
+      return 34;
+    case "elite":
+      return 38;
+    case "generational":
+      return 45;
+    case "monster":
+      return 50;
+  }
+}
+
 export function selectPlayerTraitIds(
   tier: PlayerTier,
   traits: ReadonlyMap<string, TraitDefinition>,
@@ -35,21 +70,13 @@ export function selectPlayerTraitIds(
   const negativeTraits = [...traits.values()].filter(
     (trait) => trait.polarity === "negative",
   );
-  const requestedPositiveCount =
-    tier === "generational"
-      ? random.int(2, 3)
-      : tier === "prospect"
-        ? random.int(1, 2)
-        : random.int(0, 2);
   const selected = takeDistinctTraits(
     positiveTraits,
-    requestedPositiveCount,
+    requestedPositiveTraitCount(tier, random),
     random,
   );
-  const weaknessChance =
-    tier === "generational" ? 45 : tier === "prospect" ? 35 : 28;
 
-  if (negativeTraits.length > 0 && random.int(1, 100) <= weaknessChance) {
+  if (negativeTraits.length > 0 && random.int(1, 100) <= weaknessChance(tier)) {
     selected.push(random.pick(negativeTraits));
   }
 
