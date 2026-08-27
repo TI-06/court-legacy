@@ -132,7 +132,10 @@ describe("useGameSession", () => {
     let second!: Promise<unknown>;
     act(() => {
       first = result.current.runAction(
-        { type: "team-selection", selection: result.current.snapshot.teamSelection },
+        {
+          type: "team-selection",
+          selection: result.current.snapshot.teamSelection,
+        },
         "編成を保存",
       );
       second = result.current.runAction(
