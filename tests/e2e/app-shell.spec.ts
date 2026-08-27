@@ -71,7 +71,9 @@ test("mobile training uses compact sheets and advances to the next week", async 
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
-  await expect(page.getByText("2026年4月8日")).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("2026年4月8日"),
+  ).toBeVisible();
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(page.getByRole("button", { name: "練習を実行" })).toBeEnabled();
@@ -160,7 +162,9 @@ test("school management upgrades a facility and calendar advances the shared wee
 
   await expect(calendar).toBeHidden();
   await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
-  await expect(page.getByText("2026年4月8日")).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("2026年4月8日"),
+  ).toBeVisible();
 });
 
 test("worker health endpoint reports ready status", async ({ request }) => {
