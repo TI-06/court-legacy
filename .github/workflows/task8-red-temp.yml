@@ -1,21 +1,17 @@
-name: Task 10 Cloud Actions Focused Check
+name: Task 10 Temporary Formatter
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
-      - src/app/GameApp.tsx
-      - src/app/createBrowserAppDependencies.ts
-      - tests/unit/app/GameAppActions.test.tsx
-      - tests/unit/app/createBrowserAppDependencies.test.ts
       - .github/workflows/task8-red-temp.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  focused:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,5 +20,15 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Run cloud action integration tests
-        run: npm test -- tests/unit/app/GameAppActions.test.tsx tests/unit/app/createBrowserAppDependencies.test.ts
+      - name: Format Task 10 files
+        run: npx prettier --write src/app/GameApp.tsx src/app/createBrowserAppDependencies.ts tests/unit/app/GameAppActions.test.tsx tests/unit/app/createBrowserAppDependencies.test.ts
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/GameApp.tsx src/app/createBrowserAppDependencies.ts tests/unit/app/GameAppActions.test.tsx tests/unit/app/createBrowserAppDependencies.test.ts
+          git commit -m "style: format Task 10 cloud action changes"
+          git push
