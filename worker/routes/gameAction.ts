@@ -1,9 +1,6 @@
-import {
-  advanceOneWeek,
-} from "../../src/domain/calendar/weekProgression";
 import { crossesAcademicYear } from "../../src/domain/calendar/academicYearProgression";
+import { advanceOneWeek } from "../../src/domain/calendar/weekProgression";
 import type { Player } from "../../src/domain/model/Player";
-import type { AuthenticatedRequestHandler } from "../router";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
@@ -11,11 +8,10 @@ import {
   gameActionRequestSchema,
   type GameActionRequest,
 } from "../game/actionSchema";
-import {
-  GameRuleConflictError,
-} from "../game/applyGameAction";
+import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { json, jsonError } from "../http/json";
+import type { AuthenticatedRequestHandler } from "../router";
 import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
 
 function invalidAction(): Response {
@@ -46,7 +42,9 @@ function recruitmentDataUnavailable(): Response {
   );
 }
 
-function willCrossAcademicYear(snapshot: Awaited<ReturnType<GameStore["getSnapshot"]>>): boolean {
+function willCrossAcademicYear(
+  snapshot: Awaited<ReturnType<GameStore["getSnapshot"]>>,
+): boolean {
   if (!snapshot) {
     return false;
   }
