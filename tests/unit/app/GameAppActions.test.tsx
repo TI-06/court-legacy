@@ -69,7 +69,7 @@ describe("GameApp cloud actions", () => {
     let resolveAction: ((response: PersistedOperationResponse) => void) | null =
       null;
     const applyAction = vi.fn(
-      (_accessToken: string, _request: GameActionRequest) =>
+      () =>
         new Promise<PersistedOperationResponse>((resolve) => {
           resolveAction = resolve;
         }),
