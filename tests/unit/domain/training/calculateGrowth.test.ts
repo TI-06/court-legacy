@@ -44,7 +44,6 @@ function createPlayer(overrides: Partial<Player> = {}): Player {
     traitIds: [],
     hiddenTraitIds: [],
     tier: "normal",
-    appearanceSeed: 1,
     injury: null,
     career: {
       schoolId: schoolId("school-growth"),

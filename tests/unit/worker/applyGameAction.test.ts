@@ -1,0 +1,195 @@
+import { describe, expect, it } from "vitest";
+import { createInitialGame } from "../../../src/app/createInitialGame";
+import { gameData } from "../../../src/app/createDemoGame";
+import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
+import { eventId } from "../../../src/domain/model/identifiers";
+import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+import type { WeeklyPlan } from "../../../src/domain/training/resolveWeeklyTraining";
+import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
+import {
+  applyGameAction,
+  GameRuleConflictError,
+} from "../../../worker/game/applyGameAction";
+
+function createSnapshot(): CloudGameSnapshot {
+  const state = createInitialGame({
+    seed: "server-action-fixture",
+    schoolName: "青葉高校",
+    schoolShortName: "青葉",
+    coachName: "高橋 監督",
+    regionId: "region.chiba",
+    uniform: {
+      primary: "#17365D",
+      secondary: "#FFFFFF",
+      accent: "#D99B2B",
+    },
+  });
+
+  return {
+    userId: "user-123",
+    schoolDbId: "00000000-0000-4000-8000-000000000001",
+    revision: 7,
+    state,
+    teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
+  };
+}
+
+function createTrainingPlan(snapshot: CloudGameSnapshot): WeeklyPlan {
+  const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+  return {
+    teamTrainingMenuId: "training.spike",
+    individualAssignments: [
+      {
+        playerId: school.playerIds[0]!,
+        instructionId: "instruction.serve",
+      },
+      {
+        playerId: school.playerIds[1]!,
+        instructionId: "instruction.receive",
+      },
+    ],
+  };
+}
+
+describe("applyGameAction", () => {
+  it("applies training server-side, marks the weekly action, and does not mutate the snapshot", () => {
+    const snapshot = createSnapshot();
+    const before = structuredClone(snapshot);
+
+    const result = applyGameAction(snapshot, {
+      type: "training",
+      plan: createTrainingPlan(snapshot),
+    });
+
+    expect(isWeeklyActionCompleted(result.state, "training")).toBe(true);
+    expect(result.state.randomCursor).toBeGreaterThan(
+      snapshot.state.randomCursor,
+    );
+    expect(result.outcome).toMatchObject({
+      schoolId: snapshot.state.userSchoolId,
+    });
+    expect(snapshot).toEqual(before);
+  });
+
+  it("rejects a duplicate weekly training action", () => {
+    const snapshot = createSnapshot();
+    const first = applyGameAction(snapshot, {
+      type: "training",
+      plan: createTrainingPlan(snapshot),
+    });
+    const afterFirst: CloudGameSnapshot = {
+      ...snapshot,
+      state: first.state,
+      teamSelection: first.teamSelection,
+    };
+
+    expect(() =>
+      applyGameAction(afterFirst, {
+        type: "training",
+        plan: createTrainingPlan(afterFirst),
+      }),
+    ).toThrowError(GameRuleConflictError);
+  });
+
+  it("accepts a valid team selection and rejects an invalid duplicate player", () => {
+    const snapshot = createSnapshot();
+    const valid = structuredClone(snapshot.teamSelection);
+    const accepted = applyGameAction(snapshot, {
+      type: "team-selection",
+      selection: valid,
+    });
+
+    expect(accepted.teamSelection).toEqual(valid);
+    expect(accepted.teamSelection).not.toBe(valid);
+
+    const invalid = structuredClone(snapshot.teamSelection);
+    invalid.rotation[1]!.playerId = invalid.rotation[0]!.playerId;
+    expect(() =>
+      applyGameAction(snapshot, {
+        type: "team-selection",
+        selection: invalid,
+      }),
+    ).toThrowError(GameRuleConflictError);
+  });
+
+  it("produces the same practice-match result from the same snapshot", () => {
+    const snapshot = createSnapshot();
+    const before = structuredClone(snapshot);
+
+    const first = applyGameAction(snapshot, { type: "practice-match" });
+    const second = applyGameAction(snapshot, { type: "practice-match" });
+
+    expect(first).toEqual(second);
+    expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(true);
+    expect(first.state.activeMatch).not.toBeNull();
+    expect(snapshot).toEqual(before);
+  });
+
+  it("advances a week only after training is completed", () => {
+    const snapshot = createSnapshot();
+    expect(() =>
+      applyGameAction(snapshot, { type: "advance-week" }),
+    ).toThrowError(GameRuleConflictError);
+
+    const training = applyGameAction(snapshot, {
+      type: "training",
+      plan: createTrainingPlan(snapshot),
+    });
+    const trainedSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: training.state,
+      teamSelection: training.teamSelection,
+    };
+    const advanced = applyGameAction(trainedSnapshot, { type: "advance-week" });
+
+    expect(advanced.state.date).not.toBe(snapshot.state.date);
+  });
+
+  it("upgrades a legal facility on the authoritative state", () => {
+    const snapshot = createSnapshot();
+    const schoolBefore = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const result = applyGameAction(snapshot, {
+      type: "facility-upgrade",
+      facility: "gym",
+    });
+    const schoolAfter = result.state.schools[result.state.userSchoolId]!;
+
+    expect(schoolAfter.facilities.gym).toBe(schoolBefore.facilities.gym + 1);
+    expect(schoolAfter.funds).toBeLessThan(schoolBefore.funds);
+  });
+
+  it("resolves a pending event choice using server game data", () => {
+    const snapshot = createSnapshot();
+    const event = [...gameData.events.values()].find(
+      (candidate) => candidate.choices.length > 0,
+    );
+    if (!event) {
+      throw new Error("event fixture missing");
+    }
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const actorPlayerIds = school.playerIds.slice(0, event.actorCount);
+    const choice = event.choices[0]!;
+    const eventSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: {
+        ...snapshot.state,
+        pendingEvent: {
+          eventId: eventId(event.id),
+          actorPlayerIds,
+          targetSchoolId: null,
+          surfacedDate: snapshot.state.date,
+          choiceIds: event.choices.map((candidate) => candidate.id),
+          chainId: null,
+          chainStage: null,
+        },
+      },
+    };
+
+    const result = applyGameAction(eventSnapshot, {
+      type: "event-choice",
+      choiceId: choice.id,
+    });
+
+    expect(result.state.pendingEvent).toBeNull();
+  });
+});

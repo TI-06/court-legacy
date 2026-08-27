@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
@@ -60,11 +60,16 @@ describe("match flow", () => {
       screen.getByRole("heading", { name: "練習試合" }),
     ).toBeInTheDocument();
     expect(screen.getByText(fixture.opponent.name)).toBeInTheDocument();
+
+    const homeCard = screen.getByText("HOME").closest("article");
+    const awayCard = screen.getByText("AWAY").closest("article");
+    expect(homeCard).not.toBeNull();
+    expect(awayCard).not.toBeNull();
     expect(
-      screen.getByText(`戦力 ${fixture.homeStrength}`),
+      within(homeCard!).getByText(`戦力 ${fixture.homeStrength}`),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(`戦力 ${fixture.awayStrength}`),
+      within(awayCard!).getByText(`戦力 ${fixture.awayStrength}`),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "試合開始" }));

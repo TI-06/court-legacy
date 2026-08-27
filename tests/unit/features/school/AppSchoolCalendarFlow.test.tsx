@@ -2,12 +2,13 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("school and calendar app integration", () => {
-  it("opens school management and keeps a facility upgrade in app state", () => {
+  it("opens school management and keeps a facility upgrade in cloud state", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "学校" }));
+    fireEvent.click(await screen.findByRole("button", { name: "その他" }));
+    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
     expect(
-      screen.getByRole("heading", { name: "青嵐高校" }),
+      screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
     expect(screen.getByText("資金 300")).toBeInTheDocument();
 
@@ -19,7 +20,7 @@ describe("school and calendar app integration", () => {
       within(dialog).getByRole("button", { name: "70を使って強化" }),
     );
 
-    expect(screen.getByText("資金 230")).toBeInTheDocument();
+    expect(await screen.findByText("資金 230")).toBeInTheDocument();
     const trainingUpgradeButton = screen.getByRole("button", {
       name: "トレーニング設備を強化",
     });
@@ -28,10 +29,10 @@ describe("school and calendar app integration", () => {
     expect(within(trainingFacilityCard!).getByText("Lv.1")).toBeInTheDocument();
   });
 
-  it("opens the calendar from the header and returns focus when closed", () => {
+  it("opens the calendar from the header and returns focus when closed", async () => {
     render(<App />);
 
-    const opener = screen.getByRole("button", { name: "予定を確認" });
+    const opener = await screen.findByRole("button", { name: "予定を確認" });
     opener.focus();
     fireEvent.click(opener);
     const dialog = screen.getByRole("dialog", { name: "週間カレンダー" });
@@ -44,10 +45,10 @@ describe("school and calendar app integration", () => {
     expect(opener).toHaveFocus();
   });
 
-  it("advances through the shared weekly callback from the calendar", () => {
+  it("advances through the shared weekly callback from the calendar", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
     fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
@@ -55,6 +56,7 @@ describe("school and calendar app integration", () => {
         { name: "この内容で実行" },
       ),
     );
+    await screen.findByRole("heading", { name: "今週の練習結果" });
 
     fireEvent.click(screen.getByRole("button", { name: "予定を確認" }));
     const calendar = screen.getByRole("dialog", { name: "週間カレンダー" });
@@ -65,11 +67,11 @@ describe("school and calendar app integration", () => {
     fireEvent.click(advance);
 
     expect(
+      await screen.findByRole("heading", { name: "監督ホーム" }),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByRole("dialog", { name: "週間カレンダー" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "監督ホーム" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("2026年4月8日")).toBeInTheDocument();
+    expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
   });
 });

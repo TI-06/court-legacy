@@ -2,17 +2,17 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("app match integration", () => {
-  it("runs one practice match, keeps the result, and closes the weekly action", () => {
+  it("runs one practice match, keeps the result, and closes the weekly action", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /練習試合へ/ }));
     expect(
       screen.getByRole("heading", { name: "練習試合" }),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "試合開始" }));
     expect(
-      screen.getByRole("heading", { name: "試合ダイジェスト" }),
+      await screen.findByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
@@ -32,10 +32,10 @@ describe("app match integration", () => {
     ).toBeDisabled();
   });
 
-  it("opens match preparation from the bottom navigation before a match", () => {
+  it("opens match preparation from the bottom navigation before a match", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "試合" }));
+    fireEvent.click(await screen.findByRole("button", { name: "試合" }));
 
     expect(
       screen.getByRole("heading", { name: "練習試合" }),

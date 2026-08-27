@@ -175,11 +175,17 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectLayoutFits(page, testInfo, `${viewport}-match-prep`);
     await expectNavigationFixed(page, `${viewport}-match-prep`);
     await page.getByRole("button", { name: "試合開始" }).click();
+    await expect(
+      page.getByRole("heading", { name: "試合ダイジェスト" }),
+    ).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport}-match-live`);
     await page.getByRole("button", { name: "結果まで進む" }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-match-result`);
 
-    await navigation.getByRole("button", { name: "学校", exact: true }).click();
+    await navigation
+      .getByRole("button", { name: "その他", exact: true })
+      .click();
+    await page.getByRole("button", { name: "学校管理" }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-school-facilities`);
     await expectNavigationFixed(page, `${viewport}-school-facilities`);
 

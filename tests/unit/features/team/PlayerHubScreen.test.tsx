@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
@@ -17,6 +18,31 @@ function renderPlayerHub() {
 }
 
 describe("PlayerHubScreen", () => {
+  it("renders a portrait-free information-first roster", () => {
+    const { state, view } = renderPlayerHub();
+    const school = state.schools[state.userSchoolId]!;
+    const player = state.players[school.playerIds[0]!]!;
+    const rows = screen.getAllByTestId("roster-player-row");
+
+    expect(rows).toHaveLength(school.playerIds.length);
+    expect(view.container.querySelector("img")).toBeNull();
+
+    const firstRow = rows[0]!;
+    expect(within(firstRow).getByText("1")).toBeVisible();
+    expect(
+      within(firstRow).getByText(`${player.lastName} ${player.firstName}`),
+    ).toBeVisible();
+    expect(within(firstRow).getByText(`${player.grade}年`)).toBeVisible();
+    expect(within(firstRow).getByText(player.preferredPosition)).toBeVisible();
+    expect(within(firstRow).getByText(`${player.heightCm}cm`)).toBeVisible();
+    expect(
+      within(firstRow).getByText(
+        String(Math.round(calculatePlayerDisplayPower(player) / 100)),
+      ),
+    ).toBeVisible();
+    expect(within(firstRow).getByText(String(player.condition))).toBeVisible();
+  });
+
   it("opens a player detail and returns to the roster", () => {
     const { state } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;

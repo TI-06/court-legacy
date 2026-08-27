@@ -61,7 +61,6 @@ export interface Player {
   traitIds: string[];
   hiddenTraitIds: string[];
   tier: PlayerTier;
-  appearanceSeed: number;
   injury: PlayerInjury | null;
   career: PlayerCareer;
 }

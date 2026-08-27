@@ -161,23 +161,26 @@ button.ui-player-tile:disabled {
 .ui-player-tile__main {
   display: grid;
   min-width: 0;
+  flex: 1 1 auto;
   gap: 2px;
-}
-
-.ui-player-tile__main strong,
-.ui-player-tile__main small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .ui-player-tile__main strong {
   font-size: 0.82rem;
+  line-height: 1.3;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .ui-player-tile__main small {
   color: #71818a;
   font-size: 0.67rem;
+  line-height: 1.35;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .ui-player-tile__badge {

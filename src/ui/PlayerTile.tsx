@@ -1,7 +1,9 @@
-import { resolveJerseyNumber } from "../domain/appearance/characterWorld";
 import type { Player } from "../domain/model/Player";
 import type { School, UniformColors } from "../domain/model/School";
-import { PlayerArt } from "./player-art/PlayerArt";
+import {
+  calculatePlayerDisplayPower,
+  summarizePlayerAbilities,
+} from "../domain/selectors/playerPresentation";
 
 interface PlayerTileProps {
   player: Player;
@@ -30,6 +32,10 @@ function playerStatus(player: Player): { label: string; tone: string } {
   return { label: `状態 ${player.condition}`, tone: "normal" };
 }
 
+function playerInitials(player: Player): string {
+  return `${player.lastName.slice(0, 1)}${player.firstName.slice(0, 1)}`;
+}
+
 export function PlayerTile({
   player,
   school,
@@ -43,11 +49,12 @@ export function PlayerTile({
   testId,
 }: PlayerTileProps) {
   const status = playerStatus(player);
-  const jerseyNumber = resolveJerseyNumber(player);
+  const summary = summarizePlayerAbilities(player);
+  const displayPower = Math.round(calculatePlayerDisplayPower(player) / 100);
   const content = (
     <>
-      <span className="ui-player-avatar" aria-hidden="true">
-        <PlayerArt player={player} school={school} variant="card" />
+      <span className="ui-player-tile__identity-mark" aria-hidden="true">
+        {playerInitials(player)}
       </span>
       <span className="ui-player-tile__main">
         <strong>
@@ -56,11 +63,22 @@ export function PlayerTile({
         <small>
           {player.grade}年・{player.preferredPosition}・{player.heightCm}cm
         </small>
-        <small className="ui-player-tile__number">背番号 {jerseyNumber}</small>
+        {school ? <small>{school.shortName}</small> : null}
         <span className={`ui-status-pill ui-status-pill--${status.tone}`}>
           {status.label}
         </span>
       </span>
+      <span className="ui-player-tile__power">
+        <small>総合</small>
+        <strong>{displayPower}</strong>
+      </span>
+      {!compact ? (
+        <span className="ui-player-tile__abilities" aria-label="主要能力">
+          <small>攻 {summary.attack}</small>
+          <small>守 {summary.defense}</small>
+          <small>跳 {summary.jump}</small>
+        </span>
+      ) : null}
       {badge ? <span className="ui-player-tile__badge">{badge}</span> : null}
       {actionLabel ? (
         <span className="ui-player-tile__action">{actionLabel}</span>
@@ -68,18 +86,20 @@ export function PlayerTile({
     </>
   );
 
+  const className = [
+    "ui-player-tile",
+    compact ? "ui-player-tile--compact" : "",
+    selected ? "ui-player-tile--selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   if (onClick) {
     return (
       <button
         aria-label={ariaLabel}
         aria-pressed={selected}
-        className={[
-          "ui-player-tile",
-          compact ? "ui-player-tile--compact" : "",
-          selected ? "ui-player-tile--selected" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className={className}
         data-testid={testId}
         disabled={disabled}
         onClick={onClick}
@@ -91,16 +111,7 @@ export function PlayerTile({
   }
 
   return (
-    <article
-      className={[
-        "ui-player-tile",
-        compact ? "ui-player-tile--compact" : "",
-        selected ? "ui-player-tile--selected" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      data-testid={testId}
-    >
+    <article className={className} data-testid={testId}>
       {content}
     </article>
   );

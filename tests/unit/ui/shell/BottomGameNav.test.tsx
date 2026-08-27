@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { BottomGameNav } from "../../../../src/ui/shell/BottomGameNav";
 
 describe("BottomGameNav", () => {
-  it("shows five primary actions and marks the active tab", () => {
+  it("shows the five V2 primary actions and marks the active tab", () => {
     const onChange = vi.fn();
 
     render(<BottomGameNav activeTab="home" onChange={onChange} />);
@@ -14,9 +14,12 @@ describe("BottomGameNav", () => {
     expect(screen.getByRole("button", { name: "選手" })).toBeVisible();
     expect(screen.getByRole("button", { name: "育成" })).toBeVisible();
     expect(screen.getByRole("button", { name: "試合" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "学校" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "その他" })).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "学校" }),
+    ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "選手" }));
-    expect(onChange).toHaveBeenCalledWith("team");
+    fireEvent.click(screen.getByRole("button", { name: "その他" }));
+    expect(onChange).toHaveBeenCalledWith("more");
   });
 });

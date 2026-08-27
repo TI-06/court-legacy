@@ -67,7 +67,6 @@ export interface GeneratePlayerInput {
   random: RandomSource;
   preferredPosition?: Position;
   excludedFullNames: Set<string>;
-  excludedAppearanceSeeds: Set<number>;
 }
 
 export interface GenerateInitialSquadInput {
@@ -130,21 +129,6 @@ function generateUniqueName(
   }
 
   throw new Error("could not generate a unique player name");
-}
-
-function generateAppearanceSeed(
-  random: RandomSource,
-  excludedAppearanceSeeds: Set<number>,
-): number {
-  for (let attempt = 0; attempt < 200; attempt += 1) {
-    const seed = random.int(1, 2_147_483_647);
-    if (!excludedAppearanceSeeds.has(seed)) {
-      excludedAppearanceSeeds.add(seed);
-      return seed;
-    }
-  }
-
-  throw new Error("could not generate a unique appearance seed");
 }
 
 function generateBodyType(heightCm: number, random: RandomSource): BodyType {
@@ -230,10 +214,6 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
     input.random,
     input.excludedFullNames,
   );
-  const appearanceSeed = generateAppearanceSeed(
-    input.random,
-    input.excludedAppearanceSeeds,
-  );
   const personality = input.random.pick([...input.data.personalities.values()]);
   const growthType = input.random.pick([...input.data.growthTypes.values()]);
   const traitIds = selectPlayerTraitIds(
@@ -268,7 +248,6 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
     traitIds,
     hiddenTraitIds: [],
     tier: input.tier,
-    appearanceSeed,
     injury: null,
     career: {
       schoolId: input.schoolId,
@@ -304,7 +283,6 @@ export function generateInitialSquad(
   input: GenerateInitialSquadInput,
 ): Player[] {
   const excludedFullNames = new Set<string>();
-  const excludedAppearanceSeeds = new Set<number>();
 
   return INITIAL_SQUAD_POSITIONS.map((position, index) => {
     const grade = (Math.floor(index / 4) + 1) as Grade;
@@ -320,7 +298,6 @@ export function generateInitialSquad(
       data: input.data,
       random: input.random,
       excludedFullNames,
-      excludedAppearanceSeeds,
     });
   });
 }
@@ -330,9 +307,6 @@ export function generateIntake(input: GenerateIntakeInput): Player[] {
     input.currentPlayers.map(
       (player) => `${player.lastName} ${player.firstName}`,
     ),
-  );
-  const excludedAppearanceSeeds = new Set(
-    input.currentPlayers.map((player) => player.appearanceSeed),
   );
   const count = input.count ?? input.random.int(4, 7);
 
@@ -348,7 +322,6 @@ export function generateIntake(input: GenerateIntakeInput): Player[] {
       data: input.data,
       random: input.random,
       excludedFullNames,
-      excludedAppearanceSeeds,
     }),
   );
 }

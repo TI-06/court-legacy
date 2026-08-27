@@ -4,30 +4,26 @@ import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { eventId } from "../../../../src/domain/model/identifiers";
 import { EventDialog } from "../../../../src/features/home/EventDialog";
 
-function featuredRivalActor() {
+function rivalActor() {
   const state = createDemoGame();
   const school = Object.values(state.schools).find(
-    (candidate) => candidate.name === "烏峰高校",
+    (candidate) => candidate.id !== state.userSchoolId,
   );
   if (!school) {
-    throw new Error("烏峰高校 must exist");
+    throw new Error("a rival school must exist");
   }
   const player = school.playerIds
     .map((id) => state.players[id])
-    .find(
-      (candidate) =>
-        candidate &&
-        `${candidate.lastName} ${candidate.firstName}` === "黒羽 隼斗",
-    );
+    .find((candidate) => Boolean(candidate));
   if (!player) {
-    throw new Error("黒羽 隼斗 must exist");
+    throw new Error("the rival school must have a player");
   }
   return { state, school, player };
 }
 
 describe("EventDialog", () => {
-  it("shows the involved rival using his own school identity", () => {
-    const { state, school, player } = featuredRivalActor();
+  it("shows the involved rival using his own school identity without portrait art", () => {
+    const { state, school, player } = rivalActor();
     state.pendingEvent = {
       eventId: eventId("event.first-position-request"),
       actorPlayerIds: [player.id],
@@ -38,7 +34,9 @@ describe("EventDialog", () => {
       chainStage: null,
     };
 
-    render(<EventDialog data={gameData} onChoose={vi.fn()} state={state} />);
+    const { container } = render(
+      <EventDialog data={gameData} onChoose={vi.fn()} state={state} />,
+    );
 
     const actorCard = screen
       .getByText(`${player.lastName} ${player.firstName}`)
@@ -46,18 +44,13 @@ describe("EventDialog", () => {
     expect(actorCard).not.toBeNull();
     const actor = within(actorCard!);
     expect(actor.getByText(school.name)).toBeVisible();
-    expect(actor.getByText("閃光のエース")).toBeVisible();
-    const art = actor.getByTestId("featured-player-art");
-    expect(art).toHaveAttribute(
-      "src",
-      expect.stringContaining("kuroba-hayato/full-neutral.webp"),
-    );
     expect(
-      actorCard!.querySelector("svg[data-testid='player-character']"),
-    ).toBeNull();
+      actor.getByText(`${player.grade}年・${player.preferredPosition}`),
+    ).toBeVisible();
+    expect(container.querySelector("img")).toBeNull();
 
     const emblems = actor.getAllByTestId("school-emblem");
     expect(emblems).toHaveLength(1);
-    expect(emblems[0]).toHaveAttribute("data-school-motif", "wing");
+    expect(emblems[0]).toHaveAttribute("data-school-motif", "shield");
   });
 });
