@@ -5,7 +5,9 @@ describe("weekly training bottom-sheet flow", () => {
   it("opens from the home action and the training navigation", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: /育成を決める/ }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /育成を決める/ }),
+    );
     expect(
       screen.getByRole("heading", { name: "週間練習" }),
     ).toBeInTheDocument();
