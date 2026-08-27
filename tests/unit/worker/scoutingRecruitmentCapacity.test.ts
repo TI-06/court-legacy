@@ -51,7 +51,9 @@ describe("scouting recruitment capacity", () => {
     const cycleKey = scoutingCycleKey(state);
     state.recruiting = {
       cycleKey,
-      committedCandidateIds: candidates.slice(0, 4).map(({ player }) => player.id),
+      committedCandidateIds: candidates
+        .slice(0, 4)
+        .map(({ player }) => player.id),
     };
 
     const snapshot: CloudGameSnapshot = {
