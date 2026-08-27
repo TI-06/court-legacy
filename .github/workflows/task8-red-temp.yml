@@ -6,7 +6,9 @@ on:
       - feature/court-legacy-v2-phase1
     paths:
       - src/app/GameApp.tsx
+      - src/app/createBrowserAppDependencies.ts
       - tests/unit/app/GameAppActions.test.tsx
+      - tests/unit/app/createBrowserAppDependencies.test.ts
       - .github/workflows/task8-red-temp.yml
 
 permissions:
@@ -23,4 +25,4 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run cloud action integration tests
-        run: npm test -- tests/unit/app/GameAppActions.test.tsx
+        run: npm test -- tests/unit/app/GameAppActions.test.tsx tests/unit/app/createBrowserAppDependencies.test.ts
