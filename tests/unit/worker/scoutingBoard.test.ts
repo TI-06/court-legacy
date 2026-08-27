@@ -57,11 +57,9 @@ function createScoutingStore(): ScoutingStore & {
   } = {
     savedPool: null,
     getCandidatePool: vi.fn(async (userId, cycleKey) => {
-      if (
-        store.savedPool?.userId === userId &&
-        store.savedPool.cycleKey === cycleKey
-      ) {
-        return store.savedPool;
+      const savedPool = store.savedPool;
+      if (savedPool?.userId === userId && savedPool.cycleKey === cycleKey) {
+        return savedPool;
       }
       return null;
     }),
