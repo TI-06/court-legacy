@@ -1,10 +1,14 @@
-name: Task 9 RED Check
+name: Task 9 Focused Check
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
+      - src/ui/shell/appNavigation.ts
+      - src/ui/theme/GameIcon.tsx
+      - src/features/team/PlayerHubScreen.tsx
+      - src/features/team/player-hub.css
       - tests/unit/ui/shell/BottomGameNav.test.tsx
       - tests/unit/features/team/PlayerHubScreen.test.tsx
       - .github/workflows/task8-red-temp.yml
@@ -13,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  red:
+  focused:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
