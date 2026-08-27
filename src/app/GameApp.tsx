@@ -7,6 +7,7 @@ import type { AcademicYearTransitionSummary } from "../domain/calendar/academicY
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
 import type { SchoolReputation } from "../domain/model/School";
+import type { TeamSelection } from "../domain/model/TeamSelection";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -126,6 +127,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
+  const saveTeamSelection = async (selection: TeamSelection) => {
+    const response = await cloudSession.runAction(
+      { type: "team-selection", selection },
+      "スタメンを保存しています…",
+    );
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
+    });
+  };
+
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
@@ -214,9 +228,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "team" ? (
       <PlayerHubScreen
-        onChange={(selection) =>
-          setAppState((current) => ({ ...current, teamSelection: selection }))
-        }
+        onChange={saveTeamSelection}
         selection={teamSelection}
         state={gameState}
       />
