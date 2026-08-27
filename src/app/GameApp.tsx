@@ -7,19 +7,12 @@ import {
   advanceGameWeek,
   type AcademicYearTransitionSummary,
 } from "../domain/calendar/academicYearProgression";
-import {
-  isWeeklyActionCompleted,
-  markWeeklyActionCompleted,
-} from "../domain/calendar/weekProgression";
+import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import { surfaceWeeklyEvent } from "../domain/events/eventPipeline";
 import { resolveEventChoice } from "../domain/events/resolveEventChoice";
-import {
-  simulateMatch,
-  type SimulateMatchResult,
-} from "../domain/match/simulateMatch";
+import type { SimulateMatchResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
 import type { SchoolReputation } from "../domain/model/School";
-import { matchId } from "../domain/model/identifiers";
 import { SeededRandom } from "../domain/random/SeededRandom";
 import {
   calculateSelectionStrength,
@@ -34,7 +27,6 @@ import type {
   TrainingResult,
   WeeklyPlan,
 } from "../domain/training/resolveWeeklyTraining";
-import { recordMatchOutcome } from "../domain/world/rivalWorldProgression";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
@@ -157,43 +149,23 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const startPracticeMatch = () => {
+  const startPracticeMatch = async () => {
     if (practiceMatchCompleted) return;
-    const id = matchId(`practice-${gameState.date}-${gameState.randomCursor}`);
-    const random = new SeededRandom(gameState.seed, gameState.randomCursor);
-    const simulation = simulateMatch({
-      state: gameState,
-      id,
-      homeSchoolId: gameState.userSchoolId,
-      awaySchoolId: opponent.id,
-      homeSelection: teamSelection,
-      awaySelection: opponentSelection,
-      bestOfSets: 3,
-      random,
+    const response = await cloudSession.runAction(
+      { type: "practice-match" },
+      "試合を計算しています…",
+    );
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
     });
-    setLatestMatchResult(simulation);
-    setActiveMatchResult(simulation);
-    setAppState((current) => {
-      const matchState = {
-        ...current.gameState,
-        randomCursor: simulation.match.randomCursor,
-        activeMatch: simulation.match,
-      };
-      const updatedState = recordMatchOutcome(matchState, {
-        matchId: simulation.match.id,
-        date: current.gameState.date,
-        homeSchoolId: simulation.match.homeSchoolId,
-        awaySchoolId: simulation.match.awaySchoolId,
-        winnerSchoolId: simulation.analysis.winnerSchoolId,
-        homeSetsWon: simulation.match.homeSetsWon,
-        awaySetsWon: simulation.match.awaySetsWon,
-        tournamentId: null,
-      });
-      return {
-        ...current,
-        gameState: markWeeklyActionCompleted(updatedState, "practice-match"),
-      };
-    });
+    if (response.outcome !== undefined) {
+      const simulation = response.outcome as SimulateMatchResult;
+      setLatestMatchResult(simulation);
+      setActiveMatchResult(simulation);
+    }
   };
 
   const upgradeSchoolFacility = (key: FacilityKey) =>
