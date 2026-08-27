@@ -19,10 +19,14 @@ const achievementSchema = z.enum([
 const persistedPlayerSchema = z
   .object({
     id: z.string().min(1),
-    schoolId: z.string().min(1),
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     abilities: z.object({}).passthrough(),
+    career: z
+      .object({
+        schoolId: z.string().min(1),
+      })
+      .passthrough(),
   })
   .passthrough();
 
