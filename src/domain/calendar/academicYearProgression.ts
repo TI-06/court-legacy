@@ -7,8 +7,13 @@ import {
   type GraduatedPlayerSummary,
 } from "../model/GameState";
 import type { Grade, Player } from "../model/Player";
+import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
+import {
+  legacyReputationFromPoints,
+  resolveSeasonReputation,
+} from "../school/reputation";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
@@ -142,6 +147,56 @@ function promoteGrade(grade: Grade): Grade {
   throw new Error("third-year players must graduate before promotion");
 }
 
+function resolveAnnualSchoolReputation(school: School): School {
+  const result = resolveSeasonReputation({
+    currentPoints: school.reputationPoints,
+    recentSeasonRatings: school.history.recentSeasonRatings ?? [],
+    officialWins: school.history.officialWins,
+    officialLosses: school.history.officialLosses,
+    prefecturalTitles: school.history.prefecturalTitles,
+    nationalAppearances: school.history.nationalAppearances,
+    nationalTitles: school.history.nationalTitles,
+  });
+
+  return {
+    ...school,
+    reputation: legacyReputationFromPoints(result.points),
+    reputationPoints: result.points,
+    history: {
+      ...school.history,
+      recentSeasonRatings: result.recentSeasonRatings,
+      peakReputationPoints: Math.max(
+        school.history.peakReputationPoints ?? school.reputationPoints,
+        result.points,
+      ),
+    },
+  };
+}
+
+function restoreCanonicalReputation(
+  state: GameState,
+  canonicalSchools: GameState["schools"],
+): GameState {
+  const schools = { ...state.schools };
+  for (const school of Object.values(state.schools)) {
+    const canonical = canonicalSchools[school.id];
+    if (!canonical) {
+      continue;
+    }
+    schools[school.id] = {
+      ...school,
+      reputation: canonical.reputation,
+      reputationPoints: canonical.reputationPoints,
+      history: {
+        ...school.history,
+        recentSeasonRatings: canonical.history.recentSeasonRatings,
+        peakReputationPoints: canonical.history.peakReputationPoints,
+      },
+    };
+  }
+  return { ...state, schools };
+}
+
 export function advanceAcademicYear(
   state: GameState,
   data: GameDataRegistry,
@@ -152,7 +207,12 @@ export function advanceAcademicYear(
     nextAcademicYear >= state.world.nextGenerationalTalentYear;
   const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
   const players = { ...state.players };
-  const schools = { ...state.schools };
+  const schools = Object.fromEntries(
+    Object.values(state.schools).map((school) => {
+      const resolved = resolveAnnualSchoolReputation(school);
+      return [resolved.id, resolved];
+    }),
+  ) as GameState["schools"];
   const graduatedPlayerIds: PlayerId[] = [];
   const intakePlayerIds: PlayerId[] = [];
   const graduatedPlayerIdsBySchool = {} as Record<SchoolId, PlayerId[]>;
@@ -161,7 +221,7 @@ export function advanceAcademicYear(
   const graduatedSummaries: GraduatedPlayerSummary[] = [];
   let playerNumber = nextPlayerNumber(players);
 
-  for (const school of Object.values(state.schools)) {
+  for (const school of Object.values(schools)) {
     const graduates: PlayerId[] = [];
     const returningPlayerIds: PlayerId[] = [];
 
@@ -301,6 +361,7 @@ export function advanceAcademicYear(
   }
 
   nextState = advanceRivalWorld(nextState, data, random);
+  nextState = restoreCanonicalReputation(nextState, schools);
   const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,
