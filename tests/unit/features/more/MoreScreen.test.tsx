@@ -19,8 +19,12 @@ describe("MoreScreen", () => {
     expect(screen.getByText("coach@example.com")).toBeVisible();
     expect(screen.getByRole("button", { name: "学校管理" })).toBeVisible();
     expect(screen.getByRole("button", { name: "ログアウト" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "PvP" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "ショップ" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "PvP" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "ショップ" }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
     fireEvent.click(screen.getByRole("button", { name: "ログアウト" }));
