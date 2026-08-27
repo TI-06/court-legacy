@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
-import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
   type FacilityKey,
 } from "../../domain/school/facilityUpgrade";
+import { reputationGrade } from "../../domain/school/reputation";
+import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import "./school-screen.css";
@@ -125,6 +126,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             <h2>{school.name}</h2>
             <p>
               {reputationLabels[school.reputation]}・評判{" "}
+              {reputationGrade(school.reputationPoints)}{" "}
               {school.reputationPoints}
             </p>
           </div>

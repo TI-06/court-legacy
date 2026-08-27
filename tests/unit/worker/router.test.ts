@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GameStore } from "../../../worker/data/GameStore";
+import type { ScoutingStore } from "../../../worker/data/ScoutingStore";
 import { createRouter } from "../../../worker/router";
 
 function apiRequest(path: string, init?: RequestInit): Request {
@@ -16,6 +17,18 @@ function createStore(): GameStore {
     applyOperation: vi.fn(async () => {
       throw new Error("not used");
     }),
+  };
+}
+
+function createScoutingStore(): ScoutingStore {
+  return {
+    getCandidatePool: vi.fn(async () => null),
+    createCandidatePool: vi.fn(async (input) => ({
+      userId: input.userId,
+      cycleKey: input.cycleKey,
+      creationOperationId: input.creationOperationId,
+      candidates: input.candidates,
+    })),
   };
 }
 
@@ -84,6 +97,41 @@ describe("createRouter", () => {
     await expect(response.json()).resolves.toEqual({
       status: "needs-onboarding",
     });
+  });
+
+  it("routes authenticated scouting board requests through the server scouting store", async () => {
+    const snapshot = {
+      userId: "user-123",
+      schoolDbId: "school-db-id",
+      revision: 7,
+      state: {} as never,
+      teamSelection: {} as never,
+    };
+    const store = createStore();
+    vi.mocked(store.getSnapshot).mockResolvedValue(snapshot);
+    const scoutingStore = createScoutingStore();
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: "user-123" })),
+      store,
+      scoutingStore,
+    });
+
+    const response = await router(
+      apiRequest("/api/scouting/board", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer access-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          operationId: "scouting-board-router-001",
+          revision: 7,
+        }),
+      }),
+    );
+
+    expect(response.status).not.toBe(404);
+    expect(store.getSnapshot).toHaveBeenCalledWith("user-123");
   });
 
   it("returns a structured 404 for an authenticated unknown API route", async () => {

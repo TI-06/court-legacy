@@ -3,7 +3,8 @@ import type { PlayerId, SchoolId } from "./identifiers";
 export type Position = "OH" | "MB" | "OP" | "S" | "L";
 export type Grade = 1 | 2 | 3;
 export type Handedness = "right" | "left";
-export type PlayerTier = "normal" | "prospect" | "generational";
+export type PlayerTier =
+  "normal" | "promising" | "elite" | "generational" | "monster" | "prospect";
 export type BodyType = "slim" | "standard" | "muscular" | "large";
 
 export interface PlayerAbilities {
@@ -61,6 +62,14 @@ export interface Player {
   traitIds: string[];
   hiddenTraitIds: string[];
   tier: PlayerTier;
+  potential?: number;
+  trainingEfficiency?: number;
+  matchConsistency?: number;
+  bigMatch?: number;
+  injuryResistance?: number;
+  leadership?: number;
+  teamAdaptation?: number;
+  growthPeakGrade?: Grade;
   injury: PlayerInjury | null;
   career: PlayerCareer;
 }

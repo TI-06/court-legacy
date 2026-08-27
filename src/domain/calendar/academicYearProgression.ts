@@ -7,8 +7,13 @@ import {
   type GraduatedPlayerSummary,
 } from "../model/GameState";
 import type { Grade, Player } from "../model/Player";
+import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
+import {
+  legacyReputationFromPoints,
+  resolveSeasonReputation,
+} from "../school/reputation";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
@@ -25,6 +30,10 @@ export interface AcademicYearTransitionSummary {
 
 export interface AdvanceGameWeekResult extends WeekProgressionResult {
   academicYearTransition: AcademicYearTransitionSummary | null;
+}
+
+export interface AcademicYearProgressionOptions {
+  userIntake?: readonly Player[];
 }
 
 function academicYearStartYear(date: GameDate): number {
@@ -142,17 +151,103 @@ function promoteGrade(grade: Grade): Grade {
   throw new Error("third-year players must graduate before promotion");
 }
 
+function resolveAnnualSchoolReputation(school: School): School {
+  const result = resolveSeasonReputation({
+    currentPoints: school.reputationPoints,
+    recentSeasonRatings: school.history.recentSeasonRatings ?? [],
+    officialWins: school.history.officialWins,
+    officialLosses: school.history.officialLosses,
+    prefecturalTitles: school.history.prefecturalTitles,
+    nationalAppearances: school.history.nationalAppearances,
+    nationalTitles: school.history.nationalTitles,
+  });
+
+  return {
+    ...school,
+    reputation: legacyReputationFromPoints(result.points),
+    reputationPoints: result.points,
+    history: {
+      ...school.history,
+      recentSeasonRatings: result.recentSeasonRatings,
+      peakReputationPoints: Math.max(
+        school.history.peakReputationPoints ?? school.reputationPoints,
+        result.points,
+      ),
+    },
+  };
+}
+
+function restoreCanonicalReputation(
+  state: GameState,
+  canonicalSchools: GameState["schools"],
+): GameState {
+  const schools = { ...state.schools };
+  for (const school of Object.values(state.schools)) {
+    const canonical = canonicalSchools[school.id];
+    if (!canonical) {
+      continue;
+    }
+    schools[school.id] = {
+      ...school,
+      reputation: canonical.reputation,
+      reputationPoints: canonical.reputationPoints,
+      history: {
+        ...school.history,
+        recentSeasonRatings: canonical.history.recentSeasonRatings,
+        peakReputationPoints: canonical.history.peakReputationPoints,
+      },
+    };
+  }
+  return { ...state, schools };
+}
+
+function prepareCommittedIntake(
+  state: GameState,
+  schoolId: SchoolId,
+  nextAcademicYear: number,
+  candidates: readonly Player[],
+): Player[] {
+  const ids = new Set<PlayerId>();
+
+  return candidates.map((candidate) => {
+    if (candidate.career.schoolId !== schoolId) {
+      throw new Error("committed recruit belongs to another school");
+    }
+    if (ids.has(candidate.id) || state.players[candidate.id]) {
+      throw new Error("committed recruit id is not available");
+    }
+    ids.add(candidate.id);
+
+    const player = structuredClone(candidate) as Player;
+    return {
+      ...player,
+      grade: 1,
+      career: {
+        ...player.career,
+        schoolId,
+        enrolledYear: nextAcademicYear,
+      },
+    };
+  });
+}
+
 export function advanceAcademicYear(
   state: GameState,
   data: GameDataRegistry,
   random: RandomSource,
+  options: AcademicYearProgressionOptions = {},
 ): { state: GameState; summary: AcademicYearTransitionSummary } {
   const nextAcademicYear = state.calendar.academicYear + 1;
   const generationalTalentDue =
     nextAcademicYear >= state.world.nextGenerationalTalentYear;
   const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
   const players = { ...state.players };
-  const schools = { ...state.schools };
+  const schools = Object.fromEntries(
+    Object.values(state.schools).map((school) => {
+      const resolved = resolveAnnualSchoolReputation(school);
+      return [resolved.id, resolved];
+    }),
+  ) as GameState["schools"];
   const graduatedPlayerIds: PlayerId[] = [];
   const intakePlayerIds: PlayerId[] = [];
   const graduatedPlayerIdsBySchool = {} as Record<SchoolId, PlayerId[]>;
@@ -161,7 +256,7 @@ export function advanceAcademicYear(
   const graduatedSummaries: GraduatedPlayerSummary[] = [];
   let playerNumber = nextPlayerNumber(players);
 
-  for (const school of Object.values(state.schools)) {
+  for (const school of Object.values(schools)) {
     const graduates: PlayerId[] = [];
     const returningPlayerIds: PlayerId[] = [];
 
@@ -180,24 +275,44 @@ export function advanceAcademicYear(
       }
     }
 
+    const committedIntake =
+      school.id === state.userSchoolId
+        ? prepareCommittedIntake(
+            state,
+            school.id,
+            nextAcademicYear,
+            options.userIntake ?? [],
+          )
+        : [];
     const desiredIntakeCount = random.int(4, 7);
+    const minimumIntakeCount = Math.max(0, 12 - returningPlayerIds.length);
     const availableRosterSlots = Math.max(
       0,
       maximumBaseRosterSize - returningPlayerIds.length,
     );
-    const intakeCount = Math.min(desiredIntakeCount, availableRosterSlots);
-    const intake = generateIntake({
+    if (committedIntake.length > availableRosterSlots) {
+      throw new Error("committed recruits exceed available roster slots");
+    }
+    const intakeCount = Math.min(
+      Math.max(desiredIntakeCount, minimumIntakeCount, committedIntake.length),
+      availableRosterSlots,
+    );
+    const generatedIntake = generateIntake({
       schoolId: school.id,
       academicYear: nextAcademicYear,
       firstPlayerNumber: playerNumber,
       data,
       random,
-      count: intakeCount,
-      currentPlayers: returningPlayerIds
-        .map((playerId) => players[playerId])
-        .filter((player): player is Player => Boolean(player)),
+      count: intakeCount - committedIntake.length,
+      currentPlayers: [
+        ...returningPlayerIds
+          .map((playerId) => players[playerId])
+          .filter((player): player is Player => Boolean(player)),
+        ...committedIntake,
+      ],
     });
-    playerNumber += intake.length;
+    playerNumber += generatedIntake.length;
+    const intake = [...committedIntake, ...generatedIntake];
     for (const player of intake) {
       players[player.id] = player;
       intakePlayerIds.push(player.id);
@@ -242,6 +357,7 @@ export function advanceAcademicYear(
     players,
     activeMatch: null,
     pendingEvent: null,
+    recruiting: undefined,
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
@@ -301,6 +417,7 @@ export function advanceAcademicYear(
   }
 
   nextState = advanceRivalWorld(nextState, data, random);
+  nextState = restoreCanonicalReputation(nextState, schools);
   const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,
@@ -326,6 +443,7 @@ export function advanceAcademicYear(
 export function advanceGameWeek(
   state: GameState,
   data: GameDataRegistry,
+  options: AcademicYearProgressionOptions = {},
 ): AdvanceGameWeekResult {
   const weekly = advanceOneWeek(state);
   if (!crossesAcademicYear(state.date, weekly.state.date)) {
@@ -333,7 +451,7 @@ export function advanceGameWeek(
   }
 
   const random = new SeededRandom(weekly.state.seed, weekly.state.randomCursor);
-  const transition = advanceAcademicYear(weekly.state, data, random);
+  const transition = advanceAcademicYear(weekly.state, data, random, options);
   return {
     ...weekly,
     state: transition.state,
