@@ -45,7 +45,7 @@ export function createRouter(
     store: deps.store,
     createCreationNonce: deps.createCreationNonce,
   });
-  const gameAction = createGameActionHandler(deps.store);
+  const gameAction = createGameActionHandler(deps.store, deps.scoutingStore);
   const scoutingBoard = deps.scoutingStore
     ? createScoutingBoardHandler({
         gameStore: deps.store,
