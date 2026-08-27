@@ -15,7 +15,9 @@ async function createRoot() {
 
 afterEach(async () => {
   await Promise.all(
-    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+    temporaryRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
   );
 });
 
@@ -24,7 +26,10 @@ describe("collectStructureErrors", () => {
     const root = await createRoot();
     await mkdir(join(root, "src"), { recursive: true });
     await mkdir(join(root, "legacy-dir"), { recursive: true });
-    await writeFile(join(root, "src", "screen.ts"), 'export const marker = "OLD_ARCH";\n');
+    await writeFile(
+      join(root, "src", "screen.ts"),
+      'export const marker = "OLD_ARCH";\n',
+    );
 
     const errors = await collectStructureErrors({
       root,
@@ -45,7 +50,10 @@ describe("collectStructureErrors", () => {
     const root = await createRoot();
     await mkdir(join(root, "src"), { recursive: true });
     await writeFile(join(root, "required.txt"), "present\n");
-    await writeFile(join(root, "src", "screen.ts"), "export const ready = true;\n");
+    await writeFile(
+      join(root, "src", "screen.ts"),
+      "export const ready = true;\n",
+    );
 
     const errors = await collectStructureErrors({
       root,
