@@ -1,14 +1,15 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const migrationUrl = new URL(
-  "../../../supabase/migrations/202608270003_scouting_candidate_pools.sql",
-  import.meta.url,
+const migrationPath = resolve(
+  process.cwd(),
+  "supabase/migrations/202608270003_scouting_candidate_pools.sql",
 );
 
 describe("scouting candidate pool migration", () => {
   it("keeps hidden candidate truth inaccessible to browser roles", () => {
-    const sql = readFileSync(migrationUrl, "utf8");
+    const sql = readFileSync(migrationPath, "utf8");
 
     expect(sql).toContain("create table public.scouting_candidate_pools");
     expect(sql).toContain(
@@ -23,7 +24,7 @@ describe("scouting candidate pool migration", () => {
   });
 
   it("creates an atomic service-role-only candidate pool RPC", () => {
-    const sql = readFileSync(migrationUrl, "utf8");
+    const sql = readFileSync(migrationPath, "utf8");
 
     expect(sql).toContain(
       "create or replace function public.create_scouting_candidate_pool",
