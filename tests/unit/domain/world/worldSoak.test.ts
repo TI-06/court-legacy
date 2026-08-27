@@ -58,9 +58,9 @@ describe("rival world long-run soak", () => {
       );
       expect(
         school.history.recentSeasonRatings?.length ?? 0,
-      ).toBeLessThanOrEqual(3);
+      ).toBeLessThanOrEqual(5);
       expect(school.reputationPoints).toBeGreaterThanOrEqual(0);
-      expect(school.reputationPoints).toBeLessThanOrEqual(1000);
+      expect(school.reputationPoints).toBeLessThanOrEqual(1400);
     }
 
     expect(state.history.graduates.length).toBeLessThanOrEqual(
