@@ -1,18 +1,36 @@
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import App from "../../src/App";
+import type { AuthClient } from "../../src/services/auth/AuthClient";
+import type { GameApiClient } from "../../src/services/api/GameApiClient";
 
-const menuLabels = ["ホーム", "選手", "育成", "試合", "学校"];
+function authClient(): AuthClient {
+  return {
+    getSession: vi.fn(() => new Promise(() => undefined)),
+    subscribe: vi.fn().mockReturnValue(() => undefined),
+    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+    signInWithEmail: vi.fn().mockResolvedValue(undefined),
+    signOut: vi.fn().mockResolvedValue(undefined),
+  };
+}
 
-describe("mobile application shell", () => {
-  it("shows the five primary navigation actions", () => {
-    render(<App />);
+function apiClient(): GameApiClient {
+  return {
+    bootstrap: vi.fn(),
+    onboard: vi.fn(),
+    applyAction: vi.fn(),
+  };
+}
 
+describe("application composition", () => {
+  it("starts with an explicit authentication check instead of a demo game", () => {
+    render(<App auth={authClient()} api={apiClient()} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "アカウントを確認しています…",
+    );
     expect(
-      screen.getByRole("navigation", { name: "主要メニュー" }),
-    ).toBeInTheDocument();
-
-    for (const label of menuLabels) {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
-    }
+      screen.queryByRole("navigation", { name: "主要メニュー" }),
+    ).not.toBeInTheDocument();
   });
 });
