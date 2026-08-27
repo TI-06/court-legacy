@@ -148,7 +148,10 @@ export function createScoutingRecruitmentHandler(
     if (currentCommitments.includes(candidate.player.id)) {
       return candidateAlreadyCommitted();
     }
-    if (currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)) {
+    if (
+      currentCommitments.length >=
+      projectedRecruitmentCapacity(snapshot.state)
+    ) {
       return recruitmentCapacityReached();
     }
 
