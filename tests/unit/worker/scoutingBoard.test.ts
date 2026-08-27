@@ -72,7 +72,7 @@ function createScoutingStore(): ScoutingStore & {
         creationOperationId: input.creationOperationId,
         candidates: input.candidates,
       };
-      return store.savedPool;
+      return store.savedPool!;
     }),
   };
   return store;
