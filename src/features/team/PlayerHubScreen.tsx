@@ -147,39 +147,40 @@ export function PlayerHubScreen({
         </div>
         <span>{players.length}人</span>
       </section>
-      <div className="player-hub__grid">
-        {players.map((player) => {
-          const abilities = summarizePlayerAbilities(player);
-          return (
-            <button
-              aria-label={`選手詳細 ${playerName(player)}`}
-              className="player-hub-card"
-              key={player.id}
-              onClick={() => setSelectedPlayerId(player.id)}
-              type="button"
-            >
-              <span className="player-hub-card__art" aria-hidden="true">
-                {playerInitials(player)}
-              </span>
-              <span className="player-hub-card__identity">
-                <strong>{playerName(player)}</strong>
-                <small>
-                  {player.grade}年・{player.preferredPosition}・
-                  {player.heightCm}
-                  cm
-                </small>
-                <span>
-                  総合力 {Math.round(calculatePlayerDisplayPower(player) / 100)}
-                </span>
-              </span>
-              <span className="player-hub-card__stats">
-                <small>攻撃 {abilities.attack}</small>
-                <small>守備 {abilities.defense}</small>
-                <small>跳躍 {abilities.jump}</small>
-              </span>
-            </button>
-          );
-        })}
+      <div className="player-roster" role="list">
+        <div aria-hidden="true" className="player-roster__header">
+          <span>No.</span>
+          <span>選手</span>
+          <span>学年</span>
+          <span>Pos</span>
+          <span>身長</span>
+          <span>総合</span>
+          <span>状態</span>
+        </div>
+        {players.map((player, index) => (
+          <button
+            aria-label={`選手詳細 ${playerName(player)}`}
+            className="player-roster__row"
+            data-testid="roster-player-row"
+            key={player.id}
+            onClick={() => setSelectedPlayerId(player.id)}
+            role="listitem"
+            type="button"
+          >
+            <span className="player-roster__number">{index + 1}</span>
+            <span className="player-roster__name">
+              <strong>{playerName(player)}</strong>
+              <small>{player.reading}</small>
+            </span>
+            <span data-label="学年">{player.grade}年</span>
+            <span data-label="Pos">{player.preferredPosition}</span>
+            <span data-label="身長">{player.heightCm}cm</span>
+            <span className="player-roster__overall" data-label="総合">
+              {Math.round(calculatePlayerDisplayPower(player) / 100)}
+            </span>
+            <span data-label="状態">{player.condition}</span>
+          </button>
+        ))}
       </div>
     </main>
   );
