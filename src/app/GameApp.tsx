@@ -3,15 +3,10 @@ import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import "./app-shell.css";
 import { gameData } from "./createDemoGame";
 import { useGameSession } from "./useGameSession";
-import {
-  advanceGameWeek,
-  type AcademicYearTransitionSummary,
-} from "../domain/calendar/academicYearProgression";
+import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
-import { surfaceWeeklyEvent } from "../domain/events/eventPipeline";
 import { resolveEventChoice } from "../domain/events/resolveEventChoice";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
-import type { GameState } from "../domain/model/GameState";
 import type { SchoolReputation } from "../domain/model/School";
 import { SeededRandom } from "../domain/random/SeededRandom";
 import {
@@ -47,6 +42,10 @@ interface GameAppProps {
 
 type MoreView = "menu" | "school";
 
+interface AdvanceWeekOutcome {
+  academicYearTransition: AcademicYearTransitionSummary | null;
+}
+
 const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "E 無名",
   "district-contender": "D 地区レベル",
@@ -55,16 +54,6 @@ const reputationLabels: Record<SchoolReputation, string> = {
   "national-regular": "A 全国出場級",
   elite: "S 全国常連",
 };
-
-function createAppState(gameState: GameState) {
-  return {
-    gameState,
-    teamSelection: autoSelectTeam({
-      state: gameState,
-      schoolId: gameState.userSchoolId,
-    }),
-  };
-}
 
 function formatGameDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);
@@ -178,18 +167,20 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     });
   };
 
-  const advanceWeek = () => {
+  const advanceWeek = async () => {
     if (!trainingCompleted) return;
-    const progression = advanceGameWeek(gameState, gameData);
-    const nextState = progression.academicYearTransition
-      ? progression.state
-      : surfaceWeeklyEvent(progression.state, gameData);
-    if (progression.academicYearTransition) {
-      setAppState(createAppState(nextState));
-      setLatestYearTransition(progression.academicYearTransition);
-    } else {
-      setAppState((current) => ({ ...current, gameState: nextState }));
-    }
+    const response = await cloudSession.runAction(
+      { type: "advance-week" },
+      "次の週へ進めています…",
+    );
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
+    });
+    const outcome = response.outcome as AdvanceWeekOutcome | undefined;
+    setLatestYearTransition(outcome?.academicYearTransition ?? null);
     setLatestTrainingResult(null);
     setActiveMatchResult(null);
     setCalendarOpen(false);
