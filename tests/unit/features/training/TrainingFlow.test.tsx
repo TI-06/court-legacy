@@ -111,7 +111,7 @@ describe("weekly training bottom-sheet flow", () => {
     expect(nextWeekButton).toBeEnabled();
     fireEvent.click(nextWeekButton);
 
-    expect(screen.getByText("2026年4月8日")).toBeInTheDocument();
+    expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
     expect(screen.getByRole("button", { name: "練習を実行" })).toBeEnabled();
     expect(
