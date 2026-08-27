@@ -1,9 +1,6 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generatePlayer } from "../../../../src/domain/generation/generatePlayer";
-import type {
-  Player,
-  PlayerTier,
-} from "../../../../src/domain/model/Player";
+import type { Player, PlayerTier } from "../../../../src/domain/model/Player";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 
@@ -45,7 +42,10 @@ describe("V2 player variation", () => {
       const players = Array.from({ length: 160 }, (_, index) =>
         generateTierPlayer(tier, index),
       );
-      return players.reduce((sum, player) => sum + overall(player), 0) / players.length;
+      return (
+        players.reduce((sum, player) => sum + overall(player), 0) /
+        players.length
+      );
     });
 
     for (let index = 1; index < averages.length; index += 1) {
@@ -56,10 +56,14 @@ describe("V2 player variation", () => {
       generateTierPlayer("monster", index),
     );
     expect(
-      Math.max(...monsters.flatMap((player) => Object.values(player.abilities))),
+      Math.max(
+        ...monsters.flatMap((player) => Object.values(player.abilities)),
+      ),
     ).toBeLessThanOrEqual(100);
     expect(
-      monsters.some((player) => Object.values(player.abilities).some((value) => value < 90)),
+      monsters.some((player) =>
+        Object.values(player.abilities).some((value) => value < 90),
+      ),
     ).toBe(true);
   });
 
@@ -87,7 +91,9 @@ describe("V2 player variation", () => {
 
   it("keeps adjacent tiers overlapping instead of making class alone determine strength", () => {
     const samples = TIERS.map((tier) =>
-      Array.from({ length: 160 }, (_, index) => overall(generateTierPlayer(tier, index))),
+      Array.from({ length: 160 }, (_, index) =>
+        overall(generateTierPlayer(tier, index)),
+      ),
     );
 
     for (let index = 1; index < samples.length; index += 1) {
