@@ -18,10 +18,7 @@ import {
   calculateSelectionStrength,
   selectPracticeOpponent,
 } from "../domain/selectors/matchSelectors";
-import {
-  upgradeFacility,
-  type FacilityKey,
-} from "../domain/school/facilityUpgrade";
+import type { FacilityKey } from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type {
   TrainingResult,
@@ -168,15 +165,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const upgradeSchoolFacility = (key: FacilityKey) =>
-    setAppState((current) => ({
-      ...current,
-      gameState: upgradeFacility(
-        current.gameState,
-        current.gameState.userSchoolId,
-        key,
-      ),
-    }));
+  const upgradeSchoolFacility = async (key: FacilityKey) => {
+    const response = await cloudSession.runAction(
+      { type: "facility-upgrade", facility: key },
+      "施設を更新しています…",
+    );
+    if (!response) return;
+
+    setAppState({
+      gameState: response.game.state,
+      teamSelection: response.game.teamSelection,
+    });
+  };
 
   const advanceWeek = () => {
     if (!trainingCompleted) return;
