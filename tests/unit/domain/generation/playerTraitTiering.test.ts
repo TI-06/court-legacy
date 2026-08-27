@@ -60,10 +60,14 @@ describe("player trait tier weighting", () => {
     );
 
     expect(
-      monsterSelections.some((ids) => ids.some((id) => rarePositiveIds.has(id))),
+      monsterSelections.some((ids) =>
+        ids.some((id) => rarePositiveIds.has(id)),
+      ),
     ).toBe(true);
     expect(
-      monsterSelections.some((ids) => ids.every((id) => !rarePositiveIds.has(id))),
+      monsterSelections.some((ids) =>
+        ids.every((id) => !rarePositiveIds.has(id)),
+      ),
     ).toBe(true);
   });
 });
