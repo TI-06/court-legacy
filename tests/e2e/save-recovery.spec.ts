@@ -1,15 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("manual save survives reload and keeps the previous version as backup", async ({
+test("reload uses the cloud bootstrap instead of restoring a legacy save slot", async ({
   page,
 }) => {
   await page.goto("/");
-
-  await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
-  let saveSheet = page.getByRole("dialog", { name: "セーブ・ロード" });
-  await saveSheet.getByRole("button", { name: "スロット1に保存" }).click();
-  await expect(saveSheet.getByText("スロット1へ保存しました")).toBeVisible();
-  await saveSheet.getByRole("button", { name: "閉じる" }).click();
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
@@ -21,25 +15,19 @@ test("manual save survives reload and keeps the previous version as backup", asy
   await expect(page.getByText("資金 230")).toBeVisible();
 
   await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
-  saveSheet = page.getByRole("dialog", { name: "セーブ・ロード" });
+  const saveSheet = page.getByRole("dialog", { name: "セーブ・ロード" });
   await saveSheet.getByRole("button", { name: "スロット1に保存" }).click();
-  await expect(saveSheet.getByText("バックアップ 1件")).toBeVisible();
+  await expect(saveSheet.getByText("スロット1へ保存しました")).toBeVisible();
   await saveSheet.getByRole("button", { name: "閉じる" }).click();
 
   await page.reload();
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
-  await expect(page.getByText("資金 230")).toBeVisible();
+
+  await expect(page.getByText("資金 300")).toBeVisible();
   await expect(
     page
       .getByRole("button", { name: "トレーニング設備を強化" })
       .locator("xpath=ancestor::article")
-      .getByText("Lv.1"),
-  ).toBeVisible();
-
-  await page.getByRole("button", { name: "セーブ・ロードを開く" }).click();
-  await expect(
-    page
-      .getByRole("dialog", { name: "セーブ・ロード" })
-      .getByText("バックアップ 1件"),
+      .getByText("Lv.0"),
   ).toBeVisible();
 });
