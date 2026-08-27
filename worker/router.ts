@@ -3,10 +3,12 @@ import type {
   VerifyAccessToken,
 } from "./auth/verifyAccessToken";
 import type { GameStore } from "./data/GameStore";
+import type { ScoutingStore } from "./data/ScoutingStore";
 import { json, jsonError } from "./http/json";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
+import { createScoutingBoardHandler } from "./routes/scoutingBoard";
 
 export type AuthenticatedRequestHandler = (
   request: Request,
@@ -16,6 +18,7 @@ export type AuthenticatedRequestHandler = (
 export interface WorkerDependencies {
   verifyAccessToken: VerifyAccessToken;
   store: GameStore;
+  scoutingStore?: ScoutingStore;
   createCreationNonce?: () => string;
 }
 
@@ -42,6 +45,12 @@ export function createRouter(
     createCreationNonce: deps.createCreationNonce,
   });
   const gameAction = createGameActionHandler(deps.store);
+  const scoutingBoard = deps.scoutingStore
+    ? createScoutingBoardHandler({
+        gameStore: deps.store,
+        scoutingStore: deps.scoutingStore,
+      })
+    : null;
 
   return async (request) => {
     const url = new URL(request.url);
@@ -79,6 +88,13 @@ export function createRouter(
       }
       if (url.pathname === "/api/game/action" && request.method === "POST") {
         return await gameAction(request, user);
+      }
+      if (
+        url.pathname === "/api/scouting/board" &&
+        request.method === "POST" &&
+        scoutingBoard
+      ) {
+        return await scoutingBoard(request, user);
       }
       return notFound();
     } catch {
