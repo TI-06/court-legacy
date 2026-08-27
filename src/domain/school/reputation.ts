@@ -39,9 +39,7 @@ export function reputationGrade(points: number): ReputationGrade {
   return "E";
 }
 
-export function legacyReputationFromPoints(
-  points: number,
-): SchoolReputation {
+export function legacyReputationFromPoints(points: number): SchoolReputation {
   if (points >= 850) return "elite";
   if (points >= 620) return "national-regular";
   if (points >= 400) return "national-qualifier";
@@ -79,11 +77,7 @@ export function resolveSeasonReputation(
   const recentAverage =
     recentSeasonRatings.reduce((total, value) => total + value, 0) /
     recentSeasonRatings.length;
-  const longTermPoints = clamp(
-    input.currentPoints,
-    0,
-    MAX_REPUTATION_POINTS,
-  );
+  const longTermPoints = clamp(input.currentPoints, 0, MAX_REPUTATION_POINTS);
   const shortTermTarget = recentAverage * 14;
   const points = Math.round(
     clamp(
