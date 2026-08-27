@@ -39,12 +39,9 @@ import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchScreen } from "../features/match/MatchScreen";
-import { SaveSheet } from "../features/save/SaveSheet";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
-import type { SaveSlotId } from "../persistence/GameRepository";
-import { browserGameRepository } from "../persistence/IndexedDbGameRepository";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
 
@@ -61,12 +58,6 @@ function createAppState(gameState: GameState) {
 export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const [activeSaveSlotId, setActiveSaveSlotId] =
-    useState<SaveSlotId>("slot-1");
-  const [saveNotice, setSaveNotice] = useState<string | null>(
-    "クラウドから復元",
-  );
   const [appState, setAppState] = useState(() => ({
     gameState: snapshot.state,
     teamSelection: snapshot.teamSelection,
@@ -102,15 +93,6 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
     [gameState, opponentSelection],
   );
 
-  const loadGameState = (loadedState: GameState) => {
-    setAppState(createAppState(loadedState));
-    setLatestTrainingResult(null);
-    setLatestMatchResult(null);
-    setActiveMatchResult(null);
-    setLatestYearTransition(null);
-    setActiveTab("home");
-    setCalendarOpen(false);
-  };
   const executeTraining = (plan: WeeklyPlan) => {
     if (trainingCompleted) return;
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
@@ -128,12 +110,14 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
     setAppState((current) => ({ ...current, gameState: completedState }));
     setLatestTrainingResult(resolution.result);
   };
+
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
       setActiveTab("match");
     }
   };
+
   const startPracticeMatch = () => {
     if (practiceMatchCompleted) return;
     const id = matchId(`practice-${gameState.date}-${gameState.randomCursor}`);
@@ -172,6 +156,7 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
       };
     });
   };
+
   const upgradeSchoolFacility = (key: FacilityKey) =>
     setAppState((current) => ({
       ...current,
@@ -181,6 +166,7 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
         key,
       ),
     }));
+
   const advanceWeek = () => {
     if (!trainingCompleted) return;
     const progression = advanceGameWeek(gameState, gameData);
@@ -190,19 +176,15 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
     if (progression.academicYearTransition) {
       setAppState(createAppState(nextState));
       setLatestYearTransition(progression.academicYearTransition);
-    } else setAppState((current) => ({ ...current, gameState: nextState }));
-    if (nextState.settings.autosaveEnabled) {
-      setSaveNotice("自動保存中");
-      void browserGameRepository
-        .save(activeSaveSlotId, nextState, "autosave")
-        .then(() => setSaveNotice("自動保存済み"))
-        .catch(() => setSaveNotice("自動保存に失敗"));
+    } else {
+      setAppState((current) => ({ ...current, gameState: nextState }));
     }
     setLatestTrainingResult(null);
     setActiveMatchResult(null);
     setCalendarOpen(false);
     setActiveTab("home");
   };
+
   const chooseEvent = (choiceId: string) => {
     const random = new SeededRandom(gameState.seed, gameState.randomCursor);
     const nextState = resolveEventChoice(
@@ -212,13 +194,6 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
       random,
     ).state;
     setAppState((current) => ({ ...current, gameState: nextState }));
-    if (nextState.settings.autosaveEnabled) {
-      setSaveNotice("イベント結果を保存中");
-      void browserGameRepository
-        .save(activeSaveSlotId, nextState, "autosave")
-        .then(() => setSaveNotice("イベント結果を保存済み"))
-        .catch(() => setSaveNotice("イベント結果の保存に失敗"));
-    }
   };
 
   const content =
@@ -277,8 +252,8 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         onOpenCalendar={() => setCalendarOpen(true)}
-        onOpenSave={() => setSaveOpen(true)}
-        saveNotice={saveNotice}
+        onOpenSave={() => undefined}
+        saveNotice={null}
       >
         {content}
       </GamePageFrame>
@@ -289,15 +264,6 @@ export function GameApp({ snapshot }: { snapshot: CloudGameSnapshot }) {
         practiceMatchCompleted={practiceMatchCompleted}
         state={gameState}
         trainingCompleted={trainingCompleted}
-      />
-      <SaveSheet
-        activeSlotId={activeSaveSlotId}
-        onActiveSlotChange={setActiveSaveSlotId}
-        onClose={() => setSaveOpen(false)}
-        onLoadState={loadGameState}
-        open={saveOpen}
-        repository={browserGameRepository}
-        state={gameState}
       />
       <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
       {latestYearTransition ? (
