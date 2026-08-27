@@ -37,11 +37,13 @@ function writePersistedState(state: PersistedAuthState): void {
 export class MockAuthClient implements AuthClient {
   private session: AuthSession | null;
   private readonly listeners = new Set<AuthListener>();
+  private readonly persistAcrossReloads: boolean;
 
   constructor({
     persistAcrossReloads = false,
     defaultSignedIn = true,
   }: MockAuthClientOptions = {}) {
+    this.persistAcrossReloads = persistAcrossReloads;
     const persisted = persistAcrossReloads ? readPersistedState() : null;
     const signedIn =
       persisted === "signed-in"
@@ -78,7 +80,9 @@ export class MockAuthClient implements AuthClient {
 
   private replaceSession(session: AuthSession | null): void {
     this.session = session;
-    writePersistedState(session ? "signed-in" : "signed-out");
+    if (this.persistAcrossReloads) {
+      writePersistedState(session ? "signed-in" : "signed-out");
+    }
     for (const listener of this.listeners) {
       listener(session);
     }
