@@ -144,4 +144,45 @@ describe("GameApp cloud actions", () => {
       await screen.findByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
   });
+
+  it("persists a facility upgrade through the server before showing the new funds and level", async () => {
+    const snapshot = createSnapshot();
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) =>
+        responseFor(snapshot, request),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={snapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "その他" }));
+    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "トレーニング設備を強化" }),
+    );
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
+        "button",
+        { name: "70を使って強化" },
+      ),
+    );
+
+    expect(applyAction).toHaveBeenCalledTimes(1);
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: { type: "facility-upgrade", facility: "trainingRoom" },
+    });
+    expect(await screen.findByText("資金 230")).toBeVisible();
+  });
 });
