@@ -75,9 +75,9 @@ describe("scoutReport", () => {
     expect(high.estimatedOverall.max - high.estimatedOverall.min).toBeLessThan(
       low.estimatedOverall.max - low.estimatedOverall.min,
     );
-    expect(high.estimatedPotential.max - high.estimatedPotential.min).toBeLessThan(
-      low.estimatedPotential.max - low.estimatedPotential.min,
-    );
+    expect(
+      high.estimatedPotential.max - high.estimatedPotential.min,
+    ).toBeLessThan(low.estimatedPotential.max - low.estimatedPotential.min);
     expect(high.confidence).toBe("high");
     expect(low.confidence).toBe("low");
   });
