@@ -30,7 +30,9 @@ function createSnapshot(): CloudGameSnapshot {
   };
 }
 
-function authClient(session: AuthSession | null | "pending" = "pending"): AuthClient {
+function authClient(
+  session: AuthSession | null | "pending" = "pending",
+): AuthClient {
   return {
     getSession: vi.fn(() =>
       session === "pending"
@@ -74,14 +76,14 @@ describe("application composition", () => {
   it("passes authenticated dependencies into the ready V2 game shell", async () => {
     const snapshot = createSnapshot();
 
-    render(
-      <App auth={authClient(readySession)} api={apiClient(snapshot)} />,
-    );
+    render(<App auth={authClient(readySession)} api={apiClient(snapshot)} />);
 
     expect(
       await screen.findByRole("navigation", { name: "主要メニュー" }),
     ).toBeVisible();
-    expect(screen.getByText(snapshot.state.schools[snapshot.state.userSchoolId]!.name)).toBeVisible();
+    expect(
+      screen.getByText(snapshot.state.schools[snapshot.state.userSchoolId]!.name),
+    ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
   });
 });
