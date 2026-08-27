@@ -30,7 +30,9 @@ export default function App({
     <AppBootstrap
       auth={dependencies.auth}
       api={dependencies.api}
-      renderGame={({ game }) => <GameApp snapshot={game} />}
+      renderGame={({ game, session, auth, api }) => (
+        <GameApp api={api} auth={auth} session={session} snapshot={game} />
+      )}
     />
   );
 }
