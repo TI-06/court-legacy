@@ -10,8 +10,14 @@ async function completeTrainingAndAdvance(
     .getByRole("dialog", { name: "練習内容を確認" })
     .getByRole("button", { name: "この内容で実行" })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "今週の練習結果" }),
+  ).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 }
 
 test("weekly progression surfaces a non-dismissible event with tradeoffs", async ({
