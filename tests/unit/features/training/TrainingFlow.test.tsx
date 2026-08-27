@@ -83,7 +83,7 @@ describe("weekly training bottom-sheet flow", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "今週の練習結果" }),
+      await screen.findByRole("heading", { name: "今週の練習結果" }),
     ).toBeInTheDocument();
     expect(screen.queryAllByTestId("training-result-player")).toHaveLength(0);
     fireEvent.click(screen.getByText("選手別の結果を確認"));
@@ -103,6 +103,7 @@ describe("weekly training bottom-sheet flow", () => {
         { name: "この内容で実行" },
       ),
     );
+    await screen.findByRole("heading", { name: "今週の練習結果" });
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     const nextWeekButton = screen.getByRole("button", {
@@ -111,7 +112,7 @@ describe("weekly training bottom-sheet flow", () => {
     expect(nextWeekButton).toBeEnabled();
     fireEvent.click(nextWeekButton);
 
-    expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
+    expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
     expect(screen.getByRole("button", { name: "練習を実行" })).toBeEnabled();
     expect(
