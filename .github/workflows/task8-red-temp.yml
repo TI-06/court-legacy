@@ -1,18 +1,19 @@
-name: Temporary App Format
+name: Task 9 App Focused Check
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase1
     paths:
+      - src/App.tsx
       - tests/unit/App.test.tsx
       - .github/workflows/task8-red-temp.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  format:
+  focused:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,15 +22,5 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Format App test
-        run: npx prettier tests/unit/App.test.tsx --write
-      - name: Commit formatting when needed
-        run: |
-          if git diff --quiet; then
-            exit 0
-          fi
-          git config user.name "TI-06"
-          git config user.email "iretaku.shop@gmail.com"
-          git add tests/unit/App.test.tsx
-          git commit -m "style: format App integration test"
-          git push
+      - name: Run App composition test
+        run: npm test -- tests/unit/App.test.tsx
