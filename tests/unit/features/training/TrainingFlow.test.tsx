@@ -2,10 +2,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("weekly training bottom-sheet flow", () => {
-  it("opens from the home action and the training navigation", () => {
+  it("opens from the home action and the training navigation", async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: /育成を決める/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /育成を決める/ }));
     expect(
       screen.getByRole("heading", { name: "週間練習" }),
     ).toBeInTheDocument();
@@ -15,9 +15,9 @@ describe("weekly training bottom-sheet flow", () => {
     );
   });
 
-  it("keeps the main screen compact and opens team menus in a bottom sheet", () => {
+  it("keeps the main screen compact and opens team menus in a bottom sheet", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
 
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     expect(screen.queryAllByTestId("team-training-choice")).toHaveLength(0);
@@ -37,9 +37,9 @@ describe("weekly training bottom-sheet flow", () => {
     ).toBeNull();
   });
 
-  it("opens player and instruction pickers without duplicate assignments", () => {
+  it("opens player and instruction pickers without duplicate assignments", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
 
     fireEvent.click(
       screen.getByRole("button", { name: "個人指示2の選手を変更" }),
@@ -68,9 +68,9 @@ describe("weekly training bottom-sheet flow", () => {
     ).toHaveLength(6);
   });
 
-  it("confirms training, executes it once, and keeps detailed results collapsed", () => {
+  it("confirms training, executes it once, and keeps detailed results collapsed", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
 
     fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
     const confirmation = screen.getByRole("dialog", {
@@ -91,9 +91,9 @@ describe("weekly training bottom-sheet flow", () => {
     ).toBeDisabled();
   });
 
-  it("advances to the next week after training and enables training again", () => {
+  it("advances to the next week after training and enables training again", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
     fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
