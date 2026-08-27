@@ -40,33 +40,30 @@ afterEach(async () => {
 });
 
 describe("collectStructureErrors", () => {
-  test(
-    "reports missing required paths and obsolete files or source markers",
-    async () => {
-      const root = await createRoot();
-      await mkdir(join(root, "src"), { recursive: true });
-      await mkdir(join(root, "legacy-dir"), { recursive: true });
-      await writeFile(
-        join(root, "src", "screen.ts"),
-        'export const marker = "OLD_ARCH";\n',
-      );
+  test("reports missing required paths and obsolete files or source markers", async () => {
+    const root = await createRoot();
+    await mkdir(join(root, "src"), { recursive: true });
+    await mkdir(join(root, "legacy-dir"), { recursive: true });
+    await writeFile(
+      join(root, "src", "screen.ts"),
+      'export const marker = "OLD_ARCH";\n',
+    );
 
-      const { collectStructureErrors } = await loadVerifier();
-      const errors = await collectStructureErrors({
-        root,
-        requiredPaths: ["required.txt"],
-        forbiddenPaths: ["legacy-dir"],
-        forbiddenPatterns: ["OLD_ARCH"],
-        scanRoots: ["src"],
-      });
+    const { collectStructureErrors } = await loadVerifier();
+    const errors = await collectStructureErrors({
+      root,
+      requiredPaths: ["required.txt"],
+      forbiddenPaths: ["legacy-dir"],
+      forbiddenPatterns: ["OLD_ARCH"],
+      scanRoots: ["src"],
+    });
 
-      expect(errors).toEqual([
-        "Missing required path: required.txt",
-        "Forbidden path exists: legacy-dir",
-        'Forbidden pattern "OLD_ARCH" found in src/screen.ts',
-      ]);
-    },
-  );
+    expect(errors).toEqual([
+      "Missing required path: required.txt",
+      "Forbidden path exists: legacy-dir",
+      'Forbidden pattern "OLD_ARCH" found in src/screen.ts',
+    ]);
+  });
 
   test("returns no errors when the required structure is clean", async () => {
     const root = await createRoot();
