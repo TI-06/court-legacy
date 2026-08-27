@@ -63,8 +63,7 @@ function overall(player: Player): number {
 
 function informationQuality(observation: number, scoutingNetworkLevel: number) {
   return clamp(
-    clamp(observation, 0, 100) * 0.75 +
-      clamp(scoutingNetworkLevel, 0, 5) * 5,
+    clamp(observation, 0, 100) * 0.75 + clamp(scoutingNetworkLevel, 0, 5) * 5,
     0,
     100,
   );
@@ -188,9 +187,7 @@ function physicalComment(player: Player): string {
   return "現在のポジションで伸びしろがありそう";
 }
 
-export function createScoutReport(
-  input: CreateScoutReportInput,
-): ScoutReport {
+export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
   const quality = informationQuality(
     input.observation,
     input.scoutingNetworkLevel,
@@ -226,7 +223,10 @@ export function createScoutReport(
     estimatedOverall,
     estimatedPotential,
     confidence: confidenceFromQuality(quality),
-    comments: [strongestAbilityComment(input.player), physicalComment(input.player)],
+    comments: [
+      strongestAbilityComment(input.player),
+      physicalComment(input.player),
+    ],
   };
 }
 
