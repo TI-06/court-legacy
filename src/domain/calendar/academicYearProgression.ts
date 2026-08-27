@@ -32,6 +32,10 @@ export interface AdvanceGameWeekResult extends WeekProgressionResult {
   academicYearTransition: AcademicYearTransitionSummary | null;
 }
 
+export interface AcademicYearProgressionOptions {
+  userIntake?: readonly Player[];
+}
+
 function academicYearStartYear(date: GameDate): number {
   const [yearText, monthText] = date.split("-");
   const year = Number(yearText);
@@ -197,10 +201,41 @@ function restoreCanonicalReputation(
   return { ...state, schools };
 }
 
+function prepareCommittedIntake(
+  state: GameState,
+  schoolId: SchoolId,
+  nextAcademicYear: number,
+  candidates: readonly Player[],
+): Player[] {
+  const ids = new Set<PlayerId>();
+
+  return candidates.map((candidate) => {
+    if (candidate.career.schoolId !== schoolId) {
+      throw new Error("committed recruit belongs to another school");
+    }
+    if (ids.has(candidate.id) || state.players[candidate.id]) {
+      throw new Error("committed recruit id is not available");
+    }
+    ids.add(candidate.id);
+
+    const player = structuredClone(candidate) as Player;
+    return {
+      ...player,
+      grade: 1,
+      career: {
+        ...player.career,
+        schoolId,
+        enrolledYear: nextAcademicYear,
+      },
+    };
+  });
+}
+
 export function advanceAcademicYear(
   state: GameState,
   data: GameDataRegistry,
   random: RandomSource,
+  options: AcademicYearProgressionOptions = {},
 ): { state: GameState; summary: AcademicYearTransitionSummary } {
   const nextAcademicYear = state.calendar.academicYear + 1;
   const generationalTalentDue =
@@ -240,28 +275,48 @@ export function advanceAcademicYear(
       }
     }
 
+    const committedIntake =
+      school.id === state.userSchoolId
+        ? prepareCommittedIntake(
+            state,
+            school.id,
+            nextAcademicYear,
+            options.userIntake ?? [],
+          )
+        : [];
     const desiredIntakeCount = random.int(4, 7);
     const minimumIntakeCount = Math.max(0, 12 - returningPlayerIds.length);
     const availableRosterSlots = Math.max(
       0,
       maximumBaseRosterSize - returningPlayerIds.length,
     );
+    if (committedIntake.length > availableRosterSlots) {
+      throw new Error("committed recruits exceed available roster slots");
+    }
     const intakeCount = Math.min(
-      Math.max(desiredIntakeCount, minimumIntakeCount),
+      Math.max(
+        desiredIntakeCount,
+        minimumIntakeCount,
+        committedIntake.length,
+      ),
       availableRosterSlots,
     );
-    const intake = generateIntake({
+    const generatedIntake = generateIntake({
       schoolId: school.id,
       academicYear: nextAcademicYear,
       firstPlayerNumber: playerNumber,
       data,
       random,
-      count: intakeCount,
-      currentPlayers: returningPlayerIds
-        .map((playerId) => players[playerId])
-        .filter((player): player is Player => Boolean(player)),
+      count: intakeCount - committedIntake.length,
+      currentPlayers: [
+        ...returningPlayerIds
+          .map((playerId) => players[playerId])
+          .filter((player): player is Player => Boolean(player)),
+        ...committedIntake,
+      ],
     });
-    playerNumber += intake.length;
+    playerNumber += generatedIntake.length;
+    const intake = [...committedIntake, ...generatedIntake];
     for (const player of intake) {
       players[player.id] = player;
       intakePlayerIds.push(player.id);
@@ -306,6 +361,7 @@ export function advanceAcademicYear(
     players,
     activeMatch: null,
     pendingEvent: null,
+    recruiting: undefined,
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
@@ -391,6 +447,7 @@ export function advanceAcademicYear(
 export function advanceGameWeek(
   state: GameState,
   data: GameDataRegistry,
+  options: AcademicYearProgressionOptions = {},
 ): AdvanceGameWeekResult {
   const weekly = advanceOneWeek(state);
   if (!crossesAcademicYear(state.date, weekly.state.date)) {
@@ -398,7 +455,7 @@ export function advanceGameWeek(
   }
 
   const random = new SeededRandom(weekly.state.seed, weekly.state.randomCursor);
-  const transition = advanceAcademicYear(weekly.state, data, random);
+  const transition = advanceAcademicYear(weekly.state, data, random, options);
   return {
     ...weekly,
     state: transition.state,
