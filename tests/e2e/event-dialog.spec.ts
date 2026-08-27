@@ -43,7 +43,7 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
   await expect(choices).toHaveCount(2);
   await choices.first().click();
   await expect(eventDialog).toBeHidden();
-  await expect(page.getByText("イベント結果を保存済み")).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
   const bodyWidth = await page
     .locator("body")
