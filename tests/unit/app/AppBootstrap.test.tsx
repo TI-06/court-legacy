@@ -33,6 +33,11 @@ function snapshot() {
     schoolShortName: "青葉",
     coachName: "高城 監督",
     regionId: "region.chiba",
+    uniform: {
+      primary: "#17365D",
+      secondary: "#FFFFFF",
+      accent: "#D99B2B",
+    },
   });
   return {
     userId: session.userId,
