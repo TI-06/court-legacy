@@ -69,10 +69,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [moreView, setMoreView] = useState<MoreView>("menu");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [appState, setAppState] = useState(() => ({
-    gameState: snapshot.state,
-    teamSelection: snapshot.teamSelection,
-  }));
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
   const [latestMatchResult, setLatestMatchResult] =
@@ -81,7 +77,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<SimulateMatchResult | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
-  const { gameState, teamSelection } = appState;
+
+  const gameState = cloudSession.snapshot.state;
+  const teamSelection = cloudSession.snapshot.teamSelection;
   const school = gameState.schools[gameState.userSchoolId]!;
   const trainingCompleted = isWeeklyActionCompleted(gameState, "training");
   const practiceMatchCompleted = isWeeklyActionCompleted(
@@ -118,26 +116,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
     if (!response) return;
 
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
     if (response.outcome !== undefined) {
       setLatestTrainingResult(response.outcome as TrainingResult);
     }
   };
 
   const saveTeamSelection = async (selection: TeamSelection) => {
-    const response = await cloudSession.runAction(
+    await cloudSession.runAction(
       { type: "team-selection", selection },
       "スタメンを保存しています…",
     );
-    if (!response) return;
-
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
   };
 
   const openFreshPracticeMatch = () => {
@@ -155,10 +143,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
     if (!response) return;
 
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
     if (response.outcome !== undefined) {
       const simulation = response.outcome as SimulateMatchResult;
       setLatestMatchResult(simulation);
@@ -167,16 +151,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   };
 
   const upgradeSchoolFacility = async (key: FacilityKey) => {
-    const response = await cloudSession.runAction(
+    await cloudSession.runAction(
       { type: "facility-upgrade", facility: key },
       "施設を更新しています…",
     );
-    if (!response) return;
-
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
   };
 
   const advanceWeek = async () => {
@@ -187,10 +165,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
     if (!response) return;
 
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
     setLatestTrainingResult(null);
@@ -200,16 +174,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   };
 
   const chooseEvent = async (choiceId: string) => {
-    const response = await cloudSession.runAction(
+    await cloudSession.runAction(
       { type: "event-choice", choiceId },
       "イベント結果を保存しています…",
     );
-    if (!response) return;
-
-    setAppState({
-      gameState: response.game.state,
-      teamSelection: response.game.teamSelection,
-    });
   };
 
   const content =
