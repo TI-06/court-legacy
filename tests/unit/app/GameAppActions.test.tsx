@@ -68,7 +68,7 @@ describe("GameApp cloud actions", () => {
     const snapshot = createSnapshot();
     let resolveAction: ((response: PersistedOperationResponse) => void) | null =
       null;
-    const applyAction = vi.fn(
+    const applyAction = vi.fn<GameApiClient["applyAction"]>(
       () =>
         new Promise<PersistedOperationResponse>((resolve) => {
           resolveAction = resolve;
