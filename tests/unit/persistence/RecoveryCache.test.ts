@@ -70,7 +70,7 @@ describe("RecoveryCache", () => {
       updatedAt: "2026-08-27T00:02:00.000Z",
     });
 
-    expect(store.records).toHaveSize(2);
+    expect(store.records.size).toBe(2);
     expect((await cache.read("user-1"))?.snapshot.revision).toBe(2);
     expect((await cache.read("user-2"))?.snapshot.revision).toBe(3);
   });
