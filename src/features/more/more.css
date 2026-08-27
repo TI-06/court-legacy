@@ -1,0 +1,105 @@
+.more-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.more-screen__heading {
+  display: grid;
+  gap: 4px;
+}
+
+.more-screen__heading h2,
+.more-screen__heading p {
+  margin: 0;
+}
+
+.more-screen__heading > p:last-child {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 13px;
+}
+
+.more-screen__menu {
+  display: grid;
+  gap: 8px;
+}
+
+.more-screen__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  color: var(--game-text, #f4f7fb);
+  text-align: left;
+  background: linear-gradient(135deg, rgb(16 41 69 / 90%), rgb(8 20 35 / 96%));
+  font: inherit;
+}
+
+.more-screen__item > span:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.more-screen__item strong {
+  font-size: 15px;
+}
+
+.more-screen__item small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.more-screen__item > span:last-child {
+  color: var(--game-accent, #f47a18);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.more-screen__account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 14px;
+  background: rgb(5 11 20 / 58%);
+}
+
+.more-screen__account div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.more-screen__account span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 11px;
+}
+
+.more-screen__account strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more-screen__account button {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .more-screen__account {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
