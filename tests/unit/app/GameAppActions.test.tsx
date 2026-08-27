@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { eventId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { GameApiClient } from "../../../src/services/api/GameApiClient";
 import type {
@@ -229,5 +230,54 @@ describe("GameApp cloud actions", () => {
       action: { type: "advance-week" },
     });
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
+  });
+
+  it("persists an event choice through the server before closing the event", async () => {
+    const snapshot = createSnapshot();
+    const playerId = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+    snapshot.state.pendingEvent = {
+      eventId: eventId("event.first-position-request"),
+      actorPlayerIds: [playerId],
+      targetSchoolId: null,
+      surfacedDate: snapshot.state.date,
+      choiceIds: ["try", "stay"],
+      chainId: null,
+      chainStage: null,
+    };
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) =>
+        responseFor(snapshot, request),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={snapshot}
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "希望ポジション" });
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: /適性を確認する/ }),
+    );
+
+    expect(applyAction).toHaveBeenCalledTimes(1);
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: { type: "event-choice", choiceId: "try" },
+    });
+    expect(
+      await screen.findByRole("status"),
+    ).toHaveTextContent("保存済み ✓");
+    expect(
+      screen.queryByRole("dialog", { name: "希望ポジション" }),
+    ).toBeNull();
   });
 });
