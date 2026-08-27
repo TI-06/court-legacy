@@ -82,7 +82,9 @@ describe("application composition", () => {
       await screen.findByRole("navigation", { name: "主要メニュー" }),
     ).toBeVisible();
     expect(
-      screen.getByText(snapshot.state.schools[snapshot.state.userSchoolId]!.name),
+      screen.getByText(
+        snapshot.state.schools[snapshot.state.userSchoolId]!.name,
+      ),
     ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
   });
