@@ -26,6 +26,8 @@ export interface BrowserAppDependencies {
   api: GameApiClient;
 }
 
+export const E2E_SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
+
 const HARNESS_SESSION: AuthSession = {
   userId: "e2e-user",
   email: "e2e@court-legacy.test",
@@ -41,6 +43,26 @@ function createHarnessSnapshot(): CloudGameSnapshot {
     state,
     teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
   };
+}
+
+function readPersistedHarnessSnapshot(): CloudGameSnapshot | null {
+  try {
+    const raw = globalThis.sessionStorage?.getItem(E2E_SERVER_SNAPSHOT_KEY);
+    return raw ? (JSON.parse(raw) as CloudGameSnapshot) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedHarnessSnapshot(snapshot: CloudGameSnapshot): void {
+  try {
+    globalThis.sessionStorage?.setItem(
+      E2E_SERVER_SNAPSHOT_KEY,
+      JSON.stringify(snapshot),
+    );
+  } catch {
+    // E2E persistence is only a browser test adapter; in-memory state still works.
+  }
 }
 
 class StaticAuthClient implements AuthClient {
@@ -60,11 +82,27 @@ class StaticAuthClient implements AuthClient {
 }
 
 class StaticGameApiClient implements GameApiClient {
-  private snapshot = createHarnessSnapshot();
+  private snapshot: CloudGameSnapshot;
   private readonly operationResponses = new Map<
     string,
     PersistedOperationResponse
   >();
+
+  constructor(private readonly persistAcrossReloads: boolean) {
+    this.snapshot =
+      (persistAcrossReloads ? readPersistedHarnessSnapshot() : null) ??
+      createHarnessSnapshot();
+    if (persistAcrossReloads) {
+      writePersistedHarnessSnapshot(this.snapshot);
+    }
+  }
+
+  private replaceSnapshot(next: CloudGameSnapshot): void {
+    this.snapshot = next;
+    if (this.persistAcrossReloads) {
+      writePersistedHarnessSnapshot(next);
+    }
+  }
 
   async bootstrap() {
     return { status: "ready" as const, game: this.snapshot };
@@ -88,12 +126,12 @@ class StaticGameApiClient implements GameApiClient {
     }
 
     const applied = applyGameAction(this.snapshot, request.action);
-    this.snapshot = {
+    this.replaceSnapshot({
       ...this.snapshot,
       revision: this.snapshot.revision + 1,
       state: applied.state,
       teamSelection: applied.teamSelection,
-    };
+    });
     const response: PersistedOperationResponse = {
       game: this.snapshot,
       operationId: request.operationId,
@@ -150,7 +188,7 @@ export function createBrowserAppDependencies(
   if (env.MODE === "test" || env.VITE_E2E_AUTH_BYPASS === "true") {
     return {
       auth: new StaticAuthClient(),
-      api: new StaticGameApiClient(),
+      api: new StaticGameApiClient(env.VITE_E2E_AUTH_BYPASS === "true"),
     };
   }
 
