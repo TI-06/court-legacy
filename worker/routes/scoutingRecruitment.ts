@@ -149,8 +149,7 @@ export function createScoutingRecruitmentHandler(
       return candidateAlreadyCommitted();
     }
     if (
-      currentCommitments.length >=
-      projectedRecruitmentCapacity(snapshot.state)
+      currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)
     ) {
       return recruitmentCapacityReached();
     }
