@@ -45,6 +45,11 @@ export interface GameHistory {
   schoolRecordValues: Record<string, number>;
 }
 
+export interface RecruitingState {
+  cycleKey: string;
+  committedCandidateIds: PlayerId[];
+}
+
 export interface GameState {
   schemaVersion: number;
   seed: string;
@@ -62,6 +67,7 @@ export interface GameState {
   eventMemory: EventMemory;
   settings: GameSettings;
   world: WorldState;
+  recruiting?: RecruitingState;
 }
 
 export const CURRENT_GAME_SCHEMA_VERSION = 2;
