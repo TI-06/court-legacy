@@ -3,12 +3,17 @@ import { expect, test } from "@playwright/test";
 const AUTH_STATE_KEY = "court-legacy:e2e-auth-state";
 const GAME_STATE_KEY = "court-legacy:e2e-game-state";
 const SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
+const FLOW_INITIALIZED_KEY = "court-legacy:e2e-flow-initialized";
 
 test("login, onboarding, mutation, and reload keep the cloud game", async ({
   page,
 }) => {
   await page.addInitScript(
-    ({ authStateKey, gameStateKey, snapshotKey }) => {
+    ({ authStateKey, gameStateKey, snapshotKey, flowInitializedKey }) => {
+      if (sessionStorage.getItem(flowInitializedKey) === "true") {
+        return;
+      }
+      sessionStorage.setItem(flowInitializedKey, "true");
       sessionStorage.setItem(authStateKey, "signed-out");
       sessionStorage.setItem(gameStateKey, "needs-onboarding");
       sessionStorage.removeItem(snapshotKey);
@@ -17,6 +22,7 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
       authStateKey: AUTH_STATE_KEY,
       gameStateKey: GAME_STATE_KEY,
       snapshotKey: SNAPSHOT_KEY,
+      flowInitializedKey: FLOW_INITIALIZED_KEY,
     },
   );
 
