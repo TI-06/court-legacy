@@ -25,7 +25,11 @@ export interface ScoutingBoardHandlerDependencies {
 }
 
 function invalidRequest(): Response {
-  return jsonError(400, "invalid_scouting_request", "スカウト条件を確認してください");
+  return jsonError(
+    400,
+    "invalid_scouting_request",
+    "スカウト条件を確認してください",
+  );
 }
 
 function revisionConflict(): Response {
