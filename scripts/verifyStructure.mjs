@@ -114,7 +114,8 @@ const forbiddenPatterns = [
 ];
 
 const isDirectExecution =
-  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isDirectExecution) {
   const errors = await collectStructureErrors({
