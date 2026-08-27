@@ -110,4 +110,38 @@ describe("GameApp cloud actions", () => {
     ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
   });
+
+  it("requests a practice match from the server and renders only its returned simulation", async () => {
+    const snapshot = createSnapshot();
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) =>
+        responseFor(snapshot, request),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={snapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
+    fireEvent.click(screen.getByRole("button", { name: "試合開始" }));
+
+    expect(applyAction).toHaveBeenCalledTimes(1);
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: { type: "practice-match" },
+    });
+    expect(
+      await screen.findByRole("heading", { name: "試合ダイジェスト" }),
+    ).toBeVisible();
+  });
 });
