@@ -5,7 +5,8 @@ describe("school and calendar app integration", () => {
   it("opens school management and keeps a facility upgrade in app state", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "学校" }));
+    fireEvent.click(await screen.findByRole("button", { name: "その他" }));
+    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
     expect(
       screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
@@ -70,6 +71,6 @@ describe("school and calendar app integration", () => {
     expect(
       screen.getByRole("heading", { name: "監督ホーム" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2026年4月8日")).toBeInTheDocument();
+    expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
   });
 });
