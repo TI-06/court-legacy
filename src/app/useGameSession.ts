@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import type {
   GameAction,
@@ -54,112 +54,106 @@ export function useGameSession({
     status: "idle",
   });
 
-  const replaceSnapshot = useCallback((next: CloudGameSnapshot) => {
+  function replaceSnapshot(next: CloudGameSnapshot): void {
     snapshotRef.current = next;
     setSnapshot(next);
-  }, []);
+  }
 
-  const writeRecovery = useCallback(
-    async (
-      nextSnapshot: CloudGameSnapshot,
-      pendingOperation: GameActionRequest | null,
-    ) => {
-      try {
-        await recoveryCache.write({
-          userId: nextSnapshot.userId,
-          snapshot: nextSnapshot,
-          pendingOperation,
-          updatedAt: new Date().toISOString(),
-        });
-      } catch {
-        // The cloud remains authoritative even if the local recovery cache fails.
-      }
-    },
-    [recoveryCache],
-  );
-
-  const submitRequest = useCallback(
-    async (
-      request: GameActionRequest,
-      label: string,
-    ): Promise<GameActionResponse | null> => {
-      setOperation({
-        status: "submitting",
-        label,
-        operationId: request.operationId,
+  async function writeRecovery(
+    nextSnapshot: CloudGameSnapshot,
+    pendingOperation: GameActionRequest | null,
+  ): Promise<void> {
+    try {
+      await recoveryCache.write({
+        userId: nextSnapshot.userId,
+        snapshot: nextSnapshot,
+        pendingOperation,
+        updatedAt: new Date().toISOString(),
       });
+    } catch {
+      // The cloud remains authoritative even if the local recovery cache fails.
+    }
+  }
 
-      try {
-        const response = await api.applyAction(accessToken, request);
-        replaceSnapshot(response.game);
-        await writeRecovery(response.game, null);
-        setOperation({ status: "success", label });
-        return response;
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 409) {
-          try {
-            const latest = await api.bootstrap(accessToken);
-            if (latest.status === "ready") {
-              replaceSnapshot(latest.game);
-              await writeRecovery(latest.game, null);
-            }
-          } catch {
-            // The conflict itself remains visible even if the refresh also fails.
+  async function submitRequest(
+    request: GameActionRequest,
+    label: string,
+  ): Promise<GameActionResponse | null> {
+    setOperation({
+      status: "submitting",
+      label,
+      operationId: request.operationId,
+    });
+
+    try {
+      const response = await api.applyAction(accessToken, request);
+      replaceSnapshot(response.game);
+      await writeRecovery(response.game, null);
+      setOperation({ status: "success", label });
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        try {
+          const latest = await api.bootstrap(accessToken);
+          if (latest.status === "ready") {
+            replaceSnapshot(latest.game);
+            await writeRecovery(latest.game, null);
           }
-          setOperation({
-            status: "error",
-            label: "他の端末の更新を読み込みました。もう一度実行してください",
-            retry: () => {
-              const current = snapshotRef.current;
-              void submitRequest(
-                {
-                  operationId: createOperationId(),
-                  revision: current.revision,
-                  action: request.action,
-                },
-                label,
-              );
-            },
-          });
-          return null;
+        } catch {
+          // The conflict itself remains visible even if the refresh also fails.
         }
-
-        if (isNetworkAmbiguous(error) || isServerAmbiguous(error)) {
-          await writeRecovery(snapshotRef.current, request);
-          const retry = () => void submitRequest(request, label);
-          setOperation(
-            isNetworkAmbiguous(error)
-              ? { status: "offline", label, retry }
-              : { status: "error", label: "保存に失敗しました", retry },
-          );
-          return null;
-        }
-
         setOperation({
           status: "error",
-          label: error instanceof Error ? error.message : "保存に失敗しました",
-          retry: () => void submitRequest(request, label),
+          label: "他の端末の更新を読み込みました。もう一度実行してください",
+          retry: () => {
+            const current = snapshotRef.current;
+            void submitRequest(
+              {
+                operationId: createOperationId(),
+                revision: current.revision,
+                action: request.action,
+              },
+              label,
+            );
+          },
         });
         return null;
       }
-    },
-    [accessToken, api, createOperationId, replaceSnapshot, writeRecovery],
-  );
 
-  const runAction = useCallback(
-    (action: GameAction, label: string) => {
-      const current = snapshotRef.current;
-      return submitRequest(
-        {
-          operationId: createOperationId(),
-          revision: current.revision,
-          action,
-        },
-        label,
-      );
-    },
-    [createOperationId, submitRequest],
-  );
+      if (isNetworkAmbiguous(error) || isServerAmbiguous(error)) {
+        await writeRecovery(snapshotRef.current, request);
+        const retry = () => void submitRequest(request, label);
+        setOperation(
+          isNetworkAmbiguous(error)
+            ? { status: "offline", label, retry }
+            : { status: "error", label: "保存に失敗しました", retry },
+        );
+        return null;
+      }
+
+      setOperation({
+        status: "error",
+        label: error instanceof Error ? error.message : "保存に失敗しました",
+        retry: () => void submitRequest(request, label),
+      });
+      return null;
+    }
+  }
+
+  function runAction(
+    action: GameAction,
+    label: string,
+  ): Promise<GameActionResponse | null> {
+    const current = snapshotRef.current;
+    return submitRequest(
+      {
+        operationId: createOperationId(),
+        revision: current.revision,
+        action,
+      },
+      label,
+    );
+  }
 
   return { snapshot, operation, runAction };
 }
