@@ -54,7 +54,9 @@ describe("HttpGameApiClient", () => {
       regionId: "region.chiba",
     } as const;
 
-    const error = await api.onboard("access-token", input).catch((reason) => reason);
+    const error = await api
+      .onboard("access-token", input)
+      .catch((reason) => reason);
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({
@@ -72,12 +74,14 @@ describe("HttpGameApiClient", () => {
   });
 
   it("maps authentication failures to a safe typed error", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(
-      jsonResponse(
-        { error: { code: "unauthorized", message: "認証が必要です" } },
-        401,
-      ),
-    );
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(
+          { error: { code: "unauthorized", message: "認証が必要です" } },
+          401,
+        ),
+      );
     const api = new HttpGameApiClient(fetchImpl);
 
     await expect(api.bootstrap("expired-token")).rejects.toMatchObject({
@@ -88,7 +92,9 @@ describe("HttpGameApiClient", () => {
   });
 
   it("maps network failures without leaking the raw error", async () => {
-    const fetchImpl = vi.fn().mockRejectedValue(new Error("socket ECONNRESET secret"));
+    const fetchImpl = vi
+      .fn()
+      .mockRejectedValue(new Error("socket ECONNRESET secret"));
     const api = new HttpGameApiClient(fetchImpl);
 
     await expect(api.bootstrap("access-token")).rejects.toMatchObject({

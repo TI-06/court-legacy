@@ -3,9 +3,20 @@ import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import { LoginScreen } from "../features/auth/LoginScreen";
 import { SchoolSetupScreen } from "../features/onboarding/SchoolSetupScreen";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
-import { ApiError, type GameApiClient, type OnboardingInput } from "../services/api/GameApiClient";
+import {
+  ApiError,
+  type GameApiClient,
+  type OnboardingInput,
+} from "../services/api/GameApiClient";
 
-export type AppBootstrapStatus = "checking-auth" | "signed-out" | "loading-cloud" | "needs-onboarding" | "ready" | "offline-cache" | "fatal-error";
+export type AppBootstrapStatus =
+  | "checking-auth"
+  | "signed-out"
+  | "loading-cloud"
+  | "needs-onboarding"
+  | "ready"
+  | "offline-cache"
+  | "fatal-error";
 
 export interface AppBootstrapGameProps {
   game: CloudGameSnapshot;
@@ -30,7 +41,9 @@ type BootstrapViewState =
   | { status: "fatal-error"; session: AuthSession | null; message: string };
 
 export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
-  const [view, setView] = useState<BootstrapViewState>({ status: "checking-auth" });
+  const [view, setView] = useState<BootstrapViewState>({
+    status: "checking-auth",
+  });
   const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -43,16 +56,34 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       controllerRef.current = controller;
       setView({ status: "loading-cloud", session });
       try {
-        const response = await api.bootstrap(session.accessToken, controller.signal);
+        const response = await api.bootstrap(
+          session.accessToken,
+          controller.signal,
+        );
         if (!active || controller.signal.aborted) return;
-        setView(response.status === "ready" ? { status: "ready", session, game: response.game } : { status: "needs-onboarding", session });
+        setView(
+          response.status === "ready"
+            ? { status: "ready", session, game: response.game }
+            : { status: "needs-onboarding", session },
+        );
       } catch (error) {
         if (!active || controller.signal.aborted) return;
         if (error instanceof ApiError && error.code === "network_error") {
-          setView({ status: "offline-cache", session, message: "クラウドに接続できませんでした" });
+          setView({
+            status: "offline-cache",
+            session,
+            message: "クラウドに接続できませんでした",
+          });
           return;
         }
-        setView({ status: "fatal-error", session, message: error instanceof ApiError ? error.message : "学校データを読み込めませんでした" });
+        setView({
+          status: "fatal-error",
+          session,
+          message:
+            error instanceof ApiError
+              ? error.message
+              : "学校データを読み込めませんでした",
+        });
       }
     };
 
@@ -70,11 +101,22 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       applySession(session);
     });
 
-    void auth.getSession().then((session) => {
-      if (active && authRevision === 0) applySession(session);
-    }).catch((error) => {
-      if (active && authRevision === 0) setView({ status: "fatal-error", session: null, message: error instanceof Error ? error.message : "アカウントを確認できませんでした" });
-    });
+    void auth
+      .getSession()
+      .then((session) => {
+        if (active && authRevision === 0) applySession(session);
+      })
+      .catch((error) => {
+        if (active && authRevision === 0)
+          setView({
+            status: "fatal-error",
+            session: null,
+            message:
+              error instanceof Error
+                ? error.message
+                : "アカウントを確認できませんでした",
+          });
+      });
 
     return () => {
       active = false;
@@ -84,16 +126,31 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
   }, [api, auth]);
 
   const onboard = async (input: OnboardingInput) => {
-    if (view.status !== "needs-onboarding") throw new Error("onboarding is not available");
+    if (view.status !== "needs-onboarding")
+      throw new Error("onboarding is not available");
     const response = await api.onboard(view.session.accessToken, input);
     setView({ status: "ready", session: view.session, game: response.game });
   };
 
-  if (view.status === "checking-auth") return <div className="app-bootstrap-status" role="status">アカウントを確認しています…</div>;
+  if (view.status === "checking-auth")
+    return (
+      <div className="app-bootstrap-status" role="status">
+        アカウントを確認しています…
+      </div>
+    );
   if (view.status === "signed-out") return <LoginScreen authClient={auth} />;
-  if (view.status === "loading-cloud") return <div className="app-bootstrap-status" role="status">学校データを読み込んでいます…</div>;
-  if (view.status === "needs-onboarding") return <SchoolSetupScreen onSubmit={onboard} />;
-  if (view.status === "ready") return <>{renderGame({ game: view.game, session: view.session, auth, api })}</>;
+  if (view.status === "loading-cloud")
+    return (
+      <div className="app-bootstrap-status" role="status">
+        学校データを読み込んでいます…
+      </div>
+    );
+  if (view.status === "needs-onboarding")
+    return <SchoolSetupScreen onSubmit={onboard} />;
+  if (view.status === "ready")
+    return (
+      <>{renderGame({ game: view.game, session: view.session, auth, api })}</>
+    );
 
   const retry = () => {
     if (view.session) {
@@ -102,14 +159,42 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       const controller = new AbortController();
       controllerRef.current?.abort();
       controllerRef.current = controller;
-      void api.bootstrap(session.accessToken, controller.signal).then((response) => {
-        if (controller.signal.aborted) return;
-        setView(response.status === "ready" ? { status: "ready", session, game: response.game } : { status: "needs-onboarding", session });
-      }).catch(() => {
-        if (!controller.signal.aborted) setView({ status: "offline-cache", session, message: "クラウドに接続できませんでした" });
-      });
+      void api
+        .bootstrap(session.accessToken, controller.signal)
+        .then((response) => {
+          if (controller.signal.aborted) return;
+          setView(
+            response.status === "ready"
+              ? { status: "ready", session, game: response.game }
+              : { status: "needs-onboarding", session },
+          );
+        })
+        .catch(() => {
+          if (!controller.signal.aborted)
+            setView({
+              status: "offline-cache",
+              session,
+              message: "クラウドに接続できませんでした",
+            });
+        });
     }
   };
 
-  return <main className="app-bootstrap-error"><section><h1>ゲームを開始できません</h1><p>{view.message}</p>{view.session ? <button onClick={retry} type="button">再試行</button> : <button onClick={() => globalThis.location.reload()} type="button">再読み込み</button>}</section></main>;
+  return (
+    <main className="app-bootstrap-error">
+      <section>
+        <h1>ゲームを開始できません</h1>
+        <p>{view.message}</p>
+        {view.session ? (
+          <button onClick={retry} type="button">
+            再試行
+          </button>
+        ) : (
+          <button onClick={() => globalThis.location.reload()} type="button">
+            再読み込み
+          </button>
+        )}
+      </section>
+    </main>
+  );
 }

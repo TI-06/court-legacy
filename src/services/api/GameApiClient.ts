@@ -5,8 +5,7 @@ import type {
 } from "../../../worker/game/actionSchema";
 
 export type BootstrapResponse =
-  | { status: "needs-onboarding" }
-  | { status: "ready"; game: CloudGameSnapshot };
+  { status: "needs-onboarding" } | { status: "ready"; game: CloudGameSnapshot };
 
 export interface ReadyBootstrapResponse {
   status: "ready";

@@ -10,6 +10,7 @@ interface ApplicationRootProps {
 }
 
 export function ApplicationRoot({ auth, api }: ApplicationRootProps = {}) {
-  if (!gameDataBootstrap.ok) return <GameDataErrorScreen message={gameDataBootstrap.message} />;
+  if (!gameDataBootstrap.ok)
+    return <GameDataErrorScreen message={gameDataBootstrap.message} />;
   return <App auth={auth} api={api} />;
 }

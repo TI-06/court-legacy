@@ -4,7 +4,10 @@ import { createInitialGame } from "../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { AppBootstrapGameProps } from "../../../src/app/AppBootstrap";
 import { AppBootstrap } from "../../../src/app/AppBootstrap";
-import type { AuthClient, AuthSession } from "../../../src/services/auth/AuthClient";
+import type {
+  AuthClient,
+  AuthSession,
+} from "../../../src/services/auth/AuthClient";
 import type { GameApiClient } from "../../../src/services/api/GameApiClient";
 
 function deferred<T>() {
@@ -105,7 +108,9 @@ describe("AppBootstrap", () => {
 
     await act(async () => bootstrap.resolve({ status: "needs-onboarding" }));
 
-    expect(await screen.findByRole("heading", { name: "学校をつくる" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "学校をつくる" }),
+    ).toBeVisible();
   });
 
   it("enters the game after successful onboarding", async () => {
