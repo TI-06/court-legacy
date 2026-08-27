@@ -20,7 +20,11 @@ export function MoreScreen({
       </section>
 
       <section className="more-screen__menu" aria-label="その他のメニュー">
-        <button className="more-screen__item" onClick={onOpenSchool} type="button">
+        <button
+          className="more-screen__item"
+          onClick={onOpenSchool}
+          type="button"
+        >
           <span>
             <strong>学校管理</strong>
             <small>施設・資金・学校情報を確認</small>
