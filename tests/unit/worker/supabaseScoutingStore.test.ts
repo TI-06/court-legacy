@@ -53,10 +53,7 @@ describe("SupabaseScoutingStore", () => {
     });
     const store = new SupabaseScoutingStore(fake.client);
 
-    const pool = await store.getCandidatePool(
-      "user-123",
-      "school-user:year-3",
-    );
+    const pool = await store.getCandidatePool("user-123", "school-user:year-3");
 
     expect(fake.from).toHaveBeenCalledWith("scouting_candidate_pools");
     expect(fake.firstEq).toHaveBeenCalledWith("user_id", "user-123");
