@@ -105,7 +105,11 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
             type="email"
             value={email}
           />
-          <button className="login-email__submit" disabled={emailPending} type="submit">
+          <button
+            className="login-email__submit"
+            disabled={emailPending}
+            type="submit"
+          >
             {emailPending ? "メールを送信中" : "メールでログイン"}
           </button>
         </form>

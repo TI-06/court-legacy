@@ -18,16 +18,14 @@ export interface SupabaseAuthPort {
     data: { session: SupabaseSessionLike | null };
     error: Error | null;
   }>;
-  onAuthStateChange(
-    listener: (session: SupabaseSessionLike | null) => void,
-  ): { data: { subscription: { unsubscribe(): void } } };
+  onAuthStateChange(listener: (session: SupabaseSessionLike | null) => void): {
+    data: { subscription: { unsubscribe(): void } };
+  };
   signInWithEmailOtp(input: {
     email: string;
     emailRedirectTo: string;
   }): Promise<SupabaseResult>;
-  signInWithGoogleOAuth(input: {
-    redirectTo: string;
-  }): Promise<SupabaseResult>;
+  signInWithGoogleOAuth(input: { redirectTo: string }): Promise<SupabaseResult>;
   signOut(): Promise<SupabaseResult>;
 }
 

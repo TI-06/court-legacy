@@ -70,8 +70,7 @@ describe("SupabaseAuthClient", () => {
 
   it("maps auth state changes and returns an unsubscribe function", () => {
     let authListener:
-      | ((session: typeof supabaseSession | null) => void)
-      | undefined;
+      ((session: typeof supabaseSession | null) => void) | undefined;
     const unsubscribe = vi.fn();
     const onAuthStateChange = vi.fn((listener) => {
       authListener = listener;

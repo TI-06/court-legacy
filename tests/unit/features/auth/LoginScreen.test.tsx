@@ -40,9 +40,7 @@ describe("LoginScreen", () => {
   it("shows Google progress immediately without disabling email login", async () => {
     const pending = deferred<void>();
     const signInWithGoogle = vi.fn(() => pending.promise);
-    render(
-      <LoginScreen authClient={authClient({ signInWithGoogle })} />,
-    );
+    render(<LoginScreen authClient={authClient({ signInWithGoogle })} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Googleで始める" }));
 
