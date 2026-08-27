@@ -5,6 +5,7 @@ import type {
 import type { GameStore } from "./data/GameStore";
 import { json, jsonError } from "./http/json";
 import { createBootstrapHandler } from "./routes/bootstrap";
+import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
 
 export type AuthenticatedRequestHandler = (
@@ -40,6 +41,7 @@ export function createRouter(
     store: deps.store,
     createCreationNonce: deps.createCreationNonce,
   });
+  const gameAction = createGameActionHandler(deps.store);
 
   return async (request) => {
     const url = new URL(request.url);
@@ -74,6 +76,9 @@ export function createRouter(
       }
       if (url.pathname === "/api/onboarding" && request.method === "POST") {
         return await onboarding(request, user);
+      }
+      if (url.pathname === "/api/game/action" && request.method === "POST") {
+        return await gameAction(request, user);
       }
       return notFound();
     } catch {

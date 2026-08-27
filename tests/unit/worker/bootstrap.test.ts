@@ -33,6 +33,7 @@ function createSnapshot(userId = "user-123"): CloudGameSnapshot {
 function createStore(snapshot: CloudGameSnapshot | null): GameStore {
   return {
     getSnapshot: vi.fn(async () => snapshot),
+    getOperationResponse: vi.fn(async () => null),
     createGame: vi.fn(async () => {
       throw new Error("not used");
     }),

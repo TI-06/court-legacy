@@ -14,6 +14,8 @@ function createLazyGameStore(env: Env): GameStore {
 
   return {
     getSnapshot: (userId) => store().getSnapshot(userId),
+    getOperationResponse: (userId, operationId) =>
+      store().getOperationResponse(userId, operationId),
     createGame: (input) => store().createGame(input),
     applyOperation: (input) => store().applyOperation(input),
   };

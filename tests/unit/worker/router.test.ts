@@ -9,6 +9,7 @@ function apiRequest(path: string, init?: RequestInit): Request {
 function createStore(): GameStore {
   return {
     getSnapshot: vi.fn(async () => null),
+    getOperationResponse: vi.fn(async () => null),
     createGame: vi.fn(async () => {
       throw new Error("not used");
     }),

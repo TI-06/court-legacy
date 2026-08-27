@@ -9,6 +9,12 @@ export interface CloudGameSnapshot {
   teamSelection: TeamSelection;
 }
 
+export interface PersistedOperationResponse {
+  game: CloudGameSnapshot;
+  operationId: string;
+  outcome?: unknown;
+}
+
 export interface CreateCloudGameInput {
   userId: string;
   displayName: string;
@@ -26,19 +32,35 @@ export interface PersistOperationInput {
   expectedRevision: number;
   state: GameState;
   teamSelection: TeamSelection;
-  response: Record<string, unknown>;
+  response: PersistedOperationResponse;
+}
+
+export interface PersistOperationResult {
+  response: PersistedOperationResponse;
+  replayed: boolean;
 }
 
 export interface GameStore {
   getSnapshot(userId: string): Promise<CloudGameSnapshot | null>;
+  getOperationResponse(
+    userId: string,
+    operationId: string,
+  ): Promise<PersistedOperationResponse | null>;
   createGame(input: CreateCloudGameInput): Promise<CloudGameSnapshot>;
-  applyOperation(input: PersistOperationInput): Promise<CloudGameSnapshot>;
+  applyOperation(input: PersistOperationInput): Promise<PersistOperationResult>;
 }
 
 export class GameAlreadyExistsError extends Error {
   constructor() {
     super("game already exists");
     this.name = "GameAlreadyExistsError";
+  }
+}
+
+export class RevisionConflictError extends Error {
+  constructor() {
+    super("revision conflict");
+    this.name = "RevisionConflictError";
   }
 }
 

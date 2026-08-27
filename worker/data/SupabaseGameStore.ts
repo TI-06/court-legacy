@@ -7,9 +7,15 @@ import type {
   CloudGameSnapshot,
   CreateCloudGameInput,
   GameStore,
+  PersistedOperationResponse,
   PersistOperationInput,
+  PersistOperationResult,
 } from "./GameStore";
-import { GameAlreadyExistsError, GameStoreDataError } from "./GameStore";
+import {
+  GameAlreadyExistsError,
+  GameStoreDataError,
+  RevisionConflictError,
+} from "./GameStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
 
 const rotationSlotSchema = z.union([
@@ -55,6 +61,19 @@ const createGameRpcSchema = z
     z.object({
       school_id: z.string().min(1),
       revision: z.number().int().positive(),
+    }),
+  )
+  .min(1);
+
+const storedOperationSchema = z.object({
+  response: z.unknown(),
+});
+
+const applyOperationRpcSchema = z
+  .array(
+    z.object({
+      response: z.unknown(),
+      replayed: z.boolean(),
     }),
   )
   .min(1);
@@ -118,6 +137,54 @@ function mapSnapshot(value: unknown): CloudGameSnapshot {
   };
 }
 
+function mapOperationResponse(value: unknown): PersistedOperationResponse {
+  const parsed = z
+    .object({
+      operationId: z.string().min(1),
+      game: z.object({
+        userId: z.string().min(1),
+        schoolDbId: z.string().min(1),
+        revision: z.number().int().positive(),
+        state: z.unknown(),
+        teamSelection: z.unknown(),
+      }),
+      outcome: z.unknown().optional(),
+    })
+    .safeParse(value);
+  if (!parsed.success) {
+    throw new GameStoreDataError("stored operation response is invalid", {
+      cause: parsed.error,
+    });
+  }
+
+  const state = decodeStoredState(parsed.data.game.state);
+  const teamSelection = decodeStoredSelection(
+    parsed.data.game.teamSelection,
+    state,
+  );
+  const response: PersistedOperationResponse = {
+    operationId: parsed.data.operationId,
+    game: {
+      userId: parsed.data.game.userId,
+      schoolDbId: parsed.data.game.schoolDbId,
+      revision: parsed.data.game.revision,
+      state,
+      teamSelection,
+    },
+  };
+  if (parsed.data.outcome !== undefined) {
+    response.outcome = parsed.data.outcome;
+  }
+  return response;
+}
+
+function isRevisionConflict(error: { code?: string; message?: string }): boolean {
+  return (
+    error.message?.includes("revision_conflict") === true ||
+    error.code === "40001"
+  );
+}
+
 export class SupabaseGameStore implements GameStore {
   constructor(private readonly client: SupabaseAdminClient) {}
 
@@ -136,6 +203,35 @@ export class SupabaseGameStore implements GameStore {
     }
 
     return mapSnapshot(data);
+  }
+
+  async getOperationResponse(
+    userId: string,
+    operationId: string,
+  ): Promise<PersistedOperationResponse | null> {
+    const { data, error } = await this.client
+      .from("game_operations")
+      .select("response")
+      .eq("user_id", userId)
+      .eq("operation_id", operationId)
+      .maybeSingle();
+
+    if (error) {
+      throw new GameStoreDataError("operation replay lookup failed", {
+        cause: error,
+      });
+    }
+    if (!data) {
+      return null;
+    }
+
+    const row = storedOperationSchema.safeParse(data);
+    if (!row.success) {
+      throw new GameStoreDataError("stored operation row is invalid", {
+        cause: row.error,
+      });
+    }
+    return mapOperationResponse(row.data.response);
   }
 
   async createGame(input: CreateCloudGameInput): Promise<CloudGameSnapshot> {
@@ -178,8 +274,36 @@ export class SupabaseGameStore implements GameStore {
 
   async applyOperation(
     input: PersistOperationInput,
-  ): Promise<CloudGameSnapshot> {
-    void input;
-    throw new Error("revisioned game operations are not enabled yet");
+  ): Promise<PersistOperationResult> {
+    const { data, error } = await this.client.rpc("apply_game_operation", {
+      p_user_id: input.userId,
+      p_operation_id: input.operationId,
+      p_expected_revision: input.expectedRevision,
+      p_state: input.state,
+      p_team_selection: input.teamSelection,
+      p_response: input.response,
+    });
+
+    if (error && isRevisionConflict(error)) {
+      throw new RevisionConflictError();
+    }
+    if (error) {
+      throw new GameStoreDataError("cloud game operation failed", {
+        cause: error,
+      });
+    }
+
+    const parsed = applyOperationRpcSchema.safeParse(data);
+    if (!parsed.success) {
+      throw new GameStoreDataError("game operation response is invalid", {
+        cause: parsed.error,
+      });
+    }
+
+    const result = parsed.data[0]!;
+    return {
+      response: mapOperationResponse(result.response),
+      replayed: result.replayed,
+    };
   }
 }
