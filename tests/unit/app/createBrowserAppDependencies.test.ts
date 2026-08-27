@@ -8,9 +8,9 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(initial.status).toBe("ready");
     if (initial.status !== "ready") return;
     expect(initial.game.revision).toBe(1);
-    expect(initial.game.state.schools[initial.game.state.userSchoolId]!.funds).toBe(
-      300,
-    );
+    expect(
+      initial.game.state.schools[initial.game.state.userSchoolId]!.funds,
+    ).toBe(300);
 
     const response = await api.applyAction("e2e-access-token", {
       operationId: "op-facility-1",

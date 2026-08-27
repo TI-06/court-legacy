@@ -237,7 +237,8 @@ describe("GameApp cloud actions", () => {
 
   it("persists an event choice through the server before closing the event", async () => {
     const snapshot = createSnapshot();
-    const playerId = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+    const playerId =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
     snapshot.state.pendingEvent = {
       eventId: eventId("event.first-position-request"),
       actorPlayerIds: [playerId],
@@ -277,9 +278,7 @@ describe("GameApp cloud actions", () => {
       action: { type: "event-choice", choiceId: "try" },
     });
     expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
-    expect(
-      screen.queryByRole("dialog", { name: "希望ポジション" }),
-    ).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "希望ポジション" })).toBeNull();
   });
 
   it("persists team selection changes through the server before adopting them", async () => {
@@ -330,7 +329,9 @@ describe("GameApp cloud actions", () => {
     refreshed.revision = 7;
     refreshed.state.schools[refreshed.state.userSchoolId]!.funds = 777;
     const api: GameApiClient = {
-      bootstrap: vi.fn().mockResolvedValue({ status: "ready", game: refreshed }),
+      bootstrap: vi
+        .fn()
+        .mockResolvedValue({ status: "ready", game: refreshed }),
       onboard: vi.fn(),
       applyAction: vi
         .fn()
