@@ -294,11 +294,7 @@ export function advanceAcademicYear(
       throw new Error("committed recruits exceed available roster slots");
     }
     const intakeCount = Math.min(
-      Math.max(
-        desiredIntakeCount,
-        minimumIntakeCount,
-        committedIntake.length,
-      ),
+      Math.max(desiredIntakeCount, minimumIntakeCount, committedIntake.length),
       availableRosterSlots,
     );
     const generatedIntake = generateIntake({
