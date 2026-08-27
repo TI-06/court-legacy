@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type { CloudGameSnapshot, GameStore } from "../../../worker/data/GameStore";
+import type {
+  CloudGameSnapshot,
+  GameStore,
+} from "../../../worker/data/GameStore";
 import type {
   ScoutingCandidatePool,
   ScoutingStore,
@@ -103,13 +106,21 @@ describe("scouting board route", () => {
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(6);
     expect(scoutingStore.savedPool?.candidates[0]?.player.tier).toBeTruthy();
-    expect(scoutingStore.savedPool?.candidates[0]?.player.abilities).toBeTruthy();
+    expect(
+      scoutingStore.savedPool?.candidates[0]?.player.abilities,
+    ).toBeTruthy();
 
     const body = await response.json();
     expect(body.operationId).toBe("scouting-board-001");
     expect(body.revision).toBe(7);
     expect(body.reports).toHaveLength(6);
-    expect(new Set(body.reports.map((report: { candidateId: string }) => report.candidateId)).size).toBe(6);
+    expect(
+      new Set(
+        body.reports.map(
+          (report: { candidateId: string }) => report.candidateId,
+        ),
+      ).size,
+    ).toBe(6);
 
     const serialized = JSON.stringify(body);
     expect(serialized).not.toContain('"tier"');
@@ -125,7 +136,9 @@ describe("scouting board route", () => {
     const scoutingStore = createScoutingStore();
     const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
 
-    const first = await handler(scoutingRequest(requestBody), { id: "user-123" });
+    const first = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
     expect(first.status).toBe(200);
     const firstBody = await first.json();
 
