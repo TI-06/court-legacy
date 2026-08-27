@@ -185,4 +185,49 @@ describe("GameApp cloud actions", () => {
     });
     expect(await screen.findByText("資金 230")).toBeVisible();
   });
+
+  it("advances the week on the server using the revision returned by training", async () => {
+    let serverSnapshot = createSnapshot();
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) => {
+        const response = responseFor(serverSnapshot, request);
+        serverSnapshot = response.game;
+        return response;
+      },
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={serverSnapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
+        "button",
+        { name: "この内容で実行" },
+      ),
+    );
+    await screen.findByRole("heading", { name: "今週の練習結果" });
+
+    fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
+    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[1]![1]).toMatchObject({
+      revision: 2,
+      action: { type: "advance-week" },
+    });
+    expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
+  });
 });
