@@ -114,6 +114,42 @@ describe("useGameSession", () => {
     );
   });
 
+  it("does not send a second mutation while another authoritative mutation is pending", async () => {
+    const response =
+      deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();
+    const applyAction = vi.fn(() => response.promise);
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot: createSnapshot(1),
+        api: api({ applyAction }),
+        recoveryCache: cache(),
+        createOperationId: () => "op-pending",
+      }),
+    );
+
+    let first!: Promise<unknown>;
+    let second!: Promise<unknown>;
+    act(() => {
+      first = result.current.runAction(
+        { type: "team-selection", selection: result.current.snapshot.teamSelection },
+        "編成を保存",
+      );
+      second = result.current.runAction(
+        { type: "facility-upgrade", facility: "gym" },
+        "設備を保存",
+      );
+    });
+
+    expect(applyAction).toHaveBeenCalledTimes(1);
+    await expect(second).resolves.toBeNull();
+
+    await act(async () => {
+      response.resolve({ game: createSnapshot(2), operationId: "op-pending" });
+      await first;
+    });
+  });
+
   it("retries a network-ambiguous mutation with the exact same operation id and revision", async () => {
     const recovery = cache();
     const nextSnapshot = createSnapshot(2);
