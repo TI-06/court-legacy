@@ -4,7 +4,7 @@ const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
   ["Type check", "npm", ["run", "typecheck"]],
-  ["V2 structure", "node", ["scripts/verifyStructure.mjs"]],
+  ["V2 structure", "node", ["scripts/verifyStructureCli.mjs"]],
   [
     "Production dependency audit",
     "npm",
