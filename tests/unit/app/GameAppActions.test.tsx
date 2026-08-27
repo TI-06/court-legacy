@@ -273,11 +273,51 @@ describe("GameApp cloud actions", () => {
       revision: 1,
       action: { type: "event-choice", choiceId: "try" },
     });
-    expect(
-      await screen.findByRole("status"),
-    ).toHaveTextContent("保存済み ✓");
+    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
     expect(
       screen.queryByRole("dialog", { name: "希望ポジション" }),
     ).toBeNull();
+  });
+
+  it("persists team selection changes through the server before adopting them", async () => {
+    const snapshot = createSnapshot();
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) =>
+        responseFor(snapshot, request),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={snapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手" }));
+    fireEvent.click(screen.getByRole("button", { name: "編成" }));
+    const starterLock = screen.getAllByRole("button", {
+      name: /^先発固定 /,
+    })[0]!;
+    fireEvent.click(starterLock);
+
+    expect(applyAction).toHaveBeenCalledTimes(1);
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: { type: "team-selection" },
+    });
+    expect(
+      applyAction.mock.calls[0]![1].action.type === "team-selection"
+        ? applyAction.mock.calls[0]![1].action.selection.substitutionPolicy
+            .starterLockPlayerIds
+        : [],
+    ).toHaveLength(1);
+    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
   });
 });
