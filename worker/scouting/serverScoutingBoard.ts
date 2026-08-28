@@ -9,11 +9,12 @@ import {
   type RecruitTier,
 } from "../../src/domain/scouting/recruitmentTierProbability";
 import {
-  buildScoutingBoard,
+  createScoutReport,
   type MiddleSchoolAchievement,
   type ScoutReport,
 } from "../../src/domain/scouting/scoutReport";
 import type {
+  ScoutingCandidateInsight,
   ScoutingCandidatePool,
   ScoutingCandidateTruth,
 } from "../data/ScoutingStore";
@@ -57,38 +58,56 @@ function recentSeasonRating(state: GameState): number {
   return ratings.at(-1) ?? 50;
 }
 
-export function scoutingCycleKey(state: GameState): string {
-  return `${state.userSchoolId}:year-${state.yearIndex}`;
+function defaultExcludedFullNames(state: GameState): Set<string> {
+  return new Set(
+    Object.values(state.players).map(
+      (player) => `${player.lastName} ${player.firstName}`,
+    ),
+  );
 }
 
-export function generateServerScoutingCandidates(
-  state: GameState,
-): ScoutingCandidateTruth[] {
+function scoutingGenerationRandom(state: GameState): SeededRandom {
+  return new SeededRandom(`${state.seed}:scouting:${scoutingCycleKey(state)}`);
+}
+
+function scoutingTierProbabilities(state: GameState) {
   const school = state.schools[state.userSchoolId];
   if (!school) {
     throw new Error("user school is missing");
   }
 
-  const cycleKey = scoutingCycleKey(state);
-  const random = new SeededRandom(`${state.seed}:scouting:${cycleKey}`);
-  const probabilities = calculateRecruitTierProbabilities({
+  return calculateRecruitTierProbabilities({
     reputationPoints: school.reputationPoints,
     coachScouting: school.coach.scouting,
     scoutingNetworkLevel: school.facilities.scoutingNetwork,
     dormitoryLevel: school.facilities.dormitory,
     recentSeasonRating: recentSeasonRating(state),
   });
-  const excludedFullNames = new Set(
-    Object.values(state.players).map(
-      (player) => `${player.lastName} ${player.firstName}`,
-    ),
-  );
+}
 
-  return Array.from({ length: CANDIDATE_COUNT }, (_, index) => {
+export function scoutingCycleKey(state: GameState): string {
+  return `${state.userSchoolId}:year-${state.yearIndex}`;
+}
+
+export function generateServerScoutingCandidateAtIndex(
+  state: GameState,
+  index: number,
+  excludedFullNames: ReadonlySet<string> = defaultExcludedFullNames(state),
+): ScoutingCandidateTruth {
+  if (!Number.isSafeInteger(index) || index < 1) {
+    throw new Error("scouting candidate index must be a positive integer");
+  }
+
+  const random = scoutingGenerationRandom(state);
+  const probabilities = scoutingTierProbabilities(state);
+  const exclusions = new Set(excludedFullNames);
+  let candidate: ScoutingCandidateTruth | null = null;
+
+  for (let currentIndex = 1; currentIndex <= index; currentIndex += 1) {
     const tier = selectRecruitTier(probabilities, random);
     const player = generatePlayer({
       id: playerId(
-        `scout-${state.userSchoolId}-${state.yearIndex}-${index + 1}`,
+        `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
       ),
       schoolId: state.userSchoolId,
       grade: 1,
@@ -96,31 +115,73 @@ export function generateServerScoutingCandidates(
       tier,
       data: gameData,
       random,
-      excludedFullNames,
+      excludedFullNames: exclusions,
     });
 
-    return {
+    candidate = {
       player,
       middleSchoolAchievement: achievementForTier(tier, random),
     };
-  });
+  }
+
+  if (!candidate) {
+    throw new Error("scouting candidate generation failed");
+  }
+  return candidate;
+}
+
+export function generateServerScoutingCandidates(
+  state: GameState,
+): ScoutingCandidateTruth[] {
+  const excludedFullNames = defaultExcludedFullNames(state);
+  return Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
+    generateServerScoutingCandidateAtIndex(
+      state,
+      index + 1,
+      excludedFullNames,
+    ),
+  );
 }
 
 export function buildServerScoutReports(
   state: GameState,
   pool: ScoutingCandidatePool,
+  insights: readonly ScoutingCandidateInsight[] = [],
 ): ScoutReport[] {
   const school = state.schools[state.userSchoolId];
   if (!school) {
     throw new Error("user school is missing");
   }
 
-  return buildScoutingBoard({
-    candidates: pool.candidates,
-    observation: school.coach.observation,
-    scoutingNetworkLevel: school.facilities.scoutingNetwork,
-    random: new SeededRandom(
-      `${state.seed}:scout-report:${pool.cycleKey}:${school.coach.observation}:${school.facilities.scoutingNetwork}`,
-    ),
+  const insightsByCandidateId = new Map(
+    insights.map((insight) => [insight.candidateId, insight] as const),
+  );
+
+  return pool.candidates.map((candidate) => {
+    const insight = insightsByCandidateId.get(candidate.player.id);
+    const overallPrecision = insight?.overallPrecision ?? "normal";
+    const potentialPrecision = insight?.potentialPrecision ?? "normal";
+    const random = new SeededRandom(
+      [
+        state.seed,
+        "scout-report",
+        pool.cycleKey,
+        candidate.player.id,
+        school.coach.observation,
+        school.facilities.scoutingNetwork,
+        overallPrecision,
+        potentialPrecision,
+      ].join(":"),
+    );
+
+    return createScoutReport({
+      player: candidate.player,
+      middleSchoolAchievement: candidate.middleSchoolAchievement,
+      observation: school.coach.observation,
+      scoutingNetworkLevel: school.facilities.scoutingNetwork,
+      overallPrecision,
+      potentialPrecision,
+      random,
+    });
   });
 }
