@@ -36,7 +36,9 @@ function mapPlayerId(
 ): PlayerId {
   const mapped = map.get(originalId);
   if (!mapped) {
-    throw new Error(`${label} references a player outside its PvP roster: ${originalId}`);
+    throw new Error(
+      `${label} references a player outside its PvP roster: ${originalId}`,
+    );
   }
   return mapped;
 }
@@ -100,7 +102,7 @@ function remapSchool(
   opponentPlayers: PlayerIdMap,
 ): School {
   const target = source.tactics.serveTargetPlayerId
-    ? opponentPlayers.get(source.tactics.serveTargetPlayerId) ?? null
+    ? (opponentPlayers.get(source.tactics.serveTargetPlayerId) ?? null)
     : null;
 
   return {
@@ -111,7 +113,7 @@ function remapSchool(
     ),
     alumniPlayerIds: [],
     captainPlayerId: source.captainPlayerId
-      ? ownPlayers.get(source.captainPlayerId) ?? null
+      ? (ownPlayers.get(source.captainPlayerId) ?? null)
       : null,
     tactics: {
       ...structuredClone(source.tactics),
@@ -186,11 +188,7 @@ export function buildPvpSimulationState(
     [defenderSchoolId]: defenderSchool,
   } as Record<SchoolId, School>;
   state.players = {
-    ...remapPlayers(
-      challengerPlayers,
-      challengerPlayerMap,
-      challengerSchoolId,
-    ),
+    ...remapPlayers(challengerPlayers, challengerPlayerMap, challengerSchoolId),
     ...remapPlayers(defenderPlayers, defenderPlayerMap, defenderSchoolId),
   } as Record<PlayerId, Player>;
   state.playerRelationships = {};
