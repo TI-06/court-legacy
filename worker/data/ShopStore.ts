@@ -93,7 +93,7 @@ export type ShopMutationErrorCode =
 export class ShopStoreMutationError extends Error {
   constructor(
     public readonly code: ShopMutationErrorCode,
-    message = code,
+    message: string = code,
     options?: ErrorOptions,
   ) {
     super(message, options);
