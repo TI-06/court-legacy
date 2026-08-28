@@ -220,4 +220,51 @@ describe("GameApp scouting flow", () => {
     expect(commitRecruit).toHaveBeenCalledTimes(2);
     expect(commitRecruit.mock.calls[1]![1]).toMatchObject({ candidateId });
   });
+
+  it("refreshes the authoritative snapshot and scouting board after a recruitment conflict", async () => {
+    const snapshot = createSnapshot();
+    const latestSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      revision: 2,
+    };
+    const getScoutingBoard = vi.fn<
+      NonNullable<GameApiClient["getScoutingBoard"]>
+    >(async (_accessToken, request) => ({
+      operationId: request.operationId,
+      revision: request.revision,
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      reports: [report],
+    }));
+    const bootstrap = vi.fn<GameApiClient["bootstrap"]>(async () => ({
+      status: "ready",
+      game: latestSnapshot,
+    }));
+    const commitRecruit = vi
+      .fn<NonNullable<GameApiClient["commitRecruit"]>>()
+      .mockRejectedValueOnce(
+        new ApiError(409, "revision_conflict", "別端末で更新されています"),
+      );
+    const api: GameApiClient = {
+      bootstrap,
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getScoutingBoard,
+      commitRecruit,
+    };
+
+    renderApp(api, snapshot);
+    openScouting();
+    await screen.findByText("青木 蓮");
+    fireEvent.click(
+      screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
+    );
+
+    await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getScoutingBoard).toHaveBeenCalledTimes(2));
+    expect(getScoutingBoard.mock.calls[1]![1]).toMatchObject({ revision: 2 });
+    expect(screen.getByText("青木 蓮")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
+    ).toBeEnabled();
+  });
 });
