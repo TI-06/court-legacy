@@ -57,6 +57,7 @@ const historyEntry: PvpHistoryEntry = {
   createdAt: "2026-08-28T07:10:00.000Z",
   opponentSnapshotId: opponent.snapshotId,
   opponentSchoolName: opponent.schoolName,
+  perspective: "challenger",
   outcome: "win",
   ratingBefore: 1000,
   ratingAfter: 1016,

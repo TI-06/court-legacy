@@ -179,6 +179,10 @@ describe("PvP challenge route", () => {
       }),
     );
 
+    expect(store.committed[0]?.result).toEqual(
+      expect.objectContaining({ challengerSchoolName: "青葉高校" }),
+    );
+
     const body = await response.json();
     expect(body).toEqual(
       expect.objectContaining({
@@ -212,6 +216,7 @@ describe("PvP challenge route", () => {
     expect(serialized).not.toContain("homeSelection");
     expect(serialized).not.toContain("awaySelection");
     expect(serialized).not.toContain("actorPlayerId");
+    expect(serialized).not.toContain("challengerSchoolName");
   });
 
   it("replays a stored challenge response before loading or simulating anything", async () => {

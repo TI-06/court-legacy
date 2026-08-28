@@ -234,6 +234,7 @@ describe("SupabasePvPStore", () => {
             created_at: "2026-08-28T04:00:00.000Z",
             opponent_snapshot_id: "snapshot-b",
             opponent_school_name: "白峰高校",
+            perspective: "challenger",
             outcome: "win",
             rating_before: 1000,
             rating_after: 1016,
@@ -281,6 +282,7 @@ describe("SupabasePvPStore", () => {
       expect.objectContaining({
         matchId: "match-1",
         opponentSchoolName: "白峰高校",
+        perspective: "challenger",
         outcome: "win",
       }),
     );

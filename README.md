@@ -57,6 +57,7 @@ Apply the V2 migrations to the Supabase project in order before using cloud save
 2. `supabase/migrations/202608260002_game_operations.sql`
 3. `supabase/migrations/202608270003_scouting_candidate_pools.sql`
 4. `supabase/migrations/202608280004_async_pvp.sql`
+5. `supabase/migrations/202608280005_pvp_history_perspective.sql`
 
 The Phase 1 schema keeps game state behind the Worker, enables RLS on all game tables, does not grant direct browser table access, and applies game mutations with revision checks and operation-id idempotency.
 
@@ -66,7 +67,7 @@ Recruitment capacity is checked before a commitment is persisted, including rese
 
 ### Async PvP authority and privacy
 
-`202608280004_async_pvp.sql` adds append-only published team snapshots, seasonal ratings, rated match history, operation idempotency, and atomic rating/match persistence. Rating updates for both users and the match record are committed through the server-side persistence boundary rather than separate browser writes.
+`202608280004_async_pvp.sql` adds append-only published team snapshots, seasonal ratings, rated match history, operation idempotency, and atomic rating/match persistence. `202608280005_pvp_history_perspective.sql` normalizes history for both challenger and defender views without inventing a challenger snapshot ID. Rating updates for both users and the match record are committed through the server-side persistence boundary rather than separate browser writes.
 
 The browser may receive only PvP presentation data such as school name, school short name, reputation rank, published team power, rating, wins/losses, streak, sanitized set scores, ranking, and the authenticated user's match history. Exact player abilities, potential, player tier, hidden traits, growth peak, injury resistance, exact tactic weights, frozen opponent players, and full opponent `GameState` remain Worker-only.
 
@@ -76,7 +77,7 @@ PvP requests also cannot choose the active season or determine a match result. T
 
 For a Phase 4 deployment, keep the database and Worker compatible before exposing the browser UI:
 
-1. Apply all Supabase migrations through `202608280004_async_pvp.sql`.
+1. Apply all Supabase migrations through `202608280005_pvp_history_perspective.sql`.
 2. Confirm the Worker has `SUPABASE_URL` and the elevated `SUPABASE_SECRET_KEY` secret.
 3. Deploy the Cloudflare Worker with the PvP routes and store implementation.
 4. Run `npm run verify` and `npm run test:e2e` against the release candidate.

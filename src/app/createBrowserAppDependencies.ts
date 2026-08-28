@@ -555,6 +555,7 @@ class StaticGameApiClient implements GameApiClient {
       createdAt,
       opponentSnapshotId: opponent.snapshotId,
       opponentSchoolName: opponent.schoolName,
+      perspective: "challenger",
       outcome: result.outcome,
       ratingBefore: before,
       ratingAfter: after,
