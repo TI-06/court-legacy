@@ -18,9 +18,7 @@ function expectedScore(ownRating: number, opponentRating: number): number {
   return 1 / (1 + 10 ** ((opponentRating - ownRating) / ELO_SCALE));
 }
 
-export function calculateEloUpdate(
-  input: CalculateEloUpdateInput,
-): EloUpdate {
+export function calculateEloUpdate(input: CalculateEloUpdateInput): EloUpdate {
   const challengerExpected = expectedScore(
     input.challengerRating,
     input.defenderRating,
