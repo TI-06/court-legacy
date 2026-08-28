@@ -8,6 +8,9 @@ export interface PvpHistoryHandlerDependencies {
   now?: () => Date;
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function parseLimit(url: URL): number {
   const raw = url.searchParams.get("limit");
   if (raw === null) return 20;
@@ -18,7 +21,21 @@ function parseLimit(url: URL): number {
 
 function parseCursor(url: URL): string | null {
   const value = url.searchParams.get("cursor")?.trim() ?? "";
-  return value.length > 0 ? value : null;
+  const separator = value.indexOf("|");
+  if (
+    separator <= 0 ||
+    separator !== value.lastIndexOf("|") ||
+    separator === value.length - 1
+  ) {
+    return null;
+  }
+
+  const createdAt = value.slice(0, separator);
+  const matchId = value.slice(separator + 1);
+  if (Number.isNaN(Date.parse(createdAt)) || !UUID_PATTERN.test(matchId)) {
+    return null;
+  }
+  return value;
 }
 
 export function createPvpHistoryHandler(
@@ -36,12 +53,15 @@ export function createPvpHistoryHandler(
       cursor: parseCursor(url),
       limit,
     });
+    const last = history.at(-1);
 
     return json({
       seasonId,
       history,
       nextCursor:
-        history.length === limit ? (history.at(-1)?.matchId ?? null) : null,
+        history.length === limit && last
+          ? `${last.createdAt}|${last.matchId}`
+          : null,
     });
   };
 }
