@@ -73,7 +73,7 @@ async function expectResolutionCode(
 }
 
 describe("resolveShopUse", () => {
-  it("rejects a target shape that does not match the authoritative item definition", async () => {
+  it("rejects a mismatched target shape", async () => {
     const snapshot = createSnapshot();
 
     await expectResolutionCode(
@@ -85,7 +85,7 @@ describe("resolveShopUse", () => {
     );
   });
 
-  it("applies fatigue recovery to a current-school player and exposes only before/after public values", async () => {
+  it("recovers a current-school player with public before/after only", async () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
@@ -114,7 +114,7 @@ describe("resolveShopUse", () => {
     );
   });
 
-  it("adds deterministic candidate index seven without rerolling the existing six or exposing truth", async () => {
+  it("adds candidate seven without rerolling six or exposing truth", async () => {
     const snapshot = createSnapshot();
     const { pool, store } = createScoutingContext(snapshot);
 
@@ -137,7 +137,7 @@ describe("resolveShopUse", () => {
     );
   });
 
-  it("upgrades scout research while preserving an already appraised potential precision", async () => {
+  it("researches overall while preserving appraised potential", async () => {
     const snapshot = createSnapshot();
     const base = createScoutingContext(snapshot);
     const candidateId = base.pool.candidates[0]!.player.id;
@@ -166,7 +166,7 @@ describe("resolveShopUse", () => {
     expect(resolved.publicResult).toEqual(resolved.scoutingInsight);
   });
 
-  it("appraises potential while preserving the existing overall precision", async () => {
+  it("appraises potential while preserving overall precision", async () => {
     const snapshot = createSnapshot();
     const base = createScoutingContext(snapshot);
     const candidateId = base.pool.candidates[0]!.player.id;
@@ -195,7 +195,7 @@ describe("resolveShopUse", () => {
     expect(resolved.publicResult).toEqual(resolved.scoutingInsight);
   });
 
-  it("runs training camp through normal player-training mechanics and returns a public summary", async () => {
+  it("runs training camp through normal player-training mechanics", async () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     const before = structuredClone(snapshot.state.players);
@@ -206,7 +206,9 @@ describe("resolveShopUse", () => {
     });
 
     expect(resolved.targetType).toBe("team");
-    expect(resolved.publicResult.participantCount).toBe(school.playerIds.length);
+    expect(resolved.publicResult.participantCount).toBe(
+      school.playerIds.length,
+    );
     expect(resolved.publicResult).toHaveProperty("totalAbilityGrowth");
     expect(resolved.publicResult).toHaveProperty("averageFatigueChange");
     expect(resolved.state.randomCursor).toBeGreaterThanOrEqual(
@@ -215,7 +217,7 @@ describe("resolveShopUse", () => {
     expect(resolved.state.players).not.toEqual(before);
   });
 
-  it("runs special coach for one eligible player and leaves other roster members unchanged", async () => {
+  it("runs special coach for one player and leaves others unchanged", async () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
@@ -239,17 +241,17 @@ describe("resolveShopUse", () => {
     });
 
     expect(resolved.targetType).toBe("special-coach");
-    expect(resolved.state.players[playerId]!.abilities.spike).toBeGreaterThanOrEqual(
-      targetBefore.abilities.spike,
-    );
-    expect(resolved.state.players[playerId]!.abilities.jump).toBeGreaterThanOrEqual(
-      targetBefore.abilities.jump,
-    );
+    expect(
+      resolved.state.players[playerId]!.abilities.spike,
+    ).toBeGreaterThanOrEqual(targetBefore.abilities.spike);
+    expect(
+      resolved.state.players[playerId]!.abilities.jump,
+    ).toBeGreaterThanOrEqual(targetBefore.abilities.jump);
     expect(resolved.state.players[otherPlayerId]).toEqual(otherBefore);
     expect(resolved.publicResult).toMatchObject({ playerId, focus: "spike" });
   });
 
-  it("activates the exact next-training boost once and rejects a second pending activation", async () => {
+  it("activates the exact next-training boost only once", async () => {
     const snapshot = createSnapshot();
     const first = await resolveShopUse({
       snapshot,
