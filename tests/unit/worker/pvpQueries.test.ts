@@ -51,7 +51,7 @@ function pvpStore(): PvPStore {
         createdAt: "2026-08-31T13:00:00.000Z",
         opponentSnapshotId: "snapshot-other",
         opponentSchoolName: "白峰高校",
-        outcome: "win",
+        outcome: "win" as const,
         ratingBefore: 1000,
         ratingAfter: 1016,
         result: { homeSetsWon: 2, awaySetsWon: 1 },
