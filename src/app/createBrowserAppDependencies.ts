@@ -200,10 +200,7 @@ class StaticGameApiClient implements GameApiClient {
     return response;
   }
 
-  async getScoutingBoard(
-    _accessToken: string,
-    request: ScoutingBoardRequest,
-  ) {
+  async getScoutingBoard(_accessToken: string, request: ScoutingBoardRequest) {
     const snapshot = this.requireSnapshot();
     if (request.revision !== snapshot.revision) {
       throw new ApiError(
@@ -255,7 +252,9 @@ class StaticGameApiClient implements GameApiClient {
         "先にスカウト候補を確認してください",
       );
     }
-    if (!pool.candidates.some((entry) => entry.player.id === request.candidateId)) {
+    if (
+      !pool.candidates.some((entry) => entry.player.id === request.candidateId)
+    ) {
       throw new ApiError(
         409,
         "candidate_unavailable",
