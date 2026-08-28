@@ -117,7 +117,7 @@ describe("PvpScreen", () => {
     expect(screen.getByText("RATING 1048")).toBeVisible();
     expect(screen.getByText("12勝 7敗")).toBeVisible();
     expect(screen.getByText("勝利")).toBeVisible();
-    expect(screen.getByText("+16")).toBeVisible();
+    expect(screen.getAllByText("+16")).toHaveLength(2);
     expect(screen.getByText("4位")).toBeVisible();
     expect(screen.getByText("25 - 20")).toBeVisible();
   });
