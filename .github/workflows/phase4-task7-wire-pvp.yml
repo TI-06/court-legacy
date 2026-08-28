@@ -22,305 +22,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Wire PvP GameApp flow and public E2E adapter
+      - name: Add public-only PvP E2E adapter
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          game_path = Path('src/app/GameApp.tsx')
-          text = game_path.read_text()
-
-          old = '''import type { TeamSelection } from "../domain/model/TeamSelection";
-          import type { ScoutReport } from "../domain/scouting/scoutReport";'''.replace('          ', '')
-          new = '''import type { TeamSelection } from "../domain/model/TeamSelection";
-          import type {
-            PvpChallengeResponse,
-            PvpHistoryEntry,
-            PvpOpponentSummary,
-            PvpPublishedTeamSummary,
-            PvpRankingEntry,
-          } from "../domain/pvp/pvpContracts";
-          import type { ScoutReport } from "../domain/scouting/scoutReport";'''.replace('          ', '')
-          if old not in text: raise SystemExit('GameApp pvp type import anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''import { MatchScreen } from "../features/match/MatchScreen";
-          import { MoreScreen } from "../features/more/MoreScreen";'''.replace('          ', '')
-          new = '''import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
-          import { MatchScreen } from "../features/match/MatchScreen";
-          import { MoreScreen } from "../features/more/MoreScreen";
-          import { PvpScreen } from "../features/pvp/PvpScreen";'''.replace('          ', '')
-          if old not in text: raise SystemExit('GameApp feature import anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = 'type MoreView = "menu" | "school";'
-          new = 'type MoreView = "menu" | "school";\ntype MatchView = "practice" | "pvp";'
-          if old not in text: raise SystemExit('GameApp MatchView anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''function scoutingErrorMessage(error: unknown, fallback: string): string {
-            return error instanceof ApiError ? error.message : fallback;
-          }'''.replace('          ', '')
-          new = '''function scoutingErrorMessage(error: unknown, fallback: string): string {
-            return error instanceof ApiError ? error.message : fallback;
-          }
-
-          function pvpErrorMessage(error: unknown, fallback: string): string {
-            return error instanceof ApiError ? error.message : fallback;
-          }'''.replace('          ', '')
-          if old not in text: raise SystemExit('GameApp error helper anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''  const [activeMatchResult, setActiveMatchResult] =
-              useState<SimulateMatchResult | null>(null);
-            const [latestYearTransition, setLatestYearTransition] ='''.replace('            ', '  ')
-          new = '''  const [activeMatchResult, setActiveMatchResult] =
-              useState<SimulateMatchResult | null>(null);
-            const [matchView, setMatchView] = useState<MatchView>("practice");
-            const [pvpPublishedTeam, setPvpPublishedTeam] =
-              useState<PvpPublishedTeamSummary | null>(null);
-            const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
-            const [pvpOpponents, setPvpOpponents] = useState<PvpOpponentSummary[]>([]);
-            const [pvpRanking, setPvpRanking] = useState<PvpRankingEntry[]>([]);
-            const [pvpHistory, setPvpHistory] = useState<PvpHistoryEntry[]>([]);
-            const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
-            const [pvpLoading, setPvpLoading] = useState(false);
-            const [pvpPublishing, setPvpPublishing] = useState(false);
-            const [pvpChallengingSnapshotId, setPvpChallengingSnapshotId] =
-              useState<string | null>(null);
-            const [pvpError, setPvpError] = useState<string | null>(null);
-            const [latestYearTransition, setLatestYearTransition] ='''.replace('            ', '  ')
-          if old not in text: raise SystemExit('GameApp PvP state anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''    if (tab !== "training") {
-              setScoutingOpen(false);
-              setScoutingError(null);
-              setRetryRecruitCandidateId(null);
-            }
-            setActiveTab(tab);'''.replace('            ', '  ')
-          new = '''    if (tab !== "training") {
-              setScoutingOpen(false);
-              setScoutingError(null);
-              setRetryRecruitCandidateId(null);
-            }
-            if (tab !== "match") {
-              setMatchView("practice");
-              setPvpError(null);
-            }
-            setActiveTab(tab);'''.replace('            ', '  ')
-          if old not in text: raise SystemExit('GameApp changeTab anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''  const openFreshPracticeMatch = () => {
-              if (!practiceMatchCompleted) {
-                setActiveMatchResult(null);
-                setActiveTab("match");
-              }
-            };'''.replace('            ', '  ')
-          new = '''  const openFreshPracticeMatch = () => {
-              if (!practiceMatchCompleted) {
-                setActiveMatchResult(null);
-                setMatchView("practice");
-                setActiveTab("match");
-              }
-            };'''.replace('            ', '  ')
-          if old not in text: raise SystemExit('GameApp practice open anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''  const upgradeSchoolFacility = async (key: FacilityKey) => {'''
-          new = '''  const loadPvpData = async () => {
-            const getOpponents = api.getPvpOpponents;
-            const getRanking = api.getPvpRanking;
-            const getHistory = api.getPvpHistory;
-            if (!getOpponents || !getRanking || !getHistory) {
-              setPvpError("対人戦機能を利用できません");
-              return;
-            }
-
-            setPvpLoading(true);
-            setPvpError(null);
-            try {
-              const [opponentsResponse, rankingResponse, historyResponse] =
-                await Promise.all([
-                  getOpponents(session.accessToken, { limit: 20 }),
-                  getRanking(session.accessToken, { limit: 20 }),
-                  getHistory(session.accessToken, { limit: 20 }),
-                ]);
-              setPvpSeasonId(opponentsResponse.seasonId);
-              setPvpOpponents(opponentsResponse.opponents);
-              setPvpRanking(rankingResponse.ranking);
-              setPvpHistory(historyResponse.history);
-            } catch (error) {
-              setPvpError(
-                pvpErrorMessage(error, "対人戦データを読み込めませんでした"),
-              );
-            } finally {
-              setPvpLoading(false);
-            }
-          };
-
-          const openPvp = () => {
-            setMatchView("pvp");
-            setPvpError(null);
-            void loadPvpData();
-          };
-
-          const recoverPvpRevision = async (): Promise<boolean> => {
-            try {
-              const latest = await api.bootstrap(session.accessToken);
-              if (latest.status !== "ready") return false;
-              await cloudSession.adoptServerSnapshot(
-                latest.game,
-                "最新のゲーム状態を読み込みました",
-              );
-              setPvpError(
-                "最新のゲーム状態を読み込みました。もう一度お試しください",
-              );
-              return true;
-            } catch (error) {
-              setPvpError(
-                pvpErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
-              );
-              return false;
-            }
-          };
-
-          const publishPvpTeam = async () => {
-            const publish = api.publishPvpTeam;
-            if (!publish || pvpPublishing || pvpChallengingSnapshotId !== null) {
-              if (!publish) setPvpError("対人戦の公開機能を利用できません");
-              return;
-            }
-
-            setPvpPublishing(true);
-            setPvpError(null);
-            try {
-              const response = await publish(session.accessToken, {
-                operationId: crypto.randomUUID(),
-                revision: cloudSession.snapshot.revision,
-              });
-              setPvpPublishedTeam(response.team);
-            } catch (error) {
-              if (error instanceof ApiError && error.status === 409) {
-                if (await recoverPvpRevision()) return;
-              }
-              setPvpError(pvpErrorMessage(error, "チームを公開できませんでした"));
-            } finally {
-              setPvpPublishing(false);
-            }
-          };
-
-          const challengePvpTeam = async (opponentSnapshotId: string) => {
-            const challenge = api.challengePvpTeam;
-            if (!challenge || pvpChallengingSnapshotId !== null || pvpPublishing) {
-              if (!challenge) setPvpError("対人戦機能を利用できません");
-              return;
-            }
-
-            setPvpChallengingSnapshotId(opponentSnapshotId);
-            setPvpError(null);
-            try {
-              const response = await challenge(session.accessToken, {
-                operationId: crypto.randomUUID(),
-                revision: cloudSession.snapshot.revision,
-                opponentSnapshotId,
-              });
-              setPvpResult(response);
-              await loadPvpData();
-            } catch (error) {
-              if (
-                error instanceof ApiError &&
-                error.status === 409 &&
-                error.code === "revision_conflict"
-              ) {
-                if (await recoverPvpRevision()) return;
-              }
-              setPvpError(pvpErrorMessage(error, "対戦処理に失敗しました"));
-            } finally {
-              setPvpChallengingSnapshotId(null);
-            }
-          };
-
-          const upgradeSchoolFacility = async (key: FacilityKey) => {'''
-          if old not in text: raise SystemExit('GameApp PvP functions anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''    setLatestTrainingResult(null);
-              setActiveMatchResult(null);
-              setCalendarOpen(false);'''.replace('              ', '    ')
-          new = '''    setLatestTrainingResult(null);
-              setActiveMatchResult(null);
-              setMatchView("practice");
-              setPvpResult(null);
-              setCalendarOpen(false);'''.replace('              ', '    ')
-          if old not in text: raise SystemExit('GameApp advance week anchor not found')
-          text = text.replace(old, new, 1)
-
-          old = '''    ) : activeTab === "match" ? (
-              <MatchScreen
-                awaySelection={opponentSelection}
-                awayStrength={awayStrength}
-                homeSelection={teamSelection}
-                homeStrength={homeStrength}
-                onReturnHome={() => setActiveTab("home")}
-                onStart={startPracticeMatch}
-                opponent={opponent}
-                reducedMotion={gameState.settings.reducedMotion}
-                result={activeMatchResult}
-                state={gameState}
-              />
-            ) : moreView === "school" ? ('''.replace('            ', '  ')
-          new = '''    ) : activeTab === "match" && matchView === "pvp" ? (
-              <PvpScreen
-                challengingSnapshotId={pvpChallengingSnapshotId}
-                error={pvpError}
-                history={pvpHistory}
-                loading={pvpLoading}
-                onChallenge={(snapshotId) => {
-                  void challengePvpTeam(snapshotId);
-                }}
-                onPublish={() => {
-                  void publishPvpTeam();
-                }}
-                onRefresh={() => {
-                  void loadPvpData();
-                }}
-                onReturnPractice={() => {
-                  setMatchView("practice");
-                  setPvpError(null);
-                }}
-                opponents={pvpOpponents}
-                publishedTeam={pvpPublishedTeam}
-                publishing={pvpPublishing}
-                ranking={pvpRanking}
-                result={pvpResult}
-                seasonId={pvpSeasonId}
-              />
-            ) : activeTab === "match" ? (
-              <div className="match-hub-screen">
-                {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}
-                <MatchScreen
-                  awaySelection={opponentSelection}
-                  awayStrength={awayStrength}
-                  homeSelection={teamSelection}
-                  homeStrength={homeStrength}
-                  onReturnHome={() => setActiveTab("home")}
-                  onStart={startPracticeMatch}
-                  opponent={opponent}
-                  reducedMotion={gameState.settings.reducedMotion}
-                  result={activeMatchResult}
-                  state={gameState}
-                />
-              </div>
-            ) : moreView === "school" ? ('''.replace('            ', '  ')
-          if old not in text: raise SystemExit('GameApp content match anchor not found')
-          text = text.replace(old, new, 1)
-          game_path.write_text(text)
-
-          adapter_path = Path('src/app/createBrowserAppDependencies.ts')
-          text = adapter_path.read_text()
+          path = Path('src/app/createBrowserAppDependencies.ts')
+          text = path.read_text()
 
           old = '''import { playerId } from "../domain/model/identifiers";
           import type { ScoutReport } from "../domain/scouting/scoutReport";'''.replace('          ', '')
@@ -335,11 +44,12 @@ jobs:
             PvpRankingEntry,
           } from "../domain/pvp/pvpContracts";
           import type { ScoutReport } from "../domain/scouting/scoutReport";'''.replace('          ', '')
-          if old not in text: raise SystemExit('adapter import anchor not found')
+          if old not in text:
+              raise SystemExit('adapter import anchor not found')
           text = text.replace(old, new, 1)
 
-          old = '''function readSessionStorage(key: string): string | null {'''
-          new = '''const HARNESS_PVP_SEASON_ID = "2026-08";
+          marker = 'function readSessionStorage(key: string): string | null {'
+          fixture = '''const HARNESS_PVP_SEASON_ID = "2026-08";
 
           function createHarnessPvpOpponents(): PvpOpponentSummary[] {
             return [
@@ -385,210 +95,186 @@ jobs:
             ];
           }
 
-          function readSessionStorage(key: string): string | null {'''
-          if old not in text: raise SystemExit('adapter fixture anchor not found')
-          text = text.replace(old, new, 1)
+          function readSessionStorage(key: string): string | null {'''.replace('          ', '')
+          if marker not in text:
+              raise SystemExit('adapter fixture anchor not found')
+          text = text.replace(marker, fixture, 1)
 
-          old = '''  private readonly scoutingReports = new Map<string, ScoutReport[]>();
-
-            constructor(private readonly persistAcrossReloads: boolean) {'''.replace('            ', '  ')
+          old = '  private readonly scoutingReports = new Map<string, ScoutReport[]>();'
           new = '''  private readonly scoutingReports = new Map<string, ScoutReport[]>();
             private readonly pvpOpponents = createHarnessPvpOpponents();
-            private pvpPublishedTeam: PvpPublishedTeamSummary | null = null;
             private pvpRating = 1000;
-            private pvpHistory: PvpHistoryEntry[] = [];
-
-            constructor(private readonly persistAcrossReloads: boolean) {'''.replace('            ', '  ')
-          if old not in text: raise SystemExit('adapter state anchor not found')
+            private pvpHistory: PvpHistoryEntry[] = [];'''.replace('            ', '  ')
+          if old not in text:
+              raise SystemExit('adapter state anchor not found')
           text = text.replace(old, new, 1)
 
-          old = '''  async commitRecruit(
+          class_end = '\n}\n\nclass UnavailableAuthClient'
+          methods = '''
+
+            private async pvpDelay(): Promise<void> {
+              if (!this.persistAcrossReloads) return;
+              const delay = readHarnessDelay();
+              if (delay > 0) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+              }
+            }
+
+            async publishPvpTeam(_accessToken: string, request: PvpPublishRequest) {
+              const snapshot = this.requireSnapshot();
+              if (request.revision !== snapshot.revision) {
+                throw new ApiError(
+                  409,
+                  "revision_conflict",
+                  "別の操作でテスト用データが更新されています",
+                );
+              }
+              await this.pvpDelay();
+              const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+              const team: PvpPublishedTeamSummary = {
+                snapshotId: "00000000-0000-4000-8000-000000000101",
+                schoolName: school.name,
+                schoolShortName: school.shortName,
+                reputationRank: "B",
+                teamPower: 71,
+                academicYear: snapshot.state.calendar.academicYear,
+                publishedAt: new Date().toISOString(),
+              };
+              return {
+                operationId: request.operationId,
+                revision: snapshot.revision,
+                team,
+              };
+            }
+
+            async getPvpOpponents(
               _accessToken: string,
-              request: ScoutingRecruitmentRequest,
-            ) {'''.replace('            ', '  ')
-          # no replacement here; methods appended after the complete commitRecruit method using class end anchor below
-          if old not in text: raise SystemExit('adapter commitRecruit anchor not found')
-
-          old = '''    return {
-              game,
-              operationId: request.operationId,
-              outcome: {
-                candidateId: request.candidateId,
-                committedCandidateIds,
-                cycleKey,
-              },
-            };
-          }
-          }
-
-          class UnavailableAuthClient'''.replace('          ', '')
-          new = '''    return {
-              game,
-              operationId: request.operationId,
-              outcome: {
-                candidateId: request.candidateId,
-                committedCandidateIds,
-                cycleKey,
-              },
-            };
-          }
-
-          private async pvpDelay(): Promise<void> {
-            if (!this.persistAcrossReloads) return;
-            const delay = readHarnessDelay();
-            if (delay > 0) {
-              await new Promise((resolve) => setTimeout(resolve, delay));
+              query?: PvpListRequestQuery,
+            ) {
+              await this.pvpDelay();
+              const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+              return {
+                seasonId: HARNESS_PVP_SEASON_ID,
+                opponents: this.pvpOpponents.slice(0, limit),
+                nextCursor: null,
+              };
             }
-          }
 
-          async publishPvpTeam(_accessToken: string, request: PvpPublishRequest) {
-            const snapshot = this.requireSnapshot();
-            if (request.revision !== snapshot.revision) {
-              throw new ApiError(
-                409,
-                "revision_conflict",
-                "別の操作でテスト用データが更新されています",
+            async getPvpRanking(
+              _accessToken: string,
+              query?: PvpListRequestQuery,
+            ) {
+              await this.pvpDelay();
+              const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+              const ranking: PvpRankingEntry[] = this.pvpOpponents.map(
+                (opponent, index) => ({
+                  rank: index + 1,
+                  snapshotId: opponent.snapshotId,
+                  schoolName: opponent.schoolName,
+                  schoolShortName: opponent.schoolShortName,
+                  rating: opponent.rating,
+                  matches: opponent.wins + opponent.losses,
+                  wins: opponent.wins,
+                  losses: opponent.losses,
+                  currentWinStreak: opponent.currentWinStreak,
+                }),
               );
+              return {
+                seasonId: HARNESS_PVP_SEASON_ID,
+                ranking: ranking.slice(0, limit),
+                nextCursor: null,
+              };
             }
-            await this.pvpDelay();
-            const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-            const team: PvpPublishedTeamSummary = {
-              snapshotId: "00000000-0000-4000-8000-000000000101",
-              schoolName: school.name,
-              schoolShortName: school.shortName,
-              reputationRank: "B",
-              teamPower: 71,
-              academicYear: snapshot.state.calendar.academicYear,
-              publishedAt: new Date().toISOString(),
-            };
-            this.pvpPublishedTeam = team;
-            return { operationId: request.operationId, revision: snapshot.revision, team };
-          }
 
-          async getPvpOpponents(
-            _accessToken: string,
-            query?: PvpListRequestQuery,
-          ) {
-            await this.pvpDelay();
-            const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
-            return {
-              seasonId: HARNESS_PVP_SEASON_ID,
-              opponents: this.pvpOpponents.slice(0, limit),
-              nextCursor: null,
-            };
-          }
+            async getPvpHistory(
+              _accessToken: string,
+              query?: PvpListRequestQuery,
+            ) {
+              await this.pvpDelay();
+              const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+              return {
+                seasonId: HARNESS_PVP_SEASON_ID,
+                history: this.pvpHistory.slice(0, limit),
+                nextCursor: null,
+              };
+            }
 
-          async getPvpRanking(_accessToken: string, query?: PvpListRequestQuery) {
-            await this.pvpDelay();
-            const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
-            const ranking: PvpRankingEntry[] = this.pvpOpponents.map(
-              (opponent, index) => ({
-                rank: index + 1,
-                snapshotId: opponent.snapshotId,
-                schoolName: opponent.schoolName,
-                schoolShortName: opponent.schoolShortName,
-                rating: opponent.rating,
-                matches: opponent.wins + opponent.losses,
-                wins: opponent.wins,
-                losses: opponent.losses,
-                currentWinStreak: opponent.currentWinStreak,
-              }),
-            );
-            return {
-              seasonId: HARNESS_PVP_SEASON_ID,
-              ranking: ranking.slice(0, limit),
-              nextCursor: null,
-            };
-          }
-
-          async getPvpHistory(_accessToken: string, query?: PvpListRequestQuery) {
-            await this.pvpDelay();
-            const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
-            return {
-              seasonId: HARNESS_PVP_SEASON_ID,
-              history: this.pvpHistory.slice(0, limit),
-              nextCursor: null,
-            };
-          }
-
-          async challengePvpTeam(
-            _accessToken: string,
-            request: PvpChallengeRequest,
-          ) {
-            const snapshot = this.requireSnapshot();
-            if (request.revision !== snapshot.revision) {
-              throw new ApiError(
-                409,
-                "revision_conflict",
-                "別の操作でテスト用データが更新されています",
+            async challengePvpTeam(
+              _accessToken: string,
+              request: PvpChallengeRequest,
+            ) {
+              const snapshot = this.requireSnapshot();
+              if (request.revision !== snapshot.revision) {
+                throw new ApiError(
+                  409,
+                  "revision_conflict",
+                  "別の操作でテスト用データが更新されています",
+                );
+              }
+              const opponent = this.pvpOpponents.find(
+                (candidate) => candidate.snapshotId === request.opponentSnapshotId,
               );
-            }
-            const opponent = this.pvpOpponents.find(
-              (candidate) => candidate.snapshotId === request.opponentSnapshotId,
-            );
-            if (!opponent) {
-              throw new ApiError(
-                404,
-                "pvp_opponent_unavailable",
-                "対戦相手が見つかりません",
-              );
-            }
-            await this.pvpDelay();
+              if (!opponent) {
+                throw new ApiError(
+                  404,
+                  "pvp_opponent_unavailable",
+                  "対戦相手が見つかりません",
+                );
+              }
+              await this.pvpDelay();
 
-            const before = this.pvpRating;
-            const after = before + 16;
-            this.pvpRating = after;
-            const matchId = `00000000-0000-4000-8000-${String(
-              this.pvpHistory.length + 301,
-            ).padStart(12, "0")}`;
-            const createdAt = new Date().toISOString();
-            const result = {
-              outcome: "win" as const,
-              challengerSetsWon: 2,
-              defenderSetsWon: 1,
-              sets: [
-                { setNumber: 1, challengerScore: 25, defenderScore: 20 },
-                { setNumber: 2, challengerScore: 22, defenderScore: 25 },
-                { setNumber: 3, challengerScore: 25, defenderScore: 18 },
-              ],
-            };
-            const history: PvpHistoryEntry = {
-              matchId,
-              createdAt,
-              opponentSnapshotId: opponent.snapshotId,
-              opponentSchoolName: opponent.schoolName,
-              outcome: result.outcome,
-              ratingBefore: before,
-              ratingAfter: after,
-              result,
-            };
-            this.pvpHistory = [history, ...this.pvpHistory];
+              const before = this.pvpRating;
+              const after = before + 16;
+              this.pvpRating = after;
+              const matchId = `00000000-0000-4000-8000-${String(
+                this.pvpHistory.length + 301,
+              ).padStart(12, "0")}`;
+              const createdAt = new Date().toISOString();
+              const result = {
+                outcome: "win" as const,
+                challengerSetsWon: 2,
+                defenderSetsWon: 1,
+                sets: [
+                  { setNumber: 1, challengerScore: 25, defenderScore: 20 },
+                  { setNumber: 2, challengerScore: 22, defenderScore: 25 },
+                  { setNumber: 3, challengerScore: 25, defenderScore: 18 },
+                ],
+              };
+              const history: PvpHistoryEntry = {
+                matchId,
+                createdAt,
+                opponentSnapshotId: opponent.snapshotId,
+                opponentSchoolName: opponent.schoolName,
+                outcome: result.outcome,
+                ratingBefore: before,
+                ratingAfter: after,
+                result,
+              };
+              this.pvpHistory = [history, ...this.pvpHistory];
 
-            return {
-              operationId: request.operationId,
-              revision: snapshot.revision,
-              seasonId: HARNESS_PVP_SEASON_ID,
-              matchId,
-              opponent: {
-                snapshotId: opponent.snapshotId,
-                schoolName: opponent.schoolName,
-                schoolShortName: opponent.schoolShortName,
-              },
-              rating: { before, after, delta: after - before },
-              result,
-              createdAt,
-            };
-          }
-          }
-
-          class UnavailableAuthClient'''.replace('          ', '')
-          if old not in text: raise SystemExit('adapter class end anchor not found')
-          text = text.replace(old, new, 1)
-          adapter_path.write_text(text)
+              return {
+                operationId: request.operationId,
+                revision: snapshot.revision,
+                seasonId: HARNESS_PVP_SEASON_ID,
+                matchId,
+                opponent: {
+                  snapshotId: opponent.snapshotId,
+                  schoolName: opponent.schoolName,
+                  schoolShortName: opponent.schoolShortName,
+                },
+                rating: { before, after, delta: after - before },
+                result,
+                createdAt,
+              };
+            }'''.replace('            ', '  ')
+          if class_end not in text:
+              raise SystemExit('adapter class end anchor not found')
+          text = text.replace(class_end, methods + class_end, 1)
+          path.write_text(text)
           PY
-      - name: Format changed source
+      - name: Format Task 7 source
         run: npx prettier src/app/GameApp.tsx src/app/createBrowserAppDependencies.ts src/features/match/MatchPvpEntry.tsx src/features/match/match.css src/features/pvp/PvpScreen.tsx src/features/pvp/pvp.css tests/unit/features/pvp/PvpScreen.test.tsx tests/unit/app/GameApp.pvp.test.tsx --write
-      - name: Commit PvP flow
+      - name: Commit Task 7 source
         run: |
           if git diff --quiet; then
             exit 0
@@ -596,5 +282,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/app/GameApp.tsx src/app/createBrowserAppDependencies.ts src/features/match/MatchPvpEntry.tsx src/features/match/match.css src/features/pvp/PvpScreen.tsx src/features/pvp/pvp.css tests/unit/features/pvp/PvpScreen.test.tsx tests/unit/app/GameApp.pvp.test.tsx
-          git commit -m "feat: add playable async PvP screen"
+          git commit -m "feat: finish playable async PvP flow"
           git push origin HEAD:feature/court-legacy-v2-phase4-async-pvp
