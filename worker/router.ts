@@ -9,6 +9,7 @@ import { json, jsonError } from "./http/json";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
+import { createPvpChallengeHandler } from "./routes/pvpChallenge";
 import { createPvpHistoryHandler } from "./routes/pvpHistory";
 import { createPvpOpponentsHandler } from "./routes/pvpOpponents";
 import { createPvpPublishHandler } from "./routes/pvpPublish";
@@ -27,6 +28,7 @@ export interface WorkerDependencies {
   scoutingStore?: ScoutingStore;
   pvpStore?: PvPStore;
   createCreationNonce?: () => string;
+  createPvpMatchNonce?: () => string;
   now?: () => Date;
 }
 
@@ -69,6 +71,14 @@ export function createRouter(
     ? createPvpPublishHandler({
         gameStore: deps.store,
         pvpStore: deps.pvpStore,
+      })
+    : null;
+  const pvpChallenge = deps.pvpStore
+    ? createPvpChallengeHandler({
+        gameStore: deps.store,
+        pvpStore: deps.pvpStore,
+        now: deps.now,
+        createMatchNonce: deps.createPvpMatchNonce,
       })
     : null;
   const pvpOpponents = deps.pvpStore
@@ -138,6 +148,13 @@ export function createRouter(
         pvpPublish
       ) {
         return await pvpPublish(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/challenge" &&
+        request.method === "POST" &&
+        pvpChallenge
+      ) {
+        return await pvpChallenge(request, user);
       }
       if (
         url.pathname === "/api/pvp/opponents" &&
