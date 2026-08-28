@@ -37,7 +37,7 @@ const reports: ScoutReport[] = [
   },
 ];
 
-function stateWithCommitted(candidateIds: typeof candidateA[] = []) {
+function stateWithCommitted(candidateIds: (typeof candidateA)[] = []) {
   const state = createDemoGame();
   state.recruiting = {
     cycleKey: `${state.userSchoolId}:year-${state.yearIndex}`,
@@ -76,7 +76,9 @@ describe("ScoutingScreen", () => {
     expect(
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
     ).toBeEnabled();
-    expect(screen.getByRole("button", { name: "獲得済み 佐藤 湊" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "獲得済み 佐藤 湊" }),
+    ).toBeDisabled();
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
   });
 
