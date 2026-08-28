@@ -19,11 +19,7 @@ const achievementSchema = z.enum([
 ]);
 
 const overallPrecisionSchema = z.enum(["normal", "researched"]);
-const potentialPrecisionSchema = z.enum([
-  "normal",
-  "researched",
-  "appraised",
-]);
+const potentialPrecisionSchema = z.enum(["normal", "researched", "appraised"]);
 
 const persistedPlayerSchema = z
   .object({
@@ -173,7 +169,9 @@ export class SupabaseScoutingStore implements ScoutingStore {
     if (error) {
       throw new ScoutingStoreDataError(
         "scouting candidate insight read failed",
-        { cause: error },
+        {
+          cause: error,
+        },
       );
     }
 
