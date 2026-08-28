@@ -160,16 +160,14 @@ export function ScoutingScreen({
 
                 <div className="scouting-estimates">
                   <div>
-                    <span>現在能力</span>
                     <strong>
-                      {report.estimatedOverall.min}〜
+                      現在能力 {report.estimatedOverall.min}〜
                       {report.estimatedOverall.max}
                     </strong>
                   </div>
                   <div>
-                    <span>将来性</span>
                     <strong>
-                      {report.estimatedPotential.min}〜
+                      将来性 {report.estimatedPotential.min}〜
                       {report.estimatedPotential.max}
                     </strong>
                   </div>
