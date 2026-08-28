@@ -82,6 +82,7 @@ describe("scouting recruitment capacity", () => {
     const scoutingStore: ScoutingStore = {
       getCandidatePool: vi.fn(async () => pool),
       createCandidatePool: vi.fn(async () => pool),
+      listCandidateInsights: vi.fn(async () => []),
     };
     const handler = createScoutingRecruitmentHandler({
       gameStore,
