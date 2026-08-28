@@ -65,12 +65,12 @@ export interface GameApiClient {
     request: GameActionRequest,
     signal?: AbortSignal,
   ): Promise<GameActionResponse>;
-  getScoutingBoard(
+  getScoutingBoard?(
     accessToken: string,
     request: ScoutingBoardRequest,
     signal?: AbortSignal,
   ): Promise<ScoutingBoardResponse>;
-  commitRecruit(
+  commitRecruit?(
     accessToken: string,
     request: ScoutingRecruitmentRequest,
     signal?: AbortSignal,
