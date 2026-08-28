@@ -171,9 +171,10 @@ export class SupabaseScoutingStore implements ScoutingStore {
       .eq("cycle_key", cycleKey);
 
     if (error) {
-      throw new ScoutingStoreDataError("scouting candidate insight read failed", {
-        cause: error,
-      });
+      throw new ScoutingStoreDataError(
+        "scouting candidate insight read failed",
+        { cause: error },
+      );
     }
 
     return (data ?? []).map(mapInsight);
