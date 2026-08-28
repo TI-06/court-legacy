@@ -1,8 +1,10 @@
 import { z } from "zod";
 import type { Player } from "../../src/domain/model/Player";
+import type { PlayerId } from "../../src/domain/model/identifiers";
 import type { MiddleSchoolAchievement } from "../../src/domain/scouting/scoutReport";
 import type {
   CreateScoutingCandidatePoolInput,
+  ScoutingCandidateInsight,
   ScoutingCandidatePool,
   ScoutingStore,
 } from "./ScoutingStore";
@@ -14,6 +16,13 @@ const achievementSchema = z.enum([
   "prefectural-best-eight",
   "prefectural-selection",
   "national-event",
+]);
+
+const overallPrecisionSchema = z.enum(["normal", "researched"]);
+const potentialPrecisionSchema = z.enum([
+  "normal",
+  "researched",
+  "appraised",
 ]);
 
 const persistedPlayerSchema = z
@@ -42,6 +51,12 @@ const poolRowSchema = z.object({
   candidates: z.array(candidateSchema).min(1),
 });
 
+const insightRowSchema = z.object({
+  candidate_id: z.string().min(1),
+  overall_precision: overallPrecisionSchema,
+  potential_precision: potentialPrecisionSchema,
+});
+
 const createPoolRpcSchema = z.array(poolRowSchema).min(1);
 
 export class ScoutingStoreDataError extends Error {
@@ -68,6 +83,21 @@ function mapPool(value: unknown): ScoutingCandidatePool {
       middleSchoolAchievement:
         candidate.middleSchoolAchievement as MiddleSchoolAchievement,
     })),
+  };
+}
+
+function mapInsight(value: unknown): ScoutingCandidateInsight {
+  const parsed = insightRowSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new ScoutingStoreDataError("scouting candidate insight is invalid", {
+      cause: parsed.error,
+    });
+  }
+
+  return {
+    candidateId: parsed.data.candidate_id as PlayerId,
+    overallPrecision: parsed.data.overall_precision,
+    potentialPrecision: parsed.data.potential_precision,
   };
 }
 
@@ -128,5 +158,24 @@ export class SupabaseScoutingStore implements ScoutingStore {
     }
 
     return mapPool(parsed.data[0]);
+  }
+
+  async listCandidateInsights(
+    userId: string,
+    cycleKey: string,
+  ): Promise<ScoutingCandidateInsight[]> {
+    const { data, error } = await this.client
+      .from("scouting_candidate_insights")
+      .select("candidate_id, overall_precision, potential_precision")
+      .eq("user_id", userId)
+      .eq("cycle_key", cycleKey);
+
+    if (error) {
+      throw new ScoutingStoreDataError("scouting candidate insight read failed", {
+        cause: error,
+      });
+    }
+
+    return (data ?? []).map(mapInsight);
   }
 }
