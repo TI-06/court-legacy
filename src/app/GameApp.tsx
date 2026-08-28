@@ -32,10 +32,7 @@ import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
 import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
-import {
-  ApiError,
-  type GameApiClient,
-} from "../services/api/GameApiClient";
+import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
@@ -138,7 +135,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab(tab);
   };
 
-  const loadScoutingBoard = async (revision = cloudSession.snapshot.revision) => {
+  const loadScoutingBoard = async (
+    revision = cloudSession.snapshot.revision,
+  ) => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
       return;
@@ -252,9 +251,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }
       }
 
-      setScoutingError(
-        scoutingErrorMessage(error, "獲得処理に失敗しました"),
-      );
+      setScoutingError(scoutingErrorMessage(error, "獲得処理に失敗しました"));
       setRetryRecruitCandidateId(candidateId);
     } finally {
       setRecruitingCandidateId(null);
