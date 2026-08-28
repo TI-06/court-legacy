@@ -36,6 +36,12 @@ function shortOutcomeLabel(outcome: "win" | "loss"): string {
   return outcome === "win" ? "勝" : "敗";
 }
 
+function historySetScore(entry: PvpHistoryEntry): [number, number] {
+  return entry.perspective === "challenger"
+    ? [entry.result.challengerSetsWon, entry.result.defenderSetsWon]
+    : [entry.result.defenderSetsWon, entry.result.challengerSetsWon];
+}
+
 function formatPublishedAt(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -314,25 +320,27 @@ export function PvpScreen({
         </div>
         {history.length > 0 ? (
           <div className="pvp-history-list">
-            {history.slice(0, 10).map((entry) => (
-              <article key={entry.matchId}>
-                <span
-                  className={`pvp-history-outcome pvp-history-outcome--${entry.outcome}`}
-                >
-                  {shortOutcomeLabel(entry.outcome)}
-                </span>
-                <div>
-                  <strong>{entry.opponentSchoolName}</strong>
-                  <span>
-                    {entry.result.challengerSetsWon} -{" "}
-                    {entry.result.defenderSetsWon}
+            {history.slice(0, 10).map((entry) => {
+              const [ownSetsWon, opponentSetsWon] = historySetScore(entry);
+              return (
+                <article key={entry.matchId}>
+                  <span
+                    className={`pvp-history-outcome pvp-history-outcome--${entry.outcome}`}
+                  >
+                    {shortOutcomeLabel(entry.outcome)}
                   </span>
-                </div>
-                <b>
-                  {signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}
-                </b>
-              </article>
-            ))}
+                  <div>
+                    <strong>{entry.opponentSchoolName}</strong>
+                    <span>
+                      {ownSetsWon} - {opponentSetsWon}
+                    </span>
+                  </div>
+                  <b>
+                    {signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}
+                  </b>
+                </article>
+              );
+            })}
           </div>
         ) : !loading ? (
           <p className="pvp-empty-state">対戦履歴はまだありません。</p>
