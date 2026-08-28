@@ -32,7 +32,7 @@ const publicResultSchema = z
         .strict(),
     ),
   })
-  .strict();
+  .strip();
 
 const responseSchema = z
   .object({
@@ -220,6 +220,11 @@ export function createPvpChallengeHandler(
     if (challenger.revision !== parsed.data.revision) {
       return revisionConflict();
     }
+    const challengerSchool =
+      challenger.state.schools[challenger.state.userSchoolId];
+    if (!challengerSchool) {
+      throw new Error("challenger school is missing from authoritative state");
+    }
 
     const defender = await deps.pvpStore.getSnapshotById(
       parsed.data.opponentSnapshotId,
@@ -271,7 +276,10 @@ export function createPvpChallengeHandler(
         challengerSourceRevision: challenger.revision,
         matchSeed,
         challengerWon: simulation.challengerWon,
-        result: simulation.result,
+        result: {
+          ...simulation.result,
+          challengerSchoolName: challengerSchool.name,
+        },
       });
 
       let canonicalDefender = defender;
