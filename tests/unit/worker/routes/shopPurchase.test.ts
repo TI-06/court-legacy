@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   ShopStoreMutationError,
+  type ShopMutationResult,
   type ShopStore,
 } from "../../../../worker/data/ShopStore";
 import { createShopPurchaseHandler } from "../../../../worker/routes/shopPurchase";
@@ -16,7 +17,7 @@ function request(body: unknown): Request {
 function createShopStore(): ShopStore {
   return {
     getStatus: vi.fn(async () => []),
-    purchase: vi.fn(async (input) => ({
+    purchase: vi.fn(async (input): Promise<ShopMutationResult> => ({
       operationId: input.operationId,
       operationType: "purchase",
       requestFingerprint: input.requestFingerprint,
