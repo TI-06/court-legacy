@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { vi } from "vitest";
 import type {
@@ -145,9 +145,10 @@ describe("PvpScreen", () => {
 
     renderScreen({ history: [defenderHistory], result: null });
 
-    expect(screen.getByText("青葉高校")).toBeVisible();
-    expect(screen.getByText("2 - 1")).toBeVisible();
-    expect(screen.getByText("+16")).toBeVisible();
+    const historyRegion = screen.getByRole("region", { name: "対戦履歴" });
+    expect(within(historyRegion).getByText("青葉高校")).toBeVisible();
+    expect(within(historyRegion).getByText("2 - 1")).toBeVisible();
+    expect(within(historyRegion).getByText("+16")).toBeVisible();
   });
 
   it("keeps visible progress while loading instead of showing a blank screen", () => {
