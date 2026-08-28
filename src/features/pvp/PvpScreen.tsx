@@ -135,13 +135,18 @@ export function PvpScreen({
         </div>
       </section>
 
-      <section className="pvp-publish-card" aria-labelledby="pvp-publish-heading">
+      <section
+        className="pvp-publish-card"
+        aria-labelledby="pvp-publish-heading"
+      >
         <div className="pvp-section-heading">
           <div>
             <p className="section-kicker">MY TEAM</p>
             <h3 id="pvp-publish-heading">公開チーム</h3>
           </div>
-          <span className={publishedTeam ? "pvp-status-live" : "pvp-status-off"}>
+          <span
+            className={publishedTeam ? "pvp-status-live" : "pvp-status-off"}
+          >
             {publishedTeam ? "公開中" : "未公開"}
           </span>
         </div>
@@ -212,14 +217,17 @@ export function PvpScreen({
           <div className="pvp-result-card__headline">
             <div>
               <p className="section-kicker">RATED RESULT</p>
-              <h3 id="pvp-result-heading">{outcomeLabel(result.result.outcome)}</h3>
+              <h3 id="pvp-result-heading">
+                {outcomeLabel(result.result.outcome)}
+              </h3>
             </div>
             <strong>{signedRatingDelta(result.rating.delta)}</strong>
           </div>
           <div className="pvp-result-card__score">
             <span>自校</span>
             <b>
-              {result.result.challengerSetsWon} - {result.result.defenderSetsWon}
+              {result.result.challengerSetsWon} -{" "}
+              {result.result.defenderSetsWon}
             </b>
             <span>{result.opponent.schoolShortName}</span>
           </div>
@@ -262,7 +270,9 @@ export function PvpScreen({
             ))}
           </div>
         ) : !loading ? (
-          <p className="pvp-empty-state">現在対戦できる公開チームはありません。</p>
+          <p className="pvp-empty-state">
+            現在対戦できる公開チームはありません。
+          </p>
         ) : null}
       </section>
 
@@ -289,7 +299,9 @@ export function PvpScreen({
             ))}
           </div>
         ) : !loading ? (
-          <p className="pvp-empty-state">今シーズンのランキングはまだありません。</p>
+          <p className="pvp-empty-state">
+            今シーズンのランキングはまだありません。
+          </p>
         ) : null}
       </section>
 
@@ -312,10 +324,13 @@ export function PvpScreen({
                 <div>
                   <strong>{entry.opponentSchoolName}</strong>
                   <span>
-                    {entry.result.challengerSetsWon} - {entry.result.defenderSetsWon}
+                    {entry.result.challengerSetsWon} -{" "}
+                    {entry.result.defenderSetsWon}
                   </span>
                 </div>
-                <b>{signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}</b>
+                <b>
+                  {signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}
+                </b>
               </article>
             ))}
           </div>
