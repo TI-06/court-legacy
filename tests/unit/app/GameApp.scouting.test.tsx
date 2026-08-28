@@ -58,7 +58,9 @@ function authClient(): AuthClient {
   };
 }
 
-function recruitedResponse(snapshot: CloudGameSnapshot): ScoutingRecruitmentResponse {
+function recruitedResponse(
+  snapshot: CloudGameSnapshot,
+): ScoutingRecruitmentResponse {
   const cycleKey = `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`;
   return {
     operationId: "recruit-server-1",
@@ -109,9 +111,9 @@ describe("GameApp scouting flow", () => {
       cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
       reports: [report],
     }));
-    const commitRecruit = vi.fn<
-      NonNullable<GameApiClient["commitRecruit"]>
-    >(async () => recruitedResponse(snapshot));
+    const commitRecruit = vi.fn<NonNullable<GameApiClient["commitRecruit"]>>(
+      async () => recruitedResponse(snapshot),
+    );
     const api: GameApiClient = {
       bootstrap: vi.fn(),
       onboard: vi.fn(),
@@ -145,9 +147,8 @@ describe("GameApp scouting flow", () => {
 
   it("shows board API errors and retries the board request", async () => {
     const snapshot = createSnapshot();
-    const getScoutingBoard = vi.fn<
-      NonNullable<GameApiClient["getScoutingBoard"]>
-    >()
+    const getScoutingBoard = vi
+      .fn<NonNullable<GameApiClient["getScoutingBoard"]>>()
       .mockRejectedValueOnce(
         new ApiError(503, "scouting_unavailable", "候補を読み込めませんでした"),
       )
@@ -187,9 +188,8 @@ describe("GameApp scouting flow", () => {
       cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
       reports: [report],
     }));
-    const commitRecruit = vi.fn<
-      NonNullable<GameApiClient["commitRecruit"]>
-    >()
+    const commitRecruit = vi
+      .fn<NonNullable<GameApiClient["commitRecruit"]>>()
       .mockRejectedValueOnce(
         new ApiError(500, "recruit_failed", "獲得処理に失敗しました"),
       )
