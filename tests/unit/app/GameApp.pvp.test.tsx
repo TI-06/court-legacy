@@ -202,7 +202,9 @@ describe("GameApp PvP flow", () => {
     await waitFor(() => expect(mocks.getPvpOpponents).toHaveBeenCalledTimes(1));
     expect(mocks.getPvpRanking).toHaveBeenCalledTimes(1);
     expect(mocks.getPvpHistory).toHaveBeenCalledTimes(1);
-    expect(await screen.findByText("白波高校")).toBeVisible();
+    expect(
+      await screen.findByRole("button", { name: "対戦する 白波高校" }),
+    ).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "チームを公開" }));
     await waitFor(() => expect(mocks.publishPvpTeam).toHaveBeenCalledTimes(1));
@@ -240,7 +242,7 @@ describe("GameApp PvP flow", () => {
     renderApp(mocks.api, snapshot);
 
     openPvp();
-    await screen.findByText("白波高校");
+    await screen.findByRole("button", { name: "対戦する 白波高校" });
     fireEvent.click(screen.getByRole("button", { name: "チームを公開" }));
 
     await waitFor(() => expect(mocks.api.bootstrap).toHaveBeenCalledTimes(1));
@@ -262,7 +264,7 @@ describe("GameApp PvP flow", () => {
     renderApp(mocks.api, snapshot);
 
     openPvp();
-    await screen.findByText("白波高校");
+    await screen.findByRole("button", { name: "対戦する 白波高校" });
     fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
