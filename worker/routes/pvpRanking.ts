@@ -35,12 +35,15 @@ export function createPvpRankingHandler(
       cursor: parseCursor(url),
       limit,
     });
+    const lastRank = ranking.at(-1)?.rank;
 
     return json({
       seasonId,
       ranking,
       nextCursor:
-        ranking.length === limit ? (ranking.at(-1)?.snapshotId ?? null) : null,
+        ranking.length === limit && lastRank !== undefined
+          ? String(lastRank)
+          : null,
     });
   };
 }
