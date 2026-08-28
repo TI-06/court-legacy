@@ -54,7 +54,9 @@ test("mobile PvP publishes, challenges, and keeps visible progress and results",
   expect(bodyWidth).toBeLessThanOrEqual(360);
 
   await page.getByRole("button", { name: "通常試合へ" }).click();
-  await expect(page.getByRole("button", { name: "対人戦を開く" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "対人戦を開く" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "対人戦を開く" }).click();
 
   await expect(page.getByRole("heading", { name: "対人戦" })).toBeVisible();
