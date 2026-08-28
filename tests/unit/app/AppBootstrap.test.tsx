@@ -66,6 +66,8 @@ function apiClient(overrides: Partial<GameApiClient> = {}): GameApiClient {
     bootstrap: vi.fn().mockResolvedValue({ status: "needs-onboarding" }),
     onboard: vi.fn(),
     applyAction: vi.fn(),
+    getScoutingBoard: vi.fn(),
+    commitRecruit: vi.fn(),
     ...overrides,
   };
 }
