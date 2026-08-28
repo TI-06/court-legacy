@@ -135,11 +135,7 @@ export function generateServerScoutingCandidates(
 ): ScoutingCandidateTruth[] {
   const excludedFullNames = defaultExcludedFullNames(state);
   return Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
-    generateServerScoutingCandidateAtIndex(
-      state,
-      index + 1,
-      excludedFullNames,
-    ),
+    generateServerScoutingCandidateAtIndex(state, index + 1, excludedFullNames),
   );
 }
 
