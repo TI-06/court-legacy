@@ -9,7 +9,9 @@ import {
   selectRecruitTier,
   type RecruitTier,
 } from "../../../../src/domain/scouting/recruitmentTierProbability";
-import type { MiddleSchoolAchievement } from "../../../../src/domain/scouting/scoutReport";
+import type {
+  MiddleSchoolAchievement,
+} from "../../../../src/domain/scouting/scoutReport";
 import type {
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
@@ -132,54 +134,60 @@ describe("server scouting board Phase 5 integration", () => {
     );
   });
 
-  it("generates index seven deterministically without rerolling the original six", () => {
-    const state = createDemoGame();
-    const originalSix = generateServerScoutingCandidates(state);
-    const excluded = stateExcludedNames(state);
+  it(
+    "generates index seven deterministically without rerolling the original six",
+    () => {
+      const state = createDemoGame();
+      const originalSix = generateServerScoutingCandidates(state);
+      const excluded = stateExcludedNames(state);
 
-    const first = generateServerScoutingCandidateAtIndex(state, 7, excluded);
-    const second = generateServerScoutingCandidateAtIndex(state, 7, excluded);
-    const originalNames = new Set(
-      originalSix.map(
-        ({ player }) => `${player.lastName} ${player.firstName}`,
-      ),
-    );
+      const first = generateServerScoutingCandidateAtIndex(state, 7, excluded);
+      const second = generateServerScoutingCandidateAtIndex(state, 7, excluded);
+      const originalNames = new Set(
+        originalSix.map(
+          ({ player }) => `${player.lastName} ${player.firstName}`,
+        ),
+      );
 
-    expect(second).toEqual(first);
-    expect(first.player.id).toBe(
-      playerId(`scout-${state.userSchoolId}-${state.yearIndex}-7`),
-    );
-    expect(originalNames).not.toContain(
-      `${first.player.lastName} ${first.player.firstName}`,
-    );
-    expect(generateServerScoutingCandidates(state)).toEqual(originalSix);
-  });
+      expect(second).toEqual(first);
+      expect(first.player.id).toBe(
+        playerId(`scout-${state.userSchoolId}-${state.yearIndex}-7`),
+      );
+      expect(originalNames).not.toContain(
+        `${first.player.lastName} ${first.player.firstName}`,
+      );
+      expect(generateServerScoutingCandidates(state)).toEqual(originalSix);
+    },
+  );
 
-  it("applies candidate insights without rerolling unaffected public reports", () => {
-    const state = createDemoGame();
-    const candidates = generateServerScoutingCandidates(state);
-    const pool = poolFor(state, candidates);
-    const baseline = buildServerScoutReports(state, pool, []);
-    const target = candidates[0]!.player.id;
-    const insights: ScoutingCandidateInsight[] = [
-      {
-        candidateId: target,
-        overallPrecision: "researched",
-        potentialPrecision: "appraised",
-      },
-    ];
+  it(
+    "applies candidate insights without rerolling unaffected public reports",
+    () => {
+      const state = createDemoGame();
+      const candidates = generateServerScoutingCandidates(state);
+      const pool = poolFor(state, candidates);
+      const baseline = buildServerScoutReports(state, pool, []);
+      const target = candidates[0]!.player.id;
+      const insights: ScoutingCandidateInsight[] = [
+        {
+          candidateId: target,
+          overallPrecision: "researched",
+          potentialPrecision: "appraised",
+        },
+      ];
 
-    const improved = buildServerScoutReports(state, pool, insights);
-    const repeated = buildServerScoutReports(state, pool, insights);
+      const improved = buildServerScoutReports(state, pool, insights);
+      const repeated = buildServerScoutReports(state, pool, insights);
 
-    expect(improved).toEqual(repeated);
-    expect(improved[0]!.confidence).toBe("high");
-    expect(
-      improved[0]!.estimatedPotential.max -
-        improved[0]!.estimatedPotential.min,
-    ).toBeLessThanOrEqual(4);
-    expect(improved.slice(1)).toEqual(baseline.slice(1));
-    expect(JSON.stringify(improved)).not.toContain('"tier"');
-    expect(JSON.stringify(improved)).not.toContain('"hiddenTraitIds"');
-  });
+      expect(improved).toEqual(repeated);
+      expect(improved[0]!.confidence).toBe("high");
+      expect(
+        improved[0]!.estimatedPotential.max -
+          improved[0]!.estimatedPotential.min,
+      ).toBeLessThanOrEqual(4);
+      expect(improved.slice(1)).toEqual(baseline.slice(1));
+      expect(JSON.stringify(improved)).not.toContain('"tier"');
+      expect(JSON.stringify(improved)).not.toContain('"hiddenTraitIds"');
+    },
+  );
 });
