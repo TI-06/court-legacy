@@ -197,7 +197,7 @@ describe("HttpGameApiClient", () => {
     await api.commitRecruit("access-token", request);
 
     expect(fetchImpl).toHaveBeenCalledWith(
-      "/api/scouting/recruitment",
+      "/api/scouting/recruit",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify(request),
