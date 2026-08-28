@@ -223,7 +223,7 @@ describe("GameApp PvP flow", () => {
       opponentSnapshotId: opponent.snapshotId,
     });
     expect(await screen.findByText("勝利")).toBeVisible();
-    expect(screen.getByText("+16")).toBeVisible();
+    expect(screen.getAllByText("+16")).toHaveLength(2);
     await waitFor(() => expect(mocks.getPvpRanking).toHaveBeenCalledTimes(2));
     expect(mocks.getPvpHistory).toHaveBeenCalledTimes(2);
   });
