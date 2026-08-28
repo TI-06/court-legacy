@@ -13,7 +13,9 @@ interface RpcResult {
 
 function createClient(results: Record<string, RpcResult>) {
   return {
-    rpc: vi.fn(async (name: string) => results[name] ?? { data: null, error: null }),
+    rpc: vi.fn(
+      async (name: string) => results[name] ?? { data: null, error: null },
+    ),
   } as never;
 }
 
