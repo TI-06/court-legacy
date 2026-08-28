@@ -4,6 +4,16 @@ import type {
   GameActionResponse,
 } from "../../../worker/game/actionSchema";
 import type { PlayerId } from "../../domain/model/identifiers";
+import type {
+  PvpChallengeRequest,
+  PvpChallengeResponse,
+  PvpHistoryResponse,
+  PvpListRequestQuery,
+  PvpOpponentsResponse,
+  PvpPublishRequest,
+  PvpPublishResponse,
+  PvpRankingResponse,
+} from "../../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../../domain/scouting/scoutReport";
 
 export type BootstrapResponse =
@@ -75,6 +85,31 @@ export interface GameApiClient {
     request: ScoutingRecruitmentRequest,
     signal?: AbortSignal,
   ): Promise<ScoutingRecruitmentResponse>;
+  publishPvpTeam?(
+    accessToken: string,
+    request: PvpPublishRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpPublishResponse>;
+  getPvpOpponents?(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpOpponentsResponse>;
+  challengePvpTeam?(
+    accessToken: string,
+    request: PvpChallengeRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeResponse>;
+  getPvpRanking?(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpRankingResponse>;
+  getPvpHistory?(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpHistoryResponse>;
 }
 
 export class ApiError extends Error {
@@ -103,6 +138,20 @@ function errorFromResponse(status: number, payload: unknown): ApiError {
       ? error.message
       : "リクエストを完了できませんでした";
   return new ApiError(status, code, message);
+}
+
+function pvpListPath(path: string, query?: PvpListRequestQuery): string {
+  if (!query) return path;
+
+  const params = new URLSearchParams();
+  if (query.cursor) {
+    params.set("cursor", query.cursor);
+  }
+  if (query.limit !== undefined) {
+    params.set("limit", String(query.limit));
+  }
+  const encoded = params.toString();
+  return encoded ? `${path}?${encoded}` : path;
 }
 
 export class HttpGameApiClient implements GameApiClient {
@@ -212,9 +261,74 @@ export class HttpGameApiClient implements GameApiClient {
     signal?: AbortSignal,
   ): Promise<ScoutingRecruitmentResponse> {
     return this.request<ScoutingRecruitmentResponse>(
-      "/api/scouting/recruitment",
+      "/api/scouting/recruit",
       accessToken,
       { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  publishPvpTeam(
+    accessToken: string,
+    request: PvpPublishRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpPublishResponse> {
+    return this.request<PvpPublishResponse>(
+      "/api/pvp/team/publish",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  getPvpOpponents(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpOpponentsResponse> {
+    return this.request<PvpOpponentsResponse>(
+      pvpListPath("/api/pvp/opponents", query),
+      accessToken,
+      { method: "GET" },
+      signal,
+    );
+  }
+
+  challengePvpTeam(
+    accessToken: string,
+    request: PvpChallengeRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeResponse> {
+    return this.request<PvpChallengeResponse>(
+      "/api/pvp/challenge",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  getPvpRanking(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpRankingResponse> {
+    return this.request<PvpRankingResponse>(
+      pvpListPath("/api/pvp/ranking", query),
+      accessToken,
+      { method: "GET" },
+      signal,
+    );
+  }
+
+  getPvpHistory(
+    accessToken: string,
+    query?: PvpListRequestQuery,
+    signal?: AbortSignal,
+  ): Promise<PvpHistoryResponse> {
+    return this.request<PvpHistoryResponse>(
+      pvpListPath("/api/pvp/history", query),
+      accessToken,
+      { method: "GET" },
       signal,
     );
   }
