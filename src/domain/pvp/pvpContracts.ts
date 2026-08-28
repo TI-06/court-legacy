@@ -1,4 +1,5 @@
 export type PvpMatchOutcome = "win" | "loss";
+export type PvpHistoryPerspective = "challenger" | "defender";
 
 export interface PvpPublishRequest {
   operationId: string;
@@ -105,8 +106,9 @@ export interface PvpRankingResponse {
 export interface PvpHistoryEntry {
   matchId: string;
   createdAt: string;
-  opponentSnapshotId: string;
+  opponentSnapshotId: string | null;
   opponentSchoolName: string;
+  perspective: PvpHistoryPerspective;
   outcome: PvpMatchOutcome;
   ratingBefore: number;
   ratingAfter: number;
