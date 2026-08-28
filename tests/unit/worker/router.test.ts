@@ -29,6 +29,7 @@ function createScoutingStore(): ScoutingStore {
       creationOperationId: input.creationOperationId,
       candidates: input.candidates,
     })),
+    listCandidateInsights: vi.fn(async () => []),
   };
 }
 
