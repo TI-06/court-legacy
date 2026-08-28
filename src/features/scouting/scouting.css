@@ -1,0 +1,364 @@
+.scouting-screen {
+  align-content: start;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.scouting-hero,
+.scouting-state,
+.scouting-error,
+.scouting-card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.scouting-hero {
+  padding: 16px;
+  color: #f7fbfc;
+  background:
+    linear-gradient(145deg, rgb(34 91 106 / 97%), rgb(18 45 59 / 99%)), #153540;
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.scouting-back {
+  min-height: 44px;
+  padding: 0 4px;
+  color: #c9e0e5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: transparent;
+  border: 0;
+}
+
+.scouting-back:focus-visible,
+.scouting-recruit:focus-visible,
+.scouting-error button:focus-visible {
+  outline: 3px solid rgb(92 187 205 / 28%);
+  outline-offset: 2px;
+}
+
+.scouting-hero__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 5px;
+  gap: 12px;
+}
+
+.scouting-hero__heading > div {
+  min-width: 0;
+}
+
+.scouting-hero h1 {
+  margin: 4px 0 0;
+  font-size: 1.4rem;
+  line-height: 1.25;
+}
+
+.scouting-hero p {
+  max-width: 330px;
+  margin: 7px 0 0;
+  color: #c6dce1;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.scouting-grade {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  color: #ffe9b5;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  background: rgb(234 167 45 / 18%);
+  border: 1px solid rgb(255 213 120 / 28%);
+  border-radius: 999px;
+}
+
+.scouting-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 14px;
+  gap: 7px;
+}
+
+.scouting-summary > div {
+  min-width: 0;
+  padding: 10px 7px;
+  text-align: center;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 13px;
+}
+
+.scouting-summary span,
+.scouting-summary strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scouting-summary span {
+  color: #a9cbd2;
+  font-size: 0.62rem;
+}
+
+.scouting-summary strong {
+  margin-top: 4px;
+  color: #fff;
+  font-size: 0.84rem;
+}
+
+.scouting-state,
+.scouting-error {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 14px;
+  gap: 11px;
+}
+
+.scouting-state strong,
+.scouting-error strong {
+  display: block;
+  color: #213f4c;
+  font-size: 0.82rem;
+}
+
+.scouting-state p {
+  margin: 3px 0 0;
+  color: #687b86;
+  font-size: 0.7rem;
+}
+
+.scouting-spinner {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #d7e6e9;
+  border-top-color: #2d7b89;
+  border-radius: 50%;
+  animation: scouting-spin 0.9s linear infinite;
+}
+
+@keyframes scouting-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scouting-error {
+  align-items: stretch;
+  justify-content: space-between;
+  color: #8c3828;
+  background: #fff5f2;
+  border-color: #efc6bc;
+}
+
+.scouting-error strong {
+  align-self: center;
+  color: #8c3828;
+  line-height: 1.45;
+}
+
+.scouting-error button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  color: #8c3828;
+  font-size: 0.74rem;
+  font-weight: 800;
+  background: #fff;
+  border: 1px solid #dfb2a8;
+  border-radius: 12px;
+}
+
+.scouting-list {
+  display: grid;
+  margin-top: 12px;
+  gap: 10px;
+}
+
+.scouting-card {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+}
+
+.scouting-card__topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 10px;
+}
+
+.scouting-card__identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.scouting-card__identity > div {
+  min-width: 0;
+}
+
+.scouting-position {
+  display: grid;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  background: #286d7a;
+  border-radius: 13px;
+  place-items: center;
+}
+
+.scouting-card h2 {
+  margin: 0;
+  overflow: hidden;
+  color: #173342;
+  font-size: 1rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scouting-card__identity p {
+  margin: 3px 0 0;
+  color: #71818b;
+  font-size: 0.69rem;
+}
+
+.scouting-stars {
+  flex: 0 0 auto;
+  color: #d89417;
+  font-size: 0.82rem;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.scouting-tags {
+  display: flex;
+  margin-top: 11px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scouting-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 3px 8px;
+  color: #42606d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  background: #e8f0f3;
+  border-radius: 999px;
+}
+
+.scouting-estimates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 11px;
+  gap: 8px;
+}
+
+.scouting-estimates > div {
+  min-width: 0;
+  padding: 11px;
+  background: #f5f8fa;
+  border-radius: 13px;
+}
+
+.scouting-estimates span,
+.scouting-estimates strong {
+  display: block;
+}
+
+.scouting-estimates span {
+  color: #71818b;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.scouting-estimates strong {
+  margin-top: 4px;
+  color: #185365;
+  font-size: 1rem;
+}
+
+.scouting-comments {
+  display: grid;
+  margin: 11px 0 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.scouting-comments li {
+  min-width: 0;
+  color: #566a75;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.scouting-comments li::before {
+  margin-right: 6px;
+  color: #2d7b89;
+  content: "●";
+  font-size: 0.55rem;
+}
+
+.scouting-recruit {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #286d7a;
+  border: 0;
+  border-radius: 13px;
+  box-shadow: 0 4px 12px rgb(40 109 122 / 18%);
+}
+
+.scouting-recruit:disabled {
+  color: #7b8b93;
+  cursor: not-allowed;
+  background: #e0e7ea;
+  box-shadow: none;
+}
+
+@media (max-width: 390px) {
+  .scouting-hero__heading {
+    display: block;
+  }
+
+  .scouting-grade {
+    display: inline-flex;
+    margin-top: 10px;
+  }
+
+  .scouting-card__topline {
+    align-items: flex-start;
+  }
+
+  .scouting-stars {
+    font-size: 0.74rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scouting-spinner {
+    animation: none;
+  }
+}
