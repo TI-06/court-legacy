@@ -119,7 +119,9 @@ describe("PvpScreen", () => {
     expect(screen.getByText("勝利")).toBeVisible();
     expect(screen.getAllByText("+16")).toHaveLength(2);
     expect(screen.getByText("4位")).toBeVisible();
-    expect(screen.getByText("25 - 20")).toBeVisible();
+    expect(screen.getByLabelText("セット結果")).toHaveTextContent(
+      /SET 1\s+25\s*-\s*20/,
+    );
   });
 
   it("keeps visible progress while loading instead of showing a blank screen", () => {
