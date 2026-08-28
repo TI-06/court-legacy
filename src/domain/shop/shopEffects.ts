@@ -37,12 +37,13 @@ export const SPECIAL_COACH_FOCUS_ABILITIES: Readonly<
   decision: ["decision", "set", "mental"],
 };
 
-export const SPECIAL_COACH_ACTIVITY: Readonly<ShopTrainingActivityDefinition> = {
-  baseGrowth: 8,
-  fatigue: 6,
-  injuryRisk: 4,
-  trustGrowth: 3,
-};
+export const SPECIAL_COACH_ACTIVITY: Readonly<ShopTrainingActivityDefinition> =
+  {
+    baseGrowth: 8,
+    fatigue: 6,
+    injuryRisk: 4,
+    trustGrowth: 3,
+  };
 
 export const TRAINING_CAMP_POSITION_ABILITIES: Readonly<
   Record<Position, readonly AbilityKey[]>
@@ -54,12 +55,13 @@ export const TRAINING_CAMP_POSITION_ABILITIES: Readonly<
   L: ["receive", "speed", "mental"],
 };
 
-export const TRAINING_CAMP_ACTIVITY: Readonly<ShopTrainingActivityDefinition> = {
-  baseGrowth: 3,
-  fatigue: 12,
-  injuryRisk: 5,
-  trustGrowth: 2,
-};
+export const TRAINING_CAMP_ACTIVITY: Readonly<ShopTrainingActivityDefinition> =
+  {
+    baseGrowth: 3,
+    fatigue: 12,
+    injuryRisk: 5,
+    trustGrowth: 2,
+  };
 
 export interface FatigueRecoveryResult {
   player: Player;
