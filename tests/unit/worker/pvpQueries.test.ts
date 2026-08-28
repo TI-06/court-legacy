@@ -51,6 +51,7 @@ function pvpStore(): PvPStore {
         createdAt: "2026-08-31T13:00:00.000Z",
         opponentSnapshotId: "snapshot-other",
         opponentSchoolName: "白峰高校",
+        perspective: "challenger" as const,
         outcome: "win" as const,
         ratingBefore: 1000,
         ratingAfter: 1016,
@@ -209,6 +210,7 @@ describe("PvP public query routes", () => {
       expect.objectContaining({
         matchId: "match-1",
         opponentSchoolName: "白峰高校",
+        perspective: "challenger",
         outcome: "win",
       }),
     );
@@ -224,6 +226,7 @@ describe("PvP public query routes", () => {
         createdAt: "2026-08-31T13:00:00.000Z",
         opponentSnapshotId: "snapshot-first",
         opponentSchoolName: "白峰高校",
+        perspective: "challenger",
         outcome: "win",
         ratingBefore: 1000,
         ratingAfter: 1016,
@@ -232,8 +235,9 @@ describe("PvP public query routes", () => {
       {
         matchId: "00000000-0000-0000-0000-000000000010",
         createdAt: "2026-08-31T12:00:00.000Z",
-        opponentSnapshotId: "snapshot-second",
+        opponentSnapshotId: null,
         opponentSchoolName: "青嶺高校",
+        perspective: "defender",
         outcome: "loss",
         ratingBefore: 1016,
         ratingAfter: 1001,
