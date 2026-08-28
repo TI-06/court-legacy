@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import type { GameStore } from "../../../../worker/data/GameStore";
-import type { ShopStore } from "../../../../worker/data/ShopStore";
+import type {
+  ShopStatusItem,
+  ShopStore,
+} from "../../../../worker/data/ShopStore";
 import { createShopStatusHandler } from "../../../../worker/routes/shopStatus";
 
 function createGameStore(): GameStore {
@@ -38,37 +41,39 @@ function createGameStore(): GameStore {
 }
 
 function createShopStore(): ShopStore {
+  const status: ShopStatusItem[] = [
+    {
+      academicYearIndex: 4,
+      itemId: "fatigue-recovery",
+      displayName: "疲労回復",
+      description: "指定した選手1名の疲労を大きく回復します。",
+      priceYen: 0,
+      annualPurchaseLimit: 3,
+      annualUseLimit: 3,
+      purchasedCount: 1,
+      usedCount: 0,
+      quantityOwned: 1,
+      enabled: true,
+      sortOrder: 50,
+    },
+    {
+      academicYearIndex: 4,
+      itemId: "training-camp",
+      displayName: "強化合宿",
+      description: "チーム全体へ追加の特別育成を実施します。",
+      priceYen: 0,
+      annualPurchaseLimit: 1,
+      annualUseLimit: 1,
+      purchasedCount: 1,
+      usedCount: 1,
+      quantityOwned: 0,
+      enabled: true,
+      sortOrder: 40,
+    },
+  ];
+
   return {
-    getStatus: vi.fn(async () => [
-      {
-        academicYearIndex: 4,
-        itemId: "fatigue-recovery",
-        displayName: "疲労回復",
-        description: "指定した選手1名の疲労を大きく回復します。",
-        priceYen: 0,
-        annualPurchaseLimit: 3,
-        annualUseLimit: 3,
-        purchasedCount: 1,
-        usedCount: 0,
-        quantityOwned: 1,
-        enabled: true,
-        sortOrder: 50,
-      },
-      {
-        academicYearIndex: 4,
-        itemId: "training-camp",
-        displayName: "強化合宿",
-        description: "チーム全体へ追加の特別育成を実施します。",
-        priceYen: 0,
-        annualPurchaseLimit: 1,
-        annualUseLimit: 1,
-        purchasedCount: 1,
-        usedCount: 1,
-        quantityOwned: 0,
-        enabled: true,
-        sortOrder: 40,
-      },
-    ]),
+    getStatus: vi.fn(async () => status),
     purchase: vi.fn(async () => {
       throw new Error("not used");
     }),
