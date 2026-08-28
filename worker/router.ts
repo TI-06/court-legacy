@@ -66,7 +66,10 @@ export function createRouter(
       })
     : null;
   const pvpPublish = deps.pvpStore
-    ? createPvpPublishHandler({ gameStore: deps.store, pvpStore: deps.pvpStore })
+    ? createPvpPublishHandler({
+        gameStore: deps.store,
+        pvpStore: deps.pvpStore,
+      })
     : null;
   const pvpOpponents = deps.pvpStore
     ? createPvpOpponentsHandler({ pvpStore: deps.pvpStore, now: deps.now })

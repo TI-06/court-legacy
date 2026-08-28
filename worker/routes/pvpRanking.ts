@@ -40,9 +40,7 @@ export function createPvpRankingHandler(
       seasonId,
       ranking,
       nextCursor:
-        ranking.length === limit
-          ? (ranking.at(-1)?.snapshotId ?? null)
-          : null,
+        ranking.length === limit ? (ranking.at(-1)?.snapshotId ?? null) : null,
     });
   };
 }

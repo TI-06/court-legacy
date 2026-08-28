@@ -22,7 +22,11 @@ export interface PvpPublishHandlerDependencies {
 }
 
 function invalidRequest(): Response {
-  return jsonError(400, "invalid_pvp_publish_request", "公開条件を確認してください");
+  return jsonError(
+    400,
+    "invalid_pvp_publish_request",
+    "公開条件を確認してください",
+  );
 }
 
 function revisionConflict(): Response {
@@ -96,7 +100,9 @@ export function createPvpPublishHandler(
     const roster = sourceSchool.playerIds.map((playerId) => {
       const player = snapshot.state.players[playerId];
       if (!player) {
-        throw new Error(`authoritative roster references unknown player: ${playerId}`);
+        throw new Error(
+          `authoritative roster references unknown player: ${playerId}`,
+        );
       }
       return normalizedPlayer(player);
     });
