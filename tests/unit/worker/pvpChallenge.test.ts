@@ -251,10 +251,9 @@ describe("PvP challenge route", () => {
       pvpStore: store,
     });
 
-    const response = await handler(
-      request(challengeBody("challenge-replay")),
-      { id: CHALLENGER_USER_ID },
-    );
+    const response = await handler(request(challengeBody("challenge-replay")), {
+      id: CHALLENGER_USER_ID,
+    });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(replay);
@@ -277,10 +276,9 @@ describe("PvP challenge route", () => {
       pvpStore: store,
     });
 
-    const response = await handler(
-      request(challengeBody("shared-operation")),
-      { id: CHALLENGER_USER_ID },
-    );
+    const response = await handler(request(challengeBody("shared-operation")), {
+      id: CHALLENGER_USER_ID,
+    });
 
     expect(response.status).toBe(409);
     expect((await response.json()).error.code).toBe("pvp_operation_conflict");
@@ -315,9 +313,7 @@ describe("PvP challenge route", () => {
       "pvp_opponent_unavailable",
     );
 
-    const inactiveStore = pvpStore(
-      createDefenderSnapshot({ isActive: false }),
-    );
+    const inactiveStore = pvpStore(createDefenderSnapshot({ isActive: false }));
     const inactiveHandler = createPvpChallengeHandler({
       gameStore: gameStore(snapshot),
       pvpStore: inactiveStore,
@@ -383,9 +379,7 @@ describe("PvP challenge route", () => {
     });
 
     expect(response.status).toBe(409);
-    expect((await response.json()).error.code).toBe(
-      "pvp_daily_opponent_limit",
-    );
+    expect((await response.json()).error.code).toBe("pvp_daily_opponent_limit");
     expect(store.commitRatedMatch).toHaveBeenCalledTimes(1);
     expect(store.listRanking).not.toHaveBeenCalled();
     expect(store.listHistory).not.toHaveBeenCalled();
