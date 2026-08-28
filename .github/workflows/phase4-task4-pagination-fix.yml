@@ -2,7 +2,8 @@ name: Phase4 Task4 pagination fix
 
 on:
   push:
-    branches: ["feature/court-legacy-v2-phase4-async-pvp"]
+    branches:
+      - feature/court-legacy-v2-phase4-async-pvp
 
 permissions:
   contents: write
@@ -17,34 +18,12 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Patch stable history cursor and format files
+      - name: Patch stable history cursor
+        run: python -c "from pathlib import Path; import base64; p=Path('supabase/migrations/202608280004_async_pvp.sql'); t=p.read_text(); old=base64.b64decode('ICB3aGVyZSBtYXRjaGVzLnNlYXNvbl9pZCA9IHBfc2Vhc29uX2lkCiAgICBhbmQgKG1hdGNoZXMuY2hhbGxlbmdlcl91c2VyX2lkID0gcF91c2VyX2lkIG9yIG1hdGNoZXMuZGVmZW5kZXJfdXNlcl9pZCA9IHBfdXNlcl9pZCkKICAgIGFuZCAocF9jdXJzb3IgaXMgbnVsbCBvciBtYXRjaGVzLmlkOjp0ZXh0IDwgcF9jdXJzb3IpCiAgb3JkZXIgYnkgbWF0Y2hlcy5jcmVhdGVkX2F0IGRlc2MsIG1hdGNoZXMuaWQgZGVzYwo=').decode(); new=base64.b64decode('ICB3aGVyZSBtYXRjaGVzLnNlYXNvbl9pZCA9IHBfc2Vhc29uX2lkCiAgICBhbmQgKG1hdGNoZXMuY2hhbGxlbmdlcl91c2VyX2lkID0gcF91c2VyX2lkIG9yIG1hdGNoZXMuZGVmZW5kZXJfdXNlcl9pZCA9IHBfdXNlcl9pZCkKICAgIGFuZCAoCiAgICAgIHBfY3Vyc29yIGlzIG51bGwKICAgICAgb3IgKG1hdGNoZXMuY3JlYXRlZF9hdCwgbWF0Y2hlcy5pZDo6dGV4dCkgPCAoCiAgICAgICAgc3BsaXRfcGFydChwX2N1cnNvciwgJ3wnLCAxKTo6dGltZXN0YW1wdHosCiAgICAgICAgc3BsaXRfcGFydChwX2N1cnNvciwgJ3wnLCAyKQogICAgICApCiAgICApCiAgb3JkZXIgYnkgbWF0Y2hlcy5jcmVhdGVkX2F0IGRlc2MsIG1hdGNoZXMuaWQgZGVzYwo=').decode(); assert old in t or new in t; p.write_text(t.replace(old,new,1))"
+      - name: Format changed TypeScript
+        run: npx prettier tests/unit/worker/pvpMigration.test.ts tests/unit/worker/pvpQueries.test.ts worker/routes/pvpHistory.ts worker/routes/pvpRanking.ts --write
+      - name: Commit patch
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("supabase/migrations/202608280004_async_pvp.sql")
-          text = path.read_text()
-          old = """  where matches.season_id = p_season_id
-            and (matches.challenger_user_id = p_user_id or matches.defender_user_id = p_user_id)
-            and (p_cursor is null or matches.id::text < p_cursor)
-          order by matches.created_at desc, matches.id desc
-"""
-          new = """  where matches.season_id = p_season_id
-            and (matches.challenger_user_id = p_user_id or matches.defender_user_id = p_user_id)
-            and (
-              p_cursor is null
-              or (matches.created_at, matches.id::text) < (
-                split_part(p_cursor, '|', 1)::timestamptz,
-                split_part(p_cursor, '|', 2)
-              )
-            )
-          order by matches.created_at desc, matches.id desc
-"""
-          if old in text:
-              path.write_text(text.replace(old, new, 1))
-          elif new not in text:
-              raise SystemExit("expected list_pvp_history cursor clause not found")
-          PY
-          npx prettier tests/unit/worker/pvpMigration.test.ts tests/unit/worker/pvpQueries.test.ts worker/routes/pvpHistory.ts worker/routes/pvpRanking.ts --write
           if git diff --quiet; then
             exit 0
           fi
