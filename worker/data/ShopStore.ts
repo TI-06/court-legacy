@@ -67,7 +67,10 @@ export interface CommitShopUseInput {
 }
 
 export interface ShopStore {
-  getStatus(userId: string, currentYearIndex: number): Promise<ShopStatusItem[]>;
+  getStatus(
+    userId: string,
+    currentYearIndex: number,
+  ): Promise<ShopStatusItem[]>;
   purchase(input: PurchaseShopItemInput): Promise<ShopMutationResult>;
   use(input: CommitShopUseInput): Promise<ShopMutationResult>;
 }
