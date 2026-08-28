@@ -31,7 +31,10 @@ export interface GameSessionController {
     action: GameAction,
     label: string,
   ): Promise<GameActionResponse | null>;
-  adoptServerSnapshot(snapshot: CloudGameSnapshot, label?: string): Promise<void>;
+  adoptServerSnapshot(
+    snapshot: CloudGameSnapshot,
+    label?: string,
+  ): Promise<void>;
 }
 
 function isNetworkAmbiguous(error: unknown): boolean {
