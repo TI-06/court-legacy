@@ -10,6 +10,13 @@ import type { GameState } from "../domain/model/GameState";
 import type { PlayerId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
 import type { TeamSelection } from "../domain/model/TeamSelection";
+import type {
+  PvpChallengeResponse,
+  PvpHistoryEntry,
+  PvpOpponentSummary,
+  PvpPublishedTeamSummary,
+  PvpRankingEntry,
+} from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import {
   calculateSelectionStrength,
@@ -25,8 +32,10 @@ import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
+import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
 import { MoreScreen } from "../features/more/MoreScreen";
+import { PvpScreen } from "../features/pvp/PvpScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
@@ -45,6 +54,7 @@ interface GameAppProps {
 }
 
 type MoreView = "menu" | "school";
+type MatchView = "practice" | "pvp";
 
 interface AdvanceWeekOutcome {
   academicYearTransition: AcademicYearTransitionSummary | null;
@@ -73,6 +83,10 @@ function scoutingErrorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
 
+function pvpErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
+
 export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const cloudSession = useGameSession({
     accessToken: session.accessToken,
@@ -97,6 +111,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<SimulateMatchResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
+  const [matchView, setMatchView] = useState<MatchView>("practice");
+  const [pvpPublishedTeam, setPvpPublishedTeam] =
+    useState<PvpPublishedTeamSummary | null>(null);
+  const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
+  const [pvpOpponents, setPvpOpponents] = useState<PvpOpponentSummary[]>([]);
+  const [pvpRanking, setPvpRanking] = useState<PvpRankingEntry[]>([]);
+  const [pvpHistory, setPvpHistory] = useState<PvpHistoryEntry[]>([]);
+  const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
+  const [pvpLoading, setPvpLoading] = useState(false);
+  const [pvpPublishing, setPvpPublishing] = useState(false);
+  const [pvpChallengingSnapshotId, setPvpChallengingSnapshotId] =
+    useState<string | null>(null);
+  const [pvpError, setPvpError] = useState<string | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
@@ -131,6 +158,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setScoutingOpen(false);
       setScoutingError(null);
       setRetryRecruitCandidateId(null);
+    }
+    if (tab !== "match") {
+      setMatchView("practice");
+      setPvpError(null);
     }
     setActiveTab(tab);
   };
@@ -289,6 +320,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
+      setMatchView("practice");
       setActiveTab("match");
     }
   };
@@ -305,6 +337,126 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       const simulation = response.outcome as SimulateMatchResult;
       setLatestMatchResult(simulation);
       setActiveMatchResult(simulation);
+    }
+  };
+
+  const loadPvpData = async () => {
+    if (!api.getPvpOpponents || !api.getPvpRanking || !api.getPvpHistory) {
+      setPvpError("対人戦機能を利用できません");
+      return;
+    }
+
+    setPvpLoading(true);
+    setPvpError(null);
+    try {
+      const [opponentsResponse, rankingResponse, historyResponse] =
+        await Promise.all([
+          api.getPvpOpponents(session.accessToken, { limit: 20 }),
+          api.getPvpRanking(session.accessToken, { limit: 20 }),
+          api.getPvpHistory(session.accessToken, { limit: 20 }),
+        ]);
+      setPvpSeasonId(opponentsResponse.seasonId);
+      setPvpOpponents(opponentsResponse.opponents);
+      setPvpRanking(rankingResponse.ranking);
+      setPvpHistory(historyResponse.history);
+    } catch (error) {
+      setPvpError(
+        pvpErrorMessage(error, "対人戦データを読み込めませんでした"),
+      );
+    } finally {
+      setPvpLoading(false);
+    }
+  };
+
+  const openPvp = () => {
+    setMatchView("pvp");
+    setPvpError(null);
+    void loadPvpData();
+  };
+
+  const recoverPvpRevision = async (): Promise<boolean> => {
+    try {
+      const latest = await api.bootstrap(session.accessToken);
+      if (latest.status !== "ready") return false;
+      await cloudSession.adoptServerSnapshot(
+        latest.game,
+        "最新のゲーム状態を読み込みました",
+      );
+      setPvpError(
+        "最新のゲーム状態を読み込みました。もう一度お試しください",
+      );
+      return true;
+    } catch (error) {
+      setPvpError(
+        pvpErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
+      );
+      return false;
+    }
+  };
+
+  const publishPvpTeam = async () => {
+    if (
+      !api.publishPvpTeam ||
+      pvpPublishing ||
+      pvpChallengingSnapshotId !== null
+    ) {
+      if (!api.publishPvpTeam) {
+        setPvpError("対人戦の公開機能を利用できません");
+      }
+      return;
+    }
+
+    setPvpPublishing(true);
+    setPvpError(null);
+    try {
+      const response = await api.publishPvpTeam(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+      });
+      setPvpPublishedTeam(response.team);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        if (await recoverPvpRevision()) return;
+      }
+      setPvpError(pvpErrorMessage(error, "チームを公開できませんでした"));
+    } finally {
+      setPvpPublishing(false);
+    }
+  };
+
+  const challengePvpTeam = async (opponentSnapshotId: string) => {
+    if (
+      !api.challengePvpTeam ||
+      pvpChallengingSnapshotId !== null ||
+      pvpPublishing
+    ) {
+      if (!api.challengePvpTeam) {
+        setPvpError("対人戦機能を利用できません");
+      }
+      return;
+    }
+
+    setPvpChallengingSnapshotId(opponentSnapshotId);
+    setPvpError(null);
+    try {
+      const response = await api.challengePvpTeam(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        opponentSnapshotId,
+      });
+      setPvpResult(response);
+      await loadPvpData();
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
+        if (await recoverPvpRevision()) return;
+      }
+      setPvpError(pvpErrorMessage(error, "対戦処理に失敗しました"));
+    } finally {
+      setPvpChallengingSnapshotId(null);
     }
   };
 
@@ -327,6 +479,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
     setLatestTrainingResult(null);
     setActiveMatchResult(null);
+    setMatchView("practice");
+    setPvpResult(null);
     setCalendarOpen(false);
     setActiveTab("home");
   };
@@ -386,19 +540,48 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           state={gameState}
         />
       </div>
-    ) : activeTab === "match" ? (
-      <MatchScreen
-        awaySelection={opponentSelection}
-        awayStrength={awayStrength}
-        homeSelection={teamSelection}
-        homeStrength={homeStrength}
-        onReturnHome={() => setActiveTab("home")}
-        onStart={startPracticeMatch}
-        opponent={opponent}
-        reducedMotion={gameState.settings.reducedMotion}
-        result={activeMatchResult}
-        state={gameState}
+    ) : activeTab === "match" && matchView === "pvp" ? (
+      <PvpScreen
+        challengingSnapshotId={pvpChallengingSnapshotId}
+        error={pvpError}
+        history={pvpHistory}
+        loading={pvpLoading}
+        onChallenge={(snapshotId) => {
+          void challengePvpTeam(snapshotId);
+        }}
+        onPublish={() => {
+          void publishPvpTeam();
+        }}
+        onRefresh={() => {
+          void loadPvpData();
+        }}
+        onReturnPractice={() => {
+          setMatchView("practice");
+          setPvpError(null);
+        }}
+        opponents={pvpOpponents}
+        publishedTeam={pvpPublishedTeam}
+        publishing={pvpPublishing}
+        ranking={pvpRanking}
+        result={pvpResult}
+        seasonId={pvpSeasonId}
       />
+    ) : activeTab === "match" ? (
+      <div className="match-hub-screen">
+        {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}
+        <MatchScreen
+          awaySelection={opponentSelection}
+          awayStrength={awayStrength}
+          homeSelection={teamSelection}
+          homeStrength={homeStrength}
+          onReturnHome={() => changeTab("home")}
+          onStart={startPracticeMatch}
+          opponent={opponent}
+          reducedMotion={gameState.settings.reducedMotion}
+          result={activeMatchResult}
+          state={gameState}
+        />
+      </div>
     ) : moreView === "school" ? (
       <main className="app-content more-school-view">
         <button
