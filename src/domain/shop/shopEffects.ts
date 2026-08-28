@@ -26,9 +26,15 @@ export type SpecialCoachFocus =
   | "physical"
   | "decision";
 
-export const SPECIAL_COACH_FOCUS_ABILITIES: Readonly<
+type SpecialCoachFocusAbilities = Readonly<
   Record<SpecialCoachFocus, readonly AbilityKey[]>
-> = {
+>;
+
+type TrainingCampPositionAbilities = Readonly<
+  Record<Position, readonly AbilityKey[]>
+>;
+
+export const SPECIAL_COACH_FOCUS_ABILITIES: SpecialCoachFocusAbilities = {
   spike: ["spike", "jump"],
   serve: ["serve", "mental"],
   receive: ["receive", "speed"],
@@ -37,17 +43,14 @@ export const SPECIAL_COACH_FOCUS_ABILITIES: Readonly<
   decision: ["decision", "set", "mental"],
 };
 
-export const SPECIAL_COACH_ACTIVITY: Readonly<ShopTrainingActivityDefinition> =
-  {
-    baseGrowth: 8,
-    fatigue: 6,
-    injuryRisk: 4,
-    trustGrowth: 3,
-  };
+export const SPECIAL_COACH_ACTIVITY: ShopTrainingActivityDefinition = {
+  baseGrowth: 8,
+  fatigue: 6,
+  injuryRisk: 4,
+  trustGrowth: 3,
+};
 
-export const TRAINING_CAMP_POSITION_ABILITIES: Readonly<
-  Record<Position, readonly AbilityKey[]>
-> = {
+export const TRAINING_CAMP_POSITION_ABILITIES: TrainingCampPositionAbilities = {
   OH: ["spike", "receive", "serve"],
   MB: ["block", "jump", "speed"],
   OP: ["spike", "serve", "block"],
@@ -55,13 +58,12 @@ export const TRAINING_CAMP_POSITION_ABILITIES: Readonly<
   L: ["receive", "speed", "mental"],
 };
 
-export const TRAINING_CAMP_ACTIVITY: Readonly<ShopTrainingActivityDefinition> =
-  {
-    baseGrowth: 3,
-    fatigue: 12,
-    injuryRisk: 5,
-    trustGrowth: 2,
-  };
+export const TRAINING_CAMP_ACTIVITY: ShopTrainingActivityDefinition = {
+  baseGrowth: 3,
+  fatigue: 12,
+  injuryRisk: 5,
+  trustGrowth: 2,
+};
 
 export interface FatigueRecoveryResult {
   player: Player;
