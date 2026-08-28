@@ -51,6 +51,41 @@ describe("async PvP migration", () => {
     expect(sql).toContain("count(*) >= 3");
   });
 
+  it("rechecks the active defender snapshot inside the atomic challenge transaction", () => {
+    const sql = migrationSql();
+
+    expect(sql).toContain("pvp_opponent_inactive");
+    expect(sql).toContain("snapshots.id = p_defender_snapshot_id");
+    expect(sql).toContain("snapshots.user_id = p_defender_user_id");
+    expect(sql).toContain("snapshots.is_active");
+  });
+
+  it("stores a complete sanitized challenge response for idempotent replay", () => {
+    const sql = migrationSql();
+
+    for (const key of [
+      "'operationId'",
+      "'revision'",
+      "'seasonId'",
+      "'matchId'",
+      "'opponent'",
+      "'snapshotId'",
+      "'schoolName'",
+      "'schoolShortName'",
+      "'rating'",
+      "'before'",
+      "'after'",
+      "'delta'",
+      "'result'",
+      "'createdAt'",
+    ]) {
+      expect(sql).toContain(key);
+    }
+    expect(sql).toContain("v_match_created_at");
+    expect(sql).toContain("v_defender_school_name");
+    expect(sql).toContain("v_defender_school_short_name");
+  });
+
   it("pages match history by created time plus match id to match its stable sort order", () => {
     const sql = migrationSql();
 
