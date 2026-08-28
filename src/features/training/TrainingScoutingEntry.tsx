@@ -23,7 +23,10 @@ export function TrainingScoutingEntry({
       : 0;
 
   return (
-    <section className="training-scouting-entry" aria-label="新入生スカウト案内">
+    <section
+      className="training-scouting-entry"
+      aria-label="新入生スカウト案内"
+    >
       <div className="training-scouting-entry__copy">
         <p className="section-kicker">RECRUITING</p>
         <h2>来年度の戦力候補</h2>
@@ -33,7 +36,9 @@ export function TrainingScoutingEntry({
         </p>
       </div>
       <div className="training-scouting-entry__action">
-        <span>{committedCount > 0 ? `獲得 ${committedCount}人` : "候補を調査"}</span>
+        <span>
+          {committedCount > 0 ? `獲得 ${committedCount}人` : "候補を調査"}
+        </span>
         <button onClick={onOpen} type="button">
           新入生スカウト
         </button>
