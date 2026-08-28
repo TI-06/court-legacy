@@ -3,6 +3,8 @@ import type {
   GameActionRequest,
   GameActionResponse,
 } from "../../../worker/game/actionSchema";
+import type { PlayerId } from "../../domain/model/identifiers";
+import type { ScoutReport } from "../../domain/scouting/scoutReport";
 
 export type BootstrapResponse =
   { status: "needs-onboarding" } | { status: "ready"; game: CloudGameSnapshot };
@@ -20,6 +22,34 @@ export interface OnboardingInput {
   regionId: string;
 }
 
+export interface ScoutingBoardRequest {
+  operationId: string;
+  revision: number;
+}
+
+export interface ScoutingBoardResponse {
+  operationId: string;
+  revision: number;
+  cycleKey: string;
+  reports: ScoutReport[];
+}
+
+export interface ScoutingRecruitmentRequest {
+  operationId: string;
+  revision: number;
+  candidateId: PlayerId;
+}
+
+export interface ScoutingRecruitmentResponse {
+  operationId: string;
+  game: CloudGameSnapshot;
+  outcome: {
+    candidateId: PlayerId;
+    committedCandidateIds: PlayerId[];
+    cycleKey: string;
+  };
+}
+
 export interface GameApiClient {
   bootstrap(
     accessToken: string,
@@ -35,6 +65,16 @@ export interface GameApiClient {
     request: GameActionRequest,
     signal?: AbortSignal,
   ): Promise<GameActionResponse>;
+  getScoutingBoard(
+    accessToken: string,
+    request: ScoutingBoardRequest,
+    signal?: AbortSignal,
+  ): Promise<ScoutingBoardResponse>;
+  commitRecruit(
+    accessToken: string,
+    request: ScoutingRecruitmentRequest,
+    signal?: AbortSignal,
+  ): Promise<ScoutingRecruitmentResponse>;
 }
 
 export class ApiError extends Error {
@@ -147,6 +187,32 @@ export class HttpGameApiClient implements GameApiClient {
   ): Promise<GameActionResponse> {
     return this.request<GameActionResponse>(
       "/api/game/action",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  getScoutingBoard(
+    accessToken: string,
+    request: ScoutingBoardRequest,
+    signal?: AbortSignal,
+  ): Promise<ScoutingBoardResponse> {
+    return this.request<ScoutingBoardResponse>(
+      "/api/scouting/board",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  commitRecruit(
+    accessToken: string,
+    request: ScoutingRecruitmentRequest,
+    signal?: AbortSignal,
+  ): Promise<ScoutingRecruitmentResponse> {
+    return this.request<ScoutingRecruitmentResponse>(
+      "/api/scouting/recruitment",
       accessToken,
       { method: "POST", body: JSON.stringify(request) },
       signal,
