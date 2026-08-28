@@ -1,0 +1,17 @@
+name: Phase 3 GameApp Implementation Format
+
+on:
+  pull_request:
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier src/app/GameApp.tsx src/app/useGameSession.ts src/features/training/TrainingScoutingEntry.tsx --write
+      - run: git diff -- src/app/GameApp.tsx src/app/useGameSession.ts src/features/training/TrainingScoutingEntry.tsx
