@@ -228,13 +228,7 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
   const estimatedPotential =
     potentialPrecision === "appraised"
       ? appraisedPotentialRange(potentialTruth, input.random)
-      : estimatedRange(
-          potentialTruth,
-          potentialQuality,
-          24,
-          7,
-          input.random,
-        );
+      : estimatedRange(potentialTruth, potentialQuality, 24, 7, input.random);
 
   return {
     candidateId: input.player.id,
