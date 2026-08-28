@@ -1,3 +1,4 @@
+import type { ShopGameEffects } from "../shop/shopEffects";
 import type { CalendarState } from "./Calendar";
 import type { EventMemory, PendingEvent } from "./Event";
 import type { GameDate, MatchId, PlayerId, SchoolId } from "./identifiers";
@@ -68,6 +69,7 @@ export interface GameState {
   settings: GameSettings;
   world: WorldState;
   recruiting?: RecruitingState;
+  shopEffects?: ShopGameEffects;
 }
 
 export const CURRENT_GAME_SCHEMA_VERSION = 2;
