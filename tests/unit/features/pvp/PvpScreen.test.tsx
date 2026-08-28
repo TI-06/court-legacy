@@ -80,7 +80,9 @@ const result: PvpChallengeResponse = {
   createdAt: history.createdAt,
 };
 
-function renderScreen(overrides: Partial<React.ComponentProps<typeof PvpScreen>> = {}) {
+function renderScreen(
+  overrides: Partial<React.ComponentProps<typeof PvpScreen>> = {},
+) {
   const props: React.ComponentProps<typeof PvpScreen> = {
     publishedTeam,
     seasonId: "2026-08",
@@ -146,7 +148,9 @@ describe("PvpScreen", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "チーム公開中…" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "チーム公開中…" }),
+    ).toBeDisabled();
 
     rerender(
       <PvpScreen

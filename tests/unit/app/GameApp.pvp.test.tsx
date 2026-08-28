@@ -128,13 +128,13 @@ function challengeResponse(snapshot: CloudGameSnapshot): PvpChallengeResponse {
 }
 
 function createPvpApi(snapshot = createSnapshot()) {
-  const getPvpOpponents = vi.fn<
-    NonNullable<GameApiClient["getPvpOpponents"]>
-  >(async () => ({
-    seasonId: "2026-08",
-    opponents: [opponent],
-    nextCursor: null,
-  }));
+  const getPvpOpponents = vi.fn<NonNullable<GameApiClient["getPvpOpponents"]>>(
+    async () => ({
+      seasonId: "2026-08",
+      opponents: [opponent],
+      nextCursor: null,
+    }),
+  );
   const getPvpRanking = vi.fn<NonNullable<GameApiClient["getPvpRanking"]>>(
     async () => ({
       seasonId: "2026-08",
@@ -207,13 +207,15 @@ describe("GameApp PvP flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "チームを公開" }));
     await waitFor(() => expect(mocks.publishPvpTeam).toHaveBeenCalledTimes(1));
     expect(mocks.publishPvpTeam.mock.calls[0]![0]).toBe(session.accessToken);
-    expect(mocks.publishPvpTeam.mock.calls[0]![1]).toMatchObject({ revision: 1 });
+    expect(mocks.publishPvpTeam.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+    });
     expect(await screen.findByText("公開中")).toBeVisible();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "対戦する 白波高校" }),
+    fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
+    await waitFor(() =>
+      expect(mocks.challengePvpTeam).toHaveBeenCalledTimes(1),
     );
-    await waitFor(() => expect(mocks.challengePvpTeam).toHaveBeenCalledTimes(1));
     expect(mocks.challengePvpTeam.mock.calls[0]![1]).toMatchObject({
       revision: 1,
       opponentSnapshotId: opponent.snapshotId,
@@ -261,9 +263,7 @@ describe("GameApp PvP flow", () => {
 
     openPvp();
     await screen.findByText("白波高校");
-    fireEvent.click(
-      screen.getByRole("button", { name: "対戦する 白波高校" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "同じ相手とのレーティング対戦は1日3回までです",
