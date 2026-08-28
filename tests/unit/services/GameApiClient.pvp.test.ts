@@ -119,9 +119,9 @@ describe("HttpGameApiClient PvP", () => {
       opponentSnapshotId: "00000000-0000-4000-8000-000000000201",
     };
 
-    await expect(api.challengePvpTeam("access-token", request)).resolves.toEqual(
-      response,
-    );
+    await expect(
+      api.challengePvpTeam("access-token", request),
+    ).resolves.toEqual(response);
 
     expect(fetchImpl).toHaveBeenCalledWith(
       "/api/pvp/challenge",
@@ -154,8 +154,7 @@ describe("HttpGameApiClient PvP", () => {
     ).resolves.toEqual(rankingResponse);
     await expect(
       api.getPvpHistory("access-token", {
-        cursor:
-          "2026-08-28T07:10:00.000Z|00000000-0000-4000-8000-000000000301",
+        cursor: "2026-08-28T07:10:00.000Z|00000000-0000-4000-8000-000000000301",
         limit: 10,
       }),
     ).resolves.toEqual(historyResponse);
