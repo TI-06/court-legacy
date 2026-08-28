@@ -132,6 +132,43 @@ describe("PvP public query routes", () => {
     );
   });
 
+  it("returns the last rank as the ranking cursor for the next page", async () => {
+    const store = pvpStore();
+    vi.mocked(store.listRanking).mockResolvedValue([
+      {
+        rank: 1,
+        snapshotId: "snapshot-first",
+        schoolName: "白峰高校",
+        schoolShortName: "白峰",
+        rating: 1120,
+        matches: 20,
+        wins: 15,
+        losses: 5,
+        currentWinStreak: 4,
+      },
+      {
+        rank: 2,
+        snapshotId: "snapshot-second",
+        schoolName: "青嶺高校",
+        schoolShortName: "青嶺",
+        rating: 1108,
+        matches: 18,
+        wins: 13,
+        losses: 5,
+        currentWinStreak: 2,
+      },
+    ]);
+    const handler = createPvpRankingHandler({ pvpStore: store, now });
+
+    const response = await handler(getRequest("/api/pvp/ranking?limit=2"), {
+      id: userId,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.nextCursor).toBe("2");
+  });
+
   it("scopes history to the authenticated user and current season", async () => {
     const store = pvpStore();
     const handler = createPvpHistoryHandler({ pvpStore: store, now });
