@@ -18,7 +18,7 @@ function parseLimit(url: URL): number {
 
 function parseCursor(url: URL): string | null {
   const value = url.searchParams.get("cursor")?.trim() ?? "";
-  return value.length > 0 ? value : null;
+  return /^[1-9]\d*$/.test(value) ? value : null;
 }
 
 export function createPvpRankingHandler(
