@@ -1,8 +1,19 @@
+import { readFileSync } from "node:fs";
 import { createBrowserAppDependencies } from "../../../src/app/createBrowserAppDependencies";
 
 describe("createBrowserAppDependencies E2E harness", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+  });
+
+  it("does not import server-only scouting truth into the browser adapter", () => {
+    const source = readFileSync(
+      new URL("../../../src/app/createBrowserAppDependencies.ts", import.meta.url),
+      "utf8",
+    );
+
+    expect(source).not.toContain("worker/scouting/serverScoutingBoard");
+    expect(source).not.toContain("worker/data/ScoutingStore");
   });
 
   it("persists authoritative game actions across bootstrap calls", async () => {
