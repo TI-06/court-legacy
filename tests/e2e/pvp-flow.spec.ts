@@ -16,10 +16,11 @@ test("mobile PvP publishes, challenges, and keeps visible progress and results",
   await page.getByRole("button", { name: "対人戦を開く" }).click();
 
   await expect(page.getByRole("heading", { name: "対人戦" })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(
-    "対人戦データを読み込んでいます…",
-    { timeout: 300 },
-  );
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "対人戦データを読み込んでいます…" }),
+  ).toContainText("対人戦データを読み込んでいます…", { timeout: 300 });
 
   const challenge = page.getByRole("button", { name: "対戦する 白波高校" });
   await expect(challenge).toBeVisible({ timeout: 1_500 });
