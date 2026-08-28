@@ -85,8 +85,9 @@ const rankingRowSchema = z.object({
 const historyRowSchema = z.object({
   match_id: z.string().min(1),
   created_at: z.string().min(1),
-  opponent_snapshot_id: z.string().min(1),
+  opponent_snapshot_id: z.string().min(1).nullable(),
   opponent_school_name: z.string().min(1),
+  perspective: z.enum(["challenger", "defender"]),
   outcome: z.enum(["win", "loss"]),
   rating_before: z.number().int().nonnegative(),
   rating_after: z.number().int().nonnegative(),
@@ -345,6 +346,7 @@ export class SupabasePvPStore implements PvPStore {
         createdAt: row.created_at,
         opponentSnapshotId: row.opponent_snapshot_id,
         opponentSchoolName: row.opponent_school_name,
+        perspective: row.perspective,
         outcome: row.outcome,
         ratingBefore: row.rating_before,
         ratingAfter: row.rating_after,
