@@ -23,7 +23,7 @@ function purchaseBlockedReason(item: ShopStatusItem): ShopBlockedReason | null {
   return null;
 }
 
-function useBlockedReason(item: ShopStatusItem): ShopBlockedReason | null {
+function itemUseBlockedReason(item: ShopStatusItem): ShopBlockedReason | null {
   if (!item.enabled) {
     return "item_disabled";
   }
@@ -38,7 +38,7 @@ function useBlockedReason(item: ShopStatusItem): ShopBlockedReason | null {
 
 function toPublicStatus(item: ShopStatusItem): ShopPublicStatusItem {
   const purchaseReason = purchaseBlockedReason(item);
-  const useReason = useBlockedReason(item);
+  const useReason = itemUseBlockedReason(item);
 
   return {
     itemId: item.itemId,
