@@ -30,7 +30,7 @@ type SpecialCoachFocusAbilities = Readonly<
   Record<SpecialCoachFocus, readonly AbilityKey[]>
 >;
 
-type TrainingCampPositionAbilities = Readonly<
+type TrainingCampAbilities = Readonly<
   Record<Position, readonly AbilityKey[]>
 >;
 
@@ -50,7 +50,7 @@ export const SPECIAL_COACH_ACTIVITY: ShopTrainingActivityDefinition = {
   trustGrowth: 3,
 };
 
-export const TRAINING_CAMP_POSITION_ABILITIES: TrainingCampPositionAbilities = {
+export const TRAINING_CAMP_POSITION_ABILITIES: TrainingCampAbilities = {
   OH: ["spike", "receive", "serve"],
   MB: ["block", "jump", "speed"],
   OP: ["spike", "serve", "block"],
