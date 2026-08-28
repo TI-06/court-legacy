@@ -28,24 +28,6 @@ for (const [label, command, arguments_] of commands) {
     if (result.stderr) {
       console.error(result.stderr.trim());
     }
-    if (label === "Formatting") {
-      spawnSync(
-        "npx",
-        [
-          "prettier",
-          "tests/unit/worker/data/SupabaseShopStore.test.ts",
-          "tests/unit/worker/shopMigration.test.ts",
-          "--write",
-        ],
-        { encoding: "utf8", shell: process.platform === "win32" },
-      );
-      const diff = spawnSync("git", ["diff", "--", "tests/unit/worker"], {
-        encoding: "utf8",
-      });
-      if (diff.stdout) {
-        console.error(`\n[PRETTIER DIFF]\n${diff.stdout.trim()}`);
-      }
-    }
     process.exit(result.status ?? 1);
   }
 
