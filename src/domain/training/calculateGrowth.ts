@@ -74,7 +74,9 @@ function validateAdditionalModifiers(
 ): AdditionalGrowthModifier[] {
   return modifiers.map((modifier) => {
     if (!Number.isFinite(modifier.percent) || modifier.percent <= 0) {
-      throw new Error("growth modifier percent must be a positive finite number");
+      throw new Error(
+        "growth modifier percent must be a positive finite number",
+      );
     }
     return { ...modifier, percent: Math.round(modifier.percent) };
   });
