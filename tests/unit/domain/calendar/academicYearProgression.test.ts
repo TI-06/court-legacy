@@ -95,6 +95,25 @@ describe("academic year progression", () => {
     }
   });
 
+  it("expires an unused shop training boost when the academic year changes", () => {
+    const state = createDemoGame();
+    state.date = "2027-03-31";
+    state.calendar.currentDate = state.date;
+    state.calendar.weekOfYear = 52;
+    state.shopEffects = {
+      nextTrainingGrowthBoost: {
+        percent: 20,
+        remainingUses: 1,
+        sourceItemId: "training-efficiency-boost",
+      },
+    };
+
+    const result = advanceGameWeek(state, gameData);
+
+    expect(result.academicYearTransition).not.toBeNull();
+    expect(result.state.shopEffects?.nextTrainingGrowthBoost).toBeUndefined();
+  });
+
   it("does not create a generational player before the scheduled year", () => {
     const state = createDemoGame();
     state.date = "2027-03-31";
