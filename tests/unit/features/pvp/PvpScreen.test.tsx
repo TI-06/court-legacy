@@ -51,6 +51,7 @@ const history: PvpHistoryEntry = {
   createdAt: "2026-08-28T07:10:00.000Z",
   opponentSnapshotId: opponent.snapshotId,
   opponentSchoolName: opponent.schoolName,
+  perspective: "challenger",
   outcome: "win",
   ratingBefore: 1000,
   ratingAfter: 1016,
@@ -122,6 +123,31 @@ describe("PvpScreen", () => {
     expect(screen.getByLabelText("セット結果")).toHaveTextContent(
       /SET 1\s+25\s*-\s*20/,
     );
+  });
+
+  it("renders defender history with the viewer score first", () => {
+    const defenderHistory: PvpHistoryEntry = {
+      ...history,
+      matchId: "00000000-0000-4000-8000-000000000302",
+      opponentSnapshotId: null,
+      opponentSchoolName: "青葉高校",
+      perspective: "defender",
+      outcome: "win",
+      ratingBefore: 1000,
+      ratingAfter: 1016,
+      result: {
+        ...history.result,
+        outcome: "loss",
+        challengerSetsWon: 1,
+        defenderSetsWon: 2,
+      },
+    };
+
+    renderScreen({ history: [defenderHistory], result: null });
+
+    expect(screen.getByText("青葉高校")).toBeVisible();
+    expect(screen.getByText("2 - 1")).toBeVisible();
+    expect(screen.getByText("+16")).toBeVisible();
   });
 
   it("keeps visible progress while loading instead of showing a blank screen", () => {
