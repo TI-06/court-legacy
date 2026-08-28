@@ -1,0 +1,518 @@
+.pvp-screen {
+  align-content: start;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.pvp-hero,
+.pvp-publish-card,
+.pvp-loading-card,
+.pvp-error-card,
+.pvp-result-card,
+.pvp-panel {
+  min-width: 0;
+  padding: 17px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.pvp-hero {
+  display: grid;
+  color: #f7fbfc;
+  background:
+    radial-gradient(circle at top right, rgb(219 164 54 / 28%), transparent 34%),
+    linear-gradient(145deg, #173b52, #102b3c);
+  border-color: rgb(255 255 255 / 8%);
+  gap: 14px;
+}
+
+.pvp-hero .section-kicker,
+.pvp-result-card .section-kicker {
+  color: #a8ccd3;
+}
+
+.pvp-hero h2,
+.pvp-section-heading h3,
+.pvp-result-card h3 {
+  margin: 4px 0 0;
+}
+
+.pvp-hero h2 {
+  font-size: 1.34rem;
+}
+
+.pvp-hero__copy > p:last-child {
+  margin: 7px 0 0;
+  color: #c5d9de;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.pvp-mode-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.pvp-mode-actions button,
+.pvp-publish-button,
+.pvp-challenge-button,
+.pvp-error-card button {
+  min-height: 46px;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.pvp-mode-actions button {
+  color: #f7fbfc;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 18%);
+}
+
+.pvp-mode-actions button:last-child {
+  min-width: 72px;
+}
+
+.pvp-mode-actions button:disabled,
+.pvp-publish-button:disabled,
+.pvp-challenge-button:disabled,
+.pvp-error-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.pvp-section-heading,
+.pvp-result-card__headline,
+.pvp-opponent-card__topline,
+.pvp-opponent-card__school,
+.pvp-opponent-card__record,
+.pvp-result-card__rating {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pvp-section-heading h3,
+.pvp-result-card h3 {
+  font-size: 1rem;
+}
+
+.pvp-status-live,
+.pvp-status-off,
+.pvp-season-chip,
+.pvp-rank-chip {
+  display: inline-flex;
+  min-height: 26px;
+  padding: 4px 9px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  white-space: nowrap;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.pvp-status-live {
+  color: #286842;
+  background: #e3f2e8;
+}
+
+.pvp-status-off {
+  color: #7a5250;
+  background: #f7e8e5;
+}
+
+.pvp-season-chip {
+  color: #49646e;
+  background: #edf3f5;
+}
+
+.pvp-rank-chip {
+  min-width: 30px;
+  color: #7b581c;
+  background: #fff0ca;
+  justify-content: center;
+}
+
+.pvp-published-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 13px;
+  gap: 8px;
+}
+
+.pvp-published-summary > div {
+  min-width: 0;
+  padding: 10px;
+  background: #f5f8fa;
+  border-radius: 12px;
+}
+
+.pvp-published-summary span,
+.pvp-published-summary strong {
+  display: block;
+}
+
+.pvp-published-summary span {
+  color: #73838c;
+  font-size: 0.61rem;
+}
+
+.pvp-published-summary strong {
+  overflow: hidden;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvp-publish-note,
+.pvp-empty-state {
+  margin: 13px 0 0;
+  color: #71818a;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.pvp-publish-button {
+  width: 100%;
+  margin-top: 14px;
+  color: #fff;
+  background: #1f6675;
+  border: 0;
+  box-shadow: 0 8px 18px rgb(31 102 117 / 22%);
+}
+
+.pvp-loading-card,
+.pvp-error-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pvp-loading-card {
+  color: #244a58;
+  background: #eef6f7;
+  border-color: #c9e0e3;
+}
+
+.pvp-loading-card strong,
+.pvp-loading-card p {
+  display: block;
+  margin: 0;
+}
+
+.pvp-loading-card strong {
+  font-size: 0.78rem;
+}
+
+.pvp-loading-card p {
+  margin-top: 4px;
+  color: #66808a;
+  font-size: 0.66rem;
+}
+
+.pvp-spinner {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 3px solid #b9d4d9;
+  border-top-color: #1f6675;
+  border-radius: 999px;
+  animation: pvp-spin 0.8s linear infinite;
+}
+
+@keyframes pvp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pvp-error-card {
+  align-items: stretch;
+  color: #8e3f2f;
+  background: #fff0eb;
+  border-color: #f0c8bd;
+}
+
+.pvp-error-card strong {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  align-items: center;
+}
+
+.pvp-error-card button {
+  min-width: 82px;
+  min-height: 44px;
+  color: #8e3f2f;
+  background: #fff;
+  border: 1px solid #e2b5a9;
+}
+
+.pvp-result-card {
+  color: #f7fbfc;
+  background: linear-gradient(145deg, #184b54, #123642);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.pvp-result-card--loss {
+  background: linear-gradient(145deg, #4a3942, #302b38);
+}
+
+.pvp-result-card__headline > strong {
+  color: #ffe2a0;
+  font-size: 1.4rem;
+}
+
+.pvp-result-card__score {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  margin-top: 14px;
+  padding: 12px;
+  text-align: center;
+  background: rgb(255 255 255 / 8%);
+  border-radius: 14px;
+  align-items: center;
+  gap: 8px;
+}
+
+.pvp-result-card__score span {
+  overflow: hidden;
+  color: #cbe0e4;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvp-result-card__score b {
+  font-size: 1.18rem;
+}
+
+.pvp-result-card__rating {
+  margin-top: 12px;
+  padding: 0 2px;
+}
+
+.pvp-result-card__rating span {
+  color: #a9cbd2;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.pvp-result-card__rating strong {
+  font-size: 0.82rem;
+}
+
+.pvp-set-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+  gap: 6px;
+}
+
+.pvp-set-list span {
+  min-width: 0;
+  padding: 8px 4px;
+  color: #dcecef;
+  font-size: 0.6rem;
+  text-align: center;
+  background: rgb(255 255 255 / 7%);
+  border-radius: 10px;
+}
+
+.pvp-opponent-list,
+.pvp-ranking-list,
+.pvp-history-list {
+  display: grid;
+  margin-top: 13px;
+  gap: 9px;
+}
+
+.pvp-opponent-card {
+  min-width: 0;
+  padding: 13px;
+  background: #f7fafb;
+  border: 1px solid #dce5e9;
+  border-radius: 16px;
+}
+
+.pvp-opponent-card__topline {
+  color: #778991;
+  font-size: 0.61rem;
+}
+
+.pvp-opponent-card__school {
+  margin-top: 10px;
+  align-items: flex-end;
+}
+
+.pvp-opponent-card__school > div {
+  min-width: 0;
+}
+
+.pvp-opponent-card__school strong,
+.pvp-opponent-card__school span {
+  display: block;
+}
+
+.pvp-opponent-card__school strong {
+  overflow: hidden;
+  color: #173b52;
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvp-opponent-card__school span {
+  margin-top: 4px;
+  color: #71828b;
+  font-size: 0.64rem;
+}
+
+.pvp-opponent-card__school b {
+  flex: 0 0 auto;
+  color: #1f6675;
+  font-size: 0.76rem;
+}
+
+.pvp-opponent-card__record {
+  margin-top: 10px;
+  color: #6f8089;
+  font-size: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.pvp-challenge-button {
+  width: 100%;
+  margin-top: 11px;
+  color: #fff;
+  background: #173b52;
+  border: 0;
+}
+
+.pvp-ranking-list article,
+.pvp-history-list article {
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  padding: 9px 10px;
+  background: #f7fafb;
+  border: 1px solid #e0e7ea;
+  border-radius: 13px;
+  align-items: center;
+  gap: 9px;
+}
+
+.pvp-ranking-list article {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
+
+.pvp-ranking-list article > strong {
+  color: #173b52;
+  font-size: 0.72rem;
+}
+
+.pvp-ranking-list article > div,
+.pvp-history-list article > div {
+  min-width: 0;
+}
+
+.pvp-ranking-list b,
+.pvp-ranking-list span,
+.pvp-history-list strong,
+.pvp-history-list span {
+  display: block;
+}
+
+.pvp-ranking-list b,
+.pvp-history-list strong {
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvp-ranking-list span,
+.pvp-history-list span {
+  margin-top: 3px;
+  color: #778790;
+  font-size: 0.6rem;
+}
+
+.pvp-ranking-list em {
+  color: #1f6675;
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.pvp-history-list article {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+}
+
+.pvp-history-outcome {
+  display: grid !important;
+  width: 30px;
+  height: 30px;
+  margin: 0 !important;
+  font-size: 0.68rem !important;
+  font-weight: 900;
+  border-radius: 999px;
+  place-items: center;
+}
+
+.pvp-history-outcome--win {
+  color: #286842 !important;
+  background: #e3f2e8;
+}
+
+.pvp-history-outcome--loss {
+  color: #91402f !important;
+  background: #ffe7e0;
+}
+
+.pvp-history-list article > b {
+  color: #1f6675;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 390px) {
+  .pvp-hero,
+  .pvp-publish-card,
+  .pvp-loading-card,
+  .pvp-error-card,
+  .pvp-result-card,
+  .pvp-panel {
+    padding: 14px;
+    border-radius: 17px;
+  }
+
+  .pvp-published-summary {
+    gap: 6px;
+  }
+
+  .pvp-opponent-card__school {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pvp-set-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pvp-spinner {
+    animation: none;
+  }
+}
