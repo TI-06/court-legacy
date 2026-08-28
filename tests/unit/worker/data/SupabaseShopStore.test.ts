@@ -5,18 +5,25 @@ import {
   type PurchaseShopItemInput,
 } from "../../../../worker/data/ShopStore";
 import { SupabaseShopStore } from "../../../../worker/data/SupabaseShopStore";
+import type { SupabaseAdminClient } from "../../../../worker/data/createSupabaseAdmin";
 
 interface RpcResult {
   data: unknown;
   error: unknown;
 }
 
-function createClient(results: Record<string, RpcResult>) {
+type MockSupabaseAdminClient = SupabaseAdminClient & {
+  rpc: ReturnType<typeof vi.fn>;
+};
+
+function createClient(
+  results: Record<string, RpcResult>,
+): MockSupabaseAdminClient {
   return {
     rpc: vi.fn(
       async (name: string) => results[name] ?? { data: null, error: null },
     ),
-  } as never;
+  } as unknown as MockSupabaseAdminClient;
 }
 
 const statusRows = [
