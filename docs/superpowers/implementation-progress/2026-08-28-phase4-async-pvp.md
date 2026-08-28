@@ -9,11 +9,18 @@
 
 - [x] Design approved
 - [x] Implementation plan saved
-- [ ] Task 1: Elo + JST season/day keys
-- [ ] Task 2: Frozen PvP snapshot + simulation namespace
-- [ ] Task 3: Supabase PvP persistence
-- [ ] Task 4: Publish/query APIs
-- [ ] Task 5: Rated challenge
-- [ ] Task 6: Browser API client
-- [ ] Task 7: PvP UI
-- [ ] Task 8: Mobile E2E + final verification
+- [x] Task 1: Elo + JST season/day keys
+- [x] Task 2: Frozen PvP snapshot + simulation namespace
+- [x] Task 3: Supabase PvP persistence
+- [x] Task 4: Publish/query APIs
+- [x] Task 5: Rated challenge
+- [x] Task 6: Browser API client
+- [x] Task 7: PvP UI
+- [x] Task 8: Mobile E2E + final verification
+
+## Final Verification
+
+- `npm run verify`: PASS
+- `npm run test:e2e`: PASS
+- PvP mobile flow covers publish -> opponents -> challenge -> visible pending -> result -> ranking/history -> revisit.
+- PR remains Draft and unmerged until explicit merge authorization.
