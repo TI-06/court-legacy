@@ -62,12 +62,26 @@ export interface ResolveWeeklyTrainingInput {
   additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
 }
 
-interface TrainingActivity {
+export interface TrainingActivity {
   targetAbilities: readonly AbilityKey[];
   baseGrowth: number;
   fatigue: number;
   injuryRisk: number;
   trustGrowth: number;
+}
+
+export interface ResolvePlayerTrainingActivityInput {
+  player: Player;
+  school: NonNullable<GameState["schools"][SchoolId]>;
+  data: GameDataRegistry;
+  random: RandomSource;
+  activity: TrainingActivity;
+  additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
+}
+
+export interface PlayerTrainingActivityResolution {
+  player: Player;
+  log: PlayerGrowthLog;
 }
 
 function clampStateValue(value: number): number {
@@ -366,6 +380,23 @@ function applyActivity(
     trust: clampStateValue(player.trust + trustChange),
     injury,
   };
+}
+
+export function resolvePlayerTrainingActivity(
+  input: ResolvePlayerTrainingActivityInput,
+): PlayerTrainingActivityResolution {
+  const log = emptyLog(input.player.id);
+  const player = applyActivity(
+    input.player,
+    input.activity,
+    input.school,
+    input.data,
+    input.random,
+    log,
+    input.additionalGrowthModifiers ?? [],
+  );
+
+  return { player, log };
 }
 
 export function resolveWeeklyTraining(
