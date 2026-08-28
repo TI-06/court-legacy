@@ -16,9 +16,13 @@ describe("async PvP migration", () => {
     const sql = migrationSql();
 
     expect(sql).toContain("create table public.pvp_team_snapshots");
-    expect(sql).toContain("create unique index pvp_team_snapshots_one_active_per_user_idx");
+    expect(sql).toContain(
+      "create unique index pvp_team_snapshots_one_active_per_user_idx",
+    );
     expect(sql).toContain("where is_active");
-    expect(sql).toContain("create or replace function public.publish_pvp_team_snapshot");
+    expect(sql).toContain(
+      "create or replace function public.publish_pvp_team_snapshot",
+    );
     expect(sql).toContain("set is_active = false");
     expect(sql).toContain("insert into public.pvp_team_snapshots");
   });
@@ -37,7 +41,9 @@ describe("async PvP migration", () => {
   it("commits rated matches atomically with deterministic rating-row locks and daily limit", () => {
     const sql = migrationSql();
 
-    expect(sql).toContain("create or replace function public.commit_pvp_rated_match");
+    expect(sql).toContain(
+      "create or replace function public.commit_pvp_rated_match",
+    );
     expect(sql).toContain("order by user_id");
     expect(sql).toContain("for update");
     expect(sql).toContain("pvp_daily_opponent_limit");
@@ -54,15 +60,23 @@ describe("async PvP migration", () => {
       "pvp_matches",
       "pvp_operations",
     ]) {
-      expect(sql).toContain(`alter table public.${table} enable row level security`);
+      expect(sql).toContain(
+        `alter table public.${table} enable row level security`,
+      );
       expect(sql).toContain(
         `revoke all on table public.${table} from public, anon, authenticated`,
       );
     }
 
-    expect(sql).toContain("grant select, insert, update, delete on table public.pvp_team_snapshots to service_role");
-    expect(sql).toContain("revoke execute on function public.publish_pvp_team_snapshot");
-    expect(sql).toContain("revoke execute on function public.commit_pvp_rated_match");
+    expect(sql).toContain(
+      "grant select, insert, update, delete on table public.pvp_team_snapshots to service_role",
+    );
+    expect(sql).toContain(
+      "revoke execute on function public.publish_pvp_team_snapshot",
+    );
+    expect(sql).toContain(
+      "revoke execute on function public.commit_pvp_rated_match",
+    );
     expect(sql).toContain("from public, anon, authenticated");
     expect(sql).toContain("to service_role");
   });

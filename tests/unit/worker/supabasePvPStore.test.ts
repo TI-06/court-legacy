@@ -41,9 +41,7 @@ const snapshot: PublishedPvpTeamSnapshot = {
   publishedAt: "2026-08-28T06:00:00.000Z",
 };
 
-function clientWithRpc(
-  rpc: ReturnType<typeof vi.fn>,
-): SupabaseAdminClient {
+function clientWithRpc(rpc: ReturnType<typeof vi.fn>): SupabaseAdminClient {
   return { rpc } as unknown as SupabaseAdminClient;
 }
 
@@ -273,7 +271,11 @@ describe("SupabasePvPStore", () => {
       }),
     );
     expect(ranking[0]).toEqual(
-      expect.objectContaining({ rank: 1, schoolName: "白峰高校", rating: 1120 }),
+      expect.objectContaining({
+        rank: 1,
+        schoolName: "白峰高校",
+        rating: 1120,
+      }),
     );
     expect(history[0]).toEqual(
       expect.objectContaining({

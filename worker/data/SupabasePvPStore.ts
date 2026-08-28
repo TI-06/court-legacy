@@ -249,7 +249,9 @@ export class SupabasePvPStore implements PvPStore {
       "PvP match commit response",
     );
     if (rows.length !== 1) {
-      throw new PvPStoreDataError("PvP match commit response must contain one row");
+      throw new PvPStoreDataError(
+        "PvP match commit response must contain one row",
+      );
     }
 
     const row = rows[0]!;
@@ -270,9 +272,7 @@ export class SupabasePvPStore implements PvPStore {
     };
   }
 
-  async listOpponents(
-    input: PvpOpponentQuery,
-  ): Promise<PvpOpponentSummary[]> {
+  async listOpponents(input: PvpOpponentQuery): Promise<PvpOpponentSummary[]> {
     const { data, error } = await this.client.rpc("list_pvp_opponents", {
       p_user_id: input.userId,
       p_season_id: input.seasonId,
