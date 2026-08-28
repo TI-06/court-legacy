@@ -4,6 +4,7 @@ import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 
 export type PvpOperationKind = "publish" | "challenge";
 export type PvpMatchOutcome = "win" | "loss";
+export type PvpHistoryPerspective = "challenger" | "defender";
 
 export interface PublishedPvpTeamSnapshot {
   id: string;
@@ -96,8 +97,9 @@ export interface PvpRankingEntry {
 export interface PvpHistoryEntry {
   matchId: string;
   createdAt: string;
-  opponentSnapshotId: string;
+  opponentSnapshotId: string | null;
   opponentSchoolName: string;
+  perspective: PvpHistoryPerspective;
   outcome: PvpMatchOutcome;
   ratingBefore: number;
   ratingAfter: number;
