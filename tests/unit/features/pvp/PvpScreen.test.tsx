@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { vi } from "vitest";
 import type {
   PvpChallengeResponse,
@@ -6,8 +7,8 @@ import type {
   PvpOpponentSummary,
   PvpPublishedTeamSummary,
   PvpRankingEntry,
-} from "../../../src/domain/pvp/pvpContracts";
-import { PvpScreen } from "../../../src/features/pvp/PvpScreen";
+} from "../../../../src/domain/pvp/pvpContracts";
+import { PvpScreen } from "../../../../src/features/pvp/PvpScreen";
 
 const publishedTeam: PvpPublishedTeamSummary = {
   snapshotId: "00000000-0000-4000-8000-000000000101",
@@ -80,10 +81,8 @@ const result: PvpChallengeResponse = {
   createdAt: history.createdAt,
 };
 
-function renderScreen(
-  overrides: Partial<React.ComponentProps<typeof PvpScreen>> = {},
-) {
-  const props: React.ComponentProps<typeof PvpScreen> = {
+function renderScreen(overrides: Partial<ComponentProps<typeof PvpScreen>> = {}) {
+  const props: ComponentProps<typeof PvpScreen> = {
     publishedTeam,
     seasonId: "2026-08",
     opponents: [opponent],
