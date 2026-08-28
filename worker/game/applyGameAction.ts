@@ -18,6 +18,7 @@ import {
 } from "../../src/domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
+import type { AdditionalGrowthModifier } from "../../src/domain/training/calculateGrowth";
 import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";
 import { recordMatchOutcome } from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
@@ -64,6 +65,32 @@ function conflict(code: string, message: string): never {
   throw new GameRuleConflictError(code, message);
 }
 
+function trainingGrowthModifiers(state: GameState): AdditionalGrowthModifier[] {
+  const pendingBoost = state.shopEffects?.nextTrainingGrowthBoost;
+  if (!pendingBoost) {
+    return [];
+  }
+
+  return [
+    {
+      code: "shop-training-boost",
+      label: "練習効率アップ",
+      percent: 100 + pendingBoost.percent,
+    },
+  ];
+}
+
+function consumeNextTrainingGrowthBoost(state: GameState): GameState {
+  if (!state.shopEffects?.nextTrainingGrowthBoost) {
+    return state;
+  }
+
+  return {
+    ...state,
+    shopEffects: undefined,
+  };
+}
+
 function applyTraining(
   state: GameState,
   teamSelection: TeamSelection,
@@ -81,9 +108,11 @@ function applyTraining(
       plan: action.plan,
       data: gameData,
       random,
+      additionalGrowthModifiers: trainingGrowthModifiers(state),
     });
+    const resolvedState = consumeNextTrainingGrowthBoost(resolution.state);
     return {
-      state: markWeeklyActionCompleted(resolution.state, "training"),
+      state: markWeeklyActionCompleted(resolvedState, "training"),
       teamSelection,
       outcome: resolution.result,
     };
