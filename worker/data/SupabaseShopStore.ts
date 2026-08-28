@@ -86,12 +86,14 @@ function errorText(error: unknown): string {
 
 function toMutationError(error: unknown): ShopStoreMutationError {
   const text = errorText(error);
-  const code = [...mutationErrorCodes].find((candidate) =>
-    text.includes(candidate),
-  );
-  return new ShopStoreMutationError(code ?? "server_error", text, {
-    cause: error,
-  });
+  let code: ShopMutationErrorCode = "server_error";
+  for (const candidate of mutationErrorCodes) {
+    if (text.includes(candidate)) {
+      code = candidate;
+      break;
+    }
+  }
+  return new ShopStoreMutationError(code, text, { cause: error });
 }
 
 function parseStatusRows(value: unknown): ShopStatusItem[] {
