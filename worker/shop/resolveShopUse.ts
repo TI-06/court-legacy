@@ -70,10 +70,9 @@ export interface ResolveShopUseInput {
   scoutingStore?: ScoutingStore;
 }
 
-function cloneBase(snapshot: CloudGameSnapshot): Pick<
-  ResolvedShopUse,
-  "state" | "teamSelection"
-> {
+function cloneBase(
+  snapshot: CloudGameSnapshot,
+): Pick<ResolvedShopUse, "state" | "teamSelection"> {
   return {
     state: structuredClone(snapshot.state),
     teamSelection: structuredClone(snapshot.teamSelection),
