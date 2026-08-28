@@ -9,7 +9,11 @@ import type {
   PersonalityDefinition,
   TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
-import { calculateGrowth, type GrowthModifier } from "./calculateGrowth";
+import {
+  calculateGrowth,
+  type AdditionalGrowthModifier,
+  type GrowthModifier,
+} from "./calculateGrowth";
 
 export interface IndividualTrainingAssignment {
   playerId: PlayerId;
@@ -55,6 +59,7 @@ export interface ResolveWeeklyTrainingInput {
   plan: WeeklyPlan;
   data: GameDataRegistry;
   random: RandomSource;
+  additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
 }
 
 interface TrainingActivity {
@@ -296,6 +301,7 @@ function applyActivity(
   data: GameDataRegistry,
   random: RandomSource,
   log: PlayerGrowthLog,
+  additionalGrowthModifiers: readonly AdditionalGrowthModifier[],
 ): Player {
   if (player.injury) {
     log.skippedReason = "injured";
@@ -310,6 +316,7 @@ function applyActivity(
     school,
     growthType,
     personality,
+    additionalModifiers: additionalGrowthModifiers,
   });
   const abilityResult = applyAbilityGrowth(
     player,
@@ -370,6 +377,7 @@ export function resolveWeeklyTraining(
   const players = { ...input.state.players };
   const playerLogs: PlayerGrowthLog[] = [];
   const injuredPlayerIds: PlayerId[] = [];
+  const additionalGrowthModifiers = input.additionalGrowthModifiers ?? [];
 
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
@@ -381,6 +389,7 @@ export function resolveWeeklyTraining(
       input.data,
       input.random,
       log,
+      additionalGrowthModifiers,
     );
     const instruction = validated.instructions.get(playerId);
     if (instruction && !updated.injury) {
@@ -391,6 +400,7 @@ export function resolveWeeklyTraining(
         input.data,
         input.random,
         log,
+        additionalGrowthModifiers,
       );
     }
 
