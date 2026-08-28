@@ -100,7 +100,11 @@ function containsErrorCode(error: unknown, code: string, depth = 0): boolean {
     );
   }
   if (typeof error === "object") {
-    const candidate = error as { message?: unknown; code?: unknown; cause?: unknown };
+    const candidate = error as {
+      message?: unknown;
+      code?: unknown;
+      cause?: unknown;
+    };
     return (
       (typeof candidate.message === "string" &&
         candidate.message.includes(code)) ||
@@ -304,6 +308,13 @@ export function createPvpChallengeHandler(
       }
       if (containsErrorCode(error, "pvp_operation_conflict")) {
         return operationConflict();
+      }
+      if (containsErrorCode(error, "pvp_opponent_inactive")) {
+        return jsonError(
+          409,
+          "pvp_opponent_inactive",
+          "この公開チームは更新済みです。対戦相手一覧を更新してください",
+        );
       }
       if (containsErrorCode(error, "pvp_self_match")) {
         return jsonError(

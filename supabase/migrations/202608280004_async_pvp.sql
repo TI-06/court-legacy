@@ -330,6 +330,9 @@ declare
   v_defender_after integer;
   v_winner_user_id uuid;
   v_match_id uuid;
+  v_match_created_at timestamptz;
+  v_defender_school_name text;
+  v_defender_school_short_name text;
 begin
   if p_challenger_user_id = p_defender_user_id then
     raise exception using errcode = '22023', message = 'pvp_self_match';
@@ -382,6 +385,18 @@ begin
     from public.pvp_matches as matches
     where matches.id = v_existing_match_id;
     return;
+  end if;
+
+  select snapshots.school_name, snapshots.school_short_name
+  into v_defender_school_name, v_defender_school_short_name
+  from public.pvp_team_snapshots as snapshots
+  where snapshots.id = p_defender_snapshot_id
+    and snapshots.user_id = p_defender_user_id
+    and snapshots.is_active
+  for share;
+
+  if not found then
+    raise exception using errcode = 'P0001', message = 'pvp_opponent_inactive';
   end if;
 
   if (
@@ -476,14 +491,32 @@ begin
     v_winner_user_id,
     p_result
   )
-  returning pvp_matches.id into v_match_id;
+  returning pvp_matches.id, pvp_matches.created_at
+  into v_match_id, v_match_created_at;
 
   insert into public.pvp_operations(user_id, operation_id, kind, response)
   values (
     p_challenger_user_id,
     btrim(p_operation_id),
     'challenge',
-    jsonb_build_object('matchId', v_match_id)
+    jsonb_build_object(
+      'operationId', btrim(p_operation_id),
+      'revision', p_challenger_source_revision,
+      'seasonId', p_season_id,
+      'matchId', v_match_id,
+      'opponent', jsonb_build_object(
+        'snapshotId', p_defender_snapshot_id,
+        'schoolName', v_defender_school_name,
+        'schoolShortName', v_defender_school_short_name
+      ),
+      'rating', jsonb_build_object(
+        'before', v_challenger_rating,
+        'after', v_challenger_after,
+        'delta', v_challenger_after - v_challenger_rating
+      ),
+      'result', p_result,
+      'createdAt', v_match_created_at
+    )
   );
 
   return query
