@@ -117,7 +117,8 @@ describe("PvP publish route", () => {
     expect(store.published).toHaveLength(1);
     const published = store.published[0]!;
     const originalSchool = snapshot.state.schools[snapshot.state.userSchoolId]!;
-    const originalPlayer = snapshot.state.players[originalSchool.playerIds[0]!]!;
+    const originalPlayer =
+      snapshot.state.players[originalSchool.playerIds[0]!]!;
     const frozenPlayer = published.players[originalPlayer.id]!;
 
     expect(published.school).not.toBe(originalSchool);
