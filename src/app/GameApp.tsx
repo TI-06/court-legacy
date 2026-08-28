@@ -6,8 +6,11 @@ import { useGameSession } from "./useGameSession";
 import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
+import type { GameState } from "../domain/model/GameState";
+import type { PlayerId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
 import type { TeamSelection } from "../domain/model/TeamSelection";
+import type { ScoutReport } from "../domain/scouting/scoutReport";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -25,9 +28,14 @@ import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchScreen } from "../features/match/MatchScreen";
 import { MoreScreen } from "../features/more/MoreScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
+import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
-import type { GameApiClient } from "../services/api/GameApiClient";
+import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
+import {
+  ApiError,
+  type GameApiClient,
+} from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
@@ -60,6 +68,14 @@ function formatGameDate(date: string): string {
   return `${year}年${month}月${day}日`;
 }
 
+function recruitingCycleKey(state: GameState): string {
+  return `${state.userSchoolId}:year-${state.yearIndex}`;
+}
+
+function scoutingErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
+
 export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const cloudSession = useGameSession({
     accessToken: session.accessToken,
@@ -69,6 +85,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [activeTab, setActiveTab] = useState<AppTab>("home");
   const [moreView, setMoreView] = useState<MoreView>("menu");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [scoutingOpen, setScoutingOpen] = useState(false);
+  const [scoutingReports, setScoutingReports] = useState<ScoutReport[]>([]);
+  const [scoutingCycle, setScoutingCycle] = useState<string | null>(null);
+  const [scoutingLoading, setScoutingLoading] = useState(false);
+  const [scoutingError, setScoutingError] = useState<string | null>(null);
+  const [recruitingCandidateId, setRecruitingCandidateId] =
+    useState<PlayerId | null>(null);
+  const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
+    useState<PlayerId | null>(null);
   const [latestTrainingResult, setLatestTrainingResult] =
     useState<TrainingResult | null>(null);
   const [latestMatchResult, setLatestMatchResult] =
@@ -105,7 +130,143 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const changeTab = (tab: AppTab) => {
     if (tab !== "more") setMoreView("menu");
+    if (tab !== "training") {
+      setScoutingOpen(false);
+      setScoutingError(null);
+      setRetryRecruitCandidateId(null);
+    }
     setActiveTab(tab);
+  };
+
+  const loadScoutingBoard = async (revision = cloudSession.snapshot.revision) => {
+    if (!api.getScoutingBoard) {
+      setScoutingError("スカウト機能を利用できません");
+      return;
+    }
+
+    setScoutingLoading(true);
+    setScoutingError(null);
+    setRetryRecruitCandidateId(null);
+
+    try {
+      const response = await api.getScoutingBoard(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision,
+      });
+      setScoutingReports(response.reports);
+      setScoutingCycle(response.cycleKey);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        try {
+          const latest = await api.bootstrap(session.accessToken);
+          if (latest.status === "ready") {
+            await cloudSession.adoptServerSnapshot(
+              latest.game,
+              "最新のゲーム状態を読み込みました",
+            );
+            setScoutingReports([]);
+            setScoutingCycle(null);
+            const refreshed = await api.getScoutingBoard(session.accessToken, {
+              operationId: crypto.randomUUID(),
+              revision: latest.game.revision,
+            });
+            setScoutingReports(refreshed.reports);
+            setScoutingCycle(refreshed.cycleKey);
+            return;
+          }
+        } catch (refreshError) {
+          setScoutingError(
+            scoutingErrorMessage(
+              refreshError,
+              "最新のスカウト候補を読み込めませんでした",
+            ),
+          );
+          return;
+        }
+      }
+
+      setScoutingError(
+        scoutingErrorMessage(error, "候補を読み込めませんでした"),
+      );
+    } finally {
+      setScoutingLoading(false);
+    }
+  };
+
+  const openScouting = () => {
+    setScoutingOpen(true);
+    setScoutingError(null);
+    setRetryRecruitCandidateId(null);
+    const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
+    if (scoutingCycle !== currentCycle) {
+      setScoutingReports([]);
+      setScoutingCycle(null);
+      void loadScoutingBoard();
+    }
+  };
+
+  const recruitCandidate = async (candidateId: PlayerId) => {
+    if (!api.commitRecruit || recruitingCandidateId !== null) {
+      if (!api.commitRecruit) {
+        setScoutingError("スカウト獲得機能を利用できません");
+      }
+      return;
+    }
+
+    setRecruitingCandidateId(candidateId);
+    setScoutingError(null);
+    setRetryRecruitCandidateId(null);
+
+    try {
+      const response = await api.commitRecruit(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        candidateId,
+      });
+      await cloudSession.adoptServerSnapshot(
+        response.game,
+        "獲得内容を保存しました",
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        try {
+          const latest = await api.bootstrap(session.accessToken);
+          if (latest.status === "ready") {
+            await cloudSession.adoptServerSnapshot(
+              latest.game,
+              "最新のゲーム状態を読み込みました",
+            );
+            setScoutingReports([]);
+            setScoutingCycle(null);
+            await loadScoutingBoard(latest.game.revision);
+            return;
+          }
+        } catch (refreshError) {
+          setScoutingError(
+            scoutingErrorMessage(
+              refreshError,
+              "最新のスカウト候補を読み込めませんでした",
+            ),
+          );
+          return;
+        }
+      }
+
+      setScoutingError(
+        scoutingErrorMessage(error, "獲得処理に失敗しました"),
+      );
+      setRetryRecruitCandidateId(candidateId);
+    } finally {
+      setRecruitingCandidateId(null);
+    }
+  };
+
+  const retryScouting = () => {
+    if (retryRecruitCandidateId) {
+      void recruitCandidate(retryRecruitCandidateId);
+      return;
+    }
+    void loadScoutingBoard();
   };
 
   const executeTraining = async (plan: WeeklyPlan) => {
@@ -200,14 +361,34 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         selection={teamSelection}
         state={gameState}
       />
-    ) : activeTab === "training" ? (
-      <TrainingScreen
-        completed={trainingCompleted}
-        data={gameData}
-        latestResult={latestTrainingResult}
-        onExecute={executeTraining}
+    ) : activeTab === "training" && scoutingOpen ? (
+      <ScoutingScreen
+        error={scoutingError}
+        loading={scoutingLoading}
+        onBack={() => {
+          setScoutingOpen(false);
+          setScoutingError(null);
+          setRetryRecruitCandidateId(null);
+        }}
+        onRecruit={(candidateId) => {
+          void recruitCandidate(candidateId);
+        }}
+        onRetry={retryScouting}
+        recruitingCandidateId={recruitingCandidateId}
+        reports={scoutingReports}
         state={gameState}
       />
+    ) : activeTab === "training" ? (
+      <div className="training-hub-screen">
+        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
+        <TrainingScreen
+          completed={trainingCompleted}
+          data={gameData}
+          latestResult={latestTrainingResult}
+          onExecute={executeTraining}
+          state={gameState}
+        />
+      </div>
     ) : activeTab === "match" ? (
       <MatchScreen
         awaySelection={opponentSelection}
