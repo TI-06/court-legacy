@@ -1,5 +1,4 @@
-import type { Player, Position } from "../model/Player";
-import type { AbilityKey } from "../validation/gameDataSchema";
+import type { Player } from "../model/Player";
 
 export interface NextTrainingGrowthBoost {
   percent: 20;
@@ -11,59 +10,38 @@ export interface ShopGameEffects {
   nextTrainingGrowthBoost?: NextTrainingGrowthBoost;
 }
 
-export interface ShopTrainingActivityDefinition {
-  baseGrowth: number;
-  fatigue: number;
-  injuryRisk: number;
-  trustGrowth: number;
-}
-
-export type SpecialCoachFocus =
-  | "spike"
-  | "serve"
-  | "receive"
-  | "block"
-  | "physical"
-  | "decision";
-
-type SpecialCoachFocusAbilities = Readonly<
-  Record<SpecialCoachFocus, readonly AbilityKey[]>
->;
-
-type TrainingCampAbilities = Readonly<
-  Record<Position, readonly AbilityKey[]>
->;
-
-export const SPECIAL_COACH_FOCUS_ABILITIES: SpecialCoachFocusAbilities = {
+export const SPECIAL_COACH_FOCUS_ABILITIES = {
   spike: ["spike", "jump"],
   serve: ["serve", "mental"],
   receive: ["receive", "speed"],
   block: ["block", "jump"],
   physical: ["stamina", "speed", "jump"],
   decision: ["decision", "set", "mental"],
-};
+} as const;
 
-export const SPECIAL_COACH_ACTIVITY: ShopTrainingActivityDefinition = {
+export type SpecialCoachFocus = keyof typeof SPECIAL_COACH_FOCUS_ABILITIES;
+
+export const SPECIAL_COACH_ACTIVITY = {
   baseGrowth: 8,
   fatigue: 6,
   injuryRisk: 4,
   trustGrowth: 3,
-};
+} as const;
 
-export const TRAINING_CAMP_POSITION_ABILITIES: TrainingCampAbilities = {
+export const TRAINING_CAMP_POSITION_ABILITIES = {
   OH: ["spike", "receive", "serve"],
   MB: ["block", "jump", "speed"],
   OP: ["spike", "serve", "block"],
   S: ["set", "decision", "speed"],
   L: ["receive", "speed", "mental"],
-};
+} as const;
 
-export const TRAINING_CAMP_ACTIVITY: ShopTrainingActivityDefinition = {
+export const TRAINING_CAMP_ACTIVITY = {
   baseGrowth: 3,
   fatigue: 12,
   injuryRisk: 5,
   trustGrowth: 2,
-};
+} as const;
 
 export interface FatigueRecoveryResult {
   player: Player;
