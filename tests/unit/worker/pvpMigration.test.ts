@@ -51,6 +51,15 @@ describe("async PvP migration", () => {
     expect(sql).toContain("count(*) >= 3");
   });
 
+  it("pages match history by created time plus match id to match its stable sort order", () => {
+    const sql = migrationSql();
+
+    expect(sql).toContain("(matches.created_at, matches.id::text) <");
+    expect(sql).toContain("split_part(p_cursor, '|', 1)::timestamptz");
+    expect(sql).toContain("split_part(p_cursor, '|', 2)");
+    expect(sql).toContain("order by matches.created_at desc, matches.id desc");
+  });
+
   it("blocks browser roles from PvP tables and RPC execution", () => {
     const sql = migrationSql();
 
