@@ -69,8 +69,12 @@ describe("Phase 5 shop migration", () => {
     const sql = migrationSql();
 
     expect(sql).toContain("create or replace function public.get_shop_status");
-    expect(sql).toContain("create or replace function public.purchase_shop_item");
-    expect(sql).toContain("create or replace function public.commit_shop_item_use");
+    expect(sql).toContain(
+      "create or replace function public.purchase_shop_item",
+    );
+    expect(sql).toContain(
+      "create or replace function public.commit_shop_item_use",
+    );
     expect(sql).toContain("insert into public.shop_operations");
     expect(sql).toContain("insert into public.shop_transactions");
     expect(sql).toContain("insert into public.shop_item_uses");
