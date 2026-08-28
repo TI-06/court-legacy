@@ -23,6 +23,8 @@ function apiClient(): GameApiClient {
     bootstrap: vi.fn(),
     onboard: vi.fn(),
     applyAction: vi.fn(),
+    getScoutingBoard: vi.fn(),
+    commitRecruit: vi.fn(),
   };
 }
 
