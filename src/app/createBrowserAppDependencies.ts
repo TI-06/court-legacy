@@ -2,8 +2,14 @@ import type {
   CloudGameSnapshot,
   PersistedOperationResponse,
 } from "../../worker/data/GameStore";
+import type { ScoutingCandidatePool } from "../../worker/data/ScoutingStore";
 import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
+import {
+  buildServerScoutReports,
+  generateServerScoutingCandidates,
+  scoutingCycleKey,
+} from "../../worker/scouting/serverScoutingBoard";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
 import {
@@ -16,6 +22,8 @@ import {
   HttpGameApiClient,
   type GameApiClient,
   type OnboardingInput,
+  type ScoutingBoardRequest,
+  type ScoutingRecruitmentRequest,
 } from "../services/api/GameApiClient";
 import { createDemoGame } from "./createDemoGame";
 import { createInitialGame } from "./createInitialGame";
@@ -88,6 +96,7 @@ class StaticGameApiClient implements GameApiClient {
     string,
     PersistedOperationResponse
   >();
+  private readonly scoutingPools = new Map<string, ScoutingCandidatePool>();
 
   constructor(private readonly persistAcrossReloads: boolean) {
     const explicitGameState = persistAcrossReloads
@@ -108,6 +117,17 @@ class StaticGameApiClient implements GameApiClient {
     if (this.persistAcrossReloads) {
       writePersistedHarnessSnapshot(next);
     }
+  }
+
+  private requireSnapshot(): CloudGameSnapshot {
+    if (!this.snapshot) {
+      throw new ApiError(
+        409,
+        "game_not_ready",
+        "学校データを作成してから操作してください",
+      );
+    }
+    return this.snapshot;
   }
 
   async bootstrap() {
@@ -141,19 +161,13 @@ class StaticGameApiClient implements GameApiClient {
   }
 
   async applyAction(_accessToken: string, request: GameActionRequest) {
-    if (!this.snapshot) {
-      throw new ApiError(
-        409,
-        "game_not_ready",
-        "学校データを作成してから操作してください",
-      );
-    }
+    const snapshot = this.requireSnapshot();
 
     const cached = this.operationResponses.get(request.operationId);
     if (cached) {
       return cached;
     }
-    if (request.revision !== this.snapshot.revision) {
+    if (request.revision !== snapshot.revision) {
       throw new ApiError(
         409,
         "revision_conflict",
@@ -168,15 +182,15 @@ class StaticGameApiClient implements GameApiClient {
       }
     }
 
-    const applied = applyGameAction(this.snapshot, request.action);
+    const applied = applyGameAction(snapshot, request.action);
     this.replaceSnapshot({
-      ...this.snapshot,
-      revision: this.snapshot.revision + 1,
+      ...snapshot,
+      revision: snapshot.revision + 1,
       state: applied.state,
       teamSelection: applied.teamSelection,
     });
     const response: PersistedOperationResponse = {
-      game: this.snapshot,
+      game: this.snapshot!,
       operationId: request.operationId,
     };
     if (applied.outcome !== undefined) {
@@ -184,6 +198,106 @@ class StaticGameApiClient implements GameApiClient {
     }
     this.operationResponses.set(request.operationId, response);
     return response;
+  }
+
+  async getScoutingBoard(
+    _accessToken: string,
+    request: ScoutingBoardRequest,
+  ) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+
+    const cycleKey = scoutingCycleKey(snapshot.state);
+    let pool = this.scoutingPools.get(cycleKey);
+    if (!pool) {
+      pool = {
+        userId: snapshot.userId,
+        cycleKey,
+        creationOperationId: request.operationId,
+        candidates: generateServerScoutingCandidates(snapshot.state),
+      };
+      this.scoutingPools.set(cycleKey, pool);
+    }
+
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      cycleKey,
+      reports: buildServerScoutReports(snapshot.state, pool),
+    };
+  }
+
+  async commitRecruit(
+    _accessToken: string,
+    request: ScoutingRecruitmentRequest,
+  ) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+
+    const cycleKey = scoutingCycleKey(snapshot.state);
+    const pool = this.scoutingPools.get(cycleKey);
+    if (!pool) {
+      throw new ApiError(
+        409,
+        "scouting_board_required",
+        "先にスカウト候補を確認してください",
+      );
+    }
+    if (!pool.candidates.some((entry) => entry.player.id === request.candidateId)) {
+      throw new ApiError(
+        409,
+        "candidate_unavailable",
+        "この候補は現在のスカウト候補に含まれていません",
+      );
+    }
+
+    const currentCommitments =
+      snapshot.state.recruiting?.cycleKey === cycleKey
+        ? snapshot.state.recruiting.committedCandidateIds
+        : [];
+    if (currentCommitments.includes(request.candidateId)) {
+      throw new ApiError(
+        409,
+        "candidate_already_committed",
+        "この候補はすでに獲得済みです",
+      );
+    }
+
+    const committedCandidateIds = [...currentCommitments, request.candidateId];
+    const game: CloudGameSnapshot = {
+      ...snapshot,
+      revision: snapshot.revision + 1,
+      state: {
+        ...snapshot.state,
+        recruiting: {
+          cycleKey,
+          committedCandidateIds,
+        },
+      },
+    };
+    this.replaceSnapshot(game);
+
+    return {
+      game,
+      operationId: request.operationId,
+      outcome: {
+        candidateId: request.candidateId,
+        committedCandidateIds,
+        cycleKey,
+      },
+    };
   }
 }
 
