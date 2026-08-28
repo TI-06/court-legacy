@@ -169,12 +169,31 @@ describe("PvP public query routes", () => {
     expect(body.nextCursor).toBe("2");
   });
 
+  it("drops malformed ranking cursors before they reach the bigint database cursor", async () => {
+    const store = pvpStore();
+    const handler = createPvpRankingHandler({ pvpStore: store, now });
+
+    const response = await handler(
+      getRequest("/api/pvp/ranking?cursor=not-a-rank&limit=5"),
+      { id: userId },
+    );
+
+    expect(response.status).toBe(200);
+    expect(store.listRanking).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: null, limit: 5 }),
+    );
+  });
+
   it("scopes history to the authenticated user and current season", async () => {
     const store = pvpStore();
     const handler = createPvpHistoryHandler({ pvpStore: store, now });
+    const cursor =
+      "2026-08-31T14:00:00.000Z|00000000-0000-0000-0000-000000000009";
 
     const response = await handler(
-      getRequest("/api/pvp/history?cursor=match-z&limit=7&userId=other"),
+      getRequest(
+        `/api/pvp/history?cursor=${encodeURIComponent(cursor)}&limit=7&userId=other`,
+      ),
       { id: userId },
     );
 
@@ -182,7 +201,7 @@ describe("PvP public query routes", () => {
     expect(store.listHistory).toHaveBeenCalledWith({
       userId,
       seasonId: "2026-09",
-      cursor: "match-z",
+      cursor,
       limit: 7,
     });
     const body = await response.json();
@@ -195,6 +214,58 @@ describe("PvP public query routes", () => {
     );
     expect(JSON.stringify(body)).not.toContain("abilities");
     expect(JSON.stringify(body)).not.toContain("players");
+  });
+
+  it("returns a created-at plus match-id cursor for chronological history paging", async () => {
+    const store = pvpStore();
+    vi.mocked(store.listHistory).mockResolvedValue([
+      {
+        matchId: "00000000-0000-0000-0000-000000000011",
+        createdAt: "2026-08-31T13:00:00.000Z",
+        opponentSnapshotId: "snapshot-first",
+        opponentSchoolName: "白峰高校",
+        outcome: "win",
+        ratingBefore: 1000,
+        ratingAfter: 1016,
+        result: { homeSetsWon: 2, awaySetsWon: 1 },
+      },
+      {
+        matchId: "00000000-0000-0000-0000-000000000010",
+        createdAt: "2026-08-31T12:00:00.000Z",
+        opponentSnapshotId: "snapshot-second",
+        opponentSchoolName: "青嶺高校",
+        outcome: "loss",
+        ratingBefore: 1016,
+        ratingAfter: 1001,
+        result: { homeSetsWon: 1, awaySetsWon: 2 },
+      },
+    ]);
+    const handler = createPvpHistoryHandler({ pvpStore: store, now });
+
+    const response = await handler(getRequest("/api/pvp/history?limit=2"), {
+      id: userId,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.nextCursor).toBe(
+      "2026-08-31T12:00:00.000Z|00000000-0000-0000-0000-000000000010",
+    );
+  });
+
+  it("drops malformed history cursors before the database timestamp cast", async () => {
+    const store = pvpStore();
+    const handler = createPvpHistoryHandler({ pvpStore: store, now });
+
+    const response = await handler(
+      getRequest("/api/pvp/history?cursor=not-a-history-cursor&limit=5"),
+      { id: userId },
+    );
+
+    expect(response.status).toBe(200);
+    expect(store.listHistory).toHaveBeenCalledWith(
+      expect.objectContaining({ cursor: null, limit: 5 }),
+    );
   });
 
   it("uses safe defaults for malformed limits", async () => {
