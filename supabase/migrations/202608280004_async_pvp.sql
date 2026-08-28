@@ -643,7 +643,13 @@ as $$
     on defender.id = matches.defender_snapshot_id
   where matches.season_id = p_season_id
     and (matches.challenger_user_id = p_user_id or matches.defender_user_id = p_user_id)
-    and (p_cursor is null or matches.id::text < p_cursor)
+    and (
+      p_cursor is null
+      or (matches.created_at, matches.id::text) < (
+        split_part(p_cursor, '|', 1)::timestamptz,
+        split_part(p_cursor, '|', 2)
+      )
+    )
   order by matches.created_at desc, matches.id desc
   limit least(greatest(p_limit, 1), 30);
 $$;
