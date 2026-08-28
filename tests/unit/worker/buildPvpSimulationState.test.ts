@@ -48,7 +48,8 @@ describe("buildPvpSimulationState", () => {
   it("namespaces identical school and player ids from different users", () => {
     const challengerState = createDemoGame();
     const defenderState = createDemoGame();
-    const challengerSchool = challengerState.schools[challengerState.userSchoolId]!;
+    const challengerSchool =
+      challengerState.schools[challengerState.userSchoolId]!;
     const defenderSchool = defenderState.schools[defenderState.userSchoolId]!;
 
     expect(challengerSchool.id).toBe(defenderSchool.id);
@@ -82,7 +83,8 @@ describe("buildPvpSimulationState", () => {
   it("remaps team selection, career, captain, and opponent tactic player references consistently", () => {
     const challengerState = createDemoGame();
     const defenderState = createDemoGame();
-    const challengerSchool = challengerState.schools[challengerState.userSchoolId]!;
+    const challengerSchool =
+      challengerState.schools[challengerState.userSchoolId]!;
     const defenderSchool = defenderState.schools[defenderState.userSchoolId]!;
     const challengerSelection = selectionFor(challengerState);
     const defenderSelection = selectionFor(defenderState);
@@ -138,7 +140,8 @@ describe("buildPvpSimulationState", () => {
   it("normalizes condition fatigue and injury while preserving developed ability", () => {
     const challengerState = createDemoGame();
     const defenderState = createDemoGame();
-    const challengerSchool = challengerState.schools[challengerState.userSchoolId]!;
+    const challengerSchool =
+      challengerState.schools[challengerState.userSchoolId]!;
     const defenderSchool = defenderState.schools[defenderState.userSchoolId]!;
     const challengerOriginalId = challengerSchool.playerIds[0]!;
     const defenderOriginalId = defenderSchool.playerIds[0]!;
