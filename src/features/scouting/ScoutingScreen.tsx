@@ -78,9 +78,7 @@ export function ScoutingScreen({
           <div>
             <span className="section-kicker">RECRUITING</span>
             <h1>新入生スカウト</h1>
-            <p>
-              見えている情報だけを材料に、来年度の戦力候補を見極めます。
-            </p>
+            <p>見えている情報だけを材料に、来年度の戦力候補を見極めます。</p>
           </div>
           <strong className="scouting-grade">
             評判 {reputationGrade(school.reputationPoints)}
@@ -140,7 +138,8 @@ export function ScoutingScreen({
                     <div>
                       <h2>{report.displayName}</h2>
                       <p>
-                        {report.heightCm}cm・{handednessLabels[report.handedness]}
+                        {report.heightCm}cm・
+                        {handednessLabels[report.handedness]}
                       </p>
                     </div>
                   </div>
@@ -153,7 +152,9 @@ export function ScoutingScreen({
                 </div>
 
                 <div className="scouting-tags">
-                  <span>{achievementLabels[report.middleSchoolAchievement]}</span>
+                  <span>
+                    {achievementLabels[report.middleSchoolAchievement]}
+                  </span>
                   <span>調査精度 {confidenceLabels[report.confidence]}</span>
                 </div>
 
@@ -161,7 +162,8 @@ export function ScoutingScreen({
                   <div>
                     <span>現在能力</span>
                     <strong>
-                      {report.estimatedOverall.min}〜{report.estimatedOverall.max}
+                      {report.estimatedOverall.min}〜
+                      {report.estimatedOverall.max}
                     </strong>
                   </div>
                   <div>
@@ -182,7 +184,11 @@ export function ScoutingScreen({
                 <button
                   aria-label={`${buttonLabel} ${report.displayName}`}
                   className="scouting-recruit"
-                  disabled={isCommitted || isRecruiting || recruitingCandidateId !== null}
+                  disabled={
+                    isCommitted ||
+                    isRecruiting ||
+                    recruitingCandidateId !== null
+                  }
                   onClick={() => onRecruit(report.candidateId)}
                   type="button"
                 >
