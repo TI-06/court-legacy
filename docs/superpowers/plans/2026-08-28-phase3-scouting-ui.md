@@ -24,10 +24,12 @@
 ### Task 1: Scouting API client
 
 **Files:**
+
 - Modify: `src/services/api/GameApiClient.ts`
 - Modify: `tests/unit/services/GameApiClient.test.ts`
 
 **Interfaces:**
+
 - Produces: `ScoutingBoardResponse`, `ScoutingRecruitmentResponse`, `GameApiClient.getScoutingBoard()`, `GameApiClient.commitRecruit()`
 
 - [ ] **Step 1: Write failing API client tests**
@@ -81,11 +83,13 @@ Expected: formatting, lint, typecheck, unit tests and build pass.
 ### Task 2: ScoutingScreen presentational UI
 
 **Files:**
+
 - Create: `src/features/scouting/ScoutingScreen.tsx`
 - Create: `src/features/scouting/scouting.css`
 - Create: `tests/unit/features/scouting/ScoutingScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `ScoutReport[]`, `GameState`, `committedCandidateIds`, load/recruit state callbacks
 - Produces: mobile-first scouting screen without access to Player truth
 
@@ -107,6 +111,7 @@ interface ScoutingScreenProps {
 - [ ] **Step 1: Write failing render tests**
 
 Cover:
+
 - heading `新入生スカウト`
 - candidate public fields
 - `調査精度`
@@ -134,18 +139,21 @@ Expected: component tests pass and `npm run verify` remains green.
 ### Task 3: GameApp scouting flow
 
 **Files:**
+
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/app/useGameSession.ts`
 - Modify: `src/features/training/TrainingScreen.tsx`
 - Modify: `tests/unit/app/GameApp.test.tsx` if present, otherwise create `tests/unit/app/GameApp.scouting.test.tsx`
 
 **Interfaces:**
+
 - `useGameSession` produces `replaceFromServer(nextSnapshot)` or a focused equivalent so non-`/api/game/action` authoritative responses can replace the snapshot safely.
 - `TrainingScreen` receives optional `onOpenScouting` callback and shows a prominent `新入生スカウト` action.
 
 - [ ] **Step 1: Write failing integration tests**
 
 Test flow:
+
 1. render GameApp with fake GameApiClient
 2. switch to `育成`
 3. click `新入生スカウト`
@@ -165,6 +173,7 @@ Expected: missing callbacks/methods/view.
 - [ ] **Step 3: Implement flow**
 
 Rules:
+
 - generate a fresh `crypto.randomUUID()` operationId per board/recruit request
 - board reports remain local UI state
 - recruitment success replaces authoritative snapshot from response.game
@@ -181,15 +190,18 @@ Run full `npm run verify` through CI.
 ### Task 4: Mobile E2E and phase documentation
 
 **Files:**
+
 - Modify or create the relevant Playwright mobile spec under `tests/e2e/`
 - Modify: `README.md` only if navigation/user-facing feature documentation needs updating
 
 **Interfaces:**
+
 - Produces final regression gate for accessible mobile flow.
 
 - [ ] **Step 1: Add mobile E2E coverage**
 
 Verify at mobile viewport:
+
 - training screen exposes scouting action
 - scouting screen opens without blank/loading ambiguity
 - candidate cards fit viewport width
@@ -201,6 +213,7 @@ Use mocked/test-mode API state if production authentication would make the flow 
 - [ ] **Step 2: Run final verification**
 
 Required evidence:
+
 - `npm run verify` SUCCESS
 - mobile Playwright E2E SUCCESS
 
