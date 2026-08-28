@@ -358,6 +358,7 @@ export function advanceAcademicYear(
     activeMatch: null,
     pendingEvent: null,
     recruiting: undefined,
+    shopEffects: undefined,
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
