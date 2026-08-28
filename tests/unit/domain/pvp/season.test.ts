@@ -7,7 +7,11 @@ describe("PvP JST time keys", () => {
   });
 
   it("changes daily limit key at JST midnight", () => {
-    expect(pvpJstDayKey(new Date("2026-08-28T14:59:59.000Z"))).toBe("2026-08-28");
-    expect(pvpJstDayKey(new Date("2026-08-28T15:00:00.000Z"))).toBe("2026-08-29");
+    expect(pvpJstDayKey(new Date("2026-08-28T14:59:59.000Z"))).toBe(
+      "2026-08-28",
+    );
+    expect(pvpJstDayKey(new Date("2026-08-28T15:00:00.000Z"))).toBe(
+      "2026-08-29",
+    );
   });
 });

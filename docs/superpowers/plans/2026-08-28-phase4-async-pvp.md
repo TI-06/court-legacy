@@ -33,6 +33,7 @@
 ## File Map
 
 ### Domain
+
 - Create `src/domain/pvp/elo.ts` — pure Elo calculation.
 - Create `src/domain/pvp/season.ts` — JST season/day keys.
 - Create `src/domain/pvp/pvpContracts.ts` — browser-safe PvP DTOs only.
@@ -40,6 +41,7 @@
 - Create `worker/pvp/simulatePvpMatch.ts` — deterministic adapter around existing `simulateMatch()`.
 
 ### Persistence / Worker
+
 - Create `worker/data/PvPStore.ts` — storage boundary and atomic command types.
 - Create `worker/data/SupabasePvPStore.ts` — Supabase implementation.
 - Create `supabase/migrations/202608280004_async_pvp.sql` — append-only snapshots, ratings, matches, operation idempotency, RPCs, RLS/revokes.
@@ -51,6 +53,7 @@
 - Modify `worker/router.ts` and `worker/index.ts` to inject/register PvP routes.
 
 ### Browser
+
 - Modify `src/services/api/GameApiClient.ts` with browser-safe PvP methods.
 - Create `src/features/pvp/PvpScreen.tsx` and focused child presentation helpers if needed.
 - Modify existing match-screen flow to expose `通常試合 / 対人戦` without adding a sixth bottom tab.
@@ -58,6 +61,7 @@
 - Update E2E static adapter using public DTO fixtures only; never import Worker PvP store/simulation modules into browser code.
 
 ### Tests
+
 - Create `tests/unit/domain/pvp/elo.test.ts`.
 - Create `tests/unit/domain/pvp/season.test.ts`.
 - Create `tests/unit/worker/buildPvpSimulationState.test.ts`.
@@ -75,12 +79,14 @@
 ### Task 1: Pure Elo and JST season/day keys
 
 **Files:**
+
 - Create: `src/domain/pvp/elo.ts`
 - Create: `src/domain/pvp/season.ts`
 - Test: `tests/unit/domain/pvp/elo.test.ts`
 - Test: `tests/unit/domain/pvp/season.test.ts`
 
 **Interfaces:**
+
 - Produces `calculateEloUpdate({ challengerRating, defenderRating, challengerWon }): { challengerDelta, defenderDelta, challengerRating, defenderRating }`.
 - Produces `pvpSeasonId(date: Date): string` and `pvpJstDayKey(date: Date): string`.
 
@@ -100,11 +106,13 @@
 ### Task 2: Frozen PvP team snapshot model and namespaced simulation state
 
 **Files:**
+
 - Create: `worker/data/PvPStore.ts`
 - Create: `worker/pvp/buildPvpSimulationState.ts`
 - Test: `tests/unit/worker/buildPvpSimulationState.test.ts`
 
 **Interfaces:**
+
 - `PublishedPvpTeamSnapshot` contains only server-side frozen match inputs plus a `PvpOpponentSummary` public projection.
 - `buildPvpSimulationState({ challenger, defender }): { state, challengerSchoolId, defenderSchoolId, challengerSelection, defenderSelection }`.
 
@@ -118,12 +126,14 @@
 ### Task 3: Supabase PvP schema and atomic persistence boundary
 
 **Files:**
+
 - Create: `supabase/migrations/202608280004_async_pvp.sql`
 - Create: `worker/data/SupabasePvPStore.ts`
 - Test: `tests/unit/worker/pvpMigration.test.ts`
 - Test: `tests/unit/worker/supabasePvPStore.test.ts`
 
 **Interfaces:**
+
 - `PvPStore.publishSnapshot(...)` appends a new snapshot and deactivates prior active snapshot atomically.
 - `PvPStore.findChallengeOperation(userId, operationId)` returns an existing persisted response.
 - `PvPStore.commitRatedMatch(command)` atomically inserts match and locks/updates both rating rows.
@@ -139,6 +149,7 @@
 ### Task 4: Publish and public query Worker APIs
 
 **Files:**
+
 - Create: `worker/routes/pvpPublish.ts`
 - Create: `worker/routes/pvpOpponents.ts`
 - Create: `worker/routes/pvpRanking.ts`
@@ -149,6 +160,7 @@
 - Test: `tests/unit/worker/pvpQueries.test.ts`
 
 **Interfaces:**
+
 - `POST /api/pvp/team/publish {operationId,revision}`.
 - `GET /api/pvp/opponents?cursor=&limit=` max 30, self excluded.
 - `GET /api/pvp/ranking?cursor=&limit=` current Worker-derived JST season.
@@ -163,12 +175,14 @@
 ### Task 5: Server-authoritative rated challenge
 
 **Files:**
+
 - Create: `worker/pvp/simulatePvpMatch.ts`
 - Create: `worker/routes/pvpChallenge.ts`
 - Modify: `worker/router.ts`
 - Test: `tests/unit/worker/pvpChallenge.test.ts`
 
 **Interfaces:**
+
 - `POST /api/pvp/challenge { operationId, revision, opponentSnapshotId }`.
 - Server response contains sanitized match/result/rating presentation only, never opponent frozen Player internals.
 
@@ -183,11 +197,13 @@
 ### Task 6: Browser-safe PvP API client
 
 **Files:**
+
 - Create: `src/domain/pvp/pvpContracts.ts`
 - Modify: `src/services/api/GameApiClient.ts`
 - Test: `tests/unit/services/GameApiClient.pvp.test.ts`
 
 **Interfaces:**
+
 - `publishPvpTeam(accessToken, request, signal?)`
 - `getPvpOpponents(accessToken, query?, signal?)`
 - `challengePvpTeam(accessToken, request, signal?)`
@@ -203,6 +219,7 @@
 ### Task 7: Match-area PvP UI and GameApp flow
 
 **Files:**
+
 - Create: `src/features/pvp/PvpScreen.tsx`
 - Modify: existing match hub/screen component used by `GameApp`.
 - Modify: `src/app/GameApp.tsx`
@@ -211,6 +228,7 @@
 - Test: `tests/unit/app/GameApp.pvp.test.tsx`
 
 **Interfaces:**
+
 - Match area exposes `通常試合` and `対人戦` modes while bottom nav remains five tabs.
 - PvP screen sections: status/publish, opponents, result, ranking, history.
 
@@ -225,6 +243,7 @@
 ### Task 8: Mobile E2E, long-run rating safeguards, and documentation
 
 **Files:**
+
 - Extend: existing Playwright mobile spec(s).
 - Create/extend: PvP long-run/domain tests if needed.
 - Modify: `README.md` migration/feature documentation.
