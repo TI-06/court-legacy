@@ -28,20 +28,6 @@ for (const [label, command, arguments_] of commands) {
     if (result.stderr) {
       console.error(result.stderr.trim());
     }
-    if (label === "Formatting") {
-      const target = "tests/unit/worker/scouting/serverScoutingBoard.test.ts";
-      spawnSync("npx", ["prettier", target, "--write"], {
-        encoding: "utf8",
-        shell: process.platform === "win32",
-      });
-      const diff = spawnSync("git", ["diff", "--", target], {
-        encoding: "utf8",
-        shell: process.platform === "win32",
-      });
-      if (diff.stdout) {
-        console.error("\n[PRETTIER DIFF]\n" + diff.stdout.trim());
-      }
-    }
     process.exit(result.status ?? 1);
   }
 
