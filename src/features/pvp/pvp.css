@@ -22,7 +22,11 @@
   display: grid;
   color: #f7fbfc;
   background:
-    radial-gradient(circle at top right, rgb(219 164 54 / 28%), transparent 34%),
+    radial-gradient(
+      circle at top right,
+      rgb(219 164 54 / 28%),
+      transparent 34%
+    ),
     linear-gradient(145deg, #173b52, #102b3c);
   border-color: rgb(255 255 255 / 8%);
   gap: 14px;

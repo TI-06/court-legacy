@@ -500,7 +500,11 @@
   padding: 15px;
   color: #f7fbfc;
   background:
-    radial-gradient(circle at top right, rgb(220 160 44 / 22%), transparent 38%),
+    radial-gradient(
+      circle at top right,
+      rgb(220 160 44 / 22%),
+      transparent 38%
+    ),
     linear-gradient(145deg, #173b52, #102b3c);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 18px;

@@ -6,7 +6,10 @@ interface MatchPvpEntryProps {
 
 export function MatchPvpEntry({ onOpen }: MatchPvpEntryProps) {
   return (
-    <section className="match-pvp-entry" aria-labelledby="match-pvp-entry-heading">
+    <section
+      className="match-pvp-entry"
+      aria-labelledby="match-pvp-entry-heading"
+    >
       <div className="match-pvp-entry__copy">
         <p className="section-kicker">ONLINE ARENA</p>
         <h2 id="match-pvp-entry-heading">対人戦</h2>

@@ -121,8 +121,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
   const [pvpLoading, setPvpLoading] = useState(false);
   const [pvpPublishing, setPvpPublishing] = useState(false);
-  const [pvpChallengingSnapshotId, setPvpChallengingSnapshotId] =
-    useState<string | null>(null);
+  const [pvpChallengingSnapshotId, setPvpChallengingSnapshotId] = useState<
+    string | null
+  >(null);
   const [pvpError, setPvpError] = useState<string | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
@@ -360,9 +361,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setPvpRanking(rankingResponse.ranking);
       setPvpHistory(historyResponse.history);
     } catch (error) {
-      setPvpError(
-        pvpErrorMessage(error, "対人戦データを読み込めませんでした"),
-      );
+      setPvpError(pvpErrorMessage(error, "対人戦データを読み込めませんでした"));
     } finally {
       setPvpLoading(false);
     }
@@ -382,9 +381,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         latest.game,
         "最新のゲーム状態を読み込みました",
       );
-      setPvpError(
-        "最新のゲーム状態を読み込みました。もう一度お試しください",
-      );
+      setPvpError("最新のゲーム状態を読み込みました。もう一度お試しください");
       return true;
     } catch (error) {
       setPvpError(

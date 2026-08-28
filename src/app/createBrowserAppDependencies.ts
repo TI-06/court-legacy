@@ -6,6 +6,15 @@ import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
 import type { GameState } from "../domain/model/GameState";
 import { playerId } from "../domain/model/identifiers";
+import type {
+  PvpChallengeRequest,
+  PvpHistoryEntry,
+  PvpListRequestQuery,
+  PvpOpponentSummary,
+  PvpPublishedTeamSummary,
+  PvpPublishRequest,
+  PvpRankingEntry,
+} from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
@@ -139,6 +148,52 @@ function createHarnessScoutReports(cycleKey: string): ScoutReport[] {
   ];
 }
 
+const HARNESS_PVP_SEASON_ID = "2026-08";
+
+function createHarnessPvpOpponents(): PvpOpponentSummary[] {
+  return [
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000201",
+      schoolName: "白波高校",
+      schoolShortName: "白波",
+      reputationRank: "A",
+      teamPower: 76,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T07:05:00.000Z",
+      rating: 1048,
+      wins: 12,
+      losses: 7,
+      currentWinStreak: 3,
+    },
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000202",
+      schoolName: "東雲工業",
+      schoolShortName: "東雲",
+      reputationRank: "B",
+      teamPower: 72,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T06:40:00.000Z",
+      rating: 1019,
+      wins: 9,
+      losses: 8,
+      currentWinStreak: 1,
+    },
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000203",
+      schoolName: "海星学院",
+      schoolShortName: "海星",
+      reputationRank: "C",
+      teamPower: 68,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T06:10:00.000Z",
+      rating: 982,
+      wins: 7,
+      losses: 10,
+      currentWinStreak: 0,
+    },
+  ];
+}
+
 function readSessionStorage(key: string): string | null {
   try {
     return globalThis.sessionStorage?.getItem(key) ?? null;
@@ -181,6 +236,9 @@ class StaticGameApiClient implements GameApiClient {
     PersistedOperationResponse
   >();
   private readonly scoutingReports = new Map<string, ScoutReport[]>();
+  private readonly pvpOpponents = createHarnessPvpOpponents();
+  private pvpRating = 1000;
+  private pvpHistory: PvpHistoryEntry[] = [];
 
   constructor(private readonly persistAcrossReloads: boolean) {
     const explicitGameState = persistAcrossReloads
@@ -373,6 +431,150 @@ class StaticGameApiClient implements GameApiClient {
         committedCandidateIds,
         cycleKey,
       },
+    };
+  }
+
+  private async pvpDelay(): Promise<void> {
+    if (!this.persistAcrossReloads) return;
+    const delay = readHarnessDelay();
+    if (delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  async publishPvpTeam(_accessToken: string, request: PvpPublishRequest) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+    await this.pvpDelay();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const team: PvpPublishedTeamSummary = {
+      snapshotId: "00000000-0000-4000-8000-000000000101",
+      schoolName: school.name,
+      schoolShortName: school.shortName,
+      reputationRank: "B",
+      teamPower: 71,
+      academicYear: snapshot.state.calendar.academicYear,
+      publishedAt: new Date().toISOString(),
+    };
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      team,
+    };
+  }
+
+  async getPvpOpponents(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      opponents: this.pvpOpponents.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async getPvpRanking(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    const ranking: PvpRankingEntry[] = this.pvpOpponents.map(
+      (opponent, index) => ({
+        rank: index + 1,
+        snapshotId: opponent.snapshotId,
+        schoolName: opponent.schoolName,
+        schoolShortName: opponent.schoolShortName,
+        rating: opponent.rating,
+        matches: opponent.wins + opponent.losses,
+        wins: opponent.wins,
+        losses: opponent.losses,
+        currentWinStreak: opponent.currentWinStreak,
+      }),
+    );
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      ranking: ranking.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async getPvpHistory(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      history: this.pvpHistory.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async challengePvpTeam(_accessToken: string, request: PvpChallengeRequest) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+    const opponent = this.pvpOpponents.find(
+      (candidate) => candidate.snapshotId === request.opponentSnapshotId,
+    );
+    if (!opponent) {
+      throw new ApiError(
+        404,
+        "pvp_opponent_unavailable",
+        "対戦相手が見つかりません",
+      );
+    }
+    await this.pvpDelay();
+
+    const before = this.pvpRating;
+    const after = before + 16;
+    this.pvpRating = after;
+    const matchId = `00000000-0000-4000-8000-${String(
+      this.pvpHistory.length + 301,
+    ).padStart(12, "0")}`;
+    const createdAt = new Date().toISOString();
+    const result = {
+      outcome: "win" as const,
+      challengerSetsWon: 2,
+      defenderSetsWon: 1,
+      sets: [
+        { setNumber: 1, challengerScore: 25, defenderScore: 20 },
+        { setNumber: 2, challengerScore: 22, defenderScore: 25 },
+        { setNumber: 3, challengerScore: 25, defenderScore: 18 },
+      ],
+    };
+    const history: PvpHistoryEntry = {
+      matchId,
+      createdAt,
+      opponentSnapshotId: opponent.snapshotId,
+      opponentSchoolName: opponent.schoolName,
+      outcome: result.outcome,
+      ratingBefore: before,
+      ratingAfter: after,
+      result,
+    };
+    this.pvpHistory = [history, ...this.pvpHistory];
+
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      seasonId: HARNESS_PVP_SEASON_ID,
+      matchId,
+      opponent: {
+        snapshotId: opponent.snapshotId,
+        schoolName: opponent.schoolName,
+        schoolShortName: opponent.schoolShortName,
+      },
+      rating: { before, after, delta: after - before },
+      result,
+      createdAt,
     };
   }
 }

@@ -72,7 +72,9 @@ function OpponentCard({
         <b>RATING {opponent.rating}</b>
       </div>
       <div className="pvp-opponent-card__record">
-        <span>{opponent.wins}勝 {opponent.losses}敗</span>
+        <span>
+          {opponent.wins}勝 {opponent.losses}敗
+        </span>
         <span>連勝 {opponent.currentWinStreak}</span>
         <span>{formatPublishedAt(opponent.publishedAt)} 更新</span>
       </div>
@@ -123,19 +125,28 @@ export function PvpScreen({
           <button onClick={onReturnPractice} type="button">
             通常試合へ
           </button>
-          <button disabled={loading || operationPending} onClick={onRefresh} type="button">
+          <button
+            disabled={loading || operationPending}
+            onClick={onRefresh}
+            type="button"
+          >
             更新
           </button>
         </div>
       </section>
 
-      <section className="pvp-publish-card" aria-labelledby="pvp-publish-heading">
+      <section
+        className="pvp-publish-card"
+        aria-labelledby="pvp-publish-heading"
+      >
         <div className="pvp-section-heading">
           <div>
             <p className="section-kicker">MY TEAM</p>
             <h3 id="pvp-publish-heading">公開チーム</h3>
           </div>
-          <span className={publishedTeam ? "pvp-status-live" : "pvp-status-off"}>
+          <span
+            className={publishedTeam ? "pvp-status-live" : "pvp-status-off"}
+          >
             {publishedTeam ? "公開中" : "未公開"}
           </span>
         </div>
@@ -206,14 +217,17 @@ export function PvpScreen({
           <div className="pvp-result-card__headline">
             <div>
               <p className="section-kicker">RATED RESULT</p>
-              <h3 id="pvp-result-heading">{outcomeLabel(result.result.outcome)}</h3>
+              <h3 id="pvp-result-heading">
+                {outcomeLabel(result.result.outcome)}
+              </h3>
             </div>
             <strong>{signedRatingDelta(result.rating.delta)}</strong>
           </div>
           <div className="pvp-result-card__score">
             <span>自校</span>
             <b>
-              {result.result.challengerSetsWon} - {result.result.defenderSetsWon}
+              {result.result.challengerSetsWon} -{" "}
+              {result.result.defenderSetsWon}
             </b>
             <span>{result.opponent.schoolShortName}</span>
           </div>
@@ -239,7 +253,9 @@ export function PvpScreen({
             <p className="section-kicker">CHALLENGERS</p>
             <h3 id="pvp-opponents-heading">対戦相手</h3>
           </div>
-          {seasonId ? <span className="pvp-season-chip">SEASON {seasonId}</span> : null}
+          {seasonId ? (
+            <span className="pvp-season-chip">SEASON {seasonId}</span>
+          ) : null}
         </div>
         {opponents.length > 0 ? (
           <div className="pvp-opponent-list">
@@ -254,7 +270,9 @@ export function PvpScreen({
             ))}
           </div>
         ) : !loading ? (
-          <p className="pvp-empty-state">現在対戦できる公開チームはありません。</p>
+          <p className="pvp-empty-state">
+            現在対戦できる公開チームはありません。
+          </p>
         ) : null}
       </section>
 
@@ -272,14 +290,18 @@ export function PvpScreen({
                 <strong>{entry.rank}位</strong>
                 <div>
                   <b>{entry.schoolName}</b>
-                  <span>{entry.wins}勝 / {entry.losses}敗</span>
+                  <span>
+                    {entry.wins}勝 / {entry.losses}敗
+                  </span>
                 </div>
                 <em>{entry.rating}</em>
               </article>
             ))}
           </div>
         ) : !loading ? (
-          <p className="pvp-empty-state">今シーズンのランキングはまだありません。</p>
+          <p className="pvp-empty-state">
+            今シーズンのランキングはまだありません。
+          </p>
         ) : null}
       </section>
 
@@ -302,10 +324,13 @@ export function PvpScreen({
                 <div>
                   <strong>{entry.opponentSchoolName}</strong>
                   <span>
-                    {entry.result.challengerSetsWon} - {entry.result.defenderSetsWon}
+                    {entry.result.challengerSetsWon} -{" "}
+                    {entry.result.defenderSetsWon}
                   </span>
                 </div>
-                <b>{signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}</b>
+                <b>
+                  {signedRatingDelta(entry.ratingAfter - entry.ratingBefore)}
+                </b>
               </article>
             ))}
           </div>

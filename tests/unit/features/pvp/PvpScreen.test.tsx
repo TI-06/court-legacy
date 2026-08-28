@@ -81,7 +81,9 @@ const result: PvpChallengeResponse = {
   createdAt: history.createdAt,
 };
 
-function renderScreen(overrides: Partial<ComponentProps<typeof PvpScreen>> = {}) {
+function renderScreen(
+  overrides: Partial<ComponentProps<typeof PvpScreen>> = {},
+) {
   const props: ComponentProps<typeof PvpScreen> = {
     publishedTeam,
     seasonId: "2026-08",
