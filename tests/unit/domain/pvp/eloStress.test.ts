@@ -72,7 +72,7 @@ describe("PvP Elo long-run safeguards", () => {
       }
     }
 
-    expect(appliedOperations).toHaveLength(uniqueMatchCount);
+    expect(appliedOperations.size).toBe(uniqueMatchCount);
     expect(appliedCount).toBe(uniqueMatchCount);
     expect(teams.reduce((sum, team) => sum + team.matches, 0)).toBe(
       uniqueMatchCount * 2,
