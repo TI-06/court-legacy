@@ -12,11 +12,7 @@ export interface ShopPurchaseHandlerDependencies {
 }
 
 function invalidPurchase(): Response {
-  return jsonError(
-    400,
-    "invalid_shop_purchase",
-    "購入内容を確認してください",
-  );
+  return jsonError(400, "invalid_shop_purchase", "購入内容を確認してください");
 }
 
 function conflictMessage(code: ShopMutationErrorCode): string {
@@ -37,11 +33,7 @@ function conflictMessage(code: ShopMutationErrorCode): string {
 }
 
 function requestFingerprint(revision: number, itemId: string): string {
-  return JSON.stringify({
-    operationType: "purchase",
-    revision,
-    itemId,
-  });
+  return JSON.stringify({ operationType: "purchase", revision, itemId });
 }
 
 export function createShopPurchaseHandler(
