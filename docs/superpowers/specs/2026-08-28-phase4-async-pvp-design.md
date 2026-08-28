@@ -44,8 +44,8 @@ Phase 4 MVPでは以下を実装しない。
 
 対戦時は以下の2つを使用する。
 
-- Challenger: 対戦開始時点のサーバー権威 `game_saves` から取得した現在チーム
-- Defender: 相手が最後に公開した `pvp_team_snapshots` の凍結チーム
+- Challenger: 対戦開始時点のサーバー権威 `game_saves` から生成したPvP用Snapshot
+- Defender: 相手が最後に公開した `pvp_team_snapshots` のactive Snapshot
 
 Defenderの通常セーブを直接読み込まない。
 
@@ -112,7 +112,39 @@ SupabaseのPvPテーブルはブラウザから直接read/writeさせない。RL
 
 公開APIで返すのはsummaryのみ。
 
-### 5.2 公開summary
+### 5.2 Snapshotはappend-only
+
+過去試合が参照したDefenderデータを後から書き換えないため、公開更新時に既存Snapshotを上書きしない。
+
+- 旧active Snapshotを `is_active=false` にする
+- 新しいSnapshot行をinsertする
+- 1ユーザーにつきactive Snapshotは最大1件
+- 過去 `pvp_matches.defender_snapshot_id` は非active化後も同じimmutable Snapshotを参照できる
+
+DBでは `user_id` を単純uniqueにせず、`is_active=true` の行だけを対象とするpartial unique indexを使う。
+
+### 5.3 PvP用の一時状態正規化
+
+非同期PvPでは公開した瞬間の疲労・コンディションを永続的な有利不利にしない。
+
+Challenger/Defender双方のPvP Snapshot生成時に、試合用の一時状態を以下へ正規化する。
+
+- `condition = 100`
+- `fatigue = 0`
+- injuryはPvP試合では無効化
+
+保持するもの:
+
+- abilities
+- position aptitudes
+- growth済みの現在能力
+- TeamSelection
+- tactics
+- 試合計算に必要な施設/学校状態
+
+これにより「育成したチームの純粋な戦力」を比較し、公開タイミングで体調だけ厳選する行為の影響をなくす。
+
+### 5.4 公開summary
 
 相手一覧・ランキングに返してよい情報:
 
@@ -233,8 +265,9 @@ Defenderはオフラインでもratingが変動する。
 
 ### 必須
 
-- `operationId` はchallenger user単位でunique
-- 同じoperationIdは同じ試合responseを返す
+- `operationId` はuser単位でunique
+- 同じoperationIdは同じ保存済みresponseを返す
+- 別kindのAPIで同じoperationIdを再利用した場合は409 `pvp_operation_conflict`
 - self match禁止
 - 存在しないsnapshot禁止
 - 非公開/無効snapshot禁止
@@ -250,19 +283,25 @@ MVPでは同じdefenderへのrated challengeをJST 1日3回までとする。
 
 4回目以降は409 `pvp_daily_opponent_limit` とし、Phase 4 MVPではunrated rematchは実装しない。
 
-この制限もDB側のmatch履歴からサーバー判定する。
+この上限はrouteで先行確認してもよいが、最終判定は必ずDB transaction/RPC内で行う。並行リクエストで4試合以上がratedになる競合を許可しない。
+
+### 並行rating更新
+
+複数ユーザーが同じDefenderへ同時挑戦してもratingを失わないよう、DB RPCはChallenger/Defender双方の `pvp_ratings` 行を `FOR UPDATE` 相当でロックする。
+
+デッドロック回避のため、2ユーザーのrating rowはuser idのstable orderでロックする。
 
 ## 10. DB設計
 
 ### 10.1 `pvp_team_snapshots`
 
-1ユーザーにつきactive snapshotは1件。
+Snapshotはappend-only。1ユーザーにつきactive行は最大1件。
 
 主要列:
 
 ```text
 id uuid pk
-user_id uuid unique not null
+user_id uuid not null
 source_revision bigint not null
 source_academic_year integer not null
 source_year_index integer not null
@@ -273,7 +312,14 @@ team_power integer not null
 snapshot jsonb not null
 is_active boolean not null default true
 published_at timestamptz not null
-updated_at timestamptz not null
+created_at timestamptz not null
+```
+
+必要index:
+
+```text
+unique active snapshot per user
+index on (is_active, published_at)
 ```
 
 `snapshot` はservice roleのみ読み書き可能。
@@ -317,13 +363,48 @@ unique (challenger_user_id, operation_id)
 
 `result` は試合履歴再表示に必要なサーバー確定結果を保持する。
 
+Defender Snapshotはappend-onlyなので、過去matchから当時の相手編成を参照できる。
+
+### 10.4 `pvp_operations`
+
+publish/challengeのidempotencyを共通管理する。
+
+```text
+user_id uuid not null
+operation_id text not null
+kind text not null
+response jsonb not null
+created_at timestamptz not null
+primary key (user_id, operation_id)
+```
+
+同じ `(user_id, operation_id)` に異なるkindが来た場合はconflictとする。
+
+challenge成功時のoperation保存はmatch/rating更新と同じtransactionで行う。
+
+### 10.5 原子的challenge RPC
+
+challenge確定RPCは最低限以下を1transactionで行う。
+
+1. duplicate `pvp_operations` 確認
+2. daily same-opponent count再確認
+3. season rating rowsをcreate if missing
+4. rating rowsをstable orderでlock
+5. Worker計算済みmatch resultと期待rating-beforeを検証
+6. 双方rating更新
+7. `pvp_matches` insert
+8. `pvp_operations` insert
+9. canonical response return
+
+Workerが事前計算したrating-beforeとDB現在値がズレている場合はRPCがconflictを返し、Workerは最新ratingで試合結果のrating部分だけを再計算して再試行できる設計にする。試合の勝敗自体は保存済みmatch seed/resultを維持する。
+
 ## 11. Store境界
 
 新規 `PvPStore` interfaceを導入し、routeからSupabase実装を直接触らない。
 
 責務:
 
-- publish/upsert team snapshot
+- publish append-only team snapshot
 - get active snapshot
 - list opponent summaries
 - get/create current season rating
@@ -356,8 +437,9 @@ Behavior:
 
 - auth required
 - stale revision => 409
-- authoritative snapshotからPvP snapshotを作成
--同revision / 同operationはidempotent
+- authoritative snapshotからPvP Snapshotを生成
+- 旧active Snapshotをinactive化して新Snapshotをinsert
+- 同operationは保存済みresponseを返す
 - public summaryを返す
 
 ### `GET /api/pvp/opponents`
@@ -392,19 +474,21 @@ Request:
 Behavior:
 
 1. duplicate operation確認
-2. challenger snapshot/revision確認
-3. defender active snapshot取得
-4. self match拒否
-5. daily same-opponent limit確認
-6. namespaced simulation state生成
-7. `simulateMatch()` 実行
-8. Elo計算
-9. match + ratingsをatomic保存
-10. sanitized resultを返す
+2. challenger game snapshot/revision確認
+3. Challenger PvP Snapshotを現在stateからメモリ上で生成
+4. defender active Snapshot取得
+5. self match拒否
+6. daily same-opponent limit先行確認
+7. namespaced simulation state生成
+8. `simulateMatch()` 実行
+9. Elo計算
+10. DB RPC内でdaily limit/rating rowを再検証し、match + ratings + operationをatomic保存
+11. sanitized resultを返す
 
 ### `GET /api/pvp/ranking`
 
 - current JST seasonのみ
+- active public Snapshotを持つユーザーのみ
 - rating desc
 - tie-break: wins desc -> matches asc -> user id stable order
 - pagination
@@ -498,6 +582,7 @@ E2E用Opponent fixtureは公開summaryと安全なテスト用試合adapterに�
 - `pvp_daily_opponent_limit`
 - `pvp_revision_conflict`
 - `pvp_match_conflict`
+- `pvp_operation_conflict`
 - `pvp_persist_failed`
 
 revision conflict時はPhase 3と同様にlatest authoritative game snapshotを再取得し、画面を復旧可能にする。
@@ -511,6 +596,7 @@ revision conflict時はPhase 3と同様にlatest authoritative game snapshotを�
 - Elo expected/delta
 - rating floor
 - win/loss streak
+- PvP transient state normalization
 - ID namespace remap
 - merged PvP simulation stateにID collisionがない
 - `simulateMatch()`が両チームで正常実行できる
@@ -521,11 +607,15 @@ revision conflict時はPhase 3と同様にlatest authoritative game snapshotを�
 - publish accepts only authoritative game state
 - forged fields rejected
 - stale revision rejected
+- publish creates new immutable Snapshot and deactivates old
 - self match rejected
-- unknown snapshot rejected
+- unknown/inactive snapshot rejected
 - duplicate operation idempotent
+- same operation different kind rejected
 - same opponent daily cap
-- match + both ratings atomic result
+- concurrent daily-cap attempts cannot exceed 3 rated matches
+- concurrent defender challenges do not lose rating updates
+- match + both ratings + operation atomic result
 - browser input cannot choose rating delta/result/seed
 - history only returns own matches
 
@@ -533,7 +623,9 @@ revision conflict時はPhase 3と同様にlatest authoritative game snapshotを�
 
 - migration contains RLS/revoke
 - browser roles cannot access raw PvP snapshot
+- append-only Snapshot + partial active unique index
 - atomic RPC conflict handling
+- rating row locking contract
 - unique operation constraint
 
 ### UI tests
@@ -573,9 +665,9 @@ revision conflict時はPhase 3と同様にlatest authoritative game snapshotを�
 ## 17. 実装順序
 
 1. Rating domain model / Elo tests
-2. PvP snapshot model + namespaced simulation builder
+2. PvP Snapshot model・transient normalization・namespaced simulation builder
 3. `PvPStore` interface
-4. Supabase migration + atomic match RPC
+4. Supabase migration + append-only Snapshot + atomic match RPC
 5. `SupabasePvPStore`
 6. publish route
 7. opponent list route
