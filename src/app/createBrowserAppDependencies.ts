@@ -2,14 +2,11 @@ import type {
   CloudGameSnapshot,
   PersistedOperationResponse,
 } from "../../worker/data/GameStore";
-import type { ScoutingCandidatePool } from "../../worker/data/ScoutingStore";
 import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
-import {
-  buildServerScoutReports,
-  generateServerScoutingCandidates,
-  scoutingCycleKey,
-} from "../../worker/scouting/serverScoutingBoard";
+import type { GameState } from "../domain/model/GameState";
+import { playerId } from "../domain/model/identifiers";
+import type { ScoutReport } from "../domain/scouting/scoutReport";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
 import {
@@ -55,6 +52,93 @@ function createHarnessSnapshot(): CloudGameSnapshot {
   };
 }
 
+function harnessScoutingCycleKey(state: GameState): string {
+  return `${state.userSchoolId}:year-${state.yearIndex}`;
+}
+
+function createHarnessScoutReports(cycleKey: string): ScoutReport[] {
+  return [
+    {
+      candidateId: playerId(`${cycleKey}:candidate-1`),
+      displayName: "青木 蓮",
+      heightCm: 188,
+      position: "OH",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-selection",
+      evaluationStars: 4,
+      estimatedOverall: { min: 58, max: 72 },
+      estimatedPotential: { min: 72, max: 89 },
+      confidence: "medium",
+      comments: ["攻撃力に目を引くものがある", "高さは武器になりそう"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-2`),
+      displayName: "佐藤 湊",
+      heightCm: 193,
+      position: "MB",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-best-eight",
+      evaluationStars: 3,
+      estimatedOverall: { min: 52, max: 67 },
+      estimatedPotential: { min: 66, max: 84 },
+      confidence: "medium",
+      comments: ["ブロックの伸びしろがある", "高さを生かした成長に期待"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-3`),
+      displayName: "高橋 悠真",
+      heightCm: 181,
+      position: "S",
+      handedness: "right",
+      middleSchoolAchievement: "regional-starter",
+      evaluationStars: 3,
+      estimatedOverall: { min: 50, max: 65 },
+      estimatedPotential: { min: 65, max: 82 },
+      confidence: "high",
+      comments: ["トスワークが安定している", "ゲームメイクに落ち着きがある"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-4`),
+      displayName: "森田 颯太",
+      heightCm: 187,
+      position: "OP",
+      handedness: "left",
+      middleSchoolAchievement: "unknown",
+      evaluationStars: 2,
+      estimatedOverall: { min: 45, max: 63 },
+      estimatedPotential: { min: 61, max: 81 },
+      confidence: "low",
+      comments: ["左利きの攻撃に特徴がある", "情報が少なく継続調査が必要"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-5`),
+      displayName: "小林 陽斗",
+      heightCm: 174,
+      position: "L",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-selection",
+      evaluationStars: 4,
+      estimatedOverall: { min: 57, max: 70 },
+      estimatedPotential: { min: 68, max: 83 },
+      confidence: "high",
+      comments: ["レシーブ範囲が広い", "守備の判断が早い"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-6`),
+      displayName: "伊藤 大和",
+      heightCm: 190,
+      position: "OH",
+      handedness: "right",
+      middleSchoolAchievement: "national-event",
+      evaluationStars: 5,
+      estimatedOverall: { min: 64, max: 76 },
+      estimatedPotential: { min: 78, max: 92 },
+      confidence: "medium",
+      comments: ["全国レベルの経験がある", "攻守ともに高い水準が見込める"],
+    },
+  ];
+}
+
 function readSessionStorage(key: string): string | null {
   try {
     return globalThis.sessionStorage?.getItem(key) ?? null;
@@ -96,7 +180,7 @@ class StaticGameApiClient implements GameApiClient {
     string,
     PersistedOperationResponse
   >();
-  private readonly scoutingPools = new Map<string, ScoutingCandidatePool>();
+  private readonly scoutingReports = new Map<string, ScoutReport[]>();
 
   constructor(private readonly persistAcrossReloads: boolean) {
     const explicitGameState = persistAcrossReloads
@@ -210,23 +294,18 @@ class StaticGameApiClient implements GameApiClient {
       );
     }
 
-    const cycleKey = scoutingCycleKey(snapshot.state);
-    let pool = this.scoutingPools.get(cycleKey);
-    if (!pool) {
-      pool = {
-        userId: snapshot.userId,
-        cycleKey,
-        creationOperationId: request.operationId,
-        candidates: generateServerScoutingCandidates(snapshot.state),
-      };
-      this.scoutingPools.set(cycleKey, pool);
+    const cycleKey = harnessScoutingCycleKey(snapshot.state);
+    let reports = this.scoutingReports.get(cycleKey);
+    if (!reports) {
+      reports = createHarnessScoutReports(cycleKey);
+      this.scoutingReports.set(cycleKey, reports);
     }
 
     return {
       operationId: request.operationId,
       revision: snapshot.revision,
       cycleKey,
-      reports: buildServerScoutReports(snapshot.state, pool),
+      reports,
     };
   }
 
@@ -243,18 +322,16 @@ class StaticGameApiClient implements GameApiClient {
       );
     }
 
-    const cycleKey = scoutingCycleKey(snapshot.state);
-    const pool = this.scoutingPools.get(cycleKey);
-    if (!pool) {
+    const cycleKey = harnessScoutingCycleKey(snapshot.state);
+    const reports = this.scoutingReports.get(cycleKey);
+    if (!reports) {
       throw new ApiError(
         409,
         "scouting_board_required",
         "先にスカウト候補を確認してください",
       );
     }
-    if (
-      !pool.candidates.some((entry) => entry.player.id === request.candidateId)
-    ) {
+    if (!reports.some((report) => report.candidateId === request.candidateId)) {
       throw new ApiError(
         409,
         "candidate_unavailable",
