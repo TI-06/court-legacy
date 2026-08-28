@@ -8,7 +8,10 @@ describe("createBrowserAppDependencies E2E harness", () => {
 
   it("does not import server-only scouting truth into the browser adapter", () => {
     const source = readFileSync(
-      new URL("../../../src/app/createBrowserAppDependencies.ts", import.meta.url),
+      new URL(
+        "../../../src/app/createBrowserAppDependencies.ts",
+        import.meta.url,
+      ),
       "utf8",
     );
 
