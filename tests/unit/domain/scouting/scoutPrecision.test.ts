@@ -38,9 +38,9 @@ describe("shop scouting precision", () => {
     const serialized = JSON.stringify(report);
 
     expect(report.confidence).toBe("high");
-    expect(report.estimatedOverall.max - report.estimatedOverall.min).toBeLessThan(
-      18,
-    );
+    expect(
+      report.estimatedOverall.max - report.estimatedOverall.min,
+    ).toBeLessThan(18);
     expect(
       report.estimatedPotential.max - report.estimatedPotential.min,
     ).toBeLessThan(24);
@@ -61,9 +61,9 @@ describe("shop scouting precision", () => {
       random: new SeededRandom("appraised-report"),
     });
 
-    expect(report.estimatedPotential.max - report.estimatedPotential.min).toBeLessThanOrEqual(
-      4,
-    );
+    expect(
+      report.estimatedPotential.max - report.estimatedPotential.min,
+    ).toBeLessThanOrEqual(4);
     expect(report.estimatedPotential.min).toBeGreaterThanOrEqual(0);
     expect(report.estimatedPotential.max).toBeLessThanOrEqual(100);
   });
