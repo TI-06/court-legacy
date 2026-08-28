@@ -1,0 +1,24 @@
+name: Phase4 format diff
+
+on:
+  push:
+    branches: ["feature/court-legacy-v2-phase4-async-pvp"]
+
+permissions:
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Print Prettier diff
+        run: |
+          npx prettier docs/superpowers/plans/2026-08-28-phase4-async-pvp.md tests/unit/domain/pvp/season.test.ts --write
+          git diff -- docs/superpowers/plans/2026-08-28-phase4-async-pvp.md tests/unit/domain/pvp/season.test.ts
+          exit 1
