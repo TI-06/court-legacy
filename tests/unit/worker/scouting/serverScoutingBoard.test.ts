@@ -9,9 +9,7 @@ import {
   selectRecruitTier,
   type RecruitTier,
 } from "../../../../src/domain/scouting/recruitmentTierProbability";
-import type {
-  MiddleSchoolAchievement,
-} from "../../../../src/domain/scouting/scoutReport";
+import type { MiddleSchoolAchievement } from "../../../../src/domain/scouting/scoutReport";
 import type {
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
