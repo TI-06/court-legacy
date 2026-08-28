@@ -21,6 +21,19 @@ const recruitingStateSchema = z.object({
   committedCandidateIds: z.array(z.string().min(1)),
 });
 
+const shopGameEffectsSchema = z
+  .object({
+    nextTrainingGrowthBoost: z
+      .object({
+        percent: z.literal(20),
+        remainingUses: z.literal(1),
+        sourceItemId: z.literal("training-efficiency-boost"),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
 const gameStateSchema = z
   .object({
     schemaVersion: z.number().int().nonnegative(),
@@ -40,6 +53,7 @@ const gameStateSchema = z
     settings: gameSettingsSchema,
     world: objectSchema,
     recruiting: recruitingStateSchema.optional(),
+    shopEffects: shopGameEffectsSchema.optional(),
   })
   .passthrough();
 
