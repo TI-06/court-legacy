@@ -1,0 +1,52 @@
+name: Phase 6 Task 1 Finish
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  finish-task1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Fix test fixture typing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/unit/domain/tournament/createOfficialSeason.test.ts')
+          text = path.read_text()
+          old = '''        abilities: Object.fromEntries(\n          Object.keys(player.abilities).map((key) => [key, 1]),\n        ) as typeof player.abilities,'''
+          new = '''        abilities: {\n          spike: 1,\n          jump: 1,\n          receive: 1,\n          serve: 1,\n          set: 1,\n          block: 1,\n          speed: 1,\n          stamina: 1,\n          decision: 1,\n          mental: 1,\n        },'''
+          if old not in text:
+              raise SystemExit('expected fixture block not found')
+          path.write_text(text.replace(old, new))
+          PY
+      - name: Format Task 1 files
+        run: >-
+          npx prettier
+          tests/unit/domain/tournament/createOfficialSeason.test.ts
+          src/domain/tournament/tournamentTypes.ts
+          src/domain/tournament/tournamentSchedule.ts
+          src/domain/tournament/createOfficialSeason.ts
+          --write
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/domain/tournament/createOfficialSeason.test.ts src/domain/tournament
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: finalize Phase 6 Task 1 files"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
