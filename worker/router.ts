@@ -149,7 +149,11 @@ export function createRouter(
       if (url.pathname === "/api/game/action" && request.method === "POST") {
         return await gameAction(request, user);
       }
-      if (url.pathname === "/api/shop" && request.method === "GET" && shopStatus) {
+      if (
+        url.pathname === "/api/shop" &&
+        request.method === "GET" &&
+        shopStatus
+      ) {
         return await shopStatus(request, user);
       }
       if (
