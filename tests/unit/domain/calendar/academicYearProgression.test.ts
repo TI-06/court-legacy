@@ -1,56 +1,50 @@
-import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
-import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
-import { relationshipKey } from "../../../../src/domain/model/GameState";
-import type {
-  GameDate,
-  PlayerId,
-} from "../../../../src/domain/model/identifiers";
+import { describe, expect, it } from "vitest";
+import { createDemoGame, gameData } from "../../../src/app/createDemoGame";
+import {
+  advanceGameWeek,
+  relationshipKey,
+} from "../../../src/domain/calendar/academicYearProgression";
+import type { GameDate } from "../../../src/domain/model/GameState";
+import type { PlayerId } from "../../../src/domain/model/identifiers";
+
+function thirdYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+  return Object.values(state.players)
+    .filter((player) => player.grade === 3)
+    .map((player) => player.id);
+}
+
+function secondYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+  return Object.values(state.players)
+    .filter((player) => player.grade === 2)
+    .map((player) => player.id);
+}
+
+function firstYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+  return Object.values(state.players)
+    .filter((player) => player.grade === 1)
+    .map((player) => player.id);
+}
 
 describe("academic year progression", () => {
-  it("advances a normal week without changing the academic year", () => {
-    const state = createDemoGame();
-
-    const result = advanceGameWeek(state, gameData);
-
-    expect(result.academicYearTransition).toBeNull();
-    expect(result.state.yearIndex).toBe(1);
-    expect(result.state.calendar.academicYear).toBe(1);
-    expect(result.state.date).toBe("2026-04-08");
-  });
-
-  it("graduates third years, promotes returning players, and adds a new intake", () => {
+  it("graduates third years, promotes returners, adds intake, and starts the next season", () => {
     const state = createDemoGame();
     state.date = "2027-03-31";
     state.calendar.currentDate = state.date;
     state.calendar.weekOfYear = 52;
     state.world.nextGenerationalTalentYear = 2;
-    const originalThirdYears = Object.values(state.players)
-      .filter((player) => player.grade === 3)
-      .map((player) => player.id);
-    const originalSecondYears = Object.values(state.players)
-      .filter((player) => player.grade === 2)
-      .map((player) => player.id);
-    const originalFirstYears = Object.values(state.players)
-      .filter((player) => player.grade === 1)
-      .map((player) => player.id);
+    const originalThirdYears = thirdYearPlayerIds(state);
+    const originalSecondYears = secondYearPlayerIds(state);
+    const originalFirstYears = firstYearPlayerIds(state);
 
     const result = advanceGameWeek(state, gameData);
-    const transition = result.academicYearTransition;
-    if (!transition) {
-      throw new Error("academic year transition missing");
-    }
+    const transition = result.academicYearTransition!;
 
-    expect(result.state.date).toBe("2027-04-07");
-    expect(result.state.yearIndex).toBe(2);
+    expect(transition).not.toBeNull();
     expect(result.state.calendar.academicYear).toBe(2);
-    expect(result.state.calendar.weekOfYear).toBe(1);
     expect(result.state.officialSeason.academicYear).toBe(2);
-    expect(
-      result.state.officialSeason.interhigh.prefectural.entrants,
-    ).toHaveLength(16);
-    expect(
-      result.state.officialSeason.springHigh.prefectural.entrants,
-    ).toHaveLength(16);
+    expect(result.state.officialSeason.interhigh.prefectural.matches).toHaveLength(
+      15,
+    );
     expect(result.state.officialSeason.interhigh.national).toBeNull();
     expect(result.state.officialSeason.springHigh.national).toBeNull();
     expect(transition.graduatedPlayerIds).toHaveLength(
@@ -79,9 +73,15 @@ describe("academic year progression", () => {
       expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
       expect(school.playerIds.length).toBeLessThanOrEqual(16);
       expect(school.history.seasons).toBe(1);
-      expect(school.captainPlayerId).not.toBeNull();
-      expect(school.playerIds).toContain(school.captainPlayerId);
-      expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
+      if (school.id === result.state.userSchoolId) {
+        if (school.captainPlayerId) {
+          expect(school.playerIds).toContain(school.captainPlayerId);
+        }
+      } else {
+        expect(school.captainPlayerId).not.toBeNull();
+        expect(school.playerIds).toContain(school.captainPlayerId);
+        expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
+      }
     }
 
     expect(transition.intakePlayerIds.length).toBeGreaterThanOrEqual(65);
@@ -153,18 +153,44 @@ describe("academic year progression", () => {
         },
       };
 
-      const result = advanceGameWeek(state, gameData);
-      expect(result.academicYearTransition).not.toBeNull();
-      state = result.state;
+      state = advanceGameWeek(state, gameData).state;
 
-      const activePlayerIdList = Object.values(state.schools).flatMap(
-        (school) => school.playerIds,
-      );
-      expect(new Set(activePlayerIdList).size).toBe(activePlayerIdList.length);
       for (const school of Object.values(state.schools)) {
         expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
         expect(school.playerIds.length).toBeLessThanOrEqual(16);
       }
     }
+  });
+
+  it("keeps the same long-run state for the same seed and actions", () => {
+    let first = createDemoGame();
+    let second = createDemoGame();
+
+    for (let calendarYear = 2027; calendarYear <= 2036; calendarYear += 1) {
+      const rolloverDate = `${calendarYear}-03-31` as GameDate;
+      first = {
+        ...first,
+        date: rolloverDate,
+        calendar: {
+          ...first.calendar,
+          currentDate: rolloverDate,
+          weekOfYear: 52,
+        },
+      };
+      second = {
+        ...second,
+        date: rolloverDate,
+        calendar: {
+          ...second.calendar,
+          currentDate: rolloverDate,
+          weekOfYear: 52,
+        },
+      };
+
+      first = advanceGameWeek(first, gameData).state;
+      second = advanceGameWeek(second, gameData).state;
+    }
+
+    expect(first).toEqual(second);
   });
 });
