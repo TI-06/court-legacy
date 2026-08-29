@@ -542,7 +542,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const useShopItemFromUi = async (itemId: ShopItemId) => {
+  const consumeShopItemFromUi = async (itemId: ShopItemId) => {
     if (!api.useShopItem || shopPendingAction !== null) {
       if (!api.useShopItem) {
         setShopError("ショップ使用機能を利用できません");
@@ -709,7 +709,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }}
         onRetry={() => void loadShop()}
         onUse={(itemId) => {
-          void useShopItemFromUi(itemId);
+          void consumeShopItemFromUi(itemId);
         }}
         pendingAction={shopPendingAction}
         pendingItemId={shopPendingItemId}
