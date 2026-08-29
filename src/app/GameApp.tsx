@@ -53,7 +53,7 @@ interface GameAppProps {
   api: GameApiClient;
 }
 
-type MoreView = "menu" | "school";
+type MoreView = "menu" | "school" | "shop";
 type MatchView = "practice" | "pvp";
 
 interface AdvanceWeekOutcome {
@@ -226,67 +226,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const openScouting = () => {
     setScoutingOpen(true);
-    setScoutingError(null);
-    setRetryRecruitCandidateId(null);
-    const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
-    if (scoutingCycle !== currentCycle) {
-      setScoutingReports([]);
-      setScoutingCycle(null);
+    const cycleKey = recruitingCycleKey(cloudSession.snapshot.state);
+    if (
+      scoutingReports.length === 0 ||
+      scoutingCycle !== cycleKey ||
+      scoutingError
+    ) {
       void loadScoutingBoard();
-    }
-  };
-
-  const recruitCandidate = async (candidateId: PlayerId) => {
-    if (!api.commitRecruit || recruitingCandidateId !== null) {
-      if (!api.commitRecruit) {
-        setScoutingError("スカウト獲得機能を利用できません");
-      }
-      return;
-    }
-
-    setRecruitingCandidateId(candidateId);
-    setScoutingError(null);
-    setRetryRecruitCandidateId(null);
-
-    try {
-      const response = await api.commitRecruit(session.accessToken, {
-        operationId: crypto.randomUUID(),
-        revision: cloudSession.snapshot.revision,
-        candidateId,
-      });
-      await cloudSession.adoptServerSnapshot(
-        response.game,
-        "獲得内容を保存しました",
-      );
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        try {
-          const latest = await api.bootstrap(session.accessToken);
-          if (latest.status === "ready") {
-            await cloudSession.adoptServerSnapshot(
-              latest.game,
-              "最新のゲーム状態を読み込みました",
-            );
-            setScoutingReports([]);
-            setScoutingCycle(null);
-            await loadScoutingBoard(latest.game.revision);
-            return;
-          }
-        } catch (refreshError) {
-          setScoutingError(
-            scoutingErrorMessage(
-              refreshError,
-              "最新のスカウト候補を読み込めませんでした",
-            ),
-          );
-          return;
-        }
-      }
-
-      setScoutingError(scoutingErrorMessage(error, "獲得処理に失敗しました"));
-      setRetryRecruitCandidateId(candidateId);
-    } finally {
-      setRecruitingCandidateId(null);
     }
   };
 
@@ -298,46 +244,106 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     void loadScoutingBoard();
   };
 
+  const recruitCandidate = async (candidateId: PlayerId) => {
+    if (!api.commitRecruit || recruitingCandidateId) return;
+
+    setRecruitingCandidateId(candidateId);
+    setScoutingError(null);
+    setRetryRecruitCandidateId(null);
+
+    const recruit = async (revision: number) => {
+      return api.commitRecruit!(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision,
+        candidateId,
+      });
+    };
+
+    try {
+      let response;
+      try {
+        response = await recruit(cloudSession.snapshot.revision);
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 409) {
+          throw error;
+        }
+
+        const latest = await api.bootstrap(session.accessToken);
+        if (latest.status !== "ready") {
+          throw error;
+        }
+        await cloudSession.adoptServerSnapshot(
+          latest.game,
+          "最新のゲーム状態を読み込みました",
+        );
+        response = await recruit(latest.game.revision);
+      }
+
+      await cloudSession.adoptServerSnapshot(
+        response.game,
+        "新入生候補の獲得を保存しました",
+      );
+      setRetryRecruitCandidateId(null);
+    } catch (error) {
+      setRetryRecruitCandidateId(candidateId);
+      setScoutingError(
+        scoutingErrorMessage(error, "獲得処理を完了できませんでした"),
+      );
+    } finally {
+      setRecruitingCandidateId(null);
+    }
+  };
+
+  const saveTeamSelection = async (next: TeamSelection) => {
+    const response = await cloudSession.runAction(
+      { type: "team-selection", selection: next },
+      "メンバーを保存しています…",
+    );
+    return Boolean(response);
+  };
+
   const executeTraining = async (plan: WeeklyPlan) => {
-    if (trainingCompleted) return;
     const response = await cloudSession.runAction(
       { type: "training", plan },
       "練習結果を保存しています…",
     );
-    if (!response) return;
-
-    if (response.outcome !== undefined) {
+    if (response?.outcome) {
       setLatestTrainingResult(response.outcome as TrainingResult);
     }
   };
 
-  const saveTeamSelection = async (selection: TeamSelection) => {
-    await cloudSession.runAction(
-      { type: "team-selection", selection },
-      "スタメンを保存しています…",
-    );
-  };
-
   const openFreshPracticeMatch = () => {
-    if (!practiceMatchCompleted) {
-      setActiveMatchResult(null);
-      setMatchView("practice");
-      setActiveTab("match");
-    }
+    setActiveTab("match");
+    setMatchView("practice");
+    setActiveMatchResult(null);
   };
 
   const startPracticeMatch = async () => {
-    if (practiceMatchCompleted) return;
     const response = await cloudSession.runAction(
       { type: "practice-match" },
-      "試合を計算しています…",
+      "試合結果を保存しています…",
     );
-    if (!response) return;
+    if (response?.outcome) {
+      const result = response.outcome as SimulateMatchResult;
+      setLatestMatchResult(result);
+      setActiveMatchResult(result);
+    }
+  };
 
-    if (response.outcome !== undefined) {
-      const simulation = response.outcome as SimulateMatchResult;
-      setLatestMatchResult(simulation);
-      setActiveMatchResult(simulation);
+  const recoverPvpRevision = async (): Promise<boolean> => {
+    try {
+      const latest = await api.bootstrap(session.accessToken);
+      if (latest.status !== "ready") return false;
+      await cloudSession.adoptServerSnapshot(
+        latest.game,
+        "最新のゲーム状態を読み込みました",
+      );
+      return true;
+    } catch (error) {
+      setPvpError(
+        pvpErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
+      );
+      return false;
     }
   };
 
@@ -356,12 +362,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           api.getPvpRanking(session.accessToken, { limit: 20 }),
           api.getPvpHistory(session.accessToken, { limit: 20 }),
         ]);
-      setPvpSeasonId(opponentsResponse.seasonId);
       setPvpOpponents(opponentsResponse.opponents);
       setPvpRanking(rankingResponse.ranking);
       setPvpHistory(historyResponse.history);
+      setPvpSeasonId(
+        opponentsResponse.seasonId ??
+          rankingResponse.seasonId ??
+          historyResponse.seasonId,
+      );
     } catch (error) {
-      setPvpError(pvpErrorMessage(error, "対人戦データを読み込めませんでした"));
+      setPvpError(
+        pvpErrorMessage(error, "対人戦データを読み込めませんでした"),
+      );
     } finally {
       setPvpLoading(false);
     }
@@ -369,37 +381,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const openPvp = () => {
     setMatchView("pvp");
-    setPvpError(null);
-    void loadPvpData();
-  };
-
-  const recoverPvpRevision = async (): Promise<boolean> => {
-    try {
-      const latest = await api.bootstrap(session.accessToken);
-      if (latest.status !== "ready") return false;
-      await cloudSession.adoptServerSnapshot(
-        latest.game,
-        "最新のゲーム状態を読み込みました",
-      );
-      setPvpError("最新のゲーム状態を読み込みました。もう一度お試しください");
-      return true;
-    } catch (error) {
-      setPvpError(
-        pvpErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
-      );
-      return false;
+    if (pvpOpponents.length === 0 && !pvpLoading) {
+      void loadPvpData();
     }
   };
 
   const publishPvpTeam = async () => {
-    if (
-      !api.publishPvpTeam ||
-      pvpPublishing ||
-      pvpChallengingSnapshotId !== null
-    ) {
-      if (!api.publishPvpTeam) {
-        setPvpError("対人戦の公開機能を利用できません");
-      }
+    if (!api.publishPvpTeam) {
+      setPvpError("対人戦機能を利用できません");
       return;
     }
 
@@ -411,25 +400,24 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         revision: cloudSession.snapshot.revision,
       });
       setPvpPublishedTeam(response.team);
+      await loadPvpData();
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
         if (await recoverPvpRevision()) return;
       }
-      setPvpError(pvpErrorMessage(error, "チームを公開できませんでした"));
+      setPvpError(pvpErrorMessage(error, "チーム公開に失敗しました"));
     } finally {
       setPvpPublishing(false);
     }
   };
 
   const challengePvpTeam = async (opponentSnapshotId: string) => {
-    if (
-      !api.challengePvpTeam ||
-      pvpChallengingSnapshotId !== null ||
-      pvpPublishing
-    ) {
-      if (!api.challengePvpTeam) {
-        setPvpError("対人戦機能を利用できません");
-      }
+    if (!api.challengePvpTeam) {
+      setPvpError("対人戦機能を利用できません");
       return;
     }
 
@@ -597,6 +585,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <MoreScreen
         accountLabel={session.email ?? "ログイン済みアカウント"}
         onOpenSchool={() => setMoreView("school")}
+        onOpenShop={() => setMoreView("shop")}
         onSignOut={() => void auth.signOut()}
       />
     );
