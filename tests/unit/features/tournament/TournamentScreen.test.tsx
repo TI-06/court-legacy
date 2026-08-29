@@ -42,12 +42,10 @@ describe("TournamentScreen", () => {
     expect(screen.getByText("1回戦")).toBeVisible();
     expect(screen.getByText("あと8週")).toBeVisible();
     expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(15);
-    expect(screen.getAllByTestId("tournament-user-path").length).toBeGreaterThan(
-      0,
-    );
     expect(
-      screen.getByTestId("tournament-bracket-scroll"),
-    ).toBeInTheDocument();
+      screen.getAllByTestId("tournament-user-path").length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByTestId("tournament-bracket-scroll")).toBeInTheDocument();
   });
 
   it("keeps a due official match blocked until weekly training is complete", () => {
@@ -69,9 +67,7 @@ describe("TournamentScreen", () => {
     expect(
       screen.getByText("今週の練習を完了すると開始できます"),
     ).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "公式戦を開始" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "公式戦を開始" })).toBeDisabled();
   });
 
   it("asks for confirmation before starting when the setting is enabled", () => {
@@ -137,11 +133,12 @@ describe("TournamentScreen", () => {
       userBestRound: "round-of-16",
     };
     const champion = createDemoGame();
-    const userEntrant = champion.officialSeason.interhigh.prefectural.entrants.find(
-      (entrant) =>
-        entrant.source === "world-school" &&
-        entrant.schoolId === champion.userSchoolId,
-    );
+    const userEntrant =
+      champion.officialSeason.interhigh.prefectural.entrants.find(
+        (entrant) =>
+          entrant.source === "world-school" &&
+          entrant.schoolId === champion.userSchoolId,
+      );
     if (!userEntrant) {
       throw new Error("user tournament entrant not found");
     }
@@ -164,9 +161,7 @@ describe("TournamentScreen", () => {
     );
 
     expect(screen.getByText("敗退")).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "公式戦を開始" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "公式戦を開始" })).toBeNull();
 
     rerender(
       <TournamentScreen
@@ -181,9 +176,7 @@ describe("TournamentScreen", () => {
     );
 
     expect(screen.getByText("優勝")).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "公式戦を開始" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "公式戦を開始" })).toBeNull();
   });
 
   it("keeps official match progress visibly labeled while submitting", () => {
