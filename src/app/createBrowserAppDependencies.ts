@@ -361,14 +361,11 @@ class StaticGameApiClient implements GameApiClient {
     return response;
   }
 
-  async getShop(_accessToken: string) {
+  async getShop() {
     return this.shopHarness.getStatus();
   }
 
-  async purchaseShopItem(
-    _accessToken: string,
-    request: ShopPurchaseRequest,
-  ) {
+  async purchaseShopItem(_accessToken: string, request: ShopPurchaseRequest) {
     return this.shopHarness.purchase(request);
   }
 
