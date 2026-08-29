@@ -147,7 +147,8 @@ export function ShopScreen({
   onUse = () => undefined,
 }: ShopScreenProps) {
   const [view, setView] = useState<ShopView>("products");
-  const ownedItems = status?.items.filter((item) => item.quantityOwned > 0) ?? [];
+  const ownedItems =
+    status?.items.filter((item) => item.quantityOwned > 0) ?? [];
 
   return (
     <main className="app-content shop-screen">
@@ -188,7 +189,10 @@ export function ShopScreen({
       ) : null}
 
       {error ? (
-        <div className="shop-screen__notice shop-screen__notice--error" role="alert">
+        <div
+          className="shop-screen__notice shop-screen__notice--error"
+          role="alert"
+        >
           <p>{error}</p>
           <button onClick={onRetry} type="button">
             再読み込み
@@ -233,7 +237,9 @@ export function ShopScreen({
               ))}
             </section>
           ) : (
-            <p className="shop-screen__notice">今年度の所持アイテムはありません。</p>
+            <p className="shop-screen__notice">
+              今年度の所持アイテムはありません。
+            </p>
           )}
         </>
       ) : null}
