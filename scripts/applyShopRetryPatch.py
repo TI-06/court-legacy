@@ -1,0 +1,325 @@
+from pathlib import Path
+
+
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    count = text.count(old)
+    assert count == 1, f"{label}: expected 1 match, got {count}"
+    return text.replace(old, new, 1)
+
+
+def replace_between(text: str, start: str, end: str, new: str, label: str) -> str:
+    start_index = text.find(start)
+    assert start_index >= 0, f"{label}: start marker not found"
+    end_index = text.find(end, start_index)
+    assert end_index >= 0, f"{label}: end marker not found"
+    return text[:start_index] + new + text[end_index:]
+
+
+game_path = Path("src/app/GameApp.tsx")
+game = game_path.read_text()
+
+game = replace_once(
+    game,
+    'import type { ShopStatusResponse } from "../domain/shop/shopContracts";',
+    '''import type {
+  ShopPurchaseRequest,
+  ShopStatusResponse,
+  ShopUseRequest,
+} from "../domain/shop/shopContracts";''',
+    "shop contract import",
+)
+
+game = replace_once(
+    game,
+    'type ShopPendingAction = "purchase" | "use";',
+    '''type ShopPendingAction = "purchase" | "use";
+type ShopRetryRequest =
+  | { action: "purchase"; request: ShopPurchaseRequest }
+  | { action: "use"; request: ShopUseRequest };''',
+    "shop retry type",
+)
+
+state_marker = "  const [latestYearTransition, setLatestYearTransition] ="
+assert state_marker in game
+game = game.replace(
+    state_marker,
+    '''  const [shopRetryRequest, setShopRetryRequest] =
+    useState<ShopRetryRequest | null>(null);
+''' + state_marker,
+    1,
+)
+
+load_shop = '''  const loadShop = async (): Promise<boolean> => {
+    if (!api.getShop) {
+      setShopError("ショップ機能を利用できません");
+      return false;
+    }
+
+    setShopLoading(true);
+    setShopError(null);
+    try {
+      const status = await api.getShop(session.accessToken);
+      setShopStatus(status);
+      return true;
+    } catch (error) {
+      setShopError(
+        shopErrorMessage(error, "ショップ情報を読み込めませんでした"),
+      );
+      return false;
+    } finally {
+      setShopLoading(false);
+    }
+  };
+
+'''
+game = replace_between(
+    game,
+    "  const loadShop = async () => {",
+    "  const refreshShopAfterMutation = async (",
+    load_shop,
+    "loadShop",
+)
+
+mutation_block = '''  const refreshShopAfterMutation = async (
+    minimumRevision: number,
+  ): Promise<boolean> => {
+    const latest = await api.bootstrap(session.accessToken);
+    if (latest.status !== "ready" || latest.game.revision < minimumRevision) {
+      setShopError("最新のゲーム状態を読み込めませんでした");
+      return false;
+    }
+
+    await cloudSession.adoptServerSnapshot(
+      latest.game,
+      "最新のゲーム状態を読み込みました",
+    );
+    if (!(await loadShop())) return false;
+    setShopRetryRequest(null);
+    return true;
+  };
+
+  const recoverShopRevision = async (): Promise<boolean> => {
+    try {
+      const latest = await api.bootstrap(session.accessToken);
+      if (latest.status !== "ready") {
+        setShopError("最新のゲーム状態を読み込めませんでした");
+        return false;
+      }
+      await cloudSession.adoptServerSnapshot(
+        latest.game,
+        "最新のゲーム状態を読み込みました",
+      );
+      if (!(await loadShop())) return false;
+      setShopRetryRequest(null);
+      setShopError(
+        "最新のゲーム状態を読み込みました。もう一度お試しください",
+      );
+      return true;
+    } catch (error) {
+      setShopError(
+        shopErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
+      );
+      return false;
+    }
+  };
+
+  const executeShopPurchase = async (request: ShopPurchaseRequest) => {
+    if (!api.purchaseShopItem || shopPendingAction !== null) {
+      if (!api.purchaseShopItem) {
+        setShopError("ショップ購入機能を利用できません");
+      }
+      return;
+    }
+
+    setShopPendingAction("purchase");
+    setShopPendingItemId(request.itemId);
+    setShopResultMessage(null);
+    setShopRetryRequest(null);
+    setShopError(null);
+    try {
+      const response = await api.purchaseShopItem(
+        session.accessToken,
+        request,
+      );
+      if (await refreshShopAfterMutation(response.revision)) {
+        setShopResultMessage("購入しました ✓");
+      }
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
+        await recoverShopRevision();
+        return;
+      }
+      if (error instanceof ApiError && error.status === null) {
+        setShopRetryRequest({ action: "purchase", request });
+      }
+      setShopError(shopErrorMessage(error, "購入処理に失敗しました"));
+    } finally {
+      setShopPendingAction(null);
+      setShopPendingItemId(null);
+    }
+  };
+
+  const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+    await executeShopPurchase({
+      operationId: crypto.randomUUID(),
+      revision: cloudSession.snapshot.revision,
+      itemId,
+    });
+  };
+
+  const executeShopUse = async (request: ShopUseRequest) => {
+    if (!api.useShopItem || shopPendingAction !== null) {
+      if (!api.useShopItem) {
+        setShopError("ショップ使用機能を利用できません");
+      }
+      return;
+    }
+
+    setShopPendingAction("use");
+    setShopPendingItemId(request.itemId);
+    setShopResultMessage(null);
+    setShopRetryRequest(null);
+    setShopError(null);
+    try {
+      const response = await api.useShopItem(session.accessToken, request);
+      if (await refreshShopAfterMutation(response.revision)) {
+        setShopResultMessage("使用しました ✓");
+      }
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
+        await recoverShopRevision();
+        return;
+      }
+      if (error instanceof ApiError && error.status === null) {
+        setShopRetryRequest({ action: "use", request });
+      }
+      setShopError(shopErrorMessage(error, "使用処理に失敗しました"));
+    } finally {
+      setShopPendingAction(null);
+      setShopPendingItemId(null);
+    }
+  };
+
+  const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+    await executeShopUse({
+      operationId: crypto.randomUUID(),
+      revision: cloudSession.snapshot.revision,
+      itemId,
+    });
+  };
+
+  const retryShopMutation = async () => {
+    if (!shopRetryRequest) return;
+    if (shopRetryRequest.action === "purchase") {
+      await executeShopPurchase(shopRetryRequest.request);
+      return;
+    }
+    await executeShopUse(shopRetryRequest.request);
+  };
+
+'''
+game = replace_between(
+    game,
+    "  const refreshShopAfterMutation = async (",
+    "  const openShop = () => {",
+    mutation_block,
+    "shop mutation block",
+)
+
+game = replace_once(
+    game,
+    '''  const openShop = () => {
+    setMoreView("shop");
+    setShopResultMessage(null);
+    void loadShop();
+  };''',
+    '''  const openShop = () => {
+    setMoreView("shop");
+    setShopResultMessage(null);
+    setShopRetryRequest(null);
+    void loadShop();
+  };''',
+    "openShop",
+)
+
+game = replace_once(
+    game,
+    "        onRetry={() => void loadShop()}\n",
+    '''        onRetry={() => void loadShop()}
+        onRetryMutation={() => {
+          void retryShopMutation();
+        }}
+''',
+    "shop retry callback",
+)
+game = replace_once(
+    game,
+    "        resultMessage={shopResultMessage}\n",
+    '''        resultMessage={shopResultMessage}
+        retryAction={shopRetryRequest?.action ?? null}
+''',
+    "shop retry action prop",
+)
+game_path.write_text(game)
+
+screen_path = Path("src/features/shop/ShopScreen.tsx")
+screen = screen_path.read_text()
+screen = replace_once(
+    screen,
+    "  resultMessage?: string | null;\n",
+    '''  resultMessage?: string | null;
+  retryAction?: ShopPendingAction | null;
+''',
+    "ShopScreen retryAction prop",
+)
+screen = replace_once(
+    screen,
+    "  onRetry: () => void;\n",
+    '''  onRetry: () => void;
+  onRetryMutation?: () => void;
+''',
+    "ShopScreen retry callback prop",
+)
+screen = replace_once(
+    screen,
+    "  resultMessage = null,\n",
+    '''  resultMessage = null,
+  retryAction = null,
+''',
+    "ShopScreen retryAction default",
+)
+screen = replace_once(
+    screen,
+    "  onRetry,\n",
+    '''  onRetry,
+  onRetryMutation = () => undefined,
+''',
+    "ShopScreen retry callback default",
+)
+screen = replace_once(
+    screen,
+    '''          <p>{error}</p>
+          <button onClick={onRetry} type="button">
+            再読み込み
+          </button>''',
+    '''          <p>{error}</p>
+          {retryAction ? (
+            <button onClick={onRetryMutation} type="button">
+              {retryAction === "purchase" ? "購入を再試行" : "使用を再試行"}
+            </button>
+          ) : (
+            <button onClick={onRetry} type="button">
+              再読み込み
+            </button>
+          )}''',
+    "ShopScreen error action",
+)
+screen_path.write_text(screen)
