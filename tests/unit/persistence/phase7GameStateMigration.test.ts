@@ -33,9 +33,7 @@ describe("Phase 7 game-state migration", () => {
     } as Record<string, unknown>;
     delete legacy.teamDynamics;
 
-    const migrated = decodeGameState(
-      JSON.stringify(legacy),
-    ) as Phase7GameState;
+    const migrated = decodeGameState(JSON.stringify(legacy)) as Phase7GameState;
 
     expect(migrated.schemaVersion).toBe(4);
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
