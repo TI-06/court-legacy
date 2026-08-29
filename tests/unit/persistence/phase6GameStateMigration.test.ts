@@ -32,10 +32,11 @@ describe("Phase 6 game-state migration", () => {
       },
     } as Record<string, unknown>;
     delete legacy.officialSeason;
+    delete legacy.teamDynamics;
 
     const migrated = decodeGameState(JSON.stringify(legacy));
 
-    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.schemaVersion).toBe(4);
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
     expect(migrated.players).toEqual(originalPlayers);
     expect(migrated.schools).toEqual(originalSchools);
@@ -56,5 +57,6 @@ describe("Phase 6 game-state migration", () => {
       16,
     );
     expect(migrated.history.officialTournaments).toEqual([]);
+    expect(migrated.teamDynamics.recentOfficialMatchesTracked).toBe(0);
   });
 });
