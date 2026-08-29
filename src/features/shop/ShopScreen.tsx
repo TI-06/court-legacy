@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
+import type { AbilityKey } from "../../domain/model/Player";
 import type { ShopItemId } from "../../domain/shop/shopCatalog";
 import type { SpecialCoachFocus } from "../../domain/shop/shopEffects";
 import type {
@@ -10,6 +11,7 @@ import type {
   ShopUseTarget,
 } from "../../domain/shop/shopContracts";
 import "./shop.css";
+import type { ShopUsePresentation } from "./shopUsePresentation";
 
 type ShopView = "products" | "inventory";
 type ShopPendingAction = "purchase" | "use";
@@ -22,6 +24,7 @@ interface ShopScreenProps {
   pendingAction?: ShopPendingAction | null;
   pendingItemId?: ShopItemId | null;
   resultMessage?: string | null;
+  latestUseResult?: ShopUsePresentation | null;
   retryAction?: ShopPendingAction | null;
   onBack: () => void;
   onRetry: () => void;
@@ -49,8 +52,167 @@ const specialCoachFocusLabels: Array<{
   { focus: "decision", label: "判断力" },
 ];
 
+const abilityLabels: Record<AbilityKey, string> = {
+  spike: "スパイク",
+  serve: "サーブ",
+  receive: "レシーブ",
+  block: "ブロック",
+  set: "トス",
+  speed: "スピード",
+  jump: "ジャンプ",
+  stamina: "スタミナ",
+  mental: "メンタル",
+  decision: "判断力",
+};
+
 function blockedReason(reason: ShopBlockedReason | null): string | null {
   return reason ? blockedReasonLabels[reason] : null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function signed(value: number): string {
+  return value >= 0 ? `+${value}` : `${value}`;
+}
+
+function ShopUseResultPanel({
+  presentation,
+  state,
+}: {
+  presentation: ShopUsePresentation;
+  state?: GameState;
+}) {
+  const result = presentation.result;
+
+  if (presentation.itemId === "fatigue-recovery") {
+    const before = asRecord(result.before);
+    const after = asRecord(result.after);
+    const beforeFatigue = asNumber(before?.fatigue);
+    const afterFatigue = asNumber(after?.fatigue);
+    const beforeCondition = asNumber(before?.condition);
+    const afterCondition = asNumber(after?.condition);
+    if (
+      beforeFatigue === null ||
+      afterFatigue === null ||
+      beforeCondition === null ||
+      afterCondition === null
+    ) {
+      return null;
+    }
+
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>疲労回復の結果</h3>
+        <div className="shop-use-result__metrics">
+          <span>疲労 {beforeFatigue} → {afterFatigue}</span>
+          <span>状態 {beforeCondition} → {afterCondition}</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (presentation.itemId === "training-camp") {
+    const participantCount = asNumber(result.participantCount);
+    const totalAbilityGrowth = asNumber(result.totalAbilityGrowth);
+    const averageFatigueChange = asNumber(result.averageFatigueChange);
+    const injuredPlayerIds = Array.isArray(result.injuredPlayerIds)
+      ? result.injuredPlayerIds
+      : null;
+    if (
+      participantCount === null ||
+      totalAbilityGrowth === null ||
+      averageFatigueChange === null ||
+      injuredPlayerIds === null
+    ) {
+      return null;
+    }
+
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>強化合宿の結果</h3>
+        <div className="shop-use-result__metrics">
+          <span>参加 {participantCount}人</span>
+          <span>能力成長 {signed(totalAbilityGrowth)}</span>
+          <span>平均疲労 {signed(averageFatigueChange)}</span>
+          <span>怪我 {injuredPlayerIds.length}人</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (presentation.itemId === "special-coach") {
+    const playerId = typeof result.playerId === "string" ? result.playerId : null;
+    const totalAbilityGrowth = asNumber(result.totalAbilityGrowth);
+    const fatigueChange = asNumber(result.fatigueChange);
+    const abilityChanges = asRecord(result.abilityChanges);
+    if (
+      playerId === null ||
+      totalAbilityGrowth === null ||
+      fatigueChange === null ||
+      abilityChanges === null
+    ) {
+      return null;
+    }
+    const player = state?.players[playerId as PlayerId];
+    const changedAbilities = Object.entries(abilityChanges).flatMap(
+      ([ability, rawValue]) => {
+        const value = asNumber(rawValue);
+        return value !== null && value !== 0 && ability in abilityLabels
+          ? [[ability as AbilityKey, value] as const]
+          : [];
+      },
+    );
+
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>特別コーチの結果</h3>
+        {player ? (
+          <strong>{player.lastName} {player.firstName}</strong>
+        ) : null}
+        <div className="shop-use-result__metrics">
+          <span>能力成長 {signed(totalAbilityGrowth)}</span>
+          {changedAbilities.map(([ability, value]) => (
+            <span key={ability}>{abilityLabels[ability]} {signed(value)}</span>
+          ))}
+          <span>疲労 {signed(fatigueChange)}</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (presentation.itemId === "training-efficiency-boost") {
+    const pending = result.pending === true;
+    const percent = asNumber(result.percent);
+    if (!pending || percent === null) return null;
+
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>練習効率アップの結果</h3>
+        <p>次回練習の成長効率 +{percent}% を有効化しました</p>
+      </section>
+    );
+  }
+
+  if (presentation.itemId === "extra-scout-candidate") {
+    const candidateCount = asNumber(result.candidateCount);
+    if (candidateCount === null) return null;
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>新入生候補追加の結果</h3>
+        <p>今年度のスカウト候補が {candidateCount}人 になりました。</p>
+      </section>
+    );
+  }
+
+  return null;
 }
 
 function ProductCard({
@@ -175,6 +337,7 @@ export function ShopScreen({
   pendingAction = null,
   pendingItemId = null,
   resultMessage = null,
+  latestUseResult = null,
   retryAction = null,
   onBack,
   onRetry,
@@ -305,6 +468,10 @@ export function ShopScreen({
         <p className="shop-screen__notice shop-screen__notice--success">
           {resultMessage}
         </p>
+      ) : null}
+
+      {latestUseResult ? (
+        <ShopUseResultPanel presentation={latestUseResult} state={state} />
       ) : null}
 
       {targetingItemId === "fatigue-recovery" ? (
