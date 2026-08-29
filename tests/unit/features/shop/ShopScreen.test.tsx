@@ -15,12 +15,12 @@ function createStatus(): ShopStatusResponse {
       priceYen: 0,
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
-      purchasedCount: index === 0 ? item.annualPurchaseLimit : index === 4 ? 2 : 0,
+      purchasedCount:
+        index === 0 ? item.annualPurchaseLimit : index === 4 ? 2 : 0,
       usedCount: index === 4 ? 1 : 0,
       quantityOwned: index === 4 ? 2 : 0,
       canPurchase: index !== 0,
-      purchaseBlockedReason:
-        index === 0 ? "purchase_limit_reached" : null,
+      purchaseBlockedReason: index === 0 ? "purchase_limit_reached" : null,
       canUse: index === 4,
       useBlockedReason: index === 4 ? null : "inventory_empty",
     })),
