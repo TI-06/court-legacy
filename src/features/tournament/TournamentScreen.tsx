@@ -56,9 +56,7 @@ function statusLabel(status: string): string {
   return "進行中";
 }
 
-function entrantName(
-  entrant: TournamentBracketMatchView["home"],
-): string {
+function entrantName(entrant: TournamentBracketMatchView["home"]): string {
   return entrant?.shortName ?? "未定";
 }
 
@@ -150,7 +148,9 @@ export function TournamentScreen({
               {circuitLabels[circuit]} {levelLabels[level]}
             </h2>
           </div>
-          <span className={`tournament-status tournament-status--${stage.status}`}>
+          <span
+            className={`tournament-status tournament-status--${stage.status}`}
+          >
             {timingLabel}
           </span>
         </div>
@@ -242,7 +242,9 @@ export function TournamentScreen({
       </section>
 
       {terminal ? (
-        <section className={`tournament-terminal tournament-terminal--${stage.status}`}>
+        <section
+          className={`tournament-terminal tournament-terminal--${stage.status}`}
+        >
           <span>{stage.status === "champion" ? "優勝" : "敗退"}</span>
           <strong>
             {stage.status === "champion"
@@ -251,7 +253,10 @@ export function TournamentScreen({
           </strong>
         </section>
       ) : nextMatch ? (
-        <section className="tournament-action" aria-labelledby="official-action-heading">
+        <section
+          className="tournament-action"
+          aria-labelledby="official-action-heading"
+        >
           <div>
             <p className="section-kicker">NEXT MATCH</p>
             <h3 id="official-action-heading">公式戦</h3>
