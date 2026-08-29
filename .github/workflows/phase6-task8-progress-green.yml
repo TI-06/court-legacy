@@ -1,0 +1,47 @@
+name: Phase 6 Task 8 Progress Green
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  progress-green:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Add explicit official match progress labels
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/tournament/TournamentScreen.tsx')
+          text = path.read_text()
+          old = '''          {pending ? (\n            <p className="tournament-pending" role="status">\n              公式戦を開始しています…\n            </p>\n          ) : null}\n'''
+          new = '''          {pending ? (\n            <p className="tournament-pending" role="status">\n              <strong>公式戦を開始しています…</strong>\n              <br />\n              <span>試合結果を確定しています…</span>\n              <br />\n              <span>大会結果を保存しています…</span>\n            </p>\n          ) : null}\n'''
+          if old not in text:
+              raise SystemExit('pending status block not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - run: npx prettier src/features/tournament/TournamentScreen.tsx tests/unit/features/tournament/TournamentPendingStatus.test.tsx --write
+      - name: Verify official progress UI
+        run: |
+          npm test -- tests/unit/features/tournament/TournamentPendingStatus.test.tsx tests/unit/features/tournament/TournamentScreen.test.tsx
+          npm run typecheck
+      - name: Commit progress labels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/tournament/TournamentScreen.tsx tests/unit/features/tournament/TournamentPendingStatus.test.tsx
+          git commit -m "feat: label official match processing stages"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
