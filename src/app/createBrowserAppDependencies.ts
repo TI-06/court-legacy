@@ -16,6 +16,10 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import type {
+  ShopPurchaseRequest,
+  ShopUseRequest,
+} from "../domain/shop/shopContracts";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
 import {
@@ -33,6 +37,7 @@ import {
 } from "../services/api/GameApiClient";
 import { createDemoGame } from "./createDemoGame";
 import { createInitialGame } from "./createInitialGame";
+import { StaticShopHarness } from "./StaticShopHarness";
 
 interface BrowserAppEnvironment {
   MODE?: string;
@@ -237,6 +242,7 @@ class StaticGameApiClient implements GameApiClient {
   >();
   private readonly scoutingReports = new Map<string, ScoutReport[]>();
   private readonly pvpOpponents = createHarnessPvpOpponents();
+  private readonly shopHarness: StaticShopHarness;
   private pvpRating = 1000;
   private pvpHistory: PvpHistoryEntry[] = [];
 
@@ -249,6 +255,19 @@ class StaticGameApiClient implements GameApiClient {
         ? null
         : ((persistAcrossReloads ? readPersistedHarnessSnapshot() : null) ??
           createHarnessSnapshot());
+    this.shopHarness = new StaticShopHarness({
+      getGame: () => {
+        const snapshot = this.requireSnapshot();
+        return {
+          revision: snapshot.revision,
+          yearIndex: snapshot.state.yearIndex,
+        };
+      },
+      commitRevision: (revision) => {
+        const snapshot = this.requireSnapshot();
+        this.replaceSnapshot({ ...snapshot, revision });
+      },
+    });
     if (persistAcrossReloads && this.snapshot) {
       writePersistedHarnessSnapshot(this.snapshot);
     }
@@ -340,6 +359,21 @@ class StaticGameApiClient implements GameApiClient {
     }
     this.operationResponses.set(request.operationId, response);
     return response;
+  }
+
+  async getShop(_accessToken: string) {
+    return this.shopHarness.getStatus();
+  }
+
+  async purchaseShopItem(
+    _accessToken: string,
+    request: ShopPurchaseRequest,
+  ) {
+    return this.shopHarness.purchase(request);
+  }
+
+  async useShopItem(_accessToken: string, request: ShopUseRequest) {
+    return this.shopHarness.use(request);
   }
 
   async getScoutingBoard(_accessToken: string, request: ScoutingBoardRequest) {
