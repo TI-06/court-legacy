@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../../src/app/createInitialGame";
 
 describe("Phase 6 initial world", () => {
-  it("starts on schema v3 with a deterministic official season", () => {
+  it("keeps a deterministic official season on the latest schema", () => {
     const state = createInitialGame({
       seed: "phase6-schema-v3",
       schoolName: "青葉高校",
@@ -16,7 +16,7 @@ describe("Phase 6 initial world", () => {
       },
     });
 
-    expect(state.schemaVersion).toBe(3);
+    expect(state.schemaVersion).toBe(4);
     expect(state.officialSeason.academicYear).toBe(state.calendar.academicYear);
     expect(state.officialSeason.interhigh.prefectural.entrants).toHaveLength(
       16,
@@ -27,5 +27,6 @@ describe("Phase 6 initial world", () => {
     expect(state.officialSeason.interhigh.national).toBeNull();
     expect(state.officialSeason.springHigh.national).toBeNull();
     expect(state.history.officialTournaments).toEqual([]);
+    expect(state.teamDynamics.recentOfficialMatchesTracked).toBe(0);
   });
 });
