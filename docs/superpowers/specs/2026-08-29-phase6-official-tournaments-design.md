@@ -4,91 +4,93 @@
 
 Phase 6 adds the first complete official high-school tournament loop to Court Legacy V2.
 
-The goal is to connect the systems already built in Phases 1–5 into a meaningful multi-year core loop:
+The intended long-term loop is:
 
 `training → official tournament → school/player results → reputation → scouting quality → graduation/intake → next season`.
 
-The game remains endless. Losing a tournament ends only that tournament run; it never ends the save.
+Losing a tournament ends only that run. It never ends the save.
 
-Phase 6 uses the existing server-authoritative game action boundary. The browser may request an official match, but it does not choose the opponent, bracket result, random seed, rewards, title, or reputation outcome.
+The browser may request an official match, but it never chooses the opponent, bracket result, seed, title, record increment, or reputation outcome.
 
 ---
 
-## 2. Existing constraints and design choices
+## 2. Existing architecture to reuse
 
-The current world contains the user school plus 15 persistent rival schools, all generated in the user's region. Existing models already provide:
+The existing code already provides:
 
 - `qualifier`, `prefectural-tournament`, and `national-tournament` calendar activity types;
 - `HistoricalMatchSummary.tournamentId`;
 - school history counters for official wins/losses, prefectural titles, national appearances, and national titles;
-- player career appearances, sets, points, blocks, service aces, awards, and best tournament result;
-- season reputation resolution based on official results;
-- `confirmBeforeOfficialMatch` in user settings;
-- server-side `operationId` + revision semantics for game actions.
+- player career appearances, sets, points, blocks, service aces, awards, and `bestTournamentResultId`;
+- annual reputation resolution from official results;
+- `confirmBeforeOfficialMatch`;
+- server-side `operationId` + revision semantics for game actions;
+- the authoritative `simulateMatch` engine.
 
-Phase 6 must therefore extend the current architecture rather than create a parallel match engine.
+Phase 6 extends these boundaries instead of creating a parallel tournament service or second match engine.
 
-### 2.1 Persistent prefectural field
+---
 
-The prefectural bracket uses the existing 16 world schools. Their current rosters, condition, fatigue, tactics, facilities, and coach values remain the source of truth.
+## 3. World-size constraint
 
-### 2.2 National field without exploding the world size
+The current world contains the user school plus 15 persistent rival schools, all in the user's region.
 
-The existing save does not contain other-region schools. Phase 6 will not expand every save to hundreds of permanent schools.
+### Prefectural stage
 
-Instead, each national tournament contains:
+The prefectural bracket uses those existing 16 persistent schools and their live rosters.
 
-- the persistent prefectural champion from the user's 16-school region;
+### National stage
+
+Phase 6 does not expand every save to hundreds of permanent schools.
+
+Each national field contains:
+
+- the persistent champion from the user's prefectural bracket;
 - 15 deterministic guest regional representatives.
 
-Guest representatives exist only for the current national tournament. Their public identity/strength seed is persisted in tournament state. A detailed guest roster is generated deterministically only when needed for a user match and is not added permanently to the world roster.
-
-This preserves a credible national tournament while avoiding permanent save bloat.
+Guest representatives exist only inside the current national tournament. Their public identity and deterministic seed are persisted; their detailed roster is generated only when needed for a user match and is not permanently added to `state.schools` or `state.players`.
 
 ---
 
-## 3. Scope
+## 4. Scope
 
-Phase 6 contains:
+Phase 6 includes:
 
-1. two official tournament circuits per academic year;
-2. deterministic 16-school prefectural brackets;
-3. deterministic 16-school national brackets;
-4. automatic resolution of NPC-only bracket matches;
-5. user official matches using the existing `simulateMatch` engine;
-6. mandatory official-match gating before week advancement;
-7. tournament bracket and next-match UI;
-8. school official records/titles/national appearances;
-9. user-player career statistics from official matches;
-10. canonical tournament history across unlimited seasons;
-11. tournament effects on annual reputation/scouting quality through existing reputation rules;
-12. schema migration for existing Phase 5 saves;
-13. 30-year and 100-year tournament soak tests;
-14. mobile E2E and regression coverage for PvP, scouting, shop, and normal matches.
+1. Interhigh and Spring High circuits every academic year;
+2. 16-team prefectural brackets;
+3. 16-team national brackets;
+4. deterministic NPC-only bracket resolution;
+5. user official matches through `simulateMatch`;
+6. mandatory due-match gating before week advancement;
+7. tournament bracket/next-match UI;
+8. school official records and titles;
+9. player official-match career statistics;
+10. canonical multi-year tournament history;
+11. existing reputation/scouting integration;
+12. Phase 5 save migration to schema v3;
+13. deterministic 30-year and 100-year verification;
+14. mobile E2E plus existing PvP/scouting/shop regressions.
 
-Phase 6 excludes:
+Out of scope:
 
-- real-world prefecture datasets or 47 fully persistent regions;
-- live multiplayer tournaments;
-- PvP brackets;
-- transfer students;
-- individual tournament awards such as MVP/best six;
-- spectators, ticket revenue, sponsorship, or real-money rewards;
+- 47 fully persistent regions;
+- PvP/live multiplayer tournaments;
+- transfers;
+- MVP/best-six individual awards;
+- sponsorship/ticket revenue;
+- tournament reward currency;
 - user-editable brackets;
-- manual simulation of NPC-vs-NPC rallies;
-- a second match engine.
+- real-money features.
 
 ---
 
-## 4. Annual tournament calendar
+## 5. Annual schedule
 
-An academic year starts on April 1. Tournament scheduling uses academic-week offsets so it remains deterministic when the save year changes.
+Scheduling uses academic-week offsets from April 1.
 
-Phase 6 has two circuits.
+### Interhigh
 
-### 4.1 Interhigh circuit
-
-| Level | Round | Academic week |
+| Level | Round | Week |
 | --- | --- | ---: |
 | Prefectural | Round of 16 | 9 |
 | Prefectural | Quarterfinal | 10 |
@@ -99,9 +101,9 @@ Phase 6 has two circuits.
 | National | Semifinal | 18 |
 | National | Final | 19 |
 
-### 4.2 Spring High circuit
+### Spring High
 
-| Level | Round | Academic week |
+| Level | Round | Week |
 | --- | --- | ---: |
 | Prefectural | Round of 16 | 30 |
 | Prefectural | Quarterfinal | 31 |
@@ -112,17 +114,15 @@ Phase 6 has two circuits.
 | National | Semifinal | 43 |
 | National | Final | 44 |
 
-The schedule intentionally leaves normal training/recruiting weeks between major competitions.
-
-A user eliminated from a tournament is no longer blocked by that tournament's future rounds. NPC brackets continue automatically as weeks advance.
+Once the user is eliminated, future rounds of that stage no longer block week progression. NPC brackets continue automatically.
 
 ---
 
-## 5. Tournament domain model
+## 6. Domain model
 
-Phase 6 adds a dedicated domain model under `src/domain/tournament/`.
+Add focused modules under `src/domain/tournament/`.
 
-Recommended core types:
+Core types:
 
 ```ts
 type TournamentCircuit = "interhigh" | "spring-high";
@@ -151,8 +151,6 @@ type TournamentEntrant =
 interface TournamentBracketMatch {
   id: string;
   round: TournamentRound;
-  roundIndex: number;
-  slotIndex: number;
   scheduledWeek: number;
   homeEntrantId: string | null;
   awayEntrantId: string | null;
@@ -186,220 +184,180 @@ interface OfficialSeasonState {
 }
 ```
 
-`GameState` gains:
+`GameState` gains `officialSeason: OfficialSeasonState`.
 
-```ts
-officialSeason: OfficialSeasonState;
-```
-
-Tournament state is part of the authoritative game save. It is not a separate browser-owned store.
+Only the current academic year's detailed tournament state is retained.
 
 ---
 
-## 6. Game schema migration
+## 7. Save migration
 
-Phase 6 increments `CURRENT_GAME_SCHEMA_VERSION` from `2` to `3`.
+Increment `CURRENT_GAME_SCHEMA_VERSION` from `2` to `3` and add `migrateVersionTwo()`.
 
-`gameStateCodec` adds `migrateVersionTwo()`.
+A Phase 5 save migration must:
 
-For a Phase 5 save:
+- preserve all existing player/school/world/recruiting/shop state;
+- create the current academic year's `officialSeason`;
+- derive bracket seeds from save seed + academic year + circuit;
+- never reroll existing players;
+- avoid consuming unrelated global RNG.
 
-- preserve all existing world, player, school, scouting, PvP-independent, and shop effect state;
-- create an `officialSeason` for the save's current academic year;
-- derive bracket seeds from the save seed + academic year + circuit;
-- never reroll players or existing world state;
-- preserve current `randomCursor` unless tournament generation explicitly consumes a named deterministic sub-seed instead of the global cursor.
-
-Tournament generation should use named deterministic sub-seeds and must not perturb unrelated event/training RNG streams.
+Tournament generation uses named deterministic sub-seeds so adding Phase 6 does not change unrelated training/event/scouting randomness.
 
 ---
 
-## 7. Prefectural bracket generation
+## 8. Prefectural bracket generation
 
-The prefectural field is exactly the 16 persistent world schools.
-
-Bracket generation rules:
-
-1. calculate a deterministic seed strength from current team strength/reputation;
-2. place the top four seeds into separate bracket quadrants;
-3. shuffle remaining entrants with a tournament-specific deterministic RNG;
-4. bracket identity is stable for the entire stage;
-5. refresh/reload must never reroll the bracket.
-
-The user's school receives no special seeding beyond its actual current strength/reputation.
-
-The browser cannot submit an opponent school ID.
-
----
-
-## 8. National guest representatives
-
-After the prefectural final is resolved, the champion becomes the persistent representative for the national field.
-
-Fifteen guest regional representatives are generated from:
-
-- tournament circuit;
-- academic year;
-- national tournament ID;
-- guest slot index.
-
-Each guest entrant stores only the data required to reproduce its team and present the bracket:
-
-- public school name/short name;
-- region label;
-- deterministic `guestSeed`;
-- bounded seed strength.
-
-Guest strengths use a distribution centered above an average prefectural field so qualifying for nationals materially raises difficulty, while still allowing upsets.
-
-When the user must play a guest school, the Worker builds a temporary detailed school/roster/selection from `guestSeed`, merges it into a temporary simulation state, runs the normal `simulateMatch`, and discards the guest roster after producing the authoritative result.
-
-The persistent save does not accumulate guest players across seasons.
-
----
-
-## 9. NPC-only match resolution
-
-NPC-vs-NPC matches do not run the full rally simulator.
-
-They use one deterministic bracket resolver based on entrant strength plus bounded tournament variance.
+The field is exactly the 16 persistent world schools.
 
 Rules:
 
-- stronger teams are favored but never guaranteed;
-- win probability is bounded so upsets remain possible;
-- result is deterministic for the same tournament/match seed;
-- public set result is either `2-0` or `2-1`;
-- no player career stats are fabricated for NPC-only approximate matches;
-- persistent world schools still receive official win/loss/title counters where applicable.
+1. calculate deterministic seed strength from current team strength/reputation;
+2. place the top four seeds into separate quadrants;
+3. deterministic-shuffle the remaining entrants;
+4. persist the bracket for the stage;
+5. refresh/reload never rerolls it;
+6. the user gets no artificial seed bonus.
 
-This keeps long-run 100-year simulation inexpensive while preserving meaningful bracket outcomes.
+The browser cannot submit an opponent ID.
 
 ---
 
-## 10. User official-match action
+## 9. National guest representatives
 
-Phase 6 extends the existing game action union with:
+After a prefectural final, its persistent champion enters the national field.
+
+Fifteen guests are generated from circuit, academic year, national tournament ID, and slot index.
+
+Persisted guest fields are limited to identity, region label, `guestSeed`, and bounded seed strength.
+
+When the user faces a guest, the Worker deterministically creates a temporary school/roster/selection from `guestSeed`, augments a temporary simulation state, runs normal `simulateMatch`, then discards the temporary roster.
+
+Guest players never accumulate in the permanent save.
+
+---
+
+## 10. NPC-only resolution
+
+NPC-vs-NPC bracket matches use a deterministic lightweight resolver rather than full rally simulation.
+
+Rules:
+
+- team strength influences but does not guarantee the result;
+- win probability is bounded to allow upsets;
+- the same tournament/match seed always produces the same result;
+- public score is `2-0` or `2-1`;
+- no fake player career stats are generated;
+- persistent world schools still receive official win/loss/title counters where applicable.
+
+This keeps 100-year simulation affordable.
+
+---
+
+## 11. Official match action
+
+Extend the existing game action union with:
 
 ```ts
 { type: "official-match" }
 ```
 
-The request intentionally contains no:
+The request contains no opponent, tournament, round, seed, score, or reward fields.
 
-- opponent ID;
-- tournament ID;
-- round;
-- random seed;
-- result;
-- reward value.
+The Worker derives the current due match from authoritative `officialSeason` and academic week.
 
-The Worker derives all of those from authoritative `officialSeason` state and the current academic week.
+### Preconditions
 
-### 10.1 Preconditions
+A user official match is allowed only when:
 
-An official match is allowed only when:
+- one unresolved `user-required` match is due this week;
+- revision matches;
+- current-week training is complete;
+- current team selection is valid;
+- that bracket match is not already completed.
 
-- an unresolved `user-required` tournament match exists for the current week;
-- the user's current game revision matches;
-- the current week's training is completed;
-- the current team selection is valid;
-- the user has not already completed that tournament match.
-
-Otherwise return a specific rule conflict such as:
+Expected conflicts include:
 
 - `official_match_not_due`;
 - `official_match_training_required`;
 - `official_match_already_completed`;
 - `official_match_invalid_team`.
 
-### 10.2 Idempotency
+### Idempotency
 
-Official matches reuse the existing `/game/action` operation ledger.
+Reuse the existing `/game/action` operation ledger.
 
-The same `operationId` + same request returns the stored response and cannot:
+The same `operationId` and same request returns the stored result and cannot double-count match history, career stats, titles, qualification, or bracket advancement.
 
-- play the same official match twice;
-- double-count school wins/losses;
-- double-count player statistics;
-- grant two titles;
-- advance the bracket twice.
-
-A stale revision produces the existing revision conflict and does not mutate the bracket.
+A stale revision changes nothing.
 
 ---
 
-## 11. Week progression and mandatory match gate
+## 12. Week progression
 
-Training remains the normal weekly prerequisite.
+On a due official-match week:
 
-On a week with a user official match:
+1. complete normal training;
+2. play the official match;
+3. commit match/bracket/history/stats atomically;
+4. then allow `advance-week`.
 
-1. user completes normal training;
-2. official match becomes executable;
-3. user plays the official match;
-4. the result/bracket/history/statistics are committed atomically;
-5. only then may the user advance to the next week.
+`advance-week` returns `official_match_required` while a due user match remains unresolved.
 
-`advance-week` must reject advancement with `official_match_required` while the current week's user-required official match remains unresolved.
+Practice matches stay optional and do not satisfy this gate.
 
-Practice matches remain optional and cannot satisfy or replace an official match.
-
-Advancing a week also runs `advanceOfficialTournamentsThroughWeek()` so NPC-only matches scheduled up to the new week are resolved automatically.
+Advancing a week runs `advanceOfficialTournamentsThroughWeek()` to resolve NPC-only matches scheduled up through the new week.
 
 ---
 
-## 12. Official match simulation
+## 13. User match simulation
 
-User official matches use the existing `simulateMatch` implementation and the current user `TeamSelection`.
+User official matches reuse `simulateMatch` with `bestOfSets = 3`.
 
-Persistent-world opponents use `autoSelectTeam()` against their live roster.
+- persistent opponent: live school + `autoSelectTeam()`;
+- guest opponent: deterministic temporary guest school/roster/selection.
 
-National guest opponents use the temporary deterministic guest roster described above.
-
-All Phase 6 official matches use `bestOfSets = 3` for MVP consistency.
-
-The resulting match summary uses a tournament ID that encodes circuit, level, year, and round, for example:
+Tournament IDs encode year/circuit/level/round, for example:
 
 `official:interhigh:1:prefectural:semifinal`.
 
-This allows the existing `recordMatchOutcome()` path to update rivalry and official win/loss counters without creating a parallel history path.
+For world-school vs world-school official matches, reuse the existing `recordMatchOutcome()` path.
+
+For user vs guest national matches, use a new focused `recordOfficialTournamentOutcome()` wrapper. It must:
+
+- preserve a readable opponent snapshot (`displayName`, `shortName`) in the historical match record;
+- increment the persistent user's official win/loss exactly once even though the guest is not in `state.schools`;
+- append the canonical historical match exactly once;
+- avoid creating rivalry state for a non-persistent guest;
+- avoid permanently inserting the guest school or players.
+
+`HistoricalMatchSummary` therefore gains optional immutable participant display snapshots for history rendering when a referenced school is transient.
+
+This avoids dangling guest school IDs after the tournament ends.
 
 ---
 
-## 13. School history and tournament achievements
+## 14. School achievements
 
-`recordMatchOutcome()` remains the canonical match-history insertion and official win/loss counter path.
+Existing `recordMatchOutcome()` remains canonical for persistent-world official matches.
 
-Phase 6 adds explicit stage-completion updates:
+Stage completion additionally applies:
 
-### Prefectural title
+- prefectural champion: `prefecturalTitles += 1`;
+- persistent entrant reaching nationals: `nationalAppearances += 1` exactly once per national tournament;
+- persistent national champion: `nationalTitles += 1`.
 
-When a persistent world school wins a prefectural final:
+Guest representatives never create persistent `School` records.
 
-- `school.history.prefecturalTitles += 1`.
-
-### National appearance
-
-When a persistent world school enters a national bracket:
-
-- `school.history.nationalAppearances += 1` exactly once for that tournament.
-
-### National title
-
-When a persistent world school wins a national final:
-
-- `school.history.nationalTitles += 1`.
-
-Guest representatives do not create persistent `School` records.
-
-These counters flow into the existing annual reputation resolver, so tournament success naturally changes future reputation/scouting outcomes.
+These counters feed the existing annual `resolveSeasonReputation()` logic. Phase 6 adds no second reputation formula or tournament currency.
 
 ---
 
-## 14. Canonical tournament history
+## 15. Canonical tournament history
 
-The current `nationalChampionSchoolIdsByYear` map cannot represent two national tournaments in one academic year. Phase 6 therefore adds a canonical history collection:
+`nationalChampionSchoolIdsByYear` cannot represent two national tournaments in one academic year.
+
+Add:
 
 ```ts
 interface OfficialTournamentSummary {
@@ -422,27 +380,27 @@ interface OfficialTournamentSummary {
 GameHistory.officialTournaments: OfficialTournamentSummary[];
 ```
 
-The collection is append-only with a bounded retention policy large enough for long careers.
+This is the canonical history for new UI/features.
 
-For backwards compatibility, `nationalChampionSchoolIdsByYear` remains present but becomes a legacy mirror of the season-ending Spring High national champion when that champion is a persistent world school. New UI/history features use `officialTournaments` as canonical data.
+`nationalChampionSchoolIdsByYear` remains as a legacy mirror of the season-ending Spring High national champion only when that champion is a persistent world school.
+
+Tournament summary retention is explicitly bounded for at least 100 academic years.
 
 ---
 
-## 15. Player career statistics
+## 16. Player career stats
 
-Official user matches update career statistics for persistent players only.
+For user official matches, persistent players receive:
 
-For each user official match:
+- `appearances += 1` for starting rotation and libero;
+- `setsPlayed += completed set count` for those participants;
+- `points` from authoritative point events;
+- `blocks` from `point.block`;
+- `serviceAces` from `point.serve-ace`.
 
-- `appearances += 1` for starting rotation players and libero;
-- `setsPlayed += completed set count` for those players;
-- `points +=` authoritative point events credited to that player;
-- `blocks +=` `point.block` events credited to that player;
-- `serviceAces +=` `point.serve-ace` events credited to that player.
+The stat collector is isolated so future real substitutions can add incoming players without changing tournament progression.
 
-If substitution support later becomes active in the simulator, any incoming substitute who actually enters is also counted as an appearance. Phase 6 must structure the stat collector so this can be added without changing tournament logic.
-
-`bestTournamentResultId` is updated only when the new result outranks the player's prior result using one explicit precedence table:
+`bestTournamentResultId` only improves according to one precedence table:
 
 1. Spring High national champion;
 2. Interhigh national champion;
@@ -456,144 +414,115 @@ If substitution support later becomes active in the simulator, any incoming subs
 10. prefectural quarterfinalist;
 11. prefectural participant.
 
-Phase 6 does not introduce individual MVP/best-six awards.
+No individual MVP/best-six awards are added in Phase 6.
 
 ---
 
-## 16. Tournament UI
+## 17. UI
 
-### 16.1 Home
+### Home
 
-Home adds a compact `次の公式戦` card when the user remains active in an upcoming tournament.
+Add a compact `次の公式戦` card showing:
 
-Example:
+- tournament/round;
+- opponent;
+- `あとN週` or `今週`;
+- training/match readiness.
 
-- `インターハイ県予選 準々決勝`;
-- `vs 白峰学園`;
-- `あと2週` or `今週`;
-- training/match readiness state.
+If the user is eliminated, show the next circuit start rather than a blank card.
 
-When no user tournament match remains, show the next circuit start rather than an empty card.
+### Match tab
 
-### 16.2 Match tab
+Add an official-tournament entry above practice/PvP when relevant.
 
-The normal match area gains an official-tournament entry above practice/PvP when relevant.
-
-Tournament screen contains:
+The tournament screen shows:
 
 - tournament name;
-- level (`県予選` / `全国大会`);
+- `県予選` / `全国大会`;
 - current round;
 - 16-team bracket;
-- user's path highlighted;
+- highlighted user path;
 - completed set scores;
 - next opponent;
-- status (`準備中`, `今週`, `敗退`, `優勝`);
-- official-match start button when due.
+- `準備中` / `今週` / `敗退` / `優勝` status;
+- official-match button when due.
 
-Existing practice match and PvP remain separate modes.
+The bracket must remain page-width safe on 320/360/390/480px. Horizontal movement, if needed inside the bracket itself, must be contained inside a labeled bracket region and must not cause body-level horizontal overflow.
 
-### 16.3 Match confirmation
+### Confirmation and async states
 
-If `settings.confirmBeforeOfficialMatch` is true, starting an official match requires the existing confirmation pattern.
+If `confirmBeforeOfficialMatch` is true, use a confirmation step showing tournament, round, opponent, and current lineup.
 
-The confirmation shows tournament/round/opponent and current lineup status, but cannot alter the server-derived opponent.
-
-### 16.4 Visible async states
-
-Required labels include:
+Required visible async/recovery states include:
 
 - `大会情報を読み込んでいます…`;
 - `公式戦を開始しています…`;
 - `試合結果を確定しています…`;
 - `大会結果を保存しています…`;
-- `最新のゲーム状態を読み込みました。もう一度お試しください`;
-- `公式戦の結果を確認できませんでした [再試行]` for an unknown network result.
+- revision recovery message;
+- unknown-result retry using the exact same `operationId`.
 
-No blank screen or unlabelled frozen state is allowed.
-
-Unknown-result retry must reuse the exact same operation request/`operationId`.
+No blank or unlabeled frozen screen is allowed.
 
 ---
 
-## 17. Calendar integration
+## 18. Calendar projection
 
-Tournament helpers add/update `ScheduledActivity` entries for the user's relevant official rounds.
+Tournament state is authoritative. Calendar activities are presentation projections only.
 
-Mapping:
+Use:
 
-- prefectural qualification rounds → `prefectural-tournament`;
+- prefectural rounds → `prefectural-tournament`;
 - national rounds → `national-tournament`.
 
-Each activity includes metadata for circuit, level, round, and tournament ID. User-required current matches are `mandatory: true`.
+Current due user matches are `mandatory: true` and carry circuit/level/round/tournament metadata.
 
-Elimination removes future user-mandatory activities for that stage. NPC tournament progression does not require browser calendar actions.
-
-The tournament state remains authoritative; calendar activities are presentation/scheduling projections and must not be used as the sole bracket source of truth.
+Elimination removes future user-mandatory activities for that stage.
 
 ---
 
-## 18. Reputation and scouting integration
+## 19. Security and authority
 
-Phase 6 does not add a second reputation formula.
+Never client-authoritative:
 
-Official wins/losses, prefectural titles, national appearances, and national titles feed the existing `resolveSeasonReputation()` calculation at the next academic-year rollover.
-
-Because scouting quality already depends on school reputation/recent season performance, tournament success then improves future recruiting through the existing Phase 2 model.
-
-This is the intended long-term loop and avoids one-off tournament reward currencies.
-
----
-
-## 19. Security and authority boundaries
-
-The following values are never client-authoritative:
-
-- bracket seed/order;
+- bracket order;
 - opponent assignment;
-- guest representative strength/roster generation rules;
+- guest generation strength/roster rules;
 - NPC result;
-- user official-match random seed;
-- match winner/set scores;
-- school history increments;
-- player career-stat increments;
-- tournament title;
-- national qualification;
-- reputation result.
+- official-match seed/result;
+- school/player record increments;
+- title/qualification;
+- reputation outcome.
 
-The browser may send only the generic `official-match` game action through the existing authenticated game endpoint.
+The browser sends only the generic authenticated `official-match` action.
 
 No browser direct Supabase write is introduced.
 
-Phase 6 does not alter PvP DTO privacy. Guest tournament data must not be added to published PvP snapshots. `shopEffects` remain excluded from ranked PvP as established in Phase 5.
+Phase 6 does not alter PvP privacy. Tournament guest data and current tournament state must not enter published PvP DTOs. Phase 5 `shopEffects` remain excluded from ranked PvP.
 
 ---
 
-## 20. Atomicity and failure behavior
+## 20. Atomicity
 
-One successful official-match game operation atomically persists:
+One committed official-match operation persists together:
 
-- GameState revision;
-- active match/result;
-- tournament bracket result;
-- school official records/rivalry history;
-- player career stats;
-- stage title/qualification changes;
-- newly derived next-round state.
+- game revision;
+- authoritative match result;
+- bracket result/next round;
+- school official records;
+- historical match record;
+- user player career stats;
+- title/qualification changes.
 
-If persistence fails, none of those changes are considered committed.
+Persistence failure means none of those changes are committed.
 
-A retry with the same operation ID returns the prior committed response.
-
-A new operation with a stale revision is rejected before simulation is committed.
+Same-op replay returns the stored response; stale revision mutates nothing.
 
 ---
 
 ## 21. Determinism
 
-Phase 6 introduces named deterministic tournament seeds instead of consuming unrelated global RNG during bracket creation.
-
-Seed families include:
+Use named tournament sub-seeds such as:
 
 - `tournament:<academicYear>:<circuit>:prefectural:bracket`;
 - `tournament:<academicYear>:<circuit>:national:field`;
@@ -601,105 +530,77 @@ Seed families include:
 - `tournament:<tournamentId>:guest:<slotIndex>`;
 - `tournament:<tournamentId>:user:<matchId>`.
 
-The same save state + operation produces the same bracket and authoritative simulation input.
-
-Tournament implementation must not change unrelated event/scouting/training randomness merely because Phase 6 exists.
+Tournament setup must not perturb unrelated global RNG streams.
 
 ---
 
 ## 22. Long-run bounds
 
-Unlimited play must not cause unbounded transient tournament state.
+- detailed state: current academic year only;
+- historical tournaments: bounded summaries;
+- guest rosters: never permanent;
+- generic match history: existing bounded policy;
+- no stale user-required tournament match may survive past its stage/year.
 
-Rules:
-
-- only the current academic year's detailed `officialSeason` is retained;
-- completed historical tournaments are reduced to `OfficialTournamentSummary`;
-- guest rosters are never appended permanently to `state.players`;
-- full match history continues to use the existing bounded match-history policy;
-- tournament summary history receives its own explicit maximum retention count sufficient for at least 100 academic years × 4 stage summaries if all four stage summaries are retained.
-
-A 100-year soak must remain bounded and deterministic.
+A deterministic 100-year soak must remain bounded.
 
 ---
 
-## 23. Testing strategy
+## 23. Testing
 
-### 23.1 Domain tests
-
-Cover:
+### Domain
 
 - stable bracket generation;
-- top-four seed quadrant separation;
-- deterministic guest field generation;
-- deterministic NPC results;
-- user qualification/elimination transitions;
-- two circuits per academic year;
-- no future mandatory matches after elimination;
-- stage title counters exactly once;
-- national appearance/title counters exactly once;
-- canonical tournament-history summaries;
-- player stat extraction from match event logs;
-- tournament result precedence for `bestTournamentResultId`;
-- schema v2 → v3 migration.
+- top-four quadrant separation;
+- guest field determinism;
+- NPC result determinism/upsets;
+- qualification/elimination transitions;
+- both circuits every year;
+- title/appearance counters exactly once;
+- transient guest history snapshots remain readable;
+- player event-log stat extraction;
+- `bestTournamentResultId` precedence;
+- v2 → v3 migration.
 
-### 23.2 Worker/game action tests
+### Worker/game action
 
-TDD cases include:
+- official match before training rejected;
+- no due match rejected;
+- stale revision preserves everything;
+- duplicate operation replay does not double mutate;
+- request cannot select opponent;
+- world opponent and guest opponent both commit correctly;
+- due official match blocks week progression;
+- week progression resolves NPC-only matches.
 
-- official match before training is rejected;
-- no due match is rejected;
-- stale revision leaves bracket/history/stats unchanged;
-- duplicate operation ID replays without double mutation;
-- user cannot submit/select opponent;
-- official match commits bracket + history + stats together;
-- week advancement is blocked by due official match;
-- week advancement auto-resolves NPC-only matches.
+### Long-run
 
-### 23.3 Long-run tests
+- deterministic 30-year official-season progression;
+- deterministic bounded 100-year soak;
+- both circuits conclude each academic year;
+- no permanently stuck stage;
+- school title/appearance counters remain internally consistent.
 
-Add deterministic:
+### UI/E2E
 
-- 30-year tournament progression test;
-- 100-year bounded world/tournament soak;
-- assertion that each academic year produces both circuit conclusions;
-- assertion that no tournament is permanently stuck in an unresolved state;
-- assertion that title/appearance counts remain internally consistent.
-
-### 23.4 UI tests
-
-Cover:
-
-- Home next official match card;
-- tournament bracket rendering;
-- current user path highlighting;
-- training-required state;
-- official-match confirmation setting;
-- visible pending/result/error states;
-- elimination and championship states;
-- narrow-width bracket presentation without page-level horizontal overflow.
-
-### 23.5 E2E
-
-Required mobile flows:
-
-1. reach an Interhigh prefectural user match;
-2. training is required first;
-3. start official match and see visible pending state;
-4. result appears and bracket advances;
-5. reload preserves result without replay;
-6. duplicate/unknown result retry grants one result only;
-7. stale revision is recoverable without double stats;
-8. elimination permits future week progression;
+1. reach Interhigh prefectural match;
+2. training required first;
+3. visible pending official-match state;
+4. bracket advances after result;
+5. reload preserves result;
+6. unknown-result retry applies once;
+7. stale revision does not double stats;
+8. elimination allows future week progression;
 9. prefectural championship creates national qualification;
-10. supported 320/360/390/480px widths remain usable;
-11. existing scouting/PvP/shop E2E remains green.
+10. national guest opponent result/history remains readable;
+11. 320/360/390/480px body has no horizontal overflow;
+12. existing practice match, scouting, PvP, and shop E2E remain green.
 
 ---
 
 ## 24. Implementation boundaries
 
-Expected new focused modules:
+Expected focused modules:
 
 - `src/domain/tournament/tournamentModel.ts`;
 - `src/domain/tournament/tournamentSchedule.ts`;
@@ -711,31 +612,23 @@ Expected new focused modules:
 - `src/features/tournament/OfficialTournamentScreen.tsx`;
 - `src/features/tournament/tournament.css`.
 
-Existing files should be changed only where the feature boundary requires it:
+Touch existing `GameState`, codec, world/year progression, Worker game action, GameApp/Home/Match, and history presentation only at required integration points.
 
-- `GameState` / persistence codec for schema v3 and history;
-- `generateWorld` / academic-year progression for season creation;
-- `weekProgression` / Worker game action for due-match gates/progression;
-- `GameApp` / Home / Match UI for navigation and execution;
-- existing match/world helpers for reusable result recording.
-
-Do not fold all tournament logic into `GameApp.tsx` or `applyGameAction.ts`.
+Do not put the tournament engine inside `GameApp.tsx` or `applyGameAction.ts`.
 
 ---
 
-## 25. Rollout and stacked PR
+## 25. Stacked development
 
-Development branch:
+Branch:
 
 `feature/court-legacy-v2-phase6-official-tournaments`
 
-Base branch:
+Base:
 
 `feature/court-legacy-v2-phase5-shop-mvp`
 
-Phase 6 is a stacked change on Phase 5. The final PR remains Draft and unmerged until explicit integration authorization.
-
-Phase 6 should not retarget or merge Phase 4/5 during implementation.
+The final Phase 6 PR remains Draft and unmerged until explicit integration authorization. Phase 4/5 remain unmerged during Phase 6 work.
 
 ---
 
@@ -743,16 +636,17 @@ Phase 6 should not retarget or merge Phase 4/5 during implementation.
 
 Phase 6 is complete only when:
 
-- both official circuits progress from prefectural Round of 16 through national final;
-- user official matches use the real match simulator;
-- NPC-only tournament progression is deterministic and bounded;
+- both circuits progress from prefectural Round of 16 through national final;
+- user matches use real `simulateMatch`;
+- NPC progression is deterministic and bounded;
 - losing never ends the save;
-- tournament results feed existing reputation/scouting progression;
-- player official-match career stats persist into graduation summaries;
-- old Phase 5 saves migrate safely to schema v3;
-- duplicate/stale operations cannot double-apply results;
-- no new browser authority or PvP data leakage exists;
-- full `npm run verify` is green;
+- official results feed existing annual reputation/scouting;
+- player career stats survive into graduation summaries;
+- transient national guests leave readable history without save bloat;
+- Phase 5 saves migrate safely to schema v3;
+- stale/duplicate operations cannot double-apply results;
+- no new browser authority or PvP leakage exists;
+- `npm run verify` is green;
 - full Playwright E2E is green;
-- 30-year and 100-year tournament simulations are green;
+- 30-year and 100-year tournament tests are green;
 - a Draft stacked PR exists and remains unmerged.
