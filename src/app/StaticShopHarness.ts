@@ -49,7 +49,7 @@ function purchaseFingerprint(request: ShopPurchaseRequest): string {
   });
 }
 
-function useFingerprint(request: ShopUseRequest): string {
+function shopUseFingerprint(request: ShopUseRequest): string {
   return JSON.stringify({
     operationType: "use",
     revision: request.revision,
@@ -202,10 +202,13 @@ export class StaticShopHarness {
   }
 
   use(request: ShopUseRequest): ShopUseResponse {
-    const fingerprint = useFingerprint(request);
+    const fingerprint = shopUseFingerprint(request);
     const cached = this.operations.get(request.operationId);
     if (cached) {
-      if (cached.operationType === "use" && cached.fingerprint === fingerprint) {
+      if (
+        cached.operationType === "use" &&
+        cached.fingerprint === fingerprint
+      ) {
         return cached.response;
       }
       throw operationReused();
@@ -239,7 +242,11 @@ export class StaticShopHarness {
       );
     }
     if (item.quantityOwned <= 0) {
-      throw new ApiError(409, "inventory_empty", "このアイテムを所持していません");
+      throw new ApiError(
+        409,
+        "inventory_empty",
+        "このアイテムを所持していません",
+      );
     }
 
     item.quantityOwned -= 1;
