@@ -5,6 +5,7 @@ import type {
 import type { GameStore } from "./data/GameStore";
 import type { PvPStore } from "./data/PvPStore";
 import type { ScoutingStore } from "./data/ScoutingStore";
+import type { ShopStore } from "./data/ShopStore";
 import { json, jsonError } from "./http/json";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
@@ -16,6 +17,9 @@ import { createPvpPublishHandler } from "./routes/pvpPublish";
 import { createPvpRankingHandler } from "./routes/pvpRanking";
 import { createScoutingBoardHandler } from "./routes/scoutingBoard";
 import { createScoutingRecruitmentHandler } from "./routes/scoutingRecruitment";
+import { createShopPurchaseHandler } from "./routes/shopPurchase";
+import { createShopStatusHandler } from "./routes/shopStatus";
+import { createShopUseHandler } from "./routes/shopUse";
 
 export type AuthenticatedRequestHandler = (
   request: Request,
@@ -27,6 +31,7 @@ export interface WorkerDependencies {
   store: GameStore;
   scoutingStore?: ScoutingStore;
   pvpStore?: PvPStore;
+  shopStore?: ShopStore;
   createCreationNonce?: () => string;
   createPvpMatchNonce?: () => string;
   now?: () => Date;
@@ -90,6 +95,22 @@ export function createRouter(
   const pvpHistory = deps.pvpStore
     ? createPvpHistoryHandler({ pvpStore: deps.pvpStore, now: deps.now })
     : null;
+  const shopStatus = deps.shopStore
+    ? createShopStatusHandler({
+        gameStore: deps.store,
+        shopStore: deps.shopStore,
+      })
+    : null;
+  const shopPurchase = deps.shopStore
+    ? createShopPurchaseHandler({ shopStore: deps.shopStore })
+    : null;
+  const shopUse = deps.shopStore
+    ? createShopUseHandler({
+        gameStore: deps.store,
+        shopStore: deps.shopStore,
+        scoutingStore: deps.scoutingStore,
+      })
+    : null;
 
   return async (request) => {
     const url = new URL(request.url);
@@ -127,6 +148,23 @@ export function createRouter(
       }
       if (url.pathname === "/api/game/action" && request.method === "POST") {
         return await gameAction(request, user);
+      }
+      if (url.pathname === "/api/shop" && request.method === "GET" && shopStatus) {
+        return await shopStatus(request, user);
+      }
+      if (
+        url.pathname === "/api/shop/purchase" &&
+        request.method === "POST" &&
+        shopPurchase
+      ) {
+        return await shopPurchase(request, user);
+      }
+      if (
+        url.pathname === "/api/shop/use" &&
+        request.method === "POST" &&
+        shopUse
+      ) {
+        return await shopUse(request, user);
       }
       if (
         url.pathname === "/api/scouting/board" &&
