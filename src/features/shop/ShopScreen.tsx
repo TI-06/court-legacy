@@ -112,8 +112,12 @@ function ShopUseResultPanel({
       <section className="shop-use-result" aria-live="polite">
         <h3>疲労回復の結果</h3>
         <div className="shop-use-result__metrics">
-          <span>疲労 {beforeFatigue} → {afterFatigue}</span>
-          <span>状態 {beforeCondition} → {afterCondition}</span>
+          <span>
+            疲労 {beforeFatigue} → {afterFatigue}
+          </span>
+          <span>
+            状態 {beforeCondition} → {afterCondition}
+          </span>
         </div>
       </section>
     );
@@ -149,7 +153,8 @@ function ShopUseResultPanel({
   }
 
   if (presentation.itemId === "special-coach") {
-    const playerId = typeof result.playerId === "string" ? result.playerId : null;
+    const playerId =
+      typeof result.playerId === "string" ? result.playerId : null;
     const totalAbilityGrowth = asNumber(result.totalAbilityGrowth);
     const fatigueChange = asNumber(result.fatigueChange);
     const abilityChanges = asRecord(result.abilityChanges);
@@ -175,12 +180,16 @@ function ShopUseResultPanel({
       <section className="shop-use-result" aria-live="polite">
         <h3>特別コーチの結果</h3>
         {player ? (
-          <strong>{player.lastName} {player.firstName}</strong>
+          <strong>
+            {player.lastName} {player.firstName}
+          </strong>
         ) : null}
         <div className="shop-use-result__metrics">
           <span>能力成長 {signed(totalAbilityGrowth)}</span>
           {changedAbilities.map(([ability, value]) => (
-            <span key={ability}>{abilityLabels[ability]} {signed(value)}</span>
+            <span key={ability}>
+              {abilityLabels[ability]} {signed(value)}
+            </span>
           ))}
           <span>疲労 {signed(fatigueChange)}</span>
         </div>

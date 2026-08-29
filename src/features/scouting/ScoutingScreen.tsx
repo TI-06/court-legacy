@@ -81,12 +81,13 @@ function ScoutingShopUseResult({
       </h2>
       <div className="scouting-shop-result__metrics">
         <span>
-          現在能力 {before.estimatedOverall.min}〜{before.estimatedOverall.max} →{" "}
-          {after.estimatedOverall.min}〜{after.estimatedOverall.max}
+          現在能力 {before.estimatedOverall.min}〜{before.estimatedOverall.max}{" "}
+          → {after.estimatedOverall.min}〜{after.estimatedOverall.max}
         </span>
         <span>
-          将来性 {before.estimatedPotential.min}〜{before.estimatedPotential.max} →{" "}
-          {after.estimatedPotential.min}〜{after.estimatedPotential.max}
+          将来性 {before.estimatedPotential.min}〜
+          {before.estimatedPotential.max} → {after.estimatedPotential.min}〜
+          {after.estimatedPotential.max}
         </span>
         <span>
           調査精度 {confidenceLabels[before.confidence]} →{" "}
