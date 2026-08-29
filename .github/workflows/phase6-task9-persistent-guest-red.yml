@@ -1,0 +1,19 @@
+name: Phase 6 Task 9 Persistent Guest RED
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+jobs:
+  persistent-guest-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Run persistent guest NPC regression
+        run: npm test -- tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts
