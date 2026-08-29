@@ -1,0 +1,74 @@
+name: Phase 6 Task 8 Match Entry Green
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  match-entry-green:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format official match entry
+        run: >-
+          npx prettier
+          src/features/match/MatchOfficialEntry.tsx
+          src/features/match/matchOfficialEntry.css
+          tests/unit/features/match/MatchOfficialEntry.test.tsx
+          --write
+      - name: Verify official match entry in isolation
+        run: |
+          npm test -- tests/unit/features/match/MatchOfficialEntry.test.tsx
+          npm run typecheck
+      - name: Wire entry into GameApp
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/app/GameApp.tsx')
+          text = path.read_text()
+
+          def replace_once(old: str, new: str):
+              global text
+              if old not in text:
+                  raise SystemExit(f'patch target not found:\n{old}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              'import { MatchPvpEntry } from "../features/match/MatchPvpEntry";\n',
+              'import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";\nimport { MatchPvpEntry } from "../features/match/MatchPvpEntry";\n',
+          )
+          replace_once(
+              '      <div className="match-hub-screen">\n        {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}\n',
+              '      <div className="match-hub-screen">\n        {!activeMatchResult ? (\n          <MatchOfficialEntry onOpen={openOfficialTournament} state={gameState} />\n        ) : null}\n        {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}\n',
+          )
+
+          path.write_text(text)
+          PY
+      - run: npx prettier src/app/GameApp.tsx --write
+      - name: Verify integrated match hub
+        run: |
+          npm test -- tests/unit/features/match/MatchOfficialEntry.test.tsx tests/unit/app/GameApp.officialTournament.test.tsx tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/tournament/TournamentScreen.test.tsx
+          npm run typecheck
+      - name: Commit match entry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/GameApp.tsx src/features/match/MatchOfficialEntry.tsx src/features/match/matchOfficialEntry.css tests/unit/features/match/MatchOfficialEntry.test.tsx
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "feat: add official tournament match entry"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
