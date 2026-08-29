@@ -99,17 +99,17 @@ describe("weekly team dynamics progression", () => {
   });
 
   it("maps morale and trust independently to bounded 95..105 training modifiers", () => {
-    expect(calculateDynamicsTrainingModifiers({ morale: 0, trust: 100 })).toEqual(
-      [
-        { code: "morale", label: "士気", percent: 95 },
-        { code: "trust", label: "信頼", percent: 105 },
-      ],
-    );
-    expect(calculateDynamicsTrainingModifiers({ morale: 50, trust: 50 })).toEqual(
-      [
-        { code: "morale", label: "士気", percent: 100 },
-        { code: "trust", label: "信頼", percent: 100 },
-      ],
-    );
+    expect(
+      calculateDynamicsTrainingModifiers({ morale: 0, trust: 100 }),
+    ).toEqual([
+      { code: "morale", label: "士気", percent: 95 },
+      { code: "trust", label: "信頼", percent: 105 },
+    ]);
+    expect(
+      calculateDynamicsTrainingModifiers({ morale: 50, trust: 50 }),
+    ).toEqual([
+      { code: "morale", label: "士気", percent: 100 },
+      { code: "trust", label: "信頼", percent: 100 },
+    ]);
   });
 });
