@@ -119,9 +119,9 @@ describe("tournament presentation selectors", () => {
 
     expect(view?.entrants).toHaveLength(16);
     expect(view?.matches).toHaveLength(15);
-    expect(
-      view?.entrants.some((entrant) => entrant.regionLabel !== null),
-    ).toBe(true);
+    expect(view?.entrants.some((entrant) => entrant.regionLabel !== null)).toBe(
+      true,
+    );
     const serialized = JSON.stringify(view);
     expect(serialized).not.toContain("guestSeed");
     expect(serialized).not.toContain("seedStrength");
@@ -145,11 +145,7 @@ describe("tournament presentation selectors", () => {
       },
     };
 
-    const view = selectTournamentStageView(
-      state,
-      "interhigh",
-      "prefectural",
-    );
+    const view = selectTournamentStageView(state, "interhigh", "prefectural");
 
     expect(view).toMatchObject({
       status: "eliminated",
