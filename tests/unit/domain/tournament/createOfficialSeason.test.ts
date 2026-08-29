@@ -20,24 +20,46 @@ function createState(seed = "phase6-tournament-fixture") {
 
 describe("official tournament schedule", () => {
   it("uses the approved Interhigh academic weeks", () => {
-    expect(tournamentRoundWeek("interhigh", "prefectural", "round-of-16")).toBe(9);
-    expect(tournamentRoundWeek("interhigh", "prefectural", "quarterfinal")).toBe(10);
-    expect(tournamentRoundWeek("interhigh", "prefectural", "semifinal")).toBe(11);
+    expect(tournamentRoundWeek("interhigh", "prefectural", "round-of-16")).toBe(
+      9,
+    );
+    expect(
+      tournamentRoundWeek("interhigh", "prefectural", "quarterfinal"),
+    ).toBe(10);
+    expect(tournamentRoundWeek("interhigh", "prefectural", "semifinal")).toBe(
+      11,
+    );
     expect(tournamentRoundWeek("interhigh", "prefectural", "final")).toBe(12);
-    expect(tournamentRoundWeek("interhigh", "national", "round-of-16")).toBe(16);
-    expect(tournamentRoundWeek("interhigh", "national", "quarterfinal")).toBe(17);
+    expect(tournamentRoundWeek("interhigh", "national", "round-of-16")).toBe(
+      16,
+    );
+    expect(tournamentRoundWeek("interhigh", "national", "quarterfinal")).toBe(
+      17,
+    );
     expect(tournamentRoundWeek("interhigh", "national", "semifinal")).toBe(18);
     expect(tournamentRoundWeek("interhigh", "national", "final")).toBe(19);
   });
 
   it("uses the approved Spring High academic weeks", () => {
-    expect(tournamentRoundWeek("spring-high", "prefectural", "round-of-16")).toBe(30);
-    expect(tournamentRoundWeek("spring-high", "prefectural", "quarterfinal")).toBe(31);
-    expect(tournamentRoundWeek("spring-high", "prefectural", "semifinal")).toBe(32);
+    expect(
+      tournamentRoundWeek("spring-high", "prefectural", "round-of-16"),
+    ).toBe(30);
+    expect(
+      tournamentRoundWeek("spring-high", "prefectural", "quarterfinal"),
+    ).toBe(31);
+    expect(tournamentRoundWeek("spring-high", "prefectural", "semifinal")).toBe(
+      32,
+    );
     expect(tournamentRoundWeek("spring-high", "prefectural", "final")).toBe(33);
-    expect(tournamentRoundWeek("spring-high", "national", "round-of-16")).toBe(41);
-    expect(tournamentRoundWeek("spring-high", "national", "quarterfinal")).toBe(42);
-    expect(tournamentRoundWeek("spring-high", "national", "semifinal")).toBe(43);
+    expect(tournamentRoundWeek("spring-high", "national", "round-of-16")).toBe(
+      41,
+    );
+    expect(tournamentRoundWeek("spring-high", "national", "quarterfinal")).toBe(
+      42,
+    );
+    expect(tournamentRoundWeek("spring-high", "national", "semifinal")).toBe(
+      43,
+    );
     expect(tournamentRoundWeek("spring-high", "national", "final")).toBe(44);
   });
 });
@@ -61,7 +83,9 @@ describe("createOfficialSeason", () => {
     ]) {
       expect(stage.level).toBe("prefectural");
       expect(stage.entrants).toHaveLength(16);
-      expect(new Set(stage.entrants.map((entrant) => entrant.entrantId)).size).toBe(16);
+      expect(
+        new Set(stage.entrants.map((entrant) => entrant.entrantId)).size,
+      ).toBe(16);
       expect(
         stage.entrants.every(
           (entrant) =>
@@ -70,10 +94,18 @@ describe("createOfficialSeason", () => {
         ),
       ).toBe(true);
       expect(stage.matches).toHaveLength(15);
-      expect(stage.matches.filter((match) => match.round === "round-of-16")).toHaveLength(8);
-      expect(stage.matches.filter((match) => match.round === "quarterfinal")).toHaveLength(4);
-      expect(stage.matches.filter((match) => match.round === "semifinal")).toHaveLength(2);
-      expect(stage.matches.filter((match) => match.round === "final")).toHaveLength(1);
+      expect(
+        stage.matches.filter((match) => match.round === "round-of-16"),
+      ).toHaveLength(8);
+      expect(
+        stage.matches.filter((match) => match.round === "quarterfinal"),
+      ).toHaveLength(4);
+      expect(
+        stage.matches.filter((match) => match.round === "semifinal"),
+      ).toHaveLength(2);
+      expect(
+        stage.matches.filter((match) => match.round === "final"),
+      ).toHaveLength(1);
       expect(stage.championEntrantId).toBeNull();
       expect(stage.userEliminated).toBe(false);
     }
@@ -131,7 +163,8 @@ describe("createOfficialSeason", () => {
     );
     const userEntrant = ranked.find(
       (entrant) =>
-        entrant.source === "world-school" && entrant.schoolId === state.userSchoolId,
+        entrant.source === "world-school" &&
+        entrant.schoolId === state.userSchoolId,
     );
 
     expect(userEntrant).toBeDefined();
