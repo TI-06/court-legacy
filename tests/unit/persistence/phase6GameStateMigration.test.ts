@@ -8,7 +8,7 @@ describe("Phase 6 game-state migration", () => {
     const originalPlayers = structuredClone(current.players);
     const originalSchools = structuredClone(current.schools);
     const originalWorld = structuredClone(current.world);
-    const legacyHistory = structuredClone(current.history) as Record<
+    const legacyHistory = structuredClone(current.history) as unknown as Record<
       string,
       unknown
     >;

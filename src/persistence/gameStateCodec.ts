@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createOfficialSeason } from "../domain/tournament/createOfficialSeason";
 import {
   CURRENT_GAME_SCHEMA_VERSION,
   createDefaultGameSettings,
@@ -52,6 +53,7 @@ const gameStateSchema = z
     eventMemory: objectSchema,
     settings: gameSettingsSchema,
     world: objectSchema,
+    officialSeason: objectSchema,
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
@@ -63,29 +65,60 @@ const versionProbeSchema = z
   })
   .passthrough();
 
+type OfficialSeasonSource = Parameters<typeof createOfficialSeason>[0]["state"];
+
+function historyWithOfficialTournaments(
+  history: unknown,
+): Record<string, unknown> {
+  const legacyHistory =
+    history && typeof history === "object" && !Array.isArray(history)
+      ? (history as Record<string, unknown>)
+      : {};
+
+  return {
+    ...legacyHistory,
+    officialTournaments: [],
+  };
+}
+
+function migrateVersionTwo(legacy: Record<string, unknown>): unknown {
+  const migrated = {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    history: historyWithOfficialTournaments(legacy.history),
+  };
+
+  return {
+    ...migrated,
+    officialSeason: createOfficialSeason({
+      state: migrated as unknown as OfficialSeasonSource,
+    }),
+  };
+}
+
 function migrateVersionZero(legacy: Record<string, unknown>): unknown {
   const legacySettings =
     legacy.settings && typeof legacy.settings === "object"
       ? (legacy.settings as Record<string, unknown>)
       : {};
 
-  return {
+  return migrateVersionTwo({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 2,
     playerRelationships: {},
     settings: {
       ...createDefaultGameSettings(),
       ...legacySettings,
     },
-  };
+  });
 }
 
 function migrateVersionOne(legacy: Record<string, unknown>): unknown {
-  return {
+  return migrateVersionTwo({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 2,
     playerRelationships: {},
-  };
+  });
 }
 
 function migrateLegacyState(value: unknown): unknown {
@@ -109,6 +142,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 1) {
     return migrateVersionOne(legacy);
+  }
+  if (version === 2) {
+    return migrateVersionTwo(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
