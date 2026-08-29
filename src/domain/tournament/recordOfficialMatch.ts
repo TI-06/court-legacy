@@ -1,4 +1,5 @@
 import type { GameState, HistoricalMatchSummary } from "../model/GameState";
+import { applyOfficialMatchDynamicsFeedback } from "../dynamics/officialMatchDynamics";
 import type { MatchState } from "../model/Match";
 import { MAX_MATCH_HISTORY } from "../world/rivalWorldProgression";
 import { applyOfficialMatchPlayerStats } from "./playerTournamentStats";
@@ -183,6 +184,12 @@ export function recordOfficialTournamentOutcome(
     circuit: input.circuit,
     level: input.level,
     round: bracketMatch.round,
+    won: userWon,
+  });
+
+  next = applyOfficialMatchDynamicsFeedback({
+    state: next,
+    match: input.match,
     won: userWon,
   });
 

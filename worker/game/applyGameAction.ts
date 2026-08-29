@@ -8,6 +8,7 @@ import {
   setTeamLeadership,
   TeamLeadershipValidationError,
 } from "../../src/domain/dynamics/setTeamLeadership";
+import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/officialMatchDynamics";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
 import { simulateMatch } from "../../src/domain/match/simulateMatch";
@@ -302,6 +303,7 @@ function applyOfficialMatch(
       awaySelection: userIsHome ? opponentContext.selection : teamSelection,
       bestOfSets: 3,
       random,
+      dynamicsReadinessByPlayerId: buildPveDynamicsReadinessByPlayerId(state),
     });
     const recorded = recordOfficialTournamentOutcome({
       state,

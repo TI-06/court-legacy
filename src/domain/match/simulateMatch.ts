@@ -22,6 +22,7 @@ export interface SimulateMatchInput {
   awaySelection: TeamSelection;
   bestOfSets: 3 | 5;
   random: RandomSource;
+  dynamicsReadinessByPlayerId?: Readonly<Partial<Record<PlayerId, number>>>;
 }
 
 export interface SimulateMatchResult {
@@ -73,6 +74,43 @@ const MAX_RALLIES_PER_SET = 2_000;
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
+}
+
+function applyDynamicsReadinessToState(
+  state: GameState,
+  readinessByPlayerId: Readonly<Partial<Record<PlayerId, number>>> | undefined,
+): GameState {
+  if (!readinessByPlayerId) {
+    return state;
+  }
+
+  const players = { ...state.players };
+  let changed = false;
+  for (const [rawPlayerId, rawMultiplier] of Object.entries(
+    readinessByPlayerId,
+  )) {
+    const playerId = rawPlayerId as PlayerId;
+    const player = state.players[playerId];
+    if (
+      !player ||
+      rawMultiplier === undefined ||
+      !Number.isFinite(rawMultiplier)
+    ) {
+      continue;
+    }
+    const multiplier = clamp(rawMultiplier, 0.95, 1.05);
+    players[playerId] = {
+      ...player,
+      abilities: {
+        ...player.abilities,
+        decision: clamp(player.abilities.decision * multiplier, 0, 100),
+        mental: clamp(player.abilities.mental * multiplier, 0, 100),
+      },
+    };
+    changed = true;
+  }
+
+  return changed ? { ...state, players } : state;
 }
 
 function cloneSelection(selection: TeamSelection): TeamSelection {
@@ -762,8 +800,12 @@ export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
   validateMatchInput(input);
 
   const initialRandom = input.random.snapshot();
-  const homeSchool = input.state.schools[input.homeSchoolId]!;
-  const awaySchool = input.state.schools[input.awaySchoolId]!;
+  const simulationState = applyDynamicsReadinessToState(
+    input.state,
+    input.dynamicsReadinessByPlayerId,
+  );
+  const homeSchool = simulationState.schools[input.homeSchoolId]!;
+  const awaySchool = simulationState.schools[input.awaySchoolId]!;
   const writer = createEventWriter();
   const sets: MatchSetState[] = [];
   const requiredSetWins = Math.ceil(input.bestOfSets / 2);
@@ -804,7 +846,12 @@ export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
       }
 
       const servingBeforeRally = runtime.servingSide;
-      const winner = simulateRally(input.state, runtime, input.random, writer);
+      const winner = simulateRally(
+        simulationState,
+        runtime,
+        input.random,
+        writer,
+      );
       if (winner !== servingBeforeRally) {
         const winnerRuntime = runtimeForSide(runtime, winner);
         rotateSelection(winnerRuntime.selection);
@@ -892,6 +939,6 @@ export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
 
   return {
     match,
-    analysis: createMatchAnalysis(input.state, match),
+    analysis: createMatchAnalysis(simulationState, match),
   };
 }

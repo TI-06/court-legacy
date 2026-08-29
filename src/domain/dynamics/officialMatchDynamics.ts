@@ -135,10 +135,7 @@ export function applyOfficialMatchDynamicsFeedback({
     selection,
     dynamics: usage,
   });
-  const lineupContinuity = calculateLineupContinuity(
-    usage,
-    currentStarterIds,
-  );
+  const lineupContinuity = calculateLineupContinuity(usage, currentStarterIds);
   const dynamicsWithUsage = {
     ...usage,
     playerRoles,
