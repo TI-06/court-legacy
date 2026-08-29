@@ -77,7 +77,9 @@ function resolveCurrentSeason(state: GameState): GameState {
     next.officialSeason.springHigh.national,
   ];
   if (stages.some((stage) => !stage?.championEntrantId)) {
-    throw new Error(`official tournament season ${academicYear} did not finish`);
+    throw new Error(
+      `official tournament season ${academicYear} did not finish`,
+    );
   }
   if (findDueUserOfficialMatch(next)) {
     throw new Error(`official tournament season ${academicYear} is stuck`);
@@ -131,8 +133,11 @@ describe("official tournament long-run soak", () => {
     expect(deterministicSnapshot(first)).toEqual(deterministicSnapshot(second));
     expect(first.history.officialTournaments).toHaveLength(30 * 4);
     expect(
-      new Set(first.history.officialTournaments.map((summary) => summary.academicYear))
-        .size,
+      new Set(
+        first.history.officialTournaments.map(
+          (summary) => summary.academicYear,
+        ),
+      ).size,
     ).toBe(30);
     expect(
       first.history.officialTournaments.every(
@@ -146,7 +151,9 @@ describe("official tournament long-run soak", () => {
     const initial = createDemoGame();
     const state = runYears(100);
 
-    expect(state.calendar.academicYear).toBe(initial.calendar.academicYear + 100);
+    expect(state.calendar.academicYear).toBe(
+      initial.calendar.academicYear + 100,
+    );
     expect(state.officialSeason.academicYear).toBe(state.calendar.academicYear);
     expect(state.history.officialTournaments).toHaveLength(
       MAX_OFFICIAL_TOURNAMENT_HISTORY,
