@@ -95,9 +95,9 @@ describe("team leadership action", () => {
     expect(applied.state.teamDynamics.viceCaptainPlayerId).toBe(
       viceCaptainPlayerId,
     );
-    expect(applied.state.schools[applied.state.userSchoolId]?.captainPlayerId).toBe(
-      captainPlayerId,
-    );
+    expect(
+      applied.state.schools[applied.state.userSchoolId]?.captainPlayerId,
+    ).toBe(captainPlayerId);
     expect(applied.state.teamDynamics.previousCohesion).toBe(before);
     expect(applied.state.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
     expect(applied.state.teamDynamics.cohesion).toBeLessThanOrEqual(100);
@@ -158,11 +158,7 @@ describe("team leadership action", () => {
     const [captainPlayerId] = userRosterIds(snapshot);
 
     expect(() =>
-      setTeamLeadership(
-        snapshot.state,
-        captainPlayerId,
-        captainPlayerId,
-      ),
+      setTeamLeadership(snapshot.state, captainPlayerId, captainPlayerId),
     ).toThrowError(
       expect.objectContaining({ code: "team_leadership_same_player" }),
     );

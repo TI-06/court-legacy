@@ -16,18 +16,21 @@ describe("team leadership browser authority boundary", () => {
     expect(gameActionRequestSchema.safeParse(request).success).toBe(true);
   });
 
-  it.each(["cohesion", "suitability", "effect", "playerRoles", "playerConcerns"])(
-    "rejects browser-computed %s authority",
-    (field) => {
-      expect(
-        gameActionRequestSchema.safeParse({
-          ...request,
-          action: {
-            ...request.action,
-            [field]: field === "cohesion" ? 100 : {},
-          },
-        }).success,
-      ).toBe(false);
-    },
-  );
+  it.each([
+    "cohesion",
+    "suitability",
+    "effect",
+    "playerRoles",
+    "playerConcerns",
+  ])("rejects browser-computed %s authority", (field) => {
+    expect(
+      gameActionRequestSchema.safeParse({
+        ...request,
+        action: {
+          ...request.action,
+          [field]: field === "cohesion" ? 100 : {},
+        },
+      }).success,
+    ).toBe(false);
+  });
 });
