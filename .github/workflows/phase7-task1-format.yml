@@ -1,0 +1,34 @@
+name: Phase 7 Task 1 Format
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase7-team-dynamics
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase7-team-dynamics
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format Task 1 files
+        run: |
+          npx prettier src/domain/dynamics/teamDynamicsTypes.ts src/domain/dynamics/calculateTeamDynamics.ts tests/unit/domain/dynamics/calculateTeamDynamics.test.ts .github/workflows/phase7-task1-format.yml --write
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/dynamics/teamDynamicsTypes.ts src/domain/dynamics/calculateTeamDynamics.ts tests/unit/domain/dynamics/calculateTeamDynamics.test.ts .github/workflows/phase7-task1-format.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "style: format phase 7 task 1"
+            git push origin HEAD:feature/court-legacy-v2-phase7-team-dynamics
+          fi
