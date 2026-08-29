@@ -1,0 +1,34 @@
+name: Phase 6 Format Task 7 Tests
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  format-task7-tests:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier tests/unit/worker/officialMatchAction.test.ts --write
+      - name: Commit formatting if needed
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/worker/officialMatchAction.test.ts
+          git commit -m "chore: format Phase 6 Task 7 tests"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
