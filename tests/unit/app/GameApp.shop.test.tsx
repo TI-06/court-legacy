@@ -121,14 +121,18 @@ describe("GameApp shop flow", () => {
     const purchasedSnapshot = createSnapshot(2);
     const usedSnapshot = createSnapshot(3);
     const initialStatus = createShopStatus(1);
-    const purchasedStatus = updateShopItem(createShopStatus(2), "training-camp", {
-      purchasedCount: 1,
-      quantityOwned: 1,
-      canPurchase: false,
-      purchaseBlockedReason: "purchase_limit_reached",
-      canUse: true,
-      useBlockedReason: null,
-    });
+    const purchasedStatus = updateShopItem(
+      createShopStatus(2),
+      "training-camp",
+      {
+        purchasedCount: 1,
+        quantityOwned: 1,
+        canPurchase: false,
+        purchaseBlockedReason: "purchase_limit_reached",
+        canUse: true,
+        useBlockedReason: null,
+      },
+    );
     const usedStatus = updateShopItem(createShopStatus(3), "training-camp", {
       purchasedCount: 1,
       usedCount: 1,
