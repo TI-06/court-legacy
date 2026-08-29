@@ -1,0 +1,400 @@
+name: Apply shop retry patch
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase5-shop-mvp
+    paths:
+      - .github/workflows/apply-shop-retry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase5-shop-mvp
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Apply patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          game_path = Path("src/app/GameApp.tsx")
+          game = game_path.read_text()
+
+          old = 'import type { ShopStatusResponse } from "../domain/shop/shopContracts";'
+          new = '''import type {
+            ShopPurchaseRequest,
+            ShopStatusResponse,
+            ShopUseRequest,
+          } from "../domain/shop/shopContracts";'''
+          assert game.count(old) == 1
+          game = game.replace(old, new)
+
+          old = 'type ShopPendingAction = "purchase" | "use";'
+          new = '''type ShopPendingAction = "purchase" | "use";
+          type ShopRetryRequest =
+            | { action: "purchase"; request: ShopPurchaseRequest }
+            | { action: "use"; request: ShopUseRequest };'''
+          assert game.count(old) == 1
+          game = game.replace(old, new)
+
+          old = '''  const [shopResultMessage, setShopResultMessage] = useState<string | null>(
+            null,
+          );
+          const [latestYearTransition, setLatestYearTransition] ='''
+          new = '''  const [shopResultMessage, setShopResultMessage] = useState<string | null>(
+            null,
+          );
+          const [shopRetryRequest, setShopRetryRequest] =
+            useState<ShopRetryRequest | null>(null);
+          const [latestYearTransition, setLatestYearTransition] ='''
+          assert game.count(old) == 1
+          game = game.replace(old, new)
+
+          old = '''  const loadShop = async () => {
+            if (!api.getShop) {
+              setShopError("ショップ機能を利用できません");
+              return;
+            }
+
+            setShopLoading(true);
+            setShopError(null);
+            try {
+              const status = await api.getShop(session.accessToken);
+              setShopStatus(status);
+            } catch (error) {
+              setShopError(
+                shopErrorMessage(error, "ショップ情報を読み込めませんでした"),
+              );
+            } finally {
+              setShopLoading(false);
+            }
+          };'''
+          new = '''  const loadShop = async (): Promise<boolean> => {
+            if (!api.getShop) {
+              setShopError("ショップ機能を利用できません");
+              return false;
+            }
+
+            setShopLoading(true);
+            setShopError(null);
+            try {
+              const status = await api.getShop(session.accessToken);
+              setShopStatus(status);
+              return true;
+            } catch (error) {
+              setShopError(
+                shopErrorMessage(error, "ショップ情報を読み込めませんでした"),
+              );
+              return false;
+            } finally {
+              setShopLoading(false);
+            }
+          };'''
+          assert game.count(old) == 1
+          game = game.replace(old, new)
+
+          old = '''    await cloudSession.adoptServerSnapshot(
+              latest.game,
+              "最新のゲーム状態を読み込みました",
+            );
+            await loadShop();
+            return true;
+          };
+
+          const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+            if (!api.purchaseShopItem || shopPendingAction !== null) {
+              if (!api.purchaseShopItem) {
+                setShopError("ショップ購入機能を利用できません");
+              }
+              return;
+            }
+
+            setShopPendingAction("purchase");
+            setShopPendingItemId(itemId);
+            setShopResultMessage(null);
+            setShopError(null);
+            try {
+              const response = await api.purchaseShopItem(session.accessToken, {
+                operationId: crypto.randomUUID(),
+                revision: cloudSession.snapshot.revision,
+                itemId,
+              });
+              if (await refreshShopAfterMutation(response.revision)) {
+                setShopResultMessage("購入しました ✓");
+              }
+            } catch (error) {
+              setShopError(shopErrorMessage(error, "購入処理に失敗しました"));
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          };
+
+          const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+            if (!api.useShopItem || shopPendingAction !== null) {
+              if (!api.useShopItem) {
+                setShopError("ショップ使用機能を利用できません");
+              }
+              return;
+            }
+
+            setShopPendingAction("use");
+            setShopPendingItemId(itemId);
+            setShopResultMessage(null);
+            setShopError(null);
+            try {
+              const response = await api.useShopItem(session.accessToken, {
+                operationId: crypto.randomUUID(),
+                revision: cloudSession.snapshot.revision,
+                itemId,
+              });
+              if (await refreshShopAfterMutation(response.revision)) {
+                setShopResultMessage("使用しました ✓");
+              }
+            } catch (error) {
+              setShopError(shopErrorMessage(error, "使用処理に失敗しました"));
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          };'''
+          new = '''    await cloudSession.adoptServerSnapshot(
+              latest.game,
+              "最新のゲーム状態を読み込みました",
+            );
+            if (!(await loadShop())) return false;
+            setShopRetryRequest(null);
+            return true;
+          };
+
+          const recoverShopRevision = async (): Promise<boolean> => {
+            try {
+              const latest = await api.bootstrap(session.accessToken);
+              if (latest.status !== "ready") {
+                setShopError("最新のゲーム状態を読み込めませんでした");
+                return false;
+              }
+              await cloudSession.adoptServerSnapshot(
+                latest.game,
+                "最新のゲーム状態を読み込みました",
+              );
+              if (!(await loadShop())) return false;
+              setShopRetryRequest(null);
+              setShopError(
+                "最新のゲーム状態を読み込みました。もう一度お試しください",
+              );
+              return true;
+            } catch (error) {
+              setShopError(
+                shopErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
+              );
+              return false;
+            }
+          };
+
+          const executeShopPurchase = async (request: ShopPurchaseRequest) => {
+            if (!api.purchaseShopItem || shopPendingAction !== null) {
+              if (!api.purchaseShopItem) {
+                setShopError("ショップ購入機能を利用できません");
+              }
+              return;
+            }
+
+            setShopPendingAction("purchase");
+            setShopPendingItemId(request.itemId);
+            setShopResultMessage(null);
+            setShopRetryRequest(null);
+            setShopError(null);
+            try {
+              const response = await api.purchaseShopItem(
+                session.accessToken,
+                request,
+              );
+              if (await refreshShopAfterMutation(response.revision)) {
+                setShopResultMessage("購入しました ✓");
+              }
+            } catch (error) {
+              if (
+                error instanceof ApiError &&
+                error.status === 409 &&
+                error.code === "revision_conflict"
+              ) {
+                await recoverShopRevision();
+                return;
+              }
+              if (error instanceof ApiError && error.status === null) {
+                setShopRetryRequest({ action: "purchase", request });
+              }
+              setShopError(shopErrorMessage(error, "購入処理に失敗しました"));
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          };
+
+          const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+            await executeShopPurchase({
+              operationId: crypto.randomUUID(),
+              revision: cloudSession.snapshot.revision,
+              itemId,
+            });
+          };
+
+          const executeShopUse = async (request: ShopUseRequest) => {
+            if (!api.useShopItem || shopPendingAction !== null) {
+              if (!api.useShopItem) {
+                setShopError("ショップ使用機能を利用できません");
+              }
+              return;
+            }
+
+            setShopPendingAction("use");
+            setShopPendingItemId(request.itemId);
+            setShopResultMessage(null);
+            setShopRetryRequest(null);
+            setShopError(null);
+            try {
+              const response = await api.useShopItem(session.accessToken, request);
+              if (await refreshShopAfterMutation(response.revision)) {
+                setShopResultMessage("使用しました ✓");
+              }
+            } catch (error) {
+              if (
+                error instanceof ApiError &&
+                error.status === 409 &&
+                error.code === "revision_conflict"
+              ) {
+                await recoverShopRevision();
+                return;
+              }
+              if (error instanceof ApiError && error.status === null) {
+                setShopRetryRequest({ action: "use", request });
+              }
+              setShopError(shopErrorMessage(error, "使用処理に失敗しました"));
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          };
+
+          const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+            await executeShopUse({
+              operationId: crypto.randomUUID(),
+              revision: cloudSession.snapshot.revision,
+              itemId,
+            });
+          };
+
+          const retryShopMutation = async () => {
+            if (!shopRetryRequest) return;
+            if (shopRetryRequest.action === "purchase") {
+              await executeShopPurchase(shopRetryRequest.request);
+              return;
+            }
+            await executeShopUse(shopRetryRequest.request);
+          };'''
+          assert game.count(old) == 1, "shop mutation block not found"
+          game = game.replace(old, new)
+
+          old = '''  const openShop = () => {
+            setMoreView("shop");
+            setShopResultMessage(null);
+            void loadShop();
+          };'''
+          new = '''  const openShop = () => {
+            setMoreView("shop");
+            setShopResultMessage(null);
+            setShopRetryRequest(null);
+            void loadShop();
+          };'''
+          assert game.count(old) == 1
+          game = game.replace(old, new)
+
+          old = '''        onRetry={() => void loadShop()}
+                onUse={(itemId) => {
+                  void consumeShopItemFromUi(itemId);
+                }}
+                pendingAction={shopPendingAction}
+                pendingItemId={shopPendingItemId}
+                resultMessage={shopResultMessage}
+                status={shopStatus}'''
+          new = '''        onRetry={() => void loadShop()}
+                onRetryMutation={() => {
+                  void retryShopMutation();
+                }}
+                onUse={(itemId) => {
+                  void consumeShopItemFromUi(itemId);
+                }}
+                pendingAction={shopPendingAction}
+                pendingItemId={shopPendingItemId}
+                resultMessage={shopResultMessage}
+                retryAction={shopRetryRequest?.action ?? null}
+                status={shopStatus}'''
+          assert game.count(old) == 1, "ShopScreen props block not found"
+          game = game.replace(old, new)
+          game_path.write_text(game)
+
+          screen_path = Path("src/features/shop/ShopScreen.tsx")
+          screen = screen_path.read_text()
+          old = '''  resultMessage?: string | null;
+            onBack: () => void;
+            onRetry: () => void;
+            onPurchase?: (itemId: ShopItemId) => void;'''
+          new = '''  resultMessage?: string | null;
+            retryAction?: ShopPendingAction | null;
+            onBack: () => void;
+            onRetry: () => void;
+            onRetryMutation?: () => void;
+            onPurchase?: (itemId: ShopItemId) => void;'''
+          assert screen.count(old) == 1
+          screen = screen.replace(old, new)
+
+          old = '''  resultMessage = null,
+            onBack,
+            onRetry,
+            onPurchase = () => undefined,'''
+          new = '''  resultMessage = null,
+            retryAction = null,
+            onBack,
+            onRetry,
+            onRetryMutation = () => undefined,
+            onPurchase = () => undefined,'''
+          assert screen.count(old) == 1
+          screen = screen.replace(old, new)
+
+          old = '''          <p>{error}</p>
+                    <button onClick={onRetry} type="button">
+                      再読み込み
+                    </button>'''
+          new = '''          <p>{error}</p>
+                    {retryAction ? (
+                      <button onClick={onRetryMutation} type="button">
+                        {retryAction === "purchase" ? "購入を再試行" : "使用を再試行"}
+                      </button>
+                    ) : (
+                      <button onClick={onRetry} type="button">
+                        再読み込み
+                      </button>
+                    )}'''
+          assert screen.count(old) == 1
+          screen = screen.replace(old, new)
+          screen_path.write_text(screen)
+      - run: npx prettier --write src/app/GameApp.tsx src/features/shop/ShopScreen.tsx
+      - run: npm run test -- tests/unit/app/GameApp.shop.test.tsx
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/GameApp.tsx src/features/shop/ShopScreen.tsx
+          git commit -m "fix: recover and retry shop mutations"
+          git push origin HEAD:feature/court-legacy-v2-phase5-shop-mvp
