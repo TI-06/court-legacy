@@ -18,6 +18,7 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import type { ShopStatusResponse } from "../domain/shop/shopContracts";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -38,6 +39,7 @@ import { MoreScreen } from "../features/more/MoreScreen";
 import { PvpScreen } from "../features/pvp/PvpScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
+import { ShopScreen } from "../features/shop/ShopScreen";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
 import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
@@ -87,6 +89,10 @@ function pvpErrorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
 
+function shopErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
+
 export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const cloudSession = useGameSession({
     accessToken: session.accessToken,
@@ -125,6 +131,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     string | null
   >(null);
   const [pvpError, setPvpError] = useState<string | null>(null);
+  const [shopStatus, setShopStatus] = useState<ShopStatusResponse | null>(null);
+  const [shopLoading, setShopLoading] = useState(false);
+  const [shopError, setShopError] = useState<string | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
@@ -457,6 +466,29 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
+  const loadShop = async () => {
+    if (!api.getShop) {
+      setShopError("ショップ機能を利用できません");
+      return;
+    }
+
+    setShopLoading(true);
+    setShopError(null);
+    try {
+      const status = await api.getShop(session.accessToken);
+      setShopStatus(status);
+    } catch (error) {
+      setShopError(shopErrorMessage(error, "ショップ情報を読み込めませんでした"));
+    } finally {
+      setShopLoading(false);
+    }
+  };
+
+  const openShop = () => {
+    setMoreView("shop");
+    void loadShop();
+  };
+
   const upgradeSchoolFacility = async (key: FacilityKey) => {
     await cloudSession.runAction(
       { type: "facility-upgrade", facility: key },
@@ -579,6 +611,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           state={gameState}
         />
       </div>
+    ) : moreView === "shop" ? (
+      <ShopScreen
+        error={shopError}
+        loading={shopLoading}
+        onBack={() => setMoreView("menu")}
+        onRetry={() => void loadShop()}
+        status={shopStatus}
+      />
     ) : moreView === "school" ? (
       <main className="app-content more-school-view">
         <button
@@ -597,7 +637,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <MoreScreen
         accountLabel={session.email ?? "ログイン済みアカウント"}
         onOpenSchool={() => setMoreView("school")}
-        onOpenShop={() => setMoreView("shop")}
+        onOpenShop={openShop}
         onSignOut={() => void auth.signOut()}
       />
     );
