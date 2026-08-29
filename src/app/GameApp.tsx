@@ -10,6 +10,11 @@ import type { GameState } from "../domain/model/GameState";
 import type { PlayerId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
 import type { TeamSelection } from "../domain/model/TeamSelection";
+import { selectNextOfficialEvent } from "../domain/tournament/tournamentSelectors";
+import type {
+  TournamentCircuit,
+  TournamentLevel,
+} from "../domain/tournament/tournamentTypes";
 import type {
   PvpChallengeResponse,
   PvpHistoryEntry,
@@ -50,6 +55,7 @@ import type { ShopUsePresentation } from "../features/shop/shopUsePresentation";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
 import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
+import { TournamentScreen } from "../features/tournament/TournamentScreen";
 import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
@@ -64,6 +70,10 @@ interface GameAppProps {
 
 type MoreView = "menu" | "school" | "shop";
 type MatchView = "practice" | "pvp";
+type OfficialTournamentView = {
+  circuit: TournamentCircuit;
+  level: TournamentLevel;
+};
 type ShopPendingAction = "purchase" | "use";
 type ShopRetryRequest =
   | { action: "purchase"; request: ShopPurchaseRequest }
@@ -129,6 +139,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
   const [matchView, setMatchView] = useState<MatchView>("practice");
+  const [officialTournamentView, setOfficialTournamentView] =
+    useState<OfficialTournamentView | null>(null);
   const [pvpPublishedTeam, setPvpPublishedTeam] =
     useState<PvpPublishedTeamSummary | null>(null);
   const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
@@ -196,6 +208,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
     if (tab !== "match") {
       setMatchView("practice");
+      setOfficialTournamentView(null);
       setPvpError(null);
     }
     setActiveTab(tab);
@@ -358,9 +371,29 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
+      setOfficialTournamentView(null);
       setMatchView("practice");
       setActiveTab("match");
     }
+  };
+
+  const openOfficialTournament = () => {
+    const nextOfficial = selectNextOfficialEvent(gameState);
+    if (!nextOfficial) return;
+    setActiveMatchResult(null);
+    setOfficialTournamentView({
+      circuit: nextOfficial.circuit,
+      level: nextOfficial.level,
+    });
+    setMatchView("practice");
+    setActiveTab("match");
+  };
+
+  const startOfficialMatch = async () => {
+    await cloudSession.runAction(
+      { type: "official-match" },
+      "大会結果を保存しています…",
+    );
   };
 
   const startPracticeMatch = async () => {
@@ -405,6 +438,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   };
 
   const openPvp = () => {
+    setOfficialTournamentView(null);
     setMatchView("pvp");
     setPvpError(null);
     void loadPvpData();
@@ -743,6 +777,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         latestMatch={latestMatchResult}
         onAdvanceWeek={advanceWeek}
         onOpenMatch={openFreshPracticeMatch}
+        onOpenOfficialTournament={openOfficialTournament}
         onOpenTeam={() => setActiveTab("team")}
         onOpenTraining={() => setActiveTab("training")}
         opponent={opponent}
@@ -795,6 +830,21 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           state={gameState}
         />
       </div>
+    ) : activeTab === "match" && officialTournamentView ? (
+      <TournamentScreen
+        circuit={officialTournamentView.circuit}
+        level={officialTournamentView.level}
+        onBack={() => {
+          setOfficialTournamentView(null);
+          setMatchView("practice");
+        }}
+        onStartOfficialMatch={() => {
+          void startOfficialMatch();
+        }}
+        pending={cloudSession.operation.status === "submitting"}
+        state={gameState}
+        trainingCompleted={trainingCompleted}
+      />
     ) : activeTab === "match" && matchView === "pvp" ? (
       <PvpScreen
         challengingSnapshotId={pvpChallengingSnapshotId}
