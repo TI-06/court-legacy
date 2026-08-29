@@ -169,9 +169,7 @@ describe("official match dynamics", () => {
       won: false,
     });
 
-    expect(next.players[userId]!.morale).toBeLessThanOrEqual(
-      userBefore.morale,
-    );
+    expect(next.players[userId]!.morale).toBeLessThanOrEqual(userBefore.morale);
     expect(next.players[userId]!.trust).toBeLessThanOrEqual(userBefore.trust);
     expect(next.players[userId]!.morale).toBeGreaterThanOrEqual(0);
     expect(next.players[userId]!.trust).toBeGreaterThanOrEqual(0);
