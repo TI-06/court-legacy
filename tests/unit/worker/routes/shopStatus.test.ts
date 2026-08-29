@@ -73,6 +73,7 @@ function createShopStore(): ShopStore {
   ];
 
   return {
+    findOperation: vi.fn(async () => null),
     getStatus: vi.fn(async () => status),
     purchase: vi.fn(async () => {
       throw new Error("not used");
