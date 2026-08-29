@@ -41,30 +41,28 @@ function createShopStore(): ShopStore {
   return {
     findOperation: vi.fn(async () => null),
     getStatus: vi.fn(async () => []),
-    purchase: vi.fn(
-      async (input): Promise<ShopMutationResult> => ({
+    purchase: vi.fn(async (input): Promise<ShopMutationResult> => ({
+      operationId: input.operationId,
+      operationType: "purchase",
+      requestFingerprint: input.requestFingerprint,
+      revision: input.expectedRevision + 1,
+      academicYearIndex: 4,
+      itemId: input.itemId,
+      quantityOwned: 1,
+      purchasedCount: 1,
+      usedCount: 0,
+      response: {
         operationId: input.operationId,
         operationType: "purchase",
-        requestFingerprint: input.requestFingerprint,
         revision: input.expectedRevision + 1,
         academicYearIndex: 4,
         itemId: input.itemId,
         quantityOwned: 1,
         purchasedCount: 1,
         usedCount: 0,
-        response: {
-          operationId: input.operationId,
-          operationType: "purchase",
-          revision: input.expectedRevision + 1,
-          academicYearIndex: 4,
-          itemId: input.itemId,
-          quantityOwned: 1,
-          purchasedCount: 1,
-          usedCount: 0,
-        },
-        replayed: false,
-      }),
-    ),
+      },
+      replayed: false,
+    })),
     use: vi.fn(async () => {
       throw new Error("not used");
     }),
