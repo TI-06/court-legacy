@@ -1,19 +1,12 @@
 import type { PlayerId } from "../model/identifiers";
 
 export type PlayerRole =
-  | "ace"
-  | "starter"
-  | "rotation"
-  | "development"
-  | "reserve";
+  "ace" | "starter" | "rotation" | "development" | "reserve";
 
 export type CohesionTrend = "rising" | "stable" | "falling";
 
 export type PlayerConcernCode =
-  | "playing-time"
-  | "role-mismatch"
-  | "injury-overuse"
-  | "team-slump";
+  "playing-time" | "role-mismatch" | "injury-overuse" | "team-slump";
 
 export interface PlayerConcern {
   code: PlayerConcernCode;

@@ -1,10 +1,7 @@
 import { relationshipKey, type GameState } from "../model/GameState";
 import type { Player } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
-import type {
-  CohesionTrend,
-  TeamDynamicsState,
-} from "./teamDynamicsTypes";
+import type { CohesionTrend, TeamDynamicsState } from "./teamDynamicsTypes";
 
 function clamp100(value: number): number {
   if (!Number.isFinite(value)) {
@@ -63,7 +60,9 @@ export function calculateRelationshipSignal(
       if (!left || !right) {
         continue;
       }
-      pairValues.push(state.playerRelationships[relationshipKey(left, right)] ?? 50);
+      pairValues.push(
+        state.playerRelationships[relationshipKey(left, right)] ?? 50,
+      );
     }
   }
 
