@@ -11,6 +11,7 @@ import type {
   ShopStatusResponse,
   ShopUseTarget,
 } from "../../domain/shop/shopContracts";
+import type { ShopUsePresentation } from "../shop/shopUsePresentation";
 import "./scouting.css";
 
 interface ScoutingScreenProps {
@@ -22,6 +23,7 @@ interface ScoutingScreenProps {
   shopStatus?: ShopStatusResponse | null;
   shopPendingItemId?: ShopItemId | null;
   shopPendingCandidateId?: string | null;
+  latestShopUseResult?: ShopUsePresentation | null;
   onBack: () => void;
   onRetry: () => void;
   onRecruit: (candidateId: PlayerId) => void;
@@ -55,6 +57,46 @@ function currentCycleKey(state: GameState): string {
   return `${state.userSchoolId}:year-${state.yearIndex}`;
 }
 
+function ScoutingShopUseResult({
+  presentation,
+}: {
+  presentation: ShopUsePresentation;
+}) {
+  if (
+    presentation.itemId !== "scout-research" &&
+    presentation.itemId !== "potential-appraisal"
+  ) {
+    return null;
+  }
+  const before = presentation.beforeScoutReport;
+  const after = presentation.afterScoutReport;
+  if (!before || !after) return null;
+
+  return (
+    <section className="scouting-shop-result" aria-live="polite">
+      <h2>
+        {presentation.itemId === "scout-research"
+          ? "スカウト再調査の結果"
+          : "潜在能力鑑定の結果"}
+      </h2>
+      <div className="scouting-shop-result__metrics">
+        <span>
+          現在能力 {before.estimatedOverall.min}〜{before.estimatedOverall.max} →{" "}
+          {after.estimatedOverall.min}〜{after.estimatedOverall.max}
+        </span>
+        <span>
+          将来性 {before.estimatedPotential.min}〜{before.estimatedPotential.max} →{" "}
+          {after.estimatedPotential.min}〜{after.estimatedPotential.max}
+        </span>
+        <span>
+          調査精度 {confidenceLabels[before.confidence]} →{" "}
+          {confidenceLabels[after.confidence]}
+        </span>
+      </div>
+    </section>
+  );
+}
+
 export function ScoutingScreen({
   state,
   reports,
@@ -64,6 +106,7 @@ export function ScoutingScreen({
   shopStatus = null,
   shopPendingItemId = null,
   shopPendingCandidateId = null,
+  latestShopUseResult = null,
   onBack,
   onRetry,
   onRecruit,
@@ -136,6 +179,10 @@ export function ScoutingScreen({
             再試行
           </button>
         </section>
+      ) : null}
+
+      {latestShopUseResult ? (
+        <ScoutingShopUseResult presentation={latestShopUseResult} />
       ) : null}
 
       {!loading && reports.length > 0 ? (
