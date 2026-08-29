@@ -1,0 +1,46 @@
+.shop-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.shop-screen__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shop-screen__topbar button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  color: var(--game-text, #f4f7fb);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+}
+
+.shop-screen__topbar span {
+  color: var(--game-accent, #f47a18);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.shop-screen__heading {
+  display: grid;
+  gap: 4px;
+}
+
+.shop-screen__heading h2,
+.shop-screen__heading p,
+.shop-screen__year {
+  margin: 0;
+}
+
+.shop-screen__heading > p:last-child,
+.shop-screen__year {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 13px;
+}
