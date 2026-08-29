@@ -15,6 +15,7 @@ import {
   resolveSeasonReputation,
 } from "../school/reputation";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
+import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
@@ -454,7 +455,11 @@ export function advanceGameWeek(
   data: GameDataRegistry,
   options: AcademicYearProgressionOptions = {},
 ): AdvanceGameWeekResult {
-  const weekly = advanceOneWeek(state);
+  const weeklyBase = advanceOneWeek(state);
+  const weekly = {
+    ...weeklyBase,
+    state: advanceOfficialTournamentsThroughWeek(weeklyBase.state),
+  };
   if (!crossesAcademicYear(state.date, weekly.state.date)) {
     return { ...weekly, academicYearTransition: null };
   }

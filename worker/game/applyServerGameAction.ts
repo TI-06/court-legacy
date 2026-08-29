@@ -4,6 +4,7 @@ import { isWeeklyActionCompleted } from "../../src/domain/calendar/weekProgressi
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import type { Player } from "../../src/domain/model/Player";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
+import { hasRequiredOfficialMatch } from "../../src/domain/tournament/progressOfficialTournaments";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { GameAction } from "./actionSchema";
 import {
@@ -37,6 +38,13 @@ export function applyServerGameAction(
     throw new GameRuleConflictError(
       "training_required",
       "週を進める前に今週の練習を完了してください",
+    );
+  }
+
+  if (hasRequiredOfficialMatch(state)) {
+    throw new GameRuleConflictError(
+      "official_match_required",
+      "週を進める前に現在の公式戦を完了してください",
     );
   }
 
