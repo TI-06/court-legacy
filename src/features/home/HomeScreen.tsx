@@ -173,7 +173,8 @@ export function HomeScreen({
             <div>
               <span>大会</span>
               <strong>
-                {circuitLabels[nextOfficial.circuit]} {levelLabels[nextOfficial.level]}
+                {circuitLabels[nextOfficial.circuit]}{" "}
+                {levelLabels[nextOfficial.level]}
               </strong>
             </div>
             {nextOfficial.kind === "match" ? (

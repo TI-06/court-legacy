@@ -65,9 +65,7 @@ describe("home action dashboard", () => {
 
     render(<HomeScreen {...props} />);
 
-    expect(
-      screen.getByRole("heading", { name: "次の公式戦" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "次の公式戦" })).toBeVisible();
     expect(screen.getByText("インターハイ 県大会")).toBeVisible();
     expect(screen.getByText("1回戦")).toBeVisible();
     expect(screen.getByText("あと8週")).toBeVisible();
