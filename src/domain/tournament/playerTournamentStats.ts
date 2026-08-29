@@ -98,8 +98,6 @@ function winningResult(
         return "national:semifinalist";
       case "round-of-16":
         return "national:quarterfinalist";
-      case "final":
-        throw new Error("unreachable final tournament result");
     }
   }
 
@@ -110,8 +108,6 @@ function winningResult(
       return "prefectural:semifinalist";
     case "round-of-16":
       return "prefectural:quarterfinalist";
-    case "final":
-      throw new Error("unreachable final tournament result");
   }
 }
 
