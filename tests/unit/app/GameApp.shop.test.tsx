@@ -11,7 +11,10 @@ import type {
   ShopStatusResponse,
 } from "../../../src/domain/shop/shopContracts";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type { GameApiClient } from "../../../src/services/api/GameApiClient";
+import {
+  ApiError,
+  type GameApiClient,
+} from "../../../src/services/api/GameApiClient";
 import type {
   AuthClient,
   AuthSession,
@@ -225,5 +228,113 @@ describe("GameApp shop flow", () => {
     expect(
       await screen.findByText("今年度の所持アイテムはありません。"),
     ).toBeVisible();
+  });
+
+  it("reloads the authoritative state after a revision conflict without replaying the purchase", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const latestSnapshot = createSnapshot(2);
+    const getShop = vi
+      .fn<NonNullable<GameApiClient["getShop"]>>()
+      .mockResolvedValueOnce(createShopStatus(1))
+      .mockResolvedValueOnce(createShopStatus(2));
+    const purchaseShopItem = vi
+      .fn<NonNullable<GameApiClient["purchaseShopItem"]>>()
+      .mockRejectedValueOnce(
+        new ApiError(409, "revision_conflict", "状態が更新されています"),
+      );
+    const bootstrap = vi
+      .fn<GameApiClient["bootstrap"]>()
+      .mockResolvedValueOnce({ status: "ready", game: latestSnapshot });
+    const api: GameApiClient = {
+      bootstrap,
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getShop,
+      purchaseShopItem,
+    };
+
+    renderShopApp(api, initialSnapshot);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "強化合宿を購入" }),
+    );
+
+    await waitFor(() => expect(purchaseShopItem).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
+    expect(purchaseShopItem).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "最新のゲーム状態を読み込みました。もう一度お試しください",
+    );
+  });
+
+  it("retries an ambiguous purchase with the exact same operation id", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const purchasedSnapshot = createSnapshot(2);
+    const initialStatus = createShopStatus(1);
+    const purchasedStatus = updateShopItem(
+      createShopStatus(2),
+      "training-camp",
+      {
+        purchasedCount: 1,
+        quantityOwned: 1,
+        canPurchase: false,
+        purchaseBlockedReason: "purchase_limit_reached",
+        canUse: true,
+        useBlockedReason: null,
+      },
+    );
+    const getShop = vi
+      .fn<NonNullable<GameApiClient["getShop"]>>()
+      .mockResolvedValueOnce(initialStatus)
+      .mockResolvedValueOnce(purchasedStatus);
+    const purchaseShopItem = vi
+      .fn<NonNullable<GameApiClient["purchaseShopItem"]>>()
+      .mockRejectedValueOnce(
+        new ApiError(null, "network_error", "通信結果を確認できませんでした"),
+      )
+      .mockImplementationOnce(async (_accessToken, request) => ({
+        operationId: request.operationId,
+        operationType: "purchase",
+        revision: 2,
+        academicYearIndex: 1,
+        itemId: "training-camp",
+        quantityOwned: 1,
+        purchasedCount: 1,
+        usedCount: 0,
+      }));
+    const bootstrap = vi
+      .fn<GameApiClient["bootstrap"]>()
+      .mockResolvedValueOnce({ status: "ready", game: purchasedSnapshot });
+    const api: GameApiClient = {
+      bootstrap,
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getShop,
+      purchaseShopItem,
+    };
+
+    renderShopApp(api, initialSnapshot);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "強化合宿を購入" }),
+    );
+
+    await waitFor(() => expect(purchaseShopItem).toHaveBeenCalledTimes(1));
+    const firstRequest = purchaseShopItem.mock.calls[0]![1];
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "通信結果を確認できませんでした",
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "購入を再試行" }),
+    );
+
+    await waitFor(() => expect(purchaseShopItem).toHaveBeenCalledTimes(2));
+    const secondRequest = purchaseShopItem.mock.calls[1]![1];
+    expect(secondRequest.operationId).toBe(firstRequest.operationId);
+    expect(secondRequest.revision).toBe(firstRequest.revision);
+    expect(secondRequest.itemId).toBe(firstRequest.itemId);
+    await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("購入しました ✓")).toBeVisible();
   });
 });
