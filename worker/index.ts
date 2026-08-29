@@ -2,9 +2,11 @@ import { createVerifyAccessToken } from "./auth/verifyAccessToken";
 import type { GameStore } from "./data/GameStore";
 import type { PvPStore } from "./data/PvPStore";
 import type { ScoutingStore } from "./data/ScoutingStore";
+import type { ShopStore } from "./data/ShopStore";
 import { SupabaseGameStore } from "./data/SupabaseGameStore";
 import { SupabasePvPStore } from "./data/SupabasePvPStore";
 import { SupabaseScoutingStore } from "./data/SupabaseScoutingStore";
+import { SupabaseShopStore } from "./data/SupabaseShopStore";
 import { createSupabaseAdmin } from "./data/createSupabaseAdmin";
 import type { Env } from "./env";
 import { createRouter } from "./router";
@@ -60,6 +62,23 @@ function createLazyPvpStore(env: Env): PvPStore {
   };
 }
 
+function createLazyShopStore(env: Env): ShopStore {
+  let resolved: SupabaseShopStore | null = null;
+  const store = () => {
+    resolved ??= new SupabaseShopStore(createSupabaseAdmin(env));
+    return resolved;
+  };
+
+  return {
+    findOperation: (userId, operationId) =>
+      store().findOperation(userId, operationId),
+    getStatus: (userId, currentYearIndex) =>
+      store().getStatus(userId, currentYearIndex),
+    purchase: (input) => store().purchase(input),
+    use: (input) => store().use(input),
+  };
+}
+
 export default {
   fetch(request, env) {
     const router = createRouter({
@@ -67,6 +86,7 @@ export default {
       store: createLazyGameStore(env),
       scoutingStore: createLazyScoutingStore(env),
       pvpStore: createLazyPvpStore(env),
+      shopStore: createLazyShopStore(env),
     });
     return router(request);
   },
