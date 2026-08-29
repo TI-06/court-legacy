@@ -19,7 +19,11 @@ import type {
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
-import type { ShopStatusResponse } from "../domain/shop/shopContracts";
+import type {
+  ShopPurchaseRequest,
+  ShopStatusResponse,
+  ShopUseRequest,
+} from "../domain/shop/shopContracts";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -59,6 +63,9 @@ interface GameAppProps {
 type MoreView = "menu" | "school" | "shop";
 type MatchView = "practice" | "pvp";
 type ShopPendingAction = "purchase" | "use";
+type ShopRetryRequest =
+  | { action: "purchase"; request: ShopPurchaseRequest }
+  | { action: "use"; request: ShopUseRequest };
 
 interface AdvanceWeekOutcome {
   academicYearTransition: AcademicYearTransitionSummary | null;
@@ -144,6 +151,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [shopResultMessage, setShopResultMessage] = useState<string | null>(
     null,
   );
+  const [shopRetryRequest, setShopRetryRequest] =
+    useState<ShopRetryRequest | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
@@ -476,10 +485,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const loadShop = async () => {
+  const loadShop = async (): Promise<boolean> => {
     if (!api.getShop) {
       setShopError("ショップ機能を利用できません");
-      return;
+      return false;
     }
 
     setShopLoading(true);
@@ -487,10 +496,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     try {
       const status = await api.getShop(session.accessToken);
       setShopStatus(status);
+      return true;
     } catch (error) {
       setShopError(
         shopErrorMessage(error, "ショップ情報を読み込めませんでした"),
       );
+      return false;
     } finally {
       setShopLoading(false);
     }
@@ -509,11 +520,35 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       latest.game,
       "最新のゲーム状態を読み込みました",
     );
-    await loadShop();
+    if (!(await loadShop())) return false;
+    setShopRetryRequest(null);
     return true;
   };
 
-  const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+  const recoverShopRevision = async (): Promise<boolean> => {
+    try {
+      const latest = await api.bootstrap(session.accessToken);
+      if (latest.status !== "ready") {
+        setShopError("最新のゲーム状態を読み込めませんでした");
+        return false;
+      }
+      await cloudSession.adoptServerSnapshot(
+        latest.game,
+        "最新のゲーム状態を読み込みました",
+      );
+      if (!(await loadShop())) return false;
+      setShopRetryRequest(null);
+      setShopError("最新のゲーム状態を読み込みました。もう一度お試しください");
+      return true;
+    } catch (error) {
+      setShopError(
+        shopErrorMessage(error, "最新のゲーム状態を読み込めませんでした"),
+      );
+      return false;
+    }
+  };
+
+  const executeShopPurchase = async (request: ShopPurchaseRequest) => {
     if (!api.purchaseShopItem || shopPendingAction !== null) {
       if (!api.purchaseShopItem) {
         setShopError("ショップ購入機能を利用できません");
@@ -522,19 +557,27 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
 
     setShopPendingAction("purchase");
-    setShopPendingItemId(itemId);
+    setShopPendingItemId(request.itemId);
     setShopResultMessage(null);
+    setShopRetryRequest(null);
     setShopError(null);
     try {
-      const response = await api.purchaseShopItem(session.accessToken, {
-        operationId: crypto.randomUUID(),
-        revision: cloudSession.snapshot.revision,
-        itemId,
-      });
+      const response = await api.purchaseShopItem(session.accessToken, request);
       if (await refreshShopAfterMutation(response.revision)) {
         setShopResultMessage("購入しました ✓");
       }
     } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
+        await recoverShopRevision();
+        return;
+      }
+      if (error instanceof ApiError && error.status === null) {
+        setShopRetryRequest({ action: "purchase", request });
+      }
       setShopError(shopErrorMessage(error, "購入処理に失敗しました"));
     } finally {
       setShopPendingAction(null);
@@ -542,7 +585,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+  const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+    await executeShopPurchase({
+      operationId: crypto.randomUUID(),
+      revision: cloudSession.snapshot.revision,
+      itemId,
+    });
+  };
+
+  const executeShopUse = async (request: ShopUseRequest) => {
     if (!api.useShopItem || shopPendingAction !== null) {
       if (!api.useShopItem) {
         setShopError("ショップ使用機能を利用できません");
@@ -551,19 +602,27 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
 
     setShopPendingAction("use");
-    setShopPendingItemId(itemId);
+    setShopPendingItemId(request.itemId);
     setShopResultMessage(null);
+    setShopRetryRequest(null);
     setShopError(null);
     try {
-      const response = await api.useShopItem(session.accessToken, {
-        operationId: crypto.randomUUID(),
-        revision: cloudSession.snapshot.revision,
-        itemId,
-      });
+      const response = await api.useShopItem(session.accessToken, request);
       if (await refreshShopAfterMutation(response.revision)) {
         setShopResultMessage("使用しました ✓");
       }
     } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
+        await recoverShopRevision();
+        return;
+      }
+      if (error instanceof ApiError && error.status === null) {
+        setShopRetryRequest({ action: "use", request });
+      }
       setShopError(shopErrorMessage(error, "使用処理に失敗しました"));
     } finally {
       setShopPendingAction(null);
@@ -571,9 +630,27 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
+  const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+    await executeShopUse({
+      operationId: crypto.randomUUID(),
+      revision: cloudSession.snapshot.revision,
+      itemId,
+    });
+  };
+
+  const retryShopMutation = async () => {
+    if (!shopRetryRequest) return;
+    if (shopRetryRequest.action === "purchase") {
+      await executeShopPurchase(shopRetryRequest.request);
+      return;
+    }
+    await executeShopUse(shopRetryRequest.request);
+  };
+
   const openShop = () => {
     setMoreView("shop");
     setShopResultMessage(null);
+    setShopRetryRequest(null);
     void loadShop();
   };
 
@@ -708,12 +785,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           void purchaseShopItemFromUi(itemId);
         }}
         onRetry={() => void loadShop()}
+        onRetryMutation={() => {
+          void retryShopMutation();
+        }}
         onUse={(itemId) => {
           void consumeShopItemFromUi(itemId);
         }}
         pendingAction={shopPendingAction}
         pendingItemId={shopPendingItemId}
         resultMessage={shopResultMessage}
+        retryAction={shopRetryRequest?.action ?? null}
         status={shopStatus}
       />
     ) : moreView === "school" ? (

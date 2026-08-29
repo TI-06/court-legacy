@@ -17,8 +17,10 @@ interface ShopScreenProps {
   pendingAction?: ShopPendingAction | null;
   pendingItemId?: ShopItemId | null;
   resultMessage?: string | null;
+  retryAction?: ShopPendingAction | null;
   onBack: () => void;
   onRetry: () => void;
+  onRetryMutation?: () => void;
   onPurchase?: (itemId: ShopItemId) => void;
   onUse?: (itemId: ShopItemId) => void;
 }
@@ -141,8 +143,10 @@ export function ShopScreen({
   pendingAction = null,
   pendingItemId = null,
   resultMessage = null,
+  retryAction = null,
   onBack,
   onRetry,
+  onRetryMutation = () => undefined,
   onPurchase = () => undefined,
   onUse = () => undefined,
 }: ShopScreenProps) {
@@ -194,9 +198,15 @@ export function ShopScreen({
           role="alert"
         >
           <p>{error}</p>
-          <button onClick={onRetry} type="button">
-            再読み込み
-          </button>
+          {retryAction ? (
+            <button onClick={onRetryMutation} type="button">
+              {retryAction === "purchase" ? "購入を再試行" : "使用を再試行"}
+            </button>
+          ) : (
+            <button onClick={onRetry} type="button">
+              再読み込み
+            </button>
+          )}
         </div>
       ) : null}
 
