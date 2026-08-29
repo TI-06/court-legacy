@@ -102,10 +102,9 @@ describe("GameApp official tournament retry", () => {
     fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
     fireEvent.click(screen.getByRole("button", { name: "公式戦を開始" }));
     fireEvent.click(
-      within(screen.getByRole("dialog", { name: "公式戦を開始しますか" })).getByRole(
-        "button",
-        { name: "この試合を開始" },
-      ),
+      within(
+        screen.getByRole("dialog", { name: "公式戦を開始しますか" }),
+      ).getByRole("button", { name: "この試合を開始" }),
     );
 
     expect(await screen.findByText("オフライン")).toBeVisible();
@@ -121,6 +120,8 @@ describe("GameApp official tournament retry", () => {
     expect(await screen.findByText("保存済み ✓")).toBeVisible();
     expect(applyAction).toHaveBeenCalledTimes(2);
     expect(applyAction.mock.calls[1]![1]).toEqual(firstRequest);
-    expect(firstRequest.operationId).toBe(applyAction.mock.calls[1]![1].operationId);
+    expect(firstRequest.operationId).toBe(
+      applyAction.mock.calls[1]![1].operationId,
+    );
   });
 });
