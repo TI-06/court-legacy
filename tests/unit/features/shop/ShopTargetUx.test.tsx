@@ -1,10 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentProps, ComponentType } from "react";
 import { vi } from "vitest";
-import {
-  createDemoGame,
-  gameData,
-} from "../../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
 import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import {
@@ -61,7 +58,8 @@ type ShopAwareScoutingProps = ComponentProps<typeof ScoutingScreen> & {
   onUseShopItem: (itemId: ShopItemId, target: ShopUseTarget) => void;
 };
 
-const ShopAwareScoutingScreen = ScoutingScreen as ComponentType<ShopAwareScoutingProps>;
+const ShopAwareScoutingScreen =
+  ScoutingScreen as ComponentType<ShopAwareScoutingProps>;
 
 function userSchoolPlayers(state: GameState) {
   const school = state.schools[state.userSchoolId]!;
@@ -95,9 +93,7 @@ describe("Phase 5 targeted shop UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "疲労回復を使用" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "疲労回復を使用" }));
 
     expect(
       screen.getByRole("heading", { name: "回復する選手を選択" }),
@@ -143,9 +139,7 @@ describe("Phase 5 targeted shop UX", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "特別コーチを使用" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "特別コーチを使用" }));
 
     expect(
       screen.getByRole("heading", { name: "特別コーチの対象選手を選択" }),
