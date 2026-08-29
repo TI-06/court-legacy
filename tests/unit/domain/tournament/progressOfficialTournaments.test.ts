@@ -58,7 +58,7 @@ function playDueUserWin(
   weekOfYear: number,
   level: TournamentLevel,
 ): GameState {
-  let next = advanceOfficialTournamentsThroughWeek(atWeek(state, weekOfYear));
+  const next = advanceOfficialTournamentsThroughWeek(atWeek(state, weekOfYear));
   const due = findDueUserOfficialMatch(next);
   if (!due || due.level !== level) {
     throw new Error(`expected due ${level} match in week ${weekOfYear}`);
