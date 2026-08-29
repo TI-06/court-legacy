@@ -19,6 +19,13 @@ export interface ShopStatusItem {
 
 export type ShopOperationType = "purchase" | "use";
 
+export interface ShopOperationRecord {
+  operationId: string;
+  operationType: ShopOperationType;
+  requestFingerprint: string;
+  response: unknown;
+}
+
 export interface ShopMutationResult {
   operationId: string;
   operationType: ShopOperationType;
@@ -67,6 +74,10 @@ export interface CommitShopUseInput {
 }
 
 export interface ShopStore {
+  findOperation(
+    userId: string,
+    operationId: string,
+  ): Promise<ShopOperationRecord | null>;
   getStatus(
     userId: string,
     currentYearIndex: number,
