@@ -1,0 +1,94 @@
+name: Phase 6 Task 4 Fix
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  fix-task4:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Apply Task 4 integration and type fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          progress_path = Path('src/domain/tournament/progressOfficialTournaments.ts')
+          progress = progress_path.read_text()
+          progress = progress.replace('  TournamentRound,\n', '')
+          progress = progress.replace(
+              'match.status !== "completed" &&\n      match.scheduledWeek <= state.calendar.weekOfYear',
+              'match.status !== "completed" &&\n      match.status !== "user-required" &&\n      match.scheduledWeek <= state.calendar.weekOfYear',
+          )
+          progress = progress.replace(
+              'if (!result.progressed || findDueUserOfficialMatch(next)) {\n      return next;\n    }',
+              'if (!result.progressed) {\n      return next;\n    }',
+          )
+          progress_path.write_text(progress)
+
+          academic_path = Path('src/domain/calendar/academicYearProgression.ts')
+          academic = academic_path.read_text()
+          if 'import { createOfficialSeason } from "../tournament/createOfficialSeason";' not in academic:
+              academic = academic.replace(
+                  'import { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
+                  'import { createOfficialSeason } from "../tournament/createOfficialSeason";\nimport { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
+              )
+          old = '''  nextState = {\n    ...nextState,\n    randomCursor: random.cursor,\n    playerRelationships,\n  };\n\n  return {'''
+          if old in academic:
+              academic = academic.replace(old, '''  nextState = {\n    ...nextState,\n    randomCursor: random.cursor,\n    playerRelationships,\n  };\n  nextState = {\n    ...nextState,\n    officialSeason: createOfficialSeason({\n      state: nextState,\n      academicYear: nextAcademicYear,\n    }),\n  };\n\n  return {''')
+          academic_path.write_text(academic)
+
+          rival_path = Path('src/domain/world/rivalWorldProgression.ts')
+          rival = rival_path.read_text()
+          if 'MAX_OFFICIAL_TOURNAMENT_HISTORY' not in rival:
+              rival = rival.replace(
+                  'import type { RandomSource } from "../random/SeededRandom";\n',
+                  'import type { RandomSource } from "../random/SeededRandom";\nimport { MAX_OFFICIAL_TOURNAMENT_HISTORY } from "../tournament/tournamentHistory";\n',
+              )
+              rival = rival.replace(
+                  '      graduates: state.history.graduates.slice(-MAX_GRADUATE_HISTORY),\n',
+                  '      graduates: state.history.graduates.slice(-MAX_GRADUATE_HISTORY),\n      officialTournaments: state.history.officialTournaments.slice(\n        -MAX_OFFICIAL_TOURNAMENT_HISTORY,\n      ),\n',
+              )
+          rival_path.write_text(rival)
+
+          test_path = Path('tests/unit/domain/calendar/academicYearProgression.test.ts')
+          test = test_path.read_text()
+          marker = '''    expect(result.state.calendar.weekOfYear).toBe(1);\n    expect(transition.graduatedPlayerIds).toHaveLength('''
+          if marker in test:
+              test = test.replace(marker, '''    expect(result.state.calendar.weekOfYear).toBe(1);\n    expect(result.state.officialSeason.academicYear).toBe(2);\n    expect(\n      result.state.officialSeason.interhigh.prefectural.entrants,\n    ).toHaveLength(16);\n    expect(\n      result.state.officialSeason.springHigh.prefectural.entrants,\n    ).toHaveLength(16);\n    expect(result.state.officialSeason.interhigh.national).toBeNull();\n    expect(result.state.officialSeason.springHigh.national).toBeNull();\n    expect(transition.graduatedPlayerIds).toHaveLength(''')
+          test_path.write_text(test)
+          PY
+      - name: Format Task 4 files
+        run: >-
+          npx prettier
+          src/domain/tournament/progressOfficialTournaments.ts
+          src/domain/tournament/tournamentHistory.ts
+          src/domain/calendar/academicYearProgression.ts
+          src/domain/world/rivalWorldProgression.ts
+          tests/unit/domain/tournament/progressOfficialTournaments.test.ts
+          tests/unit/domain/calendar/academicYearProgression.test.ts
+          --write
+      - name: Verify Task 4 focused behavior
+        run: |
+          npm test -- tests/unit/domain/tournament/progressOfficialTournaments.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts
+          npm run typecheck
+      - name: Commit Task 4
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/tournament/progressOfficialTournaments.ts src/domain/tournament/tournamentHistory.ts src/domain/calendar/academicYearProgression.ts src/domain/world/rivalWorldProgression.ts tests/unit/domain/tournament/progressOfficialTournaments.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts
+          git commit -m "feat: advance official tournament brackets"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
