@@ -144,7 +144,9 @@ function InventoryCard({
       </div>
 
       {scoutingTargetRequired ? (
-        <p className="shop-card__blocked">スカウト画面で候補を選んで使用します</p>
+        <p className="shop-card__blocked">
+          スカウト画面で候補を選んで使用します
+        </p>
       ) : reason ? (
         <p className="shop-card__blocked">{reason}</p>
       ) : null}
@@ -326,7 +328,8 @@ export function ShopScreen({
                     {player.lastName} {player.firstName}
                   </strong>
                   <span>
-                    {player.grade}年・{player.preferredPosition} / 疲労 {player.fatigue} / 状態 {player.condition}
+                    {player.grade}年・{player.preferredPosition} / 疲労{" "}
+                    {player.fatigue} / 状態 {player.condition}
                   </span>
                 </button>
               ))}
@@ -336,7 +339,10 @@ export function ShopScreen({
           )}
         </section>
       ) : targetingItemId === "special-coach" ? (
-        <section className="shop-target-panel" aria-label="特別コーチの対象選択">
+        <section
+          className="shop-target-panel"
+          aria-label="特別コーチの対象選択"
+        >
           <div className="shop-target-panel__heading">
             <h3>
               {specialCoachPlayerId
@@ -372,7 +378,8 @@ export function ShopScreen({
                     {player.lastName} {player.firstName}
                   </strong>
                   <span>
-                    {player.grade}年・{player.preferredPosition} / 疲労 {player.fatigue}
+                    {player.grade}年・{player.preferredPosition} / 疲労{" "}
+                    {player.fatigue}
                   </span>
                 </button>
               ))}

@@ -23,6 +23,7 @@ import type {
   ShopPurchaseRequest,
   ShopStatusResponse,
   ShopUseRequest,
+  ShopUseTarget,
 } from "../domain/shop/shopContracts";
 import {
   calculateSelectionStrength,
@@ -153,6 +154,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   );
   const [shopRetryRequest, setShopRetryRequest] =
     useState<ShopRetryRequest | null>(null);
+  const [shopPendingTarget, setShopPendingTarget] =
+    useState<ShopUseTarget | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
@@ -256,6 +259,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setScoutingOpen(true);
     setScoutingError(null);
     setRetryRecruitCandidateId(null);
+    void loadShop();
     const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
     if (scoutingCycle !== currentCycle) {
       setScoutingReports([]);
@@ -603,6 +607,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     setShopPendingAction("use");
     setShopPendingItemId(request.itemId);
+    setShopPendingTarget(request.target ?? null);
     setShopResultMessage(null);
     setShopRetryRequest(null);
     setShopError(null);
@@ -610,6 +615,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       const response = await api.useShopItem(session.accessToken, request);
       if (await refreshShopAfterMutation(response.revision)) {
         setShopResultMessage("使用しました ✓");
+        if (
+          scoutingOpen &&
+          (request.itemId === "scout-research" ||
+            request.itemId === "potential-appraisal" ||
+            request.itemId === "extra-scout-candidate")
+        ) {
+          await loadScoutingBoard(response.revision);
+        }
       }
     } catch (error) {
       if (
@@ -627,14 +640,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     } finally {
       setShopPendingAction(null);
       setShopPendingItemId(null);
+      setShopPendingTarget(null);
     }
   };
 
-  const consumeShopItemFromUi = async (itemId: ShopItemId) => {
+  const consumeShopItemFromUi = async (
+    itemId: ShopItemId,
+    target?: ShopUseTarget,
+  ) => {
     await executeShopUse({
       operationId: crypto.randomUUID(),
       revision: cloudSession.snapshot.revision,
       itemId,
+      target,
     });
   };
 
@@ -719,8 +737,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           void recruitCandidate(candidateId);
         }}
         onRetry={retryScouting}
+        onUseShopItem={(itemId, target) => {
+          void consumeShopItemFromUi(itemId, target);
+        }}
         recruitingCandidateId={recruitingCandidateId}
         reports={scoutingReports}
+        shopPendingCandidateId={
+          shopPendingTarget?.type === "scouting-candidate"
+            ? shopPendingTarget.candidateId
+            : null
+        }
+        shopPendingItemId={shopPendingItemId}
+        shopStatus={shopStatus}
         state={gameState}
       />
     ) : activeTab === "training" ? (
@@ -788,13 +816,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onRetryMutation={() => {
           void retryShopMutation();
         }}
-        onUse={(itemId) => {
-          void consumeShopItemFromUi(itemId);
+        onUse={(itemId, target) => {
+          void consumeShopItemFromUi(itemId, target);
         }}
         pendingAction={shopPendingAction}
         pendingItemId={shopPendingItemId}
         resultMessage={shopResultMessage}
         retryAction={shopRetryRequest?.action ?? null}
+        state={gameState}
         status={shopStatus}
       />
     ) : moreView === "school" ? (
