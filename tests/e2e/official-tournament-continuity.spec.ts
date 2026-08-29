@@ -51,7 +51,9 @@ async function seedSnapshot(page: Page, value: CloudGameSnapshot) {
 }
 
 function eliminateUserFromInterhigh(): CloudGameSnapshot {
-  let state = advanceOfficialTournamentsThroughWeek(atWeek(createDemoGame(), 9));
+  let state = advanceOfficialTournamentsThroughWeek(
+    atWeek(createDemoGame(), 9),
+  );
   const due = findDueUserOfficialMatch(state);
   if (!due || due.circuit !== "interhigh" || due.level !== "prefectural") {
     throw new Error("expected Interhigh prefectural opening match");
@@ -130,9 +132,13 @@ test("prefectural elimination does not end the save or block later weeks", async
 
   await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
   await expect(page.getByText("春高 県大会")).toBeVisible();
-  await expect(page.getByRole("button", { name: "次の週へ進む" })).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "次の週へ進む" }),
+  ).toBeEnabled();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "保存済み ✓" })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "保存済み ✓" }),
+  ).toBeVisible();
 
   const persisted = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
@@ -140,9 +146,9 @@ test("prefectural elimination does not end the save or block later weeks", async
   }, E2E_SERVER_SNAPSHOT_KEY);
   expect(persisted?.revision).toBe(31);
   expect(persisted?.state?.calendar?.weekOfYear).toBe(14);
-  expect(persisted?.state?.officialSeason?.interhigh?.prefectural?.userEliminated).toBe(
-    true,
-  );
+  expect(
+    persisted?.state?.officialSeason?.interhigh?.prefectural?.userEliminated,
+  ).toBe(true);
 });
 
 test("national qualification exposes the guest identity without persisting a guest roster", async ({
@@ -170,10 +176,10 @@ test("national qualification exposes the guest identity without persisting a gue
     };
   }, E2E_SERVER_SNAPSHOT_KEY);
 
-  expect(persistence?.schoolIds.some((id: string) => id.includes("guest:"))).toBe(
-    false,
-  );
-  expect(persistence?.playerIds.some((id: string) => id.includes("guest:"))).toBe(
-    false,
-  );
+  expect(
+    persistence?.schoolIds.some((id: string) => id.includes("guest:")),
+  ).toBe(false);
+  expect(
+    persistence?.playerIds.some((id: string) => id.includes("guest:")),
+  ).toBe(false);
 });
