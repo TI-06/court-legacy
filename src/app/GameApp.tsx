@@ -478,7 +478,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       const status = await api.getShop(session.accessToken);
       setShopStatus(status);
     } catch (error) {
-      setShopError(shopErrorMessage(error, "ショップ情報を読み込めませんでした"));
+      setShopError(
+        shopErrorMessage(error, "ショップ情報を読み込めませんでした"),
+      );
     } finally {
       setShopLoading(false);
     }
