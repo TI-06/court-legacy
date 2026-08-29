@@ -43,12 +43,16 @@ const playerRoleSchema = z.enum([
   "development",
   "reserve",
 ]);
-const playerConcernSchema = z.enum([
+const playerConcernCodeSchema = z.enum([
   "playing-time",
   "role-mismatch",
   "injury-overuse",
-  "losing-streak",
+  "team-slump",
 ]);
+const playerConcernSchema = z.object({
+  code: playerConcernCodeSchema,
+  severity: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+});
 
 const teamDynamicsSchema = z.object({
   captainPlayerId: z.string().min(1).nullable(),
