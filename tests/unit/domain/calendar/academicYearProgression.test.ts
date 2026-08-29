@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createDemoGame, gameData } from "../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import {
   advanceGameWeek,
   relationshipKey,
-} from "../../../src/domain/calendar/academicYearProgression";
-import type { GameDate } from "../../../src/domain/model/GameState";
-import type { PlayerId } from "../../../src/domain/model/identifiers";
+} from "../../../../src/domain/calendar/academicYearProgression";
+import type { GameDate } from "../../../../src/domain/model/GameState";
+import type { PlayerId } from "../../../../src/domain/model/identifiers";
 
 function thirdYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
   return Object.values(state.players)
