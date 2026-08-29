@@ -71,6 +71,8 @@ describe("Phase 5 shop security boundaries", () => {
     });
 
     expect(result.state.shopEffects).toBeUndefined();
-    expect(JSON.stringify(result.state)).not.toContain("training-efficiency-boost");
+    expect(JSON.stringify(result.state)).not.toContain(
+      "training-efficiency-boost",
+    );
   });
 });
