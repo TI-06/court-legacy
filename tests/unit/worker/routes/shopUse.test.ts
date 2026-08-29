@@ -118,7 +118,8 @@ function createResolver(result: ResolvedShopUse) {
 }
 
 function bodyFor(snapshot: CloudGameSnapshot) {
-  const playerId = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+  const playerId =
+    snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
   return {
     operationId: "shop-use-001",
     revision: 8,
@@ -281,23 +282,26 @@ describe("shop use route", () => {
     "target_not_found",
     "effect_already_pending",
     "scouting_cycle_unavailable",
-  ] as const)("maps resolver conflict %s without consuming inventory", async (code) => {
-    const snapshot = createSnapshot();
-    const gameStore = createGameStore(snapshot);
-    const shopStore = createShopStore();
-    const resolveUse = vi.fn(async () => {
-      throw new ShopUseResolutionError(code);
-    });
-    const handler = createShopUseHandler({ gameStore, shopStore, resolveUse });
+  ] as const)(
+    "maps resolver conflict %s without consuming inventory",
+    async (code) => {
+      const snapshot = createSnapshot();
+      const gameStore = createGameStore(snapshot);
+      const shopStore = createShopStore();
+      const resolveUse = vi.fn(async () => {
+        throw new ShopUseResolutionError(code);
+      });
+      const handler = createShopUseHandler({ gameStore, shopStore, resolveUse });
 
-    const response = await handler(request(bodyFor(snapshot)), {
-      id: "user-123",
-    });
+      const response = await handler(request(bodyFor(snapshot)), {
+        id: "user-123",
+      });
 
-    expect(response.status).toBe(409);
-    expect((await response.json()).error.code).toBe(code);
-    expect(shopStore.use).not.toHaveBeenCalled();
-  });
+      expect(response.status).toBe(409);
+      expect((await response.json()).error.code).toBe(code);
+      expect(shopStore.use).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     "revision_conflict",
