@@ -16,6 +16,10 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import {
+  applyFatigueRecovery,
+  isFatigueRecoveryEligible,
+} from "../domain/shop/shopEffects";
 import type {
   ShopPurchaseRequest,
   ShopUseRequest,
@@ -54,6 +58,8 @@ export interface BrowserAppDependencies {
 export const E2E_SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 export const E2E_GAME_STATE_KEY = "court-legacy:e2e-game-state";
 export const E2E_ACTION_DELAY_MS_KEY = "court-legacy:e2e-action-delay-ms";
+export const E2E_SHOP_LOSE_NEXT_RESPONSE_KEY =
+  "court-legacy:e2e-shop-lose-next-response";
 
 function createHarnessSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
@@ -234,6 +240,27 @@ function readHarnessDelay(): number {
   return Number.isFinite(parsed) ? Math.max(0, Math.min(parsed, 5_000)) : 0;
 }
 
+function consumeHarnessLostShopResponse(
+  operationType: "purchase" | "use",
+): boolean {
+  if (readSessionStorage(E2E_SHOP_LOSE_NEXT_RESPONSE_KEY) !== operationType) {
+    return false;
+  }
+  writeSessionStorage(E2E_SHOP_LOSE_NEXT_RESPONSE_KEY, "");
+  return true;
+}
+
+function tightenHarnessRange(
+  range: ScoutReport["estimatedOverall"],
+  halfWidth: number,
+): ScoutReport["estimatedOverall"] {
+  const midpoint = Math.round((range.min + range.max) / 2);
+  return {
+    min: Math.max(0, midpoint - halfWidth),
+    max: Math.min(100, midpoint + halfWidth),
+  };
+}
+
 class StaticGameApiClient implements GameApiClient {
   private snapshot: CloudGameSnapshot | null;
   private readonly operationResponses = new Map<
@@ -267,6 +294,8 @@ class StaticGameApiClient implements GameApiClient {
         const snapshot = this.requireSnapshot();
         this.replaceSnapshot({ ...snapshot, revision });
       },
+      commitUse: (request, revision) =>
+        this.commitHarnessShopUse(request, revision),
     });
     if (persistAcrossReloads && this.snapshot) {
       writePersistedHarnessSnapshot(this.snapshot);
@@ -291,7 +320,141 @@ class StaticGameApiClient implements GameApiClient {
     return this.snapshot;
   }
 
+  private syncPersistedHarnessSnapshotIfNewer(): void {
+    if (!this.persistAcrossReloads) return;
+    const persisted = readPersistedHarnessSnapshot();
+    if (
+      persisted &&
+      (!this.snapshot || persisted.revision > this.snapshot.revision)
+    ) {
+      this.snapshot = persisted;
+    }
+  }
+
+  private commitHarnessShopUse(
+    request: ShopUseRequest,
+    revision: number,
+  ): Record<string, unknown> {
+    const snapshot = this.requireSnapshot();
+    if (request.itemId === "fatigue-recovery") {
+      if (request.target?.type !== "player") {
+        throw new ApiError(409, "invalid_target", "回復対象を確認してください");
+      }
+      const school = snapshot.state.schools[snapshot.state.userSchoolId];
+      const targetId = playerId(request.target.playerId);
+      if (!school?.playerIds.includes(targetId)) {
+        throw new ApiError(409, "target_not_found", "回復対象を確認できません");
+      }
+      const target = snapshot.state.players[targetId];
+      if (!target || !isFatigueRecoveryEligible(target)) {
+        throw new ApiError(409, "invalid_target", "この選手は回復不要です");
+      }
+      const recovered = applyFatigueRecovery(target);
+      this.replaceSnapshot({
+        ...snapshot,
+        revision,
+        state: {
+          ...snapshot.state,
+          players: {
+            ...snapshot.state.players,
+            [targetId]: recovered.player,
+          },
+        },
+      });
+      return {
+        playerId: targetId,
+        before: recovered.before,
+        after: recovered.after,
+      };
+    }
+
+    if (request.itemId === "training-efficiency-boost") {
+      if (snapshot.state.shopEffects?.nextTrainingGrowthBoost) {
+        throw new ApiError(
+          409,
+          "effect_already_pending",
+          "練習効率アップはすでに有効です",
+        );
+      }
+      this.replaceSnapshot({
+        ...snapshot,
+        revision,
+        state: {
+          ...snapshot.state,
+          shopEffects: {
+            ...snapshot.state.shopEffects,
+            nextTrainingGrowthBoost: {
+              percent: 20,
+              remainingUses: 1,
+              sourceItemId: "training-efficiency-boost",
+            },
+          },
+        },
+      });
+      return { pending: true, percent: 20 };
+    }
+
+    if (
+      request.itemId === "scout-research" ||
+      request.itemId === "potential-appraisal"
+    ) {
+      if (request.target?.type !== "scouting-candidate") {
+        throw new ApiError(409, "invalid_target", "候補選手を確認してください");
+      }
+      const cycleKey = harnessScoutingCycleKey(snapshot.state);
+      const reports = this.scoutingReports.get(cycleKey);
+      const candidate = reports?.find(
+        (report) => report.candidateId === request.target!.candidateId,
+      );
+      if (!reports || !candidate) {
+        throw new ApiError(
+          409,
+          "candidate_unavailable",
+          "この候補は現在のスカウト候補に含まれていません",
+        );
+      }
+      const next = reports.map((report) => {
+        if (report.candidateId !== candidate.candidateId) return report;
+        return request.itemId === "scout-research"
+          ? {
+              ...report,
+              estimatedOverall: tightenHarnessRange(report.estimatedOverall, 4),
+              estimatedPotential: tightenHarnessRange(
+                report.estimatedPotential,
+                5,
+              ),
+              confidence: "high" as const,
+            }
+          : {
+              ...report,
+              estimatedPotential: tightenHarnessRange(
+                report.estimatedPotential,
+                2,
+              ),
+              confidence: "high" as const,
+            };
+      });
+      this.scoutingReports.set(cycleKey, next);
+      this.replaceSnapshot({ ...snapshot, revision });
+      return request.itemId === "scout-research"
+        ? {
+            candidateId: candidate.candidateId,
+            overallPrecision: "researched",
+            potentialPrecision: "researched",
+          }
+        : {
+            candidateId: candidate.candidateId,
+            overallPrecision: "researched",
+            potentialPrecision: "appraised",
+          };
+    }
+
+    this.replaceSnapshot({ ...snapshot, revision });
+    return { itemId: request.itemId };
+  }
+
   async bootstrap() {
+    this.syncPersistedHarnessSnapshotIfNewer();
     return this.snapshot
       ? ({ status: "ready" as const, game: this.snapshot } as const)
       : ({ status: "needs-onboarding" as const } as const);
@@ -362,15 +525,36 @@ class StaticGameApiClient implements GameApiClient {
   }
 
   async getShop() {
+    this.syncPersistedHarnessSnapshotIfNewer();
     return this.shopHarness.getStatus();
   }
 
   async purchaseShopItem(_accessToken: string, request: ShopPurchaseRequest) {
-    return this.shopHarness.purchase(request);
+    this.syncPersistedHarnessSnapshotIfNewer();
+    await this.pvpDelay();
+    const response = this.shopHarness.purchase(request);
+    if (consumeHarnessLostShopResponse("purchase")) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "サーバーに接続できませんでした",
+      );
+    }
+    return response;
   }
 
   async useShopItem(_accessToken: string, request: ShopUseRequest) {
-    return this.shopHarness.use(request);
+    this.syncPersistedHarnessSnapshotIfNewer();
+    await this.pvpDelay();
+    const response = this.shopHarness.use(request);
+    if (consumeHarnessLostShopResponse("use")) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "サーバーに接続できませんでした",
+      );
+    }
+    return response;
   }
 
   async getScoutingBoard(_accessToken: string, request: ScoutingBoardRequest) {
