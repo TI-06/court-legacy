@@ -41,8 +41,7 @@ export interface TournamentResultInput {
   won: boolean;
 }
 
-export interface ApplyOfficialMatchPlayerStatsInput
-  extends TournamentResultInput {
+export interface ApplyOfficialMatchPlayerStatsInput extends TournamentResultInput {
   state: GameState;
   match: MatchState;
 }
@@ -126,7 +125,8 @@ export function improveBestTournamentResultId(
   if (!current) {
     return candidate;
   }
-  const currentRank = TOURNAMENT_RESULT_RANK[current as TournamentResultId] ?? 0;
+  const currentRank =
+    TOURNAMENT_RESULT_RANK[current as TournamentResultId] ?? 0;
   return currentRank >= TOURNAMENT_RESULT_RANK[candidate] ? current : candidate;
 }
 
@@ -187,10 +187,7 @@ export function applyOfficialMatchPlayerStats(
   }
 
   const resultId = tournamentResultIdForMatch(input);
-  const affectedIds = new Set<PlayerId>([
-    ...participantIds,
-    ...scoring.keys(),
-  ]);
+  const affectedIds = new Set<PlayerId>([...participantIds, ...scoring.keys()]);
   const players = { ...input.state.players };
 
   for (const playerId of affectedIds) {

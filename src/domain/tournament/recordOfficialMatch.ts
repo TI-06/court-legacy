@@ -1,12 +1,7 @@
-import type {
-  GameState,
-  HistoricalMatchSummary,
-} from "../model/GameState";
+import type { GameState, HistoricalMatchSummary } from "../model/GameState";
 import type { MatchState } from "../model/Match";
 import { MAX_MATCH_HISTORY } from "../world/rivalWorldProgression";
-import {
-  applyOfficialMatchPlayerStats,
-} from "./playerTournamentStats";
+import { applyOfficialMatchPlayerStats } from "./playerTournamentStats";
 import { completeTournamentMatch } from "./progressOfficialTournaments";
 import type {
   TournamentCircuit,
@@ -62,14 +57,18 @@ function validateCompletedMatch(match: MatchState): {
   homeWon: boolean;
 } {
   if (match.phase !== "match-complete") {
-    throw new Error("official tournament match must be complete before recording");
+    throw new Error(
+      "official tournament match must be complete before recording",
+    );
   }
   const homeSetsWon = match.homeSetsWon;
   const awaySetsWon = match.awaySetsWon;
   const homeWon = homeSetsWon === 2 && awaySetsWon < 2;
   const awayWon = awaySetsWon === 2 && homeSetsWon < 2;
   if (!homeWon && !awayWon) {
-    throw new Error("official tournament match has an invalid best-of-three result");
+    throw new Error(
+      "official tournament match has an invalid best-of-three result",
+    );
   }
   return {
     homeSetsWon: homeSetsWon as 0 | 1 | 2,
@@ -135,7 +134,9 @@ export function recordOfficialTournamentOutcome(
     return input.state;
   }
   if (input.match.id !== input.bracketMatchId) {
-    throw new Error("official match id must match the authoritative bracket match id");
+    throw new Error(
+      "official match id must match the authoritative bracket match id",
+    );
   }
 
   const stage = stageFor(input.state, input.circuit, input.level);
@@ -164,7 +165,9 @@ export function recordOfficialTournamentOutcome(
     awayEntrant.source === "world-school" &&
     awayEntrant.schoolId === input.state.userSchoolId;
   if (!userIsHome && !userIsAway) {
-    throw new Error("official tournament match does not involve the user school");
+    throw new Error(
+      "official tournament match does not involve the user school",
+    );
   }
 
   const result = validateCompletedMatch(input.match);
