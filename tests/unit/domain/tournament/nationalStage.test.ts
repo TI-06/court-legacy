@@ -28,7 +28,8 @@ function userChampion(
   const stage = createOfficialSeason({ state }).interhigh.prefectural;
   const champion = stage.entrants.find(
     (entrant): entrant is WorldSchoolTournamentEntrant =>
-      entrant.source === "world-school" && entrant.schoolId === state.userSchoolId,
+      entrant.source === "world-school" &&
+      entrant.schoolId === state.userSchoolId,
   );
   if (!champion) {
     throw new Error("user entrant was not generated");
@@ -58,7 +59,9 @@ describe("createNationalStage", () => {
     expect(first.level).toBe("national");
     expect(first.entrants).toHaveLength(16);
     expect(first.matches).toHaveLength(15);
-    expect(new Set(first.entrants.map((entrant) => entrant.entrantId)).size).toBe(16);
+    expect(
+      new Set(first.entrants.map((entrant) => entrant.entrantId)).size,
+    ).toBe(16);
 
     const worldEntrants = first.entrants.filter(
       (entrant): entrant is WorldSchoolTournamentEntrant =>

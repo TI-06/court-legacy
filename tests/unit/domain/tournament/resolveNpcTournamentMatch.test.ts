@@ -63,8 +63,12 @@ describe("resolveNpcTournamentMatch", () => {
     ]);
     expect([strong.entrantId, weak.entrantId]).toContain(first.winnerEntrantId);
     expect([first.homeSetsWon, first.awaySetsWon]).toContain(2);
-    expect(Math.min(first.homeSetsWon, first.awaySetsWon)).toBeGreaterThanOrEqual(0);
-    expect(Math.min(first.homeSetsWon, first.awaySetsWon)).toBeLessThanOrEqual(1);
+    expect(
+      Math.min(first.homeSetsWon, first.awaySetsWon),
+    ).toBeGreaterThanOrEqual(0);
+    expect(Math.min(first.homeSetsWon, first.awaySetsWon)).toBeLessThanOrEqual(
+      1,
+    );
   });
 
   it("favors the stronger entrant while preserving deterministic upsets", () => {
