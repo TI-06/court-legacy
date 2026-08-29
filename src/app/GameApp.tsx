@@ -46,6 +46,7 @@ import { PvpScreen } from "../features/pvp/PvpScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { ShopScreen } from "../features/shop/ShopScreen";
+import type { ShopUsePresentation } from "../features/shop/shopUsePresentation";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
 import { TrainingScreen } from "../features/training/TrainingScreen";
 import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
@@ -152,6 +153,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [shopResultMessage, setShopResultMessage] = useState<string | null>(
     null,
   );
+  const [latestShopUseResult, setLatestShopUseResult] =
+    useState<ShopUsePresentation | null>(null);
   const [shopRetryRequest, setShopRetryRequest] =
     useState<ShopRetryRequest | null>(null);
   const [shopPendingTarget, setShopPendingTarget] =
@@ -200,10 +203,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
-  ) => {
+  ): Promise<ScoutReport[] | null> => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
-      return;
+      return null;
     }
 
     setScoutingLoading(true);
@@ -217,6 +220,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       });
       setScoutingReports(response.reports);
       setScoutingCycle(response.cycleKey);
+      return response.reports;
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         try {
@@ -234,7 +238,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             });
             setScoutingReports(refreshed.reports);
             setScoutingCycle(refreshed.cycleKey);
-            return;
+            return refreshed.reports;
           }
         } catch (refreshError) {
           setScoutingError(
@@ -243,13 +247,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
               "最新のスカウト候補を読み込めませんでした",
             ),
           );
-          return;
+          return null;
         }
       }
 
       setScoutingError(
         scoutingErrorMessage(error, "候補を読み込めませんでした"),
       );
+      return null;
     } finally {
       setScoutingLoading(false);
     }
@@ -563,6 +568,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setShopPendingAction("purchase");
     setShopPendingItemId(request.itemId);
     setShopResultMessage(null);
+    setLatestShopUseResult(null);
     setShopRetryRequest(null);
     setShopError(null);
     try {
@@ -605,24 +611,49 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       return;
     }
 
+    const scoutingCandidateId =
+      request.target?.type === "scouting-candidate"
+        ? request.target.candidateId
+        : null;
+    const beforeScoutReport = scoutingCandidateId
+      ? scoutingReports.find(
+          (report) => report.candidateId === scoutingCandidateId,
+        )
+      : undefined;
+
     setShopPendingAction("use");
     setShopPendingItemId(request.itemId);
     setShopPendingTarget(request.target ?? null);
     setShopResultMessage(null);
+    setLatestShopUseResult(null);
     setShopRetryRequest(null);
     setShopError(null);
     try {
       const response = await api.useShopItem(session.accessToken, request);
       if (await refreshShopAfterMutation(response.revision)) {
-        setShopResultMessage("使用しました ✓");
+        let afterScoutReport: ScoutReport | undefined;
         if (
           scoutingOpen &&
           (request.itemId === "scout-research" ||
             request.itemId === "potential-appraisal" ||
             request.itemId === "extra-scout-candidate")
         ) {
-          await loadScoutingBoard(response.revision);
+          const refreshedReports = await loadScoutingBoard(response.revision);
+          if (scoutingCandidateId) {
+            afterScoutReport = refreshedReports?.find(
+              (report) => report.candidateId === scoutingCandidateId,
+            );
+          }
         }
+
+        setLatestShopUseResult({
+          itemId: request.itemId,
+          result: response.result,
+          ...(request.target ? { target: request.target } : {}),
+          ...(beforeScoutReport ? { beforeScoutReport } : {}),
+          ...(afterScoutReport ? { afterScoutReport } : {}),
+        });
+        setShopResultMessage("使用しました ✓");
       }
     } catch (error) {
       if (
@@ -668,6 +699,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const openShop = () => {
     setMoreView("shop");
     setShopResultMessage(null);
+    setLatestShopUseResult(null);
     setShopRetryRequest(null);
     void loadShop();
   };
@@ -727,6 +759,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     ) : activeTab === "training" && scoutingOpen ? (
       <ScoutingScreen
         error={scoutingError}
+        latestShopUseResult={latestShopUseResult}
         loading={scoutingLoading}
         onBack={() => {
           setScoutingOpen(false);
@@ -807,6 +840,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     ) : moreView === "shop" ? (
       <ShopScreen
         error={shopError}
+        latestUseResult={latestShopUseResult}
         loading={shopLoading}
         onBack={() => setMoreView("menu")}
         onPurchase={(itemId) => {

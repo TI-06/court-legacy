@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
-import type { AbilityKey } from "../../domain/model/Player";
+import type { PlayerAbilities } from "../../domain/model/Player";
 import type { ShopItemId } from "../../domain/shop/shopCatalog";
 import type { SpecialCoachFocus } from "../../domain/shop/shopEffects";
 import type {
@@ -12,6 +12,8 @@ import type {
 } from "../../domain/shop/shopContracts";
 import "./shop.css";
 import type { ShopUsePresentation } from "./shopUsePresentation";
+
+type AbilityKey = keyof PlayerAbilities;
 
 type ShopView = "products" | "inventory";
 type ShopPendingAction = "purchase" | "use";
