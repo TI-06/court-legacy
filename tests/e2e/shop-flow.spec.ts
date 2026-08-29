@@ -23,10 +23,7 @@ async function seedRecoverablePlayers(page: Page) {
       state: {
         userSchoolId: string;
         schools: Record<string, { playerIds: string[] }>;
-        players: Record<
-          string,
-          { fatigue: number; condition: number }
-        >;
+        players: Record<string, { fatigue: number; condition: number }>;
       };
     };
     const school = snapshot.state.schools[snapshot.state.userSchoolId];
@@ -144,9 +141,9 @@ test("mobile shop purchases and uses fatigue recovery with visible progress and 
     exhausted.getByRole("button", { name: "疲労回復を購入", exact: true }),
   ).toBeDisabled();
 
-  expect(await page.locator("body").evaluate((body) => body.scrollWidth)).toBeLessThanOrEqual(
-    360,
-  );
+  expect(
+    await page.locator("body").evaluate((body) => body.scrollWidth),
+  ).toBeLessThanOrEqual(360);
 });
 
 test("lost purchase response retries the same operation once and stale revision preserves inventory", async ({
@@ -166,9 +163,9 @@ test("lost purchase response retries the same operation once and stale revision 
   await product
     .getByRole("button", { name: "疲労回復を購入", exact: true })
     .click();
-  await expect(page.getByRole("button", { name: "購入を再試行" })).toBeVisible({
-    timeout: 2_000,
-  });
+  await expect(
+    page.getByRole("button", { name: "購入を再試行" }),
+  ).toBeVisible({ timeout: 2_000 });
   await page.getByRole("button", { name: "購入を再試行" }).click();
   await expect(page.getByText("購入しました ✓")).toBeVisible({
     timeout: 2_500,
@@ -225,7 +222,9 @@ test("academic year rollover invalidates prior-year inventory and resets limits"
 
   await page.reload();
   await openShop(page);
-  await expect(page.getByText(`年度 ${nextYearIndex} ・ 所持品は年度更新で失効`)).toBeVisible();
+  await expect(
+    page.getByText(`年度 ${nextYearIndex} ・ 所持品は年度更新で失効`),
+  ).toBeVisible();
   const fresh = shopCard(page, "強化合宿");
   await expect(fresh).toContainText("購入 0 / 1");
   await expect(fresh).toContainText("使用 0 / 1");
@@ -249,7 +248,9 @@ test("scouting research and appraisal tighten only public report ranges", async 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await page.getByRole("button", { name: "新入生スカウト" }).click();
-  await expect(page.getByRole("heading", { name: "新入生スカウト" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "新入生スカウト" }),
+  ).toBeVisible();
 
   const candidate = page.locator("article.scouting-card").first();
   await expect(candidate).toBeVisible();
@@ -324,8 +325,8 @@ test("training efficiency boost is visibly pending, applies once, and disappears
     .getByRole("dialog", { name: "練習内容を確認" })
     .getByRole("button", { name: "この内容で実行" })
     .click();
-  await expect(page.getByRole("heading", { name: "今週の練習結果" })).toBeVisible({
-    timeout: 2_500,
-  });
+  await expect(
+    page.getByRole("heading", { name: "今週の練習結果" }),
+  ).toBeVisible({ timeout: 2_500 });
   await expect(page.getByText("次回練習 成長効率 +20%")).toHaveCount(0);
 });
