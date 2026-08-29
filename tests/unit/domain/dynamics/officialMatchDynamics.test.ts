@@ -23,6 +23,16 @@ function createState() {
   });
 }
 
+function opponentSchool(state: ReturnType<typeof createState>) {
+  const opponent = Object.values(state.schools).find(
+    (school) => school.id !== state.userSchoolId,
+  );
+  if (!opponent) {
+    throw new Error("opponent school fixture is missing");
+  }
+  return opponent;
+}
+
 function completedMatch(
   state: ReturnType<typeof createState>,
   userWon: boolean,
@@ -31,22 +41,17 @@ function completedMatch(
     state,
     schoolId: state.userSchoolId,
   });
-  const opponentSchoolId = Object.keys(state.schools).find(
-    (id) => id !== state.userSchoolId,
-  );
-  if (!opponentSchoolId) {
-    throw new Error("opponent school fixture is missing");
-  }
+  const opponent = opponentSchool(state);
   const opponentSelection = autoSelectTeam({
     state,
-    schoolId: opponentSchoolId,
+    schoolId: opponent.id,
   });
-  const winnerSchoolId = userWon ? state.userSchoolId : opponentSchoolId;
+  const winnerSchoolId = userWon ? state.userSchoolId : opponent.id;
 
   return {
     id: matchId("phase7-dynamics-match"),
     homeSchoolId: state.userSchoolId,
-    awaySchoolId: opponentSchoolId,
+    awaySchoolId: opponent.id,
     homeSelection: userSelection,
     awaySelection: opponentSelection,
     bestOfSets: 3,
@@ -83,10 +88,8 @@ describe("official match dynamics", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
-    const rivalSchoolId = Object.keys(state.schools).find(
-      (id) => id !== state.userSchoolId,
-    )!;
-    const rivalPlayerId = state.schools[rivalSchoolId]!.playerIds[0]!;
+    const rival = opponentSchool(state);
+    const rivalPlayerId = rival.playerIds[0]!;
 
     state.teamDynamics.cohesion = 100;
     state.players[playerId] = {
@@ -116,9 +119,9 @@ describe("official match dynamics", () => {
     expect(high).toBeLessThanOrEqual(1.05);
     expect(low).toBeGreaterThanOrEqual(0.95);
     expect(low).toBeLessThan(1);
-    expect(
-      calculatePveDynamicsReadiness(state, rivalSchoolId, rivalPlayerId),
-    ).toBe(1);
+    expect(calculatePveDynamicsReadiness(state, rival.id, rivalPlayerId)).toBe(
+      1,
+    );
   });
 
   it("records official starter usage and applies bounded win feedback", () => {
