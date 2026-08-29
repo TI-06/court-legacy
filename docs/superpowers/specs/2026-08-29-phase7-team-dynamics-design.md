@@ -66,19 +66,12 @@ Add a user-school-only persisted object:
 
 ```ts
 export type PlayerRole =
-  | "ace"
-  | "starter"
-  | "rotation"
-  | "development"
-  | "reserve";
+  "ace" | "starter" | "rotation" | "development" | "reserve";
 
 export type CohesionTrend = "rising" | "stable" | "falling";
 
 export type PlayerConcernCode =
-  | "playing-time"
-  | "role-mismatch"
-  | "injury-overuse"
-  | "team-slump";
+  "playing-time" | "role-mismatch" | "injury-overuse" | "team-slump";
 
 export interface PlayerConcern {
   code: PlayerConcernCode;
@@ -150,15 +143,19 @@ The implementation must avoid role churn from a single match by using a bounded 
 Concerns are derived, not manually edited.
 
 `playing-time`:
+
 - high-power `ace`/`starter` expectation with materially low recent official usage
 
 `role-mismatch`:
+
 - strong player classified below expected tier for at least the tracked window threshold
 
 `injury-overuse`:
+
 - injured player appears in an official match
 
 `team-slump`:
+
 - user school loses at least 3 consecutive official matches in tracked history
 
 Severity is 1..3 and must be deterministic.

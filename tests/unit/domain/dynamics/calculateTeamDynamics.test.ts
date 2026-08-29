@@ -69,7 +69,9 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
   };
 }
 
-function makeDynamics(overrides: Partial<TeamDynamicsState> = {}): TeamDynamicsState {
+function makeDynamics(
+  overrides: Partial<TeamDynamicsState> = {},
+): TeamDynamicsState {
   return {
     captainPlayerId: playerId("player-a"),
     viceCaptainPlayerId: playerId("player-b"),
@@ -116,7 +118,10 @@ describe("team dynamics calculations", () => {
     } as GameState;
 
     expect(
-      calculateRelationshipSignal(state, [playerId("player-a"), playerId("player-b")]),
+      calculateRelationshipSignal(state, [
+        playerId("player-a"),
+        playerId("player-b"),
+      ]),
     ).toBe(50);
   });
 

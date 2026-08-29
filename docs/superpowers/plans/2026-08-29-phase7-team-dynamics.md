@@ -26,11 +26,13 @@
 ### Task 1: Dynamics Types, Leadership Suitability, and Cohesion Calculator
 
 **Files:**
+
 - Create: `src/domain/dynamics/teamDynamicsTypes.ts`
 - Create: `src/domain/dynamics/calculateTeamDynamics.ts`
 - Test: `tests/unit/domain/dynamics/calculateTeamDynamics.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing `GameState`, `Player`, `PlayerId`, user-school roster, and `playerRelationships`.
 - Produces: `PlayerRole`, `CohesionTrend`, `PlayerConcernCode`, `PlayerConcern`, `TeamDynamicsState`, `calculateLeadershipSuitability(player)`, `calculateRelationshipSignal(state, rosterIds)`, `calculateCohesionTarget(state, dynamics)`, and `deriveCohesionTrend(previous, current)`.
 
@@ -56,7 +58,9 @@ describe("team dynamics calculations", () => {
   });
 
   test("missing relationship entries are neutral", () => {
-    expect(calculateRelationshipSignal(stateWithNoRelationships, rosterIds)).toBe(50);
+    expect(
+      calculateRelationshipSignal(stateWithNoRelationships, rosterIds),
+    ).toBe(50);
   });
 
   test.each([
@@ -119,10 +123,12 @@ git commit -m "feat: add team dynamics calculations"
 ### Task 2: Role, Concern, and Usage Derivation
 
 **Files:**
+
 - Create: `src/domain/dynamics/derivePlayerDynamics.ts`
 - Test: `tests/unit/domain/dynamics/derivePlayerDynamics.test.ts`
 
 **Interfaces:**
+
 - Consumes: `GameState`, current `TeamSelection`, `TeamDynamicsState`, recent official usage counters.
 - Produces: `derivePlayerRoles(...)`, `derivePlayerConcerns(...)`, `updateRecentOfficialUsage(...)`, `calculateLineupContinuity(...)`.
 
@@ -134,7 +140,7 @@ test("equal-power players use player id as the stable tie breaker", () => {
   expect(roles[playerId("player-a")]).toBe("ace");
 });
 
- test("recent official usage never grows beyond eight tracked matches", () => {
+test("recent official usage never grows beyond eight tracked matches", () => {
   const next = updateRecentOfficialUsage(dynamics, nineMatchSelections);
   expect(next.recentOfficialMatchesTracked).toBe(8);
 });
@@ -162,6 +168,7 @@ git commit -m "feat: derive player roles and concerns"
 ### Task 3: Persist Team Dynamics and Migrate Schema v3 to v4
 
 **Files:**
+
 - Modify: `src/domain/model/GameState.ts`
 - Modify: `src/persistence/gameStateCodec.ts`
 - Modify: initial-state creation paths under `src/domain/generation/generateWorld.ts` and/or `src/app/createInitialGame.ts` only where the canonical state is created.
@@ -170,6 +177,7 @@ git commit -m "feat: derive player roles and concerns"
 - Test: `tests/unit/domain/generation/phase7InitialWorld.test.ts`
 
 **Interfaces:**
+
 - Produces `GameState.teamDynamics: TeamDynamicsState` and `CURRENT_GAME_SCHEMA_VERSION = 4`.
 - Produces `createInitialTeamDynamics(stateWithoutDynamics): TeamDynamicsState` without changing `randomCursor`.
 
@@ -179,7 +187,9 @@ git commit -m "feat: derive player roles and concerns"
 expect(decoded.schemaVersion).toBe(4);
 expect(decoded.randomCursor).toBe(v3.randomCursor);
 expect(decoded.officialSeason).toEqual(v3.officialSeason);
-expect(decoded.history.officialTournaments).toEqual(v3.history.officialTournaments);
+expect(decoded.history.officialTournaments).toEqual(
+  v3.history.officialTournaments,
+);
 expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ```
 
@@ -196,6 +206,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 4: Server-Authoritative Leadership Assignment Action
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: browser API action typing only as required by the existing client path.
@@ -204,6 +215,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 - Test: `tests/unit/app/teamLeadershipBrowserAuthority.test.ts`
 
 **Interfaces:**
+
 - Adds `{ type: "set-team-leadership"; captainPlayerId: PlayerId; viceCaptainPlayerId: PlayerId }`.
 - Produces `setTeamLeadership(state, captainId, viceCaptainId)` with validated user-school roster membership and distinct IDs.
 
@@ -222,6 +234,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 5: Weekly Morale/Trust Progression and Training Modifiers
 
 **Files:**
+
 - Create: `src/domain/dynamics/progressWeeklyDynamics.ts`
 - Modify: `src/domain/training/calculateGrowth.ts`
 - Modify: `src/domain/training/resolveWeeklyTraining.ts`
@@ -230,6 +243,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 - Modify/Test: `tests/unit/domain/training/resolveWeeklyTraining.test.ts`
 
 **Interfaces:**
+
 - Produces `progressWeeklyDynamics(state): GameState`.
 - Extends `GrowthModifierCode` with `morale` and `trust` and adds 95..105% modifiers.
 
@@ -248,6 +262,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 6: Official Match Feedback and Bounded PvE Readiness
 
 **Files:**
+
 - Create: `src/domain/dynamics/officialMatchDynamics.ts`
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: Phase 6 official-match recording path in `src/domain/tournament/recordOfficialMatch.ts` and/or worker official-match application at the smallest atomic boundary.
@@ -256,6 +271,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 - Modify/Test: `tests/unit/worker/officialMatchAction.test.ts`
 
 **Interfaces:**
+
 - Produces `calculatePveDynamicsReadiness(state, schoolId, playerId): number` bounded to `0.95..1.05` for the user school and `1` for non-user/ranked contexts.
 - Produces exact-once post-match updates to recent starter counts, morale/trust result feedback, concerns, and cohesion.
 
@@ -274,12 +290,14 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 7: Annual Leadership Lifecycle and Data Cleanup
 
 **Files:**
+
 - Modify: `src/domain/calendar/academicYearProgression.ts`
 - Create or modify focused cleanup helper under `src/domain/dynamics/`.
 - Test: `tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts`
 - Modify/Test: `tests/unit/domain/calendar/academicYearProgression.test.ts`
 
 **Interfaces:**
+
 - Clears graduated leadership IDs, increments completed captain season exactly once, resets recent usage window, removes graduated player keys from roles/concerns/relationship data, and recalculates cohesion.
 
 - [ ] **Step 1: Write RED tests for captain season exact-once, graduated captain/vice cleanup, relationship key cleanup, and valid new-roster dynamics.**
@@ -297,12 +315,14 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 8: Ranked PvP Isolation Tests and Guardrails
 
 **Files:**
+
 - Modify only if required: `src/domain/pvp/pvpContracts.ts`
 - Modify only if required: `worker/pvp/buildPvpSimulationState.ts`
 - Create: `tests/unit/worker/pvpDynamicsLeakage.test.ts`
 - Modify/Test: `tests/unit/worker/buildPvpSimulationState.test.ts`
 
 **Interfaces:**
+
 - Ranked PvP snapshot/query/simulation remains independent of `teamDynamics` and cohesion readiness.
 
 - [ ] **Step 1: Write a regression test that fails if serialized PvP public/frozen DTOs contain `teamDynamics`, `cohesion`, `playerConcerns`, or relationship-state payloads, and compare ranked simulation results for otherwise identical states with cohesion 0 vs 100.**
@@ -320,6 +340,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 9: Team Dynamics UI
 
 **Files:**
+
 - Modify: `src/features/home/HomeScreen.tsx`
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/TeamScreen.tsx`
@@ -330,6 +351,7 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 - Modify/Test: `tests/unit/features/home/HomeScreen.test.tsx`
 
 **Interfaces:**
+
 - Shows cohesion/trend, captain/vice, suitability candidates, concern count/list, qualitative relationship highlights, player role/trust/morale, and leadership assignment controls.
 
 - [ ] **Step 1: Write RED UI tests for labels, vacant leadership state, assignment callbacks, player badges/concerns, and qualitative relationship rendering.**
@@ -347,12 +369,14 @@ expect(decoded.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
 ### Task 10: Long-Run, Mobile E2E, Documentation, and Final Verification
 
 **Files:**
+
 - Create: `tests/unit/domain/dynamics/teamDynamicsLongRun.test.ts`
 - Create: `tests/e2e/team-dynamics-flow.spec.ts`
 - Modify: `tests/e2e/mobile-layout-audit.spec.ts`
 - Create: `docs/superpowers/implementation-progress/2026-08-29-phase7-team-dynamics.md`
 
 **Interfaces:**
+
 - No new runtime interfaces; this task validates the complete Phase 7 contract.
 
 - [ ] **Step 1: Add 30-year equal-seed deterministic test and 100-year soak test asserting no stale leadership IDs, no out-of-range dynamics values, bounded maps, and valid current-roster role/concern keys.**
