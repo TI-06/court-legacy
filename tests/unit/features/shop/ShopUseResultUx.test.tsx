@@ -4,8 +4,14 @@ import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import type { ScoutReport } from "../../../../src/domain/scouting/scoutReport";
-import { PHASE5_SHOP_ITEMS, type ShopItemId } from "../../../../src/domain/shop/shopCatalog";
-import type { ShopStatusResponse, ShopUseTarget } from "../../../../src/domain/shop/shopContracts";
+import {
+  PHASE5_SHOP_ITEMS,
+  type ShopItemId,
+} from "../../../../src/domain/shop/shopCatalog";
+import type {
+  ShopStatusResponse,
+  ShopUseTarget,
+} from "../../../../src/domain/shop/shopContracts";
 import { ScoutingScreen } from "../../../../src/features/scouting/ScoutingScreen";
 import { ShopScreen } from "../../../../src/features/shop/ShopScreen";
 
@@ -27,7 +33,8 @@ type ResultScoutingProps = ComponentProps<typeof ScoutingScreen> & {
   latestShopUseResult: ShopUsePresentation | null;
 };
 
-const ResultScoutingScreen = ScoutingScreen as ComponentType<ResultScoutingProps>;
+const ResultScoutingScreen =
+  ScoutingScreen as ComponentType<ResultScoutingProps>;
 
 function emptyStatus(): ShopStatusResponse {
   return {
@@ -99,7 +106,9 @@ describe("Phase 5 shop use result UX", () => {
       },
     });
 
-    expect(screen.getByRole("heading", { name: "疲労回復の結果" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "疲労回復の結果" }),
+    ).toBeVisible();
     expect(screen.getByText("疲労 80 → 40")).toBeVisible();
     expect(screen.getByText("状態 70 → 80")).toBeVisible();
   });
@@ -116,7 +125,9 @@ describe("Phase 5 shop use result UX", () => {
       },
     });
 
-    expect(screen.getByRole("heading", { name: "強化合宿の結果" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "強化合宿の結果" }),
+    ).toBeVisible();
     expect(screen.getByText("参加 12人")).toBeVisible();
     expect(screen.getByText("能力成長 +36")).toBeVisible();
     expect(screen.getByText("平均疲労 +11.5")).toBeVisible();
@@ -156,8 +167,12 @@ describe("Phase 5 shop use result UX", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "特別コーチの結果" })).toBeVisible();
-    expect(screen.getByText(`${player.lastName} ${player.firstName}`)).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "特別コーチの結果" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(`${player.lastName} ${player.firstName}`),
+    ).toBeVisible();
     expect(screen.getByText("能力成長 +5")).toBeVisible();
     expect(screen.getByText("スパイク +3")).toBeVisible();
     expect(screen.getByText("ジャンプ +2")).toBeVisible();
