@@ -401,10 +401,11 @@ class StaticGameApiClient implements GameApiClient {
       if (request.target?.type !== "scouting-candidate") {
         throw new ApiError(409, "invalid_target", "候補選手を確認してください");
       }
+      const targetCandidateId = request.target.candidateId;
       const cycleKey = harnessScoutingCycleKey(snapshot.state);
       const reports = this.scoutingReports.get(cycleKey);
       const candidate = reports?.find(
-        (report) => report.candidateId === request.target!.candidateId,
+        (report) => report.candidateId === targetCandidateId,
       );
       if (!reports || !candidate) {
         throw new ApiError(
