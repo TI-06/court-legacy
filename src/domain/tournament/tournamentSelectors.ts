@@ -34,12 +34,7 @@ export interface TournamentBracketMatchView {
 }
 
 export type TournamentStageViewStatus =
-  | "upcoming"
-  | "active"
-  | "due"
-  | "eliminated"
-  | "champion"
-  | "completed";
+  "upcoming" | "active" | "due" | "eliminated" | "champion" | "completed";
 
 export interface TournamentStageView {
   tournamentId: string;
@@ -78,8 +73,7 @@ export interface NextCircuitStartView {
 }
 
 export type NextOfficialEventView =
-  | NextOfficialMatchView
-  | NextCircuitStartView;
+  NextOfficialMatchView | NextCircuitStartView;
 
 function circuitState(state: GameState, circuit: TournamentCircuit) {
   return circuit === "interhigh"
@@ -186,8 +180,8 @@ function matchView(
     awaySetsWon: match.awaySetsWon,
     userInMatch: Boolean(
       userEntrantId &&
-        (match.homeEntrantId === userEntrantId ||
-          match.awayEntrantId === userEntrantId),
+      (match.homeEntrantId === userEntrantId ||
+        match.awayEntrantId === userEntrantId),
     ),
   };
 }
