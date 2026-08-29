@@ -90,29 +90,29 @@ Scheduling uses academic-week offsets from April 1.
 
 ### Interhigh
 
-| Level | Round | Week |
-| --- | --- | ---: |
-| Prefectural | Round of 16 | 9 |
-| Prefectural | Quarterfinal | 10 |
-| Prefectural | Semifinal | 11 |
-| Prefectural | Final | 12 |
-| National | Round of 16 | 16 |
-| National | Quarterfinal | 17 |
-| National | Semifinal | 18 |
-| National | Final | 19 |
+| Level       | Round        | Week |
+| ----------- | ------------ | ---: |
+| Prefectural | Round of 16  |    9 |
+| Prefectural | Quarterfinal |   10 |
+| Prefectural | Semifinal    |   11 |
+| Prefectural | Final        |   12 |
+| National    | Round of 16  |   16 |
+| National    | Quarterfinal |   17 |
+| National    | Semifinal    |   18 |
+| National    | Final        |   19 |
 
 ### Spring High
 
-| Level | Round | Week |
-| --- | --- | ---: |
-| Prefectural | Round of 16 | 30 |
-| Prefectural | Quarterfinal | 31 |
-| Prefectural | Semifinal | 32 |
-| Prefectural | Final | 33 |
-| National | Round of 16 | 41 |
-| National | Quarterfinal | 42 |
-| National | Semifinal | 43 |
-| National | Final | 44 |
+| Level       | Round        | Week |
+| ----------- | ------------ | ---: |
+| Prefectural | Round of 16  |   30 |
+| Prefectural | Quarterfinal |   31 |
+| Prefectural | Semifinal    |   32 |
+| Prefectural | Final        |   33 |
+| National    | Round of 16  |   41 |
+| National    | Quarterfinal |   42 |
+| National    | Semifinal    |   43 |
+| National    | Final        |   44 |
 
 Once the user is eliminated, future rounds of that stage no longer block week progression. NPC brackets continue automatically.
 
@@ -259,7 +259,9 @@ This keeps 100-year simulation affordable.
 Extend the existing game action union with:
 
 ```ts
-{ type: "official-match" }
+{
+  type: "official-match";
+}
 ```
 
 The request contains no opponent, tournament, round, seed, score, or reward fields.

@@ -45,10 +45,7 @@
 export type TournamentCircuit = "interhigh" | "spring-high";
 export type TournamentLevel = "prefectural" | "national";
 export type TournamentRound =
-  | "round-of-16"
-  | "quarterfinal"
-  | "semifinal"
-  | "final";
+  "round-of-16" | "quarterfinal" | "semifinal" | "final";
 
 export interface OfficialSeasonState {
   academicYear: number;
@@ -247,7 +244,9 @@ export function materializeGuestOpponent(input: {
 **Action shape:**
 
 ```ts
-{ type: "official-match" }
+{
+  type: "official-match";
+}
 ```
 
 - [ ] Add RED schema tests proving the strict action accepts only `type` and rejects client-supplied opponent/tournament/round/seed/result fields.
