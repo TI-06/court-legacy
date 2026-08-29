@@ -138,9 +138,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [shopError, setShopError] = useState<string | null>(null);
   const [shopPendingAction, setShopPendingAction] =
     useState<ShopPendingAction | null>(null);
-  const [shopPendingItemId, setShopPendingItemId] =
-    useState<ShopItemId | null>(null);
-  const [shopResultMessage, setShopResultMessage] = useState<string | null>(null);
+  const [shopPendingItemId, setShopPendingItemId] = useState<ShopItemId | null>(
+    null,
+  );
+  const [shopResultMessage, setShopResultMessage] = useState<string | null>(
+    null,
+  );
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
