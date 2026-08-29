@@ -44,6 +44,7 @@ import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
+import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
 import { MoreScreen } from "../features/more/MoreScreen";
@@ -873,6 +874,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "match" ? (
       <div className="match-hub-screen">
+        {!activeMatchResult ? (
+          <MatchOfficialEntry
+            onOpen={openOfficialTournament}
+            state={gameState}
+          />
+        ) : null}
         {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}
         <MatchScreen
           awaySelection={opponentSelection}
