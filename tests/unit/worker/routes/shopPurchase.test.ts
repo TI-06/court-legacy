@@ -16,6 +16,7 @@ function request(body: unknown): Request {
 
 function createShopStore(): ShopStore {
   return {
+    findOperation: vi.fn(async () => null),
     getStatus: vi.fn(async () => []),
     purchase: vi.fn(async (input): Promise<ShopMutationResult> => ({
       operationId: input.operationId,
