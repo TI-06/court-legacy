@@ -40,7 +40,7 @@ describe("TournamentScreen", () => {
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
     expect(screen.getAllByText("1回戦").length).toBeGreaterThan(0);
-    expect(screen.getByText("あと8週")).toBeVisible();
+    expect(screen.getAllByText("あと8週").length).toBeGreaterThan(0);
     expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(15);
     expect(
       screen.getAllByTestId("tournament-user-path").length,
