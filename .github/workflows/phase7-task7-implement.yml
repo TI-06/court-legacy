@@ -147,13 +147,12 @@ jobs:
           import_anchor = 'import { assignGenerationalTalent } from "../generation/generateWorld";\n'
           import_line = 'import { progressAnnualTeamDynamics } from "../dynamics/progressAnnualTeamDynamics";\n'
           if import_line not in text:
+              if import_anchor not in text:
+                  raise SystemExit("dynamics import anchor missing")
               text = text.replace(import_anchor, import_line + import_anchor, 1)
 
-          loop_anchor = '''  for (const school of Object.values(schools)) {
-            const graduates: PlayerId[] = [];
-            const returningPlayerIds: PlayerId[] = [];
-          '''
-          loop_replacement = '''  for (const school of Object.values(schools)) {
+          loop_anchor = "  for (const school of Object.values(schools)) {\n    const graduates: PlayerId[] = [];\n    const returningPlayerIds: PlayerId[] = [];"
+          loop_replacement = """  for (const school of Object.values(schools)) {
             const completedCaptainPlayerId =
               school.id === state.userSchoolId
                 ? state.teamDynamics.captainPlayerId
@@ -175,59 +174,24 @@ jobs:
             }
 
             const graduates: PlayerId[] = [];
-            const returningPlayerIds: PlayerId[] = [];
-          '''
+            const returningPlayerIds: PlayerId[] = [];"""
           if loop_anchor not in text:
               raise SystemExit("school loop anchor missing")
           text = text.replace(loop_anchor, loop_replacement, 1)
 
-          old = '''    const captainPlayerId = selectCaptain(activePlayerIds, players);
-            if (captainPlayerId) {
-              const captain = players[captainPlayerId];
-              if (captain) {
-                players[captainPlayerId] = {
-                  ...captain,
-                  career: {
-                    ...captain.career,
-                    captainSeasons: captain.career.captainSeasons + 1,
-                  },
-                };
-              }
-            }
-          '''
-          new = '''    const captainPlayerId =
+          captain_start = text.index("    const captainPlayerId = selectCaptain(activePlayerIds, players);")
+          captain_end = text.index("\n\n    graduatedPlayerIdsBySchool", captain_start)
+          captain_replacement = """    const captainPlayerId =
               school.id === state.userSchoolId
                 ? state.teamDynamics.captainPlayerId &&
                   activePlayerIds.includes(state.teamDynamics.captainPlayerId)
                   ? state.teamDynamics.captainPlayerId
                   : null
-                : selectCaptain(activePlayerIds, players);
-          '''
-          if old not in text:
-              raise SystemExit("captain selection anchor missing")
-          text = text.replace(old, new, 1)
+                : selectCaptain(activePlayerIds, players);"""
+          text = text[:captain_start] + captain_replacement + text[captain_end:]
 
-          relation_anchor = '''  nextState = {
-              ...nextState,
-              randomCursor: random.cursor,
-              playerRelationships,
-            };
-            nextState = {
-              ...nextState,
-              officialSeason: createOfficialSeason({
-          '''
-          relation_replacement = '''  nextState = {
-              ...nextState,
-              randomCursor: random.cursor,
-              playerRelationships,
-            };
-            nextState = progressAnnualTeamDynamics(nextState, state.teamDynamics);
-            captainPlayerIdsBySchool[state.userSchoolId] =
-              nextState.teamDynamics.captainPlayerId;
-            nextState = {
-              ...nextState,
-              officialSeason: createOfficialSeason({
-          '''
+          relation_anchor = "  nextState = {\n    ...nextState,\n    randomCursor: random.cursor,\n    playerRelationships,\n  };"
+          relation_replacement = relation_anchor + "\n  nextState = progressAnnualTeamDynamics(nextState, state.teamDynamics);\n  captainPlayerIdsBySchool[state.userSchoolId] =\n    nextState.teamDynamics.captainPlayerId;"
           if relation_anchor not in text:
               raise SystemExit("relationship lifecycle anchor missing")
           text = text.replace(relation_anchor, relation_replacement, 1)
@@ -235,20 +199,10 @@ jobs:
 
           test_path = Path("tests/unit/domain/calendar/academicYearProgression.test.ts")
           test = test_path.read_text()
-          old = '''    for (const school of Object.values(result.state.schools)) {
-              expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
-              expect(school.playerIds.length).toBeLessThanOrEqual(16);
-              expect(school.history.seasons).toBe(1);
-              expect(school.captainPlayerId).not.toBeNull();
+          old = """      expect(school.captainPlayerId).not.toBeNull();
               expect(school.playerIds).toContain(school.captainPlayerId);
-              expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
-            }
-          '''
-          new = '''    for (const school of Object.values(result.state.schools)) {
-              expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
-              expect(school.playerIds.length).toBeLessThanOrEqual(16);
-              expect(school.history.seasons).toBe(1);
-              if (school.id === result.state.userSchoolId) {
+              expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);"""
+          new = """      if (school.id === result.state.userSchoolId) {
                 if (school.captainPlayerId) {
                   expect(school.playerIds).toContain(school.captainPlayerId);
                 }
@@ -256,9 +210,7 @@ jobs:
                 expect(school.captainPlayerId).not.toBeNull();
                 expect(school.playerIds).toContain(school.captainPlayerId);
                 expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
-              }
-            }
-          '''
+              }"""
           if old not in test:
               raise SystemExit("academic year captain assertion anchor missing")
           test_path.write_text(test.replace(old, new, 1))
