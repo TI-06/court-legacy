@@ -115,13 +115,11 @@ describe("createBrowserAppDependencies E2E harness", () => {
       itemId: "training-camp",
     });
 
-    const error = await api
-      .purchaseShopItem!("e2e-access-token", {
-        operationId: "shop-harness-limit-002",
-        revision: first.revision,
-        itemId: "training-camp",
-      })
-      .catch((reason: unknown) => reason);
+    const error = await api.purchaseShopItem!("e2e-access-token", {
+      operationId: "shop-harness-limit-002",
+      revision: first.revision,
+      itemId: "training-camp",
+    }).catch((reason: unknown) => reason);
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({
