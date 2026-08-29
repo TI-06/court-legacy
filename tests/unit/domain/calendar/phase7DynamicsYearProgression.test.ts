@@ -113,10 +113,14 @@ describe("phase 7 academic-year dynamics lifecycle", () => {
     expect(next.teamDynamics.recentOfficialStarterCounts).toEqual({});
     expect(next.teamDynamics.playerRoles[staleId]).toBeUndefined();
     expect(next.teamDynamics.playerConcerns[staleId]).toBeUndefined();
-    for (const playerId of Object.keys(next.teamDynamics.playerRoles) as PlayerId[]) {
+    for (const playerId of Object.keys(
+      next.teamDynamics.playerRoles,
+    ) as PlayerId[]) {
       expect(activeIds.has(playerId)).toBe(true);
     }
-    for (const playerId of Object.keys(next.teamDynamics.playerConcerns) as PlayerId[]) {
+    for (const playerId of Object.keys(
+      next.teamDynamics.playerConcerns,
+    ) as PlayerId[]) {
       expect(activeIds.has(playerId)).toBe(true);
     }
     expect(next.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
