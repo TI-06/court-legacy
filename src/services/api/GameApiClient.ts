@@ -15,6 +15,13 @@ import type {
   PvpRankingResponse,
 } from "../../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../../domain/scouting/scoutReport";
+import type {
+  ShopPurchaseRequest,
+  ShopPurchaseResponse,
+  ShopStatusResponse,
+  ShopUseRequest,
+  ShopUseResponse,
+} from "../../domain/shop/shopContracts";
 
 export type BootstrapResponse =
   { status: "needs-onboarding" } | { status: "ready"; game: CloudGameSnapshot };
@@ -75,6 +82,20 @@ export interface GameApiClient {
     request: GameActionRequest,
     signal?: AbortSignal,
   ): Promise<GameActionResponse>;
+  getShop?(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<ShopStatusResponse>;
+  purchaseShopItem?(
+    accessToken: string,
+    request: ShopPurchaseRequest,
+    signal?: AbortSignal,
+  ): Promise<ShopPurchaseResponse>;
+  useShopItem?(
+    accessToken: string,
+    request: ShopUseRequest,
+    signal?: AbortSignal,
+  ): Promise<ShopUseResponse>;
   getScoutingBoard?(
     accessToken: string,
     request: ScoutingBoardRequest,
@@ -236,6 +257,44 @@ export class HttpGameApiClient implements GameApiClient {
   ): Promise<GameActionResponse> {
     return this.request<GameActionResponse>(
       "/api/game/action",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  getShop(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<ShopStatusResponse> {
+    return this.request<ShopStatusResponse>(
+      "/api/shop",
+      accessToken,
+      { method: "GET" },
+      signal,
+    );
+  }
+
+  purchaseShopItem(
+    accessToken: string,
+    request: ShopPurchaseRequest,
+    signal?: AbortSignal,
+  ): Promise<ShopPurchaseResponse> {
+    return this.request<ShopPurchaseResponse>(
+      "/api/shop/purchase",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  useShopItem(
+    accessToken: string,
+    request: ShopUseRequest,
+    signal?: AbortSignal,
+  ): Promise<ShopUseResponse> {
+    return this.request<ShopUseResponse>(
+      "/api/shop/use",
       accessToken,
       { method: "POST", body: JSON.stringify(request) },
       signal,
