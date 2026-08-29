@@ -10,10 +10,10 @@ import {
   type Position,
 } from "../model/Player";
 import type { School, UniformColors } from "../model/School";
+import type { TeamSelection } from "../model/TeamSelection";
 import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { autoSelectTeam } from "../team/autoSelectTeam";
-import type { TeamSelection } from "../model/TeamSelection";
 import { calculateTournamentSchoolStrength } from "./createOfficialSeason";
 import type { GuestTournamentEntrant } from "./tournamentTypes";
 
@@ -61,7 +61,9 @@ function createGuestIds(
   );
 
   if (state.schools[guestSchoolId]) {
-    throw new Error(`temporary guest school id collides with persistent state: ${guestSchoolId}`);
+    throw new Error(
+      `temporary guest school id collides with persistent state: ${guestSchoolId}`,
+    );
   }
   for (const guestPlayerId of guestPlayerIds) {
     if (state.players[guestPlayerId]) {
@@ -137,6 +139,14 @@ function stateWithGuestPlayers(
   };
 }
 
+function adjustPlayerAbilities(player: Player, difference: number): Player {
+  const abilities = { ...player.abilities };
+  for (const ability of ABILITY_KEYS) {
+    abilities[ability] = clampAbility(player.abilities[ability] + difference);
+  }
+  return { ...player, abilities };
+}
+
 function adjustPlayersTowardStrength(
   state: GameState,
   school: School,
@@ -148,21 +158,18 @@ function adjustPlayersTowardStrength(
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const candidateState = stateWithGuestPlayers(state, adjusted);
-    const actualStrength = calculateTournamentSchoolStrength(candidateState, school);
+    const actualStrength = calculateTournamentSchoolStrength(
+      candidateState,
+      school,
+    );
     const difference = targetStrength - actualStrength;
     if (Math.abs(difference) <= 1) {
       break;
     }
 
-    adjusted = adjusted.map((player) => ({
-      ...player,
-      abilities: Object.fromEntries(
-        ABILITY_KEYS.map((ability) => [
-          ability,
-          clampAbility(player.abilities[ability] + difference),
-        ]),
-      ) as Player["abilities"],
-    }));
+    adjusted = adjusted.map((player) =>
+      adjustPlayerAbilities(player, difference),
+    );
   }
 
   return adjusted;
