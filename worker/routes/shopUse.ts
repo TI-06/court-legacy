@@ -29,7 +29,9 @@ function invalidUse(): Response {
   return jsonError(400, "invalid_shop_use", "使用内容を確認してください");
 }
 
-function conflictMessage(code: ShopMutationErrorCode | ShopUseResolutionError["code"]): string {
+function conflictMessage(
+  code: ShopMutationErrorCode | ShopUseResolutionError["code"],
+): string {
   switch (code) {
     case "revision_conflict":
       return "別の端末または操作でデータが更新されています";
