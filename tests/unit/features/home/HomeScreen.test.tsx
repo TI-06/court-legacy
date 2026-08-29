@@ -42,6 +42,7 @@ function createProps(withLatestMatch = false) {
     onOpenTraining: vi.fn(),
     onOpenTeam: vi.fn(),
     onOpenMatch: vi.fn(),
+    onOpenOfficialTournament: vi.fn(),
     onAdvanceWeek: vi.fn(),
   };
 }
@@ -57,6 +58,23 @@ describe("home action dashboard", () => {
     expect(screen.getByText("学校評判")).toBeVisible();
     expect(screen.getByText("平均疲労")).toBeVisible();
     expect(screen.getByText("部員")).toBeVisible();
+  });
+
+  it("shows the next official tournament card and opens its bracket", () => {
+    const props = createProps();
+
+    render(<HomeScreen {...props} />);
+
+    expect(
+      screen.getByRole("heading", { name: "次の公式戦" }),
+    ).toBeVisible();
+    expect(screen.getByText("インターハイ 県大会")).toBeVisible();
+    expect(screen.getByText("1回戦")).toBeVisible();
+    expect(screen.getByText("あと8週")).toBeVisible();
+    expect(screen.getByText("城南商業")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
+    expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
   });
 
   it("shows the real date, selected rival, and direct weekly actions", () => {
