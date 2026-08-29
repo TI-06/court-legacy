@@ -33,8 +33,7 @@ export function resolveNpcTournamentMatch(input: {
   const random = new SeededRandom(
     `${input.tournamentId}::${input.match.id}::npc-resolution`,
   );
-  const strengthDifference =
-    input.home.seedStrength - input.away.seedStrength;
+  const strengthDifference = input.home.seedStrength - input.away.seedStrength;
   const homeWinProbability = clamp(
     0.5 + strengthDifference * 0.006,
     0.18,

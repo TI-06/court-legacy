@@ -180,9 +180,7 @@ function createMatches(
         roundIndex,
         slotIndex,
         scheduledWeek: tournamentRoundWeek(circuit, "national", round),
-        homeEntrantId: openingRound
-          ? slots[slotIndex * 2]!.entrantId
-          : null,
+        homeEntrantId: openingRound ? slots[slotIndex * 2]!.entrantId : null,
         awayEntrantId: openingRound
           ? slots[slotIndex * 2 + 1]!.entrantId
           : null,
