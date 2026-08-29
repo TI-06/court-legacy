@@ -23,6 +23,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: python scripts/applyShopResultIntegration.py
+      - run: python scripts/fixShopResultNarrowing.py
       - run: npx prettier --write src/app/GameApp.tsx src/features/shop/ShopScreen.tsx
       - run: npm run typecheck
       - run: npm run test -- tests/unit/features/shop/ShopUseResultUx.test.tsx tests/unit/app/GameApp.shopResult.test.tsx tests/unit/app/GameApp.shop.test.tsx tests/unit/features/shop/ShopTargetUx.test.tsx tests/unit/features/scouting/ScoutingScreen.test.tsx
