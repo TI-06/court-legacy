@@ -371,9 +371,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           historyResponse.seasonId,
       );
     } catch (error) {
-      setPvpError(
-        pvpErrorMessage(error, "対人戦データを読み込めませんでした"),
-      );
+      setPvpError(pvpErrorMessage(error, "対人戦データを読み込めませんでした"));
     } finally {
       setPvpLoading(false);
     }
