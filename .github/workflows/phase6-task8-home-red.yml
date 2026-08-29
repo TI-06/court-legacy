@@ -1,0 +1,21 @@
+name: Phase 6 Task 8 Home RED
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+jobs:
+  home-red:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm test -- tests/unit/features/home/HomeScreen.test.tsx
