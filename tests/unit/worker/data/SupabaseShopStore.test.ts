@@ -26,6 +26,16 @@ function createClient(
   } as unknown as MockSupabaseAdminClient;
 }
 
+function createOperationLookupClient(result: RpcResult): SupabaseAdminClient {
+  const maybeSingle = vi.fn(async () => result);
+  const secondEq = vi.fn(() => ({ maybeSingle }));
+  const firstEq = vi.fn(() => ({ eq: secondEq }));
+  const select = vi.fn(() => ({ eq: firstEq }));
+  const from = vi.fn(() => ({ select }));
+
+  return { from } as unknown as SupabaseAdminClient;
+}
+
 const statusRows = [
   {
     academic_year_index: 4,
@@ -173,6 +183,45 @@ describe("SupabaseShopStore", () => {
       p_scouting_candidates: null,
       p_scouting_insight: null,
     });
+  });
+
+  it("reads a canonical shop operation before replay resolution", async () => {
+    const client = createOperationLookupClient({
+      data: {
+        operation_id: "shop-use-001",
+        operation_type: "use",
+        request_fingerprint: "use:fatigue-recovery:8:player:player-1",
+        response: {
+          operationId: "shop-use-001",
+          operationType: "use",
+          revision: 9,
+        },
+      },
+      error: null,
+    });
+    const store = new SupabaseShopStore(client);
+
+    await expect(
+      store.findOperation("user-123", "shop-use-001"),
+    ).resolves.toEqual({
+      operationId: "shop-use-001",
+      operationType: "use",
+      requestFingerprint: "use:fatigue-recovery:8:player:player-1",
+      response: {
+        operationId: "shop-use-001",
+        operationType: "use",
+        revision: 9,
+      },
+    });
+  });
+
+  it("returns null when the canonical shop operation does not exist", async () => {
+    const client = createOperationLookupClient({ data: null, error: null });
+    const store = new SupabaseShopStore(client);
+
+    await expect(
+      store.findOperation("user-123", "missing-op"),
+    ).resolves.toBeNull();
   });
 
   it("maps stable RPC conflict messages to typed shop errors", async () => {
