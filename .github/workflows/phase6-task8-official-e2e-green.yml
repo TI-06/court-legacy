@@ -1,0 +1,41 @@
+name: Phase 6 Task 8 Official E2E Green
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  official-e2e-green:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format official tournament E2E
+        run: npx prettier tests/e2e/official-tournament-flow.spec.ts --write
+      - name: Verify types
+        run: npm run typecheck
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run official tournament E2E
+        run: npx playwright test tests/e2e/official-tournament-flow.spec.ts
+      - name: Commit formatted E2E
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/official-tournament-flow.spec.ts
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: format official tournament E2E"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
