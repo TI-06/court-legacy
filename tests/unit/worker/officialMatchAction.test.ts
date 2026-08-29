@@ -39,7 +39,9 @@ function createSnapshot(): CloudGameSnapshot {
   };
 }
 
-function officialWeekSnapshot(options: { trained: boolean }): CloudGameSnapshot {
+function officialWeekSnapshot(options: {
+  trained: boolean;
+}): CloudGameSnapshot {
   const snapshot = createSnapshot();
   let state = {
     ...snapshot.state,
@@ -64,10 +66,7 @@ function officialWeekSnapshot(options: { trained: boolean }): CloudGameSnapshot 
   };
 }
 
-function expectConflict(
-  callback: () => unknown,
-  code: string,
-): void {
+function expectConflict(callback: () => unknown, code: string): void {
   try {
     callback();
   } catch (error) {
@@ -177,11 +176,10 @@ describe("authoritative official match action", () => {
     ]);
 
     const result = applyGameAction(snapshot, { type: "official-match" });
-    const completed = (
+    const completed =
       result.state.officialSeason.interhigh.prefectural.matches.find(
         (match) => match.id === due.match.id,
-      ) ?? null
-    );
+      ) ?? null;
     const schoolAfter = result.state.schools[result.state.userSchoolId]!;
 
     expect(completed?.status).toBe("completed");
@@ -189,7 +187,9 @@ describe("authoritative official match action", () => {
     expect(
       schoolAfter.history.officialWins + schoolAfter.history.officialLosses,
     ).toBe(
-      schoolBefore.history.officialWins + schoolBefore.history.officialLosses + 1,
+      schoolBefore.history.officialWins +
+        schoolBefore.history.officialLosses +
+        1,
     );
     for (const playerId of participantIds) {
       expect(result.state.players[playerId]!.career.appearances).toBe(
