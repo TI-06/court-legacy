@@ -1,0 +1,39 @@
+name: Phase 6 Task 6 Test Lint Fix
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  fix-task6-test-lint:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/unit/domain/tournament/recordOfficialMatch.test.ts')
+          text = path.read_text()
+          text = text.replace(
+              'import { matchId, schoolId } from "../../../../src/domain/model/identifiers";',
+              'import { matchId } from "../../../../src/domain/model/identifiers";',
+          )
+          path.write_text(text)
+          PY
+      - name: Commit lint fix
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/domain/tournament/recordOfficialMatch.test.ts
+          git commit -m "chore: fix Phase 6 Task 6 test lint"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
