@@ -81,10 +81,7 @@ export type NextOfficialEventView =
   | NextOfficialMatchView
   | NextCircuitStartView;
 
-function circuitState(
-  state: GameState,
-  circuit: TournamentCircuit,
-) {
+function circuitState(state: GameState, circuit: TournamentCircuit) {
   return circuit === "interhigh"
     ? state.officialSeason.interhigh
     : state.officialSeason.springHigh;
@@ -95,8 +92,10 @@ function stageFor(
   circuit: TournamentCircuit,
   level: TournamentLevel,
 ): TournamentStageState | null {
-  const circuit = circuitState(state, circuit);
-  return level === "prefectural" ? circuit.prefectural : circuit.national;
+  const selectedCircuit = circuitState(state, circuit);
+  return level === "prefectural"
+    ? selectedCircuit.prefectural
+    : selectedCircuit.national;
 }
 
 function publicEntrant(
@@ -164,7 +163,9 @@ function stageStatus(
   if (stage.championEntrantId) {
     return "completed";
   }
-  const firstWeek = Math.min(...stage.matches.map((match) => match.scheduledWeek));
+  const firstWeek = Math.min(
+    ...stage.matches.map((match) => match.scheduledWeek),
+  );
   return state.calendar.weekOfYear < firstWeek ? "upcoming" : "active";
 }
 
