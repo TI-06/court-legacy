@@ -74,6 +74,7 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
+  z.object({ type: z.literal("official-match") }).strict(),
   z.object({ type: z.literal("advance-week") }).strict(),
   z
     .object({ type: z.literal("facility-upgrade"), facility: facilitySchema })
@@ -98,6 +99,7 @@ export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
   | { type: "practice-match" }
+  | { type: "official-match" }
   | { type: "advance-week" }
   | { type: "facility-upgrade"; facility: FacilityKey }
   | { type: "event-choice"; choiceId: string };
