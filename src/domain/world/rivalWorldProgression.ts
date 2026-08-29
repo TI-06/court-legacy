@@ -13,6 +13,7 @@ import type {
 } from "../model/School";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import { MAX_OFFICIAL_TOURNAMENT_HISTORY } from "../tournament/tournamentHistory";
 
 export const MAX_MATCH_HISTORY = 500;
 export const MAX_GRADUATE_HISTORY = 640;
@@ -500,6 +501,9 @@ function retainBoundedArchives(state: GameState): GameState {
       ...state.history,
       matches: state.history.matches.slice(-MAX_MATCH_HISTORY),
       graduates: state.history.graduates.slice(-MAX_GRADUATE_HISTORY),
+      officialTournaments: state.history.officialTournaments.slice(
+        -MAX_OFFICIAL_TOURNAMENT_HISTORY,
+      ),
     },
     world: {
       ...state.world,

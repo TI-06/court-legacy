@@ -1,7 +1,4 @@
-import type {
-  GameState,
-  OfficialTournamentSummary,
-} from "../model/GameState";
+import type { GameState, OfficialTournamentSummary } from "../model/GameState";
 import type {
   TournamentEntrant,
   TournamentStageState,

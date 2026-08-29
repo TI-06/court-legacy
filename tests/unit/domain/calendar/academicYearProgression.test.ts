@@ -44,6 +44,15 @@ describe("academic year progression", () => {
     expect(result.state.yearIndex).toBe(2);
     expect(result.state.calendar.academicYear).toBe(2);
     expect(result.state.calendar.weekOfYear).toBe(1);
+    expect(result.state.officialSeason.academicYear).toBe(2);
+    expect(
+      result.state.officialSeason.interhigh.prefectural.entrants,
+    ).toHaveLength(16);
+    expect(
+      result.state.officialSeason.springHigh.prefectural.entrants,
+    ).toHaveLength(16);
+    expect(result.state.officialSeason.interhigh.national).toBeNull();
+    expect(result.state.officialSeason.springHigh.national).toBeNull();
     expect(transition.graduatedPlayerIds).toHaveLength(
       originalThirdYears.length,
     );

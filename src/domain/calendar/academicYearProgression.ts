@@ -14,6 +14,7 @@ import {
   legacyReputationFromPoints,
   resolveSeasonReputation,
 } from "../school/reputation";
+import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
@@ -424,6 +425,13 @@ export function advanceAcademicYear(
     ...nextState,
     randomCursor: random.cursor,
     playerRelationships,
+  };
+  nextState = {
+    ...nextState,
+    officialSeason: createOfficialSeason({
+      state: nextState,
+      academicYear: nextAcademicYear,
+    }),
   };
 
   return {

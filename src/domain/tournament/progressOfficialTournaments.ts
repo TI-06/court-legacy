@@ -9,7 +9,6 @@ import type {
   TournamentCircuit,
   TournamentEntrant,
   TournamentLevel,
-  TournamentRound,
   TournamentStageState,
   WorldSchoolTournamentEntrant,
 } from "./tournamentTypes";
@@ -45,7 +44,9 @@ function getStage(
     circuit === "interhigh"
       ? state.officialSeason.interhigh
       : state.officialSeason.springHigh;
-  return level === "prefectural" ? circuitState.prefectural : circuitState.national;
+  return level === "prefectural"
+    ? circuitState.prefectural
+    : circuitState.national;
 }
 
 function replaceStage(
@@ -75,7 +76,9 @@ function entrantById(
   if (!entrantId) {
     return null;
   }
-  return stage.entrants.find((entrant) => entrant.entrantId === entrantId) ?? null;
+  return (
+    stage.entrants.find((entrant) => entrant.entrantId === entrantId) ?? null
+  );
 }
 
 function userEntrant(
@@ -94,9 +97,7 @@ function matchInvolvesEntrant(
   match: TournamentBracketMatch,
   entrantId: string,
 ): boolean {
-  return (
-    match.homeEntrantId === entrantId || match.awayEntrantId === entrantId
-  );
+  return match.homeEntrantId === entrantId || match.awayEntrantId === entrantId;
 }
 
 function nextRoundMatch(
@@ -194,7 +195,9 @@ function validateResult(
   const homeWon = input.homeSetsWon === 2 && input.awaySetsWon < 2;
   const awayWon = input.awaySetsWon === 2 && input.homeSetsWon < 2;
   if (!homeWon && !awayWon) {
-    throw new Error("official tournament result must be a legal best-of-three score");
+    throw new Error(
+      "official tournament result must be a legal best-of-three score",
+    );
   }
   if (
     (homeWon && input.winnerEntrantId !== match.homeEntrantId) ||
@@ -219,10 +222,7 @@ function recordPersistentNpcOutcome(
   }
   const home = entrantById(stage, match.homeEntrantId);
   const away = entrantById(stage, match.awayEntrantId);
-  if (
-    home?.source !== "world-school" ||
-    away?.source !== "world-school"
-  ) {
+  if (home?.source !== "world-school" || away?.source !== "world-school") {
     return state;
   }
   const winner = entrantById(stage, match.winnerEntrantId);
@@ -364,7 +364,9 @@ export function completeTournamentMatch(
   if (!stage) {
     throw new Error("tournament stage is not available");
   }
-  const match = stage.matches.find((candidate) => candidate.id === input.matchId);
+  const match = stage.matches.find(
+    (candidate) => candidate.id === input.matchId,
+  );
   if (!match) {
     throw new Error("tournament match was not found");
   }
@@ -459,6 +461,7 @@ function markOrResolveOneMatch(
   const candidate = stage.matches.find(
     (match) =>
       match.status !== "completed" &&
+      match.status !== "user-required" &&
       match.scheduledWeek <= state.calendar.weekOfYear &&
       Boolean(match.homeEntrantId && match.awayEntrantId),
   );
@@ -520,7 +523,7 @@ function progressStage(
   for (;;) {
     const result = markOrResolveOneMatch(next, circuit, level);
     next = result.state;
-    if (!result.progressed || findDueUserOfficialMatch(next)) {
+    if (!result.progressed) {
       return next;
     }
   }
