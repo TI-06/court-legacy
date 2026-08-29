@@ -18,6 +18,7 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import type { ShopItemId } from "../domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../domain/shop/shopContracts";
 import {
   calculateSelectionStrength,
@@ -57,6 +58,7 @@ interface GameAppProps {
 
 type MoreView = "menu" | "school" | "shop";
 type MatchView = "practice" | "pvp";
+type ShopPendingAction = "purchase" | "use";
 
 interface AdvanceWeekOutcome {
   academicYearTransition: AcademicYearTransitionSummary | null;
@@ -134,6 +136,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [shopStatus, setShopStatus] = useState<ShopStatusResponse | null>(null);
   const [shopLoading, setShopLoading] = useState(false);
   const [shopError, setShopError] = useState<string | null>(null);
+  const [shopPendingAction, setShopPendingAction] =
+    useState<ShopPendingAction | null>(null);
+  const [shopPendingItemId, setShopPendingItemId] =
+    useState<ShopItemId | null>(null);
+  const [shopResultMessage, setShopResultMessage] = useState<string | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
 
@@ -486,8 +493,84 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
+  const refreshShopAfterMutation = async (
+    minimumRevision: number,
+  ): Promise<boolean> => {
+    const latest = await api.bootstrap(session.accessToken);
+    if (latest.status !== "ready" || latest.game.revision < minimumRevision) {
+      setShopError("最新のゲーム状態を読み込めませんでした");
+      return false;
+    }
+
+    await cloudSession.adoptServerSnapshot(
+      latest.game,
+      "最新のゲーム状態を読み込みました",
+    );
+    await loadShop();
+    return true;
+  };
+
+  const purchaseShopItemFromUi = async (itemId: ShopItemId) => {
+    if (!api.purchaseShopItem || shopPendingAction !== null) {
+      if (!api.purchaseShopItem) {
+        setShopError("ショップ購入機能を利用できません");
+      }
+      return;
+    }
+
+    setShopPendingAction("purchase");
+    setShopPendingItemId(itemId);
+    setShopResultMessage(null);
+    setShopError(null);
+    try {
+      const response = await api.purchaseShopItem(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        itemId,
+      });
+      if (await refreshShopAfterMutation(response.revision)) {
+        setShopResultMessage("購入しました ✓");
+      }
+    } catch (error) {
+      setShopError(shopErrorMessage(error, "購入処理に失敗しました"));
+    } finally {
+      setShopPendingAction(null);
+      setShopPendingItemId(null);
+    }
+  };
+
+  const useShopItemFromUi = async (itemId: ShopItemId) => {
+    if (!api.useShopItem || shopPendingAction !== null) {
+      if (!api.useShopItem) {
+        setShopError("ショップ使用機能を利用できません");
+      }
+      return;
+    }
+
+    setShopPendingAction("use");
+    setShopPendingItemId(itemId);
+    setShopResultMessage(null);
+    setShopError(null);
+    try {
+      const response = await api.useShopItem(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        itemId,
+      });
+      if (await refreshShopAfterMutation(response.revision)) {
+        setShopResultMessage("使用しました ✓");
+      }
+    } catch (error) {
+      setShopError(shopErrorMessage(error, "使用処理に失敗しました"));
+    } finally {
+      setShopPendingAction(null);
+      setShopPendingItemId(null);
+    }
+  };
+
   const openShop = () => {
     setMoreView("shop");
+    setShopResultMessage(null);
     void loadShop();
   };
 
@@ -618,7 +701,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         error={shopError}
         loading={shopLoading}
         onBack={() => setMoreView("menu")}
+        onPurchase={(itemId) => {
+          void purchaseShopItemFromUi(itemId);
+        }}
         onRetry={() => void loadShop()}
+        onUse={(itemId) => {
+          void useShopItemFromUi(itemId);
+        }}
+        pendingAction={shopPendingAction}
+        pendingItemId={shopPendingItemId}
+        resultMessage={shopResultMessage}
         status={shopStatus}
       />
     ) : moreView === "school" ? (
