@@ -1,6 +1,9 @@
 import type { GameState } from "../model/GameState";
-import { matchId } from "../model/identifiers";
-import { recordMatchOutcome } from "../world/rivalWorldProgression";
+import { matchId, schoolId } from "../model/identifiers";
+import {
+  MAX_MATCH_HISTORY,
+  recordMatchOutcome,
+} from "../world/rivalWorldProgression";
 import { createNationalStage } from "./createNationalStage";
 import { resolveNpcTournamentMatch } from "./resolveNpcTournamentMatch";
 import { appendOfficialTournamentSummary } from "./tournamentHistory";
@@ -207,6 +210,12 @@ function validateResult(
   }
 }
 
+function historicalSchoolId(entrant: TournamentEntrant) {
+  return entrant.source === "world-school"
+    ? entrant.schoolId
+    : schoolId(`guest:${entrant.entrantId}`);
+}
+
 function recordPersistentNpcOutcome(
   state: GameState,
   stage: TournamentStageState,
@@ -220,28 +229,92 @@ function recordPersistentNpcOutcome(
   ) {
     return state;
   }
+
   const home = entrantById(stage, match.homeEntrantId);
   const away = entrantById(stage, match.awayEntrantId);
-  if (home?.source !== "world-school" || away?.source !== "world-school") {
-    return state;
-  }
   const winner = entrantById(stage, match.winnerEntrantId);
-  if (winner?.source !== "world-school") {
+  if (!home || !away || !winner) {
     return state;
   }
 
-  return recordMatchOutcome(state, {
-    matchId: matchId(match.id),
-    date: state.date,
-    homeSchoolId: home.schoolId,
-    awaySchoolId: away.schoolId,
-    winnerSchoolId: winner.schoolId,
-    homeSetsWon: match.homeSetsWon,
-    awaySetsWon: match.awaySetsWon,
-    tournamentId: stage.tournamentId,
-    homeDisplayName: home.displayName,
-    awayDisplayName: away.displayName,
-  });
+  if (
+    state.history.matches.some(
+      (summary) => summary.matchId === matchId(match.id),
+    )
+  ) {
+    return state;
+  }
+
+  if (
+    home.source === "world-school" &&
+    away.source === "world-school" &&
+    winner.source === "world-school"
+  ) {
+    return recordMatchOutcome(state, {
+      matchId: matchId(match.id),
+      date: state.date,
+      homeSchoolId: home.schoolId,
+      awaySchoolId: away.schoolId,
+      winnerSchoolId: winner.schoolId,
+      homeSetsWon: match.homeSetsWon,
+      awaySetsWon: match.awaySetsWon,
+      tournamentId: stage.tournamentId,
+      homeDisplayName: home.displayName,
+      awayDisplayName: away.displayName,
+    });
+  }
+
+  const persistent =
+    home.source === "world-school"
+      ? home
+      : away.source === "world-school"
+        ? away
+        : null;
+  if (!persistent) {
+    return state;
+  }
+  const school = state.schools[persistent.schoolId];
+  if (!school) {
+    return state;
+  }
+  const persistentWon = match.winnerEntrantId === persistent.entrantId;
+  const next: GameState = {
+    ...state,
+    schools: {
+      ...state.schools,
+      [school.id]: {
+        ...school,
+        history: {
+          ...school.history,
+          officialWins: school.history.officialWins + (persistentWon ? 1 : 0),
+          officialLosses:
+            school.history.officialLosses + (persistentWon ? 0 : 1),
+        },
+      },
+    },
+  };
+
+  return {
+    ...next,
+    history: {
+      ...next.history,
+      matches: [
+        ...next.history.matches,
+        {
+          matchId: matchId(match.id),
+          date: state.date,
+          homeSchoolId: historicalSchoolId(home),
+          awaySchoolId: historicalSchoolId(away),
+          winnerSchoolId: historicalSchoolId(winner),
+          homeSetsWon: match.homeSetsWon,
+          awaySetsWon: match.awaySetsWon,
+          tournamentId: stage.tournamentId,
+          homeDisplayName: home.displayName,
+          awayDisplayName: away.displayName,
+        },
+      ].slice(-MAX_MATCH_HISTORY),
+    },
+  };
 }
 
 function updateChampionSchoolCounters(

@@ -82,7 +82,9 @@ describe("persistent school vs guest NPC official matches", () => {
     const { entrant } = nationalRepresentative(qualified);
     const before = qualified.schools[entrant.schoolId]!.history;
 
-    const progressed = advanceOfficialTournamentsThroughWeek(atWeek(qualified, 16));
+    const progressed = advanceOfficialTournamentsThroughWeek(
+      atWeek(qualified, 16),
+    );
     const after = progressed.schools[entrant.schoolId]!.history;
 
     expect(after.officialWins + after.officialLosses).toBe(
@@ -95,10 +97,12 @@ describe("persistent school vs guest NPC official matches", () => {
     const { stage, entrant } = nationalRepresentative(qualified);
     const historyLength = qualified.history.matches.length;
 
-    const progressed = advanceOfficialTournamentsThroughWeek(atWeek(qualified, 16));
-    const nationalHistory = progressed.history.matches.slice(historyLength).filter(
-      (match) => match.tournamentId === stage.tournamentId,
+    const progressed = advanceOfficialTournamentsThroughWeek(
+      atWeek(qualified, 16),
     );
+    const nationalHistory = progressed.history.matches
+      .slice(historyLength)
+      .filter((match) => match.tournamentId === stage.tournamentId);
 
     expect(nationalHistory).toHaveLength(1);
     expect([
@@ -107,11 +111,11 @@ describe("persistent school vs guest NPC official matches", () => {
     ]).toContain(entrant.displayName);
     expect(nationalHistory[0]?.homeDisplayName).toBeTruthy();
     expect(nationalHistory[0]?.awayDisplayName).toBeTruthy();
-    expect(Object.keys(progressed.schools).some((id) => id.includes("guest"))).toBe(
-      false,
-    );
-    expect(Object.keys(progressed.players).some((id) => id.includes("guest"))).toBe(
-      false,
-    );
+    expect(
+      Object.keys(progressed.schools).some((id) => id.includes("guest")),
+    ).toBe(false);
+    expect(
+      Object.keys(progressed.players).some((id) => id.includes("guest")),
+    ).toBe(false);
   });
 });
