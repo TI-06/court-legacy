@@ -2,6 +2,12 @@ import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { School, SchoolReputation } from "../../domain/model/School";
+import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
+import type {
+  TournamentCircuit,
+  TournamentLevel,
+  TournamentRound,
+} from "../../domain/tournament/tournamentTypes";
 import { summarizeSetScore } from "../match/matchPresentation";
 import "./home.css";
 
@@ -15,6 +21,7 @@ interface HomeScreenProps {
   onOpenTraining: () => void;
   onOpenTeam: () => void;
   onOpenMatch: () => void;
+  onOpenOfficialTournament: () => void;
   onAdvanceWeek: () => void;
 }
 
@@ -25,6 +32,23 @@ const reputationLabels: Record<SchoolReputation, string> = {
   "national-qualifier": "全国大会出場校",
   "national-regular": "全国常連校",
   elite: "全国屈指",
+};
+
+const circuitLabels: Record<TournamentCircuit, string> = {
+  interhigh: "インターハイ",
+  "spring-high": "春高",
+};
+
+const levelLabels: Record<TournamentLevel, string> = {
+  prefectural: "県大会",
+  national: "全国大会",
+};
+
+const roundLabels: Record<TournamentRound, string> = {
+  "round-of-16": "1回戦",
+  quarterfinal: "準々決勝",
+  semifinal: "準決勝",
+  final: "決勝",
 };
 
 function average(values: readonly number[]): number {
@@ -54,6 +78,7 @@ export function HomeScreen({
   onOpenTraining,
   onOpenTeam,
   onOpenMatch,
+  onOpenOfficialTournament,
   onAdvanceWeek,
 }: HomeScreenProps) {
   const school = state.schools[state.userSchoolId];
@@ -72,6 +97,7 @@ export function HomeScreen({
   const latestWinner = latestMatch
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
+  const nextOfficial = selectNextOfficialEvent(state);
 
   return (
     <main className="app-content home-screen">
@@ -120,6 +146,63 @@ export function HomeScreen({
           </small>
         </article>
       </section>
+
+      {nextOfficial ? (
+        <section
+          className="home-official-card"
+          aria-labelledby="home-official-heading"
+        >
+          <div className="section-heading home-official-card__heading">
+            <div>
+              <p className="section-kicker">OFFICIAL MATCH</p>
+              <h2 id="home-official-heading">次の公式戦</h2>
+            </div>
+            <span
+              className={`home-official-card__timing${
+                nextOfficial.kind === "match" && nextOfficial.timing === "due"
+                  ? " is-due"
+                  : ""
+              }`}
+            >
+              {nextOfficial.kind === "match" && nextOfficial.timing === "due"
+                ? "今週"
+                : `あと${nextOfficial.weeksUntil}週`}
+            </span>
+          </div>
+          <div className="home-official-card__body">
+            <div>
+              <span>大会</span>
+              <strong>
+                {circuitLabels[nextOfficial.circuit]} {levelLabels[nextOfficial.level]}
+              </strong>
+            </div>
+            {nextOfficial.kind === "match" ? (
+              <>
+                <div>
+                  <span>ラウンド</span>
+                  <strong>{roundLabels[nextOfficial.round]}</strong>
+                </div>
+                <div>
+                  <span>対戦相手</span>
+                  <strong>{nextOfficial.opponent.displayName}</strong>
+                </div>
+              </>
+            ) : (
+              <div>
+                <span>次の大会</span>
+                <strong>{nextOfficial.scheduledWeek}週目 開幕</strong>
+              </div>
+            )}
+          </div>
+          <button
+            className="home-official-card__button"
+            onClick={onOpenOfficialTournament}
+            type="button"
+          >
+            大会表を見る
+          </button>
+        </section>
+      ) : null}
 
       <section className="home-actions" aria-labelledby="action-heading">
         <div className="section-heading">
