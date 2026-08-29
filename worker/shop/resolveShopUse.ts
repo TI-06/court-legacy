@@ -200,10 +200,11 @@ async function resolveScoutingInsight(
   if (input.request.target?.type !== "scouting-candidate") {
     throw new ShopUseResolutionError("invalid_target");
   }
+  const target = input.request.target;
   const store = input.scoutingStore;
   const pool = await currentScoutingPool(input.snapshot, store);
   const candidate = pool.candidates.find(
-    (entry) => entry.player.id === input.request.target?.candidateId,
+    (entry) => entry.player.id === target.candidateId,
   );
   if (!candidate) {
     throw new ShopUseResolutionError("target_not_found");
@@ -251,10 +252,7 @@ function resolveFatigueRecovery(input: ResolveShopUseInput): ResolvedShopUse {
     throw new ShopUseResolutionError("invalid_target");
   }
   const base = cloneBase(input.snapshot);
-  const target = currentSchoolPlayer(
-    base.state,
-    input.request.target.playerId,
-  );
+  const target = currentSchoolPlayer(base.state, input.request.target.playerId);
   if (!isFatigueRecoveryEligible(target.player)) {
     throw new ShopUseResolutionError("invalid_target");
   }
@@ -371,10 +369,7 @@ function resolveSpecialCoach(input: ResolveShopUseInput): ResolvedShopUse {
     throw new ShopUseResolutionError("invalid_target");
   }
   const base = cloneBase(input.snapshot);
-  const target = currentSchoolPlayer(
-    base.state,
-    input.request.target.playerId,
-  );
+  const target = currentSchoolPlayer(base.state, input.request.target.playerId);
   if (target.player.injury) {
     throw new ShopUseResolutionError("invalid_target");
   }
