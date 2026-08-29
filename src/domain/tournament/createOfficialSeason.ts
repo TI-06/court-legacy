@@ -75,7 +75,11 @@ export function calculateTournamentSchoolStrength(
     0.8;
 
   return Math.round(
-    clamp(rosterStrength + reputationBonus + coachBonus + facilityBonus, 1, 120),
+    clamp(
+      rosterStrength + reputationBonus + coachBonus + facilityBonus,
+      1,
+      120,
+    ),
   );
 }
 
@@ -158,9 +162,7 @@ function createBracketMatches(
         roundIndex,
         slotIndex,
         scheduledWeek: tournamentRoundWeek(circuit, "prefectural", round),
-        homeEntrantId: isOpeningRound
-          ? slots[slotIndex * 2]!.entrantId
-          : null,
+        homeEntrantId: isOpeningRound ? slots[slotIndex * 2]!.entrantId : null,
         awayEntrantId: isOpeningRound
           ? slots[slotIndex * 2 + 1]!.entrantId
           : null,

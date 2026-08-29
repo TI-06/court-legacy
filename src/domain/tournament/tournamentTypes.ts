@@ -3,15 +3,9 @@ import type { SchoolId } from "../model/identifiers";
 export type TournamentCircuit = "interhigh" | "spring-high";
 export type TournamentLevel = "prefectural" | "national";
 export type TournamentRound =
-  | "round-of-16"
-  | "quarterfinal"
-  | "semifinal"
-  | "final";
+  "round-of-16" | "quarterfinal" | "semifinal" | "final";
 export type TournamentMatchStatus =
-  | "waiting"
-  | "ready"
-  | "user-required"
-  | "completed";
+  "waiting" | "ready" | "user-required" | "completed";
 
 export interface WorldSchoolTournamentEntrant {
   entrantId: string;
@@ -33,8 +27,7 @@ export interface GuestTournamentEntrant {
 }
 
 export type TournamentEntrant =
-  | WorldSchoolTournamentEntrant
-  | GuestTournamentEntrant;
+  WorldSchoolTournamentEntrant | GuestTournamentEntrant;
 
 export interface TournamentBracketMatch {
   id: string;

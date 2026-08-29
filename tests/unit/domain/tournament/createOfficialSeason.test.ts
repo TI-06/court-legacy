@@ -149,9 +149,18 @@ describe("createOfficialSeason", () => {
       const player = state.players[playerId]!;
       state.players[playerId] = {
         ...player,
-        abilities: Object.fromEntries(
-          Object.keys(player.abilities).map((key) => [key, 1]),
-        ) as typeof player.abilities,
+        abilities: {
+          spike: 1,
+          jump: 1,
+          receive: 1,
+          serve: 1,
+          set: 1,
+          block: 1,
+          speed: 1,
+          stamina: 1,
+          decision: 1,
+          mental: 1,
+        },
       };
     }
 
