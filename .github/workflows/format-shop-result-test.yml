@@ -1,0 +1,32 @@
+name: Format shop result test
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase5-shop-mvp
+    paths:
+      - .github/workflows/format-shop-result-test.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase5-shop-mvp
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --write tests/unit/features/shop/ShopUseResultUx.test.tsx
+      - name: Commit formatting
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/features/shop/ShopUseResultUx.test.tsx
+          git commit -m "style: format shop use result UX test"
+          git push origin HEAD:feature/court-legacy-v2-phase5-shop-mvp
