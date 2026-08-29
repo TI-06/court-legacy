@@ -1,5 +1,29 @@
 import { spawnSync } from "node:child_process";
 
+const formatter = spawnSync(
+  "npx",
+  ["prettier", "tests/unit/worker/routes/shopUse.test.ts", "--write"],
+  {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  },
+);
+if (formatter.status !== 0) {
+  console.error(formatter.stdout);
+  console.error(formatter.stderr);
+  process.exit(formatter.status ?? 1);
+}
+const formatDiff = spawnSync(
+  "git",
+  ["diff", "--", "tests/unit/worker/routes/shopUse.test.ts"],
+  {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  },
+);
+console.log("[FORMAT DEBUG] shop use test diff after Prettier 3.9.6");
+console.log(formatDiff.stdout.trim() || "(no diff)");
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
