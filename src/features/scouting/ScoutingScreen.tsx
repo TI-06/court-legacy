@@ -6,6 +6,11 @@ import type {
   ScoutConfidence,
   ScoutReport,
 } from "../../domain/scouting/scoutReport";
+import type { ShopItemId } from "../../domain/shop/shopCatalog";
+import type {
+  ShopStatusResponse,
+  ShopUseTarget,
+} from "../../domain/shop/shopContracts";
 import "./scouting.css";
 
 interface ScoutingScreenProps {
@@ -14,9 +19,13 @@ interface ScoutingScreenProps {
   loading: boolean;
   error: string | null;
   recruitingCandidateId: PlayerId | null;
+  shopStatus?: ShopStatusResponse | null;
+  shopPendingItemId?: ShopItemId | null;
+  shopPendingCandidateId?: PlayerId | null;
   onBack: () => void;
   onRetry: () => void;
   onRecruit: (candidateId: PlayerId) => void;
+  onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
 }
 
 const achievementLabels: Record<MiddleSchoolAchievement, string> = {
@@ -52,9 +61,13 @@ export function ScoutingScreen({
   loading,
   error,
   recruitingCandidateId,
+  shopStatus = null,
+  shopPendingItemId = null,
+  shopPendingCandidateId = null,
   onBack,
   onRetry,
   onRecruit,
+  onUseShopItem = () => undefined,
 }: ScoutingScreenProps) {
   const school = state.schools[state.userSchoolId]!;
   const committedCandidateIds =
@@ -62,6 +75,12 @@ export function ScoutingScreen({
       ? state.recruiting.committedCandidateIds
       : [];
   const committed = new Set<PlayerId>(committedCandidateIds);
+  const researchStatus = shopStatus?.items.find(
+    (item) => item.itemId === "scout-research",
+  );
+  const appraisalStatus = shopStatus?.items.find(
+    (item) => item.itemId === "potential-appraisal",
+  );
 
   return (
     <main className="scouting-screen app-content">
@@ -129,6 +148,18 @@ export function ScoutingScreen({
               : isRecruiting
                 ? "入学交渉中…"
                 : "獲得候補にする";
+            const researchPending =
+              shopPendingItemId === "scout-research" &&
+              shopPendingCandidateId === report.candidateId;
+            const appraisalPending =
+              shopPendingItemId === "potential-appraisal" &&
+              shopPendingCandidateId === report.candidateId;
+            const researchAvailable =
+              Boolean(researchStatus?.canUse) &&
+              (researchStatus?.quantityOwned ?? 0) > 0;
+            const appraisalAvailable =
+              Boolean(appraisalStatus?.canUse) &&
+              (appraisalStatus?.quantityOwned ?? 0) > 0;
 
             return (
               <article className="scouting-card" key={report.candidateId}>
@@ -178,6 +209,41 @@ export function ScoutingScreen({
                     <li key={comment}>{comment}</li>
                   ))}
                 </ul>
+
+                {researchAvailable || appraisalAvailable ? (
+                  <div className="scouting-shop-actions">
+                    {researchAvailable ? (
+                      <button
+                        aria-label={`スカウト再調査 ${report.displayName}`}
+                        disabled={shopPendingItemId !== null}
+                        onClick={() =>
+                          onUseShopItem("scout-research", {
+                            type: "scouting-candidate",
+                            candidateId: report.candidateId,
+                          })
+                        }
+                        type="button"
+                      >
+                        {researchPending ? "効果を反映中…" : "スカウト再調査"}
+                      </button>
+                    ) : null}
+                    {appraisalAvailable ? (
+                      <button
+                        aria-label={`潜在能力鑑定 ${report.displayName}`}
+                        disabled={shopPendingItemId !== null}
+                        onClick={() =>
+                          onUseShopItem("potential-appraisal", {
+                            type: "scouting-candidate",
+                            candidateId: report.candidateId,
+                          })
+                        }
+                        type="button"
+                      >
+                        {appraisalPending ? "効果を反映中…" : "潜在能力鑑定"}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <button
                   aria-label={`${buttonLabel} ${report.displayName}`}
