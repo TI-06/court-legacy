@@ -195,6 +195,7 @@ export function buildPvpSimulationState(
   state.activeMatch = null;
   state.pendingEvent = null;
   state.recruiting = undefined;
+  state.shopEffects = undefined;
 
   return {
     state,
