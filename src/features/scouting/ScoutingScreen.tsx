@@ -21,7 +21,7 @@ interface ScoutingScreenProps {
   recruitingCandidateId: PlayerId | null;
   shopStatus?: ShopStatusResponse | null;
   shopPendingItemId?: ShopItemId | null;
-  shopPendingCandidateId?: PlayerId | null;
+  shopPendingCandidateId?: string | null;
   onBack: () => void;
   onRetry: () => void;
   onRecruit: (candidateId: PlayerId) => void;
