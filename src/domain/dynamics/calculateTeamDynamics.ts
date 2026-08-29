@@ -3,6 +3,11 @@ import type { Player } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { CohesionTrend, TeamDynamicsState } from "./teamDynamicsTypes";
 
+export type TeamDynamicsStateSource = Pick<
+  GameState,
+  "userSchoolId" | "schools" | "players" | "playerRelationships"
+>;
+
 function clamp100(value: number): number {
   if (!Number.isFinite(value)) {
     return 50;
@@ -83,7 +88,7 @@ export function deriveCohesionTrend(
   return "stable";
 }
 
-function rosterPlayers(state: GameState): Player[] {
+function rosterPlayers(state: TeamDynamicsStateSource): Player[] {
   const school = state.schools[state.userSchoolId];
   if (!school) {
     return [];
@@ -106,7 +111,7 @@ function leadershipScoreFor(
 }
 
 export function calculateCohesionTarget(
-  state: GameState,
+  state: TeamDynamicsStateSource,
   dynamics: Pick<
     TeamDynamicsState,
     "captainPlayerId" | "viceCaptainPlayerId" | "lineupContinuity"
