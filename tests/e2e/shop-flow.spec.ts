@@ -2,8 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const ACTION_DELAY_KEY = "court-legacy:e2e-action-delay-ms";
 const SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
-const LOSE_NEXT_SHOP_RESPONSE_KEY =
-  "court-legacy:e2e-shop-lose-next-response";
+const LOSE_NEXT_SHOP_RESPONSE_KEY = "court-legacy:e2e-shop-lose-next-response";
 
 async function enableVisibleActionDelay(page: Page, delayMs = 600) {
   await page.addInitScript(
@@ -43,9 +42,7 @@ async function seedRecoverablePlayers(page: Page) {
 
 async function openShop(page: Page) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation
-    .getByRole("button", { name: "その他", exact: true })
-    .click();
+  await navigation.getByRole("button", { name: "その他", exact: true }).click();
   await page.getByRole("button", { name: "ショップ", exact: true }).click();
   await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "疲労回復" })).toBeVisible();
@@ -163,9 +160,9 @@ test("lost purchase response retries the same operation once and stale revision 
   await product
     .getByRole("button", { name: "疲労回復を購入", exact: true })
     .click();
-  await expect(
-    page.getByRole("button", { name: "購入を再試行" }),
-  ).toBeVisible({ timeout: 2_000 });
+  await expect(page.getByRole("button", { name: "購入を再試行" })).toBeVisible({
+    timeout: 2_000,
+  });
   await page.getByRole("button", { name: "購入を再試行" }).click();
   await expect(page.getByText("購入しました ✓")).toBeVisible({
     timeout: 2_500,
@@ -258,9 +255,7 @@ test("scouting research and appraisal tighten only public report ranges", async 
   const beforeOverall = readRange(beforeText, "現在能力");
   const beforePotential = readRange(beforeText, "将来性");
 
-  await candidate
-    .getByRole("button", { name: /^スカウト再調査 / })
-    .click();
+  await candidate.getByRole("button", { name: /^スカウト再調査 / }).click();
   await expect(
     page.getByRole("heading", { name: "スカウト再調査の結果" }),
   ).toBeVisible({ timeout: 2_500 });
@@ -275,15 +270,15 @@ test("scouting research and appraisal tighten only public report ranges", async 
   );
   expect(researchedText).toContain("調査精度 高");
 
-  await candidate
-    .getByRole("button", { name: /^潜在能力鑑定 / })
-    .click();
+  await candidate.getByRole("button", { name: /^潜在能力鑑定 / }).click();
   await expect(
     page.getByRole("heading", { name: "潜在能力鑑定の結果" }),
   ).toBeVisible({ timeout: 2_500 });
   const appraisedText = (await candidate.textContent()) ?? "";
   const appraisedPotential = readRange(appraisedText, "将来性");
-  expect(appraisedPotential.max - appraisedPotential.min).toBeLessThanOrEqual(4);
+  expect(appraisedPotential.max - appraisedPotential.min).toBeLessThanOrEqual(
+    4,
+  );
 
   const html = await page.content();
   expect(html).not.toContain("hiddenTraits");
