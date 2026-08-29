@@ -5,6 +5,7 @@ import type {
   PurchaseShopItemInput,
   ShopMutationErrorCode,
   ShopMutationResult,
+  ShopOperationRecord,
   ShopStatusItem,
   ShopStore,
 } from "./ShopStore";
@@ -12,6 +13,15 @@ import { ShopStoreMutationError } from "./ShopStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
 
 const shopItemIdSchema = z.enum(SHOP_ITEM_IDS);
+
+const operationRowSchema = z
+  .object({
+    operation_id: z.string().min(1),
+    operation_type: z.enum(["purchase", "use"]),
+    request_fingerprint: z.string().min(1),
+    response: z.unknown(),
+  })
+  .strict();
 
 const statusRowSchema = z
   .object({
@@ -96,6 +106,22 @@ function toMutationError(error: unknown): ShopStoreMutationError {
   return new ShopStoreMutationError(code, text, { cause: error });
 }
 
+function parseOperationRow(value: unknown): ShopOperationRecord {
+  const parsed = operationRowSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new ShopStoreDataError("shop operation response is invalid", {
+      cause: parsed.error,
+    });
+  }
+
+  return {
+    operationId: parsed.data.operation_id,
+    operationType: parsed.data.operation_type,
+    requestFingerprint: parsed.data.request_fingerprint,
+    response: parsed.data.response,
+  };
+}
+
 function parseStatusRows(value: unknown): ShopStatusItem[] {
   const parsed = z.array(statusRowSchema).safeParse(value);
   if (!parsed.success) {
@@ -149,6 +175,28 @@ function parseMutationRow(value: unknown): ShopMutationResult {
 
 export class SupabaseShopStore implements ShopStore {
   constructor(private readonly client: SupabaseAdminClient) {}
+
+  async findOperation(
+    userId: string,
+    operationId: string,
+  ): Promise<ShopOperationRecord | null> {
+    const { data, error } = await this.client
+      .from("shop_operations")
+      .select("operation_id, operation_type, request_fingerprint, response")
+      .eq("user_id", userId)
+      .eq("operation_id", operationId)
+      .maybeSingle();
+
+    if (error) {
+      throw new ShopStoreDataError("shop operation read failed", {
+        cause: error,
+      });
+    }
+    if (!data) {
+      return null;
+    }
+    return parseOperationRow(data);
+  }
 
   async getStatus(
     userId: string,
