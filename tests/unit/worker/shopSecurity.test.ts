@@ -42,7 +42,9 @@ describe("Phase 5 shop security boundaries", () => {
     const publicCatalogText = PHASE5_SHOP_ITEMS.map(
       (item) => `${item.itemId} ${item.displayName} ${item.description}`,
     ).join("\n");
-    expect(publicCatalogText).not.toMatch(/pvp[-_ ]?win|rating|レート上昇|勝利確定|能力\s*\+20/i);
+    expect(publicCatalogText).not.toMatch(
+      /pvp[-_ ]?win|rating|レート上昇|勝利確定|能力\s*\+20/i,
+    );
   });
 
   it("removes temporary shop effects from ranked PvP simulation state", () => {
