@@ -6,7 +6,7 @@ import type {
   MatchEvent,
   MatchState,
 } from "../../../../src/domain/model/Match";
-import { matchId, schoolId } from "../../../../src/domain/model/identifiers";
+import { matchId } from "../../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { materializeGuestOpponent } from "../../../../src/domain/tournament/materializeGuestOpponent";
 import {
