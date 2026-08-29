@@ -50,7 +50,9 @@ describe("materializeGuestOpponent", () => {
     expect(first.school).toEqual(second.school);
     expect(first.selection).toEqual(second.selection);
     expect(
-      first.school.playerIds.map((playerId) => first.temporaryState.players[playerId]),
+      first.school.playerIds.map(
+        (playerId) => first.temporaryState.players[playerId],
+      ),
     ).toEqual(
       second.school.playerIds.map(
         (playerId) => second.temporaryState.players[playerId],
