@@ -1,4 +1,8 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import {
+  calculateDynamicsTrainingModifiers,
+  progressWeeklyDynamics,
+} from "../dynamics/progressWeeklyDynamics";
 import type { GameState } from "../model/GameState";
 import { clampAbility, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
@@ -408,11 +412,18 @@ export function resolveWeeklyTraining(
   const players = { ...input.state.players };
   const playerLogs: PlayerGrowthLog[] = [];
   const injuredPlayerIds: PlayerId[] = [];
-  const additionalGrowthModifiers = input.additionalGrowthModifiers ?? [];
+  const sharedGrowthModifiers = input.additionalGrowthModifiers ?? [];
+  const includeDynamicsModifiers = input.schoolId === input.state.userSchoolId;
 
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
+    const playerGrowthModifiers = includeDynamicsModifiers
+      ? [
+          ...sharedGrowthModifiers,
+          ...calculateDynamicsTrainingModifiers(original),
+        ]
+      : sharedGrowthModifiers;
     let updated = applyActivity(
       original,
       activityFromMenu(validated.menu),
@@ -420,7 +431,7 @@ export function resolveWeeklyTraining(
       input.data,
       input.random,
       log,
-      additionalGrowthModifiers,
+      playerGrowthModifiers,
     );
     const instruction = validated.instructions.get(playerId);
     if (instruction && !updated.injury) {
@@ -431,7 +442,7 @@ export function resolveWeeklyTraining(
         input.data,
         input.random,
         log,
-        additionalGrowthModifiers,
+        playerGrowthModifiers,
       );
     }
 
@@ -443,13 +454,17 @@ export function resolveWeeklyTraining(
   }
 
   const consumedRandomValues = input.random.cursor - initialRandomCursor;
+  const trainedState: GameState = {
+    ...input.state,
+    players,
+    randomCursor: input.state.randomCursor + consumedRandomValues,
+  };
+  const resolvedState = includeDynamicsModifiers
+    ? progressWeeklyDynamics(trainedState)
+    : trainedState;
 
   return {
-    state: {
-      ...input.state,
-      players,
-      randomCursor: input.state.randomCursor + consumedRandomValues,
-    },
+    state: resolvedState,
     result: {
       schoolId: input.schoolId,
       teamTrainingMenuId: input.plan.teamTrainingMenuId,
