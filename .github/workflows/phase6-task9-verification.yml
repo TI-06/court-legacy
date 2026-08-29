@@ -1,0 +1,22 @@
+name: Phase 6 Task 9 Verification
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+jobs:
+  task9-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier tests/unit/domain/tournament/tournamentLongRun.test.ts tests/unit/app/tournamentBrowserAuthority.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts --check
+      - name: Run Task 9 focused verification
+        run: |
+          npm test -- tests/unit/domain/tournament/tournamentLongRun.test.ts tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts tests/unit/app/tournamentBrowserAuthority.test.ts tests/unit/app/createBrowserAppDependencies.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/pvpPublish.test.ts tests/unit/worker/buildPvpSimulationState.test.ts
+          npm run typecheck
