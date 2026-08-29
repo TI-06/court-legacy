@@ -26,12 +26,8 @@ function revisionConflict(): Response {
   );
 }
 
-function gameRuleConflict(): Response {
-  return jsonError(
-    409,
-    "game_rule_conflict",
-    "現在の状態ではこの操作を実行できません",
-  );
+function gameRuleConflict(error: GameRuleConflictError): Response {
+  return jsonError(409, error.code, error.message);
 }
 
 function recruitmentDataUnavailable(): Response {
@@ -147,7 +143,7 @@ export function createGameActionHandler(
       });
     } catch (error) {
       if (error instanceof GameRuleConflictError) {
-        return gameRuleConflict();
+        return gameRuleConflict(error);
       }
       throw error;
     }
