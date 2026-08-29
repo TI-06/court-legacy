@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GameStore } from "../../../worker/data/GameStore";
 import type { ScoutingStore } from "../../../worker/data/ScoutingStore";
-import type { ShopStore } from "../../../worker/data/ShopStore";
+import type {
+  ShopMutationResult,
+  ShopStore,
+} from "../../../worker/data/ShopStore";
 import { createRouter } from "../../../worker/router";
 
 function apiRequest(path: string, init?: RequestInit): Request {
@@ -38,28 +41,30 @@ function createShopStore(): ShopStore {
   return {
     findOperation: vi.fn(async () => null),
     getStatus: vi.fn(async () => []),
-    purchase: vi.fn(async (input) => ({
-      operationId: input.operationId,
-      operationType: "purchase",
-      requestFingerprint: input.requestFingerprint,
-      revision: input.expectedRevision + 1,
-      academicYearIndex: 4,
-      itemId: input.itemId,
-      quantityOwned: 1,
-      purchasedCount: 1,
-      usedCount: 0,
-      response: {
+    purchase: vi.fn(
+      async (input): Promise<ShopMutationResult> => ({
         operationId: input.operationId,
         operationType: "purchase",
+        requestFingerprint: input.requestFingerprint,
         revision: input.expectedRevision + 1,
         academicYearIndex: 4,
         itemId: input.itemId,
         quantityOwned: 1,
         purchasedCount: 1,
         usedCount: 0,
-      },
-      replayed: false,
-    })),
+        response: {
+          operationId: input.operationId,
+          operationType: "purchase",
+          revision: input.expectedRevision + 1,
+          academicYearIndex: 4,
+          itemId: input.itemId,
+          quantityOwned: 1,
+          purchasedCount: 1,
+          usedCount: 0,
+        },
+        replayed: false,
+      }),
+    ),
     use: vi.fn(async () => {
       throw new Error("not used");
     }),
