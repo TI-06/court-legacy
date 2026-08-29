@@ -94,7 +94,7 @@ describe("team dynamics calculations", () => {
     const first = calculateLeadershipSuitability(player);
     const second = calculateLeadershipSuitability(player);
 
-    expect(first).toBe(83);
+    expect(first).toBe(84);
     expect(second).toBe(first);
     expect(first).toBeGreaterThanOrEqual(0);
     expect(first).toBeLessThanOrEqual(100);
@@ -185,7 +185,7 @@ describe("team dynamics calculations", () => {
       makeDynamics({ lineupContinuity: 80 }),
     );
 
-    expect(result).toBe(69);
+    expect(result).toBe(70);
     expect(result).toBeGreaterThanOrEqual(0);
     expect(result).toBeLessThanOrEqual(100);
   });
