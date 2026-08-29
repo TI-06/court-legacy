@@ -79,7 +79,9 @@ function playDueUserWin(
 
 describe("official tournament progression", () => {
   it("resolves due NPC matches but leaves the due user match required", () => {
-    const state = advanceOfficialTournamentsThroughWeek(atWeek(createState(), 9));
+    const state = advanceOfficialTournamentsThroughWeek(
+      atWeek(createState(), 9),
+    );
     const stage = state.officialSeason.interhigh.prefectural;
     const userId = userEntrantId(state, stage);
     const openingMatches = stage.matches.filter(
@@ -128,14 +130,16 @@ describe("official tournament progression", () => {
     });
     state = advanceOfficialTournamentsThroughWeek(atWeek(state, 12));
 
-    expect(state.officialSeason.interhigh.prefectural.userEliminated).toBe(true);
+    expect(state.officialSeason.interhigh.prefectural.userEliminated).toBe(
+      true,
+    );
     expect(state.officialSeason.interhigh.prefectural.userBestRound).toBe(
       "round-of-16",
     );
     expect(hasRequiredOfficialMatch(state)).toBe(false);
-    expect(state.officialSeason.interhigh.prefectural.championEntrantId).not.toBe(
-      null,
-    );
+    expect(
+      state.officialSeason.interhigh.prefectural.championEntrantId,
+    ).not.toBe(null);
     expect(state.officialSeason.interhigh.national?.entrants).toHaveLength(16);
   });
 
@@ -160,10 +164,12 @@ describe("official tournament progression", () => {
     ).toHaveLength(1);
 
     const replay = advanceOfficialTournamentsThroughWeek(state);
-    expect(replay.schools[state.userSchoolId]!.history.prefecturalTitles).toBe(1);
-    expect(replay.schools[state.userSchoolId]!.history.nationalAppearances).toBe(
+    expect(replay.schools[state.userSchoolId]!.history.prefecturalTitles).toBe(
       1,
     );
+    expect(
+      replay.schools[state.userSchoolId]!.history.nationalAppearances,
+    ).toBe(1);
     expect(
       replay.history.officialTournaments.filter(
         (summary) =>
