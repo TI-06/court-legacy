@@ -104,7 +104,9 @@ test("due official match stays blocked until weekly training is complete", async
   await expect(
     page.getByText("今週の練習を完了すると開始できます"),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "公式戦を開始" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "公式戦を開始" }),
+  ).toBeDisabled();
 });
 
 test("official match shows progress, commits once, and survives reload", async ({
