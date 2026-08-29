@@ -173,7 +173,9 @@ describe("derivePlayerRoles", () => {
     ];
     const players = [playerB, playerA, ...otherPlayers];
     const state = makeState(players);
-    const selection = makeSelection(players.slice(0, 7).map((player) => player.id));
+    const selection = makeSelection(
+      players.slice(0, 7).map((player) => player.id),
+    );
 
     const roles = derivePlayerRoles({
       state,
@@ -189,9 +191,15 @@ describe("derivePlayerRoles", () => {
     const players = makeRoster();
     const state = makeState(players);
     const selection = makeSelection(
-      [players[0]!, players[1]!, players[2]!, players[3]!, players[4]!, players[5]!, players[7]!].map(
-        (player) => player.id,
-      ),
+      [
+        players[0]!,
+        players[1]!,
+        players[2]!,
+        players[3]!,
+        players[4]!,
+        players[5]!,
+        players[7]!,
+      ].map((player) => player.id),
     );
 
     const roles = derivePlayerRoles({
@@ -214,7 +222,9 @@ describe("derivePlayerRoles", () => {
   test("classifies unused young players with future value as development", () => {
     const players = makeRoster();
     const state = makeState(players);
-    const selection = makeSelection(players.slice(0, 7).map((player) => player.id));
+    const selection = makeSelection(
+      players.slice(0, 7).map((player) => player.id),
+    );
 
     const roles = derivePlayerRoles({
       state,
@@ -239,7 +249,9 @@ describe("recent official usage", () => {
 
     expect(dynamics.recentOfficialMatchesTracked).toBe(8);
     for (const starter of starters) {
-      expect(dynamics.recentOfficialStarterCounts[starter]).toBeLessThanOrEqual(8);
+      expect(dynamics.recentOfficialStarterCounts[starter]).toBeLessThanOrEqual(
+        8,
+      );
       expect(dynamics.recentOfficialStarterCounts[starter]).toBeGreaterThan(0);
     }
   });
