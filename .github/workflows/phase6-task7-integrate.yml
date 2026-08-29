@@ -1,0 +1,84 @@
+name: Phase 6 Task 7 Integrate
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase6-official-tournaments
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-task7:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Connect official tournament progression and server gate
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          academic_path = Path('src/domain/calendar/academicYearProgression.ts')
+          academic = academic_path.read_text()
+          import_line = 'import { createOfficialSeason } from "../tournament/createOfficialSeason";\n'
+          tournament_import = 'import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";\n'
+          if tournament_import not in academic:
+              if import_line not in academic:
+                  raise SystemExit('createOfficialSeason import not found')
+              academic = academic.replace(import_line, import_line + tournament_import)
+          old_week = '  const weekly = advanceOneWeek(state);\n'
+          new_week = '''  const weeklyBase = advanceOneWeek(state);\n  const weekly = {\n    ...weeklyBase,\n    state: advanceOfficialTournamentsThroughWeek(weeklyBase.state),\n  };\n'''
+          if old_week in academic:
+              academic = academic.replace(old_week, new_week, 1)
+          elif new_week not in academic:
+              raise SystemExit('advanceOneWeek integration point not found')
+          academic_path.write_text(academic)
+
+          server_path = Path('worker/game/applyServerGameAction.ts')
+          server = server_path.read_text()
+          auto_import = 'import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";\n'
+          gate_import = 'import { hasRequiredOfficialMatch } from "../../src/domain/tournament/progressOfficialTournaments";\n'
+          if gate_import not in server:
+              if auto_import not in server:
+                  raise SystemExit('autoSelectTeam import not found')
+              server = server.replace(auto_import, auto_import + gate_import)
+          training_block = '''  if (!isWeeklyActionCompleted(state, "training")) {\n    throw new GameRuleConflictError(\n      "training_required",\n      "週を進める前に今週の練習を完了してください",\n    );\n  }\n\n'''
+          gate_block = training_block + '''  if (hasRequiredOfficialMatch(state)) {\n    throw new GameRuleConflictError(\n      "official_match_required",\n      "週を進める前に現在の公式戦を完了してください",\n    );\n  }\n\n'''
+          if 'hasRequiredOfficialMatch(state)' not in server:
+              if training_block not in server:
+                  raise SystemExit('training gate block not found')
+              server = server.replace(training_block, gate_block, 1)
+          server_path.write_text(server)
+          PY
+      - name: Format Task 7 implementation
+        run: >-
+          npx prettier
+          src/domain/calendar/academicYearProgression.ts
+          worker/game/actionSchema.ts
+          worker/game/applyGameAction.ts
+          worker/game/applyServerGameAction.ts
+          tests/unit/domain/tournament/officialWeekProgression.test.ts
+          tests/unit/worker/officialMatchAction.test.ts
+          --write
+      - name: Verify Task 7 focused behavior
+        run: |
+          npm test -- tests/unit/domain/tournament/officialWeekProgression.test.ts tests/unit/worker/officialMatchAction.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/gameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts
+          npm run typecheck
+      - name: Commit Task 7
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/calendar/academicYearProgression.ts worker/game/actionSchema.ts worker/game/applyGameAction.ts worker/game/applyServerGameAction.ts tests/unit/domain/tournament/officialWeekProgression.test.ts tests/unit/worker/officialMatchAction.test.ts
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "feat: add authoritative official match action"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
