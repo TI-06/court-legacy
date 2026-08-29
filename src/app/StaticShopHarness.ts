@@ -39,6 +39,10 @@ type HarnessShopOperation =
 export interface StaticShopHarnessDependencies {
   getGame: () => HarnessGameView;
   commitRevision: (revision: number) => void;
+  commitUse?: (
+    request: ShopUseRequest,
+    revision: number,
+  ) => Record<string, unknown>;
 }
 
 function purchaseFingerprint(request: ShopPurchaseRequest): string {
@@ -249,9 +253,12 @@ export class StaticShopHarness {
       );
     }
 
+    const revision = game.revision + 1;
+    const result = this.deps.commitUse
+      ? this.deps.commitUse(request, revision)
+      : { itemId: request.itemId };
     item.quantityOwned -= 1;
     item.usedCount += 1;
-    const revision = game.revision + 1;
     const response: ShopUseResponse = {
       operationId: request.operationId,
       operationType: "use",
@@ -261,9 +268,11 @@ export class StaticShopHarness {
       quantityOwned: item.quantityOwned,
       purchasedCount: item.purchasedCount,
       usedCount: item.usedCount,
-      result: { itemId: request.itemId },
+      result,
     };
-    this.deps.commitRevision(revision);
+    if (!this.deps.commitUse) {
+      this.deps.commitRevision(revision);
+    }
     this.operations.set(request.operationId, {
       operationType: "use",
       fingerprint,
