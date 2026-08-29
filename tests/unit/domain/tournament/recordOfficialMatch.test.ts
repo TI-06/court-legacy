@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../../src/app/createInitialGame";
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import type { GameState } from "../../../../src/domain/model/GameState";
-import type { MatchEvent, MatchState } from "../../../../src/domain/model/Match";
+import type {
+  MatchEvent,
+  MatchState,
+} from "../../../../src/domain/model/Match";
 import { matchId, schoolId } from "../../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { materializeGuestOpponent } from "../../../../src/domain/tournament/materializeGuestOpponent";
@@ -118,7 +121,9 @@ function completedMatch(
     entrant: guestEntrant,
     data: data(),
   });
-  const starters = homeSelection.rotation.map((assignment) => assignment.playerId);
+  const starters = homeSelection.rotation.map(
+    (assignment) => assignment.playerId,
+  );
   const first = starters[0]!;
   const second = starters[1]!;
   const third = starters[2]!;
