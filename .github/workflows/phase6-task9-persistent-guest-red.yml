@@ -1,19 +1,56 @@
-name: Phase 6 Task 9 Persistent Guest RED
+name: Phase 6 Task 9 Persistent Guest GREEN
 
 on:
   push:
     branches:
       - feature/court-legacy-v2-phase6-official-tournaments
 
+permissions:
+  contents: write
+
 jobs:
-  persistent-guest-red:
+  persistent-guest-green:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase6-official-tournaments
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Run persistent guest NPC regression
-        run: npm test -- tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts
+      - name: Record persistent world school vs guest NPC outcomes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/domain/tournament/progressOfficialTournaments.ts')
+          text = path.read_text()
+          text = text.replace(
+              'import { matchId } from "../model/identifiers";',
+              'import { matchId, schoolId } from "../model/identifiers";',
+              1,
+          )
+          text = text.replace(
+              'import { recordMatchOutcome } from "../world/rivalWorldProgression";',
+              'import {\n  MAX_MATCH_HISTORY,\n  recordMatchOutcome,\n} from "../world/rivalWorldProgression";',
+              1,
+          )
+          start = text.index('function recordPersistentNpcOutcome(')
+          end = text.index('\nfunction updateChampionSchoolCounters(', start)
+          replacement = '''function historicalSchoolId(entrant: TournamentEntrant) {\n  return entrant.source === "world-school"\n    ? entrant.schoolId\n    : schoolId(`guest:${entrant.entrantId}`);\n}\n\nfunction recordPersistentNpcOutcome(\n  state: GameState,\n  stage: TournamentStageState,\n  match: TournamentBracketMatch,\n): GameState {\n  if (\n    match.status !== "completed" ||\n    !match.winnerEntrantId ||\n    match.homeSetsWon === null ||\n    match.awaySetsWon === null\n  ) {\n    return state;\n  }\n\n  const home = entrantById(stage, match.homeEntrantId);\n  const away = entrantById(stage, match.awayEntrantId);\n  const winner = entrantById(stage, match.winnerEntrantId);\n  if (!home || !away || !winner) {\n    return state;\n  }\n\n  if (\n    state.history.matches.some(\n      (summary) => summary.matchId === matchId(match.id),\n    )\n  ) {\n    return state;\n  }\n\n  if (\n    home.source === "world-school" &&\n    away.source === "world-school" &&\n    winner.source === "world-school"\n  ) {\n    return recordMatchOutcome(state, {\n      matchId: matchId(match.id),\n      date: state.date,\n      homeSchoolId: home.schoolId,\n      awaySchoolId: away.schoolId,\n      winnerSchoolId: winner.schoolId,\n      homeSetsWon: match.homeSetsWon,\n      awaySetsWon: match.awaySetsWon,\n      tournamentId: stage.tournamentId,\n      homeDisplayName: home.displayName,\n      awayDisplayName: away.displayName,\n    });\n  }\n\n  const persistent =\n    home.source === "world-school"\n      ? home\n      : away.source === "world-school"\n        ? away\n        : null;\n  if (!persistent) {\n    return state;\n  }\n  const school = state.schools[persistent.schoolId];\n  if (!school) {\n    return state;\n  }\n  const persistentWon = match.winnerEntrantId === persistent.entrantId;\n  const next: GameState = {\n    ...state,\n    schools: {\n      ...state.schools,\n      [school.id]: {\n        ...school,\n        history: {\n          ...school.history,\n          officialWins: school.history.officialWins + (persistentWon ? 1 : 0),\n          officialLosses:\n            school.history.officialLosses + (persistentWon ? 0 : 1),\n        },\n      },\n    },\n  };\n\n  return {\n    ...next,\n    history: {\n      ...next.history,\n      matches: [\n        ...next.history.matches,\n        {\n          matchId: matchId(match.id),\n          date: state.date,\n          homeSchoolId: historicalSchoolId(home),\n          awaySchoolId: historicalSchoolId(away),\n          winnerSchoolId: historicalSchoolId(winner),\n          homeSetsWon: match.homeSetsWon,\n          awaySetsWon: match.awaySetsWon,\n          tournamentId: stage.tournamentId,\n          homeDisplayName: home.displayName,\n          awayDisplayName: away.displayName,\n        },\n      ].slice(-MAX_MATCH_HISTORY),\n    },\n  };\n}\n'''
+          path.write_text(text[:start] + replacement + text[end:])
+          PY
+      - run: npx prettier src/domain/tournament/progressOfficialTournaments.ts tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts --write
+      - name: Verify persistent guest NPC regression
+        run: |
+          npm test -- tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts tests/unit/domain/tournament/progressOfficialTournaments.test.ts tests/unit/domain/tournament/recordOfficialMatch.test.ts
+          npm run typecheck
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/tournament/progressOfficialTournaments.ts tests/unit/domain/tournament/persistentGuestNpcRecord.test.ts
+          git commit -m "fix: record persistent school guest tournament outcomes"
+          git push origin HEAD:feature/court-legacy-v2-phase6-official-tournaments
