@@ -1,0 +1,281 @@
+name: Phase 7 Task 7 Implement
+
+on:
+  push:
+    branches:
+      - feature/court-legacy-v2-phase7-team-dynamics
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/court-legacy-v2-phase7-team-dynamics
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Apply Task 7 lifecycle
+        run: |
+          cat > src/domain/dynamics/progressAnnualTeamDynamics.ts <<'TS'
+          import type { GameState } from "../model/GameState";
+          import type { PlayerId } from "../model/identifiers";
+          import { autoSelectTeam } from "../team/autoSelectTeam";
+          import {
+            calculateCohesionTarget,
+            deriveCohesionTrend,
+          } from "./calculateTeamDynamics";
+          import {
+            calculateLineupContinuity,
+            derivePlayerConcerns,
+            derivePlayerRoles,
+          } from "./derivePlayerDynamics";
+          import type { TeamDynamicsState } from "./teamDynamicsTypes";
+
+          function activeLeadershipId(
+            state: GameState,
+            playerId: PlayerId | null,
+          ): PlayerId | null {
+            if (!playerId) {
+              return null;
+            }
+            const school = state.schools[state.userSchoolId];
+            return school?.playerIds.includes(playerId) && Boolean(state.players[playerId])
+              ? playerId
+              : null;
+          }
+
+          export function progressAnnualTeamDynamics(
+            state: GameState,
+            previousDynamics: TeamDynamicsState,
+          ): GameState {
+            const school = state.schools[state.userSchoolId];
+            if (!school) {
+              return state;
+            }
+
+            const captainPlayerId = activeLeadershipId(
+              state,
+              previousDynamics.captainPlayerId,
+            );
+            const viceCaptainPlayerId = activeLeadershipId(
+              state,
+              previousDynamics.viceCaptainPlayerId,
+            );
+            const stateWithLeadership: GameState = {
+              ...state,
+              schools: {
+                ...state.schools,
+                [school.id]: {
+                  ...school,
+                  captainPlayerId,
+                },
+              },
+            };
+            const selection = autoSelectTeam({
+              state: stateWithLeadership,
+              schoolId: state.userSchoolId,
+            });
+            const baseDynamics: TeamDynamicsState = {
+              ...previousDynamics,
+              captainPlayerId,
+              viceCaptainPlayerId,
+              playerRoles: {},
+              playerConcerns: {},
+              lineupContinuity: 50,
+              recentOfficialStarterCounts: {},
+              recentOfficialMatchesTracked: 0,
+            };
+            const playerRoles = derivePlayerRoles({
+              state: stateWithLeadership,
+              selection,
+              dynamics: baseDynamics,
+            });
+            const starterIds = selection.rotation.map(
+              (assignment) => assignment.playerId,
+            );
+            if (selection.liberoPlayerId) {
+              starterIds.push(selection.liberoPlayerId);
+            }
+            const lineupContinuity = calculateLineupContinuity(
+              baseDynamics,
+              starterIds,
+            );
+            const dynamicsWithRoles: TeamDynamicsState = {
+              ...baseDynamics,
+              playerRoles,
+              lineupContinuity,
+            };
+            const playerConcerns = derivePlayerConcerns(
+              stateWithLeadership,
+              playerRoles,
+              dynamicsWithRoles,
+            );
+            const dynamicsWithConcerns: TeamDynamicsState = {
+              ...dynamicsWithRoles,
+              playerConcerns,
+            };
+            const previousCohesion = previousDynamics.cohesion;
+            const cohesion = calculateCohesionTarget(
+              stateWithLeadership,
+              dynamicsWithConcerns,
+            );
+
+            return {
+              ...stateWithLeadership,
+              teamDynamics: {
+                ...dynamicsWithConcerns,
+                previousCohesion,
+                cohesion,
+                cohesionTrend: deriveCohesionTrend(previousCohesion, cohesion),
+              },
+            };
+          }
+          TS
+
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/domain/calendar/academicYearProgression.ts")
+          text = path.read_text()
+
+          import_anchor = 'import { assignGenerationalTalent } from "../generation/generateWorld";\n'
+          import_line = 'import { progressAnnualTeamDynamics } from "../dynamics/progressAnnualTeamDynamics";\n'
+          if import_line not in text:
+              text = text.replace(import_anchor, import_line + import_anchor, 1)
+
+          loop_anchor = '''  for (const school of Object.values(schools)) {
+            const graduates: PlayerId[] = [];
+            const returningPlayerIds: PlayerId[] = [];
+          '''
+          loop_replacement = '''  for (const school of Object.values(schools)) {
+            const completedCaptainPlayerId =
+              school.id === state.userSchoolId
+                ? state.teamDynamics.captainPlayerId
+                : school.captainPlayerId;
+            if (
+              completedCaptainPlayerId &&
+              school.playerIds.includes(completedCaptainPlayerId)
+            ) {
+              const completedCaptain = players[completedCaptainPlayerId];
+              if (completedCaptain) {
+                players[completedCaptainPlayerId] = {
+                  ...completedCaptain,
+                  career: {
+                    ...completedCaptain.career,
+                    captainSeasons: completedCaptain.career.captainSeasons + 1,
+                  },
+                };
+              }
+            }
+
+            const graduates: PlayerId[] = [];
+            const returningPlayerIds: PlayerId[] = [];
+          '''
+          if loop_anchor not in text:
+              raise SystemExit("school loop anchor missing")
+          text = text.replace(loop_anchor, loop_replacement, 1)
+
+          old = '''    const captainPlayerId = selectCaptain(activePlayerIds, players);
+            if (captainPlayerId) {
+              const captain = players[captainPlayerId];
+              if (captain) {
+                players[captainPlayerId] = {
+                  ...captain,
+                  career: {
+                    ...captain.career,
+                    captainSeasons: captain.career.captainSeasons + 1,
+                  },
+                };
+              }
+            }
+          '''
+          new = '''    const captainPlayerId =
+              school.id === state.userSchoolId
+                ? state.teamDynamics.captainPlayerId &&
+                  activePlayerIds.includes(state.teamDynamics.captainPlayerId)
+                  ? state.teamDynamics.captainPlayerId
+                  : null
+                : selectCaptain(activePlayerIds, players);
+          '''
+          if old not in text:
+              raise SystemExit("captain selection anchor missing")
+          text = text.replace(old, new, 1)
+
+          relation_anchor = '''  nextState = {
+              ...nextState,
+              randomCursor: random.cursor,
+              playerRelationships,
+            };
+            nextState = {
+              ...nextState,
+              officialSeason: createOfficialSeason({
+          '''
+          relation_replacement = '''  nextState = {
+              ...nextState,
+              randomCursor: random.cursor,
+              playerRelationships,
+            };
+            nextState = progressAnnualTeamDynamics(nextState, state.teamDynamics);
+            captainPlayerIdsBySchool[state.userSchoolId] =
+              nextState.teamDynamics.captainPlayerId;
+            nextState = {
+              ...nextState,
+              officialSeason: createOfficialSeason({
+          '''
+          if relation_anchor not in text:
+              raise SystemExit("relationship lifecycle anchor missing")
+          text = text.replace(relation_anchor, relation_replacement, 1)
+          path.write_text(text)
+
+          test_path = Path("tests/unit/domain/calendar/academicYearProgression.test.ts")
+          test = test_path.read_text()
+          old = '''    for (const school of Object.values(result.state.schools)) {
+              expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
+              expect(school.playerIds.length).toBeLessThanOrEqual(16);
+              expect(school.history.seasons).toBe(1);
+              expect(school.captainPlayerId).not.toBeNull();
+              expect(school.playerIds).toContain(school.captainPlayerId);
+              expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
+            }
+          '''
+          new = '''    for (const school of Object.values(result.state.schools)) {
+              expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
+              expect(school.playerIds.length).toBeLessThanOrEqual(16);
+              expect(school.history.seasons).toBe(1);
+              if (school.id === result.state.userSchoolId) {
+                if (school.captainPlayerId) {
+                  expect(school.playerIds).toContain(school.captainPlayerId);
+                }
+              } else {
+                expect(school.captainPlayerId).not.toBeNull();
+                expect(school.playerIds).toContain(school.captainPlayerId);
+                expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
+              }
+            }
+          '''
+          if old not in test:
+              raise SystemExit("academic year captain assertion anchor missing")
+          test_path.write_text(test.replace(old, new, 1))
+          PY
+      - name: Format Task 7 files
+        run: |
+          npx prettier src/domain/dynamics/progressAnnualTeamDynamics.ts src/domain/calendar/academicYearProgression.ts tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts .github/workflows/phase7-task7-implement.yml --write
+      - name: Verify Task 7 focused behavior
+        run: |
+          npx vitest run tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts tests/unit/domain/world/worldSoak.test.ts tests/unit/domain/tournament/tournamentLongRun.test.ts
+          npm run typecheck
+      - name: Commit Task 7 implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/dynamics/progressAnnualTeamDynamics.ts src/domain/calendar/academicYearProgression.ts tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts tests/unit/domain/calendar/academicYearProgression.test.ts .github/workflows/phase7-task7-implement.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: progress team dynamics across seasons"
+            git push origin HEAD:feature/court-legacy-v2-phase7-team-dynamics
+          fi
