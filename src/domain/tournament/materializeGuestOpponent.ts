@@ -54,7 +54,10 @@ export interface MaterializedGuestOpponent {
 function createGuestIds(
   state: GameState,
   entrant: GuestTournamentEntrant,
-): { school: ReturnType<typeof schoolId>; players: ReturnType<typeof playerId>[] } {
+): {
+  school: ReturnType<typeof schoolId>;
+  players: ReturnType<typeof playerId>[];
+} {
   const guestSchoolId = schoolId(`guest-school:${entrant.entrantId}`);
   const guestPlayerIds = GUEST_ROSTER_POSITIONS.map((_, index) =>
     playerId(`guest-player:${entrant.entrantId}:${index + 1}`),
@@ -194,7 +197,9 @@ export function materializeGuestOpponent(
   const ids = createGuestIds(input.state, input.entrant);
   const rosterRandom = new SeededRandom(input.entrant.guestSeed).fork("roster");
   const schoolRandom = new SeededRandom(input.entrant.guestSeed).fork("school");
-  const uniformRandom = new SeededRandom(input.entrant.guestSeed).fork("uniform");
+  const uniformRandom = new SeededRandom(input.entrant.guestSeed).fork(
+    "uniform",
+  );
   const players = generateGuestRoster(
     input,
     ids.school,
@@ -226,7 +231,10 @@ export function materializeGuestOpponent(
     school,
     adjustedPlayers,
   );
-  const selection = autoSelectTeam({ state: temporaryState, schoolId: school.id });
+  const selection = autoSelectTeam({
+    state: temporaryState,
+    schoolId: school.id,
+  });
 
   return {
     temporaryState,
