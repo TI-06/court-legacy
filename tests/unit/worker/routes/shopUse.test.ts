@@ -13,7 +13,6 @@ import {
 import { createShopUseHandler } from "../../../../worker/routes/shopUse";
 import {
   ShopUseResolutionError,
-  type ResolveShopUseInput,
   type ResolvedShopUse,
 } from "../../../../worker/shop/resolveShopUse";
 
@@ -114,7 +113,7 @@ function resolvedFatigueUse(snapshot: CloudGameSnapshot): ResolvedShopUse {
 }
 
 function createResolver(result: ResolvedShopUse) {
-  return vi.fn(async (_input: ResolveShopUseInput) => result);
+  return vi.fn(async () => result);
 }
 
 function bodyFor(snapshot: CloudGameSnapshot) {
@@ -291,7 +290,11 @@ describe("shop use route", () => {
       const resolveUse = vi.fn(async () => {
         throw new ShopUseResolutionError(code);
       });
-      const handler = createShopUseHandler({ gameStore, shopStore, resolveUse });
+      const handler = createShopUseHandler({
+        gameStore,
+        shopStore,
+        resolveUse,
+      });
 
       const response = await handler(request(bodyFor(snapshot)), {
         id: "user-123",
@@ -312,7 +315,9 @@ describe("shop use route", () => {
     const snapshot = createSnapshot();
     const gameStore = createGameStore(snapshot);
     const shopStore = createShopStore();
-    vi.mocked(shopStore.use).mockRejectedValue(new ShopStoreMutationError(code));
+    vi.mocked(shopStore.use).mockRejectedValue(
+      new ShopStoreMutationError(code),
+    );
     const resolveUse = createResolver(resolvedFatigueUse(snapshot));
     const handler = createShopUseHandler({ gameStore, shopStore, resolveUse });
 
