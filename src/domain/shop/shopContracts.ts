@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { SPECIAL_COACH_FOCUS_ABILITIES } from "./shopEffects";
-import { SHOP_ITEM_IDS } from "./shopCatalog";
+import { SHOP_ITEM_IDS, type ShopItemId } from "./shopCatalog";
 
 const operationIdSchema = z
   .string()
@@ -71,7 +71,7 @@ export type ShopBlockedReason =
   | "inventory_empty";
 
 export interface ShopPublicStatusItem {
-  itemId: (typeof SHOP_ITEM_IDS)[number];
+  itemId: ShopItemId;
   displayName: string;
   description: string;
   priceYen: 0;
@@ -90,4 +90,23 @@ export interface ShopStatusResponse {
   revision: number;
   academicYearIndex: number;
   items: ShopPublicStatusItem[];
+}
+
+export interface ShopMutationResponseBase {
+  operationId: string;
+  revision: number;
+  academicYearIndex: number;
+  itemId: ShopItemId;
+  quantityOwned: number;
+  purchasedCount: number;
+  usedCount: number;
+}
+
+export interface ShopPurchaseResponse extends ShopMutationResponseBase {
+  operationType: "purchase";
+}
+
+export interface ShopUseResponse extends ShopMutationResponseBase {
+  operationType: "use";
+  result: Record<string, unknown>;
 }
