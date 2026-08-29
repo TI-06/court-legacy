@@ -18,8 +18,12 @@ describe("Phase 6 initial world", () => {
 
     expect(state.schemaVersion).toBe(3);
     expect(state.officialSeason.academicYear).toBe(state.calendar.academicYear);
-    expect(state.officialSeason.interhigh.prefectural.entrants).toHaveLength(16);
-    expect(state.officialSeason.springHigh.prefectural.entrants).toHaveLength(16);
+    expect(state.officialSeason.interhigh.prefectural.entrants).toHaveLength(
+      16,
+    );
+    expect(state.officialSeason.springHigh.prefectural.entrants).toHaveLength(
+      16,
+    );
     expect(state.officialSeason.interhigh.national).toBeNull();
     expect(state.officialSeason.springHigh.national).toBeNull();
     expect(state.history.officialTournaments).toEqual([]);
