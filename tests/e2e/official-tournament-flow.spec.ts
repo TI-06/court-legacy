@@ -40,8 +40,10 @@ async function seedSnapshot(
 ) {
   await page.addInitScript(
     ({ snapshotKey, gameStateKey, delayKey, serialized, delay }) => {
-      sessionStorage.setItem(snapshotKey, serialized);
-      sessionStorage.setItem(gameStateKey, "ready");
+      if (!sessionStorage.getItem(snapshotKey)) {
+        sessionStorage.setItem(snapshotKey, serialized);
+        sessionStorage.setItem(gameStateKey, "ready");
+      }
       sessionStorage.setItem(delayKey, String(delay));
     },
     {
@@ -121,9 +123,9 @@ test("official match shows progress, commits once, and survives reload", async (
   await expect(
     page.getByRole("status").filter({ hasText: "公式戦を開始しています…" }),
   ).toBeVisible({ timeout: 300 });
-  await expect(page.getByRole("status").filter({ hasText: "保存済み ✓" })).toBeVisible({
-    timeout: 2_000,
-  });
+  await expect(
+    page.getByRole("status").filter({ hasText: "保存済み ✓" }),
+  ).toBeVisible({ timeout: 2_000 });
 
   const persisted = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
