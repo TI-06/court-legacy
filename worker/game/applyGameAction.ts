@@ -212,7 +212,10 @@ function applyOfficialMatch(
 ): AppliedGameAction {
   const due = findDueUserOfficialMatch(state);
   if (!due) {
-    return conflict("official_match_not_due", "現在開始できる公式戦がありません");
+    return conflict(
+      "official_match_not_due",
+      "現在開始できる公式戦がありません",
+    );
   }
   if (!isWeeklyActionCompleted(state, "training")) {
     return conflict(
@@ -253,8 +256,7 @@ function applyOfficialMatch(
               selection: materialized.selection,
             };
           })();
-    const userIsHome =
-      due.match.homeEntrantId === due.userEntrant.entrantId;
+    const userIsHome = due.match.homeEntrantId === due.userEntrant.entrantId;
     const id = matchId(due.match.id);
     const random = new SeededRandom(state.seed).fork(
       `match:${due.stage.tournamentId}:${due.match.id}`,
