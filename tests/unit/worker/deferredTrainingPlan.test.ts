@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type {
-  WeeklyPlan,
-} from "../../../src/domain/training/resolveWeeklyTraining";
+import type { WeeklyPlan } from "../../../src/domain/training/resolveWeeklyTraining";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
