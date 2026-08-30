@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { resolveWeeklyTraining } from "../../../../src/domain/training/resolveWeeklyTraining";
 
@@ -14,8 +15,23 @@ function createPlan(state: ReturnType<typeof createDemoGame>) {
   };
 }
 
+function resolveWithRest(
+  state: ReturnType<typeof createDemoGame>,
+  restingPlayerIds: ReadonlySet<PlayerId>,
+  seed: string,
+) {
+  return resolveWeeklyTraining({
+    state,
+    schoolId: state.userSchoolId,
+    plan: createPlan(state),
+    data: gameData,
+    random: new SeededRandom(seed),
+    restingPlayerIds,
+  });
+}
+
 describe("Phase 8 automatic rest during weekly training", () => {
-  it("skips team and individual training for a player at the fatigue threshold and gives extra recovery", () => {
+  it("skips team and individual training for an explicitly resting focus player", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
@@ -33,61 +49,49 @@ describe("Phase 8 automatic rest during weekly training", () => {
     };
     const before = structuredClone(state.players[playerId]!);
 
-    const resolution = resolveWeeklyTraining({
+    const resolution = resolveWithRest(
       state,
-      schoolId: state.userSchoolId,
-      plan: createPlan(state),
-      data: gameData,
-      random: new SeededRandom("phase8-fatigue-rest"),
-    });
+      new Set([playerId]),
+      "phase8-fatigue-rest",
+    );
     const after = resolution.state.players[playerId]!;
     const log = resolution.result.playerLogs.find(
       (entry) => entry.playerId === playerId,
     )!;
 
-    expect(after.abilities).toEqual(before.abilities);
-    expect(after.fatigue).toBeLessThan(before.fatigue);
-    expect(after.condition).toBeGreaterThan(before.condition);
+    expect(after).toEqual(before);
     expect(log.totalAbilityGrowth).toBe(0);
-    expect(log.skippedReason).toBe("automatic-rest");
+    expect(log.fatigueChange).toBe(0);
+    expect(log.conditionChange).toBe(0);
+    expect(log.skippedReason).toBe("auto-rest");
   });
 
-  it("skips training for a player at the low-condition threshold", () => {
-    const state = createDemoGame();
-    const school = state.schools[state.userSchoolId]!;
-    const playerId = school.playerIds[2]!;
-    state.players[playerId] = {
-      ...state.players[playerId]!,
-      fatigue: 10,
-      condition: 35,
-      injury: null,
-      abilities: {
-        ...state.players[playerId]!.abilities,
-        spike: 20,
-        jump: 20,
-      },
-    };
-    const before = structuredClone(state.players[playerId]!);
+  it("does not execute activity-specific RNG for resting players", () => {
+    const first = createDemoGame();
+    const second = structuredClone(first);
+    const restingPlayerIds = new Set([
+      first.schools[first.userSchoolId]!.playerIds[0]!,
+      first.schools[first.userSchoolId]!.playerIds[1]!,
+    ]);
 
-    const resolution = resolveWeeklyTraining({
-      state,
-      schoolId: state.userSchoolId,
-      plan: createPlan(state),
-      data: gameData,
-      random: new SeededRandom("phase8-condition-rest"),
-    });
-    const after = resolution.state.players[playerId]!;
-    const log = resolution.result.playerLogs.find(
-      (entry) => entry.playerId === playerId,
-    )!;
+    const firstResolution = resolveWithRest(
+      first,
+      restingPlayerIds,
+      "phase8-rest-rng",
+    );
+    const secondResolution = resolveWithRest(
+      second,
+      restingPlayerIds,
+      "phase8-rest-rng",
+    );
 
-    expect(after.abilities).toEqual(before.abilities);
-    expect(after.condition).toBeGreaterThan(before.condition);
-    expect(log.totalAbilityGrowth).toBe(0);
-    expect(log.skippedReason).toBe("automatic-rest");
+    expect(firstResolution).toEqual(secondResolution);
+    expect(firstResolution.result.randomCursor).toBe(
+      secondResolution.result.randomCursor,
+    );
   });
 
-  it("keeps injured players out of training while still giving rest recovery", () => {
+  it("keeps an injured resting player unchanged until week recovery progresses the injury", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[3]!;
@@ -104,22 +108,17 @@ describe("Phase 8 automatic rest during weekly training", () => {
     };
     const before = structuredClone(state.players[playerId]!);
 
-    const resolution = resolveWeeklyTraining({
+    const resolution = resolveWithRest(
       state,
-      schoolId: state.userSchoolId,
-      plan: createPlan(state),
-      data: gameData,
-      random: new SeededRandom("phase8-injury-rest"),
-    });
+      new Set([playerId]),
+      "phase8-injury-rest",
+    );
     const after = resolution.state.players[playerId]!;
     const log = resolution.result.playerLogs.find(
       (entry) => entry.playerId === playerId,
     )!;
 
-    expect(after.abilities).toEqual(before.abilities);
-    expect(after.fatigue).toBeLessThan(before.fatigue);
-    expect(after.condition).toBeGreaterThan(before.condition);
-    expect(after.injury).toEqual(before.injury);
-    expect(log.skippedReason).toBe("injured");
+    expect(after).toEqual(before);
+    expect(log.skippedReason).toBe("auto-rest");
   });
 });
