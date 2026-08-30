@@ -33,55 +33,44 @@ jobs:
               if import_anchor not in home:
                   raise SystemExit("home import anchor missing")
               home = home.replace(import_anchor, import_line + import_anchor, 1)
-          function_anchor = '\nfunction average(values: readonly number[]): number {'
-          trend_block = '''
+
+          if "const cohesionTrendLabels" not in home:
+              function_anchor = "\nfunction average(values: readonly number[]): number {"
+              trend_block = '''
           const cohesionTrendLabels: Record<CohesionTrend, string> = {
             rising: "上向き",
             stable: "横ばい",
             falling: "低下",
           };
           '''
-          if "const cohesionTrendLabels" not in home:
               if function_anchor not in home:
                   raise SystemExit("home trend anchor missing")
               home = home.replace(function_anchor, trend_block + function_anchor, 1)
-          metric_anchor = '''        <article className="metric-card">
-                    <span>部員</span>
-                    <strong>{players.length}</strong>
-                    <small>
-                      {injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}
-                    </small>
-                  </article>
-                </section>'''
-          metric_replacement = '''        <article className="metric-card">
-                    <span>部員</span>
-                    <strong>{players.length}</strong>
-                    <small>
-                      {injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}
-                    </small>
-                  </article>
-                  <article className="metric-card">
-                    <span>結束力</span>
-                    <strong>{state.teamDynamics.cohesion}</strong>
-                    <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
-                  </article>
-                </section>'''
+
           if "<span>結束力</span>" not in home:
-              if metric_anchor not in home:
-                  raise SystemExit("home metric anchor missing")
-              home = home.replace(metric_anchor, metric_replacement, 1)
+              member_pos = home.index("<span>部員</span>")
+              article_start = home.rfind('<article className="metric-card">', 0, member_pos)
+              article_end = home.index("</article>", member_pos) + len("</article>")
+              if article_start < 0:
+                  raise SystemExit("home member metric start missing")
+              cohesion_card = '''
+                <article className="metric-card">
+                  <span>結束力</span>
+                  <strong>{state.teamDynamics.cohesion}</strong>
+                  <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
+                </article>'''
+              home = home[:article_end] + cohesion_card + home[article_end:]
           home_path.write_text(home)
 
           app_path = Path("src/app/GameApp.tsx")
           app = app_path.read_text()
-          save_anchor = '''  const saveTeamSelection = async (selection: TeamSelection) => {
-            await cloudSession.runAction(
-              { type: "team-selection", selection },
-              "スタメンを保存しています…",
-            );
-          };
-          '''
-          save_replacement = save_anchor + '''
+          if "const saveTeamLeadership" not in app:
+              save_start = app.index(
+                  "  const saveTeamSelection = async (selection: TeamSelection) => {"
+              )
+              save_end = app.index("\n\n  const openFreshPracticeMatch", save_start)
+              leadership = '''
+
           const saveTeamLeadership = async (
             captainPlayerId: PlayerId,
             viceCaptainPlayerId: PlayerId,
@@ -94,28 +83,24 @@ jobs:
               },
               "役職を保存しています…",
             );
-          };
-          '''
-          if "const saveTeamLeadership" not in app:
-              if save_anchor not in app:
-                  raise SystemExit("game app leadership anchor missing")
-              app = app.replace(save_anchor, save_replacement, 1)
-          player_hub_anchor = '''      <PlayerHubScreen
-                onChange={saveTeamSelection}
-                selection={teamSelection}
-                state={gameState}
-              />'''
-          player_hub_replacement = '''      <PlayerHubScreen
-                leadershipPending={cloudSession.operation.status === "submitting"}
-                onAssignLeadership={saveTeamLeadership}
-                onChange={saveTeamSelection}
-                selection={teamSelection}
-                state={gameState}
-              />'''
+          };'''
+              app = app[:save_end] + leadership + app[save_end:]
+
           if "onAssignLeadership={saveTeamLeadership}" not in app:
-              if player_hub_anchor not in app:
-                  raise SystemExit("game app PlayerHub anchor missing")
-              app = app.replace(player_hub_anchor, player_hub_replacement, 1)
+              hub_start = app.index("      <PlayerHubScreen")
+              hub_end = app.index("      />", hub_start) + len("      />")
+              hub_block = app[hub_start:hub_end]
+              if "onChange={saveTeamSelection}" not in hub_block:
+                  raise SystemExit("game app PlayerHub content missing")
+              hub_block = hub_block.replace(
+                  "      <PlayerHubScreen\n",
+                  '''      <PlayerHubScreen
+                  leadershipPending={cloudSession.operation.status === "submitting"}
+                  onAssignLeadership={saveTeamLeadership}
+          ''',
+                  1,
+              )
+              app = app[:hub_start] + hub_block + app[hub_end:]
           app_path.write_text(app)
 
           team_path = Path("src/features/team/TeamScreen.tsx")
@@ -126,35 +111,37 @@ jobs:
               if css_anchor not in team:
                   raise SystemExit("team css anchor missing")
               team = team.replace(css_anchor, css_anchor + css_line, 1)
-          locked_anchor = '''  const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
-          '''
-          locked_replacement = locked_anchor + '''  const captain = state.teamDynamics.captainPlayerId
-            ? playerById[state.teamDynamics.captainPlayerId]
-            : null;
-          '''
+
           if "const captain = state.teamDynamics.captainPlayerId" not in team:
+              locked_anchor = (
+                  "  const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);"
+              )
               if locked_anchor not in team:
                   raise SystemExit("team captain anchor missing")
-              team = team.replace(locked_anchor, locked_replacement, 1)
-          summary_anchor = '''      </section>
+              team = team.replace(
+                  locked_anchor,
+                  locked_anchor
+                  + '''
+            const captain = state.teamDynamics.captainPlayerId
+              ? playerById[state.teamDynamics.captainPlayerId]
+              : null;''',
+                  1,
+              )
 
-                <section className="team-summary" aria-label="編成サマリー">'''
-          summary_replacement = '''      </section>
-
-                <section className="team-dynamics-inline" aria-label="チーム状態サマリー">
-                  <span>
-                    結束力 <strong>{state.teamDynamics.cohesion}</strong>
-                  </span>
-                  <span>
-                    主将 <strong>{captain ? playerName(captain) : "未設定"}</strong>
-                  </span>
-                </section>
-
-                <section className="team-summary" aria-label="編成サマリー">'''
           if 'aria-label="チーム状態サマリー"' not in team:
-              if summary_anchor not in team:
-                  raise SystemExit("team summary anchor missing")
-              team = team.replace(summary_anchor, summary_replacement, 1)
+              summary_anchor = '<section className="team-summary" aria-label="編成サマリー">'
+              summary_pos = team.index(summary_anchor)
+              summary = '''<section className="team-dynamics-inline" aria-label="チーム状態サマリー">
+                <span>
+                  結束力 <strong>{state.teamDynamics.cohesion}</strong>
+                </span>
+                <span>
+                  主将 <strong>{captain ? playerName(captain) : "未設定"}</strong>
+                </span>
+              </section>
+
+              '''
+              team = team[:summary_pos] + summary + team[summary_pos:]
           team_path.write_text(team)
           PY
       - name: Format Task 9 files
