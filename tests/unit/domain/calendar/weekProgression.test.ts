@@ -105,14 +105,17 @@ describe("weekly progression", () => {
   it("adds exactly eight fatigue recovery and five condition recovery for resting players", () => {
     const normalState = createState();
     const restingState = structuredClone(normalState);
-    const playerId = normalState.schools[normalState.userSchoolId]!.playerIds[0]!;
+    const playerId =
+      normalState.schools[normalState.userSchoolId]!.playerIds[0]!;
     normalState.players[playerId] = {
       ...normalState.players[playerId]!,
       fatigue: 70,
       condition: 50,
       injury: null,
     };
-    restingState.players[playerId] = structuredClone(normalState.players[playerId]!);
+    restingState.players[playerId] = structuredClone(
+      normalState.players[playerId]!,
+    );
 
     const normal = advanceOneWeek(normalState).state.players[playerId]!;
     const rested = advanceOneWeek(restingState, {
