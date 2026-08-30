@@ -141,6 +141,24 @@ function applyTraining(
   }
 }
 
+function applyTrainingPlan(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-training-plan" }>,
+): AppliedGameAction {
+  return {
+    state: {
+      ...state,
+      weeklySchedule: {
+        ...state.weeklySchedule,
+        trainingPlan: structuredClone(action.plan),
+      },
+    },
+    teamSelection,
+    outcome: { plan: action.plan },
+  };
+}
+
 function applyTeamSelection(
   state: GameState,
   action: Extract<GameAction, { type: "team-selection" }>,
@@ -500,6 +518,8 @@ export function applyGameAction(
   switch (action.type) {
     case "training":
       return applyTraining(state, teamSelection, action);
+    case "set-training-plan":
+      return applyTrainingPlan(state, teamSelection, action);
     case "team-selection":
       return applyTeamSelection(state, action);
     case "set-team-leadership":
