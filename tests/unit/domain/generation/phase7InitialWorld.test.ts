@@ -11,7 +11,7 @@ describe("Phase 7 initial world", () => {
     const first = createDemoGame() as Phase7GameState;
     const second = createDemoGame() as Phase7GameState;
 
-    expect(first.schemaVersion).toBe(4);
+    expect(first.schemaVersion).toBe(5);
     expect(first.teamDynamics).toEqual(second.teamDynamics);
     expect(first.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
     expect(first.teamDynamics.cohesion).toBeLessThanOrEqual(100);
