@@ -221,7 +221,8 @@ describe("practice-match scheduling authority", () => {
     );
     const arbitrarySchool = Object.values(snapshot.state.schools).find(
       (school) =>
-        school.id !== snapshot.state.userSchoolId && !candidateIds.has(school.id),
+        school.id !== snapshot.state.userSchoolId &&
+        !candidateIds.has(school.id),
     );
     if (!arbitrarySchool) {
       throw new Error("arbitrary opponent fixture missing");
@@ -253,7 +254,8 @@ describe("practice-match scheduling authority", () => {
       },
     };
     const candidate =
-      officialSnapshot.state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+      officialSnapshot.state.weeklySchedule.practiceMatch
+        .outgoingCandidates[0]!;
 
     expect(() =>
       applyUnsafe(officialSnapshot, { type: "practice-offer-accept" }),
