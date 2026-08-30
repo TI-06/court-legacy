@@ -32,10 +32,11 @@ describe("Phase 7 game-state migration", () => {
       },
     } as Record<string, unknown>;
     delete legacy.teamDynamics;
+    delete legacy.weeklySchedule;
 
     const migrated = decodeGameState(JSON.stringify(legacy)) as Phase7GameState;
 
-    expect(migrated.schemaVersion).toBe(4);
+    expect(migrated.schemaVersion).toBe(5);
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
     expect(migrated.players).toEqual(originalPlayers);
     expect(migrated.schools).toEqual(originalSchools);
@@ -54,5 +55,6 @@ describe("Phase 7 game-state migration", () => {
     expect(migrated.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
     expect(migrated.teamDynamics.cohesion).toBeLessThanOrEqual(100);
     expect(migrated.teamDynamics.recentOfficialMatchesTracked).toBe(0);
+    expect(migrated.weeklySchedule.latestReport).toBeNull();
   });
 });
