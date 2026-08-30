@@ -60,6 +60,12 @@ export function TeamDynamicsPanel({
 }: TeamDynamicsPanelProps) {
   const school = state.schools[state.userSchoolId]!;
   const dynamics = state.teamDynamics;
+  const captain = dynamics.captainPlayerId
+    ? state.players[dynamics.captainPlayerId]
+    : undefined;
+  const viceCaptain = dynamics.viceCaptainPlayerId
+    ? state.players[dynamics.viceCaptainPlayerId]
+    : undefined;
   const players = useMemo(
     () =>
       school.playerIds
@@ -135,13 +141,11 @@ export function TeamDynamicsPanel({
       <div className="team-dynamics__metrics" aria-label="チーム状態指標">
         <article>
           <span>主将</span>
-          <strong>{playerName(state.players[dynamics.captainPlayerId ?? ""])}</strong>
+          <strong>{playerName(captain)}</strong>
         </article>
         <article>
           <span>副主将</span>
-          <strong>
-            {playerName(state.players[dynamics.viceCaptainPlayerId ?? ""])}
-          </strong>
+          <strong>{playerName(viceCaptain)}</strong>
         </article>
         <article>
           <span>関係性</span>
