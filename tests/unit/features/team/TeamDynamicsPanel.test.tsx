@@ -57,7 +57,7 @@ describe("TeamDynamicsPanel", () => {
     expect(screen.getAllByText("未設定")).toHaveLength(2);
     expect(screen.getByText("関係性 良好")).toBeVisible();
     expect(screen.getByText(`${playerName(first)}・出場機会`)).toBeVisible();
-    expect(screen.getByText(/適性/)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "主将適性" })).toBeVisible();
   });
 
   it("submits only the selected captain and vice-captain ids", () => {
