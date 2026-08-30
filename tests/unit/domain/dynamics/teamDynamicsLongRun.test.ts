@@ -106,7 +106,8 @@ function dynamicsSnapshot(state: GameState) {
     playerRoles: state.teamDynamics.playerRoles,
     playerConcerns: state.teamDynamics.playerConcerns,
     recentOfficialStarterCounts: state.teamDynamics.recentOfficialStarterCounts,
-    recentOfficialMatchesTracked: state.teamDynamics.recentOfficialMatchesTracked,
+    recentOfficialMatchesTracked:
+      state.teamDynamics.recentOfficialMatchesTracked,
     roster: school.playerIds.map((playerId) => {
       const player = state.players[playerId]!;
       return {
