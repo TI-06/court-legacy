@@ -14,6 +14,10 @@ import type {
   TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
 import {
+  recoverAutomaticRestPlayer,
+  selectAutomaticRest,
+} from "../weekly/autoRest";
+import {
   calculateGrowth,
   type AdditionalGrowthModifier,
   type GrowthModifier,
@@ -39,7 +43,7 @@ export interface PlayerGrowthLog {
   academicRestricted: boolean;
   injuryRisk: number;
   injury: PlayerInjury | null;
-  skippedReason: "injured" | null;
+  skippedReason: "injured" | "automatic-rest" | null;
   modifiers: GrowthModifier[];
 }
 
@@ -414,10 +418,31 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const sharedGrowthModifiers = input.additionalGrowthModifiers ?? [];
   const includeDynamicsModifiers = input.schoolId === input.state.userSchoolId;
+  const automaticRestByPlayer = new Map(
+    selectAutomaticRest(input.state, input.schoolId).map((decision) => [
+      decision.playerId,
+      decision.reason,
+    ]),
+  );
 
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
+    const automaticRestReason = automaticRestByPlayer.get(playerId);
+    if (automaticRestReason) {
+      const rest = recoverAutomaticRestPlayer(
+        original,
+        automaticRestReason,
+        school.facilities.recoveryRoom,
+      );
+      players[playerId] = rest.player;
+      log.fatigueChange = rest.player.fatigue - original.fatigue;
+      log.conditionChange = rest.player.condition - original.condition;
+      log.skippedReason = original.injury ? "injured" : "automatic-rest";
+      playerLogs.push(log);
+      continue;
+    }
+
     const playerGrowthModifiers = includeDynamicsModifiers
       ? [
           ...sharedGrowthModifiers,
