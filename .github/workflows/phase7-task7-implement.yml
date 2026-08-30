@@ -196,24 +196,6 @@ jobs:
               raise SystemExit("relationship lifecycle anchor missing")
           text = text.replace(relation_anchor, relation_replacement, 1)
           path.write_text(text)
-
-          test_path = Path("tests/unit/domain/calendar/academicYearProgression.test.ts")
-          test = test_path.read_text()
-          old = """      expect(school.captainPlayerId).not.toBeNull();
-              expect(school.playerIds).toContain(school.captainPlayerId);
-              expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);"""
-          new = """      if (school.id === result.state.userSchoolId) {
-                if (school.captainPlayerId) {
-                  expect(school.playerIds).toContain(school.captainPlayerId);
-                }
-              } else {
-                expect(school.captainPlayerId).not.toBeNull();
-                expect(school.playerIds).toContain(school.captainPlayerId);
-                expect(result.state.players[school.captainPlayerId!]?.grade).toBe(3);
-              }"""
-          if old not in test:
-              raise SystemExit("academic year captain assertion anchor missing")
-          test_path.write_text(test.replace(old, new, 1))
           PY
       - name: Format Task 7 files
         run: |
