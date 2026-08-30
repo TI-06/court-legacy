@@ -69,6 +69,9 @@ const facilitySchema = z.enum([
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
   z
+    .object({ type: z.literal("set-training-plan"), plan: weeklyPlanSchema })
+    .strict(),
+  z
     .object({
       type: z.literal("team-selection"),
       selection: teamSelectionSchema,
@@ -113,6 +116,7 @@ export const gameActionRequestSchema = z
 
 export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
+  | { type: "set-training-plan"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
   | {
       type: "set-team-leadership";
