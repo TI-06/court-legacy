@@ -1,0 +1,22 @@
+name: Phase 8 format probe
+
+on:
+  push:
+    branches:
+      - feature/phase8-mobile-game-loop-impl
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Print Prettier diff
+        run: |
+          npx prettier tests/unit/domain/calendar/weekProgression.test.ts --write
+          git diff -- tests/unit/domain/calendar/weekProgression.test.ts
+          exit 1
