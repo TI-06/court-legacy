@@ -10,7 +10,8 @@ import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 export type AutoRestReason = "injury" | "fatigue" | "condition";
 
 export type PracticeMatchCandidateTier = "same" | "stronger" | "challenge";
-export type PracticeMatchCandidateStatus = "available" | "rejected" | "accepted";
+export type PracticeMatchCandidateStatus =
+  "available" | "rejected" | "accepted";
 
 export type PracticeRating = 1 | 2 | 3 | 4 | 5;
 
