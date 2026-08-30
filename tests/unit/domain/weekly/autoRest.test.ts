@@ -66,9 +66,9 @@ describe("automatic weekly rest", () => {
 
     const decisions = selectAutomaticRest(state, state.userSchoolId);
 
-    expect(decisions.filter((decision) => decision.playerId === playerId)).toEqual(
-      [{ playerId, reason: "injury" }],
-    );
+    expect(
+      decisions.filter((decision) => decision.playerId === playerId),
+    ).toEqual([{ playerId, reason: "injury" }]);
   });
 
   it("returns decisions in stable roster order", () => {
