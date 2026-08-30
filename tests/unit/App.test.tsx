@@ -58,6 +58,8 @@ function apiClient(snapshot?: CloudGameSnapshot): GameApiClient {
     ),
     onboard: vi.fn(),
     applyAction: vi.fn(),
+    getScoutingBoard: vi.fn(),
+    commitRecruit: vi.fn(),
   };
 }
 

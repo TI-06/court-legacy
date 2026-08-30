@@ -1,8 +1,8 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
-import { calculateGrowth } from "../../../../src/domain/training/calculateGrowth";
 import type { Player } from "../../../../src/domain/model/Player";
 import type { School } from "../../../../src/domain/model/School";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
+import { calculateGrowth } from "../../../../src/domain/training/calculateGrowth";
 
 if (!gameDataBootstrap.ok) {
   throw new Error(gameDataBootstrap.message);
@@ -145,6 +145,34 @@ describe("calculateGrowth", () => {
     expect(
       result.modifiers.every((modifier) => Number.isInteger(modifier.percent)),
     ).toBe(true);
+  });
+
+  it("applies an explicit shop training boost to growth and reports it", () => {
+    const input = {
+      baseGrowth: 20,
+      player: createPlayer({ fatigue: 0, condition: 100, academic: 80 }),
+      school: createSchool(),
+      growthType: data.growthTypes.get("growth.standard")!,
+      personality: data.personalities.get("personality.calm")!,
+    };
+    const ordinary = calculateGrowth(input);
+    const boosted = calculateGrowth({
+      ...input,
+      additionalModifiers: [
+        {
+          code: "shop-training-boost" as const,
+          label: "練習効率アップ",
+          percent: 120,
+        },
+      ],
+    });
+
+    expect(boosted.amount).toBeGreaterThan(ordinary.amount);
+    expect(boosted.modifiers).toContainEqual({
+      code: "shop-training-boost",
+      label: "練習効率アップ",
+      percent: 120,
+    });
   });
 
   it("applies grade and growth-type differences", () => {

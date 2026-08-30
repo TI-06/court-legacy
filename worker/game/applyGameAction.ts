@@ -4,6 +4,11 @@ import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
 } from "../../src/domain/calendar/weekProgression";
+import {
+  setTeamLeadership,
+  TeamLeadershipValidationError,
+} from "../../src/domain/dynamics/setTeamLeadership";
+import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/officialMatchDynamics";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
 import { simulateMatch } from "../../src/domain/match/simulateMatch";
@@ -18,6 +23,14 @@ import {
 } from "../../src/domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
+import { materializeGuestOpponent } from "../../src/domain/tournament/materializeGuestOpponent";
+import {
+  advanceOfficialTournamentsThroughWeek,
+  findDueUserOfficialMatch,
+  hasRequiredOfficialMatch,
+} from "../../src/domain/tournament/progressOfficialTournaments";
+import { recordOfficialTournamentOutcome } from "../../src/domain/tournament/recordOfficialMatch";
+import type { AdditionalGrowthModifier } from "../../src/domain/training/calculateGrowth";
 import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";
 import { recordMatchOutcome } from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
@@ -64,6 +77,32 @@ function conflict(code: string, message: string): never {
   throw new GameRuleConflictError(code, message);
 }
 
+function trainingGrowthModifiers(state: GameState): AdditionalGrowthModifier[] {
+  const pendingBoost = state.shopEffects?.nextTrainingGrowthBoost;
+  if (!pendingBoost) {
+    return [];
+  }
+
+  return [
+    {
+      code: "shop-training-boost",
+      label: "練習効率アップ",
+      percent: 100 + pendingBoost.percent,
+    },
+  ];
+}
+
+function consumeNextTrainingGrowthBoost(state: GameState): GameState {
+  if (!state.shopEffects?.nextTrainingGrowthBoost) {
+    return state;
+  }
+
+  return {
+    ...state,
+    shopEffects: undefined,
+  };
+}
+
 function applyTraining(
   state: GameState,
   teamSelection: TeamSelection,
@@ -81,9 +120,11 @@ function applyTraining(
       plan: action.plan,
       data: gameData,
       random,
+      additionalGrowthModifiers: trainingGrowthModifiers(state),
     });
+    const resolvedState = consumeNextTrainingGrowthBoost(resolution.state);
     return {
-      state: markWeeklyActionCompleted(resolution.state, "training"),
+      state: markWeeklyActionCompleted(resolvedState, "training"),
       teamSelection,
       outcome: resolution.result,
     };
@@ -110,6 +151,34 @@ function applyTeamSelection(
   }
 
   return { state, teamSelection: selection };
+}
+
+function applyTeamLeadership(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-leadership" }>,
+): AppliedGameAction {
+  try {
+    const nextState = setTeamLeadership(
+      state,
+      action.captainPlayerId,
+      action.viceCaptainPlayerId,
+    );
+    return {
+      state: nextState,
+      teamSelection,
+      outcome: {
+        captainPlayerId: action.captainPlayerId,
+        viceCaptainPlayerId: action.viceCaptainPlayerId,
+        cohesion: nextState.teamDynamics.cohesion,
+      },
+    };
+  } catch (error) {
+    if (error instanceof TeamLeadershipValidationError) {
+      return conflict(error.code, error.message);
+    }
+    throw error;
+  }
 }
 
 function applyPracticeMatch(
@@ -170,6 +239,111 @@ function applyPracticeMatch(
   }
 }
 
+function applyOfficialMatch(
+  state: GameState,
+  teamSelection: TeamSelection,
+): AppliedGameAction {
+  const due = findDueUserOfficialMatch(state);
+  if (!due) {
+    return conflict(
+      "official_match_not_due",
+      "現在開始できる公式戦がありません",
+    );
+  }
+  if (!isWeeklyActionCompleted(state, "training")) {
+    return conflict(
+      "official_match_training_required",
+      "公式戦の前に今週の練習を完了してください",
+    );
+  }
+
+  const issues = validateTeamSelection({
+    state,
+    schoolId: state.userSchoolId,
+    selection: teamSelection,
+  });
+  if (issues.length > 0) {
+    return conflict("invalid_team_selection", issues[0]!.message);
+  }
+
+  try {
+    const opponentContext =
+      due.opponent.source === "world-school"
+        ? {
+            state,
+            schoolId: due.opponent.schoolId,
+            selection: autoSelectTeam({
+              state,
+              schoolId: due.opponent.schoolId,
+            }),
+          }
+        : (() => {
+            const materialized = materializeGuestOpponent({
+              state,
+              entrant: due.opponent,
+              data: gameData,
+            });
+            return {
+              state: materialized.temporaryState,
+              schoolId: materialized.school.id,
+              selection: materialized.selection,
+            };
+          })();
+    const userIsHome = due.match.homeEntrantId === due.userEntrant.entrantId;
+    const id = matchId(due.match.id);
+    const random = new SeededRandom(state.seed).fork(
+      `match:${due.stage.tournamentId}:${due.match.id}`,
+    );
+    const simulation = simulateMatch({
+      state: opponentContext.state,
+      id,
+      homeSchoolId: userIsHome ? state.userSchoolId : opponentContext.schoolId,
+      awaySchoolId: userIsHome ? opponentContext.schoolId : state.userSchoolId,
+      homeSelection: userIsHome ? teamSelection : opponentContext.selection,
+      awaySelection: userIsHome ? opponentContext.selection : teamSelection,
+      bestOfSets: 3,
+      random,
+      dynamicsReadinessByPlayerId: buildPveDynamicsReadinessByPlayerId(state),
+    });
+    const recorded = recordOfficialTournamentOutcome({
+      state,
+      circuit: due.circuit,
+      level: due.level,
+      bracketMatchId: due.match.id,
+      match: simulation.match,
+    });
+    const progressed = advanceOfficialTournamentsThroughWeek(recorded);
+
+    return {
+      state: progressed,
+      teamSelection,
+      outcome: {
+        officialMatch: {
+          tournamentId: due.stage.tournamentId,
+          circuit: due.circuit,
+          level: due.level,
+          round: due.match.round,
+          opponent: {
+            entrantId: due.opponent.entrantId,
+            source: due.opponent.source,
+            displayName: due.opponent.displayName,
+            shortName: due.opponent.shortName,
+          },
+        },
+        simulation,
+      },
+    };
+  } catch (error) {
+    if (error instanceof GameRuleConflictError) {
+      throw error;
+    }
+    return conflict(
+      "official_match_unavailable",
+      error instanceof Error ? error.message : "公式戦を実行できません",
+    );
+  }
+}
+
 function applyAdvanceWeek(
   state: GameState,
   teamSelection: TeamSelection,
@@ -178,6 +352,12 @@ function applyAdvanceWeek(
     return conflict(
       "training_required",
       "週を進める前に今週の練習を完了してください",
+    );
+  }
+  if (hasRequiredOfficialMatch(state)) {
+    return conflict(
+      "official_match_required",
+      "週を進める前に現在の公式戦を完了してください",
     );
   }
 
@@ -273,8 +453,12 @@ export function applyGameAction(
       return applyTraining(state, teamSelection, action);
     case "team-selection":
       return applyTeamSelection(state, action);
+    case "set-team-leadership":
+      return applyTeamLeadership(state, teamSelection, action);
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
+    case "official-match":
+      return applyOfficialMatch(state, teamSelection);
     case "advance-week":
       return applyAdvanceWeek(state, teamSelection);
     case "facility-upgrade":

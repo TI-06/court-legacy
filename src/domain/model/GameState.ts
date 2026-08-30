@@ -1,3 +1,11 @@
+import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
+import type { ShopGameEffects } from "../shop/shopEffects";
+import type {
+  OfficialSeasonState,
+  TournamentCircuit,
+  TournamentLevel,
+  TournamentRound,
+} from "../tournament/tournamentTypes";
 import type { CalendarState } from "./Calendar";
 import type { EventMemory, PendingEvent } from "./Event";
 import type { GameDate, MatchId, PlayerId, SchoolId } from "./identifiers";
@@ -23,6 +31,8 @@ export interface HistoricalMatchSummary {
   homeSetsWon: number;
   awaySetsWon: number;
   tournamentId: string | null;
+  homeDisplayName?: string;
+  awayDisplayName?: string;
 }
 
 export interface GraduatedPlayerSummary {
@@ -38,11 +48,29 @@ export interface GraduatedPlayerSummary {
   awardIds: string[];
 }
 
+export interface OfficialTournamentSummary {
+  tournamentId: string;
+  academicYear: number;
+  circuit: TournamentCircuit;
+  level: TournamentLevel;
+  champion: {
+    entrantId: string;
+    schoolId: SchoolId | null;
+    displayName: string;
+  };
+  userResult: {
+    qualified: boolean;
+    bestRound: TournamentRound | null;
+    champion: boolean;
+  };
+}
+
 export interface GameHistory {
   matches: HistoricalMatchSummary[];
   graduates: GraduatedPlayerSummary[];
   nationalChampionSchoolIdsByYear: Record<number, SchoolId>;
   schoolRecordValues: Record<string, number>;
+  officialTournaments: OfficialTournamentSummary[];
 }
 
 export interface RecruitingState {
@@ -67,10 +95,13 @@ export interface GameState {
   eventMemory: EventMemory;
   settings: GameSettings;
   world: WorldState;
+  officialSeason: OfficialSeasonState;
+  teamDynamics: TeamDynamicsState;
   recruiting?: RecruitingState;
+  shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 2;
+export const CURRENT_GAME_SCHEMA_VERSION = 4;
 
 export function createDefaultGameSettings(): GameSettings {
   return {
@@ -88,6 +119,7 @@ export function createEmptyGameHistory(): GameHistory {
     graduates: [],
     nationalChampionSchoolIdsByYear: {},
     schoolRecordValues: {},
+    officialTournaments: [],
   };
 }
 

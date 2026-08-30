@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { playerId } from "../../../src/domain/model/identifiers";
 import {
   ApiError,
   HttpGameApiClient,
@@ -137,6 +138,66 @@ describe("HttpGameApiClient", () => {
 
     expect(fetchImpl).toHaveBeenCalledWith(
       "/api/game/action",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify(request),
+      }),
+    );
+  });
+
+  it("posts only operation metadata when loading the scouting board", async () => {
+    const response = {
+      operationId: "scout-board-1",
+      revision: 4,
+      cycleKey: "school.user:year-1",
+      reports: [],
+    };
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(response));
+    const api = new HttpGameApiClient(fetchImpl);
+    const request = {
+      operationId: "scout-board-1",
+      revision: 4,
+    };
+
+    await expect(
+      api.getScoutingBoard("access-token", request),
+    ).resolves.toEqual(response);
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/scouting/board",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify(request),
+        headers: expect.objectContaining({
+          authorization: "Bearer access-token",
+        }),
+      }),
+    );
+  });
+
+  it("posts only the candidate id and operation metadata when recruiting", async () => {
+    const candidateId = playerId("candidate-1");
+    const response = {
+      operationId: "recruit-1",
+      game: { revision: 5 },
+      outcome: {
+        candidateId,
+        committedCandidateIds: [candidateId],
+        cycleKey: "school.user:year-1",
+      },
+    };
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(response));
+    const api = new HttpGameApiClient(fetchImpl);
+    const request = {
+      operationId: "recruit-1",
+      revision: 4,
+      candidateId,
+    };
+
+    await api.commitRecruit("access-token", request);
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/scouting/recruit",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify(request),

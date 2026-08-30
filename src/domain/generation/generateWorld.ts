@@ -1,4 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { createInitialTeamDynamics } from "../dynamics/createInitialTeamDynamics";
 import type { EventMemory } from "../model/Event";
 import {
   CURRENT_GAME_SCHEMA_VERSION,
@@ -13,6 +14,7 @@ import type { PlayerId, SchoolId } from "../model/identifiers";
 import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
+import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
 import { generateSchool } from "./generateSchool";
 
@@ -272,7 +274,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
   );
   const playerRelationships = createInitialRelationships(schools, random);
 
-  return {
+  const baseState = {
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
     seed: input.seed,
     randomCursor: random.cursor,
@@ -301,6 +303,16 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       rivalryScores: {},
       destinyRivalSchoolId: null,
     },
+  } satisfies Omit<GameState, "officialSeason" | "teamDynamics">;
+
+  const stateWithOfficialSeason = {
+    ...baseState,
+    officialSeason: createOfficialSeason({ state: baseState }),
+  };
+
+  return {
+    ...stateWithOfficialSeason,
+    teamDynamics: createInitialTeamDynamics(stateWithOfficialSeason),
   };
 }
 

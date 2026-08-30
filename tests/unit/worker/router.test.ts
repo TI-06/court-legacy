@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GameStore } from "../../../worker/data/GameStore";
 import type { ScoutingStore } from "../../../worker/data/ScoutingStore";
+import type {
+  ShopMutationResult,
+  ShopStore,
+} from "../../../worker/data/ShopStore";
 import { createRouter } from "../../../worker/router";
 
 function apiRequest(path: string, init?: RequestInit): Request {
@@ -29,6 +33,39 @@ function createScoutingStore(): ScoutingStore {
       creationOperationId: input.creationOperationId,
       candidates: input.candidates,
     })),
+    listCandidateInsights: vi.fn(async () => []),
+  };
+}
+
+function createShopStore(): ShopStore {
+  return {
+    findOperation: vi.fn(async () => null),
+    getStatus: vi.fn(async () => []),
+    purchase: vi.fn(async (input): Promise<ShopMutationResult> => ({
+      operationId: input.operationId,
+      operationType: "purchase",
+      requestFingerprint: input.requestFingerprint,
+      revision: input.expectedRevision + 1,
+      academicYearIndex: 4,
+      itemId: input.itemId,
+      quantityOwned: 1,
+      purchasedCount: 1,
+      usedCount: 0,
+      response: {
+        operationId: input.operationId,
+        operationType: "purchase",
+        revision: input.expectedRevision + 1,
+        academicYearIndex: 4,
+        itemId: input.itemId,
+        quantityOwned: 1,
+        purchasedCount: 1,
+        usedCount: 0,
+      },
+      replayed: false,
+    })),
+    use: vi.fn(async () => {
+      throw new Error("not used");
+    }),
   };
 }
 
@@ -132,6 +169,84 @@ describe("createRouter", () => {
 
     expect(response.status).not.toBe(404);
     expect(store.getSnapshot).toHaveBeenCalledWith("user-123");
+  });
+
+  it("routes authenticated shop status through the shop store", async () => {
+    const store = createStore();
+    vi.mocked(store.getSnapshot).mockResolvedValue({
+      userId: "user-123",
+      schoolDbId: "school-db-id",
+      revision: 7,
+      state: { yearIndex: 4 } as never,
+      teamSelection: {} as never,
+    });
+    const shopStore = createShopStore();
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: "user-123" })),
+      store,
+      shopStore,
+    });
+
+    const response = await router(
+      apiRequest("/api/shop", {
+        headers: { authorization: "Bearer access-token" },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(shopStore.getStatus).toHaveBeenCalledWith("user-123", 4);
+  });
+
+  it("routes authenticated shop purchases through the shop store", async () => {
+    const store = createStore();
+    const shopStore = createShopStore();
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: "user-123" })),
+      store,
+      shopStore,
+    });
+
+    const response = await router(
+      apiRequest("/api/shop/purchase", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer access-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          operationId: "purchase-router-001",
+          revision: 7,
+          itemId: "fatigue-recovery",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(shopStore.purchase).toHaveBeenCalledTimes(1);
+  });
+
+  it("recognizes authenticated shop use requests when shop dependencies exist", async () => {
+    const store = createStore();
+    const shopStore = createShopStore();
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: "user-123" })),
+      store,
+      shopStore,
+    });
+
+    const response = await router(
+      apiRequest("/api/shop/use", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer access-token",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.code).toBe("invalid_shop_use");
   });
 
   it("returns a structured 404 for an authenticated unknown API route", async () => {

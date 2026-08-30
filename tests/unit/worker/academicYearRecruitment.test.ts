@@ -77,6 +77,7 @@ function createScoutingStore(pool: ScoutingCandidatePool): ScoutingStore {
       userId === pool.userId && cycleKey === pool.cycleKey ? pool : null,
     ),
     createCandidatePool: vi.fn(async () => pool),
+    listCandidateInsights: vi.fn(async () => []),
   };
 }
 

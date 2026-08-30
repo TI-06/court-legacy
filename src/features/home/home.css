@@ -3,6 +3,7 @@
 }
 
 .home-hero,
+.home-official-card,
 .home-actions,
 .latest-match-card,
 .home-report {
@@ -123,6 +124,84 @@
   margin-top: 3px;
   color: #ffe2a2;
   font-size: 0.78rem;
+}
+
+.home-official-card {
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgb(255 249 233 / 94%), rgb(255 255 255 / 98%)),
+    #fff;
+  border-color: #e5ca94;
+}
+
+.home-official-card__heading {
+  align-items: flex-start;
+}
+
+.home-official-card__timing {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 5px 10px;
+  color: #7c5b21;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: #fff0cb;
+  border: 1px solid #edd19b;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.home-official-card__timing.is-due {
+  color: #fff;
+  background: #a96218;
+  border-color: #a96218;
+}
+
+.home-official-card__body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 13px;
+  gap: 8px;
+}
+
+.home-official-card__body > div {
+  min-width: 0;
+  padding: 11px;
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid #eadfc8;
+  border-radius: 13px;
+}
+
+.home-official-card__body span,
+.home-official-card__body strong {
+  display: block;
+}
+
+.home-official-card__body span {
+  color: #8b7c65;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.home-official-card__body strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: #493a26;
+  font-size: 0.76rem;
+}
+
+.home-official-card__button {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 12px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #a96218;
+  border: 0;
+  border-radius: 13px;
 }
 
 .home-action-grid {
@@ -266,8 +345,19 @@
   line-height: 1.5;
 }
 
+@media (max-width: 430px) {
+  .home-official-card__body {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-official-card__body > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 350px) {
   .home-hero,
+  .home-official-card,
   .home-actions,
   .latest-match-card,
   .home-report {
@@ -277,6 +367,14 @@
 
   .home-opponent-card {
     align-items: flex-start;
+  }
+
+  .home-official-card__body {
+    grid-template-columns: 1fr;
+  }
+
+  .home-official-card__body > div:first-child {
+    grid-column: auto;
   }
 
   .home-action-card {

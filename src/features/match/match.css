@@ -487,6 +487,86 @@
   border-color: #286d7a;
 }
 
+.match-hub-screen {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.match-pvp-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  min-width: 0;
+  padding: 15px;
+  color: #f7fbfc;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(220 160 44 / 22%),
+      transparent 38%
+    ),
+    linear-gradient(145deg, #173b52, #102b3c);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 8%);
+  gap: 12px;
+  align-items: center;
+}
+
+.match-pvp-entry__copy {
+  min-width: 0;
+}
+
+.match-pvp-entry .section-kicker {
+  color: #a8ccd3;
+}
+
+.match-pvp-entry h2 {
+  margin: 3px 0 0;
+  font-size: 1.03rem;
+}
+
+.match-pvp-entry__copy > p:last-child {
+  margin: 6px 0 0;
+  color: #c5d9de;
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.match-pvp-entry__badge {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  color: #ffe5a8;
+  text-align: center;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 226 160 / 18%);
+  border-radius: 16px;
+  place-content: center;
+  gap: 1px;
+}
+
+.match-pvp-entry__badge span {
+  font-size: 0.5rem;
+  font-weight: 900;
+}
+
+.match-pvp-entry__badge strong {
+  font-size: 1.05rem;
+}
+
+.match-pvp-entry > button {
+  grid-column: 1 / -1;
+  min-height: 46px;
+  color: #173b52;
+  font-size: 0.76rem;
+  font-weight: 900;
+  background: #ffe0a0;
+  border: 0;
+  border-radius: 13px;
+  box-shadow: 0 8px 16px rgb(0 0 0 / 12%);
+}
+
 @media (max-width: 350px) {
   .match-prep-hero,
   .match-versus-card,
@@ -515,5 +595,10 @@
 
   .match-playback-row button {
     font-size: 0.62rem;
+  }
+
+  .match-pvp-entry {
+    padding: 13px;
+    border-radius: 16px;
   }
 }

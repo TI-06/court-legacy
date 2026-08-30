@@ -10,6 +10,8 @@ export type MiddleSchoolAchievement =
   | "national-event";
 
 export type ScoutConfidence = "low" | "medium" | "high";
+export type OverallScoutPrecision = "normal" | "researched";
+export type PotentialScoutPrecision = "normal" | "researched" | "appraised";
 
 export interface EstimatedRange {
   min: number;
@@ -35,6 +37,8 @@ export interface CreateScoutReportInput {
   middleSchoolAchievement: MiddleSchoolAchievement;
   observation: number;
   scoutingNetworkLevel: number;
+  overallPrecision?: OverallScoutPrecision;
+  potentialPrecision?: PotentialScoutPrecision;
   random: RandomSource;
 }
 
@@ -69,6 +73,10 @@ function informationQuality(observation: number, scoutingNetworkLevel: number) {
   );
 }
 
+function researchedQuality(quality: number): number {
+  return Math.max(quality, 90);
+}
+
 function confidenceFromQuality(quality: number): ScoutConfidence {
   if (quality >= 80) {
     return "high";
@@ -101,6 +109,13 @@ function estimatedRange(
     min: Math.round(clamp(center - halfWidth, 0, 100)),
     max: Math.round(clamp(center + halfWidth, 0, 100)),
   };
+}
+
+function appraisedPotentialRange(
+  truth: number,
+  random: RandomSource,
+): EstimatedRange {
+  return estimatedRange(truth, 100, 2, 2, random);
 }
 
 function rangeMidpoint(range: EstimatedRange): number {
@@ -188,25 +203,32 @@ function physicalComment(player: Player): string {
 }
 
 export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
-  const quality = informationQuality(
+  const normalQuality = informationQuality(
     input.observation,
     input.scoutingNetworkLevel,
   );
+  const overallPrecision = input.overallPrecision ?? "normal";
+  const potentialPrecision = input.potentialPrecision ?? "normal";
+  const overallQuality =
+    overallPrecision === "researched"
+      ? researchedQuality(normalQuality)
+      : normalQuality;
+  const potentialQuality =
+    potentialPrecision === "researched"
+      ? researchedQuality(normalQuality)
+      : normalQuality;
   const estimatedOverall = estimatedRange(
     overall(input.player),
-    quality,
+    overallQuality,
     18,
     5,
     input.random,
   );
   const potentialTruth = input.player.potential ?? overall(input.player);
-  const estimatedPotential = estimatedRange(
-    potentialTruth,
-    quality,
-    24,
-    7,
-    input.random,
-  );
+  const estimatedPotential =
+    potentialPrecision === "appraised"
+      ? appraisedPotentialRange(potentialTruth, input.random)
+      : estimatedRange(potentialTruth, potentialQuality, 24, 7, input.random);
 
   return {
     candidateId: input.player.id,
@@ -222,7 +244,7 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
     ),
     estimatedOverall,
     estimatedPotential,
-    confidence: confidenceFromQuality(quality),
+    confidence: confidenceFromQuality(overallQuality),
     comments: [
       strongestAbilityComment(input.player),
       physicalComment(input.player),

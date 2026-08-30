@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { createInitialTeamDynamics } from "../domain/dynamics/createInitialTeamDynamics";
 import {
   CURRENT_GAME_SCHEMA_VERSION,
   createDefaultGameSettings,
   type GameState,
 } from "../domain/model/GameState";
+import { createOfficialSeason } from "../domain/tournament/createOfficialSeason";
 
 const gameDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const objectSchema = z.object({}).passthrough();
@@ -19,6 +21,53 @@ const gameSettingsSchema = z.object({
 const recruitingStateSchema = z.object({
   cycleKey: z.string().min(1),
   committedCandidateIds: z.array(z.string().min(1)),
+});
+
+const shopGameEffectsSchema = z
+  .object({
+    nextTrainingGrowthBoost: z
+      .object({
+        percent: z.literal(20),
+        remainingUses: z.literal(1),
+        sourceItemId: z.literal("training-efficiency-boost"),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+const playerRoleSchema = z.enum([
+  "ace",
+  "starter",
+  "rotation",
+  "development",
+  "reserve",
+]);
+const playerConcernCodeSchema = z.enum([
+  "playing-time",
+  "role-mismatch",
+  "injury-overuse",
+  "team-slump",
+]);
+const playerConcernSchema = z.object({
+  code: playerConcernCodeSchema,
+  severity: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+});
+
+const teamDynamicsSchema = z.object({
+  captainPlayerId: z.string().min(1).nullable(),
+  viceCaptainPlayerId: z.string().min(1).nullable(),
+  cohesion: z.number().int().min(0).max(100),
+  previousCohesion: z.number().int().min(0).max(100),
+  cohesionTrend: z.enum(["rising", "stable", "falling"]),
+  playerRoles: z.record(z.string(), playerRoleSchema),
+  playerConcerns: z.record(z.string(), z.array(playerConcernSchema)),
+  lineupContinuity: z.number().int().min(0).max(100),
+  recentOfficialStarterCounts: z.record(
+    z.string(),
+    z.number().int().nonnegative(),
+  ),
+  recentOfficialMatchesTracked: z.number().int().min(0).max(8),
 });
 
 const gameStateSchema = z
@@ -39,7 +88,10 @@ const gameStateSchema = z
     eventMemory: objectSchema,
     settings: gameSettingsSchema,
     world: objectSchema,
+    officialSeason: objectSchema,
+    teamDynamics: teamDynamicsSchema,
     recruiting: recruitingStateSchema.optional(),
+    shopEffects: shopGameEffectsSchema.optional(),
   })
   .passthrough();
 
@@ -49,29 +101,75 @@ const versionProbeSchema = z
   })
   .passthrough();
 
+type OfficialSeasonSource = Parameters<typeof createOfficialSeason>[0]["state"];
+type InitialDynamicsSource = Parameters<typeof createInitialTeamDynamics>[0];
+
+function historyWithOfficialTournaments(
+  history: unknown,
+): Record<string, unknown> {
+  const legacyHistory =
+    history && typeof history === "object" && !Array.isArray(history)
+      ? (history as Record<string, unknown>)
+      : {};
+
+  return {
+    ...legacyHistory,
+    officialTournaments: [],
+  };
+}
+
+function migrateVersionThree(legacy: Record<string, unknown>): unknown {
+  const migrated = {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+  };
+
+  return {
+    ...migrated,
+    teamDynamics: createInitialTeamDynamics(
+      migrated as unknown as InitialDynamicsSource,
+    ),
+  };
+}
+
+function migrateVersionTwo(legacy: Record<string, unknown>): unknown {
+  const migratedVersionThree = {
+    ...legacy,
+    schemaVersion: 3,
+    history: historyWithOfficialTournaments(legacy.history),
+  };
+
+  return migrateVersionThree({
+    ...migratedVersionThree,
+    officialSeason: createOfficialSeason({
+      state: migratedVersionThree as unknown as OfficialSeasonSource,
+    }),
+  });
+}
+
 function migrateVersionZero(legacy: Record<string, unknown>): unknown {
   const legacySettings =
     legacy.settings && typeof legacy.settings === "object"
       ? (legacy.settings as Record<string, unknown>)
       : {};
 
-  return {
+  return migrateVersionTwo({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 2,
     playerRelationships: {},
     settings: {
       ...createDefaultGameSettings(),
       ...legacySettings,
     },
-  };
+  });
 }
 
 function migrateVersionOne(legacy: Record<string, unknown>): unknown {
-  return {
+  return migrateVersionTwo({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 2,
     playerRelationships: {},
-  };
+  });
 }
 
 function migrateLegacyState(value: unknown): unknown {
@@ -95,6 +193,12 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 1) {
     return migrateVersionOne(legacy);
+  }
+  if (version === 2) {
+    return migrateVersionTwo(legacy);
+  }
+  if (version === 3) {
+    return migrateVersionThree(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);

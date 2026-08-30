@@ -1,9 +1,20 @@
 import type { Player } from "../../src/domain/model/Player";
-import type { MiddleSchoolAchievement } from "../../src/domain/scouting/scoutReport";
+import type { PlayerId } from "../../src/domain/model/identifiers";
+import type {
+  MiddleSchoolAchievement,
+  OverallScoutPrecision,
+  PotentialScoutPrecision,
+} from "../../src/domain/scouting/scoutReport";
 
 export interface ScoutingCandidateTruth {
   player: Player;
   middleSchoolAchievement: MiddleSchoolAchievement;
+}
+
+export interface ScoutingCandidateInsight {
+  candidateId: PlayerId;
+  overallPrecision: OverallScoutPrecision;
+  potentialPrecision: PotentialScoutPrecision;
 }
 
 export interface ScoutingCandidatePool {
@@ -28,4 +39,8 @@ export interface ScoutingStore {
   createCandidatePool(
     input: CreateScoutingCandidatePoolInput,
   ): Promise<ScoutingCandidatePool>;
+  listCandidateInsights(
+    userId: string,
+    cycleKey: string,
+  ): Promise<ScoutingCandidateInsight[]>;
 }

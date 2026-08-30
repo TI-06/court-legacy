@@ -4,6 +4,26 @@ import type {
 } from "../../worker/data/GameStore";
 import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
+import type { GameState } from "../domain/model/GameState";
+import { playerId } from "../domain/model/identifiers";
+import type {
+  PvpChallengeRequest,
+  PvpHistoryEntry,
+  PvpListRequestQuery,
+  PvpOpponentSummary,
+  PvpPublishedTeamSummary,
+  PvpPublishRequest,
+  PvpRankingEntry,
+} from "../domain/pvp/pvpContracts";
+import type { ScoutReport } from "../domain/scouting/scoutReport";
+import {
+  applyFatigueRecovery,
+  isFatigueRecoveryEligible,
+} from "../domain/shop/shopEffects";
+import type {
+  ShopPurchaseRequest,
+  ShopUseRequest,
+} from "../domain/shop/shopContracts";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
 import {
@@ -16,9 +36,12 @@ import {
   HttpGameApiClient,
   type GameApiClient,
   type OnboardingInput,
+  type ScoutingBoardRequest,
+  type ScoutingRecruitmentRequest,
 } from "../services/api/GameApiClient";
 import { createDemoGame } from "./createDemoGame";
 import { createInitialGame } from "./createInitialGame";
+import { StaticShopHarness } from "./StaticShopHarness";
 
 interface BrowserAppEnvironment {
   MODE?: string;
@@ -35,6 +58,8 @@ export interface BrowserAppDependencies {
 export const E2E_SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 export const E2E_GAME_STATE_KEY = "court-legacy:e2e-game-state";
 export const E2E_ACTION_DELAY_MS_KEY = "court-legacy:e2e-action-delay-ms";
+export const E2E_SHOP_LOSE_NEXT_RESPONSE_KEY =
+  "court-legacy:e2e-shop-lose-next-response";
 
 function createHarnessSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
@@ -45,6 +70,139 @@ function createHarnessSnapshot(): CloudGameSnapshot {
     state,
     teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
   };
+}
+
+function harnessScoutingCycleKey(state: GameState): string {
+  return `${state.userSchoolId}:year-${state.yearIndex}`;
+}
+
+function createHarnessScoutReports(cycleKey: string): ScoutReport[] {
+  return [
+    {
+      candidateId: playerId(`${cycleKey}:candidate-1`),
+      displayName: "青木 蓮",
+      heightCm: 188,
+      position: "OH",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-selection",
+      evaluationStars: 4,
+      estimatedOverall: { min: 58, max: 72 },
+      estimatedPotential: { min: 72, max: 89 },
+      confidence: "medium",
+      comments: ["攻撃力に目を引くものがある", "高さは武器になりそう"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-2`),
+      displayName: "佐藤 湊",
+      heightCm: 193,
+      position: "MB",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-best-eight",
+      evaluationStars: 3,
+      estimatedOverall: { min: 52, max: 67 },
+      estimatedPotential: { min: 66, max: 84 },
+      confidence: "medium",
+      comments: ["ブロックの伸びしろがある", "高さを生かした成長に期待"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-3`),
+      displayName: "高橋 悠真",
+      heightCm: 181,
+      position: "S",
+      handedness: "right",
+      middleSchoolAchievement: "regional-starter",
+      evaluationStars: 3,
+      estimatedOverall: { min: 50, max: 65 },
+      estimatedPotential: { min: 65, max: 82 },
+      confidence: "high",
+      comments: ["トスワークが安定している", "ゲームメイクに落ち着きがある"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-4`),
+      displayName: "森田 颯太",
+      heightCm: 187,
+      position: "OP",
+      handedness: "left",
+      middleSchoolAchievement: "unknown",
+      evaluationStars: 2,
+      estimatedOverall: { min: 45, max: 63 },
+      estimatedPotential: { min: 61, max: 81 },
+      confidence: "low",
+      comments: ["左利きの攻撃に特徴がある", "情報が少なく継続調査が必要"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-5`),
+      displayName: "小林 陽斗",
+      heightCm: 174,
+      position: "L",
+      handedness: "right",
+      middleSchoolAchievement: "prefectural-selection",
+      evaluationStars: 4,
+      estimatedOverall: { min: 57, max: 70 },
+      estimatedPotential: { min: 68, max: 83 },
+      confidence: "high",
+      comments: ["レシーブ範囲が広い", "守備の判断が早い"],
+    },
+    {
+      candidateId: playerId(`${cycleKey}:candidate-6`),
+      displayName: "伊藤 大和",
+      heightCm: 190,
+      position: "OH",
+      handedness: "right",
+      middleSchoolAchievement: "national-event",
+      evaluationStars: 5,
+      estimatedOverall: { min: 64, max: 76 },
+      estimatedPotential: { min: 78, max: 92 },
+      confidence: "medium",
+      comments: ["全国レベルの経験がある", "攻守ともに高い水準が見込める"],
+    },
+  ];
+}
+
+const HARNESS_PVP_SEASON_ID = "2026-08";
+
+function createHarnessPvpOpponents(): PvpOpponentSummary[] {
+  return [
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000201",
+      schoolName: "白波高校",
+      schoolShortName: "白波",
+      reputationRank: "A",
+      teamPower: 76,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T07:05:00.000Z",
+      rating: 1048,
+      wins: 12,
+      losses: 7,
+      currentWinStreak: 3,
+    },
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000202",
+      schoolName: "東雲工業",
+      schoolShortName: "東雲",
+      reputationRank: "B",
+      teamPower: 72,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T06:40:00.000Z",
+      rating: 1019,
+      wins: 9,
+      losses: 8,
+      currentWinStreak: 1,
+    },
+    {
+      snapshotId: "00000000-0000-4000-8000-000000000203",
+      schoolName: "海星学院",
+      schoolShortName: "海星",
+      reputationRank: "C",
+      teamPower: 68,
+      academicYear: 2026,
+      publishedAt: "2026-08-28T06:10:00.000Z",
+      rating: 982,
+      wins: 7,
+      losses: 10,
+      currentWinStreak: 0,
+    },
+  ];
 }
 
 function readSessionStorage(key: string): string | null {
@@ -82,12 +240,38 @@ function readHarnessDelay(): number {
   return Number.isFinite(parsed) ? Math.max(0, Math.min(parsed, 5_000)) : 0;
 }
 
+function consumeHarnessLostShopResponse(
+  operationType: "purchase" | "use",
+): boolean {
+  if (readSessionStorage(E2E_SHOP_LOSE_NEXT_RESPONSE_KEY) !== operationType) {
+    return false;
+  }
+  writeSessionStorage(E2E_SHOP_LOSE_NEXT_RESPONSE_KEY, "");
+  return true;
+}
+
+function tightenHarnessRange(
+  range: ScoutReport["estimatedOverall"],
+  halfWidth: number,
+): ScoutReport["estimatedOverall"] {
+  const midpoint = Math.round((range.min + range.max) / 2);
+  return {
+    min: Math.max(0, midpoint - halfWidth),
+    max: Math.min(100, midpoint + halfWidth),
+  };
+}
+
 class StaticGameApiClient implements GameApiClient {
   private snapshot: CloudGameSnapshot | null;
   private readonly operationResponses = new Map<
     string,
     PersistedOperationResponse
   >();
+  private readonly scoutingReports = new Map<string, ScoutReport[]>();
+  private readonly pvpOpponents = createHarnessPvpOpponents();
+  private readonly shopHarness: StaticShopHarness;
+  private pvpRating = 1000;
+  private pvpHistory: PvpHistoryEntry[] = [];
 
   constructor(private readonly persistAcrossReloads: boolean) {
     const explicitGameState = persistAcrossReloads
@@ -98,6 +282,21 @@ class StaticGameApiClient implements GameApiClient {
         ? null
         : ((persistAcrossReloads ? readPersistedHarnessSnapshot() : null) ??
           createHarnessSnapshot());
+    this.shopHarness = new StaticShopHarness({
+      getGame: () => {
+        const snapshot = this.requireSnapshot();
+        return {
+          revision: snapshot.revision,
+          yearIndex: snapshot.state.yearIndex,
+        };
+      },
+      commitRevision: (revision) => {
+        const snapshot = this.requireSnapshot();
+        this.replaceSnapshot({ ...snapshot, revision });
+      },
+      commitUse: (request, revision) =>
+        this.commitHarnessShopUse(request, revision),
+    });
     if (persistAcrossReloads && this.snapshot) {
       writePersistedHarnessSnapshot(this.snapshot);
     }
@@ -110,7 +309,153 @@ class StaticGameApiClient implements GameApiClient {
     }
   }
 
+  private requireSnapshot(): CloudGameSnapshot {
+    if (!this.snapshot) {
+      throw new ApiError(
+        409,
+        "game_not_ready",
+        "学校データを作成してから操作してください",
+      );
+    }
+    return this.snapshot;
+  }
+
+  private syncPersistedHarnessSnapshotIfNewer(): void {
+    if (!this.persistAcrossReloads) return;
+    const persisted = readPersistedHarnessSnapshot();
+    if (
+      persisted &&
+      (!this.snapshot || persisted.revision > this.snapshot.revision)
+    ) {
+      this.snapshot = persisted;
+    }
+  }
+
+  private commitHarnessShopUse(
+    request: ShopUseRequest,
+    revision: number,
+  ): Record<string, unknown> {
+    const snapshot = this.requireSnapshot();
+    if (request.itemId === "fatigue-recovery") {
+      if (request.target?.type !== "player") {
+        throw new ApiError(409, "invalid_target", "回復対象を確認してください");
+      }
+      const school = snapshot.state.schools[snapshot.state.userSchoolId];
+      const targetId = playerId(request.target.playerId);
+      if (!school?.playerIds.includes(targetId)) {
+        throw new ApiError(409, "target_not_found", "回復対象を確認できません");
+      }
+      const target = snapshot.state.players[targetId];
+      if (!target || !isFatigueRecoveryEligible(target)) {
+        throw new ApiError(409, "invalid_target", "この選手は回復不要です");
+      }
+      const recovered = applyFatigueRecovery(target);
+      this.replaceSnapshot({
+        ...snapshot,
+        revision,
+        state: {
+          ...snapshot.state,
+          players: {
+            ...snapshot.state.players,
+            [targetId]: recovered.player,
+          },
+        },
+      });
+      return {
+        playerId: targetId,
+        before: recovered.before,
+        after: recovered.after,
+      };
+    }
+
+    if (request.itemId === "training-efficiency-boost") {
+      if (snapshot.state.shopEffects?.nextTrainingGrowthBoost) {
+        throw new ApiError(
+          409,
+          "effect_already_pending",
+          "練習効率アップはすでに有効です",
+        );
+      }
+      this.replaceSnapshot({
+        ...snapshot,
+        revision,
+        state: {
+          ...snapshot.state,
+          shopEffects: {
+            ...snapshot.state.shopEffects,
+            nextTrainingGrowthBoost: {
+              percent: 20,
+              remainingUses: 1,
+              sourceItemId: "training-efficiency-boost",
+            },
+          },
+        },
+      });
+      return { pending: true, percent: 20 };
+    }
+
+    if (
+      request.itemId === "scout-research" ||
+      request.itemId === "potential-appraisal"
+    ) {
+      if (request.target?.type !== "scouting-candidate") {
+        throw new ApiError(409, "invalid_target", "候補選手を確認してください");
+      }
+      const targetCandidateId = request.target.candidateId;
+      const cycleKey = harnessScoutingCycleKey(snapshot.state);
+      const reports = this.scoutingReports.get(cycleKey);
+      const candidate = reports?.find(
+        (report) => report.candidateId === targetCandidateId,
+      );
+      if (!reports || !candidate) {
+        throw new ApiError(
+          409,
+          "candidate_unavailable",
+          "この候補は現在のスカウト候補に含まれていません",
+        );
+      }
+      const next = reports.map((report) => {
+        if (report.candidateId !== candidate.candidateId) return report;
+        return request.itemId === "scout-research"
+          ? {
+              ...report,
+              estimatedOverall: tightenHarnessRange(report.estimatedOverall, 4),
+              estimatedPotential: tightenHarnessRange(
+                report.estimatedPotential,
+                5,
+              ),
+              confidence: "high" as const,
+            }
+          : {
+              ...report,
+              estimatedPotential: tightenHarnessRange(
+                report.estimatedPotential,
+                2,
+              ),
+              confidence: "high" as const,
+            };
+      });
+      this.scoutingReports.set(cycleKey, next);
+      this.replaceSnapshot({ ...snapshot, revision });
+      return request.itemId === "scout-research"
+        ? {
+            candidateId: candidate.candidateId,
+            overallPrecision: "researched",
+            potentialPrecision: "researched",
+          }
+        : {
+            candidateId: candidate.candidateId,
+            overallPrecision: "researched",
+            potentialPrecision: "appraised",
+          };
+    }
+
+    this.replaceSnapshot({ ...snapshot, revision });
+    return { itemId: request.itemId };
+  }
+
   async bootstrap() {
+    this.syncPersistedHarnessSnapshotIfNewer();
     return this.snapshot
       ? ({ status: "ready" as const, game: this.snapshot } as const)
       : ({ status: "needs-onboarding" as const } as const);
@@ -141,19 +486,13 @@ class StaticGameApiClient implements GameApiClient {
   }
 
   async applyAction(_accessToken: string, request: GameActionRequest) {
-    if (!this.snapshot) {
-      throw new ApiError(
-        409,
-        "game_not_ready",
-        "学校データを作成してから操作してください",
-      );
-    }
+    const snapshot = this.requireSnapshot();
 
     const cached = this.operationResponses.get(request.operationId);
     if (cached) {
       return cached;
     }
-    if (request.revision !== this.snapshot.revision) {
+    if (request.revision !== snapshot.revision) {
       throw new ApiError(
         409,
         "revision_conflict",
@@ -168,15 +507,15 @@ class StaticGameApiClient implements GameApiClient {
       }
     }
 
-    const applied = applyGameAction(this.snapshot, request.action);
+    const applied = applyGameAction(snapshot, request.action);
     this.replaceSnapshot({
-      ...this.snapshot,
-      revision: this.snapshot.revision + 1,
+      ...snapshot,
+      revision: snapshot.revision + 1,
       state: applied.state,
       teamSelection: applied.teamSelection,
     });
     const response: PersistedOperationResponse = {
-      game: this.snapshot,
+      game: this.snapshot!,
       operationId: request.operationId,
     };
     if (applied.outcome !== undefined) {
@@ -184,6 +523,276 @@ class StaticGameApiClient implements GameApiClient {
     }
     this.operationResponses.set(request.operationId, response);
     return response;
+  }
+
+  async getShop() {
+    this.syncPersistedHarnessSnapshotIfNewer();
+    return this.shopHarness.getStatus();
+  }
+
+  async purchaseShopItem(_accessToken: string, request: ShopPurchaseRequest) {
+    this.syncPersistedHarnessSnapshotIfNewer();
+    await this.pvpDelay();
+    const response = this.shopHarness.purchase(request);
+    if (consumeHarnessLostShopResponse("purchase")) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "サーバーに接続できませんでした",
+      );
+    }
+    return response;
+  }
+
+  async useShopItem(_accessToken: string, request: ShopUseRequest) {
+    this.syncPersistedHarnessSnapshotIfNewer();
+    await this.pvpDelay();
+    const response = this.shopHarness.use(request);
+    if (consumeHarnessLostShopResponse("use")) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "サーバーに接続できませんでした",
+      );
+    }
+    return response;
+  }
+
+  async getScoutingBoard(_accessToken: string, request: ScoutingBoardRequest) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+
+    const cycleKey = harnessScoutingCycleKey(snapshot.state);
+    let reports = this.scoutingReports.get(cycleKey);
+    if (!reports) {
+      reports = createHarnessScoutReports(cycleKey);
+      this.scoutingReports.set(cycleKey, reports);
+    }
+
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      cycleKey,
+      reports,
+    };
+  }
+
+  async commitRecruit(
+    _accessToken: string,
+    request: ScoutingRecruitmentRequest,
+  ) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+
+    const cycleKey = harnessScoutingCycleKey(snapshot.state);
+    const reports = this.scoutingReports.get(cycleKey);
+    if (!reports) {
+      throw new ApiError(
+        409,
+        "scouting_board_required",
+        "先にスカウト候補を確認してください",
+      );
+    }
+    if (!reports.some((report) => report.candidateId === request.candidateId)) {
+      throw new ApiError(
+        409,
+        "candidate_unavailable",
+        "この候補は現在のスカウト候補に含まれていません",
+      );
+    }
+
+    const currentCommitments =
+      snapshot.state.recruiting?.cycleKey === cycleKey
+        ? snapshot.state.recruiting.committedCandidateIds
+        : [];
+    if (currentCommitments.includes(request.candidateId)) {
+      throw new ApiError(
+        409,
+        "candidate_already_committed",
+        "この候補はすでに獲得済みです",
+      );
+    }
+
+    const committedCandidateIds = [...currentCommitments, request.candidateId];
+    const game: CloudGameSnapshot = {
+      ...snapshot,
+      revision: snapshot.revision + 1,
+      state: {
+        ...snapshot.state,
+        recruiting: {
+          cycleKey,
+          committedCandidateIds,
+        },
+      },
+    };
+    this.replaceSnapshot(game);
+
+    return {
+      game,
+      operationId: request.operationId,
+      outcome: {
+        candidateId: request.candidateId,
+        committedCandidateIds,
+        cycleKey,
+      },
+    };
+  }
+
+  private async pvpDelay(): Promise<void> {
+    if (!this.persistAcrossReloads) return;
+    const delay = readHarnessDelay();
+    if (delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  async publishPvpTeam(_accessToken: string, request: PvpPublishRequest) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+    await this.pvpDelay();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const team: PvpPublishedTeamSummary = {
+      snapshotId: "00000000-0000-4000-8000-000000000101",
+      schoolName: school.name,
+      schoolShortName: school.shortName,
+      reputationRank: "B",
+      teamPower: 71,
+      academicYear: snapshot.state.calendar.academicYear,
+      publishedAt: new Date().toISOString(),
+    };
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      team,
+    };
+  }
+
+  async getPvpOpponents(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      opponents: this.pvpOpponents.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async getPvpRanking(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    const ranking: PvpRankingEntry[] = this.pvpOpponents.map(
+      (opponent, index) => ({
+        rank: index + 1,
+        snapshotId: opponent.snapshotId,
+        schoolName: opponent.schoolName,
+        schoolShortName: opponent.schoolShortName,
+        rating: opponent.rating,
+        matches: opponent.wins + opponent.losses,
+        wins: opponent.wins,
+        losses: opponent.losses,
+        currentWinStreak: opponent.currentWinStreak,
+      }),
+    );
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      ranking: ranking.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async getPvpHistory(_accessToken: string, query?: PvpListRequestQuery) {
+    await this.pvpDelay();
+    const limit = Math.max(1, Math.min(query?.limit ?? 20, 30));
+    return {
+      seasonId: HARNESS_PVP_SEASON_ID,
+      history: this.pvpHistory.slice(0, limit),
+      nextCursor: null,
+    };
+  }
+
+  async challengePvpTeam(_accessToken: string, request: PvpChallengeRequest) {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+    const opponent = this.pvpOpponents.find(
+      (candidate) => candidate.snapshotId === request.opponentSnapshotId,
+    );
+    if (!opponent) {
+      throw new ApiError(
+        404,
+        "pvp_opponent_unavailable",
+        "対戦相手が見つかりません",
+      );
+    }
+    await this.pvpDelay();
+
+    const before = this.pvpRating;
+    const after = before + 16;
+    this.pvpRating = after;
+    const matchId = `00000000-0000-4000-8000-${String(
+      this.pvpHistory.length + 301,
+    ).padStart(12, "0")}`;
+    const createdAt = new Date().toISOString();
+    const result = {
+      outcome: "win" as const,
+      challengerSetsWon: 2,
+      defenderSetsWon: 1,
+      sets: [
+        { setNumber: 1, challengerScore: 25, defenderScore: 20 },
+        { setNumber: 2, challengerScore: 22, defenderScore: 25 },
+        { setNumber: 3, challengerScore: 25, defenderScore: 18 },
+      ],
+    };
+    const history: PvpHistoryEntry = {
+      matchId,
+      createdAt,
+      opponentSnapshotId: opponent.snapshotId,
+      opponentSchoolName: opponent.schoolName,
+      perspective: "challenger",
+      outcome: result.outcome,
+      ratingBefore: before,
+      ratingAfter: after,
+      result,
+    };
+    this.pvpHistory = [history, ...this.pvpHistory];
+
+    return {
+      operationId: request.operationId,
+      revision: snapshot.revision,
+      seasonId: HARNESS_PVP_SEASON_ID,
+      matchId,
+      opponent: {
+        snapshotId: opponent.snapshotId,
+        schoolName: opponent.schoolName,
+        schoolShortName: opponent.schoolShortName,
+      },
+      rating: { before, after, delta: after - before },
+      result,
+      createdAt,
+    };
   }
 }
 

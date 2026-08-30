@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { PlayerId } from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
@@ -73,7 +74,15 @@ const gameActionSchema = z.discriminatedUnion("type", [
       selection: teamSelectionSchema,
     })
     .strict(),
+  z
+    .object({
+      type: z.literal("set-team-leadership"),
+      captainPlayerId: playerIdSchema,
+      viceCaptainPlayerId: playerIdSchema,
+    })
+    .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
+  z.object({ type: z.literal("official-match") }).strict(),
   z.object({ type: z.literal("advance-week") }).strict(),
   z
     .object({ type: z.literal("facility-upgrade"), facility: facilitySchema })
@@ -97,7 +106,13 @@ export const gameActionRequestSchema = z
 export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
+  | {
+      type: "set-team-leadership";
+      captainPlayerId: PlayerId;
+      viceCaptainPlayerId: PlayerId;
+    }
   | { type: "practice-match" }
+  | { type: "official-match" }
   | { type: "advance-week" }
   | { type: "facility-upgrade"; facility: FacilityKey }
   | { type: "event-choice"; choiceId: string };

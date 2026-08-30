@@ -3,13 +3,23 @@ import type {
   VerifyAccessToken,
 } from "./auth/verifyAccessToken";
 import type { GameStore } from "./data/GameStore";
+import type { PvPStore } from "./data/PvPStore";
 import type { ScoutingStore } from "./data/ScoutingStore";
+import type { ShopStore } from "./data/ShopStore";
 import { json, jsonError } from "./http/json";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
+import { createPvpChallengeHandler } from "./routes/pvpChallenge";
+import { createPvpHistoryHandler } from "./routes/pvpHistory";
+import { createPvpOpponentsHandler } from "./routes/pvpOpponents";
+import { createPvpPublishHandler } from "./routes/pvpPublish";
+import { createPvpRankingHandler } from "./routes/pvpRanking";
 import { createScoutingBoardHandler } from "./routes/scoutingBoard";
 import { createScoutingRecruitmentHandler } from "./routes/scoutingRecruitment";
+import { createShopPurchaseHandler } from "./routes/shopPurchase";
+import { createShopStatusHandler } from "./routes/shopStatus";
+import { createShopUseHandler } from "./routes/shopUse";
 
 export type AuthenticatedRequestHandler = (
   request: Request,
@@ -20,7 +30,11 @@ export interface WorkerDependencies {
   verifyAccessToken: VerifyAccessToken;
   store: GameStore;
   scoutingStore?: ScoutingStore;
+  pvpStore?: PvPStore;
+  shopStore?: ShopStore;
   createCreationNonce?: () => string;
+  createPvpMatchNonce?: () => string;
+  now?: () => Date;
 }
 
 function bearerToken(request: Request): string | null {
@@ -55,6 +69,45 @@ export function createRouter(
   const scoutingRecruitment = deps.scoutingStore
     ? createScoutingRecruitmentHandler({
         gameStore: deps.store,
+        scoutingStore: deps.scoutingStore,
+      })
+    : null;
+  const pvpPublish = deps.pvpStore
+    ? createPvpPublishHandler({
+        gameStore: deps.store,
+        pvpStore: deps.pvpStore,
+      })
+    : null;
+  const pvpChallenge = deps.pvpStore
+    ? createPvpChallengeHandler({
+        gameStore: deps.store,
+        pvpStore: deps.pvpStore,
+        now: deps.now,
+        createMatchNonce: deps.createPvpMatchNonce,
+      })
+    : null;
+  const pvpOpponents = deps.pvpStore
+    ? createPvpOpponentsHandler({ pvpStore: deps.pvpStore, now: deps.now })
+    : null;
+  const pvpRanking = deps.pvpStore
+    ? createPvpRankingHandler({ pvpStore: deps.pvpStore, now: deps.now })
+    : null;
+  const pvpHistory = deps.pvpStore
+    ? createPvpHistoryHandler({ pvpStore: deps.pvpStore, now: deps.now })
+    : null;
+  const shopStatus = deps.shopStore
+    ? createShopStatusHandler({
+        gameStore: deps.store,
+        shopStore: deps.shopStore,
+      })
+    : null;
+  const shopPurchase = deps.shopStore
+    ? createShopPurchaseHandler({ shopStore: deps.shopStore })
+    : null;
+  const shopUse = deps.shopStore
+    ? createShopUseHandler({
+        gameStore: deps.store,
+        shopStore: deps.shopStore,
         scoutingStore: deps.scoutingStore,
       })
     : null;
@@ -97,6 +150,27 @@ export function createRouter(
         return await gameAction(request, user);
       }
       if (
+        url.pathname === "/api/shop" &&
+        request.method === "GET" &&
+        shopStatus
+      ) {
+        return await shopStatus(request, user);
+      }
+      if (
+        url.pathname === "/api/shop/purchase" &&
+        request.method === "POST" &&
+        shopPurchase
+      ) {
+        return await shopPurchase(request, user);
+      }
+      if (
+        url.pathname === "/api/shop/use" &&
+        request.method === "POST" &&
+        shopUse
+      ) {
+        return await shopUse(request, user);
+      }
+      if (
         url.pathname === "/api/scouting/board" &&
         request.method === "POST" &&
         scoutingBoard
@@ -109,6 +183,41 @@ export function createRouter(
         scoutingRecruitment
       ) {
         return await scoutingRecruitment(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/team/publish" &&
+        request.method === "POST" &&
+        pvpPublish
+      ) {
+        return await pvpPublish(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/challenge" &&
+        request.method === "POST" &&
+        pvpChallenge
+      ) {
+        return await pvpChallenge(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/opponents" &&
+        request.method === "GET" &&
+        pvpOpponents
+      ) {
+        return await pvpOpponents(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/ranking" &&
+        request.method === "GET" &&
+        pvpRanking
+      ) {
+        return await pvpRanking(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/history" &&
+        request.method === "GET" &&
+        pvpHistory
+      ) {
+        return await pvpHistory(request, user);
       }
       return notFound();
     } catch {

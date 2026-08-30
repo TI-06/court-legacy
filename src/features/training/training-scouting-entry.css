@@ -1,0 +1,84 @@
+.training-scouting-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin: 12px 14px 0;
+  padding: 14px;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+}
+
+.training-scouting-entry__copy {
+  min-width: 0;
+}
+
+.training-scouting-entry .section-kicker {
+  margin: 0;
+  color: #2b7380;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.training-scouting-entry h2 {
+  margin: 3px 0 0;
+  color: #173342;
+  font-size: 0.98rem;
+}
+
+.training-scouting-entry__copy > p:last-child {
+  margin: 5px 0 0;
+  color: #687983;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.training-scouting-entry__action {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.training-scouting-entry__action span {
+  color: #54717c;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.training-scouting-entry__action button {
+  min-height: 44px;
+  padding: 0 13px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #286d7a;
+  border: 0;
+  border-radius: 12px;
+}
+
+.training-scouting-entry__action button:focus-visible {
+  outline: 3px solid rgb(45 123 137 / 22%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .training-scouting-entry {
+    grid-template-columns: 1fr;
+  }
+
+  .training-scouting-entry__action {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+  }
+
+  .training-scouting-entry__action button {
+    width: 100%;
+  }
+}

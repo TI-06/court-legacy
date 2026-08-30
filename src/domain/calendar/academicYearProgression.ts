@@ -1,4 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { progressAnnualTeamDynamics } from "../dynamics/progressAnnualTeamDynamics";
 import { assignGenerationalTalent } from "../generation/generateWorld";
 import { generateIntake } from "../generation/generatePlayer";
 import {
@@ -14,6 +15,8 @@ import {
   legacyReputationFromPoints,
   resolveSeasonReputation,
 } from "../school/reputation";
+import { createOfficialSeason } from "../tournament/createOfficialSeason";
+import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
@@ -257,6 +260,26 @@ export function advanceAcademicYear(
   let playerNumber = nextPlayerNumber(players);
 
   for (const school of Object.values(schools)) {
+    const completedCaptainPlayerId =
+      school.id === state.userSchoolId
+        ? state.teamDynamics.captainPlayerId
+        : school.captainPlayerId;
+    if (
+      completedCaptainPlayerId &&
+      school.playerIds.includes(completedCaptainPlayerId)
+    ) {
+      const completedCaptain = players[completedCaptainPlayerId];
+      if (completedCaptain) {
+        players[completedCaptainPlayerId] = {
+          ...completedCaptain,
+          career: {
+            ...completedCaptain.career,
+            captainSeasons: completedCaptain.career.captainSeasons + 1,
+          },
+        };
+      }
+    }
+
     const graduates: PlayerId[] = [];
     const returningPlayerIds: PlayerId[] = [];
 
@@ -321,19 +344,13 @@ export function advanceAcademicYear(
       ...returningPlayerIds,
       ...intake.map((player) => player.id),
     ];
-    const captainPlayerId = selectCaptain(activePlayerIds, players);
-    if (captainPlayerId) {
-      const captain = players[captainPlayerId];
-      if (captain) {
-        players[captainPlayerId] = {
-          ...captain,
-          career: {
-            ...captain.career,
-            captainSeasons: captain.career.captainSeasons + 1,
-          },
-        };
-      }
-    }
+    const captainPlayerId =
+      school.id === state.userSchoolId
+        ? state.teamDynamics.captainPlayerId &&
+          activePlayerIds.includes(state.teamDynamics.captainPlayerId)
+          ? state.teamDynamics.captainPlayerId
+          : null
+        : selectCaptain(activePlayerIds, players);
 
     graduatedPlayerIdsBySchool[school.id] = graduates;
     intakePlayerIdsBySchool[school.id] = intake.map((player) => player.id);
@@ -358,6 +375,7 @@ export function advanceAcademicYear(
     activeMatch: null,
     pendingEvent: null,
     recruiting: undefined,
+    shopEffects: undefined,
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
@@ -424,6 +442,16 @@ export function advanceAcademicYear(
     randomCursor: random.cursor,
     playerRelationships,
   };
+  nextState = progressAnnualTeamDynamics(nextState, state.teamDynamics);
+  captainPlayerIdsBySchool[state.userSchoolId] =
+    nextState.teamDynamics.captainPlayerId;
+  nextState = {
+    ...nextState,
+    officialSeason: createOfficialSeason({
+      state: nextState,
+      academicYear: nextAcademicYear,
+    }),
+  };
 
   return {
     state: nextState,
@@ -445,7 +473,11 @@ export function advanceGameWeek(
   data: GameDataRegistry,
   options: AcademicYearProgressionOptions = {},
 ): AdvanceGameWeekResult {
-  const weekly = advanceOneWeek(state);
+  const weeklyBase = advanceOneWeek(state);
+  const weekly = {
+    ...weeklyBase,
+    state: advanceOfficialTournamentsThroughWeek(weeklyBase.state),
+  };
   if (!crossesAcademicYear(state.date, weekly.state.date)) {
     return { ...weekly, academicYearTransition: null };
   }

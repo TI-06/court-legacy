@@ -18,6 +18,7 @@ import { PlayerTile } from "../../ui/PlayerTile";
 import "../../ui/ui.css";
 import "./team.css";
 import "./team-direct.css";
+import "./team-dynamics.css";
 
 interface TeamScreenProps {
   state: GameState;
@@ -86,6 +87,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
     selection,
   });
   const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
+  const captain = state.teamDynamics.captainPlayerId
+    ? playerById[state.teamDynamics.captainPlayerId]
+    : null;
 
   const emitSelection = (next: TeamSelection) => {
     setReplacements([]);
@@ -237,6 +241,15 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         >
           自動編成
         </button>
+      </section>
+
+      <section className="team-dynamics-inline" aria-label="チーム状態サマリー">
+        <span>
+          結束力 <strong>{state.teamDynamics.cohesion}</strong>
+        </span>
+        <span>
+          主将 <strong>{captain ? playerName(captain) : "未設定"}</strong>
+        </span>
       </section>
 
       <section className="team-summary" aria-label="編成サマリー">

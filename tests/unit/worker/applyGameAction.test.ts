@@ -4,7 +4,10 @@ import { gameData } from "../../../src/app/createDemoGame";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { eventId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type { WeeklyPlan } from "../../../src/domain/training/resolveWeeklyTraining";
+import type {
+  TrainingResult,
+  WeeklyPlan,
+} from "../../../src/domain/training/resolveWeeklyTraining";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import {
   applyGameAction,
@@ -68,6 +71,35 @@ describe("applyGameAction", () => {
     expect(result.outcome).toMatchObject({
       schoolId: snapshot.state.userSchoolId,
     });
+    expect(snapshot).toEqual(before);
+  });
+
+  it("applies a pending shop training boost and consumes it only from the successful returned state", () => {
+    const snapshot = createSnapshot();
+    snapshot.state.shopEffects = {
+      nextTrainingGrowthBoost: {
+        percent: 20,
+        remainingUses: 1,
+        sourceItemId: "training-efficiency-boost",
+      },
+    };
+    const before = structuredClone(snapshot);
+
+    const result = applyGameAction(snapshot, {
+      type: "training",
+      plan: createTrainingPlan(snapshot),
+    });
+    const trainingResult = result.outcome as TrainingResult;
+
+    expect(
+      trainingResult.playerLogs.some((log) =>
+        log.modifiers.some(
+          (modifier) =>
+            modifier.code === "shop-training-boost" && modifier.percent === 120,
+        ),
+      ),
+    ).toBe(true);
+    expect(result.state.shopEffects?.nextTrainingGrowthBoost).toBeUndefined();
     expect(snapshot).toEqual(before);
   });
 

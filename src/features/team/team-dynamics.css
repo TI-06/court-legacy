@@ -1,0 +1,356 @@
+.team-dynamics {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
+.team-dynamics__heading,
+.team-dynamics__leadership,
+.team-dynamics__detail-grid > section {
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 5%);
+}
+
+.team-dynamics__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.team-dynamics__heading h2,
+.team-dynamics__section-heading h3 {
+  margin: 3px 0 0;
+}
+
+.team-dynamics__heading > div:first-child > p:last-child {
+  max-width: 520px;
+  margin: 7px 0 0;
+  color: #6b7d86;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.team-dynamics__cohesion {
+  display: grid;
+  flex: 0 0 92px;
+  min-height: 92px;
+  color: #f7fbfc;
+  text-align: center;
+  background: linear-gradient(145deg, #174e60, #102f3d);
+  border-radius: 16px;
+  place-items: center;
+  align-content: center;
+}
+
+.team-dynamics__cohesion span,
+.team-dynamics__cohesion small {
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.team-dynamics__cohesion strong {
+  margin: 2px 0;
+  color: #ffe09b;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.team-dynamics__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-dynamics__metrics article {
+  min-width: 0;
+  padding: 12px;
+  background: #f5f8fa;
+  border: 1px solid #dce5e9;
+  border-radius: 14px;
+}
+
+.team-dynamics__metrics span,
+.team-dynamics__metrics strong,
+.team-dynamics__metrics small {
+  display: block;
+}
+
+.team-dynamics__metrics span {
+  color: #75858d;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.team-dynamics__metrics strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: #183846;
+  font-size: 0.78rem;
+}
+
+.team-dynamics__metrics small {
+  margin-top: 3px;
+  color: #7b8990;
+  font-size: 0.6rem;
+}
+
+.team-dynamics__section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.team-dynamics__section-heading > span {
+  color: #7c8b92;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.team-dynamics__selectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 13px;
+  gap: 10px;
+}
+
+.team-dynamics__selectors label > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #405963;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.team-dynamics__selectors select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  color: #173642;
+  font: inherit;
+  font-size: 0.72rem;
+  background: #f8fafb;
+  border: 1px solid #ccd9de;
+  border-radius: 12px;
+}
+
+.team-dynamics__save {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 11px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #216879;
+  border: 0;
+  border-radius: 13px;
+}
+
+.team-dynamics__save:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.team-dynamics__warning {
+  margin: 8px 0 0;
+  color: #9b4d3b;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.team-dynamics__detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.team-dynamics__candidate-list,
+.team-dynamics__concern-list {
+  display: grid;
+  margin-top: 12px;
+  gap: 7px;
+}
+
+.team-dynamics__candidate-list article {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 34px;
+  align-items: center;
+  padding: 9px 10px;
+  gap: 8px;
+  background: #f6f9fa;
+  border-radius: 11px;
+}
+
+.team-dynamics__candidate-list article > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 900;
+  background: #456b79;
+  border-radius: 9px;
+  place-items: center;
+}
+
+.team-dynamics__candidate-list strong,
+.team-dynamics__candidate-list small,
+.team-dynamics__concern-list strong,
+.team-dynamics__concern-list small {
+  display: block;
+}
+
+.team-dynamics__candidate-list strong,
+.team-dynamics__concern-list strong {
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+}
+
+.team-dynamics__candidate-list small,
+.team-dynamics__concern-list small {
+  margin-top: 2px;
+  color: #74838a;
+  font-size: 0.6rem;
+  line-height: 1.45;
+}
+
+.team-dynamics__candidate-list b {
+  color: #a66f1d;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.team-dynamics__concern-list article {
+  padding: 10px 11px;
+  background: #fff7e9;
+  border: 1px solid #ead6ad;
+  border-radius: 11px;
+}
+
+.team-dynamics__empty {
+  margin: 12px 0 0;
+  padding: 12px;
+  color: #5e746b;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  background: #edf6f0;
+  border-radius: 11px;
+}
+
+.team-dynamics-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding: 9px 11px;
+  gap: 8px;
+  color: #31505c;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: #edf4f6;
+  border-radius: 11px;
+}
+
+.team-dynamics-inline strong {
+  color: #174f60;
+}
+
+.player-detail__dynamics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.player-detail__dynamics article {
+  padding: 10px;
+  background: #f4f8f9;
+  border-radius: 12px;
+}
+
+.player-detail__dynamics span,
+.player-detail__dynamics strong {
+  display: block;
+}
+
+.player-detail__dynamics span {
+  color: #74838a;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.player-detail__dynamics strong {
+  margin-top: 4px;
+  font-size: 0.74rem;
+}
+
+.player-detail__concerns {
+  padding: 13px;
+  background: #fff7e9;
+  border: 1px solid #ead6ad;
+  border-radius: 13px;
+}
+
+.player-detail__concerns h3 {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.player-detail__concerns ul {
+  display: grid;
+  margin: 8px 0 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.player-detail__concerns li {
+  color: #705d38;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .team-dynamics__metrics,
+  .team-dynamics__detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .team-dynamics__heading {
+    align-items: stretch;
+  }
+
+  .team-dynamics__cohesion {
+    flex-basis: 76px;
+    min-height: 76px;
+  }
+
+  .team-dynamics__selectors,
+  .team-dynamics__detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 350px) {
+  .team-dynamics__heading,
+  .team-dynamics__leadership,
+  .team-dynamics__detail-grid > section {
+    padding: 13px;
+    border-radius: 15px;
+  }
+
+  .team-dynamics__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .player-detail__dynamics {
+    grid-template-columns: 1fr;
+  }
+}

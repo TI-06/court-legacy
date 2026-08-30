@@ -31,6 +31,10 @@ export interface GameSessionController {
     action: GameAction,
     label: string,
   ): Promise<GameActionResponse | null>;
+  adoptServerSnapshot(
+    snapshot: CloudGameSnapshot,
+    label?: string,
+  ): Promise<void>;
 }
 
 function isNetworkAmbiguous(error: unknown): boolean {
@@ -74,6 +78,15 @@ export function useGameSession({
     } catch {
       // The cloud remains authoritative even if the local recovery cache fails.
     }
+  }
+
+  async function adoptServerSnapshot(
+    nextSnapshot: CloudGameSnapshot,
+    label = "保存済み",
+  ): Promise<void> {
+    replaceSnapshot(nextSnapshot);
+    await writeRecovery(nextSnapshot, null);
+    setOperation({ status: "success", label });
   }
 
   async function submitRequest(
@@ -163,5 +176,5 @@ export function useGameSession({
     });
   }
 
-  return { snapshot, operation, runAction };
+  return { snapshot, operation, runAction, adoptServerSnapshot };
 }

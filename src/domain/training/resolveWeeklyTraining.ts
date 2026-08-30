@@ -1,4 +1,8 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import {
+  calculateDynamicsTrainingModifiers,
+  progressWeeklyDynamics,
+} from "../dynamics/progressWeeklyDynamics";
 import type { GameState } from "../model/GameState";
 import { clampAbility, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
@@ -9,7 +13,11 @@ import type {
   PersonalityDefinition,
   TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
-import { calculateGrowth, type GrowthModifier } from "./calculateGrowth";
+import {
+  calculateGrowth,
+  type AdditionalGrowthModifier,
+  type GrowthModifier,
+} from "./calculateGrowth";
 
 export interface IndividualTrainingAssignment {
   playerId: PlayerId;
@@ -55,14 +63,29 @@ export interface ResolveWeeklyTrainingInput {
   plan: WeeklyPlan;
   data: GameDataRegistry;
   random: RandomSource;
+  additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
 }
 
-interface TrainingActivity {
+export interface TrainingActivity {
   targetAbilities: readonly AbilityKey[];
   baseGrowth: number;
   fatigue: number;
   injuryRisk: number;
   trustGrowth: number;
+}
+
+export interface ResolvePlayerTrainingActivityInput {
+  player: Player;
+  school: NonNullable<GameState["schools"][SchoolId]>;
+  data: GameDataRegistry;
+  random: RandomSource;
+  activity: TrainingActivity;
+  additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
+}
+
+export interface PlayerTrainingActivityResolution {
+  player: Player;
+  log: PlayerGrowthLog;
 }
 
 function clampStateValue(value: number): number {
@@ -296,6 +319,7 @@ function applyActivity(
   data: GameDataRegistry,
   random: RandomSource,
   log: PlayerGrowthLog,
+  additionalGrowthModifiers: readonly AdditionalGrowthModifier[],
 ): Player {
   if (player.injury) {
     log.skippedReason = "injured";
@@ -310,6 +334,7 @@ function applyActivity(
     school,
     growthType,
     personality,
+    additionalModifiers: additionalGrowthModifiers,
   });
   const abilityResult = applyAbilityGrowth(
     player,
@@ -361,6 +386,23 @@ function applyActivity(
   };
 }
 
+export function resolvePlayerTrainingActivity(
+  input: ResolvePlayerTrainingActivityInput,
+): PlayerTrainingActivityResolution {
+  const log = emptyLog(input.player.id);
+  const player = applyActivity(
+    input.player,
+    input.activity,
+    input.school,
+    input.data,
+    input.random,
+    log,
+    input.additionalGrowthModifiers ?? [],
+  );
+
+  return { player, log };
+}
+
 export function resolveWeeklyTraining(
   input: ResolveWeeklyTrainingInput,
 ): WeeklyTrainingResolution {
@@ -370,10 +412,18 @@ export function resolveWeeklyTraining(
   const players = { ...input.state.players };
   const playerLogs: PlayerGrowthLog[] = [];
   const injuredPlayerIds: PlayerId[] = [];
+  const sharedGrowthModifiers = input.additionalGrowthModifiers ?? [];
+  const includeDynamicsModifiers = input.schoolId === input.state.userSchoolId;
 
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
+    const playerGrowthModifiers = includeDynamicsModifiers
+      ? [
+          ...sharedGrowthModifiers,
+          ...calculateDynamicsTrainingModifiers(original),
+        ]
+      : sharedGrowthModifiers;
     let updated = applyActivity(
       original,
       activityFromMenu(validated.menu),
@@ -381,6 +431,7 @@ export function resolveWeeklyTraining(
       input.data,
       input.random,
       log,
+      playerGrowthModifiers,
     );
     const instruction = validated.instructions.get(playerId);
     if (instruction && !updated.injury) {
@@ -391,6 +442,7 @@ export function resolveWeeklyTraining(
         input.data,
         input.random,
         log,
+        playerGrowthModifiers,
       );
     }
 
@@ -402,13 +454,17 @@ export function resolveWeeklyTraining(
   }
 
   const consumedRandomValues = input.random.cursor - initialRandomCursor;
+  const trainedState: GameState = {
+    ...input.state,
+    players,
+    randomCursor: input.state.randomCursor + consumedRandomValues,
+  };
+  const resolvedState = includeDynamicsModifiers
+    ? progressWeeklyDynamics(trainedState)
+    : trainedState;
 
   return {
-    state: {
-      ...input.state,
-      players,
-      randomCursor: input.state.randomCursor + consumedRandomValues,
-    },
+    state: resolvedState,
     result: {
       schoolId: input.schoolId,
       teamTrainingMenuId: input.plan.teamTrainingMenuId,

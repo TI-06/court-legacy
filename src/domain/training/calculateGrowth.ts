@@ -13,6 +13,9 @@ export type GrowthModifierCode =
   | "coach"
   | "fatigue"
   | "condition"
+  | "shop-training-boost"
+  | "morale"
+  | "trust"
   | "academic";
 
 export interface GrowthModifier {
@@ -21,12 +24,17 @@ export interface GrowthModifier {
   percent: number;
 }
 
+export type AdditionalGrowthModifier = GrowthModifier & {
+  code: "shop-training-boost" | "morale" | "trust";
+};
+
 export interface GrowthCalculationInput {
   baseGrowth: number;
   player: Player;
   school: School;
   growthType: GrowthTypeDefinition;
   personality: PersonalityDefinition;
+  additionalModifiers?: readonly AdditionalGrowthModifier[];
 }
 
 export interface GrowthCalculationResult {
@@ -61,6 +69,19 @@ function academicMultiplier(academic: number): number {
     return 75;
   }
   return 100;
+}
+
+function validateAdditionalModifiers(
+  modifiers: readonly AdditionalGrowthModifier[],
+): AdditionalGrowthModifier[] {
+  return modifiers.map((modifier) => {
+    if (!Number.isFinite(modifier.percent) || modifier.percent <= 0) {
+      throw new Error(
+        "growth modifier percent must be a positive finite number",
+      );
+    }
+    return { ...modifier, percent: Math.round(modifier.percent) };
+  });
 }
 
 export function calculateGrowth(
@@ -99,17 +120,21 @@ export function calculateGrowth(
     { code: "fatigue", label: "疲労", percent: fatigue },
     { code: "condition", label: "コンディション", percent: condition },
   ];
+  const additionalModifiers = validateAdditionalModifiers(
+    input.additionalModifiers ?? [],
+  );
+  const growthModifiers = [...nonAcademicModifiers, ...additionalModifiers];
   const modifiers: GrowthModifier[] = [
-    ...nonAcademicModifiers,
+    ...growthModifiers,
     { code: "academic", label: "学業参加制限", percent: academic },
   ];
-  const nonAcademicMultiplier = nonAcademicModifiers.reduce(
+  const growthMultiplier = growthModifiers.reduce(
     (product, modifier) => product * (modifier.percent / 100),
     1,
   );
   const unrestrictedAmount = Math.max(
     0,
-    Math.round((input.baseGrowth * nonAcademicMultiplier) / 4),
+    Math.round((input.baseGrowth * growthMultiplier) / 4),
   );
   const amount = Math.max(0, Math.floor(unrestrictedAmount * (academic / 100)));
 

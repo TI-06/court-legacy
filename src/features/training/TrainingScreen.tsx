@@ -169,6 +169,13 @@ export function TrainingScreen({
         </div>
       </section>
 
+      {state.shopEffects?.nextTrainingGrowthBoost ? (
+        <p className="training-shop-boost" role="status">
+          次回練習 成長効率 +{state.shopEffects.nextTrainingGrowthBoost.percent}
+          %
+        </p>
+      ) : null}
+
       <section className="training-panel training-plan-card">
         <div className="section-heading">
           <div>
