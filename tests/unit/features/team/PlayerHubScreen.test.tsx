@@ -128,6 +128,6 @@ describe("PlayerHubScreen", () => {
     expect(screen.getByText("エース")).toBeVisible();
     expect(screen.getByText("信頼")).toBeVisible();
     expect(screen.getByText(String(player.trust))).toBeVisible();
-    expect(screen.getByText("出場機会")).toBeVisible();
+    expect(screen.getByText(/出場機会/)).toBeVisible();
   });
 });
