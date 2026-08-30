@@ -118,8 +118,7 @@ describe("ranked PvP dynamics isolation", () => {
         [firstPlayerId]: [
           {
             code: "playing-time",
-            severity: 100,
-            message: "must-not-leak",
+            severity: 3,
           },
         ],
       },
@@ -165,8 +164,7 @@ describe("ranked PvP dynamics isolation", () => {
         [firstPlayerId]: [
           {
             code: "team-slump",
-            severity: 100,
-            message: "low-dynamics",
+            severity: 3,
           },
         ],
       },
