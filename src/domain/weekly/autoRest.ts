@@ -1,15 +1,27 @@
 import type { GameState } from "../model/GameState";
-import type { SchoolId } from "../model/identifiers";
+import type { Player } from "../model/Player";
+import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { AutoRestReason } from "./weeklyScheduleTypes";
 
 export interface AutomaticRestDecision {
-  playerId: GameState["schools"][SchoolId]["playerIds"][number];
+  playerId: PlayerId;
   reason: AutoRestReason;
 }
 
-function restReasonForPlayer(
-  player: GameState["players"][keyof GameState["players"]],
-): AutoRestReason | null {
+export interface AutomaticRestRecovery {
+  playerId: PlayerId;
+  reason: AutoRestReason;
+  fatigueBefore: number;
+  fatigueAfter: number;
+  conditionBefore: number;
+  conditionAfter: number;
+}
+
+function clamp(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function restReasonForPlayer(player: Player): AutoRestReason | null {
   if (player.injury) {
     return "injury";
   }
@@ -44,4 +56,31 @@ export function selectAutomaticRest(
   }
 
   return decisions;
+}
+
+export function recoverAutomaticRestPlayer(
+  player: Player,
+  reason: AutoRestReason,
+  recoveryRoomLevel: number,
+): { player: Player; recovery: AutomaticRestRecovery } {
+  const fatigueRecovery = 12 + Math.max(0, recoveryRoomLevel) * 2;
+  const conditionRecovery = reason === "injury" ? 3 : 6;
+  const fatigueAfter = clamp(player.fatigue - fatigueRecovery);
+  const conditionAfter = clamp(player.condition + conditionRecovery);
+
+  return {
+    player: {
+      ...player,
+      fatigue: fatigueAfter,
+      condition: conditionAfter,
+    },
+    recovery: {
+      playerId: player.id,
+      reason,
+      fatigueBefore: player.fatigue,
+      fatigueAfter,
+      conditionBefore: player.condition,
+      conditionAfter,
+    },
+  };
 }
