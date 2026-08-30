@@ -27,7 +27,11 @@ describe("TeamDynamicsPanel", () => {
       },
     };
     state.playerRelationships = {};
-    for (let leftIndex = 0; leftIndex < school.playerIds.length; leftIndex += 1) {
+    for (
+      let leftIndex = 0;
+      leftIndex < school.playerIds.length;
+      leftIndex += 1
+    ) {
       for (
         let rightIndex = leftIndex + 1;
         rightIndex < school.playerIds.length;
