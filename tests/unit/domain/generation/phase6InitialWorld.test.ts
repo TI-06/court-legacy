@@ -16,7 +16,7 @@ describe("Phase 6 initial world", () => {
       },
     });
 
-    expect(state.schemaVersion).toBe(4);
+    expect(state.schemaVersion).toBe(5);
     expect(state.officialSeason.academicYear).toBe(state.calendar.academicYear);
     expect(state.officialSeason.interhigh.prefectural.entrants).toHaveLength(
       16,
