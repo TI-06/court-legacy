@@ -50,6 +50,11 @@ function createProps(withLatestMatch = false) {
 describe("home action dashboard", () => {
   it("renders the information-first dashboard without a featured-player hero", () => {
     const props = createProps();
+    props.state.teamDynamics = {
+      ...props.state.teamDynamics,
+      cohesion: 68,
+      cohesionTrend: "rising",
+    };
 
     const { container } = render(<HomeScreen {...props} />);
 
@@ -58,6 +63,9 @@ describe("home action dashboard", () => {
     expect(screen.getByText("学校評判")).toBeVisible();
     expect(screen.getByText("平均疲労")).toBeVisible();
     expect(screen.getByText("部員")).toBeVisible();
+    expect(screen.getByText("結束力")).toBeVisible();
+    expect(screen.getByText("68")).toBeVisible();
+    expect(screen.getByText("上向き")).toBeVisible();
   });
 
   it("shows the next official tournament card and opens its bracket", () => {

@@ -131,6 +131,13 @@ for (const viewport of [320, 360, 390, 480]) {
       .getByRole("button", { name: "閉じる" })
       .click();
 
+    await page.getByRole("button", { name: "チーム状態", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "チーム状態" }),
+    ).toBeVisible();
+    await expectLayoutFits(page, testInfo, `${viewport}-team-dynamics`);
+    await expectNavigationFixed(page, `${viewport}-team-dynamics`);
+
     await navigation.getByRole("button", { name: "育成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport}-training`);
     await expectNavigationFixed(page, `${viewport}-training`);

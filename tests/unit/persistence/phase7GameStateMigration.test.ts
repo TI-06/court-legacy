@@ -1,26 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import type { TeamDynamicsState } from "../../../src/domain/dynamics/teamDynamicsTypes";
+import type { GameState } from "../../../src/domain/model/GameState";
 import { decodeGameState } from "../../../src/persistence/gameStateCodec";
 
-describe("Phase 6 game-state migration", () => {
-  it("migrates a Phase 5 schema-v2 save without rerolling persistent game data", () => {
+type Phase7GameState = GameState & { teamDynamics: TeamDynamicsState };
+
+describe("Phase 7 game-state migration", () => {
+  it("migrates a Phase 6 schema-v3 save without rerolling persistent game data", () => {
     const current = createDemoGame();
     const originalPlayers = structuredClone(current.players);
     const originalSchools = structuredClone(current.schools);
     const originalWorld = structuredClone(current.world);
-    const legacyHistory = structuredClone(current.history) as unknown as Record<
-      string,
-      unknown
-    >;
-    delete legacyHistory.officialTournaments;
+    const originalOfficialSeason = structuredClone(current.officialSeason);
+    const originalHistory = structuredClone(current.history);
 
     const legacy = {
       ...structuredClone(current),
-      schemaVersion: 2,
+      schemaVersion: 3,
       randomCursor: current.randomCursor + 37,
-      history: legacyHistory,
       recruiting: {
-        cycleKey: "phase5-cycle",
+        cycleKey: "phase6-cycle",
         committedCandidateIds: [],
       },
       shopEffects: {
@@ -31,18 +31,19 @@ describe("Phase 6 game-state migration", () => {
         },
       },
     } as Record<string, unknown>;
-    delete legacy.officialSeason;
     delete legacy.teamDynamics;
 
-    const migrated = decodeGameState(JSON.stringify(legacy));
+    const migrated = decodeGameState(JSON.stringify(legacy)) as Phase7GameState;
 
     expect(migrated.schemaVersion).toBe(4);
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
     expect(migrated.players).toEqual(originalPlayers);
     expect(migrated.schools).toEqual(originalSchools);
     expect(migrated.world).toEqual(originalWorld);
+    expect(migrated.officialSeason).toEqual(originalOfficialSeason);
+    expect(migrated.history).toEqual(originalHistory);
     expect(migrated.recruiting).toEqual({
-      cycleKey: "phase5-cycle",
+      cycleKey: "phase6-cycle",
       committedCandidateIds: [],
     });
     expect(migrated.shopEffects?.nextTrainingGrowthBoost).toEqual({
@@ -50,13 +51,8 @@ describe("Phase 6 game-state migration", () => {
       remainingUses: 1,
       sourceItemId: "training-efficiency-boost",
     });
-    expect(migrated.officialSeason.academicYear).toBe(
-      migrated.calendar.academicYear,
-    );
-    expect(migrated.officialSeason.interhigh.prefectural.entrants).toHaveLength(
-      16,
-    );
-    expect(migrated.history.officialTournaments).toEqual([]);
+    expect(migrated.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
+    expect(migrated.teamDynamics.cohesion).toBeLessThanOrEqual(100);
     expect(migrated.teamDynamics.recentOfficialMatchesTracked).toBe(0);
   });
 });

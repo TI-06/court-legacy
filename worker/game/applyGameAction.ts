@@ -4,6 +4,11 @@ import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
 } from "../../src/domain/calendar/weekProgression";
+import {
+  setTeamLeadership,
+  TeamLeadershipValidationError,
+} from "../../src/domain/dynamics/setTeamLeadership";
+import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/officialMatchDynamics";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
 import { simulateMatch } from "../../src/domain/match/simulateMatch";
@@ -148,6 +153,34 @@ function applyTeamSelection(
   return { state, teamSelection: selection };
 }
 
+function applyTeamLeadership(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-leadership" }>,
+): AppliedGameAction {
+  try {
+    const nextState = setTeamLeadership(
+      state,
+      action.captainPlayerId,
+      action.viceCaptainPlayerId,
+    );
+    return {
+      state: nextState,
+      teamSelection,
+      outcome: {
+        captainPlayerId: action.captainPlayerId,
+        viceCaptainPlayerId: action.viceCaptainPlayerId,
+        cohesion: nextState.teamDynamics.cohesion,
+      },
+    };
+  } catch (error) {
+    if (error instanceof TeamLeadershipValidationError) {
+      return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
 function applyPracticeMatch(
   state: GameState,
   teamSelection: TeamSelection,
@@ -270,6 +303,7 @@ function applyOfficialMatch(
       awaySelection: userIsHome ? opponentContext.selection : teamSelection,
       bestOfSets: 3,
       random,
+      dynamicsReadinessByPlayerId: buildPveDynamicsReadinessByPlayerId(state),
     });
     const recorded = recordOfficialTournamentOutcome({
       state,
@@ -419,6 +453,8 @@ export function applyGameAction(
       return applyTraining(state, teamSelection, action);
     case "team-selection":
       return applyTeamSelection(state, action);
+    case "set-team-leadership":
+      return applyTeamLeadership(state, teamSelection, action);
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
     case "official-match":

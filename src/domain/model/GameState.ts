@@ -1,3 +1,4 @@
+import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
 import type { ShopGameEffects } from "../shop/shopEffects";
 import type {
   OfficialSeasonState,
@@ -95,11 +96,12 @@ export interface GameState {
   settings: GameSettings;
   world: WorldState;
   officialSeason: OfficialSeasonState;
+  teamDynamics: TeamDynamicsState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 3;
+export const CURRENT_GAME_SCHEMA_VERSION = 4;
 
 export function createDefaultGameSettings(): GameSettings {
   return {

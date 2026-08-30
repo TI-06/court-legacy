@@ -1,4 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { createInitialTeamDynamics } from "../dynamics/createInitialTeamDynamics";
 import type { EventMemory } from "../model/Event";
 import {
   CURRENT_GAME_SCHEMA_VERSION,
@@ -302,11 +303,16 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       rivalryScores: {},
       destinyRivalSchoolId: null,
     },
-  } satisfies Omit<GameState, "officialSeason">;
+  } satisfies Omit<GameState, "officialSeason" | "teamDynamics">;
 
-  return {
+  const stateWithOfficialSeason = {
     ...baseState,
     officialSeason: createOfficialSeason({ state: baseState }),
+  };
+
+  return {
+    ...stateWithOfficialSeason,
+    teamDynamics: createInitialTeamDynamics(stateWithOfficialSeason),
   };
 }
 
