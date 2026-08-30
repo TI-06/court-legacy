@@ -7,19 +7,25 @@ import type {
   PlayerId,
 } from "../../../../src/domain/model/identifiers";
 
-function thirdYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+function thirdYearPlayerIds(
+  state: ReturnType<typeof createDemoGame>,
+): PlayerId[] {
   return Object.values(state.players)
     .filter((player) => player.grade === 3)
     .map((player) => player.id);
 }
 
-function secondYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+function secondYearPlayerIds(
+  state: ReturnType<typeof createDemoGame>,
+): PlayerId[] {
   return Object.values(state.players)
     .filter((player) => player.grade === 2)
     .map((player) => player.id);
 }
 
-function firstYearPlayerIds(state: ReturnType<typeof createDemoGame>): PlayerId[] {
+function firstYearPlayerIds(
+  state: ReturnType<typeof createDemoGame>,
+): PlayerId[] {
   return Object.values(state.players)
     .filter((player) => player.grade === 1)
     .map((player) => player.id);
@@ -42,9 +48,9 @@ describe("academic year progression", () => {
     expect(transition).not.toBeNull();
     expect(result.state.calendar.academicYear).toBe(2);
     expect(result.state.officialSeason.academicYear).toBe(2);
-    expect(result.state.officialSeason.interhigh.prefectural.matches).toHaveLength(
-      15,
-    );
+    expect(
+      result.state.officialSeason.interhigh.prefectural.matches,
+    ).toHaveLength(15);
     expect(result.state.officialSeason.interhigh.national).toBeNull();
     expect(result.state.officialSeason.springHigh.national).toBeNull();
     expect(transition.graduatedPlayerIds).toHaveLength(
