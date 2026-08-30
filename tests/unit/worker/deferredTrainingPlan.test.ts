@@ -43,10 +43,10 @@ describe("deferred weekly training plan", () => {
     };
     const playersBefore = structuredClone(snapshot.state.players);
 
-    const result = applyGameAction(
-      snapshot,
-      { type: "set-training-plan", plan } as unknown as GameAction,
-    );
+    const result = applyGameAction(snapshot, {
+      type: "set-training-plan",
+      plan,
+    } as unknown as GameAction);
 
     expect(result).toBeDefined();
     expect(result.state.weeklySchedule.trainingPlan).toEqual(plan);
