@@ -4,7 +4,10 @@ import type { SimulateMatchResult } from "../../../src/domain/match/simulateMatc
 import { selectPracticeOpponent } from "../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
-import { applyGameAction } from "../../../worker/game/applyGameAction";
+import {
+  applyGameAction,
+  GameRuleConflictError,
+} from "../../../worker/game/applyGameAction";
 
 function createSnapshot(): CloudGameSnapshot {
   const state = createInitialGame({
@@ -63,5 +66,19 @@ describe("scheduled practice opponent", () => {
     const simulation = result.outcome as SimulateMatchResult;
 
     expect(simulation.match.awaySchoolId).toBe(scheduledOpponent.id);
+  });
+
+  it("rejects starting a practice match before an opponent is scheduled", () => {
+    const snapshot = createSnapshot();
+
+    try {
+      applyGameAction(snapshot, { type: "practice-match" });
+      throw new Error("expected practice scheduling conflict");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GameRuleConflictError);
+      expect((error as GameRuleConflictError).code).toBe(
+        "practice_match_not_scheduled",
+      );
+    }
   });
 });
