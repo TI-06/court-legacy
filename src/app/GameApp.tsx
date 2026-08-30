@@ -7,7 +7,7 @@ import type { AcademicYearTransitionSummary } from "../domain/calendar/academicY
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
-import type { PlayerId } from "../domain/model/identifiers";
+import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
 import type { TeamSelection } from "../domain/model/TeamSelection";
 import { selectNextOfficialEvent } from "../domain/tournament/tournamentSelectors";
@@ -47,6 +47,7 @@ import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
+import { PracticeMatchPlanning } from "../features/match/PracticeMatchPlanning";
 import { MoreScreen } from "../features/more/MoreScreen";
 import { PvpScreen } from "../features/pvp/PvpScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
@@ -183,10 +184,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     gameState,
     "practice-match",
   );
-  const opponent = useMemo(
-    () => selectPracticeOpponent(gameState),
-    [gameState],
-  );
+  const opponent = useMemo(() => {
+    const scheduledOpponentId =
+      gameState.weeklySchedule.practiceMatch.scheduledOpponentId;
+    const scheduledOpponent = scheduledOpponentId
+      ? gameState.schools[scheduledOpponentId]
+      : null;
+    return scheduledOpponent ?? selectPracticeOpponent(gameState);
+  }, [gameState]);
   const opponentSelection = useMemo(
     () => autoSelectTeam({ state: gameState, schoolId: opponent.id }),
     [gameState, opponent.id],
@@ -380,6 +385,27 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         viceCaptainPlayerId,
       },
       "役職を保存しています…",
+    );
+  };
+
+  const acceptPracticeOffer = async () => {
+    await cloudSession.runAction(
+      { type: "practice-offer-accept" },
+      "練習試合を決定しています…",
+    );
+  };
+
+  const declinePracticeOffer = async () => {
+    await cloudSession.runAction(
+      { type: "practice-offer-decline" },
+      "申し込みを断っています…",
+    );
+  };
+
+  const requestPracticeMatch = async (schoolId: SchoolId) => {
+    await cloudSession.runAction(
+      { type: "practice-request", schoolId },
+      "練習試合を申し込んでいます…",
     );
   };
 
@@ -897,6 +923,21 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           />
         ) : null}
         {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}
+        {!activeMatchResult ? (
+          <PracticeMatchPlanning
+            onAcceptOffer={() => {
+              void acceptPracticeOffer();
+            }}
+            onDeclineOffer={() => {
+              void declinePracticeOffer();
+            }}
+            onRequest={(schoolId) => {
+              void requestPracticeMatch(schoolId);
+            }}
+            pending={cloudSession.operation.status === "submitting"}
+            state={gameState}
+          />
+        ) : null}
         <MatchScreen
           awaySelection={opponentSelection}
           awayStrength={awayStrength}
