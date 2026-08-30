@@ -95,8 +95,12 @@ test("leadership assignment, training, and an official match persist visible dyn
   await page.getByLabel("副主将").selectOption(viceCaptainPlayerId);
   await page.getByRole("button", { name: "役職を保存" }).click();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
-  await expect(page.getByText(captainName, { exact: true }).first()).toBeVisible();
-  await expect(page.getByText(viceCaptainName, { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText(captainName, { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(viceCaptainName, { exact: true }).first(),
+  ).toBeVisible();
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await page.getByRole("button", { name: "練習を実行" }).click();
@@ -135,8 +139,12 @@ test("leadership assignment, training, and an official match persist visible dyn
   await expect(cohesion).toContainText(
     String(persisted.state.teamDynamics.cohesion),
   );
-  await expect(page.getByText(captainName, { exact: true }).first()).toBeVisible();
-  await expect(page.getByText(viceCaptainName, { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText(captainName, { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(viceCaptainName, { exact: true }).first(),
+  ).toBeVisible();
 });
 
 for (const width of [320, 360, 390, 480]) {
@@ -148,7 +156,9 @@ for (const width of [320, 360, 390, 480]) {
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
     await page.getByRole("button", { name: "チーム状態", exact: true }).click();
 
-    await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "チーム状態" }),
+    ).toBeVisible();
     await expect(page.getByLabel("主将")).toBeVisible();
     await expect(page.getByLabel("副主将")).toBeVisible();
     await expectNoBodyOverflow(page);
