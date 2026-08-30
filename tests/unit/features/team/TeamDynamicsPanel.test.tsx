@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
 import { TeamDynamicsPanel } from "../../../../src/features/team/TeamDynamicsPanel";
@@ -52,11 +52,12 @@ describe("TeamDynamicsPanel", () => {
     );
 
     expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
-    expect(screen.getByText("64")).toBeVisible();
-    expect(screen.getByText("上向き")).toBeVisible();
+    const cohesion = screen.getByLabelText("チーム結束力");
+    expect(within(cohesion).getByText("64")).toBeVisible();
+    expect(within(cohesion).getByText("上向き")).toBeVisible();
     expect(screen.getAllByText("未設定")).toHaveLength(2);
     expect(screen.getByText("関係性 良好")).toBeVisible();
-    expect(screen.getByText(`${playerName(first)}・出場機会`)).toBeVisible();
+    expect(screen.getByText(new RegExp(`${playerName(first)}.*出場機会`))).toBeVisible();
     expect(screen.getByRole("heading", { name: "主将適性" })).toBeVisible();
   });
 
