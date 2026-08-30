@@ -77,18 +77,10 @@ describe("Phase 8 practice-match planning", () => {
   });
 
   it("uses the exact acceptance formula including repeat-opponent decay and clamping", () => {
-    expect(planningApi.practiceAcceptancePercent(500, 450, 60, 65, 0)).toBe(
-      65,
-    );
-    expect(planningApi.practiceAcceptancePercent(500, 450, 60, 65, 2)).toBe(
-      35,
-    );
-    expect(planningApi.practiceAcceptancePercent(1000, 0, 100, 1, 0)).toBe(
-      95,
-    );
-    expect(planningApi.practiceAcceptancePercent(0, 1000, 1, 100, 12)).toBe(
-      5,
-    );
+    expect(planningApi.practiceAcceptancePercent(500, 450, 60, 65, 0)).toBe(65);
+    expect(planningApi.practiceAcceptancePercent(500, 450, 60, 65, 2)).toBe(35);
+    expect(planningApi.practiceAcceptancePercent(1000, 0, 100, 1, 0)).toBe(95);
+    expect(planningApi.practiceAcceptancePercent(0, 1000, 1, 100, 12)).toBe(5);
   });
 
   it("labels the three outgoing choices as same, stronger, and challenge with matching ratings", () => {
@@ -97,11 +89,11 @@ describe("Phase 8 practice-match planning", () => {
     const homeStrength = calculateTournamentSchoolStrength(state, home);
     const schedule = createInitialWeeklySchedule(state);
 
-    expect(schedule.practiceMatch.outgoingCandidates.map((candidate) => candidate.tier)).toEqual([
-      "same",
-      "stronger",
-      "challenge",
-    ]);
+    expect(
+      schedule.practiceMatch.outgoingCandidates.map(
+        (candidate) => candidate.tier,
+      ),
+    ).toEqual(["same", "stronger", "challenge"]);
     for (const candidate of schedule.practiceMatch.outgoingCandidates) {
       const opponent = state.schools[candidate.schoolId]!;
       const ratio =
