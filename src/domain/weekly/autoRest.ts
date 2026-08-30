@@ -3,22 +3,11 @@ import type { Player } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { AutoRestReason } from "./weeklyScheduleTypes";
 
-export interface AutomaticRestDecision {
+export type { AutoRestReason } from "./weeklyScheduleTypes";
+
+export interface AutoRestDecision {
   playerId: PlayerId;
   reason: AutoRestReason;
-}
-
-export interface AutomaticRestRecovery {
-  playerId: PlayerId;
-  reason: AutoRestReason;
-  fatigueBefore: number;
-  fatigueAfter: number;
-  conditionBefore: number;
-  conditionAfter: number;
-}
-
-function clamp(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 function restReasonForPlayer(player: Player): AutoRestReason | null {
@@ -37,13 +26,13 @@ function restReasonForPlayer(player: Player): AutoRestReason | null {
 export function selectAutomaticRest(
   state: GameState,
   schoolId: SchoolId,
-): AutomaticRestDecision[] {
+): AutoRestDecision[] {
   const school = state.schools[schoolId];
   if (!school) {
     throw new Error(`unknown school: ${schoolId}`);
   }
 
-  const decisions: AutomaticRestDecision[] = [];
+  const decisions: AutoRestDecision[] = [];
   for (const playerId of school.playerIds) {
     const player = state.players[playerId];
     if (!player) {
@@ -56,31 +45,4 @@ export function selectAutomaticRest(
   }
 
   return decisions;
-}
-
-export function recoverAutomaticRestPlayer(
-  player: Player,
-  reason: AutoRestReason,
-  recoveryRoomLevel: number,
-): { player: Player; recovery: AutomaticRestRecovery } {
-  const fatigueRecovery = 12 + Math.max(0, recoveryRoomLevel) * 2;
-  const conditionRecovery = reason === "injury" ? 3 : 6;
-  const fatigueAfter = clamp(player.fatigue - fatigueRecovery);
-  const conditionAfter = clamp(player.condition + conditionRecovery);
-
-  return {
-    player: {
-      ...player,
-      fatigue: fatigueAfter,
-      condition: conditionAfter,
-    },
-    recovery: {
-      playerId: player.id,
-      reason,
-      fatigueBefore: player.fatigue,
-      fatigueAfter,
-      conditionBefore: player.condition,
-      conditionAfter,
-    },
-  };
 }
