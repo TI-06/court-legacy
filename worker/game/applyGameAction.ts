@@ -229,7 +229,8 @@ function applyPracticeMatch(
     );
   }
 
-  const scheduledOpponentId = state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  const scheduledOpponentId =
+    state.weeklySchedule.practiceMatch.scheduledOpponentId;
   if (!scheduledOpponentId) {
     return conflict(
       "practice_match_not_scheduled",
