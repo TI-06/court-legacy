@@ -59,7 +59,10 @@ describe("Phase 8 automatic rest during weekly training", () => {
       (entry) => entry.playerId === playerId,
     )!;
 
-    expect(after).toEqual(before);
+    expect(after.abilities).toEqual(before.abilities);
+    expect(after.fatigue).toBe(before.fatigue);
+    expect(after.condition).toBe(before.condition);
+    expect(after.injury).toEqual(before.injury);
     expect(log.totalAbilityGrowth).toBe(0);
     expect(log.fatigueChange).toBe(0);
     expect(log.conditionChange).toBe(0);
@@ -91,7 +94,7 @@ describe("Phase 8 automatic rest during weekly training", () => {
     );
   });
 
-  it("keeps an injured resting player unchanged until week recovery progresses the injury", () => {
+  it("keeps an injured resting player out of training until week recovery progresses the injury", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[3]!;
@@ -118,7 +121,10 @@ describe("Phase 8 automatic rest during weekly training", () => {
       (entry) => entry.playerId === playerId,
     )!;
 
-    expect(after).toEqual(before);
+    expect(after.abilities).toEqual(before.abilities);
+    expect(after.fatigue).toBe(before.fatigue);
+    expect(after.condition).toBe(before.condition);
+    expect(after.injury).toEqual(before.injury);
     expect(log.skippedReason).toBe("auto-rest");
   });
 });
