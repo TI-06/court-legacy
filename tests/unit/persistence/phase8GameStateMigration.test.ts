@@ -34,9 +34,7 @@ describe("Phase 8 game-state migration", () => {
     } as Record<string, unknown>;
     delete legacy.weeklySchedule;
 
-    const migrated = decodeGameState(
-      JSON.stringify(legacy),
-    ) as Phase8GameState;
+    const migrated = decodeGameState(JSON.stringify(legacy)) as Phase8GameState;
 
     expect(migrated.schemaVersion).toBe(5);
     expect(migrated.randomCursor).toBe(current.randomCursor + 41);
