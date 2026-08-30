@@ -47,7 +47,9 @@ export function PracticeMatchPlanning({
       <div className="practice-planning__heading">
         <div>
           <h2 id="practice-planning-heading">練習試合の予定</h2>
-          <p>練習試合は週1回まで。申し込みの受諾か候補校への申込で決定します。</p>
+          <p>
+            練習試合は週1回まで。申し込みの受諾か候補校への申込で決定します。
+          </p>
         </div>
         {scheduledSchool ? <strong>対戦決定</strong> : <span>未決定</span>}
       </div>
@@ -73,8 +75,8 @@ export function PracticeMatchPlanning({
                 <div className="practice-planning__school-copy">
                   <strong>{incomingSchool.name}から申し込み</strong>
                   <span>
-                    成長度 {ratingDots(schedule.incomingOffer.growthRating)} ・ 負荷{" "}
-                    {ratingDots(schedule.incomingOffer.loadRating)}
+                    成長度 {ratingDots(schedule.incomingOffer.growthRating)} ・
+                    負荷 {ratingDots(schedule.incomingOffer.loadRating)}
                   </span>
                 </div>
                 <div className="practice-planning__offer-actions">
@@ -136,7 +138,9 @@ export function PracticeMatchPlanning({
                 })}
               </div>
             ) : (
-              <p className="practice-planning__empty">今週の候補校はありません</p>
+              <p className="practice-planning__empty">
+                今週の候補校はありません
+              </p>
             )}
           </div>
         </>
