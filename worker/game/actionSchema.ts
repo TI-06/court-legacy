@@ -1,9 +1,6 @@
 import { z } from "zod";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
-import type {
-  PlayerId,
-  SchoolId,
-} from "../../src/domain/model/identifiers";
+import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
