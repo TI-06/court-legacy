@@ -179,7 +179,10 @@ describe("ranked PvP dynamics isolation", () => {
       Object.keys(lowDynamicsState.playerRelationships).map((key) => [key, 0]),
     );
     highDynamicsState.playerRelationships = Object.fromEntries(
-      Object.keys(highDynamicsState.playerRelationships).map((key) => [key, 100]),
+      Object.keys(highDynamicsState.playerRelationships).map((key) => [
+        key,
+        100,
+      ]),
     );
 
     const defenderState = createDemoGame();
