@@ -1,6 +1,8 @@
 # Court Legacy V2 Phase 8 Mobile Game Loop Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+>
+> **Normative clarification:** Before implementation, also read `docs/superpowers/plans/2026-08-30-phase8-mobile-game-loop-clarifications.md`. It resolves the plan self-review items for persisted weekly-report detail, exact practice planning percentages/formulas, position-specific practice-growth ability pools, official-week availability, and abbreviated code snippets. Where that clarification file is more specific, it takes precedence.
 
 **Goal:** Replace the current manual training/practice-match loop with a persistent weekly schedule and one-tap weekly resolution, add automatic rest and bounded practice-match growth, and rebuild the primary screens into a compact Japanese-first mobile game UI without regressing Phase 4-7 authority, PvP isolation, tournaments, shop effects, or long-run determinism.
 
