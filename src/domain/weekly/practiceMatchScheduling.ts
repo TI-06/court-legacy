@@ -148,7 +148,10 @@ export function requestPracticeMatch(
   const outgoingCandidates =
     state.weeklySchedule.practiceMatch.outgoingCandidates.map((entry) =>
       entry.schoolId === schoolId
-        ? { ...entry, status: accepted ? ("accepted" as const) : ("rejected" as const) }
+        ? {
+            ...entry,
+            status: accepted ? ("accepted" as const) : ("rejected" as const),
+          }
         : entry,
     );
 
