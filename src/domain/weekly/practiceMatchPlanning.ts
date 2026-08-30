@@ -46,10 +46,7 @@ function tierTarget(tier: PracticeMatchCandidateTier): number {
   return 1.15;
 }
 
-function tierMatches(
-  tier: PracticeMatchCandidateTier,
-  ratio: number,
-): boolean {
+function tierMatches(tier: PracticeMatchCandidateTier, ratio: number): boolean {
   if (tier === "same") return ratio >= 0.85 && ratio <= 1;
   if (tier === "stronger") return ratio > 1 && ratio <= 1.15;
   return ratio > 1.15;
@@ -65,7 +62,9 @@ function selectTierOpponent(
   );
   if (unused.length === 0) return null;
 
-  const preferred = unused.filter((opponent) => tierMatches(tier, opponent.ratio));
+  const preferred = unused.filter((opponent) =>
+    tierMatches(tier, opponent.ratio),
+  );
   const pool = preferred.length > 0 ? preferred : unused;
   const target = tierTarget(tier);
 
@@ -117,7 +116,8 @@ function buildOutgoingCandidates(
         95,
         70 +
           Math.round(
-            (homeSchool.reputationPoints - opponent.school.reputationPoints) / 10,
+            (homeSchool.reputationPoints - opponent.school.reputationPoints) /
+              10,
           ) -
           Math.max(0, opponent.strength - homeStrength) * 2 -
           recentMeetingCount * 15,
@@ -152,7 +152,9 @@ export function buildInitialPracticePlanning(
   return buildPracticePlanningFromSource(state, []);
 }
 
-export function buildPracticePlanning(state: GameState): PracticePlanningResult {
+export function buildPracticePlanning(
+  state: GameState,
+): PracticePlanningResult {
   return buildPracticePlanningFromSource(
     state,
     state.weeklySchedule.recentPracticeMatches,
