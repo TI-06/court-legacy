@@ -4,17 +4,24 @@ import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/pl
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
-function renderPlayerHub() {
-  const state = createDemoGame();
+function renderPlayerHub(
+  state = createDemoGame(),
+  onAssignLeadership = vi.fn(),
+) {
   const selection = autoSelectTeam({
     state,
     schoolId: state.userSchoolId,
   });
   const view = render(
-    <PlayerHubScreen onChange={vi.fn()} selection={selection} state={state} />,
+    <PlayerHubScreen
+      onAssignLeadership={onAssignLeadership}
+      onChange={vi.fn()}
+      selection={selection}
+      state={state}
+    />,
   );
 
-  return { state, selection, view };
+  return { state, selection, view, onAssignLeadership };
 }
 
 describe("PlayerHubScreen", () => {
@@ -71,5 +78,56 @@ describe("PlayerHubScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "編成" }));
     expect(screen.getByRole("heading", { name: "チーム編成" })).toBeVisible();
+  });
+
+  it("opens team dynamics management and submits leadership ids", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const captainPlayerId = school.playerIds[0]!;
+    const viceCaptainPlayerId = school.playerIds[1]!;
+    const onAssignLeadership = vi.fn();
+    renderPlayerHub(state, onAssignLeadership);
+
+    fireEvent.click(screen.getByRole("button", { name: "チーム状態" }));
+    expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
+
+    fireEvent.change(screen.getByLabelText("主将"), {
+      target: { value: captainPlayerId },
+    });
+    fireEvent.change(screen.getByLabelText("副主将"), {
+      target: { value: viceCaptainPlayerId },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "役職を保存" }));
+
+    expect(onAssignLeadership).toHaveBeenCalledWith(
+      captainPlayerId,
+      viceCaptainPlayerId,
+    );
+  });
+
+  it("shows the player's role, trust, morale, and current concern", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+    state.teamDynamics = {
+      ...state.teamDynamics,
+      playerRoles: { [playerId]: "ace" },
+      playerConcerns: {
+        [playerId]: [{ code: "playing-time", severity: 2 }],
+      },
+    };
+    renderPlayerHub(state);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+
+    expect(screen.getByText("エース")).toBeVisible();
+    expect(screen.getByText("信頼")).toBeVisible();
+    expect(screen.getByText(String(player.trust))).toBeVisible();
+    expect(screen.getByText("出場機会")).toBeVisible();
   });
 });
