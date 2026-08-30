@@ -54,6 +54,17 @@ function createTrainingPlan(snapshot: CloudGameSnapshot): WeeklyPlan {
   };
 }
 
+function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
+  const opponent = Object.values(snapshot.state.schools).find(
+    (school) => school.id !== snapshot.state.userSchoolId,
+  );
+  if (!opponent) {
+    throw new Error("practice opponent fixture missing");
+  }
+  snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+  snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+}
+
 describe("applyGameAction", () => {
   it("applies training server-side, marks the weekly action, and does not mutate the snapshot", () => {
     const snapshot = createSnapshot();
@@ -144,8 +155,9 @@ describe("applyGameAction", () => {
     ).toThrowError(GameRuleConflictError);
   });
 
-  it("produces the same practice-match result from the same snapshot", () => {
+  it("produces the same practice-match result from the same scheduled snapshot", () => {
     const snapshot = createSnapshot();
+    schedulePracticeOpponent(snapshot);
     const before = structuredClone(snapshot);
 
     const first = applyGameAction(snapshot, { type: "practice-match" });
