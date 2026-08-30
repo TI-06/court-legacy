@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react";
+import type {
+  PlayerConcernCode,
+  PlayerRole,
+} from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
-import type { PlayerId } from "../../domain/model/identifiers";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import type { PlayerId } from "../../domain/model/identifiers";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
 import { StatBar } from "../../ui/theme/StatBar";
+import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
 import "./player-hub.css";
 
@@ -15,9 +20,14 @@ interface PlayerHubScreenProps {
   state: GameState;
   selection: TeamSelection;
   onChange: (selection: TeamSelection) => void;
+  onAssignLeadership: (
+    captainPlayerId: PlayerId,
+    viceCaptainPlayerId: PlayerId,
+  ) => void | Promise<void>;
+  leadershipPending?: boolean;
 }
 
-type HubMode = "roster" | "lineup";
+type HubMode = "roster" | "lineup" | "dynamics";
 
 const abilityLabels = {
   attack: "攻撃",
@@ -27,6 +37,21 @@ const abilityLabels = {
   mental: "メンタル",
 } as const;
 
+const roleLabels: Record<PlayerRole, string> = {
+  ace: "エース",
+  starter: "先発",
+  rotation: "ローテーション",
+  development: "育成枠",
+  reserve: "控え",
+};
+
+const concernLabels: Record<PlayerConcernCode, string> = {
+  "playing-time": "出場機会",
+  "role-mismatch": "役割への不満",
+  "injury-overuse": "怪我・起用負荷",
+  "team-slump": "チーム不調",
+};
+
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
@@ -35,10 +60,46 @@ function playerInitials(player: Player): string {
   return `${player.lastName.slice(0, 1)}${player.firstName.slice(0, 1)}`;
 }
 
+function HubTabs({
+  mode,
+  onChange,
+}: {
+  mode: HubMode;
+  onChange: (mode: HubMode) => void;
+}) {
+  return (
+    <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
+      <button
+        aria-current={mode === "roster" ? "page" : undefined}
+        onClick={() => onChange("roster")}
+        type="button"
+      >
+        選手一覧
+      </button>
+      <button
+        aria-current={mode === "lineup" ? "page" : undefined}
+        onClick={() => onChange("lineup")}
+        type="button"
+      >
+        編成
+      </button>
+      <button
+        aria-current={mode === "dynamics" ? "page" : undefined}
+        onClick={() => onChange("dynamics")}
+        type="button"
+      >
+        チーム状態
+      </button>
+    </nav>
+  );
+}
+
 export function PlayerHubScreen({
   state,
   selection,
   onChange,
+  onAssignLeadership,
+  leadershipPending = false,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
@@ -59,21 +120,30 @@ export function PlayerHubScreen({
   if (mode === "lineup") {
     return (
       <div className="player-hub">
-        <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
-          <button onClick={() => setMode("roster")} type="button">
-            選手一覧
-          </button>
-          <button aria-current="page" type="button">
-            編成
-          </button>
-        </nav>
+        <HubTabs mode={mode} onChange={setMode} />
         <TeamScreen onChange={onChange} selection={selection} state={state} />
       </div>
     );
   }
 
+  if (mode === "dynamics") {
+    return (
+      <main className="app-content player-hub">
+        <HubTabs mode={mode} onChange={setMode} />
+        <TeamDynamicsPanel
+          onAssignLeadership={onAssignLeadership}
+          pending={leadershipPending}
+          state={state}
+        />
+      </main>
+    );
+  }
+
   if (selectedPlayer) {
     const abilities = summarizePlayerAbilities(selectedPlayer);
+    const role =
+      state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
+    const concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
     return (
       <main className="app-content player-hub player-detail">
         <button
@@ -126,20 +196,39 @@ export function PlayerHubScreen({
             <strong>{selectedPlayer.morale}</strong>
           </article>
         </section>
+        <section className="player-detail__dynamics" aria-label="選手ダイナミクス">
+          <article>
+            <span>役割</span>
+            <strong>{roleLabels[role]}</strong>
+          </article>
+          <article>
+            <span>信頼</span>
+            <strong>{selectedPlayer.trust}</strong>
+          </article>
+          <article>
+            <span>士気</span>
+            <strong>{selectedPlayer.morale}</strong>
+          </article>
+        </section>
+        {concerns.length > 0 ? (
+          <section className="player-detail__concerns" aria-label="選手の気になる状態">
+            <h3>気になる状態</h3>
+            <ul>
+              {concerns.map((concern, index) => (
+                <li key={`${concern.code}:${index}`}>
+                  {concernLabels[concern.code]}・重要度 {concern.severity}/3
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </main>
     );
   }
 
   return (
     <main className="app-content player-hub">
-      <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
-        <button aria-current="page" type="button">
-          選手一覧
-        </button>
-        <button onClick={() => setMode("lineup")} type="button">
-          編成
-        </button>
-      </nav>
+      <HubTabs mode={mode} onChange={setMode} />
       <section className="player-hub__heading">
         <div>
           <p className="section-kicker">PLAYER ROSTER</p>
