@@ -231,7 +231,14 @@ function applyPracticeMatch(
   }
 
   try {
-    const opponent = selectPracticeOpponent(state);
+    const scheduledOpponentId =
+      state.weeklySchedule.practiceMatch.scheduledOpponentId;
+    const opponent = scheduledOpponentId
+      ? state.schools[scheduledOpponentId]
+      : selectPracticeOpponent(state);
+    if (!opponent) {
+      throw new Error("scheduled practice opponent not found");
+    }
     const opponentSelection = autoSelectTeam({
       state,
       schoolId: opponent.id,
