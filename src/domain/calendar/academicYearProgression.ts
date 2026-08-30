@@ -37,6 +37,7 @@ export interface AdvanceGameWeekResult extends WeekProgressionResult {
 
 export interface AcademicYearProgressionOptions {
   userIntake?: readonly Player[];
+  restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
 function academicYearStartYear(date: GameDate): number {
@@ -473,7 +474,9 @@ export function advanceGameWeek(
   data: GameDataRegistry,
   options: AcademicYearProgressionOptions = {},
 ): AdvanceGameWeekResult {
-  const weeklyBase = advanceOneWeek(state);
+  const weeklyBase = advanceOneWeek(state, {
+    restingPlayerIds: options.restingPlayerIds,
+  });
   const weekly = {
     ...weeklyBase,
     state: advanceOfficialTournamentsThroughWeek(weeklyBase.state),
