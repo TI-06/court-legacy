@@ -194,9 +194,7 @@ function applyPracticeScheduling(
     GameAction,
     {
       type:
-        | "practice-offer-accept"
-        | "practice-offer-decline"
-        | "practice-request";
+        "practice-offer-accept" | "practice-offer-decline" | "practice-request";
     }
   >,
 ): AppliedGameAction {
