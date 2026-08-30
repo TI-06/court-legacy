@@ -36,6 +36,17 @@ function createSnapshot(): CloudGameSnapshot {
   };
 }
 
+function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
+  const opponent = Object.values(snapshot.state.schools).find(
+    (school) => school.id !== snapshot.state.userSchoolId,
+  );
+  if (!opponent) {
+    throw new Error("practice opponent fixture missing");
+  }
+  snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+  snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+}
+
 function authClient(): AuthClient {
   return {
     getSession: vi.fn().mockResolvedValue(session),
@@ -115,8 +126,9 @@ describe("GameApp cloud actions", () => {
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
   });
 
-  it("requests a practice match from the server and renders only its returned simulation", async () => {
+  it("requests a scheduled practice match from the server and renders only its returned simulation", async () => {
     const snapshot = createSnapshot();
+    schedulePracticeOpponent(snapshot);
     const applyAction = vi.fn(
       async (_accessToken: string, request: GameActionRequest) =>
         responseFor(snapshot, request),
