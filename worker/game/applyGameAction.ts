@@ -16,7 +16,6 @@ import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { matchId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
-import { selectPracticeOpponent } from "../../src/domain/selectors/matchSelectors";
 import {
   evaluateFacilityUpgrade,
   upgradeFacility,
@@ -230,12 +229,16 @@ function applyPracticeMatch(
     );
   }
 
+  const scheduledOpponentId = state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  if (!scheduledOpponentId) {
+    return conflict(
+      "practice_match_not_scheduled",
+      "練習試合の対戦相手を決めてください",
+    );
+  }
+
   try {
-    const scheduledOpponentId =
-      state.weeklySchedule.practiceMatch.scheduledOpponentId;
-    const opponent = scheduledOpponentId
-      ? state.schools[scheduledOpponentId]
-      : selectPracticeOpponent(state);
+    const opponent = state.schools[scheduledOpponentId];
     if (!opponent) {
       throw new Error("scheduled practice opponent not found");
     }
