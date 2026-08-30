@@ -91,9 +91,7 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
   await expect(page.getByLabel("チーム結束力")).toContainText("1");
-  await page
-    .getByLabel("主将", { exact: true })
-    .selectOption(captainPlayerId);
+  await page.getByLabel("主将", { exact: true }).selectOption(captainPlayerId);
   await page
     .getByLabel("副主将", { exact: true })
     .selectOption(viceCaptainPlayerId);
