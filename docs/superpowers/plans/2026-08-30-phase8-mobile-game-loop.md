@@ -40,17 +40,15 @@ export const PRACTICE_REPEAT_MULTIPLIERS = [1, 0.7, 0.4, 0.2] as const;
 export const PRACTICE_HISTORY_LIMIT = 12;
 export const PRACTICE_HISTORY_WINDOW_WEEKS = 12;
 
-// Relative-strength growth signal.
 strengthFactor = clamp(opponentStrength / Math.max(1, homeStrength), 0.75, 1.35);
 
-// One roll per participating user player.
 growthChancePercent = Math.min(
   65,
   Math.round(28 * strengthFactor * repeatMultiplier),
 );
 ```
 
-On a successful growth roll, add `+1` to one deterministic position-relevant ability. Participating user players receive trust `+1`; morale is `+2` on a win and `+1` on a loss. User-school cohesion is `+2` on a win and `+1` on a loss. Reputation-point gain is bounded to `0..5`:
+On a successful growth roll, add `+1` to one deterministic position-relevant ability using the exact position pools in the clarification file. Participating user players receive trust `+1`; morale is `+2` on a win and `+1` on a loss. User-school cohesion is `+2` on a win and `+1` on a loss. Reputation-point gain is bounded to `0..5`:
 
 ```ts
 const reputationDelta = won
@@ -76,6 +74,8 @@ Resting players receive the existing standard weekly recovery plus an extra fati
 
 **Interfaces:**
 
+The persisted `WeeklyScheduleState` and `WeeklyReport` interfaces must use the exact normative definitions from `2026-08-30-phase8-mobile-game-loop-clarifications.md`, including persisted training-growth details and rest before/after values. The practice-planning portion is:
+
 ```ts
 export type PracticeMatchCandidateTier = "same" | "stronger" | "challenge";
 export type PracticeMatchCandidateStatus = "available" | "rejected" | "accepted";
@@ -97,29 +97,6 @@ export interface PracticeMatchCandidate {
 export interface PracticeMatchHistoryEntry {
   opponentSchoolId: SchoolId;
   date: GameDate;
-}
-
-export interface WeeklyReportMatchSummary {
-  opponentSchoolId: SchoolId;
-  opponentDisplayName: string;
-  homeSetsWon: number;
-  awaySetsWon: number;
-  won: boolean;
-}
-
-export interface WeeklyReport {
-  weekStartDate: GameDate;
-  weekEndDate: GameDate;
-  trainingMenuId: string;
-  restingPlayerIds: PlayerId[];
-  grownPlayerIds: PlayerId[];
-  injuredPlayerIds: PlayerId[];
-  healedPlayerIds: PlayerId[];
-  practiceMatch: WeeklyReportMatchSummary | null;
-  practiceMatchSkippedReason: "insufficient-players" | null;
-  cohesionDelta: number;
-  reputationDelta: number;
-  nextIncomingOfferSchoolId: SchoolId | null;
 }
 
 export interface WeeklyScheduleState {
@@ -162,8 +139,6 @@ Also decode the same serialized v4 payload twice and assert identical `weeklySch
 `phase8InitialWorld.test.ts` must prove a newly generated game has schema 5, two valid focus-player IDs from the user roster, no scheduled practice match, bounded empty recent history, and no extra RNG consumed after world creation solely to initialize the schedule.
 
 - [ ] **Step 3: Run focused tests and verify RED.**
-
-Run:
 
 ```bash
 npx vitest run tests/unit/persistence/phase8GameStateMigration.test.ts tests/unit/domain/generation/phase8InitialWorld.test.ts
@@ -220,13 +195,14 @@ export function selectAutomaticRest(
   state: GameState,
   schoolId: SchoolId,
 ): AutoRestDecision[];
-```
 
-Extend training and week progression without breaking existing callers:
-
-```ts
 export interface ResolveWeeklyTrainingInput {
-  // existing fields...
+  state: GameState;
+  schoolId: SchoolId;
+  plan: WeeklyPlan;
+  data: GameDataRegistry;
+  random: RandomSource;
+  additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
   restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
@@ -244,23 +220,29 @@ export interface AcademicYearProgressionOptions {
 
 - [ ] **Step 1: Write threshold RED tests.**
 
-Cover exact boundaries:
+Cover exact boundaries with valid `Player` fixtures. For injury, use a complete `PlayerInjury` value such as:
 
 ```ts
-// participates
-fatigue = 64; condition = 36; injury = null;
-
-// rests
-fatigue = 65;
-condition = 35;
-injury = { ... };
+const injury: PlayerInjury = {
+  injuryId: "phase8-test-injury",
+  severity: "minor",
+  remainingWeeks: 2,
+  recurrenceRisk: 10,
+};
 ```
+
+Assertions:
+
+- fatigue 64, condition 36, injury null -> participates;
+- fatigue 65 -> rests for `fatigue`;
+- condition 35 -> rests for `condition`;
+- injury -> rests for `injury`.
 
 If multiple rest reasons apply, precedence is `injury`, then `fatigue`, then `condition`, so the report is stable.
 
 - [ ] **Step 2: Write training RED tests proving resting players receive zero training activity and zero individual-assignment execution.**
 
-A focus player who is in `restingPlayerIds` must have `skippedReason === "auto-rest"`, no ability growth, no training fatigue increase, and no activity-specific RNG consumption. Run the same fixture with/without that resting player and assert later non-resting players still produce deterministic results for their own consumed stream ordering as defined by the implementation.
+A focus player who is in `restingPlayerIds` must have `skippedReason === "auto-rest"`, no ability growth, no training fatigue increase, and no activity-specific RNG consumption. Re-running the same exact state/plan/rest set must produce an identical result and random cursor.
 
 - [ ] **Step 3: Write recovery RED tests.**
 
@@ -274,7 +256,7 @@ npx vitest run tests/unit/domain/weekly/autoRest.test.ts tests/unit/domain/train
 
 - [ ] **Step 5: Implement minimal rest selection, training skip support, and optional rest-aware recovery propagation through `advanceGameWeek`.**
 
-Do not change official-match eligibility here.
+Do not change official-match availability in this task; the exact official-week policy is Task 5 plus the clarification file.
 
 - [ ] **Step 6: Run focused tests and typecheck.**
 
@@ -308,10 +290,7 @@ export interface PracticePlanningResult {
   outgoingCandidates: PracticeMatchCandidate[];
 }
 
-export function buildPracticePlanning(
-  state: GameState,
-): PracticePlanningResult;
-
+export function buildPracticePlanning(state: GameState): PracticePlanningResult;
 export function acceptIncomingPracticeOffer(state: GameState): GameState;
 export function declineIncomingPracticeOffer(state: GameState): GameState;
 export function requestPracticeMatch(
@@ -320,33 +299,15 @@ export function requestPracticeMatch(
 ): { state: GameState; accepted: boolean };
 ```
 
-Planning randomness must be derived from a forked deterministic seed label such as:
-
-```ts
-new SeededRandom(state.seed).fork(
-  `practice-planning:${state.date}:${state.userSchoolId}`,
-);
-```
-
-It must not advance `state.randomCursor` just to render or rebuild the same week’s offer list.
-
-Candidate generation rules:
-
-- Exclude user school.
-- Exclude schools already duplicated in the three slots.
-- Prefer one same/slightly weaker, one stronger, one challenge target using calculated team strength.
-- If world distribution cannot fill a tier, deterministically fall back to the nearest unused school by strength, then school ID.
-- `acceptancePercent` is clamped to `5..95` and derived from reputation-point gap, relative strength, and recent meeting count.
-- A due official match yields `incomingOffer: null` and `outgoingCandidates: []`.
-- Once a practice match is scheduled, another accept/request attempt must be rejected by the domain helper.
+Planning randomness is derived from forked seed labels based on seed/date/user/opponent and never advances `state.randomCursor`. Use the exact incoming chances, target ratios, candidate tier bands, acceptance formula, and display-rating mapping in the clarification file.
 
 - [ ] **Step 1: Write RED tests for deterministic generation and uniqueness.**
 
 Assert identical state gives byte-equal planning, randomCursor remains unchanged, exactly three candidates are returned when at least three opponents exist, and candidates are unique.
 
-- [ ] **Step 2: Write RED tests for reputation and official-week behavior.**
+- [ ] **Step 2: Write exact-value RED tests for incoming chance/target ratio and outgoing acceptance.**
 
-Use low- and high-reputation copies of the same world to prove higher reputation does not reduce incoming-offer probability/quality under controlled deterministic samples. Prove a due official match produces no practice planning.
+Assert all six `SchoolReputation` mappings from the clarification file, tier-boundary selection, acceptance clamping to `5..95`, recent-meeting `-15` per meeting, and official-week suppression.
 
 - [ ] **Step 3: Write RED tests for accept/decline/outgoing request.**
 
@@ -395,19 +356,13 @@ git commit -m "feat: add practice match planning"
 
 **Interfaces:**
 
-Extend auto-selection only through an optional filter so existing official/PvP callers retain current behavior:
-
 ```ts
 export interface AutoSelectTeamInput {
   state: GameState;
   schoolId: SchoolId;
   unavailablePlayerIds?: ReadonlySet<PlayerId>;
 }
-```
 
-Practice resolver:
-
-```ts
 export interface PracticeMatchResolution {
   state: GameState;
   simulation: SimulateMatchResult | null;
@@ -437,10 +392,13 @@ With deterministic seeds, prove:
 
 - stronger opponent produces a greater or equal growth chance than weaker opponent;
 - every successful ability mutation is exactly `+1` and remains <=100;
+- all five positions use the exact ability pools in the clarification file;
+- when a selected ability is 100, growth rotates to the next eligible pool ability below 100;
+- if the entire position pool is 100, no unrelated ability grows;
 - only active user participants receive practice growth/trust/morale changes;
 - a loss can still produce growth;
-- repeat-opponent multiplier reduces expected growth signal;
-- cohesion and reputation deltas are exactly bounded by the approved constants.
+- repeat-opponent multiplier reduces growth chance;
+- cohesion and reputation deltas exactly match the approved constants.
 
 - [ ] **Step 4: Write RED tests for full scheduled match resolution.**
 
@@ -485,10 +443,12 @@ git commit -m "feat: resolve practice match growth"
 **Files:**
 
 - Create: `src/domain/weekly/sanitizeWeeklySchedule.ts`
+- Create: `src/domain/weekly/resolveOfficialWeekSelection.ts`
 - Create: `src/domain/weekly/resolveWeeklyCycle.ts`
 - Modify: `src/domain/calendar/academicYearProgression.ts`
 - Modify: `src/domain/weekly/createWeeklySchedule.ts`
 - Create: `tests/unit/domain/weekly/sanitizeWeeklySchedule.test.ts`
+- Create: `tests/unit/domain/weekly/resolveOfficialWeekSelection.test.ts`
 - Create: `tests/unit/domain/weekly/resolveWeeklyCycle.test.ts`
 - Modify: `tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts`
 
@@ -517,7 +477,7 @@ export interface ResolveWeeklyCycleResult {
 }
 ```
 
-`sanitizeWeeklyTrainingPlan` must keep a valid existing plan but replace graduated/missing focus players and missing menu/instruction IDs deterministically. It must never choose the same player twice.
+`sanitizeWeeklyTrainingPlan` keeps a valid existing plan but deterministically replaces graduated/missing focus players and missing menu/instruction IDs without duplicate focus players.
 
 Weekly order for implementation:
 
@@ -525,28 +485,32 @@ Weekly order for implementation:
 2. calculate automatic rest once from start-of-week state;
 3. resolve weekly training using rest set and shop boost;
 4. consume shop boost only after successful training;
-5. if official match is due: require confirmation and resolve the official match; otherwise resolve the scheduled practice match;
+5. if official match is due: require confirmation, resolve the exact hard/soft availability policy from the clarification file, then resolve the official match; otherwise resolve the scheduled practice match;
 6. progress academic/calendar week with rest-aware recovery;
 7. apply annual transition when crossing April and re-auto-select team as existing code does;
 8. surface the next pending event using existing event pipeline if no annual transition blocks it;
 9. sanitize carried-forward training plan against the new roster;
-10. generate next week’s practice offer/candidates (or none when an official match is due);
-11. create/persist the bounded weekly report;
+10. generate next week’s practice offer/candidates, or none when an official match is due;
+11. create/persist the detailed-but-single bounded weekly report defined in the clarification file;
 12. return full simulation only in `WeeklyCycleOutcome`, not in persisted report.
 
 - [ ] **Step 1: Write schedule-sanitization RED tests.**
 
 Cover graduated focus player, duplicated focus players, missing instruction, and missing menu. Assert deterministic repair and unchanged valid plan.
 
-- [ ] **Step 2: Write normal-week RED tests.**
+- [ ] **Step 2: Write official-selection RED tests.**
 
-Prove one call performs training + optional practice + recovery + date progression + next planning + report. Assert no `completedActivityIds` marker is required for the new flow.
+Cover the seven exact cases in the clarification file, including hard injury exclusion, soft fatigue/condition avoidance, fallback to soft players only when needed, immutable input selection, and `official_match_insufficient_players`.
 
-- [ ] **Step 3: Write shop-boost RED test.**
+- [ ] **Step 3: Write normal-week RED tests.**
+
+Prove one call performs training + optional practice + recovery + date progression + next planning + detailed report. Assert no `completedActivityIds` marker is required for the new flow.
+
+- [ ] **Step 4: Write shop-boost RED test.**
 
 Set `nextTrainingGrowthBoost`, resolve one weekly cycle, assert modifier appears in training result and `shopEffects.nextTrainingGrowthBoost` is consumed exactly once. Replaying from the original immutable input must produce the same result; applying to the returned state must not reuse the boost.
 
-- [ ] **Step 4: Write official-week RED tests.**
+- [ ] **Step 5: Write official-week RED tests.**
 
 When `findDueUserOfficialMatch` returns a due match:
 
@@ -555,30 +519,30 @@ When `findDueUserOfficialMatch` returns a due match:
 - practice schedule is not resolved in an official week;
 - official simulation remains deterministic and uses `buildPveDynamicsReadinessByPlayerId`.
 
-Extract/reuse the current official-match resolution logic rather than duplicating it in Worker. A focused helper under `src/domain/weekly` may call tournament materialization/recording functions.
+Extract/reuse the current official-match resolution logic rather than duplicating it in Worker.
 
-- [ ] **Step 5: Write academic-year RED tests.**
+- [ ] **Step 6: Write academic-year RED tests.**
 
 Advance across April and prove graduated focus players are replaced, weekly history remains bounded, team selection is rebuilt, and Phase 7 leadership/dynamics rollover tests still pass.
 
-- [ ] **Step 6: Run RED.**
+- [ ] **Step 7: Run RED.**
 
 ```bash
-npx vitest run tests/unit/domain/weekly/sanitizeWeeklySchedule.test.ts tests/unit/domain/weekly/resolveWeeklyCycle.test.ts tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts
+npx vitest run tests/unit/domain/weekly/sanitizeWeeklySchedule.test.ts tests/unit/domain/weekly/resolveOfficialWeekSelection.test.ts tests/unit/domain/weekly/resolveWeeklyCycle.test.ts tests/unit/domain/calendar/phase7DynamicsYearProgression.test.ts
 ```
 
-- [ ] **Step 7: Implement resolver and pure helper extraction.**
+- [ ] **Step 8: Implement resolver and pure helper extraction.**
 
-Keep Worker orchestration thin; the resolver should be testable without HTTP or persistence.
+Keep Worker orchestration thin; the resolver must be testable without HTTP or persistence.
 
-- [ ] **Step 8: Run GREEN plus calendar/tournament/training suites.**
+- [ ] **Step 9: Run GREEN plus calendar/tournament/training suites.**
 
 ```bash
 npx vitest run tests/unit/domain/weekly tests/unit/domain/calendar tests/unit/domain/training tests/unit/domain/tournament
 npm run typecheck
 ```
 
-- [ ] **Step 9: Commit.**
+- [ ] **Step 10: Commit.**
 
 ```bash
 git add src/domain/weekly src/domain/calendar tests/unit/domain/weekly tests/unit/domain/calendar
@@ -597,9 +561,7 @@ git commit -m "feat: add atomic weekly game cycle"
 - Modify: `tests/unit/worker/applyGameAction.test.ts`
 - Modify: `tests/unit/app/createBrowserAppDependencies.test.ts`
 
-**Interfaces:**
-
-Add the new actions while temporarily retaining legacy action variants until Task 13 removes them after all UI callers migrate:
+**Temporary action union during migration:**
 
 ```ts
 export type GameAction =
@@ -607,8 +569,20 @@ export type GameAction =
   | { type: "respond-practice-offer"; decision: "accept" | "decline" }
   | { type: "request-practice-match"; opponentSchoolId: SchoolId }
   | { type: "advance-week"; confirmOfficialMatch?: boolean }
-  | /* existing team/leadership/facility/event + temporary legacy variants */;
+  | { type: "team-selection"; selection: TeamSelection }
+  | {
+      type: "set-team-leadership";
+      captainPlayerId: PlayerId;
+      viceCaptainPlayerId: PlayerId;
+    }
+  | { type: "facility-upgrade"; facility: FacilityKey }
+  | { type: "event-choice"; choiceId: string }
+  | { type: "training"; plan: WeeklyPlan }
+  | { type: "practice-match" }
+  | { type: "official-match" };
 ```
+
+The final three legacy weekly variants are removed in Task 13 after every UI caller migrates.
 
 `set-weekly-training-plan` validates/sanitizes the submitted plan against the current user roster and game data but does **not** execute training.
 
@@ -826,7 +800,7 @@ git commit -m "feat: add practice match planning UI"
 
 `次の週へ` is enabled whenever no unresolved blocking confirmation is required. It no longer depends on a separate training-completed flag.
 
-Weekly report sheet/card displays persisted `state.weeklySchedule.latestReport` and, immediately after an action, can expose `試合詳細を見る` if the current session has a simulation result.
+Weekly report sheet/card displays persisted `state.weeklySchedule.latestReport`, including the clarification file’s ability deltas and rest before/after values. Immediately after an action it can expose `試合詳細を見る` if the current session has a simulation result.
 
 - [ ] **Step 1: Rewrite Home RED tests to the new information hierarchy.**
 
@@ -834,7 +808,7 @@ Assert the screen shows the weekly plan, rest count, scheduled/offer state, offi
 
 - [ ] **Step 2: Write weekly-report RED tests.**
 
-Cover training menu, resting players, growth count, injury/heal changes, practice result/skipped reason, cohesion/reputation delta, and optional detail button.
+Cover training menu, exact ability changes, rest fatigue/condition before-after values, injury/heal changes, practice/official match result or practice skipped reason, cohesion/reputation delta, and optional detail button.
 
 - [ ] **Step 3: Add a compactness DOM contract test.**
 
@@ -934,7 +908,6 @@ git commit -m "feat: integrate official matches with weekly cycle"
 **Files:**
 
 - Create: `src/ui/presentation/positionLabels.ts`
-- Modify: `src/domain/selectors/playerPresentation.ts` only if shared presentation helpers belong there; otherwise keep domain math unchanged.
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/player-hub.css`
 - Modify: `src/features/team/TeamScreen.tsx`
@@ -1049,9 +1022,9 @@ const forbidden = [
 
 `VS` may remain only when it is semantically part of a compact score matchup rather than decorative English copy; `HOME`/`AWAY` must not be shown as team labels.
 
-- [ ] **Step 1: Create a RED representative-render test that finds the current labels.**
+- [ ] **Step 1: Create a RED representative-render test that scans each primary screen.**
 
-Render Home, Training, Match/Practice entry, Team, Tournament, and More through the existing App/test harness where practical. The test should fail if any forbidden exact label is visible.
+Render Home, Training, Match/Practice entry, Team, Tournament, and More through deterministic test fixtures. The test fails if any forbidden exact label is visible.
 
 - [ ] **Step 2: Run RED.**
 
@@ -1085,7 +1058,7 @@ git commit -m "feat: localize primary game UI to Japanese"
 
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
-- Modify: `src/domain/calendar/weekProgression.ts` only if legacy completion helpers become unused.
+- Modify: `src/domain/calendar/weekProgression.ts` if repository search shows its legacy weekly-completion helpers are unused.
 - Modify: `src/app/GameApp.tsx`
 - Modify: `tests/unit/worker/actionSchema.test.ts`
 - Modify: `tests/unit/worker/applyGameAction.test.ts`
@@ -1102,23 +1075,7 @@ After all browser/UI callers use the new flow, remove action variants:
 
 No browser can execute these phases independently after Phase 8.
 
-PvP isolation must explicitly clear weekly state in the synthetic simulation state even though frozen DTOs already project only school/players/selection:
-
-```ts
-state.weeklySchedule = {
-  ...state.weeklySchedule,
-  practiceMatch: {
-    incomingOffer: null,
-    outgoingCandidates: [],
-    scheduledOpponentId: null,
-    scheduledBy: null,
-  },
-  recentPracticeMatches: [],
-  latestReport: null,
-};
-```
-
-Better still, if ranked simulation does not require weekly state at all, add a dedicated neutral weekly schedule factory for PvP rather than copying challenger schedule metadata. Do not delete `teamDynamics` from `GameState` if the type requires it; existing ranked readiness isolation remains the controlling behavior.
+PvP isolation must neutralize weekly state in any synthetic ranked `GameState` because schema v5 requires the field, while the public frozen DTO continues to omit weekly state entirely. Use a dedicated neutral weekly-schedule factory rather than copying challenger schedule metadata.
 
 - [ ] **Step 1: Add RED schema tests proving legacy action payloads are rejected.**
 
@@ -1167,11 +1124,11 @@ git commit -m "refactor: enforce atomic weekly actions"
 **E2E required flows:**
 
 1. **Training plan persistence** — open `育成`, change plan, save, switch tabs/reload, plan remains.
-2. **Incoming practice offer** — accept when fixture provides one, Home shows scheduled opponent.
-3. **Outgoing practice request** — request an available candidate, observe deterministic accept/reject UI.
+2. **Incoming practice offer** — use a deterministic E2E snapshot whose persisted weekly schedule contains an incoming offer; accept it and verify Home shows the scheduled opponent.
+3. **Outgoing practice request** — use a deterministic E2E snapshot with three available candidates; request one and observe the deterministic accept/reject UI.
 4. **Weekly advance** — Home `次の週へ` executes training/rest/practice atomically and shows weekly report.
 5. **Optional replay** — when report contains a match, `試合詳細を見る` opens the existing computed match presentation without a second simulation/action.
-6. **Automatic rest** — E2E fixture with fatigue 65+ shows player in rest preview/report and excludes them from practice participation.
+6. **Automatic rest** — E2E snapshot with fatigue 65+ shows player in rest preview/report and excludes them from practice participation.
 7. **Official week** — due official match requires confirmation and completes training + official + week progression in one action.
 8. **Tournament views** — `自校ルート` and `全体表` have no page/body horizontal overflow.
 9. **Player detail** — at 390x844, identity/abilities/condition area is visible without the old giant hero; no image/initial-character hero.
@@ -1197,7 +1154,7 @@ README update must include:
 - Phase 8 mobile bracket is vertical/no horizontal bracket requirement;
 - existing production dependency audit and known nonblocking warnings must not be described as fixed unless verification proves otherwise.
 
-- [ ] **Step 1: Rewrite/add E2E tests before final UI verification and confirm at least the newly changed assertions fail against pre-Phase8 behavior if run on the old commit.**
+- [ ] **Step 1: Rewrite/add E2E tests before final UI verification and confirm the new assertions are RED against the pre-Phase8 commit before using the Phase8 branch.**
 
 - [ ] **Step 2: Add 30-year/100-year weekly-cycle tests.**
 
@@ -1264,15 +1221,17 @@ Before opening/merging the Phase 8 implementation PR, verify all of the followin
 - [ ] Practice planning is deterministic and does not mutate randomCursor merely by viewing/reloading.
 - [ ] At most one practice match can be scheduled/resolved per normal week.
 - [ ] Official weeks do not allow practice scheduling.
-- [ ] Practice growth uses exact approved repeat/strength constants and bounded history.
+- [ ] Practice growth uses exact approved repeat/strength/position constants and bounded history.
 - [ ] One `advance-week` operation resolves the normal weekly transaction without intermediate persisted phases.
 - [ ] Official confirmation resolves training + official match + week advance atomically.
+- [ ] Injured players never play official matches; fatigue/condition soft-avoid follows the clarification policy.
 - [ ] Shop training boost is consumed exactly once inside the weekly cycle.
 - [ ] Pending events retain explicit player-choice semantics.
 - [ ] Ranked PvP does not expose/apply weekly transient metadata.
 - [ ] Home is the compact weekly command center and no longer requires manual training completion.
 - [ ] Training screen is a plan editor, not an execution screen.
 - [ ] Practice Match screen is invitation/application planning, not unlimited manual match execution.
+- [ ] Persisted weekly report can render ability changes and rest before/after values after reload.
 - [ ] Player detail has no large character/initial hero.
 - [ ] Tournament default is vertical user route; full bracket is vertical and page-level horizontal scrolling is absent.
 - [ ] Primary user-visible decorative English labels are removed/translated.
