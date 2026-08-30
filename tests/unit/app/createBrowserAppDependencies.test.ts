@@ -8,6 +8,32 @@ describe("createBrowserAppDependencies E2E harness", () => {
     window.sessionStorage.clear();
   });
 
+  it("starts in persistent local mode when Supabase auth is not configured", async () => {
+    const first = createBrowserAppDependencies({});
+    const session = await first.auth.getSession();
+
+    expect(session).toMatchObject({
+      userId: "e2e-user",
+      accessToken: "e2e-access-token",
+    });
+
+    const initial = await first.api.bootstrap(session!.accessToken);
+    expect(initial.status).toBe("ready");
+    if (initial.status !== "ready") return;
+
+    await first.api.applyAction(session!.accessToken, {
+      operationId: "op-local-fallback-1",
+      revision: initial.game.revision,
+      action: { type: "facility-upgrade", facility: "trainingRoom" },
+    });
+
+    const second = createBrowserAppDependencies({});
+    const reloaded = await second.api.bootstrap(session!.accessToken);
+    expect(reloaded.status).toBe("ready");
+    if (reloaded.status !== "ready") return;
+    expect(reloaded.game.revision).toBe(initial.game.revision + 1);
+  });
+
   it("does not import server-only scouting or shop authority into the browser adapter", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/createBrowserAppDependencies.ts"),
