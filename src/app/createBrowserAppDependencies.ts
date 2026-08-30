@@ -796,34 +796,6 @@ class StaticGameApiClient implements GameApiClient {
   }
 }
 
-class UnavailableAuthClient implements AuthClient {
-  private error(): Error {
-    return new Error(
-      "認証設定が見つかりません。Supabaseの公開設定を確認してください。",
-    );
-  }
-
-  async getSession(): Promise<null> {
-    throw this.error();
-  }
-
-  subscribe(): () => void {
-    return () => undefined;
-  }
-
-  async signInWithGoogle(): Promise<void> {
-    throw this.error();
-  }
-
-  async signInWithEmail(): Promise<void> {
-    throw this.error();
-  }
-
-  async signOut(): Promise<void> {
-    throw this.error();
-  }
-}
-
 function browserEnvironment(): BrowserAppEnvironment {
   return {
     MODE: import.meta.env.MODE,
@@ -851,11 +823,13 @@ export function createBrowserAppDependencies(
     };
   }
 
-  const api = new HttpGameApiClient();
   const url = env.VITE_SUPABASE_URL?.trim();
   const publishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
   if (!url || !publishableKey) {
-    return { auth: new UnavailableAuthClient(), api };
+    return {
+      auth: new MockAuthClient({ persistAcrossReloads: true }),
+      api: new StaticGameApiClient(true),
+    };
   }
 
   return {
@@ -863,6 +837,6 @@ export function createBrowserAppDependencies(
       VITE_SUPABASE_URL: url,
       VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
     }),
-    api,
+    api: new HttpGameApiClient(),
   };
 }
