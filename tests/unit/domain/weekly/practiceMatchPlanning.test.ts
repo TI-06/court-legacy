@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import {
-  createInitialWeeklySchedule,
-} from "../../../../src/domain/weekly/createWeeklySchedule";
+import { createInitialWeeklySchedule } from "../../../../src/domain/weekly/createWeeklySchedule";
 
 describe("Phase 8 practice-match planning", () => {
   it("creates three unique deterministic outgoing candidates without consuming randomCursor", () => {
