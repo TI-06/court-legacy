@@ -1,11 +1,14 @@
-import type { GameState } from "../model/GameState";
 import type { WeeklyPlan } from "../training/resolveWeeklyTraining";
+import {
+  buildInitialPracticePlanning,
+  type PracticePlanningSource,
+} from "./practiceMatchPlanning";
 import type { WeeklyScheduleState } from "./weeklyScheduleTypes";
 
-type WeeklyScheduleSource = Pick<GameState, "userSchoolId" | "schools">;
+type WeeklyScheduleSource = PracticePlanningSource;
 
 export function createDefaultWeeklyPlan(
-  state: WeeklyScheduleSource,
+  state: Pick<WeeklyScheduleSource, "userSchoolId" | "schools">,
 ): WeeklyPlan {
   const school = state.schools[state.userSchoolId];
   if (!school) {
@@ -35,11 +38,12 @@ export function createDefaultWeeklyPlan(
 export function createInitialWeeklySchedule(
   state: WeeklyScheduleSource,
 ): WeeklyScheduleState {
+  const practicePlanning = buildInitialPracticePlanning(state);
+
   return {
     trainingPlan: createDefaultWeeklyPlan(state),
     practiceMatch: {
-      incomingOffer: null,
-      outgoingCandidates: [],
+      ...practicePlanning,
       scheduledOpponentId: null,
       scheduledBy: null,
     },
