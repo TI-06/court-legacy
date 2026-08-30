@@ -1,6 +1,9 @@
 import { z } from "zod";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
-import type { PlayerId } from "../../src/domain/model/identifiers";
+import type {
+  PlayerId,
+  SchoolId,
+} from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
@@ -82,6 +85,14 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
+  z.object({ type: z.literal("practice-offer-accept") }).strict(),
+  z.object({ type: z.literal("practice-offer-decline") }).strict(),
+  z
+    .object({
+      type: z.literal("practice-request"),
+      schoolId: z.string().min(1),
+    })
+    .strict(),
   z.object({ type: z.literal("official-match") }).strict(),
   z.object({ type: z.literal("advance-week") }).strict(),
   z
@@ -112,6 +123,9 @@ export type GameAction =
       viceCaptainPlayerId: PlayerId;
     }
   | { type: "practice-match" }
+  | { type: "practice-offer-accept" }
+  | { type: "practice-offer-decline" }
+  | { type: "practice-request"; schoolId: SchoolId }
   | { type: "official-match" }
   | { type: "advance-week" }
   | { type: "facility-upgrade"; facility: FacilityKey }
