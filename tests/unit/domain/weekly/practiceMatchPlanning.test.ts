@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { createInitialWeeklySchedule } from "../../../../src/domain/weekly/createWeeklySchedule";
+import {
+  createInitialWeeklySchedule,
+} from "../../../../src/domain/weekly/createWeeklySchedule";
 
 describe("Phase 8 practice-match planning", () => {
   it("creates three unique deterministic outgoing candidates without consuming randomCursor", () => {
@@ -15,7 +17,9 @@ describe("Phase 8 practice-match planning", () => {
     expect(first.practiceMatch.outgoingCandidates).toHaveLength(3);
     expect(
       new Set(
-        first.practiceMatch.outgoingCandidates.map((candidate) => candidate.schoolId),
+        first.practiceMatch.outgoingCandidates.map(
+          (candidate) => candidate.schoolId,
+        ),
       ).size,
     ).toBe(3);
     expect(
