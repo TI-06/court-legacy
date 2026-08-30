@@ -22,9 +22,7 @@ describe("Phase 8 initial world", () => {
     expect(
       new Set(assignments.map((assignment) => assignment.playerId)).size,
     ).toBe(2);
-    expect(
-      first.weeklySchedule.practiceMatch.scheduledOpponentId,
-    ).toBeNull();
+    expect(first.weeklySchedule.practiceMatch.scheduledOpponentId).toBeNull();
     expect(first.weeklySchedule.practiceMatch.scheduledBy).toBeNull();
     expect(first.weeklySchedule.recentPracticeMatches).toEqual([]);
     expect(first.weeklySchedule.latestReport).toBeNull();
