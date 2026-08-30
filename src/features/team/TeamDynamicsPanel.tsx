@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   calculateLeadershipSuitability,
   calculateRelationshipSignal,
@@ -20,6 +20,19 @@ interface TeamDynamicsPanelProps {
     captainPlayerId: PlayerId,
     viceCaptainPlayerId: PlayerId,
   ) => void | Promise<void>;
+}
+
+interface LeadershipCandidate {
+  player: Player;
+  suitability: number;
+}
+
+interface LeadershipEditorProps {
+  candidates: readonly LeadershipCandidate[];
+  captainPlayerId: PlayerId | null;
+  viceCaptainPlayerId: PlayerId | null;
+  pending: boolean;
+  onAssignLeadership: TeamDynamicsPanelProps["onAssignLeadership"];
 }
 
 const trendLabels: Record<CohesionTrend, string> = {
@@ -51,6 +64,96 @@ function relationshipLabel(value: number): string {
   if (value >= 70) return "良好";
   if (value <= 35) return "要注意";
   return "安定";
+}
+
+function LeadershipEditor({
+  candidates,
+  captainPlayerId: authoritativeCaptainPlayerId,
+  viceCaptainPlayerId: authoritativeViceCaptainPlayerId,
+  pending,
+  onAssignLeadership,
+}: LeadershipEditorProps) {
+  const [captainPlayerId, setCaptainPlayerId] = useState<string>(
+    authoritativeCaptainPlayerId ?? "",
+  );
+  const [viceCaptainPlayerId, setViceCaptainPlayerId] = useState<string>(
+    authoritativeViceCaptainPlayerId ?? "",
+  );
+  const canSave =
+    !pending &&
+    captainPlayerId.length > 0 &&
+    viceCaptainPlayerId.length > 0 &&
+    captainPlayerId !== viceCaptainPlayerId;
+
+  const saveLeadership = () => {
+    if (!canSave) return;
+    void onAssignLeadership(
+      captainPlayerId as PlayerId,
+      viceCaptainPlayerId as PlayerId,
+    );
+  };
+
+  return (
+    <section
+      className="team-dynamics__leadership"
+      aria-labelledby="leadership-heading"
+    >
+      <div className="team-dynamics__section-heading">
+        <div>
+          <p className="section-kicker">LEADERSHIP</p>
+          <h3 id="leadership-heading">役職を決める</h3>
+        </div>
+        <span>保存はサーバーで確定</span>
+      </div>
+      <div className="team-dynamics__selectors">
+        <label>
+          <span>主将</span>
+          <select
+            aria-label="主将"
+            disabled={pending}
+            onChange={(event) => setCaptainPlayerId(event.target.value)}
+            value={captainPlayerId}
+          >
+            <option value="">選択してください</option>
+            {candidates.map(({ player, suitability }) => (
+              <option key={player.id} value={player.id}>
+                {playerName(player)}・{player.grade}年・適性{suitability}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>副主将</span>
+          <select
+            aria-label="副主将"
+            disabled={pending}
+            onChange={(event) => setViceCaptainPlayerId(event.target.value)}
+            value={viceCaptainPlayerId}
+          >
+            <option value="">選択してください</option>
+            {candidates.map(({ player, suitability }) => (
+              <option key={player.id} value={player.id}>
+                {playerName(player)}・{player.grade}年・適性{suitability}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <button
+        className="team-dynamics__save"
+        disabled={!canSave}
+        onClick={saveLeadership}
+        type="button"
+      >
+        {pending ? "役職を保存しています…" : "役職を保存"}
+      </button>
+      {captainPlayerId && captainPlayerId === viceCaptainPlayerId ? (
+        <p className="team-dynamics__warning">
+          主将と副主将は別の選手を選んでください。
+        </p>
+      ) : null}
+    </section>
+  );
 }
 
 export function TeamDynamicsPanel({
@@ -91,37 +194,13 @@ export function TeamDynamicsPanel({
     state,
     school.playerIds,
   );
-  const [captainPlayerId, setCaptainPlayerId] = useState<string>(
-    dynamics.captainPlayerId ?? "",
-  );
-  const [viceCaptainPlayerId, setViceCaptainPlayerId] = useState<string>(
-    dynamics.viceCaptainPlayerId ?? "",
-  );
-
-  useEffect(() => {
-    setCaptainPlayerId(dynamics.captainPlayerId ?? "");
-    setViceCaptainPlayerId(dynamics.viceCaptainPlayerId ?? "");
-  }, [dynamics.captainPlayerId, dynamics.viceCaptainPlayerId]);
-
   const concerns = players.flatMap((player) =>
     (dynamics.playerConcerns[player.id] ?? []).map((concern) => ({
       player,
       concern,
     })),
   );
-  const canSave =
-    !pending &&
-    captainPlayerId.length > 0 &&
-    viceCaptainPlayerId.length > 0 &&
-    captainPlayerId !== viceCaptainPlayerId;
-
-  const saveLeadership = () => {
-    if (!canSave) return;
-    void onAssignLeadership(
-      captainPlayerId as PlayerId,
-      viceCaptainPlayerId as PlayerId,
-    );
-  };
+  const leadershipEditorKey = `${dynamics.captainPlayerId ?? "none"}:${dynamics.viceCaptainPlayerId ?? "none"}`;
 
   return (
     <section className="team-dynamics" aria-labelledby="team-dynamics-heading">
@@ -159,65 +238,14 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
-      <section
-        className="team-dynamics__leadership"
-        aria-labelledby="leadership-heading"
-      >
-        <div className="team-dynamics__section-heading">
-          <div>
-            <p className="section-kicker">LEADERSHIP</p>
-            <h3 id="leadership-heading">役職を決める</h3>
-          </div>
-          <span>保存はサーバーで確定</span>
-        </div>
-        <div className="team-dynamics__selectors">
-          <label>
-            <span>主将</span>
-            <select
-              aria-label="主将"
-              disabled={pending}
-              onChange={(event) => setCaptainPlayerId(event.target.value)}
-              value={captainPlayerId}
-            >
-              <option value="">選択してください</option>
-              {candidates.map(({ player, suitability }) => (
-                <option key={player.id} value={player.id}>
-                  {playerName(player)}・{player.grade}年・適性{suitability}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>副主将</span>
-            <select
-              aria-label="副主将"
-              disabled={pending}
-              onChange={(event) => setViceCaptainPlayerId(event.target.value)}
-              value={viceCaptainPlayerId}
-            >
-              <option value="">選択してください</option>
-              {candidates.map(({ player, suitability }) => (
-                <option key={player.id} value={player.id}>
-                  {playerName(player)}・{player.grade}年・適性{suitability}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <button
-          className="team-dynamics__save"
-          disabled={!canSave}
-          onClick={saveLeadership}
-          type="button"
-        >
-          {pending ? "役職を保存しています…" : "役職を保存"}
-        </button>
-        {captainPlayerId && captainPlayerId === viceCaptainPlayerId ? (
-          <p className="team-dynamics__warning">
-            主将と副主将は別の選手を選んでください。
-          </p>
-        ) : null}
-      </section>
+      <LeadershipEditor
+        key={leadershipEditorKey}
+        candidates={candidates}
+        captainPlayerId={dynamics.captainPlayerId}
+        viceCaptainPlayerId={dynamics.viceCaptainPlayerId}
+        pending={pending}
+        onAssignLeadership={onAssignLeadership}
+      />
 
       <div className="team-dynamics__detail-grid">
         <section aria-labelledby="suitability-heading">
