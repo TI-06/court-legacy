@@ -32,6 +32,12 @@ import {
 import { recordOfficialTournamentOutcome } from "../../src/domain/tournament/recordOfficialMatch";
 import type { AdditionalGrowthModifier } from "../../src/domain/training/calculateGrowth";
 import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";
+import {
+  acceptIncomingPracticeOffer,
+  declineIncomingPracticeOffer,
+  PracticeSchedulingError,
+  requestPracticeMatch,
+} from "../../src/domain/weekly/practiceMatchScheduling";
 import { recordMatchOutcome } from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { GameAction } from "./actionSchema";
@@ -175,6 +181,40 @@ function applyTeamLeadership(
     };
   } catch (error) {
     if (error instanceof TeamLeadershipValidationError) {
+      return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
+function applyPracticeScheduling(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    {
+      type:
+        | "practice-offer-accept"
+        | "practice-offer-decline"
+        | "practice-request";
+    }
+  >,
+): AppliedGameAction {
+  try {
+    const resolution =
+      action.type === "practice-offer-accept"
+        ? acceptIncomingPracticeOffer(state)
+        : action.type === "practice-offer-decline"
+          ? declineIncomingPracticeOffer(state)
+          : requestPracticeMatch(state, action.schoolId);
+
+    return {
+      state: resolution.state,
+      teamSelection,
+      outcome: resolution.outcome,
+    };
+  } catch (error) {
+    if (error instanceof PracticeSchedulingError) {
       return conflict(error.code, error.message);
     }
     throw error;
@@ -455,6 +495,10 @@ export function applyGameAction(
       return applyTeamSelection(state, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
+    case "practice-offer-accept":
+    case "practice-offer-decline":
+    case "practice-request":
+      return applyPracticeScheduling(state, teamSelection, action);
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
     case "official-match":
