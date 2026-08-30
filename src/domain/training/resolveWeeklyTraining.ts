@@ -14,10 +14,6 @@ import type {
   TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
 import {
-  recoverAutomaticRestPlayer,
-  selectAutomaticRest,
-} from "../weekly/autoRest";
-import {
   calculateGrowth,
   type AdditionalGrowthModifier,
   type GrowthModifier,
@@ -33,6 +29,8 @@ export interface WeeklyPlan {
   individualAssignments: IndividualTrainingAssignment[];
 }
 
+export type ActivitySkipReason = "injured" | "auto-rest" | null;
+
 export interface PlayerGrowthLog {
   playerId: PlayerId;
   abilityChanges: Partial<Record<AbilityKey, number>>;
@@ -43,7 +41,7 @@ export interface PlayerGrowthLog {
   academicRestricted: boolean;
   injuryRisk: number;
   injury: PlayerInjury | null;
-  skippedReason: "injured" | "automatic-rest" | null;
+  skippedReason: ActivitySkipReason;
   modifiers: GrowthModifier[];
 }
 
@@ -68,6 +66,7 @@ export interface ResolveWeeklyTrainingInput {
   data: GameDataRegistry;
   random: RandomSource;
   additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
+  restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
 export interface TrainingActivity {
@@ -418,27 +417,13 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const sharedGrowthModifiers = input.additionalGrowthModifiers ?? [];
   const includeDynamicsModifiers = input.schoolId === input.state.userSchoolId;
-  const automaticRestByPlayer = new Map(
-    selectAutomaticRest(input.state, input.schoolId).map((decision) => [
-      decision.playerId,
-      decision.reason,
-    ]),
-  );
 
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
-    const automaticRestReason = automaticRestByPlayer.get(playerId);
-    if (automaticRestReason) {
-      const rest = recoverAutomaticRestPlayer(
-        original,
-        automaticRestReason,
-        school.facilities.recoveryRoom,
-      );
-      players[playerId] = rest.player;
-      log.fatigueChange = rest.player.fatigue - original.fatigue;
-      log.conditionChange = rest.player.condition - original.condition;
-      log.skippedReason = original.injury ? "injured" : "automatic-rest";
+    if (input.restingPlayerIds?.has(playerId)) {
+      log.skippedReason = "auto-rest";
+      players[playerId] = original;
       playerLogs.push(log);
       continue;
     }
