@@ -19,17 +19,15 @@ export const PRACTICE_INCOMING_CHANCE: Record<SchoolReputation, number> = {
   elite: 65,
 };
 
-export const PRACTICE_INCOMING_TARGET_RATIO: Record<
-  SchoolReputation,
-  number
-> = {
-  unknown: 0.9,
-  "district-contender": 0.95,
-  "prefectural-power": 1,
-  "national-qualifier": 1.05,
-  "national-regular": 1.1,
-  elite: 1.15,
-};
+export const PRACTICE_INCOMING_TARGET_RATIO: Record<SchoolReputation, number> =
+  {
+    unknown: 0.9,
+    "district-contender": 0.95,
+    "prefectural-power": 1,
+    "national-qualifier": 1.05,
+    "national-regular": 1.1,
+    elite: 1.15,
+  };
 
 export type PracticePlanningSource = Pick<
   GameState,
