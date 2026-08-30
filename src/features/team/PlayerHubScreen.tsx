@@ -141,8 +141,7 @@ export function PlayerHubScreen({
 
   if (selectedPlayer) {
     const abilities = summarizePlayerAbilities(selectedPlayer);
-    const role =
-      state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
+    const role = state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
     const concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
     return (
       <main className="app-content player-hub player-detail">
@@ -196,7 +195,10 @@ export function PlayerHubScreen({
             <strong>{selectedPlayer.morale}</strong>
           </article>
         </section>
-        <section className="player-detail__dynamics" aria-label="選手ダイナミクス">
+        <section
+          className="player-detail__dynamics"
+          aria-label="選手ダイナミクス"
+        >
           <article>
             <span>役割</span>
             <strong>{roleLabels[role]}</strong>
@@ -211,7 +213,10 @@ export function PlayerHubScreen({
           </article>
         </section>
         {concerns.length > 0 ? (
-          <section className="player-detail__concerns" aria-label="選手の気になる状態">
+          <section
+            className="player-detail__concerns"
+            aria-label="選手の気になる状態"
+          >
             <h3>気になる状態</h3>
             <ul>
               {concerns.map((concern, index) => (

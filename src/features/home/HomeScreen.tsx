@@ -1,3 +1,4 @@
+import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
@@ -49,6 +50,12 @@ const roundLabels: Record<TournamentRound, string> = {
   quarterfinal: "準々決勝",
   semifinal: "準決勝",
   final: "決勝",
+};
+
+const cohesionTrendLabels: Record<CohesionTrend, string> = {
+  rising: "上向き",
+  stable: "横ばい",
+  falling: "低下",
 };
 
 function average(values: readonly number[]): number {
@@ -144,6 +151,11 @@ export function HomeScreen({
           <small>
             {injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}
           </small>
+        </article>
+        <article className="metric-card">
+          <span>結束力</span>
+          <strong>{state.teamDynamics.cohesion}</strong>
+          <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
         </article>
       </section>
 

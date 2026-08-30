@@ -159,7 +159,10 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
-      <section className="team-dynamics__leadership" aria-labelledby="leadership-heading">
+      <section
+        className="team-dynamics__leadership"
+        aria-labelledby="leadership-heading"
+      >
         <div className="team-dynamics__section-heading">
           <div>
             <p className="section-kicker">LEADERSHIP</p>

@@ -369,6 +369,20 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const saveTeamLeadership = async (
+    captainPlayerId: PlayerId,
+    viceCaptainPlayerId: PlayerId,
+  ) => {
+    await cloudSession.runAction(
+      {
+        type: "set-team-leadership",
+        captainPlayerId,
+        viceCaptainPlayerId,
+      },
+      "役職を保存しています…",
+    );
+  };
+
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
@@ -788,6 +802,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "team" ? (
       <PlayerHubScreen
+        leadershipPending={cloudSession.operation.status === "submitting"}
+        onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
         selection={teamSelection}
         state={gameState}

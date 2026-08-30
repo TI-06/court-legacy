@@ -57,7 +57,9 @@ describe("TeamDynamicsPanel", () => {
     expect(within(cohesion).getByText("上向き")).toBeVisible();
     expect(screen.getAllByText("未設定")).toHaveLength(2);
     expect(screen.getByText("関係性 良好")).toBeVisible();
-    expect(screen.getByText(new RegExp(`${playerName(first)}.*出場機会`))).toBeVisible();
+    expect(
+      screen.getByText(new RegExp(`${playerName(first)}.*出場機会`)),
+    ).toBeVisible();
     expect(screen.getByRole("heading", { name: "主将適性" })).toBeVisible();
   });
 
