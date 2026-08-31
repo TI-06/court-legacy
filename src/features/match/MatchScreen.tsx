@@ -23,6 +23,12 @@ interface MatchScreenProps {
 type PlaybackSpeed = 1 | 2 | 4;
 
 export function MatchScreen(props: MatchScreenProps) {
+  const scheduledOpponentId =
+    props.state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  if (!props.result && scheduledOpponentId !== props.opponent.id) {
+    return null;
+  }
+
   const playbackKey = props.result?.match.id ?? "pre-match";
   return <MatchScreenContent key={playbackKey} {...props} />;
 }
