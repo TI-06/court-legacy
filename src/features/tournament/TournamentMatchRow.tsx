@@ -7,9 +7,7 @@ interface TournamentMatchRowProps {
   action?: ReactNode;
 }
 
-function entrantLabel(
-  entrant: TournamentBracketMatchView["home"],
-): string {
+function entrantLabel(entrant: TournamentBracketMatchView["home"]): string {
   return entrant?.shortName ?? "未定";
 }
 
@@ -24,8 +22,7 @@ export function TournamentMatchRow({
   userEntrantId,
   action,
 }: TournamentMatchRowProps) {
-  const completed =
-    match.homeSetsWon !== null && match.awaySetsWon !== null;
+  const completed = match.homeSetsWon !== null && match.awaySetsWon !== null;
   const homeIsUser = Boolean(
     userEntrantId && match.home?.entrantId === userEntrantId,
   );
@@ -67,7 +64,9 @@ export function TournamentMatchRow({
           {entrantLabel(match.away)}
         </span>
       </div>
-      {action ? <div className="tournament-match-row__action">{action}</div> : null}
+      {action ? (
+        <div className="tournament-match-row__action">{action}</div>
+      ) : null}
     </article>
   );
 }
