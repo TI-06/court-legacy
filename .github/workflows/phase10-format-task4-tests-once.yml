@@ -1,0 +1,37 @@
+name: Phase10 Format Task4 Tests Once
+
+on:
+  push:
+    branches:
+      - feature/phase10-training-player-mobile-ui
+    paths:
+      - .github/workflows/phase10-format-task4-tests-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase10-training-player-mobile-ui
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format Task 4 tests
+        run: npx prettier --write tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.notifications.test.tsx
+      - name: Commit formatting
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.notifications.test.tsx
+          if ! git diff --cached --quiet; then
+            git commit -m "style: format task4 notification tests"
+            git push origin HEAD:feature/phase10-training-player-mobile-ui
+          fi
