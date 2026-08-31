@@ -42,7 +42,9 @@ describe("game state codec", () => {
 
     const decoded = decodeGameState(encodeGameState(withNotification));
 
-    expect(decoded.notifications.items).toEqual(withNotification.notifications.items);
+    expect(decoded.notifications.items).toEqual(
+      withNotification.notifications.items,
+    );
   });
 
   it("rejects malformed notification payloads", () => {
