@@ -3,6 +3,7 @@ import { createInitialGame } from "../../../src/app/createInitialGame";
 import { gameData } from "../../../src/app/createDemoGame";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { eventId } from "../../../src/domain/model/identifiers";
+import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type {
   TrainingResult,
@@ -51,6 +52,27 @@ function createTrainingPlan(snapshot: CloudGameSnapshot): WeeklyPlan {
         instructionId: "instruction.receive",
       },
     ],
+  };
+}
+
+function trainingNotification(
+  snapshot: CloudGameSnapshot,
+): TrainingResultNotification {
+  const state = snapshot.state;
+  return {
+    id: `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`,
+    type: "training-result",
+    createdGameDate: state.date,
+    academicYearIndex: state.yearIndex,
+    weekOfYear: state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      teamTrainingMenuName: "スパイク練習",
+      totalAbilityGrowth: 0,
+      totalFatigueChange: 0,
+      injuredCount: 0,
+      players: [],
+    },
   };
 }
 
@@ -169,7 +191,7 @@ describe("applyGameAction", () => {
     expect(snapshot).toEqual(before);
   });
 
-  it("resolves the saved training automatically when advancing the week", () => {
+  it("resolves the saved training automatically when advancing the week and persists a notification", () => {
     const snapshot = createSnapshot();
     const plan = createTrainingPlan(snapshot);
     const saved = applyGameAction(snapshot, {
@@ -191,6 +213,78 @@ describe("applyGameAction", () => {
       },
       officialMatchRequired: false,
     });
+    expect(advanced.state.notifications.items).toHaveLength(1);
+    expect(advanced.state.notifications.items[0]).toMatchObject({
+      type: "training-result",
+      createdGameDate: saved.state.date,
+      weekOfYear: saved.state.calendar.weekOfYear,
+    });
+  });
+
+  it("deduplicates a pre-seeded notification when the same week training resolves", () => {
+    const snapshot = createSnapshot();
+    const existing = trainingNotification(snapshot);
+    const preseeded: CloudGameSnapshot = {
+      ...snapshot,
+      state: {
+        ...snapshot.state,
+        notifications: { items: [existing] },
+      },
+    };
+
+    const advanced = applyGameAction(preseeded, { type: "advance-week" });
+
+    expect(
+      advanced.state.notifications.items.filter(
+        (item) => item.id === existing.id,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("marks notifications read and keeps repeated or unknown read actions idempotent", () => {
+    const snapshot = createSnapshot();
+    const notification = trainingNotification(snapshot);
+    const withNotification: CloudGameSnapshot = {
+      ...snapshot,
+      state: {
+        ...snapshot.state,
+        notifications: { items: [notification] },
+      },
+    };
+
+    const read = applyGameAction(
+      withNotification,
+      {
+        type: "mark-notification-read",
+        notificationId: notification.id,
+      } as never,
+    );
+    expect(read.state.notifications.items[0]?.readAtGameDate).toBe(
+      snapshot.state.date,
+    );
+
+    const readSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: read.state,
+      teamSelection: read.teamSelection,
+    };
+    const repeated = applyGameAction(
+      readSnapshot,
+      {
+        type: "mark-notification-read",
+        notificationId: notification.id,
+      } as never,
+    );
+    expect(repeated.state.notifications).toEqual(read.state.notifications);
+
+    const unknown = applyGameAction(
+      readSnapshot,
+      {
+        type: "mark-notification-read",
+        notificationId: "missing-notification",
+      } as never,
+    );
+    expect(unknown.state.notifications).toEqual(read.state.notifications);
   });
 
   it("upgrades a legal facility on the authoritative state", () => {
