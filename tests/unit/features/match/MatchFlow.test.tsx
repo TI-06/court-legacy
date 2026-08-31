@@ -44,7 +44,7 @@ function createMatchFixture() {
 }
 
 describe("match flow", () => {
-  it("shows preparation strength and starts a scheduled legal practice match", () => {
+  it("shows Japanese preparation labels and starts a scheduled legal practice match", () => {
     const fixture = createMatchFixture();
     const onStart = vi.fn();
 
@@ -63,8 +63,8 @@ describe("match flow", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(fixture.opponent.name)).toBeInTheDocument();
 
-    const homeCard = screen.getByText("HOME").closest("article");
-    const awayCard = screen.getByText("AWAY").closest("article");
+    const homeCard = screen.getByText("自校").closest("article");
+    const awayCard = screen.getByText("相手").closest("article");
     expect(homeCard).not.toBeNull();
     expect(awayCard).not.toBeNull();
     expect(
@@ -73,12 +73,21 @@ describe("match flow", () => {
     expect(
       within(awayCard!).getByText(`戦力 ${fixture.awayStrength}`),
     ).toBeInTheDocument();
+    for (const english of [
+      "PRACTICE MATCH",
+      "HOME",
+      "VS",
+      "AWAY",
+      "LINEUP CHECK",
+    ]) {
+      expect(screen.queryByText(english)).toBeNull();
+    }
 
     fireEvent.click(screen.getByRole("button", { name: "試合開始" }));
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("reveals the immutable event log and can jump to analysis", () => {
+  it("reveals the immutable event log with Japanese headings and can jump to analysis", () => {
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
 
@@ -94,6 +103,8 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeInTheDocument();
+    expect(screen.queryByText("MATCH LIVE")).toBeNull();
+    expect(screen.queryByText("PLAY LOG")).toBeNull();
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
       `1 / ${fixture.result.match.eventLog.length}`,
     );
@@ -122,6 +133,9 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "次戦への改善提案" }),
     ).toBeInTheDocument();
+    for (const english of ["FULL TIME", "MATCH ANALYSIS", "NEXT PLAN"]) {
+      expect(screen.queryByText(english)).toBeNull();
+    }
     expect(fixture.result.analysis.principalFactors.length).toBeGreaterThan(0);
   });
 
