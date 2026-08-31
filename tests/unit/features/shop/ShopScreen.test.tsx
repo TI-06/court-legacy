@@ -48,10 +48,14 @@ function renderShop(
 }
 
 describe("ShopScreen", () => {
-  it("keeps a visible loading state instead of rendering a blank screen", () => {
+  it("keeps a visible loading state with Japanese labels instead of rendering a blank screen", () => {
     renderShop({ status: null, loading: true });
 
     expect(screen.getByRole("heading", { name: "ショップ" })).toBeVisible();
+    expect(screen.getByText("ショップ案内")).toBeVisible();
+    expect(screen.getByText("テスト中 / すべて¥0")).toBeVisible();
+    expect(screen.queryByText("SHOP")).toBeNull();
+    expect(screen.queryByText("TEST / ALL ¥0")).toBeNull();
     expect(screen.getByRole("status")).toHaveTextContent(
       "ショップ情報を読み込んでいます…",
     );
