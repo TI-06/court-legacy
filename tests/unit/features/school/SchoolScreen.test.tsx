@@ -120,7 +120,9 @@ describe("school management screen", () => {
       <SchoolScreen onUpgradeFacility={vi.fn()} state={state} />,
     );
     fireEvent.click(screen.getByRole("tab", { name: "卒業生" }));
-    expect(screen.getByText("卒業生")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "卒業生記録" }),
+    ).toBeVisible();
     expect(screen.queryByText("ALUMNI")).toBeNull();
     expect(screen.getByText("卒業生の記録はまだありません")).toBeVisible();
 
