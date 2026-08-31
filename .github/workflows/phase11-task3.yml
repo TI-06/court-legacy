@@ -1,0 +1,33 @@
+name: Phase11 Task3
+
+on:
+  push:
+    branches:
+      - feature/phase11-home-week-progression
+    paths:
+      - .github/workflows/phase11-task3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  task3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase11-home-week-progression
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: python .github/phase11_task3.py
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/app/GameApp.tsx src/features/tournament/TournamentScreen.tsx src/features/match/PracticeMatchPlanning.tsx tests/unit/features/tournament/TournamentScreen.test.tsx tests/unit/features/match/Phase11PvePlanning.test.tsx
+          git add -u tests/unit/features/tournament/TournamentPendingStatus.test.tsx
+          git commit -m "feat: make pve match tabs planning only"
+          git push origin HEAD:feature/phase11-home-week-progression
