@@ -338,6 +338,12 @@
     border-radius: 12px;
   }
 
+  .tournament-header__title h2 {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .tournament-match-row__line {
     grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
     padding-inline: 7px;
