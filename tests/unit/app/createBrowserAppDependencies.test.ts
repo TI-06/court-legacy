@@ -44,7 +44,8 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(initial.status).toBe("ready");
     if (initial.status !== "ready") return;
 
-    const { notifications: _notifications, ...legacyState } = initial.game.state;
+    const { notifications: _notifications, ...legacyState } =
+      initial.game.state;
     window.sessionStorage.setItem(
       E2E_SERVER_SNAPSHOT_KEY,
       JSON.stringify({
