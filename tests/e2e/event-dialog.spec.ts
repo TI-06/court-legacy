@@ -34,7 +34,9 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
       "監督として対応を選んでください。結果には利点と負担があります。",
     ),
   ).toBeVisible();
-  await expect(eventDialog.getByRole("button", { name: "閉じる" })).toHaveCount(0);
+  await expect(eventDialog.getByRole("button", { name: "閉じる" })).toHaveCount(
+    0,
+  );
   const choices = eventDialog.locator(".event-choice");
   await expect(choices).toHaveCount(2);
   await choices.first().click();

@@ -91,7 +91,9 @@ for (const width of [320, 360, 390, 414, 480]) {
       clientWidth: element.clientWidth,
       scrollWidth: element.scrollWidth,
     }));
-    expect(panelWidth.scrollWidth).toBeLessThanOrEqual(panelWidth.clientWidth + 1);
+    expect(panelWidth.scrollWidth).toBeLessThanOrEqual(
+      panelWidth.clientWidth + 1,
+    );
 
     const firstRound = page.getByRole("button", { name: "1回戦" });
     const quarterfinal = page.getByRole("button", { name: "準々決勝" });
