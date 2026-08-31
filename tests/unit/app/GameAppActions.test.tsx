@@ -129,7 +129,7 @@ describe("GameApp cloud actions", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("requests a scheduled practice match from the server and renders only its returned simulation", async () => {
+  it("resolves a scheduled practice match through Home week progression", async () => {
     const snapshot = createSnapshot();
     schedulePracticeOpponent(snapshot);
     const applyAction = vi.fn(
@@ -151,13 +151,12 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
-    fireEvent.click(screen.getByRole("button", { name: "試合開始" }));
+    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
       revision: 1,
-      action: { type: "practice-match" },
+      action: { type: "advance-week" },
     });
     expect(
       await screen.findByRole("heading", { name: "試合ダイジェスト" }),

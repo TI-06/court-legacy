@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -72,7 +72,7 @@ function responseFor(
 }
 
 describe("GameApp official tournament flow", () => {
-  it("opens the authoritative bracket from home and submits only the generic official-match action", async () => {
+  it("keeps the bracket reference-only and resolves the due official match from Home", async () => {
     let serverSnapshot = createOfficialSnapshot();
     const applyAction = vi.fn(
       async (_accessToken: string, request: GameActionRequest) => {
@@ -100,25 +100,22 @@ describe("GameApp official tournament flow", () => {
     expect(
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
+    expect(screen.queryByRole("button", { name: "公式戦を開始" })).toBeNull();
+    expect(
+      screen.getByText("ホームの「次の週へ進む」で試合を実施します"),
+    ).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "公式戦を開始" }));
-    const dialog = screen.getByRole("dialog", { name: "公式戦を開始しますか" });
-    fireEvent.click(
-      within(dialog).getByRole("button", { name: "この試合を開始" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
+    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![0]).toBe(session.accessToken);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
       revision: 9,
-      action: { type: "official-match" },
+      action: { type: "advance-week" },
     });
-    expect(applyAction.mock.calls[0]![1].action).toEqual({
-      type: "official-match",
-    });
-
     expect(
-      await screen.findByRole("heading", { name: "インターハイ 県大会" }),
+      await screen.findByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
   });

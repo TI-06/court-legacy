@@ -79,7 +79,7 @@ function otherSchools(snapshot: CloudGameSnapshot) {
 }
 
 describe("GameApp practice scheduling", () => {
-  it("accepts an incoming practice offer and shows the scheduled opponent with match start", async () => {
+  it("accepts an incoming practice offer and keeps execution on Home progression", async () => {
     const snapshot = createSnapshot();
     const opponent = otherSchools(snapshot)[0]!;
     snapshot.state.weeklySchedule.practiceMatch = {
@@ -120,7 +120,8 @@ describe("GameApp practice scheduling", () => {
     });
     expect(await screen.findByText("対戦決定")).toBeVisible();
     expect(screen.getAllByText(opponent.name).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "試合開始" })).toBeVisible();
+    expect(screen.getByText("ホームの「次の週へ進む」で実施")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "試合開始" })).toBeNull();
   });
 
   it("declines an incoming practice offer without scheduling a match", async () => {
