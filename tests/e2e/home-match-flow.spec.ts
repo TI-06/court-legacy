@@ -48,7 +48,7 @@ test("mobile home starts a match and returns with the latest result", async ({
   await expect(page.getByTestId("home-screen")).toBeVisible();
   await page
     .locator(".home-week-card__actions")
-    .getByRole("button", { name: "試合", exact: true })
+    .getByRole("button", { name: "練習試合へ" })
     .click();
   await expect(
     page.getByRole("heading", { name: "練習試合の予定" }),
