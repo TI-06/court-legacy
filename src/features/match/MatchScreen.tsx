@@ -114,23 +114,23 @@ function MatchScreenContent({
     return (
       <main className="app-content match-screen">
         <section className="match-prep-hero" aria-labelledby="match-heading">
-          <p className="section-kicker">PRACTICE MATCH</p>
+          <p className="section-kicker">対戦準備</p>
           <h2 id="match-heading">練習試合</h2>
           <p>編成と戦力を確認して、試合を開始します。</p>
         </section>
 
         <section className="match-versus-card" aria-label="対戦カード">
           <article className="match-team-card match-team-card--home">
-            <span>HOME</span>
+            <span>自校</span>
             <strong>{homeSchool.name}</strong>
             <b>戦力 {homeStrength}</b>
           </article>
           <div className="match-versus-mark">
-            <strong>VS</strong>
+            <strong>対戦</strong>
             <span>{comparisonLabel}</span>
           </div>
           <article className="match-team-card match-team-card--away">
-            <span>AWAY</span>
+            <span>相手</span>
             <strong>{opponent.name}</strong>
             <b>戦力 {awayStrength}</b>
           </article>
@@ -142,7 +142,7 @@ function MatchScreenContent({
         >
           <div className="section-heading">
             <div>
-              <p className="section-kicker">LINEUP CHECK</p>
+              <p className="section-kicker">編成確認</p>
               <h2 id="match-ready-heading">試合準備</h2>
             </div>
             <span className={canStart ? "match-ready" : "match-not-ready"}>
@@ -213,7 +213,7 @@ function MatchScreenContent({
         <>
           <section className="match-live-hero" aria-labelledby="live-heading">
             <div>
-              <p className="section-kicker">MATCH LIVE</p>
+              <p className="section-kicker">試合速報</p>
               <h2 id="live-heading">試合ダイジェスト</h2>
             </div>
             <span data-testid="event-sequence">
@@ -309,7 +309,7 @@ function MatchScreenContent({
           >
             <div className="section-heading">
               <div>
-                <p className="section-kicker">PLAY LOG</p>
+                <p className="section-kicker">プレー履歴</p>
                 <h2 id="timeline-heading">直近のプレー</h2>
               </div>
             </div>
@@ -332,7 +332,7 @@ function MatchScreenContent({
             className="match-result-hero"
             aria-labelledby="result-heading"
           >
-            <p className="section-kicker">FULL TIME</p>
+            <p className="section-kicker">試合終了</p>
             <h2 id="result-heading">試合結果</h2>
             <strong>{winner.name} 勝利</strong>
             <div className="match-result-score">
@@ -348,7 +348,7 @@ function MatchScreenContent({
           <section className="match-analysis" aria-labelledby="factor-heading">
             <div className="section-heading">
               <div>
-                <p className="section-kicker">MATCH ANALYSIS</p>
+                <p className="section-kicker">試合分析</p>
                 <h2 id="factor-heading">勝敗を分けた要因</h2>
               </div>
             </div>
@@ -371,7 +371,7 @@ function MatchScreenContent({
           >
             <div className="section-heading">
               <div>
-                <p className="section-kicker">NEXT PLAN</p>
+                <p className="section-kicker">次戦対策</p>
                 <h2 id="recommend-heading">次戦への改善提案</h2>
               </div>
             </div>
