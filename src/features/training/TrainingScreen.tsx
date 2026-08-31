@@ -2,11 +2,7 @@ import { useMemo, useState } from "react";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
-import type {
-  TrainingResult,
-  WeeklyPlan,
-} from "../../domain/training/resolveWeeklyTraining";
-import type { AbilityKey } from "../../domain/validation/gameDataSchema";
+import type { WeeklyPlan } from "../../domain/training/resolveWeeklyTraining";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { ChoiceCard } from "../../ui/ChoiceCard";
 import { ChoiceChip } from "../../ui/ChoiceChip";
@@ -19,33 +15,21 @@ import "./training-direct.css";
 interface TrainingScreenProps {
   state: GameState;
   data: GameDataRegistry;
-  latestResult: TrainingResult | null;
   completed: boolean;
-  onSave: (plan: WeeklyPlan) => void;
+  onSave: (plan: WeeklyPlan) => void | Promise<void>;
 }
 
 type AssignmentSlot = 1 | 2;
 type TrainingSheet =
   | "team-menu"
+  | "assignment-1"
+  | "assignment-2"
   | "player-1"
   | "player-2"
   | "instruction-1"
   | "instruction-2"
   | "confirm"
   | null;
-
-const abilityLabels: Record<AbilityKey, string> = {
-  spike: "スパイク",
-  jump: "跳躍",
-  receive: "レシーブ",
-  serve: "サーブ",
-  set: "トス",
-  block: "ブロック",
-  speed: "スピード",
-  stamina: "スタミナ",
-  decision: "判断",
-  mental: "メンタル",
-};
 
 function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
@@ -54,7 +38,6 @@ function signed(value: number): string {
 export function TrainingScreen({
   state,
   data,
-  latestResult,
   completed,
   onSave,
 }: TrainingScreenProps) {
@@ -101,7 +84,6 @@ export function TrainingScreen({
       "",
   );
   const [sheet, setSheet] = useState<TrainingSheet>(null);
-  const [resultsExpanded, setResultsExpanded] = useState(false);
 
   const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
   const firstPlayer = state.players[firstPlayerId];
@@ -118,14 +100,6 @@ export function TrainingScreen({
     firstInstructionId.length > 0 &&
     secondInstructionId.length > 0 &&
     !duplicatePlayers;
-  const totalGrowth =
-    latestResult?.playerLogs.reduce(
-      (sum, log) => sum + log.totalAbilityGrowth,
-      0,
-    ) ?? 0;
-  const fatigueDelta =
-    latestResult?.playerLogs.reduce((sum, log) => sum + log.fatigueChange, 0) ??
-    0;
   const averageFatigue = Math.round(
     players.reduce((sum, player) => sum + player.fatigue, 0) /
       Math.max(1, players.length),
@@ -140,14 +114,17 @@ export function TrainingScreen({
   };
 
   const save = () => {
-    if (!canSave || completed) {
-      return;
-    }
+    if (!canSave || completed) return;
     setSheet(null);
-    setResultsExpanded(false);
-    onSave(plan);
+    void onSave(plan);
   };
 
+  const assignmentSlot: AssignmentSlot =
+    sheet === "assignment-2" ||
+    sheet === "player-2" ||
+    sheet === "instruction-2"
+      ? 2
+      : 1;
   const pickerSlot: AssignmentSlot | null =
     sheet === "player-1" ? 1 : sheet === "player-2" ? 2 : null;
   const pickerCurrentId = pickerSlot === 1 ? firstPlayerId : secondPlayerId;
@@ -156,191 +133,80 @@ export function TrainingScreen({
   const selectPlayer = (playerId: PlayerId) => {
     if (pickerSlot === 1) {
       setFirstPlayerId(playerId);
+      setSheet("assignment-1");
     } else if (pickerSlot === 2) {
       setSecondPlayerId(playerId);
+      setSheet("assignment-2");
     }
-    setSheet(null);
   };
+
+  const assignmentPlayer = assignmentSlot === 1 ? firstPlayer : secondPlayer;
+  const assignmentInstruction =
+    assignmentSlot === 1 ? firstInstruction : secondInstruction;
 
   return (
     <main className="app-content training-screen training-screen--compact">
-      <section className="training-hero" aria-labelledby="training-heading">
-        <p className="section-kicker">週間育成</p>
-        <div className="training-hero__title">
-          <div>
-            <h2 id="training-heading">週間練習</h2>
-            <p>今週の練習内容を決めます。実施は「次の週へ」のときです。</p>
-          </div>
-          <span>{completed ? "実施済み" : school.shortName}</span>
-        </div>
-      </section>
+      <header className="training-screen__header">
+        <h2>育成</h2>
+        <span>{completed ? "今週は実施済み" : `平均疲労 ${averageFatigue}`}</span>
+      </header>
 
       {state.shopEffects?.nextTrainingGrowthBoost ? (
         <p className="training-shop-boost" role="status">
-          次回練習 成長効率 +{state.shopEffects.nextTrainingGrowthBoost.percent}
-          %
+          次回練習 成長効率 +{state.shopEffects.nextTrainingGrowthBoost.percent}%
         </p>
       ) : null}
 
-      <section className="training-panel training-plan-card">
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">今週の練習設定</p>
-            <h2>今週の設定</h2>
-          </div>
-          <span className="training-step">疲労 {averageFatigue}</span>
-        </div>
-
-        <article className="training-setting-row">
-          <div>
-            <span>チーム練習</span>
+      <section className="training-setup-card" aria-label="今週の練習設定">
+        <button
+          aria-label={`チーム練習 ${selectedMenu?.name ?? "未設定"} を変更`}
+          className="training-compact-row training-compact-row--team"
+          disabled={completed}
+          onClick={() => setSheet("team-menu")}
+          type="button"
+        >
+          <span className="training-compact-row__main">
+            <span className="training-compact-row__label">チーム練習</span>
             <strong>{selectedMenu?.name ?? "未設定"}</strong>
             <small>
               {selectedMenu
-                ? `成長 ${selectedMenu.baseGrowth}・疲労 ${signed(selectedMenu.fatigue)}・怪我 ${selectedMenu.injuryRisk}%`
-                : "練習メニューを選択してください"}
+                ? `成長 ${signed(selectedMenu.baseGrowth)} / 疲労 ${signed(selectedMenu.fatigue)} / 怪我 ${selectedMenu.injuryRisk}%`
+                : "練習メニューを選択"}
             </small>
-          </div>
-          <button
-            aria-label="チーム練習を変更"
-            disabled={completed}
-            onClick={() => setSheet("team-menu")}
-            type="button"
-          >
-            変更
-          </button>
-        </article>
+          </span>
+          <span className="training-compact-row__action" aria-hidden="true">
+            変更 ›
+          </span>
+        </button>
 
         {[1, 2].map((slotValue) => {
           const slot = slotValue as AssignmentSlot;
           const player = slot === 1 ? firstPlayer : secondPlayer;
           const instruction = slot === 1 ? firstInstruction : secondInstruction;
           return player ? (
-            <article className="training-assignment-summary" key={slot}>
-              <div className="training-assignment-summary__heading">
-                <span>{slot}</span>
-                <div>
-                  <small>個人指示</small>
-                  <strong>
-                    {player.lastName} {player.firstName}
-                  </strong>
-                </div>
-              </div>
-              <p>{instruction?.name ?? "指示未設定"}</p>
-              <div className="training-assignment-summary__actions">
-                <button
-                  aria-label={`個人指示${slot}の選手を変更`}
-                  disabled={completed}
-                  onClick={() => setSheet(`player-${slot}`)}
-                  type="button"
-                >
-                  選手変更
-                </button>
-                <button
-                  aria-label={`個人指示${slot}の内容を変更`}
-                  disabled={completed}
-                  onClick={() => setSheet(`instruction-${slot}`)}
-                  type="button"
-                >
-                  指示変更
-                </button>
-              </div>
-            </article>
+            <button
+              aria-label={`個人育成 ${slot} ${player.lastName} ${player.firstName} ${instruction?.name ?? "指示未設定"}`}
+              className="training-compact-row training-compact-row--individual"
+              disabled={completed}
+              key={slot}
+              onClick={() => setSheet(`assignment-${slot}`)}
+              type="button"
+            >
+              <span className="training-compact-row__index">{slot}</span>
+              <span className="training-compact-row__main">
+                <span className="training-compact-row__label">個人育成</span>
+                <strong>
+                  {player.lastName} {player.firstName}
+                </strong>
+                <small>{instruction?.name ?? "指示未設定"}</small>
+              </span>
+              <span className="training-compact-row__chevron" aria-hidden="true">
+                ›
+              </span>
+            </button>
           ) : null;
         })}
       </section>
-
-      {latestResult ? (
-        <section className="training-results" aria-labelledby="result-heading">
-          <div className="section-heading">
-            <div>
-              <p className="section-kicker">練習結果</p>
-              <h2 id="result-heading">直近の練習結果</h2>
-            </div>
-            <span className="result-complete">完了</span>
-          </div>
-          <div className="result-summary-grid">
-            <article>
-              <span>能力成長</span>
-              <strong>+{totalGrowth}</strong>
-            </article>
-            <article>
-              <span>疲労</span>
-              <strong>{signed(fatigueDelta)}</strong>
-            </article>
-            <article>
-              <span>怪我</span>
-              <strong>{latestResult.injuredPlayerIds.length}人</strong>
-            </article>
-          </div>
-          <div
-            className={`training-result-details${resultsExpanded ? " training-result-details--open" : ""}`}
-          >
-            <button
-              aria-expanded={resultsExpanded}
-              onClick={() => setResultsExpanded((current) => !current)}
-              type="button"
-            >
-              選手別の結果を確認
-            </button>
-            {resultsExpanded ? (
-              <div className="player-result-list">
-                {latestResult.playerLogs.map((log) => {
-                  const player = state.players[log.playerId];
-                  if (!player) {
-                    return null;
-                  }
-                  const changedAbilities = Object.entries(
-                    log.abilityChanges,
-                  ).filter(([, value]) => (value ?? 0) !== 0) as Array<
-                    [AbilityKey, number]
-                  >;
-                  return (
-                    <article
-                      data-testid="training-result-player"
-                      key={log.playerId}
-                    >
-                      <div className="player-result__header">
-                        <div>
-                          <strong>
-                            {player.lastName} {player.firstName}
-                          </strong>
-                          <span>
-                            {player.grade}年・{player.preferredPosition}
-                          </span>
-                        </div>
-                        <span
-                          className={
-                            log.injury ? "injury-label" : "growth-label"
-                          }
-                        >
-                          {log.injury
-                            ? "怪我"
-                            : `能力成長 +${log.totalAbilityGrowth}`}
-                        </span>
-                      </div>
-                      <div className="player-result__metrics">
-                        <span>疲労 {signed(log.fatigueChange)}</span>
-                        <span>状態 {signed(log.conditionChange)}</span>
-                        <span>信頼 {signed(log.trustChange)}</span>
-                      </div>
-                      {changedAbilities.length > 0 ? (
-                        <div className="ability-change-list">
-                          {changedAbilities.map(([ability, value]) => (
-                            <span key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
 
       <StickyActionBar
         disabled={completed || !canSave}
@@ -348,7 +214,7 @@ export function TrainingScreen({
         onClick={() => setSheet("confirm")}
         summary={
           completed
-            ? "公式戦または次の週へ進めます"
+            ? "次の週へ進めます"
             : selectedMenu && firstPlayer && secondPlayer
               ? `${selectedMenu.name}｜${firstPlayer.lastName}・${secondPlayer.lastName}`
               : "練習内容を設定してください"
@@ -386,10 +252,39 @@ export function TrainingScreen({
       </BottomSheet>
 
       <BottomSheet
-        description="選手カードをタップすると、この枠へ設定します。"
+        description="選手と育成内容をまとめて変更できます。"
         onClose={() => setSheet(null)}
+        open={sheet === "assignment-1" || sheet === "assignment-2"}
+        title={`個人育成 ${assignmentSlot}`}
+      >
+        <div className="training-assignment-editor">
+          <div className="training-assignment-editor__summary">
+            <span>選手</span>
+            <strong>
+              {assignmentPlayer?.lastName} {assignmentPlayer?.firstName}
+            </strong>
+            <small>{assignmentInstruction?.name ?? "指示未設定"}</small>
+          </div>
+          <button
+            onClick={() => setSheet(`player-${assignmentSlot}`)}
+            type="button"
+          >
+            選手を変更
+          </button>
+          <button
+            onClick={() => setSheet(`instruction-${assignmentSlot}`)}
+            type="button"
+          >
+            指示を変更
+          </button>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet
+        description="選手カードをタップすると、この枠へ設定します。"
+        onClose={() => setSheet(`assignment-${pickerSlot ?? 1}`)}
         open={pickerSlot !== null}
-        title={`個人指示${pickerSlot ?? ""}の選手を選択`}
+        title={`個人育成${pickerSlot ?? ""}の選手を選択`}
       >
         <div className="ui-player-picker-list">
           {players.map((player) => {
@@ -415,15 +310,14 @@ export function TrainingScreen({
 
       <BottomSheet
         description="個人練習の内容を選択します。"
-        onClose={() => setSheet(null)}
+        onClose={() => setSheet(`assignment-${assignmentSlot}`)}
         open={sheet === "instruction-1" || sheet === "instruction-2"}
-        title={`個人指示${sheet === "instruction-2" ? 2 : 1}の内容を選択`}
+        title={`個人育成${assignmentSlot}の指示を選択`}
       >
         <div className="training-instruction-sheet">
           {instructions.map((instruction) => {
-            const slot = sheet === "instruction-2" ? 2 : 1;
             const selected =
-              slot === 1
+              assignmentSlot === 1
                 ? firstInstructionId === instruction.id
                 : secondInstructionId === instruction.id;
             return (
@@ -431,12 +325,13 @@ export function TrainingScreen({
                 key={instruction.id}
                 label={instruction.name}
                 onClick={() => {
-                  if (slot === 1) {
+                  if (assignmentSlot === 1) {
                     setFirstInstructionId(instruction.id);
+                    setSheet("assignment-1");
                   } else {
                     setSecondInstructionId(instruction.id);
+                    setSheet("assignment-2");
                   }
-                  setSheet(null);
                 }}
                 selected={selected}
                 testId="individual-instruction-choice"
@@ -458,13 +353,13 @@ export function TrainingScreen({
             <strong>{selectedMenu?.name}</strong>
           </article>
           <article>
-            <span>個人指示1</span>
+            <span>個人育成1</span>
             <strong>
               {firstPlayer?.lastName}・{firstInstruction?.name}
             </strong>
           </article>
           <article>
-            <span>個人指示2</span>
+            <span>個人育成2</span>
             <strong>
               {secondPlayer?.lastName}・{secondInstruction?.name}
             </strong>
