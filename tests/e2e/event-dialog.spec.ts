@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
-async function completeTrainingAndAdvance(
+async function saveTrainingAndAdvance(
   page: import("@playwright/test").Page,
 ) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
   await page
-    .getByRole("dialog", { name: "練習内容を確認" })
-    .getByRole("button", { name: "この内容で実行" })
+    .getByRole("dialog", { name: "練習設定を確認" })
+    .getByRole("button", { name: "この内容で設定" })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
-  ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(
+    page.getByRole("heading", { name: "直近の練習結果" }),
+  ).toHaveCount(0);
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
@@ -25,10 +25,10 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
 }) => {
   await page.goto("/");
 
-  await completeTrainingAndAdvance(page);
+  await saveTrainingAndAdvance(page);
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  await completeTrainingAndAdvance(page);
+  await saveTrainingAndAdvance(page);
   const eventDialog = page.getByRole("dialog");
   await expect(eventDialog).toBeVisible();
   await expect(
