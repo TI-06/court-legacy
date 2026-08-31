@@ -116,7 +116,8 @@ describe("deferred weekly training plan", () => {
     expect(findDueUserOfficialMatch(result.state)).not.toBeNull();
     expect(result.outcome).toMatchObject({
       trainingResult: {
-        teamTrainingMenuId: officialState.weeklySchedule.trainingPlan.teamTrainingMenuId,
+        teamTrainingMenuId:
+          officialState.weeklySchedule.trainingPlan.teamTrainingMenuId,
       },
       officialMatchRequired: true,
     });
