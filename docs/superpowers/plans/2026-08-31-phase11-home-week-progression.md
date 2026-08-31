@@ -29,6 +29,7 @@
 ### Task 1: Define the shared weekly progression outcome and make `advance-week` authoritative
 
 **Files:**
+
 - Create: `src/domain/calendar/advanceWeekOutcome.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `tests/unit/worker/applyGameAction.test.ts`
@@ -155,6 +156,7 @@ git commit -m "feat: drive pve matches through week progression"
 ### Task 2: Make match playback consume progression output and continue the week
 
 **Files:**
+
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/features/match/MatchScreen.tsx`
 - Modify: `src/features/match/matchPresentation.ts`
@@ -162,6 +164,7 @@ git commit -m "feat: drive pve matches through week progression"
 - Modify: `tests/unit/features/match/AppMatchFlow.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `AdvanceWeekOutcome`, `PendingMatchPresentation`.
 - `MatchScreen` becomes playback-only.
 
@@ -171,7 +174,9 @@ Refactor the test fixture to build a `PendingMatchPresentation` and assert:
 
 ```tsx
 fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
-expect(screen.getByRole("button", { name: "結果を確認して次へ" })).toBeVisible();
+expect(
+  screen.getByRole("button", { name: "結果を確認して次へ" }),
+).toBeVisible();
 fireEvent.click(screen.getByRole("button", { name: "結果を確認して次へ" }));
 expect(onContinue).toHaveBeenCalledOnce();
 ```
@@ -217,6 +222,7 @@ const [activeMatchPresentation, setActiveMatchPresentation] =
 ```
 
 After `advance-week`:
+
 - if `pendingMatchPresentation`, set it, update `latestMatchResult`, clear bracket/PvP transient view, and navigate to Match playback;
 - if `weekAdvanced`, clear active match presentation, apply year transition state, and return Home.
 
@@ -240,6 +246,7 @@ git commit -m "feat: continue weekly progression from match playback"
 ### Task 3: Make Match and Tournament tabs setup/reference-only for PvE
 
 **Files:**
+
 - Modify: `src/features/match/PracticeMatchPlanning.tsx`
 - Modify: `src/features/tournament/TournamentScreen.tsx`
 - Modify: `tests/unit/features/tournament/TournamentScreen.test.tsx`
@@ -295,6 +302,7 @@ git commit -m "refactor: keep pve match tabs setup only"
 ### Task 4: Redesign the training-result BottomSheet for light-surface readability
 
 **Files:**
+
 - Modify: `src/features/home/TrainingResultNotificationSheet.tsx`
 - Modify: `src/features/home/training-result-notification.css`
 - Modify: `tests/unit/features/home/TrainingResultNotificationSheet.test.tsx`
@@ -359,6 +367,7 @@ git commit -m "fix: improve training result sheet readability"
 ### Task 5: Update full mobile E2E, verify, and merge
 
 **Files:**
+
 - Modify: `tests/e2e/home-match-flow.spec.ts`
 - Modify: `tests/e2e/official-tournament-flow.spec.ts`
 - Modify: `tests/e2e/official-tournament-continuity.spec.ts`
@@ -369,6 +378,7 @@ git commit -m "fix: improve training result sheet readability"
 - [ ] **Step 1: Update the practice-match E2E path**
 
 Flow:
+
 1. schedule practice from Match;
 2. navigate Home;
 3. click `次の週へ進む`;
