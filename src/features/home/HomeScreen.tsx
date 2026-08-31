@@ -9,7 +9,6 @@ import type {
   TournamentLevel,
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
-import { summarizeSetScore } from "../match/matchPresentation";
 import "./home.css";
 
 interface HomeScreenProps {
@@ -30,8 +29,8 @@ const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "無名校",
   "district-contender": "地区有力校",
   "prefectural-power": "県内強豪",
-  "national-qualifier": "全国大会出場校",
-  "national-regular": "全国常連校",
+  "national-qualifier": "全国出場",
+  "national-regular": "全国常連",
   elite: "全国屈指",
 };
 
@@ -59,20 +58,16 @@ const cohesionTrendLabels: Record<CohesionTrend, string> = {
 };
 
 function average(values: readonly number[]): number {
-  if (values.length === 0) {
-    return 0;
-  }
+  if (values.length === 0) return 0;
   return Math.round(
     values.reduce((sum, value) => sum + value, 0) / values.length,
   );
 }
 
-function formatDate(value: string): string {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) {
-    return value;
-  }
-  return `${year}年${month}月${day}日`;
+function shortDate(value: string): string {
+  const [, month, day] = value.split("-").map(Number);
+  if (!month || !day) return value;
+  return `${month}/${day}`;
 }
 
 export function HomeScreen({
@@ -105,201 +100,85 @@ export function HomeScreen({
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
   const nextOfficial = selectNextOfficialEvent(state);
+  const scheduledPracticeOpponentId =
+    state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  const scheduledPracticeOpponent = scheduledPracticeOpponentId
+    ? state.schools[scheduledPracticeOpponentId]
+    : null;
+  const displayedOpponent = scheduledPracticeOpponent ?? opponent;
+  const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
+  const practiceStatus = practiceMatchCompleted
+    ? "完了 ✓"
+    : scheduledPracticeOpponentId
+      ? "対戦決定"
+      : "未決定";
+  const alertText =
+    injuredCount > 0 || fatigueWarningCount > 0
+      ? [
+          injuredCount > 0 ? `怪我 ${injuredCount}人` : null,
+          fatigueWarningCount > 0
+            ? `疲労注意 ${fatigueWarningCount}人`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("・")
+      : null;
 
   return (
-    <main className="app-content home-screen">
-      <section className="home-hero" aria-labelledby="home-heading">
-        <div className="home-hero__heading">
+    <main
+      className="app-content home-screen"
+      data-testid="home-screen"
+      aria-label="ホーム"
+    >
+      <section className="home-week-card" aria-labelledby="home-week-heading">
+        <div className="home-week-card__heading">
           <div>
-            <p className="section-kicker">就任{state.yearIndex}年目</p>
-            <h2 id="home-heading">監督ホーム</h2>
-            <p>{formatDate(state.date)}</p>
+            <span className="home-label">今週</span>
+            <h2 id="home-week-heading">
+              {shortDate(state.date)}・第{state.calendar.weekOfYear}週
+            </h2>
           </div>
-          <span>{school.shortName}</span>
+          <span className="home-week-card__school">{school.shortName}</span>
         </div>
-        <div className="home-opponent-card">
-          <div>
-            <span>練習試合候補</span>
-            <strong>{opponent.name}</strong>
-            <small>申し込み・受諾で今週の対戦相手を決めます。</small>
-          </div>
-          <div className="home-strength-badge">
-            <span>自校</span>
-            <strong>戦力 {homeStrength}</strong>
-          </div>
-        </div>
-      </section>
 
-      <section className="metric-grid" aria-label="チーム状況">
-        <article className="metric-card">
-          <span>学校評判</span>
-          <strong>{school.reputationPoints}</strong>
-          <small>{reputationLabels[school.reputation]}</small>
-        </article>
-        <article className="metric-card">
-          <span>平均疲労</span>
-          <strong>{averageFatigue}</strong>
-          <small>
-            {fatigueWarningCount > 0
-              ? `注意 ${fatigueWarningCount}人`
-              : "全員安定"}
-          </small>
-        </article>
-        <article className="metric-card">
-          <span>部員</span>
-          <strong>{players.length}</strong>
-          <small>
-            {injuredCount > 0 ? `怪我 ${injuredCount}人` : "怪我なし"}
-          </small>
-        </article>
-        <article className="metric-card">
-          <span>結束力</span>
-          <strong>{state.teamDynamics.cohesion}</strong>
-          <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
-        </article>
-      </section>
-
-      {nextOfficial ? (
-        <section
-          className="home-official-card"
-          aria-labelledby="home-official-heading"
-        >
-          <div className="section-heading home-official-card__heading">
-            <div>
-              <p className="section-kicker">公式戦</p>
-              <h2 id="home-official-heading">次の公式戦</h2>
-            </div>
-            <span
-              className={`home-official-card__timing${
-                nextOfficial.kind === "match" && nextOfficial.timing === "due"
-                  ? " is-due"
-                  : ""
-              }`}
-            >
-              {nextOfficial.kind === "match" && nextOfficial.timing === "due"
-                ? "今週"
-                : `あと${nextOfficial.weeksUntil}週`}
-            </span>
+        <div className="home-week-card__match">
+          <div className="home-week-card__opponent">
+            <span>練習試合</span>
+            <strong title={displayedOpponent.name}>
+              {displayedOpponent.shortName}
+            </strong>
           </div>
-          <div className="home-official-card__body">
-            <div>
-              <span>大会</span>
-              <strong>
-                {circuitLabels[nextOfficial.circuit]}{" "}
-                {levelLabels[nextOfficial.level]}
-              </strong>
-            </div>
-            {nextOfficial.kind === "match" ? (
-              <>
-                <div>
-                  <span>ラウンド</span>
-                  <strong>{roundLabels[nextOfficial.round]}</strong>
-                </div>
-                <div>
-                  <span>対戦相手</span>
-                  <strong>{nextOfficial.opponent.displayName}</strong>
-                </div>
-              </>
-            ) : (
-              <div>
-                <span>次の大会</span>
-                <strong>{nextOfficial.scheduledWeek}週目 開幕</strong>
-              </div>
-            )}
-          </div>
-          <button
-            className="home-official-card__button"
-            onClick={onOpenOfficialTournament}
-            type="button"
-          >
-            大会表を見る
-          </button>
-        </section>
-      ) : null}
-
-      <section className="home-actions" aria-labelledby="action-heading">
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">今週の行動</p>
-            <h2 id="action-heading">次に何をする？</h2>
+          <div className="home-week-card__strength">
+            <span>自校戦力</span>
+            <strong>{homeStrength}</strong>
           </div>
         </div>
-        <div className="home-action-grid">
-          <button
-            className={`home-action-card home-action-card--primary${trainingCompleted ? " home-action-card--completed" : ""}`}
-            disabled={trainingCompleted}
-            onClick={onOpenTraining}
-            type="button"
-          >
-            <span className="home-action-card__icon" aria-hidden="true">
-              育
-            </span>
-            <span>
-              <strong>
-                {trainingCompleted ? "今週の育成は完了" : "育成を決める"}
-              </strong>
-              <small>
-                {trainingCompleted
-                  ? "結果は育成タブで確認できます"
-                  : "設定した練習は週送り時に実施"}
-              </small>
-            </span>
-            <span aria-hidden="true">{trainingCompleted ? "✓" : "›"}</span>
+
+        <div className="home-week-card__status" aria-label="今週の進行状況">
+          <span className={trainingCompleted ? "is-complete" : ""}>
+            練習 <strong>{trainingStatus}</strong>
+          </span>
+          <span className={practiceMatchCompleted ? "is-complete" : ""}>
+            試合 <strong>{practiceStatus}</strong>
+          </span>
+        </div>
+
+        <div className="home-week-card__actions" aria-label="今週の操作">
+          <button onClick={onOpenTraining} type="button">
+            育成
+          </button>
+          <button onClick={onOpenTeam} type="button">
+            編成
           </button>
           <button
-            className="home-action-card"
-            onClick={onOpenTeam}
-            type="button"
-          >
-            <span className="home-action-card__icon" aria-hidden="true">
-              編
-            </span>
-            <span>
-              <strong>チーム編成を確認</strong>
-              <small>先発・リベロ・安全交代を調整</small>
-            </span>
-            <span aria-hidden="true">›</span>
-          </button>
-          <button
-            className={`home-action-card home-action-card--match${practiceMatchCompleted ? " home-action-card--completed" : ""}`}
             disabled={practiceMatchCompleted}
             onClick={onOpenMatch}
             type="button"
           >
-            <span className="home-action-card__icon" aria-hidden="true">
-              試
-            </span>
-            <span>
-              <strong>
-                {practiceMatchCompleted ? "今週の練習試合は完了" : "練習試合へ"}
-              </strong>
-              <small>
-                {practiceMatchCompleted
-                  ? "次週になると再び実施できます"
-                  : "申込・受諾から対戦相手を決定"}
-              </small>
-            </span>
-            <span aria-hidden="true">{practiceMatchCompleted ? "✓" : "›"}</span>
+            試合
           </button>
         </div>
-      </section>
 
-      <section className="home-week-progress" aria-labelledby="week-heading">
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">週の進行</p>
-            <h2 id="week-heading">今週を終える</h2>
-          </div>
-          <span>{state.calendar.weekOfYear}週目</span>
-        </div>
-        <div className="home-week-status">
-          <span className={trainingCompleted ? "is-complete" : ""}>
-            練習 {trainingCompleted ? "完了" : "週送りで実施"}
-          </span>
-          <span className={practiceMatchCompleted ? "is-complete" : ""}>
-            試合 {practiceMatchCompleted ? "完了" : "任意"}
-          </span>
-        </div>
         <button
           aria-label="次の週へ進む"
           className="home-next-week-button"
@@ -308,88 +187,103 @@ export function HomeScreen({
         >
           次の週へ進む
         </button>
-        <p>
-          {trainingCompleted
-            ? "疲労・状態・怪我の残り週数を更新して次週へ進みます。"
-            : "保存した練習を実施してから、疲労・状態を更新して次週へ進みます。"}
-        </p>
       </section>
 
-      {latestMatch && latestWinner ? (
+      <section
+        className="home-team-status"
+        data-testid="home-team-status"
+        aria-label="チーム状況"
+      >
+        <article>
+          <span>評判</span>
+          <strong>{school.reputationPoints}</strong>
+          <small>{reputationLabels[school.reputation]}</small>
+        </article>
+        <article>
+          <span>疲労</span>
+          <strong>{averageFatigue}</strong>
+          <small>
+            {fatigueWarningCount > 0
+              ? `注意 ${fatigueWarningCount}人`
+              : "安定"}
+          </small>
+        </article>
+        <article>
+          <span>部員</span>
+          <strong>{players.length}</strong>
+          <small>{injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}</small>
+        </article>
+        <article>
+          <span>結束</span>
+          <strong>{state.teamDynamics.cohesion}</strong>
+          <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
+        </article>
+      </section>
+
+      {nextOfficial ? (
         <section
-          className="latest-match-card"
-          aria-labelledby="latest-match-heading"
+          className={`home-official-card${
+            nextOfficial.kind === "match" && nextOfficial.timing === "due"
+              ? " is-due"
+              : ""
+          }`}
+          aria-labelledby="home-official-heading"
         >
-          <div className="section-heading">
+          <div className="home-official-card__top">
             <div>
-              <p className="section-kicker">試合結果</p>
-              <h2 id="latest-match-heading">直近の試合</h2>
+              <span className="home-label">公式戦</span>
+              <h2 id="home-official-heading">
+                {circuitLabels[nextOfficial.circuit]} {levelLabels[nextOfficial.level]}
+              </h2>
             </div>
-            <span className="latest-match-card__result">
-              {latestWinner.name} 勝利
-            </span>
-          </div>
-          <div className="latest-match-card__score">
-            <strong>
-              {latestMatch.match.homeSetsWon} - {latestMatch.match.awaySetsWon}
+            <strong className="home-official-card__timing">
+              {nextOfficial.kind === "match" && nextOfficial.timing === "due"
+                ? "今週"
+                : `あと${nextOfficial.weeksUntil}週`}
             </strong>
-            <span>{summarizeSetScore(latestMatch.match).split("｜")[1]}</span>
+          </div>
+
+          <div className="home-official-card__summary">
+            {nextOfficial.kind === "match" ? (
+              <span>
+                <strong>{roundLabels[nextOfficial.round]}</strong>
+                <span>vs</span>
+                <b title={nextOfficial.opponent.displayName}>
+                  {nextOfficial.opponent.shortName}
+                </b>
+              </span>
+            ) : (
+              <span>
+                <strong>{nextOfficial.scheduledWeek}週目</strong>
+                <span>開幕</span>
+              </span>
+            )}
+            <button onClick={onOpenOfficialTournament} type="button">
+              大会表を見る
+            </button>
           </div>
         </section>
       ) : null}
 
-      <section className="home-report" aria-labelledby="report-heading">
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">監督レポート</p>
-            <h2 id="report-heading">現在の状態</h2>
-          </div>
-        </div>
-        <div className="home-report__list">
-          <article>
-            <span
-              className={
-                injuredCount > 0
-                  ? "report-dot report-dot--danger"
-                  : "report-dot"
-              }
-            />
+      {latestMatch || alertText ? (
+        <section className="home-recent-status" aria-label="最近の状況">
+          {latestMatch && latestWinner ? (
             <div>
+              <span className="home-recent-status__tag">最近</span>
               <strong>
-                {injuredCount > 0
-                  ? `怪我人が${injuredCount}人います`
-                  : "出場できない怪我人はいません"}
+                {latestWinner.shortName}勝利&nbsp;
+                {latestMatch.match.homeSetsWon} - {latestMatch.match.awaySetsWon}
               </strong>
-              <p>
-                {injuredCount > 0
-                  ? "チーム編成で安全交代設定を確認してください。"
-                  : "現時点では全選手を編成候補にできます。"}
-              </p>
             </div>
-          </article>
-          <article>
-            <span
-              className={
-                fatigueWarningCount > 0
-                  ? "report-dot report-dot--warning"
-                  : "report-dot"
-              }
-            />
-            <div>
-              <strong>
-                {fatigueWarningCount > 0
-                  ? `疲労注意の選手が${fatigueWarningCount}人います`
-                  : "チームの疲労は安定しています"}
-              </strong>
-              <p>
-                {fatigueWarningCount > 0
-                  ? "試合前に回復重視の練習も検討してください。"
-                  : "育成方針を決めて次の成長へ進めます。"}
-              </p>
+          ) : null}
+          {alertText ? (
+            <div className="is-alert">
+              <span className="home-recent-status__tag">注意</span>
+              <strong>{alertText}</strong>
             </div>
-          </article>
-        </div>
-      </section>
+          ) : null}
+        </section>
+      ) : null}
     </main>
   );
 }
