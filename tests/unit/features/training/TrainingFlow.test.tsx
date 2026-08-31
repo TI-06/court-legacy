@@ -79,7 +79,8 @@ describe("weekly training bottom-sheet flow", () => {
       name: "チーム練習を選択",
     });
     const choices = within(menuDialog).getAllByTestId("team-training-choice");
-    const selectedMenuName = choices[1]!.textContent?.trim() ?? "";
+    const selectedMenuName =
+      choices[1]!.querySelector("strong")?.textContent?.trim() ?? "";
     fireEvent.click(choices[1]!);
 
     fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
@@ -91,8 +92,9 @@ describe("weekly training bottom-sheet flow", () => {
     );
 
     expect(
-      screen.queryByRole("heading", { name: "今週の練習結果" }),
+      screen.queryByRole("heading", { name: "直近の練習結果" }),
     ).toBeNull();
+    await screen.findByText("保存済み ✓");
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
@@ -114,8 +116,9 @@ describe("weekly training bottom-sheet flow", () => {
     );
 
     expect(
-      screen.queryByRole("heading", { name: "今週の練習結果" }),
+      screen.queryByRole("heading", { name: "直近の練習結果" }),
     ).toBeNull();
+    await screen.findByText("保存済み ✓");
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
 
     const nextWeekButton = screen.getByRole("button", {
@@ -126,6 +129,9 @@ describe("weekly training bottom-sheet flow", () => {
 
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    expect(
+      screen.getByRole("heading", { name: "直近の練習結果" }),
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: "この内容で設定" }),
     ).toBeEnabled();
