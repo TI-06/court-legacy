@@ -252,13 +252,10 @@ describe("applyGameAction", () => {
       },
     };
 
-    const read = applyGameAction(
-      withNotification,
-      {
-        type: "mark-notification-read",
-        notificationId: notification.id,
-      } as never,
-    );
+    const read = applyGameAction(withNotification, {
+      type: "mark-notification-read",
+      notificationId: notification.id,
+    } as never);
     expect(read.state.notifications.items[0]?.readAtGameDate).toBe(
       snapshot.state.date,
     );
@@ -268,22 +265,16 @@ describe("applyGameAction", () => {
       state: read.state,
       teamSelection: read.teamSelection,
     };
-    const repeated = applyGameAction(
-      readSnapshot,
-      {
-        type: "mark-notification-read",
-        notificationId: notification.id,
-      } as never,
-    );
+    const repeated = applyGameAction(readSnapshot, {
+      type: "mark-notification-read",
+      notificationId: notification.id,
+    } as never);
     expect(repeated.state.notifications).toEqual(read.state.notifications);
 
-    const unknown = applyGameAction(
-      readSnapshot,
-      {
-        type: "mark-notification-read",
-        notificationId: "missing-notification",
-      } as never,
-    );
+    const unknown = applyGameAction(readSnapshot, {
+      type: "mark-notification-read",
+      notificationId: "missing-notification",
+    } as never);
     expect(unknown.state.notifications).toEqual(read.state.notifications);
   });
 
