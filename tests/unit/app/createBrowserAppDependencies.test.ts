@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createBrowserAppDependencies } from "../../../src/app/createBrowserAppDependencies";
+import {
+  createBrowserAppDependencies,
+  E2E_SERVER_SNAPSHOT_KEY,
+} from "../../../src/app/createBrowserAppDependencies";
 import { ApiError } from "../../../src/services/api/GameApiClient";
 
 describe("createBrowserAppDependencies E2E harness", () => {
@@ -32,6 +35,33 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(reloaded.status).toBe("ready");
     if (reloaded.status !== "ready") return;
     expect(reloaded.game.revision).toBe(initial.game.revision + 1);
+  });
+
+  it("migrates a persisted pre-Phase10 local snapshot before bootstrap", async () => {
+    const first = createBrowserAppDependencies({});
+    const session = await first.auth.getSession();
+    const initial = await first.api.bootstrap(session!.accessToken);
+    expect(initial.status).toBe("ready");
+    if (initial.status !== "ready") return;
+
+    const { notifications: _notifications, ...legacyState } = initial.game.state;
+    window.sessionStorage.setItem(
+      E2E_SERVER_SNAPSHOT_KEY,
+      JSON.stringify({
+        ...initial.game,
+        state: {
+          ...legacyState,
+          schemaVersion: 5,
+        },
+      }),
+    );
+
+    const second = createBrowserAppDependencies({});
+    const reloaded = await second.api.bootstrap(session!.accessToken);
+    expect(reloaded.status).toBe("ready");
+    if (reloaded.status !== "ready") return;
+    expect(reloaded.game.state.schemaVersion).toBe(6);
+    expect(reloaded.game.state.notifications).toEqual({ items: [] });
   });
 
   it("does not import server-only scouting or shop authority into the browser adapter", () => {
