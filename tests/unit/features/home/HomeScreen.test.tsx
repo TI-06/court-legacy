@@ -79,8 +79,8 @@ describe("home action dashboard", () => {
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
     expect(screen.getByText("あと8週")).toBeVisible();
-    expect(screen.getByText("9週目")).toBeVisible();
-    expect(screen.getByText("開幕")).toBeVisible();
+    expect(screen.getByText("1回戦")).toBeVisible();
+    expect(screen.getByTitle("城南商業")).toHaveTextContent("城南");
 
     fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
     expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
