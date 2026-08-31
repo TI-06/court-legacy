@@ -20,11 +20,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Show tournament formatting diff
-        run: |
-          npx prettier src/features/tournament/TournamentScreen.tsx --write
-          git diff -- src/features/tournament/TournamentScreen.tsx
-          git checkout -- src/features/tournament/TournamentScreen.tsx
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
