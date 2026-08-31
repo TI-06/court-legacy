@@ -190,7 +190,7 @@ for (const viewport of mobileViewports) {
     if (viewport.width === 414) {
       await expectAboveNavigation(
         page,
-        ".home-week-progress__button",
+        ".home-next-week-button",
         "414-home-next-week",
       );
     }

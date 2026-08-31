@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-async function saveTrainingAndAdvance(
-  page: import("@playwright/test").Page,
-) {
+async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await page.getByRole("button", { name: "この内容で設定" }).click();
@@ -36,9 +34,7 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
       "監督として対応を選んでください。結果には利点と負担があります。",
     ),
   ).toBeVisible();
-  await expect(eventDialog.getByRole("button", { name: "閉じる" })).toHaveCount(
-    0,
-  );
+  await expect(eventDialog.getByRole("button", { name: "閉じる" })).toHaveCount(0);
   const choices = eventDialog.locator(".event-choice");
   await expect(choices).toHaveCount(2);
   await choices.first().click();

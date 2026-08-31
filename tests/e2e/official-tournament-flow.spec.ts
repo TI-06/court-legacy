@@ -70,7 +70,10 @@ for (const width of [320, 360, 390, 414, 480]) {
   test(`official bracket uses round tabs without horizontal scrolling at ${width}px`, async ({
     page,
   }) => {
-    await page.setViewportSize({ width, height: width === 414 ? 824 : width <= 360 ? 800 : 844 });
+    await page.setViewportSize({
+      width,
+      height: width === 414 ? 824 : width <= 360 ? 800 : 844,
+    });
     await page.goto("/");
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
