@@ -875,14 +875,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "training" ? (
       <div className="training-hub-screen">
-        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
         <TrainingScreen
           completed={trainingCompleted}
           data={gameData}
-          latestResult={null}
           onSave={saveTrainingPlan}
           state={gameState}
         />
+        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
       </div>
     ) : activeTab === "match" && officialTournamentView ? (
       <TournamentScreen

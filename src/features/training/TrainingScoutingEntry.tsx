@@ -21,8 +21,7 @@ export function TrainingScoutingEntry({
     state.recruiting?.cycleKey === cycleKey
       ? state.recruiting.committedCandidateIds.length
       : 0;
-  const status =
-    committedCount > 0 ? `獲得 ${committedCount}人` : "候補を確認";
+  const status = committedCount > 0 ? `獲得 ${committedCount}人` : "候補を確認";
 
   return (
     <button

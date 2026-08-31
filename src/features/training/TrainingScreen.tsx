@@ -148,12 +148,15 @@ export function TrainingScreen({
     <main className="app-content training-screen training-screen--compact">
       <header className="training-screen__header">
         <h2>育成</h2>
-        <span>{completed ? "今週は実施済み" : `平均疲労 ${averageFatigue}`}</span>
+        <span>
+          {completed ? "今週は実施済み" : `平均疲労 ${averageFatigue}`}
+        </span>
       </header>
 
       {state.shopEffects?.nextTrainingGrowthBoost ? (
         <p className="training-shop-boost" role="status">
-          次回練習 成長効率 +{state.shopEffects.nextTrainingGrowthBoost.percent}%
+          次回練習 成長効率 +{state.shopEffects.nextTrainingGrowthBoost.percent}
+          %
         </p>
       ) : null}
 
@@ -200,7 +203,10 @@ export function TrainingScreen({
                 </strong>
                 <small>{instruction?.name ?? "指示未設定"}</small>
               </span>
-              <span className="training-compact-row__chevron" aria-hidden="true">
+              <span
+                className="training-compact-row__chevron"
+                aria-hidden="true"
+              >
                 ›
               </span>
             </button>
