@@ -13,8 +13,8 @@ async function openLineupScreen(): Promise<void> {
 }
 
 describe("team selection direct-touch UI", () => {
-  it("renders a compact 3x2 court, libero, and bench without duplicate starter-lock buttons", async () => {
-    render(<App />);
+  it("renders compact touch-first drag surfaces for court, libero, and bench", async () => {
+    const view = render(<App />);
     await openLineupScreen();
 
     expect(
@@ -27,6 +27,15 @@ describe("team selection direct-touch UI", () => {
     expect(screen.getByText("交代ルール")).toBeVisible();
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     expect(screen.getAllByTestId("court-player")).toHaveLength(6);
+    expect(
+      view.container.querySelectorAll('[data-drag-placement^="rotation:"]'),
+    ).toHaveLength(6);
+    expect(
+      view.container.querySelectorAll('[data-drag-placement^="bench:"]'),
+    ).toHaveLength(5);
+    expect(
+      view.container.querySelector('[data-drag-placement="libero"]'),
+    ).not.toBeNull();
     expect(screen.queryAllByRole("button", { name: /先発固定/ })).toHaveLength(
       0,
     );
