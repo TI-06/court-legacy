@@ -422,11 +422,11 @@ export function ShopScreen({
         <button onClick={onBack} type="button">
           その他へ戻る
         </button>
-        <span>TEST / ALL ¥0</span>
+        <span>テスト中 / すべて¥0</span>
       </div>
 
       <section className="shop-screen__heading">
-        <p className="section-kicker">SHOP</p>
+        <p className="section-kicker">ショップ案内</p>
         <h2>ショップ</h2>
         <p>テスト期間中は、すべてのアイテムを¥0で利用できます。</p>
       </section>
