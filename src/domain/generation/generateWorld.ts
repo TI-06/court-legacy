@@ -304,6 +304,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       rivalryScores: {},
       destinyRivalSchoolId: null,
     },
+    notifications: { items: [] },
   } satisfies Omit<
     GameState,
     "officialSeason" | "teamDynamics" | "weeklySchedule"
