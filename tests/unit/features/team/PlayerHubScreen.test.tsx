@@ -72,9 +72,13 @@ describe("PlayerHubScreen", () => {
       }),
     ).toBeVisible();
     expect(screen.getByText("総合力")).toBeVisible();
-    expect(view.container.querySelector(".player-detail__identity-mark")).toBeNull();
+    expect(
+      view.container.querySelector(".player-detail__identity-mark"),
+    ).toBeNull();
     expect(view.container.querySelector(".player-detail__hero")).toBeNull();
-    expect(view.container.querySelector(".player-detail__summary")).not.toBeNull();
+    expect(
+      view.container.querySelector(".player-detail__summary"),
+    ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
