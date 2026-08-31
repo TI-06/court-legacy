@@ -9,9 +9,6 @@ async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
     .getByRole("button", { name: "この内容で設定" })
     .click();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
-  await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toHaveCount(0);
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();

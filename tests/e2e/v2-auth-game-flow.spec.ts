@@ -48,15 +48,15 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
   await page
-    .getByRole("dialog", { name: "練習内容を確認" })
-    .getByRole("button", { name: "この内容で実行" })
+    .getByRole("dialog", { name: "練習設定を確認" })
+    .getByRole("button", { name: "この内容で設定" })
     .click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
-  await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
-  ).toBeVisible();
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await page.getByRole("button", { name: "次の週へ進む" }).click();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
   await expect
     .poll(() =>
@@ -65,7 +65,7 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
         return raw ? JSON.parse(raw).revision : null;
       }, SNAPSHOT_KEY),
     )
-    .toBe(2);
+    .toBe(3);
 
   await page.reload();
 
@@ -78,5 +78,5 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
         return raw ? JSON.parse(raw).revision : null;
       }, SNAPSHOT_KEY),
     )
-    .toBe(2);
+    .toBe(3);
 });

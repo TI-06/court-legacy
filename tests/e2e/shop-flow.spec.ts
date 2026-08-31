@@ -315,13 +315,20 @@ test("training efficiency boost is visibly pending, applies once, and disappears
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(page.getByText("次回練習 成長効率 +20%")).toBeVisible();
 
-  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
   await page
-    .getByRole("dialog", { name: "練習内容を確認" })
-    .getByRole("button", { name: "この内容で実行" })
+    .getByRole("dialog", { name: "練習設定を確認" })
+    .getByRole("button", { name: "この内容で設定" })
     .click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+
+  await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
+    page.getByRole("heading", { name: "直近の練習結果" }),
   ).toBeVisible({ timeout: 2_500 });
   await expect(page.getByText("次回練習 成長効率 +20%")).toHaveCount(0);
 });

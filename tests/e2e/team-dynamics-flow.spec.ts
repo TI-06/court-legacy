@@ -105,18 +105,20 @@ test("leadership assignment, training, and an official match persist visible dyn
   ).toBeVisible();
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
   await page
-    .getByRole("dialog", { name: "練習内容を確認" })
-    .getByRole("button", { name: "この内容で実行" })
+    .getByRole("dialog", { name: "練習設定を確認" })
+    .getByRole("button", { name: "この内容で設定" })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
-  ).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
-  await navigation.getByRole("button", { name: "試合", exact: true }).click();
-  await page.getByRole("button", { name: "大会表を見る" }).click();
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(
+    page.getByRole("button", { name: "公式戦を開始" }),
+  ).toBeEnabled();
+
   await page.getByRole("button", { name: "公式戦を開始" }).click();
   await page
     .getByRole("dialog", { name: "公式戦を開始しますか" })
@@ -125,7 +127,7 @@ test("leadership assignment, training, and an official match persist visible dyn
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
   const persisted = await readPersistedSnapshot(page);
-  expect(persisted.revision).toBe(23);
+  expect(persisted.revision).toBe(24);
   expect(persisted.state.teamDynamics.captainPlayerId).toBe(captainPlayerId);
   expect(persisted.state.teamDynamics.viceCaptainPlayerId).toBe(
     viceCaptainPlayerId,
