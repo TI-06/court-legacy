@@ -116,9 +116,7 @@ export function HomeScreen({
     injuredCount > 0 || fatigueWarningCount > 0
       ? [
           injuredCount > 0 ? `怪我 ${injuredCount}人` : null,
-          fatigueWarningCount > 0
-            ? `疲労注意 ${fatigueWarningCount}人`
-            : null,
+          fatigueWarningCount > 0 ? `疲労注意 ${fatigueWarningCount}人` : null,
         ]
           .filter(Boolean)
           .join("・")
@@ -203,15 +201,15 @@ export function HomeScreen({
           <span>疲労</span>
           <strong>{averageFatigue}</strong>
           <small>
-            {fatigueWarningCount > 0
-              ? `注意 ${fatigueWarningCount}人`
-              : "安定"}
+            {fatigueWarningCount > 0 ? `注意 ${fatigueWarningCount}人` : "安定"}
           </small>
         </article>
         <article>
           <span>部員</span>
           <strong>{players.length}</strong>
-          <small>{injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}</small>
+          <small>
+            {injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}
+          </small>
         </article>
         <article>
           <span>結束</span>
@@ -233,7 +231,8 @@ export function HomeScreen({
             <div>
               <span className="home-label">公式戦</span>
               <h2 id="home-official-heading">
-                {circuitLabels[nextOfficial.circuit]} {levelLabels[nextOfficial.level]}
+                {circuitLabels[nextOfficial.circuit]}{" "}
+                {levelLabels[nextOfficial.level]}
               </h2>
             </div>
             <strong className="home-official-card__timing">
@@ -272,7 +271,8 @@ export function HomeScreen({
               <span className="home-recent-status__tag">最近</span>
               <strong>
                 {latestWinner.shortName}勝利&nbsp;
-                {latestMatch.match.homeSetsWon} - {latestMatch.match.awaySetsWon}
+                {latestMatch.match.homeSetsWon} -{" "}
+                {latestMatch.match.awaySetsWon}
               </strong>
             </div>
           ) : null}
