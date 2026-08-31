@@ -1,0 +1,21 @@
+name: Phase9 Home Test Prettier
+
+on:
+  push:
+    branches:
+      - feature/phase9-mobile-game-ui
+
+jobs:
+  prettier-output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Print formatting diff
+        run: |
+          npx prettier --write tests/unit/features/home/HomeScreen.test.tsx
+          git diff -- tests/unit/features/home/HomeScreen.test.tsx
