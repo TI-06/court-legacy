@@ -1,0 +1,45 @@
+name: Phase10 Format Task2 Once
+
+on:
+  push:
+    branches:
+      - feature/phase10-training-player-mobile-ui
+    paths:
+      - .github/workflows/phase10-format-task2-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase10-training-player-mobile-ui
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Format Task 2 files
+        run: >-
+          npx prettier --write
+          src/domain/model/GameState.ts
+          src/persistence/gameStateCodec.ts
+          tests/unit/persistence/gameStateCodec.test.ts
+          tests/unit/persistence/phase10GameStateMigration.test.ts
+          tests/unit/persistence/phase6GameStateMigration.test.ts
+          tests/unit/persistence/phase7GameStateMigration.test.ts
+          tests/unit/persistence/phase8GameStateMigration.test.ts
+      - name: Commit formatting if needed
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/model/GameState.ts src/persistence/gameStateCodec.ts tests/unit/persistence/gameStateCodec.test.ts tests/unit/persistence/phase10GameStateMigration.test.ts tests/unit/persistence/phase6GameStateMigration.test.ts tests/unit/persistence/phase7GameStateMigration.test.ts tests/unit/persistence/phase8GameStateMigration.test.ts
+          if ! git diff --cached --quiet; then
+            git commit -m "style: format phase10 schema migration"
+            git push origin HEAD:feature/phase10-training-player-mobile-ui
+          fi
