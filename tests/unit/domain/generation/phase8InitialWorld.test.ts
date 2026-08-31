@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../../src/domain/model/GameState";
 import {
   createDefaultWeeklyPlan,
   createInitialWeeklySchedule,
@@ -10,7 +11,7 @@ describe("Phase 8 initial world", () => {
     const first = createDemoGame();
     const second = createDemoGame();
 
-    expect(first.schemaVersion).toBe(5);
+    expect(first.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(first.weeklySchedule).toEqual(second.weeklySchedule);
 
     const roster = first.schools[first.userSchoolId]!.playerIds;
