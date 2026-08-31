@@ -1,15 +1,22 @@
+import { useState } from "react";
 import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { School, SchoolReputation } from "../../domain/model/School";
+import {
+  selectHomeTrainingNotifications,
+  type TrainingResultNotification,
+} from "../../domain/notifications/gameNotifications";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
 import type {
   TournamentCircuit,
   TournamentLevel,
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
+import { TrainingResultNotificationSheet } from "./TrainingResultNotificationSheet";
 import "./home.css";
+import "./training-result-notification.css";
 
 interface HomeScreenProps {
   state: GameState;
@@ -23,6 +30,7 @@ interface HomeScreenProps {
   onOpenMatch: () => void;
   onOpenOfficialTournament: () => void;
   onAdvanceWeek: () => void;
+  onMarkNotificationRead: (notificationId: string) => Promise<void> | void;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -70,6 +78,10 @@ function shortDate(value: string): string {
   return `${month}/${day}`;
 }
 
+function signed(value: number): string {
+  return value > 0 ? `+${value}` : String(value);
+}
+
 export function HomeScreen({
   state,
   opponent,
@@ -82,7 +94,10 @@ export function HomeScreen({
   onOpenMatch,
   onOpenOfficialTournament,
   onAdvanceWeek,
+  onMarkNotificationRead,
 }: HomeScreenProps) {
+  const [selectedNotification, setSelectedNotification] =
+    useState<TrainingResultNotification | null>(null);
   const school = state.schools[state.userSchoolId];
   if (!school) {
     throw new Error(`user school not found: ${state.userSchoolId}`);
@@ -100,6 +115,7 @@ export function HomeScreen({
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
   const nextOfficial = selectNextOfficialEvent(state);
+  const homeNotifications = selectHomeTrainingNotifications(state.notifications);
   const scheduledPracticeOpponentId =
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   const scheduledPracticeOpponent = scheduledPracticeOpponentId
@@ -121,6 +137,13 @@ export function HomeScreen({
           .filter(Boolean)
           .join("・")
       : null;
+
+  const openNotification = (notification: TrainingResultNotification) => {
+    setSelectedNotification(notification);
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+  };
 
   return (
     <main
@@ -195,6 +218,47 @@ export function HomeScreen({
           次の週へ進む
         </button>
       </section>
+
+      {homeNotifications.length > 0 ? (
+        <section className="home-notification-list" aria-label="練習結果のお知らせ">
+          {homeNotifications.map((notification) => {
+            const unread = notification.readAtGameDate === null;
+            return (
+              <button
+                aria-label={`今週の練習結果 ${notification.payload.teamTrainingMenuName}`}
+                className={`home-notification-row${unread ? " is-unread" : ""}`}
+                key={notification.id}
+                onClick={() => openNotification(notification)}
+                type="button"
+              >
+                <span className="home-notification-row__content">
+                  <span className="home-notification-row__headline">
+                    <span
+                      className={`home-notification-row__badge${
+                        unread ? "" : " is-read"
+                      }`}
+                    >
+                      {unread ? "NEW" : "確認済み"}
+                    </span>
+                    <strong>今週の練習結果</strong>
+                  </span>
+                  <span className="home-notification-row__summary">
+                    <strong>{notification.payload.teamTrainingMenuName}</strong>
+                    <small>
+                      成長 {signed(notification.payload.totalAbilityGrowth)}・疲労{" "}
+                      {signed(notification.payload.totalFatigueChange)}・怪我{" "}
+                      {notification.payload.injuredCount}人
+                    </small>
+                  </span>
+                </span>
+                <span className="home-notification-row__chevron" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            );
+          })}
+        </section>
+      ) : null}
 
       <section
         className="home-team-status"
@@ -293,6 +357,11 @@ export function HomeScreen({
           ) : null}
         </section>
       ) : null}
+
+      <TrainingResultNotificationSheet
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+      />
     </main>
   );
 }
