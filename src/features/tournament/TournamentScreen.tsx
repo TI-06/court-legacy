@@ -76,9 +76,17 @@ export function TournamentScreen({
   onStartOfficialMatch,
   onBack,
 }: TournamentScreenProps) {
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
   const stage = selectTournamentStageView(state, circuit, level);
   const nextOfficial = selectNextOfficialEvent(state);
+  const initialRound: TournamentRound =
+    nextOfficial?.kind === "match" &&
+    nextOfficial.circuit === circuit &&
+    nextOfficial.level === level
+      ? nextOfficial.round
+      : stage?.userBestRound ?? "round-of-16";
+  const [selectedRound, setSelectedRound] =
+    useState<TournamentRound>(initialRound);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
 
   if (!stage) {
     return (
@@ -108,6 +116,9 @@ export function TournamentScreen({
     stage.status !== "eliminated" &&
     stage.status !== "champion";
   const terminal = stage.status === "eliminated" || stage.status === "champion";
+  const visibleMatches = stage.matches.filter(
+    (match) => match.round === selectedRound,
+  );
 
   const requestStart = () => {
     if (!canStart) return;
@@ -143,7 +154,7 @@ export function TournamentScreen({
         </button>
         <div className="tournament-hero__heading">
           <div>
-            <p className="section-kicker">OFFICIAL TOURNAMENT</p>
+            <p className="section-kicker">公式大会</p>
             <h2 id="tournament-heading">
               {circuitLabels[circuit]} {levelLabels[level]}
             </h2>
@@ -176,69 +187,69 @@ export function TournamentScreen({
       <section className="tournament-panel" aria-labelledby="bracket-heading">
         <div className="tournament-section-heading">
           <div>
-            <p className="section-kicker">BRACKET</p>
-            <h3 id="bracket-heading">大会表</h3>
+            <p className="section-kicker">大会表</p>
+            <h3 id="bracket-heading">勝ち上がり</h3>
           </div>
           <span>16校</span>
         </div>
+
         <div
-          className="tournament-bracket-scroll"
-          data-testid="tournament-bracket-scroll"
+          className="tournament-round-tabs"
+          role="group"
+          aria-label="表示するラウンド"
         >
-          <div className="tournament-bracket">
-            {roundOrder.map((round) => {
-              const matches = stage.matches.filter(
-                (match) => match.round === round,
-              );
+          {roundOrder.map((round) => (
+            <button
+              aria-pressed={selectedRound === round}
+              key={round}
+              onClick={() => setSelectedRound(round)}
+              type="button"
+            >
+              {roundLabels[round]}
+            </button>
+          ))}
+        </div>
+
+        <section className="tournament-round tournament-round--single">
+          <h4>
+            {roundLabels[selectedRound]}
+            <small>{visibleMatches.length}試合</small>
+          </h4>
+          <div className="tournament-round__matches">
+            {visibleMatches.map((match) => {
+              const score = scoreLabel(match);
               return (
-                <section className="tournament-round" key={round}>
-                  <h4>
-                    {roundLabels[round]}
-                    <small>{matches.length}試合</small>
-                  </h4>
-                  <div className="tournament-round__matches">
-                    {matches.map((match) => {
-                      const score = scoreLabel(match);
-                      return (
-                        <article
-                          className={`tournament-match-card${
-                            match.userInMatch
-                              ? " tournament-match-card--user"
-                              : ""
-                          }`}
-                          data-testid="tournament-bracket-match"
-                          key={match.id}
-                        >
-                          {match.userInMatch ? (
-                            <span
-                              className="tournament-user-marker"
-                              data-testid="tournament-user-path"
-                            >
-                              自校
-                            </span>
-                          ) : null}
-                          <div>
-                            <span>{entrantName(match.home)}</span>
-                            {score ? <b>{match.homeSetsWon}</b> : null}
-                          </div>
-                          <div>
-                            <span>{entrantName(match.away)}</span>
-                            {score ? <b>{match.awaySetsWon}</b> : null}
-                          </div>
-                          {score ? (
-                            <small className="tournament-match-score">
-                              {score}
-                            </small>
-                          ) : null}
-                        </article>
-                      );
-                    })}
+                <article
+                  className={`tournament-match-card${
+                    match.userInMatch ? " tournament-match-card--user" : ""
+                  }`}
+                  data-testid="tournament-bracket-match"
+                  key={match.id}
+                >
+                  {match.userInMatch ? (
+                    <span
+                      className="tournament-user-marker"
+                      data-testid="tournament-user-path"
+                    >
+                      自校
+                    </span>
+                  ) : null}
+                  <div>
+                    <span>{entrantName(match.home)}</span>
+                    {score ? <b>{match.homeSetsWon}</b> : null}
                   </div>
-                </section>
+                  <div>
+                    <span>{entrantName(match.away)}</span>
+                    {score ? <b>{match.awaySetsWon}</b> : null}
+                  </div>
+                  {score ? (
+                    <small className="tournament-match-score">{score}</small>
+                  ) : null}
+                </article>
               );
             })}
           </div>
-        </div>
+        </section>
       </section>
 
       {terminal ? (
@@ -258,7 +269,7 @@ export function TournamentScreen({
           aria-labelledby="official-action-heading"
         >
           <div>
-            <p className="section-kicker">NEXT MATCH</p>
+            <p className="section-kicker">次の試合</p>
             <h3 id="official-action-heading">公式戦</h3>
             <strong>{nextMatch.opponent.displayName}</strong>
             <span>{timingLabel}</span>
