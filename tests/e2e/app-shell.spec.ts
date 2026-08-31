@@ -21,7 +21,7 @@ test("mobile shell keeps all primary navigation actions visible", async ({
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
-test("mobile training uses compact sheets and advances to the next week", async ({
+test("mobile training saves a plan and resolves it with next-week progression", async ({
   page,
 }) => {
   await page.goto("/");
@@ -56,18 +56,13 @@ test("mobile training uses compact sheets and advances to the next week", async 
   ).toHaveCount(6);
   await instructionPicker.getByRole("button", { name: "閉じる" }).click();
 
-  await page.getByRole("button", { name: "練習を実行" }).click();
-  const confirmation = page.getByRole("dialog", { name: "練習内容を確認" });
-  await confirmation.getByRole("button", { name: "この内容で実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
+  const confirmation = page.getByRole("dialog", { name: "練習設定を確認" });
+  await confirmation.getByRole("button", { name: "この内容で設定" }).click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
   await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("training-result-player")).toHaveCount(0);
-  await page.getByText("選手別の結果を確認").click();
-  await expect(page.getByTestId("training-result-player")).toHaveCount(12);
-  await expect(
-    page.getByRole("button", { name: "今週の練習は完了" }),
-  ).toBeDisabled();
+    page.getByRole("heading", { name: "直近の練習結果" }),
+  ).toHaveCount(0);
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
@@ -76,7 +71,15 @@ test("mobile training uses compact sheets and advances to the next week", async 
   ).toBeVisible();
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await expect(page.getByRole("button", { name: "練習を実行" })).toBeEnabled();
+  await expect(
+    page.getByRole("heading", { name: "直近の練習結果" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("training-result-player")).toHaveCount(0);
+  await page.getByText("選手別の結果を確認").click();
+  await expect(page.getByTestId("training-result-player")).toHaveCount(12);
+  await expect(
+    page.getByRole("button", { name: "この内容で設定" }),
+  ).toBeEnabled();
 
   const bodyWidth = await page
     .locator("body")
@@ -121,7 +124,7 @@ test("mobile team selection uses a court picker without overflow", async ({
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
-test("school management upgrades a facility and calendar advances the shared week", async ({
+test("school management upgrades a facility and calendar resolves saved training while advancing", async ({
   page,
 }) => {
   await page.goto("/");
@@ -145,25 +148,31 @@ test("school management upgrades a facility and calendar advances the shared wee
   await expect(trainingFacilityCard.getByText("Lv.1")).toBeVisible();
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "練習を実行" }).click();
+  await page.getByRole("button", { name: "この内容で設定" }).click();
   await page
-    .getByRole("dialog", { name: "練習内容を確認" })
-    .getByRole("button", { name: "この内容で実行" })
+    .getByRole("dialog", { name: "練習設定を確認" })
+    .getByRole("button", { name: "この内容で設定" })
     .click();
+  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
   await expect(
-    page.getByRole("heading", { name: "今週の練習結果" }),
-  ).toBeVisible();
+    page.getByRole("heading", { name: "直近の練習結果" }),
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: "予定を確認" }).click();
   const calendar = page.getByRole("dialog", { name: "週間カレンダー" });
   await expect(calendar).toBeVisible();
-  await expect(calendar.getByText("練習 完了")).toBeVisible();
+  await expect(calendar.getByText("練習 週送りで実施")).toBeVisible();
   await calendar.getByRole("button", { name: "次の週へ進む" }).click();
 
   await expect(calendar).toBeHidden();
   await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
   await expect(
     page.getByRole("banner").getByText("2026年4月8日"),
+  ).toBeVisible();
+
+  await navigation.getByRole("button", { name: "育成", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "直近の練習結果" }),
   ).toBeVisible();
 });
 
