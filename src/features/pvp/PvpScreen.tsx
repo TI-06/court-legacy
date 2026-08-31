@@ -246,7 +246,8 @@ export function PvpScreen({
           <div className="pvp-set-list" aria-label="セット結果">
             {result.result.sets.map((set) => (
               <span key={set.setNumber}>
-                第{set.setNumber}セット {set.challengerScore} - {set.defenderScore}
+                第{set.setNumber}セット {set.challengerScore} -{" "}
+                {set.defenderScore}
               </span>
             ))}
           </div>
