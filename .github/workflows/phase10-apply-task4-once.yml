@@ -1,0 +1,94 @@
+name: Phase10 Apply Task4 Once
+
+on:
+  push:
+    branches:
+      - feature/phase10-training-player-mobile-ui
+    paths:
+      - .github/workflows/phase10-apply-task4-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase10-training-player-mobile-ui
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Connect Home notifications to GameApp
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("src/app/GameApp.tsx")
+          text = path.read_text()
+
+          old_import = '''import type {
+            TrainingResult,
+            WeeklyPlan,
+          } from "../domain/training/resolveWeeklyTraining";'''
+          new_import = 'import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";'
+          assert text.count(old_import) == 1
+          text = text.replace(old_import, new_import, 1)
+
+          training_outcome = '  trainingResult?: TrainingResult;\n'
+          assert text.count(training_outcome) == 1
+          text = text.replace(training_outcome, '', 1)
+
+          state_block = '''  const [latestTrainingResult, setLatestTrainingResult] =
+            useState<TrainingResult | null>(null);
+'''
+          assert text.count(state_block) == 1
+          text = text.replace(state_block, '', 1)
+
+          result_assignment = '    setLatestTrainingResult(outcome?.trainingResult ?? null);\n'
+          assert text.count(result_assignment) == 1
+          text = text.replace(result_assignment, '', 1)
+
+          advance_anchor = '  const advanceWeek = async () => {\n'
+          mark_read = '''  const markNotificationRead = async (notificationId: string) => {
+            await cloudSession.runAction(
+              { type: "mark-notification-read", notificationId },
+              "お知らせを更新しています…",
+            );
+          };
+
+'''
+          assert text.count(advance_anchor) == 1
+          text = text.replace(advance_anchor, mark_read + advance_anchor, 1)
+
+          home_anchor = '        onAdvanceWeek={advanceWeek}\n'
+          assert text.count(home_anchor) == 1
+          text = text.replace(
+              home_anchor,
+              home_anchor + '        onMarkNotificationRead={markNotificationRead}\n',
+              1,
+          )
+
+          result_prop = '          latestResult={latestTrainingResult}\n'
+          assert text.count(result_prop) == 1
+          text = text.replace(result_prop, '          latestResult={null}\n', 1)
+
+          path.write_text(text)
+      - name: Format Task 4 files
+        run: npx prettier --write src/app/GameApp.tsx src/features/home/HomeScreen.tsx src/features/home/TrainingResultNotificationSheet.tsx src/features/home/training-result-notification.css tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.notifications.test.tsx
+      - name: Run focused Task 4 tests
+        run: npm test -- tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.notifications.test.tsx tests/unit/app/GameAppActions.test.tsx
+      - name: Commit Task 4 integration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/GameApp.tsx src/features/home/HomeScreen.tsx src/features/home/TrainingResultNotificationSheet.tsx src/features/home/training-result-notification.css tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.notifications.test.tsx
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: integrate persistent training notifications on home"
+            git push origin HEAD:feature/phase10-training-player-mobile-ui
+          fi
