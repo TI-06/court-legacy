@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
-import {
-  isWeeklyActionCompleted,
-  markWeeklyActionCompleted,
-} from "../../../src/domain/calendar/weekProgression";
+import { markWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import {
   advanceOfficialTournamentsThroughWeek,
