@@ -60,7 +60,9 @@ function responseFor(
   };
 }
 
-function notificationFor(snapshot: CloudGameSnapshot): TrainingResultNotification {
+function notificationFor(
+  snapshot: CloudGameSnapshot,
+): TrainingResultNotification {
   return {
     id: "training-result:home-read-flow",
     type: "training-result",
@@ -106,9 +108,7 @@ describe("GameApp notifications", () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /今週の練習結果/ }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /今週の練習結果/ }));
 
     expect(
       screen.getByRole("dialog", { name: "今週の練習結果" }),

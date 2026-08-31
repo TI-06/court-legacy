@@ -182,9 +182,7 @@ describe("home action dashboard", () => {
 
     render(<HomeScreen {...props} />);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /今週の練習結果/ }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: /今週の練習結果/ }));
 
     expect(
       screen.getByRole("dialog", { name: "今週の練習結果" }),
