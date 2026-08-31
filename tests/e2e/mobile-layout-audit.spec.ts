@@ -103,6 +103,39 @@ async function expectNavigationFixed(page: Page, stateName: string) {
   ).toBeLessThanOrEqual(1);
 }
 
+async function expectAboveNavigation(
+  page: Page,
+  locatorSelector: string,
+  stateName: string,
+) {
+  const target = page.locator(locatorSelector);
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const targetBox = await target.boundingBox();
+  const navigationBox = await navigation.boundingBox();
+
+  expect(targetBox, `${stateName}: target box`).not.toBeNull();
+  expect(navigationBox, `${stateName}: navigation box`).not.toBeNull();
+  expect(
+    (targetBox?.y ?? 0) + (targetBox?.height ?? 0),
+    `${stateName}: core content should fit above bottom navigation`,
+  ).toBeLessThanOrEqual(navigationBox?.y ?? 0);
+}
+
+async function expectNoHorizontalScroll(
+  page: Page,
+  locatorSelector: string,
+  stateName: string,
+) {
+  const dimensions = await page.locator(locatorSelector).evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(
+    dimensions.scrollWidth,
+    `${stateName}: horizontal scrolling should not be required`,
+  ).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+}
+
 async function schedulePracticeMatch(page: Page) {
   const scheduled = page.getByText("対戦決定", { exact: true });
   if (await scheduled.isVisible().catch(() => false)) return;
@@ -133,29 +166,65 @@ async function schedulePracticeMatch(page: Page) {
   await expect(scheduled).toBeVisible();
 }
 
-for (const viewport of [320, 360, 390, 480]) {
-  test(`every app state fits a ${viewport}px viewport`, async ({
+const mobileViewports = [
+  { width: 320, height: 800 },
+  { width: 360, height: 800 },
+  { width: 390, height: 844 },
+  { width: 414, height: 824 },
+  { width: 480, height: 844 },
+] as const;
+
+for (const viewport of mobileViewports) {
+  test(`every app state fits a ${viewport.width}px viewport`, async ({
     page,
   }, testInfo) => {
-    await page.setViewportSize({
-      width: viewport,
-      height: viewport <= 360 ? 800 : 844,
-    });
+    await page.setViewportSize(viewport);
     await page.goto("/");
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
 
-    await expectLayoutFits(page, testInfo, `${viewport}-home`);
-    await expectNavigationFixed(page, `${viewport}-home`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-home`);
+    await expectNavigationFixed(page, `${viewport.width}-home`);
+    if (viewport.width === 414) {
+      await expectAboveNavigation(
+        page,
+        ".home-week-progress__button",
+        "414-home-next-week",
+      );
+    }
+
+    const bracketButton = page.getByRole("button", { name: "大会表を見る" });
+    if (await bracketButton.isVisible().catch(() => false)) {
+      await bracketButton.click();
+      await expectLayoutFits(page, testInfo, `${viewport.width}-tournament`);
+      await expectNoHorizontalScroll(
+        page,
+        ".tournament-panel",
+        `${viewport.width}-tournament`,
+      );
+      await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+    }
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-players`);
-    await expectNavigationFixed(page, `${viewport}-players`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-players`);
+    await expectNavigationFixed(page, `${viewport.width}-players`);
+
+    await page.getByTestId("roster-player-row").first().click();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-player-detail`);
+    if (viewport.width === 414) {
+      await expectAboveNavigation(
+        page,
+        ".player-detail__metrics",
+        "414-player-core",
+      );
+    }
+    await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
+
     await page.getByRole("button", { name: "編成", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-team`);
-    await expectNavigationFixed(page, `${viewport}-team`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-team`);
+    await expectNavigationFixed(page, `${viewport.width}-team`);
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-team-picker`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
     await page
       .getByRole("dialog", { name: "ローテーション1の選手を選択" })
       .getByRole("button", { name: "閉じる" })
@@ -165,15 +234,15 @@ for (const viewport of [320, 360, 390, 480]) {
     await expect(
       page.getByRole("heading", { name: "チーム状態" }),
     ).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport}-team-dynamics`);
-    await expectNavigationFixed(page, `${viewport}-team-dynamics`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-team-dynamics`);
+    await expectNavigationFixed(page, `${viewport.width}-team-dynamics`);
 
     await navigation.getByRole("button", { name: "育成", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-training`);
-    await expectNavigationFixed(page, `${viewport}-training`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-training`);
+    await expectNavigationFixed(page, `${viewport.width}-training`);
 
     await page.getByRole("button", { name: "チーム練習を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-training-menu`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-training-menu`);
     await page
       .getByRole("dialog", { name: "チーム練習を選択" })
       .getByRole("button", { name: "閉じる" })
@@ -183,7 +252,7 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectLayoutFits(
       page,
       testInfo,
-      `${viewport}-training-player-picker`,
+      `${viewport.width}-training-player-picker`,
     );
     await page
       .getByRole("dialog", { name: "個人指示2の選手を選択" })
@@ -194,60 +263,60 @@ for (const viewport of [320, 360, 390, 480]) {
     await expectLayoutFits(
       page,
       testInfo,
-      `${viewport}-training-instruction-picker`,
+      `${viewport.width}-training-instruction-picker`,
     );
     await page
       .getByRole("dialog", { name: "個人指示1の内容を選択" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
-    await page.getByRole("button", { name: "練習を実行" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-training-confirm`);
+    await page.getByRole("button", { name: "この内容で設定" }).click();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-training-confirm`);
     await page
-      .getByRole("dialog", { name: "練習内容を確認" })
+      .getByRole("dialog", { name: "練習設定を確認" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-match-planning`);
-    await expectNavigationFixed(page, `${viewport}-match-planning`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-match-planning`);
+    await expectNavigationFixed(page, `${viewport.width}-match-planning`);
     await schedulePracticeMatch(page);
-    await expectLayoutFits(page, testInfo, `${viewport}-match-prep`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-match-prep`);
     await page.getByRole("button", { name: "試合開始" }).click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport}-match-live`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-match-live`);
     await page.getByRole("button", { name: "結果まで進む" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-match-result`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
 
     await navigation
       .getByRole("button", { name: "その他", exact: true })
       .click();
     await page.getByRole("button", { name: "学校管理" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-school-facilities`);
-    await expectNavigationFixed(page, `${viewport}-school-facilities`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-facilities`);
+    await expectNavigationFixed(page, `${viewport.width}-school-facilities`);
 
     await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-school-upgrade`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-upgrade`);
     await page
       .getByRole("dialog", { name: "設備を強化" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
     await page.getByRole("tab", { name: "記録", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-school-records`);
-    await page.getByRole("tab", { name: "OB", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-school-alumni`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-records`);
+    await page.getByRole("tab", { name: "卒業生", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-alumni`);
 
     await page.getByRole("button", { name: "予定を確認" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport}-calendar`);
+    await expectLayoutFits(page, testInfo, `${viewport.width}-calendar`);
     await page
       .getByRole("dialog", { name: "週間カレンダー" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expectNavigationFixed(page, `${viewport}-school-after-scroll`);
+    await expectNavigationFixed(page, `${viewport.width}-school-after-scroll`);
   });
 }
