@@ -70,5 +70,17 @@ describe("TrainingResultNotificationSheet", () => {
     expect(within(dialog).getByText("コンディション -1")).toBeVisible();
     expect(within(dialog).getByText("信頼 +2")).toBeVisible();
     expect(within(dialog).getByText("怪我あり")).toBeVisible();
+    expect(within(dialog).getByText("能力成長").closest("div")).toHaveAttribute(
+      "data-tone",
+      "positive",
+    );
+    expect(within(dialog).getByText("疲労").closest("div")).toHaveAttribute(
+      "data-tone",
+      "warning",
+    );
+    expect(within(dialog).getByText("怪我").closest("div")).toHaveAttribute(
+      "data-tone",
+      "danger",
+    );
   });
 });
