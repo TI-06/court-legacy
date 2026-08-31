@@ -21,7 +21,7 @@ interface TrainingScreenProps {
   data: GameDataRegistry;
   latestResult: TrainingResult | null;
   completed: boolean;
-  onExecute: (plan: WeeklyPlan) => void;
+  onSave: (plan: WeeklyPlan) => void;
 }
 
 type AssignmentSlot = 1 | 2;
@@ -56,7 +56,7 @@ export function TrainingScreen({
   data,
   latestResult,
   completed,
-  onExecute,
+  onSave,
 }: TrainingScreenProps) {
   const school = state.schools[state.userSchoolId];
   if (!school) {
@@ -79,20 +79,23 @@ export function TrainingScreen({
     () => [...data.individualTrainingInstructions.values()],
     [data],
   );
+  const savedPlan = state.weeklySchedule.trainingPlan;
+  const savedFirst = savedPlan.individualAssignments[0];
+  const savedSecond = savedPlan.individualAssignments[1];
   const [teamTrainingMenuId, setTeamTrainingMenuId] = useState(
-    menus[0]?.id ?? "",
+    savedPlan.teamTrainingMenuId || menus[0]?.id || "",
   );
   const [firstPlayerId, setFirstPlayerId] = useState<PlayerId>(
-    players[0]?.id ?? ("" as PlayerId),
+    savedFirst?.playerId ?? players[0]?.id ?? ("" as PlayerId),
   );
   const [secondPlayerId, setSecondPlayerId] = useState<PlayerId>(
-    players[1]?.id ?? ("" as PlayerId),
+    savedSecond?.playerId ?? players[1]?.id ?? ("" as PlayerId),
   );
   const [firstInstructionId, setFirstInstructionId] = useState(
-    instructions[0]?.id ?? "",
+    savedFirst?.instructionId ?? instructions[0]?.id ?? "",
   );
   const [secondInstructionId, setSecondInstructionId] = useState(
-    instructions[1]?.id ?? instructions[0]?.id ?? "",
+    savedSecond?.instructionId ?? instructions[1]?.id ?? instructions[0]?.id ?? "",
   );
   const [sheet, setSheet] = useState<TrainingSheet>(null);
   const [resultsExpanded, setResultsExpanded] = useState(false);
@@ -105,7 +108,7 @@ export function TrainingScreen({
   const secondInstruction =
     data.individualTrainingInstructions.get(secondInstructionId);
   const duplicatePlayers = firstPlayerId === secondPlayerId;
-  const canExecute =
+  const canSave =
     teamTrainingMenuId.length > 0 &&
     Boolean(firstPlayer) &&
     Boolean(secondPlayer) &&
@@ -133,13 +136,13 @@ export function TrainingScreen({
     ],
   };
 
-  const execute = () => {
-    if (!canExecute || completed) {
+  const save = () => {
+    if (!canSave || completed) {
       return;
     }
     setSheet(null);
     setResultsExpanded(false);
-    onExecute(plan);
+    onSave(plan);
   };
 
   const pickerSlot: AssignmentSlot | null =
@@ -159,11 +162,11 @@ export function TrainingScreen({
   return (
     <main className="app-content training-screen training-screen--compact">
       <section className="training-hero" aria-labelledby="training-heading">
-        <p className="section-kicker">WEEKLY DEVELOPMENT</p>
+        <p className="section-kicker">週間育成</p>
         <div className="training-hero__title">
           <div>
             <h2 id="training-heading">週間練習</h2>
-            <p>今週の方針だけを確認し、変更時にメニューを開きます。</p>
+            <p>今週の練習内容を決めます。実施は「次の週へ」のときです。</p>
           </div>
           <span>{completed ? "実施済み" : school.shortName}</span>
         </div>
@@ -179,7 +182,7 @@ export function TrainingScreen({
       <section className="training-panel training-plan-card">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">CURRENT PLAN</p>
+            <p className="section-kicker">今週の練習設定</p>
             <h2>今週の設定</h2>
           </div>
           <span className="training-step">疲労 {averageFatigue}</span>
@@ -248,8 +251,8 @@ export function TrainingScreen({
         <section className="training-results" aria-labelledby="result-heading">
           <div className="section-heading">
             <div>
-              <p className="section-kicker">WEEKLY REPORT</p>
-              <h2 id="result-heading">今週の練習結果</h2>
+              <p className="section-kicker">練習結果</p>
+              <h2 id="result-heading">直近の練習結果</h2>
             </div>
             <span className="result-complete">完了</span>
           </div>
@@ -337,12 +340,12 @@ export function TrainingScreen({
       ) : null}
 
       <StickyActionBar
-        disabled={completed || !canExecute}
-        label={completed ? "今週の練習は完了" : "練習を実行"}
+        disabled={completed || !canSave}
+        label={completed ? "今週の練習は完了" : "この内容で設定"}
         onClick={() => setSheet("confirm")}
         summary={
           completed
-            ? "ホームから次の週へ進めます"
+            ? "公式戦または次の週へ進めます"
             : selectedMenu && firstPlayer && secondPlayer
               ? `${selectedMenu.name}｜${firstPlayer.lastName}・${secondPlayer.lastName}`
               : "練習内容を設定してください"
@@ -441,10 +444,10 @@ export function TrainingScreen({
       </BottomSheet>
 
       <BottomSheet
-        description="実行後は次の週まで練習内容を変更できません。"
+        description="この設定は「次の週へ」で実施されます。週を進めるまでは変更できます。"
         onClose={() => setSheet(null)}
         open={sheet === "confirm"}
-        title="練習内容を確認"
+        title="練習設定を確認"
       >
         <div className="training-confirmation">
           <article>
@@ -465,11 +468,11 @@ export function TrainingScreen({
           </article>
           <button
             className="training-confirm-button"
-            disabled={!canExecute}
-            onClick={execute}
+            disabled={!canSave}
+            onClick={save}
             type="button"
           >
-            この内容で実行
+            この内容で設定
           </button>
         </div>
       </BottomSheet>
