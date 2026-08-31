@@ -1,0 +1,228 @@
+name: Phase11 Task2 TDD
+on:
+  push:
+    branches: ["feature/phase11-home-week-progression"]
+    paths: [".github/workflows/phase11-task2.yml"]
+permissions:
+  contents: write
+jobs:
+  task2:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: feature/phase11-home-week-progression }
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .node-version, cache: npm }
+      - run: npm ci
+      - name: Add Task2 RED
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/unit/features/match/MatchFlow.test.tsx'); t=p.read_text()
+          marker='  it("plays and pauses without changing the calculated result", () => {'
+          test='''  it("uses progression presentation names and continues weekly progression", () => {
+            const fixture = createMatchFixture();
+            const onContinue = vi.fn();
+            render(
+              <MatchScreen
+                {...fixture}
+                onReturnHome={onContinue}
+                onStart={vi.fn()}
+                presentation={{
+                  kind: "official",
+                  simulation: fixture.result,
+                  homeTeam: { schoolId: fixture.result.match.homeSchoolId, displayName: "青葉高校", shortName: "青葉" },
+                  awayTeam: { schoolId: fixture.result.match.awaySchoolId, displayName: "全国ゲスト代表", shortName: "ゲスト" },
+                  official: { tournamentId: "official:test", circuit: "interhigh", level: "national", round: "round-of-16" },
+                }}
+                reducedMotion={false}
+                result={fixture.result}
+              />,
+            );
+            expect(screen.getByText("ゲスト")).toBeVisible();
+            fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+            fireEvent.click(screen.getByRole("button", { name: "結果を確認して次へ" }));
+            expect(onContinue).toHaveBeenCalledOnce();
+          });
+
+'''
+          if marker not in t: raise SystemExit('match test marker missing')
+          p.write_text(t.replace(marker,test+marker))
+          PY
+          npx prettier --write tests/unit/features/match/MatchFlow.test.tsx
+      - name: Verify RED
+        run: |
+          set +e
+          npm test -- tests/unit/features/match/MatchFlow.test.tsx
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then echo "Task2 RED unexpectedly passed"; exit 1; fi
+          echo "Task2 RED confirmed"
+      - name: Implement Match presentation support
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/features/match/matchPresentation.ts'); t=p.read_text()
+          t=t.replace('export interface MatchPresentationContext {\n  state: GameState;\n  match: MatchState;\n}', 'export interface MatchPresentationContext {\n  state: GameState;\n  match: MatchState;\n  schoolDisplayNames?: Partial<Record<SchoolId, string>>;\n}')
+          t=t.replace('function schoolName(state: GameState, schoolId: SchoolId | null): string {\n  if (!schoolId) {\n    return "チーム";\n  }\n  return state.schools[schoolId]?.name ?? "チーム";\n}', 'function schoolName(context: MatchPresentationContext, schoolId: SchoolId | null): string {\n  if (!schoolId) return "チーム";\n  return context.schoolDisplayNames?.[schoolId] ?? context.state.schools[schoolId]?.name ?? "チーム";\n}')
+          t=t.replace('  const winner = schoolName(context.state, event.winnerSchoolId);','  const winner = schoolName(context, event.winnerSchoolId);')
+          p.write_text(t)
+
+          p=Path('src/features/match/MatchScreen.tsx'); t=p.read_text()
+          t=t.replace('import type { SimulateMatchResult } from "../../domain/match/simulateMatch";','import type { SimulateMatchResult } from "../../domain/match/simulateMatch";\nimport type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";')
+          t=t.replace('  result: SimulateMatchResult | null;\n  reducedMotion: boolean;', '  result: SimulateMatchResult | null;\n  presentation?: PendingMatchPresentation | null;\n  reducedMotion: boolean;')
+          t=t.replace('  const playbackKey = props.result?.match.id ?? "pre-match";', '  const playbackKey = props.presentation?.simulation.match.id ?? props.result?.match.id ?? "pre-match";')
+          t=t.replace('  result,\n  reducedMotion,', '  result: legacyResult,\n  presentation,\n  reducedMotion,')
+          anchor='''  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+          const homeSchool = state.schools[state.userSchoolId];'''
+          repl='''  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+          const result = presentation?.simulation ?? legacyResult;
+          const homeSchool = state.schools[state.userSchoolId];'''
+          if anchor not in t: raise SystemExit('match content anchor missing')
+          t=t.replace(anchor,repl)
+          t=t.replace('''  const homeIssues = validateTeamSelection({
+            state,
+            schoolId: state.userSchoolId,
+            selection: homeSelection,
+          });
+          const awayIssues = validateTeamSelection({
+            state,
+            schoolId: opponent.id,
+            selection: awaySelection,
+          });''','''  const homeIssues = result
+            ? []
+            : validateTeamSelection({ state, schoolId: state.userSchoolId, selection: homeSelection });
+          const awayIssues = result
+            ? []
+            : validateTeamSelection({ state, schoolId: opponent.id, selection: awaySelection });''')
+          old='''    return result.match.eventLog
+              .slice(0, visibleEventIndex + 1)
+              .map((event) => presentMatchEvent(event, { state, match: result.match }));'''
+          new='''    const schoolDisplayNames = presentation
+              ? {
+                  [presentation.homeTeam.schoolId]: presentation.homeTeam.displayName,
+                  [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
+                }
+              : undefined;
+            return result.match.eventLog
+              .slice(0, visibleEventIndex + 1)
+              .map((event) =>
+                presentMatchEvent(event, { state, match: result.match, schoolDisplayNames }),
+              );'''
+          if old not in t: raise SystemExit('presentation map anchor missing')
+          t=t.replace(old,new)
+          t=t.replace('  }, [result, state, visibleEventIndex]);','  }, [presentation, result, state, visibleEventIndex]);')
+          t=t.replace('''  const winner = state.schools[result.analysis.winnerSchoolId];
+            const recentEvents = presentedEvents.slice(-4).reverse();
+
+            if (!currentEvent || !winner) {
+              throw new Error("completed match is missing presentation data");
+            }''','''  const winnerDisplayName =
+              presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
+                ? presentation.homeTeam.displayName
+                : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
+                  ? presentation.awayTeam.displayName
+                  : state.schools[result.analysis.winnerSchoolId]?.name;
+            const homeShortName = presentation?.homeTeam.shortName ?? homeSchool.shortName;
+            const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
+            const recentEvents = presentedEvents.slice(-4).reverse();
+
+            if (!currentEvent || !winnerDisplayName) {
+              throw new Error("completed match is missing presentation data");
+            }''')
+          t=t.replace('{homeSchool.shortName}', '{homeShortName}')
+          t=t.replace('{opponent.shortName}', '{awayShortName}')
+          t=t.replace('{winner.name} 勝利', '{winnerDisplayName} 勝利')
+          t=t.replace('''            <button onClick={onReturnHome} type="button">
+              ホームへ戻る
+            </button>''','''            <button onClick={onReturnHome} type="button">
+              {presentation ? "結果を確認して次へ" : "ホームへ戻る"}
+            </button>''')
+          p.write_text(t)
+          PY
+      - name: Implement GameApp progression playback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('src/app/GameApp.tsx'); t=p.read_text()
+          t=t.replace('import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";\n', 'import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";\nimport type { AdvanceWeekOutcome, PendingMatchPresentation } from "../domain/calendar/advanceWeekOutcome";\n')
+          start=t.index('interface AdvanceWeekOutcome {'); end=t.index('\n}\n',start)+3; t=t[:start]+t[end:]
+          state_anchor='''  const [activeMatchResult, setActiveMatchResult] =
+            useState<SimulateMatchResult | null>(null);'''
+          t=t.replace(state_anchor,state_anchor+'''\n  const [activeMatchPresentation, setActiveMatchPresentation] =
+            useState<PendingMatchPresentation | null>(null);''')
+          t=t.replace('setActiveMatchResult(null);\n      setOfficialTournamentView(null);','setActiveMatchResult(null);\n      setActiveMatchPresentation(null);\n      setOfficialTournamentView(null);')
+          t=t.replace('setActiveMatchResult(null);\n    setOfficialTournamentView({','setActiveMatchResult(null);\n    setActiveMatchPresentation(null);\n    setOfficialTournamentView({')
+          old='''    const outcome = response.outcome as AdvanceWeekOutcome | undefined;
+            setLatestYearTransition(outcome?.academicYearTransition ?? null);
+            setActiveMatchResult(null);
+            setMatchView("practice");
+            setPvpResult(null);
+            setCalendarOpen(false);
+
+            if (outcome?.officialMatchRequired) {
+              const nextOfficial = selectNextOfficialEvent(response.game.state);
+              if (nextOfficial) {
+                setOfficialTournamentView({
+                  circuit: nextOfficial.circuit,
+                  level: nextOfficial.level,
+                });
+                setActiveTab("match");
+                return;
+              }
+            }
+
+            setOfficialTournamentView(null);
+            setActiveTab("home");'''
+          new='''    const outcome = response.outcome as AdvanceWeekOutcome | undefined;
+            setLatestYearTransition(outcome?.academicYearTransition ?? null);
+            setMatchView("practice");
+            setPvpResult(null);
+            setCalendarOpen(false);
+
+            if (outcome?.pendingMatchPresentation) {
+              setActiveMatchPresentation(outcome.pendingMatchPresentation);
+              setActiveMatchResult(outcome.pendingMatchPresentation.simulation);
+              setLatestMatchResult(outcome.pendingMatchPresentation.simulation);
+              setOfficialTournamentView(null);
+              setActiveTab("match");
+              return;
+            }
+
+            setActiveMatchPresentation(null);
+            setActiveMatchResult(null);
+            setOfficialTournamentView(null);
+            setActiveTab("home");'''
+          if old not in t: raise SystemExit('advanceWeek client anchor missing')
+          t=t.replace(old,new)
+          t=t.replace('!activeMatchResult ? (','!activeMatchResult && !activeMatchPresentation ? (')
+          t=t.replace('!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null','!activeMatchResult && !activeMatchPresentation ? <MatchPvpEntry onOpen={openPvp} /> : null')
+          t=t.replace('!activeMatchResult ? (\n          <PracticeMatchPlanning','!activeMatchResult && !activeMatchPresentation ? (\n          <PracticeMatchPlanning')
+          t=t.replace('''          onReturnHome={() => changeTab("home")}
+          onStart={startPracticeMatch}
+          opponent={opponent}
+          reducedMotion={gameState.settings.reducedMotion}
+          result={activeMatchResult}''','''          onReturnHome={() => {
+            if (activeMatchPresentation) void advanceWeek();
+            else changeTab("home");
+          }}
+          onStart={startPracticeMatch}
+          opponent={opponent}
+          presentation={activeMatchPresentation}
+          reducedMotion={gameState.settings.reducedMotion}
+          result={activeMatchPresentation?.simulation ?? activeMatchResult}''')
+          p.write_text(t)
+          PY
+          npx prettier --write src/features/match/matchPresentation.ts src/features/match/MatchScreen.tsx src/app/GameApp.tsx tests/unit/features/match/MatchFlow.test.tsx
+      - name: Verify GREEN
+        run: npm test -- tests/unit/features/match/MatchFlow.test.tsx tests/unit/features/match/AppMatchFlow.test.tsx
+      - name: Typecheck Task2
+        run: npm run typecheck
+      - name: Commit Task2
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/features/match/matchPresentation.ts src/features/match/MatchScreen.tsx src/app/GameApp.tsx tests/unit/features/match/MatchFlow.test.tsx
+          git commit -m "feat: present week progression matches from home"
+          git push origin HEAD:feature/phase11-home-week-progression
