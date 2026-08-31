@@ -63,7 +63,9 @@ export function buildTrainingResultNotification(
   const players = input.result.playerLogs.map((log) => {
     const player = input.stateBeforeTraining.players[log.playerId];
     if (!player) {
-      throw new Error(`training notification references unknown player: ${log.playerId}`);
+      throw new Error(
+        `training notification references unknown player: ${log.playerId}`,
+      );
     }
 
     return {
@@ -150,7 +152,8 @@ export function selectHomeTrainingNotifications(
   state: GameNotificationState,
 ): TrainingResultNotification[] {
   const trainingItems = state.items.filter(
-    (item): item is TrainingResultNotification => item.type === "training-result",
+    (item): item is TrainingResultNotification =>
+      item.type === "training-result",
   );
   if (trainingItems.length === 0) return [];
 

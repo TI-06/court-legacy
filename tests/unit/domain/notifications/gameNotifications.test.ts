@@ -40,7 +40,8 @@ describe("game notifications", () => {
     const result: TrainingResult = {
       schoolId: state.userSchoolId,
       teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
-      individualAssignments: state.weeklySchedule.trainingPlan.individualAssignments,
+      individualAssignments:
+        state.weeklySchedule.trainingPlan.individualAssignments,
       playerLogs: [
         {
           playerId,
@@ -101,9 +102,9 @@ describe("game notifications", () => {
         trainingNotification({
           id: `training-${index}`,
           weekOfYear: index + 1,
-          createdGameDate: `2026-04-${String(index + 1).padStart(2, "0")}` as GameDate,
-          readAtGameDate:
-            index === 0 ? ("2026-04-02" as GameDate) : null,
+          createdGameDate:
+            `2026-04-${String(index + 1).padStart(2, "0")}` as GameDate,
+          readAtGameDate: index === 0 ? ("2026-04-02" as GameDate) : null,
         }),
     );
     const state: GameNotificationState = { items };
@@ -125,16 +126,12 @@ describe("game notifications", () => {
   it("marks an existing notification read and treats unknown ids as no-ops", () => {
     const item = trainingNotification();
     const state: GameNotificationState = { items: [item] };
-    const read = markNotificationRead(
-      state,
-      item.id,
-      "2026-04-08" as GameDate,
-    );
+    const read = markNotificationRead(state, item.id, "2026-04-08" as GameDate);
 
     expect(read.items[0]?.readAtGameDate).toBe("2026-04-08");
-    expect(markNotificationRead(read, "missing", "2026-04-08" as GameDate)).toEqual(
-      read,
-    );
+    expect(
+      markNotificationRead(read, "missing", "2026-04-08" as GameDate),
+    ).toEqual(read);
   });
 
   it("shows unread results first and keeps only the newest read result reopenable", () => {
