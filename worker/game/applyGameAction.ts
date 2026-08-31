@@ -415,21 +415,41 @@ function applyAdvanceWeek(
   state: GameState,
   teamSelection: TeamSelection,
 ): AppliedGameAction {
-  if (!isWeeklyActionCompleted(state, "training")) {
-    return conflict(
-      "training_required",
-      "週を進める前に今週の練習を完了してください",
-    );
+  let currentState = state;
+  let trainingResult: unknown;
+
+  if (!isWeeklyActionCompleted(currentState, "training")) {
+    const training = applyTraining(currentState, teamSelection, {
+      type: "training",
+      plan: currentState.weeklySchedule.trainingPlan,
+    });
+    currentState = training.state;
+    trainingResult = training.outcome;
   }
-  if (hasRequiredOfficialMatch(state)) {
-    return conflict(
-      "official_match_required",
-      "週を進める前に現在の公式戦を完了してください",
-    );
+
+  if (hasRequiredOfficialMatch(currentState)) {
+    if (trainingResult === undefined) {
+      return conflict(
+        "official_match_required",
+        "週を進める前に現在の公式戦を完了してください",
+      );
+    }
+
+    return {
+      state: currentState,
+      teamSelection,
+      outcome: {
+        trainingResult,
+        officialMatchRequired: true,
+        academicYearTransition: null,
+        recoveredPlayerIds: [],
+        healedPlayerIds: [],
+      },
+    };
   }
 
   try {
-    const progression = advanceGameWeek(state, gameData);
+    const progression = advanceGameWeek(currentState, gameData);
     const nextState = progression.academicYearTransition
       ? progression.state
       : surfaceWeeklyEvent(progression.state, gameData);
@@ -441,6 +461,8 @@ function applyAdvanceWeek(
       state: nextState,
       teamSelection: nextSelection,
       outcome: {
+        trainingResult,
+        officialMatchRequired: false,
         academicYearTransition: progression.academicYearTransition,
         recoveredPlayerIds: progression.recoveredPlayerIds,
         healedPlayerIds: progression.healedPlayerIds,
