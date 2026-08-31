@@ -20,11 +20,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Show Phase8 formatting diff
-        run: |
-          npx prettier tests/e2e/mobile-layout-audit.spec.ts tests/unit/features/school/SchoolScreen.test.tsx --write
-          git diff -- tests/e2e/mobile-layout-audit.spec.ts tests/unit/features/school/SchoolScreen.test.tsx
-          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
