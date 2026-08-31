@@ -162,13 +162,22 @@ export function HomeScreen({
         </div>
 
         <div className="home-week-card__actions" aria-label="今週の操作">
-          <button onClick={onOpenTraining} type="button">
+          <button
+            aria-label="育成を決める"
+            onClick={onOpenTraining}
+            type="button"
+          >
             育成
           </button>
-          <button onClick={onOpenTeam} type="button">
+          <button
+            aria-label="チーム編成を確認"
+            onClick={onOpenTeam}
+            type="button"
+          >
             編成
           </button>
           <button
+            aria-label="練習試合へ"
             disabled={practiceMatchCompleted}
             onClick={onOpenMatch}
             type="button"
