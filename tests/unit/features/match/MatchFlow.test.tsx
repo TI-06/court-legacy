@@ -14,6 +14,8 @@ import { MatchScreen } from "../../../../src/features/match/MatchScreen";
 function createMatchFixture() {
   const state = createDemoGame();
   const opponent = selectPracticeOpponent(state);
+  state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+  state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
   const homeSelection = autoSelectTeam({
     state,
     schoolId: state.userSchoolId,
@@ -42,7 +44,7 @@ function createMatchFixture() {
 }
 
 describe("match flow", () => {
-  it("shows preparation strength and starts a legal practice match", () => {
+  it("shows preparation strength and starts a scheduled legal practice match", () => {
     const fixture = createMatchFixture();
     const onStart = vi.fn();
 
