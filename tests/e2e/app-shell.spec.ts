@@ -70,13 +70,26 @@ test("mobile training saves a plan and resolves it with next-week progression", 
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();
 
+  const resultNotification = page.getByRole("button", {
+    name: /今週の練習結果/,
+  });
+  await expect(resultNotification).toBeVisible();
+  await resultNotification.click();
+  const resultDialog = page.getByRole("dialog", { name: "今週の練習結果" });
+  await expect(resultDialog).toBeVisible();
+  await expect(
+    resultDialog.getByRole("heading", { name: "選手別" }),
+  ).toBeVisible();
+  await expect(
+    resultDialog.locator(".training-result-notification__player"),
+  ).toHaveCount(12);
+  await resultDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(resultDialog).toBeHidden();
+
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("training-result-player")).toHaveCount(0);
-  await page.getByText("選手別の結果を確認").click();
-  await expect(page.getByTestId("training-result-player")).toHaveCount(12);
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "この内容で設定" }),
   ).toBeEnabled();
@@ -169,10 +182,8 @@ test("school management upgrades a facility and calendar resolves saved training
   await expect(
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();
-
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
+    page.getByRole("button", { name: /今週の練習結果/ }),
   ).toBeVisible();
 });
 
