@@ -11,6 +11,8 @@ describe("weekly training bottom-sheet flow", () => {
     expect(
       screen.getByRole("heading", { name: "週間練習" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("新入生募集")).toBeVisible();
+    expect(screen.queryByText("RECRUITING")).toBeNull();
     expect(screen.getByRole("button", { name: "育成" })).toHaveAttribute(
       "aria-current",
       "page",
