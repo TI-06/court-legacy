@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild the shared mobile shell, Home screen, and official tournament screen so Court Legacy behaves like a compact smartphone management game: readable 12px+ typography, primary actions visible without unnecessary scrolling, and tournament matches shown as single-line `A 2 - 0 B` rows.
+**Goal:** Rebuild the shared shell, Home screen, and official tournament screen as a compact smartphone-management-game UI while preserving all existing game behavior.
 
-**Architecture:** Keep all game/domain behavior unchanged. Phase 9 is a presentation-layer refactor: shared sizing/touch tokens live in `game-theme.css`, Home composes its existing data into fewer dense zones, and Tournament renders the existing `TournamentBracketMatchView` data through a focused single-line row component. Playwright tests define viewport, typography, navigation, and interaction acceptance before each UI change.
+**Architecture:** Phase 9 is presentation-only. Shared sizing and touch tokens live in `src/ui/theme/game-theme.css`; Home keeps its existing data/callback contract but recomposes it into fewer dense zones; Tournament keeps the existing selector/domain model and renders each match through a focused one-line row component. Playwright tests define each screen's acceptance before production changes.
 
 **Tech Stack:** React 19, TypeScript 5.9, CSS, Vite 7, Playwright 1.50, Vitest 4
 
@@ -12,68 +12,69 @@
 
 ## Global Constraints
 
-- No game-balance, tournament progression, training, match, persistence, or API behavior changes.
-- Body text uses 14px as the normal baseline.
-- No Phase 9 Home/Tournament/shared-shell text may render below 12px.
-- Normal touch controls are at least 44px; primary actions are at least 48px.
-- Bottom navigation labels are 12px.
-- Home at 360x800 must show `次の週へ進む` above the fixed bottom navigation without scrolling.
-- Home at 390x844 should expose the official-match summary in the initial viewport.
-- Tournament round tabs remain 44px minimum height and 12px text at 320px width.
-- Tournament matches use one horizontal row: left school / score or VS / right school.
-- Do not render `自校` or `★自校` as a separate tournament row/label. Highlight only through typography/color/background/accent.
-- Use `shortName` in tournament rows and keep every row on one line with ellipsis when required.
-- No horizontal page or tournament-panel scrolling at 320, 360, 390, 414, or 480px.
-- Existing confirmation, loading, save, and official-match start behavior must continue to work.
+- Do not change game balance, tournament progression, training resolution, match simulation, persistence, API contracts, or weekly progression rules.
+- Normal body text: 14px.
+- Phase 9-owned shell/Home/Tournament labels and captions: never below 12px.
+- Normal touch target: at least 44px. Primary action: at least 48px.
+- Bottom navigation label: 12px.
+- Home 360x800: `次の週へ進む` must be visible above the fixed navigation without scripted scrolling.
+- Home 390x844: the compact official-match summary must be visible in the initial viewport when it exists.
+- Tournament round tabs: at least 44px high and 12px text at 320px width.
+- Tournament matchup format: one line, `左校 2 - 0 右校` or `左校 VS 右校`.
+- Do not render `自校` or `★自校` as tournament text or as a separate row.
+- Use tournament entrant `shortName` for the row; keep one line with ellipsis when necessary.
+- No horizontal page/panel scrolling at 320, 360, 390, 414, or 480px.
+- Preserve existing confirmation sheets, loading states, save status, and official-match execution behavior.
 
 ---
 
-## File Structure
+## File Map
 
 ### Shared shell
-
-- Modify `src/ui/theme/game-theme.css` — shared Phase 9 typography/spacing/touch tokens, compact sticky header, compact bottom navigation.
-- Modify `src/ui/shell/GameHeader.tsx` — present date plus year/week context in the compact header.
-- Modify `src/ui/shell/GamePageFrame.tsx` — replace reputation-only secondary context with the explicit season progress label required by Phase 9.
-- Modify `src/app/GameApp.tsx` — provide `就任N年目・N週目` to the shell.
-- Modify `src/ui/status/operation-status.css` — keep save/retry status readable at the 12px minimum without increasing header height.
+- Modify `src/ui/theme/game-theme.css` — Phase 9 tokens, compact header/nav.
+- Modify `src/ui/shell/GameHeader.tsx` — school/date/year/week presentation.
+- Modify `src/ui/shell/GamePageFrame.tsx` — pass the new progress label.
+- Modify `src/app/GameApp.tsx` — supply `就任N年目・N週目`.
+- Modify `src/ui/status/operation-status.css` — readable 12px compact save state.
 
 ### Home
-
-- Modify `src/features/home/HomeScreen.tsx` — collapse seven vertical blocks into the week card, team-status strip, official summary, and compact recent/alert block.
-- Modify `src/features/home/home.css` — compact Home layout and typography.
-- Modify `src/features/home/home-week.css` — merge week progression styling into the main week card while preserving `.home-next-week-button`.
+- Modify `src/features/home/HomeScreen.tsx` — four-zone dashboard.
+- Modify `src/features/home/home.css` — compact dashboard styles.
+- Modify `src/features/home/home-week.css` — weekly CTA/state styles; preserve `.home-next-week-button`.
 
 ### Tournament
-
-- Create `src/features/tournament/TournamentMatchRow.tsx` — one focused renderer for a single match row and optional inline official-match action state.
-- Modify `src/features/tournament/TournamentScreen.tsx` — compact header/current strip, self-first sorting, row rendering, and removal of duplicate bottom action card.
-- Modify `src/features/tournament/tournament.css` — one-line match grid and compact tournament layout.
+- Create `src/features/tournament/TournamentMatchRow.tsx` — single-line matchup renderer.
+- Modify `src/features/tournament/TournamentScreen.tsx` — compact header, user-first ordering, inline action.
+- Modify `src/features/tournament/tournament.css` — one-line rows and compact layout.
 
 ### Tests
-
-- Create `tests/e2e/phase9-mobile-ui.spec.ts` — explicit Phase 9 acceptance tests.
-- Modify `tests/e2e/mobile-layout-audit.spec.ts` — enforce initial-view Home acceptance without manual scroll and tournament no-overflow behavior at all five widths.
-- Modify `tests/e2e/home-match-flow.spec.ts` — stop depending on removed `監督ホーム` heading.
-- Modify `tests/e2e/app-shell.spec.ts` — stop depending on removed Home heading and verify compact shell context.
-- Modify `tests/e2e/official-tournament-flow.spec.ts` — verify single-line rows, no user-marker label, round tabs, and inline official CTA.
-- Modify `tests/e2e/official-tournament-continuity.spec.ts` — replace removed Home-heading assertions while preserving tournament continuity coverage.
+- Create `tests/e2e/phase9-shell-ui.spec.ts`.
+- Create `tests/e2e/phase9-home-ui.spec.ts`.
+- Create `tests/e2e/phase9-tournament-ui.spec.ts`.
+- Modify `tests/e2e/mobile-layout-audit.spec.ts`.
+- Modify `tests/e2e/home-match-flow.spec.ts`.
+- Modify `tests/e2e/app-shell.spec.ts`.
+- Modify `tests/e2e/official-tournament-flow.spec.ts`.
+- Modify `tests/e2e/official-tournament-continuity.spec.ts`.
 
 ---
 
-### Task 1: Add Phase 9 acceptance tests and prove RED
+### Task 1: Define Phase 9 RED acceptance tests
 
 **Files:**
-- Create: `tests/e2e/phase9-mobile-ui.spec.ts`
+- Create: `tests/e2e/phase9-shell-ui.spec.ts`
+- Create: `tests/e2e/phase9-home-ui.spec.ts`
+- Create: `tests/e2e/phase9-tournament-ui.spec.ts`
 - Modify: `tests/e2e/mobile-layout-audit.spec.ts`
 
 **Interfaces:**
-- Consumes: existing `data-testid="tournament-bracket-match"`, `.home-next-week-button`, fixed `navigation[aria-label="主要メニュー"]`.
-- Produces: stable Phase 9 test hooks `data-testid="home-screen"`, `data-testid="home-team-status"`, `data-testid="tournament-match-line"`, `data-user-match="true|false"` that implementation tasks must provide.
+- Production must later provide `data-testid="home-screen"`.
+- Production must later provide `data-testid="home-team-status"`.
+- Tournament retains `data-testid="tournament-bracket-match"` and adds `data-testid="tournament-match-line"` plus `data-user-match="true|false"`.
 
-- [ ] **Step 1: Write the failing Home initial-viewport test**
+- [ ] **Step 1: Write the shell typography/touch test**
 
-Create `tests/e2e/phase9-mobile-ui.spec.ts` with helpers that compare element bounding boxes and computed font sizes. The Home test must use the actual viewport, without calling `scrollIntoView`:
+`tests/e2e/phase9-shell-ui.spec.ts`:
 
 ```ts
 import { expect, test, type Locator } from "@playwright/test";
@@ -84,11 +85,36 @@ async function fontSize(locator: Locator): Promise<number> {
   );
 }
 
+test("phase9 shell keeps readable labels and compact controls", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/");
+
+  const navItem = page.locator(".bottom-game-nav__item").first();
+  const calendar = page.getByRole("button", { name: "予定を確認" });
+  const calendarBox = await calendar.boundingBox();
+
+  expect(await fontSize(navItem)).toBeGreaterThanOrEqual(12);
+  await expect(page.locator(".game-header__meta")).toContainText("就任");
+  expect(await fontSize(page.locator(".game-header__meta"))).toBeGreaterThanOrEqual(12);
+  expect(calendarBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+  expect(calendarBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+});
+```
+
+- [ ] **Step 2: Write the Home initial-viewport test**
+
+`tests/e2e/phase9-home-ui.spec.ts`:
+
+```ts
+import { expect, test } from "@playwright/test";
+
 test("phase9 home keeps the weekly CTA in the initial 360x800 viewport", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
 
   await expect(page.getByTestId("home-screen")).toBeVisible();
+  await expect(page.getByTestId("home-team-status")).toBeVisible();
+
   const nextWeek = page.getByRole("button", { name: "次の週へ進む" });
   const nav = page.getByRole("navigation", { name: "主要メニュー" });
   const nextWeekBox = await nextWeek.boundingBox();
@@ -99,61 +125,51 @@ test("phase9 home keeps the weekly CTA in the initial 360x800 viewport", async (
   expect((nextWeekBox?.y ?? 0) + (nextWeekBox?.height ?? 0)).toBeLessThanOrEqual(
     navBox?.y ?? 0,
   );
-
-  await expect(page.getByTestId("home-team-status")).toBeVisible();
 });
-```
 
-- [ ] **Step 2: Add the Phase 9 typography floor test**
-
-Add assertions for the selectors Phase 9 owns. Do not scan legacy Team/Training text in this phase:
-
-```ts
-test("phase9 shell home and tournament owned labels stay at 12px or larger", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 800 });
+test("phase9 home exposes official summary in the initial 390x844 viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  for (const selector of [
-    ".bottom-game-nav__item",
-    ".game-header__meta",
-    ".home-week-card__label",
-    ".home-team-status__label",
-  ]) {
-    expect(await fontSize(page.locator(selector).first()), selector).toBeGreaterThanOrEqual(12);
-  }
+  const official = page.locator(".home-official-card");
+  await expect(official).toBeVisible();
+  const officialBox = await official.boundingBox();
+  const navBox = await page
+    .getByRole("navigation", { name: "主要メニュー" })
+    .boundingBox();
 
-  await page.getByRole("button", { name: "大会表を見る" }).click();
-  for (const selector of [
-    ".tournament-round-tabs button",
-    ".tournament-match-row__school",
-    ".tournament-match-row__center",
-  ]) {
-    expect(await fontSize(page.locator(selector).first()), selector).toBeGreaterThanOrEqual(12);
-  }
+  expect(officialBox).not.toBeNull();
+  expect(navBox).not.toBeNull();
+  expect(officialBox?.y ?? 9999).toBeLessThan(navBox?.y ?? 0);
 });
 ```
 
-- [ ] **Step 3: Add the tournament single-line-row test**
+- [ ] **Step 3: Write the tournament one-line-row test**
+
+`tests/e2e/phase9-tournament-ui.spec.ts`:
 
 ```ts
-test("phase9 tournament renders each match as one horizontal row", async ({ page }) => {
+import { expect, test } from "@playwright/test";
+
+test("phase9 tournament uses one horizontal line per match and no self label", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/");
   await page.getByRole("button", { name: "大会表を見る" }).click();
 
-  const rows = page.getByTestId("tournament-match-line");
-  await expect(rows).toHaveCount(8);
-  await expect(page.getByTestId("tournament-user-path")).toHaveCount(0);
+  const lines = page.getByTestId("tournament-match-line");
+  await expect(lines).toHaveCount(8);
+  await expect(page.getByText("自校", { exact: true })).toHaveCount(0);
 
-  const first = rows.first();
-  const left = first.locator(".tournament-match-row__school--home");
-  const center = first.locator(".tournament-match-row__center");
-  const right = first.locator(".tournament-match-row__school--away");
-  const [leftBox, centerBox, rightBox] = await Promise.all([
-    left.boundingBox(),
-    center.boundingBox(),
-    right.boundingBox(),
-  ]);
+  const first = lines.first();
+  const leftBox = await first
+    .locator(".tournament-match-row__school--home")
+    .boundingBox();
+  const centerBox = await first
+    .locator(".tournament-match-row__center")
+    .boundingBox();
+  const rightBox = await first
+    .locator(".tournament-match-row__school--away")
+    .boundingBox();
 
   expect(leftBox).not.toBeNull();
   expect(centerBox).not.toBeNull();
@@ -163,30 +179,28 @@ test("phase9 tournament renders each match as one horizontal row", async ({ page
 });
 ```
 
-- [ ] **Step 4: Strengthen `mobile-layout-audit.spec.ts`**
+- [ ] **Step 4: Strengthen the existing mobile audit**
 
-Remove the current 414px-only `scrollIntoView` workaround for `.home-next-week-button`. At 360, 390, and 414 widths, call `expectAboveNavigation` directly after initial Home load. Keep the existing overflow inspector at all five widths.
+In `tests/e2e/mobile-layout-audit.spec.ts`, delete the 414px-only `scrollIntoView` workaround. For 360, 390, and 414 widths call `expectAboveNavigation(page, ".home-next-week-button", ...)` immediately after initial Home load.
 
-- [ ] **Step 5: Run the new tests and verify RED**
-
-Run:
+- [ ] **Step 5: Run RED**
 
 ```bash
-npx playwright test tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
+npx playwright test tests/e2e/phase9-shell-ui.spec.ts tests/e2e/phase9-home-ui.spec.ts tests/e2e/phase9-tournament-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
 ```
 
-Expected: FAIL because the Phase 9 hooks/classes do not yet exist and Home requires scrolling to reach the weekly CTA.
+Expected: FAIL because Phase 9 hooks/layouts do not exist and the weekly CTA currently requires scrolling.
 
-- [ ] **Step 6: Commit the RED tests**
+- [ ] **Step 6: Commit tests**
 
 ```bash
-git add tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts
+git add tests/e2e/phase9-shell-ui.spec.ts tests/e2e/phase9-home-ui.spec.ts tests/e2e/phase9-tournament-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts
 git commit -m "test: define phase9 mobile UI acceptance"
 ```
 
 ---
 
-### Task 2: Add shared mobile-game tokens and compact shell
+### Task 2: Compact the shared mobile shell
 
 **Files:**
 - Modify: `src/ui/theme/game-theme.css`
@@ -194,17 +208,16 @@ git commit -m "test: define phase9 mobile UI acceptance"
 - Modify: `src/ui/shell/GamePageFrame.tsx`
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/ui/status/operation-status.css`
-- Test: `tests/e2e/phase9-mobile-ui.spec.ts`
-- Test: `tests/e2e/app-shell.spec.ts`
+- Test: `tests/e2e/phase9-shell-ui.spec.ts`
 
 **Interfaces:**
-- Produces `GameHeaderProps.progressLabel: string`.
-- `GamePageFrame` consumes `progressLabel` and passes it to `GameHeader`.
-- `GameApp` supplies `progressLabel={`${gameState.yearIndex}年目・${gameState.calendar.weekOfYear}週目`}`.
+- Replace `GameHeaderProps.reputationLabel` with `progressLabel: string`.
+- Replace `GamePageFrameProps.reputationLabel` with `progressLabel: string`.
+- `GameApp` supplies `progressLabel={`就任${gameState.yearIndex}年目・${gameState.calendar.weekOfYear}週目`}`.
 
-- [ ] **Step 1: Add shared Phase 9 CSS tokens**
+- [ ] **Step 1: Add shared Phase 9 tokens**
 
-At `:root` in `game-theme.css`, add:
+Add to `:root` in `game-theme.css`:
 
 ```css
 --game-font-screen-title: 22px;
@@ -225,13 +238,11 @@ At `:root` in `game-theme.css`, add:
 --game-nav-height: 62px;
 ```
 
-Do not globally override all legacy feature typography. Apply the tokens only to the shell and Phase 9 Home/Tournament selectors.
+Do not apply these globally to Team/Training in Phase 9; only shell/Home/Tournament selectors are in scope.
 
 - [ ] **Step 2: Change the header data contract**
 
-Replace `reputationLabel` in `GameHeaderProps` / `GamePageFrameProps` with `progressLabel`. Keep `dateLabel` and operation status.
-
-Expected header metadata:
+`GameHeader.tsx` metadata:
 
 ```tsx
 <div className="game-header__meta">
@@ -240,19 +251,17 @@ Expected header metadata:
 </div>
 ```
 
-In `GameApp.tsx`:
+Update `GamePageFrame` props/passthrough accordingly. In `GameApp.tsx` pass:
 
 ```tsx
 progressLabel={`就任${gameState.yearIndex}年目・${gameState.calendar.weekOfYear}週目`}
 ```
 
-Remove the now-unused local `reputationLabels` map from `GameApp.tsx` if no other reference remains.
+Remove `reputationLabels` from `GameApp.tsx` after confirming it has no remaining consumer.
 
-- [ ] **Step 3: Compact the shell CSS**
+- [ ] **Step 3: Compact header/navigation CSS without shrinking below the floor**
 
-Set the header target to 58-64px excluding safe-area growth, retain 44px calendar touch target, set metadata and operation status to 12px, and set bottom-nav labels to 12px. At <=350px do not shrink header button or nav text below the global floor.
-
-Key rules:
+Use actual current markup classes (`.game-header__identity`, `.game-header__meta`, `.game-header__actions`). Core rules:
 
 ```css
 .game-header {
@@ -285,29 +294,31 @@ Key rules:
 }
 ```
 
-- [ ] **Step 4: Keep operation status compact and readable**
+Delete <=350px rules that reduce nav labels below 12px or calendar touch size below 44px.
 
-Update `operation-status.css` so `.operation-status` uses `font-size: 12px`, does not force a 32px+ visual block, and retry controls still have a 44px effective touch target when present.
+- [ ] **Step 4: Keep operation status at 12px**
 
-- [ ] **Step 5: Run focused tests**
+In `operation-status.css`, set `.operation-status { font-size: 12px; }`. Keep retry usable with a minimum 44px button height while normal `保存済み ✓` remains visually compact.
+
+- [ ] **Step 5: Run and verify GREEN**
 
 ```bash
-npx playwright test tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/app-shell.spec.ts --project=mobile-chromium
+npx playwright test tests/e2e/phase9-shell-ui.spec.ts --project=mobile-chromium
 npm run typecheck
 ```
 
-Expected: typography-floor assertions for shared shell pass; Home/Tournament layout assertions may remain RED until Tasks 3-4.
+Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/ui/theme/game-theme.css src/ui/shell/GameHeader.tsx src/ui/shell/GamePageFrame.tsx src/app/GameApp.tsx src/ui/status/operation-status.css tests/e2e/app-shell.spec.ts
+git add src/ui/theme/game-theme.css src/ui/shell/GameHeader.tsx src/ui/shell/GamePageFrame.tsx src/app/GameApp.tsx src/ui/status/operation-status.css
 git commit -m "feat: compact phase9 mobile game shell"
 ```
 
 ---
 
-### Task 3: Rebuild Home into a four-zone game dashboard
+### Task 3: Rebuild Home as the compact four-zone dashboard
 
 **Files:**
 - Modify: `src/features/home/HomeScreen.tsx`
@@ -316,15 +327,17 @@ git commit -m "feat: compact phase9 mobile game shell"
 - Modify: `tests/e2e/home-match-flow.spec.ts`
 - Modify: `tests/e2e/app-shell.spec.ts`
 - Modify: `tests/e2e/official-tournament-continuity.spec.ts`
-- Test: `tests/e2e/phase9-mobile-ui.spec.ts`
+- Test: `tests/e2e/phase9-home-ui.spec.ts`
 - Test: `tests/e2e/mobile-layout-audit.spec.ts`
 
 **Interfaces:**
-- Preserve all existing `HomeScreenProps` callbacks and state inputs.
-- Preserve `.home-next-week-button` for stable automation.
-- Produce `data-testid="home-screen"` on the root and `data-testid="home-team-status"` on the status strip.
+- Keep all existing `HomeScreenProps` inputs/callbacks.
+- Root emits `data-testid="home-screen"`.
+- Team strip emits `data-testid="home-team-status"`.
+- Preserve `.home-next-week-button`.
+- Preserve the accessible `大会表を見る` button name.
 
-- [ ] **Step 1: Replace the Home markup with the compact zones**
+- [ ] **Step 1: Replace seven vertical sections with four zones**
 
 Root:
 
@@ -332,102 +345,69 @@ Root:
 <main className="app-content home-screen" data-testid="home-screen">
 ```
 
-Zone order:
-
+Render only:
 1. `.home-week-card`
 2. `.home-team-status`
-3. compact `.home-official-card` when `nextOfficial` exists
-4. `.home-recent-status` only when there is a recent result or actionable injury/fatigue alert
+3. `.home-official-card` when `nextOfficial` exists
+4. `.home-recent-status` only when a recent result or actionable alert exists
 
-Remove the standalone `監督ホーム` hero, standalone action-list section, standalone week-progress section, and verbose report cards.
+Delete the separate `監督ホーム` hero, action-list section, week-progress section, and verbose healthy-state report blocks.
 
-- [ ] **Step 2: Build the week card**
+- [ ] **Step 2: Build the week card with precise existing state**
 
-The week card must contain opponent, strength, training state, practice-match state, three quick actions, and `.home-next-week-button`:
-
-```tsx
-<section className="home-week-card" aria-labelledby="home-week-heading">
-  <div className="home-week-card__top">
-    <div>
-      <span className="home-week-card__label">今週</span>
-      <h2 id="home-week-heading">練習試合</h2>
-    </div>
-    <span className="home-week-card__strength">戦力 {homeStrength}</span>
-  </div>
-  <strong className="home-week-card__opponent">{opponent.name}</strong>
-  <div className="home-week-card__states">
-    <span>練習 {trainingCompleted ? "完了 ✓" : "設定待ち"}</span>
-    <span>試合 {practiceMatchCompleted ? "完了 ✓" : "未実施"}</span>
-  </div>
-  <div className="home-week-card__actions">
-    <button onClick={onOpenTraining} type="button">育成</button>
-    <button onClick={onOpenTeam} type="button">編成</button>
-    <button disabled={practiceMatchCompleted} onClick={onOpenMatch} type="button">試合</button>
-  </div>
-  <button className="home-next-week-button" onClick={onAdvanceWeek} type="button">
-    次の週へ進む
-  </button>
-</section>
-```
-
-Keep behavior equivalent to existing buttons; only presentation/copy is simplified.
-
-- [ ] **Step 3: Build the four-column team-status strip**
-
-At >=360px use four columns. At 320px switch to 2x2. Each item uses 12px label/caption and 20px value.
-
-```tsx
-<section className="home-team-status" data-testid="home-team-status" aria-label="チーム状況">
-  <article>
-    <span className="home-team-status__label">評判</span>
-    <strong>{school.reputationPoints}</strong>
-    <small>{reputationLabels[school.reputation]}</small>
-  </article>
-  ...
-</section>
-```
-
-- [ ] **Step 4: Compact the official-match card**
-
-Keep the existing `大会表を見る` accessible button name so other flows continue to find it. Do not repeat explanatory text. For due matches, strengthen the CTA visually; for upcoming matches, fit the tournament name, timing, round/opponent, and button in roughly 80-100px.
-
-- [ ] **Step 5: Collapse recent result and alerts**
-
-Render at most one recent-result line plus one alert line. Only show the alert when `injuredCount > 0 || fatigueWarningCount > 0`. Do not repeat `平均疲労`, `怪我なし`, or other healthy-state prose already visible in the status strip.
-
-- [ ] **Step 6: Implement Home CSS density**
-
-Use `gap: 8px` for the Home grid, 12-14px card padding, 14px body, 12px labels/captions, and 48px primary weekly button. Do not use `font-size` below 12px in `home.css` or `home-week.css`.
-
-The 360x800 initial viewport test must pass without a scripted scroll.
-
-- [ ] **Step 7: Update Home-dependent E2E selectors**
-
-Replace assertions such as:
+Use the authoritative weekly plan as the training state. `GameState.weeklySchedule.trainingPlan` always represents the saved plan for the current week, so do not invent a new saved/unsaved domain flag.
 
 ```ts
-page.getByRole("heading", { name: "監督ホーム" })
+const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
+const practiceStatus = practiceMatchCompleted
+  ? "完了 ✓"
+  : state.weeklySchedule.practiceMatch.scheduledOpponentId
+    ? "対戦決定"
+    : "未決定";
 ```
 
-with:
+The week card contains opponent, strength, both status labels, three quick actions, and the weekly CTA. Preserve existing callback behavior and disable only the practice action when `practiceMatchCompleted` is true.
+
+- [ ] **Step 3: Build the four-metric status strip**
+
+Render four real items: 評判, 疲労, 部員, 結束. Each item contains a 12px label, 20px value, and 12px caption. At >=360px use four columns; at 320px use 2x2.
+
+- [ ] **Step 4: Compact the official card**
+
+Upcoming state: show timing, tournament, round/opponent, and `大会表を見る` in roughly 80-100px. Due state may expand enough to make the CTA prominent. Remove repeated prose.
+
+- [ ] **Step 5: Collapse result/alerts**
+
+Show at most one recent-match line and one alert line. Show the alert only when `injuredCount > 0 || fatigueWarningCount > 0`. Do not repeat healthy-state prose already represented by metrics.
+
+- [ ] **Step 6: Apply Phase 9 Home CSS**
+
+Use 8px main grid gap and 12-14px card padding. No `font-size` below 12px in `home.css` or `home-week.css`. Primary weekly CTA remains 48px+. At 320px rearrange the status strip rather than shrinking text.
+
+- [ ] **Step 7: Update stale Home E2E selectors**
+
+In `home-match-flow.spec.ts`, `app-shell.spec.ts`, and `official-tournament-continuity.spec.ts`, replace `監督ホーム` heading assertions with:
 
 ```ts
-page.getByTestId("home-screen")
+await expect(page.getByTestId("home-screen")).toBeVisible();
 ```
 
-In `home-match-flow.spec.ts`, the practice-match action is now `試合`; scope it to `.home-week-card` so it does not collide with bottom navigation:
+For the Home practice action use:
 
 ```ts
-await page.locator(".home-week-card").getByRole("button", { name: "試合", exact: true }).click();
+await page
+  .locator(".home-week-card")
+  .getByRole("button", { name: "試合", exact: true })
+  .click();
 ```
 
-- [ ] **Step 8: Run Home tests and verify GREEN**
+- [ ] **Step 8: Run and verify Home GREEN**
 
 ```bash
-npx playwright test tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/home-match-flow.spec.ts tests/e2e/app-shell.spec.ts tests/e2e/official-tournament-continuity.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
+npx playwright test tests/e2e/phase9-home-ui.spec.ts tests/e2e/home-match-flow.spec.ts tests/e2e/app-shell.spec.ts tests/e2e/official-tournament-continuity.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
 ```
 
-Expected: Home initial-view, typography, behavior, and no-overflow assertions pass. Tournament single-line assertions may still be RED until Task 4.
+Expected: Home tests and mobile audit pass. If the audit reaches Tournament and fails only on the not-yet-implemented row layout, run the Home-specific tests plus the audit with `--grep "home"` and record the Tournament failure for Task 4; do not weaken Home assertions.
 
 - [ ] **Step 9: Commit**
 
@@ -438,38 +418,35 @@ git commit -m "feat: rebuild home as compact game dashboard"
 
 ---
 
-### Task 4: Render official tournament matches as compact single-line rows
+### Task 4: Convert tournament matches to single-line rows
 
 **Files:**
 - Create: `src/features/tournament/TournamentMatchRow.tsx`
 - Modify: `src/features/tournament/TournamentScreen.tsx`
 - Modify: `src/features/tournament/tournament.css`
 - Modify: `tests/e2e/official-tournament-flow.spec.ts`
-- Test: `tests/e2e/phase9-mobile-ui.spec.ts`
+- Test: `tests/e2e/phase9-tournament-ui.spec.ts`
 - Test: `tests/e2e/mobile-layout-audit.spec.ts`
 
 **Interfaces:**
 
-Create:
+`TournamentMatchRow.tsx` exports:
 
 ```ts
 interface TournamentMatchRowProps {
   match: TournamentBracketMatchView;
   userEntrantId: string | null;
-  isCurrentUserMatch: boolean;
-  due: boolean;
-  trainingCompleted: boolean;
-  pending: boolean;
-  canStart: boolean;
-  onRequestStart: () => void;
+  action: ReactNode | null;
 }
+
+export function TournamentMatchRow(props: TournamentMatchRowProps): JSX.Element;
 ```
 
-`TournamentMatchRow` must preserve `data-testid="tournament-bracket-match"` on its article and add `data-testid="tournament-match-line"` to the horizontal line.
+- Article keeps `data-testid="tournament-bracket-match"`.
+- Horizontal line adds `data-testid="tournament-match-line"`.
+- Article adds `data-user-match={match.userInMatch ? "true" : "false"}`.
 
-- [ ] **Step 1: Sort the selected round with the user's match first**
-
-In `TournamentScreen.tsx`:
+- [ ] **Step 1: Put the user's match first within the selected round**
 
 ```ts
 const visibleMatches = stage.matches
@@ -477,65 +454,39 @@ const visibleMatches = stage.matches
   .sort((left, right) => Number(right.userInMatch) - Number(left.userInMatch));
 ```
 
-Sorting is presentation-only; do not mutate domain state.
+This is display-only and must not mutate tournament state.
 
-- [ ] **Step 2: Create `TournamentMatchRow.tsx`**
+- [ ] **Step 2: Implement the focused one-line renderer**
 
-Determine which side is the user from `userEntrantId` and entrant IDs. Render one 3-column line:
+Determine user side with entrant IDs:
 
-```tsx
-<div className="tournament-match-row__line" data-testid="tournament-match-line">
-  <span
-    className={`tournament-match-row__school tournament-match-row__school--home${userIsHome ? " is-user" : ""}`}
-    title={match.home?.displayName ?? "未定"}
-  >
-    {match.home?.shortName ?? "未定"}
-  </span>
-  <strong className="tournament-match-row__center">
-    {score ? `${match.homeSetsWon} - ${match.awaySetsWon}` : "VS"}
-  </strong>
-  <span
-    className={`tournament-match-row__school tournament-match-row__school--away${userIsAway ? " is-user" : ""}`}
-    title={match.away?.displayName ?? "未定"}
-  >
-    {match.away?.shortName ?? "未定"}
-  </span>
-</div>
+```ts
+const userIsHome = match.home?.entrantId === userEntrantId;
+const userIsAway = match.away?.entrantId === userEntrantId;
+const center =
+  match.homeSetsWon === null || match.awaySetsWon === null
+    ? "VS"
+    : `${match.homeSetsWon} - ${match.awaySetsWon}`;
 ```
 
-Do not render `tournament-user-marker` or the text `自校`.
+Render exactly three columns: left `shortName`, center score/VS, right `shortName`. Set `title` to each entrant's full `displayName`. Apply `.is-user` only to the matching school side. Do not render `自校` or `tournament-user-marker`.
 
-- [ ] **Step 3: Move official-match status/action inline**
+- [ ] **Step 3: Move the official action into the current user match article**
 
-Only for `isCurrentUserMatch`, append a compact action/status region below the one-line matchup. When `due && !trainingCompleted`, show the existing blocking explanation. When `due && trainingCompleted`, show the existing `公式戦を開始` button. When `pending`, show the existing progress status text.
+In `TournamentScreen`, build `action` only for the selected/current user match. Reuse the existing rules:
+- due + training incomplete: blocking note and disabled `公式戦を開始`.
+- due + training complete + not pending: enabled `公式戦を開始`.
+- pending: existing progress status.
 
-The standalone `.tournament-action` section in `TournamentScreen.tsx` must be deleted to eliminate duplicated opponent/timing information.
+Delete the standalone `.tournament-action` block so opponent/timing is not duplicated below the bracket.
 
-- [ ] **Step 4: Compact tournament header/current-position strip**
+- [ ] **Step 4: Compact tournament header and current-position strip**
 
-Replace the separate `試合メニューへ戻る` text row with a 44px back control placed beside the 18px tournament heading. Preserve a readable accessible name, e.g. `aria-label="試合メニューへ戻る"`.
+Use one header row with a 44px back control and 18px tournament title; keep `aria-label="試合メニューへ戻る"`. Below it show `現在` and `次戦` in a compact strip. Remove the old separate back-text row and large next-card blocks.
 
-Add a compact current-position strip directly below the header:
-
-```text
-現在 1回戦    次戦 城南商業
-```
-
-Use 12px labels and 14px strong values.
-
-- [ ] **Step 5: Implement the single-line CSS grid**
-
-Core rules:
+- [ ] **Step 5: Implement the row CSS**
 
 ```css
-.tournament-match-row {
-  min-width: 0;
-  padding: 0 10px;
-  background: var(--game-panel);
-  border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: var(--game-radius-card);
-}
-
 .tournament-match-row__line {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
@@ -570,36 +521,38 @@ Core rules:
 }
 ```
 
-At 320px keep the three columns; reduce horizontal gap/padding, not font size. Never introduce horizontal scrolling.
+At 320px reduce gaps/padding only. Do not reduce school text below 14px or center text below 12px.
 
-- [ ] **Step 6: Keep round tabs readable**
+- [ ] **Step 6: Keep round tabs readable at every width**
 
-Use `min-height: var(--game-touch)` and `font-size: var(--game-font-label)` for all four tabs, including <=360px media rules. Remove any existing 0.67rem shrink rule.
+Use `min-height: var(--game-touch)` and `font-size: var(--game-font-label)`. Remove the current <=360px rule that shrinks tabs to `0.67rem`.
 
-- [ ] **Step 7: Update official tournament E2E**
+- [ ] **Step 7: Update official tournament flow test**
 
-Preserve the existing checks for 8 first-round and 4 quarterfinal matches. Add:
+Keep existing 8/4 match-count and round-tab checks. Replace marker expectations with:
 
 ```ts
-await expect(page.getByTestId("tournament-user-path")).toHaveCount(0);
+await expect(page.getByText("自校", { exact: true })).toHaveCount(0);
 await expect(page.getByTestId("tournament-match-line")).toHaveCount(8);
 ```
 
-For due-match tests, locate `公式戦を開始` within the user match article when possible:
+For the due-match CTA scope to:
 
 ```ts
 const userMatch = page.locator('[data-user-match="true"]');
 await expect(userMatch.getByRole("button", { name: "公式戦を開始" })).toBeDisabled();
 ```
 
-- [ ] **Step 8: Run tournament tests and verify GREEN**
+Keep the existing confirmation and persistence assertions unchanged.
+
+- [ ] **Step 8: Run and verify GREEN**
 
 ```bash
-npx playwright test tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/official-tournament-flow.spec.ts tests/e2e/official-tournament-continuity.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
+npx playwright test tests/e2e/phase9-tournament-ui.spec.ts tests/e2e/official-tournament-flow.spec.ts tests/e2e/official-tournament-continuity.spec.ts tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium
 npm run typecheck
 ```
 
-Expected: all focused Phase 9 Home/Tournament assertions pass at 320/360/390/414/480 widths.
+Expected: PASS at 320/360/390/414/480 with no horizontal overflow.
 
 - [ ] **Step 9: Commit**
 
@@ -610,54 +563,50 @@ git commit -m "feat: compact official tournament match rows"
 
 ---
 
-### Task 5: Align remaining E2E with the new UI contract
+### Task 5: Align the remaining known E2E contracts
 
 **Files:**
-- Modify as evidenced by failures only: `tests/e2e/*.spec.ts`
-- Do not change production behavior in this task unless a real regression is demonstrated.
+- Modify: `tests/e2e/home-match-flow.spec.ts`
+- Modify: `tests/e2e/app-shell.spec.ts`
+- Modify: `tests/e2e/official-tournament-flow.spec.ts`
+- Modify: `tests/e2e/official-tournament-continuity.spec.ts`
+- Modify: `tests/e2e/mobile-layout-audit.spec.ts`
+- Modify additional `tests/e2e/*.spec.ts` only when a full-suite failure proves it still references removed Phase 9 copy/markup.
 
 **Interfaces:**
-- Home identity hook: `data-testid="home-screen"`.
-- Home practice action: `.home-week-card` scoped `button[name="試合"]`.
-- Tournament match hook: `data-testid="tournament-bracket-match"` remains stable.
-- Tournament line hook: `data-testid="tournament-match-line"`.
-- Tournament self state: `data-user-match="true"`.
+- Home identity: `data-testid="home-screen"`.
+- Home practice action: `.home-week-card` scoped `試合` button.
+- Tournament match: `data-testid="tournament-bracket-match"`.
+- Tournament line: `data-testid="tournament-match-line"`.
+- User match: `data-user-match="true"`.
 
-- [ ] **Step 1: Run the full mobile E2E suite**
+- [ ] **Step 1: Run full E2E**
 
 ```bash
 npm run test:e2e
 ```
 
-- [ ] **Step 2: Classify every failure before editing**
+- [ ] **Step 2: Classify each failure before editing**
 
-For each failure, decide whether it is:
+Classify as stale approved-UI expectation, layout regression, or behavior regression. Only stale approved-UI expectations are fixed test-only. Layout/behavior regressions require production fixes plus focused reruns.
 
-1. stale selector/copy expectation caused by the approved Phase 9 UI,
-2. CSS/layout regression,
-3. functional behavior regression.
-
-Only category 1 is fixed by changing the test. Categories 2-3 require the relevant production fix and a focused rerun.
-
-- [ ] **Step 3: Remove stale `監督ホーム` dependencies**
-
-Search:
+- [ ] **Step 3: Find remaining removed copy/hooks**
 
 ```bash
 rg '監督ホーム|練習試合へ|tournament-user-path' tests/e2e
 ```
 
-Replace Home identity checks with `getByTestId("home-screen")`; replace old Home action text with the scoped new control; remove marker expectations because Phase 9 explicitly forbids a user label.
+Replace only proven stale references using the interfaces above. Do not weaken score, revision, persistence, confirmation, or navigation assertions.
 
-- [ ] **Step 4: Run the full E2E suite again**
+- [ ] **Step 4: Run full E2E again**
 
 ```bash
 npm run test:e2e
 ```
 
-Expected: all E2E tests pass.
+Expected: PASS.
 
-- [ ] **Step 5: Commit test alignment separately**
+- [ ] **Step 5: Commit alignment**
 
 ```bash
 git add tests/e2e
@@ -666,40 +615,40 @@ git commit -m "test: align e2e with phase9 mobile UI"
 
 ---
 
-### Task 6: Final quality, mobile audit, and delivery verification
+### Task 6: Final quality and merge verification
 
 **Files:**
-- Modify only if verification exposes a concrete issue.
+- Modify only if a verification failure proves a concrete issue.
 
 **Interfaces:**
-- Final acceptance is the combination of static quality gates, unit tests, full Playwright E2E, and five-width mobile audit.
+- Completion requires local/static checks, all unit tests, all Playwright E2E, CI GREEN, and post-merge `main` GREEN.
 
-- [ ] **Step 1: Run formatting check**
+- [ ] **Step 1: Format**
 
 ```bash
 npm run format:check
 ```
 
-Expected: PASS. If it fails, run `npm run format`, inspect the diff, then rerun `npm run format:check`.
+If it fails, run `npm run format`, inspect the diff, then rerun `npm run format:check`.
 
-- [ ] **Step 2: Run lint and typecheck**
+- [ ] **Step 2: Static quality**
 
 ```bash
 npm run lint
 npm run typecheck
 ```
 
-Expected: PASS for both.
+Expected: PASS.
 
-- [ ] **Step 3: Run unit tests**
+- [ ] **Step 3: Unit tests**
 
 ```bash
 npm test
 ```
 
-Expected: PASS with no domain-test changes needed for a presentation-only phase.
+Expected: PASS with no domain-test behavior changes.
 
-- [ ] **Step 4: Run build**
+- [ ] **Step 4: Production build**
 
 ```bash
 npm run build
@@ -707,7 +656,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 5: Run full mobile E2E**
+- [ ] **Step 5: Full E2E**
 
 ```bash
 npm run test:e2e
@@ -715,38 +664,43 @@ npm run test:e2e
 
 Expected: PASS.
 
-- [ ] **Step 6: Run the explicit five-width Phase 9 audit once more**
+- [ ] **Step 6: Explicit Phase 9 mobile audit**
 
 ```bash
-npx playwright test tests/e2e/phase9-mobile-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts tests/e2e/official-tournament-flow.spec.ts --project=mobile-chromium
+npx playwright test tests/e2e/phase9-shell-ui.spec.ts tests/e2e/phase9-home-ui.spec.ts tests/e2e/phase9-tournament-ui.spec.ts tests/e2e/mobile-layout-audit.spec.ts tests/e2e/official-tournament-flow.spec.ts --project=mobile-chromium
 ```
 
-Expected: PASS at 320, 360, 390, 414, and 480px with no horizontal overflow; 360x800 Home weekly CTA is visible above the fixed nav without scripted scrolling.
+Expected: PASS; no page/tournament horizontal overflow; 360x800 weekly CTA is initially visible; one-line tournament rows remain intact at 320px.
 
-- [ ] **Step 7: Review the production diff against the spec**
+- [ ] **Step 7: Review production diff**
 
 ```bash
-git diff main...HEAD -- src/ui/theme/game-theme.css src/ui/shell src/features/home src/features/tournament tests/e2e
+git diff main...HEAD -- src/ui/theme/game-theme.css src/ui/shell src/ui/status src/features/home src/features/tournament tests/e2e
 ```
 
-Verify explicitly:
+Confirm all of the following before PR:
+- Phase 9 shell/Home/Tournament owned text is 12px+.
+- No tournament `自校`/`★自校` label exists.
+- Match rows are left school / score-or-VS / right school.
+- Only the user's school side gets self emphasis.
+- The duplicate standalone tournament next-match action card is gone.
+- Domain/API/persistence code is unchanged except the presentation props required by the shell.
 
-- no Home/Tournament/shell font below 12px,
-- no `自校`/`★自校` tournament label,
-- match row reads left school / score or VS / right school,
-- self highlighting affects the user's side only,
-- no duplicate standalone next-match action card,
-- no domain/API/persistence logic changed.
+- [ ] **Step 8: Commit any final formatting-only diff**
 
-- [ ] **Step 8: Commit any final verified formatting-only changes**
+```bash
+git status --short
+```
+
+If there are verified formatting-only changes:
 
 ```bash
 git add -A
 git commit -m "style: finalize phase9 mobile UI"
 ```
 
-Skip this commit if there are no remaining changes.
+If clean, do not create an empty commit.
 
-- [ ] **Step 9: Push branch and require CI GREEN before merge**
+- [ ] **Step 9: Push, PR, CI, merge, post-merge verification**
 
-Push `feature/phase9-mobile-game-ui`, open/update the Phase 9 pull request, and do not merge until the repository Quality and mobile E2E checks are GREEN. After merge, verify the `main` push workflow is GREEN before declaring Phase 9 complete.
+Push `feature/phase9-mobile-game-ui`, open/update the Phase 9 PR, require repository Quality and mobile E2E checks to be GREEN, merge only after both are GREEN, then verify the `main` push workflow is GREEN before declaring Phase 9 complete.
