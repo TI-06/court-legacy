@@ -230,7 +230,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
     <main className="app-content team-screen team-screen--direct">
       <section className="team-hero" aria-labelledby="team-heading">
         <div>
-          <p className="section-kicker">MATCH ROSTER</p>
+          <p className="section-kicker">試合メンバー</p>
           <h2 id="team-heading">チーム編成</h2>
           <p>コート上の選手をタップして、直接入れ替えます。</p>
         </div>
@@ -274,7 +274,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
       <section className="team-panel" aria-labelledby="rotation-heading">
         <div className="team-section-heading">
           <div>
-            <p className="section-kicker">STARTING SIX</p>
+            <p className="section-kicker">先発6人</p>
             <h3 id="rotation-heading">コート配置</h3>
           </div>
           <span className={issues.length === 0 ? "team-valid" : "team-invalid"}>
@@ -296,7 +296,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                     school={school}
                     actionLabel="変更"
                     ariaLabel={`ローテーション${assignment.slot}を変更`}
-                    badge={`R${assignment.slot}`}
+                    badge={`${assignment.slot}`}
                     onClick={() =>
                       setPickerTarget({
                         type: "rotation",
@@ -327,7 +327,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         <section className="team-panel" aria-labelledby="libero-heading">
           <div className="team-section-heading">
             <div>
-              <p className="section-kicker">DEFENSE SPECIALIST</p>
+              <p className="section-kicker">守備専門</p>
               <h3 id="libero-heading">リベロ</h3>
             </div>
           </div>
@@ -340,7 +340,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                   school={school}
                   actionLabel="変更"
                   ariaLabel="リベロを変更"
-                  badge="L"
+                  badge="リ"
                   onClick={() => setPickerTarget({ type: "libero" })}
                   player={player}
                   selected
@@ -365,7 +365,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
       <section className="team-panel" aria-labelledby="bench-heading">
         <div className="team-section-heading">
           <div>
-            <p className="section-kicker">SUBSTITUTES</p>
+            <p className="section-kicker">控え選手</p>
             <h3 id="bench-heading">ベンチ</h3>
           </div>
           <span className="bench-count">
@@ -394,7 +394,7 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
       <section className="team-panel" aria-labelledby="policy-heading">
         <div className="team-section-heading">
           <div>
-            <p className="section-kicker">SAFETY POLICY</p>
+            <p className="section-kicker">交代ルール</p>
             <h3 id="policy-heading">交代方針</h3>
           </div>
         </div>
