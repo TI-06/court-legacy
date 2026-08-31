@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
 import { matchId } from "../../../../src/domain/model/identifiers";
+import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import {
   calculateSelectionStrength,
@@ -44,6 +45,30 @@ function createProps(withLatestMatch = false) {
     onOpenMatch: vi.fn(),
     onOpenOfficialTournament: vi.fn(),
     onAdvanceWeek: vi.fn(),
+    onMarkNotificationRead: vi.fn(),
+  };
+}
+
+function trainingNotification(
+  props: ReturnType<typeof createProps>,
+  id: string,
+  menuName: string,
+  read: boolean,
+): TrainingResultNotification {
+  return {
+    id,
+    type: "training-result",
+    createdGameDate: props.state.date,
+    academicYearIndex: props.state.yearIndex,
+    weekOfYear: props.state.calendar.weekOfYear,
+    readAtGameDate: read ? props.state.date : null,
+    payload: {
+      teamTrainingMenuName: menuName,
+      totalAbilityGrowth: 8,
+      totalFatigueChange: 12,
+      injuredCount: 0,
+      players: [],
+    },
   };
 }
 
@@ -121,6 +146,50 @@ describe("home action dashboard", () => {
     expect(props.onOpenTraining).toHaveBeenCalledOnce();
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
     expect(props.onOpenMatch).toHaveBeenCalledOnce();
+  });
+
+  it("shows at most two useful training notifications and keeps only the newest read result", () => {
+    const props = createProps();
+    const oldRead = trainingNotification(props, "old-read", "旧練習", true);
+    const unread = trainingNotification(props, "unread", "未読練習", false);
+    const newestRead = trainingNotification(
+      props,
+      "newest-read",
+      "最新練習",
+      true,
+    );
+    props.state.notifications.items = [oldRead, unread, newestRead];
+
+    render(<HomeScreen {...props} />);
+
+    const rows = screen.getAllByRole("button", { name: /今週の練習結果/ });
+    expect(rows).toHaveLength(2);
+    expect(screen.getByText("未読練習")).toBeVisible();
+    expect(screen.getByText("最新練習")).toBeVisible();
+    expect(screen.queryByText("旧練習")).toBeNull();
+    expect(screen.getAllByText("NEW")).toHaveLength(1);
+  });
+
+  it("opens an unread training notification and requests its read state after opening", () => {
+    const props = createProps();
+    const notification = trainingNotification(
+      props,
+      "training-unread",
+      "スパイク練習",
+      false,
+    );
+    props.state.notifications.items = [notification];
+
+    render(<HomeScreen {...props} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /今週の練習結果/ }),
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "今週の練習結果" }),
+    ).toBeVisible();
+    expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 
   it("keeps the next week action enabled after training resolves", () => {
