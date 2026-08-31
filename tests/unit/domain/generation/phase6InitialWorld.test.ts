@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../../src/app/createInitialGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../../src/domain/model/GameState";
 
 describe("Phase 6 initial world", () => {
   it("keeps a deterministic official season on the latest schema", () => {
@@ -16,7 +17,7 @@ describe("Phase 6 initial world", () => {
       },
     });
 
-    expect(state.schemaVersion).toBe(5);
+    expect(state.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(state.officialSeason.academicYear).toBe(state.calendar.academicYear);
     expect(state.officialSeason.interhigh.prefectural.entrants).toHaveLength(
       16,
