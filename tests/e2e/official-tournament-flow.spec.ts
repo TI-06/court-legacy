@@ -156,7 +156,7 @@ test("official match shows progress, commits once, and survives reload", async (
   ).toBe(true);
 
   await page.reload();
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   const reloaded = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
     return raw ? JSON.parse(raw) : null;
