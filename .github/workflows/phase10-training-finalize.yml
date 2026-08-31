@@ -17,45 +17,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: feature/phase10-mobile-ui-completion
-      - name: Remove legacy TrainingScreen prop and place scouting after setup
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('src/app/GameApp.tsx')
-          source = path.read_text()
-          old = '''      <div className="training-hub-screen">
-        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
-        <TrainingScreen
-          completed={trainingCompleted}
-          data={gameData}
-          latestResult={null}
-          onSave={saveTrainingPlan}
-          state={gameState}
-        />
-      </div>'''
-          new = '''      <div className="training-hub-screen">
-        <TrainingScreen
-          completed={trainingCompleted}
-          data={gameData}
-          onSave={saveTrainingPlan}
-          state={gameState}
-        />
-        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
-      </div>'''
-          if source.count(old) != 1:
-              raise SystemExit('training hub anchor mismatch')
-          path.write_text(source.replace(old, new, 1))
-          PY
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
+      - run: python scripts/phase10-training-finalize.py
       - run: npm ci
-      - name: Format Phase10 training files
-        run: npx prettier src/app/GameApp.tsx src/features/training/TrainingScreen.tsx src/features/training/TrainingScoutingEntry.tsx src/features/training/training-direct.css src/features/training/training-scouting-entry.css tests/unit/features/training/TrainingFlow.test.tsx --write
-      - name: Run focused training tests
-        run: npm test -- tests/unit/features/training/TrainingFlow.test.tsx
-      - name: Commit finalized training UI
+      - run: npx prettier src/app/GameApp.tsx src/features/training/TrainingScreen.tsx src/features/training/TrainingScoutingEntry.tsx src/features/training/training-direct.css src/features/training/training-scouting-entry.css tests/unit/features/training/TrainingFlow.test.tsx --write
+      - run: npm test -- tests/unit/features/training/TrainingFlow.test.tsx
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
