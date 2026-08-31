@@ -1,0 +1,140 @@
+name: Phase11 Task1 Final
+on:
+  push:
+    branches: ["feature/phase11-home-week-progression"]
+    paths: [".github/workflows/phase11-task1-final.yml"]
+permissions:
+  contents: write
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: feature/phase11-home-week-progression }
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .node-version, cache: npm }
+      - run: npm ci
+      - name: Write regression tests and implementation
+        run: |
+          cat > tests/unit/worker/phase11WeekProgression.test.ts <<'EOF'
+          import { describe, expect, it } from "vitest";
+          import { createInitialGame } from "../../../src/app/createInitialGame";
+          import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
+          import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+          import { advanceOfficialTournamentsThroughWeek, findDueUserOfficialMatch } from "../../../src/domain/tournament/progressOfficialTournaments";
+          import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
+          import { applyGameAction } from "../../../worker/game/applyGameAction";
+
+          function fixture(seed: string): CloudGameSnapshot {
+            const state=createInitialGame({seed,schoolName:"青葉高校",schoolShortName:"青葉",coachName:"高橋 監督",regionId:"region.chiba",uniform:{primary:"#17365D",secondary:"#FFFFFF",accent:"#D99B2B"}});
+            return {userId:"phase11-user",schoolDbId:"00000000-0000-4000-8000-000000000111",revision:1,state,teamSelection:autoSelectTeam({state,schoolId:state.userSchoolId})};
+          }
+          function schedulePractice(game: CloudGameSnapshot) {
+            const opponent=Object.values(game.state.schools).find(s=>s.id!==game.state.userSchoolId);
+            if(!opponent) throw new Error("practice opponent fixture missing");
+            game.state.weeklySchedule.practiceMatch.scheduledOpponentId=opponent.id;
+            game.state.weeklySchedule.practiceMatch.scheduledBy="outgoing";
+          }
+          describe("Phase11 week progression",()=>{
+            it("presents scheduled practice before advancing, then advances without replay",()=>{
+              const game=fixture("phase11-practice"); schedulePractice(game);
+              const first=applyGameAction(game,{type:"advance-week"});
+              expect(first.state.date).toBe(game.state.date);
+              expect(isWeeklyActionCompleted(first.state,"training")).toBe(true);
+              expect(isWeeklyActionCompleted(first.state,"practice-match")).toBe(true);
+              expect(first.outcome).toMatchObject({weekAdvanced:false,pendingMatchPresentation:{kind:"practice"}});
+              const matchId=first.state.history.matches.at(-1)?.matchId;
+              const second=applyGameAction({...game,state:first.state,teamSelection:first.teamSelection},{type:"advance-week"});
+              expect(second.state.date).not.toBe(game.state.date);
+              expect(second.outcome).toMatchObject({weekAdvanced:true,pendingMatchPresentation:null});
+              expect(second.state.history.matches.filter(m=>m.matchId===matchId)).toHaveLength(1);
+            });
+            it("presents official before practice and does not force practice afterward",()=>{
+              const base=fixture("phase11-official");
+              const state=advanceOfficialTournamentsThroughWeek({...base.state,calendar:{...base.state.calendar,weekOfYear:9}});
+              expect(findDueUserOfficialMatch(state)).not.toBeNull();
+              const game={...base,state,teamSelection:autoSelectTeam({state,schoolId:state.userSchoolId})}; schedulePractice(game);
+              const first=applyGameAction(game,{type:"advance-week"});
+              expect(first.state.date).toBe(game.state.date);
+              expect(first.outcome).toMatchObject({weekAdvanced:false,pendingMatchPresentation:{kind:"official"}});
+              expect(isWeeklyActionCompleted(first.state,"practice-match")).toBe(false);
+              const userOfficialIds=first.state.history.matches.filter(m=>m.tournamentId!==null&&(m.homeSchoolId===state.userSchoolId||m.awaySchoolId===state.userSchoolId)).map(m=>m.matchId);
+              const second=applyGameAction({...game,state:first.state,teamSelection:first.teamSelection},{type:"advance-week"});
+              expect(second.state.date).not.toBe(game.state.date);
+              expect(second.outcome).toMatchObject({weekAdvanced:true,pendingMatchPresentation:null});
+              expect(isWeeklyActionCompleted(second.state,"practice-match")).toBe(false);
+              const afterIds=second.state.history.matches.filter(m=>m.tournamentId!==null&&(m.homeSchoolId===state.userSchoolId||m.awaySchoolId===state.userSchoolId)).map(m=>m.matchId);
+              expect(afterIds).toEqual(userOfficialIds);
+            });
+          });
+          EOF
+
+          cat > src/domain/calendar/advanceWeekOutcome.ts <<'EOF'
+          import type { AcademicYearTransitionSummary } from "./academicYearProgression";
+          import type { SimulateMatchResult } from "../match/simulateMatch";
+          import type { PlayerId, SchoolId } from "../model/identifiers";
+          import type { TournamentCircuit, TournamentLevel, TournamentRound } from "../tournament/tournamentTypes";
+          import type { TrainingResult } from "../training/resolveWeeklyTraining";
+          export interface MatchTeamPresentation { schoolId: SchoolId; displayName: string; shortName: string; }
+          export interface PendingMatchPresentation { kind:"practice"|"official"; simulation:SimulateMatchResult; homeTeam:MatchTeamPresentation; awayTeam:MatchTeamPresentation; official?:{tournamentId:string;circuit:TournamentCircuit;level:TournamentLevel;round:TournamentRound}; }
+          export interface AdvanceWeekOutcome { trainingResult?:TrainingResult; pendingMatchPresentation:PendingMatchPresentation|null; weekAdvanced:boolean; academicYearTransition:AcademicYearTransitionSummary|null; recoveredPlayerIds:PlayerId[]; healedPlayerIds:PlayerId[]; }
+          EOF
+
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('worker/game/applyGameAction.ts'); t=p.read_text()
+          t=t.replace('import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";\n','import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";\nimport type { AdvanceWeekOutcome, PendingMatchPresentation } from "../../src/domain/calendar/advanceWeekOutcome";\n')
+          t=t.replace('import { simulateMatch } from "../../src/domain/match/simulateMatch";','import { simulateMatch, type SimulateMatchResult } from "../../src/domain/match/simulateMatch";')
+          t=t.replace('import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";','import { resolveWeeklyTraining, type TrainingResult } from "../../src/domain/training/resolveWeeklyTraining";')
+          start=t.index('function applyAdvanceWeek('); end=t.index('function applyMarkNotificationRead(',start)
+          b='''function teamPresentation(state: GameState, schoolId: SimulateMatchResult["match"]["homeSchoolId"], fallback?: { displayName: string; shortName: string }): PendingMatchPresentation["homeTeam"] {
+            const school=state.schools[schoolId]; if(school) return {schoolId,displayName:school.name,shortName:school.shortName}; if(fallback) return {schoolId,...fallback}; throw new Error(`match presentation school not found: ${schoolId}`);
+          }
+          function practicePresentation(state: GameState, applied: AppliedGameAction): PendingMatchPresentation {
+            const simulation=applied.outcome as SimulateMatchResult; return {kind:"practice",simulation,homeTeam:teamPresentation(state,simulation.match.homeSchoolId),awayTeam:teamPresentation(state,simulation.match.awaySchoolId)};
+          }
+          function officialPresentation(state: GameState, applied: AppliedGameAction): PendingMatchPresentation {
+            const o=applied.outcome as {officialMatch:{tournamentId:string;circuit:"interhigh"|"spring-high";level:"prefectural"|"national";round:"round-of-16"|"quarterfinal"|"semifinal"|"final";opponent:{displayName:string;shortName:string}};simulation:SimulateMatchResult};
+            const s=o.simulation, f={displayName:o.officialMatch.opponent.displayName,shortName:o.officialMatch.opponent.shortName};
+            return {kind:"official",simulation:s,homeTeam:teamPresentation(state,s.match.homeSchoolId,s.match.homeSchoolId===state.userSchoolId?undefined:f),awayTeam:teamPresentation(state,s.match.awaySchoolId,s.match.awaySchoolId===state.userSchoolId?undefined:f),official:{tournamentId:o.officialMatch.tournamentId,circuit:o.officialMatch.circuit,level:o.officialMatch.level,round:o.officialMatch.round}};
+          }
+          function hasUserOfficialMatchOnCurrentDate(state: GameState): boolean { return state.history.matches.some(m=>m.date===state.date&&m.tournamentId!==null&&(m.homeSchoolId===state.userSchoolId||m.awaySchoolId===state.userSchoolId)); }
+          function applyAdvanceWeek(state: GameState, teamSelection: TeamSelection): AppliedGameAction {
+            let currentState=state; let trainingResult:TrainingResult|undefined;
+            if(!isWeeklyActionCompleted(currentState,"training")){const before=currentState;const training=applyTraining(currentState,teamSelection,{type:"training",plan:currentState.weeklySchedule.trainingPlan});const result=training.outcome as TrainingResult;const notification=buildTrainingResultNotification({stateBeforeTraining:before,result,data:gameData});currentState={...training.state,notifications:appendNotification(training.state.notifications,notification)};trainingResult=result;}
+            if(hasRequiredOfficialMatch(currentState)){const official=applyOfficialMatch(currentState,teamSelection);const outcome:AdvanceWeekOutcome={trainingResult,pendingMatchPresentation:officialPresentation(currentState,official),weekAdvanced:false,academicYearTransition:null,recoveredPlayerIds:[],healedPlayerIds:[]};return {state:official.state,teamSelection:official.teamSelection,outcome};}
+            if(currentState.weeklySchedule.practiceMatch.scheduledOpponentId!==null&&!isWeeklyActionCompleted(currentState,"practice-match")&&!hasUserOfficialMatchOnCurrentDate(currentState)){const practice=applyPracticeMatch(currentState,teamSelection);const outcome:AdvanceWeekOutcome={trainingResult,pendingMatchPresentation:practicePresentation(currentState,practice),weekAdvanced:false,academicYearTransition:null,recoveredPlayerIds:[],healedPlayerIds:[]};return {state:practice.state,teamSelection:practice.teamSelection,outcome};}
+            try{const progression=advanceGameWeek(currentState,gameData);const nextState=progression.academicYearTransition?progression.state:surfaceWeeklyEvent(progression.state,gameData);const nextSelection=progression.academicYearTransition?autoSelectTeam({state:nextState,schoolId:nextState.userSchoolId}):teamSelection;const outcome:AdvanceWeekOutcome={trainingResult,pendingMatchPresentation:null,weekAdvanced:true,academicYearTransition:progression.academicYearTransition,recoveredPlayerIds:progression.recoveredPlayerIds,healedPlayerIds:progression.healedPlayerIds};return {state:nextState,teamSelection:nextSelection,outcome};}catch(error){return conflict("advance_week_unavailable",error instanceof Error?error.message:"週を進められません");}
+          }
+
+          '''
+          p.write_text(t[:start]+b+t[end:])
+          PY
+
+          python - <<'PY'
+          from pathlib import Path
+          for fn in ['tests/unit/worker/deferredTrainingPlan.test.ts','tests/unit/worker/applyGameAction.test.ts']:
+            p=Path(fn);t=p.read_text();t=t.replace('officialMatchRequired: false,','weekAdvanced: true,\n      pendingMatchPresentation: null,');t=t.replace('officialMatchRequired: true,','weekAdvanced: false,\n      pendingMatchPresentation: { kind: "official" },');t=t.replace('before an official match redirect','before an official match presentation');p.write_text(t)
+          p=Path('tests/unit/worker/deferredTrainingPlan.test.ts');t=p.read_text().replace('expect(findDueUserOfficialMatch(result.state)).not.toBeNull();','expect(findDueUserOfficialMatch(result.state)).toBeNull();');p.write_text(t)
+          p=Path('tests/unit/worker/officialMatchAction.test.ts');t=p.read_text();title='  it("blocks week advancement while an official match is required, then allows it after completion", () => {';start=t.index(title);end=t.index('\n  });',start)+len('\n  });');new='''  it("resolves a due official match through week progression before advancing", () => {
+            const snapshot=officialWeekSnapshot({trained:true});
+            const official=applyGameAction(snapshot,{type:"advance-week"});
+            expect(official.state.date).toBe(snapshot.state.date);
+            expect(official.outcome).toMatchObject({weekAdvanced:false,pendingMatchPresentation:{kind:"official"}});
+            const advanced=applyGameAction({...snapshot,state:official.state,teamSelection:official.teamSelection},{type:"advance-week"});
+            expect(advanced.state.date).not.toBe(snapshot.state.date);
+            expect(advanced.state.calendar.weekOfYear).toBe(10);
+          });''';p.write_text(t[:start]+new+t[end:])
+          PY
+      - name: Format and GREEN
+        run: |
+          npx prettier --write src/domain/calendar/advanceWeekOutcome.ts worker/game/applyGameAction.ts tests/unit/worker/phase11WeekProgression.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+          npm test -- tests/unit/worker/phase11WeekProgression.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/domain/calendar/advanceWeekOutcome.ts worker/game/applyGameAction.ts tests/unit/worker/phase11WeekProgression.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+          git commit -m "feat: drive pve matches through week progression"
+          git push origin HEAD:feature/phase11-home-week-progression
