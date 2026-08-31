@@ -24,7 +24,7 @@ describe("TournamentScreen", () => {
   it("shows one round at a time without a horizontally scrolling bracket", () => {
     const state = createDemoGame();
 
-    render(
+    const { container } = render(
       <TournamentScreen
         circuit="interhigh"
         level="prefectural"
@@ -47,8 +47,8 @@ describe("TournamentScreen", () => {
     expect(firstRound).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(8);
     expect(
-      screen.getAllByTestId("tournament-user-path").length,
-    ).toBeGreaterThan(0);
+      container.querySelector(".tournament-match-row--user .is-user"),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("tournament-bracket-scroll")).toBeNull();
 
     fireEvent.click(quarterfinal);
