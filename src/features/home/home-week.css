@@ -1,88 +1,23 @@
-.home-week-progress {
-  min-width: 0;
-  padding: 17px;
-  background: #fff;
-  border: 1px solid #d6e0e5;
-  border-radius: 20px;
-  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
-}
-
-.home-action-card--completed,
-.home-action-card:disabled {
-  cursor: default;
-  opacity: 0.72;
-  box-shadow: none;
-}
-
-.home-action-card--completed .home-action-card__icon {
-  background: #5f8871;
-}
-
-.home-week-progress .section-heading > span {
-  display: inline-flex;
-  min-height: 26px;
-  padding: 4px 9px;
-  color: #286572;
-  font-size: 0.66rem;
-  font-weight: 900;
-  background: #e6f1f3;
-  border-radius: 999px;
-  align-items: center;
-}
-
-.home-week-status {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 13px;
-  gap: 8px;
-}
-
-.home-week-status span {
-  min-width: 0;
-  padding: 10px 8px;
-  color: #79612f;
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-align: center;
-  background: #fff4dc;
-  border: 1px solid #ead8b3;
-  border-radius: 12px;
-}
-
-.home-week-status span.is-complete {
-  color: #286842;
-  background: #e5f3e9;
-  border-color: #c5e1ce;
-}
-
 .home-next-week-button {
   width: 100%;
-  min-height: 48px;
-  margin-top: 11px;
+  min-height: var(--game-touch-primary);
+  margin: 0;
+  padding: 7px 12px;
   color: #fff;
+  font-size: 15px;
   font-weight: 900;
-  background: #1c6977;
+  background: linear-gradient(135deg, #1f74a9, #235f87);
   border: 0;
-  border-radius: 14px;
-  box-shadow: 0 7px 18px rgb(28 105 119 / 22%);
+  border-radius: var(--game-radius-sm);
+  box-shadow: 0 7px 18px rgb(19 86 128 / 28%);
+}
+
+.home-next-week-button:active {
+  transform: translateY(1px);
 }
 
 .home-next-week-button:disabled {
-  color: #8d9aa0;
-  background: #dce3e6;
+  color: var(--game-text-muted);
+  background: rgb(255 255 255 / 8%);
   box-shadow: none;
-}
-
-.home-week-progress > p {
-  margin: 9px 0 0;
-  color: #71818a;
-  font-size: 0.68rem;
-  line-height: 1.5;
-}
-
-@media (max-width: 350px) {
-  .home-week-progress {
-    padding: 14px;
-    border-radius: 17px;
-  }
 }

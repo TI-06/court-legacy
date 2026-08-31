@@ -187,14 +187,11 @@ for (const viewport of mobileViewports) {
 
     await expectLayoutFits(page, testInfo, `${viewport.width}-home`);
     await expectNavigationFixed(page, `${viewport.width}-home`);
-    if (viewport.width === 414) {
-      await page.locator(".home-next-week-button").evaluate((element) => {
-        element.scrollIntoView({ block: "center", inline: "nearest" });
-      });
+    if ([360, 390, 414].includes(viewport.width)) {
       await expectAboveNavigation(
         page,
         ".home-next-week-button",
-        "414-home-next-week",
+        `${viewport.width}-home-next-week`,
       );
     }
 

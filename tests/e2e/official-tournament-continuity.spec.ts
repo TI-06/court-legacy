@@ -130,7 +130,7 @@ test("prefectural elimination does not end the save or block later weeks", async
   await seedSnapshot(page, eliminateUserFromInterhigh());
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(page.getByText("春高 県大会")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "次の週へ進む" }),
@@ -159,12 +159,12 @@ test("national qualification exposes the guest identity without persisting a gue
   await page.goto("/");
 
   await expect(page.getByText("インターハイ 全国大会")).toBeVisible();
-  await expect(page.getByText(prepared.opponentName).first()).toBeVisible();
+  await expect(page.getByTitle(prepared.opponentName).first()).toBeVisible();
   await page.getByRole("button", { name: "大会表を見る" }).click();
   await expect(
     page.getByRole("heading", { name: "インターハイ 全国大会" }),
   ).toBeVisible();
-  await expect(page.getByText(prepared.opponentName).first()).toBeVisible();
+  await expect(page.getByTitle(prepared.opponentName).first()).toBeVisible();
 
   const persistence = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);

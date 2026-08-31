@@ -3,7 +3,6 @@ import type { GameState } from "../../domain/model/GameState";
 import {
   selectNextOfficialEvent,
   selectTournamentStageView,
-  type TournamentBracketMatchView,
 } from "../../domain/tournament/tournamentSelectors";
 import type {
   TournamentCircuit,
@@ -12,6 +11,7 @@ import type {
 } from "../../domain/tournament/tournamentTypes";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
+import { TournamentMatchRow } from "./TournamentMatchRow";
 import "./tournament.css";
 
 interface TournamentScreenProps {
@@ -53,18 +53,8 @@ function statusLabel(status: string): string {
   if (status === "eliminated") return "敗退";
   if (status === "champion") return "優勝";
   if (status === "completed") return "終了";
+  if (status === "upcoming") return "開催前";
   return "進行中";
-}
-
-function entrantName(entrant: TournamentBracketMatchView["home"]): string {
-  return entrant?.shortName ?? "未定";
-}
-
-function scoreLabel(match: TournamentBracketMatchView): string | null {
-  if (match.homeSetsWon === null || match.awaySetsWon === null) {
-    return null;
-  }
-  return `${match.homeSetsWon} - ${match.awaySetsWon}`;
 }
 
 export function TournamentScreen({
@@ -116,9 +106,11 @@ export function TournamentScreen({
     stage.status !== "eliminated" &&
     stage.status !== "champion";
   const terminal = stage.status === "eliminated" || stage.status === "champion";
-  const visibleMatches = stage.matches.filter(
-    (match) => match.round === selectedRound,
-  );
+  const visibleMatches = stage.matches
+    .filter((match) => match.round === selectedRound)
+    .sort(
+      (left, right) => Number(right.userInMatch) - Number(left.userInMatch),
+    );
 
   const requestStart = () => {
     if (!canStart) return;
@@ -148,24 +140,33 @@ export function TournamentScreen({
 
   return (
     <main className="app-content tournament-screen">
-      <section className="tournament-hero" aria-labelledby="tournament-heading">
-        <button className="tournament-back" onClick={onBack} type="button">
-          試合メニューへ戻る
-        </button>
-        <div className="tournament-hero__heading">
-          <div>
-            <p className="section-kicker">公式大会</p>
+      <section
+        className="tournament-header"
+        aria-labelledby="tournament-heading"
+      >
+        <div className="tournament-header__top">
+          <button
+            aria-label="試合メニューへ戻る"
+            className="tournament-back"
+            onClick={onBack}
+            type="button"
+          >
+            ←
+          </button>
+          <div className="tournament-header__title">
             <h2 id="tournament-heading">
               {circuitLabels[circuit]} {levelLabels[level]}
             </h2>
+            <span>{stage.entrants.length}校</span>
           </div>
-          <span
+          <strong
             className={`tournament-status tournament-status--${stage.status}`}
           >
             {timingLabel}
-          </span>
+          </strong>
         </div>
-        <div className="tournament-next-card">
+
+        <div className="tournament-position-strip">
           <div>
             <span>現在</span>
             <strong>{roundLabel}</strong>
@@ -173,26 +174,22 @@ export function TournamentScreen({
           {nextMatch ? (
             <div>
               <span>次戦</span>
-              <strong>{nextMatch.opponent.displayName}</strong>
+              <strong title={nextMatch.opponent.displayName}>
+                {nextMatch.opponent.shortName}
+              </strong>
             </div>
           ) : stage.champion ? (
             <div>
               <span>優勝校</span>
-              <strong>{stage.champion.displayName}</strong>
+              <strong title={stage.champion.displayName}>
+                {stage.champion.shortName}
+              </strong>
             </div>
           ) : null}
         </div>
       </section>
 
       <section className="tournament-panel" aria-labelledby="bracket-heading">
-        <div className="tournament-section-heading">
-          <div>
-            <p className="section-kicker">大会表</p>
-            <h3 id="bracket-heading">勝ち上がり</h3>
-          </div>
-          <span>16校</span>
-        </div>
-
         <div
           className="tournament-round-tabs"
           role="group"
@@ -210,46 +207,50 @@ export function TournamentScreen({
           ))}
         </div>
 
-        <section className="tournament-round tournament-round--single">
-          <h4>
-            {roundLabels[selectedRound]}
-            <small>{visibleMatches.length}試合</small>
-          </h4>
-          <div className="tournament-round__matches">
-            {visibleMatches.map((match) => {
-              const score = scoreLabel(match);
-              return (
-                <article
-                  className={`tournament-match-card${
-                    match.userInMatch ? " tournament-match-card--user" : ""
-                  }`}
-                  data-testid="tournament-bracket-match"
-                  key={match.id}
-                >
-                  {match.userInMatch ? (
-                    <span
-                      className="tournament-user-marker"
-                      data-testid="tournament-user-path"
-                    >
-                      自校
-                    </span>
+        <div className="tournament-round-heading">
+          <h3 id="bracket-heading">{roundLabels[selectedRound]}</h3>
+          <span>{visibleMatches.length}試合</span>
+        </div>
+
+        <div className="tournament-round__matches">
+          {visibleMatches.map((match) => {
+            const isCurrentUserMatch = nextMatch?.matchId === match.id;
+            const inlineAction =
+              isCurrentUserMatch && due ? (
+                <>
+                  {!trainingCompleted ? (
+                    <p className="tournament-training-note">
+                      今週の練習を完了すると開始できます
+                    </p>
                   ) : null}
-                  <div>
-                    <span>{entrantName(match.home)}</span>
-                    {score ? <b>{match.homeSetsWon}</b> : null}
-                  </div>
-                  <div>
-                    <span>{entrantName(match.away)}</span>
-                    {score ? <b>{match.awaySetsWon}</b> : null}
-                  </div>
-                  {score ? (
-                    <small className="tournament-match-score">{score}</small>
+                  {pending ? (
+                    <p className="tournament-pending" role="status">
+                      <strong>公式戦を開始しています…</strong>
+                      <span>試合結果を確定しています…</span>
+                      <span>大会結果を保存しています…</span>
+                    </p>
                   ) : null}
-                </article>
-              );
-            })}
-          </div>
-        </section>
+                  <button
+                    className="tournament-start-button"
+                    disabled={!canStart}
+                    onClick={requestStart}
+                    type="button"
+                  >
+                    {pending ? "公式戦を開始しています…" : "公式戦を開始"}
+                  </button>
+                </>
+              ) : null;
+
+            return (
+              <TournamentMatchRow
+                action={inlineAction}
+                key={match.id}
+                match={match}
+                userEntrantId={stage.userEntrantId}
+              />
+            );
+          })}
+        </div>
       </section>
 
       {terminal ? (
@@ -262,40 +263,6 @@ export function TournamentScreen({
               ? `${circuitLabels[circuit]} ${levelLabels[level]}を制覇しました`
               : `${roundLabel}で大会を終えました`}
           </strong>
-        </section>
-      ) : nextMatch ? (
-        <section
-          className="tournament-action"
-          aria-labelledby="official-action-heading"
-        >
-          <div>
-            <p className="section-kicker">次の試合</p>
-            <h3 id="official-action-heading">公式戦</h3>
-            <strong>{nextMatch.opponent.displayName}</strong>
-            <span>{timingLabel}</span>
-          </div>
-          {!trainingCompleted && due ? (
-            <p className="tournament-training-note">
-              今週の練習を完了すると開始できます
-            </p>
-          ) : null}
-          {pending ? (
-            <p className="tournament-pending" role="status">
-              <strong>公式戦を開始しています…</strong>
-              <br />
-              <span>試合結果を確定しています…</span>
-              <br />
-              <span>大会結果を保存しています…</span>
-            </p>
-          ) : null}
-          <button
-            className="tournament-start-button"
-            disabled={!canStart}
-            onClick={requestStart}
-            type="button"
-          >
-            {pending ? "公式戦を開始しています…" : "公式戦を開始"}
-          </button>
         </section>
       ) : null}
 

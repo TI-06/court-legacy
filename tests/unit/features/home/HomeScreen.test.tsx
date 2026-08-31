@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
@@ -60,12 +60,14 @@ describe("home action dashboard", () => {
 
     expect(screen.queryByRole("region", { name: "チームフェイス" })).toBeNull();
     expect(container.querySelector("img")).toBeNull();
-    expect(screen.getByText("学校評判")).toBeVisible();
-    expect(screen.getByText("平均疲労")).toBeVisible();
-    expect(screen.getByText("部員")).toBeVisible();
-    expect(screen.getByText("結束力")).toBeVisible();
-    expect(screen.getByText("68")).toBeVisible();
-    expect(screen.getByText("上向き")).toBeVisible();
+
+    const teamStatus = screen.getByRole("region", { name: "チーム状況" });
+    expect(within(teamStatus).getByText("評判")).toBeVisible();
+    expect(within(teamStatus).getByText("疲労")).toBeVisible();
+    expect(within(teamStatus).getByText("部員")).toBeVisible();
+    expect(within(teamStatus).getByText("結束")).toBeVisible();
+    expect(within(teamStatus).getByText("68")).toBeVisible();
+    expect(within(teamStatus).getByText("上向き")).toBeVisible();
   });
 
   it("shows the next official tournament card and opens its bracket", () => {
@@ -73,29 +75,39 @@ describe("home action dashboard", () => {
 
     render(<HomeScreen {...props} />);
 
-    expect(screen.getByRole("heading", { name: "次の公式戦" })).toBeVisible();
-    expect(screen.getByText("インターハイ 県大会")).toBeVisible();
-    expect(screen.getByText("1回戦")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "インターハイ 県大会" }),
+    ).toBeVisible();
     expect(screen.getByText("あと8週")).toBeVisible();
-    expect(screen.getByText("城南商業")).toBeVisible();
+    expect(screen.getByText("1回戦")).toBeVisible();
+    expect(screen.getByTitle("城南商業")).toHaveTextContent("城南");
 
     fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
     expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
   });
 
-  it("shows the real date, selected rival, direct weekly actions, and immediate week advance", () => {
+  it("shows the current week, selected rival, direct weekly actions, and immediate week advance", () => {
     const props = createProps();
 
     render(<HomeScreen {...props} />);
 
     expect(
-      screen.getByRole("heading", { name: "監督ホーム" }),
+      screen.getByRole("heading", { name: "4/1・第1週" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2026年4月1日")).toBeInTheDocument();
-    expect(screen.getByText(props.opponent.name)).toBeInTheDocument();
-    expect(screen.getByText(`戦力 ${props.homeStrength}`)).toBeInTheDocument();
+    expect(screen.getByTitle(props.opponent.name)).toHaveTextContent(
+      props.opponent.shortName,
+    );
+
+    const strength = screen.getByText("自校戦力").closest("div");
+    expect(strength).not.toBeNull();
+    expect(
+      within(strength!).getByText(String(props.homeStrength)),
+    ).toBeVisible();
     expect(screen.getByText("無名校")).toBeInTheDocument();
-    expect(screen.getByText("練習 週送りで実施")).toBeVisible();
+
+    const progress = screen.getByLabelText("今週の進行状況");
+    expect(within(progress).getByText("設定済")).toBeVisible();
+    expect(within(progress).getByText("未決定")).toBeVisible();
 
     const nextWeek = screen.getByRole("button", { name: "次の週へ進む" });
     expect(nextWeek).toBeEnabled();
@@ -130,14 +142,10 @@ describe("home action dashboard", () => {
 
     render(<HomeScreen {...props} />);
 
-    expect(
-      screen.getByRole("heading", { name: "直近の試合" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(`${winner.name} 勝利`)).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        `${props.latestMatch!.match.homeSetsWon} - ${props.latestMatch!.match.awaySetsWon}`,
-      ),
-    ).toBeInTheDocument();
+    const recent = screen.getByRole("region", { name: "最近の状況" });
+    expect(recent).toHaveTextContent(`${winner.shortName}勝利`);
+    expect(recent).toHaveTextContent(
+      `${props.latestMatch!.match.homeSetsWon} - ${props.latestMatch!.match.awaySetsWon}`,
+    );
   });
 });

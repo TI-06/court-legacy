@@ -24,7 +24,7 @@ describe("TournamentScreen", () => {
   it("shows one round at a time without a horizontally scrolling bracket", () => {
     const state = createDemoGame();
 
-    render(
+    const { container } = render(
       <TournamentScreen
         circuit="interhigh"
         level="prefectural"
@@ -40,15 +40,15 @@ describe("TournamentScreen", () => {
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
     expect(screen.getAllByText("あと8週").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("城南商業").length).toBeGreaterThan(0);
+    expect(screen.getAllByTitle("城南商業").length).toBeGreaterThan(0);
 
     const firstRound = screen.getByRole("button", { name: "1回戦" });
     const quarterfinal = screen.getByRole("button", { name: "準々決勝" });
     expect(firstRound).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(8);
     expect(
-      screen.getAllByTestId("tournament-user-path").length,
-    ).toBeGreaterThan(0);
+      container.querySelector(".tournament-match-row--user .is-user"),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("tournament-bracket-scroll")).toBeNull();
 
     fireEvent.click(quarterfinal);
