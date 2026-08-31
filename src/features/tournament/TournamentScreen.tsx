@@ -84,8 +84,7 @@ export function TournamentScreen({
     nextOfficial.level === level
       ? nextOfficial.round
       : stage?.userBestRound ?? "round-of-16";
-  const [selectedRound, setSelectedRound] =
-    useState<TournamentRound>(initialRound);
+  const [selectedRound, setSelectedRound] = useState<TournamentRound>(initialRound);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
 
   if (!stage) {
