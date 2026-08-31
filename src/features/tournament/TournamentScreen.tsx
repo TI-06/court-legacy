@@ -226,7 +226,8 @@ export function TournamentScreen({
                   {pending ? (
                     <p className="tournament-pending" role="status">
                       <strong>公式戦を開始しています…</strong>
-                      <span>試合結果と大会結果を保存しています…</span>
+                      <span>試合結果を確定しています…</span>
+                      <span>大会結果を保存しています…</span>
                     </p>
                   ) : null}
                   <button
