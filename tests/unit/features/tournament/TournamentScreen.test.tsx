@@ -21,7 +21,7 @@ function dueState(): GameState {
 }
 
 describe("TournamentScreen", () => {
-  it("shows the prefectural bracket, next opponent, and upcoming timing", () => {
+  it("shows one round at a time without a horizontally scrolling bracket", () => {
     const state = createDemoGame();
 
     render(
@@ -39,13 +39,26 @@ describe("TournamentScreen", () => {
     expect(
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
-    expect(screen.getAllByText("1回戦").length).toBeGreaterThan(0);
     expect(screen.getAllByText("あと8週").length).toBeGreaterThan(0);
-    expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(15);
+    expect(screen.getByText("城南商業")).toBeVisible();
+
+    const firstRound = screen.getByRole("button", { name: "1回戦" });
+    const quarterfinal = screen.getByRole("button", { name: "準々決勝" });
+    expect(firstRound).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(8);
     expect(
       screen.getAllByTestId("tournament-user-path").length,
     ).toBeGreaterThan(0);
-    expect(screen.getByTestId("tournament-bracket-scroll")).toBeInTheDocument();
+    expect(screen.queryByTestId("tournament-bracket-scroll")).toBeNull();
+
+    fireEvent.click(quarterfinal);
+    expect(quarterfinal).toHaveAttribute("aria-pressed", "true");
+    expect(firstRound).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getAllByTestId("tournament-bracket-match")).toHaveLength(4);
+
+    expect(screen.queryByText("OFFICIAL TOURNAMENT")).toBeNull();
+    expect(screen.queryByText("BRACKET")).toBeNull();
+    expect(screen.queryByText("NEXT MATCH")).toBeNull();
   });
 
   it("keeps a due official match blocked until weekly training is complete", () => {
