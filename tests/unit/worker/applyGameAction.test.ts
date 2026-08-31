@@ -169,24 +169,28 @@ describe("applyGameAction", () => {
     expect(snapshot).toEqual(before);
   });
 
-  it("advances a week only after training is completed", () => {
+  it("resolves the saved training automatically when advancing the week", () => {
     const snapshot = createSnapshot();
-    expect(() =>
-      applyGameAction(snapshot, { type: "advance-week" }),
-    ).toThrowError(GameRuleConflictError);
-
-    const training = applyGameAction(snapshot, {
-      type: "training",
-      plan: createTrainingPlan(snapshot),
+    const plan = createTrainingPlan(snapshot);
+    const saved = applyGameAction(snapshot, {
+      type: "set-training-plan",
+      plan,
     });
-    const trainedSnapshot: CloudGameSnapshot = {
+    const savedSnapshot: CloudGameSnapshot = {
       ...snapshot,
-      state: training.state,
-      teamSelection: training.teamSelection,
+      state: saved.state,
+      teamSelection: saved.teamSelection,
     };
-    const advanced = applyGameAction(trainedSnapshot, { type: "advance-week" });
+
+    const advanced = applyGameAction(savedSnapshot, { type: "advance-week" });
 
     expect(advanced.state.date).not.toBe(snapshot.state.date);
+    expect(advanced.outcome).toMatchObject({
+      trainingResult: {
+        teamTrainingMenuId: plan.teamTrainingMenuId,
+      },
+      officialMatchRequired: false,
+    });
   });
 
   it("upgrades a legal facility on the authoritative state", () => {
