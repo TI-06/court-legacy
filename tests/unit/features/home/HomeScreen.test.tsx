@@ -58,9 +58,7 @@ describe("home action dashboard", () => {
 
     const { container } = render(<HomeScreen {...props} />);
 
-    expect(
-      screen.queryByRole("region", { name: "チームフェイス" }),
-    ).toBeNull();
+    expect(screen.queryByRole("region", { name: "チームフェイス" })).toBeNull();
     expect(container.querySelector("img")).toBeNull();
 
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
