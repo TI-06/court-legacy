@@ -1,17 +1,19 @@
 .operation-status {
-  align-items: center;
   display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   gap: 0.45rem;
-  min-height: 2rem;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .operation-status button {
+  min-height: 44px;
+  padding: 0.2rem 0.65rem;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
   border: 1px solid currentColor;
   border-radius: 999px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0.2rem 0.65rem;
 }
