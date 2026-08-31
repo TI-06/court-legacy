@@ -83,13 +83,14 @@ describe("deferred weekly training plan", () => {
         teamTrainingMenuId: plan.teamTrainingMenuId,
         individualAssignments: plan.individualAssignments,
       },
-      officialMatchRequired: false,
+      weekAdvanced: true,
+      pendingMatchPresentation: null,
     });
     expect(advanced.state.notifications.items).toHaveLength(1);
     expect(isWeeklyActionCompleted(advanced.state, "training")).toBe(false);
   });
 
-  it("resolves training and persists its notification before an official match redirect", () => {
+  it("resolves training and persists its notification before an official match presentation", () => {
     const snapshot = createSnapshot();
     let officialState = {
       ...snapshot.state,
@@ -114,7 +115,7 @@ describe("deferred weekly training plan", () => {
 
     expect(result.state.date).toBe(officialState.date);
     expect(isWeeklyActionCompleted(result.state, "training")).toBe(true);
-    expect(findDueUserOfficialMatch(result.state)).not.toBeNull();
+    expect(findDueUserOfficialMatch(result.state)).toBeNull();
     expect(result.state.notifications.items).toHaveLength(1);
     expect(result.state.notifications.items[0]).toMatchObject({
       type: "training-result",
@@ -126,7 +127,8 @@ describe("deferred weekly training plan", () => {
         teamTrainingMenuId:
           officialState.weeklySchedule.trainingPlan.teamTrainingMenuId,
       },
-      officialMatchRequired: true,
+      weekAdvanced: false,
+      pendingMatchPresentation: { kind: "official" },
     });
   });
 });

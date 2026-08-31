@@ -229,25 +229,22 @@ describe("authoritative official match action", () => {
     expect(findDueUserOfficialMatch(result.state)).toBeNull();
   });
 
-  it("blocks week advancement while an official match is required, then allows it after completion", () => {
+  it("resolves a due official match through week progression before advancing", () => {
     const snapshot = officialWeekSnapshot({ trained: true });
-    expect(isWeeklyActionCompleted(snapshot.state, "training")).toBe(true);
-
-    expectConflict(
-      () => applyGameAction(snapshot, { type: "advance-week" }),
-      "official_match_required",
-    );
-
-    const official = applyGameAction(snapshot, { type: "official-match" });
-    const completedSnapshot: CloudGameSnapshot = {
-      ...snapshot,
-      state: official.state,
-      teamSelection: official.teamSelection,
-    };
-    const advanced = applyGameAction(completedSnapshot, {
-      type: "advance-week",
+    const official = applyGameAction(snapshot, { type: "advance-week" });
+    expect(official.state.date).toBe(snapshot.state.date);
+    expect(official.outcome).toMatchObject({
+      weekAdvanced: false,
+      pendingMatchPresentation: { kind: "official" },
     });
-
+    const advanced = applyGameAction(
+      {
+        ...snapshot,
+        state: official.state,
+        teamSelection: official.teamSelection,
+      },
+      { type: "advance-week" },
+    );
     expect(advanced.state.date).not.toBe(snapshot.state.date);
     expect(advanced.state.calendar.weekOfYear).toBe(10);
   });

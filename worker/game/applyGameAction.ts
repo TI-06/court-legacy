@@ -1,5 +1,9 @@
 import { gameDataBootstrap } from "../../src/data/gameData";
 import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";
+import type {
+  AdvanceWeekOutcome,
+  PendingMatchPresentation,
+} from "../../src/domain/calendar/advanceWeekOutcome";
 import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
@@ -11,7 +15,10 @@ import {
 import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/officialMatchDynamics";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
-import { simulateMatch } from "../../src/domain/match/simulateMatch";
+import {
+  simulateMatch,
+  type SimulateMatchResult,
+} from "../../src/domain/match/simulateMatch";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { matchId } from "../../src/domain/model/identifiers";
@@ -35,7 +42,10 @@ import {
 } from "../../src/domain/tournament/progressOfficialTournaments";
 import { recordOfficialTournamentOutcome } from "../../src/domain/tournament/recordOfficialMatch";
 import type { AdditionalGrowthModifier } from "../../src/domain/training/calculateGrowth";
-import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";
+import {
+  resolveWeeklyTraining,
+  type TrainingResult,
+} from "../../src/domain/training/resolveWeeklyTraining";
 import {
   acceptIncomingPracticeOffer,
   declineIncomingPracticeOffer,
@@ -416,25 +426,94 @@ function applyOfficialMatch(
   }
 }
 
+function teamPresentation(
+  state: GameState,
+  schoolId: SimulateMatchResult["match"]["homeSchoolId"],
+  fallback?: { displayName: string; shortName: string },
+): PendingMatchPresentation["homeTeam"] {
+  const school = state.schools[schoolId];
+  if (school)
+    return { schoolId, displayName: school.name, shortName: school.shortName };
+  if (fallback) return { schoolId, ...fallback };
+  throw new Error(`match presentation school not found: ${schoolId}`);
+}
+function practicePresentation(
+  state: GameState,
+  applied: AppliedGameAction,
+): PendingMatchPresentation {
+  const simulation = applied.outcome as SimulateMatchResult;
+  return {
+    kind: "practice",
+    simulation,
+    homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
+    awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
+  };
+}
+function officialPresentation(
+  state: GameState,
+  applied: AppliedGameAction,
+): PendingMatchPresentation {
+  const o = applied.outcome as {
+    officialMatch: {
+      tournamentId: string;
+      circuit: "interhigh" | "spring-high";
+      level: "prefectural" | "national";
+      round: "round-of-16" | "quarterfinal" | "semifinal" | "final";
+      opponent: { displayName: string; shortName: string };
+    };
+    simulation: SimulateMatchResult;
+  };
+  const s = o.simulation,
+    f = {
+      displayName: o.officialMatch.opponent.displayName,
+      shortName: o.officialMatch.opponent.shortName,
+    };
+  return {
+    kind: "official",
+    simulation: s,
+    homeTeam: teamPresentation(
+      state,
+      s.match.homeSchoolId,
+      s.match.homeSchoolId === state.userSchoolId ? undefined : f,
+    ),
+    awayTeam: teamPresentation(
+      state,
+      s.match.awaySchoolId,
+      s.match.awaySchoolId === state.userSchoolId ? undefined : f,
+    ),
+    official: {
+      tournamentId: o.officialMatch.tournamentId,
+      circuit: o.officialMatch.circuit,
+      level: o.officialMatch.level,
+      round: o.officialMatch.round,
+    },
+  };
+}
+function hasUserOfficialMatchOnCurrentDate(state: GameState): boolean {
+  return state.history.matches.some(
+    (m) =>
+      m.date === state.date &&
+      m.tournamentId !== null &&
+      (m.homeSchoolId === state.userSchoolId ||
+        m.awaySchoolId === state.userSchoolId),
+  );
+}
 function applyAdvanceWeek(
   state: GameState,
   teamSelection: TeamSelection,
 ): AppliedGameAction {
   let currentState = state;
-  let trainingResult: unknown;
-
+  let trainingResult: TrainingResult | undefined;
   if (!isWeeklyActionCompleted(currentState, "training")) {
-    const stateBeforeTraining = currentState;
+    const before = currentState;
     const training = applyTraining(currentState, teamSelection, {
       type: "training",
       plan: currentState.weeklySchedule.trainingPlan,
     });
-    const resolvedTrainingResult = training.outcome as Parameters<
-      typeof buildTrainingResultNotification
-    >[0]["result"];
+    const result = training.outcome as TrainingResult;
     const notification = buildTrainingResultNotification({
-      stateBeforeTraining,
-      result: resolvedTrainingResult,
+      stateBeforeTraining: before,
+      result,
       data: gameData,
     });
     currentState = {
@@ -444,30 +523,44 @@ function applyAdvanceWeek(
         notification,
       ),
     };
-    trainingResult = resolvedTrainingResult;
+    trainingResult = result;
   }
-
   if (hasRequiredOfficialMatch(currentState)) {
-    if (trainingResult === undefined) {
-      return conflict(
-        "official_match_required",
-        "週を進める前に現在の公式戦を完了してください",
-      );
-    }
-
+    const official = applyOfficialMatch(currentState, teamSelection);
+    const outcome: AdvanceWeekOutcome = {
+      trainingResult,
+      pendingMatchPresentation: officialPresentation(currentState, official),
+      weekAdvanced: false,
+      academicYearTransition: null,
+      recoveredPlayerIds: [],
+      healedPlayerIds: [],
+    };
     return {
-      state: currentState,
-      teamSelection,
-      outcome: {
-        trainingResult,
-        officialMatchRequired: true,
-        academicYearTransition: null,
-        recoveredPlayerIds: [],
-        healedPlayerIds: [],
-      },
+      state: official.state,
+      teamSelection: official.teamSelection,
+      outcome,
     };
   }
-
+  if (
+    currentState.weeklySchedule.practiceMatch.scheduledOpponentId !== null &&
+    !isWeeklyActionCompleted(currentState, "practice-match") &&
+    !hasUserOfficialMatchOnCurrentDate(currentState)
+  ) {
+    const practice = applyPracticeMatch(currentState, teamSelection);
+    const outcome: AdvanceWeekOutcome = {
+      trainingResult,
+      pendingMatchPresentation: practicePresentation(currentState, practice),
+      weekAdvanced: false,
+      academicYearTransition: null,
+      recoveredPlayerIds: [],
+      healedPlayerIds: [],
+    };
+    return {
+      state: practice.state,
+      teamSelection: practice.teamSelection,
+      outcome,
+    };
+  }
   try {
     const progression = advanceGameWeek(currentState, gameData);
     const nextState = progression.academicYearTransition
@@ -476,18 +569,15 @@ function applyAdvanceWeek(
     const nextSelection = progression.academicYearTransition
       ? autoSelectTeam({ state: nextState, schoolId: nextState.userSchoolId })
       : teamSelection;
-
-    return {
-      state: nextState,
-      teamSelection: nextSelection,
-      outcome: {
-        trainingResult,
-        officialMatchRequired: false,
-        academicYearTransition: progression.academicYearTransition,
-        recoveredPlayerIds: progression.recoveredPlayerIds,
-        healedPlayerIds: progression.healedPlayerIds,
-      },
+    const outcome: AdvanceWeekOutcome = {
+      trainingResult,
+      pendingMatchPresentation: null,
+      weekAdvanced: true,
+      academicYearTransition: progression.academicYearTransition,
+      recoveredPlayerIds: progression.recoveredPlayerIds,
+      healedPlayerIds: progression.healedPlayerIds,
     };
+    return { state: nextState, teamSelection: nextSelection, outcome };
   } catch (error) {
     return conflict(
       "advance_week_unavailable",
