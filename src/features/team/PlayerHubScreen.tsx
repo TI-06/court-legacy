@@ -56,10 +56,6 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
-function playerInitials(player: Player): string {
-  return `${player.lastName.slice(0, 1)}${player.firstName.slice(0, 1)}`;
-}
-
 function HubTabs({
   mode,
   onChange,
@@ -152,10 +148,8 @@ export function PlayerHubScreen({
         >
           選手一覧へ戻る
         </button>
-        <section className="player-detail__hero">
-          <div className="player-detail__identity-mark" aria-hidden="true">
-            {playerInitials(selectedPlayer)}
-          </div>
+
+        <section className="player-detail__summary">
           <div className="player-detail__identity">
             <span>
               {selectedPlayer.grade}年・{selectedPlayer.preferredPosition}・
@@ -163,14 +157,15 @@ export function PlayerHubScreen({
             </span>
             <h2>{playerName(selectedPlayer)}</h2>
             <p>{selectedPlayer.reading}</p>
-            <div className="player-detail__power">
-              <span>総合力</span>
-              <strong>
-                {Math.round(calculatePlayerDisplayPower(selectedPlayer) / 100)}
-              </strong>
-            </div>
+          </div>
+          <div className="player-detail__power">
+            <span>総合力</span>
+            <strong>
+              {Math.round(calculatePlayerDisplayPower(selectedPlayer) / 100)}
+            </strong>
           </div>
         </section>
+
         <section className="player-detail__stats" aria-label="選手能力">
           {Object.entries(abilities).map(([key, value]) => (
             <StatBar
@@ -181,7 +176,8 @@ export function PlayerHubScreen({
             />
           ))}
         </section>
-        <section className="player-detail__condition" aria-label="選手状態">
+
+        <section className="player-detail__metrics" aria-label="選手状態">
           <article>
             <span>状態</span>
             <strong>{selectedPlayer.condition}</strong>
@@ -194,11 +190,6 @@ export function PlayerHubScreen({
             <span>士気</span>
             <strong>{selectedPlayer.morale}</strong>
           </article>
-        </section>
-        <section
-          className="player-detail__dynamics"
-          aria-label="選手ダイナミクス"
-        >
           <article>
             <span>役割</span>
             <strong>{roleLabels[role]}</strong>
@@ -207,11 +198,8 @@ export function PlayerHubScreen({
             <span>信頼</span>
             <strong>{selectedPlayer.trust}</strong>
           </article>
-          <article>
-            <span>士気</span>
-            <strong>{selectedPlayer.morale}</strong>
-          </article>
         </section>
+
         {concerns.length > 0 ? (
           <section
             className="player-detail__concerns"
@@ -236,17 +224,17 @@ export function PlayerHubScreen({
       <HubTabs mode={mode} onChange={setMode} />
       <section className="player-hub__heading">
         <div>
-          <p className="section-kicker">PLAYER ROSTER</p>
+          <p className="section-kicker">登録選手</p>
           <h2>選手一覧</h2>
         </div>
         <span>{players.length}人</span>
       </section>
       <div className="player-roster">
         <div aria-hidden="true" className="player-roster__header">
-          <span>No.</span>
+          <span>番号</span>
           <span>選手</span>
           <span>学年</span>
-          <span>Pos</span>
+          <span>ポジション</span>
           <span>身長</span>
           <span>総合</span>
           <span>状態</span>
@@ -266,7 +254,7 @@ export function PlayerHubScreen({
               <small>{player.reading}</small>
             </span>
             <span data-label="学年">{player.grade}年</span>
-            <span data-label="Pos">{player.preferredPosition}</span>
+            <span data-label="位置">{player.preferredPosition}</span>
             <span data-label="身長">{player.heightCm}cm</span>
             <span className="player-roster__overall" data-label="総合">
               {Math.round(calculatePlayerDisplayPower(player) / 100)}
