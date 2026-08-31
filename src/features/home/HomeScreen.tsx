@@ -111,7 +111,7 @@ export function HomeScreen({
       <section className="home-hero" aria-labelledby="home-heading">
         <div className="home-hero__heading">
           <div>
-            <p className="section-kicker">YEAR {state.yearIndex}</p>
+            <p className="section-kicker">就任{state.yearIndex}年目</p>
             <h2 id="home-heading">監督ホーム</h2>
             <p>{formatDate(state.date)}</p>
           </div>
@@ -121,7 +121,7 @@ export function HomeScreen({
           <div>
             <span>練習試合候補</span>
             <strong>{opponent.name}</strong>
-            <small>週が変わると、次の対戦候補も更新されます。</small>
+            <small>申し込み・受諾で今週の対戦相手を決めます。</small>
           </div>
           <div className="home-strength-badge">
             <span>自校</span>
@@ -166,7 +166,7 @@ export function HomeScreen({
         >
           <div className="section-heading home-official-card__heading">
             <div>
-              <p className="section-kicker">OFFICIAL MATCH</p>
+              <p className="section-kicker">公式戦</p>
               <h2 id="home-official-heading">次の公式戦</h2>
             </div>
             <span
@@ -220,7 +220,7 @@ export function HomeScreen({
       <section className="home-actions" aria-labelledby="action-heading">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">NEXT ACTION</p>
+            <p className="section-kicker">今週の行動</p>
             <h2 id="action-heading">次に何をする？</h2>
           </div>
         </div>
@@ -241,7 +241,7 @@ export function HomeScreen({
               <small>
                 {trainingCompleted
                   ? "結果は育成タブで確認できます"
-                  : "チーム練習と重点選手を選択"}
+                  : "設定した練習は週送り時に実施"}
               </small>
             </span>
             <span aria-hidden="true">{trainingCompleted ? "✓" : "›"}</span>
@@ -276,7 +276,7 @@ export function HomeScreen({
               <small>
                 {practiceMatchCompleted
                   ? "次週になると再び実施できます"
-                  : `${opponent.shortName}との戦力比較を確認`}
+                  : "申込・受諾から対戦相手を決定"}
               </small>
             </span>
             <span aria-hidden="true">{practiceMatchCompleted ? "✓" : "›"}</span>
@@ -287,14 +287,14 @@ export function HomeScreen({
       <section className="home-week-progress" aria-labelledby="week-heading">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">WEEK PROGRESS</p>
+            <p className="section-kicker">週の進行</p>
             <h2 id="week-heading">今週を終える</h2>
           </div>
           <span>{state.calendar.weekOfYear}週目</span>
         </div>
         <div className="home-week-status">
           <span className={trainingCompleted ? "is-complete" : ""}>
-            練習 {trainingCompleted ? "完了" : "未実施"}
+            練習 {trainingCompleted ? "完了" : "週送りで実施"}
           </span>
           <span className={practiceMatchCompleted ? "is-complete" : ""}>
             試合 {practiceMatchCompleted ? "完了" : "任意"}
@@ -303,7 +303,6 @@ export function HomeScreen({
         <button
           aria-label="次の週へ進む"
           className="home-next-week-button"
-          disabled={!trainingCompleted}
           onClick={onAdvanceWeek}
           type="button"
         >
@@ -311,8 +310,8 @@ export function HomeScreen({
         </button>
         <p>
           {trainingCompleted
-            ? "次週へ進むと疲労と状態が回復し、怪我の残り週数も進みます。"
-            : "今週の練習を終えると、次の週へ進めます。"}
+            ? "疲労・状態・怪我の残り週数を更新して次週へ進みます。"
+            : "保存した練習を実施してから、疲労・状態を更新して次週へ進みます。"}
         </p>
       </section>
 
@@ -323,7 +322,7 @@ export function HomeScreen({
         >
           <div className="section-heading">
             <div>
-              <p className="section-kicker">LATEST MATCH</p>
+              <p className="section-kicker">試合結果</p>
               <h2 id="latest-match-heading">直近の試合</h2>
             </div>
             <span className="latest-match-card__result">
@@ -342,7 +341,7 @@ export function HomeScreen({
       <section className="home-report" aria-labelledby="report-heading">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">COACH REPORT</p>
+            <p className="section-kicker">監督レポート</p>
             <h2 id="report-heading">現在の状態</h2>
           </div>
         </div>
