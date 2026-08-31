@@ -34,10 +34,12 @@ describe("Phase 6 game-state migration", () => {
     delete legacy.officialSeason;
     delete legacy.teamDynamics;
     delete legacy.weeklySchedule;
+    delete legacy.notifications;
 
     const migrated = decodeGameState(JSON.stringify(legacy));
 
-    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.schemaVersion).toBe(current.schemaVersion);
+    expect(migrated.notifications).toEqual({ items: [] });
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
     expect(migrated.players).toEqual(originalPlayers);
     expect(migrated.schools).toEqual(originalSchools);
