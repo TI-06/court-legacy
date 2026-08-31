@@ -56,6 +56,10 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
+function playerOverall(player: Player): number {
+  return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
 function HubTabs({
   mode,
   onChange,
@@ -142,27 +146,25 @@ export function PlayerHubScreen({
     return (
       <main className="app-content player-hub player-detail">
         <button
+          aria-label="選手一覧へ戻る"
           className="player-detail__back"
           onClick={() => setSelectedPlayerId(null)}
           type="button"
         >
-          選手一覧へ戻る
+          ‹ 選手一覧
         </button>
 
         <section className="player-detail__summary">
           <div className="player-detail__identity">
+            <h2>{playerName(selectedPlayer)}</h2>
             <span>
               {selectedPlayer.grade}年・{selectedPlayer.preferredPosition}・
               {selectedPlayer.heightCm}cm
             </span>
-            <h2>{playerName(selectedPlayer)}</h2>
-            <p>{selectedPlayer.reading}</p>
           </div>
           <div className="player-detail__power">
             <span>総合力</span>
-            <strong>
-              {Math.round(calculatePlayerDisplayPower(selectedPlayer) / 100)}
-            </strong>
+            <strong>{playerOverall(selectedPlayer)}</strong>
           </div>
         </section>
 
@@ -230,15 +232,6 @@ export function PlayerHubScreen({
         <span>{players.length}人</span>
       </section>
       <div className="player-roster">
-        <div aria-hidden="true" className="player-roster__header">
-          <span>番号</span>
-          <span>選手</span>
-          <span>学年</span>
-          <span>ポジション</span>
-          <span>身長</span>
-          <span>総合</span>
-          <span>状態</span>
-        </div>
         {players.map((player, index) => (
           <button
             aria-label={`選手詳細 ${playerName(player)}`}
@@ -251,15 +244,21 @@ export function PlayerHubScreen({
             <span className="player-roster__number">{index + 1}</span>
             <span className="player-roster__name">
               <strong>{playerName(player)}</strong>
-              <small>{player.reading}</small>
+              <small>
+                {player.grade}年・{player.preferredPosition}・{player.heightCm}cm
+              </small>
             </span>
-            <span data-label="学年">{player.grade}年</span>
-            <span data-label="位置">{player.preferredPosition}</span>
-            <span data-label="身長">{player.heightCm}cm</span>
-            <span className="player-roster__overall" data-label="総合">
-              {Math.round(calculatePlayerDisplayPower(player) / 100)}
+            <span className="player-roster__status">
+              <small>状態</small>
+              <strong>{player.condition}</strong>
             </span>
-            <span data-label="状態">{player.condition}</span>
+            <span className="player-roster__overall">
+              <small>総合</small>
+              <strong>{playerOverall(player)}</strong>
+            </span>
+            <span className="player-roster__chevron" aria-hidden="true">
+              ›
+            </span>
           </button>
         ))}
       </div>
