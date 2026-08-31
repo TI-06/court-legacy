@@ -28,38 +28,50 @@ test("mobile training saves a plan and resolves it with next-week progression", 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
 
-  await expect(page.getByRole("heading", { name: "週間練習" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "育成" })).toBeVisible();
   await expect(page.getByRole("combobox")).toHaveCount(0);
   await expect(page.getByTestId("team-training-choice")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "チーム練習を変更" }).click();
+  await page.getByRole("button", { name: /^チーム練習 .* を変更$/ }).click();
   const teamMenu = page.getByRole("dialog", { name: "チーム練習を選択" });
   await expect(teamMenu.getByTestId("team-training-choice")).toHaveCount(12);
   await teamMenu.getByTestId("team-training-choice").nth(1).click();
   await expect(teamMenu).toBeHidden();
 
-  await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
+  await page.getByRole("button", { name: /^個人育成 2 / }).click();
+  const assignmentTwo = page.getByRole("dialog", { name: "個人育成 2" });
+  await assignmentTwo.getByRole("button", { name: "選手を変更" }).click();
   const playerPicker = page.getByRole("dialog", {
-    name: "個人指示2の選手を選択",
+    name: "個人育成2の選手を選択",
   });
   await expect(playerPicker.getByTestId("player-picker-option")).toHaveCount(
     12,
   );
   await playerPicker.getByRole("button", { name: "閉じる" }).click();
+  await page
+    .getByRole("dialog", { name: "個人育成 2" })
+    .getByRole("button", { name: "閉じる" })
+    .click();
 
-  await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
+  await page.getByRole("button", { name: /^個人育成 1 / }).click();
+  const assignmentOne = page.getByRole("dialog", { name: "個人育成 1" });
+  await assignmentOne.getByRole("button", { name: "指示を変更" }).click();
   const instructionPicker = page.getByRole("dialog", {
-    name: "個人指示1の内容を選択",
+    name: "個人育成1の指示を選択",
   });
   await expect(
     instructionPicker.getByTestId("individual-instruction-choice"),
   ).toHaveCount(6);
   await instructionPicker.getByRole("button", { name: "閉じる" }).click();
+  await page
+    .getByRole("dialog", { name: "個人育成 1" })
+    .getByRole("button", { name: "閉じる" })
+    .click();
 
   await page.getByRole("button", { name: "この内容で設定" }).click();
   const confirmation = page.getByRole("dialog", { name: "練習設定を確認" });
   await confirmation.getByRole("button", { name: "この内容で設定" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "直近の練習結果" }),
   ).toHaveCount(0);
@@ -125,9 +137,9 @@ test("mobile team selection uses a court picker without overflow", async ({
   await picker.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "自動編成" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "安全調整" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
   const bodyWidth = await page
@@ -166,7 +178,7 @@ test("school management upgrades a facility and calendar resolves saved training
     .getByRole("dialog", { name: "練習設定を確認" })
     .getByRole("button", { name: "この内容で設定" })
     .click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "直近の練習結果" }),
   ).toHaveCount(0);
