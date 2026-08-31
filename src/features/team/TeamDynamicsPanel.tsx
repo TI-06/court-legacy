@@ -100,7 +100,7 @@ function LeadershipEditor({
     >
       <div className="team-dynamics__section-heading">
         <div>
-          <p className="section-kicker">LEADERSHIP</p>
+          <p className="section-kicker">役職</p>
           <h3 id="leadership-heading">役職を決める</h3>
         </div>
         <span>保存はサーバーで確定</span>
@@ -206,7 +206,7 @@ export function TeamDynamicsPanel({
     <section className="team-dynamics" aria-labelledby="team-dynamics-heading">
       <div className="team-dynamics__heading">
         <div>
-          <p className="section-kicker">TEAM DYNAMICS</p>
+          <p className="section-kicker">チーム管理</p>
           <h2 id="team-dynamics-heading">チーム状態</h2>
           <p>役職・信頼・起用状況から、チームのまとまりを確認できます。</p>
         </div>
@@ -251,7 +251,7 @@ export function TeamDynamicsPanel({
         <section aria-labelledby="suitability-heading">
           <div className="team-dynamics__section-heading">
             <div>
-              <p className="section-kicker">SUITABILITY</p>
+              <p className="section-kicker">候補比較</p>
               <h3 id="suitability-heading">主将適性</h3>
             </div>
           </div>
@@ -275,7 +275,7 @@ export function TeamDynamicsPanel({
         <section aria-labelledby="concern-heading">
           <div className="team-dynamics__section-heading">
             <div>
-              <p className="section-kicker">CONCERNS</p>
+              <p className="section-kicker">選手の注意点</p>
               <h3 id="concern-heading">気になる選手</h3>
             </div>
           </div>
