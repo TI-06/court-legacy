@@ -15,12 +15,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Print formatted files
+      - name: Print formatting diff
         run: |
           npx prettier --write src/features/home/HomeScreen.tsx src/features/tournament/TournamentMatchRow.tsx src/features/tournament/TournamentScreen.tsx
-          echo '=== HomeScreen.tsx ==='
-          cat src/features/home/HomeScreen.tsx
-          echo '=== TournamentMatchRow.tsx ==='
-          cat src/features/tournament/TournamentMatchRow.tsx
-          echo '=== TournamentScreen.tsx ==='
-          cat src/features/tournament/TournamentScreen.tsx
+          git diff -- src/features/home/HomeScreen.tsx src/features/tournament/TournamentMatchRow.tsx src/features/tournament/TournamentScreen.tsx
