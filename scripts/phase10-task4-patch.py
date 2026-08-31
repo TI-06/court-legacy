@@ -37,13 +37,17 @@ mark_read = '''  const markNotificationRead = async (notificationId: string) => 
 assert text.count(advance_anchor) == 1
 text = text.replace(advance_anchor, mark_read + advance_anchor, 1)
 
+home_start = text.index("      <HomeScreen\n")
+home_end = text.index("      />", home_start)
+home_block = text[home_start:home_end]
 home_anchor = "        onAdvanceWeek={advanceWeek}\n"
-assert text.count(home_anchor) == 1
-text = text.replace(
+assert home_block.count(home_anchor) == 1
+home_block = home_block.replace(
     home_anchor,
     home_anchor + "        onMarkNotificationRead={markNotificationRead}\n",
     1,
 )
+text = text[:home_start] + home_block + text[home_end:]
 
 result_prop = "          latestResult={latestTrainingResult}\n"
 assert text.count(result_prop) == 1
