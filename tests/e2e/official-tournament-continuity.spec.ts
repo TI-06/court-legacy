@@ -159,12 +159,12 @@ test("national qualification exposes the guest identity without persisting a gue
   await page.goto("/");
 
   await expect(page.getByText("インターハイ 全国大会")).toBeVisible();
-  await expect(page.getByText(prepared.opponentName).first()).toBeVisible();
+  await expect(page.getByTitle(prepared.opponentName).first()).toBeVisible();
   await page.getByRole("button", { name: "大会表を見る" }).click();
   await expect(
     page.getByRole("heading", { name: "インターハイ 全国大会" }),
   ).toBeVisible();
-  await expect(page.getByText(prepared.opponentName).first()).toBeVisible();
+  await expect(page.getByTitle(prepared.opponentName).first()).toBeVisible();
 
   const persistence = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
