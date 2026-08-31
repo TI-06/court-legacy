@@ -130,10 +130,14 @@ describe("weekly training bottom-sheet flow", () => {
     fireEvent.click(nextWeekButton);
 
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
+    expect(
+      screen.getByRole("button", { name: /今週の練習結果/ }),
+    ).toBeVisible();
+
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
     expect(
-      screen.getByRole("heading", { name: "直近の練習結果" }),
-    ).toBeVisible();
+      screen.queryByRole("heading", { name: "直近の練習結果" }),
+    ).toBeNull();
     expect(
       screen.getByRole("button", { name: "この内容で設定" }),
     ).toBeEnabled();
