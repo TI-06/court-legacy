@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("app match integration", () => {
-  it("opens practice scheduling before a practice match can be played", async () => {
+  it("shows only practice scheduling until an opponent is confirmed", async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole("button", { name: /練習試合へ/ }));
@@ -15,6 +15,12 @@ describe("app match integration", () => {
       ...screen.queryAllByRole("button", { name: /に申し込む/ }),
     ];
     expect(schedulingActions.length).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole("button", { name: "試合開始" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "試合準備" }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens practice scheduling from the bottom navigation before a match", async () => {
@@ -29,5 +35,8 @@ describe("app match integration", () => {
       "aria-current",
       "page",
     );
+    expect(
+      screen.queryByRole("button", { name: "試合開始" }),
+    ).not.toBeInTheDocument();
   });
 });
