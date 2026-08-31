@@ -108,7 +108,9 @@ export function TournamentScreen({
   const terminal = stage.status === "eliminated" || stage.status === "champion";
   const visibleMatches = stage.matches
     .filter((match) => match.round === selectedRound)
-    .sort((left, right) => Number(right.userInMatch) - Number(left.userInMatch));
+    .sort(
+      (left, right) => Number(right.userInMatch) - Number(left.userInMatch),
+    );
 
   const requestStart = () => {
     if (!canStart) return;
@@ -138,7 +140,10 @@ export function TournamentScreen({
 
   return (
     <main className="app-content tournament-screen">
-      <section className="tournament-header" aria-labelledby="tournament-heading">
+      <section
+        className="tournament-header"
+        aria-labelledby="tournament-heading"
+      >
         <div className="tournament-header__top">
           <button
             aria-label="試合メニューへ戻る"
@@ -154,7 +159,9 @@ export function TournamentScreen({
             </h2>
             <span>{stage.entrants.length}校</span>
           </div>
-          <strong className={`tournament-status tournament-status--${stage.status}`}>
+          <strong
+            className={`tournament-status tournament-status--${stage.status}`}
+          >
             {timingLabel}
           </strong>
         </div>
