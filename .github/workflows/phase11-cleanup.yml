@@ -1,0 +1,44 @@
+name: Phase11 Cleanup
+
+on:
+  push:
+    branches:
+      - feature/phase11-home-week-progression
+    paths:
+      - .github/workflows/phase11-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase11-home-week-progression
+      - name: Remove temporary Phase11 tooling
+        run: |
+          rm -f \
+            .github/phase11_task2.py \
+            .github/phase11_task3.py \
+            .github/phase11_task4.py \
+            .github/phase11_task5.py \
+            .github/workflows/phase11-fix-task1-typecheck.yml \
+            .github/workflows/phase11-task1.yml \
+            .github/workflows/phase11-task1-impl.yml \
+            .github/workflows/phase11-task1-final.yml \
+            .github/workflows/phase11-task2c.yml \
+            .github/workflows/phase11-task2d.yml \
+            .github/workflows/phase11-task3.yml \
+            .github/workflows/phase11-task3-retry.yml \
+            .github/workflows/phase11-task4.yml \
+            .github/workflows/phase11-task5.yml \
+            .github/workflows/phase11-cleanup.yml
+      - name: Commit cleanup
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A .github
+          git commit -m "chore: remove temporary phase11 tooling"
+          git push origin HEAD:feature/phase11-home-week-progression
