@@ -25,7 +25,7 @@ function renderPlayerHub(
 }
 
 describe("PlayerHubScreen", () => {
-  it("renders a portrait-free Japanese information-first roster", () => {
+  it("renders a dense portrait-free mobile roster without a desktop table header", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
@@ -34,27 +34,30 @@ describe("PlayerHubScreen", () => {
     expect(rows).toHaveLength(school.playerIds.length);
     expect(view.container.querySelector("img")).toBeNull();
     expect(screen.getByText("登録選手")).toBeVisible();
+    expect(view.container.querySelector(".player-roster__header")).toBeNull();
     expect(screen.queryByText("PLAYER ROSTER")).toBeNull();
-    expect(screen.queryByText("No.")).toBeNull();
-    expect(screen.queryByText("Pos")).toBeNull();
 
     const firstRow = rows[0]!;
     expect(within(firstRow).getByText("1")).toBeVisible();
     expect(
       within(firstRow).getByText(`${player.lastName} ${player.firstName}`),
     ).toBeVisible();
-    expect(within(firstRow).getByText(`${player.grade}年`)).toBeVisible();
-    expect(within(firstRow).getByText(player.preferredPosition)).toBeVisible();
-    expect(within(firstRow).getByText(`${player.heightCm}cm`)).toBeVisible();
+    expect(
+      within(firstRow).getByText(
+        `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
+      ),
+    ).toBeVisible();
+    expect(within(firstRow).getByText("総合")).toBeVisible();
     expect(
       within(firstRow).getByText(
         String(Math.round(calculatePlayerDisplayPower(player) / 100)),
       ),
     ).toBeVisible();
+    expect(within(firstRow).getByText("状態")).toBeVisible();
     expect(within(firstRow).getByText(String(player.condition))).toBeVisible();
   });
 
-  it("opens a compact player detail without a character or initials panel", () => {
+  it("opens a compact player detail without a character or furigana row", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
@@ -73,8 +76,11 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     expect(screen.getByText("総合力")).toBeVisible();
     expect(
-      view.container.querySelector(".player-detail__identity-mark"),
-    ).toBeNull();
+      screen.getByText(
+        `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
+      ),
+    ).toBeVisible();
+    expect(screen.queryByText(player.reading)).toBeNull();
     expect(view.container.querySelector(".player-detail__hero")).toBeNull();
     expect(
       view.container.querySelector(".player-detail__summary"),

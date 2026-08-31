@@ -1,84 +1,73 @@
 .training-scouting-entry {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  margin: 12px 14px 0;
-  padding: 14px;
-  gap: 12px;
+  width: calc(100% - 28px);
+  min-width: 0;
+  min-height: 62px;
+  margin: 0 14px 10px;
+  padding: 9px 12px;
+  gap: 9px;
+  color: #173342;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   background: #fff;
-  border: 1px solid #d6e0e5;
-  border-radius: 18px;
-  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+  border: 1px solid #d9e3e7;
+  border-radius: 13px;
+  box-shadow: 0 4px 14px rgb(18 36 50 / 5%);
 }
 
-.training-scouting-entry__copy {
+.training-scouting-entry__main {
   min-width: 0;
 }
 
-.training-scouting-entry .section-kicker {
-  margin: 0;
-  color: #2b7380;
-  font-size: 0.64rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+.training-scouting-entry__main strong,
+.training-scouting-entry__main small {
+  display: block;
 }
 
-.training-scouting-entry h2 {
-  margin: 3px 0 0;
-  color: #173342;
-  font-size: 0.98rem;
-}
-
-.training-scouting-entry__copy > p:last-child {
-  margin: 5px 0 0;
-  color: #687983;
-  font-size: 0.7rem;
-  line-height: 1.55;
-}
-
-.training-scouting-entry__action {
-  display: grid;
-  justify-items: end;
-  gap: 7px;
-}
-
-.training-scouting-entry__action span {
-  color: #54717c;
-  font-size: 0.65rem;
-  font-weight: 800;
-}
-
-.training-scouting-entry__action button {
-  min-height: 44px;
-  padding: 0 13px;
-  color: #fff;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 900;
+.training-scouting-entry__main strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
-  background: #286d7a;
-  border: 0;
-  border-radius: 12px;
 }
 
-.training-scouting-entry__action button:focus-visible {
+.training-scouting-entry__main small,
+.training-scouting-entry__status {
+  color: #687b84;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.training-scouting-entry__main small {
+  margin-top: 4px;
+}
+
+.training-scouting-entry__status {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.training-scouting-entry__chevron {
+  color: #286f7c;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.training-scouting-entry:focus-visible {
   outline: 3px solid rgb(45 123 137 / 22%);
   outline-offset: 2px;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 350px) {
   .training-scouting-entry {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .training-scouting-entry__action {
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    justify-items: stretch;
-  }
-
-  .training-scouting-entry__action button {
-    width: 100%;
+  .training-scouting-entry__status {
+    display: none;
   }
 }

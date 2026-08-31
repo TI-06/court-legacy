@@ -18,6 +18,10 @@ async function inspectLayout(page: Page) {
     for (const element of Array.from(
       document.querySelectorAll<HTMLElement>("body *"),
     )) {
+      if (element.id.startsWith("DndLiveRegion-")) {
+        continue;
+      }
+
       const rect = element.getBoundingClientRect();
       const style = window.getComputedStyle(element);
       const visuallyOutside =
@@ -245,34 +249,42 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(page, testInfo, `${viewport.width}-training`);
     await expectNavigationFixed(page, `${viewport.width}-training`);
 
-    await page.getByRole("button", { name: "チーム練習を変更" }).click();
+    await page.getByRole("button", { name: /^チーム練習 .* を変更$/ }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-training-menu`);
     await page
       .getByRole("dialog", { name: "チーム練習を選択" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
-    await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
+    await page.getByRole("button", { name: /^個人育成 2 / }).click();
+    let assignmentDialog = page.getByRole("dialog", { name: "個人育成 2" });
+    await assignmentDialog.getByRole("button", { name: "選手を変更" }).click();
     await expectLayoutFits(
       page,
       testInfo,
       `${viewport.width}-training-player-picker`,
     );
     await page
-      .getByRole("dialog", { name: "個人指示2の選手を選択" })
+      .getByRole("dialog", { name: "個人育成2の選手を選択" })
       .getByRole("button", { name: "閉じる" })
       .click();
+    assignmentDialog = page.getByRole("dialog", { name: "個人育成 2" });
+    await assignmentDialog.getByRole("button", { name: "閉じる" }).click();
 
-    await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
+    await page.getByRole("button", { name: /^個人育成 1 / }).click();
+    assignmentDialog = page.getByRole("dialog", { name: "個人育成 1" });
+    await assignmentDialog.getByRole("button", { name: "指示を変更" }).click();
     await expectLayoutFits(
       page,
       testInfo,
       `${viewport.width}-training-instruction-picker`,
     );
     await page
-      .getByRole("dialog", { name: "個人指示1の内容を選択" })
+      .getByRole("dialog", { name: "個人育成1の指示を選択" })
       .getByRole("button", { name: "閉じる" })
       .click();
+    assignmentDialog = page.getByRole("dialog", { name: "個人育成 1" });
+    await assignmentDialog.getByRole("button", { name: "閉じる" }).click();
 
     await page.getByRole("button", { name: "この内容で設定" }).click();
     await expectLayoutFits(

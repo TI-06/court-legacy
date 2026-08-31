@@ -1,0 +1,55 @@
+.lineup-drag-surface {
+  min-width: 0;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    opacity 120ms ease;
+}
+
+.lineup-drag-surface.is-dragging {
+  opacity: 0.32;
+}
+
+.lineup-drag-surface.is-over > * {
+  outline: 3px solid rgb(40 111 124 / 40%);
+  outline-offset: 1px;
+}
+
+.court-slot.lineup-drag-surface {
+  display: block;
+}
+
+.bench-rail > .lineup-drag-surface {
+  flex: 0 0 112px;
+  scroll-snap-align: start;
+}
+
+.bench-rail > .lineup-drag-surface .bench-player-card {
+  width: 100%;
+  height: 100%;
+}
+
+.lineup-drag-overlay {
+  display: grid;
+  min-width: 128px;
+  max-width: 180px;
+  padding: 10px 12px;
+  gap: 2px;
+  color: #173342;
+  background: rgb(255 255 255 / 98%);
+  border: 2px solid #286f7c;
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgb(13 42 52 / 28%);
+}
+
+.lineup-drag-overlay strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineup-drag-overlay span {
+  color: #617780;
+  font-size: 12px;
+}

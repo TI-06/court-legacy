@@ -21,28 +21,26 @@ export function TrainingScoutingEntry({
     state.recruiting?.cycleKey === cycleKey
       ? state.recruiting.committedCandidateIds.length
       : 0;
+  const status = committedCount > 0 ? `獲得 ${committedCount}人` : "候補を確認";
 
   return (
-    <section
+    <button
+      aria-label={`新入生スカウト 評判 ${reputationGrade(school.reputationPoints)} スカウト網 Lv.${school.facilities.scoutingNetwork} ${status}`}
       className="training-scouting-entry"
-      aria-label="新入生スカウト案内"
+      onClick={onOpen}
+      type="button"
     >
-      <div className="training-scouting-entry__copy">
-        <p className="section-kicker">新入生募集</p>
-        <h2>来年度の戦力候補</h2>
-        <p>
+      <span className="training-scouting-entry__main">
+        <strong>新入生スカウト</strong>
+        <small>
           評判 {reputationGrade(school.reputationPoints)}・スカウト網 Lv.
-          {school.facilities.scoutingNetwork} から届く候補を確認します。
-        </p>
-      </div>
-      <div className="training-scouting-entry__action">
-        <span>
-          {committedCount > 0 ? `獲得 ${committedCount}人` : "候補を調査"}
-        </span>
-        <button onClick={onOpen} type="button">
-          新入生スカウト
-        </button>
-      </div>
-    </section>
+          {school.facilities.scoutingNetwork}
+        </small>
+      </span>
+      <span className="training-scouting-entry__status">{status}</span>
+      <span className="training-scouting-entry__chevron" aria-hidden="true">
+        ›
+      </span>
+    </button>
   );
 }

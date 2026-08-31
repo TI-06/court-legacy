@@ -247,7 +247,6 @@ describe("Phase 5 targeted shop UX", () => {
       <TrainingScreen
         completed={false}
         data={gameData}
-        latestResult={null}
         onSave={vi.fn()}
         state={state}
       />,
@@ -261,7 +260,6 @@ describe("Phase 5 targeted shop UX", () => {
       <TrainingScreen
         completed={false}
         data={gameData}
-        latestResult={null}
         onSave={vi.fn()}
         state={clearedState}
       />,

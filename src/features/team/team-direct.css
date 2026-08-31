@@ -1,39 +1,119 @@
 .team-screen--direct {
+  display: grid;
   align-content: start;
+  gap: 8px;
+}
+
+.team-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 9px;
+}
+
+.team-screen__header > div {
+  min-width: 0;
+}
+
+.team-screen__header h2,
+.team-screen__header p {
+  margin: 0;
+}
+
+.team-screen__header h2 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.team-screen__header p {
+  margin-top: 2px;
+  color: #72828c;
+  font-size: 12px;
+}
+
+.team-screen__header .team-secondary-action {
+  min-height: 44px;
+  padding: 0 11px;
+  color: #236573;
+  font-size: 12px;
+  background: #e7f1f3;
+  border: 1px solid #c9dde1;
+  border-radius: 11px;
+}
+
+.team-screen--direct .team-dynamics-inline {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 9px;
+  gap: 10px;
+  overflow: hidden;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+.team-screen--direct .team-dynamics-inline span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-screen--direct .team-panel {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 13px;
+}
+
+.team-screen--direct .team-section-heading h3 {
+  margin-top: 1px;
+  font-size: 14px;
+}
+
+.team-screen--direct .section-kicker,
+.team-screen--direct .team-valid,
+.team-screen--direct .team-invalid,
+.team-screen--direct .bench-count {
+  font-size: 12px;
+}
+
+.team-section-heading--compact {
+  min-height: 30px;
 }
 
 .volleyball-court {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, auto);
-  margin-top: 14px;
-  padding: 14px;
-  gap: 10px;
+  min-width: 0;
+  margin-top: 8px;
+  padding: 7px;
+  gap: 6px;
   background:
     linear-gradient(
       90deg,
       transparent 49.5%,
-      rgb(255 255 255 / 70%) 49.5%,
-      rgb(255 255 255 / 70%) 50.5%,
+      rgb(255 255 255 / 68%) 49.5%,
+      rgb(255 255 255 / 68%) 50.5%,
       transparent 50.5%
     ),
     linear-gradient(
       180deg,
       transparent 49.5%,
-      rgb(255 255 255 / 55%) 49.5%,
-      rgb(255 255 255 / 55%) 50.5%,
+      rgb(255 255 255 / 48%) 49.5%,
+      rgb(255 255 255 / 48%) 50.5%,
       transparent 50.5%
     ),
     linear-gradient(145deg, #d89d55, #c6803c);
-  border: 4px solid #f0c48a;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 45%);
+  border: 3px solid #efc58d;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%);
 }
 
 .court-slot {
-  display: grid;
   min-width: 0;
-  gap: 6px;
 }
 
 .court-slot:nth-child(1) {
@@ -66,74 +146,137 @@
   grid-row: 2;
 }
 
-.court-slot .ui-player-tile {
-  min-height: 112px;
-  padding: 10px 7px;
-  flex-direction: column;
-  text-align: center;
-  background: rgb(255 255 255 / 96%);
-  border-color: rgb(255 255 255 / 85%);
-  box-shadow: 0 7px 16px rgb(73 40 16 / 18%);
-}
-
-.court-slot .ui-player-avatar {
-  width: 38px;
-  height: 50px;
-  border-radius: 12px;
-}
-
-.court-slot .ui-player-tile__main {
-  width: 100%;
-}
-
-.court-slot .ui-player-tile__main strong,
-.court-slot .ui-player-tile__main small {
-  white-space: normal;
-}
-
-.court-slot .ui-status-pill {
-  justify-self: center;
-}
-
-.court-slot .ui-player-tile__action {
-  display: none;
-}
-
-.starter-pin {
-  min-height: 36px;
-  padding: 6px 7px;
-  color: #5f4934;
-  font-size: 0.66rem;
-  font-weight: 900;
-  background: rgb(255 255 255 / 88%);
-  border: 1px solid rgb(255 255 255 / 85%);
-  border-radius: 10px;
-}
-
-.starter-pin--active {
-  color: #fff;
-  background: #b76a26;
-  border-color: #b76a26;
-}
-
-.libero-direct-row {
+.court-player-button {
   display: grid;
-  margin-top: 12px;
+  align-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 76px;
+  padding: 6px 5px;
+  gap: 2px;
+  color: #173342;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  background: rgb(255 255 255 / 96%);
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 9px;
+  box-shadow: 0 4px 10px rgb(73 40 16 / 15%);
+}
+
+.court-player-button__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16px;
+  gap: 4px;
+}
+
+.court-player-button__top b {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  font-size: 12px;
+  background: #286f7c;
+  border-radius: 6px;
+  place-items: center;
+}
+
+.court-player-button__top small {
+  color: #9b551b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.court-player-button > strong {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.court-player-button > span:last-child {
+  overflow: hidden;
+  color: #62757e;
+  font-size: 12px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-special-panel,
+.team-bench-panel {
+  display: grid;
   gap: 7px;
 }
 
-.libero-direct-row .starter-pin {
-  justify-self: stretch;
+.libero-player-button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 7px 9px;
+  gap: 8px;
+  color: #173342;
+  font: inherit;
+  text-align: left;
+  background: #fff9e9;
+  border: 1px solid #ead8ae;
+  border-radius: 10px;
+}
+
+.libero-player-button__mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  color: #6e4700;
+  font-size: 13px;
+  font-weight: 900;
+  background: #f2c66c;
+  border-radius: 9px;
+  place-items: center;
+}
+
+.libero-player-button__main {
+  min-width: 0;
+}
+
+.libero-player-button__main strong,
+.libero-player-button__main small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libero-player-button__main strong {
+  font-size: 14px;
+}
+
+.libero-player-button__main small {
+  margin-top: 2px;
+  color: #6f756b;
+  font-size: 12px;
+}
+
+.libero-player-button > span:last-child {
+  color: #9b6d23;
+  font-size: 20px;
 }
 
 .bench-rail {
   display: flex;
-  width: calc(100% + 34px);
-  margin: 12px -17px -3px;
-  padding: 2px 17px 10px;
-  gap: 8px;
+  width: calc(100% + 20px);
+  min-width: 0;
+  margin: 0 -10px -2px;
+  padding: 1px 10px 6px;
+  gap: 6px;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
 }
 
@@ -141,28 +284,118 @@
   display: none;
 }
 
-.bench-rail .ui-player-tile {
-  flex: 0 0 180px;
+.bench-player-card {
+  display: grid;
+  flex: 0 0 112px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 7px 8px;
+  gap: 2px;
+  color: #173342;
+  background: #f4f8f9;
+  border: 1px solid #dce6e9;
+  border-radius: 9px;
   scroll-snap-align: start;
 }
 
+.bench-player-card strong,
+.bench-player-card span,
+.bench-player-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bench-player-card strong {
+  font-size: 13px;
+}
+
+.bench-player-card span,
+.bench-player-card small {
+  color: #667a83;
+  font-size: 12px;
+}
+
+.slot-editor-lock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 46px;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  color: #566a74;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  background: #edf2f4;
+  border: 1px solid #dbe4e7;
+  border-radius: 11px;
+}
+
+.slot-editor-lock strong {
+  color: #60717a;
+}
+
+.slot-editor-lock.is-active {
+  color: #8f4d18;
+  background: #fff0df;
+  border-color: #efc799;
+}
+
+.slot-editor-lock.is-active strong {
+  color: #b25f1e;
+}
+
+.team-screen--direct .policy-list {
+  margin-top: 7px;
+  gap: 6px;
+}
+
+.team-screen--direct .policy-list > label {
+  min-height: 50px;
+  padding: 7px 9px;
+  border-radius: 10px;
+}
+
+.team-screen--direct .policy-list strong,
+.team-screen--direct .policy-list small {
+  font-size: 12px;
+}
+
+.team-screen--direct .team-primary-action {
+  min-height: 44px;
+  margin-top: 8px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
 @media (max-width: 350px) {
-  .volleyball-court {
-    padding: 9px;
+  .team-screen--direct {
     gap: 7px;
   }
 
-  .court-slot .ui-player-tile {
-    min-height: 106px;
-    padding-inline: 5px;
+  .team-screen--direct .team-panel {
+    padding: 8px;
   }
 
-  .court-slot .ui-player-avatar {
-    width: 34px;
-    height: 34px;
+  .volleyball-court {
+    padding: 5px;
+    gap: 4px;
   }
 
-  .court-slot .ui-player-tile__main strong {
-    font-size: 0.74rem;
+  .court-player-button {
+    min-height: 72px;
+    padding-inline: 3px;
+  }
+
+  .court-player-button > strong {
+    font-size: 12px;
+  }
+
+  .bench-rail {
+    width: calc(100% + 16px);
+    margin-inline: -8px;
+    padding-inline: 8px;
   }
 }

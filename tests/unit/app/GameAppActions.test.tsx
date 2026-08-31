@@ -319,10 +319,15 @@ describe("GameApp cloud actions", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "選手" }));
     fireEvent.click(screen.getByRole("button", { name: "編成" }));
-    const starterLock = screen.getAllByRole("button", {
-      name: /^先発固定 /,
-    })[0]!;
-    fireEvent.click(starterLock);
+    fireEvent.click(
+      screen.getByRole("button", { name: "ローテーション1を変更" }),
+    );
+    const lineupDialog = screen.getByRole("dialog", {
+      name: "ローテーション1の選手を選択",
+    });
+    fireEvent.click(
+      within(lineupDialog).getByRole("button", { name: /先発固定/ }),
+    );
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
@@ -335,7 +340,7 @@ describe("GameApp cloud actions", () => {
             .starterLockPlayerIds
         : [],
     ).toHaveLength(1);
-    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(await screen.findByText("保存済み ✓")).toBeVisible();
   });
 
   it("renders the refreshed cloud snapshot after a revision conflict", async () => {
