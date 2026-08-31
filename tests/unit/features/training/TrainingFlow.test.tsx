@@ -70,42 +70,54 @@ describe("weekly training bottom-sheet flow", () => {
     ).toHaveLength(6);
   });
 
-  it("confirms training, executes it once, and keeps detailed results collapsed", async () => {
+  it("saves the weekly plan without resolving training immediately", async () => {
     render(<App />);
     fireEvent.click(await screen.findByRole("button", { name: "育成" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
+    fireEvent.click(screen.getByRole("button", { name: "チーム練習を変更" }));
+    const menuDialog = screen.getByRole("dialog", {
+      name: "チーム練習を選択",
+    });
+    const choices = within(menuDialog).getAllByTestId("team-training-choice");
+    const selectedMenuName = choices[1]!.textContent?.trim() ?? "";
+    fireEvent.click(choices[1]!);
+
+    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
     const confirmation = screen.getByRole("dialog", {
-      name: "練習内容を確認",
+      name: "練習設定を確認",
     });
     fireEvent.click(
-      within(confirmation).getByRole("button", { name: "この内容で実行" }),
+      within(confirmation).getByRole("button", { name: "この内容で設定" }),
     );
 
     expect(
-      await screen.findByRole("heading", { name: "今週の練習結果" }),
-    ).toBeInTheDocument();
-    expect(screen.queryAllByTestId("training-result-player")).toHaveLength(0);
-    fireEvent.click(screen.getByText("選手別の結果を確認"));
-    expect(screen.getAllByTestId("training-result-player")).toHaveLength(12);
-    expect(
-      screen.getByRole("button", { name: "今週の練習は完了" }),
-    ).toBeDisabled();
-  });
-
-  it("advances to the next week after training and enables training again", async () => {
-    render(<App />);
-    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
-    fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
-        "button",
-        { name: "この内容で実行" },
-      ),
-    );
-    await screen.findByRole("heading", { name: "今週の練習結果" });
+      screen.queryByRole("heading", { name: "今週の練習結果" }),
+    ).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
+    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    expect(screen.getByText(selectedMenuName)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "この内容で設定" }),
+    ).toBeEnabled();
+  });
+
+  it("runs the saved training together with next-week progression", async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
+    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "練習設定を確認" })).getByRole(
+        "button",
+        { name: "この内容で設定" },
+      ),
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "今週の練習結果" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
+
     const nextWeekButton = screen.getByRole("button", {
       name: "次の週へ進む",
     });
@@ -114,9 +126,8 @@ describe("weekly training bottom-sheet flow", () => {
 
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
-    expect(screen.getByRole("button", { name: "練習を実行" })).toBeEnabled();
     expect(
-      screen.queryByRole("heading", { name: "今週の練習結果" }),
-    ).toBeNull();
+      screen.getByRole("button", { name: "この内容で設定" }),
+    ).toBeEnabled();
   });
 });
