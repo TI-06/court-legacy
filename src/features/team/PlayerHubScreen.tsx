@@ -245,7 +245,8 @@ export function PlayerHubScreen({
             <span className="player-roster__name">
               <strong>{playerName(player)}</strong>
               <small>
-                {player.grade}年・{player.preferredPosition}・{player.heightCm}cm
+                {player.grade}年・{player.preferredPosition}・{player.heightCm}
+                cm
               </small>
             </span>
             <span className="player-roster__status">

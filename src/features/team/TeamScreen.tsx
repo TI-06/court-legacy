@@ -28,8 +28,7 @@ interface TeamScreenProps {
 }
 
 type PickerTarget =
-  | { type: "rotation"; slot: RotationSlot }
-  | { type: "libero" };
+  { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
@@ -258,14 +257,19 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         </span>
       </section>
 
-      <section className="team-panel team-court-panel" aria-labelledby="rotation-heading">
+      <section
+        className="team-panel team-court-panel"
+        aria-labelledby="rotation-heading"
+      >
         <div className="team-section-heading">
           <div>
             <p className="section-kicker">先発6人</p>
             <h3 id="rotation-heading">コート配置</h3>
           </div>
           <span className={issues.length === 0 ? "team-valid" : "team-invalid"}>
-            {issues.length === 0 ? "編成は有効です" : `${issues.length}件の問題`}
+            {issues.length === 0
+              ? "編成は有効です"
+              : `${issues.length}件の問題`}
           </span>
         </div>
 
@@ -282,7 +286,10 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                     className="court-player-button"
                     data-testid="court-player"
                     onClick={() =>
-                      setPickerTarget({ type: "rotation", slot: assignment.slot })
+                      setPickerTarget({
+                        type: "rotation",
+                        slot: assignment.slot,
+                      })
                     }
                     type="button"
                   >
@@ -302,7 +309,10 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
       </section>
 
       {selection.liberoPlayerId ? (
-        <section className="team-panel team-special-panel" aria-labelledby="libero-heading">
+        <section
+          className="team-panel team-special-panel"
+          aria-labelledby="libero-heading"
+        >
           <div className="team-section-heading team-section-heading--compact">
             <div>
               <p className="section-kicker">守備専門</p>
@@ -322,7 +332,8 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
                 <span className="libero-player-button__main">
                   <strong>{playerName(player)}</strong>
                   <small>
-                    {player.grade}年・{player.preferredPosition}・総合{playerOverall(player)}
+                    {player.grade}年・{player.preferredPosition}・総合
+                    {playerOverall(player)}
                   </small>
                 </span>
                 <span aria-hidden="true">›</span>
@@ -332,20 +343,29 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         </section>
       ) : null}
 
-      <section className="team-panel team-bench-panel" aria-labelledby="bench-heading">
+      <section
+        className="team-panel team-bench-panel"
+        aria-labelledby="bench-heading"
+      >
         <div className="team-section-heading team-section-heading--compact">
           <div>
             <p className="section-kicker">控え選手</p>
             <h3 id="bench-heading">ベンチ</h3>
           </div>
-          <span className="bench-count">{selection.benchPlayerIds.length}人</span>
+          <span className="bench-count">
+            {selection.benchPlayerIds.length}人
+          </span>
         </div>
         <div className="bench-rail">
           {selection.benchPlayerIds.map((playerId) => {
             const player = playerById[playerId];
             if (!player) return null;
             return (
-              <article className="bench-player-card" data-testid="bench-player" key={player.id}>
+              <article
+                className="bench-player-card"
+                data-testid="bench-player"
+                key={player.id}
+              >
                 <strong>{player.lastName}</strong>
                 <span>
                   {player.preferredPosition}・{player.grade}年
@@ -357,7 +377,10 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
         </div>
       </section>
 
-      <section className="team-panel team-policy-panel" aria-labelledby="policy-heading">
+      <section
+        className="team-panel team-policy-panel"
+        aria-labelledby="policy-heading"
+      >
         <div className="team-section-heading team-section-heading--compact">
           <div>
             <p className="section-kicker">交代ルール</p>
@@ -422,22 +445,34 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             />
           </label>
         </div>
-        <button className="team-primary-action" onClick={applySafetyAdjustment} type="button">
+        <button
+          className="team-primary-action"
+          onClick={applySafetyAdjustment}
+          type="button"
+        >
           安全調整
         </button>
       </section>
 
       {issues.length > 0 ? (
-        <section className="selection-feedback selection-feedback--error" role="alert">
+        <section
+          className="selection-feedback selection-feedback--error"
+          role="alert"
+        >
           <strong>編成を確認してください</strong>
           {issues.map((issue, index) => (
-            <p key={`${issue.code}-${issue.playerId ?? index}`}>{issue.message}</p>
+            <p key={`${issue.code}-${issue.playerId ?? index}`}>
+              {issue.message}
+            </p>
           ))}
         </section>
       ) : null}
 
       {actionError ? (
-        <section className="selection-feedback selection-feedback--error" role="alert">
+        <section
+          className="selection-feedback selection-feedback--error"
+          role="alert"
+        >
           <strong>処理できませんでした</strong>
           <p>{actionError}</p>
         </section>
@@ -473,7 +508,9 @@ export function TeamScreen({ state, selection, onChange }: TeamScreenProps) {
             type="button"
           >
             <span>先発固定</span>
-            <strong>{lockedIds.has(currentPickerPlayer.id) ? "ON" : "OFF"}</strong>
+            <strong>
+              {lockedIds.has(currentPickerPlayer.id) ? "ON" : "OFF"}
+            </strong>
           </button>
         ) : null}
         <div className="ui-player-picker-list">

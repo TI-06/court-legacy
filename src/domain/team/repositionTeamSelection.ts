@@ -1,7 +1,4 @@
-import type {
-  RotationSlot,
-  TeamSelection,
-} from "../model/TeamSelection";
+import type { RotationSlot, TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
 
 export type TeamPlacement =
@@ -35,8 +32,8 @@ function rotationPlayer(
   slot: RotationSlot,
 ): PlayerId | null {
   return (
-    selection.rotation.find((assignment) => assignment.slot === slot)?.playerId ??
-    null
+    selection.rotation.find((assignment) => assignment.slot === slot)
+      ?.playerId ?? null
   );
 }
 

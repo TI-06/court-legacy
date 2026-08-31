@@ -82,7 +82,9 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     expect(screen.queryByText(player.reading)).toBeNull();
     expect(view.container.querySelector(".player-detail__hero")).toBeNull();
-    expect(view.container.querySelector(".player-detail__summary")).not.toBeNull();
+    expect(
+      view.container.querySelector(".player-detail__summary"),
+    ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();

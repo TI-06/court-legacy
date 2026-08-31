@@ -27,7 +27,9 @@ describe("team selection direct-touch UI", () => {
     expect(screen.getByText("交代ルール")).toBeVisible();
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     expect(screen.getAllByTestId("court-player")).toHaveLength(6);
-    expect(screen.queryAllByRole("button", { name: /先発固定/ })).toHaveLength(0);
+    expect(screen.queryAllByRole("button", { name: /先発固定/ })).toHaveLength(
+      0,
+    );
     for (let slot = 1; slot <= 6; slot += 1) {
       expect(
         screen.getByRole("button", { name: `ローテーション${slot}を変更` }),
@@ -52,7 +54,9 @@ describe("team selection direct-touch UI", () => {
     expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
       12,
     );
-    expect(within(dialog).getByRole("button", { name: /先発固定/ })).toBeVisible();
+    expect(
+      within(dialog).getByRole("button", { name: /先発固定/ }),
+    ).toBeVisible();
   });
 
   it("manually replaces a court player without duplicate active players", async () => {
@@ -98,9 +102,11 @@ describe("team selection direct-touch UI", () => {
     fireEvent.click(starterLock);
     await waitFor(() =>
       expect(
-        within(screen.getByRole("dialog", {
-          name: "ローテーション1の選手を選択",
-        })).getByRole("button", { name: /先発固定/ }),
+        within(
+          screen.getByRole("dialog", {
+            name: "ローテーション1の選手を選択",
+          }),
+        ).getByRole("button", { name: /先発固定/ }),
       ).toHaveAttribute("aria-pressed", "true"),
     );
     dialog = screen.getByRole("dialog", {
@@ -124,14 +130,18 @@ describe("team selection direct-touch UI", () => {
     );
 
     expect(
-      within(screen.getByRole("dialog", {
-        name: "ローテーション1の選手を選択",
-      })).getByRole("button", { name: /先発固定/ }),
+      within(
+        screen.getByRole("dialog", {
+          name: "ローテーション1の選手を選択",
+        }),
+      ).getByRole("button", { name: /先発固定/ }),
     ).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(
-      within(screen.getByRole("dialog", {
-        name: "ローテーション1の選手を選択",
-      })).getByRole("button", { name: "閉じる" }),
+      within(
+        screen.getByRole("dialog", {
+          name: "ローテーション1の選手を選択",
+        }),
+      ).getByRole("button", { name: "閉じる" }),
     );
     expect(
       screen.getByRole("checkbox", { name: "怪我時はベンチを許可" }),
