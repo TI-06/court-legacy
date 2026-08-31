@@ -5,6 +5,7 @@ import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 export interface MatchPresentationContext {
   state: GameState;
   match: MatchState;
+  schoolDisplayNames?: Partial<Record<SchoolId, string>>;
 }
 
 export interface PresentedMatchEvent {
@@ -23,11 +24,16 @@ function playerName(state: GameState, playerId: PlayerId | null): string {
   return player ? `${player.lastName} ${player.firstName}` : "選手";
 }
 
-function schoolName(state: GameState, schoolId: SchoolId | null): string {
-  if (!schoolId) {
-    return "チーム";
-  }
-  return state.schools[schoolId]?.name ?? "チーム";
+function schoolName(
+  context: MatchPresentationContext,
+  schoolId: SchoolId | null,
+): string {
+  if (!schoolId) return "チーム";
+  return (
+    context.schoolDisplayNames?.[schoolId] ??
+    context.state.schools[schoolId]?.name ??
+    "チーム"
+  );
 }
 
 function eventTone(
@@ -105,7 +111,7 @@ function detailFor(
 ): string {
   const actor = playerName(context.state, event.actorPlayerId);
   const target = playerName(context.state, event.targetPlayerId);
-  const winner = schoolName(context.state, event.winnerSchoolId);
+  const winner = schoolName(context, event.winnerSchoolId);
 
   switch (event.type) {
     case "serve":

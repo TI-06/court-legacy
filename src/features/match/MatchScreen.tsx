@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
+import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
 import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
@@ -15,6 +16,7 @@ interface MatchScreenProps {
   homeStrength: number;
   awayStrength: number;
   result: SimulateMatchResult | null;
+  presentation?: PendingMatchPresentation | null;
   reducedMotion: boolean;
   onStart: () => void;
   onReturnHome: () => void;
@@ -29,7 +31,10 @@ export function MatchScreen(props: MatchScreenProps) {
     return null;
   }
 
-  const playbackKey = props.result?.match.id ?? "pre-match";
+  const playbackKey =
+    props.presentation?.simulation.match.id ??
+    props.result?.match.id ??
+    "pre-match";
   return <MatchScreenContent key={playbackKey} {...props} />;
 }
 
@@ -40,7 +45,8 @@ function MatchScreenContent({
   awaySelection,
   homeStrength,
   awayStrength,
-  result,
+  result: legacyResult,
+  presentation,
   reducedMotion,
   onStart,
   onReturnHome,
@@ -48,21 +54,26 @@ function MatchScreenContent({
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
     throw new Error(`user school not found: ${state.userSchoolId}`);
   }
 
-  const homeIssues = validateTeamSelection({
-    state,
-    schoolId: state.userSchoolId,
-    selection: homeSelection,
-  });
-  const awayIssues = validateTeamSelection({
-    state,
-    schoolId: opponent.id,
-    selection: awaySelection,
-  });
+  const homeIssues = result
+    ? []
+    : validateTeamSelection({
+        state,
+        schoolId: state.userSchoolId,
+        selection: homeSelection,
+      });
+  const awayIssues = result
+    ? []
+    : validateTeamSelection({
+        state,
+        schoolId: opponent.id,
+        selection: awaySelection,
+      });
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
@@ -97,10 +108,20 @@ function MatchScreenContent({
     if (!result) {
       return [];
     }
-    return result.match.eventLog
-      .slice(0, visibleEventIndex + 1)
-      .map((event) => presentMatchEvent(event, { state, match: result.match }));
-  }, [result, state, visibleEventIndex]);
+    const schoolDisplayNames = presentation
+      ? {
+          [presentation.homeTeam.schoolId]: presentation.homeTeam.displayName,
+          [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
+        }
+      : undefined;
+    return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>
+      presentMatchEvent(event, {
+        state,
+        match: result.match,
+        schoolDisplayNames,
+      }),
+    );
+  }, [presentation, result, state, visibleEventIndex]);
 
   if (!result) {
     const strengthDifference = homeStrength - awayStrength;
@@ -200,10 +221,18 @@ function MatchScreenContent({
       event.winnerSchoolId === result.match.awaySchoolId,
   ).length;
   const currentEvent = presentedEvents.at(-1);
-  const winner = state.schools[result.analysis.winnerSchoolId];
+  const winnerDisplayName =
+    presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
+      ? presentation.homeTeam.displayName
+      : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
+        ? presentation.awayTeam.displayName
+        : state.schools[result.analysis.winnerSchoolId]?.name;
+  const homeShortName =
+    presentation?.homeTeam.shortName ?? homeSchool.shortName;
+  const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
   const recentEvents = presentedEvents.slice(-4).reverse();
 
-  if (!currentEvent || !winner) {
+  if (!currentEvent || !winnerDisplayName) {
     throw new Error("completed match is missing presentation data");
   }
 
@@ -223,7 +252,7 @@ function MatchScreenContent({
 
           <section className="match-scoreboard" aria-label="現在のスコア">
             <article>
-              <span>{homeSchool.shortName}</span>
+              <span>{homeShortName}</span>
               <strong>{currentEvent.score.split(" - ")[0]}</strong>
               <small>セット {revealedHomeSets}</small>
             </article>
@@ -234,7 +263,7 @@ function MatchScreenContent({
               <strong>—</strong>
             </div>
             <article>
-              <span>{opponent.shortName}</span>
+              <span>{awayShortName}</span>
               <strong>{currentEvent.score.split(" - ")[1]}</strong>
               <small>セット {revealedAwaySets}</small>
             </article>
@@ -334,13 +363,13 @@ function MatchScreenContent({
           >
             <p className="section-kicker">試合終了</p>
             <h2 id="result-heading">試合結果</h2>
-            <strong>{winner.name} 勝利</strong>
+            <strong>{winnerDisplayName} 勝利</strong>
             <div className="match-result-score">
-              <span>{homeSchool.shortName}</span>
+              <span>{homeShortName}</span>
               <b>
                 {result.match.homeSetsWon} - {result.match.awaySetsWon}
               </b>
-              <span>{opponent.shortName}</span>
+              <span>{awayShortName}</span>
             </div>
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
@@ -396,7 +425,7 @@ function MatchScreenContent({
               ダイジェストを最初から
             </button>
             <button onClick={onReturnHome} type="button">
-              ホームへ戻る
+              {presentation ? "結果を確認して次へ" : "ホームへ戻る"}
             </button>
           </section>
         </>
