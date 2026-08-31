@@ -64,10 +64,8 @@ describe("school and calendar app integration", () => {
       screen.queryByRole("dialog", { name: "週間カレンダー" }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
-
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
     expect(
-      screen.getByRole("heading", { name: "直近の練習結果" }),
+      screen.getByRole("button", { name: /今週の練習結果/ }),
     ).toBeVisible();
   });
 });
