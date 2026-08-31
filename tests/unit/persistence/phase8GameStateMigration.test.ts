@@ -33,10 +33,12 @@ describe("Phase 8 game-state migration", () => {
       },
     } as Record<string, unknown>;
     delete legacy.weeklySchedule;
+    delete legacy.notifications;
 
     const migrated = decodeGameState(JSON.stringify(legacy)) as Phase8GameState;
 
-    expect(migrated.schemaVersion).toBe(5);
+    expect(migrated.schemaVersion).toBe(current.schemaVersion);
+    expect(migrated.notifications).toEqual({ items: [] });
     expect(migrated.randomCursor).toBe(current.randomCursor + 41);
     expect(migrated.players).toEqual(originalPlayers);
     expect(migrated.schools).toEqual(originalSchools);
@@ -80,12 +82,15 @@ describe("Phase 8 game-state migration", () => {
       randomCursor: current.randomCursor + 13,
     } as Record<string, unknown>;
     delete legacy.weeklySchedule;
+    delete legacy.notifications;
     const serialized = JSON.stringify(legacy);
 
     const first = decodeGameState(serialized) as Phase8GameState;
     const second = decodeGameState(serialized) as Phase8GameState;
 
     expect(first.weeklySchedule).toEqual(second.weeklySchedule);
+    expect(first.notifications).toEqual({ items: [] });
+    expect(second.notifications).toEqual({ items: [] });
     expect(first.randomCursor).toBe(current.randomCursor + 13);
     expect(second.randomCursor).toBe(current.randomCursor + 13);
   });
