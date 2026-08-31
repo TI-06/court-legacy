@@ -1,0 +1,27 @@
+name: Phase9 Production Prettier
+
+on:
+  push:
+    branches:
+      - feature/phase9-mobile-game-ui
+
+jobs:
+  prettier-output:
+    if: github.event.head_commit.message == 'chore: print phase9 production prettier output'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Print formatted files
+        run: |
+          npx prettier --write src/features/home/HomeScreen.tsx src/features/tournament/TournamentMatchRow.tsx src/features/tournament/TournamentScreen.tsx
+          echo '=== HomeScreen.tsx ==='
+          cat src/features/home/HomeScreen.tsx
+          echo '=== TournamentMatchRow.tsx ==='
+          cat src/features/tournament/TournamentMatchRow.tsx
+          echo '=== TournamentScreen.tsx ==='
+          cat src/features/tournament/TournamentScreen.tsx
