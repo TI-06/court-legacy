@@ -9,8 +9,6 @@ import type {
   TournamentLevel,
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
-import { BottomSheet } from "../../ui/BottomSheet";
-import "../../ui/ui.css";
 import { TournamentMatchRow } from "./TournamentMatchRow";
 import "./tournament.css";
 
@@ -18,9 +16,6 @@ interface TournamentScreenProps {
   state: GameState;
   circuit: TournamentCircuit;
   level: TournamentLevel;
-  trainingCompleted: boolean;
-  pending: boolean;
-  onStartOfficialMatch: () => void;
   onBack: () => void;
 }
 
@@ -61,9 +56,6 @@ export function TournamentScreen({
   state,
   circuit,
   level,
-  trainingCompleted,
-  pending,
-  onStartOfficialMatch,
   onBack,
 }: TournamentScreenProps) {
   const stage = selectTournamentStageView(state, circuit, level);
@@ -76,7 +68,6 @@ export function TournamentScreen({
       : (stage?.userBestRound ?? "round-of-16");
   const [selectedRound, setSelectedRound] =
     useState<TournamentRound>(initialRound);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
 
   if (!stage) {
     return (
@@ -99,33 +90,12 @@ export function TournamentScreen({
       ? nextOfficial
       : null;
   const due = nextMatch?.timing === "due";
-  const canStart =
-    due &&
-    trainingCompleted &&
-    !pending &&
-    stage.status !== "eliminated" &&
-    stage.status !== "champion";
   const terminal = stage.status === "eliminated" || stage.status === "champion";
   const visibleMatches = stage.matches
     .filter((match) => match.round === selectedRound)
     .sort(
       (left, right) => Number(right.userInMatch) - Number(left.userInMatch),
     );
-
-  const requestStart = () => {
-    if (!canStart) return;
-    if (!state.settings.confirmBeforeOfficialMatch) {
-      onStartOfficialMatch();
-      return;
-    }
-    setConfirmationOpen(true);
-  };
-
-  const confirmStart = () => {
-    if (!canStart) return;
-    setConfirmationOpen(false);
-    onStartOfficialMatch();
-  };
 
   const timingLabel = nextMatch
     ? nextMatch.timing === "due"
@@ -217,28 +187,9 @@ export function TournamentScreen({
             const isCurrentUserMatch = nextMatch?.matchId === match.id;
             const inlineAction =
               isCurrentUserMatch && due ? (
-                <>
-                  {!trainingCompleted ? (
-                    <p className="tournament-training-note">
-                      今週の練習を完了すると開始できます
-                    </p>
-                  ) : null}
-                  {pending ? (
-                    <p className="tournament-pending" role="status">
-                      <strong>公式戦を開始しています…</strong>
-                      <span>試合結果を確定しています…</span>
-                      <span>大会結果を保存しています…</span>
-                    </p>
-                  ) : null}
-                  <button
-                    className="tournament-start-button"
-                    disabled={!canStart}
-                    onClick={requestStart}
-                    type="button"
-                  >
-                    {pending ? "公式戦を開始しています…" : "公式戦を開始"}
-                  </button>
-                </>
+                <p className="tournament-training-note">
+                  ホームの「次の週へ進む」で試合を実施します
+                </p>
               ) : null;
 
             return (
@@ -265,26 +216,6 @@ export function TournamentScreen({
           </strong>
         </section>
       ) : null}
-
-      <BottomSheet
-        description="この試合はサーバー側で対戦相手と結果を確定します。"
-        onClose={() => setConfirmationOpen(false)}
-        open={confirmationOpen}
-        title="公式戦を開始しますか"
-      >
-        <div className="tournament-confirmation">
-          <strong>{nextMatch?.opponent.displayName ?? "対戦相手"}</strong>
-          <p>編成と今週の練習内容を確認してから開始してください。</p>
-          <button
-            className="primary-action"
-            disabled={!canStart}
-            onClick={confirmStart}
-            type="button"
-          >
-            この試合を開始
-          </button>
-        </div>
-      </BottomSheet>
     </main>
   );
 }
