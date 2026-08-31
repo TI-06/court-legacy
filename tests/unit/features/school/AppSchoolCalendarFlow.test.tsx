@@ -58,7 +58,7 @@ describe("school and calendar app integration", () => {
     fireEvent.click(advance);
 
     expect(
-      await screen.findByRole("heading", { name: "監督ホーム" }),
+      await screen.findByRole("main", { name: "ホーム" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("dialog", { name: "週間カレンダー" }),
