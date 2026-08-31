@@ -85,10 +85,11 @@ describe("deferred weekly training plan", () => {
       },
       officialMatchRequired: false,
     });
+    expect(advanced.state.notifications.items).toHaveLength(1);
     expect(isWeeklyActionCompleted(advanced.state, "training")).toBe(false);
   });
 
-  it("resolves training but keeps the date when an official match is waiting", () => {
+  it("resolves training and persists its notification before an official match redirect", () => {
     const snapshot = createSnapshot();
     let officialState = {
       ...snapshot.state,
@@ -114,6 +115,12 @@ describe("deferred weekly training plan", () => {
     expect(result.state.date).toBe(officialState.date);
     expect(isWeeklyActionCompleted(result.state, "training")).toBe(true);
     expect(findDueUserOfficialMatch(result.state)).not.toBeNull();
+    expect(result.state.notifications.items).toHaveLength(1);
+    expect(result.state.notifications.items[0]).toMatchObject({
+      type: "training-result",
+      createdGameDate: officialState.date,
+      weekOfYear: officialState.calendar.weekOfYear,
+    });
     expect(result.outcome).toMatchObject({
       trainingResult: {
         teamTrainingMenuId:
