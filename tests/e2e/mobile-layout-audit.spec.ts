@@ -126,10 +126,12 @@ async function expectNoHorizontalScroll(
   locatorSelector: string,
   stateName: string,
 ) {
-  const dimensions = await page.locator(locatorSelector).evaluate((element) => ({
-    clientWidth: element.clientWidth,
-    scrollWidth: element.scrollWidth,
-  }));
+  const dimensions = await page
+    .locator(locatorSelector)
+    .evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
   expect(
     dimensions.scrollWidth,
     `${stateName}: horizontal scrolling should not be required`,
@@ -202,7 +204,9 @@ for (const viewport of mobileViewports) {
         ".tournament-panel",
         `${viewport.width}-tournament`,
       );
-      await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+      await navigation
+        .getByRole("button", { name: "ホーム", exact: true })
+        .click();
     }
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
@@ -271,7 +275,11 @@ for (const viewport of mobileViewports) {
       .click();
 
     await page.getByRole("button", { name: "この内容で設定" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-training-confirm`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-training-confirm`,
+    );
     await page
       .getByRole("dialog", { name: "練習設定を確認" })
       .getByRole("button", { name: "閉じる" })
@@ -294,7 +302,11 @@ for (const viewport of mobileViewports) {
       .getByRole("button", { name: "その他", exact: true })
       .click();
     await page.getByRole("button", { name: "学校管理" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-facilities`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-school-facilities`,
+    );
     await expectNavigationFixed(page, `${viewport.width}-school-facilities`);
 
     await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
