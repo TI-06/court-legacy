@@ -184,7 +184,7 @@ export function TeamScreen({
     }
 
     const next = cloneSelection(selection);
-    const outgoingId = next.liberoPlayerId;
+    const outgoingId = next.liberoPlayerId!;
     next.liberoPlayerId = incomingId;
     next.benchPlayerIds = next.benchPlayerIds
       .filter((playerId) => playerId !== incomingId)
