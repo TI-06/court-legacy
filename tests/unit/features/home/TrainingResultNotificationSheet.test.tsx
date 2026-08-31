@@ -1,12 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type {
-  TrainingResultNotification,
-} from "../../../../src/domain/notifications/gameNotifications";
-import {
-  TrainingResultNotificationSheet,
-} from "../../../../src/features/home/TrainingResultNotificationSheet";
+import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
+import { TrainingResultNotificationSheet } from "../../../../src/features/home/TrainingResultNotificationSheet";
 
 function createNotification(): TrainingResultNotification {
   const state = createDemoGame();
@@ -64,7 +60,9 @@ describe("TrainingResultNotificationSheet", () => {
     expect(within(dialog).getByText("スパイク練習")).toBeVisible();
     expect(within(dialog).getByText(player.displayName)).toBeVisible();
     expect(
-      within(dialog).getByText(`${player.grade}年・${player.preferredPosition}`),
+      within(dialog).getByText(
+        `${player.grade}年・${player.preferredPosition}`,
+      ),
     ).toBeVisible();
     expect(within(dialog).getByText("スパイク +2")).toBeVisible();
     expect(within(dialog).getByText("ジャンプ +1")).toBeVisible();
