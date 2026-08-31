@@ -1,4 +1,5 @@
 import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
+import type { GameNotificationState } from "../notifications/gameNotifications";
 import type { ShopGameEffects } from "../shop/shopEffects";
 import type {
   OfficialSeasonState,
@@ -99,6 +100,7 @@ export interface GameState {
   officialSeason: OfficialSeasonState;
   teamDynamics: TeamDynamicsState;
   weeklySchedule: WeeklyScheduleState;
+  notifications: GameNotificationState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
