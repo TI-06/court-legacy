@@ -95,7 +95,10 @@ export function TrainingScreen({
     savedFirst?.instructionId ?? instructions[0]?.id ?? "",
   );
   const [secondInstructionId, setSecondInstructionId] = useState(
-    savedSecond?.instructionId ?? instructions[1]?.id ?? instructions[0]?.id ?? "",
+    savedSecond?.instructionId ??
+      instructions[1]?.id ??
+      instructions[0]?.id ??
+      "",
   );
   const [sheet, setSheet] = useState<TrainingSheet>(null);
   const [resultsExpanded, setResultsExpanded] = useState(false);
