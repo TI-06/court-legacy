@@ -5,6 +5,7 @@ import type {
 import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
 import type { GameState } from "../domain/model/GameState";
+import { decodeGameState } from "../persistence/gameStateCodec";
 import { playerId } from "../domain/model/identifiers";
 import type {
   PvpChallengeRequest,
@@ -224,7 +225,15 @@ function writeSessionStorage(key: string, value: string): void {
 function readPersistedHarnessSnapshot(): CloudGameSnapshot | null {
   try {
     const raw = readSessionStorage(E2E_SERVER_SNAPSHOT_KEY);
-    return raw ? (JSON.parse(raw) as CloudGameSnapshot) : null;
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Omit<CloudGameSnapshot, "state"> & {
+      state: unknown;
+    };
+    return {
+      ...parsed,
+      state: decodeGameState(JSON.stringify(parsed.state)),
+    };
   } catch {
     return null;
   }
