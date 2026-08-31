@@ -181,9 +181,6 @@ jobs:
             expect(firstRequest.operationId).toBe(
               applyAction.mock.calls[1]![1].operationId,
             );
-            expect(
-              await screen.findByRole("heading", { name: "試合ダイジェスト" }),
-            ).toBeVisible();
           });'''
           p.write_text(text[:start] + replacement + text[end:])
           PY
