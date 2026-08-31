@@ -32,89 +32,86 @@ jobs:
           text = path.read_text()
 
           import_anchor = 'import { matchId } from "../../src/domain/model/identifiers";\n'
-          notification_import = '''import { matchId } from "../../src/domain/model/identifiers";
-          import {
-            appendNotification,
-            buildTrainingResultNotification,
-            markNotificationRead,
-          } from "../../src/domain/notifications/gameNotifications";
-          '''
+          notification_import = "\n".join([
+              'import { matchId } from "../../src/domain/model/identifiers";',
+              'import {',
+              '  appendNotification,',
+              '  buildTrainingResultNotification,',
+              '  markNotificationRead,',
+              '} from "../../src/domain/notifications/gameNotifications";',
+              '',
+          ])
           assert text.count(import_anchor) == 1
           text = text.replace(import_anchor, notification_import, 1)
 
-          old_training = '''  if (!isWeeklyActionCompleted(currentState, "training")) {
-            const training = applyTraining(currentState, teamSelection, {
-              type: "training",
-              plan: currentState.weeklySchedule.trainingPlan,
-            });
-            currentState = training.state;
-            trainingResult = training.outcome;
-          }
-          '''
-          new_training = '''  if (!isWeeklyActionCompleted(currentState, "training")) {
-            const stateBeforeTraining = currentState;
-            const training = applyTraining(currentState, teamSelection, {
-              type: "training",
-              plan: currentState.weeklySchedule.trainingPlan,
-            });
-            const resolvedTrainingResult = training.outcome as Parameters<
-              typeof buildTrainingResultNotification
-            >[0]["result"];
-            const notification = buildTrainingResultNotification({
-              stateBeforeTraining,
-              result: resolvedTrainingResult,
-              data: gameData,
-            });
-            currentState = {
-              ...training.state,
-              notifications: appendNotification(
-                training.state.notifications,
-                notification,
-              ),
-            };
-            trainingResult = resolvedTrainingResult;
-          }
-          '''
-          assert text.count(old_training) == 1
-          text = text.replace(old_training, new_training, 1)
+          function_start = text.index('function applyAdvanceWeek(')
+          training_start = text.index(
+              '  if (!isWeeklyActionCompleted(currentState, "training")) {',
+              function_start,
+          )
+          training_end = text.index(
+              '\n\n  if (hasRequiredOfficialMatch(currentState)) {',
+              training_start,
+          )
+          new_training = "\n".join([
+              '  if (!isWeeklyActionCompleted(currentState, "training")) {',
+              '    const stateBeforeTraining = currentState;',
+              '    const training = applyTraining(currentState, teamSelection, {',
+              '      type: "training",',
+              '      plan: currentState.weeklySchedule.trainingPlan,',
+              '    });',
+              '    const resolvedTrainingResult = training.outcome as Parameters<',
+              '      typeof buildTrainingResultNotification',
+              '    >[0]["result"];',
+              '    const notification = buildTrainingResultNotification({',
+              '      stateBeforeTraining,',
+              '      result: resolvedTrainingResult,',
+              '      data: gameData,',
+              '    });',
+              '    currentState = {',
+              '      ...training.state,',
+              '      notifications: appendNotification(',
+              '        training.state.notifications,',
+              '        notification,',
+              '      ),',
+              '    };',
+              '    trainingResult = resolvedTrainingResult;',
+              '  }',
+          ])
+          text = text[:training_start] + new_training + text[training_end:]
 
-          facility_anchor = '''function applyFacilityUpgrade(
-          '''
-          mark_read = '''function applyMarkNotificationRead(
-            state: GameState,
-            teamSelection: TeamSelection,
-            action: Extract<GameAction, { type: "mark-notification-read" }>,
-          ): AppliedGameAction {
-            return {
-              state: {
-                ...state,
-                notifications: markNotificationRead(
-                  state.notifications,
-                  action.notificationId,
-                  state.date,
-                ),
-              },
-              teamSelection,
-            };
-          }
-
-          function applyFacilityUpgrade(
-          '''
+          facility_anchor = 'function applyFacilityUpgrade(\n'
+          mark_read = "\n".join([
+              'function applyMarkNotificationRead(',
+              '  state: GameState,',
+              '  teamSelection: TeamSelection,',
+              '  action: Extract<GameAction, { type: "mark-notification-read" }>,',
+              '): AppliedGameAction {',
+              '  return {',
+              '    state: {',
+              '      ...state,',
+              '      notifications: markNotificationRead(',
+              '        state.notifications,',
+              '        action.notificationId,',
+              '        state.date,',
+              '      ),',
+              '    },',
+              '    teamSelection,',
+              '  };',
+              '}',
+              '',
+          ])
           assert text.count(facility_anchor) == 1
-          text = text.replace(facility_anchor, mark_read, 1)
+          text = text.replace(facility_anchor, mark_read + facility_anchor, 1)
 
-          switch_anchor = '''    case "advance-week":
-                return applyAdvanceWeek(state, teamSelection);
-              case "facility-upgrade":
-          '''
-          switch_replacement = '''    case "advance-week":
-                return applyAdvanceWeek(state, teamSelection);
-              case "mark-notification-read":
-                return applyMarkNotificationRead(state, teamSelection, action);
-              case "facility-upgrade":
-          '''
+          switch_anchor = '    case "facility-upgrade":\n'
+          switch_addition = "\n".join([
+              '    case "mark-notification-read":',
+              '      return applyMarkNotificationRead(state, teamSelection, action);',
+              '',
+          ])
           assert text.count(switch_anchor) == 1
-          text = text.replace(switch_anchor, switch_replacement, 1)
+          text = text.replace(switch_anchor, switch_addition + switch_anchor, 1)
 
           path.write_text(text)
       - name: Format Task 3 files
