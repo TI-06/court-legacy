@@ -43,7 +43,7 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
   await page.getByLabel("都道府県").selectOption("region.chiba");
   await page.getByRole("button", { name: "学校を作成" }).click();
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
   await expect(page.getByText("E2E高校", { exact: true })).toBeVisible();
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
@@ -69,7 +69,7 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
 
   await page.reload();
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
   await expect(page.getByText("E2E高校", { exact: true })).toBeVisible();
   await expect
     .poll(() =>
