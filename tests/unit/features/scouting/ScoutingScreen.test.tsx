@@ -47,7 +47,7 @@ function stateWithCommitted(candidateIds: (typeof candidateA)[] = []) {
 }
 
 describe("ScoutingScreen", () => {
-  it("renders only the public scouting report fields and recruiting status", () => {
+  it("renders only the public scouting report fields with Japanese labels", () => {
     render(
       <ScoutingScreen
         error={null}
@@ -64,6 +64,8 @@ describe("ScoutingScreen", () => {
     expect(
       screen.getByRole("heading", { name: "新入生スカウト" }),
     ).toBeVisible();
+    expect(screen.getAllByText("新入生スカウト").length).toBeGreaterThan(0);
+    expect(screen.queryByText("RECRUITING")).toBeNull();
     expect(screen.getByText("青木 蓮")).toBeVisible();
     expect(screen.getByText(/OH/)).toBeVisible();
     expect(screen.getByText(/188cm/)).toBeVisible();
