@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type {
   CloudGameSnapshot,
@@ -30,6 +31,27 @@ function createSnapshot(revision = 4): CloudGameSnapshot {
     revision,
     state,
     teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
+  };
+}
+
+function trainingNotification(
+  snapshot: CloudGameSnapshot,
+): TrainingResultNotification {
+  const state = snapshot.state;
+  return {
+    id: `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`,
+    type: "training-result",
+    createdGameDate: state.date,
+    academicYearIndex: state.yearIndex,
+    weekOfYear: state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      teamTrainingMenuName: "スパイク練習",
+      totalAbilityGrowth: 4,
+      totalFatigueChange: 8,
+      injuredCount: 0,
+      players: [],
+    },
   };
 }
 
@@ -118,10 +140,18 @@ describe("game action route", () => {
     expect(store.applyOperation).not.toHaveBeenCalled();
   });
 
-  it("returns the cached response for a duplicate operation without another mutation", async () => {
+  it("returns the cached notification response for a duplicate operation without another mutation", async () => {
     const snapshot = createSnapshot();
+    const notification = trainingNotification(snapshot);
     const cached = {
-      game: { ...snapshot, revision: 5 },
+      game: {
+        ...snapshot,
+        revision: 5,
+        state: {
+          ...snapshot.state,
+          notifications: { items: [notification] },
+        },
+      },
       operationId: "operation-001",
       outcome: { cached: true },
     };
@@ -132,7 +162,7 @@ describe("game action route", () => {
     const response = await handler(
       actionRequest({
         ...operation,
-        action: { type: "practice-match" },
+        action: { type: "advance-week" },
       }),
       { id: "user-123" },
     );
