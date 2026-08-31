@@ -105,7 +105,7 @@ export interface GameState {
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 5;
+export const CURRENT_GAME_SCHEMA_VERSION = 6;
 
 export function createDefaultGameSettings(): GameSettings {
   return {
