@@ -15,6 +15,11 @@ import { simulateMatch } from "../../src/domain/match/simulateMatch";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { matchId } from "../../src/domain/model/identifiers";
+import {
+  appendNotification,
+  buildTrainingResultNotification,
+  markNotificationRead,
+} from "../../src/domain/notifications/gameNotifications";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
   evaluateFacilityUpgrade,
@@ -419,12 +424,27 @@ function applyAdvanceWeek(
   let trainingResult: unknown;
 
   if (!isWeeklyActionCompleted(currentState, "training")) {
+    const stateBeforeTraining = currentState;
     const training = applyTraining(currentState, teamSelection, {
       type: "training",
       plan: currentState.weeklySchedule.trainingPlan,
     });
-    currentState = training.state;
-    trainingResult = training.outcome;
+    const resolvedTrainingResult = training.outcome as Parameters<
+      typeof buildTrainingResultNotification
+    >[0]["result"];
+    const notification = buildTrainingResultNotification({
+      stateBeforeTraining,
+      result: resolvedTrainingResult,
+      data: gameData,
+    });
+    currentState = {
+      ...training.state,
+      notifications: appendNotification(
+        training.state.notifications,
+        notification,
+      ),
+    };
+    trainingResult = resolvedTrainingResult;
   }
 
   if (hasRequiredOfficialMatch(currentState)) {
@@ -476,6 +496,23 @@ function applyAdvanceWeek(
   }
 }
 
+function applyMarkNotificationRead(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "mark-notification-read" }>,
+): AppliedGameAction {
+  return {
+    state: {
+      ...state,
+      notifications: markNotificationRead(
+        state.notifications,
+        action.notificationId,
+        state.date,
+      ),
+    },
+    teamSelection,
+  };
+}
 function applyFacilityUpgrade(
   state: GameState,
   teamSelection: TeamSelection,
@@ -556,6 +593,8 @@ export function applyGameAction(
       return applyOfficialMatch(state, teamSelection);
     case "advance-week":
       return applyAdvanceWeek(state, teamSelection);
+    case "mark-notification-read":
+      return applyMarkNotificationRead(state, teamSelection, action);
     case "facility-upgrade":
       return applyFacilityUpgrade(state, teamSelection, action);
     case "event-choice":
