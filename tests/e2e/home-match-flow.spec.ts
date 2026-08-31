@@ -45,8 +45,11 @@ test("mobile home starts a match and returns with the latest result", async ({
 }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
-  await page.getByRole("button", { name: "練習試合へ" }).click();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+  await page
+    .locator(".home-week-card__actions")
+    .getByRole("button", { name: "試合", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "練習試合の予定" }),
   ).toBeVisible();
@@ -81,7 +84,8 @@ test("mobile home starts a match and returns with the latest result", async ({
   await expectNoHorizontalOverflow(page);
 
   await page.getByRole("button", { name: "ホームへ戻る" }).click();
-  await expect(page.getByRole("heading", { name: "直近の試合" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+  await expect(page.locator(".home-recent-status")).toContainText("勝利");
   await expectNoHorizontalOverflow(page);
 });
 
@@ -91,7 +95,7 @@ test("360px home and match preparation stay within the viewport", async ({
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
