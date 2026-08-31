@@ -54,7 +54,13 @@ jobs:
           ])
           if text.count(old) != 1:
               raise SystemExit('team selection test anchor mismatch')
-          actions.write_text(text.replace(old, new, 1))
+          text = text.replace(old, new, 1)
+          status_old = '    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");'
+          status_new = '    expect(await screen.findByText("保存済み ✓")).toBeVisible();'
+          if status_old not in text:
+              raise SystemExit('save status anchor mismatch')
+          head, sep, tail = text.rpartition(status_old)
+          actions.write_text(head + status_new + tail)
           PY
           npx prettier tests/unit/app/GameApp.scouting.test.tsx tests/unit/app/GameAppActions.test.tsx --write
       - name: Run focused stale tests
