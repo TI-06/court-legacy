@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import type { GameDate } from "../../../src/domain/model/identifiers";
 import {
   decodeGameState,
   encodeGameState,
@@ -12,6 +13,67 @@ describe("game state codec", () => {
 
     expect(decoded).toEqual(state);
     expect(decoded).not.toBe(state);
+  });
+
+  it("round-trips a training-result notification", () => {
+    const state = createDemoGame();
+    const withNotification = {
+      ...state,
+      notifications: {
+        items: [
+          {
+            id: "training-result:school-user:1:1:2026-04-01",
+            type: "training-result" as const,
+            createdGameDate: "2026-04-01" as GameDate,
+            academicYearIndex: 1,
+            weekOfYear: 1,
+            readAtGameDate: null,
+            payload: {
+              teamTrainingMenuName: "基礎練習",
+              totalAbilityGrowth: 3,
+              totalFatigueChange: 5,
+              injuredCount: 0,
+              players: [],
+            },
+          },
+        ],
+      },
+    };
+
+    const decoded = decodeGameState(encodeGameState(withNotification));
+
+    expect(decoded.notifications.items).toEqual(withNotification.notifications.items);
+  });
+
+  it("rejects malformed notification payloads", () => {
+    const state = createDemoGame();
+
+    expect(() =>
+      decodeGameState(
+        JSON.stringify({
+          ...state,
+          notifications: {
+            items: [
+              {
+                id: "training-result:school-user:1:1:2026-04-01",
+                type: "training-result",
+                createdGameDate: "2026-04-01",
+                academicYearIndex: 1,
+                weekOfYear: 1,
+                readAtGameDate: null,
+                payload: {
+                  teamTrainingMenuName: "基礎練習",
+                  totalAbilityGrowth: "client-defined",
+                  totalFatigueChange: 5,
+                  injuredCount: 0,
+                  players: [],
+                },
+              },
+            ],
+          },
+        }),
+      ),
+    ).toThrow("セーブデータの形式が正しくありません");
   });
 
   it("round-trips a pending one-use shop training boost", () => {
