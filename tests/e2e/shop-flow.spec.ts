@@ -325,10 +325,10 @@ test("training efficiency boost is visibly pending, applies once, and disappears
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
+  await expect(
+    page.getByRole("button", { name: /今週の練習結果/ }),
+  ).toBeVisible({ timeout: 2_500 });
 
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toBeVisible({ timeout: 2_500 });
   await expect(page.getByText("次回練習 成長効率 +20%")).toHaveCount(0);
 });
