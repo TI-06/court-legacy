@@ -193,9 +193,9 @@ git commit -m "feat: migrate saves to notification schema v6"
 - Consumes: `buildTrainingResultNotification`, `appendNotification`, `markNotificationRead`.
 - Produces action: `{ type: "mark-notification-read"; notificationId: string }`.
 
-- [ ] **Step 1: Write failing worker tests**
+- [ ] **Step 1: Write failing worker and route idempotency tests**
 
-Add assertions that:
+Add the basic generation assertion:
 
 ```ts
 const advanced = applyGameAction(snapshot, { type: "advance-week" });
@@ -203,17 +203,25 @@ expect(advanced.state.notifications.items).toHaveLength(1);
 expect(advanced.state.notifications.items[0]?.type).toBe("training-result");
 ```
 
-Also verify:
+Then pre-seed the same deterministic notification into the same-week snapshot while leaving training incomplete, call `advance-week`, and assert the builder/append path still leaves exactly one item with that ID:
 
 ```ts
-const replayed = applyGameAction(
-  { ...snapshot, state: advanced.state },
-  { type: "advance-week" },
-);
+const preseeded = {
+  ...snapshot,
+  state: {
+    ...snapshot.state,
+    notifications: { items: [existingNotification] },
+  },
+};
+const deduped = applyGameAction(preseeded, { type: "advance-week" });
 expect(
-  replayed.state.notifications.items.filter((item) => item.id === notificationId),
+  deduped.state.notifications.items.filter(
+    (item) => item.id === existingNotification.id,
+  ),
 ).toHaveLength(1);
 ```
+
+Extend the existing duplicate-operation route test in `gameAction.test.ts` so its cached response contains a training notification; assert the duplicate request returns that exact cached response and still calls neither `getSnapshot` nor `applyOperation`. This is the `operationId` retry guarantee; no second game mutation is performed.
 
 For the official-match-required path, assert the notification exists in the returned state before redirect behavior. For mark-read, assert unknown and already-read IDs are idempotent no-ops.
 
@@ -330,7 +338,7 @@ git commit -m "feat: show persistent training results on home"
 ### Task 5: Verify notification subsystem end to end
 
 **Files:**
-- Modify or create: `tests/e2e/phase10-notifications.spec.ts`
+- Create: `tests/e2e/phase10-notifications.spec.ts`
 
 **Interfaces:**
 - Consumes all previous tasks.
