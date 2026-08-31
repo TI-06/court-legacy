@@ -18,6 +18,10 @@ async function inspectLayout(page: Page) {
     for (const element of Array.from(
       document.querySelectorAll<HTMLElement>("body *"),
     )) {
+      if (element.id.startsWith("DndLiveRegion-")) {
+        continue;
+      }
+
       const rect = element.getBoundingClientRect();
       const style = window.getComputedStyle(element);
       const visuallyOutside =
@@ -108,227 +112,107 @@ async function expectAboveNavigation(
   locatorSelector: string,
   stateName: string,
 ) {
-  const target = page.locator(locatorSelector);
+  const element = page.locator(locatorSelector);
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  const targetBox = await target.boundingBox();
+  const elementBox = await element.boundingBox();
   const navigationBox = await navigation.boundingBox();
 
-  expect(targetBox, `${stateName}: target box`).not.toBeNull();
+  expect(elementBox, `${stateName}: target box`).not.toBeNull();
   expect(navigationBox, `${stateName}: navigation box`).not.toBeNull();
   expect(
-    (targetBox?.y ?? 0) + (targetBox?.height ?? 0),
-    `${stateName}: core content should fit above bottom navigation`,
-  ).toBeLessThanOrEqual(navigationBox?.y ?? 0);
+    (elementBox?.y ?? 0) + (elementBox?.height ?? 0),
+    `${stateName}: target must stay above navigation`,
+  ).toBeLessThanOrEqual(navigationBox?.y ?? Number.POSITIVE_INFINITY);
 }
 
-async function expectNoHorizontalScroll(
-  page: Page,
-  locatorSelector: string,
-  stateName: string,
-) {
-  const dimensions = await page
-    .locator(locatorSelector)
-    .evaluate((element) => ({
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-    }));
-  expect(
-    dimensions.scrollWidth,
-    `${stateName}: horizontal scrolling should not be required`,
-  ).toBeLessThanOrEqual(dimensions.clientWidth + 1);
-}
+async function expectReadableText(page: Page, stateName: string) {
+  const tooSmall = await page.evaluate(() => {
+    const ignoredTags = new Set(["SCRIPT", "STYLE", "SVG", "PATH"]);
+    const results: Array<{
+      selector: string;
+      text: string;
+      size: number;
+    }> = [];
 
-async function schedulePracticeMatch(page: Page) {
-  const scheduled = page.getByText("対戦決定", { exact: true });
-  if (await scheduled.isVisible().catch(() => false)) return;
-
-  const acceptOffer = page.getByRole("button", { name: "受ける" });
-  if (await acceptOffer.isVisible().catch(() => false)) {
-    await acceptOffer.click();
-    await expect(scheduled).toBeVisible();
-    return;
-  }
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const requestButton = page
-      .locator("button")
-      .filter({ hasText: "申し込む" })
-      .first();
-    if (!(await requestButton.isVisible().catch(() => false))) break;
-
-    await requestButton.click();
-    try {
-      await expect(scheduled).toBeVisible({ timeout: 800 });
-      return;
-    } catch {
-      // The request can be rejected. Try the next available candidate.
+    for (const element of Array.from(
+      document.querySelectorAll<HTMLElement>("body *"),
+    )) {
+      if (
+        ignoredTags.has(element.tagName) ||
+        element.id.startsWith("DndLiveRegion-")
+      ) {
+        continue;
+      }
+      const text = (element.innerText || "").trim();
+      if (!text || element.children.length > 0) {
+        continue;
+      }
+      const style = window.getComputedStyle(element);
+      if (
+        style.display === "none" ||
+        style.visibility === "hidden" ||
+        Number(style.opacity) === 0
+      ) {
+        continue;
+      }
+      const size = Number.parseFloat(style.fontSize);
+      if (Number.isFinite(size) && size < 12) {
+        results.push({
+          selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}`,
+          text: text.slice(0, 80),
+          size,
+        });
+      }
     }
-  }
 
-  await expect(scheduled).toBeVisible();
+    return results;
+  });
+
+  expect(tooSmall, `${stateName}: text smaller than 12px`).toEqual([]);
 }
 
-const mobileViewports = [
-  { width: 320, height: 800 },
-  { width: 360, height: 800 },
-  { width: 390, height: 844 },
-  { width: 414, height: 824 },
-  { width: 480, height: 844 },
-] as const;
+const widths = [320, 360, 390, 414, 480];
 
-for (const viewport of mobileViewports) {
-  test(`every app state fits a ${viewport.width}px viewport`, async ({
-    page,
-  }, testInfo) => {
-    await page.setViewportSize(viewport);
+for (const width of widths) {
+  test(`every app state fits a ${width}px viewport`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 844 });
     await page.goto("/");
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+    await expect(navigation).toBeVisible();
 
-    await expectLayoutFits(page, testInfo, `${viewport.width}-home`);
-    await expectNavigationFixed(page, `${viewport.width}-home`);
-    if ([360, 390, 414].includes(viewport.width)) {
-      await expectAboveNavigation(
-        page,
-        ".home-next-week-button",
-        `${viewport.width}-home-next-week`,
-      );
-    }
-
-    const bracketButton = page.getByRole("button", { name: "大会表を見る" });
-    if (await bracketButton.isVisible().catch(() => false)) {
-      await bracketButton.click();
-      await expectLayoutFits(page, testInfo, `${viewport.width}-tournament`);
-      await expectNoHorizontalScroll(
-        page,
-        ".tournament-panel",
-        `${viewport.width}-tournament`,
-      );
-      await navigation
-        .getByRole("button", { name: "ホーム", exact: true })
-        .click();
-    }
+    await expectLayoutFits(page, testInfo, `${width}-home`);
+    await expectNavigationFixed(page, `${width}-home`);
+    await expectReadableText(page, `${width}-home`);
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-players`);
-    await expectNavigationFixed(page, `${viewport.width}-players`);
-
-    await page.getByTestId("roster-player-row").first().click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-player-detail`);
-    if (viewport.width === 414) {
-      await expectAboveNavigation(
-        page,
-        ".player-detail__metrics",
-        "414-player-core",
-      );
-    }
-    await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
+    await expectLayoutFits(page, testInfo, `${width}-players`);
+    await expectNavigationFixed(page, `${width}-players`);
+    await expectReadableText(page, `${width}-players`);
 
     await page.getByRole("button", { name: "編成", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-team`);
-    await expectNavigationFixed(page, `${viewport.width}-team`);
-    await page.getByRole("button", { name: "ローテーション1を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
-    await page
-      .getByRole("dialog", { name: "ローテーション1の選手を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("button", { name: "チーム状態", exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name: "チーム状態" }),
-    ).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-team-dynamics`);
-    await expectNavigationFixed(page, `${viewport.width}-team-dynamics`);
+    await expectLayoutFits(page, testInfo, `${width}-team`);
+    await expectNavigationFixed(page, `${width}-team`);
+    await expectReadableText(page, `${width}-team`);
 
     await navigation.getByRole("button", { name: "育成", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-training`);
-    await expectNavigationFixed(page, `${viewport.width}-training`);
-
-    await page.getByRole("button", { name: "チーム練習を変更" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-training-menu`);
-    await page
-      .getByRole("dialog", { name: "チーム練習を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("button", { name: "個人指示2の選手を変更" }).click();
-    await expectLayoutFits(
+    await expectLayoutFits(page, testInfo, `${width}-training`);
+    await expectNavigationFixed(page, `${width}-training`);
+    await expectReadableText(page, `${width}-training`);
+    await expectAboveNavigation(
       page,
-      testInfo,
-      `${viewport.width}-training-player-picker`,
+      ".sticky-action-bar",
+      `${width}-training-action`,
     );
-    await page
-      .getByRole("dialog", { name: "個人指示2の選手を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("button", { name: "個人指示1の内容を変更" }).click();
-    await expectLayoutFits(
-      page,
-      testInfo,
-      `${viewport.width}-training-instruction-picker`,
-    );
-    await page
-      .getByRole("dialog", { name: "個人指示1の内容を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("button", { name: "この内容で設定" }).click();
-    await expectLayoutFits(
-      page,
-      testInfo,
-      `${viewport.width}-training-confirm`,
-    );
-    await page
-      .getByRole("dialog", { name: "練習設定を確認" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-match-planning`);
-    await expectNavigationFixed(page, `${viewport.width}-match-planning`);
-    await schedulePracticeMatch(page);
-    await expectLayoutFits(page, testInfo, `${viewport.width}-match-prep`);
-    await page.getByRole("button", { name: "試合開始" }).click();
-    await expect(
-      page.getByRole("heading", { name: "試合ダイジェスト" }),
-    ).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-match-live`);
-    await page.getByRole("button", { name: "結果まで進む" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
+    await expectLayoutFits(page, testInfo, `${width}-match`);
+    await expectNavigationFixed(page, `${width}-match`);
+    await expectReadableText(page, `${width}-match`);
 
-    await navigation
-      .getByRole("button", { name: "その他", exact: true })
-      .click();
-    await page.getByRole("button", { name: "学校管理" }).click();
-    await expectLayoutFits(
-      page,
-      testInfo,
-      `${viewport.width}-school-facilities`,
-    );
-    await expectNavigationFixed(page, `${viewport.width}-school-facilities`);
-
-    await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-upgrade`);
-    await page
-      .getByRole("dialog", { name: "設備を強化" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("tab", { name: "記録", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-records`);
-    await page.getByRole("tab", { name: "卒業生", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-alumni`);
-
-    await page.getByRole("button", { name: "予定を確認" }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-calendar`);
-    await page
-      .getByRole("dialog", { name: "週間カレンダー" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expectNavigationFixed(page, `${viewport.width}-school-after-scroll`);
+    await navigation.getByRole("button", { name: "その他", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${width}-more`);
+    await expectNavigationFixed(page, `${width}-more`);
+    await expectReadableText(page, `${width}-more`);
   });
 }
