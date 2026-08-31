@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+import {
+  advanceOfficialTournamentsThroughWeek,
+  findDueUserOfficialMatch,
+} from "../../../src/domain/tournament/progressOfficialTournaments";
 import type { WeeklyPlan } from "../../../src/domain/training/resolveWeeklyTraining";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
@@ -82,5 +86,39 @@ describe("deferred weekly training plan", () => {
       officialMatchRequired: false,
     });
     expect(isWeeklyActionCompleted(advanced.state, "training")).toBe(false);
+  });
+
+  it("resolves training but keeps the date when an official match is waiting", () => {
+    const snapshot = createSnapshot();
+    let officialState = {
+      ...snapshot.state,
+      calendar: {
+        ...snapshot.state.calendar,
+        weekOfYear: 9,
+      },
+    };
+    officialState = advanceOfficialTournamentsThroughWeek(officialState);
+    expect(findDueUserOfficialMatch(officialState)).not.toBeNull();
+    expect(isWeeklyActionCompleted(officialState, "training")).toBe(false);
+
+    const officialSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: officialState,
+      teamSelection: autoSelectTeam({
+        state: officialState,
+        schoolId: officialState.userSchoolId,
+      }),
+    };
+    const result = applyGameAction(officialSnapshot, { type: "advance-week" });
+
+    expect(result.state.date).toBe(officialState.date);
+    expect(isWeeklyActionCompleted(result.state, "training")).toBe(true);
+    expect(findDueUserOfficialMatch(result.state)).not.toBeNull();
+    expect(result.outcome).toMatchObject({
+      trainingResult: {
+        teamTrainingMenuId: officialState.weeklySchedule.trainingPlan.teamTrainingMenuId,
+      },
+      officialMatchRequired: true,
+    });
   });
 });
