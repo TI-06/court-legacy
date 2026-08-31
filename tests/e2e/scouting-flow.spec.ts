@@ -8,7 +8,7 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "新入生スカウト" }).click();
+  await page.getByRole("button", { name: /^新入生スカウト/ }).click();
 
   await expect(
     page.getByRole("heading", { name: "新入生スカウト" }),
@@ -33,9 +33,9 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
   expect(bodyWidth).toBeLessThanOrEqual(360);
 
   await page.getByRole("button", { name: "育成へ戻る" }).click();
-  await expect(page.getByRole("heading", { name: "週間練習" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "育成" })).toBeVisible();
   await expect(page.getByText("獲得 1人")).toBeVisible();
-  await page.getByRole("button", { name: "新入生スカウト" }).click();
+  await page.getByRole("button", { name: /^新入生スカウト/ }).click();
 
   await expect(
     page.getByRole("button", { name: `獲得済み ${candidateName}` }),
