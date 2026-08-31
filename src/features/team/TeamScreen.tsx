@@ -45,8 +45,7 @@ interface TeamScreenProps {
 }
 
 type PickerTarget =
-  | { type: "rotation"; slot: RotationSlot }
-  | { type: "libero" };
+  { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
@@ -78,8 +77,9 @@ function placementPlayerId(
   if (!placement) return null;
   if (placement.type === "rotation") {
     return (
-      selection.rotation.find((assignment) => assignment.slot === placement.slot)
-        ?.playerId ?? null
+      selection.rotation.find(
+        (assignment) => assignment.slot === placement.slot,
+      )?.playerId ?? null
     );
   }
   if (placement.type === "bench") return placement.playerId;
@@ -262,18 +262,15 @@ export function TeamScreen({
 
   const handleDragStart = (event: DragStartEvent) => {
     const placement = event.active.data.current?.placement as
-      | TeamPlacement
-      | undefined;
+      TeamPlacement | undefined;
     setActivePlacement(placement ?? null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const source = event.active.data.current?.placement as
-      | TeamPlacement
-      | undefined;
+      TeamPlacement | undefined;
     const target = event.over?.data.current?.placement as
-      | TeamPlacement
-      | undefined;
+      TeamPlacement | undefined;
     setActivePlacement(null);
     if (pending || !source || !target) return;
 
@@ -341,7 +338,10 @@ export function TeamScreen({
           </button>
         </header>
 
-        <section className="team-dynamics-inline" aria-label="チーム状態サマリー">
+        <section
+          className="team-dynamics-inline"
+          aria-label="チーム状態サマリー"
+        >
           <span>
             結束 <strong>{state.teamDynamics.cohesion}</strong>
           </span>
