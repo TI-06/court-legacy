@@ -10,9 +10,7 @@ async function expectNoHorizontalOverflow(
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 }
 
-async function schedulePracticeMatch(
-  page: Parameters<typeof test>[0]["page"],
-) {
+async function schedulePracticeMatch(page: Parameters<typeof test>[0]["page"]) {
   const scheduled = page.getByText("対戦決定", { exact: true });
   if (await scheduled.isVisible().catch(() => false)) return;
 
