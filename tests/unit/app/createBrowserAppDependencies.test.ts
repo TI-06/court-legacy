@@ -44,16 +44,17 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(initial.status).toBe("ready");
     if (initial.status !== "ready") return;
 
-    const { notifications: _notifications, ...legacyState } =
-      initial.game.state;
+    const legacyState = Object.fromEntries(
+      Object.entries(initial.game.state).filter(
+        ([key]) => key !== "notifications",
+      ),
+    );
+    legacyState.schemaVersion = 5;
     window.sessionStorage.setItem(
       E2E_SERVER_SNAPSHOT_KEY,
       JSON.stringify({
         ...initial.game,
-        state: {
-          ...legacyState,
-          schemaVersion: 5,
-        },
+        state: legacyState,
       }),
     );
 
