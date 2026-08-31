@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { createInitialTeamDynamics } from "../../../../src/domain/dynamics/createInitialTeamDynamics";
 import type { TeamDynamicsState } from "../../../../src/domain/dynamics/teamDynamicsTypes";
-import type { GameState } from "../../../../src/domain/model/GameState";
+import {
+  CURRENT_GAME_SCHEMA_VERSION,
+  type GameState,
+} from "../../../../src/domain/model/GameState";
 
 type Phase7GameState = GameState & { teamDynamics: TeamDynamicsState };
 
@@ -11,7 +14,7 @@ describe("Phase 7 initial world", () => {
     const first = createDemoGame() as Phase7GameState;
     const second = createDemoGame() as Phase7GameState;
 
-    expect(first.schemaVersion).toBe(5);
+    expect(first.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(first.teamDynamics).toEqual(second.teamDynamics);
     expect(first.teamDynamics.cohesion).toBeGreaterThanOrEqual(0);
     expect(first.teamDynamics.cohesion).toBeLessThanOrEqual(100);
