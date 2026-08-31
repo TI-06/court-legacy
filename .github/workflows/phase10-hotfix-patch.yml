@@ -1,0 +1,79 @@
+name: Phase10 hotfix patch
+
+on:
+  push:
+    branches:
+      - fix/phase10-legacy-local-snapshot
+    paths:
+      - .github/workflows/phase10-hotfix-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/phase10-legacy-local-snapshot
+      - name: Apply migration at local snapshot boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/app/createBrowserAppDependencies.ts")
+          source = path.read_text()
+
+          import_anchor = 'import type { GameState } from "../domain/model/GameState";\n'
+          import_replacement = (
+              import_anchor
+              + 'import { decodeGameState } from "../persistence/gameStateCodec";\n'
+          )
+          if source.count(import_anchor) != 1:
+              raise SystemExit("GameState import anchor mismatch")
+          source = source.replace(import_anchor, import_replacement, 1)
+
+          old = '''function readPersistedHarnessSnapshot(): CloudGameSnapshot | null {
+            try {
+              const raw = readSessionStorage(E2E_SERVER_SNAPSHOT_KEY);
+              return raw ? (JSON.parse(raw) as CloudGameSnapshot) : null;
+            } catch {
+              return null;
+            }
+          }
+          '''
+          new = '''function readPersistedHarnessSnapshot(): CloudGameSnapshot | null {
+            try {
+              const raw = readSessionStorage(E2E_SERVER_SNAPSHOT_KEY);
+              if (!raw) return null;
+
+              const parsed = JSON.parse(raw) as Omit<CloudGameSnapshot, "state"> & {
+                state: unknown;
+              };
+              return {
+                ...parsed,
+                state: decodeGameState(JSON.stringify(parsed.state)),
+              };
+            } catch {
+              return null;
+            }
+          }
+          '''
+          if source.count(old) != 1:
+              raise SystemExit("snapshot reader anchor mismatch")
+          path.write_text(source.replace(old, new, 1))
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx prettier src/app/createBrowserAppDependencies.ts --write
+      - name: Commit hotfix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/createBrowserAppDependencies.ts
+          git commit -m "fix: migrate persisted local game snapshots"
+          git push origin HEAD:fix/phase10-legacy-local-snapshot
