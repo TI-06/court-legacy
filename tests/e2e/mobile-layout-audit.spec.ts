@@ -103,6 +103,36 @@ async function expectNavigationFixed(page: Page, stateName: string) {
   ).toBeLessThanOrEqual(1);
 }
 
+async function schedulePracticeMatch(page: Page) {
+  const scheduled = page.getByText("対戦決定", { exact: true });
+  if (await scheduled.isVisible().catch(() => false)) return;
+
+  const acceptOffer = page.getByRole("button", { name: "受ける" });
+  if (await acceptOffer.isVisible().catch(() => false)) {
+    await acceptOffer.click();
+    await expect(scheduled).toBeVisible();
+    return;
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const requestButton = page
+      .locator("button")
+      .filter({ hasText: "申し込む" })
+      .first();
+    if (!(await requestButton.isVisible().catch(() => false))) break;
+
+    await requestButton.click();
+    try {
+      await expect(scheduled).toBeVisible({ timeout: 800 });
+      return;
+    } catch {
+      // The request can be rejected. Try the next available candidate.
+    }
+  }
+
+  await expect(scheduled).toBeVisible();
+}
+
 for (const viewport of [320, 360, 390, 480]) {
   test(`every app state fits a ${viewport}px viewport`, async ({
     page,
@@ -179,8 +209,10 @@ for (const viewport of [320, 360, 390, 480]) {
       .click();
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${viewport}-match-planning`);
+    await expectNavigationFixed(page, `${viewport}-match-planning`);
+    await schedulePracticeMatch(page);
     await expectLayoutFits(page, testInfo, `${viewport}-match-prep`);
-    await expectNavigationFixed(page, `${viewport}-match-prep`);
     await page.getByRole("button", { name: "試合開始" }).click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
