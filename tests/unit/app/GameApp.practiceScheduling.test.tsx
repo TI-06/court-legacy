@@ -79,7 +79,7 @@ function otherSchools(snapshot: CloudGameSnapshot) {
 }
 
 describe("GameApp practice scheduling", () => {
-  it("accepts an incoming practice offer and shows the scheduled opponent", async () => {
+  it("accepts an incoming practice offer and shows the scheduled opponent with match start", async () => {
     const snapshot = createSnapshot();
     const opponent = otherSchools(snapshot)[0]!;
     snapshot.state.weeklySchedule.practiceMatch = {
@@ -109,6 +109,7 @@ describe("GameApp practice scheduling", () => {
       screen.getByRole("heading", { name: "練習試合の予定" }),
     ).toBeVisible();
     expect(screen.getByText(`${opponent.name}から申し込み`)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "試合開始" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "受ける" }));
 
@@ -119,6 +120,7 @@ describe("GameApp practice scheduling", () => {
     });
     expect(await screen.findByText("対戦決定")).toBeVisible();
     expect(screen.getAllByText(opponent.name).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "試合開始" })).toBeVisible();
   });
 
   it("declines an incoming practice offer without scheduling a match", async () => {
@@ -156,6 +158,7 @@ describe("GameApp practice scheduling", () => {
     expect(
       await screen.findByText("今週届いている申し込みはありません"),
     ).toBeVisible();
+    expect(screen.queryByRole("button", { name: "試合開始" })).toBeNull();
   });
 
   it("requests a practice match only from a server-generated candidate", async () => {
