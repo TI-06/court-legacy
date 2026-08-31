@@ -8,7 +8,7 @@ function createState() {
 }
 
 describe("weekly calendar sheet", () => {
-  it("shows the current week and disables progression before training", () => {
+  it("allows progression before training because the saved plan runs during week advance", () => {
     const state = createState();
 
     render(
@@ -28,10 +28,15 @@ describe("weekly calendar sheet", () => {
     expect(screen.getByText("2026年4月1日")).toBeVisible();
     expect(screen.getByText("学年度 1")).toBeVisible();
     expect(screen.getByText("第1週")).toBeVisible();
-    expect(screen.getByText("練習 未実施")).toBeVisible();
+    expect(screen.getByText("練習 週送りで実施")).toBeVisible();
     expect(screen.getByText("練習試合 完了")).toBeVisible();
-    expect(screen.getByRole("button", { name: "次の週へ進む" })).toBeDisabled();
-    expect(screen.getByText("練習を完了すると進めます")).toBeVisible();
+    expect(screen.getByRole("button", { name: "次の週へ進む" })).toBeEnabled();
+    expect(
+      screen.getByText("設定済みの練習を実施して次の週へ進みます。"),
+    ).toBeVisible();
+    expect(screen.queryByText("CURRENT WEEK")).not.toBeInTheDocument();
+    expect(screen.queryByText("SCHEDULE")).not.toBeInTheDocument();
+    expect(screen.queryByText("WEEK GUIDE")).not.toBeInTheDocument();
   });
 
   it("uses the shared callback when advancing after training", () => {
