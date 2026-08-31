@@ -130,7 +130,7 @@ test("prefectural elimination does not end the save or block later weeks", async
   await seedSnapshot(page, eliminateUserFromInterhigh());
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(page.getByText("春高 県大会")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "次の週へ進む" }),
