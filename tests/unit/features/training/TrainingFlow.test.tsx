@@ -2,6 +2,22 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import App from "../../../../src/App";
 
 describe("weekly training bottom-sheet flow", () => {
+  it("renders the Phase 10 training surface as compact settings-only UI", async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
+
+    expect(screen.getByRole("heading", { name: "育成" })).toBeInTheDocument();
+    expect(screen.queryByText("直近の練習結果")).toBeNull();
+    expect(screen.queryByText("来年度の戦力候補")).toBeNull();
+    expect(screen.queryByText("候補を調査")).toBeNull();
+    expect(screen.getByRole("button", { name: /新入生スカウト/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /個人育成 1/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /個人育成 2/ })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /個人指示1の選手を変更/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /個人指示1の内容を変更/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "この内容で設定" })).toBeEnabled();
+  });
+
   it("opens from the home action and the training navigation", async () => {
     render(<App />);
 
