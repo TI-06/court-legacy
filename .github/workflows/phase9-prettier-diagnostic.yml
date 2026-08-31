@@ -1,0 +1,26 @@
+name: Phase9 Prettier Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/phase9-mobile-game-ui
+
+jobs:
+  prettier-output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Print formatted files
+        run: |
+          npx prettier --write tests/e2e/phase9-shell-ui.spec.ts tests/e2e/phase9-home-ui.spec.ts tests/e2e/phase9-tournament-ui.spec.ts
+          echo '=== phase9-shell-ui.spec.ts ==='
+          cat tests/e2e/phase9-shell-ui.spec.ts
+          echo '=== phase9-home-ui.spec.ts ==='
+          cat tests/e2e/phase9-home-ui.spec.ts
+          echo '=== phase9-tournament-ui.spec.ts ==='
+          cat tests/e2e/phase9-tournament-ui.spec.ts
