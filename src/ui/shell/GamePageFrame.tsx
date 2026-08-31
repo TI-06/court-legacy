@@ -9,7 +9,7 @@ interface GamePageFrameProps {
   children: ReactNode;
   schoolName: string;
   dateLabel: string;
-  reputationLabel: string;
+  progressLabel: string;
   operation: OperationState;
   onChangeTab: (tab: AppTab) => void;
   onOpenCalendar: () => void;
@@ -20,7 +20,7 @@ export function GamePageFrame({
   children,
   schoolName,
   dateLabel,
-  reputationLabel,
+  progressLabel,
   operation,
   onChangeTab,
   onOpenCalendar,
@@ -31,7 +31,7 @@ export function GamePageFrame({
         dateLabel={dateLabel}
         onOpenCalendar={onOpenCalendar}
         operation={operation}
-        reputationLabel={reputationLabel}
+        progressLabel={progressLabel}
         schoolName={schoolName}
       />
       <div className="game-page-frame__content">{children}</div>
