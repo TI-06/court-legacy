@@ -26,7 +26,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           scouting = Path('tests/unit/app/GameApp.scouting.test.tsx')
           text = scouting.read_text()
           old = 'screen.getByRole("button", { name: "新入生スカウト" })'
@@ -34,22 +33,25 @@ jobs:
           if text.count(old) != 1:
               raise SystemExit('scouting selector anchor mismatch')
           scouting.write_text(text.replace(old, new, 1))
-
           actions = Path('tests/unit/app/GameAppActions.test.tsx')
           text = actions.read_text()
-          old = '''    const starterLock = screen.getAllByRole("button", {
-      name: /^先発固定 /,
-    })[0]!;
-    fireEvent.click(starterLock);'''
-          new = '''    fireEvent.click(
-      screen.getByRole("button", { name: "ローテーション1を変更" }),
-    );
-    const lineupDialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
-    });
-    fireEvent.click(
-      within(lineupDialog).getByRole("button", { name: /先発固定/ }),
-    );'''
+          old = "\n".join([
+              '    const starterLock = screen.getAllByRole("button", {',
+              '      name: /^先発固定 /,',
+              '    })[0]!;',
+              '    fireEvent.click(starterLock);',
+          ])
+          new = "\n".join([
+              '    fireEvent.click(',
+              '      screen.getByRole("button", { name: "ローテーション1を変更" }),',
+              '    );',
+              '    const lineupDialog = screen.getByRole("dialog", {',
+              '      name: "ローテーション1の選手を選択",',
+              '    });',
+              '    fireEvent.click(',
+              '      within(lineupDialog).getByRole("button", { name: /先発固定/ }),',
+              '    );',
+          ])
           if text.count(old) != 1:
               raise SystemExit('team selection test anchor mismatch')
           actions.write_text(text.replace(old, new, 1))
