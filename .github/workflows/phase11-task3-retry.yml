@@ -1,0 +1,58 @@
+name: Phase11 Task3 Retry
+
+on:
+  push:
+    branches:
+      - feature/phase11-home-week-progression
+    paths:
+      - .github/workflows/phase11-task3-retry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  task3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase11-home-week-progression
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Run existing TDD script through GREEN tests
+        run: |
+          set +e
+          python .github/phase11_task3.py
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "Expected the known stale-prop typecheck failure before fixture cleanup"
+            exit 1
+          fi
+      - name: Align regression fixture with new TournamentScreen API
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/unit/features/match/Phase11PvePlanning.test.tsx')
+          text = p.read_text()
+          text = text.replace('      onStartOfficialMatch={vi.fn()}\n', '')
+          text = text.replace('      pending={false}\n', '')
+          text = text.replace('      trainingCompleted\n', '')
+          p.write_text(text)
+          PY
+          npx prettier --write tests/unit/features/match/Phase11PvePlanning.test.tsx
+      - name: Verify Task3 GREEN
+        run: |
+          npm test -- tests/unit/features/match/Phase11PvePlanning.test.tsx tests/unit/features/tournament/TournamentScreen.test.tsx tests/unit/features/match/AppMatchFlow.test.tsx
+          npm run typecheck
+      - name: Commit Task3
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/app/GameApp.tsx src/features/tournament/TournamentScreen.tsx src/features/match/PracticeMatchPlanning.tsx tests/unit/features/tournament/TournamentScreen.test.tsx tests/unit/features/match/Phase11PvePlanning.test.tsx
+          git add -u tests/unit/features/tournament/TournamentPendingStatus.test.tsx
+          git commit -m "feat: make pve match tabs planning only"
+          git push origin HEAD:feature/phase11-home-week-progression
