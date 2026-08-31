@@ -36,10 +36,7 @@ import {
 } from "../domain/selectors/matchSelectors";
 import type { FacilityKey } from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-import type {
-  TrainingResult,
-  WeeklyPlan,
-} from "../domain/training/resolveWeeklyTraining";
+import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
@@ -82,7 +79,6 @@ type ShopRetryRequest =
   | { action: "use"; request: ShopUseRequest };
 
 interface AdvanceWeekOutcome {
-  trainingResult?: TrainingResult;
   officialMatchRequired?: boolean;
   academicYearTransition: AcademicYearTransitionSummary | null;
 }
@@ -136,8 +132,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PlayerId | null>(null);
   const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
     useState<PlayerId | null>(null);
-  const [latestTrainingResult, setLatestTrainingResult] =
-    useState<TrainingResult | null>(null);
   const [latestMatchResult, setLatestMatchResult] =
     useState<SimulateMatchResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
@@ -783,6 +777,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const markNotificationRead = async (notificationId: string) => {
+    await cloudSession.runAction(
+      { type: "mark-notification-read", notificationId },
+      "お知らせを更新しています…",
+    );
+  };
+
   const advanceWeek = async () => {
     const response = await cloudSession.runAction(
       { type: "advance-week" },
@@ -791,7 +792,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     if (!response) return;
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
-    setLatestTrainingResult(outcome?.trainingResult ?? null);
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
     setActiveMatchResult(null);
     setMatchView("practice");
@@ -827,6 +827,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         homeStrength={homeStrength}
         latestMatch={latestMatchResult}
         onAdvanceWeek={advanceWeek}
+        onMarkNotificationRead={markNotificationRead}
         onOpenMatch={openFreshPracticeMatch}
         onOpenOfficialTournament={openOfficialTournament}
         onOpenTeam={() => setActiveTab("team")}
@@ -878,7 +879,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         <TrainingScreen
           completed={trainingCompleted}
           data={gameData}
-          latestResult={latestTrainingResult}
+          latestResult={null}
           onSave={saveTrainingPlan}
           state={gameState}
         />

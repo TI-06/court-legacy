@@ -115,7 +115,9 @@ export function HomeScreen({
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
   const nextOfficial = selectNextOfficialEvent(state);
-  const homeNotifications = selectHomeTrainingNotifications(state.notifications);
+  const homeNotifications = selectHomeTrainingNotifications(
+    state.notifications,
+  );
   const scheduledPracticeOpponentId =
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   const scheduledPracticeOpponent = scheduledPracticeOpponentId
@@ -220,7 +222,10 @@ export function HomeScreen({
       </section>
 
       {homeNotifications.length > 0 ? (
-        <section className="home-notification-list" aria-label="練習結果のお知らせ">
+        <section
+          className="home-notification-list"
+          aria-label="練習結果のお知らせ"
+        >
           {homeNotifications.map((notification) => {
             const unread = notification.readAtGameDate === null;
             return (
@@ -245,13 +250,16 @@ export function HomeScreen({
                   <span className="home-notification-row__summary">
                     <strong>{notification.payload.teamTrainingMenuName}</strong>
                     <small>
-                      成長 {signed(notification.payload.totalAbilityGrowth)}・疲労{" "}
-                      {signed(notification.payload.totalFatigueChange)}・怪我{" "}
-                      {notification.payload.injuredCount}人
+                      成長 {signed(notification.payload.totalAbilityGrowth)}
+                      ・疲労 {signed(notification.payload.totalFatigueChange)}
+                      ・怪我 {notification.payload.injuredCount}人
                     </small>
                   </span>
                 </span>
-                <span className="home-notification-row__chevron" aria-hidden="true">
+                <span
+                  className="home-notification-row__chevron"
+                  aria-hidden="true"
+                >
                   ›
                 </span>
               </button>
