@@ -9,7 +9,8 @@ interface GamePageFrameProps {
   children: ReactNode;
   schoolName: string;
   dateLabel: string;
-  progressLabel: string;
+  progressLabel?: string;
+  reputationLabel?: string;
   operation: OperationState;
   onChangeTab: (tab: AppTab) => void;
   onOpenCalendar: () => void;
@@ -21,17 +22,21 @@ export function GamePageFrame({
   schoolName,
   dateLabel,
   progressLabel,
+  reputationLabel,
   operation,
   onChangeTab,
   onOpenCalendar,
 }: GamePageFrameProps) {
+  const resolvedProgressLabel =
+    progressLabel ?? `就任中${reputationLabel ? `・${reputationLabel}` : ""}`;
+
   return (
     <div className="game-page-frame">
       <GameHeader
         dateLabel={dateLabel}
         onOpenCalendar={onOpenCalendar}
         operation={operation}
-        progressLabel={progressLabel}
+        progressLabel={resolvedProgressLabel}
         schoolName={schoolName}
       />
       <div className="game-page-frame__content">{children}</div>
