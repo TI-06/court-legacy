@@ -106,6 +106,33 @@ describe("official match action schema", () => {
       ).toBe(false);
     }
   });
+
+  it("accepts only a notification id when marking a notification read", () => {
+    const base = {
+      operationId: "notification-read-001",
+      revision: 8,
+    };
+
+    expect(
+      gameActionRequestSchema.safeParse({
+        ...base,
+        action: {
+          type: "mark-notification-read",
+          notificationId: "training-result:school-user:1:1:2026-04-01",
+        },
+      }).success,
+    ).toBe(true);
+    expect(
+      gameActionRequestSchema.safeParse({
+        ...base,
+        action: {
+          type: "mark-notification-read",
+          notificationId: "training-result:school-user:1:1:2026-04-01",
+          readAtGameDate: "2026-04-02",
+        },
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("authoritative official match action", () => {
