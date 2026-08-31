@@ -1,0 +1,42 @@
+name: Phase11 Typecheck Cleanup
+
+on:
+  push:
+    branches:
+      - feature/phase11-home-week-progression
+    paths:
+      - .github/workflows/phase11-fix-task1-typecheck.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase11-home-week-progression
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Remove stale import and verify
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tests/unit/worker/officialMatchAction.test.ts')
+          t=p.read_text()
+          t=t.replace('import {\n  isWeeklyActionCompleted,\n  markWeeklyActionCompleted,\n} from "../../../src/domain/calendar/weekProgression";', 'import { markWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";')
+          p.write_text(t)
+          PY
+          npx prettier --write tests/unit/worker/officialMatchAction.test.ts
+          npm run typecheck
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tests/unit/worker/officialMatchAction.test.ts
+          git commit -m "test: remove stale official progression import"
+          git push origin HEAD:feature/phase11-home-week-progression
