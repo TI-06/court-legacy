@@ -38,6 +38,47 @@ const shopGameEffectsSchema = z
   })
   .strict();
 
+const notificationPlayerSchema = z
+  .object({
+    playerId: z.string().min(1),
+    displayName: z.string().min(1),
+    grade: z.number().int().min(1).max(3),
+    preferredPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+    totalAbilityGrowth: z.number().int().nonnegative(),
+    fatigueChange: z.number().int(),
+    conditionChange: z.number().int(),
+    trustChange: z.number().int(),
+    injured: z.boolean(),
+    abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+  })
+  .strict();
+
+const trainingResultNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("training-result"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        teamTrainingMenuName: z.string().min(1),
+        totalAbilityGrowth: z.number().int().nonnegative(),
+        totalFatigueChange: z.number().int(),
+        injuredCount: z.number().int().nonnegative(),
+        players: z.array(notificationPlayerSchema),
+      })
+      .strict(),
+  })
+  .strict();
+
+const notificationStateSchema = z
+  .object({
+    items: z.array(trainingResultNotificationSchema).max(20),
+  })
+  .strict();
+
 const playerRoleSchema = z.enum([
   "ace",
   "starter",
@@ -211,6 +252,7 @@ const gameStateSchema = z
     officialSeason: objectSchema,
     teamDynamics: teamDynamicsSchema,
     weeklySchedule: weeklyScheduleSchema,
+    notifications: notificationStateSchema,
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
@@ -242,18 +284,26 @@ function historyWithOfficialTournaments(
   };
 }
 
-function migrateVersionFour(legacy: Record<string, unknown>): unknown {
-  const migrated = {
+function migrateVersionFive(legacy: Record<string, unknown>): unknown {
+  return {
     ...legacy,
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    notifications: { items: [] },
+  };
+}
+
+function migrateVersionFour(legacy: Record<string, unknown>): unknown {
+  const migratedVersionFive = {
+    ...legacy,
+    schemaVersion: 5,
   };
 
-  return {
-    ...migrated,
+  return migrateVersionFive({
+    ...migratedVersionFive,
     weeklySchedule: createInitialWeeklySchedule(
-      migrated as unknown as InitialWeeklyScheduleSource,
+      migratedVersionFive as unknown as InitialWeeklyScheduleSource,
     ),
-  };
+  });
 }
 
 function migrateVersionThree(legacy: Record<string, unknown>): unknown {
@@ -340,6 +390,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 4) {
     return migrateVersionFour(legacy);
+  }
+  if (version === 5) {
+    return migrateVersionFive(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
