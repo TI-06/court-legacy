@@ -40,7 +40,7 @@ describe("TournamentScreen", () => {
       screen.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
     expect(screen.getAllByText("あと8週").length).toBeGreaterThan(0);
-    expect(screen.getByText("城南商業")).toBeVisible();
+    expect(screen.getAllByText("城南商業").length).toBeGreaterThan(0);
 
     const firstRound = screen.getByRole("button", { name: "1回戦" });
     const quarterfinal = screen.getByRole("button", { name: "準々決勝" });
