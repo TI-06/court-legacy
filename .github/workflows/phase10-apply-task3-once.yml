@@ -1,0 +1,133 @@
+name: Phase10 Apply Task3 Once
+
+on:
+  push:
+    branches:
+      - feature/phase10-training-player-mobile-ui
+    paths:
+      - .github/workflows/phase10-apply-task3-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase10-training-player-mobile-ui
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Apply Task 3 implementation
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("worker/game/applyGameAction.ts")
+          text = path.read_text()
+
+          import_anchor = 'import { matchId } from "../../src/domain/model/identifiers";\n'
+          notification_import = '''import { matchId } from "../../src/domain/model/identifiers";
+          import {
+            appendNotification,
+            buildTrainingResultNotification,
+            markNotificationRead,
+          } from "../../src/domain/notifications/gameNotifications";
+          '''
+          assert text.count(import_anchor) == 1
+          text = text.replace(import_anchor, notification_import, 1)
+
+          old_training = '''  if (!isWeeklyActionCompleted(currentState, "training")) {
+            const training = applyTraining(currentState, teamSelection, {
+              type: "training",
+              plan: currentState.weeklySchedule.trainingPlan,
+            });
+            currentState = training.state;
+            trainingResult = training.outcome;
+          }
+          '''
+          new_training = '''  if (!isWeeklyActionCompleted(currentState, "training")) {
+            const stateBeforeTraining = currentState;
+            const training = applyTraining(currentState, teamSelection, {
+              type: "training",
+              plan: currentState.weeklySchedule.trainingPlan,
+            });
+            const resolvedTrainingResult = training.outcome as Parameters<
+              typeof buildTrainingResultNotification
+            >[0]["result"];
+            const notification = buildTrainingResultNotification({
+              stateBeforeTraining,
+              result: resolvedTrainingResult,
+              data: gameData,
+            });
+            currentState = {
+              ...training.state,
+              notifications: appendNotification(
+                training.state.notifications,
+                notification,
+              ),
+            };
+            trainingResult = resolvedTrainingResult;
+          }
+          '''
+          assert text.count(old_training) == 1
+          text = text.replace(old_training, new_training, 1)
+
+          facility_anchor = '''function applyFacilityUpgrade(
+          '''
+          mark_read = '''function applyMarkNotificationRead(
+            state: GameState,
+            teamSelection: TeamSelection,
+            action: Extract<GameAction, { type: "mark-notification-read" }>,
+          ): AppliedGameAction {
+            return {
+              state: {
+                ...state,
+                notifications: markNotificationRead(
+                  state.notifications,
+                  action.notificationId,
+                  state.date,
+                ),
+              },
+              teamSelection,
+            };
+          }
+
+          function applyFacilityUpgrade(
+          '''
+          assert text.count(facility_anchor) == 1
+          text = text.replace(facility_anchor, mark_read, 1)
+
+          switch_anchor = '''    case "advance-week":
+                return applyAdvanceWeek(state, teamSelection);
+              case "facility-upgrade":
+          '''
+          switch_replacement = '''    case "advance-week":
+                return applyAdvanceWeek(state, teamSelection);
+              case "mark-notification-read":
+                return applyMarkNotificationRead(state, teamSelection, action);
+              case "facility-upgrade":
+          '''
+          assert text.count(switch_anchor) == 1
+          text = text.replace(switch_anchor, switch_replacement, 1)
+
+          path.write_text(text)
+      - name: Format Task 3 files
+        run: npx prettier --write worker/game/applyGameAction.ts worker/game/actionSchema.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/gameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+      - name: Run focused Task 3 tests
+        run: npm test -- tests/unit/worker/applyGameAction.test.ts tests/unit/worker/gameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker/game/applyGameAction.ts worker/game/actionSchema.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/gameAction.test.ts tests/unit/worker/deferredTrainingPlan.test.ts tests/unit/worker/officialMatchAction.test.ts
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: persist training notifications through game actions"
+            git push origin HEAD:feature/phase10-training-player-mobile-ui
+          fi
