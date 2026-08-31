@@ -116,7 +116,7 @@ describe("PvpScreen", () => {
     expect(screen.getByText("レート戦結果")).toBeVisible();
     expect(screen.getByText("対戦候補")).toBeVisible();
     expect(screen.getByText("ランキング")).toBeVisible();
-    expect(screen.getByText("対戦履歴")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "対戦履歴" })).toBeVisible();
     expect(screen.getByText("公開中")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "対戦する 白波高校" }),
