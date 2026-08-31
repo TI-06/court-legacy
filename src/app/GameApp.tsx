@@ -82,6 +82,8 @@ type ShopRetryRequest =
   | { action: "use"; request: ShopUseRequest };
 
 interface AdvanceWeekOutcome {
+  trainingResult?: TrainingResult;
+  officialMatchRequired?: boolean;
   academicYearTransition: AcademicYearTransitionSummary | null;
 }
 
@@ -354,17 +356,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     void loadScoutingBoard();
   };
 
-  const executeTraining = async (plan: WeeklyPlan) => {
+  const saveTrainingPlan = async (plan: WeeklyPlan) => {
     if (trainingCompleted) return;
-    const response = await cloudSession.runAction(
-      { type: "training", plan },
-      "練習結果を保存しています…",
+    await cloudSession.runAction(
+      { type: "set-training-plan", plan },
+      "練習設定を保存しています…",
     );
-    if (!response) return;
-
-    if (response.outcome !== undefined) {
-      setLatestTrainingResult(response.outcome as TrainingResult);
-    }
   };
 
   const saveTeamSelection = async (selection: TeamSelection) => {
@@ -787,20 +784,33 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   };
 
   const advanceWeek = async () => {
-    if (!trainingCompleted) return;
     const response = await cloudSession.runAction(
       { type: "advance-week" },
-      "次の週へ進めています…",
+      "練習を実施して次の週へ進めています…",
     );
     if (!response) return;
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
+    setLatestTrainingResult(outcome?.trainingResult ?? null);
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
-    setLatestTrainingResult(null);
     setActiveMatchResult(null);
     setMatchView("practice");
     setPvpResult(null);
     setCalendarOpen(false);
+
+    if (outcome?.officialMatchRequired) {
+      const nextOfficial = selectNextOfficialEvent(response.game.state);
+      if (nextOfficial) {
+        setOfficialTournamentView({
+          circuit: nextOfficial.circuit,
+          level: nextOfficial.level,
+        });
+        setActiveTab("match");
+        return;
+      }
+    }
+
+    setOfficialTournamentView(null);
     setActiveTab("home");
   };
 
@@ -869,7 +879,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           completed={trainingCompleted}
           data={gameData}
           latestResult={latestTrainingResult}
-          onExecute={executeTraining}
+          onSave={saveTrainingPlan}
           state={gameState}
         />
       </div>
