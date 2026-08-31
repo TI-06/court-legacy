@@ -107,22 +107,39 @@ function renderScreen(
 }
 
 describe("PvpScreen", () => {
-  it("renders public status, opponents, result, ranking, and history", () => {
+  it("renders public status, opponents, result, ranking, and history with Japanese labels", () => {
     renderScreen();
 
     expect(screen.getByRole("heading", { name: "対人戦" })).toBeVisible();
+    expect(screen.getByText("非同期対人戦")).toBeVisible();
+    expect(screen.getByText("自分のチーム")).toBeVisible();
+    expect(screen.getByText("レート戦結果")).toBeVisible();
+    expect(screen.getByText("対戦候補")).toBeVisible();
+    expect(screen.getByText("ランキング")).toBeVisible();
+    expect(screen.getByText("対戦履歴")).toBeVisible();
     expect(screen.getByText("公開中")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "対戦する 白波高校" }),
     ).toBeVisible();
-    expect(screen.getByText("RATING 1048")).toBeVisible();
+    expect(screen.getByText("レート 1048")).toBeVisible();
     expect(screen.getByText("12勝 7敗")).toBeVisible();
     expect(screen.getByText("勝利")).toBeVisible();
     expect(screen.getAllByText("+16")).toHaveLength(2);
     expect(screen.getByText("4位")).toBeVisible();
+    expect(screen.getByText("シーズン 2026-08")).toBeVisible();
     expect(screen.getByLabelText("セット結果")).toHaveTextContent(
-      /SET 1\s+25\s*-\s*20/,
+      /第1セット\s+25\s*-\s*20/,
     );
+    for (const english of [
+      "ASYNC PVP",
+      "MY TEAM",
+      "RATED RESULT",
+      "CHALLENGERS",
+      "RANKING",
+      "HISTORY",
+    ]) {
+      expect(screen.queryByText(english)).toBeNull();
+    }
   });
 
   it("renders defender history with the viewer score first", () => {
