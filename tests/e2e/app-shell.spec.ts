@@ -165,7 +165,7 @@ test("school management upgrades a facility and calendar resolves saved training
   await calendar.getByRole("button", { name: "次の週へ進む" }).click();
 
   await expect(calendar).toBeHidden();
-  await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();
