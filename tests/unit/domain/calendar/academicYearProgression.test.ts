@@ -129,6 +129,37 @@ describe("academic year progression", () => {
     expect(result.state.shopEffects?.nextTrainingGrowthBoost).toBeUndefined();
   });
 
+  it("propagates rest-aware recovery through an academic-year rollover", () => {
+    const normalState = createDemoGame();
+    normalState.date = "2027-03-31";
+    normalState.calendar.currentDate = normalState.date;
+    normalState.calendar.weekOfYear = 52;
+    const playerId = normalState.schools[
+      normalState.userSchoolId
+    ]!.playerIds.find((id) => normalState.players[id]!.grade !== 3)!;
+    normalState.players[playerId] = {
+      ...normalState.players[playerId]!,
+      fatigue: 70,
+      condition: 50,
+      injury: null,
+    };
+    const restingState = structuredClone(normalState);
+
+    const normal = advanceGameWeek(normalState, gameData);
+    const rested = advanceGameWeek(restingState, gameData, {
+      restingPlayerIds: new Set([playerId]),
+    });
+
+    expect(normal.academicYearTransition).not.toBeNull();
+    expect(rested.academicYearTransition).not.toBeNull();
+    expect(rested.state.players[playerId]!.fatigue).toBe(
+      Math.max(0, normal.state.players[playerId]!.fatigue - 8),
+    );
+    expect(rested.state.players[playerId]!.condition).toBe(
+      Math.min(100, normal.state.players[playerId]!.condition + 5),
+    );
+  });
+
   it("does not create a generational player before the scheduled year", () => {
     const state = createDemoGame();
     state.date = "2027-03-31";

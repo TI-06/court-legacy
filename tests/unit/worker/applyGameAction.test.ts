@@ -54,6 +54,17 @@ function createTrainingPlan(snapshot: CloudGameSnapshot): WeeklyPlan {
   };
 }
 
+function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
+  const opponent = Object.values(snapshot.state.schools).find(
+    (school) => school.id !== snapshot.state.userSchoolId,
+  );
+  if (!opponent) {
+    throw new Error("practice opponent fixture missing");
+  }
+  snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+  snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+}
+
 describe("applyGameAction", () => {
   it("applies training server-side, marks the weekly action, and does not mutate the snapshot", () => {
     const snapshot = createSnapshot();
@@ -144,8 +155,9 @@ describe("applyGameAction", () => {
     ).toThrowError(GameRuleConflictError);
   });
 
-  it("produces the same practice-match result from the same snapshot", () => {
+  it("produces the same practice-match result from the same scheduled snapshot", () => {
     const snapshot = createSnapshot();
+    schedulePracticeOpponent(snapshot);
     const before = structuredClone(snapshot);
 
     const first = applyGameAction(snapshot, { type: "practice-match" });
@@ -157,24 +169,28 @@ describe("applyGameAction", () => {
     expect(snapshot).toEqual(before);
   });
 
-  it("advances a week only after training is completed", () => {
+  it("resolves the saved training automatically when advancing the week", () => {
     const snapshot = createSnapshot();
-    expect(() =>
-      applyGameAction(snapshot, { type: "advance-week" }),
-    ).toThrowError(GameRuleConflictError);
-
-    const training = applyGameAction(snapshot, {
-      type: "training",
-      plan: createTrainingPlan(snapshot),
+    const plan = createTrainingPlan(snapshot);
+    const saved = applyGameAction(snapshot, {
+      type: "set-training-plan",
+      plan,
     });
-    const trainedSnapshot: CloudGameSnapshot = {
+    const savedSnapshot: CloudGameSnapshot = {
       ...snapshot,
-      state: training.state,
-      teamSelection: training.teamSelection,
+      state: saved.state,
+      teamSelection: saved.teamSelection,
     };
-    const advanced = applyGameAction(trainedSnapshot, { type: "advance-week" });
+
+    const advanced = applyGameAction(savedSnapshot, { type: "advance-week" });
 
     expect(advanced.state.date).not.toBe(snapshot.state.date);
+    expect(advanced.outcome).toMatchObject({
+      trainingResult: {
+        teamTrainingMenuId: plan.teamTrainingMenuId,
+      },
+      officialMatchRequired: false,
+    });
   });
 
   it("upgrades a legal facility on the authoritative state", () => {

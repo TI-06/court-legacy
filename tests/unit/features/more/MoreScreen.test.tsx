@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import { MoreScreen } from "../../../../src/features/more/MoreScreen";
 
 describe("MoreScreen", () => {
-  it("exposes school management, shop, and logout actions without fake live-service buttons", () => {
+  it("exposes school management, shop, and logout actions with Japanese labels", () => {
     const onOpenSchool = vi.fn();
     const onOpenShop = vi.fn();
     const onSignOut = vi.fn();
@@ -18,6 +18,8 @@ describe("MoreScreen", () => {
     );
 
     expect(screen.getByRole("heading", { name: "その他" })).toBeVisible();
+    expect(screen.getByText("管理メニュー")).toBeVisible();
+    expect(screen.queryByText("MANAGEMENT")).toBeNull();
     expect(screen.getByText("coach@example.com")).toBeVisible();
     expect(screen.getByRole("button", { name: "学校管理" })).toBeVisible();
     expect(screen.getByRole("button", { name: "ショップ" })).toBeVisible();

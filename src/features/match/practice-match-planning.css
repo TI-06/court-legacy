@@ -1,0 +1,182 @@
+.practice-planning {
+  display: grid;
+  min-width: 0;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #d6e0e5;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgb(18 36 50 / 6%);
+  gap: 13px;
+}
+
+.practice-planning__heading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-planning__heading h2,
+.practice-planning__offer h3,
+.practice-planning__candidates h3 {
+  margin: 0;
+}
+
+.practice-planning__heading h2 {
+  font-size: 1rem;
+}
+
+.practice-planning__heading p {
+  margin: 4px 0 0;
+  color: #687a83;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.practice-planning__heading > strong,
+.practice-planning__heading > span {
+  display: inline-flex;
+  min-height: 27px;
+  padding: 4px 9px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  white-space: nowrap;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.practice-planning__heading > strong {
+  color: #25623d;
+  background: #e4f2e9;
+}
+
+.practice-planning__heading > span {
+  color: #6c777d;
+  background: #eef2f4;
+}
+
+.practice-planning__scheduled,
+.practice-planning__offer article,
+.practice-planning__candidate-list article {
+  display: flex;
+  min-width: 0;
+  padding: 11px 12px;
+  background: #f5f8fa;
+  border: 1px solid #dde6ea;
+  border-radius: 13px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-planning__scheduled {
+  background: #edf7ef;
+  border-color: #c9e2d0;
+}
+
+.practice-planning__scheduled > div,
+.practice-planning__school-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.practice-planning__scheduled span,
+.practice-planning__school-copy span {
+  color: #71828a;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.practice-planning__scheduled strong,
+.practice-planning__school-copy strong {
+  overflow: hidden;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-planning__scheduled b {
+  color: #286842;
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.practice-planning__offer,
+.practice-planning__candidates {
+  display: grid;
+  gap: 8px;
+}
+
+.practice-planning__offer h3,
+.practice-planning__candidates h3 {
+  color: #3e5661;
+  font-size: 0.72rem;
+}
+
+.practice-planning__offer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 112px;
+  gap: 6px;
+}
+
+.practice-planning button {
+  min-height: 38px;
+  padding: 7px 10px;
+  color: #24515e;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: #edf3f5;
+  border: 1px solid #d1dee3;
+  border-radius: 10px;
+}
+
+.practice-planning__offer-actions button:last-child,
+.practice-planning__candidate-list button:not(:disabled) {
+  color: #fff;
+  background: #286d7a;
+  border-color: #286d7a;
+}
+
+.practice-planning button:disabled {
+  color: #8e999e;
+  background: #edf0f1;
+  border-color: #e0e5e7;
+}
+
+.practice-planning__candidate-list {
+  display: grid;
+  gap: 7px;
+}
+
+.practice-planning__candidate-list button {
+  flex: 0 0 auto;
+  min-width: 76px;
+}
+
+.practice-planning__empty {
+  margin: 0;
+  padding: 10px 11px;
+  color: #75858d;
+  font-size: 0.68rem;
+  background: #f7f9fa;
+  border-radius: 11px;
+}
+
+@media (max-width: 360px) {
+  .practice-planning__offer article,
+  .practice-planning__candidate-list article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .practice-planning__offer-actions {
+    min-width: 0;
+  }
+
+  .practice-planning__candidate-list button {
+    width: 100%;
+  }
+}

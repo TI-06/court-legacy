@@ -10,6 +10,10 @@ export interface WeekProgressionResult {
   healedPlayerIds: PlayerId[];
 }
 
+export interface AdvanceOneWeekOptions {
+  restingPlayerIds?: ReadonlySet<PlayerId>;
+}
+
 function clamp(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
@@ -71,12 +75,14 @@ function progressInjury(injury: PlayerInjury | null): PlayerInjury | null {
 function recoverPlayer(
   player: Player,
   recoveryRoomLevel: number,
+  isResting: boolean,
 ): { player: Player; recovered: boolean; healed: boolean } {
   const previousInjury = player.injury;
   const injury = progressInjury(previousInjury);
-  const fatigueRecovery = 8 + recoveryRoomLevel * 2;
+  const fatigueRecovery = 8 + recoveryRoomLevel * 2 + (isResting ? 8 : 0);
+  const conditionRecovery = (previousInjury ? 1 : 3) + (isResting ? 5 : 0);
   const nextFatigue = clamp(player.fatigue - fatigueRecovery);
-  const nextCondition = clamp(player.condition + (previousInjury ? 1 : 3));
+  const nextCondition = clamp(player.condition + conditionRecovery);
 
   return {
     player: {
@@ -100,7 +106,10 @@ function recoveryRoomLevelsByPlayer(state: GameState): Map<PlayerId, number> {
   return levels;
 }
 
-export function advanceOneWeek(state: GameState): WeekProgressionResult {
+export function advanceOneWeek(
+  state: GameState,
+  options: AdvanceOneWeekOptions = {},
+): WeekProgressionResult {
   const players = { ...state.players };
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
@@ -109,7 +118,11 @@ export function advanceOneWeek(state: GameState): WeekProgressionResult {
   for (const [playerId, player] of Object.entries(state.players) as Array<
     [PlayerId, Player]
   >) {
-    const result = recoverPlayer(player, recoveryLevels.get(playerId) ?? 0);
+    const result = recoverPlayer(
+      player,
+      recoveryLevels.get(playerId) ?? 0,
+      options.restingPlayerIds?.has(playerId) ?? false,
+    );
     players[playerId] = result.player;
     if (result.recovered) {
       recoveredPlayerIds.push(playerId);

@@ -66,11 +66,14 @@ async function expectNoBodyOverflow(page: Page) {
   expect(layout.document).toBeLessThanOrEqual(layout.viewport);
 }
 
-for (const width of [320, 360, 390, 480]) {
-  test(`official bracket keeps body within ${width}px while bracket scrolls internally`, async ({
+for (const width of [320, 360, 390, 414, 480]) {
+  test(`official bracket uses round tabs without horizontal scrolling at ${width}px`, async ({
     page,
   }) => {
-    await page.setViewportSize({ width, height: width <= 360 ? 800 : 844 });
+    await page.setViewportSize({
+      width,
+      height: width === 414 ? 824 : width <= 360 ? 800 : 844,
+    });
     await page.goto("/");
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
@@ -81,15 +84,27 @@ for (const width of [320, 360, 390, 480]) {
       page.getByRole("heading", { name: "インターハイ 県大会" }),
     ).toBeVisible();
     await expectNoBodyOverflow(page);
+    await expect(page.getByTestId("tournament-bracket-scroll")).toHaveCount(0);
 
-    const bracketScroll = page.getByTestId("tournament-bracket-scroll");
-    const scrollState = await bracketScroll.evaluate((element) => ({
+    const panel = page.locator(".tournament-panel");
+    const panelWidth = await panel.evaluate((element) => ({
       clientWidth: element.clientWidth,
       scrollWidth: element.scrollWidth,
-      overflowX: getComputedStyle(element).overflowX,
     }));
-    expect(scrollState.scrollWidth).toBeGreaterThan(scrollState.clientWidth);
-    expect(["auto", "scroll"]).toContain(scrollState.overflowX);
+    expect(panelWidth.scrollWidth).toBeLessThanOrEqual(
+      panelWidth.clientWidth + 1,
+    );
+
+    const firstRound = page.getByRole("button", { name: "1回戦" });
+    const quarterfinal = page.getByRole("button", { name: "準々決勝" });
+    await expect(firstRound).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("tournament-bracket-match")).toHaveCount(8);
+
+    await quarterfinal.click();
+    await expect(quarterfinal).toHaveAttribute("aria-pressed", "true");
+    await expect(firstRound).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByTestId("tournament-bracket-match")).toHaveCount(4);
+    await expectNoBodyOverflow(page);
   });
 }
 

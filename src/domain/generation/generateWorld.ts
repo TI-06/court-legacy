@@ -15,6 +15,7 @@ import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
+import { createInitialWeeklySchedule } from "../weekly/createWeeklySchedule";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
 import { generateSchool } from "./generateSchool";
 
@@ -303,16 +304,23 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       rivalryScores: {},
       destinyRivalSchoolId: null,
     },
-  } satisfies Omit<GameState, "officialSeason" | "teamDynamics">;
+  } satisfies Omit<
+    GameState,
+    "officialSeason" | "teamDynamics" | "weeklySchedule"
+  >;
 
   const stateWithOfficialSeason = {
     ...baseState,
     officialSeason: createOfficialSeason({ state: baseState }),
   };
-
-  return {
+  const stateWithDynamics = {
     ...stateWithOfficialSeason,
     teamDynamics: createInitialTeamDynamics(stateWithOfficialSeason),
+  };
+
+  return {
+    ...stateWithDynamics,
+    weeklySchedule: createInitialWeeklySchedule(stateWithDynamics),
   };
 }
 

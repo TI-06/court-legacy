@@ -13,7 +13,7 @@ function createState() {
 }
 
 describe("school management screen", () => {
-  it("shows school status and confirms a facility upgrade", () => {
+  it("shows school status with Japanese headings and confirms a facility upgrade", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     const onUpgradeFacility = vi.fn();
@@ -23,6 +23,10 @@ describe("school management screen", () => {
     );
 
     expect(screen.getByRole("heading", { name: school.name })).toBeVisible();
+    expect(screen.getByText("学校運営")).toBeVisible();
+    expect(screen.getByText("施設")).toBeVisible();
+    expect(screen.queryByText("SCHOOL MANAGEMENT")).toBeNull();
+    expect(screen.queryByText("FACILITIES")).toBeNull();
     expect(screen.getByText(/無名校/)).toBeVisible();
     expect(screen.getByText("資金 300")).toBeVisible();
 
@@ -79,7 +83,7 @@ describe("school management screen", () => {
     expect(screen.getByText(`${rival.name}・因縁 73`)).toBeVisible();
   });
 
-  it("shows the five most recent school matches in date order", () => {
+  it("shows the five most recent school matches in date order with Japanese labels", () => {
     const state = createState();
     const rivals = Object.values(state.schools).filter(
       (school) => school.id !== state.userSchoolId,
@@ -98,6 +102,8 @@ describe("school management screen", () => {
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
     fireEvent.click(screen.getByRole("tab", { name: "記録" }));
 
+    expect(screen.getByText("戦績")).toBeVisible();
+    expect(screen.queryByText("SCHOOL RECORDS")).toBeNull();
     const rows = screen.getAllByTestId("school-match-record");
     expect(rows).toHaveLength(5);
     expect(rows[0]).toHaveTextContent("2026年4月6日");
@@ -105,7 +111,7 @@ describe("school management screen", () => {
     expect(screen.queryByText(rivals[0]!.name)).not.toBeInTheDocument();
   });
 
-  it("shows an empty alumni state and then a graduate record", () => {
+  it("shows a Japanese graduate tab, empty state, and graduate record", () => {
     const state = createState();
     const player =
       state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
@@ -113,7 +119,9 @@ describe("school management screen", () => {
     const { rerender } = render(
       <SchoolScreen onUpgradeFacility={vi.fn()} state={state} />,
     );
-    fireEvent.click(screen.getByRole("tab", { name: "OB" }));
+    fireEvent.click(screen.getByRole("tab", { name: "卒業生" }));
+    expect(screen.getByRole("heading", { name: "卒業生記録" })).toBeVisible();
+    expect(screen.queryByText("ALUMNI")).toBeNull();
     expect(screen.getByText("卒業生の記録はまだありません")).toBeVisible();
 
     const withGraduate = {

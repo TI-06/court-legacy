@@ -13,13 +13,27 @@ async function openLineupScreen(): Promise<void> {
 }
 
 describe("team selection direct-touch UI", () => {
-  it("opens the player tab with a court, libero, and bench rail", async () => {
+  it("opens the player tab with Japanese court, libero, and bench labels", async () => {
     render(<App />);
     await openLineupScreen();
 
     expect(
       screen.getByRole("heading", { name: "チーム編成" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("試合メンバー")).toBeVisible();
+    expect(screen.getByText("先発6人")).toBeVisible();
+    expect(screen.getByText("守備専門")).toBeVisible();
+    expect(screen.getByText("控え選手")).toBeVisible();
+    expect(screen.getByText("交代ルール")).toBeVisible();
+    for (const english of [
+      "MATCH ROSTER",
+      "STARTING SIX",
+      "DEFENSE SPECIALIST",
+      "SUBSTITUTES",
+      "SAFETY POLICY",
+    ]) {
+      expect(screen.queryByText(english)).toBeNull();
+    }
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     for (let slot = 1; slot <= 6; slot += 1) {
       expect(

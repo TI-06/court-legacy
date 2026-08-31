@@ -8,7 +8,7 @@ function playerName(player: { lastName: string; firstName: string }): string {
 }
 
 describe("TeamDynamicsPanel", () => {
-  it("shows cohesion, vacant leadership, concerns, candidates, and qualitative relationships", () => {
+  it("shows cohesion, leadership, concerns, and suitability with Japanese labels", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const firstId = school.playerIds[0]!;
@@ -52,6 +52,17 @@ describe("TeamDynamicsPanel", () => {
     );
 
     expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
+    expect(screen.getByText("役職")).toBeVisible();
+    expect(screen.getAllByText("主将適性").length).toBeGreaterThan(0);
+    expect(screen.getByText("気になる状態")).toBeVisible();
+    for (const english of [
+      "TEAM DYNAMICS",
+      "LEADERSHIP",
+      "SUITABILITY",
+      "CONCERNS",
+    ]) {
+      expect(screen.queryByText(english)).toBeNull();
+    }
     const cohesion = screen.getByLabelText("チーム結束力");
     expect(within(cohesion).getByText("64")).toBeVisible();
     expect(within(cohesion).getByText("上向き")).toBeVisible();

@@ -102,6 +102,55 @@ describe("weekly progression", () => {
     expect(result.recoveredPlayerIds).toContain(playerId);
   });
 
+  it("adds exactly eight fatigue recovery and five condition recovery for resting players", () => {
+    const normalState = createState();
+    const restingState = structuredClone(normalState);
+    const playerId =
+      normalState.schools[normalState.userSchoolId]!.playerIds[0]!;
+    normalState.players[playerId] = {
+      ...normalState.players[playerId]!,
+      fatigue: 70,
+      condition: 50,
+      injury: null,
+    };
+    restingState.players[playerId] = structuredClone(
+      normalState.players[playerId]!,
+    );
+
+    const normal = advanceOneWeek(normalState).state.players[playerId]!;
+    const rested = advanceOneWeek(restingState, {
+      restingPlayerIds: new Set([playerId]),
+    }).state.players[playerId]!;
+
+    expect(rested.fatigue).toBe(Math.max(0, normal.fatigue - 8));
+    expect(rested.condition).toBe(Math.min(100, normal.condition + 5));
+  });
+
+  it("clamps extra rest recovery and progresses injury only once", () => {
+    const state = createState();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[playerId] = {
+      ...state.players[playerId]!,
+      fatigue: 5,
+      condition: 98,
+      injury: {
+        injuryId: "injury.rest-test",
+        severity: "minor",
+        remainingWeeks: 2,
+        recurrenceRisk: 10,
+      },
+    };
+
+    const result = advanceOneWeek(state, {
+      restingPlayerIds: new Set([playerId]),
+    });
+    const player = result.state.players[playerId]!;
+
+    expect(player.fatigue).toBe(0);
+    expect(player.condition).toBe(100);
+    expect(player.injury?.remainingWeeks).toBe(1);
+  });
+
   it("records weekly actions immutably and resets them when the date advances", () => {
     const state = createState();
 

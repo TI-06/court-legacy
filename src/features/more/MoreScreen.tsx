@@ -16,7 +16,7 @@ export function MoreScreen({
   return (
     <main className="app-content more-screen">
       <section className="more-screen__heading">
-        <p className="section-kicker">MANAGEMENT</p>
+        <p className="section-kicker">管理メニュー</p>
         <h2>その他</h2>
         <p>学校運営とアカウント設定をまとめています。</p>
       </section>

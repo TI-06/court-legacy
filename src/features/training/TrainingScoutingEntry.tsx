@@ -28,7 +28,7 @@ export function TrainingScoutingEntry({
       aria-label="新入生スカウト案内"
     >
       <div className="training-scouting-entry__copy">
-        <p className="section-kicker">RECRUITING</p>
+        <p className="section-kicker">新入生募集</p>
         <h2>来年度の戦力候補</h2>
         <p>
           評判 {reputationGrade(school.reputationPoints)}・スカウト網 Lv.

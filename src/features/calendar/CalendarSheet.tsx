@@ -80,7 +80,7 @@ export function CalendarSheet({
     >
       <div className="calendar-sheet-body">
         <section className="calendar-current-week">
-          <p className="section-kicker">CURRENT WEEK</p>
+          <p className="section-kicker">今週</p>
           <strong>現在日付 {formatDate(state.date)}</strong>
           <div className="calendar-week-meta">
             <span>学年度 {state.calendar.academicYear}</span>
@@ -92,7 +92,7 @@ export function CalendarSheet({
                 trainingCompleted ? "calendar-status--done" : undefined
               }
             >
-              練習 {trainingCompleted ? "完了" : "未実施"}
+              練習 {trainingCompleted ? "完了" : "週送りで実施"}
             </span>
             <span
               className={
@@ -110,7 +110,7 @@ export function CalendarSheet({
         >
           <div className="calendar-section-heading">
             <div>
-              <p className="section-kicker">SCHEDULE</p>
+              <p className="section-kicker">予定</p>
               <h3 id="schedule-heading">今後の予定</h3>
             </div>
             <span>最大8件</span>
@@ -138,7 +138,7 @@ export function CalendarSheet({
         <section className="calendar-section" aria-labelledby="guide-heading">
           <div className="calendar-section-heading">
             <div>
-              <p className="section-kicker">WEEK GUIDE</p>
+              <p className="section-kicker">4週間</p>
               <h3 id="guide-heading">4週間の進行目安</h3>
             </div>
           </div>
@@ -160,13 +160,12 @@ export function CalendarSheet({
             <strong>次の週へ</strong>
             <p>
               {trainingCompleted
-                ? "疲労と怪我を更新して7日進めます。"
-                : "練習を完了すると進めます"}
+                ? "疲労と怪我を更新して次の週へ進みます。"
+                : "設定済みの練習を実施して次の週へ進みます。"}
             </p>
           </div>
           <button
             className="primary-action"
-            disabled={!trainingCompleted}
             onClick={onAdvanceWeek}
             type="button"
           >

@@ -36,6 +36,17 @@ function createSnapshot(): CloudGameSnapshot {
   };
 }
 
+function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
+  const opponent = Object.values(snapshot.state.schools).find(
+    (school) => school.id !== snapshot.state.userSchoolId,
+  );
+  if (!opponent) {
+    throw new Error("practice opponent fixture missing");
+  }
+  snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+  snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+}
+
 function authClient(): AuthClient {
   return {
     getSession: vi.fn().mockResolvedValue(session),
@@ -64,7 +75,7 @@ function responseFor(
 }
 
 describe("GameApp cloud actions", () => {
-  it("sends training to the authenticated game API and renders the server outcome", async () => {
+  it("saves the weekly training plan through the authenticated game API without resolving it immediately", async () => {
     const snapshot = createSnapshot();
     let resolveAction: ((response: PersistedOperationResponse) => void) | null =
       null;
@@ -90,11 +101,11 @@ describe("GameApp cloud actions", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
+    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
     fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
+      within(screen.getByRole("dialog", { name: "練習設定を確認" })).getByRole(
         "button",
-        { name: "この内容で実行" },
+        { name: "この内容で設定" },
       ),
     );
 
@@ -103,20 +114,24 @@ describe("GameApp cloud actions", () => {
     expect(accessToken).toBe(session.accessToken);
     expect(request).toMatchObject({
       revision: 1,
-      action: { type: "training" },
+      action: { type: "set-training-plan" },
     });
     expect(screen.getByRole("status")).toHaveTextContent("保存中…");
+    expect(
+      screen.queryByRole("heading", { name: "直近の練習結果" }),
+    ).not.toBeInTheDocument();
 
     resolveAction!(responseFor(snapshot, request));
 
+    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
     expect(
-      await screen.findByRole("heading", { name: "今週の練習結果" }),
-    ).toBeVisible();
-    expect(screen.getByRole("status")).toHaveTextContent("保存済み ✓");
+      screen.queryByRole("heading", { name: "直近の練習結果" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("requests a practice match from the server and renders only its returned simulation", async () => {
+  it("requests a scheduled practice match from the server and renders only its returned simulation", async () => {
     const snapshot = createSnapshot();
+    schedulePracticeOpponent(snapshot);
     const applyAction = vi.fn(
       async (_accessToken: string, request: GameActionRequest) =>
         responseFor(snapshot, request),
@@ -190,7 +205,7 @@ describe("GameApp cloud actions", () => {
     expect(await screen.findByText("資金 230")).toBeVisible();
   });
 
-  it("advances the week on the server using the revision returned by training", async () => {
+  it("advances the week on the server using the revision returned by the saved training plan", async () => {
     let serverSnapshot = createSnapshot();
     const applyAction = vi.fn(
       async (_accessToken: string, request: GameActionRequest) => {
@@ -215,14 +230,14 @@ describe("GameApp cloud actions", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
+    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
     fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
+      within(screen.getByRole("dialog", { name: "練習設定を確認" })).getByRole(
         "button",
-        { name: "この内容で実行" },
+        { name: "この内容で設定" },
       ),
     );
-    await screen.findByRole("heading", { name: "今週の練習結果" });
+    await screen.findByText("保存済み ✓");
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));

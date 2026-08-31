@@ -248,7 +248,7 @@ describe("Phase 5 targeted shop UX", () => {
         completed={false}
         data={gameData}
         latestResult={null}
-        onExecute={vi.fn()}
+        onSave={vi.fn()}
         state={state}
       />,
     );
@@ -262,7 +262,7 @@ describe("Phase 5 targeted shop UX", () => {
         completed={false}
         data={gameData}
         latestResult={null}
-        onExecute={vi.fn()}
+        onSave={vi.fn()}
         state={clearedState}
       />,
     );

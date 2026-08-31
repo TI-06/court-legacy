@@ -120,7 +120,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
   return (
     <main className="app-content school-screen">
       <section className="school-hero">
-        <p className="section-kicker">SCHOOL MANAGEMENT</p>
+        <p className="section-kicker">学校運営</p>
         <div className="school-hero__heading">
           <div>
             <h2>{school.name}</h2>
@@ -159,7 +159,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
           [
             ["facilities", "設備"],
             ["records", "記録"],
-            ["alumni", "OB"],
+            ["alumni", "卒業生"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -179,7 +179,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         <section className="school-panel" aria-labelledby="facility-heading">
           <div className="school-section-heading">
             <div>
-              <p className="section-kicker">FACILITIES</p>
+              <p className="section-kicker">施設</p>
               <h3 id="facility-heading">設備を強化</h3>
             </div>
             <span>最大 Lv.5</span>
@@ -236,7 +236,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         <section className="school-panel" aria-labelledby="record-heading">
           <div className="school-section-heading">
             <div>
-              <p className="section-kicker">SCHOOL RECORDS</p>
+              <p className="section-kicker">戦績</p>
               <h3 id="record-heading">学校記録</h3>
             </div>
           </div>
@@ -302,7 +302,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         <section className="school-panel" aria-labelledby="alumni-heading">
           <div className="school-section-heading">
             <div>
-              <p className="section-kicker">ALUMNI</p>
+              <p className="section-kicker">卒業生</p>
               <h3 id="alumni-heading">卒業生記録</h3>
             </div>
           </div>

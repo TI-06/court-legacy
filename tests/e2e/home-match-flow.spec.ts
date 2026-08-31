@@ -10,6 +10,36 @@ async function expectNoHorizontalOverflow(
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 }
 
+async function schedulePracticeMatch(page: Parameters<typeof test>[0]["page"]) {
+  const scheduled = page.getByText("対戦決定", { exact: true });
+  if (await scheduled.isVisible().catch(() => false)) return;
+
+  const acceptOffer = page.getByRole("button", { name: "受ける" });
+  if (await acceptOffer.isVisible().catch(() => false)) {
+    await acceptOffer.click();
+    await expect(scheduled).toBeVisible();
+    return;
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const requestButton = page
+      .locator("button")
+      .filter({ hasText: "申し込む" })
+      .first();
+    if (!(await requestButton.isVisible().catch(() => false))) break;
+
+    await requestButton.click();
+    try {
+      await expect(scheduled).toBeVisible({ timeout: 800 });
+      return;
+    } catch {
+      // The request can be rejected. Try the next available candidate.
+    }
+  }
+
+  await expect(scheduled).toBeVisible();
+}
+
 test("mobile home starts a match and returns with the latest result", async ({
   page,
 }) => {
@@ -17,9 +47,15 @@ test("mobile home starts a match and returns with the latest result", async ({
 
   await expect(page.getByRole("heading", { name: "監督ホーム" })).toBeVisible();
   await page.getByRole("button", { name: "練習試合へ" }).click();
-  await expect(page.getByRole("heading", { name: "練習試合" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "練習試合の予定" }),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
+  await schedulePracticeMatch(page);
+  await expect(
+    page.getByRole("heading", { name: "練習試合", exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "試合開始" }).click();
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),
@@ -60,6 +96,8 @@ test("360px home and match preparation stay within the viewport", async ({
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "試合", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "練習試合" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "練習試合の予定" }),
+  ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });

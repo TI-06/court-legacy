@@ -25,7 +25,7 @@ function renderPlayerHub(
 }
 
 describe("PlayerHubScreen", () => {
-  it("renders a portrait-free information-first roster", () => {
+  it("renders a portrait-free Japanese information-first roster", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
@@ -33,6 +33,10 @@ describe("PlayerHubScreen", () => {
 
     expect(rows).toHaveLength(school.playerIds.length);
     expect(view.container.querySelector("img")).toBeNull();
+    expect(screen.getByText("登録選手")).toBeVisible();
+    expect(screen.queryByText("PLAYER ROSTER")).toBeNull();
+    expect(screen.queryByText("No.")).toBeNull();
+    expect(screen.queryByText("Pos")).toBeNull();
 
     const firstRow = rows[0]!;
     expect(within(firstRow).getByText("1")).toBeVisible();
@@ -50,8 +54,8 @@ describe("PlayerHubScreen", () => {
     expect(within(firstRow).getByText(String(player.condition))).toBeVisible();
   });
 
-  it("opens a player detail and returns to the roster", () => {
-    const { state } = renderPlayerHub();
+  it("opens a compact player detail without a character or initials panel", () => {
+    const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
 
@@ -68,6 +72,13 @@ describe("PlayerHubScreen", () => {
       }),
     ).toBeVisible();
     expect(screen.getByText("総合力")).toBeVisible();
+    expect(
+      view.container.querySelector(".player-detail__identity-mark"),
+    ).toBeNull();
+    expect(view.container.querySelector(".player-detail__hero")).toBeNull();
+    expect(
+      view.container.querySelector(".player-detail__summary"),
+    ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();

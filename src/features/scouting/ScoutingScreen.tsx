@@ -139,7 +139,7 @@ export function ScoutingScreen({
         </button>
         <div className="scouting-hero__heading">
           <div>
-            <span className="section-kicker">RECRUITING</span>
+            <span className="section-kicker">新入生スカウト</span>
             <h1>新入生スカウト</h1>
             <p>見えている情報だけを材料に、来年度の戦力候補を見極めます。</p>
           </div>

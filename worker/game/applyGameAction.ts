@@ -16,7 +16,6 @@ import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { matchId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
-import { selectPracticeOpponent } from "../../src/domain/selectors/matchSelectors";
 import {
   evaluateFacilityUpgrade,
   upgradeFacility,
@@ -32,6 +31,12 @@ import {
 import { recordOfficialTournamentOutcome } from "../../src/domain/tournament/recordOfficialMatch";
 import type { AdditionalGrowthModifier } from "../../src/domain/training/calculateGrowth";
 import { resolveWeeklyTraining } from "../../src/domain/training/resolveWeeklyTraining";
+import {
+  acceptIncomingPracticeOffer,
+  declineIncomingPracticeOffer,
+  PracticeSchedulingError,
+  requestPracticeMatch,
+} from "../../src/domain/weekly/practiceMatchScheduling";
 import { recordMatchOutcome } from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { GameAction } from "./actionSchema";
@@ -136,6 +141,24 @@ function applyTraining(
   }
 }
 
+function applyTrainingPlan(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-training-plan" }>,
+): AppliedGameAction {
+  return {
+    state: {
+      ...state,
+      weeklySchedule: {
+        ...state.weeklySchedule,
+        trainingPlan: structuredClone(action.plan),
+      },
+    },
+    teamSelection,
+    outcome: { plan: action.plan },
+  };
+}
+
 function applyTeamSelection(
   state: GameState,
   action: Extract<GameAction, { type: "team-selection" }>,
@@ -181,6 +204,38 @@ function applyTeamLeadership(
   }
 }
 
+function applyPracticeScheduling(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    {
+      type:
+        "practice-offer-accept" | "practice-offer-decline" | "practice-request";
+    }
+  >,
+): AppliedGameAction {
+  try {
+    const resolution =
+      action.type === "practice-offer-accept"
+        ? acceptIncomingPracticeOffer(state)
+        : action.type === "practice-offer-decline"
+          ? declineIncomingPracticeOffer(state)
+          : requestPracticeMatch(state, action.schoolId);
+
+    return {
+      state: resolution.state,
+      teamSelection,
+      outcome: resolution.outcome,
+    };
+  } catch (error) {
+    if (error instanceof PracticeSchedulingError) {
+      return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
 function applyPracticeMatch(
   state: GameState,
   teamSelection: TeamSelection,
@@ -192,8 +247,20 @@ function applyPracticeMatch(
     );
   }
 
+  const scheduledOpponentId =
+    state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  if (!scheduledOpponentId) {
+    return conflict(
+      "practice_match_not_scheduled",
+      "練習試合の対戦相手を決めてください",
+    );
+  }
+
   try {
-    const opponent = selectPracticeOpponent(state);
+    const opponent = state.schools[scheduledOpponentId];
+    if (!opponent) {
+      throw new Error("scheduled practice opponent not found");
+    }
     const opponentSelection = autoSelectTeam({
       state,
       schoolId: opponent.id,
@@ -348,21 +415,41 @@ function applyAdvanceWeek(
   state: GameState,
   teamSelection: TeamSelection,
 ): AppliedGameAction {
-  if (!isWeeklyActionCompleted(state, "training")) {
-    return conflict(
-      "training_required",
-      "週を進める前に今週の練習を完了してください",
-    );
+  let currentState = state;
+  let trainingResult: unknown;
+
+  if (!isWeeklyActionCompleted(currentState, "training")) {
+    const training = applyTraining(currentState, teamSelection, {
+      type: "training",
+      plan: currentState.weeklySchedule.trainingPlan,
+    });
+    currentState = training.state;
+    trainingResult = training.outcome;
   }
-  if (hasRequiredOfficialMatch(state)) {
-    return conflict(
-      "official_match_required",
-      "週を進める前に現在の公式戦を完了してください",
-    );
+
+  if (hasRequiredOfficialMatch(currentState)) {
+    if (trainingResult === undefined) {
+      return conflict(
+        "official_match_required",
+        "週を進める前に現在の公式戦を完了してください",
+      );
+    }
+
+    return {
+      state: currentState,
+      teamSelection,
+      outcome: {
+        trainingResult,
+        officialMatchRequired: true,
+        academicYearTransition: null,
+        recoveredPlayerIds: [],
+        healedPlayerIds: [],
+      },
+    };
   }
 
   try {
-    const progression = advanceGameWeek(state, gameData);
+    const progression = advanceGameWeek(currentState, gameData);
     const nextState = progression.academicYearTransition
       ? progression.state
       : surfaceWeeklyEvent(progression.state, gameData);
@@ -374,6 +461,8 @@ function applyAdvanceWeek(
       state: nextState,
       teamSelection: nextSelection,
       outcome: {
+        trainingResult,
+        officialMatchRequired: false,
         academicYearTransition: progression.academicYearTransition,
         recoveredPlayerIds: progression.recoveredPlayerIds,
         healedPlayerIds: progression.healedPlayerIds,
@@ -451,10 +540,16 @@ export function applyGameAction(
   switch (action.type) {
     case "training":
       return applyTraining(state, teamSelection, action);
+    case "set-training-plan":
+      return applyTrainingPlan(state, teamSelection, action);
     case "team-selection":
       return applyTeamSelection(state, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
+    case "practice-offer-accept":
+    case "practice-offer-decline":
+    case "practice-request":
+      return applyPracticeScheduling(state, teamSelection, action);
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
     case "official-match":

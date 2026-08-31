@@ -29,6 +29,8 @@ export interface WeeklyPlan {
   individualAssignments: IndividualTrainingAssignment[];
 }
 
+export type ActivitySkipReason = "injured" | "auto-rest" | null;
+
 export interface PlayerGrowthLog {
   playerId: PlayerId;
   abilityChanges: Partial<Record<AbilityKey, number>>;
@@ -39,7 +41,7 @@ export interface PlayerGrowthLog {
   academicRestricted: boolean;
   injuryRisk: number;
   injury: PlayerInjury | null;
-  skippedReason: "injured" | null;
+  skippedReason: ActivitySkipReason;
   modifiers: GrowthModifier[];
 }
 
@@ -64,6 +66,7 @@ export interface ResolveWeeklyTrainingInput {
   data: GameDataRegistry;
   random: RandomSource;
   additionalGrowthModifiers?: readonly AdditionalGrowthModifier[];
+  restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
 export interface TrainingActivity {
@@ -418,6 +421,13 @@ export function resolveWeeklyTraining(
   for (const playerId of school.playerIds) {
     const original = input.state.players[playerId]!;
     const log = emptyLog(playerId);
+    if (input.restingPlayerIds?.has(playerId)) {
+      log.skippedReason = "auto-rest";
+      players[playerId] = original;
+      playerLogs.push(log);
+      continue;
+    }
+
     const playerGrowthModifiers = includeDynamicsModifiers
       ? [
           ...sharedGrowthModifiers,

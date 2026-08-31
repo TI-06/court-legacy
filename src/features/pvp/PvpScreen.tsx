@@ -75,7 +75,7 @@ function OpponentCard({
           <strong>{opponent.schoolName}</strong>
           <span>公開戦力 {opponent.teamPower}</span>
         </div>
-        <b>RATING {opponent.rating}</b>
+        <b>レート {opponent.rating}</b>
       </div>
       <div className="pvp-opponent-card__record">
         <span>
@@ -123,7 +123,7 @@ export function PvpScreen({
     <main className="app-content pvp-screen">
       <section className="pvp-hero" aria-labelledby="pvp-heading">
         <div className="pvp-hero__copy">
-          <p className="section-kicker">ASYNC PVP</p>
+          <p className="section-kicker">非同期対人戦</p>
           <h2 id="pvp-heading">対人戦</h2>
           <p>育てた高校を公開し、他プレイヤーの公開チームへ挑戦します。</p>
         </div>
@@ -147,7 +147,7 @@ export function PvpScreen({
       >
         <div className="pvp-section-heading">
           <div>
-            <p className="section-kicker">MY TEAM</p>
+            <p className="section-kicker">自分のチーム</p>
             <h3 id="pvp-publish-heading">公開チーム</h3>
           </div>
           <span
@@ -222,7 +222,7 @@ export function PvpScreen({
         >
           <div className="pvp-result-card__headline">
             <div>
-              <p className="section-kicker">RATED RESULT</p>
+              <p className="section-kicker">レート戦結果</p>
               <h3 id="pvp-result-heading">
                 {outcomeLabel(result.result.outcome)}
               </h3>
@@ -238,7 +238,7 @@ export function PvpScreen({
             <span>{result.opponent.schoolShortName}</span>
           </div>
           <div className="pvp-result-card__rating">
-            <span>RATING</span>
+            <span>レート</span>
             <strong>
               {result.rating.before} → {result.rating.after}
             </strong>
@@ -246,7 +246,8 @@ export function PvpScreen({
           <div className="pvp-set-list" aria-label="セット結果">
             {result.result.sets.map((set) => (
               <span key={set.setNumber}>
-                SET {set.setNumber} {set.challengerScore} - {set.defenderScore}
+                第{set.setNumber}セット {set.challengerScore} -{" "}
+                {set.defenderScore}
               </span>
             ))}
           </div>
@@ -256,11 +257,11 @@ export function PvpScreen({
       <section className="pvp-panel" aria-labelledby="pvp-opponents-heading">
         <div className="pvp-section-heading">
           <div>
-            <p className="section-kicker">CHALLENGERS</p>
+            <p className="section-kicker">対戦候補</p>
             <h3 id="pvp-opponents-heading">対戦相手</h3>
           </div>
           {seasonId ? (
-            <span className="pvp-season-chip">SEASON {seasonId}</span>
+            <span className="pvp-season-chip">シーズン {seasonId}</span>
           ) : null}
         </div>
         {opponents.length > 0 ? (
@@ -285,7 +286,7 @@ export function PvpScreen({
       <section className="pvp-panel" aria-labelledby="pvp-ranking-heading">
         <div className="pvp-section-heading">
           <div>
-            <p className="section-kicker">RANKING</p>
+            <p className="section-kicker">ランキング</p>
             <h3 id="pvp-ranking-heading">シーズンランキング</h3>
           </div>
         </div>
@@ -314,7 +315,7 @@ export function PvpScreen({
       <section className="pvp-panel" aria-labelledby="pvp-history-heading">
         <div className="pvp-section-heading">
           <div>
-            <p className="section-kicker">HISTORY</p>
+            <p className="section-kicker">対戦履歴</p>
             <h3 id="pvp-history-heading">対戦履歴</h3>
           </div>
         </div>

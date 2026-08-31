@@ -45,21 +45,12 @@ describe("school and calendar app integration", () => {
     expect(opener).toHaveFocus();
   });
 
-  it("advances through the shared weekly callback from the calendar", async () => {
+  it("runs the saved training and advances through the shared calendar callback", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "練習を実行" }));
-    fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習内容を確認" })).getByRole(
-        "button",
-        { name: "この内容で実行" },
-      ),
-    );
-    await screen.findByRole("heading", { name: "今週の練習結果" });
-
-    fireEvent.click(screen.getByRole("button", { name: "予定を確認" }));
+    fireEvent.click(await screen.findByRole("button", { name: "予定を確認" }));
     const calendar = screen.getByRole("dialog", { name: "週間カレンダー" });
+    expect(within(calendar).getByText("練習 週送りで実施")).toBeVisible();
     const advance = within(calendar).getByRole("button", {
       name: "次の週へ進む",
     });
@@ -73,5 +64,10 @@ describe("school and calendar app integration", () => {
       screen.queryByRole("dialog", { name: "週間カレンダー" }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByText("2026年4月8日")).not.toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "育成" }));
+    expect(
+      screen.getByRole("heading", { name: "直近の練習結果" }),
+    ).toBeVisible();
   });
 });

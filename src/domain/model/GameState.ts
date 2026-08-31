@@ -6,6 +6,7 @@ import type {
   TournamentLevel,
   TournamentRound,
 } from "../tournament/tournamentTypes";
+import type { WeeklyScheduleState } from "../weekly/weeklyScheduleTypes";
 import type { CalendarState } from "./Calendar";
 import type { EventMemory, PendingEvent } from "./Event";
 import type { GameDate, MatchId, PlayerId, SchoolId } from "./identifiers";
@@ -97,11 +98,12 @@ export interface GameState {
   world: WorldState;
   officialSeason: OfficialSeasonState;
   teamDynamics: TeamDynamicsState;
+  weeklySchedule: WeeklyScheduleState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 4;
+export const CURRENT_GAME_SCHEMA_VERSION = 5;
 
 export function createDefaultGameSettings(): GameSettings {
   return {

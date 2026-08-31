@@ -6,6 +6,8 @@ import {
   type GameState,
 } from "../domain/model/GameState";
 import { createOfficialSeason } from "../domain/tournament/createOfficialSeason";
+import { abilityKeySchema } from "../domain/validation/gameDataSchema";
+import { createInitialWeeklySchedule } from "../domain/weekly/createWeeklySchedule";
 
 const gameDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const objectSchema = z.object({}).passthrough();
@@ -70,6 +72,124 @@ const teamDynamicsSchema = z.object({
   recentOfficialMatchesTracked: z.number().int().min(0).max(8),
 });
 
+const weeklyPlanSchema = z
+  .object({
+    teamTrainingMenuId: z.string().min(1),
+    individualAssignments: z
+      .array(
+        z
+          .object({
+            playerId: z.string().min(1),
+            instructionId: z.string().min(1),
+          })
+          .strict(),
+      )
+      .length(2),
+  })
+  .strict();
+
+const practiceRatingSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+  z.literal(5),
+]);
+
+const practiceMatchOfferSchema = z
+  .object({
+    schoolId: z.string().min(1),
+    growthRating: practiceRatingSchema,
+    loadRating: practiceRatingSchema,
+  })
+  .strict();
+
+const practiceMatchCandidateSchema = z
+  .object({
+    schoolId: z.string().min(1),
+    tier: z.enum(["same", "stronger", "challenge"]),
+    acceptancePercent: z.number().int().min(5).max(95),
+    growthRating: practiceRatingSchema,
+    status: z.enum(["available", "rejected", "accepted"]),
+  })
+  .strict();
+
+const practiceMatchHistoryEntrySchema = z
+  .object({
+    opponentSchoolId: z.string().min(1),
+    date: gameDateSchema,
+  })
+  .strict();
+
+const weeklyTrainingGrowthSummarySchema = z
+  .object({
+    playerId: z.string().min(1),
+    totalAbilityGrowth: z.number().int().nonnegative(),
+    abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+  })
+  .strict();
+
+const autoRestReasonSchema = z.enum(["injury", "fatigue", "condition"]);
+
+const weeklyRestRecoverySummarySchema = z
+  .object({
+    playerId: z.string().min(1),
+    reason: autoRestReasonSchema,
+    fatigueBefore: z.number().int().min(0).max(100),
+    fatigueAfter: z.number().int().min(0).max(100),
+    conditionBefore: z.number().int().min(0).max(100),
+    conditionAfter: z.number().int().min(0).max(100),
+  })
+  .strict();
+
+const weeklyReportMatchSummarySchema = z
+  .object({
+    kind: z.enum(["practice", "official"]),
+    opponentDisplayName: z.string().min(1),
+    homeSetsWon: z.number().int().nonnegative(),
+    awaySetsWon: z.number().int().nonnegative(),
+    won: z.boolean(),
+    circuit: z.enum(["interhigh", "spring-high"]).nullable(),
+    level: z.enum(["prefectural", "national"]).nullable(),
+    round: z
+      .enum(["round-of-16", "quarterfinal", "semifinal", "final"])
+      .nullable(),
+  })
+  .strict();
+
+const weeklyReportSchema = z
+  .object({
+    weekStartDate: gameDateSchema,
+    weekEndDate: gameDateSchema,
+    trainingMenuId: z.string().min(1),
+    trainingGrowth: z.array(weeklyTrainingGrowthSummarySchema),
+    restRecoveries: z.array(weeklyRestRecoverySummarySchema),
+    injuredPlayerIds: z.array(z.string().min(1)),
+    healedPlayerIds: z.array(z.string().min(1)),
+    match: weeklyReportMatchSummarySchema.nullable(),
+    practiceMatchSkippedReason: z.literal("insufficient-players").nullable(),
+    cohesionDelta: z.number().int(),
+    reputationDelta: z.number().int(),
+    nextIncomingOfferSchoolId: z.string().min(1).nullable(),
+  })
+  .strict();
+
+const weeklyScheduleSchema = z
+  .object({
+    trainingPlan: weeklyPlanSchema,
+    practiceMatch: z
+      .object({
+        incomingOffer: practiceMatchOfferSchema.nullable(),
+        outgoingCandidates: z.array(practiceMatchCandidateSchema).max(3),
+        scheduledOpponentId: z.string().min(1).nullable(),
+        scheduledBy: z.enum(["incoming", "outgoing"]).nullable(),
+      })
+      .strict(),
+    recentPracticeMatches: z.array(practiceMatchHistoryEntrySchema).max(12),
+    latestReport: weeklyReportSchema.nullable(),
+  })
+  .strict();
+
 const gameStateSchema = z
   .object({
     schemaVersion: z.number().int().nonnegative(),
@@ -90,6 +210,7 @@ const gameStateSchema = z
     world: objectSchema,
     officialSeason: objectSchema,
     teamDynamics: teamDynamicsSchema,
+    weeklySchedule: weeklyScheduleSchema,
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
@@ -103,6 +224,9 @@ const versionProbeSchema = z
 
 type OfficialSeasonSource = Parameters<typeof createOfficialSeason>[0]["state"];
 type InitialDynamicsSource = Parameters<typeof createInitialTeamDynamics>[0];
+type InitialWeeklyScheduleSource = Parameters<
+  typeof createInitialWeeklySchedule
+>[0];
 
 function historyWithOfficialTournaments(
   history: unknown,
@@ -118,7 +242,7 @@ function historyWithOfficialTournaments(
   };
 }
 
-function migrateVersionThree(legacy: Record<string, unknown>): unknown {
+function migrateVersionFour(legacy: Record<string, unknown>): unknown {
   const migrated = {
     ...legacy,
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
@@ -126,10 +250,24 @@ function migrateVersionThree(legacy: Record<string, unknown>): unknown {
 
   return {
     ...migrated,
-    teamDynamics: createInitialTeamDynamics(
-      migrated as unknown as InitialDynamicsSource,
+    weeklySchedule: createInitialWeeklySchedule(
+      migrated as unknown as InitialWeeklyScheduleSource,
     ),
   };
+}
+
+function migrateVersionThree(legacy: Record<string, unknown>): unknown {
+  const migratedVersionFour = {
+    ...legacy,
+    schemaVersion: 4,
+  };
+
+  return migrateVersionFour({
+    ...migratedVersionFour,
+    teamDynamics: createInitialTeamDynamics(
+      migratedVersionFour as unknown as InitialDynamicsSource,
+    ),
+  });
 }
 
 function migrateVersionTwo(legacy: Record<string, unknown>): unknown {
@@ -199,6 +337,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 3) {
     return migrateVersionThree(legacy);
+  }
+  if (version === 4) {
+    return migrateVersionFour(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
