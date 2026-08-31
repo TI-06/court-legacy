@@ -58,7 +58,9 @@ describe("home action dashboard", () => {
 
     const { container } = render(<HomeScreen {...props} />);
 
-    expect(screen.queryByRole("region", { name: "チームフェイス" })).toBeNull();
+    expect(
+      screen.queryByRole("region", { name: "チームフェイス" }),
+    ).toBeNull();
     expect(container.querySelector("img")).toBeNull();
 
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
@@ -100,7 +102,9 @@ describe("home action dashboard", () => {
 
     const strength = screen.getByText("自校戦力").closest("div");
     expect(strength).not.toBeNull();
-    expect(within(strength!).getByText(String(props.homeStrength))).toBeVisible();
+    expect(
+      within(strength!).getByText(String(props.homeStrength)),
+    ).toBeVisible();
     expect(screen.getByText("無名校")).toBeInTheDocument();
 
     const progress = screen.getByLabelText("今週の進行状況");
