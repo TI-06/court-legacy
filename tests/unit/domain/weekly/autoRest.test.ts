@@ -3,53 +3,36 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { selectAutomaticRest } from "../../../../src/domain/weekly/autoRest";
 
 describe("automatic weekly rest", () => {
-  it("uses the approved fatigue and condition boundaries", () => {
+  it("does not auto-rest healthy players for legacy fatigue or poor condition", () => {
     const state = createDemoGame();
     const roster = state.schools[state.userSchoolId]!.playerIds;
-    const participatesId = roster[0]!;
-    const fatigueRestId = roster[1]!;
-    const conditionRestId = roster[2]!;
+    const highFatigueId = roster[0]!;
+    const poorConditionId = roster[1]!;
 
-    state.players[participatesId] = {
-      ...state.players[participatesId]!,
-      fatigue: 64,
-      condition: 36,
-      injury: null,
-    };
-    state.players[fatigueRestId] = {
-      ...state.players[fatigueRestId]!,
-      fatigue: 65,
+    state.players[highFatigueId] = {
+      ...state.players[highFatigueId]!,
+      fatigue: 100,
       condition: 100,
       injury: null,
     };
-    state.players[conditionRestId] = {
-      ...state.players[conditionRestId]!,
+    state.players[poorConditionId] = {
+      ...state.players[poorConditionId]!,
       fatigue: 0,
-      condition: 35,
+      condition: 0,
       injury: null,
     };
 
     const decisions = selectAutomaticRest(state, state.userSchoolId);
 
-    expect(decisions).not.toContainEqual({
-      playerId: participatesId,
-      reason: "fatigue",
-    });
-    expect(decisions).not.toContainEqual({
-      playerId: participatesId,
-      reason: "condition",
-    });
-    expect(decisions).toContainEqual({
-      playerId: fatigueRestId,
-      reason: "fatigue",
-    });
-    expect(decisions).toContainEqual({
-      playerId: conditionRestId,
-      reason: "condition",
-    });
+    expect(decisions.some((decision) => decision.playerId === highFatigueId)).toBe(
+      false,
+    );
+    expect(decisions.some((decision) => decision.playerId === poorConditionId)).toBe(
+      false,
+    );
   });
 
-  it("forces injured players to rest and uses stable reason precedence", () => {
+  it("forces injured players to rest even when legacy fatigue and condition vary", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     state.players[playerId] = {
@@ -71,14 +54,20 @@ describe("automatic weekly rest", () => {
     ).toEqual([{ playerId, reason: "injury" }]);
   });
 
-  it("returns decisions in stable roster order", () => {
+  it("returns injury decisions in stable roster order", () => {
     const state = createDemoGame();
     const roster = state.schools[state.userSchoolId]!.playerIds;
     for (const playerId of roster.slice(0, 3)) {
       state.players[playerId] = {
         ...state.players[playerId]!,
-        fatigue: 65,
-        injury: null,
+        fatigue: 100,
+        condition: 0,
+        injury: {
+          injuryId: "injury.ankle",
+          severity: "minor",
+          remainingWeeks: 1,
+          recurrenceRisk: 10,
+        },
       };
     }
 
@@ -86,6 +75,9 @@ describe("automatic weekly rest", () => {
 
     expect(decisions.slice(0, 3).map((decision) => decision.playerId)).toEqual(
       roster.slice(0, 3),
+    );
+    expect(decisions.slice(0, 3).every((decision) => decision.reason === "injury")).toBe(
+      true,
     );
   });
 });
