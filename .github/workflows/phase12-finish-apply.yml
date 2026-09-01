@@ -64,13 +64,15 @@ jobs:
         run: node scripts/verifyStructureCli.mjs
       - name: Verify production dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Verify unit tests - training weekly player team
+      - name: Verify unit tests - training
+        run: npx vitest run tests/unit/domain/training
+      - name: Verify unit tests - weekly
+        run: npx vitest run tests/unit/domain/weekly
+      - name: Verify unit tests - player and team
+        run: npx vitest run tests/unit/domain/player tests/unit/domain/team
+      - name: Verify unit tests - training data
         run: |
           npx vitest run \
-            tests/unit/domain/training \
-            tests/unit/domain/weekly \
-            tests/unit/domain/player \
-            tests/unit/domain/team \
             tests/unit/data/phase12TrainingInstructions.test.ts \
             tests/unit/data/individualTrainingInstructions.test.ts
       - name: Verify unit tests - remaining domain and data
