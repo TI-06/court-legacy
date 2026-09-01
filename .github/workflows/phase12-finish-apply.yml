@@ -66,7 +66,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Verify unit tests - training after Phase 12 migration
         run: npx vitest run tests/unit/domain/training
-      - name: Verify unit tests - weekly
+      - name: Verify unit tests - weekly after Phase 12 migration
         run: npx vitest run tests/unit/domain/weekly
       - name: Verify unit tests - player and team
         run: npx vitest run tests/unit/domain/player tests/unit/domain/team
