@@ -9,8 +9,8 @@ function createPlan(state: ReturnType<typeof createDemoGame>) {
   return {
     teamTrainingMenuId: "training.spike",
     individualAssignments: [
-      { playerId: roster[0]!, instructionId: "instruction.serve" },
-      { playerId: roster[1]!, instructionId: "instruction.receive" },
+      { playerId: roster[0]!, instructionId: "instruction.attack" },
+      { playerId: roster[1]!, instructionId: "instruction.defense" },
     ],
   };
 }
