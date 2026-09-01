@@ -307,7 +307,11 @@ for (const viewport of mobileViewports) {
     await navigation
       .getByRole("button", { name: "ホーム", exact: true })
       .click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-home-before-match`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-home-before-match`,
+    );
     await page.getByRole("button", { name: "次の週へ進む" }).click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
@@ -317,7 +321,11 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
     await page.getByRole("button", { name: "結果を確認して次へ" }).click();
     await expect(page.getByTestId("home-screen")).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-home-after-match`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-home-after-match`,
+    );
 
     const trainingNotificationButton = page
       .getByRole("button", { name: /今週の練習結果/ })
