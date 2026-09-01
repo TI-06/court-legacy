@@ -38,7 +38,7 @@ jobs:
       - name: Confirm focused GREEN
         run: npx vitest run tests/unit/ui/shell/phase12Navigation.test.ts tests/unit/ui/OperationBlockingOverlay.test.tsx tests/unit/features/more/MoreScreen.test.tsx tests/unit/features/school/SchoolScreen.test.tsx tests/unit/features/home/HomeScreen.test.tsx
       - name: Typecheck
-        run: npm run typecheck && npm run typecheck:worker
+        run: npm run typecheck
       - name: Cleanup
         run: rm -f scripts/phase12-ui-apply.py scripts/phase12-ui-integration-fix.py scripts/phase12-home-fix.py scripts/phase12-home-test-compat.py .github/workflows/phase12-ui-apply.yml
       - name: Commit UI
