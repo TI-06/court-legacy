@@ -3,7 +3,9 @@ name: Phase 12 Rules Apply
 on:
   push:
     branches: [feature/phase12-game-loop-polish]
-    paths: [scripts/phase12-rules-apply.py]
+    paths:
+      - scripts/phase12-rules-apply.py
+      - .github/workflows/phase12-rules-apply.yml
 
 permissions:
   contents: write
@@ -31,6 +33,15 @@ jobs:
           status=$?
           set -e
           test "$status" -ne 0
+      - name: Repair temporary script typo
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/phase12-rules-apply.py')
+          t=p.read_text(encoding='utf-8')
+          t=t.replace("    p='tests/unit/domain/training/calculateGrowth.test.ts'; t=read(p); t=t.replace('      \\\"fatigue\\\",\\n',''); t=t.replace('  it(\\\"reduces growth for high fatigue and academic restriction\\\", () => {','  it(\\\"ignores fatigue while keeping academic restriction\\\", () => {'); t=t.replace('    expect(restricted.amount).toBeLessThan(unrestricted.amount);\\n    expect(restricted.academicRestricted).toBe(true);','    const sameAcademic = calculateGrowth({ ...inputForFatigueIndependence, player: createPlayer({ fatigue: 0, academic: 20, condition: 55 }) });\\n    expect(restricted.amount).toBe(sameAcademic.amount);\\n    expect(restricted.academicRestricted).toBe(true);') if 'inputForFatigueIndependence' in t else t", "    p='tests/unit/domain/training/calculateGrowth.test.ts'; t=read(p); t=t.replace('      \\\"fatigue\\\",\\n','')")
+          p.write_text(t,encoding='utf-8')
+          PY
       - name: Apply production rules
         run: python scripts/phase12-rules-apply.py production
       - name: Confirm focused GREEN
