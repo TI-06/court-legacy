@@ -54,8 +54,20 @@ jobs:
             tests/unit/features/school/SchoolScreen.test.tsx \
             tests/unit/domain/team/Phase12FatigueIndependence.test.ts \
             tests/unit/domain/team/autoSelectTeam.test.ts
-      - name: Full repository verification
-        run: npm run verify
+      - name: Verify formatting
+        run: npm run format:check
+      - name: Verify lint
+        run: npm run lint
+      - name: Verify typecheck
+        run: npm run typecheck
+      - name: Verify V2 structure
+        run: node scripts/verifyStructureCli.mjs
+      - name: Verify production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Verify unit tests
+        run: npm run test
+      - name: Verify production build
+        run: npm run build
       - name: Remove temporary apply assets
         run: rm -f scripts/phase12-finish-apply.py scripts/phase12-week-progression-cleanup.py .github/workflows/phase12-finish-apply.yml
       - name: Commit final Phase 12 polish
