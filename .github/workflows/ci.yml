@@ -20,11 +20,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Show Phase 11 Prettier diff
-        run: |
-          npx prettier tests/e2e/mobile-layout-audit.spec.ts tests/e2e/team-dynamics-flow.spec.ts --write
-          git diff -- tests/e2e/mobile-layout-audit.spec.ts tests/e2e/team-dynamics-flow.spec.ts
-          git checkout -- tests/e2e/mobile-layout-audit.spec.ts tests/e2e/team-dynamics-flow.spec.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
