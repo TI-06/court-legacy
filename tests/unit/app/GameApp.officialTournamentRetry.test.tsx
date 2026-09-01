@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -74,7 +74,7 @@ function responseFor(
 }
 
 describe("GameApp official tournament retry", () => {
-  it("retries an ambiguous official result with the exact same operation request", async () => {
+  it("retries an ambiguous Home progression request with the exact same operation id", async () => {
     const snapshot = createOfficialSnapshot();
     const applyAction = vi
       .fn<GameApiClient["applyAction"]>()
@@ -99,20 +99,14 @@ describe("GameApp official tournament retry", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
-    fireEvent.click(screen.getByRole("button", { name: "公式戦を開始" }));
-    fireEvent.click(
-      within(
-        screen.getByRole("dialog", { name: "公式戦を開始しますか" }),
-      ).getByRole("button", { name: "この試合を開始" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
 
     expect(await screen.findByText("オフライン")).toBeVisible();
     expect(applyAction).toHaveBeenCalledTimes(1);
     const firstRequest = applyAction.mock.calls[0]![1];
     expect(firstRequest).toMatchObject({
       revision: 9,
-      action: { type: "official-match" },
+      action: { type: "advance-week" },
     });
 
     fireEvent.click(screen.getByRole("button", { name: "再試行" }));

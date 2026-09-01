@@ -211,7 +211,8 @@ describe("applyGameAction", () => {
       trainingResult: {
         teamTrainingMenuId: plan.teamTrainingMenuId,
       },
-      officialMatchRequired: false,
+      weekAdvanced: true,
+      pendingMatchPresentation: null,
     });
     expect(advanced.state.notifications.items).toHaveLength(1);
     expect(advanced.state.notifications.items[0]).toMatchObject({

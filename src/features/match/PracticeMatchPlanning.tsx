@@ -64,7 +64,7 @@ export function PracticeMatchPlanning({
             </span>
             <strong>{scheduledSchool.name}</strong>
           </div>
-          <b>試合準備へ</b>
+          <b>ホームの「次の週へ進む」で実施</b>
         </article>
       ) : (
         <>

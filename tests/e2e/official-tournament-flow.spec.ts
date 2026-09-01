@@ -6,11 +6,10 @@ import {
   E2E_GAME_STATE_KEY,
   E2E_SERVER_SNAPSHOT_KEY,
 } from "../../src/app/createBrowserAppDependencies";
-import { markWeeklyActionCompleted } from "../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { advanceOfficialTournamentsThroughWeek } from "../../src/domain/tournament/progressOfficialTournaments";
 
-function officialSnapshot(trainingCompleted: boolean): CloudGameSnapshot {
+function officialSnapshot(): CloudGameSnapshot {
   const initial = createDemoGame();
   let state = {
     ...initial,
@@ -20,9 +19,6 @@ function officialSnapshot(trainingCompleted: boolean): CloudGameSnapshot {
     },
   };
   state = advanceOfficialTournamentsThroughWeek(state);
-  if (trainingCompleted) {
-    state = markWeeklyActionCompleted(state, "training");
-  }
 
   return {
     userId: "e2e-user",
@@ -108,52 +104,56 @@ for (const width of [320, 360, 390, 414, 480]) {
   });
 }
 
-test("due official match stays blocked until weekly training is complete", async ({
+test("due official match is reference-only in the bracket and executes from Home", async ({
   page,
 }) => {
-  await seedSnapshot(page, officialSnapshot(false));
+  await seedSnapshot(page, officialSnapshot());
   await page.goto("/");
 
   await page.getByRole("button", { name: "大会表を見る" }).click();
   await expect(page.getByText("今週").first()).toBeVisible();
   await expect(
-    page.getByText("今週の練習を完了すると開始できます"),
+    page.getByText("ホームの「次の週へ進む」で試合を実施します"),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "公式戦を開始" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: /公式戦を開始/ })).toHaveCount(
+    0,
+  );
 });
 
-test("official match shows progress, commits once, and survives reload", async ({
+test("Home progression commits an official match once, presents it, advances, and survives reload", async ({
   page,
 }) => {
-  await seedSnapshot(page, officialSnapshot(true), 500);
+  await seedSnapshot(page, officialSnapshot(), 350);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "大会表を見る" }).click();
-  await page.getByRole("button", { name: "公式戦を開始" }).click();
-  await page
-    .getByRole("dialog", { name: "公式戦を開始しますか" })
-    .getByRole("button", { name: "この試合を開始" })
-    .click();
-
+  await page.getByRole("button", { name: "次の週へ進む" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "公式戦を開始しています…" }),
-  ).toBeVisible({ timeout: 300 });
-  await expect(
-    page.getByRole("status").filter({ hasText: "保存済み ✓" }),
-  ).toBeVisible({ timeout: 2_000 });
+    page.getByRole("heading", { name: "試合ダイジェスト" }),
+  ).toBeVisible({ timeout: 3_000 });
+  await expectNoBodyOverflow(page);
 
-  const persisted = await page.evaluate((snapshotKey) => {
+  const afterMatch = await page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
     return raw ? JSON.parse(raw) : null;
   }, E2E_SERVER_SNAPSHOT_KEY);
-  expect(persisted?.revision).toBe(10);
+  expect(afterMatch?.revision).toBe(10);
   expect(
-    persisted?.state?.history?.matches?.some(
+    afterMatch?.state?.history?.matches?.some(
       (match: { tournamentId?: string | null }) => Boolean(match.tournamentId),
     ),
   ).toBe(true);
+
+  await page.getByRole("button", { name: "結果まで進む" }).click();
+  await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
+  await page.getByRole("button", { name: "結果を確認して次へ" }).click();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+
+  const advanced = await page.evaluate((snapshotKey) => {
+    const raw = sessionStorage.getItem(snapshotKey);
+    return raw ? JSON.parse(raw) : null;
+  }, E2E_SERVER_SNAPSHOT_KEY);
+  expect(advanced?.revision).toBe(11);
+  expect(advanced?.state?.calendar?.weekOfYear).toBe(10);
 
   await page.reload();
   await expect(page.getByTestId("home-screen")).toBeVisible();
@@ -161,5 +161,6 @@ test("official match shows progress, commits once, and survives reload", async (
     const raw = sessionStorage.getItem(snapshotKey);
     return raw ? JSON.parse(raw) : null;
   }, E2E_SERVER_SNAPSHOT_KEY);
-  expect(reloaded?.revision).toBe(10);
+  expect(reloaded?.revision).toBe(11);
+  expect(reloaded?.state?.calendar?.weekOfYear).toBe(10);
 });

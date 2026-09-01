@@ -139,6 +139,44 @@ describe("match flow", () => {
     expect(fixture.result.analysis.principalFactors.length).toBeGreaterThan(0);
   });
 
+  it("uses progression presentation names and continues weekly progression", () => {
+    const fixture = createMatchFixture();
+    const onContinue = vi.fn();
+    render(
+      <MatchScreen
+        {...fixture}
+        onReturnHome={onContinue}
+        onStart={vi.fn()}
+        presentation={{
+          kind: "official",
+          simulation: fixture.result,
+          homeTeam: {
+            schoolId: fixture.result.match.homeSchoolId,
+            displayName: "青葉高校",
+            shortName: "青葉",
+          },
+          awayTeam: {
+            schoolId: fixture.result.match.awaySchoolId,
+            displayName: "全国ゲスト代表",
+            shortName: "ゲスト",
+          },
+          official: {
+            tournamentId: "official:test",
+            circuit: "interhigh",
+            level: "national",
+            round: "round-of-16",
+          },
+        }}
+        reducedMotion={false}
+        result={fixture.result}
+      />,
+    );
+    expect(screen.getByText("ゲスト")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+    fireEvent.click(screen.getByRole("button", { name: "結果を確認して次へ" }));
+    expect(onContinue).toHaveBeenCalledOnce();
+  });
+
   it("plays and pauses without changing the calculated result", () => {
     vi.useFakeTimers();
     const fixture = createMatchFixture();

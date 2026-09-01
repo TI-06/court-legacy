@@ -153,7 +153,7 @@ async function schedulePracticeMatch(page: Page) {
     return;
   }
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
     const requestButton = page
       .locator("button")
       .filter({ hasText: "申し込む" })
@@ -162,7 +162,7 @@ async function schedulePracticeMatch(page: Page) {
 
     await requestButton.click();
     try {
-      await expect(scheduled).toBeVisible({ timeout: 800 });
+      await expect(scheduled).toBeVisible({ timeout: 900 });
       return;
     } catch {
       // The request can be rejected. Try the next available candidate.
@@ -301,14 +301,49 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-planning`);
     await expectNavigationFixed(page, `${viewport.width}-match-planning`);
     await schedulePracticeMatch(page);
-    await expectLayoutFits(page, testInfo, `${viewport.width}-match-prep`);
-    await page.getByRole("button", { name: "試合開始" }).click();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-match-scheduled`);
+    await expect(page.getByRole("button", { name: "試合開始" })).toHaveCount(0);
+
+    await navigation
+      .getByRole("button", { name: "ホーム", exact: true })
+      .click();
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-home-before-match`,
+    );
+    await page.getByRole("button", { name: "次の週へ進む" }).click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-live`);
     await page.getByRole("button", { name: "結果まで進む" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
+    await page.getByRole("button", { name: "結果を確認して次へ" }).click();
+    await expect(page.getByTestId("home-screen")).toBeVisible();
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-home-after-match`,
+    );
+
+    const trainingNotificationButton = page
+      .getByRole("button", { name: /今週の練習結果/ })
+      .first();
+    await expect(trainingNotificationButton).toBeVisible();
+    await trainingNotificationButton.click();
+    const trainingNotificationDialog = page.getByRole("dialog", {
+      name: "今週の練習結果",
+    });
+    await expect(trainingNotificationDialog).toBeVisible();
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-training-result-notification`,
+    );
+    await trainingNotificationDialog
+      .getByRole("button", { name: "閉じる" })
+      .click();
 
     await navigation
       .getByRole("button", { name: "その他", exact: true })

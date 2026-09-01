@@ -4,6 +4,10 @@ import "./app-shell.css";
 import { gameData } from "./createDemoGame";
 import { useGameSession } from "./useGameSession";
 import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";
+import type {
+  AdvanceWeekOutcome,
+  PendingMatchPresentation,
+} from "../domain/calendar/advanceWeekOutcome";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import type { SimulateMatchResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
@@ -78,11 +82,6 @@ type ShopRetryRequest =
   | { action: "purchase"; request: ShopPurchaseRequest }
   | { action: "use"; request: ShopUseRequest };
 
-interface AdvanceWeekOutcome {
-  officialMatchRequired?: boolean;
-  academicYearTransition: AcademicYearTransitionSummary | null;
-}
-
 const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "E 無名",
   "district-contender": "D 地区レベル",
@@ -136,6 +135,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<SimulateMatchResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
+  const [activeMatchPresentation, setActiveMatchPresentation] =
+    useState<PendingMatchPresentation | null>(null);
   const [matchView, setMatchView] = useState<MatchView>("practice");
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
@@ -403,6 +404,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const openFreshPracticeMatch = () => {
     if (!practiceMatchCompleted) {
       setActiveMatchResult(null);
+      setActiveMatchPresentation(null);
       setOfficialTournamentView(null);
       setMatchView("practice");
       setActiveTab("match");
@@ -413,34 +415,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     const nextOfficial = selectNextOfficialEvent(gameState);
     if (!nextOfficial) return;
     setActiveMatchResult(null);
+    setActiveMatchPresentation(null);
     setOfficialTournamentView({
       circuit: nextOfficial.circuit,
       level: nextOfficial.level,
     });
     setMatchView("practice");
     setActiveTab("match");
-  };
-
-  const startOfficialMatch = async () => {
-    await cloudSession.runAction(
-      { type: "official-match" },
-      "大会結果を保存しています…",
-    );
-  };
-
-  const startPracticeMatch = async () => {
-    if (practiceMatchCompleted) return;
-    const response = await cloudSession.runAction(
-      { type: "practice-match" },
-      "試合を計算しています…",
-    );
-    if (!response) return;
-
-    if (response.outcome !== undefined) {
-      const simulation = response.outcome as SimulateMatchResult;
-      setLatestMatchResult(simulation);
-      setActiveMatchResult(simulation);
-    }
   };
 
   const loadPvpData = async () => {
@@ -793,23 +774,21 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
-    setActiveMatchResult(null);
     setMatchView("practice");
     setPvpResult(null);
     setCalendarOpen(false);
 
-    if (outcome?.officialMatchRequired) {
-      const nextOfficial = selectNextOfficialEvent(response.game.state);
-      if (nextOfficial) {
-        setOfficialTournamentView({
-          circuit: nextOfficial.circuit,
-          level: nextOfficial.level,
-        });
-        setActiveTab("match");
-        return;
-      }
+    if (outcome?.pendingMatchPresentation) {
+      setActiveMatchPresentation(outcome.pendingMatchPresentation);
+      setActiveMatchResult(outcome.pendingMatchPresentation.simulation);
+      setLatestMatchResult(outcome.pendingMatchPresentation.simulation);
+      setOfficialTournamentView(null);
+      setActiveTab("match");
+      return;
     }
 
+    setActiveMatchPresentation(null);
+    setActiveMatchResult(null);
     setOfficialTournamentView(null);
     setActiveTab("home");
   };
@@ -891,12 +870,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setOfficialTournamentView(null);
           setMatchView("practice");
         }}
-        onStartOfficialMatch={() => {
-          void startOfficialMatch();
-        }}
-        pending={cloudSession.operation.status === "submitting"}
         state={gameState}
-        trainingCompleted={trainingCompleted}
       />
     ) : activeTab === "match" && matchView === "pvp" ? (
       <PvpScreen
@@ -926,14 +900,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "match" ? (
       <div className="match-hub-screen">
-        {!activeMatchResult ? (
+        {!activeMatchResult && !activeMatchPresentation ? (
           <MatchOfficialEntry
             onOpen={openOfficialTournament}
             state={gameState}
           />
         ) : null}
-        {!activeMatchResult ? <MatchPvpEntry onOpen={openPvp} /> : null}
-        {!activeMatchResult ? (
+        {!activeMatchResult && !activeMatchPresentation ? (
+          <MatchPvpEntry onOpen={openPvp} />
+        ) : null}
+        {!activeMatchResult && !activeMatchPresentation ? (
           <PracticeMatchPlanning
             onAcceptOffer={() => {
               void acceptPracticeOffer();
@@ -948,18 +924,24 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             state={gameState}
           />
         ) : null}
-        <MatchScreen
-          awaySelection={opponentSelection}
-          awayStrength={awayStrength}
-          homeSelection={teamSelection}
-          homeStrength={homeStrength}
-          onReturnHome={() => changeTab("home")}
-          onStart={startPracticeMatch}
-          opponent={opponent}
-          reducedMotion={gameState.settings.reducedMotion}
-          result={activeMatchResult}
-          state={gameState}
-        />
+        {activeMatchResult ? (
+          <MatchScreen
+            awaySelection={opponentSelection}
+            awayStrength={awayStrength}
+            homeSelection={teamSelection}
+            homeStrength={homeStrength}
+            onReturnHome={() => {
+              if (activeMatchPresentation) void advanceWeek();
+              else changeTab("home");
+            }}
+            onStart={() => undefined}
+            opponent={opponent}
+            presentation={activeMatchPresentation}
+            reducedMotion={gameState.settings.reducedMotion}
+            result={activeMatchPresentation?.simulation ?? activeMatchResult}
+            state={gameState}
+          />
+        ) : null}
       </div>
     ) : moreView === "shop" ? (
       <ShopScreen

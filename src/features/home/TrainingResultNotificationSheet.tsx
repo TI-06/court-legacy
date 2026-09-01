@@ -25,6 +25,18 @@ function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
 }
 
+function growthTone(value: number): "positive" | "neutral" | "danger" {
+  if (value > 0) return "positive";
+  if (value < 0) return "danger";
+  return "neutral";
+}
+
+function fatigueTone(value: number): "positive" | "neutral" | "warning" {
+  if (value > 0) return "warning";
+  if (value < 0) return "positive";
+  return "neutral";
+}
+
 export function TrainingResultNotificationSheet({
   notification,
   onClose,
@@ -50,15 +62,23 @@ export function TrainingResultNotificationSheet({
             className="training-result-notification__summary"
             aria-label="練習結果サマリー"
           >
-            <div>
+            <div
+              data-tone={growthTone(notification.payload.totalAbilityGrowth)}
+            >
               <span>能力成長</span>
               <strong>{signed(notification.payload.totalAbilityGrowth)}</strong>
             </div>
-            <div>
+            <div
+              data-tone={fatigueTone(notification.payload.totalFatigueChange)}
+            >
               <span>疲労</span>
               <strong>{signed(notification.payload.totalFatigueChange)}</strong>
             </div>
-            <div>
+            <div
+              data-tone={
+                notification.payload.injuredCount > 0 ? "danger" : "neutral"
+              }
+            >
               <span>怪我</span>
               <strong>{notification.payload.injuredCount}人</strong>
             </div>
@@ -94,7 +114,7 @@ export function TrainingResultNotificationSheet({
                       {abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
                           {abilityChanges.map(([ability, value]) => (
-                            <span key={ability}>
+                            <span data-tone={growthTone(value)} key={ability}>
                               {abilityLabels[ability]} {signed(value)}
                             </span>
                           ))}
@@ -106,12 +126,16 @@ export function TrainingResultNotificationSheet({
                       )}
 
                       <div className="training-result-notification__changes">
-                        <span>疲労 {signed(player.fatigueChange)}</span>
-                        <span>
+                        <span data-tone={fatigueTone(player.fatigueChange)}>
+                          疲労 {signed(player.fatigueChange)}
+                        </span>
+                        <span data-tone={growthTone(player.conditionChange)}>
                           コンディション {signed(player.conditionChange)}
                         </span>
-                        <span>信頼 {signed(player.trustChange)}</span>
-                        <span className={player.injured ? "is-injured" : ""}>
+                        <span data-tone={growthTone(player.trustChange)}>
+                          信頼 {signed(player.trustChange)}
+                        </span>
+                        <span data-tone={player.injured ? "danger" : "neutral"}>
                           {player.injured ? "怪我あり" : "怪我なし"}
                         </span>
                       </div>
