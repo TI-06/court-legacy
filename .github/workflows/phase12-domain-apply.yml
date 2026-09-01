@@ -1,0 +1,53 @@
+name: Phase 12 Domain Apply
+
+on:
+  push:
+    branches: [feature/phase12-game-loop-polish]
+    paths: [scripts/phase12-domain-apply.py]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase12-game-loop-polish
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Add Phase 12 tests
+        run: python scripts/phase12-domain-apply.py tests
+      - name: Verify tests are RED before implementation
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts tests/unit/ui/shell/phase12Navigation.test.ts
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected Phase 12 tests to fail before implementation, but they passed."
+            exit 1
+          fi
+          echo "RED confirmed as expected."
+      - name: Apply Phase 12 domain implementation
+        run: python scripts/phase12-domain-apply.py production
+      - name: Verify focused Phase 12 tests GREEN
+        run: npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts tests/unit/ui/shell/phase12Navigation.test.ts
+      - name: Run repository verification
+        run: npm run verify
+      - name: Remove temporary apply assets
+        run: rm -f scripts/phase12-domain-apply.py .github/workflows/phase12-domain-apply.yml
+      - name: Commit Phase 12 domain changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: add Phase 12 condition and training domain"
+          git push origin HEAD:feature/phase12-game-loop-polish
