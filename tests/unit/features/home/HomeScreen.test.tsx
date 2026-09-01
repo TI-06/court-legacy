@@ -40,7 +40,10 @@ function createProps(withLatestMatch = false) {
     homeStrength: calculateSelectionStrength(state, homeSelection),
     trainingCompleted: false,
     practiceMatchCompleted: false,
-    onOpenTraining: vi.fn(),
+    onOpenSchool: vi.fn(),
+    onAcceptPracticeOffer: vi.fn(),
+    onDeclinePracticeOffer: vi.fn(),
+    operationPending: false,
     onOpenTeam: vi.fn(),
     onOpenMatch: vi.fn(),
     onOpenOfficialTournament: vi.fn(),
@@ -88,7 +91,7 @@ describe("home action dashboard", () => {
 
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
     expect(within(teamStatus).getByText("評判")).toBeVisible();
-    expect(within(teamStatus).getByText("疲労")).toBeVisible();
+    expect(within(teamStatus).getByText("調子")).toBeVisible();
     expect(within(teamStatus).getByText("部員")).toBeVisible();
     expect(within(teamStatus).getByText("結束")).toBeVisible();
     expect(within(teamStatus).getByText("68")).toBeVisible();
@@ -138,14 +141,18 @@ describe("home action dashboard", () => {
     expect(nextWeek).toBeEnabled();
     fireEvent.click(nextWeek);
 
-    fireEvent.click(screen.getByRole("button", { name: /育成を決める/ }));
-    fireEvent.click(screen.getByRole("button", { name: /チーム編成を確認/ }));
+    fireEvent.click(screen.getByRole("button", { name: /学校を確認/ }));
+    fireEvent.click(screen.getByRole("button", { name: /選手を確認/ }));
     fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
 
     expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
-    expect(props.onOpenTraining).toHaveBeenCalledOnce();
+    expect(props.onOpenSchool).toHaveBeenCalledOnce();
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
     expect(props.onOpenMatch).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "受ける" }));
+    fireEvent.click(screen.getByRole("button", { name: "断る" }));
+    expect(props.onAcceptPracticeOffer).toHaveBeenCalledOnce();
+    expect(props.onDeclinePracticeOffer).toHaveBeenCalledOnce();
   });
 
   it("shows at most two useful training notifications and keeps only the newest read result", () => {

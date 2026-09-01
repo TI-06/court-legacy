@@ -56,8 +56,6 @@ import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { ShopScreen } from "../features/shop/ShopScreen";
 import type { ShopUsePresentation } from "../features/shop/shopUsePresentation";
 import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
-import { TrainingScreen } from "../features/training/TrainingScreen";
-import { TrainingScoutingEntry } from "../features/training/TrainingScoutingEntry";
 import { TournamentScreen } from "../features/tournament/TournamentScreen";
 import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
@@ -71,7 +69,7 @@ interface GameAppProps {
   api: GameApiClient;
 }
 
-type MoreView = "menu" | "school" | "shop";
+type MoreView = "menu" | "shop";
 type MatchView = "practice" | "pvp";
 type OfficialTournamentView = {
   circuit: TournamentCircuit;
@@ -204,7 +202,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const changeTab = (tab: AppTab) => {
     if (tab !== "more") setMoreView("menu");
-    if (tab !== "training") {
+    if (tab !== "school") {
       setScoutingOpen(false);
       setScoutingError(null);
       setRetryRecruitCandidateId(null);
@@ -357,6 +355,22 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       { type: "set-training-plan", plan },
       "練習設定を保存しています…",
     );
+  };
+
+  const changePlayerTraining = async (
+    playerId: PlayerId,
+    instructionId: string,
+  ) => {
+    const current = gameState.weeklySchedule.trainingPlan;
+    await saveTrainingPlan({
+      ...current,
+      individualAssignments: [
+        ...current.individualAssignments.filter(
+          (item) => item.playerId !== playerId,
+        ),
+        { playerId, instructionId },
+      ],
+    });
   };
 
   const saveTeamSelection = async (selection: TeamSelection) => {
@@ -810,7 +824,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onOpenMatch={openFreshPracticeMatch}
         onOpenOfficialTournament={openOfficialTournament}
         onOpenTeam={() => setActiveTab("team")}
-        onOpenTraining={() => setActiveTab("training")}
+        onOpenSchool={() => setActiveTab("school")}
+        onAcceptPracticeOffer={() => void acceptPracticeOffer()}
+        onDeclinePracticeOffer={() => void declinePracticeOffer()}
+        operationPending={cloudSession.operation.status === "submitting"}
         opponent={opponent}
         practiceMatchCompleted={practiceMatchCompleted}
         state={gameState}
@@ -821,10 +838,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         leadershipPending={cloudSession.operation.status === "submitting"}
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
+        onChangeTraining={changePlayerTraining}
+        trainingPending={cloudSession.operation.status === "submitting"}
         selection={teamSelection}
         state={gameState}
       />
-    ) : activeTab === "training" && scoutingOpen ? (
+    ) : activeTab === "school" && scoutingOpen ? (
       <ScoutingScreen
         error={scoutingError}
         latestShopUseResult={latestShopUseResult}
@@ -852,16 +871,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         shopStatus={shopStatus}
         state={gameState}
       />
-    ) : activeTab === "training" ? (
-      <div className="training-hub-screen">
-        <TrainingScreen
-          completed={trainingCompleted}
-          data={gameData}
-          onSave={saveTrainingPlan}
-          state={gameState}
-        />
-        <TrainingScoutingEntry onOpen={openScouting} state={gameState} />
-      </div>
+    ) : activeTab === "school" ? (
+      <SchoolScreen
+        onOpenScouting={openScouting}
+        onUpgradeFacility={upgradeSchoolFacility}
+        state={gameState}
+      />
     ) : activeTab === "match" && officialTournamentView ? (
       <TournamentScreen
         circuit={officialTournamentView.circuit}
@@ -966,24 +981,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         state={gameState}
         status={shopStatus}
       />
-    ) : moreView === "school" ? (
-      <main className="app-content more-school-view">
-        <button
-          className="more-school-view__back"
-          onClick={() => setMoreView("menu")}
-          type="button"
-        >
-          その他へ戻る
-        </button>
-        <SchoolScreen
-          onUpgradeFacility={upgradeSchoolFacility}
-          state={gameState}
-        />
-      </main>
     ) : (
       <MoreScreen
         accountLabel={session.email ?? "ログイン済みアカウント"}
-        onOpenSchool={() => setMoreView("school")}
         onOpenShop={openShop}
         onSignOut={() => void auth.signOut()}
       />

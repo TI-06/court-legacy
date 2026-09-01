@@ -14,9 +14,6 @@ export interface AdvanceOneWeekOptions {
   restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
-function clamp(value: number): number {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
 
 function addDays(value: GameDate, days: number): GameDate {
   const [year, month, day] = value.split("-").map(Number);

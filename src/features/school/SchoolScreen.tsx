@@ -15,9 +15,10 @@ import "./school-screen.css";
 interface SchoolScreenProps {
   state: GameState;
   onUpgradeFacility: (key: FacilityKey) => void;
+  onOpenScouting?: () => void;
 }
 
-type SchoolView = "facilities" | "records" | "alumni";
+type SchoolView = "facilities" | "scouting" | "records" | "alumni";
 
 const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "無名校",
@@ -53,7 +54,7 @@ function facilityActionLabel(
   return `${name}は強化不可`;
 }
 
-export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
+export function SchoolScreen({ state, onUpgradeFacility, onOpenScouting }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>("facilities");
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
@@ -158,6 +159,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         {(
           [
             ["facilities", "設備"],
+            ["scouting", "スカウト"],
             ["records", "記録"],
             ["alumni", "卒業生"],
           ] as const
@@ -166,7 +168,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             aria-selected={view === id}
             className={view === id ? "school-segment--active" : undefined}
             key={id}
-            onClick={() => setView(id)}
+            onClick={() => (id === "scouting" ? onOpenScouting?.() : setView(id))}
             role="tab"
             type="button"
           >
