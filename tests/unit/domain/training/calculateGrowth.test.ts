@@ -138,7 +138,6 @@ describe("calculateGrowth", () => {
       "personality",
       "facility",
       "coach",
-      "fatigue",
       "condition",
       "academic",
     ]);
@@ -220,23 +219,31 @@ describe("calculateGrowth", () => {
     expect(strongEnvironment.amount).toBeGreaterThan(weakEnvironment.amount);
   });
 
-  it("reduces growth for high fatigue and academic restriction", () => {
-    const unrestricted = calculateGrowth({
-      baseGrowth: 10,
-      player: createPlayer({ fatigue: 0, academic: 70, condition: 100 }),
+  it("ignores legacy fatigue while keeping academic restriction active", () => {
+    const input = {
+      baseGrowth: 40,
       school: createSchool(),
       growthType: data.growthTypes.get("growth.standard")!,
       personality: data.personalities.get("personality.calm")!,
+    };
+    const baseline = calculateGrowth({
+      ...input,
+      player: createPlayer({ fatigue: 0, academic: 70, condition: 100 }),
+    });
+    const fatigued = calculateGrowth({
+      ...input,
+      player: createPlayer({ fatigue: 100, academic: 70, condition: 100 }),
     });
     const restricted = calculateGrowth({
-      baseGrowth: 10,
-      player: createPlayer({ fatigue: 95, academic: 20, condition: 55 }),
-      school: createSchool(),
-      growthType: data.growthTypes.get("growth.standard")!,
-      personality: data.personalities.get("personality.calm")!,
+      ...input,
+      player: createPlayer({ fatigue: 100, academic: 20, condition: 100 }),
     });
 
-    expect(restricted.amount).toBeLessThan(unrestricted.amount);
+    expect(fatigued.amount).toBe(baseline.amount);
+    expect(fatigued.modifiers.some((modifier) => modifier.code === "fatigue")).toBe(
+      false,
+    );
+    expect(restricted.amount).toBeLessThan(baseline.amount);
     expect(restricted.academicRestricted).toBe(true);
   });
 });
