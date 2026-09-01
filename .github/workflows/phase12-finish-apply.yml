@@ -1,0 +1,64 @@
+name: Phase 12 Finish Apply
+
+on:
+  push:
+    branches: [feature/phase12-game-loop-polish]
+    paths:
+      - scripts/phase12-finish-apply.py
+      - .github/workflows/phase12-finish-apply.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase12-game-loop-polish
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Confirm focused tests are RED
+        shell: bash
+        run: |
+          set +e
+          npx vitest run \
+            tests/unit/features/team/Phase12LineupClarity.test.tsx \
+            tests/unit/features/school/Phase12SchoolCompact.test.tsx \
+            tests/unit/domain/team/Phase12FatigueIndependence.test.ts
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected Phase 12 final tests to fail before implementation."
+            exit 1
+          fi
+          echo "RED confirmed as expected."
+      - name: Apply final Phase 12 implementation
+        run: python scripts/phase12-finish-apply.py
+      - name: Format changed code
+        run: npm run format
+      - name: Confirm focused tests GREEN
+        run: |
+          npx vitest run \
+            tests/unit/features/team/Phase12LineupClarity.test.tsx \
+            tests/unit/features/team/TeamSelectionFlow.test.tsx \
+            tests/unit/features/school/Phase12SchoolCompact.test.tsx \
+            tests/unit/features/school/SchoolScreen.test.tsx \
+            tests/unit/domain/team/Phase12FatigueIndependence.test.ts \
+            tests/unit/domain/team/autoSelectTeam.test.ts
+      - name: Full repository verification
+        run: npm run verify
+      - name: Remove temporary apply assets
+        run: rm -f scripts/phase12-finish-apply.py .github/workflows/phase12-finish-apply.yml
+      - name: Commit final Phase 12 polish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: finish Phase 12 game loop polish"
+          git push origin HEAD:feature/phase12-game-loop-polish
