@@ -114,16 +114,15 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
   await expect(
-    page.getByRole("button", { name: "公式戦を開始" }),
-  ).toBeEnabled();
+    page.getByRole("heading", { name: "試合ダイジェスト" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /公式戦を開始/ })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "公式戦を開始" }).click();
-  await page
-    .getByRole("dialog", { name: "公式戦を開始しますか" })
-    .getByRole("button", { name: "この試合を開始" })
-    .click();
+  await page.getByRole("button", { name: "結果まで進む" }).click();
+  await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
+  await page.getByRole("button", { name: "結果を確認して次へ" }).click();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
   const persisted = await readPersistedSnapshot(page);
