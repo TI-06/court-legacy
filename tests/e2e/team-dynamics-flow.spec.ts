@@ -117,7 +117,9 @@ test("leadership assignment, training, and an official match persist visible dyn
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: /公式戦を開始/ })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /公式戦を開始/ }),
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: "結果まで進む" }).click();
   await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
