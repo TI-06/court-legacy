@@ -14,24 +14,16 @@ export function createDefaultWeeklyPlan(
   if (!school) {
     throw new Error("weekly schedule requires the user school");
   }
-  const firstPlayerId = school.playerIds[0];
-  const secondPlayerId = school.playerIds[1];
-  if (!firstPlayerId || !secondPlayerId) {
-    throw new Error("weekly schedule requires at least two user players");
+  if (school.playerIds.length === 0) {
+    throw new Error("weekly schedule requires at least one user player");
   }
 
   return {
     teamTrainingMenuId: "training.spike",
-    individualAssignments: [
-      {
-        playerId: firstPlayerId,
-        instructionId: "instruction.serve",
-      },
-      {
-        playerId: secondPlayerId,
-        instructionId: "instruction.receive",
-      },
-    ],
+    individualAssignments: school.playerIds.map((playerId) => ({
+      playerId,
+      instructionId: "instruction.overall",
+    })),
   };
 }
 
