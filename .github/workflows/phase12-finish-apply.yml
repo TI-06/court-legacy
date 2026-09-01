@@ -92,7 +92,7 @@ jobs:
             tests/unit/domain/tournament \
             tests/unit/data \
             tests/integration
-      - name: Verify unit tests - persistence services and scripts
+      - name: Verify unit tests - persistence services and scripts after Phase 12 migration
         run: |
           npx vitest run \
             tests/unit/persistence \
@@ -114,7 +114,7 @@ jobs:
       - name: Commit final Phase 12 polish
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "418982982+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "feat: finish Phase 12 game loop polish"
           git push origin HEAD:feature/phase12-game-loop-polish
