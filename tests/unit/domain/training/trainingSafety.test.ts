@@ -93,16 +93,10 @@ describe("weekly training safety", () => {
       schoolId: state.userSchoolId,
       plan: {
         teamTrainingMenuId: "training.recovery",
-        individualAssignments: [
-          {
-            playerId: school.playerIds[0]!,
-            instructionId: "instruction.rest",
-          },
-          {
-            playerId: school.playerIds[1]!,
-            instructionId: "instruction.rest",
-          },
-        ],
+        individualAssignments: school.playerIds.map((playerId) => ({
+          playerId,
+          instructionId: "instruction.rest",
+        })),
       },
       data,
       random: new MinimumRandom(),
