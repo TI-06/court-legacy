@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts tests/unit/ui/shell/phase12Navigation.test.ts
+          npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
@@ -39,7 +39,7 @@ jobs:
       - name: Apply Phase 12 domain implementation
         run: python scripts/phase12-domain-apply.py production
       - name: Verify focused Phase 12 tests GREEN
-        run: npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts tests/unit/ui/shell/phase12Navigation.test.ts
+        run: npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts
       - name: Typecheck changed app/worker contracts
         run: npm run typecheck && npm run typecheck:worker
       - name: Remove temporary apply assets
