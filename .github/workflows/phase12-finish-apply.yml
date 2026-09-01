@@ -5,6 +5,7 @@ on:
     branches: [feature/phase12-game-loop-polish]
     paths:
       - scripts/phase12-finish-apply.py
+      - scripts/phase12-week-progression-cleanup.py
       - .github/workflows/phase12-finish-apply.yml
 
 permissions:
@@ -40,6 +41,8 @@ jobs:
           echo "RED confirmed as expected."
       - name: Apply final Phase 12 implementation
         run: python scripts/phase12-finish-apply.py
+      - name: Remove obsolete weekly recovery plumbing
+        run: python scripts/phase12-week-progression-cleanup.py
       - name: Format changed code
         run: npm run format
       - name: Confirm focused tests GREEN
@@ -54,7 +57,7 @@ jobs:
       - name: Full repository verification
         run: npm run verify
       - name: Remove temporary apply assets
-        run: rm -f scripts/phase12-finish-apply.py .github/workflows/phase12-finish-apply.yml
+        run: rm -f scripts/phase12-finish-apply.py scripts/phase12-week-progression-cleanup.py .github/workflows/phase12-finish-apply.yml
       - name: Commit final Phase 12 polish
         run: |
           git config user.name "github-actions[bot]"
