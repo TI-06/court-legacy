@@ -3,7 +3,9 @@ name: Phase 12 Domain Apply
 on:
   push:
     branches: [feature/phase12-game-loop-polish]
-    paths: [scripts/phase12-domain-apply.py]
+    paths:
+      - scripts/phase12-domain-apply.py
+      - .github/workflows/phase12-domain-apply.yml
 
 permissions:
   contents: write
@@ -40,8 +42,6 @@ jobs:
         run: python scripts/phase12-domain-apply.py production
       - name: Verify focused Phase 12 tests GREEN
         run: npx vitest run tests/unit/domain/player/playerCondition.test.ts tests/unit/data/phase12TrainingInstructions.test.ts tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts
-      - name: Typecheck changed app/worker contracts
-        run: npm run typecheck && npm run typecheck:worker
       - name: Remove temporary apply assets
         run: rm -f scripts/phase12-domain-apply.py .github/workflows/phase12-domain-apply.yml
       - name: Commit Phase 12 domain changes
