@@ -64,8 +64,47 @@ jobs:
         run: node scripts/verifyStructureCli.mjs
       - name: Verify production dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Verify unit tests
-        run: npm run test
+      - name: Verify unit tests - training weekly player team
+        run: |
+          npx vitest run \
+            tests/unit/domain/training \
+            tests/unit/domain/weekly \
+            tests/unit/domain/player \
+            tests/unit/domain/team \
+            tests/unit/data/phase12TrainingInstructions.test.ts \
+            tests/unit/data/individualTrainingInstructions.test.ts
+      - name: Verify unit tests - remaining domain and data
+        run: |
+          npx vitest run \
+            tests/unit/domain/calendar \
+            tests/unit/domain/dynamics \
+            tests/unit/domain/events \
+            tests/unit/domain/generation \
+            tests/unit/domain/match \
+            tests/unit/domain/notifications \
+            tests/unit/domain/pvp \
+            tests/unit/domain/school \
+            tests/unit/domain/scouting \
+            tests/unit/domain/selectors \
+            tests/unit/domain/shop \
+            tests/unit/domain/tournament \
+            tests/unit/data \
+            tests/integration
+      - name: Verify unit tests - persistence services and scripts
+        run: |
+          npx vitest run \
+            tests/unit/persistence \
+            tests/unit/services \
+            tests/unit/scripts
+      - name: Verify unit tests - app features and ui
+        run: |
+          npx vitest run \
+            tests/unit/App.test.tsx \
+            tests/unit/app \
+            tests/unit/features \
+            tests/unit/ui
+      - name: Verify unit tests - worker
+        run: npx vitest run tests/unit/worker
       - name: Verify production build
         run: npm run build
       - name: Remove temporary apply assets
