@@ -16,13 +16,16 @@ describe("Phase 8 initial world", () => {
 
     const roster = first.schools[first.userSchoolId]!.playerIds;
     const assignments = first.weeklySchedule.trainingPlan.individualAssignments;
-    expect(assignments).toHaveLength(2);
-    expect(assignments.map((assignment) => assignment.playerId)).toEqual(
-      roster.slice(0, 2),
-    );
+    expect(assignments).toHaveLength(roster.length);
+    expect(assignments.map((assignment) => assignment.playerId)).toEqual(roster);
     expect(
       new Set(assignments.map((assignment) => assignment.playerId)).size,
-    ).toBe(2);
+    ).toBe(roster.length);
+    expect(
+      assignments.every(
+        (assignment) => assignment.instructionId === "instruction.overall",
+      ),
+    ).toBe(true);
     expect(first.weeklySchedule.practiceMatch.scheduledOpponentId).toBeNull();
     expect(first.weeklySchedule.practiceMatch.scheduledBy).toBeNull();
     expect(first.weeklySchedule.recentPracticeMatches).toEqual([]);
@@ -34,20 +37,17 @@ describe("Phase 8 initial world", () => {
     const before = structuredClone(state);
 
     const plan = createDefaultWeeklyPlan(state);
+    const roster = state.schools[state.userSchoolId]!.playerIds;
 
     expect(state).toEqual(before);
     expect(state.randomCursor).toBe(before.randomCursor);
     expect(plan.teamTrainingMenuId).toBe("training.spike");
-    expect(plan.individualAssignments).toEqual([
-      {
-        playerId: state.schools[state.userSchoolId]!.playerIds[0],
-        instructionId: "instruction.serve",
-      },
-      {
-        playerId: state.schools[state.userSchoolId]!.playerIds[1],
-        instructionId: "instruction.receive",
-      },
-    ]);
+    expect(plan.individualAssignments).toEqual(
+      roster.map((playerId) => ({
+        playerId,
+        instructionId: "instruction.overall",
+      })),
+    );
   });
 
   it("creates the weekly schedule without mutating state or consuming RNG", () => {
