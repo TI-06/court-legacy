@@ -75,7 +75,7 @@ jobs:
           npx vitest run \
             tests/unit/data/phase12TrainingInstructions.test.ts \
             tests/unit/data/individualTrainingInstructions.test.ts
-      - name: Verify unit tests - remaining domain and data
+      - name: Verify unit tests - remaining domain and data after Phase 12 migration
         run: |
           npx vitest run \
             tests/unit/domain/calendar \
