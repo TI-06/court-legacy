@@ -74,24 +74,14 @@ function progressInjury(injury: PlayerInjury | null): PlayerInjury | null {
 
 function recoverPlayer(
   player: Player,
-  recoveryRoomLevel: number,
-  isResting: boolean,
+  _recoveryRoomLevel: number,
+  _isResting: boolean,
 ): { player: Player; recovered: boolean; healed: boolean } {
   const previousInjury = player.injury;
   const injury = progressInjury(previousInjury);
-  const fatigueRecovery = 8 + recoveryRoomLevel * 2 + (isResting ? 8 : 0);
-  const conditionRecovery = (previousInjury ? 1 : 3) + (isResting ? 5 : 0);
-  const nextFatigue = clamp(player.fatigue - fatigueRecovery);
-  const nextCondition = clamp(player.condition + conditionRecovery);
-
   return {
-    player: {
-      ...player,
-      fatigue: nextFatigue,
-      condition: nextCondition,
-      injury,
-    },
-    recovered: nextFatigue < player.fatigue || nextCondition > player.condition,
+    player: { ...player, injury },
+    recovered: false,
     healed: Boolean(previousInjury && !injury),
   };
 }

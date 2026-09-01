@@ -10,7 +10,7 @@ describe("Phase 12 default weekly plan", () => {
           playerIds: ["player.1", "player.2", "player.3"],
         },
       },
-    } as Parameters<typeof createDefaultWeeklyPlan>[0];
+    } as unknown as Parameters<typeof createDefaultWeeklyPlan>[0];
 
     expect(createDefaultWeeklyPlan(state).individualAssignments).toEqual([
       { playerId: "player.1", instructionId: "instruction.overall" },

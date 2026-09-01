@@ -66,11 +66,11 @@ function createAssignments(playerIds: readonly PlayerId[]) {
   return [
     {
       playerId: playerIds[0]!,
-      instructionId: "instruction.mental",
+      instructionId: "instruction.rest",
     },
     {
       playerId: playerIds[1]!,
-      instructionId: "instruction.serve",
+      instructionId: "instruction.attack",
     },
   ];
 }
@@ -96,11 +96,11 @@ describe("weekly training safety", () => {
         individualAssignments: [
           {
             playerId: school.playerIds[0]!,
-            instructionId: "instruction.mental",
+            instructionId: "instruction.rest",
           },
           {
             playerId: school.playerIds[1]!,
-            instructionId: "instruction.mental",
+            instructionId: "instruction.rest",
           },
         ],
       },
