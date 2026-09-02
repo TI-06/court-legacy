@@ -5,15 +5,14 @@ describe("school and calendar app integration", () => {
   it("opens school management and keeps a facility upgrade in cloud state", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "その他" }));
-    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
+    fireEvent.click(await screen.findByRole("button", { name: "学校" }));
     expect(
       screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
     expect(screen.getByText("資金 300")).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "トレーニング設備を強化" }),
+      screen.getByRole("button", { name: "トレーニング設備の詳細" }),
     );
     const dialog = screen.getByRole("dialog", { name: "設備を強化" });
     fireEvent.click(
@@ -21,12 +20,10 @@ describe("school and calendar app integration", () => {
     );
 
     expect(await screen.findByText("資金 230")).toBeInTheDocument();
-    const trainingUpgradeButton = screen.getByRole("button", {
-      name: "トレーニング設備を強化",
+    const trainingFacilityTile = screen.getByRole("button", {
+      name: "トレーニング設備の詳細",
     });
-    const trainingFacilityCard = trainingUpgradeButton.closest("article");
-    expect(trainingFacilityCard).not.toBeNull();
-    expect(within(trainingFacilityCard!).getByText("Lv.1")).toBeInTheDocument();
+    expect(within(trainingFacilityTile).getByText("Lv.1")).toBeInTheDocument();
   });
 
   it("opens the calendar from the header and returns focus when closed", async () => {
