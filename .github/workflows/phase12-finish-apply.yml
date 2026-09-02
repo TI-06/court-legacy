@@ -102,18 +102,19 @@ jobs:
         shell: bash
         run: |
           set +e
-          set -o pipefail
           npx vitest run \
             tests/unit/App.test.tsx \
             tests/unit/app \
             tests/unit/features \
-            tests/unit/ui 2>&1 | tee /tmp/phase12-features-ui.log
-          status=${PIPESTATUS[0]}
+            tests/unit/ui > /tmp/phase12-features-ui.log 2>&1
+          status=$?
           set -e
           if [ "$status" -ne 0 ]; then
             echo "===== concise failure diagnostics ====="
-            grep -nE 'FAIL|AssertionError|TestingLibraryElementError|expected|received|tests/unit/(App|app|features|ui)' /tmp/phase12-features-ui.log | tail -n 240 || true
+            grep -nE -B 4 -A 12 'FAIL|AssertionError|TestingLibraryElementError|expected|received|Test Files|tests/unit/(App|app|features|ui)' /tmp/phase12-features-ui.log | tail -n 360 || true
             echo "===== end diagnostics ====="
+          else
+            cat /tmp/phase12-features-ui.log
           fi
           exit "$status"
       - name: Verify unit tests - worker
