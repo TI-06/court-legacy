@@ -99,12 +99,32 @@ jobs:
             tests/unit/services \
             tests/unit/scripts
       - name: Verify unit tests - app features and ui
+        shell: bash
         run: |
-          npx vitest run \
-            tests/unit/App.test.tsx \
-            tests/unit/app \
-            tests/unit/features \
-            tests/unit/ui
+          set -euo pipefail
+          targets=(tests/unit/App.test.tsx)
+          for dir in tests/unit/app tests/unit/features tests/unit/ui; do
+            if [ -d "$dir" ]; then
+              while IFS= read -r file; do
+                targets+=("$file")
+              done < <(find "$dir" -type f \( -name '*.test.ts' -o -name '*.test.tsx' \) | sort)
+            fi
+          done
+
+          for file in "${targets[@]}"; do
+            set +e
+            npx vitest run "$file" > /tmp/phase12-single-ui.log 2>&1
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              echo "FIRST_FAILING_UI_TEST=$file"
+              echo "---- condensed failure ----"
+              grep -E "FAIL|AssertionError|TestingLibraryElementError|expected|received|Unable to find|Found multiple" /tmp/phase12-single-ui.log | tail -n 60 || true
+              echo "---- final lines ----"
+              tail -n 40 /tmp/phase12-single-ui.log
+              exit "$status"
+            fi
+          done
       - name: Verify unit tests - worker
         run: npx vitest run tests/unit/worker
       - name: Verify production build
