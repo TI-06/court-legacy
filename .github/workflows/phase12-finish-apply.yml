@@ -116,8 +116,14 @@ jobs:
         run: npx vitest run tests/unit/features/onboarding
       - name: Verify ui - features pvp
         run: npx vitest run tests/unit/features/pvp
-      - name: Verify ui - features school
-        run: npx vitest run tests/unit/features/school
+      - name: Verify school - AppSchoolCalendarFlow
+        run: npx vitest run tests/unit/features/school/AppSchoolCalendarFlow.test.tsx
+      - name: Verify school - Phase12SchoolCompact
+        run: npx vitest run tests/unit/features/school/Phase12SchoolCompact.test.tsx
+      - name: Verify school - SchoolScreen reputation
+        run: npx vitest run tests/unit/features/school/SchoolScreen.reputation.test.tsx
+      - name: Verify school - SchoolScreen
+        run: npx vitest run tests/unit/features/school/SchoolScreen.test.tsx
       - name: Verify ui - features scouting
         run: npx vitest run tests/unit/features/scouting
       - name: Verify ui - features shop
