@@ -101,22 +101,29 @@ jobs:
       - name: Verify unit tests - app features and ui
         shell: bash
         run: |
-          set +e
-          npx vitest run \
-            tests/unit/App.test.tsx \
-            tests/unit/app \
-            tests/unit/features \
-            tests/unit/ui > /tmp/phase12-features-ui.log 2>&1
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            echo "===== concise failure diagnostics ====="
-            grep -nE -B 4 -A 12 'FAIL|AssertionError|TestingLibraryElementError|expected|received|Test Files|tests/unit/(App|app|features|ui)' /tmp/phase12-features-ui.log | tail -n 360 || true
-            echo "===== end diagnostics ====="
-          else
-            cat /tmp/phase12-features-ui.log
-          fi
-          exit "$status"
+          set -euo pipefail
+          targets=(tests/unit/App.test.tsx)
+          for dir in tests/unit/app tests/unit/features tests/unit/ui; do
+            if [ -d "$dir" ]; then
+              while IFS= read -r file; do
+                targets+=("$file")
+              done < <(find "$dir" -type f \( -name '*.test.ts' -o -name '*.test.tsx' \) | sort)
+            fi
+          done
+
+          for file in "${targets[@]}"; do
+            echo "===== RUN $file ====="
+            set +e
+            npx vitest run "$file" > /tmp/phase12-single-ui.log 2>&1
+            status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              echo "===== FIRST FAILING FILE: $file ====="
+              cat /tmp/phase12-single-ui.log
+              exit "$status"
+            fi
+            echo "PASS $file"
+          done
       - name: Verify unit tests - worker
         run: npx vitest run tests/unit/worker
       - name: Verify production build
