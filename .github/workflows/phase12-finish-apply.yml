@@ -98,13 +98,36 @@ jobs:
             tests/unit/persistence \
             tests/unit/services \
             tests/unit/scripts
-      - name: Verify unit tests - app features and ui
-        run: |
-          npx vitest run \
-            tests/unit/App.test.tsx \
-            tests/unit/app \
-            tests/unit/features \
-            tests/unit/ui
+      - name: Verify ui - App
+        run: npx vitest run tests/unit/App.test.tsx
+      - name: Verify ui - app
+        run: npx vitest run tests/unit/app
+      - name: Verify ui - features auth
+        run: npx vitest run tests/unit/features/auth
+      - name: Verify ui - features dashboard
+        run: npx vitest run tests/unit/features/dashboard
+      - name: Verify ui - features events
+        run: npx vitest run tests/unit/features/events
+      - name: Verify ui - features match
+        run: npx vitest run tests/unit/features/match
+      - name: Verify ui - features more
+        run: npx vitest run tests/unit/features/more
+      - name: Verify ui - features pvp
+        run: npx vitest run tests/unit/features/pvp
+      - name: Verify ui - features school
+        run: npx vitest run tests/unit/features/school
+      - name: Verify ui - features settings
+        run: npx vitest run tests/unit/features/settings
+      - name: Verify ui - features shop
+        run: npx vitest run tests/unit/features/shop
+      - name: Verify ui - features team
+        run: npx vitest run tests/unit/features/team
+      - name: Verify ui - features tournament
+        run: npx vitest run tests/unit/features/tournament
+      - name: Verify ui - features training
+        run: npx vitest run tests/unit/features/training
+      - name: Verify ui - ui
+        run: npx vitest run tests/unit/ui
       - name: Verify unit tests - worker
         run: npx vitest run tests/unit/worker
       - name: Verify production build
