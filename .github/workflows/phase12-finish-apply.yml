@@ -54,6 +54,20 @@ jobs:
             tests/unit/features/school/SchoolScreen.test.tsx \
             tests/unit/domain/team/Phase12FatigueIndependence.test.ts \
             tests/unit/domain/team/autoSelectTeam.test.ts
+      - name: Diagnose GameAppActions - training plan
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "saves the weekly training plan"
+      - name: Diagnose GameAppActions - practice match
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "resolves a scheduled practice match"
+      - name: Diagnose GameAppActions - facility upgrade
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists a facility upgrade"
+      - name: Diagnose GameAppActions - training then advance
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "advances the week on the server"
+      - name: Diagnose GameAppActions - event choice
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists an event choice"
+      - name: Diagnose GameAppActions - team selection
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists team selection changes"
+      - name: Diagnose GameAppActions - revision conflict
+        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "renders the refreshed cloud snapshot"
       - name: Verify formatting
         run: npm run format:check
       - name: Verify lint
