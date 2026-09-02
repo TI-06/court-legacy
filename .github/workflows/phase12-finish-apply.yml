@@ -54,20 +54,6 @@ jobs:
             tests/unit/features/school/SchoolScreen.test.tsx \
             tests/unit/domain/team/Phase12FatigueIndependence.test.ts \
             tests/unit/domain/team/autoSelectTeam.test.ts
-      - name: Diagnose GameAppActions - training plan
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "saves the weekly training plan"
-      - name: Diagnose GameAppActions - practice match
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "resolves a scheduled practice match"
-      - name: Diagnose GameAppActions - facility upgrade
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists a facility upgrade"
-      - name: Diagnose GameAppActions - training then advance
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "advances the week on the server"
-      - name: Diagnose GameAppActions - event choice
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists an event choice"
-      - name: Diagnose GameAppActions - team selection
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "persists team selection changes"
-      - name: Diagnose GameAppActions - revision conflict
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx -t "renders the refreshed cloud snapshot"
       - name: Verify formatting
         run: npm run format:check
       - name: Verify lint
@@ -114,52 +100,26 @@ jobs:
             tests/unit/scripts
       - name: Verify ui - App
         run: npx vitest run tests/unit/App.test.tsx
-      - name: Verify app - AppBootstrap
-        run: npx vitest run tests/unit/app/AppBootstrap.test.tsx
-      - name: Verify app - ApplicationRoot
-        run: npx vitest run tests/unit/app/ApplicationRoot.test.ts
-      - name: Verify app - GameApp notifications
-        run: npx vitest run tests/unit/app/GameApp.notifications.test.tsx
-      - name: Verify app - GameApp officialTournament
-        run: npx vitest run tests/unit/app/GameApp.officialTournament.test.tsx
-      - name: Verify app - GameApp officialTournamentRetry
-        run: npx vitest run tests/unit/app/GameApp.officialTournamentRetry.test.tsx
-      - name: Verify app - GameApp practiceScheduling
-        run: npx vitest run tests/unit/app/GameApp.practiceScheduling.test.tsx
-      - name: Verify app - GameApp pvp
-        run: npx vitest run tests/unit/app/GameApp.pvp.test.tsx
-      - name: Verify app - GameApp scouting
-        run: npx vitest run tests/unit/app/GameApp.scouting.test.tsx
-      - name: Verify app - GameApp shop
-        run: npx vitest run tests/unit/app/GameApp.shop.test.tsx
-      - name: Verify app - GameApp shopResult
-        run: npx vitest run tests/unit/app/GameApp.shopResult.test.tsx
-      - name: Verify app - GameAppActions
-        run: npx vitest run tests/unit/app/GameAppActions.test.tsx
-      - name: Verify app - createBrowserAppDependencies
-        run: npx vitest run tests/unit/app/createBrowserAppDependencies.test.ts
-      - name: Verify app - teamLeadershipBrowserAuthority
-        run: npx vitest run tests/unit/app/teamLeadershipBrowserAuthority.test.ts
-      - name: Verify app - tournamentBrowserAuthority
-        run: npx vitest run tests/unit/app/tournamentBrowserAuthority.test.ts
-      - name: Verify app - useGameSession
-        run: npx vitest run tests/unit/app/useGameSession.test.tsx
+      - name: Verify ui - app
+        run: npx vitest run tests/unit/app
       - name: Verify ui - features auth
         run: npx vitest run tests/unit/features/auth
-      - name: Verify ui - features dashboard
-        run: npx vitest run tests/unit/features/dashboard
-      - name: Verify ui - features events
-        run: npx vitest run tests/unit/features/events
+      - name: Verify ui - features calendar
+        run: npx vitest run tests/unit/features/calendar
+      - name: Verify ui - features home
+        run: npx vitest run tests/unit/features/home
       - name: Verify ui - features match
         run: npx vitest run tests/unit/features/match
       - name: Verify ui - features more
         run: npx vitest run tests/unit/features/more
+      - name: Verify ui - features onboarding
+        run: npx vitest run tests/unit/features/onboarding
       - name: Verify ui - features pvp
         run: npx vitest run tests/unit/features/pvp
       - name: Verify ui - features school
         run: npx vitest run tests/unit/features/school
-      - name: Verify ui - features settings
-        run: npx vitest run tests/unit/features/settings
+      - name: Verify ui - features scouting
+        run: npx vitest run tests/unit/features/scouting
       - name: Verify ui - features shop
         run: npx vitest run tests/unit/features/shop
       - name: Verify ui - features team
@@ -183,5 +143,3 @@ jobs:
           git add -A
           git commit -m "feat: finish Phase 12 game loop polish"
           git push origin HEAD:feature/phase12-game-loop-polish
-
-# retry after status assertion fix
