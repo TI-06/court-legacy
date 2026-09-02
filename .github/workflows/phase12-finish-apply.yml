@@ -99,12 +99,23 @@ jobs:
             tests/unit/services \
             tests/unit/scripts
       - name: Verify unit tests - app features and ui
+        shell: bash
         run: |
+          set +e
+          set -o pipefail
           npx vitest run \
             tests/unit/App.test.tsx \
             tests/unit/app \
             tests/unit/features \
-            tests/unit/ui
+            tests/unit/ui 2>&1 | tee /tmp/phase12-features-ui.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "===== concise failure diagnostics ====="
+            grep -nE 'FAIL|AssertionError|TestingLibraryElementError|expected|received|tests/unit/(App|app|features|ui)' /tmp/phase12-features-ui.log | tail -n 240 || true
+            echo "===== end diagnostics ====="
+          fi
+          exit "$status"
       - name: Verify unit tests - worker
         run: npx vitest run tests/unit/worker
       - name: Verify production build
