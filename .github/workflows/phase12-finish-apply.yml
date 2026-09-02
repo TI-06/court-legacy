@@ -112,17 +112,18 @@ jobs:
           done
 
           for file in "${targets[@]}"; do
-            echo "===== RUN $file ====="
             set +e
             npx vitest run "$file" > /tmp/phase12-single-ui.log 2>&1
             status=$?
             set -e
             if [ "$status" -ne 0 ]; then
-              echo "===== FIRST FAILING FILE: $file ====="
-              cat /tmp/phase12-single-ui.log
+              echo "FIRST_FAILING_UI_TEST=$file"
+              echo "---- condensed failure ----"
+              grep -E "FAIL|AssertionError|TestingLibraryElementError|expected|received|Unable to find|Found multiple" /tmp/phase12-single-ui.log | tail -n 60 || true
+              echo "---- final lines ----"
+              tail -n 40 /tmp/phase12-single-ui.log
               exit "$status"
             fi
-            echo "PASS $file"
           done
       - name: Verify unit tests - worker
         run: npx vitest run tests/unit/worker
