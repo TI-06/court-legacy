@@ -149,3 +149,5 @@ jobs:
           git add -A
           git commit -m "feat: finish Phase 12 game loop polish"
           git push origin HEAD:feature/phase12-game-loop-polish
+
+# rerun after school flow fix
