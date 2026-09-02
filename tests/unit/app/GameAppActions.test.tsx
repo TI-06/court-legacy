@@ -133,7 +133,7 @@ describe("GameApp cloud actions", () => {
       revision: 1,
       action: { type: "set-training-plan" },
     });
-    expect(screen.getByRole("status")).toHaveTextContent("保存中…");
+    expect(screen.getByText("保存中…")).toBeVisible();
     expect(
       screen.queryByRole("heading", { name: "直近の練習結果" }),
     ).not.toBeInTheDocument();
