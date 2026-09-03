@@ -45,11 +45,11 @@ function createTrainingPlan(snapshot: CloudGameSnapshot): WeeklyPlan {
     individualAssignments: [
       {
         playerId: school.playerIds[0]!,
-        instructionId: "instruction.serve",
+        instructionId: "instruction.attack",
       },
       {
         playerId: school.playerIds[1]!,
-        instructionId: "instruction.receive",
+        instructionId: "instruction.defense",
       },
     ],
   };
