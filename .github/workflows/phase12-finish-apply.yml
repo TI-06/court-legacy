@@ -156,4 +156,4 @@ jobs:
           git commit -m "feat: finish Phase 12 game loop polish"
           git push origin HEAD:feature/phase12-game-loop-polish
 
-# rerun after Phase 12 training flow migration
+# rerun after Phase 12 common UI navigation alignment
