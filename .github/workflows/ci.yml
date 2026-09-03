@@ -24,6 +24,7 @@ jobs:
       - name: Apply Phase 12 E2E alignment
         run: |
           python scripts/phase12-e2e-align.py
+          python scripts/phase12-e2e-align-fix2.py
           python scripts/phase12-e2e-final-fix.py
       - name: Format changed code
         run: npm run format
@@ -45,7 +46,7 @@ jobs:
       - name: Commit verified alignment and restore CI
         run: |
           git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
-          rm -f scripts/phase12-e2e-align.py scripts/phase12-e2e-final-fix.py .github/workflows/phase12-e2e-align.yml
+          rm -f scripts/phase12-e2e-align.py scripts/phase12-e2e-align-fix2.py scripts/phase12-e2e-final-fix.py .github/workflows/phase12-e2e-align.yml
           git config user.name "github-actions[bot]"
           git config user.email "418982982+github-actions[bot]@users.noreply.github.com"
           git add -A
