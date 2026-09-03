@@ -11,7 +11,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   RotationSlot,
@@ -46,6 +46,15 @@ interface TeamScreenProps {
 
 type PickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
+
+const ROTATION_ROLES: Record<RotationSlot, Position> = {
+  1: "S",
+  2: "MB",
+  3: "MB",
+  4: "OH",
+  5: "OH",
+  6: "OP",
+};
 
 function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
@@ -92,7 +101,7 @@ function replacementText(
 ): string {
   const outgoing = players[replacement.playerId];
   const incoming = players[replacement.replacementPlayerId];
-  const reason = replacement.reason === "injury" ? "怪我" : "重度疲労";
+  const reason = replacement.reason === "injury" ? "怪我" : "状態";
 
   return `${outgoing ? playerName(outgoing) : replacement.playerId}を${reason}のためベンチへ変更し、${incoming ? playerName(incoming) : replacement.replacementPlayerId}を起用しました。`;
 }
@@ -298,6 +307,12 @@ export function TeamScreen({
   const currentPickerPlayer = currentPickerPlayerId
     ? playerById[currentPickerPlayerId]
     : null;
+  const currentPickerRole: Position | null =
+    pickerTarget?.type === "rotation"
+      ? ROTATION_ROLES[pickerTarget.slot]
+      : pickerTarget?.type === "libero"
+        ? "L"
+        : null;
 
   const choosePickerPlayer = (playerId: PlayerId) => {
     if (pickerTarget?.type === "rotation") {
@@ -309,10 +324,10 @@ export function TeamScreen({
 
   const pickerTitle =
     pickerTarget?.type === "rotation"
-      ? `ローテーション${pickerTarget.slot}の選手を選択`
+      ? `ローテーション${pickerTarget.slot}を入れ替え`
       : pickerTarget?.type === "libero"
-        ? "リベロの選手を選択"
-        : "選手を選択";
+        ? "リベロを入れ替え"
+        : "選手を入れ替え";
 
   return (
     <DndContext
@@ -402,12 +417,19 @@ export function TeamScreen({
                       type="button"
                     >
                       <span className="court-player-button__top">
-                        <b>{assignment.slot}</b>
+                        <b>{ROTATION_ROLES[assignment.slot]}</b>
+                        <small>R{assignment.slot}</small>
                         {locked ? <small>固定</small> : null}
                       </span>
                       <strong>{player.lastName}</strong>
                       <span>
-                        {player.preferredPosition}・総合{playerOverall(player)}
+                        本職 {player.preferredPosition}・適性
+                        {
+                          player.positionAptitudes[
+                            ROTATION_ROLES[assignment.slot]
+                          ]
+                        }
+                        ・総合{playerOverall(player)}
                       </span>
                     </button>
                   </LineupDragSurface>
@@ -524,21 +546,6 @@ export function TeamScreen({
             </label>
             <label>
               <span>
-                <strong>重度疲労時はベンチを許可</strong>
-                <small>疲労85以上を安全交代の対象にします。</small>
-              </span>
-              <input
-                aria-label="重度疲労時はベンチを許可"
-                checked={selection.substitutionPolicy.allowFatigueBenching}
-                disabled={pending}
-                onChange={(event) =>
-                  updatePolicy("allowFatigueBenching", event.target.checked)
-                }
-                type="checkbox"
-              />
-            </label>
-            <label>
-              <span>
                 <strong>試合中の自動交代</strong>
                 <small>試合中に状態を見て安全交代します。</small>
               </span>
@@ -619,6 +626,24 @@ export function TeamScreen({
           open={pickerTarget !== null}
           title={pickerTitle}
         >
+          {currentPickerPlayer && pickerTarget ? (
+            <div className="slot-editor-context">
+              <div>
+                <span>変更する枠</span>
+                <strong>
+                  {pickerTarget.type === "rotation"
+                    ? `ローテーション${pickerTarget.slot}`
+                    : "リベロ"}
+                </strong>
+                {currentPickerRole ? <b>{currentPickerRole}</b> : null}
+              </div>
+              <p>
+                現在：{playerName(currentPickerPlayer)}・
+                {currentPickerPlayer.preferredPosition}・総合
+                {playerOverall(currentPickerPlayer)}
+              </p>
+            </div>
+          ) : null}
           {currentPickerPlayer ? (
             <button
               aria-label={`先発固定 ${playerName(currentPickerPlayer)}`}
@@ -647,10 +672,12 @@ export function TeamScreen({
                   school={school}
                   actionLabel={
                     isCurrent
-                      ? "選択中"
+                      ? "現在"
                       : isActiveElsewhere
-                        ? "コート使用中"
-                        : "入れ替える"
+                        ? "使用中"
+                        : currentPickerRole
+                          ? `${currentPickerRole}適性${player.positionAptitudes[currentPickerRole]}・入替`
+                          : "入替"
                   }
                   disabled={pending || isCurrent || isActiveElsewhere}
                   key={player.id}

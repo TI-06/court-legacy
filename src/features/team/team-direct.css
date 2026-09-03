@@ -174,8 +174,9 @@
 
 .court-player-button__top b {
   display: grid;
-  width: 18px;
-  height: 18px;
+  min-width: 28px;
+  height: 20px;
+  padding: 0 5px;
   color: #fff;
   font-size: 12px;
   background: #286f7c;
@@ -398,4 +399,46 @@
     margin-inline: -8px;
     padding-inline: 8px;
   }
+}
+
+.slot-editor-context {
+  display: grid;
+  margin-bottom: 9px;
+  padding: 10px 11px;
+  gap: 5px;
+  background: #eaf3f5;
+  border: 1px solid #cfe0e4;
+  border-radius: 12px;
+}
+
+.slot-editor-context > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.slot-editor-context span {
+  color: #6a7c84;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.slot-editor-context strong {
+  color: #173f4a;
+  font-size: 14px;
+}
+
+.slot-editor-context b {
+  padding: 3px 7px;
+  color: #fff;
+  font-size: 12px;
+  background: #286f7c;
+  border-radius: 7px;
+}
+
+.slot-editor-context p {
+  margin: 0;
+  color: #4e6570;
+  font-size: 12px;
+  line-height: 1.4;
 }

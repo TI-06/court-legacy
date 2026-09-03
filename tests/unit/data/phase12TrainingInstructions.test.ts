@@ -13,12 +13,13 @@ describe("Phase 12 individual training instructions", () => {
       { id: "instruction.fitness", name: "体力" },
       { id: "instruction.rest", name: "休養" },
     ]);
-    expect(individualTrainingInstructions.every((item) => item.fatigue === 0)).toBe(
-      true,
-    );
     expect(
-      individualTrainingInstructions.find((item) => item.id === "instruction.rest")
-        ?.tags,
+      individualTrainingInstructions.every((item) => item.fatigue === 0),
+    ).toBe(true);
+    expect(
+      individualTrainingInstructions.find(
+        (item) => item.id === "instruction.rest",
+      )?.tags,
     ).toContain("rest");
   });
 });

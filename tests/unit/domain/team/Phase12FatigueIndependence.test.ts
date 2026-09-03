@@ -41,6 +41,10 @@ describe("Phase 12 fatigue-independent team selection", () => {
     });
 
     expect(result.replacements).toEqual([]);
-    expect(result.selection.rotation.some((item) => item.playerId === lockedPlayerId)).toBe(true);
+    expect(
+      result.selection.rotation.some(
+        (item) => item.playerId === lockedPlayerId,
+      ),
+    ).toBe(true);
   });
 });

@@ -1,1 +1,16 @@
-import { describe,expect,it } from "vitest";import { APP_NAVIGATION } from "../../../../src/ui/shell/appNavigation";describe("Phase 12 navigation",()=>{it("uses the five approved game tabs",()=>{expect(APP_NAVIGATION.map((item)=>item.label)).toEqual(["ホーム","選手","学校","試合","その他"]);expect(APP_NAVIGATION.some((item)=>String(item.label)==="育成")).toBe(false);});});
+import { describe, expect, it } from "vitest";
+import { APP_NAVIGATION } from "../../../../src/ui/shell/appNavigation";
+describe("Phase 12 navigation", () => {
+  it("uses the five approved game tabs", () => {
+    expect(APP_NAVIGATION.map((item) => item.label)).toEqual([
+      "ホーム",
+      "選手",
+      "学校",
+      "試合",
+      "その他",
+    ]);
+    expect(APP_NAVIGATION.some((item) => String(item.label) === "育成")).toBe(
+      false,
+    );
+  });
+});

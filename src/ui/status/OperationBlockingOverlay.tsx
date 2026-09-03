@@ -1,1 +1,29 @@
-import type { OperationState } from "../../app/useGameSession";import "./operation-status.css";export function OperationBlockingOverlay({operation}:{operation:OperationState}){if(operation.status!=="submitting")return null;return <div className="operation-blocking-overlay" data-testid="operation-blocking-overlay"><div aria-busy="true" aria-live="polite" className="operation-blocking-overlay__panel" role="status"><span className="operation-blocking-overlay__spinner" aria-hidden="true"/><strong>{operation.label}</strong><small>処理が完了するまでお待ちください</small></div></div>;}
+import type { OperationState } from "../../app/useGameSession";
+import "./operation-status.css";
+export function OperationBlockingOverlay({
+  operation,
+}: {
+  operation: OperationState;
+}) {
+  if (operation.status !== "submitting") return null;
+  return (
+    <div
+      className="operation-blocking-overlay"
+      data-testid="operation-blocking-overlay"
+    >
+      <div
+        aria-busy="true"
+        aria-live="polite"
+        className="operation-blocking-overlay__panel"
+        role="status"
+      >
+        <span
+          className="operation-blocking-overlay__spinner"
+          aria-hidden="true"
+        />
+        <strong>{operation.label}</strong>
+        <small>処理が完了するまでお待ちください</small>
+      </div>
+    </div>
+  );
+}

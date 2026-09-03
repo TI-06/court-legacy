@@ -28,7 +28,9 @@ describe("Phase 12 lineup clarity", () => {
     expect(within(dialog).getByText("変更する枠")).toBeVisible();
     expect(within(dialog).getByText("ローテーション1")).toBeVisible();
     expect(within(dialog).getByText(/現在：/)).toBeVisible();
-    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(12);
+    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
+      12,
+    );
   });
 
   it("does not expose fatigue-driven benching controls", async () => {

@@ -21,7 +21,9 @@ describe("Phase 12 compact school management", () => {
     const first = FACILITY_DEFINITIONS[0]!;
     expect(screen.queryByText(first.description)).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: first.name + "の詳細" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: first.name + "の詳細" }),
+    );
     const dialog = screen.getByRole("dialog", { name: "設備を強化" });
     expect(within(dialog).getByText(first.description)).toBeVisible();
     expect(within(dialog).getByText(/Lv\./)).toBeVisible();

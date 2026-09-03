@@ -1,1 +1,44 @@
-import "./more.css";interface MoreScreenProps{accountLabel:string;onOpenShop:()=>void;onSignOut:()=>void;}export function MoreScreen({accountLabel,onOpenShop,onSignOut}:MoreScreenProps){return <main className="app-content more-screen"><section className="more-screen__heading"><p className="section-kicker">管理メニュー</p><h2>その他</h2><p>ショップとアカウント設定をまとめています。</p></section><section className="more-screen__menu" aria-label="その他のメニュー"><button aria-label="ショップ" className="more-screen__item" onClick={onOpenShop} type="button"><span><strong>ショップ</strong><small>アイテムを確認</small></span><span aria-hidden="true">›</span></button></section><section className="more-screen__account" aria-label="アカウント"><div><span>ログイン中</span><strong>{accountLabel}</strong></div><button onClick={onSignOut} type="button">ログアウト</button></section></main>}
+import "./more.css";
+interface MoreScreenProps {
+  accountLabel: string;
+  onOpenShop: () => void;
+  onSignOut: () => void;
+}
+export function MoreScreen({
+  accountLabel,
+  onOpenShop,
+  onSignOut,
+}: MoreScreenProps) {
+  return (
+    <main className="app-content more-screen">
+      <section className="more-screen__heading">
+        <p className="section-kicker">管理メニュー</p>
+        <h2>その他</h2>
+        <p>ショップとアカウント設定をまとめています。</p>
+      </section>
+      <section className="more-screen__menu" aria-label="その他のメニュー">
+        <button
+          aria-label="ショップ"
+          className="more-screen__item"
+          onClick={onOpenShop}
+          type="button"
+        >
+          <span>
+            <strong>ショップ</strong>
+            <small>アイテムを確認</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+      </section>
+      <section className="more-screen__account" aria-label="アカウント">
+        <div>
+          <span>ログイン中</span>
+          <strong>{accountLabel}</strong>
+        </div>
+        <button onClick={onSignOut} type="button">
+          ログアウト
+        </button>
+      </section>
+    </main>
+  );
+}

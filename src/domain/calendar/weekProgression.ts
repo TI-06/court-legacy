@@ -14,7 +14,6 @@ export interface AdvanceOneWeekOptions {
   restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
-
 function addDays(value: GameDate, days: number): GameDate {
   const [year, month, day] = value.split("-").map(Number);
   if (!year || !month || !day) {
@@ -69,11 +68,11 @@ function progressInjury(injury: PlayerInjury | null): PlayerInjury | null {
   return remainingWeeks <= 0 ? null : { ...injury, remainingWeeks };
 }
 
-function recoverPlayer(
-  player: Player,
-  _recoveryRoomLevel: number,
-  _isResting: boolean,
-): { player: Player; recovered: boolean; healed: boolean } {
+function recoverPlayer(player: Player): {
+  player: Player;
+  recovered: boolean;
+  healed: boolean;
+} {
   const previousInjury = player.injury;
   const injury = progressInjury(previousInjury);
   return {
@@ -83,16 +82,6 @@ function recoverPlayer(
   };
 }
 
-function recoveryRoomLevelsByPlayer(state: GameState): Map<PlayerId, number> {
-  const levels = new Map<PlayerId, number>();
-  for (const school of Object.values(state.schools)) {
-    for (const playerId of school.playerIds) {
-      levels.set(playerId, school.facilities.recoveryRoom);
-    }
-  }
-  return levels;
-}
-
 export function advanceOneWeek(
   state: GameState,
   options: AdvanceOneWeekOptions = {},
@@ -100,16 +89,14 @@ export function advanceOneWeek(
   const players = { ...state.players };
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
-  const recoveryLevels = recoveryRoomLevelsByPlayer(state);
+  // Kept in the public signature for save/action compatibility; Phase 12 no longer
+  // applies automatic rest or facility-driven fatigue recovery during week advance.
+  void options;
 
   for (const [playerId, player] of Object.entries(state.players) as Array<
     [PlayerId, Player]
   >) {
-    const result = recoverPlayer(
-      player,
-      recoveryLevels.get(playerId) ?? 0,
-      options.restingPlayerIds?.has(playerId) ?? false,
-    );
+    const result = recoverPlayer(player);
     players[playerId] = result.player;
     if (result.recovered) {
       recoveredPlayerIds.push(playerId);

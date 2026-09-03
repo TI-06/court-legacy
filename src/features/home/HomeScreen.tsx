@@ -71,7 +71,9 @@ const cohesionTrendLabels: Record<CohesionTrend, string> = {
 
 function average(values: readonly number[]): number {
   if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  return Math.round(
+    values.reduce((sum, value) => sum + value, 0) / values.length,
+  );
 }
 
 function shortDate(value: string): string {
@@ -117,7 +119,9 @@ export function HomeScreen({
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
   const nextOfficial = selectNextOfficialEvent(state);
-  const homeNotifications = selectHomeTrainingNotifications(state.notifications);
+  const homeNotifications = selectHomeTrainingNotifications(
+    state.notifications,
+  );
   const scheduledPracticeOpponentId =
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   const scheduledPracticeOpponent = scheduledPracticeOpponentId
@@ -137,11 +141,16 @@ export function HomeScreen({
 
   const openNotification = (notification: TrainingResultNotification) => {
     setSelectedNotification(notification);
-    if (notification.readAtGameDate === null) void onMarkNotificationRead(notification.id);
+    if (notification.readAtGameDate === null)
+      void onMarkNotificationRead(notification.id);
   };
 
   return (
-    <main className="app-content home-screen" data-testid="home-screen" aria-label="ホーム">
+    <main
+      className="app-content home-screen"
+      data-testid="home-screen"
+      aria-label="ホーム"
+    >
       <section className="home-week-card" aria-labelledby="home-week-heading">
         <div className="home-week-card__heading">
           <div>
@@ -156,7 +165,9 @@ export function HomeScreen({
         <div className="home-week-card__match">
           <div className="home-week-card__opponent">
             <span>練習試合</span>
-            <strong title={displayedOpponent.name}>{displayedOpponent.shortName}</strong>
+            <strong title={displayedOpponent.name}>
+              {displayedOpponent.shortName}
+            </strong>
           </div>
           <div className="home-week-card__strength">
             <span>自校戦力</span>
@@ -174,19 +185,32 @@ export function HomeScreen({
         </div>
 
         {incomingOffer && incomingSchool && !scheduledPracticeOpponentId ? (
-          <section className="home-practice-offer" aria-label="練習試合の申し込み">
+          <section
+            className="home-practice-offer"
+            aria-label="練習試合の申し込み"
+          >
             <div>
               <span>練習試合の申し込み</span>
               <strong>{incomingSchool.shortName}</strong>
               <small>
-                成長 {incomingOffer.growthRating}/5 ・ 負荷 {incomingOffer.loadRating}/5
+                成長 {incomingOffer.growthRating}/5 ・ 負荷{" "}
+                {incomingOffer.loadRating}/5
               </small>
             </div>
             <div>
-              <button disabled={operationPending} onClick={onDeclinePracticeOffer} type="button">
+              <button
+                disabled={operationPending}
+                onClick={onDeclinePracticeOffer}
+                type="button"
+              >
                 断る
               </button>
-              <button className="is-primary" disabled={operationPending} onClick={onAcceptPracticeOffer} type="button">
+              <button
+                className="is-primary"
+                disabled={operationPending}
+                onClick={onAcceptPracticeOffer}
+                type="button"
+              >
                 受ける
               </button>
             </div>
@@ -194,20 +218,37 @@ export function HomeScreen({
         ) : null}
 
         <div className="home-week-card__actions" aria-label="今週の操作">
-          <button aria-label="選手を確認" onClick={onOpenTeam} type="button">選手</button>
-          <button aria-label="学校を確認" onClick={onOpenSchool} type="button">学校</button>
-          <button aria-label="練習試合へ" disabled={practiceMatchCompleted} onClick={onOpenMatch} type="button">
+          <button aria-label="選手を確認" onClick={onOpenTeam} type="button">
+            選手
+          </button>
+          <button aria-label="学校を確認" onClick={onOpenSchool} type="button">
+            学校
+          </button>
+          <button
+            aria-label="練習試合へ"
+            disabled={practiceMatchCompleted}
+            onClick={onOpenMatch}
+            type="button"
+          >
             試合
           </button>
         </div>
 
-        <button aria-label="次の週へ進む" className="home-next-week-button" onClick={onAdvanceWeek} type="button">
+        <button
+          aria-label="次の週へ進む"
+          className="home-next-week-button"
+          onClick={onAdvanceWeek}
+          type="button"
+        >
           次の週へ進む
         </button>
       </section>
 
       {homeNotifications.length > 0 ? (
-        <section className="home-notification-list" aria-label="練習結果のお知らせ">
+        <section
+          className="home-notification-list"
+          aria-label="練習結果のお知らせ"
+        >
           {homeNotifications.map((notification) => {
             const unread = notification.readAtGameDate === null;
             return (
@@ -220,7 +261,9 @@ export function HomeScreen({
               >
                 <span className="home-notification-row__content">
                   <span className="home-notification-row__headline">
-                    <span className={`home-notification-row__badge${unread ? "" : " is-read"}`}>
+                    <span
+                      className={`home-notification-row__badge${unread ? "" : " is-read"}`}
+                    >
                       {unread ? "NEW" : "確認済み"}
                     </span>
                     <strong>今週の練習結果</strong>
@@ -228,18 +271,28 @@ export function HomeScreen({
                   <span className="home-notification-row__summary">
                     <strong>{notification.payload.teamTrainingMenuName}</strong>
                     <small>
-                      成長 {signed(notification.payload.totalAbilityGrowth)}・怪我 {notification.payload.injuredCount}人
+                      成長 {signed(notification.payload.totalAbilityGrowth)}
+                      ・怪我 {notification.payload.injuredCount}人
                     </small>
                   </span>
                 </span>
-                <span className="home-notification-row__chevron" aria-hidden="true">›</span>
+                <span
+                  className="home-notification-row__chevron"
+                  aria-hidden="true"
+                >
+                  ›
+                </span>
               </button>
             );
           })}
         </section>
       ) : null}
 
-      <section className="home-team-status" data-testid="home-team-status" aria-label="チーム状況">
+      <section
+        className="home-team-status"
+        data-testid="home-team-status"
+        aria-label="チーム状況"
+      >
         <article>
           <span>評判</span>
           <strong>{school.reputationPoints}</strong>
@@ -253,7 +306,9 @@ export function HomeScreen({
         <article>
           <span>部員</span>
           <strong>{players.length}</strong>
-          <small>{injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}</small>
+          <small>
+            {injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}
+          </small>
         </article>
         <article>
           <span>結束</span>
@@ -271,7 +326,8 @@ export function HomeScreen({
             <div>
               <span className="home-label">公式戦</span>
               <h2 id="home-official-heading">
-                {circuitLabels[nextOfficial.circuit]} {levelLabels[nextOfficial.level]}
+                {circuitLabels[nextOfficial.circuit]}{" "}
+                {levelLabels[nextOfficial.level]}
               </h2>
             </div>
             <strong className="home-official-card__timing">
@@ -285,12 +341,19 @@ export function HomeScreen({
               <span>
                 <strong>{roundLabels[nextOfficial.round]}</strong>
                 <span>vs</span>
-                <b title={nextOfficial.opponent.displayName}>{nextOfficial.opponent.shortName}</b>
+                <b title={nextOfficial.opponent.displayName}>
+                  {nextOfficial.opponent.shortName}
+                </b>
               </span>
             ) : (
-              <span><strong>{nextOfficial.scheduledWeek}週目</strong><span>開幕</span></span>
+              <span>
+                <strong>{nextOfficial.scheduledWeek}週目</strong>
+                <span>開幕</span>
+              </span>
             )}
-            <button onClick={onOpenOfficialTournament} type="button">大会表を見る</button>
+            <button onClick={onOpenOfficialTournament} type="button">
+              大会表を見る
+            </button>
           </div>
         </section>
       ) : null}
@@ -301,7 +364,9 @@ export function HomeScreen({
             <div>
               <span className="home-recent-status__tag">最近</span>
               <strong>
-                {latestWinner.shortName}勝利&nbsp;{latestMatch.match.homeSetsWon} - {latestMatch.match.awaySetsWon}
+                {latestWinner.shortName}勝利&nbsp;
+                {latestMatch.match.homeSetsWon} -{" "}
+                {latestMatch.match.awaySetsWon}
               </strong>
             </div>
           ) : null}

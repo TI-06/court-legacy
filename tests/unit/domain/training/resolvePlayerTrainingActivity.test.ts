@@ -1,1 +1,68 @@
-import { describe, expect, it } from "vitest";import { gameDataBootstrap } from "../../../../src/data/gameData";import { createDemoGame } from "../../../../src/app/createDemoGame";import { SeededRandom } from "../../../../src/domain/random/SeededRandom";import { resolvePlayerTrainingActivity } from "../../../../src/domain/training/resolveWeeklyTraining";if(!gameDataBootstrap.ok)throw new Error(gameDataBootstrap.message);const data=gameDataBootstrap.data;describe("resolvePlayerTrainingActivity",()=>{it("grows abilities without changing legacy fatigue",()=>{const state=createDemoGame(),school=state.schools[state.userSchoolId]!,id=school.playerIds[0]!,player={...structuredClone(state.players[id]!),fatigue:77,injury:null},before=structuredClone(player);const r=resolvePlayerTrainingActivity({player,school,data,random:new SeededRandom("single-phase12"),activity:{targetAbilities:["spike","jump"],baseGrowth:8,fatigue:9,injuryRisk:0,trustGrowth:3}});expect(r.player.abilities.spike).toBeGreaterThanOrEqual(before.abilities.spike);expect(r.player.fatigue).toBe(77);expect(r.log.fatigueChange).toBe(0);expect(player).toEqual(before);});it("skips injured players",()=>{const state=createDemoGame(),school=state.schools[state.userSchoolId]!,id=school.playerIds[0]!,player={...structuredClone(state.players[id]!),injury:{injuryId:"injury.ankle",severity:"moderate" as const,remainingWeeks:2,recurrenceRisk:20}};const r=resolvePlayerTrainingActivity({player,school,data,random:new SeededRandom("injured"),activity:{targetAbilities:["receive"],baseGrowth:8,fatigue:6,injuryRisk:4,trustGrowth:3}});expect(r.player).toEqual(player);expect(r.log.skippedReason).toBe("injured");});});
+import { describe, expect, it } from "vitest";
+import { gameDataBootstrap } from "../../../../src/data/gameData";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
+import { resolvePlayerTrainingActivity } from "../../../../src/domain/training/resolveWeeklyTraining";
+if (!gameDataBootstrap.ok) throw new Error(gameDataBootstrap.message);
+const data = gameDataBootstrap.data;
+describe("resolvePlayerTrainingActivity", () => {
+  it("grows abilities without changing legacy fatigue", () => {
+    const state = createDemoGame(),
+      school = state.schools[state.userSchoolId]!,
+      id = school.playerIds[0]!,
+      player = {
+        ...structuredClone(state.players[id]!),
+        fatigue: 77,
+        injury: null,
+      },
+      before = structuredClone(player);
+    const r = resolvePlayerTrainingActivity({
+      player,
+      school,
+      data,
+      random: new SeededRandom("single-phase12"),
+      activity: {
+        targetAbilities: ["spike", "jump"],
+        baseGrowth: 8,
+        fatigue: 9,
+        injuryRisk: 0,
+        trustGrowth: 3,
+      },
+    });
+    expect(r.player.abilities.spike).toBeGreaterThanOrEqual(
+      before.abilities.spike,
+    );
+    expect(r.player.fatigue).toBe(77);
+    expect(r.log.fatigueChange).toBe(0);
+    expect(player).toEqual(before);
+  });
+  it("skips injured players", () => {
+    const state = createDemoGame(),
+      school = state.schools[state.userSchoolId]!,
+      id = school.playerIds[0]!,
+      player = {
+        ...structuredClone(state.players[id]!),
+        injury: {
+          injuryId: "injury.ankle",
+          severity: "moderate" as const,
+          remainingWeeks: 2,
+          recurrenceRisk: 20,
+        },
+      };
+    const r = resolvePlayerTrainingActivity({
+      player,
+      school,
+      data,
+      random: new SeededRandom("injured"),
+      activity: {
+        targetAbilities: ["receive"],
+        baseGrowth: 8,
+        fatigue: 6,
+        injuryRisk: 4,
+        trustGrowth: 3,
+      },
+    });
+    expect(r.player).toEqual(player);
+    expect(r.log.skippedReason).toBe("injured");
+  });
+});

@@ -132,7 +132,7 @@ describe("autoSelectTeam", () => {
     );
   });
 
-  it("excludes injured players and severely fatigued players by default", () => {
+  it("excludes injured players while ignoring legacy fatigue", () => {
     const { state, school } = prepareRoleRoster();
     const injuredId = school.playerIds[0]!;
     const exhaustedId = school.playerIds[1]!;
@@ -157,7 +157,7 @@ describe("autoSelectTeam", () => {
     ]);
 
     expect(activeIds.has(injuredId)).toBe(false);
-    expect(activeIds.has(exhaustedId)).toBe(false);
+    expect(activeIds.has(exhaustedId)).toBe(true);
   });
 
   it("throws when fewer than seven eligible players remain", () => {
@@ -271,49 +271,34 @@ describe("resolveLockedStarters", () => {
     ).toBe(true);
   });
 
-  it("benches a severely fatigued locked starter only when enabled", () => {
+  it("keeps a fatigued locked starter regardless of the legacy fatigue policy", () => {
     const { state, school } = prepareRoleRoster();
     const base = autoSelectTeam({ state, schoolId: school.id });
     const lockedId = base.rotation[0]!.playerId;
     state.players[lockedId] = {
       ...state.players[lockedId]!,
-      fatigue: 90,
+      fatigue: 100,
     };
 
-    const enabled = resolveLockedStarters({
-      state,
-      schoolId: school.id,
-      selection: {
-        ...base,
-        substitutionPolicy: {
-          ...base.substitutionPolicy,
-          starterLockPlayerIds: [lockedId],
-          allowFatigueBenching: true,
+    for (const allowFatigueBenching of [true, false]) {
+      const result = resolveLockedStarters({
+        state,
+        schoolId: school.id,
+        selection: {
+          ...base,
+          substitutionPolicy: {
+            ...base.substitutionPolicy,
+            starterLockPlayerIds: [lockedId],
+            allowFatigueBenching,
+          },
         },
-      },
-    });
-    const disabled = resolveLockedStarters({
-      state,
-      schoolId: school.id,
-      selection: {
-        ...base,
-        substitutionPolicy: {
-          ...base.substitutionPolicy,
-          starterLockPlayerIds: [lockedId],
-          allowFatigueBenching: false,
-        },
-      },
-    });
+      });
 
-    expect(
-      enabled.selection.rotation.some((item) => item.playerId === lockedId),
-    ).toBe(false);
-    expect(enabled.replacements).toContainEqual(
-      expect.objectContaining({ playerId: lockedId, reason: "fatigue" }),
-    );
-    expect(
-      disabled.selection.rotation.some((item) => item.playerId === lockedId),
-    ).toBe(true);
+      expect(
+        result.selection.rotation.some((item) => item.playerId === lockedId),
+      ).toBe(true);
+      expect(result.replacements).toEqual([]);
+    }
   });
 
   it("benches an injured locked libero when injury exceptions are enabled", () => {

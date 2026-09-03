@@ -240,9 +240,9 @@ describe("calculateGrowth", () => {
     });
 
     expect(fatigued.amount).toBe(baseline.amount);
-    expect(fatigued.modifiers.some((modifier) => modifier.code === "fatigue")).toBe(
-      false,
-    );
+    expect(
+      fatigued.modifiers.some((modifier) => modifier.code === "fatigue"),
+    ).toBe(false);
     expect(restricted.amount).toBeLessThan(baseline.amount);
     expect(restricted.academicRestricted).toBe(true);
   });

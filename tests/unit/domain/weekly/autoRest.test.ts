@@ -24,12 +24,12 @@ describe("automatic weekly rest", () => {
 
     const decisions = selectAutomaticRest(state, state.userSchoolId);
 
-    expect(decisions.some((decision) => decision.playerId === highFatigueId)).toBe(
-      false,
-    );
-    expect(decisions.some((decision) => decision.playerId === poorConditionId)).toBe(
-      false,
-    );
+    expect(
+      decisions.some((decision) => decision.playerId === highFatigueId),
+    ).toBe(false);
+    expect(
+      decisions.some((decision) => decision.playerId === poorConditionId),
+    ).toBe(false);
   });
 
   it("forces injured players to rest even when legacy fatigue and condition vary", () => {
@@ -76,8 +76,8 @@ describe("automatic weekly rest", () => {
     expect(decisions.slice(0, 3).map((decision) => decision.playerId)).toEqual(
       roster.slice(0, 3),
     );
-    expect(decisions.slice(0, 3).every((decision) => decision.reason === "injury")).toBe(
-      true,
-    );
+    expect(
+      decisions.slice(0, 3).every((decision) => decision.reason === "injury"),
+    ).toBe(true);
   });
 });

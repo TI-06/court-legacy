@@ -30,6 +30,7 @@
 ### Task 1: Centralize five-stage condition presentation and match modifiers
 
 **Files:**
+
 - Create: `src/domain/player/playerCondition.ts`
 - Modify: `src/domain/selectors/playerPresentation.ts`
 - Modify: `src/domain/match/simulateMatch.ts`
@@ -37,6 +38,7 @@
 - Test: `tests/unit/domain/match/simulateMatch.test.ts`
 
 **Interfaces:**
+
 - Produces: `type PlayerConditionLevel = "excellent" | "good" | "normal" | "poor" | "terrible"`.
 - Produces: `getPlayerConditionPresentation(condition: number): { level; label; icon; colorToken; matchMultiplier }`.
 - Produces: `getConditionMatchMultiplier(condition: number): number` returning `1.08 | 1.04 | 1 | 0.96 | 0.92`.
@@ -79,11 +81,7 @@ Create `src/domain/player/playerCondition.ts` with one clamping function and the
 
 ```ts
 export type PlayerConditionLevel =
-  | "excellent"
-  | "good"
-  | "normal"
-  | "poor"
-  | "terrible";
+  "excellent" | "good" | "normal" | "poor" | "terrible";
 
 export interface PlayerConditionPresentation {
   level: PlayerConditionLevel;
@@ -95,7 +93,9 @@ export interface PlayerConditionPresentation {
 
 export function getPlayerConditionPresentation(
   rawCondition: number,
-): PlayerConditionPresentation { /* exact threshold mapping */ }
+): PlayerConditionPresentation {
+  /* exact threshold mapping */
+}
 
 export function getConditionMatchMultiplier(condition: number): number {
   return getPlayerConditionPresentation(condition).matchMultiplier;
@@ -135,6 +135,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/domain/player/playerCondition.ts src/domain/selectors/playerPresentation.ts src/domain/match/simulateMatch.ts tests/unit/domain/selectors/playerPresentation.test.ts tests/unit/domain/match/simulateMatch.test.ts
 git commit -m "feat: make condition drive match readiness"
@@ -145,11 +146,13 @@ git commit -m "feat: make condition drive match readiness"
 ### Task 2: Replace old individual instructions with the six Phase 12 choices
 
 **Files:**
+
 - Modify: `src/data/individualTrainingInstructions.ts`
 - Modify: `src/domain/validation/gameDataSchema.ts`
 - Test: `tests/unit/data/individualTrainingInstructions.test.ts`
 
 **Interfaces:**
+
 - Produces IDs: `instruction.overall`, `instruction.attack`, `instruction.defense`, `instruction.jump`, `instruction.fitness`, `instruction.rest`.
 - The existing `IndividualTrainingInstructionDefinition` remains the data contract; `fatigue` remains present only as compatibility metadata and is set to `0` for all six Phase 12 definitions.
 - `instruction.rest` is identified by the `rest` tag and is handled specially by Task 3.
@@ -159,7 +162,9 @@ git commit -m "feat: make condition drive match readiness"
 Update `tests/unit/data/individualTrainingInstructions.test.ts` to assert:
 
 ```ts
-expect(individualTrainingInstructions.map(({ id, name }) => ({ id, name }))).toEqual([
+expect(
+  individualTrainingInstructions.map(({ id, name }) => ({ id, name })),
+).toEqual([
   { id: "instruction.overall", name: "全体" },
   { id: "instruction.attack", name: "攻撃" },
   { id: "instruction.defense", name: "守備" },
@@ -167,7 +172,9 @@ expect(individualTrainingInstructions.map(({ id, name }) => ({ id, name }))).toE
   { id: "instruction.fitness", name: "体力" },
   { id: "instruction.rest", name: "休養" },
 ]);
-expect(individualTrainingInstructions.every((item) => item.fatigue === 0)).toBe(true);
+expect(individualTrainingInstructions.every((item) => item.fatigue === 0)).toBe(
+  true,
+);
 ```
 
 Also assert `instruction.rest.tags` contains `rest`.
@@ -201,6 +208,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/data/individualTrainingInstructions.ts src/domain/validation/gameDataSchema.ts tests/unit/data/individualTrainingInstructions.test.ts
 git commit -m "feat: add Phase 12 player training choices"
@@ -211,6 +219,7 @@ git commit -m "feat: add Phase 12 player training choices"
 ### Task 3: Make weekly training player-centric, rest-based, and fatigue-independent
 
 **Files:**
+
 - Modify: `src/domain/training/resolveWeeklyTraining.ts`
 - Modify: `src/domain/training/trainingSafety.ts`
 - Modify: `src/domain/weekly/createWeeklySchedule.ts`
@@ -222,6 +231,7 @@ git commit -m "feat: add Phase 12 player training choices"
 - Test: `tests/unit/domain/weekly/autoRest.test.ts`
 
 **Interfaces:**
+
 - `WeeklyPlan` retains `{ teamTrainingMenuId: string; individualAssignments: IndividualTrainingAssignment[] }` for save compatibility.
 - `teamTrainingMenuId` becomes a compatibility field; Phase 12 ability growth is driven by each player's individual instruction.
 - Missing roster assignments resolve as `instruction.overall`.
@@ -243,6 +253,7 @@ const plan: WeeklyPlan = {
 ```
 
 Assert:
+
 - validation accepts assignment counts other than exactly two;
 - player1 gets no ability growth and condition rises by 25 plus only the deterministic weekly fluctuation;
 - unassigned active players resolve with `instruction.overall` growth;
@@ -258,6 +269,7 @@ Expected: FAIL on the exactly-two validation and fatigue-dependent calculations.
 - [ ] **Step 3: Rewrite weekly plan validation and resolver semantics**
 
 In `resolveWeeklyTraining.ts`:
+
 - remove the `length !== 2` guard;
 - reject duplicate player IDs and unknown/non-roster player IDs as today;
 - find the assigned instruction or fall back to `instruction.overall`;
@@ -302,6 +314,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/domain/training/resolveWeeklyTraining.ts src/domain/training/trainingSafety.ts src/domain/weekly/createWeeklySchedule.ts src/domain/weekly/weeklyScheduleTypes.ts src/domain/weekly/autoRest.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts tests/unit/domain/training/phase8AutomaticRestTraining.test.ts tests/unit/domain/training/trainingSafety.test.ts tests/unit/domain/weekly/autoRest.test.ts
 git commit -m "feat: make weekly training player centric"
@@ -312,6 +325,7 @@ git commit -m "feat: make weekly training player centric"
 ### Task 4: Preserve save/action compatibility for roster-size assignments
 
 **Files:**
+
 - Modify: `src/persistence/gameStateCodec.ts`
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
@@ -321,6 +335,7 @@ git commit -m "feat: make weekly training player centric"
 - Test: `tests/unit/worker/applyGameAction.test.ts`
 
 **Interfaces:**
+
 - Persistence accepts legacy two-assignment saves and new zero-to-roster-size assignment arrays.
 - No schema-version bump is required solely for broadening the allowed assignment-array length.
 - `set-training-plan` continues to be the only authoritative mutation used by player training chips.
@@ -375,6 +390,7 @@ git commit -m "fix: support roster size weekly training plans"
 ### Task 5: Put condition and individual training directly on the Player screen and clarify lineup roles
 
 **Files:**
+
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/TeamScreen.tsx`
 - Modify: `src/features/team/player-hub.css`
@@ -384,6 +400,7 @@ git commit -m "fix: support roster size weekly training plans"
 - Test: `tests/unit/features/team/TeamSelectionFlow.test.tsx`
 
 **Interfaces:**
+
 - `PlayerHubScreen` gains `trainingPending: boolean` and `onChangeTraining(playerId: PlayerId, instructionId: string): void`.
 - `GameApp` builds the next `WeeklyPlan` from `gameState.weeklySchedule.trainingPlan`, replacing/adding one player's assignment, and passes it to existing `saveTrainingPlan()`.
 - Training chip text comes from the six catalog entries; unknown legacy IDs render safely as `全体` until explicitly changed.
@@ -392,6 +409,7 @@ git commit -m "fix: support roster size weekly training plans"
 - [ ] **Step 1: Add failing PlayerHub rendering tests**
 
 Assert a roster row shows:
+
 - position abbreviation such as `OH`;
 - colored accessible condition label such as `好調` instead of raw `状態 81`;
 - the active training chip such as `全体`;
@@ -418,11 +436,21 @@ Render each player row with a right-side compact chip (`全体`, `攻撃`, `守�
 Use CSS custom/state classes such as:
 
 ```css
-.player-condition--red { /* token-backed red state */ }
-.player-condition--green { /* token-backed green state */ }
-.player-condition--yellow { /* token-backed yellow state */ }
-.player-condition--blue { /* token-backed blue state */ }
-.player-condition--purple { /* token-backed purple state */ }
+.player-condition--red {
+  /* token-backed red state */
+}
+.player-condition--green {
+  /* token-backed green state */
+}
+.player-condition--yellow {
+  /* token-backed yellow state */
+}
+.player-condition--blue {
+  /* token-backed blue state */
+}
+.player-condition--purple {
+  /* token-backed purple state */
+}
 ```
 
 Keep the current mobile screen width/density; no horizontal scrolling.
@@ -432,7 +460,10 @@ Keep the current mobile screen width/density; no horizontal scrolling.
 Add a helper in `GameApp.tsx`:
 
 ```ts
-const changePlayerTraining = async (playerId: PlayerId, instructionId: string) => {
+const changePlayerTraining = async (
+  playerId: PlayerId,
+  instructionId: string,
+) => {
   const current = gameState.weeklySchedule.trainingPlan;
   const withoutPlayer = current.individualAssignments.filter(
     (assignment) => assignment.playerId !== playerId,
@@ -469,6 +500,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/features/team/PlayerHubScreen.tsx src/features/team/TeamScreen.tsx src/features/team/player-hub.css src/features/team/team-direct.css src/app/GameApp.tsx tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/team/TeamSelectionFlow.test.tsx
 git commit -m "feat: move training controls into player management"
@@ -479,6 +511,7 @@ git commit -m "feat: move training controls into player management"
 ### Task 6: Replace Training navigation with School and move Scouting under School
 
 **Files:**
+
 - Modify: `src/ui/shell/appNavigation.ts`
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/features/school/SchoolScreen.tsx`
@@ -490,6 +523,7 @@ git commit -m "feat: move training controls into player management"
 - Test: `tests/unit/app/GameApp.scouting.test.tsx`
 
 **Interfaces:**
+
 - `AppTab = "home" | "team" | "school" | "match" | "more"`.
 - `SchoolScreen` gains `onOpenScouting(): void`.
 - GameApp uses `scoutingOpen` only while `activeTab === "school"`; ScoutingScreen's existing API/recruitment logic remains unchanged.
@@ -500,7 +534,7 @@ git commit -m "feat: move training controls into player management"
 In `BottomGameNav.test.tsx`, assert the rendered labels equal exactly:
 
 ```ts
-["ホーム", "選手", "学校", "試合", "その他"]
+["ホーム", "選手", "学校", "試合", "その他"];
 ```
 
 and assert no `育成` tab exists.
@@ -535,6 +569,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/ui/shell/appNavigation.ts src/app/GameApp.tsx src/features/school/SchoolScreen.tsx src/features/school/school-screen.css src/features/more/MoreScreen.tsx tests/unit/ui/shell/BottomGameNav.test.tsx tests/unit/features/school/SchoolScreen.test.tsx tests/unit/features/more/MoreScreen.test.tsx tests/unit/app/GameApp.scouting.test.tsx
 git commit -m "feat: make school a primary game tab"
@@ -545,6 +580,7 @@ git commit -m "feat: make school a primary game tab"
 ### Task 7: Surface incoming practice offers on Home
 
 **Files:**
+
 - Modify: `src/features/home/HomeScreen.tsx`
 - Modify: `src/features/home/home.css`
 - Modify: `src/app/GameApp.tsx`
@@ -552,6 +588,7 @@ git commit -m "feat: make school a primary game tab"
 - Test: `tests/unit/app/GameApp.practiceScheduling.test.tsx`
 
 **Interfaces:**
+
 - `HomeScreen` gains `onAcceptPracticeOffer`, `onDeclinePracticeOffer`, and `operationPending` props.
 - It reads `state.weeklySchedule.practiceMatch.incomingOffer` and opponent school data already present in state.
 - The existing worker actions `practice-offer-accept` and `practice-offer-decline` remain unchanged.
@@ -590,6 +627,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/features/home/HomeScreen.tsx src/features/home/home.css src/app/GameApp.tsx tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.practiceScheduling.test.tsx
 git commit -m "feat: handle practice offers from home"
@@ -600,6 +638,7 @@ git commit -m "feat: handle practice offers from home"
 ### Task 8: Add blocking full-screen operation feedback
 
 **Files:**
+
 - Create: `src/ui/status/OperationBlockingOverlay.tsx`
 - Modify: `src/ui/status/operation-status.css`
 - Modify: `src/ui/shell/GamePageFrame.tsx`
@@ -607,6 +646,7 @@ git commit -m "feat: handle practice offers from home"
 - Test: `tests/e2e/v2-operation-feedback.spec.ts`
 
 **Interfaces:**
+
 - `OperationBlockingOverlay` consumes the existing `OperationState` from `useGameSession`.
 - When `operation.status === "submitting"`, it renders `role="status"`, `aria-live="polite"`, `aria-busy="true"`, the operation label, spinner, and a full viewport interaction shield.
 - For idle/success/offline/error it renders `null`; the existing OperationStatusBar continues to own success/error/retry text.
@@ -621,7 +661,9 @@ render(
     operation={{ status: "submitting", label: "練習設定を保存しています…" }}
   />,
 );
-expect(screen.getByRole("status")).toHaveTextContent("練習設定を保存しています…");
+expect(screen.getByRole("status")).toHaveTextContent(
+  "練習設定を保存しています…",
+);
 expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
 ```
 
@@ -649,6 +691,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/ui/status/OperationBlockingOverlay.tsx src/ui/status/operation-status.css src/ui/shell/GamePageFrame.tsx tests/unit/ui/OperationBlockingOverlay.test.tsx tests/e2e/v2-operation-feedback.spec.ts
 git commit -m "feat: block input during game mutations"
@@ -659,6 +702,7 @@ git commit -m "feat: block input during game mutations"
 ### Task 9: Update week-progression notifications/reports for condition-first gameplay
 
 **Files:**
+
 - Modify: `src/domain/calendar/advanceWeek.ts`
 - Modify: `src/domain/notifications/trainingNotifications.ts`
 - Modify: `src/persistence/gameStateCodec.ts`
@@ -667,6 +711,7 @@ git commit -m "feat: block input during game mutations"
 - Test: `tests/unit/worker/phase11WeekProgression.test.ts`
 
 **Interfaces:**
+
 - New weekly results use `fatigueChange: 0` and `totalFatigueChange: 0` only where old persisted notification contracts require those properties.
 - User-facing notification copy must not tell players to manage fatigue.
 - Weekly condition changes reflect rest plus deterministic drift.
@@ -694,6 +739,7 @@ Run:
 Expected: PASS.
 
 Commit:
+
 ```bash
 git add src/domain/calendar/advanceWeek.ts src/domain/notifications/trainingNotifications.ts src/persistence/gameStateCodec.ts tests/unit/domain/weekly/advanceWeek.test.ts tests/unit/domain/notifications/trainingNotifications.test.ts tests/unit/worker/phase11WeekProgression.test.ts
 git commit -m "feat: report condition first weekly results"
@@ -704,6 +750,7 @@ git commit -m "feat: report condition first weekly results"
 ### Task 10: Mobile/E2E regression and final quality gate
 
 **Files:**
+
 - Modify as failures require: `tests/e2e/app-shell.spec.ts`
 - Modify as failures require: `tests/e2e/mobile-layout-audit.spec.ts`
 - Modify as failures require: `tests/e2e/scouting-flow.spec.ts`
@@ -711,6 +758,7 @@ git commit -m "feat: report condition first weekly results"
 - Modify as failures require: feature CSS touched in Tasks 5–8
 
 **Interfaces:**
+
 - No new production interface. This task locks the approved mobile flow and removes stale Training-tab selectors from E2E coverage.
 
 - [ ] **Step 1: Update shell/scouting/home E2E expectations**
@@ -751,6 +799,7 @@ Expected: PASS.
 - [ ] **Step 7: Inspect the final diff for forbidden/stale behavior**
 
 Run:
+
 ```bash
 git diff main...HEAD --check
 git grep -n 'activeTab === "training"\|label: "育成"' -- src || true

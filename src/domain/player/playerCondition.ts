@@ -1,16 +1,8 @@
 export type PlayerConditionLevel =
-  | "excellent"
-  | "good"
-  | "normal"
-  | "poor"
-  | "terrible";
+  "excellent" | "good" | "normal" | "poor" | "terrible";
 
 export type PlayerConditionColorToken =
-  | "red"
-  | "green"
-  | "yellow"
-  | "blue"
-  | "purple";
+  "red" | "green" | "yellow" | "blue" | "purple";
 
 export interface PlayerConditionPresentation {
   level: PlayerConditionLevel;

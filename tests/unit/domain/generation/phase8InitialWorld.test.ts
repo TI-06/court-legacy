@@ -17,7 +17,9 @@ describe("Phase 8 initial world", () => {
     const roster = first.schools[first.userSchoolId]!.playerIds;
     const assignments = first.weeklySchedule.trainingPlan.individualAssignments;
     expect(assignments).toHaveLength(roster.length);
-    expect(assignments.map((assignment) => assignment.playerId)).toEqual(roster);
+    expect(assignments.map((assignment) => assignment.playerId)).toEqual(
+      roster,
+    );
     expect(
       new Set(assignments.map((assignment) => assignment.playerId)).size,
     ).toBe(roster.length);

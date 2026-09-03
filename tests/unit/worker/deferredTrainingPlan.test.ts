@@ -89,8 +89,9 @@ describe("deferred weekly training plan", () => {
       pendingMatchPresentation: null,
     });
 
-    const trainingResult = (advanced.outcome as { trainingResult: TrainingResult })
-      .trainingResult;
+    const trainingResult = (
+      advanced.outcome as { trainingResult: TrainingResult }
+    ).trainingResult;
     const school = saved.state.schools[saved.state.userSchoolId]!;
     expect(trainingResult.individualAssignments).toHaveLength(
       school.playerIds.length,
