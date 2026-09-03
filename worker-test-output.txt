@@ -1,0 +1,328 @@
+
+ RUN  v4.1.10 /home/runner/work/court-legacy/court-legacy
+
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > simulates from authoritative state and commits only a sanitized server result 68ms
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > replays a stored challenge response before loading or simulating anything 19ms
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > rejects operation ids already used by a different PvP command 19ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > rejects client-controlled effect fields before touching authoritative stores 50ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > returns an exact successful replay before reading or re-resolving changed game state 19ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > rejects semantic reuse of an operation id before resolver execution 16ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > resolves a first use from the authoritative snapshot and commits exactly once 16ms
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > rejects stale revisions, missing or inactive opponents, self matches, and forged fields 54ms
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > returns the DB-enforced daily opponent limit without a separate rating write 18ms
+ ✓ tests/unit/worker/pvpChallenge.test.ts > PvP challenge route > uses the canonical atomic-store result when concurrent duplicate requests race 27ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > does not commit when the game is not initialized 17ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps resolver conflict invalid_target without consuming inventory 8ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps resolver conflict target_not_found without consuming inventory 9ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps resolver conflict effect_already_pending without consuming inventory 10ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps resolver conflict scouting_cycle_unavailable without consuming inventory 12ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps store conflict revision_conflict to 409 13ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps store conflict inventory_empty to 409 12ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps store conflict use_limit_reached to 409 9ms
+ ✓ tests/unit/worker/routes/shopUse.test.ts > shop use route > maps store conflict operation_id_reused to 409 12ms
+ × tests/unit/worker/applyGameAction.test.ts > applyGameAction > applies training server-side, marks the weekly action, and does not mutate the snapshot 55ms
+   → unknown individual training instruction: instruction.serve
+ × tests/unit/worker/applyGameAction.test.ts > applyGameAction > applies a pending shop training boost and consumes it only from the successful returned state 23ms
+   → unknown individual training instruction: instruction.serve
+ × tests/unit/worker/applyGameAction.test.ts > applyGameAction > rejects a duplicate weekly training action 16ms
+   → unknown individual training instruction: instruction.serve
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > accepts a valid team selection and rejects an invalid duplicate player 37ms
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > produces the same practice-match result from the same scheduled snapshot 74ms
+ × tests/unit/worker/applyGameAction.test.ts > applyGameAction > resolves the saved training automatically when advancing the week and persists a notification 15ms
+   → unknown individual training instruction: instruction.serve
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > deduplicates a pre-seeded notification when the same week training resolves 15ms
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > marks notifications read and keeps repeated or unknown read actions idempotent 25ms
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > upgrades a legal facility on the authoritative state 10ms
+ ✓ tests/unit/worker/applyGameAction.test.ts > applyGameAction > resolves a pending event choice using server game data 10ms
+ ✓ tests/unit/worker/supabasePvPStore.test.ts > SupabasePvPStore > publishes an append-only snapshot through the atomic RPC 14ms
+ ✓ tests/unit/worker/supabasePvPStore.test.ts > SupabasePvPStore > maps persisted challenge operations without exposing table details 2ms
+ ✓ tests/unit/worker/supabasePvPStore.test.ts > SupabasePvPStore > commits a rated match through one atomic RPC and maps final ratings 2ms
+ ✓ tests/unit/worker/supabasePvPStore.test.ts > SupabasePvPStore > maps sanitized opponent, ranking, and history query DTOs 4ms
+ ✓ tests/unit/worker/supabasePvPStore.test.ts > SupabasePvPStore > throws a dedicated data error for invalid database payloads 2ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > accepts an authoritative incoming offer and reserves the only weekly practice slot 60ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > declines an incoming offer without reserving a practice match 18ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > derives an outgoing acceptance on the server and prevents a second scheduled match 41ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > keeps a rejected request visible and allows the weekly slot to remain empty 20ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > rejects a school that is not one of the server-generated candidates 10ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > blocks incoming and outgoing scheduling while an official match is due 16ms
+ ✓ tests/unit/worker/practiceMatchScheduling.test.ts > practice-match scheduling authority > accepts only the minimal scheduling action contract and rejects client-computed results 3ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > rejects a mismatched target shape 35ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > recovers a current-school player with public before/after only 17ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > adds candidate seven without rerolling six or exposing truth 24ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > researches overall while preserving appraised potential 18ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > appraises potential while preserving overall precision 18ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > runs training camp through normal player-training mechanics 36ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > runs special coach for one player and leaves others unchanged 12ms
+ ✓ tests/unit/worker/shop/resolveShopUse.test.ts > resolveShopUse > activates the exact next-training boost only once 16ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > loads opponents for the authenticated user and current JST season 8ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > clamps query limits to 30 and preserves stable cursor tokens 2ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > loads the current-season ranking without trusting a browser season 1ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > returns the last rank as the ranking cursor for the next page 1ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > drops malformed ranking cursors before they reach the bigint database cursor 1ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > scopes history to the authenticated user and current season 1ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > returns a created-at plus match-id cursor for chronological history paging 2ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > drops malformed history cursors before the database timestamp cast 1ms
+ ✓ tests/unit/worker/pvpQueries.test.ts > PvP public query routes > uses safe defaults for malformed limits 5ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > strictly maps authoritative shop status rows 9ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > uses one purchase RPC and preserves the canonical operation response 2ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > uses one atomic use RPC with only trusted persistence payloads 2ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > reads a canonical shop operation before replay resolution 1ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > returns null when the canonical shop operation does not exist 1ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > maps stable RPC conflict messages to typed shop errors 1ms
+ ✓ tests/unit/worker/data/SupabaseShopStore.test.ts > SupabaseShopStore > rejects malformed mutation rows instead of trusting Supabase payloads 1ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > official match action schema > accepts only the official-match type and rejects client supplied authority fields 4ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > official match action schema > accepts only a notification id when marking a notification read 1ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > rejects official-match when no match is due 44ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > requires weekly training before a due official match 20ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > rejects an invalid current lineup before simulating the official match 14ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > derives the same due opponent and result from the same snapshot without consuming global RNG 63ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > records the authoritative result, advances the bracket, and updates player career stats 17ms
+ ✓ tests/unit/worker/officialMatchAction.test.ts > authoritative official match action > resolves a due official match through week progression before advancing 15ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > serves health without authentication 7ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > rejects protected API requests without a bearer token 1ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > rejects malformed authorization headers without invoking verification 1ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > uses the verified user id for authenticated bootstrap reads 2ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > routes authenticated scouting board requests through the server scouting store 3ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > routes authenticated shop status through the shop store 1ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > routes authenticated shop purchases through the shop store 2ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > recognizes authenticated shop use requests when shop dependencies exist 2ms
+ ✓ tests/unit/worker/router.test.ts > createRouter > returns a structured 404 for an authenticated unknown API route 2ms
+ ✓ tests/unit/worker/scoutingRecruitment.test.ts > scouting recruitment route > commits only the selected candidate id into GameState and persists the next revision 54ms
+ ✓ tests/unit/worker/scoutingRecruitment.test.ts > scouting recruitment route > returns a cached duplicate operation without another scouting or game mutation 49ms
+ ✓ tests/unit/worker/scoutingRecruitment.test.ts > scouting recruitment route > rejects a stale revision before reading hidden candidate truth 10ms
+ ✓ tests/unit/worker/scoutingRecruitment.test.ts > scouting recruitment route > rejects a candidate that is not in the server-side pool 16ms
+ ✓ tests/unit/worker/scoutingRecruitment.test.ts > scouting recruitment route > rejects client-supplied hidden truth fields 20ms
+ ✓ tests/unit/worker/buildPvpSimulationState.test.ts > buildPvpSimulationState > namespaces identical school and player ids from different users 60ms
+ ✓ tests/unit/worker/buildPvpSimulationState.test.ts > buildPvpSimulationState > remaps team selection, career, captain, and opponent tactic player references consistently 32ms
+ ✓ tests/unit/worker/buildPvpSimulationState.test.ts > buildPvpSimulationState > normalizes condition fatigue and injury while preserving developed ability 23ms
+ ✓ tests/unit/worker/pvpPublish.test.ts > PvP publish route > publishes a normalized frozen team and returns only a public summary 39ms
+ ✓ tests/unit/worker/pvpPublish.test.ts > PvP publish route > rejects stale revisions before publishing 6ms
+ ✓ tests/unit/worker/pvpPublish.test.ts > PvP publish route > rejects forged team truth and other extra request fields 11ms
+ ✓ tests/unit/worker/pvpPublish.test.ts > PvP publish route > passes the same operation id to the atomic store for replay safety 8ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > persists a legal action at exactly the next revision 58ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > returns revision_conflict before applying a stale action 17ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > returns the cached notification response for a duplicate operation without another mutation 43ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > scopes operation lookup and save reads to the authenticated user 12ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > maps an atomic persistence race to revision_conflict 13ms
+ ✓ tests/unit/worker/gameAction.test.ts > game action route > rejects a client-computed field that is not part of the action contract 9ms
+ ✓ tests/unit/worker/shopSecurity.test.ts > Phase 5 shop security boundaries > does not define direct PvP win, rating, or instant ability manipulation items 3ms
+ ✓ tests/unit/worker/shopSecurity.test.ts > Phase 5 shop security boundaries > removes temporary shop effects from ranked PvP simulation state 65ms
+ ✓ tests/unit/worker/shopSecurity.test.ts > Phase 5 shop security boundaries > rejects a player outside the current school before any shop commit 8ms
+ ✓ tests/unit/worker/shopSecurity.test.ts > Phase 5 shop security boundaries > rejects a scouting candidate outside the authenticated user's active pool 7ms
+ ✓ tests/unit/worker/shopSecurity.test.ts > Phase 5 shop security boundaries > returns only public scouting precision fields from appraisal 11ms
+ ✓ tests/unit/worker/pvpDynamicsLeakage.test.ts > ranked PvP dynamics isolation > projects frozen and public PvP payloads without team dynamics state 54ms
+ ✓ tests/unit/worker/pvpDynamicsLeakage.test.ts > ranked PvP dynamics isolation > produces the same ranked result for cohesion 0 and 100 with the same seed 63ms
+ ✓ tests/unit/worker/academicYearRecruitment.test.ts > academic-year recruiting integration > resolves committed candidate ids from server truth only when the academic year rolls over 89ms
+ ✓ tests/unit/worker/academicYearRecruitment.test.ts > academic-year recruiting integration > does not read hidden recruiting truth on an ordinary non-rollover week 23ms
+ ✓ tests/unit/worker/academicYearRecruitment.test.ts > academic-year recruiting integration > blocks rollover when a committed id is missing from canonical server truth 20ms
+ ✓ tests/unit/worker/scoutingBoard.test.ts > scouting board route > stores candidate truth server-side and returns only incomplete scout reports 50ms
+ ✓ tests/unit/worker/scoutingBoard.test.ts > scouting board route > reuses the same server-side pool within the same scouting cycle 10ms
+ ✓ tests/unit/worker/scoutingBoard.test.ts > scouting board route > rejects a stale revision before reading or creating a candidate pool 10ms
+ ✓ tests/unit/worker/scoutingBoard.test.ts > scouting board route > rejects client-supplied candidate truth fields 13ms
+ ✓ tests/unit/worker/scouting/serverScoutingBoard.test.ts > server scouting board Phase 5 integration > keeps the original six candidate truth objects byte-equivalent 38ms
+ ✓ tests/unit/worker/scouting/serverScoutingBoard.test.ts > server scouting board Phase 5 integration > generates index seven deterministically without rerolling the original six 12ms
+ ✓ tests/unit/worker/scouting/serverScoutingBoard.test.ts > server scouting board Phase 5 integration > applies candidate insights without rerolling unaffected public reports 17ms
+ ✓ tests/unit/worker/teamLeadershipAction.test.ts > team leadership action > assigns distinct current user-school players and recalculates cohesion 48ms
+ ✓ tests/unit/worker/teamLeadershipAction.test.ts > team leadership action > rejects a foreign or stale captain 24ms
+ ✓ tests/unit/worker/teamLeadershipAction.test.ts > team leadership action > rejects a foreign or stale vice-captain 11ms
+ ✓ tests/unit/worker/teamLeadershipAction.test.ts > team leadership action > rejects using the same player for captain and vice-captain 18ms
+ ✓ tests/unit/worker/teamLeadershipAction.test.ts > team leadership action > returns revision_conflict before mutating a stale leadership action 44ms
+ ✓ tests/unit/worker/deferredTrainingPlan.test.ts > deferred weekly training plan > saves a changed weekly plan without applying growth or completing training 82ms
+ × tests/unit/worker/deferredTrainingPlan.test.ts > deferred weekly training plan > resolves the saved training plan while advancing to the next week 38ms
+   → expected { trainingResult: { …(6) }, …(5) } to match object { trainingResult: { …(2) }, …(2) }
+(7 matching properties omitted from actual)
+ ✓ tests/unit/worker/deferredTrainingPlan.test.ts > deferred weekly training plan > resolves training and persists its notification before an official match presentation 35ms
+ ✓ tests/unit/worker/pvpTournamentLeakage.test.ts > PvP tournament leakage regression > publishes only the frozen team even when authoritative state contains national guest data 76ms
+ ✓ tests/unit/worker/routes/shopStatus.test.ts > shop status route > returns current in-game-year shop status with server-derived availability 45ms
+ ✓ tests/unit/worker/routes/shopStatus.test.ts > shop status route > requires an initialized game before exposing shop state 8ms
+ ✓ tests/unit/worker/phase11WeekProgression.test.ts > Phase11 week progression > presents scheduled practice before advancing, then advances without replay 68ms
+ ✓ tests/unit/worker/phase11WeekProgression.test.ts > Phase11 week progression > presents official before practice and does not force practice afterward 22ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > keeps frozen snapshots append-only with one active snapshot per user 2ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > defines seasonal ratings, idempotent operations, and unique challenge operations 1ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > commits rated matches atomically with deterministic rating-row locks and daily limit 0ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > rechecks the active defender snapshot inside the atomic challenge transaction 0ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > stores a complete sanitized challenge response for idempotent replay 1ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > pages match history by created time plus match id to match its stable sort order 0ms
+ ✓ tests/unit/worker/pvpMigration.test.ts > async PvP migration > blocks browser roles from PvP tables and RPC execution 1ms
+ ✓ tests/unit/worker/onboarding.test.ts > onboarding route > trims names, creates a deterministic initial world, and persists it atomically 53ms
+ ✓ tests/unit/worker/onboarding.test.ts > onboarding route > rejects an unknown region before touching persistence 4ms
+ ✓ tests/unit/worker/onboarding.test.ts > onboarding route > rejects blank trimmed names 2ms
+ ✓ tests/unit/worker/onboarding.test.ts > onboarding route > maps duplicate onboarding to a structured 409 12ms
+ ✓ tests/unit/worker/supabaseScoutingStore.test.ts > SupabaseScoutingStore > reads a hidden candidate pool scoped to the authenticated user and scouting cycle 57ms
+ ✓ tests/unit/worker/supabaseScoutingStore.test.ts > SupabaseScoutingStore > creates through the atomic RPC and returns the canonical pool chosen by the server 9ms
+ ✓ tests/unit/worker/supabaseScoutingStore.test.ts > SupabaseScoutingStore > rejects malformed hidden candidate rows instead of passing corrupt truth into the game 3ms
+ ✓ tests/unit/worker/shopMigration.test.ts > Phase 5 shop migration > defines the authoritative catalog, inventory, operation ledger, audits, counters, and scouting insights 3ms
+ ✓ tests/unit/worker/shopMigration.test.ts > Phase 5 shop migration > seeds exactly the seven approved item ids at zero price 1ms
+ ✓ tests/unit/worker/shopMigration.test.ts > Phase 5 shop migration > serializes shop mutations on the game save and rejects semantic operation-id reuse 1ms
+ ✓ tests/unit/worker/shopMigration.test.ts > Phase 5 shop migration > provides one status RPC and one atomic RPC for each mutation type 1ms
+ ✓ tests/unit/worker/shopMigration.test.ts > Phase 5 shop migration > keeps browser roles away from authoritative tables and mutation RPCs 1ms
+ ✓ tests/unit/worker/routes/shopPurchase.test.ts > shop purchase route > derives the idempotency fingerprint on the Worker and returns the committed response 13ms
+ ✓ tests/unit/worker/routes/shopPurchase.test.ts > shop purchase route > rejects client-controlled price or effect fields before hitting persistence 2ms
+ ✓ tests/unit/worker/routes/shopPurchase.test.ts > shop purchase route > maps revision_conflict to a stable conflict response 2ms
+ ✓ tests/unit/worker/routes/shopPurchase.test.ts > shop purchase route > maps purchase_limit_reached to a stable conflict response 1ms
+ ✓ tests/unit/worker/routes/shopPurchase.test.ts > shop purchase route > maps operation_id_reused to a stable conflict response 2ms
+ ✓ tests/unit/worker/scoutingRecruitmentCapacity.test.ts > scouting recruitment capacity > rejects commitments beyond the projected next-year roster capacity 48ms
+ ✓ tests/unit/worker/practiceMatchScheduledOpponent.test.ts > scheduled practice opponent > plays the school that was reserved instead of selecting a different rival 47ms
+ ✓ tests/unit/worker/practiceMatchScheduledOpponent.test.ts > scheduled practice opponent > rejects starting a practice match before an opponent is scheduled 15ms
+ ✓ tests/unit/worker/bootstrap.test.ts > bootstrap route > returns needs-onboarding when the authenticated user has no save 10ms
+ ✓ tests/unit/worker/bootstrap.test.ts > bootstrap route > returns the existing authoritative cloud snapshot 57ms
+ ✓ tests/unit/worker/verifyAccessToken.test.ts > createVerifyAccessToken > verifies against the project JWKS with the authenticated audience 6ms
+ ✓ tests/unit/worker/verifyAccessToken.test.ts > createVerifyAccessToken > rejects a verified token without a subject 2ms
+ ✓ tests/unit/worker/scoutingMigration.test.ts > scouting candidate pool migration > keeps hidden candidate truth inaccessible to browser roles 4ms
+ ✓ tests/unit/worker/scoutingMigration.test.ts > scouting candidate pool migration > creates an atomic service-role-only candidate pool RPC 1ms
+ ✓ tests/unit/worker/recruitmentLongRun.test.ts > recruitment long-run soak > keeps annual scouting, enrollment, graduation, and roster bounds stable for 30 years 644ms
+ ✓ tests/unit/worker/pvpHistoryPerspectiveMigration.test.ts > PvP history perspective migration > distinguishes challenger and defender history without inventing an opponent snapshot 2ms
+ ✓ tests/unit/worker/pvpHistoryPerspectiveMigration.test.ts > PvP history perspective migration > keeps history RPC unavailable to browser roles 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/worker/applyGameAction.test.ts > applyGameAction > applies training server-side, marks the weekly action, and does not mutate the snapshot
+GameRuleConflictError: unknown individual training instruction: instruction.serve
+ ❯ conflict worker/game/applyGameAction.ts:97:9
+     95|
+     96| function conflict(code: string, message: string): never {
+     97|   throw new GameRuleConflictError(code, message);
+       |         ^
+     98| }
+     99|
+ ❯ applyTraining worker/game/applyGameAction.ts:152:12
+ ❯ applyGameAction worker/game/applyGameAction.ts:669:14
+ ❯ tests/unit/worker/applyGameAction.test.ts:95:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid_training_plan' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/unit/worker/applyGameAction.test.ts > applyGameAction > applies a pending shop training boost and consumes it only from the successful returned state
+GameRuleConflictError: unknown individual training instruction: instruction.serve
+ ❯ conflict worker/game/applyGameAction.ts:97:9
+     95|
+     96| function conflict(code: string, message: string): never {
+     97|   throw new GameRuleConflictError(code, message);
+       |         ^
+     98| }
+     99|
+ ❯ applyTraining worker/game/applyGameAction.ts:152:12
+ ❯ applyGameAction worker/game/applyGameAction.ts:669:14
+ ❯ tests/unit/worker/applyGameAction.test.ts:121:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid_training_plan' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/unit/worker/applyGameAction.test.ts > applyGameAction > rejects a duplicate weekly training action
+GameRuleConflictError: unknown individual training instruction: instruction.serve
+ ❯ conflict worker/game/applyGameAction.ts:97:9
+     95|
+     96| function conflict(code: string, message: string): never {
+     97|   throw new GameRuleConflictError(code, message);
+       |         ^
+     98| }
+     99|
+ ❯ applyTraining worker/game/applyGameAction.ts:152:12
+ ❯ applyGameAction worker/game/applyGameAction.ts:669:14
+ ❯ tests/unit/worker/applyGameAction.test.ts:141:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid_training_plan' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/unit/worker/applyGameAction.test.ts > applyGameAction > resolves the saved training automatically when advancing the week and persists a notification
+GameRuleConflictError: unknown individual training instruction: instruction.serve
+ ❯ conflict worker/game/applyGameAction.ts:97:9
+     95|
+     96| function conflict(code: string, message: string): never {
+     97|   throw new GameRuleConflictError(code, message);
+       |         ^
+     98| }
+     99|
+ ❯ applyTraining worker/game/applyGameAction.ts:152:12
+ ❯ applyAdvanceWeek worker/game/applyGameAction.ts:509:22
+ ❯ applyGameAction worker/game/applyGameAction.ts:685:14
+ ❯ tests/unit/worker/applyGameAction.test.ts:207:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid_training_plan' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/unit/worker/deferredTrainingPlan.test.ts > deferred weekly training plan > resolves the saved training plan while advancing to the next week
+AssertionError: expected { trainingResult: { …(6) }, …(5) } to match object { trainingResult: { …(2) }, …(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -2,15 +2,55 @@
+    "pendingMatchPresentation": null,
+    "trainingResult": {
+      "individualAssignments": [
+        {
+          "instructionId": "instruction.overall",
++         "playerId": "player-0001",
++       },
++       {
++         "instructionId": "instruction.overall",
+          "playerId": "player-0002",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0003",
+        },
+        {
+          "instructionId": "instruction.overall",
+-         "playerId": "player-0001",
++         "playerId": "player-0004",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0005",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0006",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0007",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0008",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0009",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0010",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0011",
++       },
++       {
++         "instructionId": "instruction.overall",
++         "playerId": "player-0012",
+        },
+      ],
+      "teamTrainingMenuId": "training.spike",
+    },
+    "weekAdvanced": true,
+
+ ❯ tests/unit/worker/deferredTrainingPlan.test.ts:81:30
+     79|
+     80|     expect(advanced.state.date).not.toBe(saved.state.date);
+     81|     expect(advanced.outcome).toMatchObject({
+       |                              ^
+     82|       trainingResult: {
+     83|         teamTrainingMenuId: plan.teamTrainingMenuId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 34 passed (36)
+      Tests  5 failed | 161 passed (166)
+   Start at  04:39:19
+   Duration  17.42s (transform 2.14s, setup 3.41s, import 8.74s, tests 3.89s, environment 27.88s)
+
