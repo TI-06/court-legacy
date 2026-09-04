@@ -1,3 +1,4 @@
+import type { AccountAuthService } from "./auth/AccountAuthService";
 import { SupabaseAccountAuthService } from "./auth/AccountAuthService";
 import { createVerifyAccessToken } from "./auth/verifyAccessToken";
 import type { GameStore } from "./data/GameStore";
@@ -11,6 +12,24 @@ import { SupabaseShopStore } from "./data/SupabaseShopStore";
 import { createSupabaseAdmin } from "./data/createSupabaseAdmin";
 import type { Env } from "./env";
 import { createRouter } from "./router";
+
+function createLazyAccountAuthService(env: Env): AccountAuthService {
+  let resolved: SupabaseAccountAuthService | null = null;
+  const service = () => {
+    resolved ??= new SupabaseAccountAuthService({
+      admin: createSupabaseAdmin(env),
+      url: env.SUPABASE_URL,
+      secretKey: env.SUPABASE_SECRET_KEY,
+    });
+    return resolved;
+  };
+
+  return {
+    register: (input) => service().register(input),
+    login: (loginId, password) => service().login(loginId, password),
+    getProfile: (userId) => service().getProfile(userId),
+  };
+}
 
 function createLazyGameStore(env: Env): GameStore {
   let resolved: SupabaseGameStore | null = null;
@@ -82,14 +101,9 @@ function createLazyShopStore(env: Env): ShopStore {
 
 export default {
   fetch(request, env) {
-    const admin = createSupabaseAdmin(env);
     const router = createRouter({
       verifyAccessToken: (token) => createVerifyAccessToken(env)(token),
-      accountAuth: new SupabaseAccountAuthService({
-        admin,
-        url: env.SUPABASE_URL,
-        secretKey: env.SUPABASE_SECRET_KEY,
-      }),
+      accountAuth: createLazyAccountAuthService(env),
       store: createLazyGameStore(env),
       scoutingStore: createLazyScoutingStore(env),
       pvpStore: createLazyPvpStore(env),
