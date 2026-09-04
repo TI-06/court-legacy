@@ -1,7 +1,22 @@
 import "./school-screen.css";
 
 export type SchoolView = "facilities" | "scouting" | "records" | "alumni";
-export type SchoolInternalView = Exclude<SchoolView, "scouting">;
+
+let requestedViewAfterScouting: Exclude<SchoolView, "scouting"> | null = null;
+
+export function requestSchoolViewAfterScouting(
+  view: Exclude<SchoolView, "scouting">,
+): void {
+  requestedViewAfterScouting = view;
+}
+
+export function getSchoolViewAfterScouting(): SchoolView {
+  return requestedViewAfterScouting ?? "facilities";
+}
+
+export function clearSchoolViewAfterScouting(): void {
+  requestedViewAfterScouting = null;
+}
 
 interface SchoolNavigationTabsProps {
   activeView: SchoolView;
