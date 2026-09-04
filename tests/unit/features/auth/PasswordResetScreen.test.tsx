@@ -27,9 +27,12 @@ describe("PasswordResetScreen", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("新しいパスワード"), {
-      target: { value: "new-password-123" },
-    });
+    fireEvent.change(
+      screen.getByLabelText("新しいパスワード", { selector: "input" }),
+      {
+        target: { value: "new-password-123" },
+      },
+    );
     fireEvent.change(screen.getByLabelText("パスワード確認"), {
       target: { value: "new-password-123" },
     });
@@ -53,9 +56,12 @@ describe("PasswordResetScreen", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("新しいパスワード"), {
-      target: { value: "new-password-123" },
-    });
+    fireEvent.change(
+      screen.getByLabelText("新しいパスワード", { selector: "input" }),
+      {
+        target: { value: "new-password-123" },
+      },
+    );
     fireEvent.change(screen.getByLabelText("パスワード確認"), {
       target: { value: "different-password" },
     });
