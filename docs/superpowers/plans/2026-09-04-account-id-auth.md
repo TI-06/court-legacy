@@ -11,6 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-09-04-account-id-auth-design.md`
 
 ## Global Constraints
+
 - No plaintext passwords outside Supabase Auth.
 - Existing passwords are never emailed; password recovery uses Supabase reset links.
 - `account_profiles` is service-role-only through RLS.
@@ -24,6 +25,7 @@
 ### Task 1: Account profile persistence and Worker auth service
 
 **Files:**
+
 - Create: `supabase/migrations/202609040007_account_profiles.sql`
 - Create: `worker/auth/AccountAuthService.ts`
 - Create: `worker/routes/accountRegister.ts`
@@ -34,6 +36,7 @@
 - Test: `tests/unit/worker/accountAuthRoutes.test.ts`
 
 **Interfaces:**
+
 - Produces `AccountProfile`, `AccountAuthSession`, and `AccountAuthService`.
 - Routes: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/account/profile`.
 
@@ -46,12 +49,14 @@
 ### Task 2: Active browser AuthClient contract
 
 **Files:**
+
 - Modify: `src/services/auth/AuthClient.ts`
 - Modify: `src/services/auth/SupabaseAuthClient.ts`
 - Modify: `src/services/auth/MockAuthClient.ts`
 - Test: `tests/unit/services/auth/SupabaseAuthClient.test.ts`
 
 **Interfaces:**
+
 - `signInWithCredentials(loginId: string, password: string): Promise<void>`
 - `registerAccount(input: AccountRegistrationInput): Promise<void>`
 - `requestPasswordReset(email: string): Promise<void>`
@@ -67,6 +72,7 @@
 ### Task 3: Mobile login, registration, and recovery UI
 
 **Files:**
+
 - Modify: `src/features/auth/LoginScreen.tsx`
 - Modify: `src/features/auth/auth.css`
 - Create: `src/features/auth/PasswordResetScreen.tsx`
@@ -74,6 +80,7 @@
 - Test: `tests/unit/features/auth/PasswordResetScreen.test.tsx`
 
 **Interfaces:**
+
 - Login mode calls `signInWithCredentials`.
 - Registration mode calls `registerAccount` after local password confirmation validation.
 - Recovery mode calls `requestPasswordReset` with normalized email.
@@ -88,6 +95,7 @@
 ### Task 4: Carry account profile into first school setup
 
 **Files:**
+
 - Modify: `src/services/api/GameApiClient.ts`
 - Modify: `src/app/AppBootstrap.tsx`
 - Modify: `src/features/onboarding/SchoolSetupScreen.tsx`
@@ -96,6 +104,7 @@
 - Test: `tests/unit/features/onboarding/SchoolSetupScreen.test.tsx`
 
 **Interfaces:**
+
 - `GameApiClient.getAccountProfile(accessToken): Promise<AccountProfile>`.
 - `SchoolSetupScreen` receives an account profile and submits `displayName=loginId`, `schoolName`, and `coachName` from that profile while asking only for school short name and region.
 
@@ -108,11 +117,13 @@
 ### Task 5: Recovery bootstrap and mobile regression
 
 **Files:**
+
 - Modify: `src/app/AppBootstrap.tsx`
 - Test: `tests/unit/app/AppBootstrap.test.tsx`
 - Modify/Add: `tests/e2e/auth-mobile.spec.ts`
 
 **Interfaces:**
+
 - `AuthClient.isPasswordRecovery()` determines whether `PasswordResetScreen` takes precedence over cloud bootstrap.
 
 - [ ] **Step 1: Add failing recovery-precedence and mobile-overflow tests**.

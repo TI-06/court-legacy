@@ -24,9 +24,7 @@ describe("LoginScreen", () => {
     expect(screen.queryByText(/Google/)).not.toBeInTheDocument();
     expect(screen.getByLabelText("ログインID")).toBeVisible();
     expect(screen.getByLabelText("パスワード")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "ログインする" }),
-    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "ログインする" })).toBeVisible();
     expect(
       screen.getByRole("button", { name: "新規登録はこちら" }),
     ).toBeVisible();
@@ -37,9 +35,7 @@ describe("LoginScreen", () => {
 
   it("normalizes login ID and signs in with the password", async () => {
     const signInWithCredentials = vi.fn().mockResolvedValue(undefined);
-    render(
-      <LoginScreen authClient={authClient({ signInWithCredentials })} />,
-    );
+    render(<LoginScreen authClient={authClient({ signInWithCredentials })} />);
 
     fireEvent.change(screen.getByLabelText("ログインID"), {
       target: { value: "  Coach.TAKU  " },
@@ -112,9 +108,7 @@ describe("LoginScreen", () => {
     fireEvent.change(screen.getByLabelText("メールアドレス"), {
       target: { value: "  Coach@Example.COM  " },
     });
-    fireEvent.click(
-      screen.getByRole("button", { name: "再設定メールを送信" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "再設定メールを送信" }));
 
     expect(requestPasswordReset).toHaveBeenCalledWith("coach@example.com");
     expect(
