@@ -3,8 +3,11 @@
   "name": "court-legacy",
   "compatibility_date": "2026-07-28",
   "main": "./worker/index.ts",
+  "vars": {
+    "SUPABASE_URL": "https://wpxfcqxhhsllemujxhdm.supabase.co"
+  },
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"],
-  },
+    "run_worker_first": ["/api/*"]
+  }
 }
