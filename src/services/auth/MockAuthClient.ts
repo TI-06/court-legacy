@@ -5,12 +5,19 @@ import type {
 } from "./AuthClient";
 
 export const E2E_AUTH_STATE_KEY = "court-legacy:e2e-auth-state";
+export const E2E_ACCOUNT_PROFILE_KEY = "court-legacy:e2e-account-profile";
 
 export const E2E_AUTH_SESSION: AuthSession = {
   userId: "e2e-user",
   email: "e2e@court-legacy.test",
   accessToken: "e2e-access-token",
 };
+
+export const E2E_ACCOUNT_PROFILE = {
+  loginId: "e2e.coach",
+  coachName: "E2E 監督",
+  schoolName: "E2E高校",
+} as const;
 
 type AuthListener = (session: AuthSession | null) => void;
 
@@ -33,6 +40,21 @@ function readPersistedState(): PersistedAuthState | null {
 function writePersistedState(state: PersistedAuthState): void {
   try {
     globalThis.sessionStorage?.setItem(E2E_AUTH_STATE_KEY, state);
+  } catch {
+    // Browser E2E persistence is best-effort only.
+  }
+}
+
+function writePersistedAccountProfile(input: AccountRegistrationInput): void {
+  try {
+    globalThis.sessionStorage?.setItem(
+      E2E_ACCOUNT_PROFILE_KEY,
+      JSON.stringify({
+        loginId: input.loginId,
+        coachName: input.coachName,
+        schoolName: input.schoolName,
+      }),
+    );
   } catch {
     // Browser E2E persistence is best-effort only.
   }
@@ -75,6 +97,9 @@ export class MockAuthClient implements AuthClient {
   }
 
   async registerAccount(input: AccountRegistrationInput): Promise<void> {
+    if (this.persistAcrossReloads) {
+      writePersistedAccountProfile(input);
+    }
     this.replaceSession({ ...E2E_AUTH_SESSION, email: input.email });
   }
 
