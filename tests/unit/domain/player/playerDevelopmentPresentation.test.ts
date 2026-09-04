@@ -1,5 +1,7 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
+import {
+  getPlayerDevelopmentPresentation,
+} from "../../../../src/domain/player/playerDevelopmentPresentation";
 
 describe("player development presentation", () => {
   it("maps late growth and generational talent to player-facing labels", () => {
