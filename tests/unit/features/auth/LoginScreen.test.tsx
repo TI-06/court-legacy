@@ -3,105 +3,122 @@ import { vi } from "vitest";
 import type { AuthClient } from "../../../../src/services/auth/AuthClient";
 import { LoginScreen } from "../../../../src/features/auth/LoginScreen";
 
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: unknown) => void;
-  const promise = new Promise<T>((promiseResolve, promiseReject) => {
-    resolve = promiseResolve;
-    reject = promiseReject;
-  });
-  return { promise, resolve, reject };
-}
-
-function authClient(overrides: Partial<AuthClient> = {}): AuthClient {
+function authClient(overrides: Record<string, unknown> = {}): AuthClient {
   return {
     getSession: vi.fn().mockResolvedValue(null),
     subscribe: vi.fn().mockReturnValue(() => undefined),
-    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
-    signInWithEmail: vi.fn().mockResolvedValue(undefined),
+    signInWithCredentials: vi.fn().mockResolvedValue(undefined),
+    registerAccount: vi.fn().mockResolvedValue(undefined),
+    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
+    updatePassword: vi.fn().mockResolvedValue(undefined),
+    isPasswordRecovery: vi.fn().mockReturnValue(false),
     signOut: vi.fn().mockResolvedValue(undefined),
     ...overrides,
-  };
+  } as unknown as AuthClient;
 }
 
 describe("LoginScreen", () => {
-  it("shows both Google and email login choices", () => {
+  it("uses login ID and password without Google login", () => {
     render(<LoginScreen authClient={authClient()} />);
 
+    expect(screen.queryByText(/Google/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("ログインID")).toBeVisible();
+    expect(screen.getByLabelText("パスワード")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Googleで始める" }),
+      screen.getByRole("button", { name: "ログインする" }),
     ).toBeVisible();
-    expect(screen.getByLabelText("メールアドレス")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "メールでログイン" }),
+      screen.getByRole("button", { name: "新規登録はこちら" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "パスワードを忘れた方" }),
     ).toBeVisible();
   });
 
-  it("shows Google progress immediately without disabling email login", async () => {
-    const pending = deferred<void>();
-    const signInWithGoogle = vi.fn(() => pending.promise);
-    render(<LoginScreen authClient={authClient({ signInWithGoogle })} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Googleで始める" }));
-
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Googleログインを開始中",
+  it("normalizes login ID and signs in with the password", async () => {
+    const signInWithCredentials = vi.fn().mockResolvedValue(undefined);
+    render(
+      <LoginScreen authClient={authClient({ signInWithCredentials })} />,
     );
-    expect(
-      screen.getByRole("button", { name: "Googleログインを開始中" }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "メールでログイン" }),
-    ).toBeEnabled();
 
-    pending.resolve();
-  });
-
-  it("normalizes email and shows a sent-message after magic-link request", async () => {
-    const pending = deferred<void>();
-    const signInWithEmail = vi.fn(() => pending.promise);
-    render(<LoginScreen authClient={authClient({ signInWithEmail })} />);
-
-    fireEvent.change(screen.getByLabelText("メールアドレス"), {
-      target: { value: "  Coach@Example.COM  " },
+    fireEvent.change(screen.getByLabelText("ログインID"), {
+      target: { value: "  Coach.TAKU  " },
     });
-    fireEvent.click(screen.getByRole("button", { name: "メールでログイン" }));
+    fireEvent.change(screen.getByLabelText("パスワード"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "ログインする" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "ログイン用メールを送信中",
+    expect(signInWithCredentials).toHaveBeenCalledWith(
+      "coach.taku",
+      "password123",
     );
-    expect(
-      screen.getByRole("button", { name: "メールを送信中" }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Googleで始める" }),
-    ).toBeEnabled();
-
-    pending.resolve();
-
-    expect(
-      await screen.findByText("ログイン用メールを送信しました"),
-    ).toBeVisible();
-    expect(signInWithEmail).toHaveBeenCalledWith("coach@example.com");
   });
 
-  it("keeps errors visible and leaves the failed method retryable", async () => {
-    const signInWithEmail = vi.fn().mockRejectedValue(new Error("network"));
-    render(<LoginScreen authClient={authClient({ signInWithEmail })} />);
+  it("shows all required account registration fields", () => {
+    render(<LoginScreen authClient={authClient()} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "新規登録はこちら" }));
+
+    expect(screen.getByLabelText("メールアドレス")).toBeVisible();
+    expect(screen.getByLabelText("ログインID")).toBeVisible();
+    expect(screen.getByLabelText("パスワード")).toBeVisible();
+    expect(screen.getByLabelText("パスワード確認")).toBeVisible();
+    expect(screen.getByLabelText("監督名")).toBeVisible();
+    expect(screen.getByLabelText("高校名")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "この内容で登録" }),
+    ).toBeVisible();
+  });
+
+  it("does not submit registration when password confirmation differs", async () => {
+    const registerAccount = vi.fn().mockResolvedValue(undefined);
+    render(<LoginScreen authClient={authClient({ registerAccount })} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "新規登録はこちら" }));
     fireEvent.change(screen.getByLabelText("メールアドレス"), {
       target: { value: "coach@example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "メールでログイン" }));
+    fireEvent.change(screen.getByLabelText("ログインID"), {
+      target: { value: "coach.taku" },
+    });
+    fireEvent.change(screen.getByLabelText("パスワード"), {
+      target: { value: "password123" },
+    });
+    fireEvent.change(screen.getByLabelText("パスワード確認"), {
+      target: { value: "password456" },
+    });
+    fireEvent.change(screen.getByLabelText("監督名"), {
+      target: { value: "田中監督" },
+    });
+    fireEvent.change(screen.getByLabelText("高校名"), {
+      target: { value: "千葉第一高校" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "この内容で登録" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "ログイン用メールを送信できませんでした",
+      "パスワードが一致しません",
     );
+    expect(registerAccount).not.toHaveBeenCalled();
+  });
+
+  it("requests a password reset email from the forgot-password view", async () => {
+    const requestPasswordReset = vi.fn().mockResolvedValue(undefined);
+    render(<LoginScreen authClient={authClient({ requestPasswordReset })} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "パスワードを忘れた方" }),
+    );
+    fireEvent.change(screen.getByLabelText("メールアドレス"), {
+      target: { value: "  Coach@Example.COM  " },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "再設定メールを送信" }),
+    );
+
+    expect(requestPasswordReset).toHaveBeenCalledWith("coach@example.com");
     expect(
-      screen.getByRole("button", { name: "メールでログイン" }),
-    ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: "Googleで始める" }),
-    ).toBeEnabled();
+      await screen.findByText("パスワード再設定メールを送信しました"),
+    ).toBeVisible();
   });
 });
