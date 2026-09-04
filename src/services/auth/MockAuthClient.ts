@@ -1,4 +1,8 @@
-import type { AuthClient, AuthSession } from "./AuthClient";
+import type {
+  AccountRegistrationInput,
+  AuthClient,
+  AuthSession,
+} from "./AuthClient";
 
 export const E2E_AUTH_STATE_KEY = "court-legacy:e2e-auth-state";
 
@@ -66,12 +70,20 @@ export class MockAuthClient implements AuthClient {
     return () => this.listeners.delete(listener);
   }
 
-  async signInWithGoogle(): Promise<void> {
+  async signInWithCredentials(): Promise<void> {
     this.replaceSession(E2E_AUTH_SESSION);
   }
 
-  async signInWithEmail(): Promise<void> {
-    this.replaceSession(E2E_AUTH_SESSION);
+  async registerAccount(input: AccountRegistrationInput): Promise<void> {
+    this.replaceSession({ ...E2E_AUTH_SESSION, email: input.email });
+  }
+
+  async requestPasswordReset(): Promise<void> {}
+
+  async updatePassword(): Promise<void> {}
+
+  isPasswordRecovery(): boolean {
+    return false;
   }
 
   async signOut(): Promise<void> {
