@@ -155,20 +155,6 @@ export function selectHomeTrainingNotifications(
     (item): item is TrainingResultNotification =>
       item.type === "training-result",
   );
-  if (trainingItems.length === 0) return [];
-
-  const unread = trainingItems
-    .filter((item) => item.readAtGameDate === null)
-    .reverse();
-  const newest = trainingItems[trainingItems.length - 1]!;
-  const visible = [...unread];
-
-  if (
-    newest.readAtGameDate !== null &&
-    !visible.some((item) => item.id === newest.id)
-  ) {
-    visible.push(newest);
-  }
-
-  return visible.slice(0, 2);
+  const newest = trainingItems[trainingItems.length - 1];
+  return newest ? [newest] : [];
 }
