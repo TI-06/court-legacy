@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { playerId } from "../../../../src/domain/model/identifiers";
 import type { ScoutReport } from "../../../../src/domain/scouting/scoutReport";
+import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 import { ScoutingScreen } from "../../../../src/features/scouting/ScoutingScreen";
 
 const candidateA = playerId("candidate-a");
@@ -82,6 +83,38 @@ describe("ScoutingScreen", () => {
       screen.getByRole("button", { name: "獲得済み 佐藤 湊" }),
     ).toBeDisabled();
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
+  });
+
+  it("keeps the school tabs visible and returns directly to the selected school view", () => {
+    const state = stateWithCommitted();
+    const onBack = vi.fn();
+    const scouting = render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={onBack}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={state}
+      />,
+    );
+
+    expect(screen.getByRole("tab", { name: "スカウト" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+    expect(onBack).toHaveBeenCalledOnce();
+
+    scouting.unmount();
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    expect(screen.getByRole("tab", { name: "記録" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("heading", { name: "学校記録" })).toBeVisible();
   });
 
   it("shows explicit loading and recruiting progress without blanking the screen", () => {
