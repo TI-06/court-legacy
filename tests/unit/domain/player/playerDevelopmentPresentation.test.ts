@@ -1,7 +1,5 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import {
-  getPlayerDevelopmentPresentation,
-} from "../../../../src/domain/player/playerDevelopmentPresentation";
+import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
 
 describe("player development presentation", () => {
   it("maps late growth and generational talent to player-facing labels", () => {
@@ -17,8 +15,7 @@ describe("player development presentation", () => {
 
     expect(getPlayerDevelopmentPresentation(player)).toEqual({
       growthLabel: "大器晩成",
-      growthDescription:
-        "後半ほど伸びやすく、3年時に大きく化ける可能性がある",
+      growthDescription: "後半ほど伸びやすく、3年時に大きく化ける可能性がある",
       talentLabel: "天才",
       potential: 93,
       potentialGrade: "S",
