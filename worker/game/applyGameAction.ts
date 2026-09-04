@@ -308,8 +308,29 @@ function applyPracticeMatch(
       tournamentId: null,
     });
 
+    const completedState = markWeeklyActionCompleted(
+      recorded,
+      "practice-match",
+    );
     return {
-      state: markWeeklyActionCompleted(recorded, "practice-match"),
+      state: {
+        ...completedState,
+        weeklySchedule: {
+          ...completedState.weeklySchedule,
+          practiceMatch: {
+            ...completedState.weeklySchedule.practiceMatch,
+            scheduledOpponentId: null,
+            scheduledBy: null,
+          },
+          recentPracticeMatches: [
+            ...completedState.weeklySchedule.recentPracticeMatches,
+            {
+              opponentSchoolId: scheduledOpponentId,
+              date: state.date,
+            },
+          ].slice(-8),
+        },
+      },
       teamSelection,
       outcome: simulation,
     };

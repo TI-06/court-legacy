@@ -247,6 +247,7 @@ button.ui-player-tile:disabled {
   max-height: min(82dvh, 720px);
   padding: 8px 14px max(18px, env(safe-area-inset-bottom));
   overflow: hidden;
+  color: #203743;
   background: #f6f9fa;
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -16px 50px rgb(6 24 33 / 24%);
@@ -271,6 +272,7 @@ button.ui-player-tile:disabled {
 
 .ui-sheet-header h2 {
   margin: 0;
+  color: #163846;
   font-size: 1.05rem;
 }
 
@@ -296,6 +298,7 @@ button.ui-player-tile:disabled {
 
 .ui-sheet-content {
   max-height: calc(min(82dvh, 720px) - 92px);
+  color: #203743;
   padding: 2px 0 8px;
   overflow-y: auto;
   overscroll-behavior: contain;

@@ -18,6 +18,7 @@ import {
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
+import { buildPracticePlanning } from "../weekly/practiceMatchPlanning";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
 export interface AcademicYearTransitionSummary {
@@ -469,6 +470,21 @@ export function advanceAcademicYear(
   };
 }
 
+function refreshPracticePlanning(state: GameState): GameState {
+  const planning = buildPracticePlanning(state);
+  return {
+    ...state,
+    weeklySchedule: {
+      ...state.weeklySchedule,
+      practiceMatch: {
+        ...planning,
+        scheduledOpponentId: null,
+        scheduledBy: null,
+      },
+    },
+  };
+}
+
 export function advanceGameWeek(
   state: GameState,
   data: GameDataRegistry,
@@ -477,19 +493,20 @@ export function advanceGameWeek(
   const weeklyBase = advanceOneWeek(state, {
     restingPlayerIds: options.restingPlayerIds,
   });
-  const weekly = {
-    ...weeklyBase,
-    state: advanceOfficialTournamentsThroughWeek(weeklyBase.state),
-  };
-  if (!crossesAcademicYear(state.date, weekly.state.date)) {
-    return { ...weekly, academicYearTransition: null };
+  const weeklyState = advanceOfficialTournamentsThroughWeek(weeklyBase.state);
+  if (!crossesAcademicYear(state.date, weeklyState.date)) {
+    return {
+      ...weeklyBase,
+      state: refreshPracticePlanning(weeklyState),
+      academicYearTransition: null,
+    };
   }
 
-  const random = new SeededRandom(weekly.state.seed, weekly.state.randomCursor);
-  const transition = advanceAcademicYear(weekly.state, data, random, options);
+  const random = new SeededRandom(weeklyState.seed, weeklyState.randomCursor);
+  const transition = advanceAcademicYear(weeklyState, data, random, options);
   return {
-    ...weekly,
-    state: transition.state,
+    ...weeklyBase,
+    state: refreshPracticePlanning(transition.state),
     academicYearTransition: transition.summary,
   };
 }

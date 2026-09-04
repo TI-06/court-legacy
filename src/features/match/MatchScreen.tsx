@@ -230,6 +230,16 @@ function MatchScreenContent({
   const homeShortName =
     presentation?.homeTeam.shortName ?? homeSchool.shortName;
   const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
+  const userIsHome = result.match.homeSchoolId === state.userSchoolId;
+  const userWon = result.analysis.winnerSchoolId === state.userSchoolId;
+  const userShortName = userIsHome ? homeShortName : awayShortName;
+  const opponentShortName = userIsHome ? awayShortName : homeShortName;
+  const userSetsWon = userIsHome
+    ? result.match.homeSetsWon
+    : result.match.awaySetsWon;
+  const opponentSetsWon = userIsHome
+    ? result.match.awaySetsWon
+    : result.match.homeSetsWon;
   const recentEvents = presentedEvents.slice(-4).reverse();
 
   if (!currentEvent || !winnerDisplayName) {
@@ -237,7 +247,9 @@ function MatchScreenContent({
   }
 
   return (
-    <main className="app-content match-screen">
+    <main
+      className={`app-content match-screen${matchComplete ? " match-screen--result" : ""}`}
+    >
       {!matchComplete ? (
         <>
           <section className="match-live-hero" aria-labelledby="live-heading">
@@ -358,18 +370,30 @@ function MatchScreenContent({
       ) : (
         <>
           <section
-            className="match-result-hero"
+            className={`match-result-hero match-result-hero--${userWon ? "win" : "loss"}`}
             aria-labelledby="result-heading"
           >
             <p className="section-kicker">試合終了</p>
             <h2 id="result-heading">試合結果</h2>
-            <strong>{winnerDisplayName} 勝利</strong>
+            <strong
+              className="match-result-verdict"
+              data-testid="match-result-verdict"
+            >
+              {userWon ? "勝利" : "敗北"}
+            </strong>
+            <p className="match-result-winner">{winnerDisplayName}が勝利</p>
             <div className="match-result-score">
-              <span>{homeShortName}</span>
+              <span>
+                <small>あなた</small>
+                <strong>{userShortName}</strong>
+              </span>
               <b>
-                {result.match.homeSetsWon} - {result.match.awaySetsWon}
+                {userSetsWon} - {opponentSetsWon}
               </b>
-              <span>{awayShortName}</span>
+              <span>
+                <small>相手</small>
+                <strong>{opponentShortName}</strong>
+              </span>
             </div>
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
@@ -414,7 +438,10 @@ function MatchScreenContent({
             </div>
           </section>
 
-          <section className="match-result-actions">
+          <section
+            className="match-result-actions match-result-actions--fixed"
+            data-testid="match-result-actions"
+          >
             <button
               onClick={() => {
                 setVisibleEventIndex(0);
