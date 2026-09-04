@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { PasswordResetScreen } from "../../../../src/features/auth/PasswordResetScreen";
 import type { AuthClient } from "../../../../src/services/auth/AuthClient";
@@ -18,7 +18,13 @@ function authClient(updatePassword = vi.fn().mockResolvedValue(undefined)) {
 
 describe("PasswordResetScreen", () => {
   it("requires matching passwords and updates the recovery session password", async () => {
-    const updatePassword = vi.fn().mockResolvedValue(undefined);
+    let resolveUpdate!: () => void;
+    const updatePassword = vi.fn().mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
     const onComplete = vi.fn();
     render(
       <PasswordResetScreen
@@ -44,7 +50,10 @@ describe("PasswordResetScreen", () => {
     expect(
       await screen.findByRole("button", { name: "変更中…" }),
     ).toBeDisabled();
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
+
+    resolveUpdate();
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
   });
 
   it("does not submit mismatched passwords", async () => {
