@@ -34,6 +34,27 @@ describe("HttpGameApiClient", () => {
     );
   });
 
+  it("preserves the browser fetch receiver for bootstrap", async () => {
+    const browserFetch = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError("Illegal invocation");
+      }
+      return Promise.resolve(jsonResponse({ status: "needs-onboarding" }));
+    }) as unknown as typeof fetch;
+    vi.stubGlobal("fetch", browserFetch);
+
+    try {
+      const api = new HttpGameApiClient();
+
+      await expect(api.bootstrap("access-token")).resolves.toEqual({
+        status: "needs-onboarding",
+      });
+      expect(browserFetch).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("posts onboarding JSON and maps a structured 409 error", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse(
