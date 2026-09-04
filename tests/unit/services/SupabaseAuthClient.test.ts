@@ -120,6 +120,43 @@ describe("SupabaseAuthClient", () => {
     });
   });
 
+  it("binds the default browser fetch to the global scope", async () => {
+    const setSession = vi.fn().mockResolvedValue({
+      data: { session: supabaseSession },
+      error: null,
+    });
+    const browserFetch = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError("Illegal invocation");
+      }
+      return Promise.resolve(workerResponse(201));
+    }) as unknown as typeof fetch;
+    vi.stubGlobal("fetch", browserFetch);
+
+    try {
+      const client = new SupabaseAuthClient(
+        authPort({ setSession }),
+        "https://court-legacy.example",
+      );
+
+      await client.registerAccount({
+        email: "coach@example.com",
+        loginId: "coach.taku",
+        password: "password123",
+        coachName: "高城 監督",
+        schoolName: "青葉高校",
+      });
+
+      expect(browserFetch).toHaveBeenCalledTimes(1);
+      expect(setSession).toHaveBeenCalledWith({
+        access_token: "worker-access",
+        refresh_token: "worker-refresh",
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("sends a password reset link back to the app", async () => {
     const resetPasswordForEmail = vi.fn().mockResolvedValue({ error: null });
     const client = new SupabaseAuthClient(
