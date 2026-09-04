@@ -38,7 +38,9 @@ describe("PasswordResetScreen", () => {
     );
 
     expect(updatePassword).toHaveBeenCalledWith("new-password-123");
-    expect(await screen.findByRole("button", { name: "変更中…" })).toBeDisabled();
+    expect(
+      await screen.findByRole("button", { name: "変更中…" }),
+    ).toBeDisabled();
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 

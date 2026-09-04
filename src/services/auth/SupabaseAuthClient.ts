@@ -35,10 +35,7 @@ export interface SupabaseAuthPort {
   onAuthStateChange(listener: (session: SupabaseSessionLike | null) => void): {
     data: { subscription: { unsubscribe(): void } };
   };
-  setSession(input: {
-    access_token: string;
-    refresh_token: string;
-  }): Promise<{
+  setSession(input: { access_token: string; refresh_token: string }): Promise<{
     data: { session: SupabaseSessionLike | null };
     error: Error | null;
   }>;
@@ -147,7 +144,9 @@ export class SupabaseAuthClient implements AuthClient {
   }
 
   isPasswordRecovery(): boolean {
-    return new URLSearchParams(this.locationSearch()).get("reset-password") === "1";
+    return (
+      new URLSearchParams(this.locationSearch()).get("reset-password") === "1"
+    );
   }
 
   async signOut(): Promise<void> {

@@ -13,7 +13,13 @@ const registerSchema = z.object({
   loginId: z
     .string()
     .transform((value) => value.trim().toLowerCase())
-    .pipe(z.string().min(4).max(24).regex(/^[a-z0-9._-]+$/)),
+    .pipe(
+      z
+        .string()
+        .min(4)
+        .max(24)
+        .regex(/^[a-z0-9._-]+$/),
+    ),
   password: z.string().min(8).max(128),
   coachName: z
     .string()
@@ -31,12 +37,20 @@ export function createAccountRegisterHandler(auth: AccountAuthService) {
     try {
       body = await request.json();
     } catch {
-      return jsonError(400, "invalid_registration", "登録内容を確認してください");
+      return jsonError(
+        400,
+        "invalid_registration",
+        "登録内容を確認してください",
+      );
     }
 
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
-      return jsonError(400, "invalid_registration", "登録内容を確認してください");
+      return jsonError(
+        400,
+        "invalid_registration",
+        "登録内容を確認してください",
+      );
     }
 
     try {

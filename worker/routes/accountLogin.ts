@@ -9,7 +9,13 @@ const loginSchema = z.object({
   loginId: z
     .string()
     .transform((value) => value.trim().toLowerCase())
-    .pipe(z.string().min(4).max(24).regex(/^[a-z0-9._-]+$/)),
+    .pipe(
+      z
+        .string()
+        .min(4)
+        .max(24)
+        .regex(/^[a-z0-9._-]+$/),
+    ),
   password: z.string().min(1).max(128),
 });
 
@@ -36,7 +42,10 @@ export function createAccountLoginHandler(auth: AccountAuthService) {
     }
 
     try {
-      const session = await auth.login(parsed.data.loginId, parsed.data.password);
+      const session = await auth.login(
+        parsed.data.loginId,
+        parsed.data.password,
+      );
       return json({
         session: {
           accessToken: session.accessToken,

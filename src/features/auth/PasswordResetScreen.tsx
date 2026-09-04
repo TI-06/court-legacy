@@ -34,7 +34,9 @@ export function PasswordResetScreen({
       await authClient.updatePassword(password);
       onComplete();
     } catch {
-      setError("パスワードを変更できませんでした。再設定リンクをもう一度お試しください。");
+      setError(
+        "パスワードを変更できませんでした。再設定リンクをもう一度お試しください。",
+      );
     } finally {
       setPending(false);
     }

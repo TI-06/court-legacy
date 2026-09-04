@@ -44,7 +44,9 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
 
     const normalizedLoginId = normalizeLoginId(loginId);
     if (!LOGIN_ID_PATTERN.test(normalizedLoginId)) {
-      setError("ログインIDは半角英数字・._-を使った4〜24文字で入力してください。");
+      setError(
+        "ログインIDは半角英数字・._-を使った4〜24文字で入力してください。",
+      );
       return;
     }
 
@@ -71,7 +73,9 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
 
     const normalizedLoginId = normalizeLoginId(loginId);
     if (!LOGIN_ID_PATTERN.test(normalizedLoginId)) {
-      setError("ログインIDは半角英数字・._-を使った4〜24文字で入力してください。");
+      setError(
+        "ログインIDは半角英数字・._-を使った4〜24文字で入力してください。",
+      );
       return;
     }
     if (password.length < 8) {
@@ -245,7 +249,9 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
               type="password"
               value={password}
             />
-            <label htmlFor="register-password-confirmation">パスワード確認</label>
+            <label htmlFor="register-password-confirmation">
+              パスワード確認
+            </label>
             <input
               autoComplete="new-password"
               disabled={pending}

@@ -148,7 +148,9 @@ export class SupabaseAccountAuthService implements AccountAuthService {
 
     const profile = normalizeProfileRow(inserted.data);
     if (inserted.error || !profile) {
-      await this.input.admin.auth.admin.deleteUser(userId).catch(() => undefined);
+      await this.input.admin.auth.admin
+        .deleteUser(userId)
+        .catch(() => undefined);
       if (inserted.error?.code === "23505") {
         throw new AccountConflictError();
       }
@@ -163,7 +165,9 @@ export class SupabaseAccountAuthService implements AccountAuthService {
         .from("account_profiles")
         .delete()
         .eq("user_id", userId);
-      await this.input.admin.auth.admin.deleteUser(userId).catch(() => undefined);
+      await this.input.admin.auth.admin
+        .deleteUser(userId)
+        .catch(() => undefined);
       throw error;
     }
   }
@@ -174,7 +178,11 @@ export class SupabaseAccountAuthService implements AccountAuthService {
       .select("email")
       .eq("login_id", loginId)
       .maybeSingle();
-    if (result.error || !isRecord(result.data) || typeof result.data.email !== "string") {
+    if (
+      result.error ||
+      !isRecord(result.data) ||
+      typeof result.data.email !== "string"
+    ) {
       throw new InvalidAccountCredentialsError();
     }
     return this.passwordToken(result.data.email, password);

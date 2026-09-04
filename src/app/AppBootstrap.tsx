@@ -156,7 +156,11 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
     if (view.status !== "password-recovery") return;
     const url = new URL(globalThis.location.href);
     url.searchParams.delete("reset-password");
-    globalThis.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    globalThis.history.replaceState(
+      null,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
     const session = view.session;
     setView({ status: "loading-cloud", session });
     const controller = new AbortController();

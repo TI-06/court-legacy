@@ -187,12 +187,16 @@ describe("SupabaseAuthClient", () => {
   });
 
   it("surfaces Worker auth errors to the UI layer", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({ error: { message: "IDまたはパスワードが違います" } }),
-        { status: 401, headers: { "content-type": "application/json" } },
-      ),
-    );
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error: { message: "IDまたはパスワードが違います" },
+          }),
+          { status: 401, headers: { "content-type": "application/json" } },
+        ),
+      );
     const client = new SupabaseAuthClient(
       authPort(),
       "https://court-legacy.example",

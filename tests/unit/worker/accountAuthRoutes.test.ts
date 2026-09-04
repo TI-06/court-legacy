@@ -17,7 +17,9 @@ function gameStore(): GameStore {
   };
 }
 
-function accountAuth(overrides: Partial<AccountAuthService> = {}): AccountAuthService {
+function accountAuth(
+  overrides: Partial<AccountAuthService> = {},
+): AccountAuthService {
   return {
     register: vi.fn(async (input) => ({
       session: {

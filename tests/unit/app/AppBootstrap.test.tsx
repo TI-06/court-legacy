@@ -146,7 +146,9 @@ describe("AppBootstrap", () => {
 
   it("enters the game after onboarding with registered coach and school values", async () => {
     const readyGame = snapshot();
-    const onboard = vi.fn().mockResolvedValue({ status: "ready", game: readyGame });
+    const onboard = vi
+      .fn()
+      .mockResolvedValue({ status: "ready", game: readyGame });
     const api = apiClient({
       bootstrap: vi.fn().mockResolvedValue({ status: "needs-onboarding" }),
       onboard,

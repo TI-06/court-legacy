@@ -61,7 +61,10 @@ interface SchoolSetupScreenProps {
 }
 
 function suggestedShortName(schoolName: string): string {
-  return schoolName.replace(/(?:高等学校|高校)$/u, "").trim().slice(0, 30);
+  return schoolName
+    .replace(/(?:高等学校|高校)$/u, "")
+    .trim()
+    .slice(0, 30);
 }
 
 export function SchoolSetupScreen({

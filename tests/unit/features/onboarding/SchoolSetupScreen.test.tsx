@@ -10,10 +10,7 @@ const accountProfile = {
 
 function renderScreen(onSubmit = vi.fn().mockResolvedValue(undefined)) {
   render(
-    <SchoolSetupScreen
-      accountProfile={accountProfile}
-      onSubmit={onSubmit}
-    />,
+    <SchoolSetupScreen accountProfile={accountProfile} onSubmit={onSubmit} />,
   );
   return onSubmit;
 }
