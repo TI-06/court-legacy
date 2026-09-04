@@ -1,7 +1,9 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
 import { eventId } from "../../../../src/domain/model/identifiers";
+import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { EventDialog } from "../../../../src/features/home/EventDialog";
 
 function rivalActor() {
@@ -52,5 +54,49 @@ describe("EventDialog", () => {
     const emblems = actor.getAllByTestId("school-emblem");
     expect(emblems).toHaveLength(1);
     expect(emblems[0]).toHaveAttribute("data-school-motif", "shield");
+  });
+
+  it("shows the concrete result immediately after the coach selects a response", async () => {
+    const { state, player } = rivalActor();
+    state.pendingEvent = {
+      eventId: eventId("event.first-position-request"),
+      actorPlayerIds: [player.id],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["try", "stay"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    let currentState = state;
+    let rerenderView: ReturnType<typeof render>["rerender"];
+    const onChoose = vi.fn(async (choiceId: string) => {
+      currentState = resolveEventChoice(
+        currentState,
+        choiceId,
+        gameData,
+        new SeededRandom("event-dialog-result"),
+      ).state;
+      rerenderView(
+        <EventDialog data={gameData} onChoose={onChoose} state={currentState} />,
+      );
+    });
+    const view = render(
+      <EventDialog data={gameData} onChoose={onChoose} state={currentState} />,
+    );
+    rerenderView = view.rerender;
+
+    const choices = within(screen.getByLabelText("対応を選択")).getAllByRole(
+      "button",
+    );
+    fireEvent.click(choices[0]!);
+
+    await waitFor(() =>
+      expect(screen.getByRole("dialog", { name: "対応結果" })).toBeVisible(),
+    );
+    expect(screen.getByText("選んだ対応")).toBeVisible();
+    expect(screen.getByRole("region", { name: "対応による変化" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "結果を確認した" })).toBeVisible();
+    expect(currentState.eventMemory.history.at(-1)?.visibleResultCodes.length).toBeGreaterThan(0);
   });
 });
