@@ -5,7 +5,7 @@ const GAME_STATE_KEY = "court-legacy:e2e-game-state";
 const SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 const FLOW_INITIALIZED_KEY = "court-legacy:e2e-flow-initialized";
 
-test("login, onboarding, mutation, and reload keep the cloud game", async ({
+test("registration, onboarding, mutation, and reload keep the cloud game", async ({
   page,
 }) => {
   await page.addInitScript(
@@ -28,18 +28,30 @@ test("login, onboarding, mutation, and reload keep the cloud game", async ({
 
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "監督として始める" }),
+    page.getByRole("heading", { name: "監督としてログイン" }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Googleで始める" }).click();
+  await page.getByRole("button", { name: "新規登録はこちら" }).click();
+  await expect(
+    page.getByRole("heading", { name: "監督アカウントを作成" }),
+  ).toBeVisible();
+
+  await page.getByLabel("メールアドレス").fill("e2e@court-legacy.test");
+  await page.getByLabel("ログインID").fill("e2e.coach");
+  await page.getByLabel("パスワード", { exact: true }).fill("password123");
+  await page.getByLabel("パスワード確認").fill("password123");
+  await page.getByLabel("監督名").fill("高城 監督");
+  await page.getByLabel("高校名").fill("E2E高校");
+  await page.getByRole("button", { name: "この内容で登録" }).click();
+
   await expect(
     page.getByRole("heading", { name: "学校をつくる" }),
   ).toBeVisible();
+  await expect(page.getByText("e2e.coach", { exact: true })).toBeVisible();
+  await expect(page.getByText("高城 監督", { exact: true })).toBeVisible();
+  await expect(page.getByText("E2E高校", { exact: true })).toBeVisible();
 
-  await page.getByLabel("表示名").fill("E2E監督");
-  await page.getByLabel("学校名").fill("E2E高校");
   await page.getByLabel("略称").fill("E2E");
-  await page.getByLabel("監督名").fill("高城 監督");
   await page.getByLabel("都道府県").selectOption("region.chiba");
   await page.getByRole("button", { name: "学校を作成" }).click();
 

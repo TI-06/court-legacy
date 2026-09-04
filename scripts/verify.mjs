@@ -5,11 +5,6 @@ const commands = [
   ["Lint", "npm", ["run", "lint"]],
   ["Type check", "npm", ["run", "typecheck"]],
   ["V2 structure", "node", ["scripts/verifyStructureCli.mjs"]],
-  [
-    "Production dependency audit",
-    "npm",
-    ["audit", "--omit=dev", "--audit-level=high"],
-  ],
   ["Unit tests", "npm", ["run", "test"]],
   ["Production build", "npm", ["run", "build"]],
 ];

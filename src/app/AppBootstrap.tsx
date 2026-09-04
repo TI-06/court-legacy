@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import { LoginScreen } from "../features/auth/LoginScreen";
+import { PasswordResetScreen } from "../features/auth/PasswordResetScreen";
 import { SchoolSetupScreen } from "../features/onboarding/SchoolSetupScreen";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import {
   ApiError,
+  type AccountProfile,
   type GameApiClient,
   type OnboardingInput,
 } from "../services/api/GameApiClient";
@@ -12,6 +14,7 @@ import {
 export type AppBootstrapStatus =
   | "checking-auth"
   | "signed-out"
+  | "password-recovery"
   | "loading-cloud"
   | "needs-onboarding"
   | "ready"
@@ -34,8 +37,13 @@ interface AppBootstrapProps {
 type BootstrapViewState =
   | { status: "checking-auth" }
   | { status: "signed-out" }
+  | { status: "password-recovery"; session: AuthSession }
   | { status: "loading-cloud"; session: AuthSession }
-  | { status: "needs-onboarding"; session: AuthSession }
+  | {
+      status: "needs-onboarding";
+      session: AuthSession;
+      accountProfile: AccountProfile;
+    }
   | { status: "ready"; session: AuthSession; game: CloudGameSnapshot }
   | { status: "offline-cache"; session: AuthSession; message: string }
   | { status: "fatal-error"; session: AuthSession | null; message: string };
@@ -61,11 +69,19 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
           controller.signal,
         );
         if (!active || controller.signal.aborted) return;
-        setView(
-          response.status === "ready"
-            ? { status: "ready", session, game: response.game }
-            : { status: "needs-onboarding", session },
+        if (response.status === "ready") {
+          setView({ status: "ready", session, game: response.game });
+          return;
+        }
+        if (!api.getAccountProfile) {
+          throw new Error("account profile API is not configured");
+        }
+        const accountProfile = await api.getAccountProfile(
+          session.accessToken,
+          controller.signal,
         );
+        if (!active || controller.signal.aborted) return;
+        setView({ status: "needs-onboarding", session, accountProfile });
       } catch (error) {
         if (!active || controller.signal.aborted) return;
         if (error instanceof ApiError && error.code === "network_error") {
@@ -91,6 +107,10 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       controllerRef.current?.abort();
       if (!session) {
         setView({ status: "signed-out" });
+        return;
+      }
+      if (auth.isPasswordRecovery()) {
+        setView({ status: "password-recovery", session });
         return;
       }
       void loadCloud(session);
@@ -132,6 +152,49 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
     setView({ status: "ready", session: view.session, game: response.game });
   };
 
+  const finishPasswordRecovery = () => {
+    if (view.status !== "password-recovery") return;
+    const url = new URL(globalThis.location.href);
+    url.searchParams.delete("reset-password");
+    globalThis.history.replaceState(
+      null,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    const session = view.session;
+    setView({ status: "loading-cloud", session });
+    const controller = new AbortController();
+    controllerRef.current?.abort();
+    controllerRef.current = controller;
+    void api
+      .bootstrap(session.accessToken, controller.signal)
+      .then(async (response) => {
+        if (controller.signal.aborted) return;
+        if (response.status === "ready") {
+          setView({ status: "ready", session, game: response.game });
+          return;
+        }
+        if (!api.getAccountProfile) {
+          throw new Error("account profile API is not configured");
+        }
+        const accountProfile = await api.getAccountProfile(
+          session.accessToken,
+          controller.signal,
+        );
+        if (!controller.signal.aborted) {
+          setView({ status: "needs-onboarding", session, accountProfile });
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setView({
+            status: "offline-cache",
+            session,
+            message: "クラウドに接続できませんでした",
+          });
+      });
+  };
+
   if (view.status === "checking-auth")
     return (
       <div className="app-bootstrap-status" role="status">
@@ -139,6 +202,13 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       </div>
     );
   if (view.status === "signed-out") return <LoginScreen authClient={auth} />;
+  if (view.status === "password-recovery")
+    return (
+      <PasswordResetScreen
+        authClient={auth}
+        onComplete={finishPasswordRecovery}
+      />
+    );
   if (view.status === "loading-cloud")
     return (
       <div className="app-bootstrap-status" role="status">
@@ -146,7 +216,12 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       </div>
     );
   if (view.status === "needs-onboarding")
-    return <SchoolSetupScreen onSubmit={onboard} />;
+    return (
+      <SchoolSetupScreen
+        accountProfile={view.accountProfile}
+        onSubmit={onboard}
+      />
+    );
   if (view.status === "ready")
     return (
       <>{renderGame({ game: view.game, session: view.session, auth, api })}</>
@@ -161,13 +236,22 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
       controllerRef.current = controller;
       void api
         .bootstrap(session.accessToken, controller.signal)
-        .then((response) => {
+        .then(async (response) => {
           if (controller.signal.aborted) return;
-          setView(
-            response.status === "ready"
-              ? { status: "ready", session, game: response.game }
-              : { status: "needs-onboarding", session },
+          if (response.status === "ready") {
+            setView({ status: "ready", session, game: response.game });
+            return;
+          }
+          if (!api.getAccountProfile) {
+            throw new Error("account profile API is not configured");
+          }
+          const accountProfile = await api.getAccountProfile(
+            session.accessToken,
+            controller.signal,
           );
+          if (!controller.signal.aborted) {
+            setView({ status: "needs-onboarding", session, accountProfile });
+          }
         })
         .catch(() => {
           if (!controller.signal.aborted)

@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from "react";
-import type { OnboardingInput } from "../../services/api/GameApiClient";
+import type {
+  AccountProfile,
+  OnboardingInput,
+} from "../../services/api/GameApiClient";
 import "./onboarding.css";
 
 const REGION_OPTIONS = [
@@ -53,14 +56,24 @@ const REGION_OPTIONS = [
 ] as const;
 
 interface SchoolSetupScreenProps {
+  accountProfile: AccountProfile;
   onSubmit(input: OnboardingInput): Promise<void>;
 }
 
-export function SchoolSetupScreen({ onSubmit }: SchoolSetupScreenProps) {
-  const [displayName, setDisplayName] = useState("");
-  const [schoolName, setSchoolName] = useState("");
-  const [schoolShortName, setSchoolShortName] = useState("");
-  const [coachName, setCoachName] = useState("");
+function suggestedShortName(schoolName: string): string {
+  return schoolName
+    .replace(/(?:高等学校|高校)$/u, "")
+    .trim()
+    .slice(0, 30);
+}
+
+export function SchoolSetupScreen({
+  accountProfile,
+  onSubmit,
+}: SchoolSetupScreenProps) {
+  const [schoolShortName, setSchoolShortName] = useState(() =>
+    suggestedShortName(accountProfile.schoolName),
+  );
   const [regionId, setRegionId] = useState("region.chiba");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,10 +86,10 @@ export function SchoolSetupScreen({ onSubmit }: SchoolSetupScreenProps) {
     setError(null);
     try {
       await onSubmit({
-        displayName: displayName.trim(),
-        schoolName: schoolName.trim(),
+        displayName: accountProfile.loginId,
+        schoolName: accountProfile.schoolName,
         schoolShortName: schoolShortName.trim(),
-        coachName: coachName.trim(),
+        coachName: accountProfile.coachName,
         regionId,
       });
     } catch {
@@ -94,10 +107,23 @@ export function SchoolSetupScreen({ onSubmit }: SchoolSetupScreenProps) {
         <div className="onboarding-heading">
           <span>COURT LEGACY</span>
           <h1 id="school-setup-title">学校をつくる</h1>
-          <p>
-            最初のチームを作成します。学校の歴史はこのアカウントに保存されます。
-          </p>
+          <p>登録した監督情報を使って、学校の地域と略称を決めます。</p>
         </div>
+
+        <dl className="onboarding-account-summary" aria-label="登録済み情報">
+          <div>
+            <dt>ログインID</dt>
+            <dd>{accountProfile.loginId}</dd>
+          </div>
+          <div>
+            <dt>監督名</dt>
+            <dd>{accountProfile.coachName}</dd>
+          </div>
+          <div>
+            <dt>高校名</dt>
+            <dd>{accountProfile.schoolName}</dd>
+          </div>
+        </dl>
 
         {error ? (
           <div className="onboarding-error" role="alert">
@@ -112,26 +138,9 @@ export function SchoolSetupScreen({ onSubmit }: SchoolSetupScreenProps) {
 
         <form className="onboarding-form" onSubmit={submit}>
           <label>
-            表示名
-            <input
-              maxLength={40}
-              onChange={(event) => setDisplayName(event.target.value)}
-              required
-              value={displayName}
-            />
-          </label>
-          <label>
-            学校名
-            <input
-              maxLength={60}
-              onChange={(event) => setSchoolName(event.target.value)}
-              required
-              value={schoolName}
-            />
-          </label>
-          <label>
             略称
             <input
+              disabled={pending}
               maxLength={30}
               onChange={(event) => setSchoolShortName(event.target.value)}
               required
@@ -139,17 +148,9 @@ export function SchoolSetupScreen({ onSubmit }: SchoolSetupScreenProps) {
             />
           </label>
           <label>
-            監督名
-            <input
-              maxLength={40}
-              onChange={(event) => setCoachName(event.target.value)}
-              required
-              value={coachName}
-            />
-          </label>
-          <label>
             都道府県
             <select
+              disabled={pending}
               onChange={(event) => setRegionId(event.target.value)}
               value={regionId}
             >

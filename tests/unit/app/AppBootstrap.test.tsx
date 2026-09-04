@@ -26,6 +26,12 @@ const session: AuthSession = {
   accessToken: "access-token",
 };
 
+const accountProfile = {
+  loginId: "coach.taku",
+  coachName: "高城 監督",
+  schoolName: "青葉高校",
+};
+
 function snapshot() {
   const state = createInitialGame({
     seed: "bootstrap-test",
@@ -51,19 +57,25 @@ function snapshot() {
 function authClient(
   getSession: AuthClient["getSession"],
   subscribe: AuthClient["subscribe"] = () => () => undefined,
+  overrides: Partial<AuthClient> = {},
 ): AuthClient {
   return {
     getSession,
     subscribe,
-    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
-    signInWithEmail: vi.fn().mockResolvedValue(undefined),
+    signInWithCredentials: vi.fn().mockResolvedValue(undefined),
+    registerAccount: vi.fn().mockResolvedValue(undefined),
+    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
+    updatePassword: vi.fn().mockResolvedValue(undefined),
+    isPasswordRecovery: vi.fn().mockReturnValue(false),
     signOut: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
   };
 }
 
 function apiClient(overrides: Partial<GameApiClient> = {}): GameApiClient {
   return {
     bootstrap: vi.fn().mockResolvedValue({ status: "needs-onboarding" }),
+    getAccountProfile: vi.fn().mockResolvedValue(accountProfile),
     onboard: vi.fn(),
     applyAction: vi.fn(),
     getScoutingBoard: vi.fn(),
@@ -77,7 +89,7 @@ function GameProbe({ game }: AppBootstrapGameProps) {
 }
 
 describe("AppBootstrap", () => {
-  it("shows auth checking immediately and then the login screen when signed out", async () => {
+  it("shows auth checking immediately and then the ID login screen when signed out", async () => {
     const currentSession = deferred<AuthSession | null>();
     render(
       <AppBootstrap
@@ -94,13 +106,18 @@ describe("AppBootstrap", () => {
     await act(async () => currentSession.resolve(null));
 
     expect(
-      await screen.findByRole("button", { name: "Googleで始める" }),
+      await screen.findByRole("button", { name: "ログインする" }),
     ).toBeVisible();
+    expect(screen.queryByText(/Google/)).not.toBeInTheDocument();
   });
 
-  it("shows cloud loading before rendering onboarding", async () => {
+  it("loads the private account profile before rendering onboarding", async () => {
     const bootstrap = deferred<{ status: "needs-onboarding" }>();
-    const api = apiClient({ bootstrap: vi.fn(() => bootstrap.promise) });
+    const getAccountProfile = vi.fn().mockResolvedValue(accountProfile);
+    const api = apiClient({
+      bootstrap: vi.fn(() => bootstrap.promise),
+      getAccountProfile,
+    });
     render(
       <AppBootstrap
         api={api}
@@ -118,13 +135,23 @@ describe("AppBootstrap", () => {
     expect(
       await screen.findByRole("heading", { name: "学校をつくる" }),
     ).toBeVisible();
+    expect(getAccountProfile).toHaveBeenCalledWith(
+      "access-token",
+      expect.any(AbortSignal),
+    );
+    expect(screen.getByText("coach.taku")).toBeVisible();
+    expect(screen.getByText("高城 監督")).toBeVisible();
+    expect(screen.getByText("青葉高校")).toBeVisible();
   });
 
-  it("enters the game after successful onboarding", async () => {
+  it("enters the game after onboarding with registered coach and school values", async () => {
     const readyGame = snapshot();
+    const onboard = vi
+      .fn()
+      .mockResolvedValue({ status: "ready", game: readyGame });
     const api = apiClient({
       bootstrap: vi.fn().mockResolvedValue({ status: "needs-onboarding" }),
-      onboard: vi.fn().mockResolvedValue({ status: "ready", game: readyGame }),
+      onboard,
     });
     render(
       <AppBootstrap
@@ -135,24 +162,46 @@ describe("AppBootstrap", () => {
     );
 
     await screen.findByRole("heading", { name: "学校をつくる" });
-    fireEvent.change(screen.getByLabelText("表示名"), {
-      target: { value: "監督" },
-    });
-    fireEvent.change(screen.getByLabelText("学校名"), {
-      target: { value: "青葉高校" },
-    });
     fireEvent.change(screen.getByLabelText("略称"), {
-      target: { value: "青葉" },
-    });
-    fireEvent.change(screen.getByLabelText("監督名"), {
-      target: { value: "高城 監督" },
+      target: { value: "青葉VC" },
     });
     fireEvent.change(screen.getByLabelText("都道府県"), {
       target: { value: "region.chiba" },
     });
     fireEvent.click(screen.getByRole("button", { name: "学校を作成" }));
 
+    expect(onboard).toHaveBeenCalledWith("access-token", {
+      displayName: "coach.taku",
+      schoolName: "青葉高校",
+      schoolShortName: "青葉VC",
+      coachName: "高城 監督",
+      regionId: "region.chiba",
+    });
     expect(await screen.findByText("GAME READY revision 1")).toBeVisible();
+  });
+
+  it("shows password reset before loading cloud data during recovery", async () => {
+    const api = apiClient();
+    const updatePassword = vi.fn().mockResolvedValue(undefined);
+    render(
+      <AppBootstrap
+        api={api}
+        auth={authClient(
+          () => Promise.resolve(session),
+          () => () => undefined,
+          {
+            isPasswordRecovery: vi.fn().mockReturnValue(true),
+            updatePassword,
+          },
+        )}
+        renderGame={(props) => <GameProbe {...props} />}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "新しいパスワード" }),
+    ).toBeVisible();
+    expect(api.bootstrap).not.toHaveBeenCalled();
   });
 
   it("aborts an obsolete cloud bootstrap when the auth session changes", async () => {

@@ -26,9 +26,37 @@
   font-size: clamp(1.8rem, 6vw, 2.5rem);
 }
 .onboarding-heading p {
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   color: #adbdc5;
   line-height: 1.65;
+}
+.onboarding-account-summary {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 14px;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 14px;
+  background: #091820;
+}
+.onboarding-account-summary div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.onboarding-account-summary dt {
+  color: #7795a3;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+.onboarding-account-summary dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #eef5f7;
+  font-size: 0.88rem;
+  font-weight: 800;
 }
 .onboarding-form {
   display: grid;
@@ -44,7 +72,7 @@
 }
 .onboarding-form input,
 .onboarding-form select {
-  min-height: 48px;
+  min-height: 50px;
   box-sizing: border-box;
   width: 100%;
   border: 1px solid rgb(255 255 255 / 14%);
@@ -53,6 +81,7 @@
   background: #0a1921;
   color: #f5f8fa;
   font: inherit;
+  font-size: 16px;
 }
 .onboarding-form button {
   grid-column: 1/-1;
@@ -93,11 +122,11 @@
   }
   .onboarding-card {
     min-height: 100dvh;
+    padding: calc(24px + env(safe-area-inset-top)) 18px
+      calc(28px + env(safe-area-inset-bottom));
     border: 0;
     border-radius: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    box-shadow: none;
   }
   .onboarding-form {
     grid-template-columns: 1fr;

@@ -31,6 +31,12 @@ export interface ReadyBootstrapResponse {
   game: CloudGameSnapshot;
 }
 
+export interface AccountProfile {
+  loginId: string;
+  coachName: string;
+  schoolName: string;
+}
+
 export interface OnboardingInput {
   displayName: string;
   schoolName: string;
@@ -72,6 +78,10 @@ export interface GameApiClient {
     accessToken: string,
     signal?: AbortSignal,
   ): Promise<BootstrapResponse>;
+  getAccountProfile?(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<AccountProfile>;
   onboard(
     accessToken: string,
     input: OnboardingInput,
@@ -231,6 +241,18 @@ export class HttpGameApiClient implements GameApiClient {
   ): Promise<BootstrapResponse> {
     return this.request<BootstrapResponse>(
       "/api/bootstrap",
+      accessToken,
+      { method: "GET" },
+      signal,
+    );
+  }
+
+  getAccountProfile(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<AccountProfile> {
+    return this.request<AccountProfile>(
+      "/api/account/profile",
       accessToken,
       { method: "GET" },
       signal,
