@@ -34,12 +34,12 @@ jobs:
           src/services/auth/AuthClient.ts
           src/services/auth/MockAuthClient.ts
           src/services/auth/SupabaseAuthClient.ts
-          supabase/migrations/202609040007_account_profiles.sql
           tests/unit/app/AppBootstrap.test.tsx
           tests/unit/features/auth/LoginScreen.test.tsx
           tests/unit/features/auth/PasswordResetScreen.test.tsx
           tests/unit/features/onboarding/SchoolSetupScreen.test.tsx
           tests/unit/services/SupabaseAuthClient.test.ts
+          tests/unit/worker/accountAuthRoutes.test.ts
           worker/auth/AccountAuthService.ts
           worker/index.ts
           worker/router.ts
@@ -51,6 +51,6 @@ jobs:
           if git diff --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs src supabase tests worker
+          git add docs src tests worker
           git commit -m "style: format account auth implementation"
           git push
