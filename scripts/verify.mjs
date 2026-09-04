@@ -8,7 +8,15 @@ const commands = [
   [
     "Production dependency audit",
     "npm",
-    ["audit", "--omit=dev", "--audit-level=high"],
+    [
+      "audit",
+      "--omit=dev",
+      "--audit-level=high",
+      "--fetch-retries=2",
+      "--fetch-retry-mintimeout=1000",
+      "--fetch-retry-maxtimeout=5000",
+      "--fetch-timeout=15000",
+    ],
   ],
   ["Unit tests", "npm", ["run", "test"]],
   ["Production build", "npm", ["run", "build"]],
