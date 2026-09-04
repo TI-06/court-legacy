@@ -10,11 +10,8 @@ import { reputationGrade } from "../../domain/school/reputation";
 import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
-import {
-  consumeSchoolViewAfterScouting,
-  SchoolNavigationTabs,
-  type SchoolView,
-} from "./SchoolNavigationTabs";
+import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
+import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
 import "./school-screen.css";
 
 interface SchoolScreenProps {

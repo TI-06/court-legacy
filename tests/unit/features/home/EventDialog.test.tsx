@@ -75,7 +75,9 @@ describe("EventDialog", () => {
     };
 
     let currentState = state;
-    let rerenderView: ReturnType<typeof render>["rerender"];
+    const rerenderView: {
+      current: ReturnType<typeof render>["rerender"] | null;
+    } = { current: null };
     const onChoose = vi.fn(async (choiceId: string) => {
       currentState = resolveEventChoice(
         currentState,
@@ -83,7 +85,7 @@ describe("EventDialog", () => {
         gameData,
         new SeededRandom("event-dialog-result"),
       ).state;
-      rerenderView(
+      rerenderView.current?.(
         <EventDialog
           data={gameData}
           onChoose={onChoose}
@@ -94,7 +96,7 @@ describe("EventDialog", () => {
     const view = render(
       <EventDialog data={gameData} onChoose={onChoose} state={currentState} />,
     );
-    rerenderView = view.rerender;
+    rerenderView.current = view.rerender;
 
     const choices = within(screen.getByLabelText("対応を選択")).getAllByRole(
       "button",

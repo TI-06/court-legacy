@@ -11,8 +11,8 @@ import type {
   ShopStatusResponse,
   ShopUseTarget,
 } from "../../domain/shop/shopContracts";
+import { requestSchoolViewAfterScouting } from "../school/SchoolNavigationState";
 import {
-  requestSchoolViewAfterScouting,
   SchoolNavigationTabs,
   type SchoolView,
 } from "../school/SchoolNavigationTabs";
