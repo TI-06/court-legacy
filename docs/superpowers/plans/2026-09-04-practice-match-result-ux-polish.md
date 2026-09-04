@@ -24,11 +24,13 @@
 ### Task 1: Practice match reservation lifecycle
 
 **Files:**
+
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `src/domain/calendar/academicYearProgression.ts`
 - Test: `tests/unit/features/phase13GameLoopPolish.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `applyGameAction(snapshot, action)` and `buildPracticePlanning(state)`.
 - Produces: a completed practice match with `scheduledOpponentId=null`, `scheduledBy=null`, plus fresh weekly practice planning after week advancement.
 
@@ -52,12 +54,14 @@ Run the same test command and confirm the lifecycle case passes.
 ### Task 2: Popup and practice-offer contrast
 
 **Files:**
+
 - Modify: `src/ui/ui.css`
 - Modify: `src/features/match/PracticeMatchPlanning.tsx`
 - Modify: `src/features/match/practice-match-planning.css`
 - Test: `tests/unit/features/phase13GameLoopPolish.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `BottomSheet` class names and PracticeMatchPlanning action buttons.
 - Produces: explicit dark text on light sheet surfaces and an explicit decline-action visual style.
 
@@ -80,11 +84,13 @@ Run the focused test.
 ### Task 3: Compact school header
 
 **Files:**
+
 - Modify: `src/features/school/SchoolScreen.tsx`
 - Modify: `src/features/school/school-screen.css`
 - Test: `tests/unit/features/phase13GameLoopPolish.test.tsx`
 
 **Interfaces:**
+
 - Consumes: existing school name, reputation, funds, coach, rival, and season data.
 - Produces: the same information in a compact hero using a three-column quick-stat row and reduced vertical spacing.
 
@@ -107,11 +113,13 @@ Run focused tests and mobile E2E later in the branch verification.
 ### Task 4: User-centric match result and persistent return action
 
 **Files:**
+
 - Modify: `src/features/match/MatchScreen.tsx`
 - Modify: `src/features/match/match.css`
 - Test: `tests/unit/features/phase13GameLoopPolish.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `result.analysis.winnerSchoolId`, user school ID, home/away sets, and optional progression presentation names.
 - Produces: explicit `勝利`/`敗北`, user-first score labels, and fixed result actions above the bottom navigation.
 
@@ -134,9 +142,11 @@ Run focused tests.
 ### Task 5: Full verification and integration
 
 **Files:**
+
 - Verify all changed files and existing regression suites.
 
 **Interfaces:**
+
 - Produces: a branch ready for review and merge.
 
 - [ ] **Step 1: Run formatter**

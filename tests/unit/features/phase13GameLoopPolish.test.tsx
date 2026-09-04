@@ -200,9 +200,7 @@ describe("Phase 13 game loop polish", () => {
       "utf8",
     );
 
-    expect(uiCss).toMatch(
-      /\.ui-bottom-sheet\s*\{[^}]*color:\s*#203743;/s,
-    );
+    expect(uiCss).toMatch(/\.ui-bottom-sheet\s*\{[^}]*color:\s*#203743;/s);
     expect(practiceCss).toMatch(
       /\.practice-planning__decline\s*\{[^}]*color:\s*#8b3a2d;[^}]*background:\s*#fff0ec;/s,
     );
