@@ -9,6 +9,7 @@ import type { Player } from "../../domain/model/Player";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
+import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
@@ -150,7 +151,8 @@ export function PlayerHubScreen({
     const abilities = summarizePlayerAbilities(selectedPlayer),
       role = state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve",
       concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [],
-      condition = getPlayerConditionPresentation(selectedPlayer.condition);
+      condition = getPlayerConditionPresentation(selectedPlayer.condition),
+      development = getPlayerDevelopmentPresentation(selectedPlayer);
     return (
       <main className="app-content player-hub player-detail">
         <button
@@ -173,6 +175,25 @@ export function PlayerHubScreen({
             <span>総合力</span>
             <strong>{playerOverall(selectedPlayer)}</strong>
           </div>
+        </section>
+        <section
+          className="player-detail__development"
+          aria-label="成長タイプと才能"
+        >
+          <article>
+            <span>成長タイプ</span>
+            <strong>{development.growthLabel}</strong>
+            <small>{development.growthDescription}</small>
+          </article>
+          <article>
+            <span>才能</span>
+            <strong>{development.talentLabel}</strong>
+            <small>
+              {development.potential === null
+                ? "将来性は未判定"
+                : `将来性 ${development.potentialGrade}・${development.potential}`}
+            </small>
+          </article>
         </section>
         <section className="player-detail__stats" aria-label="選手能力">
           {Object.entries(abilities).map(([key, value]) => (
@@ -237,6 +258,7 @@ export function PlayerHubScreen({
       <div className="player-roster">
         {players.map((player, index) => {
           const condition = getPlayerConditionPresentation(player.condition),
+            development = getPlayerDevelopmentPresentation(player),
             training = assignmentName(player.id);
           return (
             <article
@@ -257,6 +279,9 @@ export function PlayerHubScreen({
                     {player.grade}年・{player.preferredPosition}・
                     {player.heightCm}cm
                   </small>
+                  <span className="player-roster__growth">
+                    {development.growthLabel}・{development.talentLabel}
+                  </span>
                 </span>
                 <span
                   className={`player-roster__condition player-condition--${condition.colorToken}`}
