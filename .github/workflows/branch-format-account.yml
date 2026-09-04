@@ -1,0 +1,33 @@
+name: Account Auth Branch Formatter
+
+on:
+  push:
+    branches: [feat/account-id-auth]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/account-id-auth
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Format account auth planning and tests
+        run: npx prettier --write docs/superpowers/plans/2026-09-04-account-id-auth.md docs/superpowers/specs/2026-09-04-account-id-auth-design.md tests/unit/features/auth/LoginScreen.test.tsx
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/superpowers/plans/2026-09-04-account-id-auth.md docs/superpowers/specs/2026-09-04-account-id-auth-design.md tests/unit/features/auth/LoginScreen.test.tsx
+          git commit -m "style: format account auth plan and tests"
+          git push
