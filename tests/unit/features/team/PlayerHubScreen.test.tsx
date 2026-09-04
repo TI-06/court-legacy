@@ -94,9 +94,13 @@ describe("PlayerHubScreen", () => {
       name: "成長タイプと才能",
     });
     expect(within(developmentRegion).getByText("成長タイプ")).toBeVisible();
-    expect(within(developmentRegion).getByText(development.growthLabel)).toBeVisible();
+    expect(
+      within(developmentRegion).getByText(development.growthLabel),
+    ).toBeVisible();
     expect(within(developmentRegion).getByText("才能")).toBeVisible();
-    expect(within(developmentRegion).getByText(development.talentLabel)).toBeVisible();
+    expect(
+      within(developmentRegion).getByText(development.talentLabel),
+    ).toBeVisible();
     if (development.potential !== null) {
       expect(
         within(developmentRegion).getByText(

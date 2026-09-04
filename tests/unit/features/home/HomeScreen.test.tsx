@@ -132,7 +132,9 @@ describe("home action dashboard", () => {
 
     const strength = screen.getByLabelText("対戦戦力");
     expect(within(strength).getByText("自校戦力")).toBeVisible();
-    expect(within(strength).getByText(String(props.homeStrength))).toBeVisible();
+    expect(
+      within(strength).getByText(String(props.homeStrength)),
+    ).toBeVisible();
     expect(within(strength).getByText("相手戦力")).toBeVisible();
     expect(within(strength).getByText(String(opponentStrength))).toBeVisible();
     expect(screen.getByText("無名校")).toBeInTheDocument();

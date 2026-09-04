@@ -10,8 +10,7 @@
 .team-dynamics__detail-grid > section {
   min-width: 0;
   padding: 12px;
-  background:
-    linear-gradient(145deg, rgb(20 50 82 / 86%), rgb(7 18 31 / 96%));
+  background: linear-gradient(145deg, rgb(20 50 82 / 86%), rgb(7 18 31 / 96%));
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgb(0 0 0 / 16%);

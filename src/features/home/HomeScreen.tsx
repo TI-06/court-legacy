@@ -213,8 +213,9 @@ export function HomeScreen({
               <span>練習試合の申し込み</span>
               <strong>{incomingSchool.shortName}</strong>
               <small>
-                戦力 {incomingSchoolStrength} ・ 成長 {incomingOffer.growthRating}/5
-                ・ 負荷 {incomingOffer.loadRating}/5
+                戦力 {incomingSchoolStrength} ・ 成長{" "}
+                {incomingOffer.growthRating}/5 ・ 負荷{" "}
+                {incomingOffer.loadRating}/5
               </small>
             </div>
             <div>

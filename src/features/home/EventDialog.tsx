@@ -69,14 +69,18 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
             <div className="event-result__choice">
               <span>選んだ対応</span>
               <strong>{resolvedChoice.label}</strong>
-              {actorNames.length > 0 ? <small>{actorNames.join("・")}</small> : null}
+              {actorNames.length > 0 ? (
+                <small>{actorNames.join("・")}</small>
+              ) : null}
             </div>
             <section aria-label="対応による変化">
               <h3>起きた変化</h3>
               {latestOccurrence.visibleResultCodes.length > 0 ? (
                 <ul>
                   {latestOccurrence.visibleResultCodes.map((code, index) => (
-                    <li key={`${code}:${index}`}>{formatVisibleResult(code)}</li>
+                    <li key={`${code}:${index}`}>
+                      {formatVisibleResult(code)}
+                    </li>
                   ))}
                 </ul>
               ) : (

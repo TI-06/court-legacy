@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
@@ -78,7 +84,11 @@ describe("EventDialog", () => {
         new SeededRandom("event-dialog-result"),
       ).state;
       rerenderView(
-        <EventDialog data={gameData} onChoose={onChoose} state={currentState} />,
+        <EventDialog
+          data={gameData}
+          onChoose={onChoose}
+          state={currentState}
+        />,
       );
     });
     const view = render(
@@ -95,8 +105,14 @@ describe("EventDialog", () => {
       expect(screen.getByRole("dialog", { name: "対応結果" })).toBeVisible(),
     );
     expect(screen.getByText("選んだ対応")).toBeVisible();
-    expect(screen.getByRole("region", { name: "対応による変化" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "結果を確認した" })).toBeVisible();
-    expect(currentState.eventMemory.history.at(-1)?.visibleResultCodes.length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("region", { name: "対応による変化" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "結果を確認した" }),
+    ).toBeVisible();
+    expect(
+      currentState.eventMemory.history.at(-1)?.visibleResultCodes.length,
+    ).toBeGreaterThan(0);
   });
 });
