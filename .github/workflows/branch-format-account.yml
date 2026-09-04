@@ -18,10 +18,10 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
-      - run: npm ci
+      - run: npm ci --offline --ignore-scripts --no-audit --fund=false
       - name: Format account auth files
         run: >-
-          npx prettier --write
+          npx --no-install prettier --write
           docs/superpowers/plans/2026-09-04-account-id-auth.md
           docs/superpowers/specs/2026-09-04-account-id-auth-design.md
           src/app/AppBootstrap.tsx
