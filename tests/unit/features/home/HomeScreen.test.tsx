@@ -132,7 +132,7 @@ describe("home action dashboard", () => {
 
     const strength = screen.getByLabelText("対戦戦力");
     const homeStrengthLabel = within(strength).getByText("自校戦力");
-    const homeStrengthBlock = homeStrengthLabel.closest(
+    const homeStrengthBlock = homeStrengthLabel.closest<HTMLElement>(
       ".home-week-card__strength",
     );
     expect(homeStrengthBlock).not.toBeNull();
@@ -141,7 +141,7 @@ describe("home action dashboard", () => {
     ).toBeVisible();
 
     const opponentStrengthLabel = within(strength).getByText("相手戦力");
-    const opponentStrengthBlock = opponentStrengthLabel.closest(
+    const opponentStrengthBlock = opponentStrengthLabel.closest<HTMLElement>(
       ".home-week-card__strength",
     );
     expect(opponentStrengthBlock).not.toBeNull();
