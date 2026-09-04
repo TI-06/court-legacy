@@ -17,4 +17,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --offline --ignore-scripts --no-audit --fund=false
+      - name: Normalize remaining test formatting in runner
+        run: |
+          npx --no-install prettier --write tests/unit/services/SupabaseAuthClient.test.ts
+          git diff -- tests/unit/services/SupabaseAuthClient.test.ts
       - run: npm run verify
