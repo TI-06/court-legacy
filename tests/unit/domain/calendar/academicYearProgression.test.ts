@@ -129,7 +129,7 @@ describe("academic year progression", () => {
     expect(result.state.shopEffects?.nextTrainingGrowthBoost).toBeUndefined();
   });
 
-  it("propagates rest-aware recovery through an academic-year rollover", () => {
+  it("does not reintroduce legacy rest recovery through an academic-year rollover", () => {
     const normalState = createDemoGame();
     normalState.date = "2027-03-31";
     normalState.calendar.currentDate = normalState.date;
@@ -153,10 +153,10 @@ describe("academic year progression", () => {
     expect(normal.academicYearTransition).not.toBeNull();
     expect(rested.academicYearTransition).not.toBeNull();
     expect(rested.state.players[playerId]!.fatigue).toBe(
-      Math.max(0, normal.state.players[playerId]!.fatigue - 8),
+      normal.state.players[playerId]!.fatigue,
     );
     expect(rested.state.players[playerId]!.condition).toBe(
-      Math.min(100, normal.state.players[playerId]!.condition + 5),
+      normal.state.players[playerId]!.condition,
     );
   });
 

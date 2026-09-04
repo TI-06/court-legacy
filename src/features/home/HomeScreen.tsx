@@ -4,6 +4,7 @@ import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { School, SchoolReputation } from "../../domain/model/School";
+import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import {
   selectHomeTrainingNotifications,
   type TrainingResultNotification,
@@ -25,11 +26,14 @@ interface HomeScreenProps {
   homeStrength: number;
   trainingCompleted: boolean;
   practiceMatchCompleted: boolean;
-  onOpenTraining: () => void;
+  onOpenSchool?: () => void;
   onOpenTeam: () => void;
   onOpenMatch: () => void;
   onOpenOfficialTournament: () => void;
   onAdvanceWeek: () => void;
+  onAcceptPracticeOffer?: () => void;
+  onDeclinePracticeOffer?: () => void;
+  operationPending?: boolean;
   onMarkNotificationRead: (notificationId: string) => Promise<void> | void;
 }
 
@@ -89,28 +93,28 @@ export function HomeScreen({
   homeStrength,
   trainingCompleted,
   practiceMatchCompleted,
-  onOpenTraining,
+  onOpenSchool = () => undefined,
   onOpenTeam,
   onOpenMatch,
   onOpenOfficialTournament,
   onAdvanceWeek,
+  onAcceptPracticeOffer = () => undefined,
+  onDeclinePracticeOffer = () => undefined,
+  operationPending = false,
   onMarkNotificationRead,
 }: HomeScreenProps) {
   const [selectedNotification, setSelectedNotification] =
     useState<TrainingResultNotification | null>(null);
   const school = state.schools[state.userSchoolId];
-  if (!school) {
-    throw new Error(`user school not found: ${state.userSchoolId}`);
-  }
+  if (!school) throw new Error(`user school not found: ${state.userSchoolId}`);
 
   const players = school.playerIds
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player));
-  const averageFatigue = average(players.map((player) => player.fatigue));
   const injuredCount = players.filter((player) => player.injury).length;
-  const fatigueWarningCount = players.filter(
-    (player) => player.fatigue >= 65,
-  ).length;
+  const teamCondition = getPlayerConditionPresentation(
+    average(players.map((player) => player.condition)),
+  );
   const latestWinner = latestMatch
     ? state.schools[latestMatch.analysis.winnerSchoolId]
     : null;
@@ -124,27 +128,21 @@ export function HomeScreen({
     ? state.schools[scheduledPracticeOpponentId]
     : null;
   const displayedOpponent = scheduledPracticeOpponent ?? opponent;
+  const incomingOffer = state.weeklySchedule.practiceMatch.incomingOffer;
+  const incomingSchool = incomingOffer
+    ? state.schools[incomingOffer.schoolId]
+    : null;
   const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
   const practiceStatus = practiceMatchCompleted
     ? "完了 ✓"
     : scheduledPracticeOpponentId
       ? "対戦決定"
       : "未決定";
-  const alertText =
-    injuredCount > 0 || fatigueWarningCount > 0
-      ? [
-          injuredCount > 0 ? `怪我 ${injuredCount}人` : null,
-          fatigueWarningCount > 0 ? `疲労注意 ${fatigueWarningCount}人` : null,
-        ]
-          .filter(Boolean)
-          .join("・")
-      : null;
 
   const openNotification = (notification: TrainingResultNotification) => {
     setSelectedNotification(notification);
-    if (notification.readAtGameDate === null) {
+    if (notification.readAtGameDate === null)
       void onMarkNotificationRead(notification.id);
-    }
   };
 
   return (
@@ -186,20 +184,45 @@ export function HomeScreen({
           </span>
         </div>
 
+        {incomingOffer && incomingSchool && !scheduledPracticeOpponentId ? (
+          <section
+            className="home-practice-offer"
+            aria-label="練習試合の申し込み"
+          >
+            <div>
+              <span>練習試合の申し込み</span>
+              <strong>{incomingSchool.shortName}</strong>
+              <small>
+                成長 {incomingOffer.growthRating}/5 ・ 負荷{" "}
+                {incomingOffer.loadRating}/5
+              </small>
+            </div>
+            <div>
+              <button
+                disabled={operationPending}
+                onClick={onDeclinePracticeOffer}
+                type="button"
+              >
+                断る
+              </button>
+              <button
+                className="is-primary"
+                disabled={operationPending}
+                onClick={onAcceptPracticeOffer}
+                type="button"
+              >
+                受ける
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         <div className="home-week-card__actions" aria-label="今週の操作">
-          <button
-            aria-label="育成を決める"
-            onClick={onOpenTraining}
-            type="button"
-          >
-            育成
+          <button aria-label="選手を確認" onClick={onOpenTeam} type="button">
+            選手
           </button>
-          <button
-            aria-label="チーム編成を確認"
-            onClick={onOpenTeam}
-            type="button"
-          >
-            編成
+          <button aria-label="学校を確認" onClick={onOpenSchool} type="button">
+            学校
           </button>
           <button
             aria-label="練習試合へ"
@@ -239,9 +262,7 @@ export function HomeScreen({
                 <span className="home-notification-row__content">
                   <span className="home-notification-row__headline">
                     <span
-                      className={`home-notification-row__badge${
-                        unread ? "" : " is-read"
-                      }`}
+                      className={`home-notification-row__badge${unread ? "" : " is-read"}`}
                     >
                       {unread ? "NEW" : "確認済み"}
                     </span>
@@ -251,7 +272,6 @@ export function HomeScreen({
                     <strong>{notification.payload.teamTrainingMenuName}</strong>
                     <small>
                       成長 {signed(notification.payload.totalAbilityGrowth)}
-                      ・疲労 {signed(notification.payload.totalFatigueChange)}
                       ・怪我 {notification.payload.injuredCount}人
                     </small>
                   </span>
@@ -278,12 +298,10 @@ export function HomeScreen({
           <strong>{school.reputationPoints}</strong>
           <small>{reputationLabels[school.reputation]}</small>
         </article>
-        <article>
-          <span>疲労</span>
-          <strong>{averageFatigue}</strong>
-          <small>
-            {fatigueWarningCount > 0 ? `注意 ${fatigueWarningCount}人` : "安定"}
-          </small>
+        <article className={`player-condition--${teamCondition.colorToken}`}>
+          <span>調子</span>
+          <strong aria-label={teamCondition.label}>{teamCondition.icon}</strong>
+          <small>{teamCondition.label}</small>
         </article>
         <article>
           <span>部員</span>
@@ -301,11 +319,7 @@ export function HomeScreen({
 
       {nextOfficial ? (
         <section
-          className={`home-official-card${
-            nextOfficial.kind === "match" && nextOfficial.timing === "due"
-              ? " is-due"
-              : ""
-          }`}
+          className={`home-official-card${nextOfficial.kind === "match" && nextOfficial.timing === "due" ? " is-due" : ""}`}
           aria-labelledby="home-official-heading"
         >
           <div className="home-official-card__top">
@@ -322,7 +336,6 @@ export function HomeScreen({
                 : `あと${nextOfficial.weeksUntil}週`}
             </strong>
           </div>
-
           <div className="home-official-card__summary">
             {nextOfficial.kind === "match" ? (
               <span>
@@ -345,7 +358,7 @@ export function HomeScreen({
         </section>
       ) : null}
 
-      {latestMatch || alertText ? (
+      {latestMatch || injuredCount > 0 ? (
         <section className="home-recent-status" aria-label="最近の状況">
           {latestMatch && latestWinner ? (
             <div>
@@ -357,10 +370,10 @@ export function HomeScreen({
               </strong>
             </div>
           ) : null}
-          {alertText ? (
+          {injuredCount > 0 ? (
             <div className="is-alert">
               <span className="home-recent-status__tag">注意</span>
-              <strong>{alertText}</strong>
+              <strong>怪我 {injuredCount}人</strong>
             </div>
           ) : null}
         </section>

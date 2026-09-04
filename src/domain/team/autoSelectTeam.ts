@@ -8,7 +8,6 @@ import type {
 } from "../model/TeamSelection";
 import { validateTeamSelection } from "./validateTeamSelection";
 
-const SEVERE_FATIGUE_THRESHOLD = 85;
 const ROTATION_ROLES: readonly Position[] = ["S", "MB", "MB", "OH", "OH", "OP"];
 
 export interface AutoSelectTeamInput {
@@ -37,7 +36,7 @@ export interface LockedStarterResolution {
 
 function roleScore(player: Player, role: Position): number {
   const aptitude = player.positionAptitudes[role] * 3;
-  const readiness = player.condition * 1.2 - player.fatigue * 1.5;
+  const readiness = player.condition * 1.2;
   const common = player.abilities.mental + player.abilities.decision;
 
   switch (role) {
@@ -108,7 +107,7 @@ function stableBest(players: readonly Player[], role: Position): Player {
 }
 
 function isNormallyEligible(player: Player): boolean {
-  return !player.injury && player.fatigue < SEVERE_FATIGUE_THRESHOLD;
+  return !player.injury;
 }
 
 function schoolPlayers(state: GameState, schoolId: SchoolId): Player[] {
@@ -157,7 +156,7 @@ export function autoSelectTeam(input: AutoSelectTeamInput): TeamSelection {
     servingOrderPlayerIds: rotation.map((assignment) => assignment.playerId),
     substitutionPolicy: {
       starterLockPlayerIds: [],
-      allowFatigueBenching: true,
+      allowFatigueBenching: false,
       allowInjuryBenching: true,
       automaticSubstitutions: true,
       automaticSetChanges: false,
@@ -302,12 +301,6 @@ function safetyReason(
 ): StarterReplacementReason | null {
   if (player.injury && selection.substitutionPolicy.allowInjuryBenching) {
     return "injury";
-  }
-  if (
-    player.fatigue >= SEVERE_FATIGUE_THRESHOLD &&
-    selection.substitutionPolicy.allowFatigueBenching
-  ) {
-    return "fatigue";
   }
   return null;
 }

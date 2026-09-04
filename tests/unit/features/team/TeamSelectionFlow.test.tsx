@@ -58,7 +58,7 @@ describe("team selection direct-touch UI", () => {
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
+      name: "ローテーション1を入れ替え",
     });
     expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
       12,
@@ -76,7 +76,7 @@ describe("team selection direct-touch UI", () => {
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
+      name: "ローテーション1を入れ替え",
     });
     const replacement = within(dialog)
       .getAllByTestId("player-picker-option")
@@ -87,7 +87,7 @@ describe("team selection direct-touch UI", () => {
 
     expect(
       screen.queryByRole("dialog", {
-        name: "ローテーション1の選手を選択",
+        name: "ローテーション1を入れ替え",
       }),
     ).not.toBeInTheDocument();
     await waitFor(() =>
@@ -103,7 +103,7 @@ describe("team selection direct-touch UI", () => {
       screen.getByRole("button", { name: "ローテーション1を変更" }),
     );
     let dialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
+      name: "ローテーション1を入れ替え",
     });
     const starterLock = within(dialog).getByRole("button", {
       name: /先発固定/,
@@ -113,13 +113,13 @@ describe("team selection direct-touch UI", () => {
       expect(
         within(
           screen.getByRole("dialog", {
-            name: "ローテーション1の選手を選択",
+            name: "ローテーション1を入れ替え",
           }),
         ).getByRole("button", { name: /先発固定/ }),
       ).toHaveAttribute("aria-pressed", "true"),
     );
     dialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
+      name: "ローテーション1を入れ替え",
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
 
@@ -141,14 +141,14 @@ describe("team selection direct-touch UI", () => {
     expect(
       within(
         screen.getByRole("dialog", {
-          name: "ローテーション1の選手を選択",
+          name: "ローテーション1を入れ替え",
         }),
       ).getByRole("button", { name: /先発固定/ }),
     ).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(
       within(
         screen.getByRole("dialog", {
-          name: "ローテーション1の選手を選択",
+          name: "ローテーション1を入れ替え",
         }),
       ).getByRole("button", { name: "閉じる" }),
     );

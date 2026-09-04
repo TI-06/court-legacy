@@ -8,7 +8,7 @@ test("mobile shell keeps all primary navigation actions visible", async ({
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await expect(navigation).toBeVisible();
 
-  for (const label of ["ホーム", "選手", "育成", "試合", "その他"]) {
+  for (const label of ["ホーム", "選手", "学校", "試合", "その他"]) {
     await expect(
       navigation.getByRole("button", { name: label, exact: true }),
     ).toBeVisible();
@@ -26,55 +26,20 @@ test("mobile training saves a plan and resolves it with next-week progression", 
 }) => {
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
+  await navigation.getByRole("button", { name: "選手", exact: true }).click();
 
-  await expect(page.getByRole("heading", { name: "育成" })).toBeVisible();
-  await expect(page.getByRole("combobox")).toHaveCount(0);
-  await expect(page.getByTestId("team-training-choice")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+  const trainingChips = page.locator(".player-training-chip");
+  await expect(trainingChips).toHaveCount(12);
+  await trainingChips.first().click();
 
-  await page.getByRole("button", { name: /^チーム練習 .* を変更$/ }).click();
-  const teamMenu = page.getByRole("dialog", { name: "チーム練習を選択" });
-  await expect(teamMenu.getByTestId("team-training-choice")).toHaveCount(12);
-  await teamMenu.getByTestId("team-training-choice").nth(1).click();
-  await expect(teamMenu).toBeHidden();
-
-  await page.getByRole("button", { name: /^個人育成 2 / }).click();
-  const assignmentTwo = page.getByRole("dialog", { name: "個人育成 2" });
-  await assignmentTwo.getByRole("button", { name: "選手を変更" }).click();
-  const playerPicker = page.getByRole("dialog", {
-    name: "個人育成2の選手を選択",
-  });
-  await expect(playerPicker.getByTestId("player-picker-option")).toHaveCount(
-    12,
-  );
-  await playerPicker.getByRole("button", { name: "閉じる" }).click();
-  await page
-    .getByRole("dialog", { name: "個人育成 2" })
-    .getByRole("button", { name: "閉じる" })
-    .click();
-
-  await page.getByRole("button", { name: /^個人育成 1 / }).click();
-  const assignmentOne = page.getByRole("dialog", { name: "個人育成 1" });
-  await assignmentOne.getByRole("button", { name: "指示を変更" }).click();
-  const instructionPicker = page.getByRole("dialog", {
-    name: "個人育成1の指示を選択",
-  });
+  const trainingDialog = page.getByRole("dialog", { name: /の個人練習$/ });
   await expect(
-    instructionPicker.getByTestId("individual-instruction-choice"),
+    trainingDialog.locator(".player-training-options button"),
   ).toHaveCount(6);
-  await instructionPicker.getByRole("button", { name: "閉じる" }).click();
-  await page
-    .getByRole("dialog", { name: "個人育成 1" })
-    .getByRole("button", { name: "閉じる" })
-    .click();
-
-  await page.getByRole("button", { name: "この内容で設定" }).click();
-  const confirmation = page.getByRole("dialog", { name: "練習設定を確認" });
-  await confirmation.getByRole("button", { name: "この内容で設定" }).click();
-  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toHaveCount(0);
+  await trainingDialog.getByRole("button", { name: /^攻撃/ }).click();
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
+  await expect(trainingChips.first()).toContainText("攻撃");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
@@ -96,15 +61,6 @@ test("mobile training saves a plan and resolves it with next-week progression", 
     resultDialog.locator(".training-result-notification__player"),
   ).toHaveCount(12);
   await resultDialog.getByRole("button", { name: "閉じる" }).click();
-  await expect(resultDialog).toBeHidden();
-
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "この内容で設定" }),
-  ).toBeEnabled();
 
   const bodyWidth = await page
     .locator("body")
@@ -130,7 +86,7 @@ test("mobile team selection uses a court picker without overflow", async ({
 
   await page.getByRole("button", { name: "ローテーション1を変更" }).click();
   const picker = page.getByRole("dialog", {
-    name: "ローテーション1の選手を選択",
+    name: "ローテーション1を入れ替え",
   });
   await expect(picker).toBeVisible();
   await expect(picker.getByTestId("player-picker-option")).toHaveCount(12);
@@ -155,33 +111,26 @@ test("school management upgrades a facility and calendar resolves saved training
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
 
-  await navigation.getByRole("button", { name: "その他", exact: true }).click();
-  await page.getByRole("button", { name: "学校管理" }).click();
+  await navigation.getByRole("button", { name: "学校", exact: true }).click();
   await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
   await expect(page.getByText("資金 300")).toBeVisible();
 
-  const trainingUpgrade = page.getByRole("button", {
-    name: "トレーニング設備を強化",
+  const trainingFacility = page.getByRole("button", {
+    name: "トレーニング設備の詳細",
   });
-  const trainingFacilityCard = trainingUpgrade.locator(
-    "xpath=ancestor::article",
-  );
-  await trainingUpgrade.click();
+  await trainingFacility.click();
   const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
   await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
   await expect(page.getByText("資金 230")).toBeVisible();
-  await expect(trainingFacilityCard.getByText("Lv.1")).toBeVisible();
+  await expect(trainingFacility).toContainText("Lv.1");
 
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "この内容で設定" }).click();
+  await navigation.getByRole("button", { name: "選手", exact: true }).click();
+  await page.locator(".player-training-chip").first().click();
   await page
-    .getByRole("dialog", { name: "練習設定を確認" })
-    .getByRole("button", { name: "この内容で設定" })
+    .getByRole("dialog", { name: /の個人練習$/ })
+    .getByRole("button", { name: /^攻撃/ })
     .click();
-  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "直近の練習結果" }),
-  ).toHaveCount(0);
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await page.getByRole("button", { name: "予定を確認" }).click();
   const calendar = page.getByRole("dialog", { name: "週間カレンダー" });

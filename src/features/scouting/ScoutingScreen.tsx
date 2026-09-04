@@ -133,9 +133,9 @@ export function ScoutingScreen({
           className="scouting-back"
           onClick={onBack}
           type="button"
-          aria-label="育成へ戻る"
+          aria-label="学校へ戻る"
         >
-          ← 育成へ戻る
+          ← 学校へ戻る
         </button>
         <div className="scouting-hero__heading">
           <div>

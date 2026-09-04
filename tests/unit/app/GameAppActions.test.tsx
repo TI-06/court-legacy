@@ -74,6 +74,30 @@ function responseFor(
   };
 }
 
+function setOverallTrainingFromRoster(): void {
+  fireEvent.click(screen.getByRole("button", { name: "選手" }));
+  const trainingButton = screen.getAllByRole("button", {
+    name: /練習 全体$/,
+  })[0];
+  if (!trainingButton) {
+    throw new Error("overall training button missing");
+  }
+  fireEvent.click(trainingButton);
+  const trainingDialog = screen.getByRole("dialog", {
+    name: /の個人練習$/,
+  });
+  fireEvent.click(
+    within(trainingDialog).getByRole("button", { name: /^全体/ }),
+  );
+}
+
+function openTrainingFacility(): void {
+  fireEvent.click(screen.getByRole("button", { name: "学校" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "トレーニング設備の詳細" }),
+  );
+}
+
 describe("GameApp cloud actions", () => {
   it("saves the weekly training plan through the authenticated game API without resolving it immediately", async () => {
     const snapshot = createSnapshot();
@@ -100,14 +124,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
-    fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習設定を確認" })).getByRole(
-        "button",
-        { name: "この内容で設定" },
-      ),
-    );
+    setOverallTrainingFromRoster();
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     const [accessToken, request] = applyAction.mock.calls[0]!;
@@ -116,7 +133,7 @@ describe("GameApp cloud actions", () => {
       revision: 1,
       action: { type: "set-training-plan" },
     });
-    expect(screen.getByRole("status")).toHaveTextContent("保存中…");
+    expect(screen.getByText("保存中…")).toBeVisible();
     expect(
       screen.queryByRole("heading", { name: "直近の練習結果" }),
     ).not.toBeInTheDocument();
@@ -184,11 +201,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "その他" }));
-    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "トレーニング設備を強化" }),
-    );
+    openTrainingFacility();
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",
@@ -228,14 +241,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "育成" }));
-    fireEvent.click(screen.getByRole("button", { name: "この内容で設定" }));
-    fireEvent.click(
-      within(screen.getByRole("dialog", { name: "練習設定を確認" })).getByRole(
-        "button",
-        { name: "この内容で設定" },
-      ),
-    );
+    setOverallTrainingFromRoster();
     await screen.findByText("保存済み ✓");
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
@@ -322,7 +328,7 @@ describe("GameApp cloud actions", () => {
       screen.getByRole("button", { name: "ローテーション1を変更" }),
     );
     const lineupDialog = screen.getByRole("dialog", {
-      name: "ローテーション1の選手を選択",
+      name: "ローテーション1を入れ替え",
     });
     fireEvent.click(
       within(lineupDialog).getByRole("button", { name: /先発固定/ }),
@@ -368,12 +374,8 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "その他" }));
-    fireEvent.click(screen.getByRole("button", { name: "学校管理" }));
+    openTrainingFacility();
     expect(screen.getByText("資金 300")).toBeVisible();
-    fireEvent.click(
-      screen.getByRole("button", { name: "トレーニング設備を強化" }),
-    );
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",

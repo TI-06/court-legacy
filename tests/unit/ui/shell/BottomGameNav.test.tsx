@@ -12,11 +12,11 @@ describe("BottomGameNav", () => {
       "page",
     );
     expect(screen.getByRole("button", { name: "選手" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "育成" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "学校" })).toBeVisible();
     expect(screen.getByRole("button", { name: "試合" })).toBeVisible();
     expect(screen.getByRole("button", { name: "その他" })).toBeVisible();
     expect(
-      screen.queryByRole("button", { name: "学校" }),
+      screen.queryByRole("button", { name: "育成" }),
     ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "その他" }));

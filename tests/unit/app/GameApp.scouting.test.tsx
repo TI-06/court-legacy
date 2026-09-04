@@ -96,8 +96,8 @@ function renderApp(api: GameApiClient, snapshot = createSnapshot()) {
 }
 
 function openScouting() {
-  fireEvent.click(screen.getByRole("button", { name: "育成" }));
-  fireEvent.click(screen.getByRole("button", { name: /^新入生スカウト/ }));
+  fireEvent.click(screen.getByRole("button", { name: "学校" }));
+  fireEvent.click(screen.getByRole("tab", { name: "スカウト" }));
 }
 
 describe("GameApp scouting flow", () => {

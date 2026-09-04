@@ -6,7 +6,10 @@ import {
   advanceOfficialTournamentsThroughWeek,
   findDueUserOfficialMatch,
 } from "../../../src/domain/tournament/progressOfficialTournaments";
-import type { WeeklyPlan } from "../../../src/domain/training/resolveWeeklyTraining";
+import type {
+  TrainingResult,
+  WeeklyPlan,
+} from "../../../src/domain/training/resolveWeeklyTraining";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
@@ -81,11 +84,32 @@ describe("deferred weekly training plan", () => {
     expect(advanced.outcome).toMatchObject({
       trainingResult: {
         teamTrainingMenuId: plan.teamTrainingMenuId,
-        individualAssignments: plan.individualAssignments,
       },
       weekAdvanced: true,
       pendingMatchPresentation: null,
     });
+
+    const trainingResult = (
+      advanced.outcome as { trainingResult: TrainingResult }
+    ).trainingResult;
+    const school = saved.state.schools[saved.state.userSchoolId]!;
+    expect(trainingResult.individualAssignments).toHaveLength(
+      school.playerIds.length,
+    );
+    expect(trainingResult.individualAssignments).toEqual(
+      expect.arrayContaining(plan.individualAssignments),
+    );
+    const explicitlyAssigned = new Set(
+      plan.individualAssignments.map((assignment) => assignment.playerId),
+    );
+    expect(
+      trainingResult.individualAssignments
+        .filter((assignment) => !explicitlyAssigned.has(assignment.playerId))
+        .every(
+          (assignment) => assignment.instructionId === "instruction.overall",
+        ),
+    ).toBe(true);
+
     expect(advanced.state.notifications.items).toHaveLength(1);
     expect(isWeeklyActionCompleted(advanced.state, "training")).toBe(false);
   });

@@ -4,20 +4,28 @@ import {
   progressWeeklyDynamics,
 } from "../dynamics/progressWeeklyDynamics";
 import type { GameState } from "../model/GameState";
-import { clampAbility, type Player, type PlayerInjury } from "../model/Player";
+import {
+  ABILITY_KEYS,
+  clampAbility,
+  type Player,
+  type PlayerInjury,
+} from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import type {
   AbilityKey,
   IndividualTrainingInstructionDefinition,
   PersonalityDefinition,
-  TrainingMenuDefinition,
 } from "../validation/gameDataSchema";
 import {
   calculateGrowth,
   type AdditionalGrowthModifier,
   type GrowthModifier,
 } from "./calculateGrowth";
+import {
+  calculatePhase12InjuryRisk,
+  getWeeklyConditionDrift,
+} from "./phase12TrainingRules";
 
 export interface IndividualTrainingAssignment {
   playerId: PlayerId;
@@ -91,212 +99,8 @@ export interface PlayerTrainingActivityResolution {
   log: PlayerGrowthLog;
 }
 
-function clampStateValue(value: number): number {
+function clampState(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-function validateWeeklyPlan(input: ResolveWeeklyTrainingInput): {
-  menu: TrainingMenuDefinition;
-  instructions: Map<PlayerId, IndividualTrainingInstructionDefinition>;
-} {
-  const school = input.state.schools[input.schoolId];
-  if (!school) {
-    throw new Error(`unknown training school: ${input.schoolId}`);
-  }
-
-  const menu = input.data.trainingMenus.get(input.plan.teamTrainingMenuId);
-  if (!menu) {
-    throw new Error(
-      `unknown team training menu: ${input.plan.teamTrainingMenuId}`,
-    );
-  }
-
-  if (input.plan.individualAssignments.length !== 2) {
-    throw new Error("weekly plan requires exactly two individual assignments");
-  }
-
-  const assignmentPlayerIds = input.plan.individualAssignments.map(
-    (assignment) => assignment.playerId,
-  );
-  if (new Set(assignmentPlayerIds).size !== assignmentPlayerIds.length) {
-    throw new Error("individual assignments must use distinct players");
-  }
-
-  const schoolPlayerIds = new Set(school.playerIds);
-  for (const playerId of school.playerIds) {
-    const player = input.state.players[playerId];
-    if (!player) {
-      throw new Error(`school references unknown player: ${playerId}`);
-    }
-    if (!input.data.growthTypes.has(player.growthTypeId)) {
-      throw new Error(`unknown player growth type: ${player.growthTypeId}`);
-    }
-    if (!input.data.personalities.has(player.personalityId)) {
-      throw new Error(`unknown player personality: ${player.personalityId}`);
-    }
-  }
-
-  const instructions = new Map<
-    PlayerId,
-    IndividualTrainingInstructionDefinition
-  >();
-
-  for (const assignment of input.plan.individualAssignments) {
-    if (!schoolPlayerIds.has(assignment.playerId)) {
-      throw new Error(
-        `individual assignment player is not in school: ${assignment.playerId}`,
-      );
-    }
-
-    const instruction = input.data.individualTrainingInstructions.get(
-      assignment.instructionId,
-    );
-    if (!instruction) {
-      throw new Error(
-        `unknown individual training instruction: ${assignment.instructionId}`,
-      );
-    }
-    instructions.set(assignment.playerId, instruction);
-  }
-
-  return { menu, instructions };
-}
-
-function activityFromMenu(menu: TrainingMenuDefinition): TrainingActivity {
-  return {
-    targetAbilities: menu.targetAbilities,
-    baseGrowth: menu.baseGrowth,
-    fatigue: menu.fatigue,
-    injuryRisk: menu.injuryRisk,
-    trustGrowth: menu.relationshipGrowth,
-  };
-}
-
-function activityFromInstruction(
-  instruction: IndividualTrainingInstructionDefinition,
-): TrainingActivity {
-  return {
-    targetAbilities: instruction.targetAbilities,
-    baseGrowth: instruction.baseGrowth,
-    fatigue: instruction.fatigue,
-    injuryRisk: instruction.injuryRisk,
-    trustGrowth: instruction.trustGrowth,
-  };
-}
-
-function calculateFatigueChange(
-  player: Player,
-  activityFatigue: number,
-  conditioning: number,
-  recoveryRoomLevel: number,
-): number {
-  if (activityFatigue < 0) {
-    return Math.round(activityFatigue * (1 + recoveryRoomLevel * 0.08));
-  }
-
-  const resistancePercent = Math.max(
-    60,
-    Math.min(110, 120 - player.abilities.stamina * 0.35 - conditioning * 0.15),
-  );
-  return Math.max(0, Math.round(activityFatigue * (resistancePercent / 100)));
-}
-
-function calculateConditionChange(fatigueChange: number): number {
-  if (fatigueChange < 0) {
-    return Math.max(1, Math.ceil(Math.abs(fatigueChange) / 3));
-  }
-  if (fatigueChange > 0) {
-    return -Math.max(1, Math.ceil(fatigueChange / 4));
-  }
-  return 0;
-}
-
-function calculateTrustChange(
-  baseTrustGrowth: number,
-  personality: PersonalityDefinition,
-): number {
-  return Math.round(
-    baseTrustGrowth * ((100 + personality.relationshipGrowth) / 100),
-  );
-}
-
-function applyAbilityGrowth(
-  player: Player,
-  targets: readonly AbilityKey[],
-  amount: number,
-): {
-  abilities: Player["abilities"];
-  changes: Partial<Record<AbilityKey, number>>;
-} {
-  const abilities = { ...player.abilities };
-  const changes: Partial<Record<AbilityKey, number>> = {};
-
-  for (const ability of targets) {
-    const previous = abilities[ability];
-    const next = clampAbility(previous + amount);
-    abilities[ability] = next;
-    changes[ability] = next - previous;
-  }
-
-  return { abilities, changes };
-}
-
-function mergeChanges(
-  target: Partial<Record<AbilityKey, number>>,
-  additions: Partial<Record<AbilityKey, number>>,
-): void {
-  for (const [ability, amount] of Object.entries(additions) as Array<
-    [AbilityKey, number]
-  >) {
-    target[ability] = (target[ability] ?? 0) + amount;
-  }
-}
-
-function calculateInjuryRisk(
-  player: Player,
-  activity: TrainingActivity,
-  fatigueChange: number,
-  conditioning: number,
-  recoveryRoomLevel: number,
-): number {
-  if (activity.injuryRisk === 0) {
-    return 0;
-  }
-
-  return Math.max(
-    0,
-    Math.min(
-      90,
-      Math.round(
-        activity.injuryRisk +
-          player.fatigue / 5 +
-          Math.max(0, fatigueChange - 5) -
-          conditioning / 10 -
-          recoveryRoomLevel * 2,
-      ),
-    ),
-  );
-}
-
-function createTrainingInjury(
-  risk: number,
-  random: RandomSource,
-): PlayerInjury {
-  const severity: PlayerInjury["severity"] =
-    risk >= 70 ? "severe" : risk >= 40 ? "moderate" : "minor";
-  const remainingWeeks =
-    severity === "severe"
-      ? random.int(6, 10)
-      : severity === "moderate"
-        ? random.int(3, 5)
-        : random.int(1, 2);
-
-  return {
-    injuryId: "injury.training-overuse",
-    severity,
-    remainingWeeks,
-    recurrenceRisk: Math.min(80, 10 + Math.round(risk / 2)),
-  };
 }
 
 function emptyLog(playerId: PlayerId): PlayerGrowthLog {
@@ -315,6 +119,43 @@ function emptyLog(playerId: PlayerId): PlayerGrowthLog {
   };
 }
 
+function trustChange(base: number, personality: PersonalityDefinition) {
+  return Math.round(base * ((100 + personality.relationshipGrowth) / 100));
+}
+
+function applyGrowth(
+  player: Player,
+  targets: readonly AbilityKey[],
+  amount: number,
+) {
+  const abilities = { ...player.abilities };
+  const changes: Partial<Record<AbilityKey, number>> = {};
+  for (const key of targets) {
+    const before = abilities[key];
+    const next = clampAbility(before + amount);
+    abilities[key] = next;
+    changes[key] = next - before;
+  }
+  return { abilities, changes };
+}
+
+function createInjury(risk: number, random: RandomSource): PlayerInjury {
+  const severity: PlayerInjury["severity"] =
+    risk >= 70 ? "severe" : risk >= 40 ? "moderate" : "minor";
+  const remainingWeeks =
+    severity === "severe"
+      ? random.int(6, 10)
+      : severity === "moderate"
+        ? random.int(3, 5)
+        : random.int(1, 2);
+  return {
+    injuryId: "injury.training-overuse",
+    severity,
+    remainingWeeks,
+    recurrenceRisk: Math.min(80, 10 + Math.round(risk / 2)),
+  };
+}
+
 function applyActivity(
   player: Player,
   activity: TrainingActivity,
@@ -322,7 +163,8 @@ function applyActivity(
   data: GameDataRegistry,
   random: RandomSource,
   log: PlayerGrowthLog,
-  additionalGrowthModifiers: readonly AdditionalGrowthModifier[],
+  extra: readonly AdditionalGrowthModifier[],
+  balanced = false,
 ): Player {
   if (player.injury) {
     log.skippedReason = "injured";
@@ -337,56 +179,121 @@ function applyActivity(
     school,
     growthType,
     personality,
-    additionalModifiers: additionalGrowthModifiers,
+    additionalModifiers: extra,
   });
-  const abilityResult = applyAbilityGrowth(
-    player,
-    activity.targetAbilities,
-    growth.amount,
-  );
-  const fatigueChange = calculateFatigueChange(
-    player,
-    activity.fatigue,
-    school.coach.conditioning,
-    school.facilities.recoveryRoom,
-  );
-  const conditionChange = calculateConditionChange(fatigueChange);
-  const trustChange = calculateTrustChange(activity.trustGrowth, personality);
-  const injuryRisk = calculateInjuryRisk(
-    player,
-    activity,
-    fatigueChange,
-    school.coach.conditioning,
-    school.facilities.recoveryRoom,
-  );
+  const targets = balanced ? ABILITY_KEYS : activity.targetAbilities;
+  const amount = balanced
+    ? growth.amount <= 0
+      ? 0
+      : Math.max(1, Math.round(growth.amount / 3))
+    : growth.amount;
+  const ability = applyGrowth(player, targets, amount);
+  const conditionChange = getWeeklyConditionDrift(random);
+  const trust = trustChange(activity.trustGrowth, personality);
+  const risk = calculatePhase12InjuryRisk({
+    baseRisk: activity.injuryRisk,
+    condition: player.condition,
+    injuryResistance: player.injuryResistance ?? 50,
+    recoveryRoomLevel: school.facilities.recoveryRoom,
+  });
   const injury =
-    injuryRisk > 0 && random.int(1, 100) <= injuryRisk
-      ? createTrainingInjury(injuryRisk, random)
-      : null;
+    risk > 0 && random.int(1, 100) <= risk ? createInjury(risk, random) : null;
 
-  mergeChanges(log.abilityChanges, abilityResult.changes);
-  log.totalAbilityGrowth = Object.values(log.abilityChanges).reduce(
-    (sum, amount) => sum + (amount ?? 0),
+  log.abilityChanges = ability.changes;
+  log.totalAbilityGrowth = Object.values(ability.changes).reduce(
+    (sum, value) => sum + (value ?? 0),
     0,
   );
-  log.fatigueChange += fatigueChange;
-  log.conditionChange += conditionChange;
-  log.trustChange += trustChange;
-  log.academicRestricted ||= growth.academicRestricted;
-  log.injuryRisk = Math.max(log.injuryRisk, injuryRisk);
-  log.injury = injury ?? log.injury;
-  if (log.modifiers.length === 0) {
-    log.modifiers = growth.modifiers;
-  }
+  log.conditionChange = conditionChange;
+  log.trustChange = trust;
+  log.academicRestricted = growth.academicRestricted;
+  log.injuryRisk = risk;
+  log.injury = injury;
+  log.modifiers = growth.modifiers;
 
   return {
     ...player,
-    abilities: abilityResult.abilities,
-    fatigue: clampStateValue(player.fatigue + fatigueChange),
-    condition: clampStateValue(player.condition + conditionChange),
-    trust: clampStateValue(player.trust + trustChange),
+    abilities: ability.abilities,
+    condition: clampState(player.condition + conditionChange),
+    trust: clampState(player.trust + trust),
     injury,
   };
+}
+
+function activityFromInstruction(
+  instruction: IndividualTrainingInstructionDefinition,
+): TrainingActivity {
+  return {
+    targetAbilities: instruction.targetAbilities,
+    baseGrowth: instruction.baseGrowth,
+    fatigue: 0,
+    injuryRisk: instruction.injuryRisk,
+    trustGrowth: instruction.trustGrowth,
+  };
+}
+
+function validate(input: ResolveWeeklyTrainingInput) {
+  const school = input.state.schools[input.schoolId];
+  if (!school) {
+    throw new Error(`unknown training school: ${input.schoolId}`);
+  }
+  if (!input.data.trainingMenus.has(input.plan.teamTrainingMenuId)) {
+    throw new Error(
+      `unknown team training menu: ${input.plan.teamTrainingMenuId}`,
+    );
+  }
+
+  const assignedPlayerIds = input.plan.individualAssignments.map(
+    (assignment) => assignment.playerId,
+  );
+  if (new Set(assignedPlayerIds).size !== assignedPlayerIds.length) {
+    throw new Error("individual assignments must use distinct players");
+  }
+
+  const schoolPlayerIds = new Set(school.playerIds);
+  const instructionByPlayerId = new Map<
+    PlayerId,
+    IndividualTrainingInstructionDefinition
+  >();
+
+  for (const id of school.playerIds) {
+    const player = input.state.players[id];
+    if (!player) {
+      throw new Error(`school references unknown player: ${id}`);
+    }
+    if (!input.data.growthTypes.has(player.growthTypeId)) {
+      throw new Error(`unknown player growth type: ${player.growthTypeId}`);
+    }
+    if (!input.data.personalities.has(player.personalityId)) {
+      throw new Error(`unknown player personality: ${player.personalityId}`);
+    }
+  }
+
+  for (const assignment of input.plan.individualAssignments) {
+    if (!schoolPlayerIds.has(assignment.playerId)) {
+      throw new Error(
+        `individual assignment player is not in school: ${assignment.playerId}`,
+      );
+    }
+    const instruction = input.data.individualTrainingInstructions.get(
+      assignment.instructionId,
+    );
+    if (!instruction) {
+      throw new Error(
+        `unknown individual training instruction: ${assignment.instructionId}`,
+      );
+    }
+    instructionByPlayerId.set(assignment.playerId, instruction);
+  }
+
+  const fallback = input.data.individualTrainingInstructions.get(
+    "instruction.overall",
+  );
+  if (!fallback) {
+    throw new Error("missing instruction.overall");
+  }
+
+  return { school, instructionByPlayerId, fallback };
 }
 
 export function resolvePlayerTrainingActivity(
@@ -395,93 +302,98 @@ export function resolvePlayerTrainingActivity(
   const log = emptyLog(input.player.id);
   const player = applyActivity(
     input.player,
-    input.activity,
+    { ...input.activity, fatigue: 0 },
     input.school,
     input.data,
     input.random,
     log,
     input.additionalGrowthModifiers ?? [],
   );
-
   return { player, log };
 }
 
 export function resolveWeeklyTraining(
   input: ResolveWeeklyTrainingInput,
 ): WeeklyTrainingResolution {
-  const validated = validateWeeklyPlan(input);
+  const validated = validate(input);
   const initialRandomCursor = input.random.cursor;
-  const school = input.state.schools[input.schoolId]!;
   const players = { ...input.state.players };
-  const playerLogs: PlayerGrowthLog[] = [];
+  const logs: PlayerGrowthLog[] = [];
   const injuredPlayerIds: PlayerId[] = [];
-  const sharedGrowthModifiers = input.additionalGrowthModifiers ?? [];
-  const includeDynamicsModifiers = input.schoolId === input.state.userSchoolId;
+  const assignments: IndividualTrainingAssignment[] = [];
+  const includeDynamics = input.schoolId === input.state.userSchoolId;
 
-  for (const playerId of school.playerIds) {
-    const original = input.state.players[playerId]!;
-    const log = emptyLog(playerId);
-    if (input.restingPlayerIds?.has(playerId)) {
+  for (const id of validated.school.playerIds) {
+    const original = input.state.players[id]!;
+    const log = emptyLog(id);
+
+    if (input.restingPlayerIds?.has(id)) {
       log.skippedReason = "auto-rest";
-      players[playerId] = original;
-      playerLogs.push(log);
+      players[id] = original;
+      logs.push(log);
       continue;
     }
 
-    const playerGrowthModifiers = includeDynamicsModifiers
+    const instruction =
+      validated.instructionByPlayerId.get(id) ?? validated.fallback;
+    assignments.push({ playerId: id, instructionId: instruction.id });
+
+    if (original.injury) {
+      log.skippedReason = "injured";
+      players[id] = original;
+      logs.push(log);
+      continue;
+    }
+
+    if (instruction.id === "instruction.rest") {
+      const drift = getWeeklyConditionDrift(input.random);
+      const nextCondition = clampState(original.condition + 25 + drift);
+      log.conditionChange = nextCondition - original.condition;
+      players[id] = { ...original, condition: nextCondition };
+      logs.push(log);
+      continue;
+    }
+
+    const extraModifiers = includeDynamics
       ? [
-          ...sharedGrowthModifiers,
+          ...(input.additionalGrowthModifiers ?? []),
           ...calculateDynamicsTrainingModifiers(original),
         ]
-      : sharedGrowthModifiers;
-    let updated = applyActivity(
+      : (input.additionalGrowthModifiers ?? []);
+    const updated = applyActivity(
       original,
-      activityFromMenu(validated.menu),
-      school,
+      activityFromInstruction(instruction),
+      validated.school,
       input.data,
       input.random,
       log,
-      playerGrowthModifiers,
+      extraModifiers,
+      instruction.id === "instruction.overall",
     );
-    const instruction = validated.instructions.get(playerId);
-    if (instruction && !updated.injury) {
-      updated = applyActivity(
-        updated,
-        activityFromInstruction(instruction),
-        school,
-        input.data,
-        input.random,
-        log,
-        playerGrowthModifiers,
-      );
-    }
-
-    players[playerId] = updated;
-    playerLogs.push(log);
+    players[id] = updated;
+    logs.push(log);
     if (updated.injury && !original.injury) {
-      injuredPlayerIds.push(playerId);
+      injuredPlayerIds.push(id);
     }
   }
 
   const consumedRandomValues = input.random.cursor - initialRandomCursor;
-  const trainedState: GameState = {
+  const trainedState = {
     ...input.state,
     players,
     randomCursor: input.state.randomCursor + consumedRandomValues,
   };
-  const resolvedState = includeDynamicsModifiers
+  const state = includeDynamics
     ? progressWeeklyDynamics(trainedState)
     : trainedState;
 
   return {
-    state: resolvedState,
+    state,
     result: {
       schoolId: input.schoolId,
       teamTrainingMenuId: input.plan.teamTrainingMenuId,
-      individualAssignments: input.plan.individualAssignments.map(
-        (assignment) => ({ ...assignment }),
-      ),
-      playerLogs,
+      individualAssignments: assignments,
+      playerLogs: logs,
       injuredPlayerIds,
       randomCursor: input.random.cursor,
     },

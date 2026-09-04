@@ -332,3 +332,44 @@
     max-width: 36%;
   }
 }
+
+.home-practice-offer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 170, 55, 0.38);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 151, 31, 0.16),
+    rgba(24, 87, 139, 0.18)
+  );
+}
+.home-practice-offer > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+.home-practice-offer span,
+.home-practice-offer small {
+  font-size: 11px;
+}
+.home-practice-offer strong {
+  font-size: 16px;
+}
+.home-practice-offer > div:last-child {
+  display: flex;
+  gap: 6px;
+}
+.home-practice-offer button {
+  min-width: 54px;
+  padding: 8px;
+  border-radius: 10px;
+}
+.home-practice-offer .is-primary {
+  background: #f59b23;
+  color: #111827;
+  font-weight: 900;
+}

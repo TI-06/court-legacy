@@ -234,7 +234,7 @@ for (const viewport of mobileViewports) {
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
     await page
-      .getByRole("dialog", { name: "ローテーション1の選手を選択" })
+      .getByRole("dialog", { name: "ローテーション1を入れ替え" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
@@ -245,55 +245,20 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-dynamics`);
     await expectNavigationFixed(page, `${viewport.width}-team-dynamics`);
 
-    await navigation.getByRole("button", { name: "育成", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-training`);
-    await expectNavigationFixed(page, `${viewport.width}-training`);
-
-    await page.getByRole("button", { name: /^チーム練習 .* を変更$/ }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-training-menu`);
-    await page
-      .getByRole("dialog", { name: "チーム練習を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-
-    await page.getByRole("button", { name: /^個人育成 2 / }).click();
-    let assignmentDialog = page.getByRole("dialog", { name: "個人育成 2" });
-    await assignmentDialog.getByRole("button", { name: "選手を変更" }).click();
+    await page.getByRole("button", { name: "選手一覧", exact: true }).click();
     await expectLayoutFits(
       page,
       testInfo,
-      `${viewport.width}-training-player-picker`,
+      `${viewport.width}-players-training`,
     );
-    await page
-      .getByRole("dialog", { name: "個人育成2の選手を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-    assignmentDialog = page.getByRole("dialog", { name: "個人育成 2" });
-    await assignmentDialog.getByRole("button", { name: "閉じる" }).click();
-
-    await page.getByRole("button", { name: /^個人育成 1 / }).click();
-    assignmentDialog = page.getByRole("dialog", { name: "個人育成 1" });
-    await assignmentDialog.getByRole("button", { name: "指示を変更" }).click();
+    await page.locator(".player-training-chip").first().click();
     await expectLayoutFits(
       page,
       testInfo,
-      `${viewport.width}-training-instruction-picker`,
+      `${viewport.width}-training-options`,
     );
     await page
-      .getByRole("dialog", { name: "個人育成1の指示を選択" })
-      .getByRole("button", { name: "閉じる" })
-      .click();
-    assignmentDialog = page.getByRole("dialog", { name: "個人育成 1" });
-    await assignmentDialog.getByRole("button", { name: "閉じる" }).click();
-
-    await page.getByRole("button", { name: "この内容で設定" }).click();
-    await expectLayoutFits(
-      page,
-      testInfo,
-      `${viewport.width}-training-confirm`,
-    );
-    await page
-      .getByRole("dialog", { name: "練習設定を確認" })
+      .getByRole("dialog", { name: /の個人練習$/ })
       .getByRole("button", { name: "閉じる" })
       .click();
 
@@ -345,10 +310,7 @@ for (const viewport of mobileViewports) {
       .getByRole("button", { name: "閉じる" })
       .click();
 
-    await navigation
-      .getByRole("button", { name: "その他", exact: true })
-      .click();
-    await page.getByRole("button", { name: "学校管理" }).click();
+    await navigation.getByRole("button", { name: "学校", exact: true }).click();
     await expectLayoutFits(
       page,
       testInfo,
@@ -356,7 +318,7 @@ for (const viewport of mobileViewports) {
     );
     await expectNavigationFixed(page, `${viewport.width}-school-facilities`);
 
-    await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
+    await page.getByRole("button", { name: "トレーニング設備の詳細" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-school-upgrade`);
     await page
       .getByRole("dialog", { name: "設備を強化" })

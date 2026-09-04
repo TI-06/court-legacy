@@ -15,9 +15,10 @@ import "./school-screen.css";
 interface SchoolScreenProps {
   state: GameState;
   onUpgradeFacility: (key: FacilityKey) => void;
+  onOpenScouting?: () => void;
 }
 
-type SchoolView = "facilities" | "records" | "alumni";
+type SchoolView = "facilities" | "scouting" | "records" | "alumni";
 
 const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "無名校",
@@ -53,7 +54,11 @@ function facilityActionLabel(
   return `${name}は強化不可`;
 }
 
-export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
+export function SchoolScreen({
+  state,
+  onUpgradeFacility,
+  onOpenScouting,
+}: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>("facilities");
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
@@ -158,6 +163,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         {(
           [
             ["facilities", "設備"],
+            ["scouting", "スカウト"],
             ["records", "記録"],
             ["alumni", "卒業生"],
           ] as const
@@ -166,7 +172,9 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             aria-selected={view === id}
             className={view === id ? "school-segment--active" : undefined}
             key={id}
-            onClick={() => setView(id)}
+            onClick={() =>
+              id === "scouting" ? onOpenScouting?.() : setView(id)
+            }
             role="tab"
             type="button"
           >
@@ -184,7 +192,7 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
             </div>
             <span>最大 Lv.5</span>
           </div>
-          <div className="facility-list">
+          <div className="facility-grid">
             {FACILITY_DEFINITIONS.map((definition) => {
               const evaluation = evaluateFacilityUpgrade(
                 state,
@@ -192,40 +200,38 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
                 definition.key,
               );
               const missingFunds = Math.max(0, evaluation.cost - school.funds);
+              const status =
+                evaluation.reason === "max-level"
+                  ? "最大Lv"
+                  : evaluation.reason === "insufficient-funds"
+                    ? `あと${missingFunds}必要`
+                    : evaluation.reason === "invalid-level"
+                      ? "要確認"
+                      : `次 ${evaluation.cost}`;
               return (
-                <article className="facility-card" key={definition.key}>
-                  <div className="facility-card__body">
-                    <div className="facility-card__title">
-                      <strong>{definition.name}</strong>
-                      <span>Lv.{evaluation.currentLevel}</span>
-                    </div>
-                    <p>{definition.description}</p>
-                    {evaluation.reason === "max-level" ? (
-                      <small>最大レベルです</small>
-                    ) : evaluation.reason === "insufficient-funds" ? (
-                      <small className="facility-card__warning">
-                        あと{missingFunds}必要
-                      </small>
-                    ) : evaluation.reason === "invalid-level" ? (
-                      <small className="facility-card__warning">
-                        設備データを確認してください
-                      </small>
-                    ) : (
-                      <small>次の強化費用 {evaluation.cost}</small>
-                    )}
-                  </div>
-                  <button
-                    aria-label={facilityActionLabel(
-                      definition.name,
-                      evaluation.reason,
-                    )}
-                    disabled={!evaluation.allowed}
-                    onClick={() => setSelectedFacility(definition.key)}
-                    type="button"
+                <button
+                  aria-label={`${definition.name}の詳細`}
+                  className="facility-tile"
+                  data-testid="facility-tile"
+                  key={definition.key}
+                  onClick={() => setSelectedFacility(definition.key)}
+                  type="button"
+                >
+                  <span className="facility-tile__top">
+                    <strong>{definition.name}</strong>
+                    <b>Lv.{evaluation.currentLevel}</b>
+                  </span>
+                  <small
+                    className={
+                      evaluation.allowed ? undefined : "facility-tile__warning"
+                    }
                   >
-                    {evaluation.allowed ? "強化" : "不可"}
-                  </button>
-                </article>
+                    {status}
+                  </small>
+                  <span className="facility-tile__detail" aria-hidden="true">
+                    詳細 ›
+                  </span>
+                </button>
               );
             })}
           </div>
@@ -342,7 +348,10 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
         {selectedDefinition && selectedEvaluation ? (
           <div className="facility-confirmation">
             <strong>{selectedDefinition.name}</strong>
-            <p>
+            <p className="facility-confirmation__description">
+              {selectedDefinition.description}
+            </p>
+            <p className="facility-confirmation__level">
               Lv.{selectedEvaluation.currentLevel} → Lv.
               {selectedEvaluation.nextLevel}
             </p>
@@ -357,6 +366,14 @@ export function SchoolScreen({ state, onUpgradeFacility }: SchoolScreenProps) {
               </div>
             </dl>
             <button
+              aria-label={
+                selectedEvaluation.allowed
+                  ? undefined
+                  : facilityActionLabel(
+                      selectedDefinition.name,
+                      selectedEvaluation.reason,
+                    )
+              }
               className="primary-action"
               disabled={!selectedEvaluation.allowed}
               onClick={confirmUpgrade}

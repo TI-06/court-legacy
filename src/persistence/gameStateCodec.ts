@@ -125,7 +125,7 @@ const weeklyPlanSchema = z
           })
           .strict(),
       )
-      .length(2),
+      .max(64),
   })
   .strict();
 

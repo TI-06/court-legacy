@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { OperationState } from "../../app/useGameSession";
 import { BottomGameNav } from "./BottomGameNav";
 import { GameHeader } from "./GameHeader";
+import { OperationBlockingOverlay } from "../status/OperationBlockingOverlay";
 import type { AppTab } from "./appNavigation";
 
 interface GamePageFrameProps {
@@ -41,6 +42,7 @@ export function GamePageFrame({
       />
       <div className="game-page-frame__content">{children}</div>
       <BottomGameNav activeTab={activeTab} onChange={onChangeTab} />
+      <OperationBlockingOverlay operation={operation} />
     </div>
   );
 }

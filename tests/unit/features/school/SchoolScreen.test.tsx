@@ -31,7 +31,7 @@ describe("school management screen", () => {
     expect(screen.getByText("資金 300")).toBeVisible();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "トレーニング設備を強化" }),
+      screen.getByRole("button", { name: "トレーニング設備の詳細" }),
     );
 
     const dialog = screen.getByRole("dialog", { name: "設備を強化" });
@@ -60,13 +60,24 @@ describe("school management screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    expect(
-      screen.getByRole("button", { name: "体育館は最大レベル" }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "トレーニング設備は資金不足" }),
-    ).toBeDisabled();
     expect(screen.getByText("あと60必要")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "体育館の詳細" }));
+    let dialog = screen.getByRole("dialog", { name: "設備を強化" });
+    expect(
+      within(dialog).getByRole("button", { name: "体育館は最大レベル" }),
+    ).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "トレーニング設備の詳細" }),
+    );
+    dialog = screen.getByRole("dialog", { name: "設備を強化" });
+    expect(
+      within(dialog).getByRole("button", {
+        name: "トレーニング設備は資金不足",
+      }),
+    ).toBeDisabled();
   });
 
   it("shows the destiny rival and current rivalry score", () => {

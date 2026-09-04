@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
@@ -29,6 +30,7 @@ describe("PlayerHubScreen", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
+    const condition = getPlayerConditionPresentation(player.condition);
     const rows = screen.getAllByTestId("roster-player-row");
 
     expect(rows).toHaveLength(school.playerIds.length);
@@ -53,8 +55,8 @@ describe("PlayerHubScreen", () => {
         String(Math.round(calculatePlayerDisplayPower(player) / 100)),
       ),
     ).toBeVisible();
-    expect(within(firstRow).getByText("状態")).toBeVisible();
-    expect(within(firstRow).getByText(String(player.condition))).toBeVisible();
+    expect(within(firstRow).getByTitle(condition.label)).toBeVisible();
+    expect(within(firstRow).getByText(condition.label)).toBeVisible();
   });
 
   it("opens a compact player detail without a character or furigana row", () => {

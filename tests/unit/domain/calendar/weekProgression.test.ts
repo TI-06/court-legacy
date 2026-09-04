@@ -83,7 +83,7 @@ describe("weekly progression", () => {
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
-  it("recovers fatigue and condition without leaving the zero to one hundred range", () => {
+  it("leaves legacy fatigue and condition unchanged during calendar advancement", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
@@ -91,18 +91,18 @@ describe("weekly progression", () => {
       ...state.players[playerId]!,
       fatigue: 70,
       condition: 99,
+      injury: null,
     };
 
     const result = advanceOneWeek(state);
     const player = result.state.players[playerId]!;
 
-    expect(player.fatigue).toBeLessThan(70);
-    expect(player.fatigue).toBeGreaterThanOrEqual(0);
-    expect(player.condition).toBe(100);
-    expect(result.recoveredPlayerIds).toContain(playerId);
+    expect(player.fatigue).toBe(70);
+    expect(player.condition).toBe(99);
+    expect(result.recoveredPlayerIds).not.toContain(playerId);
   });
 
-  it("adds exactly eight fatigue recovery and five condition recovery for resting players", () => {
+  it("does not apply implicit recovery for legacy resting-player hints", () => {
     const normalState = createState();
     const restingState = structuredClone(normalState);
     const playerId =
@@ -122,11 +122,11 @@ describe("weekly progression", () => {
       restingPlayerIds: new Set([playerId]),
     }).state.players[playerId]!;
 
-    expect(rested.fatigue).toBe(Math.max(0, normal.fatigue - 8));
-    expect(rested.condition).toBe(Math.min(100, normal.condition + 5));
+    expect(rested.fatigue).toBe(normal.fatigue);
+    expect(rested.condition).toBe(normal.condition);
   });
 
-  it("clamps extra rest recovery and progresses injury only once", () => {
+  it("ignores legacy rest recovery while progressing injury only once", () => {
     const state = createState();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     state.players[playerId] = {
@@ -146,8 +146,8 @@ describe("weekly progression", () => {
     });
     const player = result.state.players[playerId]!;
 
-    expect(player.fatigue).toBe(0);
-    expect(player.condition).toBe(100);
+    expect(player.fatigue).toBe(5);
+    expect(player.condition).toBe(98);
     expect(player.injury?.remainingWeeks).toBe(1);
   });
 

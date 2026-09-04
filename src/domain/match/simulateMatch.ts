@@ -12,6 +12,7 @@ import type { GameState } from "../model/GameState";
 import type { MatchId, PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { validateTeamSelection } from "../team/validateTeamSelection";
+import { getConditionMatchMultiplier } from "../player/playerCondition";
 
 export interface SimulateMatchInput {
   state: GameState;
@@ -163,16 +164,8 @@ function activePlayers(state: GameState, selection: TeamSelection): Player[] {
 }
 
 function readiness(player: Player): number {
-  const conditionComponent = player.condition / 100;
-  const fatigueComponent = (100 - player.fatigue) / 100;
   const injuryPenalty = player.injury ? 0.58 : 1;
-
-  return clamp(
-    (0.42 + conditionComponent * 0.43 + fatigueComponent * 0.28) *
-      injuryPenalty,
-    0.35,
-    1.16,
-  );
+  return getConditionMatchMultiplier(player.condition) * injuryPenalty;
 }
 
 function effectiveAbility(

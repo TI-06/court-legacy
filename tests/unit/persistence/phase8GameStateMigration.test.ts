@@ -59,13 +59,18 @@ describe("Phase 8 game-state migration", () => {
     const userRoster = migrated.schools[migrated.userSchoolId]!.playerIds;
     const assignments =
       migrated.weeklySchedule.trainingPlan.individualAssignments;
-    expect(assignments).toHaveLength(2);
+    expect(assignments).toHaveLength(userRoster.length);
     expect(assignments.map((assignment) => assignment.playerId)).toEqual(
-      userRoster.slice(0, 2),
+      userRoster,
     );
     expect(
       new Set(assignments.map((assignment) => assignment.playerId)).size,
-    ).toBe(2);
+    ).toBe(userRoster.length);
+    expect(
+      assignments.every(
+        (assignment) => assignment.instructionId === "instruction.overall",
+      ),
+    ).toBe(true);
     expect(
       migrated.weeklySchedule.practiceMatch.scheduledOpponentId,
     ).toBeNull();

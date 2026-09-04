@@ -66,11 +66,11 @@ function createAssignments(playerIds: readonly PlayerId[]) {
   return [
     {
       playerId: playerIds[0]!,
-      instructionId: "instruction.mental",
+      instructionId: "instruction.rest",
     },
     {
       playerId: playerIds[1]!,
-      instructionId: "instruction.serve",
+      instructionId: "instruction.attack",
     },
   ];
 }
@@ -93,16 +93,10 @@ describe("weekly training safety", () => {
       schoolId: state.userSchoolId,
       plan: {
         teamTrainingMenuId: "training.recovery",
-        individualAssignments: [
-          {
-            playerId: school.playerIds[0]!,
-            instructionId: "instruction.mental",
-          },
-          {
-            playerId: school.playerIds[1]!,
-            instructionId: "instruction.mental",
-          },
-        ],
+        individualAssignments: school.playerIds.map((playerId) => ({
+          playerId,
+          instructionId: "instruction.rest",
+        })),
       },
       data,
       random: new MinimumRandom(),

@@ -108,7 +108,6 @@ export function calculateGrowth(
     80,
     120,
   );
-  const fatigue = clampPercent(100 - input.player.fatigue * 0.6, 40, 100);
   const condition = clampPercent(75 + input.player.condition * 0.25, 60, 100);
   const academic = academicMultiplier(input.player.academic);
   const nonAcademicModifiers: GrowthModifier[] = [
@@ -117,7 +116,6 @@ export function calculateGrowth(
     { code: "personality", label: "性格安定", percent: personality },
     { code: "facility", label: "練習設備", percent: facility },
     { code: "coach", label: "監督育成力", percent: coach },
-    { code: "fatigue", label: "疲労", percent: fatigue },
     { code: "condition", label: "コンディション", percent: condition },
   ];
   const additionalModifiers = validateAdditionalModifiers(
