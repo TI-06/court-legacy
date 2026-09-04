@@ -96,6 +96,13 @@
   white-space: nowrap;
 }
 
+.home-week-card__strength-pair {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
 .home-week-card__strength {
   flex: 0 0 auto;
   text-align: right;
@@ -107,6 +114,16 @@
   color: var(--game-accent);
   font-size: 18px;
   line-height: 1.1;
+}
+
+.home-week-card__strength:last-child strong {
+  color: #70b8ff;
+}
+
+.home-week-card__versus {
+  color: var(--game-text-muted);
+  font-size: 9px;
+  font-weight: 900;
 }
 
 .home-week-card__status {
@@ -331,6 +348,14 @@
   .home-week-card__school {
     max-width: 36%;
   }
+
+  .home-week-card__strength-pair {
+    gap: 4px;
+  }
+
+  .home-week-card__strength strong {
+    font-size: 15px;
+  }
 }
 
 .home-practice-offer {
@@ -366,10 +391,27 @@
 .home-practice-offer button {
   min-width: 54px;
   padding: 8px;
+  color: var(--game-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 10px;
+}
+.home-practice-offer__decline {
+  color: #ffd7d0 !important;
+  background: rgb(152 54 48 / 32%) !important;
+  border-color: rgb(255 126 107 / 42%) !important;
+}
+.home-practice-offer__decline:hover:not(:disabled),
+.home-practice-offer__decline:focus-visible:not(:disabled) {
+  background: rgb(176 62 52 / 48%) !important;
 }
 .home-practice-offer .is-primary {
   background: #f59b23;
   color: #111827;
   font-weight: 900;
+}
+.home-practice-offer button:disabled {
+  opacity: 0.48;
 }
