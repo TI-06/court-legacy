@@ -7,7 +7,11 @@ process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??=
   "sb_publishable_uXHnHxyA4sG1eHg0669IVA_EmXxSAsG";
 
 const executable = (name) =>
-  resolve("node_modules", ".bin", `${name}${process.platform === "win32" ? ".cmd" : ""}`);
+  resolve(
+    "node_modules",
+    ".bin",
+    `${name}${process.platform === "win32" ? ".cmd" : ""}`,
+  );
 
 for (const [command, args] of [
   ["tsc", ["-b"]],
