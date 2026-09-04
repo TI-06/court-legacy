@@ -11,6 +11,11 @@ import type {
   ShopStatusResponse,
   ShopUseTarget,
 } from "../../domain/shop/shopContracts";
+import { requestSchoolViewAfterScouting } from "../school/SchoolNavigationState";
+import {
+  SchoolNavigationTabs,
+  type SchoolView,
+} from "../school/SchoolNavigationTabs";
 import type { ShopUsePresentation } from "../shop/shopUsePresentation";
 import "./scouting.css";
 
@@ -126,6 +131,12 @@ export function ScoutingScreen({
     (item) => item.itemId === "potential-appraisal",
   );
 
+  const selectSchoolView = (view: SchoolView) => {
+    if (view === "scouting") return;
+    requestSchoolViewAfterScouting(view);
+    onBack();
+  };
+
   return (
     <main className="scouting-screen app-content">
       <section className="scouting-hero">
@@ -162,6 +173,8 @@ export function ScoutingScreen({
           </div>
         </div>
       </section>
+
+      <SchoolNavigationTabs activeView="scouting" onSelect={selectSchoolView} />
 
       {loading ? (
         <section className="scouting-state" role="status">

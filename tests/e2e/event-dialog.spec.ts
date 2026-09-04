@@ -37,7 +37,15 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
   const choices = eventDialog.locator(".event-choice");
   await expect(choices).toHaveCount(2);
   await choices.first().click();
-  await expect(eventDialog).toBeHidden();
+
+  const resultDialog = page.getByRole("dialog", { name: "対応結果" });
+  await expect(resultDialog).toBeVisible();
+  await expect(resultDialog.getByText("選んだ対応")).toBeVisible();
+  await expect(
+    resultDialog.getByRole("region", { name: "対応による変化" }),
+  ).toBeVisible();
+  await resultDialog.getByRole("button", { name: "結果を確認した" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   const bodyWidth = await page

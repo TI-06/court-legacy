@@ -134,7 +134,7 @@ describe("game notifications", () => {
     ).toEqual(read);
   });
 
-  it("shows unread results first and keeps only the newest read result reopenable", () => {
+  it("shows only the newest training result regardless of older unread state", () => {
     const olderRead = trainingNotification({
       id: "older-read",
       createdGameDate: "2026-04-01" as GameDate,
@@ -157,7 +157,7 @@ describe("game notifications", () => {
       selectHomeTrainingNotifications({
         items: [olderRead, olderUnread, newestRead],
       }).map((item) => item.id),
-    ).toEqual(["older-unread", "newest-read"]);
+    ).toEqual(["newest-read"]);
   });
 
   it("creates new games with an empty notification state", () => {

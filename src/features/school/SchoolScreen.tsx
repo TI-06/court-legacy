@@ -10,6 +10,8 @@ import { reputationGrade } from "../../domain/school/reputation";
 import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
+import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
+import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
 import "./school-screen.css";
 
 interface SchoolScreenProps {
@@ -17,8 +19,6 @@ interface SchoolScreenProps {
   onUpgradeFacility: (key: FacilityKey) => void;
   onOpenScouting?: () => void;
 }
-
-type SchoolView = "facilities" | "scouting" | "records" | "alumni";
 
 const reputationLabels: Record<SchoolReputation, string> = {
   unknown: "無名校",
@@ -42,15 +42,9 @@ function facilityActionLabel(
   name: string,
   reason: ReturnType<typeof evaluateFacilityUpgrade>["reason"],
 ): string {
-  if (reason === "available") {
-    return `${name}を強化`;
-  }
-  if (reason === "max-level") {
-    return `${name}は最大レベル`;
-  }
-  if (reason === "insufficient-funds") {
-    return `${name}は資金不足`;
-  }
+  if (reason === "available") return `${name}を強化`;
+  if (reason === "max-level") return `${name}は最大レベル`;
+  if (reason === "insufficient-funds") return `${name}は資金不足`;
   return `${name}は強化不可`;
 }
 
@@ -59,16 +53,14 @@ export function SchoolScreen({
   onUpgradeFacility,
   onOpenScouting,
 }: SchoolScreenProps) {
-  const [view, setView] = useState<SchoolView>("facilities");
+  const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
-    if (!school) {
-      return [];
-    }
+    if (!school) return [];
     return state.history.matches
       .filter(
         (match) =>
@@ -115,11 +107,14 @@ export function SchoolScreen({
     : null;
 
   const confirmUpgrade = () => {
-    if (!selectedFacility || !selectedEvaluation?.allowed) {
-      return;
-    }
+    if (!selectedFacility || !selectedEvaluation?.allowed) return;
     onUpgradeFacility(selectedFacility);
     setSelectedFacility(null);
+  };
+
+  const selectView = (nextView: SchoolView) => {
+    setView(nextView);
+    if (nextView === "scouting") onOpenScouting?.();
   };
 
   return (
@@ -158,33 +153,7 @@ export function SchoolScreen({
         </div>
       </section>
 
-      <div
-        aria-label="学校運営メニュー"
-        className="school-segments"
-        role="tablist"
-      >
-        {(
-          [
-            ["facilities", "設備"],
-            ["scouting", "スカウト"],
-            ["records", "記録"],
-            ["alumni", "卒業生"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            aria-selected={view === id}
-            className={view === id ? "school-segment--active" : undefined}
-            key={id}
-            onClick={() =>
-              id === "scouting" ? onOpenScouting?.() : setView(id)
-            }
-            role="tab"
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <SchoolNavigationTabs activeView={view} onSelect={selectView} />
 
       {view === "facilities" ? (
         <section className="school-panel" aria-labelledby="facility-heading">
@@ -238,6 +207,12 @@ export function SchoolScreen({
               );
             })}
           </div>
+        </section>
+      ) : null}
+
+      {view === "scouting" ? (
+        <section className="school-panel school-panel--loading-scouting">
+          <p className="school-empty-state">スカウト候補を読み込んでいます…</p>
         </section>
       ) : null}
 

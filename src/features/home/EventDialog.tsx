@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
@@ -9,11 +10,96 @@ import "./event-dialog.css";
 interface EventDialogProps {
   state: GameState;
   data: GameDataRegistry;
-  onChoose: (choiceId: string) => void;
+  onChoose: (choiceId: string) => void | Promise<void>;
+}
+
+const abilityResultLabels: Record<string, string> = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断力",
+  mental: "メンタル",
+};
+
+function formatVisibleResult(code: string): string {
+  const [head, ...rest] = code.split(" ");
+  const label = abilityResultLabels[head ?? ""];
+  return label ? `${label} ${rest.join(" ")}` : code;
 }
 
 export function EventDialog({ state, data, onChoose }: EventDialogProps) {
+  const [selectedResolution, setSelectedResolution] = useState<{
+    eventId: string;
+    choiceId: string;
+  } | null>(null);
+  const [resolvingChoiceId, setResolvingChoiceId] = useState<string | null>(
+    null,
+  );
   const pending = state.pendingEvent;
+  const latestOccurrence = state.eventMemory.history.at(-1);
+
+  if (!pending && selectedResolution && latestOccurrence) {
+    const resolvedEvent = data.events.get(latestOccurrence.eventId);
+    const resolvedChoice = resolvedEvent?.choices.find(
+      (choice) => choice.id === latestOccurrence.choiceId,
+    );
+    const matchesSelection =
+      latestOccurrence.eventId === selectedResolution.eventId &&
+      latestOccurrence.choiceId === selectedResolution.choiceId;
+
+    if (matchesSelection && resolvedEvent && resolvedChoice) {
+      const actorNames = latestOccurrence.actorPlayerIds
+        .map((playerId) => state.players[playerId])
+        .filter(Boolean)
+        .map((player) => `${player!.lastName} ${player!.firstName}`);
+
+      return (
+        <BottomSheet
+          description={`${resolvedEvent.title}への対応結果です。`}
+          onClose={() => setSelectedResolution(null)}
+          open
+          title="対応結果"
+        >
+          <div className="event-result" aria-live="polite">
+            <div className="event-result__choice">
+              <span>選んだ対応</span>
+              <strong>{resolvedChoice.label}</strong>
+              {actorNames.length > 0 ? (
+                <small>{actorNames.join("・")}</small>
+              ) : null}
+            </div>
+            <section aria-label="対応による変化">
+              <h3>起きた変化</h3>
+              {latestOccurrence.visibleResultCodes.length > 0 ? (
+                <ul>
+                  {latestOccurrence.visibleResultCodes.map((code, index) => (
+                    <li key={`${code}:${index}`}>
+                      {formatVisibleResult(code)}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>今回は大きな数値変化はありませんでした。</p>
+              )}
+            </section>
+            <button
+              className="event-result__close"
+              onClick={() => setSelectedResolution(null)}
+              type="button"
+            >
+              結果を確認した
+            </button>
+          </div>
+        </BottomSheet>
+      );
+    }
+  }
+
   if (!pending) {
     return null;
   }
@@ -27,6 +113,17 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
     return { playerId, player, school };
   });
   const recentHistory = [...state.eventMemory.history].slice(-5).reverse();
+
+  const choose = async (choiceId: string) => {
+    if (resolvingChoiceId !== null) return;
+    setSelectedResolution({ eventId: pending.eventId, choiceId });
+    setResolvingChoiceId(choiceId);
+    try {
+      await onChoose(choiceId);
+    } finally {
+      setResolvingChoiceId(null);
+    }
+  };
 
   return (
     <BottomSheet
@@ -75,11 +172,16 @@ export function EventDialog({ state, data, onChoose }: EventDialogProps) {
             .map((choice) => (
               <button
                 className="event-choice"
+                disabled={resolvingChoiceId !== null}
                 key={choice.id}
-                onClick={() => onChoose(choice.id)}
+                onClick={() => void choose(choice.id)}
                 type="button"
               >
-                <strong>{choice.label}</strong>
+                <strong>
+                  {resolvingChoiceId === choice.id
+                    ? "結果を反映しています…"
+                    : choice.label}
+                </strong>
                 <span>{choice.detail}</span>
               </button>
             ))}
