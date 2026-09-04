@@ -185,7 +185,8 @@ function pvpListPath(path: string, query?: PvpListRequestQuery): string {
   return encoded ? `${path}?${encoded}` : path;
 }
 
-const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
+const defaultFetch: typeof fetch = (input, init) =>
+  globalThis.fetch(input, init);
 
 export class HttpGameApiClient implements GameApiClient {
   constructor(private readonly fetchImpl: typeof fetch = defaultFetch) {}
