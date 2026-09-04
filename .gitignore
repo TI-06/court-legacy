@@ -8,5 +8,4 @@ test-results
 .dev.vars*
 .env*
 !.env.example
-!.env.production
 .DS_Store
