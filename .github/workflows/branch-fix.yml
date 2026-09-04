@@ -1,0 +1,105 @@
+name: Branch lint fix
+
+on:
+  push:
+    branches: [feat/gameplay-home-school-polish]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/gameplay-home-school-polish
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Apply lint-safe refactor
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          school = Path('src/features/school/SchoolScreen.tsx')
+          text = school.read_text()
+          old = '''import {
+            consumeSchoolViewAfterScouting,
+            SchoolNavigationTabs,
+            type SchoolView,
+          } from "./SchoolNavigationTabs";'''
+          new = '''import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
+          import {
+            SchoolNavigationTabs,
+            type SchoolView,
+          } from "./SchoolNavigationTabs";'''
+          if old not in text:
+            raise SystemExit('SchoolScreen import block not found')
+          school.write_text(text.replace(old, new, 1))
+
+          scouting = Path('src/features/scouting/ScoutingScreen.tsx')
+          text = scouting.read_text()
+          old = '''import {
+            requestSchoolViewAfterScouting,
+            SchoolNavigationTabs,
+            type SchoolView,
+          } from "../school/SchoolNavigationTabs";'''
+          new = '''import { requestSchoolViewAfterScouting } from "../school/SchoolNavigationState";
+          import {
+            SchoolNavigationTabs,
+            type SchoolView,
+          } from "../school/SchoolNavigationTabs";'''
+          if old not in text:
+            raise SystemExit('ScoutingScreen import block not found')
+          scouting.write_text(text.replace(old, new, 1))
+
+          test = Path('tests/unit/features/home/EventDialog.test.tsx')
+          text = test.read_text()
+          old = '''    let currentState = state;
+              let rerenderView: ReturnType<typeof render>["rerender"];
+              const onChoose = vi.fn(async (choiceId: string) => {'''
+          new = '''    let currentState = state;
+              const rerenderView: {
+                current: ReturnType<typeof render>["rerender"] | null;
+              } = { current: null };
+              const onChoose = vi.fn(async (choiceId: string) => {'''
+          if old not in text:
+            raise SystemExit('EventDialog rerender declaration not found')
+          text = text.replace(old, new, 1)
+          old = '''      rerenderView(
+                  <EventDialog
+                    data={gameData}
+                    onChoose={onChoose}
+                    state={currentState}
+                  />,
+                );'''
+          new = '''      rerenderView.current?.(
+                  <EventDialog
+                    data={gameData}
+                    onChoose={onChoose}
+                    state={currentState}
+                  />,
+                );'''
+          if old not in text:
+            raise SystemExit('EventDialog rerender call not found')
+          text = text.replace(old, new, 1)
+          old = '''    rerenderView = view.rerender;'''
+          new = '''    rerenderView.current = view.rerender;'''
+          if old not in text:
+            raise SystemExit('EventDialog rerender assignment not found')
+          test.write_text(text.replace(old, new, 1))
+          PY
+      - run: npx prettier src/features/school/SchoolNavigationState.ts src/features/school/SchoolNavigationTabs.tsx src/features/school/SchoolScreen.tsx src/features/scouting/ScoutingScreen.tsx tests/unit/features/home/EventDialog.test.tsx --write
+      - run: npm run lint
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/school/SchoolNavigationState.ts src/features/school/SchoolNavigationTabs.tsx src/features/school/SchoolScreen.tsx src/features/scouting/ScoutingScreen.tsx tests/unit/features/home/EventDialog.test.tsx
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: resolve school navigation lint issues"
+            git push origin HEAD:feat/gameplay-home-school-polish
+          fi
