@@ -1,4 +1,4 @@
-name: Phase13 TDD
+name: Phase13 Apply Verify
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  focused:
+  apply-verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +20,36 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Format Phase13 additions
-        run: npx prettier docs/superpowers/plans/2026-09-04-practice-match-result-ux-polish.md tests/unit/features/phase13GameLoopPolish.test.tsx --write
-      - name: Commit formatting
+      - name: Apply Phase13 fixes
+        run: python scripts/phase13-game-loop-polish.py
+      - name: Format changed files
+        run: >-
+          npx prettier
+          worker/game/applyGameAction.ts
+          src/domain/calendar/academicYearProgression.ts
+          src/features/match/PracticeMatchPlanning.tsx
+          src/features/match/practice-match-planning.css
+          src/ui/ui.css
+          src/features/school/SchoolScreen.tsx
+          src/features/school/school-screen.css
+          src/features/match/MatchScreen.tsx
+          src/features/match/match.css
+          tests/unit/features/phase13GameLoopPolish.test.tsx
+          docs/superpowers/plans/2026-09-04-practice-match-result-ux-polish.md
+          --write
+      - name: Run focused Phase13 regressions
+        run: npm test -- tests/unit/features/phase13GameLoopPolish.test.tsx
+      - name: Run full verification
+        run: npm run verify
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run mobile E2E
+        run: npm run test:e2e
+      - name: Commit verified implementation
         run: |
-          if git diff --quiet; then
-            exit 0
-          fi
+          rm -f scripts/phase13-game-loop-polish.py .github/workflows/phase13-tdd.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add docs/superpowers/plans/2026-09-04-practice-match-result-ux-polish.md tests/unit/features/phase13GameLoopPolish.test.tsx
-          git commit -m "style: format Phase13 regression tests"
+          git add -A
+          git commit -m "fix: polish practice match and results UX"
           git push origin HEAD:fix/practice-match-and-result-ux
-      - name: Run focused regression test
-        run: npm test -- tests/unit/features/phase13GameLoopPolish.test.tsx
