@@ -124,7 +124,10 @@ export function SchoolScreen({
 
   return (
     <main className="app-content school-screen">
-      <section className="school-hero">
+      <section
+        className="school-hero school-hero--compact"
+        data-testid="school-hero"
+      >
         <p className="section-kicker">学校運営</p>
         <div className="school-hero__heading">
           <div>

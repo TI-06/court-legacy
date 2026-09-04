@@ -81,6 +81,7 @@ export function PracticeMatchPlanning({
                 </div>
                 <div className="practice-planning__offer-actions">
                   <button
+                    className="practice-planning__decline"
                     disabled={pending}
                     onClick={onDeclineOffer}
                     type="button"

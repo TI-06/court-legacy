@@ -180,3 +180,13 @@
     width: 100%;
   }
 }
+
+.practice-planning__decline {
+  color: #8b3a2d;
+  background: #fff0ec;
+  border-color: #efc5ba;
+}
+
+.practice-planning__decline:not(:disabled):active {
+  background: #fbe0d8;
+}

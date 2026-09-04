@@ -467,3 +467,80 @@
     padding-inline: 8px;
   }
 }
+
+/* Phase 13 compact mobile school header */
+.school-screen {
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.school-hero--compact {
+  padding: 12px 14px;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(244 187 77 / 20%), transparent 30%),
+    linear-gradient(145deg, rgb(42 103 116 / 94%), rgb(20 51 66 / 98%)), #163644;
+  border-radius: 18px;
+}
+
+.school-hero--compact .school-hero__heading {
+  margin-top: 2px;
+  gap: 8px;
+}
+
+.school-hero--compact .school-hero__heading h2 {
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.school-hero--compact .school-hero__heading p {
+  margin-top: 2px;
+  font-size: 0.65rem;
+}
+
+.school-hero--compact .school-hero__heading > strong {
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
+
+.school-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.school-hero--compact .school-summary-grid span {
+  padding: 7px 6px;
+  gap: 2px;
+  font-size: 0.58rem;
+  line-height: 1.25;
+  border-radius: 10px;
+}
+
+.school-hero--compact .school-summary-grid strong {
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.school-segments button {
+  min-height: 38px;
+  padding: 6px;
+}
+
+.school-panel {
+  padding: 13px;
+  border-radius: 17px;
+}
+
+.school-section-heading h3 {
+  font-size: 0.92rem;
+}
+
+.facility-grid {
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.facility-tile {
+  min-height: 62px;
+  padding: 8px 9px;
+}
