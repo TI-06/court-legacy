@@ -10,12 +10,10 @@ export function requestSchoolViewAfterScouting(
   requestedViewAfterScouting = view;
 }
 
-export function getSchoolViewAfterScouting(): SchoolView {
+export function consumeSchoolViewAfterScouting(): SchoolView {
+  // Reading is intentionally side-effect free so React StrictMode can call
+  // state initializers more than once without losing the requested tab.
   return requestedViewAfterScouting ?? "facilities";
-}
-
-export function clearSchoolViewAfterScouting(): void {
-  requestedViewAfterScouting = null;
 }
 
 interface SchoolNavigationTabsProps {
