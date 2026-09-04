@@ -21,12 +21,23 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
       - name: Audit production dependencies
-        run: >-
-          npm audit --omit=dev --audit-level=high
-          --fetch-retries=2
-          --fetch-retry-mintimeout=1000
-          --fetch-retry-maxtimeout=5000
-          --fetch-timeout=15000
+        shell: bash
+        run: |
+          set -uo pipefail
+          for attempt in 1 2 3; do
+            echo "npm audit attempt ${attempt}/3"
+            if npm audit --omit=dev --audit-level=high \
+              --fetch-retries=2 \
+              --fetch-retry-mintimeout=1000 \
+              --fetch-retry-maxtimeout=5000 \
+              --fetch-timeout=15000; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 10))
+            fi
+          done
+          exit 1
 
   quality:
     runs-on: ubuntu-latest
