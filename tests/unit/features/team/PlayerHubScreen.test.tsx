@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
+import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
 import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
@@ -26,11 +27,12 @@ function renderPlayerHub(
 }
 
 describe("PlayerHubScreen", () => {
-  it("renders a dense portrait-free mobile roster without a desktop table header", () => {
+  it("renders a dense portrait-free mobile roster with growth and talent labels", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
     const condition = getPlayerConditionPresentation(player.condition);
+    const development = getPlayerDevelopmentPresentation(player);
     const rows = screen.getAllByTestId("roster-player-row");
 
     expect(rows).toHaveLength(school.playerIds.length);
@@ -49,6 +51,11 @@ describe("PlayerHubScreen", () => {
         `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
       ),
     ).toBeVisible();
+    expect(
+      within(firstRow).getByText(
+        `${development.growthLabel}・${development.talentLabel}`,
+      ),
+    ).toBeVisible();
     expect(within(firstRow).getByText("総合")).toBeVisible();
     expect(
       within(firstRow).getByText(
@@ -59,10 +66,11 @@ describe("PlayerHubScreen", () => {
     expect(within(firstRow).getByText(condition.label)).toBeVisible();
   });
 
-  it("opens a compact player detail without a character or furigana row", () => {
+  it("opens a compact player detail with growth type, talent and potential", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
+    const development = getPlayerDevelopmentPresentation(player);
 
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
     fireEvent.click(
@@ -82,6 +90,20 @@ describe("PlayerHubScreen", () => {
         `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
       ),
     ).toBeVisible();
+    const developmentRegion = screen.getByRole("region", {
+      name: "成長タイプと才能",
+    });
+    expect(within(developmentRegion).getByText("成長タイプ")).toBeVisible();
+    expect(within(developmentRegion).getByText(development.growthLabel)).toBeVisible();
+    expect(within(developmentRegion).getByText("才能")).toBeVisible();
+    expect(within(developmentRegion).getByText(development.talentLabel)).toBeVisible();
+    if (development.potential !== null) {
+      expect(
+        within(developmentRegion).getByText(
+          `将来性 ${development.potentialGrade}・${development.potential}`,
+        ),
+      ).toBeVisible();
+    }
     expect(screen.queryByText(player.reading)).toBeNull();
     expect(view.container.querySelector(".player-detail__hero")).toBeNull();
     expect(
