@@ -25,8 +25,11 @@ function authClient(): AuthClient {
   return {
     getSession: vi.fn().mockResolvedValue(session),
     subscribe: vi.fn().mockReturnValue(() => undefined),
-    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
-    signInWithEmail: vi.fn().mockResolvedValue(undefined),
+    signInWithCredentials: vi.fn().mockResolvedValue(undefined),
+    registerAccount: vi.fn().mockResolvedValue(undefined),
+    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
+    updatePassword: vi.fn().mockResolvedValue(undefined),
+    isPasswordRecovery: vi.fn().mockReturnValue(false),
     signOut: vi.fn().mockResolvedValue(undefined),
   };
 }
