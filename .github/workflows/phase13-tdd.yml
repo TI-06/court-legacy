@@ -21,7 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Apply Phase13 fixes
-        run: python scripts/phase13-game-loop-polish.py
+        run: |
+          python scripts/phase13-game-loop-polish.py
+          python scripts/phase13-game-loop-polish-fix2.py
       - name: Format changed files
         run: >-
           npx prettier
@@ -47,7 +49,7 @@ jobs:
         run: npm run test:e2e
       - name: Commit verified implementation
         run: |
-          rm -f scripts/phase13-game-loop-polish.py .github/workflows/phase13-tdd.yml
+          rm -f scripts/phase13-game-loop-polish.py scripts/phase13-game-loop-polish-fix2.py .github/workflows/phase13-tdd.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
