@@ -1,3 +1,4 @@
+import type { AccountAuthService } from "./auth/AccountAuthService";
 import type {
   AuthenticatedUser,
   VerifyAccessToken,
@@ -7,6 +8,9 @@ import type { PvPStore } from "./data/PvPStore";
 import type { ScoutingStore } from "./data/ScoutingStore";
 import type { ShopStore } from "./data/ShopStore";
 import { json, jsonError } from "./http/json";
+import { createAccountLoginHandler } from "./routes/accountLogin";
+import { createAccountProfileHandler } from "./routes/accountProfile";
+import { createAccountRegisterHandler } from "./routes/accountRegister";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
@@ -29,6 +33,7 @@ export type AuthenticatedRequestHandler = (
 export interface WorkerDependencies {
   verifyAccessToken: VerifyAccessToken;
   store: GameStore;
+  accountAuth?: AccountAuthService;
   scoutingStore?: ScoutingStore;
   pvpStore?: PvPStore;
   shopStore?: ShopStore;
@@ -54,6 +59,15 @@ function notFound(): Response {
 export function createRouter(
   deps: WorkerDependencies,
 ): (request: Request) => Promise<Response> {
+  const accountRegister = deps.accountAuth
+    ? createAccountRegisterHandler(deps.accountAuth)
+    : null;
+  const accountLogin = deps.accountAuth
+    ? createAccountLoginHandler(deps.accountAuth)
+    : null;
+  const accountProfile = deps.accountAuth
+    ? createAccountProfileHandler(deps.accountAuth)
+    : null;
   const bootstrap = createBootstrapHandler(deps.store);
   const onboarding = createOnboardingHandler({
     store: deps.store,
@@ -127,6 +141,25 @@ export function createRouter(
       return json({ status: "ok" });
     }
 
+    try {
+      if (
+        url.pathname === "/api/auth/register" &&
+        request.method === "POST" &&
+        accountRegister
+      ) {
+        return await accountRegister(request);
+      }
+      if (
+        url.pathname === "/api/auth/login" &&
+        request.method === "POST" &&
+        accountLogin
+      ) {
+        return await accountLogin(request);
+      }
+    } catch {
+      return jsonError(500, "server_error", "サーバー処理に失敗しました");
+    }
+
     const token = bearerToken(request);
     if (!token) {
       return jsonError(401, "unauthenticated", "Authentication is required");
@@ -140,6 +173,13 @@ export function createRouter(
     }
 
     try {
+      if (
+        url.pathname === "/api/account/profile" &&
+        request.method === "GET" &&
+        accountProfile
+      ) {
+        return await accountProfile(request, user);
+      }
       if (url.pathname === "/api/bootstrap" && request.method === "GET") {
         return await bootstrap(request, user);
       }
