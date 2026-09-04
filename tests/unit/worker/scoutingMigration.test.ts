@@ -6,6 +6,10 @@ const migrationPath = resolve(
   process.cwd(),
   "supabase/migrations/202608270003_scouting_candidate_pools.sql",
 );
+const rpcFixMigrationPath = resolve(
+  process.cwd(),
+  "supabase/migrations/202609040008_fix_scouting_candidate_pool_conflict.sql",
+);
 
 describe("scouting candidate pool migration", () => {
   it("keeps hidden candidate truth inaccessible to browser roles", () => {
@@ -35,5 +39,14 @@ describe("scouting candidate pool migration", () => {
     );
     expect(sql).toContain("from public, anon, authenticated");
     expect(sql).toContain("to service_role");
+  });
+
+  it("removes PL/pgSQL ambiguity from the candidate-pool conflict target", () => {
+    const sql = readFileSync(rpcFixMigrationPath, "utf8");
+
+    expect(sql).toContain(
+      "on conflict on constraint scouting_candidate_pools_pkey do nothing",
+    );
+    expect(sql).not.toContain("on conflict (user_id, cycle_key) do nothing");
   });
 });
