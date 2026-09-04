@@ -28,6 +28,8 @@ import type {
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type { AuthClient } from "../services/auth/AuthClient";
 import {
+  E2E_ACCOUNT_PROFILE,
+  E2E_ACCOUNT_PROFILE_KEY,
   E2E_AUTH_SESSION,
   MockAuthClient,
 } from "../services/auth/MockAuthClient";
@@ -220,6 +222,29 @@ function writeSessionStorage(key: string, value: string): void {
   } catch {
     // E2E persistence is only a browser test adapter; in-memory state still works.
   }
+}
+
+function readHarnessAccountProfile() {
+  try {
+    const raw = readSessionStorage(E2E_ACCOUNT_PROFILE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      if (
+        typeof parsed.loginId === "string" &&
+        typeof parsed.coachName === "string" &&
+        typeof parsed.schoolName === "string"
+      ) {
+        return {
+          loginId: parsed.loginId,
+          coachName: parsed.coachName,
+          schoolName: parsed.schoolName,
+        };
+      }
+    }
+  } catch {
+    // Fall back to the deterministic profile below for non-registration tests.
+  }
+  return { ...E2E_ACCOUNT_PROFILE };
 }
 
 function readPersistedHarnessSnapshot(): CloudGameSnapshot | null {
@@ -468,6 +493,10 @@ class StaticGameApiClient implements GameApiClient {
     return this.snapshot
       ? ({ status: "ready" as const, game: this.snapshot } as const)
       : ({ status: "needs-onboarding" as const } as const);
+  }
+
+  async getAccountProfile() {
+    return readHarnessAccountProfile();
   }
 
   async onboard(_accessToken: string, input: OnboardingInput) {
@@ -753,7 +782,7 @@ class StaticGameApiClient implements GameApiClient {
       throw new ApiError(
         404,
         "pvp_opponent_unavailable",
-        "対戦相手が見つかりません",
+        "この対戦相手は現在利用できません",
       );
     }
     await this.pvpDelay();
