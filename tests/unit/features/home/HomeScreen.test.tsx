@@ -114,8 +114,12 @@ describe("home action dashboard", () => {
     expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
   });
 
-  it("shows the current week, selected rival, direct weekly actions, and immediate week advance", () => {
+  it("shows both team strengths and keeps direct weekly actions available", () => {
     const props = createProps();
+    const opponentStrength = calculateSelectionStrength(
+      props.state,
+      autoSelectTeam({ state: props.state, schoolId: props.opponent.id }),
+    );
 
     render(<HomeScreen {...props} />);
 
@@ -126,11 +130,11 @@ describe("home action dashboard", () => {
       props.opponent.shortName,
     );
 
-    const strength = screen.getByText("自校戦力").closest("div");
-    expect(strength).not.toBeNull();
-    expect(
-      within(strength!).getByText(String(props.homeStrength)),
-    ).toBeVisible();
+    const strength = screen.getByLabelText("対戦戦力");
+    expect(within(strength).getByText("自校戦力")).toBeVisible();
+    expect(within(strength).getByText(String(props.homeStrength))).toBeVisible();
+    expect(within(strength).getByText("相手戦力")).toBeVisible();
+    expect(within(strength).getByText(String(opponentStrength))).toBeVisible();
     expect(screen.getByText("無名校")).toBeInTheDocument();
 
     const progress = screen.getByLabelText("今週の進行状況");
@@ -149,13 +153,16 @@ describe("home action dashboard", () => {
     expect(props.onOpenSchool).toHaveBeenCalledOnce();
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
     expect(props.onOpenMatch).toHaveBeenCalledOnce();
+
+    const decline = screen.getByRole("button", { name: "断る" });
+    expect(decline).toHaveClass("home-practice-offer__decline");
     fireEvent.click(screen.getByRole("button", { name: "受ける" }));
-    fireEvent.click(screen.getByRole("button", { name: "断る" }));
+    fireEvent.click(decline);
     expect(props.onAcceptPracticeOffer).toHaveBeenCalledOnce();
     expect(props.onDeclinePracticeOffer).toHaveBeenCalledOnce();
   });
 
-  it("shows at most two useful training notifications and keeps only the newest read result", () => {
+  it("shows only the latest training notification", () => {
     const props = createProps();
     const oldRead = trainingNotification(props, "old-read", "旧練習", true);
     const unread = trainingNotification(props, "unread", "未読練習", false);
@@ -170,11 +177,11 @@ describe("home action dashboard", () => {
     render(<HomeScreen {...props} />);
 
     const rows = screen.getAllByRole("button", { name: /今週の練習結果/ });
-    expect(rows).toHaveLength(2);
-    expect(screen.getByText("未読練習")).toBeVisible();
+    expect(rows).toHaveLength(1);
     expect(screen.getByText("最新練習")).toBeVisible();
+    expect(screen.queryByText("未読練習")).toBeNull();
     expect(screen.queryByText("旧練習")).toBeNull();
-    expect(screen.getAllByText("NEW")).toHaveLength(1);
+    expect(screen.queryByText("NEW")).toBeNull();
   });
 
   it("opens an unread training notification and requests its read state after opening", () => {
