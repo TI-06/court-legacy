@@ -327,10 +327,11 @@
 
 .player-roster__row {
   position: relative;
+  display: block;
 }
 .player-roster__main {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 58px 42px 52px;
+  grid-template-columns: 28px minmax(0, 1fr) 58px 42px;
   align-items: center;
   width: 100%;
   min-height: 62px;

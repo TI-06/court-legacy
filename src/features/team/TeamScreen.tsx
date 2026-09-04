@@ -423,13 +423,13 @@ export function TeamScreen({
                       </span>
                       <strong>{player.lastName}</strong>
                       <span>
-                        本職 {player.preferredPosition}・適性
+                        本{player.preferredPosition} 適
                         {
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
                           ]
-                        }
-                        ・総合{playerOverall(player)}
+                        }{" "}
+                        総{playerOverall(player)}
                       </span>
                     </button>
                   </LineupDragSurface>

@@ -96,7 +96,7 @@ test("leadership assignment, training, and an official match persist visible dyn
     .getByLabel("副主将", { exact: true })
     .selectOption(viceCaptainPlayerId);
   await page.getByRole("button", { name: "役職を保存" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
   await expect(
     page.getByText(captainName, { exact: true }).first(),
   ).toBeVisible();
@@ -104,13 +104,13 @@ test("leadership assignment, training, and an official match persist visible dyn
     page.getByText(viceCaptainName, { exact: true }).first(),
   ).toBeVisible();
 
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "この内容で設定" }).click();
+  await page.getByRole("button", { name: "選手一覧", exact: true }).click();
+  await page.locator(".player-training-chip").first().click();
   await page
-    .getByRole("dialog", { name: "練習設定を確認" })
-    .getByRole("button", { name: "この内容で設定" })
+    .getByRole("dialog", { name: /の個人練習$/ })
+    .getByRole("button", { name: /^攻撃/ })
     .click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
@@ -125,7 +125,7 @@ test("leadership assignment, training, and an official match persist visible dyn
   await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
   await page.getByRole("button", { name: "結果を確認して次へ" }).click();
   await expect(page.getByTestId("home-screen")).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   const persisted = await readPersistedSnapshot(page);
   expect(persisted.revision).toBe(24);

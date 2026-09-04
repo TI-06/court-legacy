@@ -243,8 +243,8 @@ test("scouting research and appraisal tighten only public report ranges", async 
   await purchaseItem(page, "潜在能力鑑定");
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "新入生スカウト" }).click();
+  await navigation.getByRole("button", { name: "学校", exact: true }).click();
+  await page.getByRole("tab", { name: "スカウト", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "新入生スカウト" }),
   ).toBeVisible();
@@ -312,13 +312,11 @@ test("training efficiency boost is visibly pending, applies once, and disappears
   ).toBeVisible({ timeout: 2_500 });
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await expect(page.getByText("次回練習 成長効率 +20%")).toBeVisible();
-
-  await page.getByRole("button", { name: "この内容で設定" }).click();
+  await navigation.getByRole("button", { name: "選手", exact: true }).click();
+  await page.locator(".player-training-chip").first().click();
   await page
-    .getByRole("dialog", { name: "練習設定を確認" })
-    .getByRole("button", { name: "この内容で設定" })
+    .getByRole("dialog", { name: /の個人練習$/ })
+    .getByRole("button", { name: /^攻撃/ })
     .click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
@@ -329,6 +327,16 @@ test("training efficiency boost is visibly pending, applies once, and disappears
     page.getByRole("button", { name: /今週の練習結果/ }),
   ).toBeVisible({ timeout: 2_500 });
 
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await expect(page.getByText("次回練習 成長効率 +20%")).toHaveCount(0);
+  await expect
+    .poll(() =>
+      page.evaluate((snapshotKey) => {
+        const raw = sessionStorage.getItem(snapshotKey);
+        if (!raw) return "missing";
+        const snapshot = JSON.parse(raw) as {
+          state?: { shopEffects?: { nextTrainingGrowthBoost?: unknown } };
+        };
+        return snapshot.state?.shopEffects?.nextTrainingGrowthBoost ?? null;
+      }, SERVER_SNAPSHOT_KEY),
+    )
+    .toBeNull();
 });

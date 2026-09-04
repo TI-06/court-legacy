@@ -2,53 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [feature/phase12-game-loop-polish]
+    branches: [main, "feature/**", "fix/**"]
+  pull_request:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  phase12-e2e-align:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/phase12-game-loop-polish
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Apply Phase 12 E2E alignment
-        run: |
-          python scripts/phase12-e2e-align.py
-          python scripts/phase12-e2e-align-fix2.py
-          python scripts/phase12-e2e-final-fix.py
-      - name: Format changed code
-        run: npm run format
-      - name: Verify quality
+      - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
+
+  mobile-e2e:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Verify mobile E2E
+      - name: Run mobile E2E tests
         run: npm run test:e2e
       - name: Upload Playwright diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: phase12-e2e-alignment-report
+          name: playwright-report
           path: |
             playwright-report
             test-results
           retention-days: 7
-      - name: Commit verified alignment and restore CI
-        run: |
-          git show origin/main:.github/workflows/ci.yml > .github/workflows/ci.yml
-          rm -f scripts/phase12-e2e-align.py scripts/phase12-e2e-align-fix2.py scripts/phase12-e2e-final-fix.py .github/workflows/phase12-e2e-align.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "418982982+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "test: align mobile E2E with Phase 12 navigation"
-          git push origin HEAD:feature/phase12-game-loop-polish

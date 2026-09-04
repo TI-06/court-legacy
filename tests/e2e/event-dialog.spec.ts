@@ -2,17 +2,17 @@ import { expect, test } from "@playwright/test";
 
 async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation.getByRole("button", { name: "育成", exact: true }).click();
-  await page.getByRole("button", { name: "この内容で設定" }).click();
+  await navigation.getByRole("button", { name: "選手", exact: true }).click();
+  await page.locator(".player-training-chip").first().click();
   await page
-    .getByRole("dialog", { name: "練習設定を確認" })
-    .getByRole("button", { name: "この内容で設定" })
+    .getByRole("dialog", { name: /の個人練習$/ })
+    .getByRole("button", { name: /^攻撃/ })
     .click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "次の週へ進む" }).click();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 }
 
 test("weekly progression surfaces a non-dismissible event with tradeoffs", async ({
@@ -38,7 +38,7 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
   await expect(choices).toHaveCount(2);
   await choices.first().click();
   await expect(eventDialog).toBeHidden();
-  await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   const bodyWidth = await page
     .locator("body")

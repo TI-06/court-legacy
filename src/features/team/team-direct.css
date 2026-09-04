@@ -201,10 +201,10 @@
 .court-player-button > span:last-child {
   overflow: hidden;
   color: #62757e;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .team-special-panel,

@@ -11,9 +11,8 @@ test("authoritative mutations show visible feedback within 300ms", async ({
 
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
-  await navigation.getByRole("button", { name: "その他", exact: true }).click();
-  await page.getByRole("button", { name: "学校管理" }).click();
-  await page.getByRole("button", { name: "トレーニング設備を強化" }).click();
+  await navigation.getByRole("button", { name: "学校", exact: true }).click();
+  await page.getByRole("button", { name: "トレーニング設備の詳細" }).click();
 
   const confirm = page
     .getByRole("dialog", { name: "設備を強化" })
@@ -21,7 +20,7 @@ test("authoritative mutations show visible feedback within 300ms", async ({
   const startedAt = Date.now();
   await confirm.click();
 
-  const status = page.getByRole("status");
+  const status = page.locator(".operation-status");
   await expect(status).toHaveText("保存中…", { timeout: 300 });
   expect(Date.now() - startedAt).toBeLessThan(300);
 

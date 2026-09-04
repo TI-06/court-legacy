@@ -448,6 +448,16 @@
 }
 
 @media (max-width: 350px) {
+  .facility-tile__top strong {
+    overflow: visible;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 350px) {
   .school-segments button {
     padding-inline: 4px;
     font-size: 0.68rem;
