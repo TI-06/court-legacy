@@ -131,12 +131,23 @@ describe("home action dashboard", () => {
     );
 
     const strength = screen.getByLabelText("対戦戦力");
-    expect(within(strength).getByText("自校戦力")).toBeVisible();
+    const homeStrengthLabel = within(strength).getByText("自校戦力");
+    const homeStrengthBlock = homeStrengthLabel.closest(
+      ".home-week-card__strength",
+    );
+    expect(homeStrengthBlock).not.toBeNull();
     expect(
-      within(strength).getByText(String(props.homeStrength)),
+      within(homeStrengthBlock!).getByText(String(props.homeStrength)),
     ).toBeVisible();
-    expect(within(strength).getByText("相手戦力")).toBeVisible();
-    expect(within(strength).getByText(String(opponentStrength))).toBeVisible();
+
+    const opponentStrengthLabel = within(strength).getByText("相手戦力");
+    const opponentStrengthBlock = opponentStrengthLabel.closest(
+      ".home-week-card__strength",
+    );
+    expect(opponentStrengthBlock).not.toBeNull();
+    expect(
+      within(opponentStrengthBlock!).getByText(String(opponentStrength)),
+    ).toBeVisible();
     expect(screen.getByText("無名校")).toBeInTheDocument();
 
     const progress = screen.getByLabelText("今週の進行状況");
