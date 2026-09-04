@@ -1,8 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
-process.env.VITE_SUPABASE_URL ??=
-  "https://wpxfcqxhhsllemujxhdm.supabase.co";
+process.env.VITE_SUPABASE_URL ??= "https://wpxfcqxhhsllemujxhdm.supabase.co";
 process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??=
   "sb_publishable_uXHnHxyA4sG1eHg0669IVA_EmXxSAsG";
 
