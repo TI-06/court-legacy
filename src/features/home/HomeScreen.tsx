@@ -4,11 +4,13 @@ import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { School, SchoolReputation } from "../../domain/model/School";
-import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import {
   selectHomeTrainingNotifications,
   type TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
+import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
+import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
 import type {
   TournamentCircuit,
@@ -86,6 +88,13 @@ function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
 }
 
+function schoolStrength(state: GameState, school: School): number {
+  return calculateSelectionStrength(
+    state,
+    autoSelectTeam({ state, schoolId: school.id }),
+  );
+}
+
 export function HomeScreen({
   state,
   opponent,
@@ -128,9 +137,13 @@ export function HomeScreen({
     ? state.schools[scheduledPracticeOpponentId]
     : null;
   const displayedOpponent = scheduledPracticeOpponent ?? opponent;
+  const displayedOpponentStrength = schoolStrength(state, displayedOpponent);
   const incomingOffer = state.weeklySchedule.practiceMatch.incomingOffer;
   const incomingSchool = incomingOffer
     ? state.schools[incomingOffer.schoolId]
+    : null;
+  const incomingSchoolStrength = incomingSchool
+    ? schoolStrength(state, incomingSchool)
     : null;
   const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
   const practiceStatus = practiceMatchCompleted
@@ -169,9 +182,16 @@ export function HomeScreen({
               {displayedOpponent.shortName}
             </strong>
           </div>
-          <div className="home-week-card__strength">
-            <span>自校戦力</span>
-            <strong>{homeStrength}</strong>
+          <div className="home-week-card__strength-pair" aria-label="対戦戦力">
+            <div className="home-week-card__strength">
+              <span>自校戦力</span>
+              <strong>{homeStrength}</strong>
+            </div>
+            <span className="home-week-card__versus">VS</span>
+            <div className="home-week-card__strength">
+              <span>相手戦力</span>
+              <strong>{displayedOpponentStrength}</strong>
+            </div>
           </div>
         </div>
 
@@ -193,12 +213,13 @@ export function HomeScreen({
               <span>練習試合の申し込み</span>
               <strong>{incomingSchool.shortName}</strong>
               <small>
-                成長 {incomingOffer.growthRating}/5 ・ 負荷{" "}
-                {incomingOffer.loadRating}/5
+                戦力 {incomingSchoolStrength} ・ 成長 {incomingOffer.growthRating}/5
+                ・ 負荷 {incomingOffer.loadRating}/5
               </small>
             </div>
             <div>
               <button
+                className="home-practice-offer__decline"
                 disabled={operationPending}
                 onClick={onDeclinePracticeOffer}
                 type="button"
