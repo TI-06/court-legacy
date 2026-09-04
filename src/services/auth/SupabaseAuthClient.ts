@@ -82,12 +82,14 @@ function authTokens(payload: WorkerAuthResponse): {
   return { access_token: accessToken, refresh_token: refreshToken };
 }
 
+const defaultFetch: typeof fetch = (input, init) =>
+  globalThis.fetch(input, init);
+
 export class SupabaseAuthClient implements AuthClient {
   constructor(
     private readonly auth: SupabaseAuthPort,
     private readonly redirectOrigin: string,
-    private readonly fetchImpl: typeof fetch =
-      globalThis.fetch.bind(globalThis),
+    private readonly fetchImpl: typeof fetch = defaultFetch,
     private readonly locationSearch: () => string = () =>
       globalThis.location.search,
   ) {}
