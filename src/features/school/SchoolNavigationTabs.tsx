@@ -2,20 +2,6 @@ import "./school-screen.css";
 
 export type SchoolView = "facilities" | "scouting" | "records" | "alumni";
 
-let requestedViewAfterScouting: Exclude<SchoolView, "scouting"> | null = null;
-
-export function requestSchoolViewAfterScouting(
-  view: Exclude<SchoolView, "scouting">,
-): void {
-  requestedViewAfterScouting = view;
-}
-
-export function consumeSchoolViewAfterScouting(): SchoolView {
-  // Reading is intentionally side-effect free so React StrictMode can call
-  // state initializers more than once without losing the requested tab.
-  return requestedViewAfterScouting ?? "facilities";
-}
-
 interface SchoolNavigationTabsProps {
   activeView: SchoolView;
   onSelect: (view: SchoolView) => void;
