@@ -1,0 +1,20 @@
+name: Account Auth Fast Verify
+
+on:
+  push:
+    branches: [feat/account-id-auth]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --offline --ignore-scripts --no-audit --fund=false
+      - run: npm run verify
