@@ -125,6 +125,22 @@
   line-height: 1.2;
 }
 
+.player-roster__growth {
+  justify-self: start;
+  max-width: 100%;
+  padding: 2px 6px;
+  overflow: hidden;
+  color: #ffd99a;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgb(244 122 24 / 14%);
+  border: 1px solid rgb(244 122 24 / 25%);
+  border-radius: 999px;
+}
+
 .player-roster__status,
 .player-roster__overall {
   display: grid;
@@ -228,6 +244,47 @@
   line-height: 1;
 }
 
+.player-detail__development {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.player-detail__development article {
+  min-width: 0;
+  padding: 10px 11px;
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 10%), transparent 60%),
+    rgb(11 26 45 / 92%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 11px;
+}
+
+.player-detail__development span,
+.player-detail__development strong,
+.player-detail__development small {
+  display: block;
+}
+
+.player-detail__development span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.player-detail__development strong {
+  margin-top: 3px;
+  color: #ffd99a;
+  font-size: 15px;
+}
+
+.player-detail__development small {
+  margin-top: 4px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .player-detail__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -245,7 +302,7 @@
 
 .player-detail__metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -316,12 +373,7 @@
   }
 
   .player-detail__metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .player-detail__metrics article:nth-child(4),
-  .player-detail__metrics article:nth-child(5) {
-    grid-column: span 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -334,7 +386,7 @@
   grid-template-columns: 28px minmax(0, 1fr) 58px 42px;
   align-items: center;
   width: 100%;
-  min-height: 62px;
+  min-height: 72px;
   padding: 8px 62px 8px 10px;
   border: 0;
   background: transparent;
@@ -417,5 +469,8 @@
     right: 5px;
     min-width: 43px;
     padding-inline: 5px;
+  }
+  .player-detail__development {
+    grid-template-columns: 1fr;
   }
 }
