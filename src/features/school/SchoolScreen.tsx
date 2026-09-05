@@ -38,6 +38,11 @@ function formatDate(value: string): string {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
+function formatFundsAmount(amount: number): string {
+  const absolute = Math.abs(amount).toLocaleString("ja-JP");
+  return amount >= 0 ? `+${absolute}` : `-${absolute}`;
+}
+
 function facilityActionLabel(
   name: string,
   reason: ReturnType<typeof evaluateFacilityUpgrade>["reason"],
@@ -57,6 +62,7 @@ export function SchoolScreen({
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
+  const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -105,6 +111,7 @@ export function SchoolScreen({
   const selectedEvaluation = selectedFacility
     ? evaluateFacilityUpgrade(state, school.id, selectedFacility)
     : null;
+  const fundsHistory = [...state.schoolManagement.fundsHistory].reverse();
 
   const confirmUpgrade = () => {
     if (!selectedFacility || !selectedEvaluation?.allowed) return;
@@ -133,7 +140,14 @@ export function SchoolScreen({
               {school.reputationPoints}
             </p>
           </div>
-          <strong>資金 {school.funds}</strong>
+          <button
+            aria-label={`資金 ${school.funds}・履歴を表示`}
+            className="school-funds-button"
+            onClick={() => setFundsHistoryOpen(true)}
+            type="button"
+          >
+            資金 {school.funds}
+          </button>
         </div>
         <div className="school-summary-grid">
           <span>
@@ -316,6 +330,44 @@ export function SchoolScreen({
           )}
         </section>
       ) : null}
+
+      <BottomSheet
+        description="学校運営資金の入出金履歴です。"
+        onClose={() => setFundsHistoryOpen(false)}
+        open={fundsHistoryOpen}
+        title="資金履歴"
+      >
+        {fundsHistory.length === 0 ? (
+          <p className="school-empty-state">資金履歴はまだありません</p>
+        ) : (
+          <div className="funds-ledger">
+            {fundsHistory.map((entry) => (
+              <article
+                className="funds-ledger__entry"
+                data-testid="funds-ledger-entry"
+                key={entry.id}
+              >
+                <div>
+                  <strong>{entry.label}</strong>
+                  <time>{formatDate(entry.gameDate)}</time>
+                </div>
+                <div className="funds-ledger__amounts">
+                  <strong
+                    className={
+                      entry.amount >= 0
+                        ? "funds-ledger__amount--positive"
+                        : "funds-ledger__amount--negative"
+                    }
+                  >
+                    {formatFundsAmount(entry.amount)}
+                  </strong>
+                  <span>残高 {entry.balanceAfter.toLocaleString("ja-JP")}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </BottomSheet>
 
       <BottomSheet
         description="資金を使用して設備レベルを1上げます。"
