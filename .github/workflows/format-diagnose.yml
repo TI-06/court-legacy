@@ -1,0 +1,25 @@
+name: Format Diagnose
+
+on:
+  push:
+    branches: ["feature/school-economy-foundation"]
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Show Prettier diff
+        shell: bash
+        run: |
+          npx prettier src/features/shop/ShopScreen.tsx tests/unit/features/shop/ShopScreen.test.tsx --write
+          git diff -- src/features/shop/ShopScreen.tsx tests/unit/features/shop/ShopScreen.test.tsx
+          exit 1
