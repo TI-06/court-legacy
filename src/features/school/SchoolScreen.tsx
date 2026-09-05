@@ -12,6 +12,7 @@ import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
 import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
+import "./school-economy.css";
 import "./school-screen.css";
 
 interface SchoolScreenProps {
