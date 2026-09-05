@@ -145,12 +145,10 @@ describe("game state codec", () => {
   });
 
   it("migrates v6 funds into v7 without paying the current-year budget again", () => {
-    const current = createDemoGame();
-    const legacy = structuredClone(current) as typeof current & {
-      schoolManagement?: typeof current.schoolManagement;
-    };
+    const current = structuredClone(createDemoGame());
+    const { schoolManagement, ...legacy } = current;
+    expect(schoolManagement).toBeDefined();
     legacy.schemaVersion = 6;
-    delete legacy.schoolManagement;
     legacy.schools[legacy.userSchoolId]!.funds = 777;
 
     const migrated = decodeGameState(JSON.stringify(legacy));
