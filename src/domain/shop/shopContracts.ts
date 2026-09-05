@@ -102,8 +102,14 @@ export interface ShopMutationResponseBase {
   usedCount: number;
 }
 
+export interface ShopFundGrantResult {
+  fundsGranted: number;
+  balanceAfter: number;
+}
+
 export interface ShopPurchaseResponse extends ShopMutationResponseBase {
   operationType: "purchase";
+  result?: ShopFundGrantResult;
 }
 
 export interface ShopUseResponse extends ShopMutationResponseBase {
