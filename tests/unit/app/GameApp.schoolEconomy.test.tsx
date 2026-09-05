@@ -77,56 +77,59 @@ function authClient(): AuthClient {
 }
 
 describe("GameApp school economy shop flow", () => {
-  it("shows the authoritative balance returned by an immediate fund grant", async () => {
-    const initial = createSnapshot(1, 700);
-    const granted = createSnapshot(2, 1000);
-    const getShop = vi
-      .fn<NonNullable<GameApiClient["getShop"]>>()
-      .mockResolvedValueOnce(createStatus(1, 0))
-      .mockResolvedValueOnce(createStatus(2, 1));
-    const purchaseShopItem = vi.fn<
-      NonNullable<GameApiClient["purchaseShopItem"]>
-    >(async (_accessToken, request) => ({
-      operationId: request.operationId,
-      operationType: "purchase",
-      revision: 2,
-      academicYearIndex: 1,
-      itemId: "funds-grant-300",
-      quantityOwned: 0,
-      purchasedCount: 1,
-      usedCount: 0,
-      result: { fundsGranted: 300, balanceAfter: 1000 },
-    }));
-    const bootstrap = vi
-      .fn<GameApiClient["bootstrap"]>()
-      .mockResolvedValueOnce({ status: "ready", game: granted });
-    const api: GameApiClient = {
-      bootstrap,
-      onboard: vi.fn(),
-      applyAction: vi.fn(),
-      getShop,
-      purchaseShopItem,
-    };
+  it(
+    "shows the authoritative balance returned by an immediate fund grant",
+    async () => {
+      const initial = createSnapshot(1, 700);
+      const granted = createSnapshot(2, 1000);
+      const getShop = vi
+        .fn<NonNullable<GameApiClient["getShop"]>>()
+        .mockResolvedValueOnce(createStatus(1, 0))
+        .mockResolvedValueOnce(createStatus(2, 1));
+      const purchaseShopItem = vi.fn<
+        NonNullable<GameApiClient["purchaseShopItem"]>
+      >(async (_accessToken, request) => ({
+        operationId: request.operationId,
+        operationType: "purchase",
+        revision: 2,
+        academicYearIndex: 1,
+        itemId: "funds-grant-300",
+        quantityOwned: 0,
+        purchasedCount: 1,
+        usedCount: 0,
+        result: { fundsGranted: 300, balanceAfter: 1000 },
+      }));
+      const bootstrap = vi
+        .fn<GameApiClient["bootstrap"]>()
+        .mockResolvedValueOnce({ status: "ready", game: granted });
+      const api: GameApiClient = {
+        bootstrap,
+        onboard: vi.fn(),
+        applyAction: vi.fn(),
+        getShop,
+        purchaseShopItem,
+      };
 
-    render(
-      <GameApp
-        api={api}
-        auth={authClient()}
-        session={session}
-        snapshot={initial}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "その他" }));
-    fireEvent.click(screen.getByRole("button", { name: "ショップ" }));
+      render(
+        <GameApp
+          api={api}
+          auth={authClient()}
+          session={session}
+          snapshot={initial}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "その他" }));
+      fireEvent.click(screen.getByRole("button", { name: "ショップ" }));
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: "資金 +300を受け取る" }),
-    );
+      fireEvent.click(
+        await screen.findByRole("button", { name: "資金 +300を受け取る" }),
+      );
 
-    await waitFor(() => expect(purchaseShopItem).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText("資金 +300 / 残高 1,000")).toBeVisible();
-    expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
-  });
+      await waitFor(() => expect(purchaseShopItem).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
+      expect(await screen.findByText("資金 +300 / 残高 1,000")).toBeVisible();
+      expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
+    },
+  );
 });
