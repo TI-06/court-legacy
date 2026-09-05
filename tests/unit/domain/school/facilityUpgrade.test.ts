@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { schoolId } from "../../../../src/domain/model/identifiers";
 import {
   FACILITY_DEFINITIONS,
   calculateFacilityUpgradeCost,
@@ -6,7 +7,6 @@ import {
   upgradeFacility,
   type FacilityKey,
 } from "../../../../src/domain/school/facilityUpgrade";
-import { schoolId } from "../../../../src/domain/model/identifiers";
 
 function withFacility(key: FacilityKey, level: number, funds: number) {
   const state = createDemoGame();
@@ -55,7 +55,7 @@ describe("facility upgrades", () => {
   });
 
   it("evaluates an available upgrade without mutating state", () => {
-    const state = createDemoGame();
+    const state = withFacility("trainingRoom", 0, 300);
 
     const evaluation = evaluateFacilityUpgrade(
       state,
@@ -75,7 +75,7 @@ describe("facility upgrades", () => {
   });
 
   it("deducts funds and updates only the requested school facility immutably", () => {
-    const state = createDemoGame();
+    const state = withFacility("trainingRoom", 0, 300);
     const originalSchool = state.schools[state.userSchoolId]!;
     const rival = Object.values(state.schools).find(
       (school) => school.id !== state.userSchoolId,
@@ -87,6 +87,12 @@ describe("facility upgrades", () => {
     expect(result.schools[state.userSchoolId]).not.toBe(originalSchool);
     expect(result.schools[state.userSchoolId]!.funds).toBe(230);
     expect(result.schools[state.userSchoolId]!.facilities.trainingRoom).toBe(1);
+    expect(result.schoolManagement.fundsHistory.at(-1)).toMatchObject({
+      kind: "facility-upgrade",
+      amount: -70,
+      balanceAfter: 230,
+      relatedId: "trainingRoom",
+    });
     expect(result.schools[rival.id]).toBe(rival);
     expect(result.players).toBe(state.players);
     expect(originalSchool.funds).toBe(300);
