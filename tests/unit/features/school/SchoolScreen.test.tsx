@@ -46,6 +46,49 @@ describe("school management screen", () => {
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom");
   });
 
+  it("opens the funds ledger and renders persisted history newest first", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 700 };
+    state.schoolManagement = {
+      ...state.schoolManagement,
+      fundsHistory: [
+        {
+          id: "initial-funds:year-1",
+          gameDate: "2026-04-01" as GameDate,
+          academicYearIndex: 1,
+          kind: "initial-funds",
+          amount: 300,
+          balanceAfter: 300,
+          label: "初期活動資金",
+        },
+        {
+          id: "annual-budget:year-1",
+          gameDate: "2026-04-01" as GameDate,
+          academicYearIndex: 1,
+          kind: "annual-budget",
+          amount: 400,
+          balanceAfter: 700,
+          label: "初年度学校予算",
+        },
+      ],
+    };
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /資金 700/ }));
+    const dialog = screen.getByRole("dialog", { name: "資金履歴" });
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByText("初年度学校予算")).toBeVisible();
+    expect(within(dialog).getByText("+400")).toBeVisible();
+    expect(within(dialog).getByText("初期活動資金")).toBeVisible();
+    expect(within(dialog).getByText("+300")).toBeVisible();
+
+    const entries = within(dialog).getAllByTestId("funds-ledger-entry");
+    expect(entries[0]).toHaveTextContent("初年度学校予算");
+    expect(entries[1]).toHaveTextContent("初期活動資金");
+  });
+
   it("disables upgrades when funds are insufficient or the facility is maxed", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
