@@ -11,6 +11,7 @@ import type { Grade, Player } from "../model/Player";
 import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
+import { grantAnnualSchoolBudget } from "../school/schoolEconomy";
 import {
   legacyReputationFromPoints,
   resolveSeasonReputation,
@@ -438,6 +439,7 @@ export function advanceAcademicYear(
 
   nextState = advanceRivalWorld(nextState, data, random);
   nextState = restoreCanonicalReputation(nextState, schools);
+  nextState = grantAnnualSchoolBudget(nextState);
   const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,

@@ -217,7 +217,7 @@ describe("GameApp cloud actions", () => {
       revision: 1,
       action: { type: "facility-upgrade", facility: "trainingRoom" },
     });
-    expect(await screen.findByText("資金 230")).toBeVisible();
+    expect(await screen.findByText("資金 630")).toBeVisible();
   });
 
   it("advances the week on the server using the revision returned by the saved training plan", async () => {
@@ -378,7 +378,7 @@ describe("GameApp cloud actions", () => {
     );
 
     openTrainingFacility();
-    expect(screen.getByText("資金 300")).toBeVisible();
+    expect(screen.getByText("資金 700")).toBeVisible();
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",

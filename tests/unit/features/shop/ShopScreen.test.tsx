@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { PHASE5_SHOP_ITEMS } from "../../../../src/domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 import { ShopScreen } from "../../../../src/features/shop/ShopScreen";
@@ -16,9 +17,16 @@ function createStatus(): ShopStatusResponse {
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
       purchasedCount:
-        index === 0 ? item.annualPurchaseLimit : index === 4 ? 2 : 0,
+        item.itemId === "funds-grant-300"
+          ? 1
+          : index === 0
+            ? item.annualPurchaseLimit
+            : index === 4
+              ? 2
+              : 0,
       usedCount: index === 4 ? 1 : 0,
-      quantityOwned: index === 4 ? 2 : 0,
+      quantityOwned:
+        item.itemId === "funds-grant-300" ? 0 : index === 4 ? 2 : 0,
       canPurchase: index !== 0,
       purchaseBlockedReason: index === 0 ? "purchase_limit_reached" : null,
       canUse: index === 4,
@@ -61,7 +69,7 @@ describe("ShopScreen", () => {
     );
   });
 
-  it("renders all seven ¥0 products with annual limits and blocked purchase reasons", () => {
+  it("renders all zero-yen products with annual limits and blocked purchase reasons", () => {
     renderShop();
 
     expect(screen.getByRole("button", { name: "商品" })).toHaveAttribute(
@@ -77,6 +85,51 @@ describe("ShopScreen", () => {
     expect(screen.getByText("今年度の上限に達しました")).toBeVisible();
     expect(screen.getByText("購入 1 / 1")).toBeVisible();
     expect(screen.getByText("所持 2")).toBeVisible();
+  });
+
+  it("renders fund grants as immediate claims and keeps them out of inventory", () => {
+    const props = renderShop();
+
+    expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
+    const button = screen.getByRole("button", {
+      name: "資金 +300を受け取る",
+    });
+    expect(button).toHaveTextContent("¥0で受け取る");
+    fireEvent.click(button);
+    expect(props.onPurchase).toHaveBeenCalledWith("funds-grant-300");
+
+    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
+    expect(screen.queryByText("資金 +300")).not.toBeInTheDocument();
+  });
+
+  it("does not reuse a previous fund grant message for a later shop action", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 1000 };
+    const baseProps: React.ComponentProps<typeof ShopScreen> = {
+      status: createStatus(),
+      loading: false,
+      error: null,
+      state,
+      resultMessage: null,
+      onBack: vi.fn(),
+      onRetry: vi.fn(),
+      onPurchase: vi.fn(),
+      onUse: vi.fn(),
+    };
+    const { rerender } = render(<ShopScreen {...baseProps} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "資金 +300を受け取る" }),
+    );
+    rerender(<ShopScreen {...baseProps} resultMessage="購入しました ✓" />);
+    expect(screen.getByText("資金 +300 / 残高 1,000")).toBeVisible();
+
+    rerender(<ShopScreen {...baseProps} resultMessage="使用しました ✓" />);
+    expect(screen.getByText("使用しました ✓")).toBeVisible();
+    expect(
+      screen.queryByText("資金 +300 / 残高 1,000"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows only owned items in inventory and delegates use actions", () => {

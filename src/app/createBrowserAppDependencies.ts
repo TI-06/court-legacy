@@ -5,7 +5,6 @@ import type {
 import type { GameActionRequest } from "../../worker/game/actionSchema";
 import { applyGameAction } from "../../worker/game/applyGameAction";
 import type { GameState } from "../domain/model/GameState";
-import { decodeGameState } from "../persistence/gameStateCodec";
 import { playerId } from "../domain/model/identifiers";
 import type {
   PvpChallengeRequest,
@@ -17,23 +16,22 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import { applySchoolFundsChange } from "../domain/school/schoolEconomy";
+import {
+  getShopItemDefinition,
+  shopFundsGrantAmount,
+} from "../domain/shop/shopCatalog";
+import type {
+  ShopFundsGrantResult,
+  ShopPurchaseRequest,
+  ShopUseRequest,
+} from "../domain/shop/shopContracts";
 import {
   applyFatigueRecovery,
   isFatigueRecoveryEligible,
 } from "../domain/shop/shopEffects";
-import type {
-  ShopPurchaseRequest,
-  ShopUseRequest,
-} from "../domain/shop/shopContracts";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-import type { AuthClient } from "../services/auth/AuthClient";
-import {
-  E2E_ACCOUNT_PROFILE,
-  E2E_ACCOUNT_PROFILE_KEY,
-  E2E_AUTH_SESSION,
-  MockAuthClient,
-} from "../services/auth/MockAuthClient";
-import { createSupabaseAuthClient } from "../services/auth/SupabaseAuthClient";
+import { decodeGameState } from "../persistence/gameStateCodec";
 import {
   ApiError,
   HttpGameApiClient,
@@ -42,6 +40,14 @@ import {
   type ScoutingBoardRequest,
   type ScoutingRecruitmentRequest,
 } from "../services/api/GameApiClient";
+import type { AuthClient } from "../services/auth/AuthClient";
+import {
+  E2E_ACCOUNT_PROFILE,
+  E2E_ACCOUNT_PROFILE_KEY,
+  E2E_AUTH_SESSION,
+  MockAuthClient,
+} from "../services/auth/MockAuthClient";
+import { createSupabaseAuthClient } from "../services/auth/SupabaseAuthClient";
 import { createDemoGame } from "./createDemoGame";
 import { createInitialGame } from "./createInitialGame";
 import { StaticShopHarness } from "./StaticShopHarness";
@@ -328,6 +334,8 @@ class StaticGameApiClient implements GameApiClient {
         const snapshot = this.requireSnapshot();
         this.replaceSnapshot({ ...snapshot, revision });
       },
+      commitPurchase: (request, revision) =>
+        this.commitHarnessShopPurchase(request, revision),
       commitUse: (request, revision) =>
         this.commitHarnessShopUse(request, revision),
     });
@@ -363,6 +371,34 @@ class StaticGameApiClient implements GameApiClient {
     ) {
       this.snapshot = persisted;
     }
+  }
+
+  private commitHarnessShopPurchase(
+    request: ShopPurchaseRequest,
+    revision: number,
+  ): ShopFundsGrantResult | null {
+    const fundsGranted = shopFundsGrantAmount(request.itemId);
+    if (fundsGranted === null) return null;
+
+    const snapshot = this.requireSnapshot();
+    const funded = applySchoolFundsChange(snapshot.state, {
+      id: `shop-grant:${request.operationId}`,
+      kind: "shop-grant",
+      amount: fundsGranted,
+      label: getShopItemDefinition(request.itemId).displayName,
+      relatedId: request.itemId,
+    }).state;
+    const balanceAfter = funded.schools[funded.userSchoolId]?.funds;
+    if (balanceAfter === undefined) {
+      throw new ApiError(409, "invalid_game_state", "学校資金を確認できません");
+    }
+
+    this.replaceSnapshot({
+      ...snapshot,
+      revision,
+      state: funded,
+    });
+    return { fundsGranted, balanceAfter };
   }
 
   private commitHarnessShopUse(

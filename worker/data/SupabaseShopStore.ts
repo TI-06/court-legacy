@@ -40,6 +40,26 @@ const statusRowSchema = z
   })
   .strict();
 
+const purchaseResponseSchema = z
+  .object({
+    operationId: z.string().min(1),
+    operationType: z.literal("purchase"),
+    revision: z.number().int().positive(),
+    academicYearIndex: z.number().int().nonnegative(),
+    itemId: shopItemIdSchema,
+    quantityOwned: z.number().int().nonnegative(),
+    purchasedCount: z.number().int().nonnegative(),
+    usedCount: z.number().int().nonnegative(),
+    result: z
+      .object({
+        fundsGranted: z.number().int().positive(),
+        balanceAfter: z.number().int().nonnegative(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
 const mutationRowSchema = z
   .object({
     operation_id: z.string().min(1),
@@ -158,6 +178,17 @@ function parseMutationRow(value: unknown): ShopMutationResult {
   }
 
   const row = parsed.data[0]!;
+  let response = row.response;
+  if (row.operation_type === "purchase") {
+    const purchaseResponse = purchaseResponseSchema.safeParse(row.response);
+    if (!purchaseResponse.success) {
+      throw new ShopStoreDataError("shop purchase response is invalid", {
+        cause: purchaseResponse.error,
+      });
+    }
+    response = purchaseResponse.data;
+  }
+
   return {
     operationId: row.operation_id,
     operationType: row.operation_type,
@@ -168,7 +199,7 @@ function parseMutationRow(value: unknown): ShopMutationResult {
     quantityOwned: row.quantity_owned,
     purchasedCount: row.purchased_count,
     usedCount: row.used_count,
-    response: row.response,
+    response,
     replayed: row.replayed,
   };
 }

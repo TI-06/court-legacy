@@ -1,7 +1,9 @@
 import type { GameState, HistoricalMatchSummary } from "../model/GameState";
 import { applyOfficialMatchDynamicsFeedback } from "../dynamics/officialMatchDynamics";
 import type { MatchState } from "../model/Match";
+import { applySchoolFundsChange } from "../school/schoolEconomy";
 import { MAX_MATCH_HISTORY } from "../world/rivalWorldProgression";
+import { officialTournamentFundRewards } from "./officialTournamentRewards";
 import { applyOfficialMatchPlayerStats } from "./playerTournamentStats";
 import { completeTournamentMatch } from "./progressOfficialTournaments";
 import type {
@@ -213,7 +215,7 @@ export function recordOfficialTournamentOutcome(
     next = updateGuestSafeOfficialRecord(next, userWon);
   }
 
-  return completeTournamentMatch({
+  let completed = completeTournamentMatch({
     state: next,
     circuit: input.circuit,
     level: input.level,
@@ -222,4 +224,21 @@ export function recordOfficialTournamentOutcome(
     homeSetsWon: result.homeSetsWon,
     awaySetsWon: result.awaySetsWon,
   });
+
+  const rewards = officialTournamentFundRewards({
+    level: input.level,
+    round: bracketMatch.round,
+    won: userWon,
+  });
+  for (const reward of rewards) {
+    completed = applySchoolFundsChange(completed, {
+      id: `tournament:${stage.tournamentId}:${input.bracketMatchId}:${reward.code}`,
+      kind: "tournament-reward",
+      amount: reward.amount,
+      label: reward.label,
+      relatedId: stage.tournamentId,
+    }).state;
+  }
+
+  return completed;
 }
