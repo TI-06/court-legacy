@@ -6,6 +6,9 @@ export const SHOP_ITEM_IDS = [
   "fatigue-recovery",
   "special-coach",
   "training-efficiency-boost",
+  "funds-grant-300",
+  "funds-grant-1000",
+  "funds-grant-3000",
 ] as const;
 
 export type ShopItemId = (typeof SHOP_ITEM_IDS)[number];
@@ -100,6 +103,36 @@ export const PHASE5_SHOP_ITEMS = [
     targetKind: "next-training",
     sortOrder: 70,
   },
+  {
+    itemId: "funds-grant-300",
+    displayName: "活動資金 +300",
+    description: "学校の活動資金を300追加します。受け取り後すぐに反映されます。",
+    priceYen: 0,
+    annualPurchaseLimit: 3,
+    annualUseLimit: 3,
+    targetKind: "none",
+    sortOrder: 80,
+  },
+  {
+    itemId: "funds-grant-1000",
+    displayName: "活動資金 +1,000",
+    description: "学校の活動資金を1,000追加します。受け取り後すぐに反映されます。",
+    priceYen: 0,
+    annualPurchaseLimit: 1,
+    annualUseLimit: 1,
+    targetKind: "none",
+    sortOrder: 90,
+  },
+  {
+    itemId: "funds-grant-3000",
+    displayName: "活動資金 +3,000",
+    description: "学校の活動資金を3,000追加します。受け取り後すぐに反映されます。",
+    priceYen: 0,
+    annualPurchaseLimit: 1,
+    annualUseLimit: 1,
+    targetKind: "none",
+    sortOrder: 100,
+  },
 ] as const satisfies readonly ShopItemDefinition[];
 
 export function getShopItemDefinition(itemId: ShopItemId): ShopItemDefinition {
@@ -108,4 +141,21 @@ export function getShopItemDefinition(itemId: ShopItemId): ShopItemDefinition {
     throw new Error(`unknown shop item: ${itemId}`);
   }
   return definition;
+}
+
+export function shopFundGrantAmount(itemId: ShopItemId): number | null {
+  switch (itemId) {
+    case "funds-grant-300":
+      return 300;
+    case "funds-grant-1000":
+      return 1000;
+    case "funds-grant-3000":
+      return 3000;
+    default:
+      return null;
+  }
+}
+
+export function isShopFundGrant(itemId: ShopItemId): boolean {
+  return shopFundGrantAmount(itemId) !== null;
 }
