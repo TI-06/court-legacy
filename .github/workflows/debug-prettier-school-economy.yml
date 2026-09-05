@@ -1,0 +1,33 @@
+name: Debug Prettier School Economy
+
+on:
+  push:
+    branches:
+      - debug/prettier-school-economy
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Show exact Prettier diff
+        run: |
+          npx prettier \
+            tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
+            tests/unit/app/GameApp.schoolEconomy.test.tsx \
+            tests/unit/features/shop/ShopScreen.test.tsx \
+            tests/e2e/school-economy-flow.spec.ts \
+            --write
+          git diff --no-ext-diff -- \
+            tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
+            tests/unit/app/GameApp.schoolEconomy.test.tsx \
+            tests/unit/features/shop/ShopScreen.test.tsx \
+            tests/e2e/school-economy-flow.spec.ts
