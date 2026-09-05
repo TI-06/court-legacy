@@ -25,23 +25,8 @@ jobs:
       - run: npm ci --no-audit --fund=false
       - name: Scope grant result message to purchase success
         run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const path = 'src/features/shop/ShopScreen.tsx';
-          const before = fs.readFileSync(path, 'utf8');
-          const oldText = `const displayedResultMessage =
-    resultMessage &&
-    lastGrantAmount !== null &&`;
-          const newText = `const displayedResultMessage =
-    resultMessage === "購入しました ✓" &&
-    lastGrantAmount !== null &&`;
-          if (!before.includes(oldText)) {
-            throw new Error('expected ShopScreen result-message block not found');
-          }
-          const after = before.replace(oldText, newText);
-          if (after === before) throw new Error('ShopScreen was not changed');
-          fs.writeFileSync(path, after);
-          NODE
+          perl -0pi -e 's/resultMessage &&\n    lastGrantAmount/resultMessage === "購入しました ✓" \&\&\n    lastGrantAmount/' src/features/shop/ShopScreen.tsx
+          grep -F 'resultMessage === "購入しました ✓" &&' src/features/shop/ShopScreen.tsx
           npx prettier src/features/shop/ShopScreen.tsx --write
       - name: Verify focused regression
         run: npx vitest run tests/unit/features/shop/ShopScreen.test.tsx
@@ -50,5 +35,6 @@ jobs:
           git config user.name "TI-06"
           git config user.email "iretaku.shop@gmail.com"
           git add src/features/shop/ShopScreen.tsx
+          git diff --cached --exit-code && exit 1 || true
           git commit -m "fix: scope fund grant success message to purchases"
           git push origin HEAD:feature/school-economy-foundation
