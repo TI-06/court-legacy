@@ -52,6 +52,12 @@ const effectEvent: EventDefinition = {
         },
       ],
     },
+    {
+      id: "overspend",
+      label: "全額支出",
+      detail: "所持資金を超える支出を確認する。",
+      effects: [{ type: "funds-change", amount: -99999 }],
+    },
   ],
 };
 
@@ -103,6 +109,12 @@ describe("event resolution", () => {
     expect(result.state.schools[state.userSchoolId]!.funds).toBe(
       fundsBefore + 20,
     );
+    expect(result.state.schoolManagement.fundsHistory.at(-1)).toMatchObject({
+      kind: "event",
+      amount: 20,
+      balanceAfter: fundsBefore + 20,
+      relatedId: effectEvent.id,
+    });
     expect(
       result.state.schools[state.userSchoolId]!.facilities.analysisRoom,
     ).toBe(Math.min(5, facilityBefore + 1));
@@ -110,5 +122,42 @@ describe("event resolution", () => {
     expect(result.occurrence.visibleResultCodes).toContain("連携 +8");
     expect(result.state.eventMemory.scheduledFollowUps).toHaveLength(1);
     expect(result.state.eventMemory.occurredCareerKeys).toHaveLength(1);
+  });
+
+  it("floors an oversized event debit at zero and records only the applied debit", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const [left, right] = school.playerIds;
+    if (!left || !right) {
+      throw new Error("players missing");
+    }
+    const fundsBefore = school.funds;
+    state.pendingEvent = {
+      eventId: eventId(effectEvent.id),
+      actorPlayerIds: [left, right],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["overspend"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "overspend",
+      registryWithFixture(),
+      new SeededRandom(state.seed, state.randomCursor),
+    );
+
+    expect(result.state.schools[state.userSchoolId]!.funds).toBe(0);
+    expect(result.occurrence.visibleResultCodes).toContain(
+      `資金 -${fundsBefore}`,
+    );
+    expect(result.state.schoolManagement.fundsHistory.at(-1)).toMatchObject({
+      kind: "event",
+      amount: -fundsBefore,
+      balanceAfter: 0,
+      relatedId: effectEvent.id,
+    });
   });
 });
