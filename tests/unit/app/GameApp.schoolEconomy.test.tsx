@@ -3,7 +3,9 @@ import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { PHASE5_SHOP_ITEMS } from "../../../src/domain/shop/shopCatalog";
-import type { ShopStatusResponse } from "../../../src/domain/shop/shopContracts";
+import type {
+  ShopStatusResponse,
+} from "../../../src/domain/shop/shopContracts";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { GameApiClient } from "../../../src/services/api/GameApiClient";
 import type {
