@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type { PlayerAbilities } from "../../domain/model/Player";
-import type { ShopItemId } from "../../domain/shop/shopCatalog";
+import {
+  shopFundsGrantAmount,
+  type ShopItemId,
+} from "../../domain/shop/shopCatalog";
 import type { SpecialCoachFocus } from "../../domain/shop/shopEffects";
 import type {
   ShopBlockedReason,
@@ -237,12 +240,16 @@ function ProductCard({
   pendingItemId: ShopItemId | null;
   onPurchase: (itemId: ShopItemId) => void;
 }) {
+  const grantAmount = shopFundsGrantAmount(item.itemId);
+  const isGrant = grantAmount !== null;
   const purchasePending =
     pendingAction === "purchase" && pendingItemId === item.itemId;
   const reason = blockedReason(item.purchaseBlockedReason);
   const buttonLabel = purchasePending
     ? `${item.displayName}を購入処理中…`
-    : `${item.displayName}を購入`;
+    : isGrant
+      ? `${item.displayName}を受け取る`
+      : `${item.displayName}を購入`;
 
   return (
     <article className="shop-card">
@@ -255,13 +262,22 @@ function ProductCard({
       </div>
 
       <div className="shop-card__status">
-        <span>
-          購入 {item.purchasedCount} / {item.annualPurchaseLimit}
-        </span>
-        <span>
-          使用 {item.usedCount} / {item.annualUseLimit}
-        </span>
-        <span>所持 {item.quantityOwned}</span>
+        {isGrant ? (
+          <span>
+            年度残り {Math.max(0, item.annualPurchaseLimit - item.purchasedCount)} /{" "}
+            {item.annualPurchaseLimit}
+          </span>
+        ) : (
+          <>
+            <span>
+              購入 {item.purchasedCount} / {item.annualPurchaseLimit}
+            </span>
+            <span>
+              使用 {item.usedCount} / {item.annualUseLimit}
+            </span>
+            <span>所持 {item.quantityOwned}</span>
+          </>
+        )}
       </div>
 
       {reason ? <p className="shop-card__blocked">{reason}</p> : null}
@@ -272,7 +288,13 @@ function ProductCard({
         onClick={() => onPurchase(item.itemId)}
         type="button"
       >
-        {purchasePending ? "購入処理中…" : "¥0で購入"}
+        {purchasePending
+          ? isGrant
+            ? "受け取り処理中…"
+            : "購入処理中…"
+          : isGrant
+            ? "¥0で受け取る"
+            : "¥0で購入"}
       </button>
     </article>
   );
@@ -363,7 +385,9 @@ export function ShopScreen({
   const [specialCoachPlayerId, setSpecialCoachPlayerId] =
     useState<PlayerId | null>(null);
   const ownedItems =
-    status?.items.filter((item) => item.quantityOwned > 0) ?? [];
+    status?.items.filter(
+      (item) => item.quantityOwned > 0 && shopFundsGrantAmount(item.itemId) === null,
+    ) ?? [];
 
   const schoolPlayers = useMemo(() => {
     if (!state) return [];
