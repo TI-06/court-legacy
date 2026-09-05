@@ -455,5 +455,9 @@ export async function resolveShopUse(
       return resolveSpecialCoach(input);
     case "training-efficiency-boost":
       return resolveTrainingEfficiencyBoost(input);
+    case "funds-grant-300":
+    case "funds-grant-1000":
+    case "funds-grant-3000":
+      throw new ShopUseResolutionError("invalid_target");
   }
 }
