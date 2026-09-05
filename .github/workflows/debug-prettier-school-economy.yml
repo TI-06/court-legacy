@@ -1,4 +1,4 @@
-name: Debug Prettier School Economy
+name: Apply School Economy Shop Fix
 
 on:
   push:
@@ -6,28 +6,49 @@ on:
       - debug/prettier-school-economy
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  prettier-diff:
+  apply-fix:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/school-economy-foundation
+          fetch-depth: 0
+      - name: Verify expected feature head
+        run: test "$(git rev-parse HEAD)" = "7d70f7ab62ec66f4001b932e24753d6752a59ccc"
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Show exact Prettier diff
+      - name: Scope grant result message to purchase success
         run: |
-          npx prettier \
-            tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
-            tests/unit/app/GameApp.schoolEconomy.test.tsx \
-            tests/unit/features/shop/ShopScreen.test.tsx \
-            tests/e2e/school-economy-flow.spec.ts \
-            --write
-          git diff --no-ext-diff -- \
-            tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
-            tests/unit/app/GameApp.schoolEconomy.test.tsx \
-            tests/unit/features/shop/ShopScreen.test.tsx \
-            tests/e2e/school-economy-flow.spec.ts
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/features/shop/ShopScreen.tsx';
+          const before = fs.readFileSync(path, 'utf8');
+          const oldText = `const displayedResultMessage =
+    resultMessage &&
+    lastGrantAmount !== null &&`;
+          const newText = `const displayedResultMessage =
+    resultMessage === "購入しました ✓" &&
+    lastGrantAmount !== null &&`;
+          if (!before.includes(oldText)) {
+            throw new Error('expected ShopScreen result-message block not found');
+          }
+          const after = before.replace(oldText, newText);
+          if (after === before) throw new Error('ShopScreen was not changed');
+          fs.writeFileSync(path, after);
+          NODE
+          npx prettier src/features/shop/ShopScreen.tsx --write
+      - name: Verify focused regression
+        run: npx vitest run tests/unit/features/shop/ShopScreen.test.tsx
+      - name: Commit feature fix
+        run: |
+          git config user.name "TI-06"
+          git config user.email "iretaku.shop@gmail.com"
+          git add src/features/shop/ShopScreen.tsx
+          git commit -m "fix: scope fund grant success message to purchases"
+          git push origin HEAD:feature/school-economy-foundation
