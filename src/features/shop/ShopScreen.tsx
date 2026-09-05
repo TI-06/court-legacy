@@ -396,7 +396,7 @@ export function ShopScreen({
     : null;
   const authoritativeBalance = state?.schools[state.userSchoolId]?.funds;
   const displayedResultMessage =
-    resultMessage &&
+    resultMessage === "購入しました ✓" &&
     lastGrantAmount !== null &&
     authoritativeBalance !== undefined
       ? `資金 +${lastGrantAmount.toLocaleString("ja-JP")} / 残高 ${authoritativeBalance.toLocaleString("ja-JP")}`
