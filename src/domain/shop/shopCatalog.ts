@@ -105,8 +105,8 @@ export const PHASE5_SHOP_ITEMS = [
   },
   {
     itemId: "funds-grant-300",
-    displayName: "活動資金 +300",
-    description: "学校の活動資金を300追加します。受け取り後すぐに反映されます。",
+    displayName: "資金 +300",
+    description: "学校運営資金を300受け取ります。",
     priceYen: 0,
     annualPurchaseLimit: 3,
     annualUseLimit: 3,
@@ -115,8 +115,8 @@ export const PHASE5_SHOP_ITEMS = [
   },
   {
     itemId: "funds-grant-1000",
-    displayName: "活動資金 +1,000",
-    description: "学校の活動資金を1,000追加します。受け取り後すぐに反映されます。",
+    displayName: "資金 +1,000",
+    description: "学校運営資金を1,000受け取ります。",
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
@@ -125,8 +125,8 @@ export const PHASE5_SHOP_ITEMS = [
   },
   {
     itemId: "funds-grant-3000",
-    displayName: "活動資金 +3,000",
-    description: "学校の活動資金を3,000追加します。受け取り後すぐに反映されます。",
+    displayName: "資金 +3,000",
+    description: "学校運営資金を3,000受け取ります。",
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
@@ -143,7 +143,9 @@ export function getShopItemDefinition(itemId: ShopItemId): ShopItemDefinition {
   return definition;
 }
 
-export function shopFundGrantAmount(itemId: ShopItemId): number | null {
+export function shopFundsGrantAmount(
+  itemId: ShopItemId,
+): 300 | 1000 | 3000 | null {
   switch (itemId) {
     case "funds-grant-300":
       return 300;
@@ -154,8 +156,4 @@ export function shopFundGrantAmount(itemId: ShopItemId): number | null {
     default:
       return null;
   }
-}
-
-export function isShopFundGrant(itemId: ShopItemId): boolean {
-  return shopFundGrantAmount(itemId) !== null;
 }
