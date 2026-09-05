@@ -57,8 +57,7 @@ export function applySchoolFundsChange(
   if (requestedBalance < 0 && !input.allowPartialDebit) {
     throw new Error("insufficient school funds");
   }
-  const appliedAmount =
-    requestedBalance < 0 ? -school.funds : input.amount;
+  const appliedAmount = requestedBalance < 0 ? -school.funds : input.amount;
   if (appliedAmount === 0) return { state, appliedAmount: 0 };
   const balanceAfter = school.funds + appliedAmount;
   const entry: FundsLedgerEntry = {
@@ -119,5 +118,30 @@ export function createInitialSchoolManagement(input: {
         label: "初年度学校予算",
       },
     ],
+  };
+}
+
+export function grantAnnualSchoolBudget(state: GameState): GameState {
+  if (state.schoolManagement.lastAnnualBudgetYearIndex >= state.yearIndex) {
+    return state;
+  }
+  const school = state.schools[state.userSchoolId];
+  if (!school) throw new Error("user school is missing");
+  const amount =
+    annualSchoolBudget(school.reputation) +
+    alumniAnnualBudgetBonus(school.facilities.alumniAssociation);
+  const funded = applySchoolFundsChange(state, {
+    id: `annual-budget:year-${state.yearIndex}`,
+    kind: "annual-budget",
+    amount,
+    label: "年度学校予算",
+    relatedId: `year-${state.yearIndex}`,
+  }).state;
+  return {
+    ...funded,
+    schoolManagement: {
+      ...funded.schoolManagement,
+      lastAnnualBudgetYearIndex: funded.yearIndex,
+    },
   };
 }
