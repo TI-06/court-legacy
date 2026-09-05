@@ -46,7 +46,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
 
     const legacyState = Object.fromEntries(
       Object.entries(initial.game.state).filter(
-        ([key]) => key !== "notifications",
+        ([key]) => key !== "notifications" && key !== "schoolManagement",
       ),
     );
     legacyState.schemaVersion = 5;
@@ -62,8 +62,13 @@ describe("createBrowserAppDependencies E2E harness", () => {
     const reloaded = await second.api.bootstrap(session!.accessToken);
     expect(reloaded.status).toBe("ready");
     if (reloaded.status !== "ready") return;
-    expect(reloaded.game.state.schemaVersion).toBe(6);
+    expect(reloaded.game.state.schemaVersion).toBe(7);
     expect(reloaded.game.state.notifications).toEqual({ items: [] });
+    expect(reloaded.game.state.schoolManagement).toEqual({
+      assistantCoach: null,
+      fundsHistory: [],
+      lastAnnualBudgetYearIndex: reloaded.game.state.yearIndex,
+    });
   });
 
   it("does not import server-only scouting or shop authority into the browser adapter", () => {
@@ -88,7 +93,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(initial.game.revision).toBe(1);
     expect(
       initial.game.state.schools[initial.game.state.userSchoolId]!.funds,
-    ).toBe(300);
+    ).toBe(700);
 
     const response = await api.applyAction("e2e-access-token", {
       operationId: "op-facility-1",
@@ -99,7 +104,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(response.game.revision).toBe(2);
     expect(
       response.game.state.schools[response.game.state.userSchoolId]!.funds,
-    ).toBe(230);
+    ).toBe(630);
 
     const reloaded = await api.bootstrap("e2e-access-token");
     expect(reloaded.status).toBe("ready");
@@ -107,7 +112,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(reloaded.game.revision).toBe(2);
     expect(
       reloaded.game.state.schools[reloaded.game.state.userSchoolId]!.funds,
-    ).toBe(230);
+    ).toBe(630);
   });
 
   it("restores the E2E server snapshot when a new browser API client is created", async () => {
@@ -133,7 +138,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(reloaded.game.revision).toBe(2);
     expect(
       reloaded.game.state.schools[reloaded.game.state.userSchoolId]!.funds,
-    ).toBe(230);
+    ).toBe(630);
   });
 
   it("replays the same shop purchase without granting the item twice", async () => {
