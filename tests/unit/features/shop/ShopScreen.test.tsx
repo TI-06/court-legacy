@@ -25,11 +25,7 @@ function createStatus(): ShopStatusResponse {
               : 0,
       usedCount: index === 4 ? 1 : 0,
       quantityOwned:
-        item.itemId === "funds-grant-300"
-          ? 0
-          : index === 4
-            ? 2
-            : 0,
+        item.itemId === "funds-grant-300" ? 0 : index === 4 ? 2 : 0,
       canPurchase: index !== 0,
       purchaseBlockedReason: index === 0 ? "purchase_limit_reached" : null,
       canUse: index === 4,
