@@ -144,6 +144,52 @@ describe("game state codec", () => {
     expect(migrated.settings.confirmBeforeOfficialMatch).toBe(true);
   });
 
+  it("migrates v6 funds into v7 without paying the current-year budget again", () => {
+    const current = createDemoGame();
+    const legacy = structuredClone(current) as typeof current & {
+      schoolManagement?: typeof current.schoolManagement;
+    };
+    legacy.schemaVersion = 6;
+    delete legacy.schoolManagement;
+    legacy.schools[legacy.userSchoolId]!.funds = 777;
+
+    const migrated = decodeGameState(JSON.stringify(legacy));
+
+    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schools[migrated.userSchoolId]!.funds).toBe(777);
+    expect(migrated.schoolManagement).toEqual({
+      assistantCoach: null,
+      fundsHistory: [],
+      lastAnnualBudgetYearIndex: legacy.yearIndex,
+    });
+  });
+
+  it("rejects malformed funds ledger entries", () => {
+    const state = createDemoGame();
+
+    expect(() =>
+      decodeGameState(
+        JSON.stringify({
+          ...state,
+          schoolManagement: {
+            ...state.schoolManagement,
+            fundsHistory: [
+              {
+                id: "bad-entry",
+                gameDate: state.date,
+                academicYearIndex: state.yearIndex,
+                kind: "shop-grant",
+                amount: 300,
+                balanceAfter: -1,
+                label: "invalid",
+              },
+            ],
+          },
+        }),
+      ),
+    ).toThrow("セーブデータの形式が正しくありません");
+  });
+
   it("rejects a future schema version", () => {
     const state = createDemoGame();
 

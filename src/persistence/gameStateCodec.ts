@@ -38,6 +38,48 @@ const shopGameEffectsSchema = z
   })
   .strict();
 
+const assistantCoachContractSchema = z
+  .object({
+    rank: z.enum(["beginner", "intermediate", "advanced", "master"]),
+    specialty: z.enum(["attack", "defense", "physical"]).nullable(),
+    contractYearIndex: z.number().int().positive(),
+  })
+  .strict();
+
+const fundsLedgerKindSchema = z.enum([
+  "initial-funds",
+  "annual-budget",
+  "tournament-reward",
+  "event",
+  "shop-grant",
+  "facility-upgrade",
+  "assistant-coach",
+  "scouting-research",
+  "camp",
+  "travel",
+]);
+
+const fundsLedgerEntrySchema = z
+  .object({
+    id: z.string().min(1),
+    gameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    kind: fundsLedgerKindSchema,
+    amount: z.number().int(),
+    balanceAfter: z.number().int().nonnegative(),
+    label: z.string().min(1),
+    relatedId: z.string().min(1).optional(),
+  })
+  .strict();
+
+const schoolManagementSchema = z
+  .object({
+    assistantCoach: assistantCoachContractSchema.nullable(),
+    fundsHistory: z.array(fundsLedgerEntrySchema).max(50),
+    lastAnnualBudgetYearIndex: z.number().int().positive(),
+  })
+  .strict();
+
 const notificationPlayerSchema = z
   .object({
     playerId: z.string().min(1),
@@ -253,6 +295,7 @@ const gameStateSchema = z
     teamDynamics: teamDynamicsSchema,
     weeklySchedule: weeklyScheduleSchema,
     notifications: notificationStateSchema,
+    schoolManagement: schoolManagementSchema,
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
@@ -284,12 +327,28 @@ function historyWithOfficialTournaments(
   };
 }
 
-function migrateVersionFive(legacy: Record<string, unknown>): unknown {
+function migrateVersionSix(legacy: Record<string, unknown>): unknown {
+  const yearIndex =
+    typeof legacy.yearIndex === "number" && Number.isInteger(legacy.yearIndex)
+      ? legacy.yearIndex
+      : 1;
   return {
     ...legacy,
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
-    notifications: { items: [] },
+    schoolManagement: {
+      assistantCoach: null,
+      fundsHistory: [],
+      lastAnnualBudgetYearIndex: yearIndex,
+    },
   };
+}
+
+function migrateVersionFive(legacy: Record<string, unknown>): unknown {
+  return migrateVersionSix({
+    ...legacy,
+    schemaVersion: 6,
+    notifications: { items: [] },
+  });
 }
 
 function migrateVersionFour(legacy: Record<string, unknown>): unknown {
@@ -393,6 +452,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 5) {
     return migrateVersionFive(legacy);
+  }
+  if (version === 6) {
+    return migrateVersionSix(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
