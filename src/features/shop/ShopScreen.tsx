@@ -264,7 +264,8 @@ function ProductCard({
       <div className="shop-card__status">
         {isGrant ? (
           <span>
-            年度残り {Math.max(0, item.annualPurchaseLimit - item.purchasedCount)} /{" "}
+            年度残り{" "}
+            {Math.max(0, item.annualPurchaseLimit - item.purchasedCount)} /{" "}
             {item.annualPurchaseLimit}
           </span>
         ) : (
@@ -386,7 +387,8 @@ export function ShopScreen({
     useState<PlayerId | null>(null);
   const ownedItems =
     status?.items.filter(
-      (item) => item.quantityOwned > 0 && shopFundsGrantAmount(item.itemId) === null,
+      (item) =>
+        item.quantityOwned > 0 && shopFundsGrantAmount(item.itemId) === null,
     ) ?? [];
 
   const schoolPlayers = useMemo(() => {
