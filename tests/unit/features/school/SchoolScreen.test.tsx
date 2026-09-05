@@ -28,7 +28,7 @@ describe("school management screen", () => {
     expect(screen.queryByText("SCHOOL MANAGEMENT")).toBeNull();
     expect(screen.queryByText("FACILITIES")).toBeNull();
     expect(screen.getByText(/無名校/)).toBeVisible();
-    expect(screen.getByText("資金 300")).toBeVisible();
+    expect(screen.getByText("資金 700")).toBeVisible();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
@@ -38,7 +38,7 @@ describe("school management screen", () => {
     expect(dialog).toBeVisible();
     expect(within(dialog).getByText("Lv.0 → Lv.1")).toBeVisible();
     expect(within(dialog).getByText("強化後の資金")).toBeVisible();
-    expect(within(dialog).getByText("230")).toBeVisible();
+    expect(within(dialog).getByText("630")).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", { name: "70を使って強化" }),
