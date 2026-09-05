@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { PHASE5_SHOP_ITEMS } from "../../../../src/domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 import { ShopScreen } from "../../../../src/features/shop/ShopScreen";
@@ -99,6 +100,36 @@ describe("ShopScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
     expect(screen.queryByText("資金 +300")).not.toBeInTheDocument();
+  });
+
+  it("does not reuse a previous fund grant message for a later shop action", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 1000 };
+    const baseProps: React.ComponentProps<typeof ShopScreen> = {
+      status: createStatus(),
+      loading: false,
+      error: null,
+      state,
+      resultMessage: null,
+      onBack: vi.fn(),
+      onRetry: vi.fn(),
+      onPurchase: vi.fn(),
+      onUse: vi.fn(),
+    };
+    const { rerender } = render(<ShopScreen {...baseProps} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "資金 +300を受け取る" }),
+    );
+    rerender(<ShopScreen {...baseProps} resultMessage="購入しました ✓" />);
+    expect(screen.getByText("資金 +300 / 残高 1,000")).toBeVisible();
+
+    rerender(<ShopScreen {...baseProps} resultMessage="使用しました ✓" />);
+    expect(screen.getByText("使用しました ✓")).toBeVisible();
+    expect(
+      screen.queryByText("資金 +300 / 残高 1,000"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows only owned items in inventory and delegates use actions", () => {
