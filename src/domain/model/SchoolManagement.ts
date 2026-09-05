@@ -13,10 +13,7 @@ export type FundsLedgerKind =
   | "travel";
 
 export type AssistantCoachRank =
-  | "beginner"
-  | "intermediate"
-  | "advanced"
-  | "master";
+  "beginner" | "intermediate" | "advanced" | "master";
 
 export type AssistantCoachSpecialty = "attack" | "defense" | "physical";
 
