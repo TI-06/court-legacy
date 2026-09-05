@@ -17,7 +17,6 @@ import "./shop.css";
 import type { ShopUsePresentation } from "./shopUsePresentation";
 
 type AbilityKey = keyof PlayerAbilities;
-
 type ShopView = "products" | "inventory";
 type ShopPendingAction = "purchase" | "use";
 
@@ -385,11 +384,23 @@ export function ShopScreen({
   );
   const [specialCoachPlayerId, setSpecialCoachPlayerId] =
     useState<PlayerId | null>(null);
+  const [lastPurchaseItemId, setLastPurchaseItemId] =
+    useState<ShopItemId | null>(null);
   const ownedItems =
     status?.items.filter(
       (item) =>
         item.quantityOwned > 0 && shopFundsGrantAmount(item.itemId) === null,
     ) ?? [];
+  const lastGrantAmount = lastPurchaseItemId
+    ? shopFundsGrantAmount(lastPurchaseItemId)
+    : null;
+  const authoritativeBalance = state?.schools[state.userSchoolId]?.funds;
+  const displayedResultMessage =
+    resultMessage &&
+    lastGrantAmount !== null &&
+    authoritativeBalance !== undefined
+      ? `資金 +${lastGrantAmount.toLocaleString("ja-JP")} / 残高 ${authoritativeBalance.toLocaleString("ja-JP")}`
+      : resultMessage;
 
   const schoolPlayers = useMemo(() => {
     if (!state) return [];
@@ -423,6 +434,11 @@ export function ShopScreen({
       return;
     }
     onUse(itemId);
+  };
+
+  const startPurchase = (itemId: ShopItemId) => {
+    setLastPurchaseItemId(itemId);
+    onPurchase(itemId);
   };
 
   const closeTargeting = () => {
@@ -501,9 +517,9 @@ export function ShopScreen({
         </div>
       ) : null}
 
-      {resultMessage ? (
+      {displayedResultMessage ? (
         <p className="shop-screen__notice shop-screen__notice--success">
-          {resultMessage}
+          {displayedResultMessage}
         </p>
       ) : null}
 
@@ -602,7 +618,7 @@ export function ShopScreen({
                 <ProductCard
                   item={item}
                   key={item.itemId}
-                  onPurchase={onPurchase}
+                  onPurchase={startPurchase}
                   pendingAction={pendingAction}
                   pendingItemId={pendingItemId}
                 />
