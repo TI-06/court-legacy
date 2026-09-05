@@ -41,15 +41,15 @@ describe("browser shop school economy harness", () => {
       expect(
         after.game.state.schools[after.game.state.userSchoolId]!.funds,
       ).toBe(1000);
-      expect(
-        after.game.state.schoolManagement.fundsHistory.at(-1),
-      ).toMatchObject({
-        id: "shop-grant:school-economy-grant-001",
-        kind: "shop-grant",
-        amount: 300,
-        balanceAfter: 1000,
-        relatedId: "funds-grant-300",
-      });
+      expect(after.game.state.schoolManagement.fundsHistory.at(-1)).toMatchObject(
+        {
+          id: "shop-grant:school-economy-grant-001",
+          kind: "shop-grant",
+          amount: 300,
+          balanceAfter: 1000,
+          relatedId: "funds-grant-300",
+        },
+      );
 
       const replay = await api.purchaseShopItem!("e2e-access-token", request);
       expect(replay).toEqual(granted);
