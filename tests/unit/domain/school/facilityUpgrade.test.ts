@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import type { GameState } from "../../../../src/domain/model/GameState";
 import { schoolId } from "../../../../src/domain/model/identifiers";
 import {
   FACILITY_DEFINITIONS,
@@ -8,7 +9,11 @@ import {
   type FacilityKey,
 } from "../../../../src/domain/school/facilityUpgrade";
 
-function withFacility(key: FacilityKey, level: number, funds: number) {
+function withFacility(
+  key: FacilityKey,
+  level: number,
+  funds: number,
+): GameState {
   const state = createDemoGame();
   const school = state.schools[state.userSchoolId]!;
   return {
