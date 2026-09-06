@@ -217,13 +217,14 @@ function completedMatch(
 }
 
 describe("recordOfficialTournamentOutcome", () => {
-  it("records a guest-safe readable history entry and persistent official result without guest persistence or rivalry", () => {
+  it("records a guest-safe readable history entry, tournament reward, and persistent official result without guest persistence or rivalry", () => {
     const configured = configureNationalFinal(createState());
     const state = configured.state;
     const beforeSchoolCount = Object.keys(state.schools).length;
     const beforePlayerCount = Object.keys(state.players).length;
     const beforeRivalry = structuredClone(state.world.rivalryScores);
     const beforeWins = state.schools[state.userSchoolId]!.history.officialWins;
+    const beforeFunds = state.schools[state.userSchoolId]!.funds;
     const match = completedMatch(
       state,
       configured.bracketMatchId,
@@ -251,6 +252,19 @@ describe("recordOfficialTournamentOutcome", () => {
     expect(next.schools[state.userSchoolId]!.history.officialWins).toBe(
       beforeWins + 1,
     );
+    expect(next.schools[state.userSchoolId]!.funds).toBe(beforeFunds + 1060);
+    expect(next.schoolManagement.fundsHistory.slice(-2)).toEqual([
+      expect.objectContaining({
+        kind: "tournament-reward",
+        amount: 60,
+        label: "全国大会勝利",
+      }),
+      expect.objectContaining({
+        kind: "tournament-reward",
+        amount: 1000,
+        label: "全国大会優勝",
+      }),
+    ]);
     expect(Object.keys(next.schools)).toHaveLength(beforeSchoolCount);
     expect(Object.keys(next.players)).toHaveLength(beforePlayerCount);
     expect(next.schools[match.awaySchoolId]).toBeUndefined();

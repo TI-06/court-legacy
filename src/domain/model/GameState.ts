@@ -14,6 +14,7 @@ import type { GameDate, MatchId, PlayerId, SchoolId } from "./identifiers";
 import type { MatchState } from "./Match";
 import type { Player } from "./Player";
 import type { School } from "./School";
+import type { SchoolManagementState } from "./SchoolManagement";
 import type { WorldState } from "./World";
 
 export interface GameSettings {
@@ -101,11 +102,12 @@ export interface GameState {
   teamDynamics: TeamDynamicsState;
   weeklySchedule: WeeklyScheduleState;
   notifications: GameNotificationState;
+  schoolManagement: SchoolManagementState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 6;
+export const CURRENT_GAME_SCHEMA_VERSION = 7;
 
 export function createDefaultGameSettings(): GameSettings {
   return {

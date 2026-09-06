@@ -63,7 +63,16 @@ const mutationRow = {
   quantity_owned: 1,
   purchased_count: 1,
   used_count: 0,
-  response: { operationId: "shop-op-001", revision: 8 },
+  response: {
+    operationId: "shop-op-001",
+    operationType: "purchase",
+    revision: 8,
+    academicYearIndex: 4,
+    itemId: "fatigue-recovery",
+    quantityOwned: 1,
+    purchasedCount: 1,
+    usedCount: 0,
+  },
   replayed: false,
 };
 
@@ -119,7 +128,7 @@ describe("SupabaseShopStore", () => {
       quantityOwned: 1,
       purchasedCount: 1,
       usedCount: 0,
-      response: { operationId: "shop-op-001", revision: 8 },
+      response: mutationRow.response,
       replayed: false,
     });
     expect(client.rpc).toHaveBeenCalledWith("purchase_shop_item", {
@@ -128,6 +137,46 @@ describe("SupabaseShopStore", () => {
       p_request_fingerprint: "purchase:fatigue-recovery:7",
       p_expected_revision: 7,
       p_item_id: "fatigue-recovery",
+    });
+  });
+
+  it("preserves a canonical immediate fund grant result", async () => {
+    const response = {
+      operationId: "shop-grant-001",
+      operationType: "purchase" as const,
+      revision: 8,
+      academicYearIndex: 4,
+      itemId: "funds-grant-300" as const,
+      quantityOwned: 0,
+      purchasedCount: 1,
+      usedCount: 0,
+      result: { fundsGranted: 300, balanceAfter: 1000 },
+    };
+    const grantMutationRow = {
+      ...mutationRow,
+      operation_id: "shop-grant-001",
+      request_fingerprint: "purchase:funds-grant-300:7",
+      item_id: "funds-grant-300",
+      quantity_owned: 0,
+      response,
+    };
+    const client = createClient({
+      purchase_shop_item: { data: [grantMutationRow], error: null },
+    });
+    const store = new SupabaseShopStore(client);
+
+    await expect(
+      store.purchase({
+        userId: "user-123",
+        operationId: "shop-grant-001",
+        requestFingerprint: "purchase:funds-grant-300:7",
+        expectedRevision: 7,
+        itemId: "funds-grant-300",
+      }),
+    ).resolves.toMatchObject({
+      itemId: "funds-grant-300",
+      quantityOwned: 0,
+      response,
     });
   });
 
@@ -265,6 +314,38 @@ describe("SupabaseShopStore", () => {
         requestFingerprint: "purchase:fatigue-recovery:7",
         expectedRevision: 7,
         itemId: "fatigue-recovery",
+      }),
+    ).rejects.toMatchObject({ name: "ShopStoreDataError" });
+  });
+
+  it("rejects malformed immediate fund grant results", async () => {
+    const client = createClient({
+      purchase_shop_item: {
+        data: [
+          {
+            ...mutationRow,
+            item_id: "funds-grant-300",
+            quantity_owned: 0,
+            response: {
+              ...mutationRow.response,
+              itemId: "funds-grant-300",
+              quantityOwned: 0,
+              result: { fundsGranted: "300", balanceAfter: -1 },
+            },
+          },
+        ],
+        error: null,
+      },
+    });
+    const store = new SupabaseShopStore(client);
+
+    await expect(
+      store.purchase({
+        userId: "user-123",
+        operationId: "shop-op-001",
+        requestFingerprint: "purchase:funds-grant-300:7",
+        expectedRevision: 7,
+        itemId: "funds-grant-300",
       }),
     ).rejects.toMatchObject({ name: "ShopStoreDataError" });
   });

@@ -12,6 +12,7 @@ import type { SchoolFacilities } from "../model/School";
 import type { PlayerId } from "../model/identifiers";
 import { eventId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import { applySchoolFundsChange } from "../school/schoolEconomy";
 import { addWeeks } from "./eventDate";
 
 const clamp = (value: number, minimum: number, maximum: number) =>
@@ -41,6 +42,8 @@ function applyEffect(
   effect: EventEffect,
   actorPlayerIds: readonly PlayerId[],
   event: EventDefinition,
+  choiceId: string,
+  effectIndex: number,
   random: RandomSource,
 ): {
   state: GameState;
@@ -122,18 +125,17 @@ function applyEffect(
       if (!school) {
         return { state, visibleResult: "資金変化なし" };
       }
+      const changed = applySchoolFundsChange(state, {
+        id: `event:${event.id}:${state.date}:${choiceId}:${effectIndex}`,
+        kind: "event",
+        amount: effect.amount,
+        label: event.title,
+        relatedId: event.id,
+        allowPartialDebit: true,
+      });
       return {
-        state: {
-          ...state,
-          schools: {
-            ...state.schools,
-            [state.userSchoolId]: {
-              ...school,
-              funds: Math.max(0, school.funds + effect.amount),
-            },
-          },
-        },
-        visibleResult: `資金 ${signed(effect.amount)}`,
+        state: changed.state,
+        visibleResult: `資金 ${signed(changed.appliedAmount)}`,
       };
     }
     case "facility-change": {
@@ -271,12 +273,14 @@ export function resolveEventChoice(
   let nextState: GameState = state;
   const visibleResultCodes: string[] = [];
   const scheduledFollowUps: ScheduledEventFollowUp[] = [];
-  for (const effect of choice.effects) {
+  for (const [effectIndex, effect] of choice.effects.entries()) {
     const applied = applyEffect(
       nextState,
       effect,
       pending.actorPlayerIds,
       event,
+      choiceId,
+      effectIndex,
       random,
     );
     nextState = applied.state;

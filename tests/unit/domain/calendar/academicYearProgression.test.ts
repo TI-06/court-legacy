@@ -6,6 +6,11 @@ import type {
   GameDate,
   PlayerId,
 } from "../../../../src/domain/model/identifiers";
+import {
+  alumniAnnualBudgetBonus,
+  annualSchoolBudget,
+  grantAnnualSchoolBudget,
+} from "../../../../src/domain/school/schoolEconomy";
 
 function thirdYearPlayerIds(
   state: ReturnType<typeof createDemoGame>,
@@ -108,6 +113,32 @@ describe("academic year progression", () => {
       expect(value).toBeLessThanOrEqual(100);
       expect(key).toBe(relationshipKey(left, right));
     }
+  });
+
+  it("grants the next annual school budget exactly once", () => {
+    const state = createDemoGame();
+    state.date = "2027-03-31";
+    state.calendar.currentDate = state.date;
+    state.calendar.weekOfYear = 52;
+    const fundsBefore = state.schools[state.userSchoolId]!.funds;
+
+    const result = advanceGameWeek(state, gameData);
+    const userSchool = result.state.schools[result.state.userSchoolId]!;
+    const expectedBudget =
+      annualSchoolBudget(userSchool.reputation) +
+      alumniAnnualBudgetBonus(userSchool.facilities.alumniAssociation);
+
+    expect(result.academicYearTransition).not.toBeNull();
+    expect(userSchool.funds).toBe(fundsBefore + expectedBudget);
+    expect(result.state.schoolManagement.lastAnnualBudgetYearIndex).toBe(
+      result.state.yearIndex,
+    );
+    expect(result.state.schoolManagement.fundsHistory.at(-1)).toMatchObject({
+      kind: "annual-budget",
+      amount: expectedBudget,
+      balanceAfter: userSchool.funds,
+    });
+    expect(grantAnnualSchoolBudget(result.state)).toBe(result.state);
   });
 
   it("expires an unused shop training boost when the academic year changes", () => {

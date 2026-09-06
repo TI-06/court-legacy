@@ -130,6 +130,22 @@ describe("generateWorld", () => {
     expect(world.world.nextGenerationalTalentYear).toBeLessThanOrEqual(7);
     expect(world.world.generationalTalentPlayerIds).toEqual([]);
     expect(world.randomCursor).toBeGreaterThan(0);
+
+    const school = world.schools[world.userSchoolId]!;
+    expect(school.funds).toBe(700);
+    expect(world.schoolManagement.lastAnnualBudgetYearIndex).toBe(1);
+    expect(world.schoolManagement.fundsHistory).toEqual([
+      expect.objectContaining({
+        kind: "initial-funds",
+        amount: 300,
+        balanceAfter: 300,
+      }),
+      expect.objectContaining({
+        kind: "annual-budget",
+        amount: 400,
+        balanceAfter: 700,
+      }),
+    ]);
   });
 });
 

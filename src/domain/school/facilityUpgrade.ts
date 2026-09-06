@@ -1,6 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { SchoolFacilities } from "../model/School";
 import type { SchoolId } from "../model/identifiers";
+import { applySchoolFundsChange } from "./schoolEconomy";
 
 export type FacilityKey = keyof SchoolFacilities;
 
@@ -155,14 +156,20 @@ export function upgradeFacility(
     return state;
   }
 
-  const school = state.schools[schoolId]!;
+  const funded = applySchoolFundsChange(state, {
+    id: `facility:${schoolId}:${key}:lv-${evaluation.nextLevel}`,
+    kind: "facility-upgrade",
+    amount: -evaluation.cost,
+    label: `${getDefinition(key).name} Lv.${evaluation.nextLevel}強化`,
+    relatedId: key,
+  }).state;
+  const school = funded.schools[schoolId]!;
   return {
-    ...state,
+    ...funded,
     schools: {
-      ...state.schools,
+      ...funded.schools,
       [schoolId]: {
         ...school,
-        funds: evaluation.fundsAfter,
         facilities: {
           ...school.facilities,
           [key]: evaluation.nextLevel,

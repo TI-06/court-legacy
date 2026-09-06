@@ -4,6 +4,7 @@ import {
   type ShopItemId,
 } from "../domain/shop/shopCatalog";
 import type {
+  ShopFundsGrantResult,
   ShopPurchaseRequest,
   ShopPurchaseResponse,
   ShopStatusResponse,
@@ -39,6 +40,10 @@ type HarnessShopOperation =
 export interface StaticShopHarnessDependencies {
   getGame: () => HarnessGameView;
   commitRevision: (revision: number) => void;
+  commitPurchase?: (
+    request: ShopPurchaseRequest,
+    revision: number,
+  ) => ShopFundsGrantResult | null;
   commitUse?: (
     request: ShopUseRequest,
     revision: number,
@@ -183,9 +188,13 @@ export class StaticShopHarness {
       );
     }
 
-    item.purchasedCount += 1;
-    item.quantityOwned += 1;
     const revision = game.revision + 1;
+    const result = this.deps.commitPurchase?.(request, revision) ?? null;
+    item.purchasedCount += 1;
+    if (!result) {
+      item.quantityOwned += 1;
+      this.deps.commitRevision(revision);
+    }
     const response: ShopPurchaseResponse = {
       operationId: request.operationId,
       operationType: "purchase",
@@ -195,8 +204,8 @@ export class StaticShopHarness {
       quantityOwned: item.quantityOwned,
       purchasedCount: item.purchasedCount,
       usedCount: item.usedCount,
+      ...(result ? { result } : {}),
     };
-    this.deps.commitRevision(revision);
     this.operations.set(request.operationId, {
       operationType: "purchase",
       fingerprint,

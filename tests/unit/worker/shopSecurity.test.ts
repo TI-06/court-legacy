@@ -94,6 +94,9 @@ describe("Phase 5 shop security boundaries", () => {
       "fatigue-recovery",
       "special-coach",
       "training-efficiency-boost",
+      "funds-grant-300",
+      "funds-grant-1000",
+      "funds-grant-3000",
     ]);
 
     const publicCatalogText = PHASE5_SHOP_ITEMS.map(

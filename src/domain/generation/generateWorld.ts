@@ -14,6 +14,10 @@ import type { PlayerId, SchoolId } from "../model/identifiers";
 import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
+import {
+  annualSchoolBudget,
+  createInitialSchoolManagement,
+} from "../school/schoolEconomy";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { createInitialWeeklySchedule } from "../weekly/createWeeklySchedule";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
@@ -274,19 +278,36 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     random,
   );
   const playerRelationships = createInitialRelationships(schools, random);
+  const userSchool = schools[userSchoolId];
+  if (!userSchool) {
+    throw new Error("generated user school is missing");
+  }
+  const initialFunds = userSchool.funds;
+  const firstBudget = annualSchoolBudget(userSchool.reputation);
+  schools[userSchoolId] = {
+    ...userSchool,
+    funds: initialFunds + firstBudget,
+  };
+  const initialDate = "2026-04-01" as const;
+  const schoolManagement = createInitialSchoolManagement({
+    gameDate: initialDate,
+    academicYearIndex: 1,
+    initialFunds,
+    annualBudget: firstBudget,
+  });
 
   const baseState = {
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
     seed: input.seed,
     randomCursor: random.cursor,
-    date: "2026-04-01",
+    date: initialDate,
     yearIndex: 1,
     userSchoolId,
     schools,
     players,
     playerRelationships,
     calendar: {
-      currentDate: "2026-04-01",
+      currentDate: initialDate,
       academicYear: 1,
       weekOfYear: 1,
       monthPolicyId: null,
@@ -305,6 +326,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       destinyRivalSchoolId: null,
     },
     notifications: { items: [] },
+    schoolManagement,
   } satisfies Omit<
     GameState,
     "officialSeason" | "teamDynamics" | "weeklySchedule"

@@ -24,6 +24,22 @@ describe("Phase 5 shop browser contracts", () => {
     ).toBe(false);
   });
 
+  it("accepts all immediate fund grant product ids", () => {
+    for (const itemId of [
+      "funds-grant-300",
+      "funds-grant-1000",
+      "funds-grant-3000",
+    ]) {
+      expect(
+        shopPurchaseRequestSchema.safeParse({
+          operationId: `purchase-${itemId}`,
+          revision: 7,
+          itemId,
+        }).success,
+      ).toBe(true);
+    }
+  });
+
   it("accepts player, scouting candidate, and special coach targets only", () => {
     for (const target of [
       { type: "player", playerId: "player-1" },

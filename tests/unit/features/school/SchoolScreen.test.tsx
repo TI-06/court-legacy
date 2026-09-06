@@ -28,7 +28,7 @@ describe("school management screen", () => {
     expect(screen.queryByText("SCHOOL MANAGEMENT")).toBeNull();
     expect(screen.queryByText("FACILITIES")).toBeNull();
     expect(screen.getByText(/無名校/)).toBeVisible();
-    expect(screen.getByText("資金 300")).toBeVisible();
+    expect(screen.getByText("資金 700")).toBeVisible();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
@@ -38,12 +38,55 @@ describe("school management screen", () => {
     expect(dialog).toBeVisible();
     expect(within(dialog).getByText("Lv.0 → Lv.1")).toBeVisible();
     expect(within(dialog).getByText("強化後の資金")).toBeVisible();
-    expect(within(dialog).getByText("230")).toBeVisible();
+    expect(within(dialog).getByText("630")).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", { name: "70を使って強化" }),
     );
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom");
+  });
+
+  it("opens the funds ledger and renders persisted history newest first", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 700 };
+    state.schoolManagement = {
+      ...state.schoolManagement,
+      fundsHistory: [
+        {
+          id: "initial-funds:year-1",
+          gameDate: "2026-04-01" as GameDate,
+          academicYearIndex: 1,
+          kind: "initial-funds",
+          amount: 300,
+          balanceAfter: 300,
+          label: "初期活動資金",
+        },
+        {
+          id: "annual-budget:year-1",
+          gameDate: "2026-04-01" as GameDate,
+          academicYearIndex: 1,
+          kind: "annual-budget",
+          amount: 400,
+          balanceAfter: 700,
+          label: "初年度学校予算",
+        },
+      ],
+    };
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /資金 700/ }));
+    const dialog = screen.getByRole("dialog", { name: "資金履歴" });
+    expect(dialog).toBeVisible();
+    expect(within(dialog).getByText("初年度学校予算")).toBeVisible();
+    expect(within(dialog).getByText("+400")).toBeVisible();
+    expect(within(dialog).getByText("初期活動資金")).toBeVisible();
+    expect(within(dialog).getByText("+300")).toBeVisible();
+
+    const entries = within(dialog).getAllByTestId("funds-ledger-entry");
+    expect(entries[0]).toHaveTextContent("初年度学校予算");
+    expect(entries[1]).toHaveTextContent("初期活動資金");
   });
 
   it("disables upgrades when funds are insufficient or the facility is maxed", () => {

@@ -85,6 +85,21 @@ describe("resolveShopUse", () => {
     );
   });
 
+  it("rejects immediate fund grants on the inventory-use path", async () => {
+    const snapshot = createSnapshot();
+
+    for (const itemId of [
+      "funds-grant-300",
+      "funds-grant-1000",
+      "funds-grant-3000",
+    ] as const) {
+      await expectResolutionCode(
+        resolveShopUse({ snapshot, request: request(itemId) }),
+        "invalid_target",
+      );
+    }
+  });
+
   it("recovers a current-school player with public before/after only", async () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;

@@ -9,7 +9,7 @@ describe("school and calendar app integration", () => {
     expect(
       screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("資金 300")).toBeInTheDocument();
+    expect(screen.getByText("資金 700")).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
@@ -19,7 +19,7 @@ describe("school and calendar app integration", () => {
       within(dialog).getByRole("button", { name: "70を使って強化" }),
     );
 
-    expect(await screen.findByText("資金 230")).toBeInTheDocument();
+    expect(await screen.findByText("資金 630")).toBeInTheDocument();
     const trainingFacilityTile = screen.getByRole("button", {
       name: "トレーニング設備の詳細",
     });

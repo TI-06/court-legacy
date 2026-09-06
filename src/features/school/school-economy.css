@@ -1,0 +1,67 @@
+.school-funds-button {
+  padding: 7px 10px;
+  color: #ffe8b3;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: rgb(234 167 45 / 18%);
+  border: 1px solid rgb(255 213 120 / 28%);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.school-funds-button:focus-visible {
+  outline: 2px solid #fff2c9;
+  outline-offset: 2px;
+}
+
+.school-hero--compact .school-funds-button {
+  padding: 5px 8px;
+  font-size: 0.7rem;
+}
+
+.funds-ledger {
+  display: grid;
+  gap: 8px;
+}
+
+.funds-ledger__entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  background: #f3f7f8;
+  border: 1px solid #dce6e9;
+  border-radius: 13px;
+}
+
+.funds-ledger__entry > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.funds-ledger__entry strong {
+  font-size: 0.78rem;
+}
+
+.funds-ledger__entry time,
+.funds-ledger__amounts span {
+  color: #6e8088;
+  font-size: 0.65rem;
+}
+
+.funds-ledger__amounts {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.funds-ledger__amount--positive {
+  color: #18715e;
+}
+
+.funds-ledger__amount--negative {
+  color: #a24f3b;
+}
