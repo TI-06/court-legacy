@@ -303,7 +303,7 @@ begin
     btrim(p_operation_id),
     v_item.item_id,
     v_year_index,
-    v_resulting_revision - v_resulting_revision
+    0
   );
 
   return query select
