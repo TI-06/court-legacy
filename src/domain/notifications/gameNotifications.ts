@@ -48,7 +48,7 @@ export interface BuildTrainingResultNotificationInput {
   data: GameDataRegistry;
 }
 
-const MAX_NOTIFICATION_ITEMS = 20;
+const MAX_NOTIFICATION_ITEMS = 1;
 
 function trainingNotificationId(state: GameState): string {
   return `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`;

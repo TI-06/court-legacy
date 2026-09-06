@@ -10,6 +10,7 @@ import {
 } from "../game/actionSchema";
 import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
+import { compactGameSnapshot } from "../game/compactGameSnapshot";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
@@ -116,14 +117,15 @@ export function createGameActionHandler(
       return json(cached);
     }
 
-    const snapshot = await store.getSnapshot(user.id);
-    if (!snapshot) {
+    const loadedSnapshot = await store.getSnapshot(user.id);
+    if (!loadedSnapshot) {
       return jsonError(
         409,
         "game_not_initialized",
         "学校データを作成してください",
       );
     }
+    const snapshot = compactGameSnapshot(loadedSnapshot);
     if (snapshot.revision !== actionRequest.revision) {
       return revisionConflict();
     }

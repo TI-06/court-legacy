@@ -95,32 +95,21 @@ describe("game notifications", () => {
     expect(second.items[0]?.id).toBe(notification.id);
   });
 
-  it("trims the oldest read item before unread items", () => {
-    const items: TrainingResultNotification[] = Array.from(
-      { length: 20 },
-      (_, index) =>
-        trainingNotification({
-          id: `training-${index}`,
-          weekOfYear: index + 1,
-          createdGameDate:
-            `2026-04-${String(index + 1).padStart(2, "0")}` as GameDate,
-          readAtGameDate: index === 0 ? ("2026-04-02" as GameDate) : null,
-        }),
-    );
-    const state: GameNotificationState = { items };
-    const next = appendNotification(
-      state,
-      trainingNotification({
-        id: "training-newest",
-        weekOfYear: 21,
-        createdGameDate: "2026-04-21" as GameDate,
-      }),
-    );
+  it("keeps only the newest training notification", () => {
+    const older = trainingNotification({
+      id: "training-old",
+      weekOfYear: 1,
+      createdGameDate: "2026-04-01" as GameDate,
+    });
+    const newest = trainingNotification({
+      id: "training-new",
+      weekOfYear: 2,
+      createdGameDate: "2026-04-08" as GameDate,
+    });
 
-    expect(next.items).toHaveLength(20);
-    expect(next.items.some((item) => item.id === "training-0")).toBe(false);
-    expect(next.items.some((item) => item.id === "training-1")).toBe(true);
-    expect(next.items.some((item) => item.id === "training-newest")).toBe(true);
+    const next = appendNotification({ items: [older] }, newest);
+
+    expect(next.items).toEqual([newest]);
   });
 
   it("marks an existing notification read and treats unknown ids as no-ops", () => {
