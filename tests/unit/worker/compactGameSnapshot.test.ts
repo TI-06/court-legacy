@@ -60,7 +60,8 @@ describe("compactGameSnapshot", () => {
 
   it("returns the original snapshot when it is already compact", () => {
     const snapshot = snapshotWithNotifications();
-    snapshot.state.notifications.items = snapshot.state.notifications.items.slice(-1);
+    snapshot.state.notifications.items =
+      snapshot.state.notifications.items.slice(-1);
 
     expect(compactGameSnapshot(snapshot)).toBe(snapshot);
   });
