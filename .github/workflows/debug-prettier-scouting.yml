@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - fix/scouting-actions-practice-schedule
+    paths:
+      - .github/workflows/debug-prettier-scouting.yml
 
 permissions:
   contents: write
 
 jobs:
   format:
-    if: ${{ !contains(github.event.head_commit.message, 'style: apply exact prettier output') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
