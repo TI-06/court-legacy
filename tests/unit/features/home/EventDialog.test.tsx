@@ -62,7 +62,7 @@ describe("EventDialog", () => {
     expect(emblems[0]).toHaveAttribute("data-school-motif", "shield");
   });
 
-  it("does not show recent event history while choosing this week's response", () => {
+  it("hides recent history from the weekly event", () => {
     const { state, player } = rivalActor();
     const pendingEvent = {
       eventId: eventId("event.first-position-request"),
@@ -88,9 +88,7 @@ describe("EventDialog", () => {
       <EventDialog data={gameData} onChoose={vi.fn()} state={resolved} />,
     );
 
-    expect(
-      screen.queryByRole("region", { name: "最近の出来事" }),
-    ).toBeNull();
+    expect(screen.queryByRole("region", { name: "最近の出来事" })).toBeNull();
     expect(screen.queryByText("最近の出来事")).toBeNull();
   });
 
