@@ -106,7 +106,11 @@ export function useGameSession({
       setOperation({ status: "success", label });
       return response;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
         try {
           const latest = await api.bootstrap(accessToken);
           if (latest.status === "ready") {
