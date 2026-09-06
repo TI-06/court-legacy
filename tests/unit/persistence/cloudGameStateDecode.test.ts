@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import type { GameDate } from "../../../src/domain/model/identifiers";
+import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { decodeGameStateValue } from "../../../src/persistence/gameStateCodec";
 
-function notification(id: string, weekOfYear: number, date: string) {
+function notification(
+  id: string,
+  weekOfYear: number,
+  date: string,
+): TrainingResultNotification {
   return {
     id,
-    type: "training-result" as const,
+    type: "training-result",
     createdGameDate: date as GameDate,
     academicYearIndex: 1,
     weekOfYear,
