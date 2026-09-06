@@ -243,14 +243,17 @@ function validate(input: ResolveWeeklyTrainingInput) {
     );
   }
 
-  const assignedPlayerIds = input.plan.individualAssignments.map(
+  const schoolPlayerIds = new Set(school.playerIds);
+  const activeAssignments = input.plan.individualAssignments.filter(
+    (assignment) => schoolPlayerIds.has(assignment.playerId),
+  );
+  const assignedPlayerIds = activeAssignments.map(
     (assignment) => assignment.playerId,
   );
   if (new Set(assignedPlayerIds).size !== assignedPlayerIds.length) {
     throw new Error("individual assignments must use distinct players");
   }
 
-  const schoolPlayerIds = new Set(school.playerIds);
   const instructionByPlayerId = new Map<
     PlayerId,
     IndividualTrainingInstructionDefinition
@@ -269,12 +272,7 @@ function validate(input: ResolveWeeklyTrainingInput) {
     }
   }
 
-  for (const assignment of input.plan.individualAssignments) {
-    if (!schoolPlayerIds.has(assignment.playerId)) {
-      throw new Error(
-        `individual assignment player is not in school: ${assignment.playerId}`,
-      );
-    }
+  for (const assignment of activeAssignments) {
     const instruction = input.data.individualTrainingInstructions.get(
       assignment.instructionId,
     );
@@ -293,7 +291,7 @@ function validate(input: ResolveWeeklyTrainingInput) {
     throw new Error("missing instruction.overall");
   }
 
-  return { school, instructionByPlayerId, fallback };
+  return { school, instructionByPlayerId, fallback, activeAssignments };
 }
 
 export function resolvePlayerTrainingActivity(
@@ -378,10 +376,21 @@ export function resolveWeeklyTraining(
   }
 
   const consumedRandomValues = input.random.cursor - initialRandomCursor;
-  const trainedState = {
+  const trainedState: GameState = {
     ...input.state,
     players,
     randomCursor: input.state.randomCursor + consumedRandomValues,
+    weeklySchedule: includeDynamics
+      ? {
+          ...input.state.weeklySchedule,
+          trainingPlan: {
+            teamTrainingMenuId: input.plan.teamTrainingMenuId,
+            individualAssignments: validated.activeAssignments.map(
+              (assignment) => ({ ...assignment }),
+            ),
+          },
+        }
+      : input.state.weeklySchedule,
   };
   const state = includeDynamics
     ? progressWeeklyDynamics(trainedState)
