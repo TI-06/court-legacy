@@ -26,9 +26,10 @@ describe("academic-year training plan", () => {
 
     const result = advanceGameWeek(state, gameData);
     const nextSchool = result.state.schools[result.state.userSchoolId]!;
-    const assignmentIds = result.state.weeklySchedule.trainingPlan.individualAssignments.map(
-      (assignment) => assignment.playerId,
-    );
+    const assignmentIds =
+      result.state.weeklySchedule.trainingPlan.individualAssignments.map(
+        (assignment) => assignment.playerId,
+      );
 
     expect(result.academicYearTransition).not.toBeNull();
     expect(nextSchool.playerIds).not.toContain(graduateId);
