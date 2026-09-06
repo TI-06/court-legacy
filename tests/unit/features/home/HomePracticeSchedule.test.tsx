@@ -18,13 +18,14 @@ describe("HomeScreen practice schedule", () => {
       state,
       schoolId: state.userSchoolId,
     });
+    const homeStrength = calculateSelectionStrength(state, homeSelection);
 
     render(
       <HomeScreen
         state={state}
         opponent={opponent}
         latestMatch={null}
-        homeStrength={calculateSelectionStrength(state, homeSelection)}
+        homeStrength={homeStrength}
         trainingCompleted={false}
         practiceMatchCompleted={false}
         onOpenTeam={vi.fn()}
@@ -36,6 +37,7 @@ describe("HomeScreen practice schedule", () => {
     );
 
     expect(screen.getByText("対戦相手 未決定")).toBeVisible();
+    expect(screen.getByLabelText(`チーム戦力 ${homeStrength}`)).toBeVisible();
     expect(screen.queryByLabelText("対戦戦力")).toBeNull();
     expect(screen.queryByTitle(opponent.name)).toBeNull();
     expect(screen.getByText("未決定")).toBeVisible();
