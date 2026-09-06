@@ -36,7 +36,9 @@ describe("academic-year training plan", () => {
     expect(assignmentIds).not.toContain(graduateId);
     expect(assignmentIds).toContain(returnerId);
     expect(
-      assignmentIds.every((playerId) => nextSchool.playerIds.includes(playerId)),
+      assignmentIds.every((playerId) =>
+        nextSchool.playerIds.includes(playerId),
+      ),
     ).toBe(true);
   });
 });
