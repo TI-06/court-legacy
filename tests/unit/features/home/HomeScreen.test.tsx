@@ -133,7 +133,7 @@ describe("home action dashboard", () => {
     );
 
     const strength = screen.getByLabelText("対戦戦力");
-    const homeStrengthLabel = within(strength).getByText("自校戦力");
+    const homeStrengthLabel = within(strength).getByText("チーム戦力");
     const homeStrengthBlock = homeStrengthLabel.closest<HTMLElement>(
       ".home-week-card__strength",
     );
