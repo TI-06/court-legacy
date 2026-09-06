@@ -114,8 +114,10 @@ describe("home action dashboard", () => {
     expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
   });
 
-  it("shows both team strengths and keeps direct weekly actions available", () => {
+  it("shows both team strengths for a scheduled practice match and keeps direct weekly actions available", () => {
     const props = createProps();
+    props.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+      props.opponent.id;
     const opponentStrength = calculateSelectionStrength(
       props.state,
       autoSelectTeam({ state: props.state, schoolId: props.opponent.id }),
@@ -152,7 +154,7 @@ describe("home action dashboard", () => {
 
     const progress = screen.getByLabelText("今週の進行状況");
     expect(within(progress).getByText("設定済")).toBeVisible();
-    expect(within(progress).getByText("未決定")).toBeVisible();
+    expect(within(progress).getByText("対戦決定")).toBeVisible();
 
     const nextWeek = screen.getByRole("button", { name: "次の週へ進む" });
     expect(nextWeek).toBeEnabled();
@@ -166,10 +168,22 @@ describe("home action dashboard", () => {
     expect(props.onOpenSchool).toHaveBeenCalledOnce();
     expect(props.onOpenTeam).toHaveBeenCalledOnce();
     expect(props.onOpenMatch).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "断る" })).toBeNull();
+  });
 
-    const decline = screen.getByRole("button", { name: "断る" });
+  it("shows incoming practice offer controls while the match remains unscheduled", () => {
+    const props = createProps();
+    props.state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+
+    render(<HomeScreen {...props} />);
+
+    expect(screen.getByText("対戦相手 未決定")).toBeVisible();
+    expect(screen.queryByLabelText("対戦戦力")).toBeNull();
+
+    const offer = screen.getByRole("region", { name: "練習試合の申し込み" });
+    const decline = within(offer).getByRole("button", { name: "断る" });
     expect(decline).toHaveClass("home-practice-offer__decline");
-    fireEvent.click(screen.getByRole("button", { name: "受ける" }));
+    fireEvent.click(within(offer).getByRole("button", { name: "受ける" }));
     fireEvent.click(decline);
     expect(props.onAcceptPracticeOffer).toHaveBeenCalledOnce();
     expect(props.onDeclinePracticeOffer).toHaveBeenCalledOnce();
