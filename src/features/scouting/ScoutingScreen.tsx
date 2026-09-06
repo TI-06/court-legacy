@@ -295,11 +295,11 @@ export function ScoutingScreen({
                           type="button"
                         >
                           <span>
-                            {researchPending
-                              ? "効果を反映中…"
-                              : "スカウト再調査"}
+                            {researchPending ? "効果を反映中…" : "スカウト再調査"}
                           </span>
-                          <small>所持 {researchStatus?.quantityOwned ?? 0}</small>
+                          <small>
+                            所持 {researchStatus?.quantityOwned ?? 0}
+                          </small>
                         </button>
                       ) : null}
                       {appraisalAvailable ? (
@@ -316,11 +316,11 @@ export function ScoutingScreen({
                           type="button"
                         >
                           <span>
-                            {appraisalPending
-                              ? "効果を反映中…"
-                              : "潜在能力鑑定"}
+                            {appraisalPending ? "効果を反映中…" : "潜在能力鑑定"}
                           </span>
-                          <small>所持 {appraisalStatus?.quantityOwned ?? 0}</small>
+                          <small>
+                            所持 {appraisalStatus?.quantityOwned ?? 0}
+                          </small>
                         </button>
                       ) : null}
                     </div>
