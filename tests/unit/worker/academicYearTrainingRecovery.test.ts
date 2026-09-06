@@ -20,7 +20,9 @@ describe("academic-year training recovery", () => {
     rolled.weeklySchedule.trainingPlan = {
       ...rolled.weeklySchedule.trainingPlan,
       individualAssignments: [
-        ...rolled.weeklySchedule.trainingPlan.individualAssignments,
+        ...rolled.weeklySchedule.trainingPlan.individualAssignments.filter(
+          (assignment) => assignment.playerId !== graduateId,
+        ),
         { playerId: graduateId, instructionId: "instruction.attack" },
       ],
     };
