@@ -60,4 +60,16 @@ describe("school economy foundation migration", () => {
       "on conflict (user_id, item_id, academic_year_index) do nothing",
     );
   });
+
+  it("fixes the same item_id conflict ambiguity in shop item use", () => {
+    const conflictFixSql = readFileSync(conflictFixMigrationPath, "utf8");
+    const yearlyCounterConstraintUses = conflictFixSql.match(
+      /on conflict on constraint shop_yearly_counters_pkey do nothing/g,
+    );
+
+    expect(conflictFixSql).toContain(
+      "create or replace function public.commit_shop_item_use(",
+    );
+    expect(yearlyCounterConstraintUses).toHaveLength(2);
+  });
 });
