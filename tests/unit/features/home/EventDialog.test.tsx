@@ -64,7 +64,7 @@ describe("EventDialog", () => {
 
   it("hides recent history from the weekly event", () => {
     const { state, player } = rivalActor();
-    const pendingEvent = {
+    const pendingEvent: NonNullable<typeof state.pendingEvent> = {
       eventId: eventId("event.first-position-request"),
       actorPlayerIds: [player.id],
       targetSchoolId: null,
@@ -72,7 +72,7 @@ describe("EventDialog", () => {
       choiceIds: ["try", "stay"],
       chainId: null,
       chainStage: null,
-    } as const;
+    };
     state.pendingEvent = pendingEvent;
 
     const resolved = resolveEventChoice(
