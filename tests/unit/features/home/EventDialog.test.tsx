@@ -62,6 +62,34 @@ describe("EventDialog", () => {
     expect(emblems[0]).toHaveAttribute("data-school-motif", "shield");
   });
 
+  it("hides recent history from the weekly event", () => {
+    const { state, player } = rivalActor();
+    const pendingEvent: NonNullable<typeof state.pendingEvent> = {
+      eventId: eventId("event.first-position-request"),
+      actorPlayerIds: [player.id],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["try", "stay"],
+      chainId: null,
+      chainStage: null,
+    };
+    state.pendingEvent = pendingEvent;
+
+    const resolved = resolveEventChoice(
+      state,
+      "try",
+      gameData,
+      new SeededRandom("event-dialog-history"),
+    ).state;
+    resolved.pendingEvent = pendingEvent;
+    expect(resolved.eventMemory.history.length).toBeGreaterThan(0);
+
+    render(<EventDialog data={gameData} onChoose={vi.fn()} state={resolved} />);
+
+    expect(screen.queryByRole("region", { name: "最近の出来事" })).toBeNull();
+    expect(screen.queryByText("最近の出来事")).toBeNull();
+  });
+
   it("shows the concrete result immediately after the coach selects a response", async () => {
     const { state, player } = rivalActor();
     state.pendingEvent = {

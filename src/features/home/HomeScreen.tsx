@@ -186,23 +186,31 @@ export function HomeScreen({
               <strong>対戦相手 未決定</strong>
             )}
           </div>
-          {scheduledPracticeOpponent &&
-          scheduledPracticeOpponentStrength !== null ? (
+          <div
+            className="home-week-card__strength-pair"
+            aria-label={
+              scheduledPracticeOpponentStrength !== null
+                ? "対戦戦力"
+                : undefined
+            }
+          >
             <div
-              className="home-week-card__strength-pair"
-              aria-label="対戦戦力"
+              aria-label={`チーム戦力 ${homeStrength}`}
+              className="home-week-card__strength home-week-card__strength--home"
             >
-              <div className="home-week-card__strength">
-                <span>自校戦力</span>
-                <strong>{homeStrength}</strong>
-              </div>
-              <span className="home-week-card__versus">VS</span>
-              <div className="home-week-card__strength">
-                <span>相手戦力</span>
-                <strong>{scheduledPracticeOpponentStrength}</strong>
-              </div>
+              <span>チーム戦力</span>
+              <strong>{homeStrength}</strong>
             </div>
-          ) : null}
+            {scheduledPracticeOpponentStrength !== null ? (
+              <>
+                <span className="home-week-card__versus">VS</span>
+                <div className="home-week-card__strength home-week-card__strength--opponent">
+                  <span>相手戦力</span>
+                  <strong>{scheduledPracticeOpponentStrength}</strong>
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <div className="home-week-card__status" aria-label="今週の進行状況">
