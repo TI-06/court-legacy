@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { calculateSelectionStrength, selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
+import {
+  calculateSelectionStrength,
+  selectPracticeOpponent,
+} from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
 
