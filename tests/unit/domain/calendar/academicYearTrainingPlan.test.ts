@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
+import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
+import { resolveWeeklyTraining } from "../../../../src/domain/training/resolveWeeklyTraining";
 
 describe("academic-year training plan", () => {
-  it("removes graduated players from the saved individual training plan", () => {
+  it("normalizes graduated players out when the new-year plan is executed", () => {
     const state = createDemoGame();
     state.date = "2027-03-31";
     state.calendar.currentDate = state.date;
@@ -26,8 +28,15 @@ describe("academic-year training plan", () => {
 
     const result = advanceGameWeek(state, gameData);
     const nextSchool = result.state.schools[result.state.userSchoolId]!;
+    const training = resolveWeeklyTraining({
+      state: result.state,
+      schoolId: result.state.userSchoolId,
+      plan: result.state.weeklySchedule.trainingPlan,
+      data: gameData,
+      random: new SeededRandom(result.state.seed, result.state.randomCursor),
+    });
     const assignmentIds =
-      result.state.weeklySchedule.trainingPlan.individualAssignments.map(
+      training.state.weeklySchedule.trainingPlan.individualAssignments.map(
         (assignment) => assignment.playerId,
       );
 
