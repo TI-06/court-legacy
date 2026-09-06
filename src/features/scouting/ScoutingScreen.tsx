@@ -272,37 +272,62 @@ export function ScoutingScreen({
                 </ul>
 
                 {researchAvailable || appraisalAvailable ? (
-                  <div className="scouting-shop-actions">
-                    {researchAvailable ? (
-                      <button
-                        aria-label={`スカウト再調査 ${report.displayName}`}
-                        disabled={shopPendingItemId !== null}
-                        onClick={() =>
-                          onUseShopItem("scout-research", {
-                            type: "scouting-candidate",
-                            candidateId: report.candidateId,
-                          })
-                        }
-                        type="button"
-                      >
-                        {researchPending ? "効果を反映中…" : "スカウト再調査"}
-                      </button>
-                    ) : null}
-                    {appraisalAvailable ? (
-                      <button
-                        aria-label={`潜在能力鑑定 ${report.displayName}`}
-                        disabled={shopPendingItemId !== null}
-                        onClick={() =>
-                          onUseShopItem("potential-appraisal", {
-                            type: "scouting-candidate",
-                            candidateId: report.candidateId,
-                          })
-                        }
-                        type="button"
-                      >
-                        {appraisalPending ? "効果を反映中…" : "潜在能力鑑定"}
-                      </button>
-                    ) : null}
+                  <div
+                    aria-label="所持アイテム"
+                    className="scouting-shop-actions"
+                    role="region"
+                  >
+                    <span className="scouting-shop-actions__label">
+                      所持アイテムを使用
+                    </span>
+                    <div className="scouting-shop-actions__buttons">
+                      {researchAvailable ? (
+                        <button
+                          aria-label={`スカウト再調査 ${report.displayName}`}
+                          className="scouting-shop-actions__button"
+                          disabled={shopPendingItemId !== null}
+                          onClick={() =>
+                            onUseShopItem("scout-research", {
+                              type: "scouting-candidate",
+                              candidateId: report.candidateId,
+                            })
+                          }
+                          type="button"
+                        >
+                          <span>
+                            {researchPending
+                              ? "効果を反映中…"
+                              : "スカウト再調査"}
+                          </span>
+                          <small>
+                            所持 {researchStatus?.quantityOwned ?? 0}
+                          </small>
+                        </button>
+                      ) : null}
+                      {appraisalAvailable ? (
+                        <button
+                          aria-label={`潜在能力鑑定 ${report.displayName}`}
+                          className="scouting-shop-actions__button"
+                          disabled={shopPendingItemId !== null}
+                          onClick={() =>
+                            onUseShopItem("potential-appraisal", {
+                              type: "scouting-candidate",
+                              candidateId: report.candidateId,
+                            })
+                          }
+                          type="button"
+                        >
+                          <span>
+                            {appraisalPending
+                              ? "効果を反映中…"
+                              : "潜在能力鑑定"}
+                          </span>
+                          <small>
+                            所持 {appraisalStatus?.quantityOwned ?? 0}
+                          </small>
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 ) : null}
 

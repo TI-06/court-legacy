@@ -97,7 +97,6 @@ function schoolStrength(state: GameState, school: School): number {
 
 export function HomeScreen({
   state,
-  opponent,
   latestMatch,
   homeStrength,
   trainingCompleted,
@@ -136,8 +135,9 @@ export function HomeScreen({
   const scheduledPracticeOpponent = scheduledPracticeOpponentId
     ? state.schools[scheduledPracticeOpponentId]
     : null;
-  const displayedOpponent = scheduledPracticeOpponent ?? opponent;
-  const displayedOpponentStrength = schoolStrength(state, displayedOpponent);
+  const scheduledPracticeOpponentStrength = scheduledPracticeOpponent
+    ? schoolStrength(state, scheduledPracticeOpponent)
+    : null;
   const incomingOffer = state.weeklySchedule.practiceMatch.incomingOffer;
   const incomingSchool = incomingOffer
     ? state.schools[incomingOffer.schoolId]
@@ -148,7 +148,7 @@ export function HomeScreen({
   const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
   const practiceStatus = practiceMatchCompleted
     ? "完了 ✓"
-    : scheduledPracticeOpponentId
+    : scheduledPracticeOpponent
       ? "対戦決定"
       : "未決定";
 
@@ -178,21 +178,31 @@ export function HomeScreen({
         <div className="home-week-card__match">
           <div className="home-week-card__opponent">
             <span>練習試合</span>
-            <strong title={displayedOpponent.name}>
-              {displayedOpponent.shortName}
-            </strong>
+            {scheduledPracticeOpponent ? (
+              <strong title={scheduledPracticeOpponent.name}>
+                {scheduledPracticeOpponent.shortName}
+              </strong>
+            ) : (
+              <strong>対戦相手 未決定</strong>
+            )}
           </div>
-          <div className="home-week-card__strength-pair" aria-label="対戦戦力">
-            <div className="home-week-card__strength">
-              <span>自校戦力</span>
-              <strong>{homeStrength}</strong>
+          {scheduledPracticeOpponent &&
+          scheduledPracticeOpponentStrength !== null ? (
+            <div
+              className="home-week-card__strength-pair"
+              aria-label="対戦戦力"
+            >
+              <div className="home-week-card__strength">
+                <span>自校戦力</span>
+                <strong>{homeStrength}</strong>
+              </div>
+              <span className="home-week-card__versus">VS</span>
+              <div className="home-week-card__strength">
+                <span>相手戦力</span>
+                <strong>{scheduledPracticeOpponentStrength}</strong>
+              </div>
             </div>
-            <span className="home-week-card__versus">VS</span>
-            <div className="home-week-card__strength">
-              <span>相手戦力</span>
-              <strong>{displayedOpponentStrength}</strong>
-            </div>
-          </div>
+          ) : null}
         </div>
 
         <div className="home-week-card__status" aria-label="今週の進行状況">
