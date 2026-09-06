@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath =
   "supabase/migrations/202609060009_school_economy_foundation.sql";
-const conflictFixMigrationPath =
+const purchaseConflictFixMigrationPath =
   "supabase/migrations/202609060010_fix_shop_purchase_conflict_ambiguity.sql";
+const useConflictFixMigrationPath =
+  "supabase/migrations/202609060011_fix_shop_use_conflict_ambiguity.sql";
 const sql = readFileSync(migrationPath, "utf8");
 const shopFoundationSql = readFileSync(
   "supabase/migrations/202608280006_shop_mvp.sql",
@@ -47,29 +49,34 @@ describe("school economy foundation migration", () => {
   });
 
   it("uses named conflict constraints so purchase output columns are not ambiguous", () => {
-    expect(existsSync(conflictFixMigrationPath)).toBe(true);
-    const conflictFixSql = readFileSync(conflictFixMigrationPath, "utf8");
+    expect(existsSync(purchaseConflictFixMigrationPath)).toBe(true);
+    const purchaseConflictFixSql = readFileSync(
+      purchaseConflictFixMigrationPath,
+      "utf8",
+    );
 
-    expect(conflictFixSql).toContain(
+    expect(purchaseConflictFixSql).toContain(
       "on conflict on constraint shop_yearly_counters_pkey do nothing",
     );
-    expect(conflictFixSql).toContain(
+    expect(purchaseConflictFixSql).toContain(
       "on conflict on constraint shop_inventory_user_id_item_id_academic_year_index_key do nothing",
     );
-    expect(conflictFixSql).not.toContain(
+    expect(purchaseConflictFixSql).not.toContain(
       "on conflict (user_id, item_id, academic_year_index) do nothing",
     );
   });
 
   it("fixes the same item_id conflict ambiguity in shop item use", () => {
-    const conflictFixSql = readFileSync(conflictFixMigrationPath, "utf8");
-    const yearlyCounterConstraintUses = conflictFixSql.match(
-      /on conflict on constraint shop_yearly_counters_pkey do nothing/g,
-    );
+    expect(existsSync(useConflictFixMigrationPath)).toBe(true);
+    const useConflictFixSql = readFileSync(useConflictFixMigrationPath, "utf8");
 
-    expect(conflictFixSql).toContain(
-      "create or replace function public.commit_shop_item_use(",
+    expect(useConflictFixSql).toContain("commit_shop_item_use");
+    expect(useConflictFixSql).toContain("pg_get_functiondef");
+    expect(useConflictFixSql).toContain(
+      "on conflict on constraint shop_yearly_counters_pkey do nothing",
     );
-    expect(yearlyCounterConstraintUses).toHaveLength(2);
+    expect(useConflictFixSql).toContain(
+      "on conflict \\(user_id, item_id, academic_year_index\\) do nothing",
+    );
   });
 });
