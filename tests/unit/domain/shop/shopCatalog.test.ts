@@ -6,9 +6,10 @@ import {
 } from "../../../../src/domain/shop/shopCatalog";
 
 describe("Phase 5 shop catalog", () => {
-  it("contains the approved zero-yen items including immediate fund grants", () => {
+  it("contains the approved zero-yen items including the guaranteed genius scout item", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.itemId)).toEqual([
       "extra-scout-candidate",
+      "generational-scout-candidate",
       "scout-research",
       "potential-appraisal",
       "training-camp",
@@ -25,6 +26,23 @@ describe("Phase 5 shop catalog", () => {
         (item) => item.annualPurchaseLimit === item.annualUseLimit,
       ),
     ).toBe(true);
+  });
+
+  it("allows five normal extra candidates but only one guaranteed genius candidate", () => {
+    expect(getShopItemDefinition("extra-scout-candidate")).toMatchObject({
+      displayName: "新入生候補追加",
+      annualPurchaseLimit: 5,
+      annualUseLimit: 5,
+      inventoryLimit: 5,
+      targetKind: "none",
+    });
+    expect(getShopItemDefinition("generational-scout-candidate")).toMatchObject({
+      displayName: "天才候補生追加",
+      annualPurchaseLimit: 1,
+      annualUseLimit: 1,
+      inventoryLimit: 1,
+      targetKind: "none",
+    });
   });
 
   it("defines fatigue recovery as a player item with a three-use annual limit", () => {
@@ -53,7 +71,7 @@ describe("Phase 5 shop catalog", () => {
 
   it("keeps item display order stable", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.sortOrder)).toEqual([
-      10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100,
     ]);
   });
 });
