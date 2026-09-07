@@ -7,6 +7,7 @@ import {
   buildTeamProfile,
   type TeamProfile,
 } from "./matchPresentation";
+import "./matchGameStats.css";
 
 interface PreMatchComparisonProps {
   state: GameState;
@@ -160,7 +161,11 @@ export function MatchResultStats({
     ["アタック得点", user.attackPoints, opponent.attackPoints],
     ["ブロック得点", user.blockPoints, opponent.blockPoints],
     ["サーブエース", user.serviceAces, opponent.serviceAces],
-    ["スパイク決定率", `${user.attackSuccessRate}%`, `${opponent.attackSuccessRate}%`],
+    [
+      "スパイク決定率",
+      `${user.attackSuccessRate}%`,
+      `${opponent.attackSuccessRate}%`,
+    ],
     ["Aパス率", `${user.perfectReceiveRate}%`, `${opponent.perfectReceiveRate}%`],
     ["ミス数", user.serveErrors, opponent.serveErrors],
   ] as const;
