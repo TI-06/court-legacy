@@ -20,8 +20,8 @@ jobs:
       - run: npm ci --no-audit --fund=false
       - name: Show Prettier diff
         run: |
-          npx prettier src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts --write
-          git diff -- src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts
+          npx prettier src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts tests/unit/domain/training/calculateGrowth.test.ts --write
+          git diff -- src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts tests/unit/domain/training/calculateGrowth.test.ts
       - name: Run focused tests
         run: |
-          npx vitest run tests/unit/domain/school/facilityUpgrade.test.ts tests/unit/worker/assistantCoachAction.test.ts tests/unit/domain/calendar/assistantCoachYearExpiry.test.ts tests/unit/domain/training/assistantCoachTraining.test.ts tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
+          npx vitest run tests/unit/domain/school/facilityUpgrade.test.ts tests/unit/domain/training/calculateGrowth.test.ts tests/unit/worker/assistantCoachAction.test.ts tests/unit/domain/calendar/assistantCoachYearExpiry.test.ts tests/unit/domain/training/assistantCoachTraining.test.ts tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
