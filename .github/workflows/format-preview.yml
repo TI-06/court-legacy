@@ -5,6 +5,9 @@ on:
     branches:
       - fix/long-term-balance-gameplay-ux
 
+permissions:
+  contents: write
+
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Show Prettier diff
+      - name: Apply Prettier formatting
         run: |
           npx prettier --write \
             docs/superpowers/plans/2026-09-07-long-term-balance-gameplay-ux.md \
@@ -24,10 +27,16 @@ jobs:
             src/features/scouting/ScoutingScreen.tsx \
             tests/unit/domain/weekly/practiceMatchPlanning.test.ts \
             tests/unit/features/scouting/ScoutingScreen.test.tsx
-          git diff -- \
-            docs/superpowers/plans/2026-09-07-long-term-balance-gameplay-ux.md \
-            src/domain/weekly/practiceMatchPlanning.ts \
-            src/domain/world/rivalWorldProgression.ts \
-            src/features/scouting/ScoutingScreen.tsx \
-            tests/unit/domain/weekly/practiceMatchPlanning.test.ts \
-            tests/unit/features/scouting/ScoutingScreen.test.tsx
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add \
+              docs/superpowers/plans/2026-09-07-long-term-balance-gameplay-ux.md \
+              src/domain/weekly/practiceMatchPlanning.ts \
+              src/domain/world/rivalWorldProgression.ts \
+              src/features/scouting/ScoutingScreen.tsx \
+              tests/unit/domain/weekly/practiceMatchPlanning.test.ts \
+              tests/unit/features/scouting/ScoutingScreen.test.tsx
+            git commit -m "style: apply prettier formatting"
+            git push origin HEAD:fix/long-term-balance-gameplay-ux
+          fi
