@@ -1,128 +1,63 @@
 # Facility Lv.50 + Assistant Coach Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Goal:** 施設をLv.50まで拡張し、年度契約のアシスタントコーチを実装する。
 
-**Goal:** Finish the approved school-management slice by raising all facilities to Lv.50 and adding one school-year assistant-coach contract that affects training.
+## Scope
 
-**Architecture:** Keep facility spending inside the existing authoritative `facility-upgrade` game action. Add a focused assistant-coach domain module for catalog/evaluation/contract mutation and expose it through a new authoritative `assistant-coach-contract` action. Training consumes facility and assistant-coach modifiers from state; school UI only presents/evaluates and submits actions.
+- 全8施設をLv.0〜50へ拡張する。
+- 施設費用は `Math.round(baseCost * (1 + currentLevel * 0.06))` とする。
+- 既存セーブの施設レベルはそのまま維持する。
+- 学校画面で `Lv.X / 50`、次回費用、進捗を表示する。
+- アシスタントコーチは初級・中級・上級・マスターの4段階とする。
+- 年間費用は80・200・450・900とする。
+- 中級以上は攻撃・守備・フィジカルから専門を選ぶ。
+- 全体成長補正は+5%・+8%・+12%・+18%とする。
+- 専門補正は中級+14%・上級+22%・マスター+30%とする。
+- 年度途中の変更を許可し、前契約分は返金しない。
+- 年度更新時に契約を終了する。
+- 支払いは資金履歴へ `assistant-coach` として記録する。
+- 施設強化とコーチ契約はWorker経由のサーバー権威操作とする。
 
-**Tech Stack:** Node 22.16.0, TypeScript 5.9, React 19, Vite 7, Vitest 4, Testing Library, Playwright, Zod 4.4.3, Cloudflare Worker.
+## Task 1: Facility progression
 
-**Spec:** Approved school-economy design from PR #55 (`docs/superpowers/specs/2026-09-06-school-economy-design.md` on `docs/economy-system-design`).
+- 施設Lv.49→50、Lv.50上限、Lv.51不正のREDテストを追加する。
+- 新しい施設費用式のREDテストを追加する。
+- 施設ドメインをLv.50対応へ変更する。
+- 練習設備の成長補正をLv.50向けに再調整する。
+- 学校画面の施設表示をLv.50対応へ変更する。
 
-## Global Constraints
+## Task 2: Assistant coach domain
 
-- Facilities use `FACILITY_MAX_LEVEL = 50`.
-- Upgrade cost is `Math.round(baseCost * (1 + currentLevel * 0.06))`.
-- Existing saves keep facility levels unchanged.
-- UI displays `Lv.X / 50`, next cost, progress, and milestone context.
-- Assistant coach ranks/costs: beginner 80, intermediate 200, advanced 450, master 900.
-- Beginner specialty is null. Intermediate/advanced/master require attack/defense/physical.
-- General training modifiers: +5%, +8%, +12%, +18%.
-- Specialty modifiers: +14%, +22%, +30% for intermediate/advanced/master.
-- Only one active assistant coach. A replacement within the same year is allowed with no refund.
-- A contract only applies when `contractYearIndex === state.yearIndex`; year transition clears the contract.
-- Every coach payment appends an `assistant-coach` funds-ledger entry atomically.
-- Funds may never become negative.
-- Game actions remain server-authoritative and revision/idempotency semantics are unchanged.
+- コーチ契約操作のREDテストを追加する。
+- 4ランク、費用、専門、資金不足、再契約を検証する。
+- 契約費を学校資金から引き、資金履歴へ記録する。
+- 年度更新時に契約を終了する。
 
----
+## Task 3: Training integration
 
-### Task 1: Facility progression to Lv.50
+- 全体成長補正と専門補正のREDテストを追加する。
+- 上級・マスターの低調子補正を追加する。
+- マスターの1年生育成補正を追加する。
+- 既存監督育成補正とは別の補正として適用する。
 
-**Files:**
-- Modify: `tests/unit/domain/school/facilityUpgrade.test.ts`
-- Modify: `src/domain/school/facilityUpgrade.ts`
-- Modify: `src/domain/training/calculateGrowth.ts`
-- Modify: `tests/unit/domain/training/calculateGrowth.test.ts`
-- Modify: `src/features/school/SchoolScreen.tsx`
+## Task 4: Authoritative game action
 
-**Interfaces:**
-- Produces `FACILITY_MAX_LEVEL = 50`.
-- Produces `facilityMilestone(level)` presentation helper.
-- Keeps `evaluateFacilityUpgrade` / `upgradeFacility` public API stable.
+- `assistant-coach-contract` をゲームアクションへ追加する。
+- Zodでランクと専門を検証する。
+- Worker側で資金・年度・専門条件を検証する。
+- revisionとoperation IDの既存挙動を維持する。
 
-- [ ] Write RED tests for Lv.49 -> 50, Lv.50 max, Lv.51 invalid, and approved cost formula.
-- [ ] Write RED growth test proving training-room Lv.50 remains capped/sane and no old `level * 8` explosion exists.
-- [ ] Run focused tests and confirm expected RED failures.
-- [ ] Implement max level/cost formula and facility progression helpers.
-- [ ] Update SchoolScreen facility copy to `最大 Lv.50`, `Lv.X / 50`, progress and next milestone.
-- [ ] Run focused tests GREEN.
+## Task 5: Staff UI
 
-### Task 2: Assistant coach domain and annual expiry
+- 学校ナビに「スタッフ」を追加する。
+- 現在契約、年度、専門、効果を表示する。
+- 4ランクの費用と効果を表示する。
+- 中級以上は専門選択後に契約する。
+- 契約後資金と資金不足理由を表示する。
 
-**Files:**
-- Create: `tests/unit/domain/school/assistantCoach.test.ts`
-- Create: `src/domain/school/assistantCoach.ts`
-- Modify: `tests/unit/domain/calendar/academicYearProgression.test.ts`
-- Modify: `src/domain/calendar/academicYearProgression.ts`
+## Task 6: Verification
 
-**Interfaces:**
-- Produces `ASSISTANT_COACH_OPTIONS`.
-- Produces `evaluateAssistantCoachContract(state, rank, specialty)`.
-- Produces `contractAssistantCoach(state, rank, specialty)`.
-- Produces `assistantCoachTrainingModifiers(state, player, targetAbilities)`.
-
-- [ ] Write RED tests for catalog prices/modifiers, specialty validation, insufficient funds, replacement with no refund, ledger entry, and expired contract.
-- [ ] Write RED academic-year test proving transition clears the contract.
-- [ ] Run focused tests RED.
-- [ ] Implement domain mutation through `applySchoolFundsChange` and expiry handling.
-- [ ] Run focused tests GREEN.
-
-### Task 3: Apply coach modifiers to weekly training
-
-**Files:**
-- Modify: `src/domain/training/calculateGrowth.ts`
-- Modify: `src/domain/training/resolveWeeklyTraining.ts`
-- Modify: `tests/unit/domain/training/resolveWeeklyTraining.test.ts`
-
-**Interfaces:**
-- Adds assistant-coach modifiers as ordinary logged growth modifiers without replacing head-coach development.
-
-- [ ] Write RED tests for general modifier and matching specialty modifier.
-- [ ] Include advanced/master low-condition modifier and master grade-1 modifier.
-- [ ] Run focused tests RED.
-- [ ] Add modifiers before each player activity resolution.
-- [ ] Run focused tests GREEN.
-
-### Task 4: Authoritative coach contract game action
-
-**Files:**
-- Modify: `worker/game/actionSchema.ts`
-- Modify: `worker/game/applyGameAction.ts`
-- Modify: `tests/unit/worker/game/actionSchema.test.ts` if present, otherwise create focused schema test.
-- Modify: `tests/unit/worker/game/applyGameAction.test.ts` or nearest existing action test.
-
-**Interfaces:**
-- Adds action `{ type: "assistant-coach-contract"; rank; specialty }`.
-
-- [ ] Write RED schema/application tests.
-- [ ] Run focused tests RED.
-- [ ] Implement schema/action dispatch and convert domain validation into rule conflicts.
-- [ ] Run focused tests GREEN.
-
-### Task 5: Staff UI and integration
-
-**Files:**
-- Modify: `src/features/school/SchoolNavigationTabs.tsx`
-- Modify: `src/features/school/SchoolNavigationState.ts`
-- Modify: `src/features/school/SchoolScreen.tsx`
-- Modify: `src/features/school/school-screen.css`
-- Modify: `src/app/GameApp.tsx`
-- Modify/Create: `tests/unit/features/school/SchoolScreen.test.tsx`
-
-**Interfaces:**
-- Adds `staff` school view.
-- Adds SchoolScreen callback `onContractAssistantCoach(rank, specialty)`.
-
-- [ ] Write RED UI test for staff tab, four ranks, specialty selection and current-contract display.
-- [ ] Run focused test RED.
-- [ ] Implement compact mobile-first staff screen and GameApp action call.
-- [ ] Run focused test GREEN.
-
-### Task 6: Verification and integration
-
-- [ ] Run `npm run verify`.
-- [ ] Run mobile E2E through CI.
-- [ ] Review diff against approved spec; no placeholder effects or false UI claims.
-- [ ] Push PR to `main`, require GREEN CI, merge, then require GREEN main CI.
+- `npm run verify` をGREENにする。
+- mobile E2EをGREENにする。
+- PR CIをGREENにしてmainへマージする。
+- main CIがGREENであることを確認する。
