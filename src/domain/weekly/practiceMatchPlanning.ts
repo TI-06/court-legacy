@@ -238,14 +238,10 @@ function buildIncomingOffer(
   const targetRatio = PRACTICE_INCOMING_TARGET_RATIO[homeSchool.reputation];
   const lastOpponentId = recentPracticeMatches.at(-1)?.opponentSchoolId ?? null;
   const ranked = [...opponents].sort((left, right) => {
-    const leftRepeatPenalty = meetingCount(
-      recentPracticeMatches,
-      left.school.id,
-    ) * 0.035;
-    const rightRepeatPenalty = meetingCount(
-      recentPracticeMatches,
-      right.school.id,
-    ) * 0.035;
+    const leftRepeatPenalty =
+      meetingCount(recentPracticeMatches, left.school.id) * 0.035;
+    const rightRepeatPenalty =
+      meetingCount(recentPracticeMatches, right.school.id) * 0.035;
     return (
       Math.abs(left.ratio - targetRatio) +
         leftRepeatPenalty -
@@ -258,8 +254,9 @@ function buildIncomingOffer(
     lastOpponentId && ranked.length > 1
       ? ranked.filter((opponent) => opponent.school.id !== lastOpponentId)
       : ranked;
-  const pool = (withoutImmediateRepeat.length > 0 ? withoutImmediateRepeat : ranked)
-    .slice(0, Math.min(4, ranked.length));
+  const pool = (
+    withoutImmediateRepeat.length > 0 ? withoutImmediateRepeat : ranked
+  ).slice(0, Math.min(4, ranked.length));
   const opponent = random.pick(pool);
   const rating = practiceRating(opponent.ratio);
 
