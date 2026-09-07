@@ -12,6 +12,7 @@ import {
 } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
 import type {
   AbilityKey,
   IndividualTrainingInstructionDefinition,
@@ -356,6 +357,11 @@ export function resolveWeeklyTraining(
       ? [
           ...(input.additionalGrowthModifiers ?? []),
           ...calculateDynamicsTrainingModifiers(original),
+          ...assistantCoachTrainingModifiers(
+            input.state,
+            original,
+            instruction.targetAbilities,
+          ),
         ]
       : (input.additionalGrowthModifiers ?? []);
     const updated = applyActivity(
