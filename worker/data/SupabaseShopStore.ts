@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { SHOP_ITEM_IDS } from "../../src/domain/shop/shopCatalog";
+import {
+  getShopItemDefinition,
+  SHOP_ITEM_IDS,
+} from "../../src/domain/shop/shopCatalog";
 import type {
   CommitShopUseInput,
   PurchaseShopItemInput,
@@ -158,6 +161,7 @@ function parseStatusRows(value: unknown): ShopStatusItem[] {
     priceYen: row.price_yen,
     annualPurchaseLimit: row.annual_purchase_limit,
     annualUseLimit: row.annual_use_limit,
+    inventoryLimit: getShopItemDefinition(row.item_id).inventoryLimit,
     purchasedCount: row.purchased_count,
     usedCount: row.used_count,
     quantityOwned: row.quantity_owned,

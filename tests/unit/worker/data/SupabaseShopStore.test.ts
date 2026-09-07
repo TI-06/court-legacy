@@ -92,6 +92,7 @@ describe("SupabaseShopStore", () => {
         priceYen: 0,
         annualPurchaseLimit: 3,
         annualUseLimit: 3,
+        inventoryLimit: null,
         purchasedCount: 1,
         usedCount: 0,
         quantityOwned: 1,

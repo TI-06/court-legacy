@@ -3,6 +3,7 @@ import type { GameState } from "../../src/domain/model/GameState";
 import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import type { RecruitTier } from "../../src/domain/scouting/recruitmentTierProbability";
 import { getShopItemDefinition } from "../../src/domain/shop/shopCatalog";
 import type { ShopUseRequest } from "../../src/domain/shop/shopContracts";
 import {
@@ -150,20 +151,45 @@ async function currentScoutingPool(
   return pool;
 }
 
+function recruitTierFromCandidate(
+  candidate: ScoutingCandidateTruth,
+): RecruitTier {
+  return candidate.player.tier === "prospect"
+    ? "promising"
+    : candidate.player.tier;
+}
+
 async function resolveExtraCandidate(
   input: ResolveShopUseInput,
+  forcedTier?: RecruitTier,
 ): Promise<ResolvedShopUse> {
   const pool = await currentScoutingPool(input.snapshot, input.scoutingStore);
+  const nextIndex = pool.candidates.length + 1;
+  const tierOverrides = new Map<number, RecruitTier>(
+    pool.candidates.map((candidate, index) => [
+      index + 1,
+      recruitTierFromCandidate(candidate),
+    ]),
+  );
+  if (forcedTier) {
+    tierOverrides.set(nextIndex, forcedTier);
+  }
+
   const generated = generateServerScoutingCandidateAtIndex(
     input.snapshot.state,
-    7,
+    nextIndex,
+    undefined,
+    tierOverrides,
   );
-  const alreadyPresent = pool.candidates.some(
-    (candidate) => candidate.player.id === generated.player.id,
-  );
-  const candidates = alreadyPresent
-    ? structuredClone(pool.candidates)
-    : [...structuredClone(pool.candidates), generated];
+  if (
+    pool.candidates.some(
+      (candidate) => candidate.player.id === generated.player.id,
+    )
+  ) {
+    throw new ShopUseResolutionError("scouting_cycle_unavailable");
+  }
+
+  const candidates = [...structuredClone(pool.candidates), generated];
   const base = cloneBase(input.snapshot);
 
   return {
@@ -444,6 +470,8 @@ export async function resolveShopUse(
   switch (input.request.itemId) {
     case "extra-scout-candidate":
       return resolveExtraCandidate(input);
+    case "generational-scout-candidate":
+      return resolveExtraCandidate(input, "generational");
     case "scout-research":
     case "potential-appraisal":
       return resolveScoutingInsight(input);

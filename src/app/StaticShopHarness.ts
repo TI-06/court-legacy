@@ -103,13 +103,19 @@ export class StaticShopHarness {
       return;
     }
 
+    const carriedInventory = new Map(
+      [...this.items.entries()].map(([itemId, item]) => [
+        itemId,
+        item.quantityOwned,
+      ]),
+    );
     this.yearIndex = yearIndex;
     this.items.clear();
     for (const definition of PHASE5_SHOP_ITEMS) {
       this.items.set(definition.itemId, {
         purchasedCount: 0,
         usedCount: 0,
-        quantityOwned: 0,
+        quantityOwned: carriedInventory.get(definition.itemId) ?? 0,
       });
     }
   }
@@ -143,6 +149,7 @@ export class StaticShopHarness {
           priceYen: definition.priceYen,
           annualPurchaseLimit: definition.annualPurchaseLimit,
           annualUseLimit: definition.annualUseLimit,
+          inventoryLimit: definition.inventoryLimit,
           purchasedCount: item.purchasedCount,
           usedCount: item.usedCount,
           quantityOwned: item.quantityOwned,

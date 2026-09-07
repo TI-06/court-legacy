@@ -20,6 +20,12 @@ function purchaseBlockedReason(item: ShopStatusItem): ShopBlockedReason | null {
   if (item.purchasedCount >= item.annualPurchaseLimit) {
     return "purchase_limit_reached";
   }
+  if (
+    item.inventoryLimit !== null &&
+    item.quantityOwned >= item.inventoryLimit
+  ) {
+    return "purchase_limit_reached";
+  }
   return null;
 }
 
@@ -47,6 +53,7 @@ function toPublicStatus(item: ShopStatusItem): ShopPublicStatusItem {
     priceYen: item.priceYen,
     annualPurchaseLimit: item.annualPurchaseLimit,
     annualUseLimit: item.annualUseLimit,
+    inventoryLimit: item.inventoryLimit,
     purchasedCount: item.purchasedCount,
     usedCount: item.usedCount,
     quantityOwned: item.quantityOwned,

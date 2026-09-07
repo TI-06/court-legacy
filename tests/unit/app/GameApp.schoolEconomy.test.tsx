@@ -45,6 +45,7 @@ function createStatus(
       priceYen: 0,
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
+      inventoryLimit: item.inventoryLimit,
       purchasedCount:
         item.itemId === "funds-grant-300" ? purchasedGrantCount : 0,
       usedCount: 0,

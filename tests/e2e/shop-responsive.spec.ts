@@ -29,7 +29,11 @@ for (const width of [320, 360, 390, 480]) {
     await expect(page.getByRole("heading", { name: "疲労回復" })).toBeVisible();
     await expectNoHorizontalOverflow(page, width);
 
+    await page
+      .getByRole("button", { name: "その他へ戻る", exact: true })
+      .click();
     await page.getByRole("button", { name: "所持品", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "所持品" })).toBeVisible();
     await expectNoHorizontalOverflow(page, width);
   });
 }

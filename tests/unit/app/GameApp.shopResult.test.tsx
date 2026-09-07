@@ -53,6 +53,7 @@ function status(revision: number, owned: boolean): ShopStatusResponse {
       priceYen: 0,
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
+      inventoryLimit: item.inventoryLimit,
       purchasedCount: item.itemId === "training-camp" ? 1 : 0,
       usedCount: item.itemId === "training-camp" && !owned ? 1 : 0,
       quantityOwned: item.itemId === "training-camp" && owned ? 1 : 0,
@@ -110,9 +111,11 @@ describe("GameApp shop result presentation", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "その他" }));
-    fireEvent.click(screen.getByRole("button", { name: "ショップ" }));
-    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(1));
+    expect(
+      await screen.findByRole("heading", { name: "所持品" }),
+    ).toBeVisible();
     fireEvent.click(
       await screen.findByRole("button", { name: "強化合宿を使用" }),
     );

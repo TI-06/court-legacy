@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { getShopItemDefinition } from "../../../../src/domain/shop/shopCatalog";
 import {
   evaluateShopItemStatus,
-  isCurrentYearInventory,
+  isUsableInventory,
 } from "../../../../src/domain/shop/shopRules";
 
-describe("Phase 5 shop annual rules", () => {
+describe("shop annual and carry-over rules", () => {
   it("blocks purchase independently while allowing owned inventory use", () => {
     const definition = getShopItemDefinition("fatigue-recovery");
 
@@ -40,7 +40,7 @@ describe("Phase 5 shop annual rules", () => {
     });
   });
 
-  it("blocks use when no current-year quantity is owned", () => {
+  it("blocks use when no inventory is owned", () => {
     const definition = getShopItemDefinition("fatigue-recovery");
 
     expect(
@@ -57,27 +57,34 @@ describe("Phase 5 shop annual rules", () => {
     });
   });
 
-  it("treats prior-year and empty inventory as inactive", () => {
+  it("keeps prior-year inventory usable but rejects future-year and empty rows", () => {
     expect(
-      isCurrentYearInventory({
+      isUsableInventory({
         inventoryYearIndex: 8,
         currentYearIndex: 9,
         quantityRemaining: 2,
       }),
-    ).toBe(false);
+    ).toBe(true);
     expect(
-      isCurrentYearInventory({
-        inventoryYearIndex: 9,
-        currentYearIndex: 9,
-        quantityRemaining: 0,
-      }),
-    ).toBe(false);
-    expect(
-      isCurrentYearInventory({
+      isUsableInventory({
         inventoryYearIndex: 9,
         currentYearIndex: 9,
         quantityRemaining: 1,
       }),
     ).toBe(true);
+    expect(
+      isUsableInventory({
+        inventoryYearIndex: 10,
+        currentYearIndex: 9,
+        quantityRemaining: 1,
+      }),
+    ).toBe(false);
+    expect(
+      isUsableInventory({
+        inventoryYearIndex: 8,
+        currentYearIndex: 9,
+        quantityRemaining: 0,
+      }),
+    ).toBe(false);
   });
 });

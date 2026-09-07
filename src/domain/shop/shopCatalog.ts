@@ -1,5 +1,6 @@
 export const SHOP_ITEM_IDS = [
   "extra-scout-candidate",
+  "generational-scout-candidate",
   "scout-research",
   "potential-appraisal",
   "training-camp",
@@ -28,6 +29,7 @@ export interface ShopItemDefinition {
   priceYen: 0;
   annualPurchaseLimit: number;
   annualUseLimit: number;
+  inventoryLimit: number | null;
   targetKind: ShopTargetKind;
   sortOrder: number;
 }
@@ -36,12 +38,24 @@ export const PHASE5_SHOP_ITEMS = [
   {
     itemId: "extra-scout-candidate",
     displayName: "新入生候補追加",
-    description: "今年度の新入生スカウト候補を1名追加します。",
+    description: "新入生スカウト候補を1名追加します。",
+    priceYen: 0,
+    annualPurchaseLimit: 5,
+    annualUseLimit: 5,
+    inventoryLimit: 5,
+    targetKind: "none",
+    sortOrder: 10,
+  },
+  {
+    itemId: "generational-scout-candidate",
+    displayName: "天才候補生追加",
+    description: "天才ランクの新入生スカウト候補を1名追加します。",
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: 1,
     targetKind: "none",
-    sortOrder: 10,
+    sortOrder: 15,
   },
   {
     itemId: "scout-research",
@@ -50,6 +64,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 2,
     annualUseLimit: 2,
+    inventoryLimit: null,
     targetKind: "scouting-candidate",
     sortOrder: 20,
   },
@@ -60,6 +75,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 3,
     annualUseLimit: 3,
+    inventoryLimit: null,
     targetKind: "scouting-candidate",
     sortOrder: 30,
   },
@@ -70,6 +86,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: null,
     targetKind: "team",
     sortOrder: 40,
   },
@@ -80,6 +97,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 3,
     annualUseLimit: 3,
+    inventoryLimit: null,
     targetKind: "player",
     sortOrder: 50,
   },
@@ -90,6 +108,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: null,
     targetKind: "special-coach",
     sortOrder: 60,
   },
@@ -100,6 +119,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: null,
     targetKind: "next-training",
     sortOrder: 70,
   },
@@ -110,6 +130,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 3,
     annualUseLimit: 3,
+    inventoryLimit: null,
     targetKind: "none",
     sortOrder: 80,
   },
@@ -120,6 +141,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: null,
     targetKind: "none",
     sortOrder: 90,
   },
@@ -130,6 +152,7 @@ export const PHASE5_SHOP_ITEMS = [
     priceYen: 0,
     annualPurchaseLimit: 1,
     annualUseLimit: 1,
+    inventoryLimit: null,
     targetKind: "none",
     sortOrder: 100,
   },

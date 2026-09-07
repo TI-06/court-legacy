@@ -3,13 +3,15 @@ import { vi } from "vitest";
 import { MoreScreen } from "../../../../src/features/more/MoreScreen";
 
 describe("MoreScreen", () => {
-  it("keeps shop and account actions after School moves to the bottom navigation", () => {
+  it("shows shop and inventory as peer actions", () => {
     const onOpenShop = vi.fn();
+    const onOpenInventory = vi.fn();
     const onSignOut = vi.fn();
 
     render(
       <MoreScreen
         accountLabel="coach@example.com"
+        onOpenInventory={onOpenInventory}
         onOpenShop={onOpenShop}
         onSignOut={onSignOut}
       />,
@@ -20,11 +22,14 @@ describe("MoreScreen", () => {
     expect(screen.getByText("coach@example.com")).toBeVisible();
     expect(screen.queryByRole("button", { name: "学校管理" })).toBeNull();
     expect(screen.getByRole("button", { name: "ショップ" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "所持品" })).toBeVisible();
     expect(screen.getByRole("button", { name: "ログアウト" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "ショップ" }));
+    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
     fireEvent.click(screen.getByRole("button", { name: "ログアウト" }));
     expect(onOpenShop).toHaveBeenCalledTimes(1);
+    expect(onOpenInventory).toHaveBeenCalledTimes(1);
     expect(onSignOut).toHaveBeenCalledTimes(1);
   });
 });

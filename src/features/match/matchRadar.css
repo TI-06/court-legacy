@@ -1,0 +1,140 @@
+.match-power-versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+  align-items: center;
+  margin-top: 12px;
+  padding: 9px 11px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 13px;
+  text-align: center;
+}
+
+.match-power-versus > div {
+  display: grid;
+  gap: 1px;
+}
+
+.match-power-versus small {
+  color: #8fb8c2;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.match-power-versus strong {
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 950;
+}
+
+.match-power-versus > div:first-child strong {
+  color: #69e2e5;
+}
+
+.match-power-versus > div:last-child strong {
+  color: #ffd783;
+}
+
+.match-power-versus > span {
+  color: #9dbfc6;
+  font-size: 0.61rem;
+  font-weight: 950;
+}
+
+.match-radar {
+  display: grid;
+  justify-items: center;
+  margin-top: 10px;
+  padding: 8px 6px 7px;
+  background:
+    radial-gradient(circle at 50% 45%, rgb(97 221 225 / 7%), transparent 56%),
+    rgb(255 255 255 / 3%);
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 14px;
+}
+
+.match-radar__chart {
+  display: block;
+  width: min(100%, 258px);
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+.match-radar__grid {
+  fill: none;
+  stroke: rgb(200 229 233 / 16%);
+  stroke-width: 0.8;
+}
+
+.match-radar__axis {
+  stroke: rgb(200 229 233 / 14%);
+  stroke-width: 0.75;
+}
+
+.match-radar__home,
+.match-radar__away {
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.match-radar__home {
+  fill: rgb(73 213 218 / 20%);
+  stroke: #63dfe2;
+}
+
+.match-radar__away {
+  fill: rgb(240 184 79 / 17%);
+  stroke: #efbd62;
+}
+
+.match-radar__label {
+  fill: #dcebed;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.match-radar__legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: -3px;
+  color: #aac8ce;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.match-radar__legend span::before {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 2px;
+  content: "";
+}
+
+.match-radar__legend-home::before {
+  background: #63dfe2;
+}
+
+.match-radar__legend-away::before {
+  background: #efbd62;
+}
+
+.match-profile-row > strong {
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+@media (max-width: 380px) {
+  .match-radar {
+    padding-inline: 3px;
+  }
+
+  .match-radar__chart {
+    width: min(100%, 232px);
+  }
+
+  .match-radar__label {
+    font-size: 7.5px;
+  }
+}

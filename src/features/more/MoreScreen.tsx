@@ -1,12 +1,16 @@
 import "./more.css";
+
 interface MoreScreenProps {
   accountLabel: string;
   onOpenShop: () => void;
+  onOpenInventory: () => void;
   onSignOut: () => void;
 }
+
 export function MoreScreen({
   accountLabel,
   onOpenShop,
+  onOpenInventory,
   onSignOut,
 }: MoreScreenProps) {
   return (
@@ -14,7 +18,7 @@ export function MoreScreen({
       <section className="more-screen__heading">
         <p className="section-kicker">管理メニュー</p>
         <h2>その他</h2>
-        <p>ショップとアカウント設定をまとめています。</p>
+        <p>ショップ、所持品、アカウント設定をまとめています。</p>
       </section>
       <section className="more-screen__menu" aria-label="その他のメニュー">
         <button
@@ -25,7 +29,19 @@ export function MoreScreen({
         >
           <span>
             <strong>ショップ</strong>
-            <small>アイテムを確認</small>
+            <small>アイテムを購入</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+        <button
+          aria-label="所持品"
+          className="more-screen__item"
+          onClick={onOpenInventory}
+          type="button"
+        >
+          <span>
+            <strong>所持品</strong>
+            <small>アイテムを確認・使用</small>
           </span>
           <span aria-hidden="true">›</span>
         </button>

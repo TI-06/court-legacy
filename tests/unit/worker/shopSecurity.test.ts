@@ -88,6 +88,7 @@ describe("Phase 5 shop security boundaries", () => {
   it("does not define direct PvP win, rating, or instant ability manipulation items", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.itemId)).toEqual([
       "extra-scout-candidate",
+      "generational-scout-candidate",
       "scout-research",
       "potential-appraisal",
       "training-camp",
