@@ -1,11 +1,13 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
 import type {
   MatchEvent,
   MatchState,
 } from "../../../../src/domain/model/Match";
 import { matchId, playerId } from "../../../../src/domain/model/identifiers";
-import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
+import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import {
   buildMatchStatSummary,
   buildTeamProfile,
@@ -201,9 +203,10 @@ describe("match presentation", () => {
     }
   });
 
-  it("derives player awards and volleyball box score from immutable match events", () => {
+  it("keeps team scoring categories equal to total points without crediting rally points to a player", () => {
     const context = createContext();
     const homeSchoolId = context.match.homeSchoolId;
+    const awaySchoolId = context.match.awaySchoolId;
     context.match.eventLog = [
       event({
         sequence: 1,
@@ -248,13 +251,41 @@ describe("match presentation", () => {
       }),
       event({
         sequence: 6,
+        type: "point",
+        homeScore: 4,
+        actorPlayerId: context.secondHomePlayerId,
+        targetPlayerId: context.awayPlayerId,
+        winnerSchoolId: homeSchoolId,
+        detailCode: "point.defense",
+      }),
+      event({
+        sequence: 7,
+        type: "serve",
+        homeScore: 4,
+        awayScore: 0,
+        actorPlayerId: context.awayPlayerId,
+        targetPlayerId: context.homePlayerId,
+        detailCode: "serve.error",
+      }),
+      event({
+        sequence: 8,
+        type: "point",
+        homeScore: 5,
+        awayScore: 0,
+        actorPlayerId: context.homePlayerId,
+        targetPlayerId: context.awayPlayerId,
+        winnerSchoolId: homeSchoolId,
+        detailCode: "point.serve-error",
+      }),
+      event({
+        sequence: 9,
         type: "receive",
         actorPlayerId: context.secondHomePlayerId,
         targetPlayerId: context.awayPlayerId,
         detailCode: "receive.perfect",
       }),
       event({
-        sequence: 7,
+        sequence: 10,
         type: "receive",
         actorPlayerId: context.secondHomePlayerId,
         targetPlayerId: context.awayPlayerId,
@@ -263,17 +294,60 @@ describe("match presentation", () => {
     ];
 
     const summary = buildMatchStatSummary(context.state, context.match);
+    const secondHome = summary.players.find(
+      (player) => player.playerId === context.secondHomePlayerId,
+    )!;
 
+    expect(summary.home.totalPoints).toBe(5);
     expect(summary.home.attackPoints).toBe(1);
     expect(summary.home.blockPoints).toBe(1);
     expect(summary.home.serviceAces).toBe(1);
+    expect(summary.home.rallyPoints).toBe(1);
+    expect(summary.home.opponentErrorPoints).toBe(1);
+    expect(
+      summary.home.attackPoints +
+        summary.home.blockPoints +
+        summary.home.serviceAces +
+        summary.home.rallyPoints +
+        summary.home.opponentErrorPoints,
+    ).toBe(summary.home.totalPoints);
+    expect(summary.away.serveErrors).toBe(1);
     expect(summary.home.attackAttempts).toBe(2);
     expect(summary.home.attackSuccessRate).toBe(50);
-    expect(summary.home.perfectReceiveRate).toBe(50);
+    expect(secondHome.points).toBe(1);
+    expect(secondHome.defensePoints).toBe(1);
     expect(summary.mvp.playerId).toBe(context.homePlayerId);
     expect(summary.topScorer.playerId).toBe(context.homePlayerId);
     expect(summary.topBlocker.playerId).toBe(context.secondHomePlayerId);
     expect(summary.topServer.playerId).toBe(context.homePlayerId);
     expect(summary.bestReceiver.playerId).toBe(context.secondHomePlayerId);
+    expect(awaySchoolId).not.toBe(homeSchoolId);
+  });
+
+  it("matches team total points to the completed set scores for a simulated match", () => {
+    const context = createContext();
+    const result = simulateMatch({
+      state: context.state,
+      id: matchId("stats-integrity-match"),
+      homeSchoolId: context.match.homeSchoolId,
+      awaySchoolId: context.match.awaySchoolId,
+      homeSelection: context.homeSelection,
+      awaySelection: context.awaySelection,
+      bestOfSets: 3,
+      random: new SeededRandom("stats-integrity-match"),
+    });
+
+    const summary = buildMatchStatSummary(context.state, result.match);
+    const setHomeTotal = result.match.sets.reduce(
+      (sum, set) => sum + set.homeScore,
+      0,
+    );
+    const setAwayTotal = result.match.sets.reduce(
+      (sum, set) => sum + set.awayScore,
+      0,
+    );
+
+    expect(summary.home.totalPoints).toBe(setHomeTotal);
+    expect(summary.away.totalPoints).toBe(setAwayTotal);
   });
 });
