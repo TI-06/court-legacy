@@ -10,6 +10,7 @@ describe("OperationStatusBar", () => {
           status: "submitting",
           label: "週進行を保存",
           operationId: "op-1",
+          blocking: false,
         }}
       />,
     );
