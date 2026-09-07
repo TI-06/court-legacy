@@ -1,0 +1,62 @@
+name: Dev Fix Scouting State
+
+on:
+  push:
+    branches:
+      - fix/long-term-balance-gameplay-ux
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/long-term-balance-gameplay-ux
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Patch scouting exclusion state
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/scouting/ScoutingScreen.tsx')
+          text = path.read_text()
+          old_import = 'import { useEffect, useMemo, useState } from "react";'
+          new_import = 'import { useMemo, useState } from "react";'
+          if old_import not in text:
+              raise SystemExit('expected React import not found')
+          text = text.replace(old_import, new_import, 1)
+
+          old_state = '''  const [excludedCandidateIds, setExcludedCandidateIds] = useState<\n    Set<PlayerId>\n  >(() => readExcludedCandidateIds(cycleKey));\n\n  useEffect(() => {\n    setExcludedCandidateIds(readExcludedCandidateIds(cycleKey));\n  }, [cycleKey]);'''
+          new_state = '''  const [excludedState, setExcludedState] = useState<{\n    cycleKey: string;\n    candidateIds: Set<PlayerId>;\n  }>(() => ({\n    cycleKey,\n    candidateIds: readExcludedCandidateIds(cycleKey),\n  }));\n  const excludedCandidateIds =\n    excludedState.cycleKey === cycleKey\n      ? excludedState.candidateIds\n      : readExcludedCandidateIds(cycleKey);'''
+          if old_state not in text:
+              raise SystemExit('expected exclusion state block not found')
+          text = text.replace(old_state, new_state, 1)
+
+          old_setter = '''  const setCandidateExcluded = (candidateId: PlayerId, excluded: boolean) => {\n    setExcludedCandidateIds((current) => {\n      const next = new Set(current);\n      if (excluded) next.add(candidateId);\n      else next.delete(candidateId);\n      persistExcludedCandidateIds(cycleKey, next);\n      return next;\n    });\n  };'''
+          new_setter = '''  const setCandidateExcluded = (candidateId: PlayerId, excluded: boolean) => {\n    setExcludedState((current) => {\n      const currentIds =\n        current.cycleKey === cycleKey\n          ? current.candidateIds\n          : readExcludedCandidateIds(cycleKey);\n      const next = new Set(currentIds);\n      if (excluded) next.add(candidateId);\n      else next.delete(candidateId);\n      persistExcludedCandidateIds(cycleKey, next);\n      return { cycleKey, candidateIds: next };\n    });\n  };'''
+          if old_setter not in text:
+              raise SystemExit('expected exclusion setter block not found')
+          text = text.replace(old_setter, new_setter, 1)
+          path.write_text(text)
+          PY
+          npx prettier --write src/features/scouting/ScoutingScreen.tsx
+      - name: Verify focused fix
+        run: |
+          npm run lint
+          npx vitest run tests/unit/features/scouting/ScoutingScreen.test.tsx
+      - name: Commit patch
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/features/scouting/ScoutingScreen.tsx
+            git commit -m "fix: reset scouting exclusions without effect state sync"
+            git push origin HEAD:fix/long-term-balance-gameplay-ux
+          fi
