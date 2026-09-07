@@ -26,6 +26,17 @@ replace_once(
     '''    fireEvent.click(screen.getByRole("button", { name: "所持品" }));\n    fireEvent.click(\n      await screen.findByRole("button", { name: "強化合宿を使用" }),\n    );''',
     '''    fireEvent.click(screen.getByRole("button", { name: "その他へ戻る" }));\n    fireEvent.click(screen.getByRole("button", { name: "所持品" }));\n    expect(\n      await screen.findByRole("heading", { name: "所持品" }),\n    ).toBeVisible();\n    fireEvent.click(\n      await screen.findByRole("button", { name: "強化合宿を使用" }),\n    );''',
 )
+# Opening the peer inventory destination performs its own authoritative status refresh.
+replace_once(
+    "tests/unit/app/GameApp.shop.test.tsx",
+    '''      .mockResolvedValueOnce(initialStatus)\n      .mockResolvedValueOnce(purchasedStatus)\n      .mockResolvedValueOnce(usedStatus);''',
+    '''      .mockResolvedValueOnce(initialStatus)\n      .mockResolvedValueOnce(purchasedStatus)\n      .mockResolvedValueOnce(purchasedStatus)\n      .mockResolvedValueOnce(usedStatus);''',
+)
+replace_once(
+    "tests/unit/app/GameApp.shop.test.tsx",
+    '''    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(3));\n    expect(await screen.findByText("使用しました ✓")).toBeVisible();''',
+    '''    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(4));\n    expect(await screen.findByText("使用しました ✓")).toBeVisible();''',
+)
 replace_once(
     "tests/unit/app/GameApp.shop.test.tsx",
     '      await screen.findByText("今年度の所持アイテムはありません。"),',
@@ -51,11 +62,12 @@ replace_all(
     2,
 )
 
-# The approved pre-match radar is five axes; stamina is not a radar axis.
+# Match-flow integration asserts the accessible five-axis radar; the dedicated radar test
+# verifies each individual axis label and A-G grade.
 replace_once(
     "tests/unit/features/match/MatchFlow.test.tsx",
-    '''      "レシーブ",\n      "連携",\n      "スタミナ",\n    ]) {''',
-    '''      "レシーブ",\n      "連携",\n    ]) {''',
+    '''    for (const label of [\n      "アタック",\n      "ブロック",\n      "サーブ",\n      "レシーブ",\n      "連携",\n      "スタミナ",\n    ]) {\n      expect(screen.getByText(label)).toBeInTheDocument();\n    }''',
+    '''    expect(\n      screen.getByRole("img", { name: "自校と相手の5項目戦力比較" }),\n    ).toBeInTheDocument();''',
 )
 
 # New public/store status contract includes the possession cap metadata.
