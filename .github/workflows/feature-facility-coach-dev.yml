@@ -1,0 +1,27 @@
+name: Feature Facility Coach Dev
+
+on:
+  push:
+    branches:
+      - feat/facility-50-assistant-coach
+
+permissions:
+  contents: read
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Show Prettier diff
+        run: |
+          npx prettier src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts --write
+          git diff -- src/domain/school/facilityUpgrade.ts tests/unit/domain/training/assistantCoachTraining.test.ts
+      - name: Run focused tests
+        run: |
+          npx vitest run tests/unit/domain/school/facilityUpgrade.test.ts tests/unit/worker/assistantCoachAction.test.ts tests/unit/domain/calendar/assistantCoachYearExpiry.test.ts tests/unit/domain/training/assistantCoachTraining.test.ts tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
