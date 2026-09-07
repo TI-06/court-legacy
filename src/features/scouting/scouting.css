@@ -36,6 +36,8 @@
 
 .scouting-back:focus-visible,
 .scouting-recruit:focus-visible,
+.scouting-exclude:focus-visible,
+.scouting-excluded-card button:focus-visible,
 .scouting-shop-actions__button:focus-visible,
 .scouting-error button:focus-visible {
   outline: 3px solid rgb(92 187 205 / 28%);
@@ -81,7 +83,7 @@
 
 .scouting-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 14px;
   gap: 7px;
 }
@@ -379,24 +381,126 @@
   opacity: 0.55;
 }
 
-.scouting-recruit {
-  width: 100%;
-  min-height: 46px;
+.scouting-candidate-actions {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.34fr) minmax(0, 1fr);
   margin-top: 12px;
-  color: #fff;
+  gap: 8px;
+}
+
+.scouting-recruit,
+.scouting-exclude {
+  min-height: 46px;
+  margin: 0;
   font-size: 0.78rem;
   font-weight: 900;
+  border-radius: 13px;
+}
+
+.scouting-recruit {
+  width: 100%;
+  color: #fff;
   background: #286d7a;
   border: 0;
-  border-radius: 13px;
   box-shadow: 0 4px 12px rgb(40 109 122 / 18%);
 }
 
-.scouting-recruit:disabled {
+.scouting-exclude {
+  color: #5d7079;
+  background: #f4f7f8;
+  border: 1px solid #c8d4d9;
+}
+
+.scouting-exclude:hover:not(:disabled) {
+  color: #354c56;
+  background: #eaf0f2;
+}
+
+.scouting-recruit:disabled,
+.scouting-exclude:disabled {
   color: #7b8b93;
   cursor: not-allowed;
   background: #e0e7ea;
   box-shadow: none;
+}
+
+.scouting-empty-active {
+  margin: 12px 0 0;
+  padding: 14px;
+  color: #677a84;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #f5f8fa;
+  border: 1px dashed #c8d5da;
+  border-radius: 14px;
+}
+
+.scouting-excluded-list {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f6f8f9;
+  border: 1px solid #d6e0e5;
+  border-radius: 16px;
+}
+
+.scouting-excluded-list summary {
+  color: #4d626c;
+  font-size: 0.76rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.scouting-excluded-list__items {
+  display: grid;
+  margin-top: 10px;
+  gap: 7px;
+}
+
+.scouting-excluded-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 10px 11px;
+  background: #fff;
+  border: 1px solid #dbe3e6;
+  border-radius: 12px;
+  gap: 10px;
+}
+
+.scouting-excluded-card > div {
+  min-width: 0;
+}
+
+.scouting-excluded-card strong,
+.scouting-excluded-card span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scouting-excluded-card strong {
+  color: #27434f;
+  font-size: 0.76rem;
+}
+
+.scouting-excluded-card span {
+  margin-top: 3px;
+  color: #71818b;
+  font-size: 0.66rem;
+}
+
+.scouting-excluded-card button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 10px;
+  color: #286d7a;
+  font-size: 0.7rem;
+  font-weight: 900;
+  background: #edf6f7;
+  border: 1px solid #91bdc5;
+  border-radius: 10px;
 }
 
 @media (max-width: 390px) {
@@ -407,6 +511,10 @@
   .scouting-grade {
     display: inline-flex;
     margin-top: 10px;
+  }
+
+  .scouting-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .scouting-card__topline {
