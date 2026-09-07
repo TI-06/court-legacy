@@ -10,6 +10,7 @@ export interface ShopStatusItem {
   priceYen: 0;
   annualPurchaseLimit: number;
   annualUseLimit: number;
+  inventoryLimit: number | null;
   purchasedCount: number;
   usedCount: number;
   quantityOwned: number;
