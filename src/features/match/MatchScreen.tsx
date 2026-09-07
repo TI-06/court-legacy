@@ -419,46 +419,6 @@ function MatchScreenContent({
             awayName={awayShortName}
           />
 
-          <section className="match-analysis" aria-labelledby="factor-heading">
-            <div className="section-heading">
-              <div>
-                <p className="section-kicker">試合分析</p>
-                <h2 id="factor-heading">勝敗を分けた要因</h2>
-              </div>
-            </div>
-            <div className="match-analysis__list">
-              {result.analysis.principalFactors.slice(0, 3).map((factor) => (
-                <article key={factor.code}>
-                  <span>{Math.round(factor.impact)}</span>
-                  <div>
-                    <strong>{factor.title}</strong>
-                    <p>{factor.detail}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section
-            className="match-analysis"
-            aria-labelledby="recommend-heading"
-          >
-            <div className="section-heading">
-              <div>
-                <p className="section-kicker">次戦対策</p>
-                <h2 id="recommend-heading">次戦への改善提案</h2>
-              </div>
-            </div>
-            <div className="match-recommendations">
-              {result.analysis.recommendations.slice(0, 3).map((factor) => (
-                <article key={factor.code}>
-                  <strong>{factor.title}</strong>
-                  <p>{factor.detail}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
           <section
             className="match-result-actions match-result-actions--fixed"
             data-testid="match-result-actions"

@@ -109,7 +109,7 @@ describe("match flow", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("reveals the immutable event log and finishes on volleyball awards and box score", () => {
+  it("reveals the immutable event log and finishes on concise volleyball awards and exact box score", () => {
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
 
@@ -158,20 +158,20 @@ describe("match flow", () => {
       screen.getByRole("heading", { name: "チームスタッツ" }),
     ).toBeInTheDocument();
     const teamStats = screen.getByRole("region", { name: "チームスタッツ" });
+    expect(within(teamStats).getByText("総得点")).toBeInTheDocument();
     expect(within(teamStats).getByText("アタック得点")).toBeInTheDocument();
     expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("Aパス率")).toBeInTheDocument();
-    expect(within(teamStats).getByText("スパイク決定率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("ラリー得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("相手ミス得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("アタック決定率")).toBeInTheDocument();
+    expect(screen.queryByText("Aパス率")).toBeNull();
     expect(
-      screen.getByRole("heading", { name: "勝敗を分けた要因" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", { name: "勝敗を分けた要因" }),
+    ).toBeNull();
     expect(
-      screen.getByRole("heading", { name: "次戦への改善提案" }),
-    ).toBeInTheDocument();
-    for (const english of ["FULL TIME", "MATCH ANALYSIS", "NEXT PLAN"]) {
-      expect(screen.queryByText(english)).toBeNull();
-    }
-    expect(fixture.result.analysis.principalFactors.length).toBeGreaterThan(0);
+      screen.queryByRole("heading", { name: "次戦への改善提案" }),
+    ).toBeNull();
+    expect(JSON.stringify(fixture.result)).toBe(resultBefore);
   });
 
   it("uses progression presentation names and continues weekly progression", () => {

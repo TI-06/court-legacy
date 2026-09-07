@@ -38,7 +38,7 @@ const PROFILE_TRAITS: Record<keyof TeamProfile, string> = {
 const PROFILE_TACTICS: Record<keyof TeamProfile, string> = {
   attack: "ブロックとディグの連携を優先し、エースのコースを絞る。",
   block: "速いトスと攻撃分散で、相手ブロックを一枚にする。",
-  serve: "サーブレシーブを安定させ、Aパスから先手を取る。",
+  serve: "サーブレシーブを安定させ、良い返球から先手を取る。",
   receive: "サーブのコースと強弱を散らし、相手の攻撃準備を崩す。",
   teamwork: "ラリーで焦らず、切り返しの精度を落とさない。",
   stamina: "序盤からサーブで圧力をかけ、短いラリーで得点を狙う。",
@@ -160,20 +160,18 @@ export function MatchResultStats({
     awayName,
   );
   const rows = [
+    ["総得点", user.totalPoints, opponent.totalPoints],
     ["アタック得点", user.attackPoints, opponent.attackPoints],
     ["ブロック得点", user.blockPoints, opponent.blockPoints],
     ["サーブエース", user.serviceAces, opponent.serviceAces],
+    ["ラリー得点", user.rallyPoints, opponent.rallyPoints],
+    ["相手ミス得点", user.opponentErrorPoints, opponent.opponentErrorPoints],
     [
-      "スパイク決定率",
+      "アタック決定率",
       `${user.attackSuccessRate}%`,
       `${opponent.attackSuccessRate}%`,
     ],
-    [
-      "Aパス率",
-      `${user.perfectReceiveRate}%`,
-      `${opponent.perfectReceiveRate}%`,
-    ],
-    ["ミス数", user.serveErrors, opponent.serveErrors],
+    ["サーブミス", user.serveErrors, opponent.serveErrors],
   ] as const;
 
   return (
@@ -190,9 +188,12 @@ export function MatchResultStats({
             {summary.mvp.position} ・ {mvpTeamName}
           </span>
           <p>
-            {summary.mvp.points}得点 / ブロック{summary.mvp.blockPoints} /
-            サーブエース
-            {summary.mvp.serviceAces}。攻守で最も勝敗に影響した選手です。
+            {summary.mvp.points}得点（アタック{summary.mvp.attackPoints} /
+            ブロック
+            {summary.mvp.blockPoints} / エース{summary.mvp.serviceAces}）
+            {summary.mvp.defensePoints > 0
+              ? `。守備でも${summary.mvp.defensePoints}回、得点につながるプレー。`
+              : "。直接得点で勝利に大きく貢献。"}
           </p>
         </div>
         <div className="match-mvp-card__metrics">
@@ -201,12 +202,12 @@ export function MatchResultStats({
             <strong>{summary.mvp.points}</strong>
           </span>
           <span>
-            <small>決定率</small>
-            <strong>{summary.mvp.attackSuccessRate}%</strong>
+            <small>ブロック</small>
+            <strong>{summary.mvp.blockPoints}</strong>
           </span>
           <span>
-            <small>Aパス率</small>
-            <strong>{summary.mvp.perfectReceiveRate}%</strong>
+            <small>サーブエース</small>
+            <strong>{summary.mvp.serviceAces}</strong>
           </span>
         </div>
       </section>
@@ -230,7 +231,10 @@ export function MatchResultStats({
         <article>
           <span>ベストレシーバー</span>
           <strong>{summary.bestReceiver.name}</strong>
-          <b>Aパス {summary.bestReceiver.perfectReceiveRate}%</b>
+          <b>
+            好レシーブ {summary.bestReceiver.perfectReceives}/
+            {summary.bestReceiver.receiveAttempts}
+          </b>
         </article>
       </section>
 
