@@ -400,10 +400,13 @@
 }
 
 .facility-tile__top strong {
-  overflow: hidden;
+  min-width: 0;
+  overflow: visible;
   font-size: 0.76rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .facility-tile__top b {
