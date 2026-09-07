@@ -64,21 +64,20 @@ describe("assistant coach training modifiers", () => {
     expect(
       attackLog.modifiers.some(
         (modifier) =>
-          (modifier.code as string) === "assistant-coach" &&
+          String(modifier.code) === "assistant-coach" &&
           modifier.percent === 112,
       ),
     ).toBe(true);
     expect(
       attackLog.modifiers.some(
         (modifier) =>
-          (modifier.code as string) === "assistant-coach-specialty" &&
+          String(modifier.code) === "assistant-coach-specialty" &&
           modifier.percent === 122,
       ),
     ).toBe(true);
     expect(
       defenseLog.modifiers.some(
-        (modifier) =>
-          (modifier.code as string) === "assistant-coach-specialty",
+        (modifier) => String(modifier.code) === "assistant-coach-specialty",
       ),
     ).toBe(false);
   });
@@ -89,7 +88,9 @@ describe("assistant coach training modifiers", () => {
     const targetId = school.playerIds.find(
       (playerId) => state.players[playerId]?.grade === 1,
     )!;
-    const otherId = school.playerIds.find((playerId) => playerId !== targetId)!;
+    const otherId = school.playerIds.find(
+      (playerId) => playerId !== targetId,
+    )!;
     state.players[targetId] = {
       ...state.players[targetId]!,
       condition: 50,
