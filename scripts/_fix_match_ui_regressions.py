@@ -41,4 +41,16 @@ old = '''    expect(screen.getAllByText("セット 0")).toHaveLength(2);'''
 new = '''    expect(screen.getAllByText(/セット 0 ・ 戦力 \\d+/)).toHaveLength(2);'''
 if text.count(old) != 1:
     raise SystemExit("MatchFlow set-score assertion changed")
+text = text.replace(old, new, 1)
+old = '''    expect(screen.getByText("アタック得点")).toBeInTheDocument();
+    expect(screen.getByText("ブロック得点")).toBeInTheDocument();
+    expect(screen.getByText("Aパス率")).toBeInTheDocument();
+    expect(screen.getByText("スパイク決定率")).toBeInTheDocument();'''
+new = '''    const teamStats = screen.getByRole("region", { name: "チームスタッツ" });
+    expect(within(teamStats).getByText("アタック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("Aパス率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("スパイク決定率")).toBeInTheDocument();'''
+if text.count(old) != 1:
+    raise SystemExit("MatchFlow box-score assertions changed")
 flow.write_text(text.replace(old, new, 1))
