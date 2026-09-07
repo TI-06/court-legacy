@@ -116,9 +116,7 @@ export function calculateGrowth(
     75,
     125,
   );
-  const facility = trainingRoomMultiplier(
-    input.school.facilities.trainingRoom,
-  );
+  const facility = trainingRoomMultiplier(input.school.facilities.trainingRoom);
   const coach = clampPercent(
     80 + input.school.coach.development * 0.4,
     80,
