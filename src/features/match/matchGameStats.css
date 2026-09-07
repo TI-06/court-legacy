@@ -1,3 +1,4 @@
+/* Game-like volleyball matchup and result presentation. */
 .match-comparison-panel,
 .match-mvp-card,
 .match-awards,
@@ -113,12 +114,6 @@
   grid-template-columns: 1fr 1fr;
   height: 4px;
   gap: 5px;
-}
-
-.match-profile-bars::before,
-.match-profile-bars::after {
-  content: "";
-  position: absolute;
 }
 
 .match-profile-bars i {
