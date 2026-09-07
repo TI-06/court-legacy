@@ -103,9 +103,7 @@ export function calculateFacilityUpgradeCost(
     currentLevel >= FACILITY_MAX_LEVEL
   ) {
     if (currentLevel === FACILITY_MAX_LEVEL) {
-      return Math.round(
-        definition.baseCost * (1 + currentLevel * 0.06),
-      );
+      return Math.round(definition.baseCost * (1 + currentLevel * 0.06));
     }
     throw new Error(`invalid facility level: ${currentLevel}`);
   }
