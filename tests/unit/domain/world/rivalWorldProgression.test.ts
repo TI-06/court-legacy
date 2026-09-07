@@ -19,6 +19,21 @@ function abilityTotal(
   return keys.reduce((total, key) => total + player.abilities[key], 0);
 }
 
+function abilities(value: number): Player["abilities"] {
+  return {
+    spike: value,
+    jump: value,
+    receive: value,
+    serve: value,
+    set: value,
+    block: value,
+    speed: value,
+    stamina: value,
+    decision: value,
+    mental: value,
+  };
+}
+
 describe("rival world progression", () => {
   it("develops rival players toward their school archetype priorities", () => {
     const state = createDemoGame();
@@ -53,6 +68,100 @@ describe("rival world progression", () => {
     expect(result.players[userPlayerId]!.abilities).toEqual(
       state.players[userPlayerId]!.abilities,
     );
+  });
+
+  it("lets established rival schools grow facilities beyond the old Lv5 cap", () => {
+    const state = createDemoGame();
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    state.schools[rival.id] = {
+      ...rival,
+      reputation: "elite",
+      reputationPoints: 900,
+      funds: 1000,
+      coach: {
+        ...rival.coach,
+        development: 100,
+        tactics: 100,
+        leadership: 100,
+        network: 100,
+        charisma: 100,
+      },
+      facilities: {
+        ...rival.facilities,
+        gym: 5,
+        trainingRoom: 5,
+        analysisRoom: 5,
+        recoveryRoom: 5,
+        scoutingNetwork: 5,
+      },
+      history: {
+        ...rival.history,
+        recentSeasonRatings: [100, 100],
+      },
+    };
+    for (const playerId of rival.playerIds) {
+      state.players[playerId] = {
+        ...state.players[playerId]!,
+        abilities: abilities(95),
+      };
+    }
+
+    const result = advanceRivalWorld(
+      state,
+      gameData,
+      new SeededRandom("rival-facility-growth"),
+    );
+    const facilities = result.schools[rival.id]!.facilities;
+
+    expect(
+      Math.max(
+        facilities.gym,
+        facilities.trainingRoom,
+        facilities.analysisRoom,
+        facilities.recoveryRoom,
+        facilities.scoutingNetwork,
+      ),
+    ).toBeGreaterThan(5);
+  });
+
+  it("never grows rival facilities beyond Lv50", () => {
+    const state = createDemoGame();
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    state.schools[rival.id] = {
+      ...rival,
+      reputation: "elite",
+      reputationPoints: 1000,
+      funds: 2000,
+      facilities: {
+        ...rival.facilities,
+        gym: 50,
+        trainingRoom: 50,
+        analysisRoom: 50,
+        recoveryRoom: 50,
+        scoutingNetwork: 50,
+      },
+      history: {
+        ...rival.history,
+        recentSeasonRatings: [100, 100],
+      },
+    };
+
+    const result = advanceRivalWorld(
+      state,
+      gameData,
+      new SeededRandom("rival-facility-cap"),
+    );
+    const facilities = result.schools[rival.id]!.facilities;
+
+    expect(facilities.gym).toBeLessThanOrEqual(50);
+    expect(facilities.trainingRoom).toBeLessThanOrEqual(50);
+    expect(facilities.analysisRoom).toBeLessThanOrEqual(50);
+    expect(facilities.recoveryRoom).toBeLessThanOrEqual(50);
+    expect(facilities.scoutingNetwork).toBeLessThanOrEqual(50);
   });
 
   it("raises rivalry for close repeated upsets and names a destiny rival", () => {
