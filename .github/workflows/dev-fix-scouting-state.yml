@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+
           path = Path('src/features/scouting/ScoutingScreen.tsx')
           text = path.read_text()
           old_import = 'import { useEffect, useMemo, useState } from "react";'
@@ -45,8 +46,18 @@ jobs:
               raise SystemExit('expected exclusion setter block not found')
           text = text.replace(old_setter, new_setter, 1)
           path.write_text(text)
+
+          test_path = Path('tests/unit/features/scouting/ScoutingScreen.test.tsx')
+          test = test_path.read_text()
+          old_test = '''    expect(screen.getByText("対象外 1人")).toBeVisible();\n    expect(\n      screen.getByRole("button", { name: "候補に戻す 青木 蓮" }),\n    ).toBeVisible();\n\n    fireEvent.click(screen.getByRole("button", { name: "候補に戻す 青木 蓮" }));'''
+          new_test = '''    const excludedSummary = screen.getByText("対象外 1人");\n    expect(excludedSummary).toBeVisible();\n    fireEvent.click(excludedSummary);\n    expect(\n      screen.getByRole("button", { name: "候補に戻す 青木 蓮" }),\n    ).toBeVisible();\n\n    fireEvent.click(screen.getByRole("button", { name: "候補に戻す 青木 蓮" }));'''
+          if old_test not in test:
+              raise SystemExit('expected collapsed exclusion test block not found')
+          test_path.write_text(test.replace(old_test, new_test, 1))
           PY
-          npx prettier --write src/features/scouting/ScoutingScreen.tsx
+          npx prettier --write \
+            src/features/scouting/ScoutingScreen.tsx \
+            tests/unit/features/scouting/ScoutingScreen.test.tsx
       - name: Verify focused fix
         run: |
           npm run lint
@@ -56,7 +67,9 @@ jobs:
           if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/features/scouting/ScoutingScreen.tsx
+            git add \
+              src/features/scouting/ScoutingScreen.tsx \
+              tests/unit/features/scouting/ScoutingScreen.test.tsx
             git commit -m "fix: reset scouting exclusions without effect state sync"
             git push origin HEAD:fix/long-term-balance-gameplay-ux
           fi
