@@ -20,6 +20,7 @@ import {
   type SimulateMatchResult,
 } from "../../src/domain/match/simulateMatch";
 import type { GameState } from "../../src/domain/model/GameState";
+import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { matchId } from "../../src/domain/model/identifiers";
 import {
@@ -80,6 +81,10 @@ export interface AppliedGameAction {
   state: GameState;
   teamSelection: TeamSelection;
   outcome?: unknown;
+}
+
+export interface ApplyGameActionContext {
+  userIntake?: readonly Player[];
 }
 
 function cloneTeamSelection(selection: TeamSelection): TeamSelection {
@@ -526,6 +531,7 @@ function hasUserOfficialMatchOnCurrentDate(state: GameState): boolean {
 function applyAdvanceWeek(
   state: GameState,
   teamSelection: TeamSelection,
+  context: ApplyGameActionContext,
 ): AppliedGameAction {
   let currentState = state;
   let trainingResult: TrainingResult | undefined;
@@ -587,7 +593,9 @@ function applyAdvanceWeek(
     };
   }
   try {
-    const progression = advanceGameWeek(currentState, gameData);
+    const progression = advanceGameWeek(currentState, gameData, {
+      userIntake: context.userIntake,
+    });
     const nextState = progression.academicYearTransition
       ? progression.state
       : surfaceWeeklyEvent(progression.state, gameData);
@@ -723,6 +731,7 @@ function applyEventChoice(
 export function applyGameAction(
   snapshot: CloudGameSnapshot,
   action: GameAction,
+  context: ApplyGameActionContext = {},
 ): AppliedGameAction {
   const state = structuredClone(snapshot.state) as GameState;
   const teamSelection = cloneTeamSelection(snapshot.teamSelection);
@@ -745,7 +754,7 @@ export function applyGameAction(
     case "official-match":
       return applyOfficialMatch(state, teamSelection);
     case "advance-week":
-      return applyAdvanceWeek(state, teamSelection);
+      return applyAdvanceWeek(state, teamSelection, context);
     case "mark-notification-read":
       return applyMarkNotificationRead(state, teamSelection, action);
     case "facility-upgrade":
