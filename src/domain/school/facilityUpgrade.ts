@@ -13,7 +13,10 @@ export interface FacilityDefinition {
 }
 
 export type FacilityUpgradeReason =
-  "available" | "insufficient-funds" | "max-level" | "invalid-level";
+  | "available"
+  | "insufficient-funds"
+  | "max-level"
+  | "invalid-level";
 
 export interface FacilityUpgradeEvaluation {
   allowed: boolean;
@@ -23,6 +26,8 @@ export interface FacilityUpgradeEvaluation {
   cost: number;
   fundsAfter: number;
 }
+
+export const FACILITY_MAX_LEVEL = 50;
 
 export const FACILITY_DEFINITIONS: readonly FacilityDefinition[] = [
   {
@@ -92,10 +97,19 @@ export function calculateFacilityUpgradeCost(
   currentLevel: number,
 ): number {
   const definition = getDefinition(key);
-  if (!Number.isInteger(currentLevel) || currentLevel < 0) {
+  if (
+    !Number.isInteger(currentLevel) ||
+    currentLevel < 0 ||
+    currentLevel >= FACILITY_MAX_LEVEL
+  ) {
+    if (currentLevel === FACILITY_MAX_LEVEL) {
+      return Math.round(
+        definition.baseCost * (1 + currentLevel * 0.06),
+      );
+    }
     throw new Error(`invalid facility level: ${currentLevel}`);
   }
-  return definition.baseCost * (currentLevel + 1);
+  return Math.round(definition.baseCost * (1 + currentLevel * 0.06));
 }
 
 export function evaluateFacilityUpgrade(
@@ -110,7 +124,11 @@ export function evaluateFacilityUpgrade(
   }
 
   const currentLevel = school.facilities[key];
-  if (!Number.isInteger(currentLevel) || currentLevel < 0 || currentLevel > 5) {
+  if (
+    !Number.isInteger(currentLevel) ||
+    currentLevel < 0 ||
+    currentLevel > FACILITY_MAX_LEVEL
+  ) {
     return {
       allowed: false,
       reason: "invalid-level",
@@ -121,12 +139,12 @@ export function evaluateFacilityUpgrade(
     };
   }
 
-  if (currentLevel === 5) {
+  if (currentLevel === FACILITY_MAX_LEVEL) {
     return {
       allowed: false,
       reason: "max-level",
       currentLevel,
-      nextLevel: 5,
+      nextLevel: FACILITY_MAX_LEVEL,
       cost: calculateFacilityUpgradeCost(key, currentLevel),
       fundsAfter: school.funds,
     };
