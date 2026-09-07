@@ -14,9 +14,10 @@ function createYearEndSnapshot(): CloudGameSnapshot {
   state.calendar.currentDate = state.date;
   state.calendar.weekOfYear = 52;
   state.calendar.academicYear = 2028;
-  state.calendar.completedActivityIds = state.calendar.completedActivityIds.filter(
-    (id) => !id.startsWith(`week:${state.date}:`),
-  );
+  state.calendar.completedActivityIds =
+    state.calendar.completedActivityIds.filter(
+      (id) => !id.startsWith(`week:${state.date}:`),
+    );
   state.weeklySchedule.practiceMatch = {
     ...state.weeklySchedule.practiceMatch,
     scheduledOpponentId: null,
@@ -52,19 +53,25 @@ describe("year-end advance with committed recruits", () => {
     const snapshot = createYearEndSnapshot();
     const candidate = committedCandidate(snapshot);
 
-    const applied = applyServerGameAction(snapshot, { type: "advance-week" }, {
-      userIntake: [candidate],
-    });
+    const applied = applyServerGameAction(
+      snapshot,
+      { type: "advance-week" },
+      {
+        userIntake: [candidate],
+      },
+    );
     const outcome = applied.outcome as AdvanceWeekOutcome;
 
     expect(outcome.weekAdvanced).toBe(true);
     expect(outcome.trainingResult).toBeDefined();
-    expect(outcome.academicYearTransition?.intakePlayerIds).toContain(candidate.id);
-    expect(applied.state.date).toBe("2029-04-04");
-    expect(applied.state.calendar.weekOfYear).toBe(1);
-    expect(applied.state.schools[applied.state.userSchoolId]!.playerIds).toContain(
+    expect(outcome.academicYearTransition?.intakePlayerIds).toContain(
       candidate.id,
     );
+    expect(applied.state.date).toBe("2029-04-04");
+    expect(applied.state.calendar.weekOfYear).toBe(1);
+    expect(
+      applied.state.schools[applied.state.userSchoolId]!.playerIds,
+    ).toContain(candidate.id);
   });
 
   it("keeps the normal training -> practice match -> rollover flow at week 52", () => {
@@ -79,9 +86,13 @@ describe("year-end advance with committed recruits", () => {
       scheduledBy: "manual",
     };
 
-    const first = applyServerGameAction(snapshot, { type: "advance-week" }, {
-      userIntake: [candidate],
-    });
+    const first = applyServerGameAction(
+      snapshot,
+      { type: "advance-week" },
+      {
+        userIntake: [candidate],
+      },
+    );
     const firstOutcome = first.outcome as AdvanceWeekOutcome;
 
     expect(firstOutcome.weekAdvanced).toBe(false);
