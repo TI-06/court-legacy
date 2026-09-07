@@ -88,6 +88,7 @@ describe("useGameSession", () => {
       status: "submitting",
       label: "設備を保存",
       operationId: "op-1",
+      blocking: false,
     });
     expect(gameApi.applyAction).toHaveBeenCalledWith("token", {
       operationId: "op-1",
