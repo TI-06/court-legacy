@@ -88,16 +88,14 @@ describe("assistant coach training modifiers", () => {
     const targetId = school.playerIds.find(
       (playerId) => state.players[playerId]?.grade === 1,
     )!;
-    const otherId = school.playerIds.find(
-      (playerId) => playerId !== targetId,
-    )!;
+    const otherId = school.playerIds.find((playerId) => playerId !== targetId)!;
     state.players[targetId] = {
       ...state.players[targetId]!,
       condition: 50,
     };
     state.schoolManagement.assistantCoach = {
       rank: "master",
-      specialty: "physical",
+      specialty: "attack",
       contractYearIndex: state.yearIndex,
     };
 
@@ -105,9 +103,9 @@ describe("assistant coach training modifiers", () => {
       state,
       schoolId: state.userSchoolId,
       plan: {
-        teamTrainingMenuId: "training.physical",
+        teamTrainingMenuId: "training.spike",
         individualAssignments: [
-          { playerId: targetId, instructionId: "instruction.physical" },
+          { playerId: targetId, instructionId: "instruction.attack" },
           { playerId: otherId, instructionId: "instruction.defense" },
         ],
       },
