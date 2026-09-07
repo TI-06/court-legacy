@@ -23,6 +23,7 @@
 ### Task 1: Practice-match variety
 
 **Files:**
+
 - Modify: `src/domain/weekly/practiceMatchPlanning.ts`
 - Test: `tests/unit/domain/weekly/practiceMatchPlanning.test.ts`
 
@@ -33,6 +34,7 @@
 ### Task 2: Long-term user-player growth cap
 
 **Files:**
+
 - Modify: `src/domain/training/resolveWeeklyTraining.ts`
 - Test: `tests/unit/domain/training/resolveWeeklyTraining.test.ts` or closest existing focused training test.
 
@@ -44,6 +46,7 @@
 ### Task 3: Rival-world progression for Lv.50 era
 
 **Files:**
+
 - Modify: `src/domain/world/rivalWorldProgression.ts`
 - Test: `tests/unit/domain/world/rivalWorldProgression.test.ts`
 
@@ -55,6 +58,7 @@
 ### Task 4: Non-blocking facility upgrades
 
 **Files:**
+
 - Modify: `src/app/useGameSession.ts`
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/features/school/SchoolScreen.tsx`
@@ -70,6 +74,7 @@
 ### Task 5: Scouting exclusions
 
 **Files:**
+
 - Modify: `src/features/scouting/ScoutingScreen.tsx`
 - Modify: `src/features/scouting/scouting.css`
 - Test: `tests/unit/features/scouting/ScoutingScreen.test.tsx`
