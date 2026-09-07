@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ratingToGrade } from "../../../../src/features/match/matchPresentation";
+import { ratingToGrade } from "../../../../src/features/match/teamRatingGrade";
 
 describe("ratingToGrade", () => {
   it.each([
