@@ -1,0 +1,30 @@
+name: Apply match stats UI patch
+
+on:
+  push:
+    branches:
+      - feat/game-like-match-stats-ui
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply MatchScreen integration
+        run: python scripts/_apply_match_stats_patch.py
+      - name: Remove temporary patch files
+        run: rm scripts/_apply_match_stats_patch.py .github/workflows/apply-match-stats-ui.yml
+      - name: Commit integration
+        run: |
+          if git diff --quiet; then
+            echo 'No patch changes.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: integrate volleyball match stat panels'
+          git push
