@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { SHOP_ITEM_IDS } from "../../src/domain/shop/shopCatalog";
+import {
+  getShopItemDefinition,
+  SHOP_ITEM_IDS,
+} from "../../src/domain/shop/shopCatalog";
 import type {
   CommitShopUseInput,
   PurchaseShopItemInput,
@@ -32,7 +35,6 @@ const statusRowSchema = z
     price_yen: z.literal(0),
     annual_purchase_limit: z.number().int().positive(),
     annual_use_limit: z.number().int().positive(),
-    inventory_limit: z.number().int().positive().nullable(),
     purchased_count: z.number().int().nonnegative(),
     used_count: z.number().int().nonnegative(),
     quantity_owned: z.number().int().nonnegative(),
@@ -159,7 +161,7 @@ function parseStatusRows(value: unknown): ShopStatusItem[] {
     priceYen: row.price_yen,
     annualPurchaseLimit: row.annual_purchase_limit,
     annualUseLimit: row.annual_use_limit,
-    inventoryLimit: row.inventory_limit,
+    inventoryLimit: getShopItemDefinition(row.item_id).inventoryLimit,
     purchasedCount: row.purchased_count,
     usedCount: row.used_count,
     quantityOwned: row.quantity_owned,
