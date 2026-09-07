@@ -275,7 +275,9 @@ function MatchScreenContent({
             <article>
               <span>{homeShortName}</span>
               <strong>{currentEvent.score.split(" - ")[0]}</strong>
-              <small>セット {revealedHomeSets} ・ 戦力 {homeStrength}</small>
+              <small>
+                セット {revealedHomeSets} ・ 戦力 {homeStrength}
+              </small>
             </article>
             <div>
               <span>
@@ -286,7 +288,9 @@ function MatchScreenContent({
             <article>
               <span>{awayShortName}</span>
               <strong>{currentEvent.score.split(" - ")[1]}</strong>
-              <small>セット {revealedAwaySets} ・ 戦力 {awayStrength}</small>
+              <small>
+                セット {revealedAwaySets} ・ 戦力 {awayStrength}
+              </small>
             </article>
           </section>
 

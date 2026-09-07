@@ -166,7 +166,11 @@ export function MatchResultStats({
       `${user.attackSuccessRate}%`,
       `${opponent.attackSuccessRate}%`,
     ],
-    ["Aパス率", `${user.perfectReceiveRate}%`, `${opponent.perfectReceiveRate}%`],
+    [
+      "Aパス率",
+      `${user.perfectReceiveRate}%`,
+      `${opponent.perfectReceiveRate}%`,
+    ],
     ["ミス数", user.serveErrors, opponent.serveErrors],
   ] as const;
 
@@ -184,7 +188,8 @@ export function MatchResultStats({
             {summary.mvp.position} ・ {mvpTeamName}
           </span>
           <p>
-            {summary.mvp.points}得点 / ブロック{summary.mvp.blockPoints} / サーブエース
+            {summary.mvp.points}得点 / ブロック{summary.mvp.blockPoints} /
+            サーブエース
             {summary.mvp.serviceAces}。攻守で最も勝敗に影響した選手です。
           </p>
         </div>
@@ -227,10 +232,7 @@ export function MatchResultStats({
         </article>
       </section>
 
-      <section
-        className="match-box-score"
-        aria-labelledby="team-stats-heading"
-      >
+      <section className="match-box-score" aria-labelledby="team-stats-heading">
         <div className="match-game-heading">
           <div>
             <p className="section-kicker">BOX SCORE</p>

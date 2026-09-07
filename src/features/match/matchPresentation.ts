@@ -2,10 +2,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchEvent, MatchState } from "../../domain/model/Match";
 import type { Player, Position } from "../../domain/model/Player";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
-import type {
-  PlayerId,
-  SchoolId,
-} from "../../domain/model/identifiers";
+import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 
 export interface MatchPresentationContext {
   state: GameState;

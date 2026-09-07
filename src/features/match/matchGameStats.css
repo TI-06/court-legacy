@@ -149,7 +149,11 @@
 }
 
 .match-scout-grid__tactics {
-  background: linear-gradient(145deg, rgb(225 174 68 / 13%), rgb(255 255 255 / 5%)) !important;
+  background: linear-gradient(
+    145deg,
+    rgb(225 174 68 / 13%),
+    rgb(255 255 255 / 5%)
+  ) !important;
   border-color: rgb(239 193 91 / 20%) !important;
 }
 
@@ -189,8 +193,7 @@
 
 .match-screen--result {
   background:
-    linear-gradient(180deg, rgb(9 34 45 / 4%), transparent 180px),
-    transparent;
+    linear-gradient(180deg, rgb(9 34 45 / 4%), transparent 180px), transparent;
 }
 
 .match-screen--result .match-result-hero {
