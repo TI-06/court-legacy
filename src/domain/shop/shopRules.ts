@@ -17,7 +17,12 @@ export function evaluateShopItemStatus(
   counters: ShopYearCounters,
   quantityOwned: number,
 ): ShopItemStatus {
-  const canPurchase = counters.purchasedCount < definition.annualPurchaseLimit;
+  const annualPurchaseLimitReached =
+    counters.purchasedCount >= definition.annualPurchaseLimit;
+  const inventoryLimitReached =
+    definition.inventoryLimit !== null &&
+    quantityOwned >= definition.inventoryLimit;
+  const canPurchase = !annualPurchaseLimitReached && !inventoryLimitReached;
   const useLimitReached = counters.usedCount >= definition.annualUseLimit;
   const inventoryEmpty = quantityOwned <= 0;
 
@@ -39,9 +44,9 @@ export interface InventoryYearInput {
   quantityRemaining: number;
 }
 
-export function isCurrentYearInventory(input: InventoryYearInput): boolean {
+export function isUsableInventory(input: InventoryYearInput): boolean {
   return (
-    input.inventoryYearIndex === input.currentYearIndex &&
+    input.inventoryYearIndex <= input.currentYearIndex &&
     input.quantityRemaining > 0
   );
 }
