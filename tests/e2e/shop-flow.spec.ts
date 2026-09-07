@@ -225,8 +225,9 @@ test("academic year rollover carries inventory and resets annual limits", async 
     return snapshot.state.yearIndex;
   }, SERVER_SNAPSHOT_KEY);
 
-  await page.reload();
-  await openShop(page);
+  await page.getByRole("button", { name: "その他へ戻る", exact: true }).click();
+  await page.getByRole("button", { name: "ショップ", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
   await expect(
     page.getByText(`年度 ${nextYearIndex} ・ 購入/使用上限は年度ごとに更新`),
   ).toBeVisible();
