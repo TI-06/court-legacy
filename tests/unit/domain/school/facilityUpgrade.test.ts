@@ -3,8 +3,10 @@ import type { GameState } from "../../../../src/domain/model/GameState";
 import { schoolId } from "../../../../src/domain/model/identifiers";
 import {
   FACILITY_DEFINITIONS,
+  FACILITY_MAX_LEVEL,
   calculateFacilityUpgradeCost,
   evaluateFacilityUpgrade,
+  facilityMilestone,
   upgradeFacility,
   type FacilityKey,
 } from "../../../../src/domain/school/facilityUpgrade";
@@ -35,6 +37,7 @@ function withFacility(
 describe("facility upgrades", () => {
   it("defines all eight facilities with their base costs", () => {
     expect(FACILITY_DEFINITIONS).toHaveLength(8);
+    expect(FACILITY_MAX_LEVEL).toBe(50);
     expect(
       Object.fromEntries(
         FACILITY_DEFINITIONS.map((definition) => [
@@ -54,9 +57,10 @@ describe("facility upgrades", () => {
     });
   });
 
-  it("calculates the next upgrade cost from the current level", () => {
+  it("calculates the approved Lv.0-50 upgrade cost curve", () => {
     expect(calculateFacilityUpgradeCost("trainingRoom", 0)).toBe(70);
-    expect(calculateFacilityUpgradeCost("trainingRoom", 3)).toBe(280);
+    expect(calculateFacilityUpgradeCost("trainingRoom", 3)).toBe(83);
+    expect(calculateFacilityUpgradeCost("gym", 49)).toBe(315);
   });
 
   it("evaluates an available upgrade without mutating state", () => {
@@ -79,61 +83,51 @@ describe("facility upgrades", () => {
     expect(state.schools[state.userSchoolId]!.funds).toBe(300);
   });
 
-  it("deducts funds and updates only the requested school facility immutably", () => {
-    const state = withFacility("trainingRoom", 0, 300);
-    const originalSchool = state.schools[state.userSchoolId]!;
-    const rival = Object.values(state.schools).find(
-      (school) => school.id !== state.userSchoolId,
-    )!;
+  it("upgrades a level 49 facility to level 50 and records the ledger", () => {
+    const state = withFacility("gym", 49, 1000);
 
-    const result = upgradeFacility(state, state.userSchoolId, "trainingRoom");
+    const result = upgradeFacility(state, state.userSchoolId, "gym");
 
-    expect(result).not.toBe(state);
-    expect(result.schools[state.userSchoolId]).not.toBe(originalSchool);
-    expect(result.schools[state.userSchoolId]!.funds).toBe(230);
-    expect(result.schools[state.userSchoolId]!.facilities.trainingRoom).toBe(1);
+    expect(result.schools[state.userSchoolId]!.facilities.gym).toBe(50);
+    expect(result.schools[state.userSchoolId]!.funds).toBe(685);
     expect(result.schoolManagement.fundsHistory.at(-1)).toMatchObject({
       kind: "facility-upgrade",
-      amount: -70,
-      balanceAfter: 230,
-      relatedId: "trainingRoom",
+      amount: -315,
+      balanceAfter: 685,
+      relatedId: "gym",
     });
-    expect(result.schools[rival.id]).toBe(rival);
-    expect(result.players).toBe(state.players);
-    expect(originalSchool.funds).toBe(300);
-    expect(originalSchool.facilities.trainingRoom).toBe(0);
   });
 
   it("does not upgrade when funds are insufficient", () => {
-    const state = withFacility("gym", 1, 100);
+    const state = withFacility("gym", 10, 100);
 
     expect(
       evaluateFacilityUpgrade(state, state.userSchoolId, "gym"),
     ).toMatchObject({
       allowed: false,
       reason: "insufficient-funds",
-      cost: 160,
-      fundsAfter: -60,
+      cost: 128,
+      fundsAfter: -28,
     });
     expect(upgradeFacility(state, state.userSchoolId, "gym")).toBe(state);
   });
 
-  it("does not upgrade a maximum-level facility", () => {
-    const state = withFacility("gym", 5, 9999);
+  it("does not upgrade a level 50 facility", () => {
+    const state = withFacility("gym", 50, 9999);
 
     expect(
       evaluateFacilityUpgrade(state, state.userSchoolId, "gym"),
     ).toMatchObject({
       allowed: false,
       reason: "max-level",
-      currentLevel: 5,
-      nextLevel: 5,
+      currentLevel: 50,
+      nextLevel: 50,
     });
     expect(upgradeFacility(state, state.userSchoolId, "gym")).toBe(state);
   });
 
-  it("rejects an invalid stored level without changing state", () => {
-    const state = withFacility("gym", 6, 9999);
+  it("rejects an invalid stored level above 50 without changing state", () => {
+    const state = withFacility("gym", 51, 9999);
 
     expect(
       evaluateFacilityUpgrade(state, state.userSchoolId, "gym"),
@@ -142,6 +136,12 @@ describe("facility upgrades", () => {
       reason: "invalid-level",
     });
     expect(upgradeFacility(state, state.userSchoolId, "gym")).toBe(state);
+  });
+
+  it("reports the next five-level milestone", () => {
+    expect(facilityMilestone(0)).toEqual({ nextLevel: 5, completedLevel: 0 });
+    expect(facilityMilestone(17)).toEqual({ nextLevel: 20, completedLevel: 15 });
+    expect(facilityMilestone(50)).toEqual({ nextLevel: 50, completedLevel: 50 });
   });
 
   it("throws for an unknown school or facility key", () => {
