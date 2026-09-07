@@ -72,17 +72,13 @@ async function purchaseItem(page: Page, itemName: string) {
 }
 
 async function openInventory(page: Page) {
-  await page
-    .getByRole("button", { name: "その他へ戻る", exact: true })
-    .click();
+  await page.getByRole("button", { name: "その他へ戻る", exact: true }).click();
   await page.getByRole("button", { name: "所持品", exact: true }).click();
   await expect(page.getByRole("heading", { name: "所持品" })).toBeVisible();
 }
 
 async function openShopFromInventory(page: Page) {
-  await page
-    .getByRole("button", { name: "その他へ戻る", exact: true })
-    .click();
+  await page.getByRole("button", { name: "その他へ戻る", exact: true }).click();
   await page.getByRole("button", { name: "ショップ", exact: true }).click();
   await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
 }
@@ -232,9 +228,7 @@ test("academic year rollover carries inventory and resets annual limits", async 
   await page.reload();
   await openShop(page);
   await expect(
-    page.getByText(
-      `年度 ${nextYearIndex} ・ 購入/使用上限は年度ごとに更新`,
-    ),
+    page.getByText(`年度 ${nextYearIndex} ・ 購入/使用上限は年度ごとに更新`),
   ).toBeVisible();
   const fresh = shopCard(page, "強化合宿");
   await expect(fresh).toContainText("購入 0 / 1");
