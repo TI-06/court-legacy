@@ -32,10 +32,10 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   });
   await expect(grant).toContainText("年度残り 2 / 3");
 
+  await page.getByRole("button", { name: "その他へ戻る", exact: true }).click();
   await page.getByRole("button", { name: "所持品", exact: true }).click();
-  await expect(
-    page.getByText("今年度の所持アイテムはありません。"),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "所持品" })).toBeVisible();
+  await expect(page.getByText("所持アイテムはありません。")).toBeVisible();
 
   await page.reload();
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });

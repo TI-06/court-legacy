@@ -72,7 +72,19 @@ async function purchaseItem(page: Page, itemName: string) {
 }
 
 async function openInventory(page: Page) {
+  await page
+    .getByRole("button", { name: "その他へ戻る", exact: true })
+    .click();
   await page.getByRole("button", { name: "所持品", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "所持品" })).toBeVisible();
+}
+
+async function openShopFromInventory(page: Page) {
+  await page
+    .getByRole("button", { name: "その他へ戻る", exact: true })
+    .click();
+  await page.getByRole("button", { name: "ショップ", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
 }
 
 function readRange(text: string, label: "現在能力" | "将来性") {
@@ -116,7 +128,7 @@ test("mobile shop purchases and uses fatigue recovery with visible progress and 
   await expect(page.getByText(/疲労 80 → 40/)).toBeVisible();
 
   for (let remaining = 2; remaining >= 1; remaining -= 1) {
-    await page.getByRole("button", { name: "商品", exact: true }).click();
+    await openShopFromInventory(page);
     await purchaseItem(page, "疲労回復");
     await openInventory(page);
     const owned = shopCard(page, "疲労回復");
@@ -129,7 +141,7 @@ test("mobile shop purchases and uses fatigue recovery with visible progress and 
     });
   }
 
-  await page.getByRole("button", { name: "商品", exact: true }).click();
+  await openShopFromInventory(page);
   const exhausted = shopCard(page, "疲労回復");
   await expect(exhausted).toContainText("購入 3 / 3");
   await expect(exhausted).toContainText("使用 3 / 3");
@@ -191,7 +203,7 @@ test("lost purchase response retries the same operation once and stale revision 
   await expect(shopCard(page, "疲労回復")).toContainText("使用 0 / 3");
 });
 
-test("academic year rollover invalidates prior-year inventory and resets limits", async ({
+test("academic year rollover carries inventory and resets annual limits", async ({
   page,
 }) => {
   await enableVisibleActionDelay(page, 250);
@@ -220,15 +232,25 @@ test("academic year rollover invalidates prior-year inventory and resets limits"
   await page.reload();
   await openShop(page);
   await expect(
-    page.getByText(`年度 ${nextYearIndex} ・ 所持品は年度更新で失効`),
+    page.getByText(
+      `年度 ${nextYearIndex} ・ 購入/使用上限は年度ごとに更新`,
+    ),
   ).toBeVisible();
   const fresh = shopCard(page, "強化合宿");
   await expect(fresh).toContainText("購入 0 / 1");
   await expect(fresh).toContainText("使用 0 / 1");
-  await expect(fresh).toContainText("所持 0");
+  await expect(fresh).toContainText("所持 1");
   await expect(
     fresh.getByRole("button", { name: "強化合宿を購入", exact: true }),
   ).toBeEnabled();
+
+  await openInventory(page);
+  await expect(
+    page.getByText(
+      `年度 ${nextYearIndex} ・ 未使用アイテムは翌年度以降も持ち越し可`,
+    ),
+  ).toBeVisible();
+  await expect(shopCard(page, "強化合宿")).toContainText("×1");
 });
 
 test("scouting research and appraisal tighten only public report ranges", async ({
