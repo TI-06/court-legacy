@@ -212,8 +212,18 @@ function hasDueOfficialMatch(state: PracticePlanningSource): boolean {
   return false;
 }
 
+function meetingCount(
+  recentPracticeMatches: readonly PracticeMatchHistoryEntry[],
+  schoolId: string,
+): number {
+  return recentPracticeMatches.filter(
+    (entry) => entry.opponentSchoolId === schoolId,
+  ).length;
+}
+
 function buildIncomingOffer(
   state: PracticePlanningSource,
+  recentPracticeMatches: readonly PracticeMatchHistoryEntry[],
 ): PracticeMatchOffer | null {
   const { homeSchool, opponents } = rankedOpponents(state);
   if (opponents.length === 0) return null;
@@ -226,12 +236,31 @@ function buildIncomingOffer(
   }
 
   const targetRatio = PRACTICE_INCOMING_TARGET_RATIO[homeSchool.reputation];
-  const opponent = [...opponents].sort(
-    (left, right) =>
-      Math.abs(left.ratio - targetRatio) -
-        Math.abs(right.ratio - targetRatio) ||
-      left.school.id.localeCompare(right.school.id),
-  )[0]!;
+  const lastOpponentId = recentPracticeMatches.at(-1)?.opponentSchoolId ?? null;
+  const ranked = [...opponents].sort((left, right) => {
+    const leftRepeatPenalty = meetingCount(
+      recentPracticeMatches,
+      left.school.id,
+    ) * 0.035;
+    const rightRepeatPenalty = meetingCount(
+      recentPracticeMatches,
+      right.school.id,
+    ) * 0.035;
+    return (
+      Math.abs(left.ratio - targetRatio) +
+        leftRepeatPenalty -
+        (Math.abs(right.ratio - targetRatio) + rightRepeatPenalty) ||
+      left.school.id.localeCompare(right.school.id)
+    );
+  });
+
+  const withoutImmediateRepeat =
+    lastOpponentId && ranked.length > 1
+      ? ranked.filter((opponent) => opponent.school.id !== lastOpponentId)
+      : ranked;
+  const pool = (withoutImmediateRepeat.length > 0 ? withoutImmediateRepeat : ranked)
+    .slice(0, Math.min(4, ranked.length));
+  const opponent = random.pick(pool);
   const rating = practiceRating(opponent.ratio);
 
   return {
@@ -252,7 +281,7 @@ function buildPracticePlanningFromSource(
     };
   }
 
-  const incomingOffer = buildIncomingOffer(state);
+  const incomingOffer = buildIncomingOffer(state, recentPracticeMatches);
   return {
     incomingOffer,
     outgoingCandidates: buildOutgoingCandidates(
