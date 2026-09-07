@@ -63,8 +63,9 @@ describe("match flow", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(fixture.opponent.name)).toBeInTheDocument();
 
-    const homeCard = screen.getByText("自校").closest("article");
-    const awayCard = screen.getByText("相手").closest("article");
+    const versusCard = screen.getByRole("region", { name: "対戦カード" });
+    const homeCard = within(versusCard).getByText("自校").closest("article");
+    const awayCard = within(versusCard).getByText("相手").closest("article");
     expect(homeCard).not.toBeNull();
     expect(awayCard).not.toBeNull();
     expect(
@@ -129,7 +130,7 @@ describe("match flow", () => {
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
       `1 / ${fixture.result.match.eventLog.length}`,
     );
-    expect(screen.getAllByText("セット 0")).toHaveLength(2);
+    expect(screen.getAllByText(/セット 0 ・ 戦力 \d+/)).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "次のプレー" }));
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
@@ -156,10 +157,11 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "チームスタッツ" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("アタック得点")).toBeInTheDocument();
-    expect(screen.getByText("ブロック得点")).toBeInTheDocument();
-    expect(screen.getByText("Aパス率")).toBeInTheDocument();
-    expect(screen.getByText("スパイク決定率")).toBeInTheDocument();
+    const teamStats = screen.getByRole("region", { name: "チームスタッツ" });
+    expect(within(teamStats).getByText("アタック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("Aパス率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("スパイク決定率")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "勝敗を分けた要因" }),
     ).toBeInTheDocument();

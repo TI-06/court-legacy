@@ -151,6 +151,8 @@ export function MatchResultStats({
   const userIsHome = match.homeSchoolId === userSchoolId;
   const user = userIsHome ? summary.home : summary.away;
   const opponent = userIsHome ? summary.away : summary.home;
+  const userName = userIsHome ? homeName : awayName;
+  const opponentName = userIsHome ? awayName : homeName;
   const mvpTeamName = teamNameFor(
     summary.mvp.schoolId,
     match,
@@ -241,9 +243,9 @@ export function MatchResultStats({
         </div>
         <div className="match-box-score__table">
           <div className="match-box-score__header">
-            <strong>あなた</strong>
+            <strong>{userName}</strong>
             <span>項目</span>
-            <strong>相手</strong>
+            <strong>{opponentName}</strong>
           </div>
           {rows.map(([label, userValue, opponentValue]) => (
             <div className="match-box-score__row" key={label}>
