@@ -1,3 +1,5 @@
+import "./matchRadar.css";
+
 export type TeamRatingGrade = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 
 export function ratingToGrade(value: number): TeamRatingGrade {
