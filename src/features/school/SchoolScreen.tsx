@@ -25,7 +25,7 @@ import "./school-screen.css";
 
 interface SchoolScreenProps {
   state: GameState;
-  onUpgradeFacility: (key: FacilityKey) => void;
+  onUpgradeFacility: (key: FacilityKey) => void | Promise<unknown>;
   onContractAssistantCoach?: (
     rank: AssistantCoachRank,
     specialty: AssistantCoachSpecialty | null,
@@ -89,6 +89,7 @@ export function SchoolScreen({
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
+  const [facilityUpgradePending, setFacilityUpgradePending] = useState(false);
   const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
   const [coachSpecialties, setCoachSpecialties] = useState<
     Partial<Record<AssistantCoachRank, AssistantCoachSpecialty>>
@@ -149,10 +150,20 @@ export function SchoolScreen({
       )
     : null;
 
-  const confirmUpgrade = () => {
-    if (!selectedFacility || !selectedEvaluation?.allowed) return;
-    onUpgradeFacility(selectedFacility);
-    setSelectedFacility(null);
+  const confirmUpgrade = async () => {
+    if (
+      facilityUpgradePending ||
+      !selectedFacility ||
+      !selectedEvaluation?.allowed
+    ) {
+      return;
+    }
+    setFacilityUpgradePending(true);
+    try {
+      await onUpgradeFacility(selectedFacility);
+    } finally {
+      setFacilityUpgradePending(false);
+    }
   };
 
   const selectView = (nextView: SchoolView) => {
@@ -531,7 +542,7 @@ export function SchoolScreen({
       </BottomSheet>
 
       <BottomSheet
-        description="資金を使用して設備レベルを1上げます。"
+        description="資金を使用して設備レベルを1上げます。連続して強化できます。"
         onClose={() => setSelectedFacility(null)}
         open={Boolean(selectedDefinition && selectedEvaluation)}
         title="設備を強化"
@@ -566,11 +577,13 @@ export function SchoolScreen({
                     )
               }
               className="primary-action"
-              disabled={!selectedEvaluation.allowed}
-              onClick={confirmUpgrade}
+              disabled={facilityUpgradePending || !selectedEvaluation.allowed}
+              onClick={() => void confirmUpgrade()}
               type="button"
             >
-              {selectedEvaluation.cost}を使って強化
+              {facilityUpgradePending
+                ? "強化中…"
+                : `${selectedEvaluation.cost}を使って強化`}
             </button>
           </div>
         ) : null}
