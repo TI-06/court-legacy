@@ -6,6 +6,7 @@ import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
+import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -157,6 +158,14 @@ function MatchScreenContent({
           </article>
         </section>
 
+        <PreMatchComparison
+          state={state}
+          homeSelection={homeSelection}
+          awaySelection={awaySelection}
+          homeStrength={homeStrength}
+          awayStrength={awayStrength}
+        />
+
         <section
           className="match-prep-panel"
           aria-labelledby="match-ready-heading"
@@ -266,7 +275,7 @@ function MatchScreenContent({
             <article>
               <span>{homeShortName}</span>
               <strong>{currentEvent.score.split(" - ")[0]}</strong>
-              <small>セット {revealedHomeSets}</small>
+              <small>セット {revealedHomeSets} ・ 戦力 {homeStrength}</small>
             </article>
             <div>
               <span>
@@ -277,7 +286,7 @@ function MatchScreenContent({
             <article>
               <span>{awayShortName}</span>
               <strong>{currentEvent.score.split(" - ")[1]}</strong>
-              <small>セット {revealedAwaySets}</small>
+              <small>セット {revealedAwaySets} ・ 戦力 {awayStrength}</small>
             </article>
           </section>
 
@@ -397,6 +406,14 @@ function MatchScreenContent({
             </div>
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
+
+          <MatchResultStats
+            state={state}
+            match={result.match}
+            userSchoolId={state.userSchoolId}
+            homeName={homeShortName}
+            awayName={awayShortName}
+          />
 
           <section className="match-analysis" aria-labelledby="factor-heading">
             <div className="section-heading">
