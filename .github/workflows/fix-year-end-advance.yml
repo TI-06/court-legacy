@@ -1,0 +1,83 @@
+name: Fix year-end advance
+
+on:
+  push:
+    branches:
+      - fix/year-end-advance-week-deadlock
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/year-end-advance-week-deadlock
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Unify year-end and normal week progression
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('worker/game/applyGameAction.ts')
+          text = path.read_text()
+
+          replacements = [
+              (
+                  'import type { GameState } from "../../src/domain/model/GameState";\n',
+                  'import type { GameState } from "../../src/domain/model/GameState";\nimport type { Player } from "../../src/domain/model/Player";\n',
+              ),
+              (
+                  '''export interface AppliedGameAction {\n  state: GameState;\n  teamSelection: TeamSelection;\n  outcome?: unknown;\n}\n''',
+                  '''export interface AppliedGameAction {\n  state: GameState;\n  teamSelection: TeamSelection;\n  outcome?: unknown;\n}\n\nexport interface ApplyGameActionContext {\n  userIntake?: readonly Player[];\n}\n''',
+              ),
+              (
+                  '''function applyAdvanceWeek(\n  state: GameState,\n  teamSelection: TeamSelection,\n): AppliedGameAction {''',
+                  '''function applyAdvanceWeek(\n  state: GameState,\n  teamSelection: TeamSelection,\n  context: ApplyGameActionContext,\n): AppliedGameAction {''',
+              ),
+              (
+                  'const progression = advanceGameWeek(currentState, gameData);',
+                  '''const progression = advanceGameWeek(currentState, gameData, {\n      userIntake: context.userIntake,\n    });''',
+              ),
+              (
+                  '''export function applyGameAction(\n  snapshot: CloudGameSnapshot,\n  action: GameAction,\n): AppliedGameAction {''',
+                  '''export function applyGameAction(\n  snapshot: CloudGameSnapshot,\n  action: GameAction,\n  context: ApplyGameActionContext = {},\n): AppliedGameAction {''',
+              ),
+              (
+                  'return applyAdvanceWeek(state, teamSelection);',
+                  'return applyAdvanceWeek(state, teamSelection, context);',
+              ),
+          ]
+
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'expected applyGameAction block not found: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          path.write_text(text)
+
+          server = Path('worker/game/applyServerGameAction.ts')
+          server.write_text('''import type { Player } from "../../src/domain/model/Player";\nimport type { CloudGameSnapshot } from "../data/GameStore";\nimport type { GameAction } from "./actionSchema";\nimport {\n  applyGameAction,\n  type AppliedGameAction,\n} from "./applyGameAction";\n\nexport interface ServerGameActionContext {\n  userIntake?: readonly Player[];\n}\n\nexport function applyServerGameAction(\n  snapshot: CloudGameSnapshot,\n  action: GameAction,\n  context: ServerGameActionContext = {},\n): AppliedGameAction {\n  return applyGameAction(snapshot, action, context);\n}\n''')
+          PY
+      - name: Remove temporary workflow
+        run: rm -f .github/workflows/fix-year-end-advance.yml
+      - name: Format
+        run: npx prettier worker/game/applyGameAction.ts worker/game/applyServerGameAction.ts tests/unit/worker/yearEndCommittedRecruitAdvance.test.ts --write
+      - name: Verify
+        run: npm run verify
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix: unblock committed recruits at year-end progression'
+          git push origin HEAD:fix/year-end-advance-week-deadlock
