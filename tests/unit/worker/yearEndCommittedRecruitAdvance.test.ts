@@ -83,7 +83,7 @@ describe("year-end advance with committed recruits", () => {
     snapshot.state.weeklySchedule.practiceMatch = {
       ...snapshot.state.weeklySchedule.practiceMatch,
       scheduledOpponentId: opponent.id,
-      scheduledBy: "manual",
+      scheduledBy: "outgoing",
     };
 
     const first = applyServerGameAction(
