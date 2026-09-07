@@ -194,6 +194,24 @@ describe("calculateGrowth", () => {
     expect(gradeOne.amount).toBeGreaterThan(gradeThree.amount);
   });
 
+  it("caps the approved Lv.50 training-room growth bonus at 30 percent", () => {
+    const result = calculateGrowth({
+      baseGrowth: 10,
+      player: createPlayer(),
+      school: createSchool({
+        facilities: { ...createSchool().facilities, trainingRoom: 50 },
+      }),
+      growthType: data.growthTypes.get("growth.standard")!,
+      personality: data.personalities.get("personality.calm")!,
+    });
+
+    expect(result.modifiers).toContainEqual({
+      code: "facility",
+      label: "練習設備",
+      percent: 130,
+    });
+  });
+
   it("rewards stronger coaching and training facilities", () => {
     const weakEnvironment = calculateGrowth({
       baseGrowth: 10,

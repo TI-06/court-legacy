@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type {
+  AssistantCoachRank,
+  AssistantCoachSpecialty,
+} from "../../src/domain/model/SchoolManagement";
 import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
@@ -66,6 +70,15 @@ const facilitySchema = z.enum([
   "studyRoom",
 ]);
 
+const assistantCoachRankSchema = z.enum([
+  "beginner",
+  "intermediate",
+  "advanced",
+  "master",
+]);
+
+const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
+
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
   z
@@ -105,6 +118,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({ type: z.literal("facility-upgrade"), facility: facilitySchema })
     .strict(),
   z
+    .object({
+      type: z.literal("assistant-coach-contract"),
+      rank: assistantCoachRankSchema,
+      specialty: assistantCoachSpecialtySchema.nullable(),
+    })
+    .strict(),
+  z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
 ]);
@@ -137,6 +157,11 @@ export type GameAction =
   | { type: "advance-week" }
   | { type: "mark-notification-read"; notificationId: string }
   | { type: "facility-upgrade"; facility: FacilityKey }
+  | {
+      type: "assistant-coach-contract";
+      rank: AssistantCoachRank;
+      specialty: AssistantCoachSpecialty | null;
+    }
   | { type: "event-choice"; choiceId: string };
 
 export interface GameActionRequest {

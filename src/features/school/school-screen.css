@@ -99,7 +99,7 @@
 
 .school-segments {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   padding: 4px;
   gap: 4px;
@@ -400,10 +400,13 @@
 }
 
 .facility-tile__top strong {
-  overflow: hidden;
+  min-width: 0;
+  overflow: visible;
   font-size: 0.76rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .facility-tile__top b {
@@ -543,4 +546,146 @@
 .facility-tile {
   min-height: 62px;
   padding: 8px 9px;
+}
+
+.facility-tile__progress {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  accent-color: #2f7885;
+}
+
+.assistant-coach-current,
+.assistant-coach-none,
+.assistant-coach-card {
+  border: 1px solid #dce6e9;
+  border-radius: 14px;
+}
+
+.assistant-coach-current {
+  display: grid;
+  margin-top: 12px;
+  padding: 12px;
+  gap: 3px;
+  background: #e9f4ef;
+}
+
+.assistant-coach-current > span {
+  color: #18715e;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.assistant-coach-current > strong {
+  color: #174f5c;
+  font-size: 0.9rem;
+}
+
+.assistant-coach-current > small,
+.assistant-coach-none {
+  color: #687c85;
+  font-size: 0.68rem;
+}
+
+.assistant-coach-none {
+  margin: 12px 0 0;
+  padding: 11px;
+  background: #f5f8fa;
+}
+
+.assistant-coach-grid {
+  display: grid;
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.assistant-coach-card {
+  display: grid;
+  padding: 11px;
+  gap: 9px;
+  background: #f7fafb;
+}
+
+.assistant-coach-card__heading,
+.assistant-coach-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.assistant-coach-card__heading strong {
+  color: #193e48;
+  font-size: 0.8rem;
+}
+
+.assistant-coach-card__heading span {
+  color: #315f69;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.assistant-coach-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.assistant-coach-effects span {
+  padding: 4px 6px;
+  color: #47636e;
+  font-size: 0.62rem;
+  font-weight: 800;
+  background: #e6eef1;
+  border-radius: 999px;
+}
+
+.assistant-coach-specialty {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: #61747d;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.assistant-coach-specialty select {
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 8px;
+  color: #193e48;
+  background: #fff;
+  border: 1px solid #cfdde1;
+  border-radius: 9px;
+}
+
+.assistant-coach-card__footer small {
+  color: #6b7c84;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.assistant-coach-card__footer button {
+  min-height: 38px;
+  padding: 7px 11px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: #1c6977;
+  border: 0;
+  border-radius: 10px;
+}
+
+.assistant-coach-card__footer button:disabled {
+  color: #87979d;
+  background: #e1e8ea;
+}
+
+@media (max-width: 350px) {
+  .school-segments button {
+    padding-inline: 2px;
+    font-size: 0.58rem;
+  }
 }

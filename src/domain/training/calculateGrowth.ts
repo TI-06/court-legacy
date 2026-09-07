@@ -16,6 +16,10 @@ export type GrowthModifierCode =
   | "shop-training-boost"
   | "morale"
   | "trust"
+  | "assistant-coach"
+  | "assistant-coach-specialty"
+  | "assistant-coach-condition"
+  | "assistant-coach-first-year"
   | "academic";
 
 export interface GrowthModifier {
@@ -25,7 +29,14 @@ export interface GrowthModifier {
 }
 
 export type AdditionalGrowthModifier = GrowthModifier & {
-  code: "shop-training-boost" | "morale" | "trust";
+  code:
+    | "shop-training-boost"
+    | "morale"
+    | "trust"
+    | "assistant-coach"
+    | "assistant-coach-specialty"
+    | "assistant-coach-condition"
+    | "assistant-coach-first-year";
 };
 
 export interface GrowthCalculationInput {
@@ -71,6 +82,12 @@ function academicMultiplier(academic: number): number {
   return 100;
 }
 
+function trainingRoomMultiplier(level: number): number {
+  const safeLevel = Math.max(0, Math.min(50, Math.round(level)));
+  const milestoneBonus = (safeLevel >= 40 ? 5 : 0) + (safeLevel >= 50 ? 5 : 0);
+  return clampPercent(100 + safeLevel * 0.4 + milestoneBonus, 100, 130);
+}
+
 function validateAdditionalModifiers(
   modifiers: readonly AdditionalGrowthModifier[],
 ): AdditionalGrowthModifier[] {
@@ -98,11 +115,7 @@ export function calculateGrowth(
     75,
     125,
   );
-  const facility = clampPercent(
-    100 + input.school.facilities.trainingRoom * 8,
-    100,
-    140,
-  );
+  const facility = trainingRoomMultiplier(input.school.facilities.trainingRoom);
   const coach = clampPercent(
     80 + input.school.coach.development * 0.4,
     80,

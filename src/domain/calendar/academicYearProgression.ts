@@ -379,6 +379,10 @@ export function advanceAcademicYear(
     pendingEvent: null,
     recruiting: undefined,
     shopEffects: undefined,
+    schoolManagement: {
+      ...state.schoolManagement,
+      assistantCoach: null,
+    },
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
