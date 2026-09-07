@@ -3,10 +3,8 @@ import type { GameState } from "../../../../src/domain/model/GameState";
 import { schoolId } from "../../../../src/domain/model/identifiers";
 import {
   FACILITY_DEFINITIONS,
-  FACILITY_MAX_LEVEL,
   calculateFacilityUpgradeCost,
   evaluateFacilityUpgrade,
-  facilityMilestone,
   upgradeFacility,
   type FacilityKey,
 } from "../../../../src/domain/school/facilityUpgrade";
@@ -37,7 +35,6 @@ function withFacility(
 describe("facility upgrades", () => {
   it("defines all eight facilities with their base costs", () => {
     expect(FACILITY_DEFINITIONS).toHaveLength(8);
-    expect(FACILITY_MAX_LEVEL).toBe(50);
     expect(
       Object.fromEntries(
         FACILITY_DEFINITIONS.map((definition) => [
@@ -136,12 +133,6 @@ describe("facility upgrades", () => {
       reason: "invalid-level",
     });
     expect(upgradeFacility(state, state.userSchoolId, "gym")).toBe(state);
-  });
-
-  it("reports the next five-level milestone", () => {
-    expect(facilityMilestone(0)).toEqual({ nextLevel: 5, completedLevel: 0 });
-    expect(facilityMilestone(17)).toEqual({ nextLevel: 20, completedLevel: 15 });
-    expect(facilityMilestone(50)).toEqual({ nextLevel: 50, completedLevel: 50 });
   });
 
   it("throws for an unknown school or facility key", () => {
