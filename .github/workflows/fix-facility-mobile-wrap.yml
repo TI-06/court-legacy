@@ -19,21 +19,8 @@ jobs:
           from pathlib import Path
           path = Path('src/features/school/school-screen.css')
           text = path.read_text()
-          old = '''.facility-tile__top strong {
-  overflow: hidden;
-  font-size: 0.76rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}'''
-          new = '''.facility-tile__top strong {
-  min-width: 0;
-  overflow: visible;
-  font-size: 0.76rem;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  text-overflow: clip;
-  white-space: normal;
-}'''
+          old = ".facility-tile__top strong {\n  overflow: hidden;\n  font-size: 0.76rem;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}"
+          new = ".facility-tile__top strong {\n  min-width: 0;\n  overflow: visible;\n  font-size: 0.76rem;\n  line-height: 1.25;\n  overflow-wrap: anywhere;\n  text-overflow: clip;\n  white-space: normal;\n}"
           if old in text:
               path.write_text(text.replace(old, new, 1))
           PY
