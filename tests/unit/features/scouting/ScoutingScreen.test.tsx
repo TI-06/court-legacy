@@ -203,9 +203,9 @@ describe("ScoutingScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "対象外 青木 蓮" }));
 
     expect(
-      within(screen.getByRole("region", { name: "スカウト候補一覧" })).queryByText(
-        "青木 蓮",
-      ),
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).queryByText("青木 蓮"),
     ).toBeNull();
     expect(screen.getByText("対象外 1人")).toBeVisible();
     expect(
@@ -215,9 +215,9 @@ describe("ScoutingScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "候補に戻す 青木 蓮" }));
 
     expect(
-      within(screen.getByRole("region", { name: "スカウト候補一覧" })).getByText(
-        "青木 蓮",
-      ),
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).getByText("青木 蓮"),
     ).toBeVisible();
   });
 
@@ -257,9 +257,9 @@ describe("ScoutingScreen", () => {
     );
 
     expect(
-      within(screen.getByRole("region", { name: "スカウト候補一覧" })).getByText(
-        "青木 蓮",
-      ),
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).getByText("青木 蓮"),
     ).toBeVisible();
   });
 });

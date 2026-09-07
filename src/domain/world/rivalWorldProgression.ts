@@ -415,16 +415,9 @@ function evolveFacilities(
     );
     if (candidates.length > 0) {
       const key = random.pick(candidates);
-      next[key] = Math.min(
-        RIVAL_FACILITY_MAX_LEVEL,
-        next[key] + growthStep,
-      );
+      next[key] = Math.min(RIVAL_FACILITY_MAX_LEVEL, next[key] + growthStep);
     }
-  } else if (
-    recentRating <= 38 &&
-    funds <= 150 &&
-    random.int(1, 100) <= 25
-  ) {
+  } else if (recentRating <= 38 && funds <= 150 && random.int(1, 100) <= 25) {
     const candidates = growthCandidates.filter((key) => next[key] > 0);
     if (candidates.length > 0) {
       const key = random.pick(candidates);

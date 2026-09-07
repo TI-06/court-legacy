@@ -74,7 +74,9 @@ function readExcludedCandidateIds(cycleKey: string): Set<PlayerId> {
     if (!raw) return new Set<PlayerId>();
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return new Set<PlayerId>();
-    return new Set(parsed.filter((value): value is PlayerId => typeof value === "string"));
+    return new Set(
+      parsed.filter((value): value is PlayerId => typeof value === "string"),
+    );
   } catch {
     return new Set<PlayerId>();
   }
@@ -173,11 +175,13 @@ export function ScoutingScreen({
     (item) => item.itemId === "potential-appraisal",
   );
   const activeReports = useMemo(
-    () => reports.filter((report) => !excludedCandidateIds.has(report.candidateId)),
+    () =>
+      reports.filter((report) => !excludedCandidateIds.has(report.candidateId)),
     [excludedCandidateIds, reports],
   );
   const excludedReports = useMemo(
-    () => reports.filter((report) => excludedCandidateIds.has(report.candidateId)),
+    () =>
+      reports.filter((report) => excludedCandidateIds.has(report.candidateId)),
     [excludedCandidateIds, reports],
   );
 
@@ -400,7 +404,9 @@ export function ScoutingScreen({
                     aria-label={`対象外 ${report.displayName}`}
                     className="scouting-exclude"
                     disabled={isCommitted || isRecruiting}
-                    onClick={() => setCandidateExcluded(report.candidateId, true)}
+                    onClick={() =>
+                      setCandidateExcluded(report.candidateId, true)
+                    }
                     type="button"
                   >
                     対象外
@@ -447,7 +453,9 @@ export function ScoutingScreen({
                 </div>
                 <button
                   aria-label={`候補に戻す ${report.displayName}`}
-                  onClick={() => setCandidateExcluded(report.candidateId, false)}
+                  onClick={() =>
+                    setCandidateExcluded(report.candidateId, false)
+                  }
                   type="button"
                 >
                   候補に戻す

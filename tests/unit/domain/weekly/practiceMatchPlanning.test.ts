@@ -80,7 +80,8 @@ describe("Phase 8 practice-match planning", () => {
         ...base,
         date: `2026-04-${String(day).padStart(2, "0")}` as GameDate,
       };
-      const offer = practicePlanning.buildInitialPracticePlanning(state).incomingOffer;
+      const offer =
+        practicePlanning.buildInitialPracticePlanning(state).incomingOffer;
       if (offer) offeredSchoolIds.add(offer.schoolId);
     }
 
