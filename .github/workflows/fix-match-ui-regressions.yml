@@ -1,0 +1,36 @@
+name: Fix match UI regressions
+
+on:
+  push:
+    branches:
+      - feat/game-like-match-stats-ui
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Apply focused fixes
+        run: python scripts/_fix_match_ui_regressions.py
+      - name: Format touched files
+        run: npx prettier --write src/features/match/MatchStatPanels.tsx tests/unit/features/match/MatchFlow.test.tsx
+      - name: Verify focused match tests
+        run: npx vitest run tests/unit/features/match/MatchFlow.test.tsx tests/unit/features/phase13GameLoopPolish.test.tsx tests/unit/features/match/matchPresentation.test.ts
+      - name: Remove temporary patch files
+        run: rm scripts/_fix_match_ui_regressions.py .github/workflows/fix-match-ui-regressions.yml
+      - name: Commit verified fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: stabilize volleyball match stats UI tests'
+          git push
