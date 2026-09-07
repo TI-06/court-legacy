@@ -84,8 +84,7 @@ function academicMultiplier(academic: number): number {
 
 function trainingRoomMultiplier(level: number): number {
   const safeLevel = Math.max(0, Math.min(50, Math.round(level)));
-  const milestoneBonus =
-    (safeLevel >= 40 ? 5 : 0) + (safeLevel >= 50 ? 5 : 0);
+  const milestoneBonus = (safeLevel >= 40 ? 5 : 0) + (safeLevel >= 50 ? 5 : 0);
   return clampPercent(100 + safeLevel * 0.4 + milestoneBonus, 100, 130);
 }
 
