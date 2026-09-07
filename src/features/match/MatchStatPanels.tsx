@@ -8,6 +8,7 @@ import {
   type TeamProfile,
 } from "./matchPresentation";
 import "./matchGameStats.css";
+import { ratingToGrade } from "./teamRatingGrade";
 
 interface PreMatchComparisonProps {
   state: GameState;
@@ -17,14 +18,15 @@ interface PreMatchComparisonProps {
   awayStrength: number;
 }
 
+type RadarProfileKey = "attack" | "block" | "serve" | "receive" | "teamwork";
+
 const PROFILE_ROWS = [
-  ["attack", "アタック"],
+  ["attack", "攻撃"],
   ["block", "ブロック"],
   ["serve", "サーブ"],
   ["receive", "レシーブ"],
   ["teamwork", "連携"],
-  ["stamina", "スタミナ"],
-] as const satisfies readonly [keyof TeamProfile, string][];
+] as const satisfies readonly [RadarProfileKey, string][];
 
 const PROFILE_TRAITS: Record<keyof TeamProfile, string> = {
   attack: "攻撃の決定力が高く、サイドから押し切る力があります。",
@@ -44,9 +46,91 @@ const PROFILE_TACTICS: Record<keyof TeamProfile, string> = {
   stamina: "序盤からサーブで圧力をかけ、短いラリーで得点を狙う。",
 };
 
-function strongestKeys(profile: TeamProfile): (keyof TeamProfile)[] {
+const RADAR_CENTER = 100;
+const RADAR_RADIUS = 67;
+const RADAR_LABEL_RADIUS = 88;
+
+function radarPoint(index: number, value: number, radius = RADAR_RADIUS): string {
+  const angle = -Math.PI / 2 + (index * Math.PI * 2) / PROFILE_ROWS.length;
+  const normalized = Math.max(0, Math.min(100, value)) / 100;
+  const distance = radius * normalized;
+  const x = RADAR_CENTER + Math.cos(angle) * distance;
+  const y = RADAR_CENTER + Math.sin(angle) * distance;
+  return `${x.toFixed(1)},${y.toFixed(1)}`;
+}
+
+function radarPolygon(profile: TeamProfile, scale = 1): string {
+  return PROFILE_ROWS.map(([key], index) =>
+    radarPoint(index, profile[key] * scale),
+  ).join(" ");
+}
+
+function radarGridPolygon(level: number): string {
+  return PROFILE_ROWS.map((_, index) => radarPoint(index, level)).join(" ");
+}
+
+function radarLabelPoint(index: number): { x: number; y: number } {
+  const angle = -Math.PI / 2 + (index * Math.PI * 2) / PROFILE_ROWS.length;
+  return {
+    x: RADAR_CENTER + Math.cos(angle) * RADAR_LABEL_RADIUS,
+    y: RADAR_CENTER + Math.sin(angle) * RADAR_LABEL_RADIUS,
+  };
+}
+
+function strongestKeys(profile: TeamProfile): RadarProfileKey[] {
   return PROFILE_ROWS.map(([key]) => key).sort(
     (first, second) => profile[second] - profile[first],
+  );
+}
+
+function TeamRadar({ home, away }: { home: TeamProfile; away: TeamProfile }) {
+  return (
+    <div className="match-radar">
+      <svg
+        aria-label="自校と相手の5項目戦力比較"
+        className="match-radar__chart"
+        role="img"
+        viewBox="0 0 200 200"
+      >
+        {[20, 40, 60, 80, 100].map((level) => (
+          <polygon
+            className="match-radar__grid"
+            key={level}
+            points={radarGridPolygon(level)}
+          />
+        ))}
+        {PROFILE_ROWS.map((_, index) => (
+          <line
+            className="match-radar__axis"
+            key={index}
+            x1={RADAR_CENTER}
+            x2={radarPoint(index, 100).split(",")[0]}
+            y1={RADAR_CENTER}
+            y2={radarPoint(index, 100).split(",")[1]}
+          />
+        ))}
+        <polygon className="match-radar__home" points={radarPolygon(home)} />
+        <polygon className="match-radar__away" points={radarPolygon(away)} />
+        {PROFILE_ROWS.map(([, label], index) => {
+          const point = radarLabelPoint(index);
+          return (
+            <text
+              className="match-radar__label"
+              key={label}
+              textAnchor="middle"
+              x={point.x}
+              y={point.y + 3}
+            >
+              {label}
+            </text>
+          );
+        })}
+      </svg>
+      <div className="match-radar__legend" aria-hidden="true">
+        <span className="match-radar__legend-home">自校</span>
+        <span className="match-radar__legend-away">相手</span>
+      </div>
+    </div>
   );
 }
 
@@ -80,6 +164,20 @@ export function PreMatchComparison({
         </span>
       </div>
 
+      <div className="match-power-versus" aria-label="総合戦力比較">
+        <div>
+          <small>自校</small>
+          <strong>{homeStrength}</strong>
+        </div>
+        <span>VS</span>
+        <div>
+          <small>相手</small>
+          <strong>{awayStrength}</strong>
+        </div>
+      </div>
+
+      <TeamRadar away={away} home={home} />
+
       <div className="match-profile-table">
         <div className="match-profile-table__header" aria-hidden="true">
           <strong>自校</strong>
@@ -88,15 +186,15 @@ export function PreMatchComparison({
         </div>
         {PROFILE_ROWS.map(([key, label]) => (
           <div className="match-profile-row" key={key}>
-            <strong>{home[key]}</strong>
+            <strong title={`${home[key]}`}>{ratingToGrade(home[key])}</strong>
             <div>
               <span>{label}</span>
-              <div className="match-profile-bars">
+              <div className="match-profile-bars" aria-hidden="true">
                 <i style={{ width: `${home[key]}%` }} />
                 <i style={{ width: `${away[key]}%` }} />
               </div>
             </div>
-            <strong>{away[key]}</strong>
+            <strong title={`${away[key]}`}>{ratingToGrade(away[key])}</strong>
           </div>
         ))}
       </div>
