@@ -18,7 +18,9 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - name: Apply approved integration
-        run: python .github/scripts/apply-facility-coach-integration.py
+        run: |
+          python .github/scripts/apply-facility-coach-integration.py
+          python .github/scripts/fix-facility-lv50-tests.py
       - run: npm ci --no-audit --fund=false
       - name: Format changed implementation
         run: >-
@@ -34,6 +36,8 @@ jobs:
           src/features/school/SchoolScreen.tsx
           src/features/school/school-screen.css
           tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
+          tests/unit/features/school/AppSchoolCalendarFlow.test.tsx
+          tests/unit/features/school/SchoolScreen.test.tsx
       - name: Focused regression tests
         run: >-
           npx vitest run
@@ -43,13 +47,15 @@ jobs:
           tests/unit/domain/calendar/assistantCoachYearExpiry.test.ts
           tests/unit/domain/training/assistantCoachTraining.test.ts
           tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
+          tests/unit/features/school/AppSchoolCalendarFlow.test.tsx
+          tests/unit/features/school/SchoolScreen.test.tsx
       - name: Full verification
         run: npm run verify
       - name: Commit integrated implementation
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add worker/game/actionSchema.ts worker/game/applyGameAction.ts src/domain/calendar/academicYearProgression.ts src/features/school/SchoolNavigationTabs.tsx src/features/school/SchoolScreen.tsx src/features/school/school-screen.css tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
+          git add worker/game/actionSchema.ts worker/game/applyGameAction.ts src/domain/calendar/academicYearProgression.ts src/features/school/SchoolNavigationTabs.tsx src/features/school/SchoolScreen.tsx src/features/school/school-screen.css tests/unit/features/school/AssistantCoachStaffScreen.test.tsx tests/unit/features/school/AppSchoolCalendarFlow.test.tsx tests/unit/features/school/SchoolScreen.test.tsx
           git diff --cached --check
           git commit -m "feat: integrate assistant coach contracts"
           git push origin HEAD:feat/facility-50-assistant-coach
