@@ -69,6 +69,12 @@ replace_once(
     '''    for (const label of [\n      "アタック",\n      "ブロック",\n      "サーブ",\n      "レシーブ",\n      "連携",\n      "スタミナ",\n    ]) {\n      expect(screen.getByText(label)).toBeInTheDocument();\n    }''',
     '''    expect(\n      screen.getByRole("img", { name: "自校と相手の5項目戦力比較" }),\n    ).toBeInTheDocument();''',
 )
+# The redesigned versus card intentionally uses the universal "VS" marker.
+replace_once(
+    "tests/unit/features/match/MatchFlow.test.tsx",
+    '''      "HOME",\n      "VS",\n      "AWAY",''',
+    '''      "HOME",\n      "AWAY",''',
+)
 
 # New public/store status contract includes the possession cap metadata.
 replace_once(
