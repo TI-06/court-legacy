@@ -93,6 +93,7 @@ export function generateServerScoutingCandidateAtIndex(
   state: GameState,
   index: number,
   excludedFullNames: ReadonlySet<string> = defaultExcludedFullNames(state),
+  tierOverrides: ReadonlyMap<number, RecruitTier> = new Map(),
 ): ScoutingCandidateTruth {
   if (!Number.isSafeInteger(index) || index < 1) {
     throw new Error("scouting candidate index must be a positive integer");
@@ -104,7 +105,10 @@ export function generateServerScoutingCandidateAtIndex(
   let candidate: ScoutingCandidateTruth | null = null;
 
   for (let currentIndex = 1; currentIndex <= index; currentIndex += 1) {
-    const tier = selectRecruitTier(probabilities, random);
+    // Always consume the normal tier roll so later candidate generation keeps the
+    // same deterministic random stream even when a shop item forces one tier.
+    const rolledTier = selectRecruitTier(probabilities, random);
+    const tier = tierOverrides.get(currentIndex) ?? rolledTier;
     const player = generatePlayer({
       id: playerId(
         `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
