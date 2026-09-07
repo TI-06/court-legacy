@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { beforeEach, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { playerId } from "../../../../src/domain/model/identifiers";
 import type { ScoutReport } from "../../../../src/domain/scouting/scoutReport";
@@ -48,6 +48,10 @@ function stateWithCommitted(candidateIds: (typeof candidateA)[] = []) {
 }
 
 describe("ScoutingScreen", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it("renders only the public scouting report fields with Japanese labels", () => {
     render(
       <ScoutingScreen
@@ -177,5 +181,87 @@ describe("ScoutingScreen", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "再試行" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("moves unwanted candidates out of the active list and can restore them", () => {
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={stateWithCommitted()}
+      />,
+    );
+
+    const activeList = screen.getByRole("region", { name: "スカウト候補一覧" });
+    expect(within(activeList).getByText("青木 蓮")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "対象外 青木 蓮" }));
+
+    expect(
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).queryByText("青木 蓮"),
+    ).toBeNull();
+    const excludedSummary = screen.getByText("対象外 1人");
+    expect(excludedSummary).toBeVisible();
+    fireEvent.click(excludedSummary);
+    expect(
+      screen.getByRole("button", { name: "候補に戻す 青木 蓮" }),
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "候補に戻す 青木 蓮" }));
+
+    expect(
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).getByText("青木 蓮"),
+    ).toBeVisible();
+  });
+
+  it("scopes exclusions to the current recruiting year", () => {
+    const state = stateWithCommitted();
+    const view = render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "対象外 青木 蓮" }));
+
+    const nextYearState = {
+      ...state,
+      yearIndex: state.yearIndex + 1,
+      recruiting: undefined,
+    };
+    view.rerender(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={nextYearState}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).getByText("青木 蓮"),
+    ).toBeVisible();
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import type { GameDate } from "../../../../src/domain/model/identifiers";
 import { calculateTournamentSchoolStrength } from "../../../../src/domain/tournament/createOfficialSeason";
 import {
   advanceOfficialTournamentsThroughWeek,
@@ -63,6 +64,28 @@ describe("Phase 8 practice-match planning", () => {
       "national-regular": 1.1,
       elite: 1.15,
     });
+  });
+
+  it("rotates incoming offers among similarly suitable schools over time", () => {
+    const base = createDemoGame();
+    const home = base.schools[base.userSchoolId]!;
+    base.schools[base.userSchoolId] = {
+      ...home,
+      reputation: "elite",
+    };
+    const offeredSchoolIds = new Set<string>();
+
+    for (let day = 1; day <= 28; day += 1) {
+      const state = {
+        ...base,
+        date: `2026-04-${String(day).padStart(2, "0")}` as GameDate,
+      };
+      const offer =
+        practicePlanning.buildInitialPracticePlanning(state).incomingOffer;
+      if (offer) offeredSchoolIds.add(offer.schoolId);
+    }
+
+    expect(offeredSchoolIds.size).toBeGreaterThan(1);
   });
 
   it("maps opponent strength ratios to the exact five display ratings", () => {

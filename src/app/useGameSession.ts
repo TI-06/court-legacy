@@ -11,7 +11,12 @@ import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 
 export type OperationState =
   | { status: "idle" }
-  | { status: "submitting"; label: string; operationId: string }
+  | {
+      status: "submitting";
+      label: string;
+      operationId: string;
+      blocking: boolean;
+    }
   | { status: "success"; label: string }
   | { status: "offline"; label: string; retry: () => void }
   | { status: "error"; label: string; retry: () => void };
@@ -43,6 +48,10 @@ function isNetworkAmbiguous(error: unknown): boolean {
 
 function isServerAmbiguous(error: unknown): boolean {
   return error instanceof ApiError && (error.status ?? 0) >= 500;
+}
+
+function isBlockingAction(action: GameAction): boolean {
+  return action.type !== "facility-upgrade";
 }
 
 export function useGameSession({
@@ -97,6 +106,7 @@ export function useGameSession({
       status: "submitting",
       label,
       operationId: request.operationId,
+      blocking: isBlockingAction(request.action),
     });
 
     try {

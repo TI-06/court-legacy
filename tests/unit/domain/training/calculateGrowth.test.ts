@@ -120,6 +120,21 @@ function createSchool(overrides: Partial<School> = {}): School {
   };
 }
 
+function abilities(value: number): Player["abilities"] {
+  return {
+    spike: value,
+    jump: value,
+    receive: value,
+    serve: value,
+    set: value,
+    block: value,
+    speed: value,
+    stamina: value,
+    decision: value,
+    mental: value,
+  };
+}
+
 describe("calculateGrowth", () => {
   it("returns integer growth with an explainable modifier breakdown", () => {
     const result = calculateGrowth({
@@ -235,6 +250,59 @@ describe("calculateGrowth", () => {
     });
 
     expect(strongEnvironment.amount).toBeGreaterThan(weakEnvironment.amount);
+  });
+
+  it("slows growth sharply after a player reaches the nineties", () => {
+    const common = {
+      baseGrowth: 40,
+      school: createSchool({
+        coach: { ...createSchool().coach, development: 80 },
+        facilities: { ...createSchool().facilities, trainingRoom: 20 },
+      }),
+      growthType: data.growthTypes.get("growth.standard")!,
+      personality: data.personalities.get("personality.calm")!,
+    };
+    const developing = calculateGrowth({
+      ...common,
+      player: createPlayer({
+        abilities: abilities(75),
+        potential: 70,
+        academic: 80,
+        condition: 100,
+      }),
+    });
+    const advanced = calculateGrowth({
+      ...common,
+      player: createPlayer({
+        abilities: abilities(92),
+        potential: 70,
+        academic: 80,
+        condition: 100,
+      }),
+    });
+
+    expect(developing.amount).toBeGreaterThan(advanced.amount);
+    expect(advanced.amount).toBeGreaterThanOrEqual(0);
+  });
+
+  it("stops routine training growth once the potential-derived ceiling is reached", () => {
+    const result = calculateGrowth({
+      baseGrowth: 80,
+      player: createPlayer({
+        abilities: abilities(96),
+        potential: 60,
+        academic: 80,
+        condition: 100,
+      }),
+      school: createSchool({
+        coach: { ...createSchool().coach, development: 100 },
+        facilities: { ...createSchool().facilities, trainingRoom: 50 },
+      }),
+      growthType: data.growthTypes.get("growth.standard")!,
+      personality: data.personalities.get("personality.calm")!,
+    });
+
+    expect(result.amount).toBe(0);
   });
 
   it("ignores legacy fatigue while keeping academic restriction active", () => {

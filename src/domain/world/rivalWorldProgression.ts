@@ -23,6 +23,7 @@ export const MAX_GENERATIONAL_TALENTS = 64;
 const DESTINY_RIVAL_THRESHOLD = 60;
 const RIVALRY_SCORE_LIMIT = 100;
 const SEASON_RATING_WINDOW = 3;
+const RIVAL_FACILITY_MAX_LEVEL = 50;
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, Math.round(value)));
@@ -266,6 +267,10 @@ function abilityAverage(player: Player): number {
   );
 }
 
+function normalizedFacilityRating(level: number): number {
+  return Math.max(0, Math.min(RIVAL_FACILITY_MAX_LEVEL, level)) / 50;
+}
+
 function teamRating(
   school: School,
   players: Readonly<Record<PlayerId, Player>>,
@@ -280,16 +285,16 @@ function teamRating(
     topPlayers.reduce((total, player) => total + abilityAverage(player), 0) /
     Math.max(1, topPlayers.length);
   const facilityStrength =
-    (school.facilities.gym +
-      school.facilities.trainingRoom +
-      school.facilities.analysisRoom +
-      school.facilities.recoveryRoom) *
-    1.5;
+    (normalizedFacilityRating(school.facilities.gym) +
+      normalizedFacilityRating(school.facilities.trainingRoom) +
+      normalizedFacilityRating(school.facilities.analysisRoom) +
+      normalizedFacilityRating(school.facilities.recoveryRoom)) *
+    4.5;
 
   return clamp(
-    playerStrength * 0.7 +
-      school.coach.tactics * 0.12 +
-      school.coach.development * 0.1 +
+    playerStrength * 0.72 +
+      school.coach.tactics * 0.11 +
+      school.coach.development * 0.09 +
       school.coach.leadership * 0.08 +
       facilityStrength,
     0,
@@ -303,22 +308,25 @@ function developRivalPlayer(
   priorityAbilities: readonly (keyof PlayerAbilities)[],
   random: RandomSource,
 ): Player {
-  const developmentLevel =
-    1 +
-    Math.floor(
-      (school.coach.development +
-        school.facilities.trainingRoom * 10 +
-        school.facilities.gym * 5) /
-        55,
-    );
+  const facilityDevelopment =
+    normalizedFacilityRating(school.facilities.trainingRoom) * 35 +
+    normalizedFacilityRating(school.facilities.gym) * 18;
+  const developmentLevel = clamp(
+    1 + Math.floor((school.coach.development + facilityDevelopment) / 60),
+    1,
+    3,
+  );
   const gradeBonus = player.grade === 2 ? 1 : 0;
   const abilities = { ...player.abilities };
+  const overall = abilityAverage(player);
+  const longTermScale = overall >= 95 ? 0.2 : overall >= 90 ? 0.45 : 1;
 
   for (const ability of ABILITY_KEYS) {
     const prioritized = priorityAbilities.includes(ability);
-    const growth = prioritized
-      ? developmentLevel + gradeBonus + 1 + random.int(0, 1)
+    const rawGrowth = prioritized
+      ? developmentLevel + gradeBonus + random.int(0, 1)
       : Math.max(0, Math.floor(developmentLevel / 2) + random.int(0, 1));
+    const growth = Math.max(0, Math.round(rawGrowth * longTermScale));
     abilities[ability] = clampAbility(abilities[ability] + growth);
   }
 
@@ -363,7 +371,7 @@ function maybePromoteIntakeProspect(
     2 +
       Math.floor(school.reputationPoints / 80) +
       Math.floor(school.coach.scouting / 12) +
-      school.facilities.scoutingNetwork * 3,
+      Math.floor(school.facilities.scoutingNetwork * 0.6),
     2,
     30,
   );
@@ -372,14 +380,11 @@ function maybePromoteIntakeProspect(
     : player;
 }
 
-function facilityTotal(facilities: SchoolFacilities): number {
-  return Object.values(facilities).reduce((total, level) => total + level, 0);
-}
-
 function evolveFacilities(
   facilities: SchoolFacilities,
   recentRating: number,
   funds: number,
+  reputationPoints: number,
   random: RandomSource,
 ): SchoolFacilities {
   const next = { ...facilities };
@@ -390,15 +395,29 @@ function evolveFacilities(
     "recoveryRoom",
     "scoutingNetwork",
   ] as const;
-  if (
-    recentRating >= 72 &&
-    funds >= 300 &&
-    random.int(1, 100) <= 45 &&
-    facilityTotal(next) < 35
-  ) {
-    const key = random.pick(growthCandidates);
-    next[key] = Math.min(5, next[key] + 1);
-  } else if (recentRating <= 42 && funds <= 180 && random.int(1, 100) <= 30) {
+
+  let growthStep = 0;
+  let growthChance = 0;
+  if (recentRating >= 88 && reputationPoints >= 700 && funds >= 600) {
+    growthStep = 3;
+    growthChance = 100;
+  } else if (recentRating >= 76 && reputationPoints >= 400 && funds >= 400) {
+    growthStep = 2;
+    growthChance = 75;
+  } else if (recentRating >= 62 && funds >= 250) {
+    growthStep = 1;
+    growthChance = 50;
+  }
+
+  if (growthStep > 0 && random.int(1, 100) <= growthChance) {
+    const candidates = growthCandidates.filter(
+      (key) => next[key] < RIVAL_FACILITY_MAX_LEVEL,
+    );
+    if (candidates.length > 0) {
+      const key = random.pick(candidates);
+      next[key] = Math.min(RIVAL_FACILITY_MAX_LEVEL, next[key] + growthStep);
+    }
+  } else if (recentRating <= 38 && funds <= 150 && random.int(1, 100) <= 25) {
     const candidates = growthCandidates.filter((key) => next[key] > 0);
     if (candidates.length > 0) {
       const key = random.pick(candidates);
@@ -457,6 +476,7 @@ function evolveSchool(
       school.facilities,
       recentAverage,
       funds,
+      reputationPoints,
       random,
     ),
     history: {

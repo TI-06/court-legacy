@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { reputationGrade } from "../../domain/school/reputation";
@@ -62,6 +63,40 @@ function currentCycleKey(state: GameState): string {
   return `${state.userSchoolId}:year-${state.yearIndex}`;
 }
 
+function excludedStorageKey(cycleKey: string): string {
+  return `court-legacy:scouting-excluded:${cycleKey}`;
+}
+
+function readExcludedCandidateIds(cycleKey: string): Set<PlayerId> {
+  if (typeof window === "undefined") return new Set<PlayerId>();
+  try {
+    const raw = window.localStorage.getItem(excludedStorageKey(cycleKey));
+    if (!raw) return new Set<PlayerId>();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set<PlayerId>();
+    return new Set(
+      parsed.filter((value): value is PlayerId => typeof value === "string"),
+    );
+  } catch {
+    return new Set<PlayerId>();
+  }
+}
+
+function persistExcludedCandidateIds(
+  cycleKey: string,
+  candidateIds: ReadonlySet<PlayerId>,
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      excludedStorageKey(cycleKey),
+      JSON.stringify([...candidateIds]),
+    );
+  } catch {
+    // Exclusions are a presentation preference; gameplay remains usable without storage.
+  }
+}
+
 function ScoutingShopUseResult({
   presentation,
 }: {
@@ -119,8 +154,21 @@ export function ScoutingScreen({
   onUseShopItem = () => undefined,
 }: ScoutingScreenProps) {
   const school = state.schools[state.userSchoolId]!;
+  const cycleKey = currentCycleKey(state);
+  const [excludedState, setExcludedState] = useState<{
+    cycleKey: string;
+    candidateIds: Set<PlayerId>;
+  }>(() => ({
+    cycleKey,
+    candidateIds: readExcludedCandidateIds(cycleKey),
+  }));
+  const excludedCandidateIds =
+    excludedState.cycleKey === cycleKey
+      ? excludedState.candidateIds
+      : readExcludedCandidateIds(cycleKey);
+
   const committedCandidateIds =
-    state.recruiting?.cycleKey === currentCycleKey(state)
+    state.recruiting?.cycleKey === cycleKey
       ? state.recruiting.committedCandidateIds
       : [];
   const committed = new Set<PlayerId>(committedCandidateIds);
@@ -130,11 +178,35 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
+  const activeReports = useMemo(
+    () =>
+      reports.filter((report) => !excludedCandidateIds.has(report.candidateId)),
+    [excludedCandidateIds, reports],
+  );
+  const excludedReports = useMemo(
+    () =>
+      reports.filter((report) => excludedCandidateIds.has(report.candidateId)),
+    [excludedCandidateIds, reports],
+  );
 
   const selectSchoolView = (view: SchoolView) => {
     if (view === "scouting") return;
     requestSchoolViewAfterScouting(view);
     onBack();
+  };
+
+  const setCandidateExcluded = (candidateId: PlayerId, excluded: boolean) => {
+    setExcludedState((current) => {
+      const currentIds =
+        current.cycleKey === cycleKey
+          ? current.candidateIds
+          : readExcludedCandidateIds(cycleKey);
+      const next = new Set(currentIds);
+      if (excluded) next.add(candidateId);
+      else next.delete(candidateId);
+      persistExcludedCandidateIds(cycleKey, next);
+      return { cycleKey, candidateIds: next };
+    });
   };
 
   return (
@@ -171,6 +243,10 @@ export function ScoutingScreen({
             <span>獲得人数</span>
             <strong>{committedCandidateIds.length}人</strong>
           </div>
+          <div>
+            <span>対象外</span>
+            <strong>{excludedReports.length}人</strong>
+          </div>
         </div>
       </section>
 
@@ -199,9 +275,9 @@ export function ScoutingScreen({
         <ScoutingShopUseResult presentation={latestShopUseResult} />
       ) : null}
 
-      {!loading && reports.length > 0 ? (
+      {!loading && activeReports.length > 0 ? (
         <section className="scouting-list" aria-label="スカウト候補一覧">
-          {reports.map((report) => {
+          {activeReports.map((report) => {
             const isCommitted = committed.has(report.candidateId);
             const isRecruiting = recruitingCandidateId === report.candidateId;
             const buttonLabel = isCommitted
@@ -331,23 +407,71 @@ export function ScoutingScreen({
                   </div>
                 ) : null}
 
-                <button
-                  aria-label={`${buttonLabel} ${report.displayName}`}
-                  className="scouting-recruit"
-                  disabled={
-                    isCommitted ||
-                    isRecruiting ||
-                    recruitingCandidateId !== null
-                  }
-                  onClick={() => onRecruit(report.candidateId)}
-                  type="button"
-                >
-                  {buttonLabel}
-                </button>
+                <div className="scouting-candidate-actions">
+                  <button
+                    aria-label={`対象外 ${report.displayName}`}
+                    className="scouting-exclude"
+                    disabled={isCommitted || isRecruiting}
+                    onClick={() =>
+                      setCandidateExcluded(report.candidateId, true)
+                    }
+                    type="button"
+                  >
+                    対象外
+                  </button>
+                  <button
+                    aria-label={`${buttonLabel} ${report.displayName}`}
+                    className="scouting-recruit"
+                    disabled={
+                      isCommitted ||
+                      isRecruiting ||
+                      recruitingCandidateId !== null
+                    }
+                    onClick={() => onRecruit(report.candidateId)}
+                    type="button"
+                  >
+                    {buttonLabel}
+                  </button>
+                </div>
               </article>
             );
           })}
         </section>
+      ) : null}
+
+      {!loading && reports.length > 0 && activeReports.length === 0 ? (
+        <p className="scouting-empty-active">表示中の候補はいません</p>
+      ) : null}
+
+      {!loading && excludedReports.length > 0 ? (
+        <details className="scouting-excluded-list">
+          <summary>対象外 {excludedReports.length}人</summary>
+          <div className="scouting-excluded-list__items">
+            {excludedReports.map((report) => (
+              <article
+                className="scouting-excluded-card"
+                key={report.candidateId}
+              >
+                <div>
+                  <strong>{report.displayName}</strong>
+                  <span>
+                    {report.position}・現在能力 {report.estimatedOverall.min}〜
+                    {report.estimatedOverall.max}
+                  </span>
+                </div>
+                <button
+                  aria-label={`候補に戻す ${report.displayName}`}
+                  onClick={() =>
+                    setCandidateExcluded(report.candidateId, false)
+                  }
+                  type="button"
+                >
+                  候補に戻す
+                </button>
+              </article>
+            ))}
+          </div>
+        </details>
       ) : null}
     </main>
   );

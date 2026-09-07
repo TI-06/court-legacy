@@ -88,6 +88,26 @@ function trainingRoomMultiplier(level: number): number {
   return clampPercent(100 + safeLevel * 0.4 + milestoneBonus, 100, 130);
 }
 
+function averageAbility(player: Player): number {
+  const values = Object.values(player.abilities);
+  return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+function longTermDevelopmentMultiplier(player: Player): number {
+  const overall = averageAbility(player);
+  const potential = Math.max(0, Math.min(100, player.potential ?? 75));
+  const potentialCeiling = Math.max(
+    88,
+    Math.min(100, Math.round(84 + potential * 0.16)),
+  );
+
+  if (overall >= potentialCeiling) return 0;
+  if (overall >= 95) return 10;
+  if (overall >= 90) return 25;
+  if (overall >= 80) return 55;
+  return 100;
+}
+
 function validateAdditionalModifiers(
   modifiers: readonly AdditionalGrowthModifier[],
 ): AdditionalGrowthModifier[] {
@@ -123,6 +143,7 @@ export function calculateGrowth(
   );
   const condition = clampPercent(75 + input.player.condition * 0.25, 60, 100);
   const academic = academicMultiplier(input.player.academic);
+  const development = longTermDevelopmentMultiplier(input.player);
   const nonAcademicModifiers: GrowthModifier[] = [
     { code: "grade", label: "学年成長", percent: grade },
     { code: "growth-type", label: "成長タイプ", percent: growthType },
@@ -145,7 +166,9 @@ export function calculateGrowth(
   );
   const unrestrictedAmount = Math.max(
     0,
-    Math.round((input.baseGrowth * growthMultiplier) / 4),
+    Math.round(
+      ((input.baseGrowth * growthMultiplier) / 4) * (development / 100),
+    ),
   );
   const amount = Math.max(0, Math.floor(unrestrictedAmount * (academic / 100)));
 

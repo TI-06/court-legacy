@@ -1,11 +1,12 @@
 import type { OperationState } from "../../app/useGameSession";
 import "./operation-status.css";
+
 export function OperationBlockingOverlay({
   operation,
 }: {
   operation: OperationState;
 }) {
-  if (operation.status !== "submitting") return null;
+  if (operation.status !== "submitting" || !operation.blocking) return null;
   return (
     <div
       className="operation-blocking-overlay"
