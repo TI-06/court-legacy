@@ -44,7 +44,7 @@ function createMatchFixture() {
 }
 
 describe("match flow", () => {
-  it("shows Japanese preparation labels and starts a scheduled legal practice match", () => {
+  it("shows opponent power and volleyball team comparison before a scheduled match", () => {
     const fixture = createMatchFixture();
     const onStart = vi.fn();
 
@@ -63,8 +63,9 @@ describe("match flow", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(fixture.opponent.name)).toBeInTheDocument();
 
-    const homeCard = screen.getByText("自校").closest("article");
-    const awayCard = screen.getByText("相手").closest("article");
+    const versusCard = screen.getByRole("region", { name: "対戦カード" });
+    const homeCard = within(versusCard).getByText("自校").closest("article");
+    const awayCard = within(versusCard).getByText("相手").closest("article");
     expect(homeCard).not.toBeNull();
     expect(awayCard).not.toBeNull();
     expect(
@@ -73,6 +74,27 @@ describe("match flow", () => {
     expect(
       within(awayCard!).getByText(`戦力 ${fixture.awayStrength}`),
     ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("heading", { name: "チームステータス比較" }),
+    ).toBeInTheDocument();
+    for (const label of [
+      "アタック",
+      "ブロック",
+      "サーブ",
+      "レシーブ",
+      "連携",
+      "スタミナ",
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(
+      screen.getByRole("heading", { name: "相手の特徴" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "おすすめ戦術" }),
+    ).toBeInTheDocument();
+
     for (const english of [
       "PRACTICE MATCH",
       "HOME",
@@ -87,7 +109,7 @@ describe("match flow", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("reveals the immutable event log with Japanese headings and can jump to analysis", () => {
+  it("reveals the immutable event log and finishes on volleyball awards and box score", () => {
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
 
@@ -108,7 +130,7 @@ describe("match flow", () => {
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
       `1 / ${fixture.result.match.eventLog.length}`,
     );
-    expect(screen.getAllByText("セット 0")).toHaveLength(2);
+    expect(screen.getAllByText(/セット 0 ・ 戦力 \d+/)).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "次のプレー" }));
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
@@ -127,6 +149,19 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "試合結果" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "MVP" })).toBeInTheDocument();
+    expect(screen.getByText("最多得点")).toBeInTheDocument();
+    expect(screen.getByText("最多ブロック")).toBeInTheDocument();
+    expect(screen.getAllByText("サーブエース").length).toBeGreaterThan(0);
+    expect(screen.getByText("ベストレシーバー")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "チームスタッツ" }),
+    ).toBeInTheDocument();
+    const teamStats = screen.getByRole("region", { name: "チームスタッツ" });
+    expect(within(teamStats).getByText("アタック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
+    expect(within(teamStats).getByText("Aパス率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("スパイク決定率")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "勝敗を分けた要因" }),
     ).toBeInTheDocument();
