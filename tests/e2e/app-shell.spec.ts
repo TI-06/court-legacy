@@ -123,6 +123,9 @@ test("school management upgrades a facility and calendar resolves saved training
   await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
   await expect(page.getByText("資金 630")).toBeVisible();
   await expect(trainingFacility).toContainText("Lv.1");
+  await expect(facilityDialog).toBeVisible();
+  await facilityDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(facilityDialog).toBeHidden();
 
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
   await page.locator(".player-training-chip").first().click();
