@@ -26,12 +26,14 @@ jobs:
         run: |
           python3 scripts/finish_pr65.py
           python3 scripts/fix_pr65_inventory_types.py
+          python3 scripts/fix_pr65_unit_expectations.py
       - name: Format repository
         run: npm run format
       - name: Remove temporary finishing helpers
         run: |
           rm scripts/finish_pr65.py
           rm scripts/fix_pr65_inventory_types.py
+          rm scripts/fix_pr65_unit_expectations.py
           rm .github/workflows/pr65-finish.yml
       - name: Verify repository
         run: npm run verify
