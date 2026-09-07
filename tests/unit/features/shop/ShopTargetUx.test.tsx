@@ -32,6 +32,7 @@ function shopStatusWithOwned(
         priceYen: 0,
         annualPurchaseLimit: item.annualPurchaseLimit,
         annualUseLimit: item.annualUseLimit,
+        inventoryLimit: item.inventoryLimit,
         purchasedCount: owned ? 1 : 0,
         usedCount: 0,
         quantityOwned: owned ? 1 : 0,
@@ -88,11 +89,11 @@ describe("Phase 5 targeted shop UX", () => {
         onRetry={vi.fn()}
         onUse={onUse}
         state={state}
+        view="inventory"
         status={shopStatusWithOwned(["fatigue-recovery"])}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
     fireEvent.click(screen.getByRole("button", { name: "疲労回復を使用" }));
 
     expect(
@@ -134,11 +135,11 @@ describe("Phase 5 targeted shop UX", () => {
         onRetry={vi.fn()}
         onUse={onUse}
         state={state}
+        view="inventory"
         status={shopStatusWithOwned(["special-coach"])}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
     fireEvent.click(screen.getByRole("button", { name: "特別コーチを使用" }));
 
     expect(

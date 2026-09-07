@@ -78,16 +78,9 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "チームステータス比較" }),
     ).toBeInTheDocument();
-    for (const label of [
-      "アタック",
-      "ブロック",
-      "サーブ",
-      "レシーブ",
-      "連携",
-      "スタミナ",
-    ]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
+    expect(
+      screen.getByRole("img", { name: "自校と相手の5項目戦力比較" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "相手の特徴" }),
     ).toBeInTheDocument();
@@ -95,13 +88,7 @@ describe("match flow", () => {
       screen.getByRole("heading", { name: "おすすめ戦術" }),
     ).toBeInTheDocument();
 
-    for (const english of [
-      "PRACTICE MATCH",
-      "HOME",
-      "VS",
-      "AWAY",
-      "LINEUP CHECK",
-    ]) {
+    for (const english of ["PRACTICE MATCH", "HOME", "AWAY", "LINEUP CHECK"]) {
       expect(screen.queryByText(english)).toBeNull();
     }
 

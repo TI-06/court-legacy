@@ -62,6 +62,7 @@ function createShopStatus(revision = 1): ShopStatusResponse {
       priceYen: 0,
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
+      inventoryLimit: item.inventoryLimit,
       purchasedCount: 0,
       usedCount: 0,
       quantityOwned: 0,
@@ -152,6 +153,7 @@ describe("GameApp shop flow", () => {
       .fn<NonNullable<GameApiClient["getShop"]>>()
       .mockResolvedValueOnce(initialStatus)
       .mockResolvedValueOnce(purchasedStatus)
+      .mockResolvedValueOnce(purchasedStatus)
       .mockResolvedValueOnce(usedStatus);
     const purchaseShopItem = vi.fn<
       NonNullable<GameApiClient["purchaseShopItem"]>
@@ -211,7 +213,11 @@ describe("GameApp shop flow", () => {
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("購入しました ✓")).toBeVisible();
 
+    fireEvent.click(screen.getByRole("button", { name: "その他へ戻る" }));
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
+    expect(
+      await screen.findByRole("heading", { name: "所持品" }),
+    ).toBeVisible();
     fireEvent.click(
       await screen.findByRole("button", { name: "強化合宿を使用" }),
     );
@@ -226,11 +232,9 @@ describe("GameApp shop flow", () => {
       }),
     );
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(4));
     expect(await screen.findByText("使用しました ✓")).toBeVisible();
-    expect(
-      await screen.findByText("今年度の所持アイテムはありません。"),
-    ).toBeVisible();
+    expect(await screen.findByText("所持アイテムはありません。")).toBeVisible();
   });
 
   it("reloads the authoritative state after a revision conflict without replaying the purchase", async () => {

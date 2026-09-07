@@ -50,7 +50,11 @@ const RADAR_CENTER = 100;
 const RADAR_RADIUS = 67;
 const RADAR_LABEL_RADIUS = 88;
 
-function radarPoint(index: number, value: number, radius = RADAR_RADIUS): string {
+function radarPoint(
+  index: number,
+  value: number,
+  radius = RADAR_RADIUS,
+): string {
   const angle = -Math.PI / 2 + (index * Math.PI * 2) / PROFILE_ROWS.length;
   const normalized = Math.max(0, Math.min(100, value)) / 100;
   const distance = radius * normalized;

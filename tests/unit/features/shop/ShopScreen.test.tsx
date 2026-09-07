@@ -9,29 +9,33 @@ function createStatus(): ShopStatusResponse {
   return {
     revision: 8,
     academicYearIndex: 4,
-    items: PHASE5_SHOP_ITEMS.map((item, index) => ({
-      itemId: item.itemId,
-      displayName: item.displayName,
-      description: item.description,
-      priceYen: 0,
-      annualPurchaseLimit: item.annualPurchaseLimit,
-      annualUseLimit: item.annualUseLimit,
-      purchasedCount:
-        item.itemId === "funds-grant-300"
+    items: PHASE5_SHOP_ITEMS.map((item) => {
+      const isExtra = item.itemId === "extra-scout-candidate";
+      const isFatigue = item.itemId === "fatigue-recovery";
+      const isFund300 = item.itemId === "funds-grant-300";
+      return {
+        itemId: item.itemId,
+        displayName: item.displayName,
+        description: item.description,
+        priceYen: 0,
+        annualPurchaseLimit: item.annualPurchaseLimit,
+        annualUseLimit: item.annualUseLimit,
+        inventoryLimit: item.inventoryLimit,
+        purchasedCount: isFund300
           ? 1
-          : index === 0
+          : isExtra
             ? item.annualPurchaseLimit
-            : index === 4
+            : isFatigue
               ? 2
               : 0,
-      usedCount: index === 4 ? 1 : 0,
-      quantityOwned:
-        item.itemId === "funds-grant-300" ? 0 : index === 4 ? 2 : 0,
-      canPurchase: index !== 0,
-      purchaseBlockedReason: index === 0 ? "purchase_limit_reached" : null,
-      canUse: index === 4,
-      useBlockedReason: index === 4 ? null : "inventory_empty",
-    })),
+        usedCount: isFatigue ? 1 : 0,
+        quantityOwned: isFatigue ? 2 : 0,
+        canPurchase: !isExtra,
+        purchaseBlockedReason: isExtra ? "purchase_limit_reached" : null,
+        canUse: isFatigue,
+        useBlockedReason: isFatigue ? null : "inventory_empty",
+      };
+    }),
   };
 }
 
@@ -42,6 +46,7 @@ function renderShop(
     status: createStatus(),
     loading: false,
     error: null,
+    view: "products",
     pendingAction: null,
     pendingItemId: null,
     resultMessage: null,
@@ -69,25 +74,22 @@ describe("ShopScreen", () => {
     );
   });
 
-  it("renders all zero-yen products with annual limits and blocked purchase reasons", () => {
+  it("renders the shop as purchase-only with annual limits", () => {
     renderShop();
 
-    expect(screen.getByRole("button", { name: "商品" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "所持品" })).toBeVisible();
-
+    expect(screen.queryByRole("button", { name: "商品" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "所持品" })).toBeNull();
     for (const item of PHASE5_SHOP_ITEMS) {
       expect(screen.getByText(item.displayName)).toBeVisible();
     }
     expect(screen.getAllByText("¥0")).toHaveLength(PHASE5_SHOP_ITEMS.length);
     expect(screen.getByText("今年度の上限に達しました")).toBeVisible();
-    expect(screen.getByText("購入 1 / 1")).toBeVisible();
+    expect(screen.getByText("購入 5 / 5")).toBeVisible();
     expect(screen.getByText("所持 2")).toBeVisible();
+    expect(screen.getByText(/購入\/使用上限は年度ごとに更新/)).toBeVisible();
   });
 
-  it("renders fund grants as immediate claims and keeps them out of inventory", () => {
+  it("renders fund grants as immediate claims", () => {
     const props = renderShop();
 
     expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
@@ -97,9 +99,6 @@ describe("ShopScreen", () => {
     expect(button).toHaveTextContent("¥0で受け取る");
     fireEvent.click(button);
     expect(props.onPurchase).toHaveBeenCalledWith("funds-grant-300");
-
-    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
-    expect(screen.queryByText("資金 +300")).not.toBeInTheDocument();
   });
 
   it("does not reuse a previous fund grant message for a later shop action", () => {
@@ -110,6 +109,7 @@ describe("ShopScreen", () => {
       status: createStatus(),
       loading: false,
       error: null,
+      view: "products",
       state,
       resultMessage: null,
       onBack: vi.fn(),
@@ -132,15 +132,17 @@ describe("ShopScreen", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows only owned items in inventory and delegates use actions", () => {
-    const props = renderShop();
+  it("renders the peer inventory screen with carried owned items only", () => {
+    const props = renderShop({ view: "inventory" });
 
-    fireEvent.click(screen.getByRole("button", { name: "所持品" }));
-
+    expect(screen.getByRole("heading", { name: "所持品" })).toBeVisible();
+    expect(screen.getByText("未使用アイテムは持ち越し可")).toBeVisible();
     expect(screen.getByText("疲労回復")).toBeVisible();
     expect(screen.getByText("×2")).toBeVisible();
-    expect(screen.getByText("今年度のみ有効")).toBeVisible();
+    expect(screen.getByText("翌年度以降も持ち越し可")).toBeVisible();
     expect(screen.queryByText("強化合宿")).not.toBeInTheDocument();
+    expect(screen.queryByText("資金 +300")).not.toBeInTheDocument();
+    expect(screen.queryByText("今年度のみ有効")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "疲労回復を使用" }));
     expect(props.onUse).toHaveBeenCalledWith("fatigue-recovery");

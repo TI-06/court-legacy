@@ -47,6 +47,7 @@ function emptyStatus(): ShopStatusResponse {
       priceYen: 0,
       annualPurchaseLimit: item.annualPurchaseLimit,
       annualUseLimit: item.annualUseLimit,
+      inventoryLimit: item.inventoryLimit,
       purchasedCount: 0,
       usedCount: 0,
       quantityOwned: 0,

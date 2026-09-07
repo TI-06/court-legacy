@@ -182,7 +182,9 @@ async function resolveExtraCandidate(
     tierOverrides,
   );
   if (
-    pool.candidates.some((candidate) => candidate.player.id === generated.player.id)
+    pool.candidates.some(
+      (candidate) => candidate.player.id === generated.player.id,
+    )
   ) {
     throw new ShopUseResolutionError("scouting_cycle_unavailable");
   }

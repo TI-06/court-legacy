@@ -457,3 +457,141 @@
     white-space: normal;
   }
 }
+
+.match-power-versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px;
+  gap: 10px;
+  text-align: center;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 14px;
+}
+
+.match-power-versus > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-power-versus small {
+  color: #8fb8c2;
+  font-size: 0.56rem;
+  font-weight: 850;
+}
+
+.match-power-versus strong {
+  color: #fff;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.match-power-versus > div:first-child strong {
+  color: #6de2e2;
+}
+
+.match-power-versus > div:last-child strong {
+  color: #ffd17a;
+}
+
+.match-power-versus > span {
+  color: #8faeb5;
+  font-size: 0.6rem;
+  font-weight: 950;
+}
+
+.match-radar {
+  display: grid;
+  justify-items: center;
+  margin-top: 10px;
+  padding: 8px 6px 10px;
+  background: rgb(2 20 29 / 24%);
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 14px;
+}
+
+.match-radar__chart {
+  display: block;
+  width: min(100%, 270px);
+  height: auto;
+  overflow: visible;
+}
+
+.match-radar__grid {
+  fill: none;
+  stroke: rgb(186 218 224 / 17%);
+  stroke-width: 1;
+}
+
+.match-radar__axis {
+  stroke: rgb(186 218 224 / 14%);
+  stroke-width: 1;
+}
+
+.match-radar__home {
+  fill: rgb(65 211 213 / 19%);
+  stroke: #5de0e1;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.match-radar__away {
+  fill: rgb(236 183 74 / 16%);
+  stroke: #efbd58;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.match-radar__label {
+  fill: #d8e9ec;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.match-radar__legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: -2px;
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.match-radar__legend span::before {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 999px;
+  content: "";
+}
+
+.match-radar__legend-home {
+  color: #86e6e6;
+}
+
+.match-radar__legend-home::before {
+  background: #5de0e1;
+}
+
+.match-radar__legend-away {
+  color: #f2cf8a;
+}
+
+.match-radar__legend-away::before {
+  background: #efbd58;
+}
+
+@media (max-width: 380px) {
+  .match-radar__chart {
+    width: min(100%, 240px);
+  }
+
+  .match-power-versus {
+    padding: 8px;
+    gap: 7px;
+  }
+}

@@ -33,6 +33,7 @@ const shopStatus: ShopStatusResponse = {
       priceYen: 0,
       annualPurchaseLimit: 2,
       annualUseLimit: 2,
+      inventoryLimit: null,
       purchasedCount: 1,
       usedCount: 0,
       quantityOwned: 1,

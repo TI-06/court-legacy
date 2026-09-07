@@ -143,6 +143,7 @@ export class StaticShopHarness {
           priceYen: definition.priceYen,
           annualPurchaseLimit: definition.annualPurchaseLimit,
           annualUseLimit: definition.annualUseLimit,
+          inventoryLimit: definition.inventoryLimit,
           purchasedCount: item.purchasedCount,
           usedCount: item.usedCount,
           quantityOwned: item.quantityOwned,

@@ -69,7 +69,7 @@ interface GameAppProps {
   api: GameApiClient;
 }
 
-type MoreView = "menu" | "shop";
+type MoreView = "menu" | "shop" | "inventory";
 type MatchView = "practice" | "pvp";
 type OfficialTournamentView = {
   circuit: TournamentCircuit;
@@ -697,7 +697,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           scoutingOpen &&
           (request.itemId === "scout-research" ||
             request.itemId === "potential-appraisal" ||
-            request.itemId === "extra-scout-candidate")
+            request.itemId === "extra-scout-candidate" ||
+            request.itemId === "generational-scout-candidate")
         ) {
           const refreshedReports = await loadScoutingBoard(response.revision);
           if (scoutingCandidateId) {
@@ -759,6 +760,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const openShop = () => {
     setMoreView("shop");
+    setShopResultMessage(null);
+    setLatestShopUseResult(null);
+    setShopRetryRequest(null);
+    void loadShop();
+  };
+
+  const openInventory = () => {
+    setMoreView("inventory");
     setShopResultMessage(null);
     setLatestShopUseResult(null);
     setShopRetryRequest(null);
@@ -958,7 +967,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           />
         ) : null}
       </div>
-    ) : moreView === "shop" ? (
+    ) : moreView === "shop" || moreView === "inventory" ? (
       <ShopScreen
         error={shopError}
         latestUseResult={latestShopUseResult}
@@ -980,10 +989,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         retryAction={shopRetryRequest?.action ?? null}
         state={gameState}
         status={shopStatus}
+        view={moreView === "shop" ? "products" : "inventory"}
       />
     ) : (
       <MoreScreen
         accountLabel={session.email ?? "ログイン済みアカウント"}
+        onOpenInventory={openInventory}
         onOpenShop={openShop}
         onSignOut={() => void auth.signOut()}
       />

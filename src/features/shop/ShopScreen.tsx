@@ -24,6 +24,7 @@ interface ShopScreenProps {
   status: ShopStatusResponse | null;
   loading: boolean;
   error: string | null;
+  view?: ShopView;
   state?: GameState;
   pendingAction?: ShopPendingAction | null;
   pendingItemId?: ShopItemId | null;
@@ -214,12 +215,19 @@ function ShopUseResultPanel({
     );
   }
 
-  if (presentation.itemId === "extra-scout-candidate") {
+  if (
+    presentation.itemId === "extra-scout-candidate" ||
+    presentation.itemId === "generational-scout-candidate"
+  ) {
     const candidateCount = asNumber(result.candidateCount);
     if (candidateCount === null) return null;
     return (
       <section className="shop-use-result" aria-live="polite">
-        <h3>新入生候補追加の結果</h3>
+        <h3>
+          {presentation.itemId === "generational-scout-candidate"
+            ? "天才候補生追加の結果"
+            : "新入生候補追加の結果"}
+        </h3>
         <p>今年度のスカウト候補が {candidateCount}人 になりました。</p>
       </section>
     );
@@ -332,7 +340,7 @@ function InventoryCard({
       </div>
 
       <div className="shop-card__status">
-        <span>今年度のみ有効</span>
+        <span>翌年度以降も持ち越し可</span>
         <span>
           使用 {item.usedCount} / {item.annualUseLimit}
         </span>
@@ -366,6 +374,7 @@ export function ShopScreen({
   status,
   loading,
   error,
+  view = "products",
   state,
   pendingAction = null,
   pendingItemId = null,
@@ -378,7 +387,6 @@ export function ShopScreen({
   onPurchase = () => undefined,
   onUse = () => undefined,
 }: ShopScreenProps) {
-  const [view, setView] = useState<ShopView>("products");
   const [targetingItemId, setTargetingItemId] = useState<ShopItemId | null>(
     null,
   );
@@ -464,34 +472,24 @@ export function ShopScreen({
         <button onClick={onBack} type="button">
           その他へ戻る
         </button>
-        <span>テスト中 / すべて¥0</span>
+        <span>
+          {view === "products"
+            ? "テスト中 / すべて¥0"
+            : "未使用アイテムは持ち越し可"}
+        </span>
       </div>
 
       <section className="shop-screen__heading">
-        <p className="section-kicker">ショップ案内</p>
-        <h2>ショップ</h2>
-        <p>テスト期間中は、すべてのアイテムを¥0で利用できます。</p>
+        <p className="section-kicker">
+          {view === "products" ? "ショップ案内" : "アイテム管理"}
+        </p>
+        <h2>{view === "products" ? "ショップ" : "所持品"}</h2>
+        <p>
+          {view === "products"
+            ? "テスト期間中は、すべてのアイテムを¥0で購入できます。"
+            : "購入済みアイテムの確認と使用ができます。未使用分は翌年度以降も持ち越せます。"}
+        </p>
       </section>
-
-      <div aria-label="ショップ表示" className="shop-screen__tabs" role="group">
-        <button
-          aria-pressed={view === "products"}
-          onClick={() => {
-            setView("products");
-            closeTargeting();
-          }}
-          type="button"
-        >
-          商品
-        </button>
-        <button
-          aria-pressed={view === "inventory"}
-          onClick={() => setView("inventory")}
-          type="button"
-        >
-          所持品
-        </button>
-      </div>
 
       {loading ? (
         <p aria-live="polite" className="shop-screen__notice" role="status">
@@ -609,7 +607,9 @@ export function ShopScreen({
       ) : status ? (
         <>
           <p className="shop-screen__year">
-            年度 {status.academicYearIndex} ・ 所持品は年度更新で失効
+            {view === "products"
+              ? `年度 ${status.academicYearIndex} ・ 購入/使用上限は年度ごとに更新`
+              : `年度 ${status.academicYearIndex} ・ 未使用アイテムは翌年度以降も持ち越し可`}
           </p>
 
           {view === "products" ? (
@@ -637,9 +637,7 @@ export function ShopScreen({
               ))}
             </section>
           ) : (
-            <p className="shop-screen__notice">
-              今年度の所持アイテムはありません。
-            </p>
+            <p className="shop-screen__notice">所持アイテムはありません。</p>
           )}
         </>
       ) : null}

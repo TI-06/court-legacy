@@ -36,13 +36,15 @@ describe("Phase 5 shop catalog", () => {
       inventoryLimit: 5,
       targetKind: "none",
     });
-    expect(getShopItemDefinition("generational-scout-candidate")).toMatchObject({
-      displayName: "天才候補生追加",
-      annualPurchaseLimit: 1,
-      annualUseLimit: 1,
-      inventoryLimit: 1,
-      targetKind: "none",
-    });
+    expect(getShopItemDefinition("generational-scout-candidate")).toMatchObject(
+      {
+        displayName: "天才候補生追加",
+        annualPurchaseLimit: 1,
+        annualUseLimit: 1,
+        inventoryLimit: 1,
+        targetKind: "none",
+      },
+    );
   });
 
   it("defines fatigue recovery as a player item with a three-use annual limit", () => {

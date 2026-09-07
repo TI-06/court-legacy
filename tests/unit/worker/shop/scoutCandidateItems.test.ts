@@ -62,10 +62,16 @@ describe("scout candidate shop items", () => {
       expect(resolved.scoutingCandidates?.at(-1)?.player.id).toContain(
         `-${6 + useIndex}`,
       );
-      pool.candidates.splice(0, pool.candidates.length, ...(resolved.scoutingCandidates ?? []));
+      pool.candidates.splice(
+        0,
+        pool.candidates.length,
+        ...(resolved.scoutingCandidates ?? []),
+      );
     }
 
-    expect(new Set(pool.candidates.map((candidate) => candidate.player.id)).size).toBe(11);
+    expect(
+      new Set(pool.candidates.map((candidate) => candidate.player.id)).size,
+    ).toBe(11);
   });
 
   it("adds exactly one guaranteed generational (天才) candidate", async () => {
@@ -90,7 +96,9 @@ describe("scout candidate shop items", () => {
       candidateCount: 7,
       addedCandidateId: added?.player.id,
     });
-    expect(JSON.stringify(resolved.publicResult)).not.toMatch(/tier|potential|abilities/i);
+    expect(JSON.stringify(resolved.publicResult)).not.toMatch(
+      /tier|potential|abilities/i,
+    );
     expect(pool.candidates).toHaveLength(6);
   });
 });
