@@ -29,10 +29,12 @@ export interface TeamProfile {
 
 export interface TeamMatchStats {
   schoolId: SchoolId;
+  totalPoints: number;
   attackPoints: number;
   blockPoints: number;
   serviceAces: number;
-  defensePoints: number;
+  rallyPoints: number;
+  opponentErrorPoints: number;
   serveErrors: number;
   attackAttempts: number;
   receiveAttempts: number;
@@ -297,10 +299,12 @@ export function buildTeamProfile(
 function createTeamStats(schoolId: SchoolId): TeamMatchStats {
   return {
     schoolId,
+    totalPoints: 0,
     attackPoints: 0,
     blockPoints: 0,
     serviceAces: 0,
-    defensePoints: 0,
+    rallyPoints: 0,
+    opponentErrorPoints: 0,
     serveErrors: 0,
     attackAttempts: 0,
     receiveAttempts: 0,
@@ -428,30 +432,43 @@ export function buildMatchStatSummary(
       actorTeam.serveErrors += 1;
     }
 
-    if (matchEvent.type !== "point" || !actor || !actorTeam) {
+    if (matchEvent.type !== "point" || !matchEvent.winnerSchoolId) {
       continue;
     }
 
+    const scoringTeam = teamForSchool(matchEvent.winnerSchoolId);
+    scoringTeam.totalPoints += 1;
+
     switch (matchEvent.detailCode) {
       case "point.attack":
-        actor.points += 1;
-        actor.attackPoints += 1;
-        actorTeam.attackPoints += 1;
+        scoringTeam.attackPoints += 1;
+        if (actor) {
+          actor.points += 1;
+          actor.attackPoints += 1;
+        }
         break;
       case "point.block":
-        actor.points += 1;
-        actor.blockPoints += 1;
-        actorTeam.blockPoints += 1;
+        scoringTeam.blockPoints += 1;
+        if (actor) {
+          actor.points += 1;
+          actor.blockPoints += 1;
+        }
         break;
       case "point.serve-ace":
-        actor.points += 1;
-        actor.serviceAces += 1;
-        actorTeam.serviceAces += 1;
+        scoringTeam.serviceAces += 1;
+        if (actor) {
+          actor.points += 1;
+          actor.serviceAces += 1;
+        }
         break;
       case "point.defense":
-        actor.points += 1;
-        actor.defensePoints += 1;
-        actorTeam.defensePoints += 1;
+        scoringTeam.rallyPoints += 1;
+        if (actor) {
+          actor.defensePoints += 1;
+        }
+        break;
+      case "point.serve-error":
+        scoringTeam.opponentErrorPoints += 1;
         break;
       default:
         break;
@@ -493,13 +510,12 @@ export function buildMatchStatSummary(
     mvp: bestPlayerBy(
       mvpPool,
       (player) =>
-        player.points * 6 +
+        player.points * 8 +
         player.blockPoints * 2 +
         player.serviceAces * 2 +
-        player.defensePoints +
-        player.perfectReceives * 0.75 +
-        player.attackSuccessRate * 0.03 +
-        player.perfectReceiveRate * 0.02,
+        player.defensePoints * 1.5 +
+        player.perfectReceives * 0.5 +
+        player.attackSuccessRate * 0.02,
     ),
     topScorer: bestPlayerBy(players, (player) => player.points),
     topBlocker: bestPlayerBy(players, (player) => player.blockPoints),

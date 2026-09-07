@@ -163,9 +163,7 @@ describe("match flow", () => {
     expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
     expect(within(teamStats).getByText("ラリー得点")).toBeInTheDocument();
     expect(within(teamStats).getByText("相手ミス得点")).toBeInTheDocument();
-    expect(
-      within(teamStats).getByText("アタック決定率"),
-    ).toBeInTheDocument();
+    expect(within(teamStats).getByText("アタック決定率")).toBeInTheDocument();
     expect(screen.queryByText("Aパス率")).toBeNull();
     expect(
       screen.queryByRole("heading", { name: "勝敗を分けた要因" }),
