@@ -1,0 +1,49 @@
+name: Fix facility mobile wrap
+
+on:
+  push:
+    branches:
+      - feat/facility-50-assistant-coach
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message == 'chore: add temporary facility mobile wrap fixer'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply 360px facility title fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/school/school-screen.css')
+          text = path.read_text()
+          old = '''.facility-tile__top strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}'''
+          new = '''.facility-tile__top strong {
+  min-width: 0;
+  overflow: visible;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}'''
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected one facility title block, found {count}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/school/school-screen.css
+          git commit -m 'fix: wrap facility titles on narrow mobile'
+          git push
