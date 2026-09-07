@@ -1,0 +1,21 @@
+name: Red match stat integrity
+
+on:
+  push:
+    branches:
+      - fix/match-result-stat-integrity
+
+jobs:
+  red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Format regression tests locally
+        run: npx prettier tests/unit/features/match/MatchFlow.test.tsx tests/unit/features/match/matchPresentation.test.ts --write
+      - name: Run focused regression tests
+        run: npx vitest run tests/unit/features/match/matchPresentation.test.ts tests/unit/features/match/MatchFlow.test.tsx
