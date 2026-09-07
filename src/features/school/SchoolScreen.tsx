@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
+import type {
+  AssistantCoachRank,
+  AssistantCoachSpecialty,
+} from "../../domain/model/SchoolManagement";
+import {
+  ASSISTANT_COACH_OPTIONS,
+  evaluateAssistantCoachContract,
+} from "../../domain/school/assistantCoach";
 import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
@@ -18,6 +26,10 @@ import "./school-screen.css";
 interface SchoolScreenProps {
   state: GameState;
   onUpgradeFacility: (key: FacilityKey) => void;
+  onContractAssistantCoach?: (
+    rank: AssistantCoachRank,
+    specialty: AssistantCoachSpecialty | null,
+  ) => void;
   onOpenScouting?: () => void;
 }
 
@@ -28,6 +40,19 @@ const reputationLabels: Record<SchoolReputation, string> = {
   "national-qualifier": "全国出場校",
   "national-regular": "全国常連",
   elite: "全国名門",
+};
+
+const assistantCoachSpecialtyLabels: Record<AssistantCoachSpecialty, string> = {
+  attack: "攻撃",
+  defense: "守備",
+  physical: "フィジカル",
+};
+
+const assistantCoachRankLabels: Record<AssistantCoachRank, string> = {
+  beginner: "初級",
+  intermediate: "中級",
+  advanced: "上級",
+  master: "マスター",
 };
 
 function formatDate(value: string): string {
@@ -57,6 +82,7 @@ function facilityActionLabel(
 export function SchoolScreen({
   state,
   onUpgradeFacility,
+  onContractAssistantCoach,
   onOpenScouting,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
@@ -64,6 +90,9 @@ export function SchoolScreen({
     null,
   );
   const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
+  const [coachSpecialties, setCoachSpecialties] = useState<
+    Partial<Record<AssistantCoachRank, AssistantCoachSpecialty>>
+  >({});
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -113,6 +142,12 @@ export function SchoolScreen({
     ? evaluateFacilityUpgrade(state, school.id, selectedFacility)
     : null;
   const fundsHistory = [...state.schoolManagement.fundsHistory].reverse();
+  const assistantCoachContract = state.schoolManagement.assistantCoach;
+  const assistantCoachContractOption = assistantCoachContract
+    ? ASSISTANT_COACH_OPTIONS.find(
+        (option) => option.rank === assistantCoachContract.rank,
+      )
+    : null;
 
   const confirmUpgrade = () => {
     if (!selectedFacility || !selectedEvaluation?.allowed) return;
@@ -177,7 +212,7 @@ export function SchoolScreen({
               <p className="section-kicker">施設</p>
               <h3 id="facility-heading">設備を強化</h3>
             </div>
-            <span>最大 Lv.5</span>
+            <span>最大 Lv.50</span>
           </div>
           <div className="facility-grid">
             {FACILITY_DEFINITIONS.map((definition) => {
@@ -206,8 +241,14 @@ export function SchoolScreen({
                 >
                   <span className="facility-tile__top">
                     <strong>{definition.name}</strong>
-                    <b>Lv.{evaluation.currentLevel}</b>
+                    <b>Lv.{evaluation.currentLevel} / 50</b>
                   </span>
+                  <progress
+                    aria-label={`${definition.name} レベル進捗`}
+                    className="facility-tile__progress"
+                    max={50}
+                    value={evaluation.currentLevel}
+                  />
                   <small
                     className={
                       evaluation.allowed ? undefined : "facility-tile__warning"
@@ -219,6 +260,125 @@ export function SchoolScreen({
                     詳細 ›
                   </span>
                 </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {view === "staff" ? (
+        <section className="school-panel" aria-labelledby="staff-heading">
+          <div className="school-section-heading">
+            <div>
+              <p className="section-kicker">年間契約</p>
+              <h3 id="staff-heading">スタッフ</h3>
+            </div>
+            <span>年度更新で契約終了</span>
+          </div>
+
+          {assistantCoachContract && assistantCoachContractOption ? (
+            <div
+              className="assistant-coach-current"
+              data-testid="assistant-coach-current"
+            >
+              <span>契約中</span>
+              <strong>
+                {assistantCoachRankLabels[assistantCoachContract.rank]}
+                {assistantCoachContract.specialty
+                  ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
+                  : "・総合"}
+              </strong>
+              <small>
+                {state.calendar.academicYear}年度・全体成長 +
+                {assistantCoachContractOption.generalPercent - 100}%
+              </small>
+            </div>
+          ) : (
+            <p className="assistant-coach-none">現在契約中のコーチはいません</p>
+          )}
+
+          <div className="assistant-coach-grid">
+            {ASSISTANT_COACH_OPTIONS.map((option) => {
+              const specialty =
+                option.rank === "beginner"
+                  ? null
+                  : (coachSpecialties[option.rank] ?? null);
+              const evaluation = evaluateAssistantCoachContract(
+                state,
+                option.rank,
+                specialty,
+              );
+              const missingFunds = Math.max(
+                0,
+                option.annualCost - school.funds,
+              );
+              return (
+                <article
+                  className="assistant-coach-card"
+                  data-testid={`assistant-coach-${option.rank}`}
+                  key={option.rank}
+                >
+                  <div className="assistant-coach-card__heading">
+                    <strong>{option.name}</strong>
+                    <span>年間 {option.annualCost}</span>
+                  </div>
+                  <div className="assistant-coach-effects">
+                    <span>全体 +{option.generalPercent - 100}%</span>
+                    {option.specialtyPercent ? (
+                      <span>専門 +{option.specialtyPercent - 100}%</span>
+                    ) : (
+                      <span>総合指導</span>
+                    )}
+                    {option.conditionPercent ? (
+                      <span>低調子 +{option.conditionPercent - 100}%</span>
+                    ) : null}
+                    {option.firstYearPercent ? (
+                      <span>1年生 +{option.firstYearPercent - 100}%</span>
+                    ) : null}
+                  </div>
+                  {option.rank !== "beginner" ? (
+                    <label className="assistant-coach-specialty">
+                      専門
+                      <select
+                        aria-label={`${option.name}の専門`}
+                        onChange={(event) =>
+                          setCoachSpecialties((current) => ({
+                            ...current,
+                            [option.rank]: event.target
+                              .value as AssistantCoachSpecialty,
+                          }))
+                        }
+                        value={specialty ?? ""}
+                      >
+                        <option value="">選択してください</option>
+                        <option value="attack">攻撃</option>
+                        <option value="defense">守備</option>
+                        <option value="physical">フィジカル</option>
+                      </select>
+                    </label>
+                  ) : null}
+                  <div className="assistant-coach-card__footer">
+                    <small>
+                      {evaluation.reason === "insufficient-funds"
+                        ? `あと${missingFunds}必要`
+                        : evaluation.reason === "specialty-required"
+                          ? "専門を選択してください"
+                          : `契約後 ${evaluation.fundsAfter}`}
+                    </small>
+                    <button
+                      aria-label={`${option.name}と年間契約`}
+                      disabled={
+                        !onContractAssistantCoach || !evaluation.allowed
+                      }
+                      onClick={() =>
+                        onContractAssistantCoach?.(option.rank, specialty)
+                      }
+                      type="button"
+                    >
+                      契約する
+                    </button>
+                  </div>
+                </article>
               );
             })}
           </div>

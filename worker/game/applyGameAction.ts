@@ -29,6 +29,10 @@ import {
 } from "../../src/domain/notifications/gameNotifications";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
+  contractAssistantCoach,
+  evaluateAssistantCoachContract,
+} from "../../src/domain/school/assistantCoach";
+import {
   evaluateFacilityUpgrade,
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
@@ -648,6 +652,44 @@ function applyFacilityUpgrade(
   };
 }
 
+function applyAssistantCoachContract(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "assistant-coach-contract" }>,
+): AppliedGameAction {
+  const evaluation = evaluateAssistantCoachContract(
+    state,
+    action.rank,
+    action.specialty,
+  );
+  if (!evaluation.allowed) {
+    let message = "コーチと契約できません";
+    switch (evaluation.reason) {
+      case "insufficient-funds":
+        message = "コーチ契約に必要な資金が不足しています";
+        break;
+      case "specialty-required":
+        message = "中級以上のコーチは専門分野を選んでください";
+        break;
+      case "specialty-not-allowed":
+        message = "初級コーチに専門分野は設定できません";
+        break;
+      case "available":
+        break;
+    }
+    return conflict(
+      `assistant_coach_${evaluation.reason.replaceAll("-", "_")}`,
+      message,
+    );
+  }
+
+  return {
+    state: contractAssistantCoach(state, action.rank, action.specialty),
+    teamSelection,
+    outcome: evaluation,
+  };
+}
+
 function applyEventChoice(
   state: GameState,
   teamSelection: TeamSelection,
@@ -708,6 +750,8 @@ export function applyGameAction(
       return applyMarkNotificationRead(state, teamSelection, action);
     case "facility-upgrade":
       return applyFacilityUpgrade(state, teamSelection, action);
+    case "assistant-coach-contract":
+      return applyAssistantCoachContract(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
   }

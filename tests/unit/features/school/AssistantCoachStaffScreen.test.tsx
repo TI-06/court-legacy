@@ -9,7 +9,7 @@ describe("school staff screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "スタッフ" }));
+    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
 
     expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     expect(screen.getByText("初級コーチ")).toBeVisible();
@@ -30,11 +30,12 @@ describe("school staff screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "スタッフ" }));
+    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
 
-    expect(screen.getByText("契約中")).toBeVisible();
-    expect(screen.getByText(/上級コーチ/)).toBeVisible();
-    expect(screen.getByText(/攻撃/)).toBeVisible();
+    const currentContract = screen.getByTestId("assistant-coach-current");
+    expect(within(currentContract).getByText("契約中")).toBeVisible();
+    expect(within(currentContract).getByText(/上級/)).toBeVisible();
+    expect(within(currentContract).getByText(/攻撃/)).toBeVisible();
   });
 
   it("selects a specialty and requests the annual contract", () => {
@@ -49,7 +50,7 @@ describe("school staff screen", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "スタッフ" }));
+    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
     const advancedCard = screen.getByTestId("assistant-coach-advanced");
     fireEvent.change(within(advancedCard).getByRole("combobox"), {
       target: { value: "attack" },
@@ -60,9 +61,6 @@ describe("school staff screen", () => {
       }),
     );
 
-    expect(onContractAssistantCoach).toHaveBeenCalledWith(
-      "advanced",
-      "attack",
-    );
+    expect(onContractAssistantCoach).toHaveBeenCalledWith("advanced", "attack");
   });
 });

@@ -97,7 +97,7 @@ describe("school management screen", () => {
       funds: 10,
       facilities: {
         ...school.facilities,
-        gym: 5,
+        gym: 50,
       },
     };
 

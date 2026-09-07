@@ -77,11 +77,7 @@ const assistantCoachRankSchema = z.enum([
   "master",
 ]);
 
-const assistantCoachSpecialtySchema = z.enum([
-  "attack",
-  "defense",
-  "physical",
-]);
+const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
 
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
