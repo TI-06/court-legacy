@@ -44,7 +44,7 @@ function createMatchFixture() {
 }
 
 describe("match flow", () => {
-  it("shows Japanese preparation labels and starts a scheduled legal practice match", () => {
+  it("shows opponent power and volleyball team comparison before a scheduled match", () => {
     const fixture = createMatchFixture();
     const onStart = vi.fn();
 
@@ -73,6 +73,27 @@ describe("match flow", () => {
     expect(
       within(awayCard!).getByText(`戦力 ${fixture.awayStrength}`),
     ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("heading", { name: "チームステータス比較" }),
+    ).toBeInTheDocument();
+    for (const label of [
+      "アタック",
+      "ブロック",
+      "サーブ",
+      "レシーブ",
+      "連携",
+      "スタミナ",
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(
+      screen.getByRole("heading", { name: "相手の特徴" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "おすすめ戦術" }),
+    ).toBeInTheDocument();
+
     for (const english of [
       "PRACTICE MATCH",
       "HOME",
@@ -87,7 +108,7 @@ describe("match flow", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("reveals the immutable event log with Japanese headings and can jump to analysis", () => {
+  it("reveals the immutable event log and finishes on volleyball awards and box score", () => {
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
 
@@ -127,6 +148,18 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "試合結果" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "MVP" })).toBeInTheDocument();
+    expect(screen.getByText("最多得点")).toBeInTheDocument();
+    expect(screen.getByText("最多ブロック")).toBeInTheDocument();
+    expect(screen.getAllByText("サーブエース").length).toBeGreaterThan(0);
+    expect(screen.getByText("ベストレシーバー")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "チームスタッツ" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("アタック得点")).toBeInTheDocument();
+    expect(screen.getByText("ブロック得点")).toBeInTheDocument();
+    expect(screen.getByText("Aパス率")).toBeInTheDocument();
+    expect(screen.getByText("スパイク決定率")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "勝敗を分けた要因" }),
     ).toBeInTheDocument();
