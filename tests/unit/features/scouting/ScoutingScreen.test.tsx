@@ -207,7 +207,9 @@ describe("ScoutingScreen", () => {
         screen.getByRole("region", { name: "スカウト候補一覧" }),
       ).queryByText("青木 蓮"),
     ).toBeNull();
-    expect(screen.getByText("対象外 1人")).toBeVisible();
+    const excludedSummary = screen.getByText("対象外 1人");
+    expect(excludedSummary).toBeVisible();
+    fireEvent.click(excludedSummary);
     expect(
       screen.getByRole("button", { name: "候補に戻す 青木 蓮" }),
     ).toBeVisible();

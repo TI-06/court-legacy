@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { reputationGrade } from "../../domain/school/reputation";
@@ -155,13 +155,17 @@ export function ScoutingScreen({
 }: ScoutingScreenProps) {
   const school = state.schools[state.userSchoolId]!;
   const cycleKey = currentCycleKey(state);
-  const [excludedCandidateIds, setExcludedCandidateIds] = useState<
-    Set<PlayerId>
-  >(() => readExcludedCandidateIds(cycleKey));
-
-  useEffect(() => {
-    setExcludedCandidateIds(readExcludedCandidateIds(cycleKey));
-  }, [cycleKey]);
+  const [excludedState, setExcludedState] = useState<{
+    cycleKey: string;
+    candidateIds: Set<PlayerId>;
+  }>(() => ({
+    cycleKey,
+    candidateIds: readExcludedCandidateIds(cycleKey),
+  }));
+  const excludedCandidateIds =
+    excludedState.cycleKey === cycleKey
+      ? excludedState.candidateIds
+      : readExcludedCandidateIds(cycleKey);
 
   const committedCandidateIds =
     state.recruiting?.cycleKey === cycleKey
@@ -192,12 +196,16 @@ export function ScoutingScreen({
   };
 
   const setCandidateExcluded = (candidateId: PlayerId, excluded: boolean) => {
-    setExcludedCandidateIds((current) => {
-      const next = new Set(current);
+    setExcludedState((current) => {
+      const currentIds =
+        current.cycleKey === cycleKey
+          ? current.candidateIds
+          : readExcludedCandidateIds(cycleKey);
+      const next = new Set(currentIds);
       if (excluded) next.add(candidateId);
       else next.delete(candidateId);
       persistExcludedCandidateIds(cycleKey, next);
-      return next;
+      return { cycleKey, candidateIds: next };
     });
   };
 
