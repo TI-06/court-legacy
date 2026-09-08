@@ -1,0 +1,135 @@
+name: Apply Pre-Match Patch
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    if: github.head_ref == 'feat/pre-match-lineup-flow'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Check patch marker
+        id: marker
+        run: |
+          if [ -f .github/pre-match-patch ]; then
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install dependencies
+        if: steps.marker.outputs.apply == 'true'
+        run: npm ci --no-audit --fund=false
+      - name: Apply focused patch
+        if: steps.marker.outputs.apply == 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("worker/game/applyGameAction.ts")
+          source = path.read_text()
+
+          old = '''function applyAdvanceWeek(
+            state: GameState,
+            teamSelection: TeamSelection,
+            context: ApplyGameActionContext,
+          ): AppliedGameAction {
+          '''
+          new = '''function applyAdvanceWeek(
+            state: GameState,
+            teamSelection: TeamSelection,
+            action: Extract<GameAction, { type: "advance-week" }>,
+            context: ApplyGameActionContext,
+          ): AppliedGameAction {
+          '''
+          if old not in source:
+            raise SystemExit("applyAdvanceWeek signature anchor not found")
+          source = source.replace(old, new, 1)
+
+          old = '''  if (hasRequiredOfficialMatch(currentState)) {
+            const official = applyOfficialMatch(currentState, teamSelection);
+          '''
+          new = '''  const matchSelection = action.matchSelection
+            ? cloneTeamSelection(action.matchSelection)
+            : teamSelection;
+          if (action.matchSelection) {
+            const issues = validateTeamSelection({
+              state: currentState,
+              schoolId: currentState.userSchoolId,
+              selection: matchSelection,
+            });
+            if (issues.length > 0) {
+              return conflict("invalid_team_selection", issues[0]!.message);
+            }
+          }
+          if (hasRequiredOfficialMatch(currentState)) {
+            const official = applyOfficialMatch(currentState, matchSelection);
+          '''
+          if old not in source:
+            raise SystemExit("official match anchor not found")
+          source = source.replace(old, new, 1)
+
+          old = '''      state: official.state,
+                teamSelection: official.teamSelection,
+                outcome,
+          '''
+          new = '''      state: official.state,
+                teamSelection,
+                outcome,
+          '''
+          if old not in source:
+            raise SystemExit("official return anchor not found")
+          source = source.replace(old, new, 1)
+
+          old = '''    const practice = applyPracticeMatch(currentState, teamSelection);
+          '''
+          new = '''    const practice = applyPracticeMatch(currentState, matchSelection);
+          '''
+          if old not in source:
+            raise SystemExit("practice match anchor not found")
+          source = source.replace(old, new, 1)
+
+          old = '''      state: practice.state,
+                teamSelection: practice.teamSelection,
+                outcome,
+          '''
+          new = '''      state: practice.state,
+                teamSelection,
+                outcome,
+          '''
+          if old not in source:
+            raise SystemExit("practice return anchor not found")
+          source = source.replace(old, new, 1)
+
+          old = '''    case "advance-week":
+                return applyAdvanceWeek(state, teamSelection, context);
+          '''
+          new = '''    case "advance-week":
+                return applyAdvanceWeek(state, teamSelection, action, context);
+          '''
+          if old not in source:
+            raise SystemExit("advance-week switch anchor not found")
+          source = source.replace(old, new, 1)
+
+          path.write_text(source)
+          PY
+          npx prettier worker/game/applyGameAction.ts --write
+          rm .github/pre-match-patch
+      - name: Commit focused patch
+        if: steps.marker.outputs.apply == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker/game/applyGameAction.ts .github/pre-match-patch
+          git commit -m "feat: use temporary lineup for weekly matches"
+          git push origin HEAD:${{ github.head_ref }}
