@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const ACTION_DELAY_KEY = "court-legacy:e2e-action-delay-ms";
 
-test("mobile PvP publishes, challenges, and keeps visible progress and results", async ({
+test("mobile PvP publishes, prepares, challenges, and keeps visible progress and results", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 800 });
@@ -33,12 +33,18 @@ test("mobile PvP publishes, challenges, and keeps visible progress and results",
   await expect(page.getByText("公開中")).toBeVisible({ timeout: 1_500 });
 
   await challenge.click();
+  await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+  await expect(page.getByText("この試合だけの編成です")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "対戦中… 白波高校" }),
+    page.getByText(
+      "対人戦では相手選手の詳細能力は非公開です。公開戦力を見て編成を決めます。",
+    ),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "この編成で試合開始" }).click();
+  await expect(
+    page.getByRole("button", { name: "試合を開始しています…" }),
   ).toBeDisabled({ timeout: 300 });
-  await expect(page.getByText("対戦結果を計算中…")).toBeVisible({
-    timeout: 300,
-  });
 
   await expect(page.getByRole("heading", { name: "勝利" })).toBeVisible({
     timeout: 2_500,

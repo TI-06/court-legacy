@@ -103,13 +103,15 @@ describe("GameApp official tournament retry", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+    expect(applyAction).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
 
     expect(await screen.findByText("オフライン")).toBeVisible();
     expect(applyAction).toHaveBeenCalledTimes(1);
     const firstRequest = applyAction.mock.calls[0]![1];
     expect(firstRequest).toMatchObject({
       revision: 9,
-      action: { type: "advance-week" },
+      action: { type: "advance-week", matchSelection: expect.any(Object) },
     });
 
     fireEvent.click(screen.getByRole("button", { name: "再試行" }));

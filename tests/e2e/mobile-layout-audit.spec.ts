@@ -278,6 +278,9 @@ for (const viewport of mobileViewports) {
       `${viewport.width}-home-before-match`,
     );
     await page.getByRole("button", { name: "次の週へ進む" }).click();
+    await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-pre-match`);
+    await page.getByRole("button", { name: "この編成で試合開始" }).click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();

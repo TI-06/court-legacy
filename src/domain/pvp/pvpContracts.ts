@@ -1,3 +1,5 @@
+import type { TeamSelection } from "../model/TeamSelection";
+
 export type PvpMatchOutcome = "win" | "loss";
 export type PvpHistoryPerspective = "challenger" | "defender";
 
@@ -51,6 +53,7 @@ export interface PvpChallengeRequest {
   operationId: string;
   revision: number;
   opponentSnapshotId: string;
+  matchSelection?: TeamSelection;
 }
 
 export interface PvpPublicSetResult {

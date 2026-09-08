@@ -111,11 +111,15 @@ describe("GameApp official tournament flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
 
+    expect(applyAction).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![0]).toBe(session.accessToken);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
       revision: 9,
-      action: { type: "advance-week" },
+      action: { type: "advance-week", matchSelection: expect.any(Object) },
     });
     expect(
       await screen.findByRole("heading", { name: "試合ダイジェスト" }),

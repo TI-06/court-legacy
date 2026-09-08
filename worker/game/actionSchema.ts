@@ -11,7 +11,7 @@ import type { PersistedOperationResponse } from "../data/GameStore";
 
 const playerIdSchema = z.string().min(1);
 
-const teamSelectionSchema = z
+export const teamSelectionSchema = z
   .object({
     rotation: z
       .array(
@@ -107,7 +107,12 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("official-match") }).strict(),
-  z.object({ type: z.literal("advance-week") }).strict(),
+  z
+    .object({
+      type: z.literal("advance-week"),
+      matchSelection: teamSelectionSchema.optional(),
+    })
+    .strict(),
   z
     .object({
       type: z.literal("mark-notification-read"),
@@ -154,7 +159,7 @@ export type GameAction =
   | { type: "practice-offer-decline" }
   | { type: "practice-request"; schoolId: SchoolId }
   | { type: "official-match" }
-  | { type: "advance-week" }
+  | { type: "advance-week"; matchSelection?: TeamSelection }
   | { type: "mark-notification-read"; notificationId: string }
   | { type: "facility-upgrade"; facility: FacilityKey }
   | {

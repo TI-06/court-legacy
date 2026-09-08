@@ -49,6 +49,8 @@ import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
 import { PracticeMatchPlanning } from "../features/match/PracticeMatchPlanning";
+import { PreMatchLineupScreen } from "../features/match/PreMatchLineupScreen";
+import { selectWeekPreMatchPreparation } from "../features/match/preMatchPreparation";
 import { MoreScreen } from "../features/more/MoreScreen";
 import { PvpScreen } from "../features/pvp/PvpScreen";
 import { SchoolScreen } from "../features/school/SchoolScreen";
@@ -75,6 +77,19 @@ type OfficialTournamentView = {
   circuit: TournamentCircuit;
   level: TournamentLevel;
 };
+type PreMatchContext =
+  | {
+      kind: "week";
+      opponentName: string;
+      opponentStrength?: number;
+      opponentSelection?: TeamSelection;
+    }
+  | {
+      kind: "pvp";
+      opponentSnapshotId: string;
+      opponentName: string;
+      opponentStrength: number;
+    };
 type ShopPendingAction = "purchase" | "use";
 type ShopRetryRequest =
   | { action: "purchase"; request: ShopPurchaseRequest }
@@ -138,6 +153,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [matchView, setMatchView] = useState<MatchView>("practice");
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
+  const [preMatch, setPreMatch] = useState<PreMatchContext | null>(null);
   const [pvpPublishedTeam, setPvpPublishedTeam] =
     useState<PvpPublishedTeamSummary | null>(null);
   const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
@@ -210,6 +226,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     if (tab !== "match") {
       setMatchView("practice");
       setOfficialTournamentView(null);
+      setPreMatch(null);
       setPvpError(null);
     }
     setActiveTab(tab);
@@ -330,7 +347,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
               "最新のスカウト候補を読み込めませんでした",
             ),
           );
-          return;
+          return null;
         }
       }
 
@@ -420,6 +437,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setActiveMatchResult(null);
       setActiveMatchPresentation(null);
       setOfficialTournamentView(null);
+      setPreMatch(null);
       setMatchView("practice");
       setActiveTab("match");
     }
@@ -430,6 +448,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     if (!nextOfficial) return;
     setActiveMatchResult(null);
     setActiveMatchPresentation(null);
+    setPreMatch(null);
     setOfficialTournamentView({
       circuit: nextOfficial.circuit,
       level: nextOfficial.level,
@@ -466,6 +485,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const openPvp = () => {
     setOfficialTournamentView(null);
+    setPreMatch(null);
     setMatchView("pvp");
     setPvpError(null);
     void loadPvpData();
@@ -519,7 +539,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const challengePvpTeam = async (opponentSnapshotId: string) => {
+  const challengePvpTeam = async (
+    opponentSnapshotId: string,
+    matchSelection?: TeamSelection,
+  ) => {
     if (
       !api.challengePvpTeam ||
       pvpChallengingSnapshotId !== null ||
@@ -538,6 +561,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         operationId: crypto.randomUUID(),
         revision: cloudSession.snapshot.revision,
         opponentSnapshotId,
+        ...(matchSelection ? { matchSelection } : {}),
       });
       setPvpResult(response);
       await loadPvpData();
@@ -788,15 +812,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
-  const advanceWeek = async () => {
+  const executeAdvanceWeek = async (matchSelection?: TeamSelection) => {
     const response = await cloudSession.runAction(
-      { type: "advance-week" },
+      {
+        type: "advance-week",
+        ...(matchSelection ? { matchSelection } : {}),
+      },
       "練習を実施して次の週へ進めています…",
     );
     if (!response) return;
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
+    setPreMatch(null);
     setMatchView("practice");
     setPvpResult(null);
     setCalendarOpen(false);
@@ -816,6 +844,30 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab("home");
   };
 
+  const advanceWeek = async () => {
+    const preparation = selectWeekPreMatchPreparation(gameState);
+    if (preparation) {
+      setActiveMatchResult(null);
+      setActiveMatchPresentation(null);
+      setOfficialTournamentView(null);
+      setMatchView("practice");
+      setCalendarOpen(false);
+      setPreMatch({
+        kind: "week",
+        opponentName: preparation.opponentName,
+        ...(preparation.opponentStrength !== undefined
+          ? { opponentStrength: preparation.opponentStrength }
+          : {}),
+        ...(preparation.opponentSelection
+          ? { opponentSelection: preparation.opponentSelection }
+          : {}),
+      });
+      setActiveTab("match");
+      return;
+    }
+    await executeAdvanceWeek();
+  };
+
   const chooseEvent = async (choiceId: string) => {
     await cloudSession.runAction(
       { type: "event-choice", choiceId },
@@ -823,8 +875,43 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const preMatchPending =
+    preMatch?.kind === "pvp"
+      ? pvpChallengingSnapshotId !== null
+      : cloudSession.operation.status === "submitting";
+
   const content =
-    activeTab === "home" ? (
+    activeTab === "match" && preMatch ? (
+      <PreMatchLineupScreen
+        baseSelection={teamSelection}
+        mode={preMatch.kind === "pvp" ? "pvp" : "pve"}
+        onCancel={() => {
+          const kind = preMatch.kind;
+          setPreMatch(null);
+          if (kind === "week") setActiveTab("home");
+        }}
+        onStart={(selection) => {
+          if (preMatch.kind === "pvp") {
+            const opponentSnapshotId = preMatch.opponentSnapshotId;
+            void (async () => {
+              await challengePvpTeam(opponentSnapshotId, selection);
+              setPreMatch(null);
+            })();
+            return;
+          }
+          void executeAdvanceWeek(selection);
+        }}
+        opponentName={preMatch.opponentName}
+        {...(preMatch.opponentStrength !== undefined
+          ? { opponentStrength: preMatch.opponentStrength }
+          : {})}
+        {...(preMatch.kind === "week" && preMatch.opponentSelection
+          ? { opponentSelection: preMatch.opponentSelection }
+          : {})}
+        pending={preMatchPending}
+        state={gameState}
+      />
+    ) : activeTab === "home" ? (
       <HomeScreen
         homeStrength={homeStrength}
         latestMatch={latestMatchResult}
@@ -903,7 +990,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         history={pvpHistory}
         loading={pvpLoading}
         onChallenge={(snapshotId) => {
-          void challengePvpTeam(snapshotId);
+          const selectedOpponent = pvpOpponents.find(
+            (item) => item.snapshotId === snapshotId,
+          );
+          if (!selectedOpponent) return;
+          setPvpResult(null);
+          setPvpError(null);
+          setPreMatch({
+            kind: "pvp",
+            opponentSnapshotId: selectedOpponent.snapshotId,
+            opponentName: selectedOpponent.schoolName,
+            opponentStrength: selectedOpponent.teamPower,
+          });
         }}
         onPublish={() => {
           void publishPvpTeam();
@@ -913,6 +1011,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }}
         onReturnPractice={() => {
           setMatchView("practice");
+          setPreMatch(null);
           setPvpError(null);
         }}
         opponents={pvpOpponents}
@@ -955,7 +1054,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             homeSelection={teamSelection}
             homeStrength={homeStrength}
             onReturnHome={() => {
-              if (activeMatchPresentation) void advanceWeek();
+              if (activeMatchPresentation) void executeAdvanceWeek();
               else changeTab("home");
             }}
             onStart={() => undefined}
