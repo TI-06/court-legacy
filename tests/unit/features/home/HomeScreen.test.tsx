@@ -32,7 +32,8 @@ function trainingNotification(
   state: GameState,
   read = false,
 ): TrainingResultNotification {
-  const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+  const player =
+    state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
   return {
     id: "home-screen-training",
     type: "training-result",
@@ -80,7 +81,9 @@ describe("Phase 13 Home command center", () => {
     expect(within(teamStatus).queryByText("部員")).toBeNull();
 
     expect(screen.getByRole("heading", { name: "今週やること" })).toBeVisible();
-    expect(screen.getAllByTestId("home-command-task").length).toBeLessThanOrEqual(5);
+    expect(
+      screen.getAllByTestId("home-command-task").length,
+    ).toBeLessThanOrEqual(5);
     expect(screen.getByRole("button", { name: "今週を進める" })).toBeVisible();
     expect(container.querySelector("img")).toBeNull();
   });
@@ -140,7 +143,9 @@ describe("Phase 13 Home command center", () => {
     expect(dialog).toHaveTextContent("このまま次週へ進みますか");
 
     fireEvent.click(within(dialog).getByRole("button", { name: "戻る" }));
-    expect(screen.queryByRole("dialog", { name: "未回答の申し込みがあります" })).toBeNull();
+    expect(
+      screen.queryByRole("dialog", { name: "未回答の申し込みがあります" }),
+    ).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
     fireEvent.click(
@@ -157,7 +162,9 @@ describe("Phase 13 Home command center", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
     expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("dialog", { name: "未回答の申し込みがあります" })).toBeNull();
+    expect(
+      screen.queryByRole("dialog", { name: "未回答の申し込みがあります" }),
+    ).toBeNull();
   });
 
   it("opens the newest training result and marks an unread notification read", () => {
@@ -166,12 +173,16 @@ describe("Phase 13 Home command center", () => {
     props.state.notifications.items = [notification];
     render(<HomeScreen {...props} />);
 
-    expect(screen.getAllByTestId("home-command-news").length).toBeLessThanOrEqual(3);
+    expect(
+      screen.getAllByTestId("home-command-news").length,
+    ).toBeLessThanOrEqual(3);
     fireEvent.click(
       screen.getByRole("button", { name: /今週の練習結果 スパイク練習/ }),
     );
 
-    expect(screen.getByRole("dialog", { name: "今週の練習結果" })).toBeVisible();
+    expect(
+      screen.getByRole("dialog", { name: "今週の練習結果" }),
+    ).toBeVisible();
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 

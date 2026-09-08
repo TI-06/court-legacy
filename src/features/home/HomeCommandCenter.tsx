@@ -116,7 +116,9 @@ export function HomeCommandCenter({
             <strong>{summary.strengthGrade}</strong>
             <small>{summary.strength}</small>
           </article>
-          <article className={`player-condition--${summary.condition.colorToken}`}>
+          <article
+            className={`player-condition--${summary.condition.colorToken}`}
+          >
             <span>調子</span>
             <strong aria-label={summary.condition.label}>
               {summary.condition.icon}
@@ -137,7 +139,10 @@ export function HomeCommandCenter({
         </div>
       </section>
 
-      <section className="home-command-section" aria-labelledby="home-command-tasks-heading">
+      <section
+        className="home-command-section"
+        aria-labelledby="home-command-tasks-heading"
+      >
         <div className="home-command-section__heading">
           <div>
             <span>COACHING</span>
@@ -171,7 +176,8 @@ export function HomeCommandCenter({
                         : ""}
                     </small>
                     <small>
-                      成長 {task.offer.growthRating}/5・負荷 {task.offer.loadRating}/5
+                      成長 {task.offer.growthRating}/5・負荷{" "}
+                      {task.offer.loadRating}/5
                     </small>
                   </div>
                   <div className="home-command-offer-actions">
@@ -219,7 +225,9 @@ export function HomeCommandCenter({
                     className="home-command-news-row"
                     data-testid="home-command-news"
                     key={news.id}
-                    onClick={() => onOpenTrainingNotification(news.notification)}
+                    onClick={() =>
+                      onOpenTrainingNotification(news.notification)
+                    }
                     type="button"
                   >
                     <span>

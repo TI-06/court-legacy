@@ -58,7 +58,8 @@ export function HomeScreen({
   const [selectedNotification, setSelectedNotification] =
     useState<TrainingResultNotification | null>(null);
   const [advanceWarningOpen, setAdvanceWarningOpen] = useState(false);
-  const resolvedData = data ?? (gameDataBootstrap.ok ? gameDataBootstrap.data : null);
+  const resolvedData =
+    data ?? (gameDataBootstrap.ok ? gameDataBootstrap.data : null);
   if (!resolvedData) {
     throw new Error("game data is unavailable for Home");
   }
