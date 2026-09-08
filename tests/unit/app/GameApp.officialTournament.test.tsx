@@ -105,11 +105,11 @@ describe("GameApp official tournament flow", () => {
     ).toBeVisible();
     expect(screen.queryByRole("button", { name: "公式戦を開始" })).toBeNull();
     expect(
-      screen.getByText("ホームの「次の週へ進む」で試合を実施します"),
+      screen.getByText("ホームの「今週を進める」で試合を実施します"),
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
-    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+    fireEvent.click(screen.getByRole("button", { name: "公式戦 試合準備" }));
 
     expect(applyAction).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();

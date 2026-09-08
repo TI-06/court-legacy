@@ -27,6 +27,7 @@ const session: AuthSession = {
 
 function createSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
+  state.weeklySchedule.practiceMatch.incomingOffer = null;
   return {
     userId: session.userId,
     schoolDbId: "school-db-1",
@@ -171,7 +172,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+    fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
 
     expect(applyAction).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();
@@ -252,7 +253,7 @@ describe("GameApp cloud actions", () => {
     await screen.findByText("保存済み ✓");
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
-    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+    fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
 
     expect(applyAction).toHaveBeenCalledTimes(2);
     expect(applyAction.mock.calls[1]![1]).toMatchObject({

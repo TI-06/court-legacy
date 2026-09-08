@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 const ACTION_DELAY_KEY = "court-legacy:e2e-action-delay-ms";
 const SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
@@ -338,7 +339,7 @@ test("training efficiency boost is visibly pending, applies once, and disappears
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
   await expect(
     page.getByRole("button", { name: /今週の練習結果/ }),

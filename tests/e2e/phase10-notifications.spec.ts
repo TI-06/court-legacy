@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 const SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 
@@ -42,7 +43,7 @@ test("training result notification survives reload and keeps durable read state"
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   let notificationRow = page.getByRole("button", {

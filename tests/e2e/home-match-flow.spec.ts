@@ -60,7 +60,7 @@ for (const width of [320, 360, 390, 414, 480]) {
     ).toBeVisible();
     await schedulePracticeMatch(page);
     await expect(
-      page.getByText("ホームの「次の週へ進む」で実施"),
+      page.getByText("ホームの「今週を進める」で実施"),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "試合開始" })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
@@ -69,7 +69,7 @@ for (const width of [320, 360, 390, 414, 480]) {
       .getByRole("button", { name: "ホーム", exact: true })
       .click();
     await expect(home).toBeVisible();
-    await page.getByRole("button", { name: "次の週へ進む" }).click();
+    await page.getByRole("button", { name: "今週を進める" }).click();
 
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
     await expect(page.getByText("この試合だけの編成です")).toBeVisible();
@@ -91,13 +91,13 @@ for (const width of [320, 360, 390, 414, 480]) {
     if (initialWeek) {
       await expect(weekHeading).not.toHaveText(initialWeek);
     }
-    await expect(page.locator(".home-notification-list")).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page
+    const trainingResult = page
       .getByRole("button", { name: /今週の練習結果/ })
-      .first()
-      .click();
+      .first();
+    await expect(trainingResult).toBeVisible();
+    await trainingResult.click();
     const dialog = page.getByRole("dialog", { name: "今週の練習結果" });
     await expect(dialog).toBeVisible();
     await expect(

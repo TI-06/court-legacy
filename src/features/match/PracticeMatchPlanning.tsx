@@ -75,7 +75,7 @@ export function PracticeMatchPlanning({
               {schoolStrengthToGrade(schoolStrength(state, scheduledSchool.id))}
             </small>
           </div>
-          <b>ホームの「次の週へ進む」で実施</b>
+          <b>ホームの「今週を進める」で実施</b>
         </article>
       ) : (
         <>

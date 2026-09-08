@@ -44,6 +44,7 @@ import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
+import type { HomeCommandAction } from "../features/home/homeCommandCenter";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
@@ -53,6 +54,7 @@ import { PreMatchLineupScreen } from "../features/match/PreMatchLineupScreen";
 import { selectWeekPreMatchPreparation } from "../features/match/preMatchPreparation";
 import { MoreScreen } from "../features/more/MoreScreen";
 import { PvpScreen } from "../features/pvp/PvpScreen";
+import { requestSchoolView } from "../features/school/SchoolNavigationState";
 import { SchoolScreen } from "../features/school/SchoolScreen";
 import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { ShopScreen } from "../features/shop/ShopScreen";
@@ -144,8 +146,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PlayerId | null>(null);
   const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
     useState<PlayerId | null>(null);
-  const [latestMatchResult, setLatestMatchResult] =
-    useState<SimulateMatchResult | null>(null);
+  const [, setLatestMatchResult] = useState<SimulateMatchResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<SimulateMatchResult | null>(null);
   const [activeMatchPresentation, setActiveMatchPresentation] =
@@ -154,6 +155,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
   const [preMatch, setPreMatch] = useState<PreMatchContext | null>(null);
+  const [teamInitialPlayerId, setTeamInitialPlayerId] =
+    useState<PlayerId | null>(null);
   const [pvpPublishedTeam, setPvpPublishedTeam] =
     useState<PvpPublishedTeamSummary | null>(null);
   const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
@@ -217,6 +220,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   );
 
   const changeTab = (tab: AppTab) => {
+    if (tab === "team") setTeamInitialPlayerId(null);
     if (tab !== "more") setMoreView("menu");
     if (tab !== "school") {
       setScoutingOpen(false);
@@ -868,6 +872,37 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await executeAdvanceWeek();
   };
 
+  const handleHomeCommand = (action: HomeCommandAction) => {
+    switch (action.target) {
+      case "team":
+        setTeamInitialPlayerId(null);
+        setActiveTab("team");
+        return;
+      case "player":
+        setTeamInitialPlayerId(action.playerId);
+        setActiveTab("team");
+        return;
+      case "school":
+        requestSchoolView(action.view);
+        setScoutingOpen(false);
+        setActiveTab("school");
+        return;
+      case "scouting":
+        setActiveTab("school");
+        openScouting();
+        return;
+      case "practice":
+        openFreshPracticeMatch();
+        return;
+      case "tournament":
+        openOfficialTournament();
+        return;
+      case "start-week-match":
+        void advanceWeek();
+        return;
+    }
+  };
+
   const chooseEvent = async (choiceId: string) => {
     await cloudSession.runAction(
       { type: "event-choice", choiceId },
@@ -913,24 +948,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "home" ? (
       <HomeScreen
+        data={gameData}
         homeStrength={homeStrength}
-        latestMatch={latestMatchResult}
-        onAdvanceWeek={advanceWeek}
-        onMarkNotificationRead={markNotificationRead}
-        onOpenMatch={openFreshPracticeMatch}
-        onOpenOfficialTournament={openOfficialTournament}
-        onOpenTeam={() => setActiveTab("team")}
-        onOpenSchool={() => setActiveTab("school")}
         onAcceptPracticeOffer={() => void acceptPracticeOffer()}
+        onAdvanceWeek={advanceWeek}
+        onCommand={handleHomeCommand}
         onDeclinePracticeOffer={() => void declinePracticeOffer()}
+        onMarkNotificationRead={markNotificationRead}
         operationPending={cloudSession.operation.status === "submitting"}
-        opponent={opponent}
-        practiceMatchCompleted={practiceMatchCompleted}
         state={gameState}
-        trainingCompleted={trainingCompleted}
       />
     ) : activeTab === "team" ? (
       <PlayerHubScreen
+        initialPlayerId={teamInitialPlayerId}
         leadershipPending={cloudSession.operation.status === "submitting"}
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}

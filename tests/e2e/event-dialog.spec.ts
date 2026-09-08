@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
@@ -11,7 +12,7 @@ async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 }
 

@@ -1,435 +1,176 @@
 import { useState } from "react";
-import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
+import type { GameDataRegistry } from "../../data/dataRegistry";
+import { gameDataBootstrap } from "../../data/gameData";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
-import type { School, SchoolReputation } from "../../domain/model/School";
+import type { School } from "../../domain/model/School";
+import type { TrainingResultNotification } from "../../domain/notifications/gameNotifications";
+import { BottomSheet } from "../../ui/BottomSheet";
+import { StickyActionBar } from "../../ui/StickyActionBar";
+import "../../ui/ui.css";
+import { HomeCommandCenter } from "./HomeCommandCenter";
 import {
-  selectHomeTrainingNotifications,
-  type TrainingResultNotification,
-} from "../../domain/notifications/gameNotifications";
-import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
-import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
-import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
-import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
-import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
-import type {
-  TournamentCircuit,
-  TournamentLevel,
-  TournamentRound,
-} from "../../domain/tournament/tournamentTypes";
+  selectHomeCommandCenter,
+  type HomeCommandAction,
+} from "./homeCommandCenter";
 import { TrainingResultNotificationSheet } from "./TrainingResultNotificationSheet";
-import "./home.css";
+import "./home-command-center.css";
 import "./training-result-notification.css";
 
 interface HomeScreenProps {
   state: GameState;
-  opponent: School;
-  latestMatch: SimulateMatchResult | null;
+  data?: Pick<GameDataRegistry, "trainingMenus">;
   homeStrength: number;
-  trainingCompleted: boolean;
-  practiceMatchCompleted: boolean;
-  onOpenSchool?: () => void;
-  onOpenTeam: () => void;
-  onOpenMatch: () => void;
-  onOpenOfficialTournament: () => void;
+  onCommand?: (action: HomeCommandAction) => void;
   onAdvanceWeek: () => void;
   onAcceptPracticeOffer?: () => void;
   onDeclinePracticeOffer?: () => void;
   operationPending?: boolean;
   onMarkNotificationRead: (notificationId: string) => Promise<void> | void;
-}
 
-const reputationLabels: Record<SchoolReputation, string> = {
-  unknown: "無名校",
-  "district-contender": "地区有力校",
-  "prefectural-power": "県内強豪",
-  "national-qualifier": "全国出場",
-  "national-regular": "全国常連",
-  elite: "全国屈指",
-};
-
-const circuitLabels: Record<TournamentCircuit, string> = {
-  interhigh: "インターハイ",
-  "spring-high": "春高",
-};
-
-const levelLabels: Record<TournamentLevel, string> = {
-  prefectural: "県大会",
-  national: "全国大会",
-};
-
-const roundLabels: Record<TournamentRound, string> = {
-  "round-of-16": "1回戦",
-  quarterfinal: "準々決勝",
-  semifinal: "準決勝",
-  final: "決勝",
-};
-
-const cohesionTrendLabels: Record<CohesionTrend, string> = {
-  rising: "上向き",
-  stable: "横ばい",
-  falling: "低下",
-};
-
-function average(values: readonly number[]): number {
-  if (values.length === 0) return 0;
-  return Math.round(
-    values.reduce((sum, value) => sum + value, 0) / values.length,
-  );
-}
-
-function shortDate(value: string): string {
-  const [, month, day] = value.split("-").map(Number);
-  if (!month || !day) return value;
-  return `${month}/${day}`;
-}
-
-function signed(value: number): string {
-  return value > 0 ? `+${value}` : String(value);
-}
-
-function schoolStrength(state: GameState, school: School): number {
-  return calculateSelectionStrength(
-    state,
-    autoSelectTeam({ state, schoolId: school.id }),
-  );
+  // Transitional compatibility for the existing GameApp wiring. Task 3 replaces
+  // these callbacks with the HomeCommandAction contract and removes this bridge.
+  opponent?: School;
+  latestMatch?: SimulateMatchResult | null;
+  trainingCompleted?: boolean;
+  practiceMatchCompleted?: boolean;
+  onOpenSchool?: () => void;
+  onOpenTeam?: () => void;
+  onOpenMatch?: () => void;
+  onOpenOfficialTournament?: () => void;
 }
 
 export function HomeScreen({
   state,
-  latestMatch,
+  data,
   homeStrength,
-  trainingCompleted,
-  practiceMatchCompleted,
-  onOpenSchool = () => undefined,
-  onOpenTeam,
-  onOpenMatch,
-  onOpenOfficialTournament,
+  onCommand,
   onAdvanceWeek,
   onAcceptPracticeOffer = () => undefined,
   onDeclinePracticeOffer = () => undefined,
   operationPending = false,
   onMarkNotificationRead,
+  onOpenSchool = () => undefined,
+  onOpenTeam = () => undefined,
+  onOpenMatch = () => undefined,
+  onOpenOfficialTournament = () => undefined,
 }: HomeScreenProps) {
   const [selectedNotification, setSelectedNotification] =
     useState<TrainingResultNotification | null>(null);
-  const school = state.schools[state.userSchoolId];
-  if (!school) throw new Error(`user school not found: ${state.userSchoolId}`);
+  const [advanceWarningOpen, setAdvanceWarningOpen] = useState(false);
+  const resolvedData =
+    data ?? (gameDataBootstrap.ok ? gameDataBootstrap.data : null);
+  if (!resolvedData) {
+    throw new Error("game data is unavailable for Home");
+  }
 
-  const players = school.playerIds
-    .map((playerId) => state.players[playerId])
-    .filter((player): player is Player => Boolean(player));
-  const injuredCount = players.filter((player) => player.injury).length;
-  const teamCondition = getPlayerConditionPresentation(
-    average(players.map((player) => player.condition)),
-  );
-  const latestWinner = latestMatch
-    ? state.schools[latestMatch.analysis.winnerSchoolId]
-    : null;
-  const nextOfficial = selectNextOfficialEvent(state);
-  const homeNotifications = selectHomeTrainingNotifications(
-    state.notifications,
-  );
-  const scheduledPracticeOpponentId =
-    state.weeklySchedule.practiceMatch.scheduledOpponentId;
-  const scheduledPracticeOpponent = scheduledPracticeOpponentId
-    ? state.schools[scheduledPracticeOpponentId]
-    : null;
-  const scheduledPracticeOpponentStrength = scheduledPracticeOpponent
-    ? schoolStrength(state, scheduledPracticeOpponent)
-    : null;
-  const incomingOffer = state.weeklySchedule.practiceMatch.incomingOffer;
-  const incomingSchool = incomingOffer
-    ? state.schools[incomingOffer.schoolId]
-    : null;
-  const incomingSchoolStrength = incomingSchool
-    ? schoolStrength(state, incomingSchool)
-    : null;
-  const trainingStatus = trainingCompleted ? "完了 ✓" : "設定済";
-  const practiceStatus = practiceMatchCompleted
-    ? "完了 ✓"
-    : scheduledPracticeOpponent
-      ? "対戦決定"
-      : "未決定";
+  const model = selectHomeCommandCenter({
+    state,
+    data: resolvedData,
+    homeStrength,
+  });
 
   const openNotification = (notification: TrainingResultNotification) => {
     setSelectedNotification(notification);
-    if (notification.readAtGameDate === null)
+    if (notification.readAtGameDate === null) {
       void onMarkNotificationRead(notification.id);
+    }
+  };
+
+  const requestAdvance = () => {
+    if (operationPending) return;
+    if (model.advance.requiresConfirmation) {
+      setAdvanceWarningOpen(true);
+      return;
+    }
+    onAdvanceWeek();
+  };
+
+  const dispatchCommand = (action: HomeCommandAction) => {
+    if (onCommand) {
+      onCommand(action);
+      return;
+    }
+
+    switch (action.target) {
+      case "team":
+      case "player":
+        onOpenTeam();
+        return;
+      case "school":
+      case "scouting":
+        onOpenSchool();
+        return;
+      case "practice":
+        onOpenMatch();
+        return;
+      case "tournament":
+        onOpenOfficialTournament();
+        return;
+      case "start-week-match":
+        requestAdvance();
+        return;
+    }
   };
 
   return (
     <main
+      aria-label="ホーム"
       className="app-content home-screen"
       data-testid="home-screen"
-      aria-label="ホーム"
     >
-      <section className="home-week-card" aria-labelledby="home-week-heading">
-        <div className="home-week-card__heading">
-          <div>
-            <span className="home-label">今週</span>
-            <h2 id="home-week-heading">
-              {shortDate(state.date)}・第{state.calendar.weekOfYear}週
-            </h2>
-          </div>
-          <span className="home-week-card__school">{school.shortName}</span>
-        </div>
+      <HomeCommandCenter
+        model={model}
+        onAcceptPracticeOffer={onAcceptPracticeOffer}
+        onCommand={dispatchCommand}
+        onDeclinePracticeOffer={onDeclinePracticeOffer}
+        onOpenTrainingNotification={openNotification}
+        operationPending={operationPending}
+      />
 
-        <div className="home-week-card__match">
-          <div className="home-week-card__opponent">
-            <span>練習試合</span>
-            {scheduledPracticeOpponent ? (
-              <strong title={scheduledPracticeOpponent.name}>
-                {scheduledPracticeOpponent.shortName}
-              </strong>
-            ) : (
-              <strong>対戦相手 未決定</strong>
-            )}
-          </div>
-          <div
-            className="home-week-card__strength-pair"
-            aria-label={
-              scheduledPracticeOpponentStrength !== null
-                ? "対戦戦力"
-                : undefined
-            }
-          >
-            <div
-              aria-label={`チーム戦力 ${homeStrength}`}
-              className="home-week-card__strength home-week-card__strength--home"
-            >
-              <span>チーム戦力</span>
-              <strong>{homeStrength}</strong>
-              <small>評価 {schoolStrengthToGrade(homeStrength)}</small>
-            </div>
-            {scheduledPracticeOpponentStrength !== null ? (
-              <>
-                <span className="home-week-card__versus">VS</span>
-                <div className="home-week-card__strength home-week-card__strength--opponent">
-                  <span>相手戦力</span>
-                  <strong>{scheduledPracticeOpponentStrength}</strong>
-                  <small>
-                    評価{" "}
-                    {schoolStrengthToGrade(scheduledPracticeOpponentStrength)}
-                  </small>
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="home-week-card__status" aria-label="今週の進行状況">
-          <span className={trainingCompleted ? "is-complete" : ""}>
-            練習 <strong>{trainingStatus}</strong>
-          </span>
-          <span className={practiceMatchCompleted ? "is-complete" : ""}>
-            試合 <strong>{practiceStatus}</strong>
-          </span>
-        </div>
-
-        {incomingOffer && incomingSchool && !scheduledPracticeOpponentId ? (
-          <section
-            className="home-practice-offer"
-            aria-label="練習試合の申し込み"
-          >
-            <div>
-              <span>練習試合の申し込み</span>
-              <strong>{incomingSchool.shortName}</strong>
-              <small>
-                戦力 {incomingSchoolStrength} ・ 評価{" "}
-                {schoolStrengthToGrade(incomingSchoolStrength ?? 0)} ・ 成長{" "}
-                {incomingOffer.growthRating}/5 ・ 負荷{" "}
-                {incomingOffer.loadRating}/5
-              </small>
-            </div>
-            <div>
-              <button
-                className="home-practice-offer__decline"
-                disabled={operationPending}
-                onClick={onDeclinePracticeOffer}
-                type="button"
-              >
-                断る
-              </button>
-              <button
-                className="is-primary"
-                disabled={operationPending}
-                onClick={onAcceptPracticeOffer}
-                type="button"
-              >
-                受ける
-              </button>
-            </div>
-          </section>
-        ) : null}
-
-        <div className="home-week-card__actions" aria-label="今週の操作">
-          <button aria-label="選手を確認" onClick={onOpenTeam} type="button">
-            選手
-          </button>
-          <button aria-label="学校を確認" onClick={onOpenSchool} type="button">
-            学校
-          </button>
-          <button
-            aria-label="練習試合へ"
-            disabled={practiceMatchCompleted}
-            onClick={onOpenMatch}
-            type="button"
-          >
-            試合
-          </button>
-        </div>
-
-        <button
-          aria-label="次の週へ進む"
-          className="home-next-week-button"
-          onClick={onAdvanceWeek}
-          type="button"
-        >
-          次の週へ進む
-        </button>
-      </section>
-
-      {homeNotifications.length > 0 ? (
-        <section
-          className="home-notification-list"
-          aria-label="練習結果のお知らせ"
-        >
-          {homeNotifications.map((notification) => {
-            const unread = notification.readAtGameDate === null;
-            return (
-              <button
-                aria-label={`今週の練習結果 ${notification.payload.teamTrainingMenuName}`}
-                className={`home-notification-row${unread ? " is-unread" : ""}`}
-                key={notification.id}
-                onClick={() => openNotification(notification)}
-                type="button"
-              >
-                <span className="home-notification-row__content">
-                  <span className="home-notification-row__headline">
-                    <span
-                      className={`home-notification-row__badge${unread ? "" : " is-read"}`}
-                    >
-                      {unread ? "NEW" : "確認済み"}
-                    </span>
-                    <strong>今週の練習結果</strong>
-                  </span>
-                  <span className="home-notification-row__summary">
-                    <strong>{notification.payload.teamTrainingMenuName}</strong>
-                    <small>
-                      成長 {signed(notification.payload.totalAbilityGrowth)}
-                      ・怪我 {notification.payload.injuredCount}人
-                    </small>
-                  </span>
-                </span>
-                <span
-                  className="home-notification-row__chevron"
-                  aria-hidden="true"
-                >
-                  ›
-                </span>
-              </button>
-            );
-          })}
-        </section>
-      ) : null}
-
-      <section
-        className="home-team-status"
-        data-testid="home-team-status"
-        aria-label="チーム状況"
+      <div
+        className="home-command-advance home-next-week-button"
+        data-testid="home-command-advance"
       >
-        <article>
-          <span>評判</span>
-          <strong>{school.reputationPoints}</strong>
-          <small>{reputationLabels[school.reputation]}</small>
-        </article>
-        <article className={`player-condition--${teamCondition.colorToken}`}>
-          <span>調子</span>
-          <strong aria-label={teamCondition.label}>{teamCondition.icon}</strong>
-          <small>{teamCondition.label}</small>
-        </article>
-        <article>
-          <span>部員</span>
-          <strong>{players.length}</strong>
-          <small>
-            {injuredCount > 0 ? `怪我 ${injuredCount}` : "怪我なし"}
-          </small>
-        </article>
-        <article>
-          <span>結束</span>
-          <strong>{state.teamDynamics.cohesion}</strong>
-          <small>{cohesionTrendLabels[state.teamDynamics.cohesionTrend]}</small>
-        </article>
-      </section>
-
-      {nextOfficial ? (
-        <section
-          className={`home-official-card${nextOfficial.kind === "match" && nextOfficial.timing === "due" ? " is-due" : ""}`}
-          aria-labelledby="home-official-heading"
-        >
-          <div className="home-official-card__top">
-            <div>
-              <span className="home-label">公式戦</span>
-              <h2 id="home-official-heading">
-                {circuitLabels[nextOfficial.circuit]}{" "}
-                {levelLabels[nextOfficial.level]}
-              </h2>
-            </div>
-            <strong className="home-official-card__timing">
-              {nextOfficial.kind === "match" && nextOfficial.timing === "due"
-                ? "今週"
-                : `あと${nextOfficial.weeksUntil}週`}
-            </strong>
-          </div>
-          <div className="home-official-card__summary">
-            {nextOfficial.kind === "match" ? (
-              <span>
-                <strong>{roundLabels[nextOfficial.round]}</strong>
-                <span>vs</span>
-                <b title={nextOfficial.opponent.displayName}>
-                  {nextOfficial.opponent.shortName}
-                </b>
-              </span>
-            ) : (
-              <span>
-                <strong>{nextOfficial.scheduledWeek}週目</strong>
-                <span>開幕</span>
-              </span>
-            )}
-            <button onClick={onOpenOfficialTournament} type="button">
-              大会表を見る
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      {latestMatch || injuredCount > 0 ? (
-        <section className="home-recent-status" aria-label="最近の状況">
-          {latestMatch && latestWinner ? (
-            <div>
-              <span className="home-recent-status__tag">最近</span>
-              <strong>
-                {latestWinner.shortName}勝利&nbsp;
-                {latestMatch.match.homeSetsWon} -{" "}
-                {latestMatch.match.awaySetsWon}
-              </strong>
-            </div>
-          ) : null}
-          {injuredCount > 0 ? (
-            <div className="is-alert">
-              <span className="home-recent-status__tag">注意</span>
-              <strong>怪我 {injuredCount}人</strong>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
+        <StickyActionBar
+          disabled={operationPending}
+          label="今週を進める"
+          onClick={requestAdvance}
+        />
+      </div>
 
       <TrainingResultNotificationSheet
         notification={selectedNotification}
         onClose={() => setSelectedNotification(null)}
       />
+
+      <BottomSheet
+        description="練習試合の申し込みが未回答です。このまま次週へ進みますか？"
+        onClose={() => setAdvanceWarningOpen(false)}
+        open={advanceWarningOpen}
+        title="未回答の申し込みがあります"
+      >
+        <div className="home-advance-warning-actions">
+          <button
+            disabled={operationPending}
+            onClick={() => setAdvanceWarningOpen(false)}
+            type="button"
+          >
+            戻る
+          </button>
+          <button
+            className="is-primary"
+            disabled={operationPending}
+            onClick={() => {
+              setAdvanceWarningOpen(false);
+              onAdvanceWeek();
+            }}
+            type="button"
+          >
+            そのまま進む
+          </button>
+        </div>
+      </BottomSheet>
     </main>
   );
 }

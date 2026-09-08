@@ -22,6 +22,6 @@ it("keeps a due official match reference-only and directs execution to Home", ()
 
   expect(screen.queryByRole("button", { name: "公式戦を開始" })).toBeNull();
   expect(
-    screen.getByText(/ホームの「次の週へ進む」で試合を実施/),
+    screen.getByText(/ホームの「今週を進める」で試合を実施/),
   ).toBeVisible();
 });

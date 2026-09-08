@@ -13,6 +13,7 @@ import {
   completeTournamentMatch,
   findDueUserOfficialMatch,
 } from "../../src/domain/tournament/progressOfficialTournaments";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 function atWeek(state: GameState, weekOfYear: number): GameState {
   return {
@@ -133,9 +134,9 @@ test("prefectural elimination does not end the save or block later weeks", async
   await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(page.getByText("春高 県大会")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "次の週へ進む" }),
+    page.getByRole("button", { name: "今週を進める" }),
   ).toBeEnabled();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(
     page.getByRole("status").filter({ hasText: "保存済み ✓" }),
   ).toBeVisible();
