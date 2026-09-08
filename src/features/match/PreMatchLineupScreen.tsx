@@ -140,10 +140,7 @@ export function PreMatchLineupScreen({
         </button>
       </section>
 
-      <section
-        className="pre-match-lineup__versus"
-        aria-label="試合前戦力比較"
-      >
+      <section className="pre-match-lineup__versus" aria-label="試合前戦力比較">
         <article>
           <span>自校</span>
           <strong>
@@ -256,9 +253,7 @@ export function PreMatchLineupScreen({
             <select
               aria-label="リベロ"
               disabled={pending}
-              onChange={(event) =>
-                changeLibero(event.target.value as PlayerId)
-              }
+              onChange={(event) => changeLibero(event.target.value as PlayerId)}
               value={selection.liberoPlayerId}
             >
               {liberoOptions.map((playerId) => (
