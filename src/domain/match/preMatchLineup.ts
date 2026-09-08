@@ -1,10 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { Player, Position } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
-import type {
-  RotationSlot,
-  TeamSelection,
-} from "../model/TeamSelection";
+import type { RotationSlot, TeamSelection } from "../model/TeamSelection";
 import { calculatePlayerDisplayPower } from "../selectors/playerPresentation";
 import { autoSelectTeam } from "../team/autoSelectTeam";
 import { validateTeamSelection } from "../team/validateTeamSelection";
@@ -68,7 +65,8 @@ function candidateScore(
   preset: Exclude<PreMatchLineupPreset, "best">,
 ): number {
   const grade = presetGrade(preset);
-  const gradeBonus = grade !== null && player.grade === grade ? 1_000_000 : 0;
+  const gradeBonus =
+    grade !== null && player.grade === grade ? 1_000_000 : 0;
   const conditionBonus = preset === "condition" ? player.condition * 10_000 : 0;
   const aptitude = player.positionAptitudes[role] * 1_000;
   const overall = calculatePlayerDisplayPower(player);
@@ -132,11 +130,7 @@ export function buildPreMatchLineupPreset(input: {
     available.delete(selected.id);
     return { slot, playerId: selected.id };
   });
-  const libero = bestCandidate(
-    [...available.values()],
-    "L",
-    input.preset,
-  );
+  const libero = bestCandidate([...available.values()], "L", input.preset);
 
   const activeIds = new Set(rotation.map((assignment) => assignment.playerId));
   activeIds.add(libero.id);
