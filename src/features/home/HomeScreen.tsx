@@ -129,7 +129,7 @@ export function HomeScreen({
       />
 
       <div
-        className="home-command-advance home-next-week-button"
+        className="home-command-advance"
         data-testid="home-command-advance"
       >
         <StickyActionBar
