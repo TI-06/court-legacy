@@ -221,10 +221,11 @@ export function HomeCommandCenter({
           <div className="home-command-news-list">
             {model.news.map((news) => {
               if (news.kind === "training-result") {
+                const unread = news.notification.readAtGameDate === null;
                 return (
                   <button
                     aria-label={`今週の練習結果 ${news.notification.payload.teamTrainingMenuName}`}
-                    className="home-command-news-row"
+                    className={`home-command-news-row${unread ? " is-unread" : ""}`}
                     data-testid="home-command-news"
                     key={news.id}
                     onClick={() =>
@@ -233,7 +234,9 @@ export function HomeCommandCenter({
                     type="button"
                   >
                     <span>
-                      <strong>{news.title}</strong>
+                      <strong>
+                        {unread ? "NEW" : "確認済み"} {news.title}
+                      </strong>
                       <small>{news.detail}</small>
                     </span>
                     <b aria-hidden="true">›</b>
