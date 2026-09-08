@@ -98,7 +98,10 @@ describe("match-only advance-week selection", () => {
     const presentation = outcome?.pendingMatchPresentation;
     if (!presentation) throw new Error("practice match was not simulated");
 
-    expectCyclicRotation(presentation.simulation.match.homeSelection, matchSelection);
+    expectCyclicRotation(
+      presentation.simulation.match.homeSelection,
+      matchSelection,
+    );
     expect(result.teamSelection).toEqual(savedSelection);
     expect(snapshot.teamSelection).toEqual(savedSelection);
   });
