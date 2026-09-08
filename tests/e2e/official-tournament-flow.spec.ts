@@ -120,13 +120,18 @@ test("due official match is reference-only in the bracket and executes from Home
   );
 });
 
-test("Home progression commits an official match once, presents it, advances, and survives reload", async ({
+test("Home progression prepares and commits an official match once, presents it, advances, and survives reload", async ({
   page,
 }) => {
   await seedSnapshot(page, officialSnapshot(), 350);
   await page.goto("/");
 
   await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+  await expect(page.getByText("この試合だけの編成です")).toBeVisible();
+  await expectNoBodyOverflow(page);
+  await page.getByRole("button", { name: "この編成で試合開始" }).click();
+
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),
   ).toBeVisible({ timeout: 3_000 });
