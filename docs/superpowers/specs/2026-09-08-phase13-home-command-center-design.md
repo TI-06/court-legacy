@@ -10,7 +10,7 @@ After Phase 13, opening Home should answer three questions within a few seconds:
 2. What should I pay attention to or act on?
 3. What is the next major competitive objective?
 
-Phase 13 is primarily a presentation and orchestration phase. It should connect existing systems instead of introducing another large persistence subsystem.
+Phase 13 is primarily a presentation and orchestration phase. It connects existing systems instead of introducing another large persistence subsystem.
 
 ## Baseline and constraints
 
@@ -26,7 +26,7 @@ The design assumes the current `main` baseline after PR #68, including:
 - pre-match preparation for practice, official and PvP matches;
 - temporary match-only lineup presets and edits.
 
-The current `GameState` schema already contains the data required for Phase 13. Phase 13 must not increment the save schema version unless implementation reveals a concrete requirement that cannot be derived from existing state.
+The current `GameState` schema already contains the data required for Phase 13. Phase 13 must not increment the save schema version unless implementation proves a requirement cannot be derived from existing state.
 
 The current notification model intentionally retains only the newest training-result notification. Phase 13 must not repurpose this structure into a generic persistent news feed.
 
@@ -59,11 +59,11 @@ Examples of non-blocking items:
 
 The week advance action remains available unless the user is currently in a mutually exclusive operation state.
 
-A confirmation warning may be shown only when advancing the week would discard an immediately expiring choice, such as an unanswered practice-match offer.
+A confirmation warning is shown only when advancing the week discards an immediately expiring choice. In Phase 13 that means an unanswered incoming practice-match offer.
 
 ### Derived presentation model
 
-Most Home tasks and news are derived from current `GameState` on render.
+Home tasks and Home news are derived from current `GameState` on render wherever possible.
 
 Do not persist derived Home items merely to display them.
 
@@ -72,7 +72,7 @@ This keeps:
 - old saves compatible;
 - Home logic testable as pure selectors;
 - the notification subsystem bounded;
-- future Phase 17 rankings and other systems easy to plug into the same presentation model.
+- future Phase 17 rankings and later systems easy to plug into the same presentation model.
 
 ## Architecture
 
@@ -89,7 +89,7 @@ interface HomeCommandCenterModel {
 }
 ```
 
-The exact naming may change during implementation, but responsibilities should remain separated.
+The exact type names may change during implementation, but responsibilities must remain separated.
 
 Recommended files:
 
@@ -97,9 +97,9 @@ Recommended files:
 - `src/features/home/HomeCommandCenter.tsx`
 - existing `src/features/home/HomeScreen.tsx` as the screen/container boundary
 
-`homeCommandCenter.ts` should contain pure state-to-view-model logic and no React state.
+`homeCommandCenter.ts` contains pure state-to-view-model logic and no React state.
 
-`HomeCommandCenter.tsx` should focus on rendering the model and emitting navigation/action intents.
+`HomeCommandCenter.tsx` renders the model and emits navigation/action intents.
 
 `GameApp` remains responsible for actual screen transitions and authoritative game actions.
 
@@ -107,37 +107,27 @@ Recommended files:
 
 Avoid expanding `HomeScreenProps` with many more `onOpenX` callbacks.
 
-Introduce a small target contract, conceptually:
-
-```ts
-type HomeCommandTarget =
-  | "training"
-  | "team"
-  | "player"
-  | "school"
-  | "facilities"
-  | "staff"
-  | "scouting"
-  | "match"
-  | "tournament";
-```
-
-If a target needs an entity, use a discriminated payload rather than encoding IDs in strings, for example:
+Introduce a small UI-oriented action contract, conceptually:
 
 ```ts
 type HomeCommandAction =
+  | { target: "training" }
+  | { target: "team" }
   | { target: "player"; playerId: PlayerId }
   | { target: "facilities" }
+  | { target: "staff" }
+  | { target: "scouting" }
   | { target: "match" }
-  | { target: "tournament" }
-  | ...;
+  | { target: "tournament" };
 ```
 
-This contract should stay UI-oriented. It should not become a second application router.
+Use discriminated payloads when a target needs an entity. Do not encode IDs into route-like strings.
+
+This contract must not become a second application router.
 
 ## Home layout
 
-The screen is divided into four conceptual regions:
+The screen has four conceptual regions:
 
 1. Weekly summary
 2. Coaching tasks
@@ -146,7 +136,7 @@ The screen is divided into four conceptual regions:
 
 ### 1. Weekly summary
 
-The top area should be compact and immediately readable.
+The top area is compact and immediately readable.
 
 Show:
 
@@ -173,7 +163,7 @@ If an official match is due this week, replace `あとN週` with a stronger `今
 
 Do not display prefectural/national rank in Phase 13. Ranking belongs to Phase 17 and must not be approximated with unrelated metrics.
 
-The summary view model should be designed so rank can be added later without restructuring Home.
+The summary view model must leave an extension point so rank can be added in Phase 17 without restructuring Home.
 
 ### 2. Coaching tasks
 
@@ -181,14 +171,16 @@ Tasks answer: **what might the coach want to do now?**
 
 Tasks are sorted by severity/urgency, not by subsystem.
 
-Suggested priority bands:
+Priority bands:
 
 1. `critical` — due official match or expiring decision
 2. `attention` — significant player concern/injury
 3. `normal` — normal weekly action or useful management action
 4. `complete` — completed weekly actions shown only when useful for context
 
-Limit the rendered list to a compact set, normally at most five visible task cards. Lower-priority items may be summarized into one aggregate task where appropriate.
+Render **at most five task cards**. If more than five candidates exist, lower-priority candidates are either aggregated by subsystem or omitted according to deterministic priority order.
+
+Tie-breaking must be deterministic so the same `GameState` always produces the same ordered task list.
 
 #### Official-match task
 
@@ -217,11 +209,11 @@ vs 東高校
 
 If an incoming offer exists and no opponent is scheduled, keep explicit Accept/Decline controls.
 
-The offer is treated as an expiring choice. Advancing the week with an unanswered offer is one of the few states allowed to trigger a confirmation warning.
+The offer is an expiring choice. Advancing the week with an unanswered offer triggers the Phase 13 advance confirmation.
 
 #### Training task
 
-Use the current weekly training state.
+Use current weekly training state.
 
 Possible presentation:
 
@@ -244,9 +236,13 @@ Do not require users to change training every week. The existing low-friction tr
 
 Use existing `teamDynamics.playerConcerns`.
 
-Prioritize concerns by severity, then use a stable deterministic tie-breaker.
+Prioritize concerns by:
 
-Show at most one or two player concern tasks.
+1. severity descending;
+2. player grade descending;
+3. player ID ascending as the final stable tie-breaker.
+
+Show at most two player-concern cards before the overall five-card Home limit is applied.
 
 Example:
 
@@ -270,15 +266,15 @@ Task navigation should open the relevant player detail when possible, not merely
 
 Injuries are attention items, not mandatory tasks.
 
-For one player:
+For one injured player:
 
 ```text
 注意
 佐藤 健
-足首の怪我・あと2週
+怪我・あと2週
 ```
 
-For multiple players, prefer aggregation such as:
+For two or more injured players, aggregate:
 
 ```text
 怪我人 3名
@@ -303,11 +299,11 @@ Do not show a task merely because a facility exists or because the user is short
 
 #### Assistant-coach task
 
-If no assistant coach is contracted, Home may recommend contracting one during a suitable early-year window.
+If no assistant coach is contracted, recommend a contract only during **academic weeks 1 through 8 inclusive**.
 
-This is a recommendation, not a blocking warning and not a permanent red badge every week.
+This is a normal recommendation, not a blocking warning. After week 8, Home does not repeatedly nag the user about the missing annual coach during that academic year.
 
-Implementation should define a deterministic eligibility window based on existing calendar data rather than introducing a new persisted dismissal flag in Phase 13.
+No new persisted dismissal flag is introduced in Phase 13.
 
 #### Scouting task
 
@@ -324,16 +320,17 @@ News is distinct from tasks.
 
 News is primarily derived from existing state and recent history.
 
-Display at most three news items.
+Render **at most three news items**.
 
-Suggested priority:
+Priority order:
 
 1. unread newest training result;
-2. latest official/practice match outcome;
+2. latest match outcome;
 3. significant individual growth from newest training result;
-4. injury occurrence/recovery if currently derivable without new persistence;
-5. meaningful cohesion change;
-6. other low-value informational items.
+4. meaningful cohesion change;
+5. other low-value informational items introduced later.
+
+Tie-breaking must be deterministic.
 
 ### Training result news
 
@@ -351,7 +348,11 @@ Tapping opens the existing training-result detail sheet and marks it read throug
 
 ### Significant growth news
 
-A significant individual growth item may be derived from the newest training notification.
+Derive this only from the newest training notification.
+
+A player qualifies as `急成長` in Phase 13 when `totalAbilityGrowth >= 5` for that weekly training result.
+
+If multiple players qualify, show only the highest-growth player; ties use player ID ascending for deterministic selection.
 
 Example:
 
@@ -364,7 +365,7 @@ Do not claim long-term streaks or `直近4週` growth in Phase 13 because long-t
 
 ### Match outcome news
 
-Use recent match history/latest available result.
+Use the most recent match involving the user school that can be resolved from existing match history/state.
 
 Example:
 
@@ -383,6 +384,8 @@ Use existing:
 - `previousCohesion`
 - `cohesionTrend`
 
+A cohesion news item qualifies when the absolute change is **3 or more points**.
+
 Example:
 
 ```text
@@ -390,7 +393,7 @@ Example:
 結束 74 → 78・上向き
 ```
 
-Only show it when the change is meaningful enough to justify one of the limited news slots.
+This threshold prevents a limited news slot from being consumed by negligible changes.
 
 ## Week-advance CTA
 
@@ -400,7 +403,7 @@ Label:
 
 `今週を進める`
 
-It should remain visually available near the bottom of the viewport, directly above the application's bottom navigation and safe-area inset.
+It remains visually available near the bottom of the viewport, directly above the application's bottom navigation and safe-area inset.
 
 It must not cover Home content or bottom navigation.
 
@@ -410,11 +413,9 @@ Implementation may use sticky positioning inside the Home shell rather than glob
 
 Most incomplete/recommended Home items do not block week advancement.
 
-Warning is allowed only when advancing the week causes a meaningful expiring choice to be lost.
+The only Phase 13 warning condition is:
 
-Initial Phase 13 supported warning:
-
-- unanswered incoming practice-match offer.
+- an unanswered incoming practice-match offer exists and advancing the week would discard that offer.
 
 Example:
 
@@ -432,15 +433,15 @@ Do not add warnings for:
 - affordable upgrades;
 - no assistant coach;
 - optional scouting;
-- completed/unchanged training settings.
+- completed or unchanged training settings.
 
 ## Match flow integration
 
-Phase 13 must preserve the current pre-match flow.
+Phase 13 preserves the current pre-match flow.
 
-When week advancement encounters a due practice/official match, the existing application flow should still open pre-match preparation before authoritative simulation.
+When week advancement encounters a due practice/official match, the existing application flow still opens pre-match preparation before authoritative simulation.
 
-The Home Command Center is not allowed to:
+The Home Command Center must not:
 
 - simulate matches itself;
 - persist a temporary lineup;
@@ -454,18 +455,18 @@ The Home Command Center is not allowed to:
 
 The user should visually encounter information in this order:
 
-1. week / next objective;
-2. urgent coaching task;
-3. team snapshot;
-4. optional management tasks;
+1. week and next objective;
+2. team snapshot;
+3. urgent coaching tasks;
+4. optional/completed coaching tasks;
 5. recent news;
 6. week advance.
 
-The exact card placement may vary after mobile visual testing, but the priority must remain clear.
+This order resolves the earlier ambiguity between team snapshot and tasks: the compact team snapshot belongs to the top summary, while the task list begins immediately below that summary.
 
 ### Task card anatomy
 
-A task card should normally contain:
+A task card normally contains:
 
 - compact category/status badge;
 - strong title;
@@ -476,9 +477,9 @@ Avoid multiple primary buttons inside ordinary task cards. Practice offers are t
 
 ### Completed tasks
 
-Completed tasks use subdued styling and should not dominate the page.
+Completed tasks use subdued styling and must not dominate the page.
 
-If the page becomes too long, completed context may be folded into the weekly summary rather than keeping a full card.
+If five higher-value task cards already exist, completed cards are omitted before any active task is omitted.
 
 ### Mobile requirements
 
@@ -524,15 +525,15 @@ Show a compact positive state such as `今週の準備は整っています` rat
 
 ### No news
 
-The news section may be omitted. Do not populate generic filler messages.
+Omit the news section. Do not populate generic filler messages.
 
 ### Operation pending
 
-Existing authoritative actions that are already pending must disable conflicting controls and prevent duplicate submission.
+Existing authoritative actions that are already pending disable conflicting controls and prevent duplicate submission.
 
 ## Data and persistence
 
-Phase 13 should use existing sources:
+Phase 13 uses existing sources:
 
 - `calendar` / weekly completion IDs;
 - `weeklySchedule`;
@@ -544,9 +545,9 @@ Phase 13 should use existing sources:
 - `schoolManagement` and school funds;
 - existing facility/assistant-coach evaluators.
 
-No new generic Home task array should be persisted in `GameState`.
+No new generic Home task array is persisted in `GameState`.
 
-No new generic Home news history should be persisted in `GameState`.
+No new generic Home news history is persisted in `GameState`.
 
 No Worker endpoint is required solely for Home rendering.
 
@@ -561,17 +562,21 @@ Cover at minimum:
 - future official event in summary only;
 - scheduled practice match;
 - incoming practice offer;
-- training configured / training completed;
-- player concern severity ordering;
+- training configured and training completed;
+- player concern severity/tie ordering;
+- maximum two player concerns;
 - injury aggregation;
 - affordable facility upgrade aggregation;
-- assistant coach recommendation window;
+- assistant coach recommendation on week 1 and week 8;
+- no assistant coach recommendation from week 9 onward;
 - unread training-result news;
-- significant training growth news;
-- recent match outcome news;
-- cohesion-change news;
+- significant growth at the `>= 5` threshold;
+- latest match outcome news;
+- cohesion news at absolute change `>= 3`;
+- no cohesion news below threshold;
 - task priority order;
-- maximum task/news counts;
+- maximum five tasks;
+- maximum three news items;
 - deterministic ordering for ties;
 - no invented prefectural rank.
 
@@ -638,11 +643,11 @@ These belong to later roadmap phases.
 Phase 13 is complete when:
 
 1. Home clearly presents current week, next official objective and team snapshot.
-2. Home derives a prioritized compact coaching-task list from current game state.
-3. Home derives up to three useful recent news items without creating a new persistent news feed.
+2. Home derives a prioritized coaching-task list of at most five cards from current game state.
+3. Home derives at most three useful recent news items without creating a new persistent news feed.
 4. Player concerns, injuries, practice offers, match preparation and school management actions route to appropriate existing screens/actions.
 5. `今週を進める` remains the dominant Home CTA and preserves the current authoritative week/match flow.
-6. Only genuinely expiring choices produce advance warnings.
+6. Only an unanswered expiring practice-match offer produces the Phase 13 advance warning.
 7. No prefectural/national rank is fabricated before Phase 17.
 8. Existing saves remain compatible without a Phase 13 schema migration.
 9. Mobile layouts at 320/360/390/414/480 px have no horizontal overflow and no bottom-navigation collision.
@@ -650,7 +655,7 @@ Phase 13 is complete when:
 
 ## Future extension points
 
-The Phase 13 presentation model should intentionally leave space for later phases:
+The Phase 13 presentation model intentionally leaves space for later phases:
 
 - Phase 14: recent/long-term player growth summaries;
 - Phase 15: active tactical plan summary;
@@ -661,4 +666,4 @@ The Phase 13 presentation model should intentionally leave space for later phase
 - Phase 20: rivalry/legacy events;
 - Phase 21: PvP season rank/status.
 
-These future fields should extend the derived Home model rather than forcing a rewrite of Home's architecture.
+These future fields should extend the derived Home model rather than force a rewrite of Home's architecture.
