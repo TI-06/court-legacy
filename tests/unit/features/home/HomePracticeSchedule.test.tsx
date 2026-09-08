@@ -29,7 +29,9 @@ describe("HomeScreen practice schedule", () => {
 
     expect(screen.getByTestId("home-command-summary")).toBeVisible();
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
-    expect(within(teamStatus).getByText(String(homeStrength))).toBeVisible();
+    const strengthCard = within(teamStatus).getByText("戦力").closest("article");
+    if (!strengthCard) throw new Error("Home strength card missing");
+    expect(within(strengthCard).getByText(String(homeStrength))).toBeVisible();
     expect(screen.queryByRole("button", { name: "練習試合 試合" })).toBeNull();
     expect(screen.queryByText("対戦相手 未決定")).toBeNull();
   });
