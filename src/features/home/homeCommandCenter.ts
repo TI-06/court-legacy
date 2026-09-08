@@ -312,10 +312,7 @@ function playerConcernTasks(state: GameState): TaskCandidate[] {
     }));
 }
 
-function injuryTask(
-  state: GameState,
-  players: readonly Player[],
-): TaskCandidate | null {
+function injuryTask(players: readonly Player[]): TaskCandidate | null {
   const injured = players
     .filter((player) => player.injury)
     .sort((left, right) => String(left.id).localeCompare(String(right.id)));
@@ -409,7 +406,7 @@ function buildTasks(
   }
 
   candidates.push(...playerConcernTasks(state));
-  const injury = injuryTask(state, players);
+  const injury = injuryTask(players);
   if (injury) candidates.push(injury);
 
   const practiceCompleted = isWeeklyActionCompleted(state, "practice-match");
