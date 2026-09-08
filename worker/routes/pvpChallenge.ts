@@ -233,7 +233,9 @@ export function createPvpChallengeHandler(
       throw new Error("challenger school is missing from authoritative state");
     }
 
-    const matchSelection = parsed.data.matchSelection as TeamSelection | undefined;
+    const matchSelection = parsed.data.matchSelection as
+      | TeamSelection
+      | undefined;
     let challengerForMatch = challenger;
     if (matchSelection) {
       try {
