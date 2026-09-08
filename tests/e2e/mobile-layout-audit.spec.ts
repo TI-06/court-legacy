@@ -26,8 +26,7 @@ async function inspectLayout(page: Page) {
       const style = window.getComputedStyle(element);
       const visuallyOutside =
         rect.right > viewportWidth + 0.5 || rect.left < -0.5;
-      const internallyScrollable =
-        element.scrollWidth > element.clientWidth + 1;
+      const internallyScrollable = element.scrollWidth > element.clientWidth + 1;
       const clipped =
         internallyScrollable && !["auto", "scroll"].includes(style.overflowX);
 
@@ -190,12 +189,17 @@ for (const viewport of mobileViewports) {
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
 
     await expectLayoutFits(page, testInfo, `${viewport.width}-home`);
+    await expectNoHorizontalScroll(
+      page,
+      ".home-screen",
+      `${viewport.width}-home`,
+    );
     await expectNavigationFixed(page, `${viewport.width}-home`);
     if ([360, 390, 414].includes(viewport.width)) {
       await expectAboveNavigation(
         page,
-        ".home-next-week-button",
-        `${viewport.width}-home-next-week`,
+        ".home-command-advance",
+        `${viewport.width}-home-advance`,
       );
     }
 
@@ -277,7 +281,12 @@ for (const viewport of mobileViewports) {
       testInfo,
       `${viewport.width}-home-before-match`,
     );
-    await page.getByRole("button", { name: "次の週へ進む" }).click();
+    await expectNoHorizontalScroll(
+      page,
+      ".home-screen",
+      `${viewport.width}-home-before-match`,
+    );
+    await page.getByRole("button", { name: "今週を進める" }).click();
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-pre-match`);
     await page.getByRole("button", { name: "この編成で試合開始" }).click();
@@ -292,6 +301,11 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(
       page,
       testInfo,
+      `${viewport.width}-home-after-match`,
+    );
+    await expectNoHorizontalScroll(
+      page,
+      ".home-screen",
       `${viewport.width}-home-after-match`,
     );
 
