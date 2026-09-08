@@ -33,7 +33,9 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "試合準備" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "試合準備" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("この試合だけの編成です")).toBeInTheDocument();
     expect(screen.getByText("ライバル高校")).toBeInTheDocument();
     expect(screen.getByText("戦力 78")).toBeInTheDocument();
