@@ -26,7 +26,9 @@ for (const width of [320, 360, 390, 414, 480]) {
       clientWidth: element.clientWidth,
       scrollWidth: element.scrollWidth,
     }));
-    expect(homeWidth.scrollWidth).toBeLessThanOrEqual(homeWidth.clientWidth + 1);
+    expect(homeWidth.scrollWidth).toBeLessThanOrEqual(
+      homeWidth.clientWidth + 1,
+    );
 
     const advance = page.getByTestId("home-command-advance");
     const advanceButton = advance.getByRole("button", {
