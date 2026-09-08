@@ -123,7 +123,7 @@ describe("GameApp practice scheduling", () => {
     });
     expect(await screen.findByText("対戦決定")).toBeVisible();
     expect(screen.getAllByText(opponent.name).length).toBeGreaterThan(0);
-    expect(screen.getByText("ホームの「次の週へ進む」で実施")).toBeVisible();
+    expect(screen.getByText("ホームの「今週を進める」で実施")).toBeVisible();
     expect(screen.queryByRole("button", { name: "試合開始" })).toBeNull();
   });
 
