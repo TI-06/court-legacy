@@ -12,5 +12,27 @@ export function applyServerGameAction(
   action: GameAction,
   context: ServerGameActionContext = {},
 ): AppliedGameAction {
-  return applyGameAction(snapshot, action, context);
+  if (action.type !== "advance-week" || !action.matchSelection) {
+    return applyGameAction(snapshot, action, context);
+  }
+
+  const savedSelection = structuredClone(snapshot.teamSelection);
+  const validated = applyGameAction(
+    snapshot,
+    { type: "team-selection", selection: action.matchSelection },
+    context,
+  );
+  const applied = applyGameAction(
+    {
+      ...snapshot,
+      teamSelection: validated.teamSelection,
+    },
+    action,
+    context,
+  );
+
+  return {
+    ...applied,
+    teamSelection: savedSelection,
+  };
 }
