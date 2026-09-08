@@ -106,7 +106,8 @@ export function buildPreMatchLineupPreset(input: {
   baseSelection: TeamSelection;
   preset: PreMatchLineupPreset;
 }): TeamSelection {
-  if (input.preset === "best") {
+  const preset = input.preset;
+  if (preset === "best") {
     return autoSelectTeam({ state: input.state, schoolId: input.schoolId });
   }
 
@@ -121,12 +122,12 @@ export function buildPreMatchLineupPreset(input: {
     const selected = bestCandidate(
       [...available.values()],
       ROTATION_ROLES[slot],
-      input.preset,
+      preset,
     );
     available.delete(selected.id);
     return { slot, playerId: selected.id };
   });
-  const libero = bestCandidate([...available.values()], "L", input.preset);
+  const libero = bestCandidate([...available.values()], "L", preset);
 
   const activeIds = new Set(rotation.map((assignment) => assignment.playerId));
   activeIds.add(libero.id);
