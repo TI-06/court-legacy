@@ -1,0 +1,338 @@
+from pathlib import Path
+
+
+def replace(path: str, old: str, new: str) -> None:
+    file_path = Path(path)
+    text = file_path.read_text()
+    if old not in text:
+        raise SystemExit(f"expected block not found in {path}: {old[:80]!r}")
+    file_path.write_text(text.replace(old, new, 1))
+
+
+Path("src/domain/selectors/ratingGrades.ts").write_text(
+    '''export type AbilityRatingGrade = "A" | "B" | "C" | "D" | "E" | "F" | "G";
+export type SchoolStrengthGrade = "A" | "B" | "C" | "D" | "E" | "F";
+
+export function ratingToGrade(value: number): AbilityRatingGrade {
+  const rating = Math.max(0, Math.min(100, Math.round(value)));
+  if (rating >= 80) return "A";
+  if (rating >= 70) return "B";
+  if (rating >= 60) return "C";
+  if (rating >= 50) return "D";
+  if (rating >= 40) return "E";
+  if (rating >= 20) return "F";
+  return "G";
+}
+
+export function schoolStrengthToGrade(value: number): SchoolStrengthGrade {
+  const strength = Number.isFinite(value) ? Math.round(value) : 0;
+  if (strength >= 90) return "A";
+  if (strength >= 80) return "B";
+  if (strength >= 70) return "C";
+  if (strength >= 60) return "D";
+  if (strength >= 50) return "E";
+  return "F";
+}
+'''
+)
+
+Path("src/features/match/teamRatingGrade.ts").write_text(
+    '''import "./matchRadar.css";
+
+export { ratingToGrade } from "../../domain/selectors/ratingGrades";
+export type { AbilityRatingGrade as TeamRatingGrade } from "../../domain/selectors/ratingGrades";
+'''
+)
+
+replace(
+    "src/features/team/PlayerHubScreen.tsx",
+    '} from "../../domain/selectors/playerPresentation";\n',
+    '} from "../../domain/selectors/playerPresentation";\nimport { ratingToGrade } from "../../domain/selectors/ratingGrades";\n',
+)
+replace(
+    "src/features/team/PlayerHubScreen.tsx",
+    '              tone="accent"\n              value={value}\n',
+    '              tone="accent"\n              value={value}\n              valueLabel={ratingToGrade(value)}\n',
+)
+
+replace(
+    "src/features/match/MatchStatPanels.tsx",
+    'import type { SchoolId } from "../../domain/model/identifiers";\n',
+    'import type { SchoolId } from "../../domain/model/identifiers";\nimport { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";\n',
+)
+replace(
+    "src/features/match/MatchStatPanels.tsx",
+    '''function strongestKeys(profile: TeamProfile): RadarProfileKey[] {
+  return PROFILE_ROWS.map(([key]) => key).sort(
+    (first, second) => profile[second] - profile[first],
+  );
+}
+''',
+    '''function strongestKeys(profile: TeamProfile): RadarProfileKey[] {
+  return PROFILE_ROWS.map(([key]) => key).sort(
+    (first, second) => profile[second] - profile[first],
+  );
+}
+
+function fiveCategoryOverall(profile: TeamProfile): number {
+  return Math.round(
+    PROFILE_ROWS.reduce((sum, [key]) => sum + profile[key], 0) /
+      PROFILE_ROWS.length,
+  );
+}
+''',
+)
+replace(
+    "src/features/match/MatchStatPanels.tsx",
+    '''  const opponentStrengths = strongestKeys(away).slice(0, 3);
+  const strengthDifference = homeStrength - awayStrength;
+''',
+    '''  const opponentStrengths = strongestKeys(away).slice(0, 3);
+  const strengthDifference = homeStrength - awayStrength;
+  const homeFiveCategoryOverall = fiveCategoryOverall(home);
+  const awayFiveCategoryOverall = fiveCategoryOverall(away);
+''',
+)
+replace(
+    "src/features/match/MatchStatPanels.tsx",
+    '''      <div className="match-power-versus" aria-label="総合戦力比較">
+        <div>
+          <small>自校</small>
+          <strong>{homeStrength}</strong>
+        </div>
+        <span>VS</span>
+        <div>
+          <small>相手</small>
+          <strong>{awayStrength}</strong>
+        </div>
+      </div>
+
+      <TeamRadar away={away} home={home} />
+''',
+    '''      <div className="match-power-versus" aria-label="総合戦力比較">
+        <div>
+          <small>自校</small>
+          <strong>{homeStrength}</strong>
+          <em>学校評価 {schoolStrengthToGrade(homeStrength)}</em>
+        </div>
+        <span>VS</span>
+        <div>
+          <small>相手</small>
+          <strong>{awayStrength}</strong>
+          <em>学校評価 {schoolStrengthToGrade(awayStrength)}</em>
+        </div>
+      </div>
+
+      <div className="match-five-overall" aria-label="5項目総合比較">
+        <span>5項目総合</span>
+        <strong title={`自校 ${homeFiveCategoryOverall}`}>
+          {ratingToGrade(homeFiveCategoryOverall)}・{homeFiveCategoryOverall}
+        </strong>
+        <b>VS</b>
+        <strong title={`相手 ${awayFiveCategoryOverall}`}>
+          {ratingToGrade(awayFiveCategoryOverall)}・{awayFiveCategoryOverall}
+        </strong>
+      </div>
+
+      <TeamRadar away={away} home={home} />
+''',
+)
+
+radar_css = Path("src/features/match/matchRadar.css")
+radar_css.write_text(
+    radar_css.read_text()
+    + '''
+
+.match-power-versus em {
+  color: #a9c8ce;
+  font-size: 0.56rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.match-five-overall {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px auto;
+  align-items: center;
+  margin-top: 7px;
+  padding: 7px 10px;
+  gap: 8px;
+  color: #d8e9ec;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 11px;
+}
+
+.match-five-overall > span {
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.match-five-overall > strong {
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.match-five-overall > strong:first-of-type {
+  color: #69e2e5;
+}
+
+.match-five-overall > strong:last-child {
+  color: #ffd783;
+}
+
+.match-five-overall > b {
+  color: #8fb8c2;
+  font-size: 0.54rem;
+  text-align: center;
+}
+'''
+)
+
+replace(
+    "src/features/home/HomeScreen.tsx",
+    'import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";\n',
+    'import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";\nimport { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";\n',
+)
+replace(
+    "src/features/home/HomeScreen.tsx",
+    '''              <span>チーム戦力</span>
+              <strong>{homeStrength}</strong>
+''',
+    '''              <span>チーム戦力</span>
+              <strong>{homeStrength}</strong>
+              <small>評価 {schoolStrengthToGrade(homeStrength)}</small>
+''',
+)
+replace(
+    "src/features/home/HomeScreen.tsx",
+    '''                  <span>相手戦力</span>
+                  <strong>{scheduledPracticeOpponentStrength}</strong>
+''',
+    '''                  <span>相手戦力</span>
+                  <strong>{scheduledPracticeOpponentStrength}</strong>
+                  <small>
+                    評価 {schoolStrengthToGrade(scheduledPracticeOpponentStrength)}
+                  </small>
+''',
+)
+replace(
+    "src/features/home/HomeScreen.tsx",
+    '''                戦力 {incomingSchoolStrength} ・ 成長{" "}
+''',
+    '''                戦力 {incomingSchoolStrength} ・ 評価{" "}
+                {schoolStrengthToGrade(incomingSchoolStrength ?? 0)} ・ 成長{" "}
+''',
+)
+
+home_css = Path("src/features/home/home.css")
+home_css.write_text(
+    home_css.read_text()
+    + '''
+
+.home-week-card__strength small {
+  display: block;
+  margin-top: 1px;
+  color: var(--game-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+'''
+)
+
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    'import type { SchoolId } from "../../domain/model/identifiers";\n',
+    'import type { SchoolId } from "../../domain/model/identifiers";\nimport { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";\nimport { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";\nimport { autoSelectTeam } from "../../domain/team/autoSelectTeam";\n',
+)
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    '''function ratingDots(rating: PracticeRating): string {
+  return "●".repeat(rating) + "○".repeat(5 - rating);
+}
+''',
+    '''function ratingDots(rating: PracticeRating): string {
+  return "●".repeat(rating) + "○".repeat(5 - rating);
+}
+
+function schoolStrength(state: GameState, schoolId: SchoolId): number {
+  return calculateSelectionStrength(
+    state,
+    autoSelectTeam({ state, schoolId }),
+  );
+}
+''',
+)
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    '''            <strong>{scheduledSchool.name}</strong>
+          </div>
+''',
+    '''            <strong>{scheduledSchool.name}</strong>
+            <small>
+              戦力 {schoolStrength(state, scheduledSchool.id)}・評価{" "}
+              {schoolStrengthToGrade(schoolStrength(state, scheduledSchool.id))}
+            </small>
+          </div>
+''',
+)
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    '''                  <span>
+                    成長度 {ratingDots(schedule.incomingOffer.growthRating)} ・
+                    負荷 {ratingDots(schedule.incomingOffer.loadRating)}
+                  </span>
+''',
+    '''                  <span>
+                    戦力 {schoolStrength(state, incomingSchool.id)}・評価{" "}
+                    {schoolStrengthToGrade(schoolStrength(state, incomingSchool.id))} ・
+                    成長度 {ratingDots(schedule.incomingOffer.growthRating)} ・
+                    負荷 {ratingDots(schedule.incomingOffer.loadRating)}
+                  </span>
+''',
+)
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    '''                  const available = candidate.status === "available";
+                  return (
+''',
+    '''                  const available = candidate.status === "available";
+                  const strength = schoolStrength(state, school.id);
+                  return (
+''',
+)
+replace(
+    "src/features/match/PracticeMatchPlanning.tsx",
+    '''                          {tierLabels[candidate.tier]} ・ 成立しやすさ{" "}
+''',
+    '''                          戦力 {strength}・評価 {schoolStrengthToGrade(strength)} ・{" "}
+                          {tierLabels[candidate.tier]} ・ 成立しやすさ{" "}
+''',
+)
+
+test = Path("tests/unit/features/abilityStrengthGrades.test.tsx")
+text = test.read_text()
+text = text.replace(
+    'import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";\n',
+    'import { schoolStrengthToGrade } from "../../../src/domain/selectors/ratingGrades";\nimport { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";\n',
+    1,
+)
+text = text.replace(
+    'describe("ability and school strength grades", () => {\n',
+    '''describe("ability and school strength grades", () => {
+  it("maps school strength to six A-F tiers", () => {
+    expect(schoolStrengthToGrade(90)).toBe("A");
+    expect(schoolStrengthToGrade(80)).toBe("B");
+    expect(schoolStrengthToGrade(70)).toBe("C");
+    expect(schoolStrengthToGrade(60)).toBe("D");
+    expect(schoolStrengthToGrade(50)).toBe("E");
+    expect(schoolStrengthToGrade(49)).toBe("F");
+  });
+
+''',
+    1,
+)
+test.write_text(text)
