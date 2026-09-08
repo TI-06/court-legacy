@@ -2,9 +2,7 @@ import type { SchoolView } from "./SchoolNavigationTabs";
 
 let requestedSchoolView: Exclude<SchoolView, "scouting"> | null = null;
 
-export function requestSchoolView(
-  view: Exclude<SchoolView, "scouting">,
-): void {
+export function requestSchoolView(view: Exclude<SchoolView, "scouting">): void {
   requestedSchoolView = view;
 }
 

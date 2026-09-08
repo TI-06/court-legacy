@@ -29,6 +29,7 @@ interface PlayerHubScreenProps {
     captainPlayerId: PlayerId,
     viceCaptainPlayerId: PlayerId,
   ) => void | Promise<void>;
+  initialPlayerId?: PlayerId | null;
   leadershipPending?: boolean;
   trainingPending?: boolean;
   onChangeTraining?: (
@@ -93,13 +94,14 @@ export function PlayerHubScreen({
   selection,
   onChange,
   onAssignLeadership,
+  initialPlayerId = null,
   leadershipPending = false,
   trainingPending = false,
   onChangeTraining,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
-    null,
+    initialPlayerId,
   );
   const [trainingPlayerId, setTrainingPlayerId] = useState<PlayerId | null>(
     null,

@@ -101,9 +101,7 @@ describe("GameApp Phase 13 Home commands", () => {
 
     renderApp(snapshot);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "選手から相談 確認" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "選手から相談 確認" }));
     expect(
       screen.getByRole("heading", {
         name: `${player.lastName} ${player.firstName}`,

@@ -7,7 +7,8 @@ import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 describe("PlayerHubScreen initial player focus", () => {
   it("opens the requested player detail without persisting navigation state", () => {
     const state = createDemoGame();
-    const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+    const player =
+      state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
     const selection = autoSelectTeam({ state, schoolId: state.userSchoolId });
 
     render(
