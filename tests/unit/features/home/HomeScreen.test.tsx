@@ -1,259 +1,186 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
-import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
-import { matchId } from "../../../../src/domain/model/identifiers";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import type { GameState } from "../../../../src/domain/model/GameState";
 import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
-import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
-import {
-  calculateSelectionStrength,
-  selectPracticeOpponent,
-} from "../../../../src/domain/selectors/matchSelectors";
-import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
 
-function createProps(withLatestMatch = false) {
-  const state = createDemoGame();
-  const opponent = selectPracticeOpponent(state);
-  const homeSelection = autoSelectTeam({
-    state,
-    schoolId: state.userSchoolId,
-  });
-  const awaySelection = autoSelectTeam({ state, schoolId: opponent.id });
-  const latestMatch = withLatestMatch
-    ? simulateMatch({
-        state,
-        id: matchId("home-latest-match"),
-        homeSchoolId: state.userSchoolId,
-        awaySchoolId: opponent.id,
-        homeSelection,
-        awaySelection,
-        bestOfSets: 3,
-        random: new SeededRandom("home-latest-match"),
-      })
-    : null;
-
+function createProps(state = createDemoGame()) {
+  state.weeklySchedule.practiceMatch.incomingOffer = null;
   return {
     state,
-    opponent,
-    latestMatch,
-    homeStrength: calculateSelectionStrength(state, homeSelection),
-    trainingCompleted: false,
-    practiceMatchCompleted: false,
-    onOpenSchool: vi.fn(),
+    data: gameData,
+    homeStrength: 8120,
+    onCommand: vi.fn(),
+    onAdvanceWeek: vi.fn(),
     onAcceptPracticeOffer: vi.fn(),
     onDeclinePracticeOffer: vi.fn(),
     operationPending: false,
-    onOpenTeam: vi.fn(),
-    onOpenMatch: vi.fn(),
-    onOpenOfficialTournament: vi.fn(),
-    onAdvanceWeek: vi.fn(),
     onMarkNotificationRead: vi.fn(),
   };
 }
 
+function otherSchool(state: GameState) {
+  const school = Object.values(state.schools).find(
+    (candidate) => candidate.id !== state.userSchoolId,
+  );
+  if (!school) throw new Error("opponent fixture missing");
+  return school;
+}
+
 function trainingNotification(
-  props: ReturnType<typeof createProps>,
-  id: string,
-  menuName: string,
-  read: boolean,
+  state: GameState,
+  read = false,
 ): TrainingResultNotification {
+  const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
   return {
-    id,
+    id: "home-screen-training",
     type: "training-result",
-    createdGameDate: props.state.date,
-    academicYearIndex: props.state.yearIndex,
-    weekOfYear: props.state.calendar.weekOfYear,
-    readAtGameDate: read ? props.state.date : null,
+    createdGameDate: state.date,
+    academicYearIndex: state.yearIndex,
+    weekOfYear: state.calendar.weekOfYear,
+    readAtGameDate: read ? state.date : null,
     payload: {
-      teamTrainingMenuName: menuName,
+      teamTrainingMenuName: "スパイク練習",
       totalAbilityGrowth: 8,
-      totalFatigueChange: 12,
+      totalFatigueChange: 0,
       injuredCount: 0,
-      players: [],
+      players: [
+        {
+          playerId: player.id,
+          displayName: `${player.lastName} ${player.firstName}`,
+          grade: player.grade,
+          preferredPosition: player.preferredPosition,
+          totalAbilityGrowth: 8,
+          fatigueChange: 0,
+          conditionChange: 0,
+          trustChange: 0,
+          injured: false,
+          abilityChanges: {},
+        },
+      ],
     },
   };
 }
 
-describe("home action dashboard", () => {
-  it("renders the information-first dashboard without a featured-player hero", () => {
+describe("Phase 13 Home command center", () => {
+  it("renders a compact weekly summary, coaching tasks and a sticky week action", () => {
     const props = createProps();
-    props.state.teamDynamics = {
-      ...props.state.teamDynamics,
-      cohesion: 68,
-      cohesionTrend: "rising",
-    };
-
     const { container } = render(<HomeScreen {...props} />);
 
-    expect(screen.queryByRole("region", { name: "チームフェイス" })).toBeNull();
-    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByTestId("home-command-summary")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "4/1・第1週" })).toBeVisible();
+    expect(screen.getByText("青葉")).toBeVisible();
 
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
-    expect(within(teamStatus).getByText("評判")).toBeVisible();
+    expect(within(teamStatus).getByText("戦力")).toBeVisible();
     expect(within(teamStatus).getByText("調子")).toBeVisible();
-    expect(within(teamStatus).getByText("部員")).toBeVisible();
     expect(within(teamStatus).getByText("結束")).toBeVisible();
-    expect(within(teamStatus).getByText("68")).toBeVisible();
-    expect(within(teamStatus).getByText("上向き")).toBeVisible();
+    expect(within(teamStatus).queryByText("評判")).toBeNull();
+    expect(within(teamStatus).queryByText("部員")).toBeNull();
+
+    expect(screen.getByRole("heading", { name: "今週やること" })).toBeVisible();
+    expect(screen.getAllByTestId("home-command-task").length).toBeLessThanOrEqual(5);
+    expect(screen.getByRole("button", { name: "今週を進める" })).toBeVisible();
+    expect(container.querySelector("img")).toBeNull();
   });
 
-  it("shows the next official tournament card and opens its bracket", () => {
+  it("keeps the official objective compact and emits the tournament command", () => {
     const props = createProps();
-
     render(<HomeScreen {...props} />);
 
-    expect(
-      screen.getByRole("heading", { name: "インターハイ 県大会" }),
-    ).toBeVisible();
-    expect(screen.getByText("あと8週")).toBeVisible();
-    expect(screen.getByText("1回戦")).toBeVisible();
-    expect(screen.getByTitle("城南商業")).toHaveTextContent("城南");
-
+    expect(screen.getByText("次の公式戦")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "大会表を見る" }));
-    expect(props.onOpenOfficialTournament).toHaveBeenCalledOnce();
+    expect(props.onCommand).toHaveBeenCalledWith({ target: "tournament" });
   });
 
-  it("shows both team strengths for a scheduled practice match and keeps direct weekly actions available", () => {
+  it("emits a team command from the training task", () => {
     const props = createProps();
-    props.state.weeklySchedule.practiceMatch.scheduledOpponentId =
-      props.opponent.id;
-    const opponentStrength = calculateSelectionStrength(
-      props.state,
-      autoSelectTeam({ state: props.state, schoolId: props.opponent.id }),
-    );
+    render(<HomeScreen {...props} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "練習 確認" }));
+    expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
+  });
+
+  it("shows explicit practice-offer controls and warns before discarding the offer", () => {
+    const state = createDemoGame();
+    const opponent = otherSchool(state);
+    state.weeklySchedule.practiceMatch = {
+      ...state.weeklySchedule.practiceMatch,
+      incomingOffer: {
+        schoolId: opponent.id,
+        growthRating: 4,
+        loadRating: 3,
+      },
+      scheduledOpponentId: null,
+      scheduledBy: null,
+    };
+    const props = createProps(state);
+    props.state.weeklySchedule.practiceMatch.incomingOffer = {
+      schoolId: opponent.id,
+      growthRating: 4,
+      loadRating: 3,
+    };
 
     render(<HomeScreen {...props} />);
 
-    expect(
-      screen.getByRole("heading", { name: "4/1・第1週" }),
-    ).toBeInTheDocument();
-    expect(screen.getByTitle(props.opponent.name)).toHaveTextContent(
-      props.opponent.shortName,
-    );
-
-    const strength = screen.getByLabelText("対戦戦力");
-    const homeStrengthLabel = within(strength).getByText("チーム戦力");
-    const homeStrengthBlock = homeStrengthLabel.closest<HTMLElement>(
-      ".home-week-card__strength",
-    );
-    expect(homeStrengthBlock).not.toBeNull();
-    expect(
-      within(homeStrengthBlock!).getByText(String(props.homeStrength)),
-    ).toBeVisible();
-
-    const opponentStrengthLabel = within(strength).getByText("相手戦力");
-    const opponentStrengthBlock = opponentStrengthLabel.closest<HTMLElement>(
-      ".home-week-card__strength",
-    );
-    expect(opponentStrengthBlock).not.toBeNull();
-    expect(
-      within(opponentStrengthBlock!).getByText(String(opponentStrength)),
-    ).toBeVisible();
-    expect(screen.getByText("無名校")).toBeInTheDocument();
-
-    const progress = screen.getByLabelText("今週の進行状況");
-    expect(within(progress).getByText("設定済")).toBeVisible();
-    expect(within(progress).getByText("対戦決定")).toBeVisible();
-
-    const nextWeek = screen.getByRole("button", { name: "次の週へ進む" });
-    expect(nextWeek).toBeEnabled();
-    fireEvent.click(nextWeek);
-
-    fireEvent.click(screen.getByRole("button", { name: /学校を確認/ }));
-    fireEvent.click(screen.getByRole("button", { name: /選手を確認/ }));
-    fireEvent.click(screen.getByRole("button", { name: /練習試合へ/ }));
-
-    expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
-    expect(props.onOpenSchool).toHaveBeenCalledOnce();
-    expect(props.onOpenTeam).toHaveBeenCalledOnce();
-    expect(props.onOpenMatch).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("button", { name: "断る" })).toBeNull();
-  });
-
-  it("shows incoming practice offer controls while the match remains unscheduled", () => {
-    const props = createProps();
-    props.state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
-
-    render(<HomeScreen {...props} />);
-
-    expect(screen.getByText("対戦相手 未決定")).toBeVisible();
-    expect(screen.queryByLabelText("対戦戦力")).toBeNull();
-
-    const offer = screen.getByRole("region", { name: "練習試合の申し込み" });
-    const decline = within(offer).getByRole("button", { name: "断る" });
-    expect(decline).toHaveClass("home-practice-offer__decline");
+    const offer = screen.getByRole("article", {
+      name: "練習試合の申し込み",
+    });
     fireEvent.click(within(offer).getByRole("button", { name: "受ける" }));
-    fireEvent.click(decline);
+    fireEvent.click(within(offer).getByRole("button", { name: "断る" }));
     expect(props.onAcceptPracticeOffer).toHaveBeenCalledOnce();
     expect(props.onDeclinePracticeOffer).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
+    expect(props.onAdvanceWeek).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", {
+      name: "未回答の申し込みがあります",
+    });
+    expect(dialog).toHaveTextContent("このまま次週へ進みますか");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "戻る" }));
+    expect(screen.queryByRole("dialog", { name: "未回答の申し込みがあります" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
+    fireEvent.click(
+      within(
+        screen.getByRole("dialog", { name: "未回答の申し込みがあります" }),
+      ).getByRole("button", { name: "そのまま進む" }),
+    );
+    expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
   });
 
-  it("shows only the latest training notification", () => {
+  it("advances immediately when no expiring practice offer exists", () => {
     const props = createProps();
-    const oldRead = trainingNotification(props, "old-read", "旧練習", true);
-    const unread = trainingNotification(props, "unread", "未読練習", false);
-    const newestRead = trainingNotification(
-      props,
-      "newest-read",
-      "最新練習",
-      true,
-    );
-    props.state.notifications.items = [oldRead, unread, newestRead];
-
     render(<HomeScreen {...props} />);
 
-    const rows = screen.getAllByRole("button", { name: /今週の練習結果/ });
-    expect(rows).toHaveLength(1);
-    expect(screen.getByText("最新練習")).toBeVisible();
-    expect(screen.queryByText("未読練習")).toBeNull();
-    expect(screen.queryByText("旧練習")).toBeNull();
-    expect(screen.queryByText("NEW")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "今週を進める" }));
+    expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog", { name: "未回答の申し込みがあります" })).toBeNull();
   });
 
-  it("opens an unread training notification and requests its read state after opening", () => {
+  it("opens the newest training result and marks an unread notification read", () => {
     const props = createProps();
-    const notification = trainingNotification(
-      props,
-      "training-unread",
-      "スパイク練習",
-      false,
-    );
+    const notification = trainingNotification(props.state);
     props.state.notifications.items = [notification];
-
     render(<HomeScreen {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /今週の練習結果/ }));
+    expect(screen.getAllByTestId("home-command-news").length).toBeLessThanOrEqual(3);
+    fireEvent.click(
+      screen.getByRole("button", { name: /今週の練習結果 スパイク練習/ }),
+    );
 
-    expect(
-      screen.getByRole("dialog", { name: "今週の練習結果" }),
-    ).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "今週の練習結果" })).toBeVisible();
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 
-  it("keeps the next week action enabled after training resolves", () => {
+  it("disables conflicting actions while an authoritative operation is pending", () => {
     const props = createProps();
-    props.trainingCompleted = true;
-
+    props.operationPending = true;
     render(<HomeScreen {...props} />);
 
-    const nextWeek = screen.getByRole("button", { name: "次の週へ進む" });
-    expect(nextWeek).toBeEnabled();
-    fireEvent.click(nextWeek);
-    expect(props.onAdvanceWeek).toHaveBeenCalledOnce();
-  });
-
-  it("shows the latest completed match result when one exists", () => {
-    const props = createProps(true);
-    const winner =
-      props.state.schools[props.latestMatch!.analysis.winnerSchoolId]!;
-
-    render(<HomeScreen {...props} />);
-
-    const recent = screen.getByRole("region", { name: "最近の状況" });
-    expect(recent).toHaveTextContent(`${winner.shortName}勝利`);
-    expect(recent).toHaveTextContent(
-      `${props.latestMatch!.match.homeSetsWon} - ${props.latestMatch!.match.awaySetsWon}`,
-    );
+    expect(screen.getByRole("button", { name: "今週を進める" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "大会表を見る" })).toBeDisabled();
   });
 });
