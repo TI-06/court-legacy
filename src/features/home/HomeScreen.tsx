@@ -128,10 +128,7 @@ export function HomeScreen({
         operationPending={operationPending}
       />
 
-      <div
-        className="home-command-advance home-next-week-button"
-        data-testid="home-command-advance"
-      >
+      <div className="home-command-advance" data-testid="home-command-advance">
         <StickyActionBar
           disabled={operationPending}
           label="今週を進める"
