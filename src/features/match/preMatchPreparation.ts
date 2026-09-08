@@ -1,5 +1,6 @@
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type { GameState } from "../../domain/model/GameState";
+import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
@@ -8,13 +9,20 @@ export interface WeekPreMatchPreparation {
   kind: "official" | "practice";
   opponentName: string;
   opponentStrength?: number;
+  opponentSelection?: TeamSelection;
 }
 
-function strengthForSchool(state: GameState, schoolId: string): number | undefined {
+function preparationForSchool(
+  state: GameState,
+  schoolId: string,
+): Pick<WeekPreMatchPreparation, "opponentStrength" | "opponentSelection"> {
   const school = state.schools[schoolId];
-  if (!school) return undefined;
-  const selection = autoSelectTeam({ state, schoolId: school.id });
-  return calculateSelectionStrength(state, selection);
+  if (!school) return {};
+  const opponentSelection = autoSelectTeam({ state, schoolId: school.id });
+  return {
+    opponentSelection,
+    opponentStrength: calculateSelectionStrength(state, opponentSelection),
+  };
 }
 
 export function selectWeekPreMatchPreparation(
@@ -30,12 +38,7 @@ export function selectWeekPreMatchPreparation(
       kind: "official",
       opponentName: nextOfficial.opponent.displayName,
       ...(nextOfficial.opponent.schoolId
-        ? {
-            opponentStrength: strengthForSchool(
-              state,
-              nextOfficial.opponent.schoolId,
-            ),
-          }
+        ? preparationForSchool(state, nextOfficial.opponent.schoolId)
         : {}),
     };
   }
@@ -50,7 +53,7 @@ export function selectWeekPreMatchPreparation(
     return {
       kind: "practice",
       opponentName: opponent.name,
-      opponentStrength: strengthForSchool(state, opponent.id),
+      ...preparationForSchool(state, opponent.id),
     };
   }
 
