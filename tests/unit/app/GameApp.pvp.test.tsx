@@ -195,6 +195,15 @@ function openPvp() {
   fireEvent.click(screen.getByRole("button", { name: "対人戦を開く" }));
 }
 
+function startPreparedPvpMatch() {
+  expect(
+    screen.getByRole("heading", { name: "試合準備" }),
+  ).toBeVisible();
+  fireEvent.click(
+    screen.getByRole("button", { name: "この編成で試合開始" }),
+  );
+}
+
 describe("GameApp PvP flow", () => {
   it("loads PvP data, publishes the team, challenges an opponent, and refreshes records", async () => {
     const snapshot = createSnapshot();
@@ -219,12 +228,15 @@ describe("GameApp PvP flow", () => {
     expect(await screen.findByText("公開中")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
+    expect(mocks.challengePvpTeam).not.toHaveBeenCalled();
+    startPreparedPvpMatch();
     await waitFor(() =>
       expect(mocks.challengePvpTeam).toHaveBeenCalledTimes(1),
     );
     expect(mocks.challengePvpTeam.mock.calls[0]![1]).toMatchObject({
       revision: 1,
       opponentSnapshotId: opponent.snapshotId,
+      matchSelection: expect.any(Object),
     });
     expect(await screen.findByText("勝利")).toBeVisible();
     expect(screen.getAllByText("+16")).toHaveLength(2);
@@ -270,6 +282,7 @@ describe("GameApp PvP flow", () => {
     openPvp();
     await screen.findByRole("button", { name: "対戦する 白波高校" });
     fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
+    startPreparedPvpMatch();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "同じ相手とのレーティング対戦は1日3回までです",
