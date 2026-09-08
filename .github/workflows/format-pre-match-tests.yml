@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
@@ -21,13 +23,13 @@ jobs:
         run: npm ci --no-audit --fund=false
       - name: Format changed tests
         run: npx prettier tests/unit/app/GameAppActions.test.tsx tests/unit/app/GameApp.pvp.test.tsx tests/unit/app/GameApp.officialTournament.test.tsx tests/unit/app/GameApp.officialTournamentRetry.test.tsx --write
-      - name: Upload formatted tests
-        uses: actions/upload-artifact@v4
-        with:
-          name: formatted-pre-match-tests
-          path: |
-            tests/unit/app/GameAppActions.test.tsx
-            tests/unit/app/GameApp.pvp.test.tsx
-            tests/unit/app/GameApp.officialTournament.test.tsx
-            tests/unit/app/GameApp.officialTournamentRetry.test.tsx
-          retention-days: 1
+      - name: Commit formatted tests
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/app/GameAppActions.test.tsx tests/unit/app/GameApp.pvp.test.tsx tests/unit/app/GameApp.officialTournament.test.tsx tests/unit/app/GameApp.officialTournamentRetry.test.tsx
+          git commit -m "style: format pre-match flow tests"
+          git push origin HEAD:${{ github.head_ref }}
