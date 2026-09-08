@@ -65,6 +65,12 @@ describe("Phase 12 player training flow", () => {
     });
     expect(nextWeekButton).toBeEnabled();
     fireEvent.click(nextWeekButton);
+    const warning = screen.getByRole("dialog", {
+      name: "未回答の申し込みがあります",
+    });
+    fireEvent.click(
+      within(warning).getByRole("button", { name: "そのまま進む" }),
+    );
 
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
     expect(
