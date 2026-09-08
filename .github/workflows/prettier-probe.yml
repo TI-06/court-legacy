@@ -19,12 +19,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
       - name: Format target files
-        run: npx prettier src/domain/match/preMatchLineup.ts tests/unit/domain/match/preMatchLineup.test.ts --write
+        run: npx prettier src worker tests --write
       - name: Upload formatted files
         uses: actions/upload-artifact@v4
         with:
           name: prettier-probe
           path: |
-            src/domain/match/preMatchLineup.ts
-            tests/unit/domain/match/preMatchLineup.test.ts
+            src
+            worker
+            tests
           retention-days: 1
