@@ -357,17 +357,26 @@ button.home-command-news-row {
   position: sticky;
   z-index: 8;
   bottom: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom));
-  margin-top: 2px;
+  margin-top: 8px;
 }
 
 .home-command-advance .ui-sticky-action-bar {
   position: static;
+  width: 100%;
+  margin: 0;
   padding: 6px 0 0;
-  background: linear-gradient(to bottom, transparent, var(--game-bg) 30%);
+  gap: 0;
+  background: transparent;
+  border-top: 0;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .home-command-advance .ui-sticky-action-bar button {
+  width: 100%;
+  min-width: 0;
   min-height: var(--game-touch-primary);
+  margin: 0;
   font-size: 15px;
   font-weight: 900;
 }
