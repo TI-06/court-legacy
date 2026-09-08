@@ -2,6 +2,8 @@ import { z } from "zod";
 import { pvpJstDayKey, pvpSeasonId } from "../../src/domain/pvp/season";
 import type { GameStore } from "../data/GameStore";
 import type { PvPStore, PublishedPvpTeamSnapshot } from "../data/PvPStore";
+import { teamSelectionSchema } from "../game/actionSchema";
+import { applyGameAction, GameRuleConflictError } from "../game/applyGameAction";
 import { json, jsonError } from "../http/json";
 import { simulatePvpMatch } from "../pvp/simulatePvpMatch";
 import type { AuthenticatedRequestHandler } from "../router";
@@ -14,6 +16,7 @@ const requestSchema = z
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
     opponentSnapshotId: z.string().uuid(),
+    matchSelection: teamSelectionSchema.optional(),
   })
   .strict();
 
@@ -226,6 +229,25 @@ export function createPvpChallengeHandler(
       throw new Error("challenger school is missing from authoritative state");
     }
 
+    let challengerForMatch = challenger;
+    if (parsed.data.matchSelection) {
+      try {
+        const validated = applyGameAction(challenger, {
+          type: "team-selection",
+          selection: parsed.data.matchSelection,
+        });
+        challengerForMatch = {
+          ...challenger,
+          teamSelection: validated.teamSelection,
+        };
+      } catch (error) {
+        if (error instanceof GameRuleConflictError) {
+          return jsonError(400, "invalid_team_selection", error.message);
+        }
+        throw error;
+      }
+    }
+
     const defender = await deps.pvpStore.getSnapshotById(
       parsed.data.opponentSnapshotId,
     );
@@ -260,7 +282,7 @@ export function createPvpChallengeHandler(
       nonce: createMatchNonce(),
     });
     const simulation = simulatePvpMatch({
-      challenger,
+      challenger: challengerForMatch,
       defender,
       matchSeed,
     });
