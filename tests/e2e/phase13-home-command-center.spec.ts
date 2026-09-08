@@ -29,7 +29,9 @@ for (const width of [320, 360, 390, 414, 480]) {
     expect(homeWidth.scrollWidth).toBeLessThanOrEqual(homeWidth.clientWidth + 1);
 
     const advance = page.getByTestId("home-command-advance");
-    const advanceButton = advance.getByRole("button", { name: "今週を進める" });
+    const advanceButton = advance.getByRole("button", {
+      name: "今週を進める",
+    });
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
     const [advanceBox, buttonBox, navigationBox] = await Promise.all([
       advance.boundingBox(),
