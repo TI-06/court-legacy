@@ -1,0 +1,424 @@
+.home-screen {
+  align-content: start;
+  gap: 10px;
+  padding: 10px 12px calc(88px + var(--bottom-navigation-height));
+}
+
+.home-command-summary,
+.home-command-section {
+  min-width: 0;
+  color: var(--game-text);
+  background: var(--game-panel);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--game-radius-card);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 18%);
+}
+
+.home-command-summary {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 14%), transparent 58%),
+    var(--game-panel-strong);
+}
+
+.home-command-summary__top,
+.home-command-objective,
+.home-command-section__heading,
+.home-command-task,
+.home-command-news-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.home-command-summary__top,
+.home-command-objective,
+.home-command-section__heading {
+  justify-content: space-between;
+}
+
+.home-command-summary__top {
+  gap: 10px;
+}
+
+.home-command-summary__top > div {
+  min-width: 0;
+}
+
+.home-command-summary__top span,
+.home-command-objective span,
+.home-command-section__heading span,
+.home-command-summary__metrics span {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+  font-weight: 800;
+}
+
+.home-command-summary__top h2 {
+  margin: 2px 0 0;
+  font-size: var(--game-font-heading);
+  line-height: 1.2;
+}
+
+.home-command-summary__top > strong {
+  overflow: hidden;
+  max-width: 42%;
+  padding: 5px 8px;
+  color: var(--game-accent);
+  font-size: var(--game-font-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgb(244 122 24 / 10%);
+  border-radius: 999px;
+}
+
+.home-command-objective {
+  gap: 10px;
+  padding: 9px 10px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: var(--game-radius-sm);
+}
+
+.home-command-objective.is-due {
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 35%);
+}
+
+.home-command-objective > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.home-command-objective strong,
+.home-command-objective small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-command-objective strong {
+  font-size: var(--game-font-card-title);
+}
+
+.home-command-objective small {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+}
+
+.home-command-objective__action {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 4px;
+}
+
+.home-command-objective__action b {
+  color: var(--game-accent);
+  font-size: var(--game-font-label);
+}
+
+.home-command-objective__action button {
+  min-height: 32px;
+  padding: 0 9px;
+  color: var(--game-accent);
+  font-size: var(--game-font-label);
+  font-weight: 900;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 9px;
+}
+
+.home-command-summary__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  background: rgb(255 255 255 / 4%);
+  border-radius: var(--game-radius-sm);
+}
+
+.home-command-summary__metrics article {
+  min-width: 0;
+  padding: 8px 5px;
+  text-align: center;
+}
+
+.home-command-summary__metrics article + article {
+  border-left: 1px solid rgb(255 255 255 / 7%);
+}
+
+.home-command-summary__metrics strong,
+.home-command-summary__metrics small {
+  display: block;
+}
+
+.home-command-summary__metrics strong {
+  margin: 3px 0 2px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.home-command-summary__metrics small {
+  overflow: hidden;
+  color: var(--game-text-muted);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-command-section {
+  padding: 10px;
+}
+
+.home-command-section__heading {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.home-command-section__heading > div {
+  display: grid;
+  gap: 1px;
+}
+
+.home-command-section__heading h3 {
+  margin: 0;
+  font-size: var(--game-font-card-title);
+}
+
+.home-command-section__heading > small {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+}
+
+.home-command-task-list,
+.home-command-news-list {
+  display: grid;
+  gap: 6px;
+}
+
+.home-command-task {
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: var(--game-radius-sm);
+}
+
+.home-command-task--critical {
+  background: rgb(244 122 24 / 9%);
+  border-color: rgb(244 122 24 / 32%);
+}
+
+.home-command-task--attention {
+  border-color: rgb(255 183 77 / 24%);
+}
+
+.home-command-task--complete {
+  opacity: 0.62;
+}
+
+.home-command-task__badge {
+  flex: 0 0 auto;
+  min-width: 32px;
+  padding: 4px 5px;
+  color: var(--game-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  text-align: center;
+  background: rgb(255 255 255 / 7%);
+  border-radius: 7px;
+}
+
+.home-command-task--critical .home-command-task__badge {
+  color: var(--game-accent);
+  background: rgb(244 122 24 / 12%);
+}
+
+.home-command-task__copy {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 2px;
+}
+
+.home-command-task__copy strong,
+.home-command-task__copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-command-task__copy strong {
+  font-size: var(--game-font-body);
+  white-space: nowrap;
+}
+
+.home-command-task__copy small {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+  line-height: 1.25;
+}
+
+.home-command-task > button,
+.home-command-offer-actions button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 9px;
+  color: var(--game-text);
+  font-size: var(--game-font-label);
+  font-weight: 900;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9px;
+}
+
+.home-command-offer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
+}
+
+.home-command-offer-actions .is-primary {
+  color: #111827;
+  background: #f59b23;
+  border-color: #f59b23;
+}
+
+.home-command-offer-actions .is-secondary {
+  color: #ffd7d0;
+  background: rgb(152 54 48 / 32%);
+  border-color: rgb(255 126 107 / 42%);
+}
+
+.home-command-task button:disabled,
+.home-command-objective button:disabled {
+  opacity: 0.45;
+}
+
+.home-command-empty {
+  margin: 0;
+  padding: 12px;
+  color: var(--game-text-muted);
+  font-size: var(--game-font-body);
+  text-align: center;
+  background: rgb(255 255 255 / 4%);
+  border-radius: var(--game-radius-sm);
+}
+
+.home-command-news-row {
+  width: 100%;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 8px;
+  color: var(--game-text);
+  text-align: left;
+  background: rgb(255 255 255 / 4%);
+  border: 0;
+  border-radius: 9px;
+}
+
+button.home-command-news-row {
+  cursor: pointer;
+}
+
+.home-command-news-row > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.home-command-news-row strong,
+.home-command-news-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-command-news-row strong {
+  font-size: var(--game-font-body);
+}
+
+.home-command-news-row small {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+}
+
+.home-command-news-row > b {
+  flex: 0 0 auto;
+  color: var(--game-text-muted);
+}
+
+.home-command-advance {
+  position: sticky;
+  z-index: 8;
+  bottom: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom));
+  margin-top: 2px;
+}
+
+.home-command-advance .ui-sticky-action-bar {
+  position: static;
+  padding: 6px 0 0;
+  background: linear-gradient(to bottom, transparent, var(--game-bg) 30%);
+}
+
+.home-command-advance .ui-sticky-action-bar button {
+  min-height: var(--game-touch-primary);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.home-advance-warning-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.home-advance-warning-actions button {
+  min-height: var(--game-touch);
+  font: inherit;
+  font-weight: 900;
+  border-radius: var(--game-radius-sm);
+}
+
+.home-advance-warning-actions .is-primary {
+  color: #111827;
+  background: var(--game-accent);
+  border: 0;
+}
+
+@media (max-width: 340px) {
+  .home-screen {
+    padding-inline: 10px;
+  }
+
+  .home-command-summary,
+  .home-command-section {
+    padding-inline: 9px;
+  }
+
+  .home-command-objective {
+    gap: 6px;
+  }
+
+  .home-command-objective__action button {
+    padding-inline: 7px;
+  }
+
+  .home-command-task {
+    gap: 6px;
+  }
+
+  .home-command-task__badge {
+    min-width: 28px;
+  }
+
+  .home-command-task > button,
+  .home-command-offer-actions button {
+    padding-inline: 7px;
+  }
+}
