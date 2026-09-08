@@ -10,6 +10,7 @@ import {
 } from "../../domain/notifications/gameNotifications";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
 import type {
@@ -200,6 +201,7 @@ export function HomeScreen({
             >
               <span>チーム戦力</span>
               <strong>{homeStrength}</strong>
+              <small>評価 {schoolStrengthToGrade(homeStrength)}</small>
             </div>
             {scheduledPracticeOpponentStrength !== null ? (
               <>
@@ -207,6 +209,10 @@ export function HomeScreen({
                 <div className="home-week-card__strength home-week-card__strength--opponent">
                   <span>相手戦力</span>
                   <strong>{scheduledPracticeOpponentStrength}</strong>
+                  <small>
+                    評価{" "}
+                    {schoolStrengthToGrade(scheduledPracticeOpponentStrength)}
+                  </small>
                 </div>
               </>
             ) : null}
@@ -231,7 +237,8 @@ export function HomeScreen({
               <span>練習試合の申し込み</span>
               <strong>{incomingSchool.shortName}</strong>
               <small>
-                戦力 {incomingSchoolStrength} ・ 成長{" "}
+                戦力 {incomingSchoolStrength} ・ 評価{" "}
+                {schoolStrengthToGrade(incomingSchoolStrength ?? 0)} ・ 成長{" "}
                 {incomingOffer.growthRating}/5 ・ 負荷{" "}
                 {incomingOffer.loadRating}/5
               </small>

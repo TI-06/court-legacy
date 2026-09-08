@@ -1,5 +1,8 @@
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolId } from "../../domain/model/identifiers";
+import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
+import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type {
   PracticeMatchCandidateTier,
   PracticeRating,
@@ -22,6 +25,10 @@ const tierLabels: Record<PracticeMatchCandidateTier, string> = {
 
 function ratingDots(rating: PracticeRating): string {
   return "●".repeat(rating) + "○".repeat(5 - rating);
+}
+
+function schoolStrength(state: GameState, schoolId: SchoolId): number {
+  return calculateSelectionStrength(state, autoSelectTeam({ state, schoolId }));
 }
 
 export function PracticeMatchPlanning({
@@ -63,6 +70,10 @@ export function PracticeMatchPlanning({
                 : "こちらからの申し込み"}
             </span>
             <strong>{scheduledSchool.name}</strong>
+            <small>
+              戦力 {schoolStrength(state, scheduledSchool.id)}・評価{" "}
+              {schoolStrengthToGrade(schoolStrength(state, scheduledSchool.id))}
+            </small>
           </div>
           <b>ホームの「次の週へ進む」で実施</b>
         </article>
@@ -75,8 +86,12 @@ export function PracticeMatchPlanning({
                 <div className="practice-planning__school-copy">
                   <strong>{incomingSchool.name}から申し込み</strong>
                   <span>
-                    成長度 {ratingDots(schedule.incomingOffer.growthRating)} ・
-                    負荷 {ratingDots(schedule.incomingOffer.loadRating)}
+                    戦力 {schoolStrength(state, incomingSchool.id)}・評価{" "}
+                    {schoolStrengthToGrade(
+                      schoolStrength(state, incomingSchool.id),
+                    )}{" "}
+                    ・ 成長度 {ratingDots(schedule.incomingOffer.growthRating)}{" "}
+                    ・ 負荷 {ratingDots(schedule.incomingOffer.loadRating)}
                   </span>
                 </div>
                 <div className="practice-planning__offer-actions">
@@ -112,11 +127,14 @@ export function PracticeMatchPlanning({
                   const school = state.schools[candidate.schoolId];
                   if (!school) return null;
                   const available = candidate.status === "available";
+                  const strength = schoolStrength(state, school.id);
                   return (
                     <article key={candidate.schoolId}>
                       <div className="practice-planning__school-copy">
                         <strong>{school.name}</strong>
                         <span>
+                          戦力 {strength}・評価{" "}
+                          {schoolStrengthToGrade(strength)} ・{" "}
                           {tierLabels[candidate.tier]} ・ 成立しやすさ{" "}
                           {candidate.acceptancePercent}% ・ 成長度{" "}
                           {ratingDots(candidate.growthRating)}

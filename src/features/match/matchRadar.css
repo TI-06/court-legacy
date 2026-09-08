@@ -138,3 +138,49 @@
     font-size: 7.5px;
   }
 }
+
+.match-power-versus em {
+  color: #a9c8ce;
+  font-size: 0.56rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.match-five-overall {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px auto;
+  align-items: center;
+  margin-top: 7px;
+  padding: 7px 10px;
+  gap: 8px;
+  color: #d8e9ec;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 11px;
+}
+
+.match-five-overall > span {
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.match-five-overall > strong {
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.match-five-overall > strong:first-of-type {
+  color: #69e2e5;
+}
+
+.match-five-overall > strong:last-child {
+  color: #ffd783;
+}
+
+.match-five-overall > b {
+  color: #8fb8c2;
+  font-size: 0.54rem;
+  text-align: center;
+}
