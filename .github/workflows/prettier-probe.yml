@@ -1,0 +1,30 @@
+name: Prettier Probe
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  format-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Format target files
+        run: npx prettier src/domain/match/preMatchLineup.ts tests/unit/domain/match/preMatchLineup.test.ts --write
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: prettier-probe
+          path: |
+            src/domain/match/preMatchLineup.ts
+            tests/unit/domain/match/preMatchLineup.test.ts
+          retention-days: 1
