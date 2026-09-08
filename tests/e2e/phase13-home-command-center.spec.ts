@@ -21,11 +21,33 @@ for (const width of [320, 360, 390, 414, 480]) {
     expect(layout.body).toBeLessThanOrEqual(layout.viewport);
     expect(layout.document).toBeLessThanOrEqual(layout.viewport);
 
-    const home = await page.getByTestId("home-screen").evaluate((element) => ({
+    const home = page.getByTestId("home-screen");
+    const homeWidth = await home.evaluate((element) => ({
       clientWidth: element.clientWidth,
       scrollWidth: element.scrollWidth,
     }));
-    expect(home.scrollWidth).toBeLessThanOrEqual(home.clientWidth + 1);
+    expect(homeWidth.scrollWidth).toBeLessThanOrEqual(homeWidth.clientWidth + 1);
+
+    const advance = page.getByTestId("home-command-advance");
+    const advanceButton = advance.getByRole("button", { name: "今週を進める" });
+    const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+    const [advanceBox, buttonBox, navigationBox] = await Promise.all([
+      advance.boundingBox(),
+      advanceButton.boundingBox(),
+      navigation.boundingBox(),
+    ]);
+    if (!advanceBox || !buttonBox || !navigationBox) {
+      throw new Error("Home advance CTA geometry is unavailable");
+    }
+
+    expect(buttonBox.x).toBeGreaterThanOrEqual(advanceBox.x - 1);
+    expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(
+      advanceBox.x + advanceBox.width + 1,
+    );
+    expect(buttonBox.width).toBeGreaterThanOrEqual(advanceBox.width - 2);
+    expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(
+      navigationBox.y + 1,
+    );
   });
 }
 
