@@ -196,12 +196,8 @@ function openPvp() {
 }
 
 function startPreparedPvpMatch() {
-  expect(
-    screen.getByRole("heading", { name: "試合準備" }),
-  ).toBeVisible();
-  fireEvent.click(
-    screen.getByRole("button", { name: "この編成で試合開始" }),
-  );
+  expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
 }
 
 describe("GameApp PvP flow", () => {

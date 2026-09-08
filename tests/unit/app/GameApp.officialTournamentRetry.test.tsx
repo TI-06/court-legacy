@@ -104,9 +104,7 @@ describe("GameApp official tournament retry", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
     expect(applyAction).not.toHaveBeenCalled();
-    fireEvent.click(
-      screen.getByRole("button", { name: "この編成で試合開始" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
 
     expect(await screen.findByText("オフライン")).toBeVisible();
     expect(applyAction).toHaveBeenCalledTimes(1);
