@@ -106,7 +106,7 @@ export function HomeCommandCenter({
           </div>
         ) : null}
 
-        <div
+        <section
           className="home-command-summary__metrics"
           data-testid="home-team-status"
           aria-label="チーム状況"
@@ -136,7 +136,7 @@ export function HomeCommandCenter({
                   : "横ばい"}
             </small>
           </article>
-        </div>
+        </section>
       </section>
 
       <section
