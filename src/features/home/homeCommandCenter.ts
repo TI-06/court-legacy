@@ -57,6 +57,7 @@ export interface HomeSummary {
   official: null | {
     competitionLabel: string;
     detailLabel: string;
+    detailTitle: string | null;
     timingLabel: string;
     due: boolean;
   };
@@ -242,6 +243,7 @@ function buildSummary(
       ? {
           competitionLabel: `${circuitLabels[nextOfficial.circuit]} ${levelLabels[nextOfficial.level]}`,
           detailLabel: `${roundLabels[nextOfficial.round]} vs ${nextOfficial.opponent.shortName}`,
+          detailTitle: nextOfficial.opponent.displayName,
           timingLabel:
             nextOfficial.timing === "due"
               ? "今週"
@@ -251,6 +253,7 @@ function buildSummary(
       : {
           competitionLabel: `${circuitLabels[nextOfficial.circuit]} ${levelLabels[nextOfficial.level]}`,
           detailLabel: `第${nextOfficial.scheduledWeek}週 開幕`,
+          detailTitle: null,
           timingLabel: `あと${nextOfficial.weeksUntil}週`,
           due: false,
         }

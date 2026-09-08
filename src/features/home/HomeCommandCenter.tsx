@@ -91,7 +91,9 @@ export function HomeCommandCenter({
             <div>
               <span>次の公式戦</span>
               <strong>{summary.official.competitionLabel}</strong>
-              <small>{summary.official.detailLabel}</small>
+              <small title={summary.official.detailTitle ?? undefined}>
+                {summary.official.detailLabel}
+              </small>
             </div>
             <div className="home-command-objective__action">
               <b>{summary.official.timingLabel}</b>

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 const AUTH_STATE_KEY = "court-legacy:e2e-auth-state";
 const GAME_STATE_KEY = "court-legacy:e2e-game-state";
@@ -68,7 +69,7 @@ test("registration, onboarding, mutation, and reload keep the cloud game", async
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
   await expect
     .poll(() =>

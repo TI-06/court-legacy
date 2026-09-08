@@ -405,6 +405,14 @@ button.home-command-news-row {
     gap: 6px;
   }
 
+  .home-command-objective strong {
+    overflow: visible;
+    font-size: var(--game-font-body);
+    line-height: 1.2;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .home-command-objective__action button {
     padding-inline: 7px;
   }

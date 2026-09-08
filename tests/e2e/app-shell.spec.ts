@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 test("mobile shell keeps all primary navigation actions visible", async ({
   page,
@@ -42,7 +43,7 @@ test("mobile training saves a plan and resolves it with next-week progression", 
   await expect(trainingChips.first()).toContainText("攻撃");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();

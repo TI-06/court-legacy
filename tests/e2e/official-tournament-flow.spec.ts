@@ -8,6 +8,7 @@ import {
 } from "../../src/app/createBrowserAppDependencies";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { advanceOfficialTournamentsThroughWeek } from "../../src/domain/tournament/progressOfficialTournaments";
+import { advanceWeekFromHome } from "./homeTestHelpers";
 
 function officialSnapshot(): CloudGameSnapshot {
   const initial = createDemoGame();
@@ -113,7 +114,7 @@ test("due official match is reference-only in the bracket and executes from Home
   await page.getByRole("button", { name: "大会表を見る" }).click();
   await expect(page.getByText("今週").first()).toBeVisible();
   await expect(
-    page.getByText("ホームの「次の週へ進む」で試合を実施します"),
+    page.getByText("ホームの「今週を進める」で試合を実施します"),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: /公式戦を開始/ })).toHaveCount(
     0,
@@ -126,7 +127,7 @@ test("Home progression prepares and commits an official match once, presents it,
   await seedSnapshot(page, officialSnapshot(), 350);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "次の週へ進む" }).click();
+  await advanceWeekFromHome(page);
   await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
   await expect(page.getByText("この試合だけの編成です")).toBeVisible();
   await expectNoBodyOverflow(page);
