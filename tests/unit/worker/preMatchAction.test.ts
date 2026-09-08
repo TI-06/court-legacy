@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
 import { buildPreMatchLineupPreset } from "../../../src/domain/match/preMatchLineup";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
-import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
+import { applyServerGameAction } from "../../../worker/game/applyServerGameAction";
 
 function createSnapshot(): CloudGameSnapshot {
   const state = createInitialGame({
@@ -68,15 +69,12 @@ describe("match-only advance-week selection", () => {
       preset: "grade-1",
     });
 
-    const result = applyGameAction(snapshot, {
+    const result = applyServerGameAction(snapshot, {
       type: "advance-week",
       matchSelection,
     });
-    const outcome = result.outcome;
-    if (!outcome || !("pendingMatchPresentation" in outcome)) {
-      throw new Error("weekly match presentation missing");
-    }
-    const presentation = outcome.pendingMatchPresentation;
+    const outcome = result.outcome as AdvanceWeekOutcome | undefined;
+    const presentation = outcome?.pendingMatchPresentation;
     if (!presentation) throw new Error("practice match was not simulated");
 
     expect(presentation.simulation.match.homeSelection).toEqual(matchSelection);
