@@ -234,8 +234,7 @@ export function createPvpChallengeHandler(
     }
 
     const matchSelection = parsed.data.matchSelection as
-      | TeamSelection
-      | undefined;
+      TeamSelection | undefined;
     let challengerForMatch = challenger;
     if (matchSelection) {
       try {
