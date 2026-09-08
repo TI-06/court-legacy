@@ -74,10 +74,7 @@ Use one UI-oriented action union; do not build a second router:
 
 ```ts
 export type HomeCommandPriority =
-  | "critical"
-  | "attention"
-  | "normal"
-  | "complete";
+  "critical" | "attention" | "normal" | "complete";
 
 export type HomeCommandAction =
   | { target: "team" }
@@ -148,7 +145,13 @@ export type HomeCommandNews =
       detail: string;
       notification: TrainingResultNotification;
     }
-  | { id: string; kind: "growth"; title: string; detail: string; playerId: PlayerId }
+  | {
+      id: string;
+      kind: "growth";
+      title: string;
+      detail: string;
+      playerId: PlayerId;
+    }
   | { id: string; kind: "match"; title: string; detail: string }
   | { id: string; kind: "cohesion"; title: string; detail: string };
 
@@ -204,14 +207,18 @@ it.each([1, 8])("recommends a coach in academic week %i", (week) => {
   const state = createDemoGame();
   state.calendar.weekOfYear = week;
   state.schoolManagement.assistantCoach = null;
-  expect(select(state).tasks.some((task) => task.category === "staff")).toBe(true);
+  expect(select(state).tasks.some((task) => task.category === "staff")).toBe(
+    true,
+  );
 });
 
 it("stops the coach recommendation after week 8", () => {
   const state = createDemoGame();
   state.calendar.weekOfYear = 9;
   state.schoolManagement.assistantCoach = null;
-  expect(select(state).tasks.some((task) => task.category === "staff")).toBe(false);
+  expect(select(state).tasks.some((task) => task.category === "staff")).toBe(
+    false,
+  );
 });
 ```
 
@@ -301,6 +308,7 @@ expect(screen.queryByText(/県\d+位/)).toBeNull();
 ```
 
 Add tests that:
+
 - practice offer renders exactly `断る` / `受ける`;
 - ordinary task emits its exact `HomeCommandAction`;
 - training-result news opens the existing `TrainingResultNotificationSheet` and marks unread as read;
@@ -350,8 +358,12 @@ Warning sheet:
   description="練習試合の申し込みが未回答です。このまま次週へ進みますか？"
   onClose={() => setAdvanceWarningOpen(false)}
 >
-  <button type="button" onClick={() => setAdvanceWarningOpen(false)}>戻る</button>
-  <button type="button" onClick={confirmAdvance}>そのまま進む</button>
+  <button type="button" onClick={() => setAdvanceWarningOpen(false)}>
+    戻る
+  </button>
+  <button type="button" onClick={confirmAdvance}>
+    そのまま進む
+  </button>
 </BottomSheet>
 ```
 
@@ -430,9 +442,7 @@ npm test -- tests/unit/app/GameApp.homeCommandCenter.test.tsx tests/unit/feature
 ```ts
 let requestedSchoolView: Exclude<SchoolView, "scouting"> | null = null;
 
-export function requestSchoolView(
-  view: Exclude<SchoolView, "scouting">,
-): void {
+export function requestSchoolView(view: Exclude<SchoolView, "scouting">): void {
   requestedSchoolView = view;
 }
 
@@ -446,8 +456,9 @@ export function consumeSchoolViewAfterScouting(): SchoolView {
 - [ ] **GREEN:** in `GameApp`, add transient `teamInitialPlayerId` and one `handleHomeCommand` switch:
 
 ```ts
-const [teamInitialPlayerId, setTeamInitialPlayerId] =
-  useState<PlayerId | null>(null);
+const [teamInitialPlayerId, setTeamInitialPlayerId] = useState<PlayerId | null>(
+  null,
+);
 
 const handleHomeCommand = (action: HomeCommandAction) => {
   switch (action.target) {
@@ -529,7 +540,9 @@ for (const width of [320, 360, 390, 414, 480]) {
     await page.goto("/");
     await expect(page.getByTestId("home-command-summary")).toBeVisible();
     await expect(page.getByText("今週の監督タスク")).toBeVisible();
-    await expect(page.getByRole("button", { name: "今週を進める" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "今週を進める" }),
+    ).toBeVisible();
 
     const layout = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
@@ -541,7 +554,9 @@ for (const width of [320, 360, 390, 414, 480]) {
   });
 }
 
-test("unanswered practice offer warns before week advance", async ({ page }) => {
+test("unanswered practice offer warns before week advance", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.getByRole("button", { name: "今週を進める" }).click();
   const dialog = page.getByRole("dialog", {
@@ -634,6 +649,7 @@ git diff docs/phase13-home-command-center-design...HEAD -- src/features/home/hom
 ```
 
 Verify:
+
 - deterministic task/news ordering and 5/3 caps;
 - no rank fabrication;
 - only practice-offer warning;

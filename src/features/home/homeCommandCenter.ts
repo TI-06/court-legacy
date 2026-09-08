@@ -4,7 +4,10 @@ import type {
   CohesionTrend,
   PlayerConcernCode,
 } from "../../domain/dynamics/teamDynamicsTypes";
-import type { GameState, HistoricalMatchSummary } from "../../domain/model/GameState";
+import type {
+  GameState,
+  HistoricalMatchSummary,
+} from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 import {
@@ -27,10 +30,7 @@ import type {
 } from "../../domain/tournament/tournamentTypes";
 
 export type HomeCommandPriority =
-  | "critical"
-  | "attention"
-  | "normal"
-  | "complete";
+  "critical" | "attention" | "normal" | "complete";
 
 export type HomeCommandAction =
   | { target: "team" }
@@ -180,7 +180,9 @@ function shortDate(value: string): string {
 
 function average(values: readonly number[]): number {
   if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  return Math.round(
+    values.reduce((sum, value) => sum + value, 0) / values.length,
+  );
 }
 
 function signed(value: number): string {
@@ -310,7 +312,10 @@ function playerConcernTasks(state: GameState): TaskCandidate[] {
     }));
 }
 
-function injuryTask(state: GameState, players: readonly Player[]): TaskCandidate | null {
+function injuryTask(
+  state: GameState,
+  players: readonly Player[],
+): TaskCandidate | null {
   const injured = players
     .filter((player) => player.injury)
     .sort((left, right) => String(left.id).localeCompare(String(right.id)));
@@ -360,10 +365,7 @@ function buildTasks(
   const candidates: TaskCandidate[] = [];
   const nextOfficial = selectNextOfficialEvent(state);
 
-  if (
-    nextOfficial?.kind === "match" &&
-    nextOfficial.timing === "due"
-  ) {
+  if (nextOfficial?.kind === "match" && nextOfficial.timing === "due") {
     candidates.push({
       order: 0,
       task: {
@@ -397,7 +399,8 @@ function buildTasks(
           schoolId: practice.incomingOffer.schoolId,
           schoolName: offerSchool?.shortName ?? offerSchool?.name ?? "相手校",
           strength,
-          strengthGrade: strength === null ? null : schoolStrengthToGrade(strength),
+          strengthGrade:
+            strength === null ? null : schoolStrengthToGrade(strength),
           growthRating: practice.incomingOffer.growthRating,
           loadRating: practice.incomingOffer.loadRating,
         },
@@ -496,7 +499,8 @@ function buildTasks(
   return candidates
     .sort(
       (left, right) =>
-        priorityWeight[left.task.priority] - priorityWeight[right.task.priority] ||
+        priorityWeight[left.task.priority] -
+          priorityWeight[right.task.priority] ||
         left.order - right.order ||
         left.task.id.localeCompare(right.task.id),
     )
@@ -606,7 +610,7 @@ export function selectHomeCommandCenter(input: {
     .filter((player): player is Player => Boolean(player));
   const unansweredOffer = Boolean(
     input.state.weeklySchedule.practiceMatch.incomingOffer &&
-      !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
   );
 
   return {

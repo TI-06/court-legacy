@@ -197,8 +197,12 @@ describe("selectHomeCommandCenter", () => {
     );
 
     expect(concerns).toHaveLength(2);
-    expect(concerns[0]?.detail).toContain(`${third.lastName} ${third.firstName}`);
-    expect(concerns[1]?.detail).toContain(`${second.lastName} ${second.firstName}`);
+    expect(concerns[0]?.detail).toContain(
+      `${third.lastName} ${third.firstName}`,
+    );
+    expect(concerns[1]?.detail).toContain(
+      `${second.lastName} ${second.firstName}`,
+    );
     expect(concerns.every((task) => task.priority === "attention")).toBe(true);
   });
 
