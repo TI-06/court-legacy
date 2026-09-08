@@ -39,87 +39,90 @@ jobs:
           path = Path("worker/game/applyGameAction.ts")
           source = path.read_text()
 
-          old = '''function applyAdvanceWeek(
-            state: GameState,
-            teamSelection: TeamSelection,
-            context: ApplyGameActionContext,
-          ): AppliedGameAction {
-          '''
-          new = '''function applyAdvanceWeek(
-            state: GameState,
-            teamSelection: TeamSelection,
-            action: Extract<GameAction, { type: "advance-week" }>,
-            context: ApplyGameActionContext,
-          ): AppliedGameAction {
-          '''
-          if old not in source:
-            raise SystemExit("applyAdvanceWeek signature anchor not found")
-          source = source.replace(old, new, 1)
+          replacements = [
+            (
+              '''function applyAdvanceWeek(
+  state: GameState,
+  teamSelection: TeamSelection,
+  context: ApplyGameActionContext,
+): AppliedGameAction {
+''',
+              '''function applyAdvanceWeek(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "advance-week" }>,
+  context: ApplyGameActionContext,
+): AppliedGameAction {
+''',
+              "applyAdvanceWeek signature",
+            ),
+            (
+              '''  if (hasRequiredOfficialMatch(currentState)) {
+    const official = applyOfficialMatch(currentState, teamSelection);
+''',
+              '''  const matchSelection = action.matchSelection
+    ? cloneTeamSelection(action.matchSelection)
+    : teamSelection;
+  if (action.matchSelection) {
+    const issues = validateTeamSelection({
+      state: currentState,
+      schoolId: currentState.userSchoolId,
+      selection: matchSelection,
+    });
+    if (issues.length > 0) {
+      return conflict("invalid_team_selection", issues[0]!.message);
+    }
+  }
+  if (hasRequiredOfficialMatch(currentState)) {
+    const official = applyOfficialMatch(currentState, matchSelection);
+''',
+              "official match",
+            ),
+            (
+              '''      state: official.state,
+      teamSelection: official.teamSelection,
+      outcome,
+''',
+              '''      state: official.state,
+      teamSelection,
+      outcome,
+''',
+              "official return",
+            ),
+            (
+              '''    const practice = applyPracticeMatch(currentState, teamSelection);
+''',
+              '''    const practice = applyPracticeMatch(currentState, matchSelection);
+''',
+              "practice match",
+            ),
+            (
+              '''      state: practice.state,
+      teamSelection: practice.teamSelection,
+      outcome,
+''',
+              '''      state: practice.state,
+      teamSelection,
+      outcome,
+''',
+              "practice return",
+            ),
+            (
+              '''    case "advance-week":
+      return applyAdvanceWeek(state, teamSelection, context);
+''',
+              '''    case "advance-week":
+      return applyAdvanceWeek(state, teamSelection, action, context);
+''',
+              "advance-week switch",
+            ),
+          ]
 
-          old = '''  if (hasRequiredOfficialMatch(currentState)) {
-            const official = applyOfficialMatch(currentState, teamSelection);
-          '''
-          new = '''  const matchSelection = action.matchSelection
-            ? cloneTeamSelection(action.matchSelection)
-            : teamSelection;
-          if (action.matchSelection) {
-            const issues = validateTeamSelection({
-              state: currentState,
-              schoolId: currentState.userSchoolId,
-              selection: matchSelection,
-            });
-            if (issues.length > 0) {
-              return conflict("invalid_team_selection", issues[0]!.message);
-            }
-          }
-          if (hasRequiredOfficialMatch(currentState)) {
-            const official = applyOfficialMatch(currentState, matchSelection);
-          '''
-          if old not in source:
-            raise SystemExit("official match anchor not found")
-          source = source.replace(old, new, 1)
-
-          old = '''      state: official.state,
-                teamSelection: official.teamSelection,
-                outcome,
-          '''
-          new = '''      state: official.state,
-                teamSelection,
-                outcome,
-          '''
-          if old not in source:
-            raise SystemExit("official return anchor not found")
-          source = source.replace(old, new, 1)
-
-          old = '''    const practice = applyPracticeMatch(currentState, teamSelection);
-          '''
-          new = '''    const practice = applyPracticeMatch(currentState, matchSelection);
-          '''
-          if old not in source:
-            raise SystemExit("practice match anchor not found")
-          source = source.replace(old, new, 1)
-
-          old = '''      state: practice.state,
-                teamSelection: practice.teamSelection,
-                outcome,
-          '''
-          new = '''      state: practice.state,
-                teamSelection,
-                outcome,
-          '''
-          if old not in source:
-            raise SystemExit("practice return anchor not found")
-          source = source.replace(old, new, 1)
-
-          old = '''    case "advance-week":
-                return applyAdvanceWeek(state, teamSelection, context);
-          '''
-          new = '''    case "advance-week":
-                return applyAdvanceWeek(state, teamSelection, action, context);
-          '''
-          if old not in source:
-            raise SystemExit("advance-week switch anchor not found")
-          source = source.replace(old, new, 1)
+          for old, new, label in replacements:
+            count = source.count(old)
+            if count != 1:
+              raise SystemExit(f"{label} anchor count expected 1, got {count}")
+            source = source.replace(old, new, 1)
 
           path.write_text(source)
           PY
