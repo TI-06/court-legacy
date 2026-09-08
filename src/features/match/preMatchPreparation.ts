@@ -1,5 +1,6 @@
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type { GameState } from "../../domain/model/GameState";
+import type { SchoolId } from "../../domain/model/identifiers";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
@@ -14,7 +15,7 @@ export interface WeekPreMatchPreparation {
 
 function preparationForSchool(
   state: GameState,
-  schoolId: string,
+  schoolId: SchoolId,
 ): Pick<WeekPreMatchPreparation, "opponentStrength" | "opponentSelection"> {
   const school = state.schools[schoolId];
   if (!school) return {};
