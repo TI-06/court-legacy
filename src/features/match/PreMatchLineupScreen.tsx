@@ -1,11 +1,18 @@
 import { useMemo, useState } from "react";
-import { buildPreMatchLineupPreset, type PreMatchLineupPreset } from "../../domain/match/preMatchLineup";
+import {
+  buildPreMatchLineupPreset,
+  type PreMatchLineupPreset,
+} from "../../domain/match/preMatchLineup";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
-import type { RotationSlot, TeamSelection } from "../../domain/model/TeamSelection";
+import type {
+  RotationSlot,
+  TeamSelection,
+} from "../../domain/model/TeamSelection";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { repositionTeamSelection } from "../../domain/team/repositionTeamSelection";
+import { PreMatchComparison } from "./MatchStatPanels";
 import { ratingToGrade } from "./teamRatingGrade";
 import "./pre-match-lineup.css";
 
@@ -15,12 +22,15 @@ interface PreMatchLineupScreenProps {
   mode: "pve" | "pvp";
   opponentName: string;
   opponentStrength?: number;
+  opponentSelection?: TeamSelection;
   pending: boolean;
   onStart: (selection: TeamSelection) => void;
   onCancel: () => void;
 }
 
-const rotationSlots = [1, 2, 3, 4, 5, 6] as const satisfies readonly RotationSlot[];
+const rotationSlots = [
+  1, 2, 3, 4, 5, 6,
+] as const satisfies readonly RotationSlot[];
 
 const presets: Array<{ preset: PreMatchLineupPreset; label: string }> = [
   { preset: "best", label: "ベスト" },
@@ -40,6 +50,7 @@ export function PreMatchLineupScreen({
   mode,
   opponentName,
   opponentStrength,
+  opponentSelection,
   pending,
   onStart,
   onCancel,
@@ -129,10 +140,15 @@ export function PreMatchLineupScreen({
         </button>
       </section>
 
-      <section className="pre-match-lineup__versus" aria-label="試合前戦力比較">
+      <section
+        className="pre-match-lineup__versus"
+        aria-label="試合前戦力比較"
+      >
         <article>
           <span>自校</span>
-          <strong>{state.schools[state.userSchoolId]?.shortName ?? "自校"}</strong>
+          <strong>
+            {state.schools[state.userSchoolId]?.shortName ?? "自校"}
+          </strong>
           <b>
             {ratingToGrade(strength)}・戦力 {strength}
           </b>
@@ -149,7 +165,24 @@ export function PreMatchLineupScreen({
         </article>
       </section>
 
-      <section className="pre-match-lineup__presets" aria-labelledby="pre-match-preset-heading">
+      {opponentSelection && opponentStrength !== undefined ? (
+        <PreMatchComparison
+          awaySelection={opponentSelection}
+          awayStrength={opponentStrength}
+          homeSelection={selection}
+          homeStrength={strength}
+          state={state}
+        />
+      ) : mode === "pvp" ? (
+        <p className="pre-match-lineup__privacy-note">
+          対人戦では相手選手の詳細能力は非公開です。公開戦力を見て編成を決めます。
+        </p>
+      ) : null}
+
+      <section
+        className="pre-match-lineup__presets"
+        aria-labelledby="pre-match-preset-heading"
+      >
         <div className="pre-match-lineup__section-heading">
           <div>
             <p className="section-kicker">編成プリセット</p>
@@ -177,7 +210,10 @@ export function PreMatchLineupScreen({
         </div>
       </section>
 
-      <section className="pre-match-lineup__lineup" aria-labelledby="pre-match-lineup-heading">
+      <section
+        className="pre-match-lineup__lineup"
+        aria-labelledby="pre-match-lineup-heading"
+      >
         <div className="pre-match-lineup__section-heading">
           <div>
             <p className="section-kicker">スタメン</p>
@@ -235,7 +271,10 @@ export function PreMatchLineupScreen({
         ) : null}
       </section>
 
-      <section className="pre-match-lineup__bench" aria-labelledby="pre-match-bench-heading">
+      <section
+        className="pre-match-lineup__bench"
+        aria-labelledby="pre-match-bench-heading"
+      >
         <h3 id="pre-match-bench-heading">ベンチ</h3>
         <div>
           {selection.benchPlayerIds.map((playerId) => (
