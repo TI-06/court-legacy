@@ -188,7 +188,7 @@ export function TournamentScreen({
             const inlineAction =
               isCurrentUserMatch && due ? (
                 <p className="tournament-training-note">
-                  ホームの「次の週へ進む」で試合を実施します
+                  ホームの「今週を進める」で試合を実施します
                 </p>
               ) : null;
 

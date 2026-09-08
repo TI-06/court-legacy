@@ -102,7 +102,9 @@ describe("GameApp official tournament retry", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "次の週へ進む" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "公式戦 試合準備" }),
+    );
     expect(applyAction).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
 

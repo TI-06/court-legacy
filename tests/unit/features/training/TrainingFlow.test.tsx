@@ -61,7 +61,7 @@ describe("Phase 12 player training flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     const nextWeekButton = screen.getByRole("button", {
-      name: "次の週へ進む",
+      name: "今週を進める",
     });
     expect(nextWeekButton).toBeEnabled();
     fireEvent.click(nextWeekButton);
