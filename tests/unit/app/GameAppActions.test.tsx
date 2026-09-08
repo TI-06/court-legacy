@@ -27,6 +27,7 @@ const session: AuthSession = {
 
 function createSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
+  state.weeklySchedule.practiceMatch.incomingOffer = null;
   return {
     userId: session.userId,
     schoolDbId: "school-db-1",
