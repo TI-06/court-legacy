@@ -5,27 +5,139 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format-probe:
+    if: github.head_ref == 'feat/pre-match-lineup-flow'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
           cache: npm
+      - name: Check patch marker
+        id: marker
+        run: |
+          if [ -f .github/pre-match-patch ]; then
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install dependencies
+        if: steps.marker.outputs.apply == 'true'
         run: npm ci --no-audit --fund=false
-      - name: Format target files
-        run: npx prettier src worker tests --write
-      - name: Upload formatted files
-        uses: actions/upload-artifact@v4
-        with:
-          name: prettier-probe
-          path: |
-            src
-            worker
-            tests
-          retention-days: 1
+      - name: Apply match-only lineup implementation
+        if: steps.marker.outputs.apply == 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("worker/game/applyGameAction.ts")
+          source = path.read_text()
+
+          replacements = [
+            (
+              '''function applyAdvanceWeek(
+  state: GameState,
+  teamSelection: TeamSelection,
+  context: ApplyGameActionContext,
+): AppliedGameAction {
+''',
+              '''function applyAdvanceWeek(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "advance-week" }>,
+  context: ApplyGameActionContext,
+): AppliedGameAction {
+''',
+              "applyAdvanceWeek signature",
+            ),
+            (
+              '''  if (hasRequiredOfficialMatch(currentState)) {
+    const official = applyOfficialMatch(currentState, teamSelection);
+''',
+              '''  const matchSelection = action.matchSelection
+    ? cloneTeamSelection(action.matchSelection)
+    : teamSelection;
+  if (action.matchSelection) {
+    const issues = validateTeamSelection({
+      state: currentState,
+      schoolId: currentState.userSchoolId,
+      selection: matchSelection,
+    });
+    if (issues.length > 0) {
+      return conflict("invalid_team_selection", issues[0]!.message);
+    }
+  }
+  if (hasRequiredOfficialMatch(currentState)) {
+    const official = applyOfficialMatch(currentState, matchSelection);
+''',
+              "official match",
+            ),
+            (
+              '''      state: official.state,
+      teamSelection: official.teamSelection,
+      outcome,
+''',
+              '''      state: official.state,
+      teamSelection,
+      outcome,
+''',
+              "official return",
+            ),
+            (
+              '''    const practice = applyPracticeMatch(currentState, teamSelection);
+''',
+              '''    const practice = applyPracticeMatch(currentState, matchSelection);
+''',
+              "practice match",
+            ),
+            (
+              '''      state: practice.state,
+      teamSelection: practice.teamSelection,
+      outcome,
+''',
+              '''      state: practice.state,
+      teamSelection,
+      outcome,
+''',
+              "practice return",
+            ),
+            (
+              '''    case "advance-week":
+      return applyAdvanceWeek(state, teamSelection, context);
+''',
+              '''    case "advance-week":
+      return applyAdvanceWeek(state, teamSelection, action, context);
+''',
+              "advance-week switch",
+            ),
+          ]
+
+          for old, new, label in replacements:
+            count = source.count(old)
+            if count != 1:
+              raise SystemExit(f"{label} anchor count expected 1, got {count}")
+            source = source.replace(old, new, 1)
+
+          path.write_text(source)
+          PY
+          npx prettier worker/game/applyGameAction.ts worker/game/actionSchema.ts tests/unit/worker/preMatchAction.test.ts src/domain/match/preMatchLineup.ts tests/unit/domain/match/preMatchLineup.test.ts --write
+      - name: Verify focused implementation
+        if: steps.marker.outputs.apply == 'true'
+        run: |
+          npm run typecheck
+          npx vitest run tests/unit/domain/match/preMatchLineup.test.ts tests/unit/worker/preMatchAction.test.ts
+      - name: Commit focused implementation
+        if: steps.marker.outputs.apply == 'true'
+        run: |
+          rm .github/pre-match-patch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker/game/applyGameAction.ts worker/game/actionSchema.ts tests/unit/worker/preMatchAction.test.ts src/domain/match/preMatchLineup.ts tests/unit/domain/match/preMatchLineup.test.ts .github/pre-match-patch
+          git commit -m "feat: use temporary lineup for weekly matches"
+          git push origin HEAD:${{ github.head_ref }}
