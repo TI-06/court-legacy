@@ -4,11 +4,21 @@ import {
   calculateSelectionStrength,
   selectPracticeOpponent,
 } from "../../../src/domain/selectors/matchSelectors";
+import { schoolStrengthToGrade } from "../../../src/domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import { PreMatchComparison } from "../../../src/features/match/MatchStatPanels";
 import { PlayerHubScreen } from "../../../src/features/team/PlayerHubScreen";
 
 describe("ability and school strength grades", () => {
+  it("maps school strength to six A-F tiers", () => {
+    expect(schoolStrengthToGrade(90)).toBe("A");
+    expect(schoolStrengthToGrade(80)).toBe("B");
+    expect(schoolStrengthToGrade(70)).toBe("C");
+    expect(schoolStrengthToGrade(60)).toBe("D");
+    expect(schoolStrengthToGrade(50)).toBe("E");
+    expect(schoolStrengthToGrade(49)).toBe("F");
+  });
+
   it("shows each player ability summary as an A-G grade", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;

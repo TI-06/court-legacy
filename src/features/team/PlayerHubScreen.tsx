@@ -14,6 +14,7 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { StatBar } from "../../ui/theme/StatBar";
@@ -202,6 +203,7 @@ export function PlayerHubScreen({
               label={abilityLabels[key as keyof typeof abilityLabels]}
               tone="accent"
               value={value}
+              valueLabel={ratingToGrade(value)}
             />
           ))}
         </section>

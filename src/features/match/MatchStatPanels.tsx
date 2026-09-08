@@ -2,6 +2,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchState } from "../../domain/model/Match";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { SchoolId } from "../../domain/model/identifiers";
+import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import {
   buildMatchStatSummary,
   buildTeamProfile,
@@ -87,6 +88,13 @@ function strongestKeys(profile: TeamProfile): RadarProfileKey[] {
   );
 }
 
+function fiveCategoryOverall(profile: TeamProfile): number {
+  return Math.round(
+    PROFILE_ROWS.reduce((sum, [key]) => sum + profile[key], 0) /
+      PROFILE_ROWS.length,
+  );
+}
+
 function TeamRadar({ home, away }: { home: TeamProfile; away: TeamProfile }) {
   return (
     <div className="match-radar">
@@ -149,6 +157,8 @@ export function PreMatchComparison({
   const away = buildTeamProfile(state, awaySelection);
   const opponentStrengths = strongestKeys(away).slice(0, 3);
   const strengthDifference = homeStrength - awayStrength;
+  const homeFiveCategoryOverall = fiveCategoryOverall(home);
+  const awayFiveCategoryOverall = fiveCategoryOverall(away);
 
   return (
     <section
@@ -172,12 +182,25 @@ export function PreMatchComparison({
         <div>
           <small>自校</small>
           <strong>{homeStrength}</strong>
+          <em>学校評価 {schoolStrengthToGrade(homeStrength)}</em>
         </div>
         <span>VS</span>
         <div>
           <small>相手</small>
           <strong>{awayStrength}</strong>
+          <em>学校評価 {schoolStrengthToGrade(awayStrength)}</em>
         </div>
+      </div>
+
+      <div className="match-five-overall" aria-label="5項目総合比較">
+        <span>5項目総合</span>
+        <strong title={`自校 ${homeFiveCategoryOverall}`}>
+          {ratingToGrade(homeFiveCategoryOverall)}・{homeFiveCategoryOverall}
+        </strong>
+        <b>VS</b>
+        <strong title={`相手 ${awayFiveCategoryOverall}`}>
+          {ratingToGrade(awayFiveCategoryOverall)}・{awayFiveCategoryOverall}
+        </strong>
       </div>
 
       <TeamRadar away={away} home={home} />

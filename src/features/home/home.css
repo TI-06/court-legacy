@@ -415,3 +415,12 @@
 .home-practice-offer button:disabled {
   opacity: 0.48;
 }
+
+.home-week-card__strength small {
+  display: block;
+  margin-top: 1px;
+  color: var(--game-text-muted);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.1;
+}
