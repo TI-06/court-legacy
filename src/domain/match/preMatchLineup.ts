@@ -7,11 +7,7 @@ import { autoSelectTeam } from "../team/autoSelectTeam";
 import { validateTeamSelection } from "../team/validateTeamSelection";
 
 export type PreMatchLineupPreset =
-  | "best"
-  | "grade-1"
-  | "grade-2"
-  | "grade-3"
-  | "condition";
+  "best" | "grade-1" | "grade-2" | "grade-3" | "condition";
 
 const ROTATION_ROLES: Record<RotationSlot, Position> = {
   1: "S",
@@ -65,8 +61,7 @@ function candidateScore(
   preset: Exclude<PreMatchLineupPreset, "best">,
 ): number {
   const grade = presetGrade(preset);
-  const gradeBonus =
-    grade !== null && player.grade === grade ? 1_000_000 : 0;
+  const gradeBonus = grade !== null && player.grade === grade ? 1_000_000 : 0;
   const conditionBonus = preset === "condition" ? player.condition * 10_000 : 0;
   const aptitude = player.positionAptitudes[role] * 1_000;
   const overall = calculatePlayerDisplayPower(player);
@@ -81,7 +76,8 @@ function bestCandidate(
 ): Player {
   const selected = [...players].sort((first, second) => {
     const scoreDifference =
-      candidateScore(second, role, preset) - candidateScore(first, role, preset);
+      candidateScore(second, role, preset) -
+      candidateScore(first, role, preset);
     if (scoreDifference !== 0) return scoreDifference;
     return first.id.localeCompare(second.id);
   })[0];
