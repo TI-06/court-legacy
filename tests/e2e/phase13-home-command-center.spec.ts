@@ -29,7 +29,9 @@ for (const width of [320, 360, 390, 414, 480]) {
   });
 }
 
-test("unanswered practice offer warns before week advance", async ({ page }) => {
+test("unanswered practice offer warns before week advance", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.getByRole("button", { name: "今週を進める" }).click();
 
@@ -42,7 +44,9 @@ test("unanswered practice offer warns before week advance", async ({ page }) => 
   await expect(dialog).toHaveCount(0);
 });
 
-test("management task deep-links to the requested School view", async ({ page }) => {
+test("management task deep-links to the requested School view", async ({
+  page,
+}) => {
   await page.goto("/");
 
   const facilityTask = page.getByRole("button", {
@@ -51,10 +55,9 @@ test("management task deep-links to the requested School view", async ({ page })
   await expect(facilityTask).toBeVisible();
   await facilityTask.click();
 
-  await expect(page.getByRole("tab", { name: "設備", exact: true })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  await expect(
+    page.getByRole("tab", { name: "設備", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await expect(
     page.getByRole("button", { name: "トレーニング設備の詳細" }),
   ).toBeVisible();

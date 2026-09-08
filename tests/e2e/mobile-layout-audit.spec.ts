@@ -26,7 +26,8 @@ async function inspectLayout(page: Page) {
       const style = window.getComputedStyle(element);
       const visuallyOutside =
         rect.right > viewportWidth + 0.5 || rect.left < -0.5;
-      const internallyScrollable = element.scrollWidth > element.clientWidth + 1;
+      const internallyScrollable =
+        element.scrollWidth > element.clientWidth + 1;
       const clipped =
         internallyScrollable && !["auto", "scroll"].includes(style.overflowX);
 

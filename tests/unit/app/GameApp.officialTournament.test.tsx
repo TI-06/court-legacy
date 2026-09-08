@@ -109,9 +109,7 @@ describe("GameApp official tournament flow", () => {
     ).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
-    fireEvent.click(
-      screen.getByRole("button", { name: "公式戦 試合準備" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "公式戦 試合準備" }));
 
     expect(applyAction).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();

@@ -30,9 +30,7 @@ describe("HomeScreen practice schedule", () => {
     expect(screen.getByTestId("home-command-summary")).toBeVisible();
     const teamStatus = screen.getByRole("region", { name: "チーム状況" });
     expect(within(teamStatus).getByText(String(homeStrength))).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "練習試合 試合" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "練習試合 試合" })).toBeNull();
     expect(screen.queryByText("対戦相手 未決定")).toBeNull();
   });
 });

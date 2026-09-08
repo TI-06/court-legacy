@@ -11,16 +11,18 @@ test("phase13 home keeps the weekly CTA above navigation in the initial 360x800 
   await expect(page.getByTestId("home-team-status")).toBeVisible();
 
   const advance = page.locator(".home-command-advance");
-  await expect(page.getByRole("button", { name: "今週を進める" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "今週を進める" }),
+  ).toBeVisible();
   const nav = page.getByRole("navigation", { name: "主要メニュー" });
   const advanceBox = await advance.boundingBox();
   const navBox = await nav.boundingBox();
 
   expect(advanceBox).not.toBeNull();
   expect(navBox).not.toBeNull();
-  expect(
-    (advanceBox?.y ?? 0) + (advanceBox?.height ?? 0),
-  ).toBeLessThanOrEqual(navBox?.y ?? 0);
+  expect((advanceBox?.y ?? 0) + (advanceBox?.height ?? 0)).toBeLessThanOrEqual(
+    navBox?.y ?? 0,
+  );
 });
 
 test("phase13 home exposes the official objective from the command summary", async ({
