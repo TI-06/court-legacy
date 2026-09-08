@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
 import { buildPreMatchLineupPreset } from "../../../src/domain/match/preMatchLineup";
+import type { TeamSelection } from "../../../src/domain/model/TeamSelection";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
@@ -38,6 +39,26 @@ function createSnapshot(): CloudGameSnapshot {
     state,
     teamSelection,
   };
+}
+
+function expectCyclicRotation(
+  actual: TeamSelection,
+  expected: TeamSelection,
+): void {
+  const expectedSlotByPlayer = new Map(
+    expected.rotation.map(({ playerId, slot }) => [playerId, slot]),
+  );
+  expect(actual.rotation.map(({ playerId }) => playerId)).toEqual(
+    expected.rotation.map(({ playerId }) => playerId),
+  );
+  const offsets = actual.rotation.map(({ playerId, slot }) => {
+    const expectedSlot = expectedSlotByPlayer.get(playerId);
+    if (!expectedSlot) throw new Error("starter missing from expected lineup");
+    return (slot - expectedSlot + 6) % 6;
+  });
+  expect(new Set(offsets).size).toBe(1);
+  expect(actual.liberoPlayerId).toBe(expected.liberoPlayerId);
+  expect(actual.benchPlayerIds).toEqual(expected.benchPlayerIds);
 }
 
 describe("match-only advance-week selection", () => {
@@ -77,7 +98,7 @@ describe("match-only advance-week selection", () => {
     const presentation = outcome?.pendingMatchPresentation;
     if (!presentation) throw new Error("practice match was not simulated");
 
-    expect(presentation.simulation.match.homeSelection).toEqual(matchSelection);
+    expectCyclicRotation(presentation.simulation.match.homeSelection, matchSelection);
     expect(result.teamSelection).toEqual(savedSelection);
     expect(snapshot.teamSelection).toEqual(savedSelection);
   });
