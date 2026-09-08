@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { pvpJstDayKey, pvpSeasonId } from "../../src/domain/pvp/season";
 import type { GameStore } from "../data/GameStore";
 import type { PvPStore, PublishedPvpTeamSnapshot } from "../data/PvPStore";
@@ -232,12 +233,13 @@ export function createPvpChallengeHandler(
       throw new Error("challenger school is missing from authoritative state");
     }
 
+    const matchSelection = parsed.data.matchSelection as TeamSelection | undefined;
     let challengerForMatch = challenger;
-    if (parsed.data.matchSelection) {
+    if (matchSelection) {
       try {
         const validated = applyGameAction(challenger, {
           type: "team-selection",
-          selection: parsed.data.matchSelection,
+          selection: matchSelection,
         });
         challengerForMatch = {
           ...challenger,
