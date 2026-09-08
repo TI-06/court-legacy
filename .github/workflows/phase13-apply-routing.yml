@@ -1,0 +1,70 @@
+name: Phase 13 Apply Routing
+
+on:
+  push:
+    branches:
+      - feat/phase13-home-command-center
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Apply Task 3 routing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              if old not in text:
+                  raise SystemExit(f"missing patch anchor: {label}")
+              return text.replace(old, new, 1)
+
+          player_path = Path("src/features/team/PlayerHubScreen.tsx")
+          player = player_path.read_text()
+          player = replace_once(player, "  leadershipPending?: boolean;\n  trainingPending?: boolean;", "  initialPlayerId?: PlayerId | null;\n  leadershipPending?: boolean;\n  trainingPending?: boolean;", "player props")
+          player = replace_once(player, "  onAssignLeadership,\n  leadershipPending = false,", "  onAssignLeadership,\n  initialPlayerId = null,\n  leadershipPending = false,", "player destructure")
+          player = replace_once(player, "  const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(\n    null,\n  );", "  const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(\n    initialPlayerId,\n  );", "player initial state")
+          player_path.write_text(player)
+
+          app_path = Path("src/app/GameApp.tsx")
+          app = app_path.read_text()
+          app = replace_once(app, 'import { HomeScreen } from "../features/home/HomeScreen";\n', 'import { HomeScreen } from "../features/home/HomeScreen";\nimport type { HomeCommandAction } from "../features/home/homeCommandCenter";\n', "home action import")
+          app = replace_once(app, 'import { SchoolScreen } from "../features/school/SchoolScreen";\n', 'import { requestSchoolView } from "../features/school/SchoolNavigationState";\nimport { SchoolScreen } from "../features/school/SchoolScreen";\n', "school view import")
+          app = replace_once(app, "  const [latestMatchResult, setLatestMatchResult] =\n    useState<SimulateMatchResult | null>(null);", "  const [, setLatestMatchResult] = useState<SimulateMatchResult | null>(null);", "latest match setter")
+          app = replace_once(app, "  const [preMatch, setPreMatch] = useState<PreMatchContext | null>(null);\n", "  const [preMatch, setPreMatch] = useState<PreMatchContext | null>(null);\n  const [teamInitialPlayerId, setTeamInitialPlayerId] =\n    useState<PlayerId | null>(null);\n", "team initial state")
+          app = replace_once(app, "  const changeTab = (tab: AppTab) => {\n    if (tab !== \"more\") setMoreView(\"menu\");", "  const changeTab = (tab: AppTab) => {\n    if (tab === \"team\") setTeamInitialPlayerId(null);\n    if (tab !== \"more\") setMoreView(\"menu\");", "change tab reset")
+
+          handler_anchor = "    await executeAdvanceWeek();\n  };\n\n  const chooseEvent = async (choiceId: string) => {"
+          handler = "    await executeAdvanceWeek();\n  };\n\n  const handleHomeCommand = (action: HomeCommandAction) => {\n    switch (action.target) {\n      case \"team\":\n        setTeamInitialPlayerId(null);\n        setActiveTab(\"team\");\n        return;\n      case \"player\":\n        setTeamInitialPlayerId(action.playerId);\n        setActiveTab(\"team\");\n        return;\n      case \"school\":\n        requestSchoolView(action.view);\n        setScoutingOpen(false);\n        setActiveTab(\"school\");\n        return;\n      case \"scouting\":\n        setActiveTab(\"school\");\n        openScouting();\n        return;\n      case \"practice\":\n        openFreshPracticeMatch();\n        return;\n      case \"tournament\":\n        openOfficialTournament();\n        return;\n      case \"start-week-match\":\n        void advanceWeek();\n        return;\n    }\n  };\n\n  const chooseEvent = async (choiceId: string) => {"
+          app = replace_once(app, handler_anchor, handler, "home command handler")
+
+          start = '    ) : activeTab === "home" ? (\n      <HomeScreen'
+          end = '    ) : activeTab === "team" ? (\n      <PlayerHubScreen'
+          start_index = app.find(start)
+          end_index = app.find(end)
+          if start_index < 0 or end_index < 0 or end_index <= start_index:
+              raise SystemExit("missing Home render range")
+          home_block = '    ) : activeTab === "home" ? (\n      <HomeScreen\n        data={gameData}\n        homeStrength={homeStrength}\n        onAcceptPracticeOffer={() => void acceptPracticeOffer()}\n        onAdvanceWeek={advanceWeek}\n        onCommand={handleHomeCommand}\n        onDeclinePracticeOffer={() => void declinePracticeOffer()}\n        onMarkNotificationRead={markNotificationRead}\n        operationPending={cloudSession.operation.status === "submitting"}\n        state={gameState}\n      />\n    ) : activeTab === "team" ? (\n      <PlayerHubScreen\n        initialPlayerId={teamInitialPlayerId}'
+          app = app[:start_index] + home_block + app[end_index + len(end):]
+          app_path.write_text(app)
+          PY
+          npx prettier src/app/GameApp.tsx src/features/team/PlayerHubScreen.tsx src/features/school/SchoolNavigationState.ts tests/unit/app/GameApp.homeCommandCenter.test.tsx tests/unit/features/team/PlayerHubInitialFocus.test.tsx --write
+      - name: Commit Task 3 routing
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/GameApp.tsx src/features/team/PlayerHubScreen.tsx src/features/school/SchoolNavigationState.ts tests/unit/app/GameApp.homeCommandCenter.test.tsx tests/unit/features/team/PlayerHubInitialFocus.test.tsx
+          git commit -m "feat: route Home coaching commands"
+          git push origin HEAD:feat/phase13-home-command-center
