@@ -1,7 +1,4 @@
-import type {
-  GameState,
-  PlayerDevelopmentWeek,
-} from "../model/GameState";
+import type { GameState, PlayerDevelopmentWeek } from "../model/GameState";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
 
 export const MAX_PLAYER_DEVELOPMENT_WEEKS = 52;
