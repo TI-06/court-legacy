@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -69,82 +75,85 @@ function responseFor(
   };
 }
 
-it("persists Player Hub tactics through set-team-tactics and adopts the authoritative snapshot", async () => {
-  let serverSnapshot = createSnapshot();
-  const applyAction = vi.fn(
-    async (_accessToken: string, request: GameActionRequest) => {
-      const response = responseFor(serverSnapshot, request);
-      serverSnapshot = response.game;
-      return response;
-    },
-  );
-  const api: GameApiClient = {
-    bootstrap: vi.fn(),
-    onboard: vi.fn(),
-    applyAction,
-  };
-
-  render(
-    <GameApp
-      api={api}
-      auth={authClient()}
-      session={session}
-      snapshot={serverSnapshot}
-    />,
-  );
-
-  fireEvent.click(screen.getByRole("button", { name: "選手" }));
-  fireEvent.click(await screen.findByRole("button", { name: "戦術" }));
-
-  fireEvent.click(
-    within(screen.getByRole("group", { name: "サーブ戦術" })).getByRole(
-      "button",
-      { name: /強気/ },
-    ),
-  );
-  fireEvent.click(
-    within(screen.getByRole("group", { name: "攻撃戦術" })).getByRole(
-      "button",
-      { name: /高速/ },
-    ),
-  );
-  fireEvent.click(
-    within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
-      "button",
-      { name: /リード/ },
-    ),
-  );
-  fireEvent.click(screen.getByRole("button", { name: "基本戦術を保存" }));
-
-  await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(1));
-  expect(applyAction.mock.calls[0]![1]).toMatchObject({
-    revision: 1,
-    action: {
-      type: "set-team-tactics",
-      plan: {
-        serve: "aggressive",
-        attack: "quick",
-        block: "read",
+it(
+  "persists Player Hub tactics through set-team-tactics and adopts the authoritative snapshot",
+  async () => {
+    let serverSnapshot = createSnapshot();
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) => {
+        const response = responseFor(serverSnapshot, request);
+        serverSnapshot = response.game;
+        return response;
       },
-    },
-  });
-  expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
-  expect(
-    within(screen.getByRole("group", { name: "サーブ戦術" })).getByRole(
-      "button",
-      { name: /強気/, pressed: true },
-    ),
-  ).toBeVisible();
-  expect(
-    within(screen.getByRole("group", { name: "攻撃戦術" })).getByRole(
-      "button",
-      { name: /高速/, pressed: true },
-    ),
-  ).toBeVisible();
-  expect(
-    within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
-      "button",
-      { name: /リード/, pressed: true },
-    ),
-  ).toBeVisible();
-});
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={serverSnapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手" }));
+    fireEvent.click(await screen.findByRole("button", { name: "戦術" }));
+
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "サーブ戦術" })).getByRole(
+        "button",
+        { name: /強気/ },
+      ),
+    );
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "攻撃戦術" })).getByRole(
+        "button",
+        { name: /高速/ },
+      ),
+    );
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
+        "button",
+        { name: /リード/ },
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "基本戦術を保存" }));
+
+    await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(1));
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: {
+        type: "set-team-tactics",
+        plan: {
+          serve: "aggressive",
+          attack: "quick",
+          block: "read",
+        },
+      },
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(
+      within(screen.getByRole("group", { name: "サーブ戦術" })).getByRole(
+        "button",
+        { name: /強気/, pressed: true },
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole("group", { name: "攻撃戦術" })).getByRole(
+        "button",
+        { name: /高速/, pressed: true },
+      ),
+    ).toBeVisible();
+    expect(
+      within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
+        "button",
+        { name: /リード/, pressed: true },
+      ),
+    ).toBeVisible();
+  },
+);
