@@ -148,7 +148,7 @@ describe("attack/block matchup", () => {
   it("reports a split matchup as neutral overall", () => {
     expect(
       summarizeTacticMatchup(
-        { serve: "balanced", attack: "quick", block: "read" },
+        { serve: "balanced", attack: "quick", block: "commit" },
         { serve: "balanced", attack: "side", block: "read" },
       ),
     ).toEqual({
