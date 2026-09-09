@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
 
-# Temporary formatter. Remove before PR14-3 merge.
+# Temporary formatter for PR14-3. Remove before merge.
 jobs:
   format:
     if: github.actor != 'github-actions[bot]'
