@@ -44,7 +44,10 @@ export function applyServerGameAction(
           ...snapshot.state.schools,
           [userSchool.id]: {
             ...userSchool,
-            tactics: applyMatchTacticPlan(userSchool.tactics, action.matchTactics),
+            tactics: applyMatchTacticPlan(
+              userSchool.tactics,
+              action.matchTactics,
+            ),
           },
         },
       }
