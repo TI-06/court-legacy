@@ -62,7 +62,7 @@ for (const width of widths) {
     await expectNoHorizontalOverflow(page);
 
     const serveGroup = page.getByRole("group", { name: "サーブ戦術" });
-    await serveGroup.locator("button:not(.is-active)").first().click();
+    await serveGroup.locator('button[aria-pressed="false"]').first().click();
     const saveButton = page.getByRole("button", { name: "基本戦術を保存" });
     await expect(saveButton).toBeEnabled();
     await saveButton.click();
@@ -93,7 +93,7 @@ for (const width of widths) {
     await expectNoHorizontalOverflow(page);
 
     const attackGroup = page.getByRole("group", { name: "攻撃戦術" });
-    await attackGroup.locator("button:not(.is-active)").first().click();
+    await attackGroup.locator('button[aria-pressed="false"]').first().click();
     await expectNoHorizontalOverflow(page);
     await page.getByRole("button", { name: "基本戦術に戻す" }).click();
     await expectNoHorizontalOverflow(page);
