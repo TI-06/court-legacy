@@ -74,7 +74,9 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
     await expect(page.getByText("この試合だけの編成です")).toBeVisible();
     await expectNoHorizontalOverflow(page);
-    await page.getByRole("button", { name: "この編成で試合開始" }).click();
+    await page
+      .getByRole("button", { name: "この編成・戦術で試合開始" })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),

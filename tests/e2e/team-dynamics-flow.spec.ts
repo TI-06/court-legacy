@@ -117,7 +117,7 @@ test("leadership assignment, training, and an official match persist visible dyn
   await advanceWeekFromHome(page);
   await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
   await expect(page.getByText("この試合だけの編成です")).toBeVisible();
-  await page.getByRole("button", { name: "この編成で試合開始" }).click();
+  await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
 
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),
