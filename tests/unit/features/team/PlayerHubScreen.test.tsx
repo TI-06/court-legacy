@@ -7,7 +7,7 @@ import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
 interface RenderOptions {
-  onSetDevelopmentPriorities?: ReturnType<typeof vi.fn>;
+  onSetDevelopmentPriorities?: (playerIds: string[]) => void;
   planningPending?: boolean;
 }
 
