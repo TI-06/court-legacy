@@ -4,7 +4,9 @@ import {
   createBrowserAppDependencies,
   E2E_SERVER_SNAPSHOT_KEY,
 } from "../../../src/app/createBrowserAppDependencies";
-import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
+import {
+  CURRENT_GAME_SCHEMA_VERSION,
+} from "../../../src/domain/model/GameState";
 import { ApiError } from "../../../src/services/api/GameApiClient";
 
 describe("createBrowserAppDependencies E2E harness", () => {
@@ -63,7 +65,9 @@ describe("createBrowserAppDependencies E2E harness", () => {
     const reloaded = await second.api.bootstrap(session!.accessToken);
     expect(reloaded.status).toBe("ready");
     if (reloaded.status !== "ready") return;
-    expect(reloaded.game.state.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
+    expect(reloaded.game.state.schemaVersion).toBe(
+      CURRENT_GAME_SCHEMA_VERSION,
+    );
     expect(reloaded.game.state.notifications).toEqual({ items: [] });
     expect(reloaded.game.state.schoolManagement).toEqual({
       assistantCoach: null,
@@ -179,13 +183,11 @@ describe("createBrowserAppDependencies E2E harness", () => {
       itemId: "training-camp",
     });
 
-    const error = await api
-      .purchaseShopItem!("e2e-access-token", {
-        operationId: "shop-harness-limit-002",
-        revision: first.revision,
-        itemId: "training-camp",
-      })
-      .catch((reason: unknown) => reason);
+    const error = await api.purchaseShopItem!("e2e-access-token", {
+      operationId: "shop-harness-limit-002",
+      revision: first.revision,
+      itemId: "training-camp",
+    }).catch((reason: unknown) => reason);
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({
