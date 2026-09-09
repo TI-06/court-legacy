@@ -8,6 +8,10 @@ import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
+import {
+  deriveMatchTacticPlan,
+  type MatchTacticPlan,
+} from "../../domain/team/matchTactics";
 import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
@@ -21,6 +25,7 @@ import { BottomSheet } from "../../ui/BottomSheet";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
+import { TeamTacticsPanel } from "./TeamTacticsPanel";
 import {
   selectPlayerHubRoster,
   summarizePlayerGrowth,
@@ -41,11 +46,13 @@ interface PlayerHubScreenProps {
   leadershipPending?: boolean;
   trainingPending?: boolean;
   planningPending?: boolean;
+  tacticsPending?: boolean;
   onChangeTraining?: (
     playerId: PlayerId,
     instructionId: string,
   ) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
+  onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSaveLineupPreset?: (
     slot: SavedLineupSlot,
     name: string,
@@ -54,7 +61,7 @@ interface PlayerHubScreenProps {
   onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
 }
 
-type HubMode = "roster" | "lineup" | "dynamics";
+type HubMode = "roster" | "lineup" | "dynamics" | "tactics";
 
 const abilityLabels = {
   attack: "攻撃",
@@ -126,6 +133,7 @@ function HubTabs({
           ["roster", "選手一覧"],
           ["lineup", "編成"],
           ["dynamics", "チーム状態"],
+          ["tactics", "戦術"],
         ] as const
       ).map(([id, label]) => (
         <button
@@ -150,8 +158,10 @@ export function PlayerHubScreen({
   leadershipPending = false,
   trainingPending = false,
   planningPending = false,
+  tacticsPending = false,
   onChangeTraining,
   onSetDevelopmentPriorities,
+  onSetTeamTactics,
   onSaveLineupPreset,
   onDeleteLineupPreset,
 }: PlayerHubScreenProps) {
@@ -234,6 +244,19 @@ export function PlayerHubScreen({
           onAssignLeadership={onAssignLeadership}
           pending={leadershipPending}
           state={state}
+        />
+      </main>
+    );
+  }
+
+  if (mode === "tactics") {
+    return (
+      <main className="app-content player-hub">
+        <HubTabs mode={mode} onChange={setMode} />
+        <TeamTacticsPanel
+          currentPlan={deriveMatchTacticPlan(school.tactics)}
+          onSave={(plan) => void onSetTeamTactics?.(plan)}
+          pending={tacticsPending}
         />
       </main>
     );
