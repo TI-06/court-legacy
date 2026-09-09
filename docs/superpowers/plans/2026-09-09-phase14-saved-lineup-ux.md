@@ -86,9 +86,7 @@ export interface SavedLineupSlotView {
   issueMessage: string | null;
 }
 
-export function selectSavedLineupSlots(
-  state: GameState,
-): SavedLineupSlotView[];
+export function selectSavedLineupSlots(state: GameState): SavedLineupSlotView[];
 ```
 
 **Rules:**
@@ -160,10 +158,7 @@ Expected: FAIL because `savedLineupSelectors.ts` does not exist.
 
 ```ts
 import type { GameState } from "../model/GameState";
-import type {
-  SavedLineupPreset,
-  SavedLineupSlot,
-} from "./teamPlanningTypes";
+import type { SavedLineupPreset, SavedLineupSlot } from "./teamPlanningTypes";
 import { validateTeamSelection } from "./validateTeamSelection";
 
 export type SavedLineupStatus = "empty" | "valid" | "invalid";
@@ -182,8 +177,9 @@ export function selectSavedLineupSlots(
 ): SavedLineupSlotView[] {
   return slots.map((slot) => {
     const preset =
-      state.teamPlanning.savedLineups.find((candidate) => candidate.slot === slot) ??
-      null;
+      state.teamPlanning.savedLineups.find(
+        (candidate) => candidate.slot === slot,
+      ) ?? null;
     if (!preset) {
       return { slot, preset: null, status: "empty", issueMessage: null };
     }
@@ -314,7 +310,9 @@ Assert empty slots:
 ```ts
 expect(screen.getByRole("heading", { name: "保存編成" })).toBeVisible();
 expect(screen.getAllByText("未保存")).toHaveLength(3);
-expect(screen.getAllByRole("button", { name: "現在の編成を保存" })).toHaveLength(3);
+expect(
+  screen.getAllByRole("button", { name: "現在の編成を保存" }),
+).toHaveLength(3);
 ```
 
 Fill slot 1 and save:
@@ -328,11 +326,7 @@ fireEvent.click(
     name: "現在の編成を保存",
   }),
 );
-expect(onSaveLineupPreset).toHaveBeenCalledWith(
-  1,
-  "ベストメンバー",
-  selection,
-);
+expect(onSaveLineupPreset).toHaveBeenCalledWith(1, "ベストメンバー", selection);
 ```
 
 Pre-populate one valid slot and assert `適用 / 上書き保存 / 削除`.
@@ -364,14 +358,10 @@ Expected: FAIL because the saved-lineup panel and callbacks do not exist.
 In `TeamScreen`, derive:
 
 ```ts
-const savedLineupSlots = useMemo(
-  () => selectSavedLineupSlots(state),
-  [state],
-);
-const [savedLineupNames, setSavedLineupNames] = useState<Record<
-  SavedLineupSlot,
-  string
->>({ 1: "", 2: "", 3: "" });
+const savedLineupSlots = useMemo(() => selectSavedLineupSlots(state), [state]);
+const [savedLineupNames, setSavedLineupNames] = useState<
+  Record<SavedLineupSlot, string>
+>({ 1: "", 2: "", 3: "" });
 ```
 
 Synchronize occupied names from authoritative state without overwriting an actively typed value for empty slots. A simple deterministic rule is acceptable: when an occupied preset is rendered, its input value comes from `savedLineupNames[slot] || preset.name`; after a server replacement the authoritative preset name is displayed.
@@ -632,10 +622,7 @@ Expected: existing tests PASS, new saved-lineup tests FAIL.
 Derive:
 
 ```ts
-const savedLineupSlots = useMemo(
-  () => selectSavedLineupSlots(state),
-  [state],
-);
+const savedLineupSlots = useMemo(() => selectSavedLineupSlots(state), [state]);
 ```
 
 Render after the generated preset grid:
