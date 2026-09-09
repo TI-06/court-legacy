@@ -24,6 +24,8 @@
 
 ## Task 2: Authoritative normal-tactics action
 
+**Status:** RED verified; GREEN implementation committed. Full CI verification pending a user-authored trigger because the bot formatting commit requires Actions approval.
+
 **Files:**
 
 - Modify: `worker/game/actionSchema.ts`
