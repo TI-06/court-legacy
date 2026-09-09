@@ -1,6 +1,7 @@
 import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
 import type { GameNotificationState } from "../notifications/gameNotifications";
 import type { ShopGameEffects } from "../shop/shopEffects";
+import type { TeamPlanningState } from "../team/teamPlanningTypes";
 import type {
   OfficialSeasonState,
   TournamentCircuit,
@@ -68,12 +69,27 @@ export interface OfficialTournamentSummary {
   };
 }
 
+export interface PlayerDevelopmentWeekPlayer {
+  playerId: PlayerId;
+  totalAbilityGrowth: number;
+  abilityChanges: Partial<Record<keyof Player["abilities"], number>>;
+}
+
+export interface PlayerDevelopmentWeek {
+  gameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  trainingMenuId: string;
+  players: PlayerDevelopmentWeekPlayer[];
+}
+
 export interface GameHistory {
   matches: HistoricalMatchSummary[];
   graduates: GraduatedPlayerSummary[];
   nationalChampionSchoolIdsByYear: Record<number, SchoolId>;
   schoolRecordValues: Record<string, number>;
   officialTournaments: OfficialTournamentSummary[];
+  playerDevelopmentWeeks: PlayerDevelopmentWeek[];
 }
 
 export interface RecruitingState {
@@ -103,11 +119,12 @@ export interface GameState {
   weeklySchedule: WeeklyScheduleState;
   notifications: GameNotificationState;
   schoolManagement: SchoolManagementState;
+  teamPlanning: TeamPlanningState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 7;
+export const CURRENT_GAME_SCHEMA_VERSION = 8;
 
 export function createDefaultGameSettings(): GameSettings {
   return {
@@ -126,6 +143,7 @@ export function createEmptyGameHistory(): GameHistory {
     nationalChampionSchoolIdsByYear: {},
     schoolRecordValues: {},
     officialTournaments: [],
+    playerDevelopmentWeeks: [],
   };
 }
 
