@@ -31,6 +31,7 @@ describe("PlayerHubScreen team tactics", () => {
       name: "選手画面の表示切替",
     });
 
+    expect(within(navigation).getAllByRole("button")).toHaveLength(4);
     for (const label of ["選手一覧", "編成", "チーム状態", "戦術"]) {
       expect(
         within(navigation).getByRole("button", { name: label }),
