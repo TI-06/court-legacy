@@ -183,9 +183,22 @@ PR14-2 Player Hub UI adds:
 - Player Hub mobile coverage at 320 / 360 / 390 / 414 / 480 px with horizontal-overflow and bottom-navigation collision checks;
 - existing lineup, team-dynamics and individual-training controls preserved.
 
-PR14-2 does not add fabricated history, fatigue-management controls, PvP opponent leakage, saved-lineup management UI, or a pre-match saved-lineup picker.
+PR14-3 saved-lineup UX completes the Phase 14 Player Hub slice with:
 
-PR14-3 is the next Phase 14 slice and owns saved-lineup UX, including managing the authoritative saved lineup slots in Player Hub and selecting a saved normal lineup during pre-match preparation while preserving the existing match-only lineup rule.
+- three visible named lineup slots in the normal Player Hub lineup screen;
+- authoritative save, overwrite and delete through the existing `save-lineup-preset` / `delete-lineup-preset` game actions;
+- applying a valid saved lineup to the normal team through the existing authoritative `team-selection` action;
+- explicit `再設定が必要` handling when a saved snapshot becomes invalid after roster changes, with no silent player replacement;
+- invalid snapshots kept visible so they can be overwritten or deleted, while apply remains disabled;
+- a compact pre-match saved-lineup picker alongside the existing generated `ベスト / 1年中心 / 2年中心 / 3年中心 / 調子優先` presets;
+- pre-match saved-lineup loading cloned only into match-local selection, never overwriting persistent `teamSelection`;
+- existing `元に戻す` semantics preserved so it always restores the normal base lineup;
+- PvP opponent privacy unchanged;
+- full saved-lineup user-flow coverage at 320 / 360 / 390 / 414 / 480 px, including horizontal-overflow checks.
+
+Phase 14 does not fabricate player history, add fatigue-management chores, leak private PvP opponent abilities, silently repair stale saved lineups, or persist match-only lineup changes.
+
+**Phase 15 — Team Tactics is the next roadmap slice.**
 
 ### Phase 15 — Team Tactics
 
@@ -227,6 +240,7 @@ Seasonal PvP ranking/endgame layer without pay-to-win progression.
 - `docs/superpowers/specs/2026-09-09-phase14-player-hub-2-design.md`
 - `docs/superpowers/plans/2026-09-09-phase14-player-hub-foundation.md`
 - `docs/superpowers/plans/2026-09-09-phase14-player-hub-ui.md`
+- `docs/superpowers/plans/2026-09-09-phase14-saved-lineup-ux.md`
 
 ## Handoff rule
 
