@@ -122,7 +122,9 @@ describe("PreMatchLineupScreen", () => {
 
     expect(onStart).toHaveBeenCalledWith(savedSelection);
     expect(selection).toEqual(originalBase);
-    expect(state.teamPlanning.savedLineups[0]!.selection).toEqual(originalSaved);
+    expect(state.teamPlanning.savedLineups[0]!.selection).toEqual(
+      originalSaved,
+    );
   });
 
   it("keeps stale saved lineups visible but disabled and preserves generated presets", () => {
