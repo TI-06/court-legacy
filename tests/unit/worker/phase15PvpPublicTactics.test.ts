@@ -109,7 +109,8 @@ describe("Phase 15 PvP public tactics", () => {
 
     expect(response.status).toBe(200);
     expect(body.team.tactics).toEqual(publicPlan);
-    const frozenSchool = store.published[0]!.school as typeof store.published[0]["school"] & {
+    const frozenSchool = store.published[0]!
+      .school as (typeof store.published)[0]["school"] & {
       phase15PublicTactics?: unknown;
     };
     expect(frozenSchool.phase15PublicTactics).toEqual(publicPlan);

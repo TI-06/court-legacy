@@ -4,10 +4,7 @@ import { reputationGrade } from "../../src/domain/school/reputation";
 import type { GameStore } from "../data/GameStore";
 import type { PvPStore } from "../data/PvPStore";
 import { json, jsonError } from "../http/json";
-import {
-  freezePublicTactics,
-  readPublicTactics,
-} from "../pvp/publicTactics";
+import { freezePublicTactics, readPublicTactics } from "../pvp/publicTactics";
 import type { AuthenticatedRequestHandler } from "../router";
 
 const requestSchema = z
