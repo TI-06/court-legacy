@@ -90,7 +90,7 @@ const savedLineupNameSchema = z
   .transform((value) => value.trim())
   .pipe(z.string().min(1).max(24));
 
-const matchTacticPlanSchema = z
+export const matchTacticPlanSchema = z
   .object({
     serve: z.enum(["safe", "balanced", "aggressive"]),
     attack: z.enum(["side", "balanced", "quick"]),
