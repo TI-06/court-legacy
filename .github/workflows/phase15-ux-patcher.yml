@@ -1,0 +1,33 @@
+name: Phase15 UX Patcher
+
+on:
+  push:
+    branches: [feat/phase15-tactics-ux]
+    paths:
+      - .phase15/patch.py
+      - .github/workflows/phase15-ux-patcher.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase15-tactics-ux
+      - name: Apply Phase15 UX patch
+        run: python .phase15/patch.py
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css
+          git commit -m "feat: add Player Hub tactics tab"
+          git push origin HEAD:feat/phase15-tactics-ux
