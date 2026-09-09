@@ -44,9 +44,7 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     instructionId: string,
   ) => void | Promise<void>;
-  onSetDevelopmentPriorities?: (
-    playerIds: PlayerId[],
-  ) => void | Promise<void>;
+  onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
 }
 
 type HubMode = "roster" | "lineup" | "dynamics";
@@ -101,8 +99,7 @@ const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "grade", label: "学年順" },
 ];
 
-const playerName = (player: Player) =>
-  `${player.lastName} ${player.firstName}`;
+const playerName = (player: Player) => `${player.lastName} ${player.firstName}`;
 const playerOverall = (player: Player) =>
   Math.round(calculatePlayerDisplayPower(player) / 100);
 const growthLabel = (weeks: 4 | 12, value: number | null) =>
@@ -227,10 +224,8 @@ export function PlayerHubScreen({
 
   if (selectedPlayer) {
     const abilities = summarizePlayerAbilities(selectedPlayer);
-    const role =
-      state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
-    const concerns =
-      state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
+    const role = state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
+    const concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
     const condition = getPlayerConditionPresentation(selectedPlayer.condition);
     const development = getPlayerDevelopmentPresentation(selectedPlayer);
     const growth = summarizePlayerGrowth(state, selectedPlayer.id);
@@ -305,9 +300,7 @@ export function PlayerHubScreen({
               {growth.trend12.map((point, index) => {
                 const percent = Math.max(
                   8,
-                  Math.round(
-                    (point.totalAbilityGrowth / maxTrendGrowth) * 100,
-                  ),
+                  Math.round((point.totalAbilityGrowth / maxTrendGrowth) * 100),
                 );
                 return (
                   <span
@@ -387,7 +380,9 @@ export function PlayerHubScreen({
           <p className="section-kicker">登録選手</p>
           <h2>選手一覧</h2>
         </div>
-        <span>表示 {rosterItems.length} / 全 {players.length}人</span>
+        <span>
+          表示 {rosterItems.length} / 全 {players.length}人
+        </span>
       </section>
 
       <section className="player-hub__controls" aria-label="選手一覧の表示設定">
