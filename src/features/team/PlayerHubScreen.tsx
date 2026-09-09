@@ -26,6 +26,7 @@ import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
 import { TeamTacticsPanel } from "./TeamTacticsPanel";
+import { TeamTacticsPanel } from "./TeamTacticsPanel";
 import {
   selectPlayerHubRoster,
   summarizePlayerGrowth,
@@ -244,6 +245,19 @@ export function PlayerHubScreen({
           onAssignLeadership={onAssignLeadership}
           pending={leadershipPending}
           state={state}
+        />
+      </main>
+    );
+  }
+
+  if (mode === "tactics") {
+    return (
+      <main className="app-content player-hub">
+        <HubTabs mode={mode} onChange={setMode} />
+        <TeamTacticsPanel
+          currentPlan={deriveMatchTacticPlan(school.tactics)}
+          onSave={(plan) => void onSetTeamTactics?.(plan)}
+          pending={tacticsPending}
         />
       </main>
     );
