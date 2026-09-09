@@ -43,7 +43,9 @@ async function schedulePracticeMatch(page: Page) {
 }
 
 for (const width of widths) {
-  test(`${width}px tactics save and match-only override fit`, async ({ page }) => {
+  test(`${width}px tactics save and match-only override fit`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
     await page.goto("/");
 
@@ -54,7 +56,9 @@ for (const width of widths) {
     await expect(page.getByRole("heading", { name: "基本戦術" })).toBeVisible();
     await expect(page.getByRole("group", { name: "サーブ戦術" })).toBeVisible();
     await expect(page.getByRole("group", { name: "攻撃戦術" })).toBeVisible();
-    await expect(page.getByRole("group", { name: "ブロック戦術" })).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "ブロック戦術" }),
+    ).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: /^強気/ }).click();
@@ -76,7 +80,9 @@ for (const width of widths) {
     await page.getByRole("button", { name: "今週を進める" }).click();
 
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "今回の戦術" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "今回の戦術" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "基本戦術に戻す" }),
     ).toBeVisible();
