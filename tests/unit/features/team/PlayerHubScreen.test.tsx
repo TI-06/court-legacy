@@ -124,7 +124,11 @@ describe("PlayerHubScreen", () => {
     expect(screen.getAllByTestId("roster-player-row")).toHaveLength(
       expectedGradeOne,
     );
-    expect(screen.getByText(`表示 ${expectedGradeOne} / 全 ${school.playerIds.length}人`)).toBeVisible();
+    expect(
+      screen.getByText(
+        `表示 ${expectedGradeOne} / 全 ${school.playerIds.length}人`,
+      ),
+    ).toBeVisible();
   });
 
   it("shows the empty filtered state without changing the full roster count", () => {
@@ -141,7 +145,9 @@ describe("PlayerHubScreen", () => {
 
     expect(screen.queryAllByTestId("roster-player-row")).toHaveLength(0);
     expect(screen.getByText("条件に該当する選手はいません")).toBeVisible();
-    expect(screen.getByText(`表示 0 / 全 ${school.playerIds.length}人`)).toBeVisible();
+    expect(
+      screen.getByText(`表示 0 / 全 ${school.playerIds.length}人`),
+    ).toBeVisible();
   });
 
   it("sorts the visible roster by real four-week growth", () => {
@@ -240,9 +246,9 @@ describe("PlayerHubScreen", () => {
       name: /重点育成(に追加|から外す)/,
     });
     expect(priorityButtons.length).toBeGreaterThan(0);
-    expect(priorityButtons.every((button) => button.hasAttribute("disabled"))).toBe(
-      true,
-    );
+    expect(
+      priorityButtons.every((button) => button.hasAttribute("disabled")),
+    ).toBe(true);
   });
 
   it("opens a compact player detail with growth type, talent and potential", () => {
@@ -318,9 +324,7 @@ describe("PlayerHubScreen", () => {
         academicYearIndex: state.yearIndex,
         weekOfYear: 1,
         trainingMenuId: "training.balanced",
-        players: [
-          { playerId, totalAbilityGrowth: 0, abilityChanges: {} },
-        ],
+        players: [{ playerId, totalAbilityGrowth: 0, abilityChanges: {} }],
       },
       {
         gameDate: "2026-04-08",
