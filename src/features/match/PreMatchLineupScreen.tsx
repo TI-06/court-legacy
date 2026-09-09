@@ -64,7 +64,10 @@ export function PreMatchLineupScreen({
     () => calculateSelectionStrength(state, selection),
     [selection, state],
   );
-  const savedLineupSlots = useMemo(() => selectSavedLineupSlots(state), [state]);
+  const savedLineupSlots = useMemo(
+    () => selectSavedLineupSlots(state),
+    [state],
+  );
 
   const starterIds = useMemo(
     () => selection.rotation.map(({ playerId }) => playerId),
