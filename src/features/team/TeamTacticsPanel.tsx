@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type {
   AttackPlan,
   BlockPlan,
@@ -19,12 +19,21 @@ export interface TeamTacticsPanelProps {
   onSave: (plan: MatchTacticPlan) => void;
 }
 
+interface DraftState {
+  baseKey: string;
+  plan: MatchTacticPlan;
+}
+
 function samePlan(left: MatchTacticPlan, right: MatchTacticPlan): boolean {
   return (
     left.serve === right.serve &&
     left.attack === right.attack &&
     left.block === right.block
   );
+}
+
+function planKey(plan: MatchTacticPlan): string {
+  return `${plan.serve}:${plan.attack}:${plan.block}`;
 }
 
 function TacticChoiceGroup<Value extends string>({
@@ -70,18 +79,25 @@ export function TeamTacticsPanel({
   pending,
   onSave,
 }: TeamTacticsPanelProps) {
-  const [draft, setDraft] = useState<MatchTacticPlan>(() => ({
-    ...currentPlan,
-  }));
-
-  useEffect(() => {
-    setDraft({ ...currentPlan });
-  }, [currentPlan.attack, currentPlan.block, currentPlan.serve]);
+  const [draftState, setDraftState] = useState<DraftState | null>(null);
+  const authoritativeKey = planKey(currentPlan);
+  const draft =
+    draftState?.baseKey === authoritativeKey ? draftState.plan : currentPlan;
 
   const unchanged = useMemo(
     () => samePlan(draft, currentPlan),
     [currentPlan, draft],
   );
+
+  const updateDraft = <Axis extends keyof MatchTacticPlan>(
+    axis: Axis,
+    value: MatchTacticPlan[Axis],
+  ) => {
+    setDraftState({
+      baseKey: authoritativeKey,
+      plan: { ...draft, [axis]: value },
+    });
+  };
 
   return (
     <main className="app-content team-tactics">
@@ -95,21 +111,21 @@ export function TeamTacticsPanel({
 
       <TacticChoiceGroup<ServePlan>
         label="サーブ戦術"
-        onChange={(serve) => setDraft((current) => ({ ...current, serve }))}
+        onChange={(serve) => updateDraft("serve", serve)}
         options={serveTacticOptions}
         pending={pending}
         value={draft.serve}
       />
       <TacticChoiceGroup<AttackPlan>
         label="攻撃戦術"
-        onChange={(attack) => setDraft((current) => ({ ...current, attack }))}
+        onChange={(attack) => updateDraft("attack", attack)}
         options={attackTacticOptions}
         pending={pending}
         value={draft.attack}
       />
       <TacticChoiceGroup<BlockPlan>
         label="ブロック戦術"
-        onChange={(block) => setDraft((current) => ({ ...current, block }))}
+        onChange={(block) => updateDraft("block", block)}
         options={blockTacticOptions}
         pending={pending}
         value={draft.block}
