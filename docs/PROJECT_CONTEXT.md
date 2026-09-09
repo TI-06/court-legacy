@@ -162,18 +162,26 @@ Implemented through PR #69. Home is the weekly coaching command center with:
 
 A follow-up Home CTA layout polish is handled by PR #70 (`fix/phase13-home-cta-polish`).
 
-### Phase 14 — Player Hub 2.0 (next)
+### Phase 14 — Player Hub 2.0
 
-Goals:
+PR14-1 foundation introduces the persistence and authoritative domain layer required for the Player Hub redesign:
 
-- improve player list/card readability and game feel;
-- add useful roster filters and sorting;
-- make talent, growth type, condition and role easy to compare;
-- introduce meaningful player growth history without inventing data;
-- add normal lineup presets that can be reused from pre-match preparation;
-- make it obvious which players the coach wants to develop.
+- schema v8 with v7 and older-save migration;
+- up to 52 real weekly player-development records derived from authoritative training results;
+- explicit coach development priorities for up to three current-roster players;
+- three saved lineup slots with authoritative team-selection validation;
+- server-authoritative actions for setting priorities and saving/deleting lineup presets;
+- no hidden growth bonus merely for marking a player as a development priority.
 
-Before implementing Phase 14, inspect current player persistence, training result/history data, `PlayerHubScreen`, team selection persistence, and pre-match preset architecture. Long-term growth history may require a persistence design and must not be faked from the latest training notification.
+The next Phase 14 implementation slice is PR14-2 UI. It should use the persisted foundation rather than inventing client-only state, and should cover:
+
+- improved player list/card readability and game feel;
+- useful roster filters and sorting;
+- easy comparison of talent, growth type, condition and role;
+- real 4-week / 12-week / yearly growth history views backed by persisted data;
+- visible development-priority controls;
+- saved-lineup management in Player Hub;
+- reuse of saved normal lineups from pre-match preparation without changing the existing match-only lineup rule.
 
 ### Phase 15 — Team Tactics
 
@@ -203,10 +211,17 @@ Rival history, alumni careers/events, coach profile and achievements.
 
 Seasonal PvP ranking/endgame layer without pay-to-win progression.
 
-## Key Phase 13 documents
+## Key design and implementation documents
+
+### Phase 13
 
 - `docs/superpowers/specs/2026-09-08-phase13-home-command-center-design.md`
 - `docs/superpowers/plans/2026-09-08-phase13-home-command-center.md`
+
+### Phase 14
+
+- `docs/superpowers/specs/2026-09-09-phase14-player-hub-2-design.md`
+- `docs/superpowers/plans/2026-09-09-phase14-player-hub-foundation.md`
 
 ## Handoff rule
 

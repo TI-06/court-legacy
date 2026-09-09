@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import type { GameDate } from "../../../src/domain/model/identifiers";
 import {
   decodeGameState,
@@ -144,7 +145,7 @@ describe("game state codec", () => {
     expect(migrated.settings.confirmBeforeOfficialMatch).toBe(true);
   });
 
-  it("migrates v6 funds into v7 without paying the current-year budget again", () => {
+  it("migrates v6 funds into the current schema without paying the current-year budget again", () => {
     const current = structuredClone(createDemoGame());
     const { schoolManagement, ...legacy } = current;
     expect(schoolManagement).toBeDefined();
@@ -153,7 +154,7 @@ describe("game state codec", () => {
 
     const migrated = decodeGameState(JSON.stringify(legacy));
 
-    expect(migrated.schemaVersion).toBe(7);
+    expect(migrated.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(migrated.schools[migrated.userSchoolId]!.funds).toBe(777);
     expect(migrated.schoolManagement).toEqual({
       assistantCoach: null,

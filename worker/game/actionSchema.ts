@@ -6,6 +6,7 @@ import type {
 } from "../../src/domain/model/SchoolManagement";
 import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
+import type { SavedLineupSlot } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
 
@@ -78,6 +79,15 @@ const assistantCoachRankSchema = z.enum([
 ]);
 
 const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
+const savedLineupSlotSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
+const savedLineupNameSchema = z
+  .string()
+  .transform((value) => value.trim())
+  .pipe(z.string().min(1).max(24));
 
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
@@ -95,6 +105,26 @@ const gameActionSchema = z.discriminatedUnion("type", [
       type: z.literal("set-team-leadership"),
       captainPlayerId: playerIdSchema,
       viceCaptainPlayerId: playerIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("set-development-priorities"),
+      playerIds: z.array(playerIdSchema).max(3),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("save-lineup-preset"),
+      slot: savedLineupSlotSchema,
+      name: savedLineupNameSchema,
+      selection: teamSelectionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("delete-lineup-preset"),
+      slot: savedLineupSlotSchema,
     })
     .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
@@ -154,6 +184,14 @@ export type GameAction =
       captainPlayerId: PlayerId;
       viceCaptainPlayerId: PlayerId;
     }
+  | { type: "set-development-priorities"; playerIds: PlayerId[] }
+  | {
+      type: "save-lineup-preset";
+      slot: SavedLineupSlot;
+      name: string;
+      selection: TeamSelection;
+    }
+  | { type: "delete-lineup-preset"; slot: SavedLineupSlot }
   | { type: "practice-match" }
   | { type: "practice-offer-accept" }
   | { type: "practice-offer-decline" }

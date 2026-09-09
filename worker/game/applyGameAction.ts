@@ -28,6 +28,10 @@ import {
   buildTrainingResultNotification,
   markNotificationRead,
 } from "../../src/domain/notifications/gameNotifications";
+import {
+  appendPlayerDevelopmentWeek,
+  buildPlayerDevelopmentWeek,
+} from "../../src/domain/player/playerDevelopmentHistory";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
   contractAssistantCoach,
@@ -38,6 +42,12 @@ import {
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
+import {
+  deleteLineupPreset,
+  saveLineupPreset,
+  setDevelopmentPriorities,
+  TeamPlanningValidationError,
+} from "../../src/domain/team/teamPlanning";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
 import { materializeGuestOpponent } from "../../src/domain/tournament/materializeGuestOpponent";
 import {
@@ -152,8 +162,22 @@ function applyTraining(
       additionalGrowthModifiers: trainingGrowthModifiers(state),
     });
     const resolvedState = consumeNextTrainingGrowthBoost(resolution.state);
+    const developmentWeek = buildPlayerDevelopmentWeek({
+      stateBeforeTraining: state,
+      result: resolution.result,
+    });
+    const stateWithDevelopmentHistory: GameState = {
+      ...resolvedState,
+      history: {
+        ...resolvedState.history,
+        playerDevelopmentWeeks: appendPlayerDevelopmentWeek(
+          resolvedState.history.playerDevelopmentWeeks,
+          developmentWeek,
+        ),
+      },
+    };
     return {
-      state: markWeeklyActionCompleted(resolvedState, "training"),
+      state: markWeeklyActionCompleted(stateWithDevelopmentHistory, "training"),
       teamSelection,
       outcome: resolution.result,
     };
@@ -223,6 +247,38 @@ function applyTeamLeadership(
   } catch (error) {
     if (error instanceof TeamLeadershipValidationError) {
       return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
+function applyTeamPlanning(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    {
+      type:
+        | "set-development-priorities"
+        | "save-lineup-preset"
+        | "delete-lineup-preset";
+    }
+  >,
+): AppliedGameAction {
+  try {
+    const nextState =
+      action.type === "set-development-priorities"
+        ? setDevelopmentPriorities(state, action.playerIds)
+        : action.type === "save-lineup-preset"
+          ? saveLineupPreset(state, action)
+          : deleteLineupPreset(state, action.slot);
+    return {
+      state: nextState,
+      teamSelection,
+    };
+  } catch (error) {
+    if (error instanceof TeamPlanningValidationError) {
+      return conflict(error.code.replaceAll("-", "_"), error.message);
     }
     throw error;
   }
@@ -745,6 +801,10 @@ export function applyGameAction(
       return applyTeamSelection(state, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
+    case "set-development-priorities":
+    case "save-lineup-preset":
+    case "delete-lineup-preset":
+      return applyTeamPlanning(state, teamSelection, action);
     case "practice-offer-accept":
     case "practice-offer-decline":
     case "practice-request":
