@@ -23,11 +23,7 @@ export type PlayerHubFilter =
   | "injured";
 
 export type PlayerHubSort =
-  | "power"
-  | "potential"
-  | "condition"
-  | "growth-4w"
-  | "grade";
+  "power" | "potential" | "condition" | "growth-4w" | "grade";
 
 export interface PlayerGrowthTrendPoint {
   gameDate: GameState["date"];
@@ -72,7 +68,9 @@ function summarizeWindow(
   const observed: ObservedGrowth[] = [];
 
   for (const week of weeks) {
-    const log = week.players.find((candidate) => candidate.playerId === playerId);
+    const log = week.players.find(
+      (candidate) => candidate.playerId === playerId,
+    );
     if (!log) continue;
     observed.push({
       gameDate: week.gameDate,
@@ -172,9 +170,7 @@ export function selectPlayerHubRoster(
 
   const starterIds = new Set([
     ...input.selection.rotation.map((assignment) => assignment.playerId),
-    ...(input.selection.liberoPlayerId
-      ? [input.selection.liberoPlayerId]
-      : []),
+    ...(input.selection.liberoPlayerId ? [input.selection.liberoPlayerId] : []),
   ]);
   const benchIds = new Set(input.selection.benchPlayerIds);
   const priorityIds = new Set(
