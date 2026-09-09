@@ -65,9 +65,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     const reloaded = await second.api.bootstrap(session!.accessToken);
     expect(reloaded.status).toBe("ready");
     if (reloaded.status !== "ready") return;
-    expect(reloaded.game.state.schemaVersion).toBe(
-      CURRENT_GAME_SCHEMA_VERSION,
-    );
+    expect(reloaded.game.state.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(reloaded.game.state.notifications).toEqual({ items: [] });
     expect(reloaded.game.state.schoolManagement).toEqual({
       assistantCoach: null,
