@@ -76,7 +76,9 @@ export function tacticOptionLabel(
       : axis === "attack"
         ? attackTacticOptions
         : blockTacticOptions;
-  return options.find((option) => option.value === value)?.label ?? String(value);
+  return (
+    options.find((option) => option.value === value)?.label ?? String(value)
+  );
 }
 
 export const matchupRatingLabels: Record<TacticMatchupRating, string> = {
