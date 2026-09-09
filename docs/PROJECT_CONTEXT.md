@@ -164,24 +164,28 @@ A follow-up Home CTA layout polish is handled by PR #70 (`fix/phase13-home-cta-p
 
 ### Phase 14 — Player Hub 2.0
 
-PR14-1 foundation introduces the persistence and authoritative domain layer required for the Player Hub redesign:
+PR14-1 foundation is on `main`. The current save schema is v8 and the foundation provides:
 
-- schema v8 with v7 and older-save migration;
+- v7 and older-save migration into schema v8 without inventing historical growth;
 - up to 52 real weekly player-development records derived from authoritative training results;
 - explicit coach development priorities for up to three current-roster players;
 - three saved lineup slots with authoritative team-selection validation;
 - server-authoritative actions for setting priorities and saving/deleting lineup presets;
 - no hidden growth bonus merely for marking a player as a development priority.
 
-The next Phase 14 implementation slice is PR14-2 UI. It should use the persisted foundation rather than inventing client-only state, and should cover:
+PR14-2 Player Hub UI adds:
 
-- improved player list/card readability and game feel;
-- useful roster filters and sorting;
-- easy comparison of talent, growth type, condition and role;
-- real 4-week / 12-week / yearly growth history views backed by persisted data;
-- visible development-priority controls;
-- saved-lineup management in Player Hub;
-- reuse of saved normal lineups from pre-match preparation without changing the existing match-only lineup rule.
+- mobile-first player roster cards with grade / position / starter / bench / priority / injured filters;
+- deterministic sorting by power / potential / condition / real 4-week growth / grade;
+- real 4-week and 12-week growth aggregation from persisted schema-v8 development history;
+- compact growth trends that render only persisted player logs and keep no-history distinct from real zero growth;
+- explicit max-three development-priority controls persisted through the authoritative `set-development-priorities` game action;
+- Player Hub mobile coverage at 320 / 360 / 390 / 414 / 480 px with horizontal-overflow and bottom-navigation collision checks;
+- existing lineup, team-dynamics and individual-training controls preserved.
+
+PR14-2 does not add fabricated history, fatigue-management controls, PvP opponent leakage, saved-lineup management UI, or a pre-match saved-lineup picker.
+
+PR14-3 is the next Phase 14 slice and owns saved-lineup UX, including managing the authoritative saved lineup slots in Player Hub and selecting a saved normal lineup during pre-match preparation while preserving the existing match-only lineup rule.
 
 ### Phase 15 — Team Tactics
 
@@ -222,6 +226,7 @@ Seasonal PvP ranking/endgame layer without pay-to-win progression.
 
 - `docs/superpowers/specs/2026-09-09-phase14-player-hub-2-design.md`
 - `docs/superpowers/plans/2026-09-09-phase14-player-hub-foundation.md`
+- `docs/superpowers/plans/2026-09-09-phase14-player-hub-ui.md`
 
 ## Handoff rule
 
