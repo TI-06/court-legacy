@@ -96,9 +96,7 @@ export function PreMatchLineupScreen({
   );
   const matchup = useMemo(
     () =>
-      opponentTactics
-        ? summarizeTacticMatchup(tactics, opponentTactics)
-        : null,
+      opponentTactics ? summarizeTacticMatchup(tactics, opponentTactics) : null,
     [opponentTactics, tactics],
   );
 
@@ -500,9 +498,7 @@ export function PreMatchLineupScreen({
         }
         type="button"
       >
-        {pending
-          ? "試合を開始しています…"
-          : "この編成・戦術で試合開始"}
+        {pending ? "試合を開始しています…" : "この編成・戦術で試合開始"}
       </button>
     </main>
   );
