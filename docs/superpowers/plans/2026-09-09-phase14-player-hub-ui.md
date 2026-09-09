@@ -55,6 +55,7 @@
 ### Task 1: Build deterministic Player Hub roster selectors and real growth aggregation
 
 **Files:**
+
 - Create: `src/features/team/playerHubRoster.ts`
 - Create: `tests/unit/features/team/playerHubRoster.test.ts`
 
@@ -79,11 +80,7 @@ export type PlayerHubFilter =
   | "injured";
 
 export type PlayerHubSort =
-  | "power"
-  | "potential"
-  | "condition"
-  | "growth-4w"
-  | "grade";
+  "power" | "potential" | "condition" | "growth-4w" | "grade";
 
 export interface PlayerGrowthTrendPoint {
   gameDate: GameState["date"];
@@ -214,8 +211,12 @@ function summarizeWindow(
   playerId: PlayerId,
 ) {
   const observed = weeks.flatMap((week) => {
-    const log = week.players.find((candidate) => candidate.playerId === playerId);
-    return log ? [{ gameDate: week.gameDate, growth: log.totalAbilityGrowth }] : [];
+    const log = week.players.find(
+      (candidate) => candidate.playerId === playerId,
+    );
+    return log
+      ? [{ gameDate: week.gameDate, growth: log.totalAbilityGrowth }]
+      : [];
   });
 
   return {
@@ -300,7 +301,9 @@ expect(idsFor("starter")).toEqual(
 expect(idsFor("bench")).toEqual(
   expect.arrayContaining(selection.benchPlayerIds),
 );
-expect(idsFor("priority")).toEqual(state.teamPlanning.developmentPriorityPlayerIds);
+expect(idsFor("priority")).toEqual(
+  state.teamPlanning.developmentPriorityPlayerIds,
+);
 expect(idsFor("injured")).toEqual(
   school.playerIds.filter((id) => state.players[id]!.injury !== null),
 );
@@ -355,6 +358,7 @@ git commit -m "feat: add Player Hub roster selectors"
 ### Task 2: Add Player Hub filters, sorting, real growth UI and priority management
 
 **Files:**
+
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/player-hub.css`
 - Modify: `tests/unit/features/team/PlayerHubScreen.test.tsx`
@@ -372,9 +376,7 @@ git commit -m "feat: add Player Hub roster selectors"
 interface PlayerHubScreenProps {
   // existing props remain
   planningPending?: boolean;
-  onSetDevelopmentPriorities?: (
-    playerIds: PlayerId[],
-  ) => void | Promise<void>;
+  onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
 }
 ```
 
@@ -458,9 +460,9 @@ fireEvent.change(screen.getByLabelText("選手絞り込み"), {
   target: { value: "grade-1" },
 });
 expect(
-  screen.getAllByTestId("roster-player-row").every((row) =>
-    within(row).getByText(/1年・/),
-  ),
+  screen
+    .getAllByTestId("roster-player-row")
+    .every((row) => within(row).getByText(/1年・/)),
 ).toBe(true);
 ```
 
@@ -518,9 +520,7 @@ expect(onSetDevelopmentPriorities).toHaveBeenCalledWith([player.id]);
 Test max 3 by pre-populating exactly three IDs and asserting:
 
 ```ts
-expect(
-  screen.getByRole("button", { name: /を重点育成に設定/ }),
-).toBeDisabled();
+expect(screen.getByRole("button", { name: /を重点育成に設定/ })).toBeDisabled();
 expect(
   screen.getAllByRole("button", { name: /重点育成を解除/ })[0],
 ).toBeEnabled();
@@ -547,8 +547,7 @@ const togglePriority = (playerId: PlayerId) => {
 The button accessible name must be exactly one of:
 
 ```ts
-`${playerName(player)}の重点育成を解除`
-`${playerName(player)}を重点育成に設定`
+`${playerName(player)}の重点育成を解除``${playerName(player)}を重点育成に設定`;
 ```
 
 - [ ] **Step 6: Write failing detail-growth tests**
@@ -563,9 +562,9 @@ Example known history assertion:
 ```ts
 expect(within(growthRegion).getByText("4週 +3")).toBeVisible();
 expect(within(growthRegion).getByText("12週 +7")).toBeVisible();
-expect(
-  growthRegion.querySelectorAll(".player-growth-trend__bar"),
-).toHaveLength(4);
+expect(growthRegion.querySelectorAll(".player-growth-trend__bar")).toHaveLength(
+  4,
+);
 ```
 
 - [ ] **Step 7: Implement detail growth summary and accessible trend**
@@ -575,8 +574,14 @@ Use `summarizePlayerGrowth(state, selectedPlayer.id)` and render each real point
 ```tsx
 <div className="player-growth-trend" aria-label="直近の成長推移">
   {growth.trend12.map((point) => {
-    const max = Math.max(1, ...growth.trend12.map((item) => item.totalAbilityGrowth));
-    const percent = Math.max(8, Math.round((point.totalAbilityGrowth / max) * 100));
+    const max = Math.max(
+      1,
+      ...growth.trend12.map((item) => item.totalAbilityGrowth),
+    );
+    const percent = Math.max(
+      8,
+      Math.round((point.totalAbilityGrowth / max) * 100),
+    );
     return (
       <span
         aria-label={`${point.gameDate} 成長 +${point.totalAbilityGrowth}`}
@@ -651,6 +656,7 @@ git commit -m "feat: upgrade Player Hub roster UI"
 ### Task 3: Wire development priorities through the authoritative GameApp action path
 
 **Files:**
+
 - Modify: `src/app/GameApp.tsx`
 - Create: `tests/unit/app/GameApp.playerHubPlanning.test.tsx`
 
@@ -752,6 +758,7 @@ git commit -m "feat: persist Player Hub development priorities"
 ### Task 4: Add mobile E2E coverage, run full verification and prepare PR14-2 handoff
 
 **Files:**
+
 - Create: `tests/e2e/phase14-player-hub.spec.ts`
 - Modify after all checks are green: `docs/PROJECT_CONTEXT.md`
 

@@ -72,14 +72,20 @@ describe("Player Hub roster selectors", () => {
   it("uses only the newest 4 and 12 persisted weeks and preserves real-log order", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
-    state.history.playerDevelopmentWeeks = Array.from({ length: 13 }, (_, index) =>
-      developmentWeek(`2026-06-${String(index + 1).padStart(2, "0")}`, index + 1, [
-        {
-          playerId,
-          totalAbilityGrowth: index + 1,
-          abilityChanges: { spike: index + 1 },
-        },
-      ]),
+    state.history.playerDevelopmentWeeks = Array.from(
+      { length: 13 },
+      (_, index) =>
+        developmentWeek(
+          `2026-06-${String(index + 1).padStart(2, "0")}`,
+          index + 1,
+          [
+            {
+              playerId,
+              totalAbilityGrowth: index + 1,
+              abilityChanges: { spike: index + 1 },
+            },
+          ],
+        ),
     );
 
     const summary = summarizePlayerGrowth(state, playerId);
@@ -218,9 +224,17 @@ describe("Player Hub roster selectors", () => {
 
     expect(ids.indexOf(positiveId)).toBeLessThan(ids.indexOf(zeroId));
     expect(ids.indexOf(zeroId)).toBeLessThan(ids.indexOf(noHistoryId));
-    expect(result.find((item) => item.player.id === positiveId)?.growth.fourWeekGrowth).toBe(5);
-    expect(result.find((item) => item.player.id === zeroId)?.growth.fourWeekGrowth).toBe(0);
-    expect(result.find((item) => item.player.id === noHistoryId)?.growth.fourWeekGrowth).toBeNull();
+    expect(
+      result.find((item) => item.player.id === positiveId)?.growth
+        .fourWeekGrowth,
+    ).toBe(5);
+    expect(
+      result.find((item) => item.player.id === zeroId)?.growth.fourWeekGrowth,
+    ).toBe(0);
+    expect(
+      result.find((item) => item.player.id === noHistoryId)?.growth
+        .fourWeekGrowth,
+    ).toBeNull();
   });
 
   it("sorts power, potential, condition and grade deterministically", () => {
@@ -245,7 +259,8 @@ describe("Player Hub roster selectors", () => {
       .map((id) => state.players[id]!)
       .sort((left, right) => {
         const delta =
-          calculatePlayerDisplayPower(right) - calculatePlayerDisplayPower(left);
+          calculatePlayerDisplayPower(right) -
+          calculatePlayerDisplayPower(left);
         return delta || left.id.localeCompare(right.id);
       })[0]!.id;
     expect(powerResult[0]!.player.id).toBe(expectedPowerFirst);
@@ -256,10 +271,14 @@ describe("Player Hub roster selectors", () => {
       filter: "all",
       sort: "potential",
     });
-    expect(potentialResult.findIndex((item) => item.player.id === ids[1])).toBeLessThan(
+    expect(
+      potentialResult.findIndex((item) => item.player.id === ids[1]),
+    ).toBeLessThan(
       potentialResult.findIndex((item) => item.player.id === ids[0]),
     );
-    expect(potentialResult.findIndex((item) => item.player.id === ids[2])).toBeGreaterThan(
+    expect(
+      potentialResult.findIndex((item) => item.player.id === ids[2]),
+    ).toBeGreaterThan(
       potentialResult.findIndex((item) => item.player.id === ids[0]),
     );
 
@@ -269,10 +288,14 @@ describe("Player Hub roster selectors", () => {
       filter: "all",
       sort: "condition",
     });
-    expect(conditionResult.findIndex((item) => item.player.id === ids[1])).toBeLessThan(
+    expect(
+      conditionResult.findIndex((item) => item.player.id === ids[1]),
+    ).toBeLessThan(
       conditionResult.findIndex((item) => item.player.id === ids[2]),
     );
-    expect(conditionResult.findIndex((item) => item.player.id === ids[2])).toBeLessThan(
+    expect(
+      conditionResult.findIndex((item) => item.player.id === ids[2]),
+    ).toBeLessThan(
       conditionResult.findIndex((item) => item.player.id === ids[0]),
     );
 
@@ -292,6 +315,8 @@ describe("Player Hub roster selectors", () => {
   it("keeps all-filter roster membership stable", () => {
     const allIds = rosterIds("all").sort();
     const state = createDemoGame();
-    expect(allIds).toEqual([...state.schools[state.userSchoolId]!.playerIds].sort());
+    expect(allIds).toEqual(
+      [...state.schools[state.userSchoolId]!.playerIds].sort(),
+    );
   });
 });
