@@ -62,9 +62,9 @@ describe("teamPlanning", () => {
     expect(saved.teamPlanning.savedLineups[0]!.selection).not.toBe(selection);
 
     selection.rotation[0]!.playerId = selection.rotation[1]!.playerId;
-    expect(saved.teamPlanning.savedLineups[0]!.selection.rotation[0]!.playerId).not.toBe(
-      selection.rotation[0]!.playerId,
-    );
+    expect(
+      saved.teamPlanning.savedLineups[0]!.selection.rotation[0]!.playerId,
+    ).not.toBe(selection.rotation[0]!.playerId);
 
     const replacementSelection = autoSelectTeam({
       state,
