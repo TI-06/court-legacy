@@ -28,6 +28,8 @@ import {
   repositionTeamSelection,
   type TeamPlacement,
 } from "../../domain/team/repositionTeamSelection";
+import { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";
+import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { PlayerTile } from "../../ui/PlayerTile";
@@ -42,6 +44,13 @@ interface TeamScreenProps {
   selection: TeamSelection;
   onChange: (selection: TeamSelection) => void;
   pending?: boolean;
+  planningPending?: boolean;
+  onSaveLineupPreset?: (
+    slot: SavedLineupSlot,
+    name: string,
+    selection: TeamSelection,
+  ) => void | Promise<void>;
+  onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
 }
 
 type PickerTarget =
@@ -111,9 +120,15 @@ export function TeamScreen({
   selection,
   onChange,
   pending = false,
+  planningPending = false,
+  onSaveLineupPreset,
+  onDeleteLineupPreset,
 }: TeamScreenProps) {
   const [replacements, setReplacements] = useState<StarterReplacement[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [savedLineupNames, setSavedLineupNames] = useState<
+    Partial<Record<SavedLineupSlot, string>>
+  >({});
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
   const [activePlacement, setActivePlacement] = useState<TeamPlacement | null>(
     null,
@@ -145,6 +160,11 @@ export function TeamScreen({
     schoolId: state.userSchoolId,
     selection,
   });
+  const savedLineupSlots = useMemo(
+    () => selectSavedLineupSlots(state),
+    [state],
+  );
+  const currentLineupValid = issues.length === 0;
   const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
   const captain = state.teamDynamics.captainPlayerId
     ? playerById[state.teamDynamics.captainPlayerId]
@@ -153,6 +173,40 @@ export function TeamScreen({
   const activeDragPlayer = activeDragPlayerId
     ? playerById[activeDragPlayerId]
     : null;
+
+  const savedLineupName = (
+    slot: SavedLineupSlot,
+    presetName: string | null,
+  ): string => savedLineupNames[slot] ?? presetName ?? "";
+
+  const clearSavedLineupNameOverride = (slot: SavedLineupSlot) => {
+    setSavedLineupNames((current) => {
+      const next = { ...current };
+      delete next[slot];
+      return next;
+    });
+  };
+
+  const saveCurrentLineupToSlot = (
+    slot: SavedLineupSlot,
+    presetName: string | null,
+  ) => {
+    const name = savedLineupName(slot, presetName).trim();
+    if (
+      planningPending ||
+      !currentLineupValid ||
+      !name ||
+      !onSaveLineupPreset
+    ) {
+      return;
+    }
+    const result = onSaveLineupPreset(slot, name, structuredClone(selection));
+    if (result instanceof Promise) {
+      void result.then(() => clearSavedLineupNameOverride(slot));
+    } else {
+      clearSavedLineupNameOverride(slot);
+    }
+  };
 
   const emitSelection = (next: TeamSelection) => {
     setReplacements([]);
@@ -513,6 +567,131 @@ export function TeamScreen({
                     <small>総合 {playerOverall(player)}</small>
                   </article>
                 </LineupDragSurface>
+              );
+            })}
+          </div>
+        </section>
+
+        <section
+          className="team-panel saved-lineup-panel"
+          aria-labelledby="saved-lineup-heading"
+        >
+          <div className="team-section-heading team-section-heading--compact">
+            <div>
+              <p className="section-kicker">3つまで登録</p>
+              <h3 id="saved-lineup-heading">保存編成</h3>
+            </div>
+          </div>
+          <div className="saved-lineup-grid">
+            {savedLineupSlots.map((slotView) => {
+              const name = savedLineupName(
+                slotView.slot,
+                slotView.preset?.name ?? null,
+              );
+              const saveDisabled =
+                planningPending ||
+                !currentLineupValid ||
+                !name.trim() ||
+                !onSaveLineupPreset;
+              return (
+                <article
+                  className={`saved-lineup-card saved-lineup-card--${slotView.status}`}
+                  data-testid={`saved-lineup-slot-${slotView.slot}`}
+                  key={slotView.slot}
+                >
+                  <div className="saved-lineup-card__heading">
+                    <strong>スロット{slotView.slot}</strong>
+                    <span>
+                      {slotView.status === "empty"
+                        ? "未保存"
+                        : slotView.status === "valid"
+                          ? "使用可能"
+                          : "再設定が必要"}
+                    </span>
+                  </div>
+                  <input
+                    aria-label={`保存編成名 スロット${slotView.slot}`}
+                    disabled={planningPending}
+                    maxLength={24}
+                    onChange={(event) =>
+                      setSavedLineupNames((current) => ({
+                        ...current,
+                        [slotView.slot]: event.currentTarget.value,
+                      }))
+                    }
+                    placeholder={`スロット${slotView.slot}の名前`}
+                    type="text"
+                    value={name}
+                  />
+                  {slotView.status === "invalid" && slotView.issueMessage ? (
+                    <p className="saved-lineup-card__issue">
+                      {slotView.issueMessage}
+                    </p>
+                  ) : null}
+                  <div className="saved-lineup-card__actions">
+                    {slotView.status === "empty" ? (
+                      <button
+                        disabled={saveDisabled}
+                        onClick={() =>
+                          saveCurrentLineupToSlot(slotView.slot, null)
+                        }
+                        type="button"
+                      >
+                        現在の編成を保存
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          disabled={
+                            planningPending || slotView.status !== "valid"
+                          }
+                          onClick={() => {
+                            if (
+                              slotView.status === "valid" &&
+                              slotView.preset
+                            ) {
+                              onChange(
+                                structuredClone(slotView.preset.selection),
+                              );
+                            }
+                          }}
+                          type="button"
+                        >
+                          適用
+                        </button>
+                        <button
+                          disabled={saveDisabled}
+                          onClick={() =>
+                            saveCurrentLineupToSlot(
+                              slotView.slot,
+                              slotView.preset?.name ?? null,
+                            )
+                          }
+                          type="button"
+                        >
+                          上書き保存
+                        </button>
+                        <button
+                          disabled={planningPending || !onDeleteLineupPreset}
+                          onClick={() => {
+                            if (!onDeleteLineupPreset) return;
+                            const result = onDeleteLineupPreset(slotView.slot);
+                            if (result instanceof Promise) {
+                              void result.then(() =>
+                                clearSavedLineupNameOverride(slotView.slot),
+                              );
+                            } else {
+                              clearSavedLineupNameOverride(slotView.slot);
+                            }
+                          }}
+                          type="button"
+                        >
+                          削除
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </article>
               );
             })}
           </div>
