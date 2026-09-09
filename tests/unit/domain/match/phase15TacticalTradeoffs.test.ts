@@ -6,7 +6,10 @@ import { createAbilities } from "../../../../src/domain/model/Player";
 import type { TeamTactics } from "../../../../src/domain/model/School";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
-import { applyMatchTacticPlan, type MatchTacticPlan } from "../../../../src/domain/team/matchTactics";
+import {
+  applyMatchTacticPlan,
+  type MatchTacticPlan,
+} from "../../../../src/domain/team/matchTactics";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 
 if (!gameDataBootstrap.ok) throw new Error(gameDataBootstrap.message);
@@ -23,7 +26,9 @@ const userSchool = {
 function equalContext(seed: string) {
   const state = generateWorld({ seed: `world-${seed}`, userSchool, data });
   const homeSchoolId = state.userSchoolId;
-  const awaySchoolId = Object.values(state.schools).find((school) => school.id !== homeSchoolId)!.id;
+  const awaySchoolId = Object.values(state.schools).find(
+    (school) => school.id !== homeSchoolId,
+  )!.id;
   const home = state.schools[homeSchoolId]!;
   const away = state.schools[awaySchoolId]!;
 
@@ -51,7 +56,12 @@ function equalContext(seed: string) {
   };
 }
 
-function run(seed: string, homePlan: MatchTacticPlan, awayPlan: MatchTacticPlan, awayDefenseBias?: TeamTactics["defenseBias"]) {
+function run(
+  seed: string,
+  homePlan: MatchTacticPlan,
+  awayPlan: MatchTacticPlan,
+  awayDefenseBias?: TeamTactics["defenseBias"],
+) {
   const context = equalContext(seed);
   const home = context.state.schools[context.homeSchoolId]!;
   const away = context.state.schools[context.awaySchoolId]!;
@@ -76,20 +86,31 @@ function run(seed: string, homePlan: MatchTacticPlan, awayPlan: MatchTacticPlan,
 
 function homeAttackPoints(result: ReturnType<typeof run>): number {
   return result.match.eventLog.filter(
-    (event) => event.detailCode === "point.attack" && event.winnerSchoolId === result.homeSchoolId,
+    (event) =>
+      event.detailCode === "point.attack" &&
+      event.winnerSchoolId === result.homeSchoolId,
   ).length;
 }
 
 function homeServeStats(result: ReturnType<typeof run>) {
   const homeIds = new Set(result.state.schools[result.homeSchoolId]!.playerIds);
-  const serves = result.match.eventLog.filter((event) => event.type === "serve" && event.actorPlayerId && homeIds.has(event.actorPlayerId));
+  const serves = result.match.eventLog.filter(
+    (event) =>
+      event.type === "serve" &&
+      event.actorPlayerId &&
+      homeIds.has(event.actorPlayerId),
+  );
   return {
     errors: serves.filter((event) => event.detailCode === "serve.error").length,
     aces: serves.filter((event) => event.detailCode === "serve.ace").length,
   };
 }
 
-const balanced: MatchTacticPlan = { serve: "balanced", attack: "balanced", block: "mixed" };
+const balanced: MatchTacticPlan = {
+  serve: "balanced",
+  attack: "balanced",
+  block: "mixed",
+};
 
 describe("Phase 15 tactical trade-offs", () => {
   it("makes quick attack perform better against read than commit block at equal strength", () => {
@@ -97,8 +118,20 @@ describe("Phase 15 tactical trade-offs", () => {
     let versusCommit = 0;
     for (let index = 0; index < 24; index += 1) {
       const seed = `quick-block-${index}`;
-      versusRead += homeAttackPoints(run(seed, { ...balanced, attack: "quick" }, { ...balanced, block: "read" }));
-      versusCommit += homeAttackPoints(run(seed, { ...balanced, attack: "quick" }, { ...balanced, block: "commit" }));
+      versusRead += homeAttackPoints(
+        run(
+          seed,
+          { ...balanced, attack: "quick" },
+          { ...balanced, block: "read" },
+        ),
+      );
+      versusCommit += homeAttackPoints(
+        run(
+          seed,
+          { ...balanced, attack: "quick" },
+          { ...balanced, block: "commit" },
+        ),
+      );
     }
     expect(versusRead).toBeGreaterThan(versusCommit);
   });
@@ -107,11 +140,19 @@ describe("Phase 15 tactical trade-offs", () => {
     const totals = { commit: 0, mixed: 0, read: 0 };
     for (let index = 0; index < 20; index += 1) {
       const seed = `balanced-block-${index}`;
-      totals.commit += homeAttackPoints(run(seed, balanced, { ...balanced, block: "commit" }));
-      totals.mixed += homeAttackPoints(run(seed, balanced, { ...balanced, block: "mixed" }));
-      totals.read += homeAttackPoints(run(seed, balanced, { ...balanced, block: "read" }));
+      totals.commit += homeAttackPoints(
+        run(seed, balanced, { ...balanced, block: "commit" }),
+      );
+      totals.mixed += homeAttackPoints(
+        run(seed, balanced, { ...balanced, block: "mixed" }),
+      );
+      totals.read += homeAttackPoints(
+        run(seed, balanced, { ...balanced, block: "read" }),
+      );
     }
-    expect(Math.max(...Object.values(totals)) - Math.min(...Object.values(totals))).toBeLessThanOrEqual(2);
+    expect(
+      Math.max(...Object.values(totals)) - Math.min(...Object.values(totals)),
+    ).toBeLessThanOrEqual(2);
   });
 
   it("does not give defenseBias a hidden flat simulation bonus", () => {
@@ -129,8 +170,12 @@ describe("Phase 15 tactical trade-offs", () => {
     const aggressive = { errors: 0, aces: 0 };
     for (let index = 0; index < 24; index += 1) {
       const seed = `serve-profile-${index}`;
-      const safeStats = homeServeStats(run(seed, { ...balanced, serve: "safe" }, balanced));
-      const aggressiveStats = homeServeStats(run(seed, { ...balanced, serve: "aggressive" }, balanced));
+      const safeStats = homeServeStats(
+        run(seed, { ...balanced, serve: "safe" }, balanced),
+      );
+      const aggressiveStats = homeServeStats(
+        run(seed, { ...balanced, serve: "aggressive" }, balanced),
+      );
       safe.errors += safeStats.errors;
       safe.aces += safeStats.aces;
       aggressive.errors += aggressiveStats.errors;
