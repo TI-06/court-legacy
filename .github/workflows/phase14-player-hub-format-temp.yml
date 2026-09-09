@@ -21,8 +21,28 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
+      - name: Align roster test with default power sort
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tests/unit/features/team/PlayerHubScreen.test.tsx")
+          text = path.read_text(encoding="utf-8")
+          old = "    const player = state.players[school.playerIds[0]!]!;"
+          new = """    const player = school.playerIds
+              .map((id) => state.players[id]!)
+              .sort(
+                (left, right) =>
+                  calculatePlayerDisplayPower(right) -
+                    calculatePlayerDisplayPower(left) ||
+                  left.id.localeCompare(right.id),
+              )[0]!;"""
+          if old not in text:
+              raise SystemExit("expected roster test anchor not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
       - run: npx prettier . --write
-      - name: Commit formatting
+      - name: Commit formatter changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -30,5 +50,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "style: format Phase 14 Player Hub changes"
+          git commit -m "test: align Player Hub roster assertion with power sort"
           git push origin HEAD:feat/phase14-player-hub-ui
