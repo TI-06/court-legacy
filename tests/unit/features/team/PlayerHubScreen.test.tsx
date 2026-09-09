@@ -46,7 +46,14 @@ describe("PlayerHubScreen", () => {
   it("renders a dense portrait-free mobile roster with growth and talent labels", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
-    const player = state.players[school.playerIds[0]!]!;
+    const player = school.playerIds
+      .map((id) => state.players[id]!)
+      .sort(
+        (left, right) =>
+          calculatePlayerDisplayPower(right) -
+            calculatePlayerDisplayPower(left) ||
+          left.id.localeCompare(right.id),
+      )[0]!;
     const condition = getPlayerConditionPresentation(player.condition);
     const development = getPlayerDevelopmentPresentation(player);
     const rows = screen.getAllByTestId("roster-player-row");
