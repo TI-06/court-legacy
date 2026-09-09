@@ -123,7 +123,7 @@ describe("GameApp saved lineups", () => {
         selection: expectedSelection,
       },
     });
-    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(await screen.findByText("保存済み ✓")).toBeVisible();
     expect(within(slot).getByText("使用可能")).toBeVisible();
   });
 
@@ -149,7 +149,7 @@ describe("GameApp saved lineups", () => {
         slot: 1,
       },
     });
-    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(await screen.findByText("保存済み ✓")).toBeVisible();
     expect(within(slot).getByText("未保存")).toBeVisible();
   });
 
@@ -183,7 +183,7 @@ describe("GameApp saved lineups", () => {
         selection: savedSelection,
       },
     });
-    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(await screen.findByText("保存済み ✓")).toBeVisible();
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: "ローテーション1を変更" }),
