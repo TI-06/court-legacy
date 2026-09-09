@@ -18,6 +18,7 @@ import {
   annualSchoolBudget,
   createInitialSchoolManagement,
 } from "../school/schoolEconomy";
+import { createDefaultTeamPlanning } from "../team/teamPlanning";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { createInitialWeeklySchedule } from "../weekly/createWeeklySchedule";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
@@ -327,6 +328,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     },
     notifications: { items: [] },
     schoolManagement,
+    teamPlanning: createDefaultTeamPlanning(),
   } satisfies Omit<
     GameState,
     "officialSeason" | "teamDynamics" | "weeklySchedule"
