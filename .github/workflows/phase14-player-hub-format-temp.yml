@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
 
+# Temporary CI trigger for the Task3 RED gate. This workflow is removed before merge.
 jobs:
   format:
     if: github.actor != 'github-actions[bot]'
