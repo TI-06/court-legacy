@@ -13,6 +13,7 @@
 ## Task 1: Categorical tactics domain model and compatibility mapping
 
 **Files:**
+
 - Create: `src/domain/team/matchTactics.ts`
 - Create: `tests/unit/domain/team/matchTactics.test.ts`
 - Reference: `src/domain/model/School.ts`
@@ -24,6 +25,7 @@
 ## Task 2: Authoritative normal-tactics action
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Add/modify existing worker game-action tests.
@@ -35,6 +37,7 @@
 ## Task 3: Match simulation tactical trade-offs
 
 **Files:**
+
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: `tests/unit/domain/match/simulateMatch.test.ts`
 
@@ -47,6 +50,7 @@
 ## Task 4: Normal match-only tactics override
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify request/client typing only as needed for compilation; no major UI.
@@ -59,6 +63,7 @@
 ## Task 5: PvP challenger override and public tactic summary
 
 **Files:**
+
 - Modify: `src/domain/pvp/pvpContracts.ts`
 - Modify: `worker/data/PvPStore.ts`
 - Modify: `worker/routes/pvpPublish.ts`
@@ -77,6 +82,7 @@
 Verify focused tests after every RED/GREEN cycle, then `npm run verify`, then exact-head PR CI requiring `dependency-audit`, `quality`, and `mobile-e2e` green.
 
 Review invariants:
+
 - schema remains v8;
 - no second persisted tactic source;
 - no globally strongest block/defense option;

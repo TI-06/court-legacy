@@ -82,17 +82,17 @@ export interface MatchTacticPlan {
 
 Japanese presentation:
 
-| Axis | Value | Label | Meaning |
-| --- | --- | --- | --- |
-| Serve | `safe` | 安全重視 | ミスを抑える代わりに相手を崩しにくい |
-| Serve | `balanced` | バランス | リスクと威力を中間にする |
-| Serve | `aggressive` | 強気 | エース・崩しを狙う代わりにミスが増える |
-| Attack | `side` | サイド重視 | OH/OPへ集め、高いボールでも押す |
-| Attack | `balanced` | バランス | 攻撃先を散らし大きな相性差を作らない |
-| Attack | `quick` | 高速 | MB参加とテンポを上げてブロック完成前を狙う |
-| Block | `commit` | コミット | 中央・速攻を早く決め打ちする |
-| Block | `mixed` | ミックス | 読みと決め打ちを使い分ける |
-| Block | `read` | リード | トスを見てサイドまで組織的に追う |
+| Axis   | Value        | Label      | Meaning                                    |
+| ------ | ------------ | ---------- | ------------------------------------------ |
+| Serve  | `safe`       | 安全重視   | ミスを抑える代わりに相手を崩しにくい       |
+| Serve  | `balanced`   | バランス   | リスクと威力を中間にする                   |
+| Serve  | `aggressive` | 強気       | エース・崩しを狙う代わりにミスが増える     |
+| Attack | `side`       | サイド重視 | OH/OPへ集め、高いボールでも押す            |
+| Attack | `balanced`   | バランス   | 攻撃先を散らし大きな相性差を作らない       |
+| Attack | `quick`      | 高速       | MB参加とテンポを上げてブロック完成前を狙う |
+| Block  | `commit`     | コミット   | 中央・速攻を早く決め打ちする               |
+| Block  | `mixed`      | ミックス   | 読みと決め打ちを使い分ける                 |
+| Block  | `read`       | リード     | トスを見てサイドまで組織的に追う           |
 
 The normal tactics screen exposes only these three axes. Raw percentage sliders are not exposed.
 
@@ -120,22 +120,22 @@ Block plan maps directly from `blockSystem`.
 
 Saving a plan writes canonical values into the existing tactics structure:
 
-| Plan | Existing value |
-| --- | --- |
-| Serve `safe` | `serveRisk = 25` |
-| Serve `balanced` | `serveRisk = 50` |
-| Serve `aggressive` | `serveRisk = 75` |
-| Attack `side` | `attackTempo = slow` |
-| Attack `balanced` | `attackTempo = balanced` |
-| Attack `quick` | `attackTempo = fast` |
+| Plan               | Existing value           |
+| ------------------ | ------------------------ |
+| Serve `safe`       | `serveRisk = 25`         |
+| Serve `balanced`   | `serveRisk = 50`         |
+| Serve `aggressive` | `serveRisk = 75`         |
+| Attack `side`      | `attackTempo = slow`     |
+| Attack `balanced`  | `attackTempo = balanced` |
+| Attack `quick`     | `attackTempo = fast`     |
 
 Canonical attack distributions:
 
-| Attack plan | OH | MB | OP | S | L |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `side` | 45 | 15 | 36 | 4 | 0 |
-| `balanced` | 40 | 22 | 34 | 4 | 0 |
-| `quick` | 34 | 32 | 30 | 4 | 0 |
+| Attack plan |  OH |  MB |  OP |   S |   L |
+| ----------- | --: | --: | --: | --: | --: |
+| `side`      |  45 |  15 |  36 |   4 |   0 |
+| `balanced`  |  40 |  22 |  34 |   4 |   0 |
+| `quick`     |  34 |  32 |  30 |   4 |   0 |
 
 Each row sums to 100.
 
@@ -247,10 +247,10 @@ The primary explicit matchup is attack plan versus opponent block plan.
 Attack-side matchup points:
 
 | Attack \ Block | Commit | Mixed | Read |
-| --- | ---: | ---: | ---: |
-| Side | +3 | 0 | -3 |
-| Balanced | 0 | 0 | 0 |
-| Quick | -3 | 0 | +3 |
+| -------------- | -----: | ----: | ---: |
+| Side           |     +3 |     0 |   -3 |
+| Balanced       |      0 |     0 |    0 |
+| Quick          |     -3 |     0 |   +3 |
 
 Interpretation:
 
@@ -286,11 +286,11 @@ The server's serve and mental abilities continue to define the base serve qualit
 
 Initial profile targets:
 
-| Serve plan | Serve-error chance | Ace chance | Opponent receive quality |
-| --- | ---: | ---: | ---: |
-| Safe | -1.6 percentage points | -1.2 pp | +2 quality |
-| Balanced | neutral | neutral | neutral |
-| Aggressive | +2.2 pp | +1.8 pp | -4 quality |
+| Serve plan |     Serve-error chance | Ace chance | Opponent receive quality |
+| ---------- | ---------------------: | ---------: | -----------------------: |
+| Safe       | -1.6 percentage points |    -1.2 pp |               +2 quality |
+| Balanced   |                neutral |    neutral |                  neutral |
+| Aggressive |                +2.2 pp |    +1.8 pp |               -4 quality |
 
 Final probability values remain clamped by simulator safety bounds.
 

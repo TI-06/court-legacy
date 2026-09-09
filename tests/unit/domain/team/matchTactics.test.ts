@@ -90,9 +90,9 @@ describe("applyMatchTacticPlan", () => {
 
       expect(next.attackTempo).toBe(attackTempo);
       expect(next.attackDistribution).toEqual(attackDistribution);
-      expect(Object.values(next.attackDistribution).reduce((a, b) => a + b, 0)).toBe(
-        100,
-      );
+      expect(
+        Object.values(next.attackDistribution).reduce((a, b) => a + b, 0),
+      ).toBe(100);
       expect(next.blockSystem).toBe("read");
     },
   );
@@ -109,9 +109,12 @@ describe("attack/block matchup", () => {
     ["quick", "commit", -3],
     ["quick", "mixed", 0],
     ["quick", "read", 3],
-  ] as const)("scores %s attack vs %s block as %s", (attack, block, expected) => {
-    expect(getAttackBlockMatchupPoints(attack, block)).toBe(expected);
-  });
+  ] as const)(
+    "scores %s attack vs %s block as %s",
+    (attack, block, expected) => {
+      expect(getAttackBlockMatchupPoints(attack, block)).toBe(expected);
+    },
+  );
 
   it("summarizes both teams using only categorical tactics", () => {
     expect(
