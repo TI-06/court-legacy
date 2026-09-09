@@ -4,9 +4,7 @@ import {
   createBrowserAppDependencies,
   E2E_SERVER_SNAPSHOT_KEY,
 } from "../../../src/app/createBrowserAppDependencies";
-import {
-  CURRENT_GAME_SCHEMA_VERSION,
-} from "../../../src/domain/model/GameState";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import { ApiError } from "../../../src/services/api/GameApiClient";
 
 describe("createBrowserAppDependencies E2E harness", () => {
