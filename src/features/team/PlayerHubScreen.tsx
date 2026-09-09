@@ -20,7 +20,14 @@ import { BottomSheet } from "../../ui/BottomSheet";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
+import {
+  selectPlayerHubRoster,
+  summarizePlayerGrowth,
+  type PlayerHubFilter,
+  type PlayerHubSort,
+} from "./playerHubRoster";
 import "./player-hub.css";
+
 interface PlayerHubScreenProps {
   state: GameState;
   selection: TeamSelection;
@@ -32,12 +39,18 @@ interface PlayerHubScreenProps {
   initialPlayerId?: PlayerId | null;
   leadershipPending?: boolean;
   trainingPending?: boolean;
+  planningPending?: boolean;
   onChangeTraining?: (
     playerId: PlayerId,
     instructionId: string,
   ) => void | Promise<void>;
+  onSetDevelopmentPriorities?: (
+    playerIds: PlayerId[],
+  ) => void | Promise<void>;
 }
+
 type HubMode = "roster" | "lineup" | "dynamics";
+
 const abilityLabels = {
   attack: "攻撃",
   defense: "守備",
@@ -45,6 +58,7 @@ const abilityLabels = {
   stamina: "スタミナ",
   mental: "メンタル",
 } as const;
+
 const roleLabels: Record<PlayerRole, string> = {
   ace: "エース",
   starter: "先発",
@@ -52,21 +66,54 @@ const roleLabels: Record<PlayerRole, string> = {
   development: "育成枠",
   reserve: "控え",
 };
+
 const concernLabels: Record<PlayerConcernCode, string> = {
   "playing-time": "出場機会",
   "role-mismatch": "役割への不満",
   "injury-overuse": "怪我・起用負荷",
   "team-slump": "チーム不調",
 };
-const playerName = (p: Player) => `${p.lastName} ${p.firstName}`;
-const playerOverall = (p: Player) =>
-  Math.round(calculatePlayerDisplayPower(p) / 100);
+
+const filterOptions: ReadonlyArray<{
+  value: PlayerHubFilter;
+  label: string;
+}> = [
+  { value: "all", label: "全員" },
+  { value: "grade-1", label: "1年" },
+  { value: "grade-2", label: "2年" },
+  { value: "grade-3", label: "3年" },
+  { value: "position-OH", label: "OH" },
+  { value: "position-MB", label: "MB" },
+  { value: "position-OP", label: "OP" },
+  { value: "position-S", label: "S" },
+  { value: "position-L", label: "L" },
+  { value: "starter", label: "スタメン" },
+  { value: "bench", label: "控え" },
+  { value: "priority", label: "重点育成" },
+  { value: "injured", label: "怪我中" },
+];
+
+const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
+  { value: "power", label: "総合力順" },
+  { value: "potential", label: "将来性順" },
+  { value: "condition", label: "調子順" },
+  { value: "growth-4w", label: "直近4週の成長順" },
+  { value: "grade", label: "学年順" },
+];
+
+const playerName = (player: Player) =>
+  `${player.lastName} ${player.firstName}`;
+const playerOverall = (player: Player) =>
+  Math.round(calculatePlayerDisplayPower(player) / 100);
+const growthLabel = (weeks: 4 | 12, value: number | null) =>
+  `${weeks}週 ${value === null ? "--" : `+${value}`}`;
+
 function HubTabs({
   mode,
   onChange,
 }: {
   mode: HubMode;
-  onChange: (m: HubMode) => void;
+  onChange: (mode: HubMode) => void;
 }) {
   return (
     <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
@@ -89,6 +136,7 @@ function HubTabs({
     </nav>
   );
 }
+
 export function PlayerHubScreen({
   state,
   selection,
@@ -97,7 +145,9 @@ export function PlayerHubScreen({
   initialPlayerId = null,
   leadershipPending = false,
   trainingPending = false,
+  planningPending = false,
   onChangeTraining,
+  onSetDevelopmentPriorities,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
@@ -106,13 +156,20 @@ export function PlayerHubScreen({
   const [trainingPlayerId, setTrainingPlayerId] = useState<PlayerId | null>(
     null,
   );
+  const [filter, setFilter] = useState<PlayerHubFilter>("all");
+  const [sort, setSort] = useState<PlayerHubSort>("power");
+
   const school = state.schools[state.userSchoolId]!;
   const players = useMemo(
     () =>
       school.playerIds
         .map((id) => state.players[id])
-        .filter((p): p is Player => Boolean(p)),
+        .filter((player): player is Player => Boolean(player)),
     [school.playerIds, state.players],
+  );
+  const rosterItems = useMemo(
+    () => selectPlayerHubRoster({ state, selection, filter, sort }),
+    [state, selection, filter, sort],
   );
   const selectedPlayer = selectedPlayerId
     ? (state.players[selectedPlayerId] ?? null)
@@ -121,25 +178,41 @@ export function PlayerHubScreen({
     ? (state.players[trainingPlayerId] ?? null)
     : null;
   const trainingDone = isWeeklyActionCompleted(state, "training");
+  const priorityIds = state.teamPlanning.developmentPriorityPlayerIds;
+
   const assignmentName = (id: PlayerId) => {
     const assignment =
       state.weeklySchedule.trainingPlan.individualAssignments.find(
-        (a) => a.playerId === id,
+        (candidate) => candidate.playerId === id,
       );
     return (
       individualTrainingInstructions.find(
-        (i) => i.id === (assignment?.instructionId ?? "instruction.overall"),
+        (instruction) =>
+          instruction.id ===
+          (assignment?.instructionId ?? "instruction.overall"),
       )?.name ?? "全体"
     );
   };
-  if (mode === "lineup")
+
+  const togglePriority = (playerId: PlayerId) => {
+    const selected = priorityIds.includes(playerId);
+    const nextIds = selected
+      ? priorityIds.filter((id) => id !== playerId)
+      : [...priorityIds, playerId];
+    if (!selected && nextIds.length > 3) return;
+    void onSetDevelopmentPriorities?.(nextIds);
+  };
+
+  if (mode === "lineup") {
     return (
       <div className="player-hub">
         <HubTabs mode={mode} onChange={setMode} />
         <TeamScreen onChange={onChange} selection={selection} state={state} />
       </div>
     );
-  if (mode === "dynamics")
+  }
+
+  if (mode === "dynamics") {
     return (
       <main className="app-content player-hub">
         <HubTabs mode={mode} onChange={setMode} />
@@ -150,12 +223,22 @@ export function PlayerHubScreen({
         />
       </main>
     );
+  }
+
   if (selectedPlayer) {
-    const abilities = summarizePlayerAbilities(selectedPlayer),
-      role = state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve",
-      concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [],
-      condition = getPlayerConditionPresentation(selectedPlayer.condition),
-      development = getPlayerDevelopmentPresentation(selectedPlayer);
+    const abilities = summarizePlayerAbilities(selectedPlayer);
+    const role =
+      state.teamDynamics.playerRoles[selectedPlayer.id] ?? "reserve";
+    const concerns =
+      state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
+    const condition = getPlayerConditionPresentation(selectedPlayer.condition);
+    const development = getPlayerDevelopmentPresentation(selectedPlayer);
+    const growth = summarizePlayerGrowth(state, selectedPlayer.id);
+    const maxTrendGrowth = Math.max(
+      1,
+      ...growth.trend12.map((point) => point.totalAbilityGrowth),
+    );
+
     return (
       <main className="app-content player-hub player-detail">
         <button
@@ -166,6 +249,7 @@ export function PlayerHubScreen({
         >
           ‹ 選手一覧
         </button>
+
         <section className="player-detail__summary">
           <div className="player-detail__identity">
             <h2>{playerName(selectedPlayer)}</h2>
@@ -179,6 +263,7 @@ export function PlayerHubScreen({
             <strong>{playerOverall(selectedPlayer)}</strong>
           </div>
         </section>
+
         <section
           className="player-detail__development"
           aria-label="成長タイプと才能"
@@ -198,6 +283,47 @@ export function PlayerHubScreen({
             </small>
           </article>
         </section>
+
+        <section
+          className="player-detail__growth-summary"
+          aria-label="最近の成長"
+        >
+          <div className="player-detail__growth-heading">
+            <h3>最近の成長</h3>
+            <span>{growth.observedWeeks12}週記録</span>
+          </div>
+          <div className="player-detail__growth-metrics">
+            <strong>{growthLabel(4, growth.fourWeekGrowth)}</strong>
+            <strong>{growthLabel(12, growth.twelveWeekGrowth)}</strong>
+          </div>
+          {growth.trend12.length === 0 ? (
+            <p className="player-detail__growth-empty">
+              成長履歴はまだありません
+            </p>
+          ) : (
+            <div className="player-growth-trend" aria-label="直近の成長推移">
+              {growth.trend12.map((point, index) => {
+                const percent = Math.max(
+                  8,
+                  Math.round(
+                    (point.totalAbilityGrowth / maxTrendGrowth) * 100,
+                  ),
+                );
+                return (
+                  <span
+                    aria-label={`${point.gameDate} 成長 +${point.totalAbilityGrowth}`}
+                    className="player-growth-trend__bar"
+                    data-growth={point.totalAbilityGrowth}
+                    data-testid="player-growth-trend-bar"
+                    key={`${point.gameDate}:${index}`}
+                    style={{ height: `${percent}%` }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         <section className="player-detail__stats" aria-label="選手能力">
           {Object.entries(abilities).map(([key, value]) => (
             <StatBar
@@ -209,6 +335,7 @@ export function PlayerHubScreen({
             />
           ))}
         </section>
+
         <section className="player-detail__metrics" aria-label="選手状態">
           <article
             className={`player-condition player-condition--${condition.colorToken}`}
@@ -231,6 +358,7 @@ export function PlayerHubScreen({
             <strong>{selectedPlayer.trust}</strong>
           </article>
         </section>
+
         {concerns.length ? (
           <section
             className="player-detail__concerns"
@@ -238,9 +366,9 @@ export function PlayerHubScreen({
           >
             <h3>気になる状態</h3>
             <ul>
-              {concerns.map((c, i) => (
-                <li key={`${c.code}:${i}`}>
-                  {concernLabels[c.code]}・重要度 {c.severity}/3
+              {concerns.map((concern, index) => (
+                <li key={`${concern.code}:${index}`}>
+                  {concernLabels[concern.code]}・重要度 {concern.severity}/3
                 </li>
               ))}
             </ul>
@@ -249,21 +377,66 @@ export function PlayerHubScreen({
       </main>
     );
   }
+
   return (
     <main className="app-content player-hub">
       <HubTabs mode={mode} onChange={setMode} />
+
       <section className="player-hub__heading">
         <div>
           <p className="section-kicker">登録選手</p>
           <h2>選手一覧</h2>
         </div>
-        <span>{players.length}人</span>
+        <span>表示 {rosterItems.length} / 全 {players.length}人</span>
       </section>
+
+      <section className="player-hub__controls" aria-label="選手一覧の表示設定">
+        <label>
+          <span>絞り込み</span>
+          <select
+            aria-label="選手絞り込み"
+            onChange={(event) =>
+              setFilter(event.currentTarget.value as PlayerHubFilter)
+            }
+            value={filter}
+          >
+            {filterOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>並び替え</span>
+          <select
+            aria-label="並び替え"
+            onChange={(event) =>
+              setSort(event.currentTarget.value as PlayerHubSort)
+            }
+            value={sort}
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </section>
+
       <div className="player-roster">
-        {players.map((player, index) => {
-          const condition = getPlayerConditionPresentation(player.condition),
-            development = getPlayerDevelopmentPresentation(player),
-            training = assignmentName(player.id);
+        {rosterItems.length === 0 ? (
+          <p className="player-roster__empty">条件に該当する選手はいません</p>
+        ) : null}
+        {rosterItems.map((item, index) => {
+          const player = item.player;
+          const condition = getPlayerConditionPresentation(player.condition);
+          const development = getPlayerDevelopmentPresentation(player);
+          const training = assignmentName(player.id);
+          const isPriority = item.isPriority;
+          const priorityCapReached = priorityIds.length >= 3;
+
           return (
             <article
               className="player-roster__row"
@@ -299,19 +472,41 @@ export function PlayerHubScreen({
                   <strong>{playerOverall(player)}</strong>
                 </span>
               </button>
-              <button
-                aria-label={`${playerName(player)} 練習 ${training}`}
-                className="player-training-chip"
-                disabled={trainingPending || trainingDone}
-                onClick={() => setTrainingPlayerId(player.id)}
-                type="button"
-              >
-                {training}
-              </button>
+
+              <div className="player-roster__actions">
+                <span className="player-roster__recent-growth">
+                  {growthLabel(4, item.growth.fourWeekGrowth)}
+                </span>
+                <button
+                  aria-label={
+                    isPriority
+                      ? `重点育成から外す ${playerName(player)}`
+                      : `重点育成に追加 ${playerName(player)}`
+                  }
+                  className={`player-priority-chip${isPriority ? " player-priority-chip--active" : ""}`}
+                  disabled={
+                    planningPending || (!isPriority && priorityCapReached)
+                  }
+                  onClick={() => togglePriority(player.id)}
+                  type="button"
+                >
+                  {isPriority ? "重点解除" : "重点"}
+                </button>
+                <button
+                  aria-label={`${playerName(player)} 練習 ${training}`}
+                  className="player-training-chip"
+                  disabled={trainingPending || trainingDone}
+                  onClick={() => setTrainingPlayerId(player.id)}
+                  type="button"
+                >
+                  {training}
+                </button>
+              </div>
             </article>
           );
         })}
       </div>
+
       <BottomSheet
         open={Boolean(trainingPlayer)}
         onClose={() => setTrainingPlayerId(null)}
@@ -328,8 +523,9 @@ export function PlayerHubScreen({
               key={item.id}
               disabled={trainingPending || trainingDone}
               onClick={() => {
-                if (trainingPlayer)
+                if (trainingPlayer) {
                   void onChangeTraining?.(trainingPlayer.id, item.id);
+                }
                 setTrainingPlayerId(null);
               }}
               type="button"
