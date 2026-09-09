@@ -33,7 +33,6 @@ jobs:
           tests/unit/worker/teamTacticsAction.test.ts
           worker/game/actionSchema.ts
           worker/game/applyGameAction.ts
-          .github/scripts/phase15_patch.py
           .github/workflows/phase15-format-temp.yml
       - name: Commit Phase15 helper changes
         run: |
