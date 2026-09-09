@@ -1,0 +1,30 @@
+name: Phase15 Final Context
+
+on:
+  push:
+    branches: [feat/phase15-tactics-ux]
+    paths:
+      - .phase15/final_context.py
+      - .github/workflows/phase15-final-context.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase15-tactics-ux
+      - run: python .phase15/final_context.py
+      - shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_CONTEXT.md
+          git commit -m "docs: mark Phase15 complete in project context"
+          git push origin HEAD:feat/phase15-tactics-ux
