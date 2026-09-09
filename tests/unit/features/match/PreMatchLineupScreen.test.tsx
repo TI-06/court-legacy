@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
@@ -50,7 +50,9 @@ describe("PreMatchLineupScreen", () => {
       target: { value: firstBenchId },
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
     expect(onStart).toHaveBeenCalledOnce();
     expect(onStart.mock.calls[0]?.[0]).not.toEqual(original);
     expect(selection).toEqual(original);
@@ -75,9 +77,11 @@ describe("PreMatchLineupScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "調子優先" }));
     fireEvent.click(screen.getByRole("button", { name: "元に戻す" }));
-    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
 
-    expect(onStart).toHaveBeenCalledWith(selection);
+    expect(onStart.mock.calls[0]?.[0]).toEqual(selection);
   });
 
   it("loads a valid saved lineup locally and starts with it without mutating stored selections", () => {
@@ -118,9 +122,11 @@ describe("PreMatchLineupScreen", () => {
     const savedButton = screen.getByRole("button", { name: "保存編成 速攻型" });
     expect(savedButton).toBeVisible();
     fireEvent.click(savedButton);
-    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
 
-    expect(onStart).toHaveBeenCalledWith(savedSelection);
+    expect(onStart.mock.calls[0]?.[0]).toEqual(savedSelection);
     expect(selection).toEqual(originalBase);
     expect(state.teamPlanning.savedLineups[0]!.selection).toEqual(
       originalSaved,
@@ -209,8 +215,108 @@ describe("PreMatchLineupScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存編成 守備型" }));
     fireEvent.click(screen.getByRole("button", { name: "調子優先" }));
     fireEvent.click(screen.getByRole("button", { name: "元に戻す" }));
-    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
 
-    expect(onStart).toHaveBeenCalledWith(selection);
+    expect(onStart.mock.calls[0]?.[0]).toEqual(selection);
+  });
+
+  it("keeps match-only tactics local, shows public tendencies, and resets tactics independently", () => {
+    const { state, selection } = fixture();
+    const school = state.schools[state.userSchoolId]!;
+    school.tactics = {
+      ...school.tactics,
+      serveRisk: 25,
+      attackTempo: "slow",
+      blockSystem: "commit",
+    };
+    const originalSelection = structuredClone(selection);
+    const onStart = vi.fn();
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={onStart}
+        opponentName="速攻高校"
+        opponentStrength={88}
+        opponentTactics={{
+          serve: "aggressive",
+          attack: "quick",
+          block: "read",
+        }}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "今回の戦術" }),
+    ).toBeVisible();
+    expect(screen.getByText("サーブ 強気")).toBeVisible();
+    expect(screen.getByText("攻撃 高速")).toBeVisible();
+    expect(screen.getByText("ブロック リード")).toBeVisible();
+
+    const serveGroup = screen.getByRole("group", { name: "今回のサーブ戦術" });
+    expect(
+      within(serveGroup).getByRole("button", {
+        name: /安全重視/,
+        pressed: true,
+      }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(serveGroup).getByRole("button", { name: /強気/ }),
+    );
+    fireEvent.click(
+      within(
+        screen.getByRole("group", { name: "今回の攻撃戦術" }),
+      ).getByRole("button", { name: /高速/ }),
+    );
+    expect(screen.getByText(/相性/)).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "基本戦術に戻す" }));
+    expect(
+      within(serveGroup).getByRole("button", {
+        name: /安全重視/,
+        pressed: true,
+      }),
+    ).toBeVisible();
+    expect(selection).toEqual(originalSelection);
+
+    fireEvent.click(
+      within(serveGroup).getByRole("button", { name: /強気/ }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
+
+    expect(onStart).toHaveBeenCalledWith(selection, {
+      serve: "aggressive",
+      attack: "side",
+      block: "commit",
+    });
+    expect(school.tactics.serveRisk).toBe(25);
+  });
+
+  it("does not guess legacy PvP tactics", () => {
+    const { state, selection } = fixture();
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pvp"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName="旧スナップショット高校"
+        opponentStrength={90}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    expect(screen.getByText("戦術傾向 非公開")).toBeVisible();
   });
 });
