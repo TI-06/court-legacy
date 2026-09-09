@@ -43,6 +43,7 @@ export function progressAnnualTeamDynamics(
     state,
     previousDynamics.viceCaptainPlayerId,
   );
+  const activePlayerIds = new Set(school.playerIds);
   const stateWithLeadership: GameState = {
     ...state,
     schools: {
@@ -51,6 +52,13 @@ export function progressAnnualTeamDynamics(
         ...school,
         captainPlayerId,
       },
+    },
+    teamPlanning: {
+      ...state.teamPlanning,
+      developmentPriorityPlayerIds:
+        state.teamPlanning.developmentPriorityPlayerIds.filter((playerId) =>
+          activePlayerIds.has(playerId),
+        ),
     },
   };
   const selection = autoSelectTeam({
