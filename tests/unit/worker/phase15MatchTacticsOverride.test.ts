@@ -73,38 +73,35 @@ describe("Phase 15 match-only tactics override", () => {
     ).not.toThrow();
   });
 
-  it(
-    "uses temporary tactics for simulation without persisting or mutating them",
-    () => {
-      const temporary = createSnapshot("phase15-match-tactics-runtime");
-      const persistent = createSnapshot("phase15-match-tactics-runtime");
-      const before = structuredClone(temporary);
-      const baselineTactics = structuredClone(
-        temporary.state.schools[temporary.state.userSchoolId]!.tactics,
-      );
-      const persistentSchool =
-        persistent.state.schools[persistent.state.userSchoolId]!;
-      persistentSchool.tactics = applyMatchTacticPlan(
-        persistentSchool.tactics,
-        overridePlan,
-      );
+  it("uses temporary tactics for simulation without persisting or mutating them", () => {
+    const temporary = createSnapshot("phase15-match-tactics-runtime");
+    const persistent = createSnapshot("phase15-match-tactics-runtime");
+    const before = structuredClone(temporary);
+    const baselineTactics = structuredClone(
+      temporary.state.schools[temporary.state.userSchoolId]!.tactics,
+    );
+    const persistentSchool =
+      persistent.state.schools[persistent.state.userSchoolId]!;
+    persistentSchool.tactics = applyMatchTacticPlan(
+      persistentSchool.tactics,
+      overridePlan,
+    );
 
-      const temporaryResult = applyServerGameAction(
-        temporary,
-        { type: "advance-week", matchTactics: overridePlan } as never,
-      );
-      const persistentResult = applyServerGameAction(persistent, {
-        type: "advance-week",
-      });
+    const temporaryResult = applyServerGameAction(temporary, {
+      type: "advance-week",
+      matchTactics: overridePlan,
+    } as never);
+    const persistentResult = applyServerGameAction(persistent, {
+      type: "advance-week",
+    });
 
-      expect(matchFrom(temporaryResult)).toEqual(matchFrom(persistentResult));
-      expect(
-        temporaryResult.state.schools[temporaryResult.state.userSchoolId]!
-          .tactics,
-      ).toEqual(baselineTactics);
-      expect(temporary).toEqual(before);
-    },
-  );
+    expect(matchFrom(temporaryResult)).toEqual(matchFrom(persistentResult));
+    expect(
+      temporaryResult.state.schools[temporaryResult.state.userSchoolId]!
+        .tactics,
+    ).toEqual(baselineTactics);
+    expect(temporary).toEqual(before);
+  });
 
   it("keeps existing baseline behavior when matchTactics is omitted", () => {
     const first = createSnapshot("phase15-match-tactics-omitted");
