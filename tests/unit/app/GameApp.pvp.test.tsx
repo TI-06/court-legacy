@@ -38,6 +38,11 @@ const opponent: PvpOpponentSummary = {
   wins: 12,
   losses: 7,
   currentWinStreak: 3,
+  tactics: {
+    serve: "aggressive",
+    attack: "quick",
+    block: "read",
+  },
 };
 
 const rankingEntry: PvpRankingEntry = {
@@ -197,7 +202,9 @@ function openPvp() {
 
 function startPreparedPvpMatch() {
   expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+  );
 }
 
 describe("GameApp PvP flow", () => {
@@ -225,6 +232,9 @@ describe("GameApp PvP flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "対戦する 白波高校" }));
     expect(mocks.challengePvpTeam).not.toHaveBeenCalled();
+    expect(screen.getByText("サーブ 強気")).toBeVisible();
+    expect(screen.getByText("攻撃 高速")).toBeVisible();
+    expect(screen.getByText("ブロック リード")).toBeVisible();
     startPreparedPvpMatch();
     await waitFor(() =>
       expect(mocks.challengePvpTeam).toHaveBeenCalledTimes(1),
@@ -233,6 +243,7 @@ describe("GameApp PvP flow", () => {
       revision: 1,
       opponentSnapshotId: opponent.snapshotId,
       matchSelection: expect.any(Object),
+      matchTactics: expect.any(Object),
     });
     expect(await screen.findByText("勝利")).toBeVisible();
     expect(screen.getAllByText("+16")).toHaveLength(2);
