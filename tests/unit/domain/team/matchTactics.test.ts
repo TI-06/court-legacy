@@ -96,6 +96,22 @@ describe("applyMatchTacticPlan", () => {
       expect(next.blockSystem).toBe("read");
     },
   );
+
+  it("returns a new tactics object without mutating compatibility-only fields", () => {
+    const source = tactics();
+    const sourceDistribution = source.attackDistribution;
+    const next = applyMatchTacticPlan(source, {
+      serve: "aggressive",
+      attack: "quick",
+      block: "commit",
+    });
+
+    expect(next).not.toBe(source);
+    expect(next.attackDistribution).not.toBe(sourceDistribution);
+    expect(next.serveTargetPlayerId).toBe(source.serveTargetPlayerId);
+    expect(next.defenseBias).toBe(source.defenseBias);
+    expect(source).toEqual(tactics());
+  });
 });
 
 describe("attack/block matchup", () => {
