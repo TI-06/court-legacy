@@ -4,11 +4,12 @@ from pathlib import Path
 def replace_once(path: str, old: str, new: str) -> None:
     file_path = Path(path)
     text = file_path.read_text(encoding="utf-8")
+    if old in text:
+        file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+        return
     if new in text:
         return
-    if old not in text:
-        raise RuntimeError(f"expected source not found in {path}: {old[:80]!r}")
-    file_path.write_text(text.replace(old, new, 1), encoding="utf-8")
+    raise RuntimeError(f"expected source not found in {path}: {old[:80]!r}")
 
 
 replace_once(
