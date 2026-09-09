@@ -6,24 +6,40 @@ import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/pl
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
+interface RenderOptions {
+  onSetDevelopmentPriorities?: ReturnType<typeof vi.fn>;
+  planningPending?: boolean;
+}
+
 function renderPlayerHub(
   state = createDemoGame(),
   onAssignLeadership = vi.fn(),
+  options: RenderOptions = {},
 ) {
   const selection = autoSelectTeam({
     state,
     schoolId: state.userSchoolId,
   });
+  const onSetDevelopmentPriorities =
+    options.onSetDevelopmentPriorities ?? vi.fn();
   const view = render(
     <PlayerHubScreen
       onAssignLeadership={onAssignLeadership}
       onChange={vi.fn()}
+      onSetDevelopmentPriorities={onSetDevelopmentPriorities}
+      planningPending={options.planningPending}
       selection={selection}
       state={state}
     />,
   );
 
-  return { state, selection, view, onAssignLeadership };
+  return {
+    state,
+    selection,
+    view,
+    onAssignLeadership,
+    onSetDevelopmentPriorities,
+  };
 }
 
 describe("PlayerHubScreen", () => {
@@ -64,6 +80,169 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     expect(within(firstRow).getByTitle(condition.label)).toBeVisible();
     expect(within(firstRow).getByText(condition.label)).toBeVisible();
+    expect(within(firstRow).getByText("4週 --")).toBeVisible();
+  });
+
+  it("filters the roster and exposes all required sort options", () => {
+    const { state } = renderPlayerHub();
+    const school = state.schools[state.userSchoolId]!;
+    const expectedGradeOne = school.playerIds.filter(
+      (id) => state.players[id]!.grade === 1,
+    ).length;
+
+    const filter = screen.getByLabelText("選手絞り込み");
+    const sort = screen.getByLabelText("並び替え");
+
+    expect(within(filter).getByRole("option", { name: "全員" })).toBeVisible();
+    for (const label of [
+      "1年",
+      "2年",
+      "3年",
+      "OH",
+      "MB",
+      "OP",
+      "S",
+      "L",
+      "スタメン",
+      "控え",
+      "重点育成",
+      "怪我中",
+    ]) {
+      expect(within(filter).getByRole("option", { name: label })).toBeVisible();
+    }
+    for (const label of [
+      "総合力順",
+      "将来性順",
+      "調子順",
+      "直近4週の成長順",
+      "学年順",
+    ]) {
+      expect(within(sort).getByRole("option", { name: label })).toBeVisible();
+    }
+
+    fireEvent.change(filter, { target: { value: "grade-1" } });
+    expect(screen.getAllByTestId("roster-player-row")).toHaveLength(
+      expectedGradeOne,
+    );
+    expect(screen.getByText(`表示 ${expectedGradeOne} / 全 ${school.playerIds.length}人`)).toBeVisible();
+  });
+
+  it("shows the empty filtered state without changing the full roster count", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    for (const playerId of school.playerIds) {
+      state.players[playerId]!.injury = null;
+    }
+    renderPlayerHub(state);
+
+    fireEvent.change(screen.getByLabelText("選手絞り込み"), {
+      target: { value: "injured" },
+    });
+
+    expect(screen.queryAllByTestId("roster-player-row")).toHaveLength(0);
+    expect(screen.getByText("条件に該当する選手はいません")).toBeVisible();
+    expect(screen.getByText(`表示 0 / 全 ${school.playerIds.length}人`)).toBeVisible();
+  });
+
+  it("sorts the visible roster by real four-week growth", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const growingId = school.playerIds.at(-1)!;
+    const zeroId = school.playerIds.at(-2)!;
+    state.history.playerDevelopmentWeeks = [
+      {
+        gameDate: "2026-04-01",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 1,
+        trainingMenuId: "training.balanced",
+        players: [
+          { playerId: growingId, totalAbilityGrowth: 8, abilityChanges: {} },
+          { playerId: zeroId, totalAbilityGrowth: 0, abilityChanges: {} },
+        ],
+      },
+    ];
+    renderPlayerHub(state);
+
+    fireEvent.change(screen.getByLabelText("並び替え"), {
+      target: { value: "growth-4w" },
+    });
+
+    const rows = screen.getAllByTestId("roster-player-row");
+    expect(
+      within(rows[0]!).getByText(
+        `${state.players[growingId]!.lastName} ${state.players[growingId]!.firstName}`,
+      ),
+    ).toBeVisible();
+    expect(within(rows[0]!).getByText("4週 +8")).toBeVisible();
+  });
+
+  it("adds and removes explicit development priorities while enforcing the three-player UI cap", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const firstThree = school.playerIds.slice(0, 3);
+    const fourthId = school.playerIds[3]!;
+    const fourth = state.players[fourthId]!;
+    state.teamPlanning.developmentPriorityPlayerIds = [...firstThree];
+    const onSetDevelopmentPriorities = vi.fn();
+    const { view } = renderPlayerHub(state, vi.fn(), {
+      onSetDevelopmentPriorities,
+    });
+
+    const fourthAdd = screen.getByRole("button", {
+      name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
+    });
+    expect(fourthAdd).toBeDisabled();
+
+    const first = state.players[firstThree[0]!]!;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `重点育成から外す ${first.lastName} ${first.firstName}`,
+      }),
+    );
+    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith(
+      firstThree.slice(1),
+    );
+
+    view.rerender(
+      <PlayerHubScreen
+        onAssignLeadership={vi.fn()}
+        onChange={vi.fn()}
+        onSetDevelopmentPriorities={onSetDevelopmentPriorities}
+        selection={autoSelectTeam({ state, schoolId: state.userSchoolId })}
+        state={{
+          ...state,
+          teamPlanning: {
+            ...state.teamPlanning,
+            developmentPriorityPlayerIds: firstThree.slice(1),
+          },
+        }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
+      }),
+    );
+    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith([
+      ...firstThree.slice(1),
+      fourthId,
+    ]);
+  });
+
+  it("disables every priority mutation while planning is pending", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    state.teamPlanning.developmentPriorityPlayerIds = [school.playerIds[0]!];
+    renderPlayerHub(state, vi.fn(), { planningPending: true });
+
+    const priorityButtons = screen.getAllByRole("button", {
+      name: /重点育成(に追加|から外す)/,
+    });
+    expect(priorityButtons.length).toBeGreaterThan(0);
+    expect(priorityButtons.every((button) => button.hasAttribute("disabled"))).toBe(
+      true,
+    );
   });
 
   it("opens a compact player detail with growth type, talent and potential", () => {
@@ -114,8 +293,68 @@ describe("PlayerHubScreen", () => {
       view.container.querySelector(".player-detail__summary"),
     ).not.toBeNull();
 
+    const growthRegion = screen.getByRole("region", { name: "最近の成長" });
+    expect(within(growthRegion).getByText("4週 --")).toBeVisible();
+    expect(within(growthRegion).getByText("12週 --")).toBeVisible();
+    expect(
+      within(growthRegion).getByText("成長履歴はまだありません"),
+    ).toBeVisible();
+    expect(
+      within(growthRegion).queryAllByTestId("player-growth-trend-bar"),
+    ).toHaveLength(0);
+
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+  });
+
+  it("shows only real player growth logs in the detail trend", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+    state.history.playerDevelopmentWeeks = [
+      {
+        gameDate: "2026-04-01",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 1,
+        trainingMenuId: "training.balanced",
+        players: [
+          { playerId, totalAbilityGrowth: 0, abilityChanges: {} },
+        ],
+      },
+      {
+        gameDate: "2026-04-08",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 2,
+        trainingMenuId: "training.balanced",
+        players: [],
+      },
+      {
+        gameDate: "2026-04-15",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 3,
+        trainingMenuId: "training.balanced",
+        players: [
+          { playerId, totalAbilityGrowth: 5, abilityChanges: { spike: 5 } },
+        ],
+      },
+    ];
+    renderPlayerHub(state);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+
+    const growthRegion = screen.getByRole("region", { name: "最近の成長" });
+    expect(within(growthRegion).getByText("4週 +5")).toBeVisible();
+    expect(within(growthRegion).getByText("12週 +5")).toBeVisible();
+    expect(within(growthRegion).getByText("2週記録")).toBeVisible();
+    const bars = within(growthRegion).getAllByTestId("player-growth-trend-bar");
+    expect(bars).toHaveLength(2);
+    expect(bars[0]).toHaveAttribute("data-growth", "0");
+    expect(bars[1]).toHaveAttribute("data-growth", "5");
   });
 
   it("keeps the existing lineup editor available", () => {
