@@ -32,7 +32,9 @@ describe("PlayerHubScreen team tactics", () => {
     });
 
     for (const label of ["選手一覧", "編成", "チーム状態", "戦術"]) {
-      expect(within(navigation).getByRole("button", { name: label })).toBeVisible();
+      expect(
+        within(navigation).getByRole("button", { name: label }),
+      ).toBeVisible();
     }
 
     fireEvent.click(within(navigation).getByRole("button", { name: "戦術" }));
@@ -45,7 +47,13 @@ describe("PlayerHubScreen team tactics", () => {
         "button",
         { pressed: true },
       ),
-    ).toHaveTextContent(plan.serve === "aggressive" ? "強気" : plan.serve === "safe" ? "安全重視" : "バランス");
+    ).toHaveTextContent(
+      plan.serve === "aggressive"
+        ? "強気"
+        : plan.serve === "safe"
+          ? "安全重視"
+          : "バランス",
+    );
   });
 
   it("submits one complete tactic plan through the Player Hub callback", () => {
