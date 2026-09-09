@@ -156,6 +156,7 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("advance-week"),
       matchSelection: teamSelectionSchema.optional(),
+      matchTactics: matchTacticPlanSchema.optional(),
     })
     .strict(),
   z
@@ -213,7 +214,11 @@ export type GameAction =
   | { type: "practice-offer-decline" }
   | { type: "practice-request"; schoolId: SchoolId }
   | { type: "official-match" }
-  | { type: "advance-week"; matchSelection?: TeamSelection }
+  | {
+      type: "advance-week";
+      matchSelection?: TeamSelection;
+      matchTactics?: MatchTacticPlan;
+    }
   | { type: "mark-notification-read"; notificationId: string }
   | { type: "facility-upgrade"; facility: FacilityKey }
   | {
