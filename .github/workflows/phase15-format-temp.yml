@@ -1,0 +1,35 @@
+name: Phase15 temporary formatter
+
+on:
+  push:
+    branches:
+      - feat/phase15-tactics-foundation
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase15-tactics-foundation
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Format Phase15 authored files
+        run: npx prettier --write docs/superpowers/specs/2026-09-09-phase15-team-tactics-design.md docs/superpowers/plans/2026-09-09-phase15-tactics-foundation.md tests/unit/domain/team/matchTactics.test.ts .github/workflows/phase15-format-temp.yml
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/superpowers/specs/2026-09-09-phase15-team-tactics-design.md docs/superpowers/plans/2026-09-09-phase15-tactics-foundation.md tests/unit/domain/team/matchTactics.test.ts .github/workflows/phase15-format-temp.yml
+          git commit -m "chore: format Phase15 foundation files"
+          git push origin HEAD:feat/phase15-tactics-foundation
