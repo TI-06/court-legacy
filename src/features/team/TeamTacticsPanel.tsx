@@ -132,6 +132,7 @@ export function TeamTacticsPanel({
       />
 
       <button
+        aria-label="基本戦術を保存"
         className="team-tactics__save"
         disabled={pending || unchanged}
         onClick={() => onSave({ ...draft })}
