@@ -1,10 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
-import type {
-  SavedLineupSlot,
-  TeamPlanningState,
-} from "./teamPlanningTypes";
+import type { SavedLineupSlot, TeamPlanningState } from "./teamPlanningTypes";
 import { validateTeamSelection } from "./validateTeamSelection";
 
 export type TeamPlanningValidationCode =
