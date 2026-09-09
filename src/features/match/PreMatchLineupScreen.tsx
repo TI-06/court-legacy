@@ -12,6 +12,7 @@ import type {
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { repositionTeamSelection } from "../../domain/team/repositionTeamSelection";
+import { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";
 import { PreMatchComparison } from "./MatchStatPanels";
 import { ratingToGrade } from "./teamRatingGrade";
 import "./pre-match-lineup.css";
@@ -62,6 +63,10 @@ export function PreMatchLineupScreen({
   const strength = useMemo(
     () => calculateSelectionStrength(state, selection),
     [selection, state],
+  );
+  const savedLineupSlots = useMemo(
+    () => selectSavedLineupSlots(state),
+    [state],
   );
 
   const starterIds = useMemo(
@@ -202,6 +207,45 @@ export function PreMatchLineupScreen({
               type="button"
             >
               {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="pre-match-lineup__saved-heading">
+          <strong>保存編成</strong>
+          <span>通常編成で登録した3枠</span>
+        </div>
+        <div className="pre-match-lineup__saved-presets" aria-label="保存編成">
+          {savedLineupSlots.map((slot) => (
+            <button
+              aria-label={
+                slot.status === "valid" && slot.preset
+                  ? `保存編成 ${slot.preset.name}`
+                  : slot.status === "invalid" && slot.preset
+                    ? `保存編成 ${slot.preset.name} 再設定が必要`
+                    : `保存編成 スロット${slot.slot} 未保存`
+              }
+              disabled={pending || slot.status !== "valid" || !slot.preset}
+              key={slot.slot}
+              onClick={() => {
+                if (slot.status === "valid" && slot.preset) {
+                  setSelection(cloneSelection(slot.preset.selection));
+                }
+              }}
+              type="button"
+            >
+              <span>スロット{slot.slot}</span>
+              <strong>{slot.preset?.name ?? "未保存"}</strong>
+              {slot.status === "invalid" ? (
+                <small>再設定が必要</small>
+              ) : slot.status === "valid" ? (
+                <small>この試合に読込</small>
+              ) : null}
+              {slot.status === "invalid" && slot.issueMessage ? (
+                <small className="pre-match-lineup__saved-issue">
+                  {slot.issueMessage}
+                </small>
+              ) : null}
             </button>
           ))}
         </div>

@@ -40,6 +40,7 @@ import {
 } from "../domain/selectors/matchSelectors";
 import type { FacilityKey } from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
+import type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
@@ -419,6 +420,24 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-development-priorities", playerIds },
       "重点育成を保存しています…",
+    );
+  };
+
+  const saveLineupPreset = async (
+    slot: SavedLineupSlot,
+    name: string,
+    selection: TeamSelection,
+  ) => {
+    await cloudSession.runAction(
+      { type: "save-lineup-preset", slot, name, selection },
+      "保存編成を保存しています…",
+    );
+  };
+
+  const deleteLineupPreset = async (slot: SavedLineupSlot) => {
+    await cloudSession.runAction(
+      { type: "delete-lineup-preset", slot },
+      "保存編成を削除しています…",
     );
   };
 
@@ -972,6 +991,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
         onChangeTraining={changePlayerTraining}
+        onDeleteLineupPreset={deleteLineupPreset}
+        onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
         planningPending={cloudSession.operation.status === "submitting"}
         trainingPending={cloudSession.operation.status === "submitting"}

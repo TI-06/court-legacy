@@ -8,6 +8,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
+import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import {
@@ -45,6 +46,12 @@ interface PlayerHubScreenProps {
     instructionId: string,
   ) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
+  onSaveLineupPreset?: (
+    slot: SavedLineupSlot,
+    name: string,
+    selection: TeamSelection,
+  ) => void | Promise<void>;
+  onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
 }
 
 type HubMode = "roster" | "lineup" | "dynamics";
@@ -145,6 +152,8 @@ export function PlayerHubScreen({
   planningPending = false,
   onChangeTraining,
   onSetDevelopmentPriorities,
+  onSaveLineupPreset,
+  onDeleteLineupPreset,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
@@ -204,7 +213,15 @@ export function PlayerHubScreen({
     return (
       <div className="player-hub">
         <HubTabs mode={mode} onChange={setMode} />
-        <TeamScreen onChange={onChange} selection={selection} state={state} />
+        <TeamScreen
+          onChange={onChange}
+          onDeleteLineupPreset={onDeleteLineupPreset}
+          onSaveLineupPreset={onSaveLineupPreset}
+          pending={planningPending}
+          planningPending={planningPending}
+          selection={selection}
+          state={state}
+        />
       </div>
     );
   }
