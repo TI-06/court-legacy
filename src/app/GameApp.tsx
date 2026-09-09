@@ -415,6 +415,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const saveDevelopmentPriorities = async (playerIds: PlayerId[]) => {
+    await cloudSession.runAction(
+      { type: "set-development-priorities", playerIds },
+      "重点育成を保存しています…",
+    );
+  };
+
   const acceptPracticeOffer = async () => {
     await cloudSession.runAction(
       { type: "practice-offer-accept" },
@@ -965,6 +972,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
         onChangeTraining={changePlayerTraining}
+        onSetDevelopmentPriorities={saveDevelopmentPriorities}
+        planningPending={cloudSession.operation.status === "submitting"}
         trainingPending={cloudSession.operation.status === "submitting"}
         selection={teamSelection}
         state={gameState}
