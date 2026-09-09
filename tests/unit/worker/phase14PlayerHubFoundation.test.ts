@@ -68,23 +68,25 @@ describe("Phase 14 player hub foundation", () => {
 
   it("updates development priorities without changing regular team selection", () => {
     const snapshot = createSnapshot();
-    const players = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds.slice(
-      0,
-      3,
-    );
+    const players = snapshot.state.schools[
+      snapshot.state.userSchoolId
+    ]!.playerIds.slice(0, 3);
 
     const result = applyGameAction(snapshot, {
       type: "set-development-priorities",
       playerIds: players,
     });
 
-    expect(result.state.teamPlanning.developmentPriorityPlayerIds).toEqual(players);
+    expect(result.state.teamPlanning.developmentPriorityPlayerIds).toEqual(
+      players,
+    );
     expect(result.teamSelection).toEqual(snapshot.teamSelection);
   });
 
   it("rejects invalid development priorities authoritatively", () => {
     const snapshot = createSnapshot();
-    const first = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+    const first =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
 
     expect(() =>
       applyGameAction(snapshot, {
@@ -135,7 +137,8 @@ describe("Phase 14 player hub foundation", () => {
 
   it("accepts the new strict request shapes and rejects malformed planning payloads", () => {
     const snapshot = createSnapshot();
-    const first = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+    const first =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
 
     expect(
       gameActionRequestSchema.safeParse({
