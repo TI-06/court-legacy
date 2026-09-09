@@ -5,12 +5,114 @@ import {
   createDefaultGameSettings,
   type GameState,
 } from "../domain/model/GameState";
+import { createDefaultTeamPlanning } from "../domain/team/teamPlanning";
 import { createOfficialSeason } from "../domain/tournament/createOfficialSeason";
 import { abilityKeySchema } from "../domain/validation/gameDataSchema";
 import { createInitialWeeklySchedule } from "../domain/weekly/createWeeklySchedule";
 
 const gameDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const objectSchema = z.object({}).passthrough();
+const playerIdSchema = z.string().min(1);
+
+const rotationSlotSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+  z.literal(5),
+  z.literal(6),
+]);
+
+const teamSelectionSchema = z
+  .object({
+    rotation: z
+      .array(
+        z
+          .object({
+            slot: rotationSlotSchema,
+            playerId: playerIdSchema,
+          })
+          .strict(),
+      )
+      .length(6),
+    liberoPlayerId: playerIdSchema.nullable(),
+    benchPlayerIds: z.array(playerIdSchema),
+    servingOrderPlayerIds: z.array(playerIdSchema).length(6),
+    substitutionPolicy: z
+      .object({
+        starterLockPlayerIds: z.array(playerIdSchema),
+        allowFatigueBenching: z.boolean(),
+        allowInjuryBenching: z.boolean(),
+        automaticSubstitutions: z.boolean(),
+        automaticSetChanges: z.boolean(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const savedLineupSlotSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
+
+const teamPlanningSchema = z
+  .object({
+    developmentPriorityPlayerIds: z.array(playerIdSchema).max(3),
+    savedLineups: z
+      .array(
+        z
+          .object({
+            slot: savedLineupSlotSchema,
+            name: z.string().trim().min(1).max(24),
+            selection: teamSelectionSchema,
+          })
+          .strict(),
+      )
+      .max(3),
+  })
+  .strict()
+  .superRefine((planning, context) => {
+    if (
+      new Set(planning.developmentPriorityPlayerIds).size !==
+      planning.developmentPriorityPlayerIds.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "development priority player IDs must be unique",
+      });
+    }
+    if (new Set(planning.savedLineups.map((preset) => preset.slot)).size !== planning.savedLineups.length) {
+      context.addIssue({
+        code: "custom",
+        message: "saved lineup slots must be unique",
+      });
+    }
+  });
+
+const playerDevelopmentWeekPlayerSchema = z
+  .object({
+    playerId: playerIdSchema,
+    totalAbilityGrowth: z.number().int().nonnegative(),
+    abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+  })
+  .strict();
+
+const playerDevelopmentWeekSchema = z
+  .object({
+    gameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    trainingMenuId: z.string().min(1),
+    players: z.array(playerDevelopmentWeekPlayerSchema).max(64),
+  })
+  .strict();
+
+const gameHistorySchema = z
+  .object({
+    playerDevelopmentWeeks: z.array(playerDevelopmentWeekSchema).max(52),
+  })
+  .passthrough();
 
 const gameSettingsSchema = z.object({
   matchDisplayMode: z.enum(["normal", "fast", "text", "instant"]),
@@ -287,7 +389,7 @@ const gameStateSchema = z
     calendar: objectSchema,
     activeMatch: z.unknown().nullable(),
     pendingEvent: z.unknown().nullable(),
-    history: objectSchema,
+    history: gameHistorySchema,
     eventMemory: objectSchema,
     settings: gameSettingsSchema,
     world: objectSchema,
@@ -296,6 +398,7 @@ const gameStateSchema = z
     weeklySchedule: weeklyScheduleSchema,
     notifications: notificationStateSchema,
     schoolManagement: schoolManagementSchema,
+    teamPlanning: teamPlanningSchema,
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
@@ -313,17 +416,30 @@ type InitialWeeklyScheduleSource = Parameters<
   typeof createInitialWeeklySchedule
 >[0];
 
+function historyObject(history: unknown): Record<string, unknown> {
+  return history && typeof history === "object" && !Array.isArray(history)
+    ? (history as Record<string, unknown>)
+    : {};
+}
+
 function historyWithOfficialTournaments(
   history: unknown,
 ): Record<string, unknown> {
-  const legacyHistory =
-    history && typeof history === "object" && !Array.isArray(history)
-      ? (history as Record<string, unknown>)
-      : {};
-
   return {
-    ...legacyHistory,
+    ...historyObject(history),
     officialTournaments: [],
+  };
+}
+
+function migrateVersionSeven(legacy: Record<string, unknown>): unknown {
+  return {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    history: {
+      ...historyObject(legacy.history),
+      playerDevelopmentWeeks: [],
+    },
+    teamPlanning: createDefaultTeamPlanning(),
   };
 }
 
@@ -332,15 +448,15 @@ function migrateVersionSix(legacy: Record<string, unknown>): unknown {
     typeof legacy.yearIndex === "number" && Number.isInteger(legacy.yearIndex)
       ? legacy.yearIndex
       : 1;
-  return {
+  return migrateVersionSeven({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 7,
     schoolManagement: {
       assistantCoach: null,
       fundsHistory: [],
       lastAnnualBudgetYearIndex: yearIndex,
     },
-  };
+  });
 }
 
 function migrateVersionFive(legacy: Record<string, unknown>): unknown {
@@ -455,6 +571,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 6) {
     return migrateVersionSix(legacy);
+  }
+  if (version === 7) {
+    return migrateVersionSeven(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
