@@ -198,11 +198,23 @@ PR14-3 saved-lineup UX completes the Phase 14 Player Hub slice with:
 
 Phase 14 does not fabricate player history, add fatigue-management chores, leak private PvP opponent abilities, silently repair stale saved lineups, or persist match-only lineup changes.
 
-**Phase 15 — Team Tactics is the next roadmap slice.**
+Phase 15 is complete. **Phase 16 — Match Command is the next roadmap slice.**
 
 ### Phase 15 — Team Tactics
 
-Simple meaningful volleyball tactics, with opponent matchup trade-offs and no single dominant strategy.
+Phase 15 adds a compact three-axis tactics layer without adding repetitive micromanagement:
+
+- persistent basic tactics in Player Hub for serve (`安全重視 / バランス / 強気`), attack (`サイド重視 / バランス / 高速`) and block (`コミット / ミックス / リード`);
+- server-authoritative `set-team-tactics` persistence while keeping save schema v8;
+- match-only tactic overrides in pre-match that never overwrite the saved basic tactics;
+- explicit attack/block matchup trade-offs with no unconditional best block or defense choice;
+- serve risk/reward where aggressive serving raises both pressure/upside and error risk;
+- PvE opponent tendencies derived only from known school tactics;
+- PvP public tactic summaries limited to the three categorical team tendencies, with legacy summaries shown as `戦術傾向 非公開`;
+- no opponent individual abilities, player IDs or `serveTargetPlayerId` exposed;
+- mobile coverage at 320 / 360 / 390 / 414 / 480 px for Player Hub tactics and pre-match match-only tactics.
+
+Phase 15 intentionally does not add per-point tactical commands; those belong to Phase 16.
 
 ### Phase 16 — Match Command
 
@@ -241,6 +253,12 @@ Seasonal PvP ranking/endgame layer without pay-to-win progression.
 - `docs/superpowers/plans/2026-09-09-phase14-player-hub-foundation.md`
 - `docs/superpowers/plans/2026-09-09-phase14-player-hub-ui.md`
 - `docs/superpowers/plans/2026-09-09-phase14-saved-lineup-ux.md`
+
+### Phase 15
+
+- `docs/superpowers/specs/2026-09-09-phase15-team-tactics-design.md`
+- `docs/superpowers/plans/2026-09-09-phase15-team-tactics-foundation.md`
+- `docs/superpowers/plans/2026-09-09-phase15-tactics-ux.md`
 
 ## Handoff rule
 

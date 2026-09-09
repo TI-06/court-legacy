@@ -32,6 +32,11 @@ const opponent: PvpOpponentSummary = {
   wins: 12,
   losses: 7,
   currentWinStreak: 3,
+  tactics: {
+    serve: "aggressive",
+    attack: "quick",
+    block: "read",
+  },
 };
 
 const ranking: PvpRankingEntry = {
@@ -123,6 +128,9 @@ describe("PvpScreen", () => {
     ).toBeVisible();
     expect(screen.getByText("レート 1048")).toBeVisible();
     expect(screen.getByText("12勝 7敗")).toBeVisible();
+    expect(screen.getByText("サーブ 強気")).toBeVisible();
+    expect(screen.getByText("攻撃 高速")).toBeVisible();
+    expect(screen.getByText("ブロック リード")).toBeVisible();
     expect(screen.getByText("勝利")).toBeVisible();
     expect(screen.getAllByText("+16")).toHaveLength(2);
     expect(screen.getByText("4位")).toBeVisible();
@@ -140,6 +148,15 @@ describe("PvpScreen", () => {
     ]) {
       expect(screen.queryByText(english)).toBeNull();
     }
+  });
+
+  it("does not guess tactics for a legacy opponent", () => {
+    const legacyOpponent = { ...opponent };
+    delete legacyOpponent.tactics;
+
+    renderScreen({ opponents: [legacyOpponent], result: null });
+
+    expect(screen.getByText("戦術傾向 非公開")).toBeVisible();
   });
 
   it("renders defender history with the viewer score first", () => {

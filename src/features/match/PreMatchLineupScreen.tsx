@@ -11,8 +11,21 @@ import type {
 } from "../../domain/model/TeamSelection";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import {
+  deriveMatchTacticPlan,
+  summarizeTacticMatchup,
+  type MatchTacticPlan,
+  type PublicTacticSummary,
+} from "../../domain/team/matchTactics";
 import { repositionTeamSelection } from "../../domain/team/repositionTeamSelection";
 import { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";
+import {
+  attackTacticOptions,
+  blockTacticOptions,
+  matchupRatingLabels,
+  serveTacticOptions,
+  tacticOptionLabel,
+} from "../team/tacticsPresentation";
 import { PreMatchComparison } from "./MatchStatPanels";
 import { ratingToGrade } from "./teamRatingGrade";
 import "./pre-match-lineup.css";
@@ -24,8 +37,9 @@ interface PreMatchLineupScreenProps {
   opponentName: string;
   opponentStrength?: number;
   opponentSelection?: TeamSelection;
+  opponentTactics?: PublicTacticSummary;
   pending: boolean;
-  onStart: (selection: TeamSelection) => void;
+  onStart: (selection: TeamSelection, tactics: MatchTacticPlan) => void;
   onCancel: () => void;
 }
 
@@ -45,6 +59,10 @@ function cloneSelection(selection: TeamSelection): TeamSelection {
   return structuredClone(selection);
 }
 
+function cloneTactics(tactics: MatchTacticPlan): MatchTacticPlan {
+  return { ...tactics };
+}
+
 export function PreMatchLineupScreen({
   state,
   baseSelection,
@@ -52,12 +70,20 @@ export function PreMatchLineupScreen({
   opponentName,
   opponentStrength,
   opponentSelection,
+  opponentTactics,
   pending,
   onStart,
   onCancel,
 }: PreMatchLineupScreenProps) {
+  const baseTactics = useMemo(
+    () => deriveMatchTacticPlan(state.schools[state.userSchoolId]!.tactics),
+    [state],
+  );
   const [selection, setSelection] = useState<TeamSelection>(() =>
     cloneSelection(baseSelection),
+  );
+  const [tactics, setTactics] = useState<MatchTacticPlan>(() =>
+    cloneTactics(baseTactics),
   );
 
   const strength = useMemo(
@@ -67,6 +93,11 @@ export function PreMatchLineupScreen({
   const savedLineupSlots = useMemo(
     () => selectSavedLineupSlots(state),
     [state],
+  );
+  const matchup = useMemo(
+    () =>
+      opponentTactics ? summarizeTacticMatchup(tactics, opponentTactics) : null,
+    [opponentTactics, tactics],
   );
 
   const starterIds = useMemo(
@@ -177,9 +208,146 @@ export function PreMatchLineupScreen({
         />
       ) : mode === "pvp" ? (
         <p className="pre-match-lineup__privacy-note">
-          対人戦では相手選手の詳細能力は非公開です。公開戦力を見て編成を決めます。
+          対人戦では相手選手の詳細能力は非公開です。公開戦力と戦術傾向を見て編成を決めます。
         </p>
       ) : null}
+
+      <section
+        className="pre-match-lineup__tactics"
+        aria-labelledby="pre-match-tactics-heading"
+      >
+        <div className="pre-match-lineup__section-heading">
+          <div>
+            <p className="section-kicker">MATCH PLAN</p>
+            <h3 id="pre-match-tactics-heading">今回の戦術</h3>
+          </div>
+          <button
+            disabled={pending}
+            onClick={() => setTactics(cloneTactics(baseTactics))}
+            type="button"
+          >
+            基本戦術に戻す
+          </button>
+        </div>
+
+        <div className="pre-match-lineup__opponent-tactics">
+          <div>
+            <span>相手の戦術傾向</span>
+            {opponentTactics ? (
+              <div className="pre-match-lineup__tactic-chips">
+                <span>
+                  サーブ {tacticOptionLabel("serve", opponentTactics.serve)}
+                </span>
+                <span>
+                  攻撃 {tacticOptionLabel("attack", opponentTactics.attack)}
+                </span>
+                <span>
+                  ブロック {tacticOptionLabel("block", opponentTactics.block)}
+                </span>
+              </div>
+            ) : (
+              <strong>戦術傾向 非公開</strong>
+            )}
+          </div>
+          {matchup ? (
+            <strong
+              className={`pre-match-lineup__matchup pre-match-lineup__matchup--${matchup.headline}`}
+            >
+              {matchupRatingLabels[matchup.headline]}
+            </strong>
+          ) : null}
+        </div>
+
+        <div className="pre-match-lineup__tactic-axis">
+          <div className="pre-match-lineup__tactic-axis-heading">
+            <strong>サーブ</strong>
+            <span>ミスと崩しのバランス</span>
+          </div>
+          <div
+            aria-label="今回のサーブ戦術"
+            className="pre-match-lineup__tactic-options"
+            role="group"
+          >
+            {serveTacticOptions.map((option) => (
+              <button
+                aria-pressed={tactics.serve === option.value}
+                disabled={pending}
+                key={option.value}
+                onClick={() =>
+                  setTactics((current) => ({
+                    ...current,
+                    serve: option.value,
+                  }))
+                }
+                type="button"
+              >
+                <strong>{option.label}</strong>
+                <small>{option.description}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="pre-match-lineup__tactic-axis">
+          <div className="pre-match-lineup__tactic-axis-heading">
+            <strong>攻撃</strong>
+            <span>相手ブロックとの駆け引き</span>
+          </div>
+          <div
+            aria-label="今回の攻撃戦術"
+            className="pre-match-lineup__tactic-options"
+            role="group"
+          >
+            {attackTacticOptions.map((option) => (
+              <button
+                aria-pressed={tactics.attack === option.value}
+                disabled={pending}
+                key={option.value}
+                onClick={() =>
+                  setTactics((current) => ({
+                    ...current,
+                    attack: option.value,
+                  }))
+                }
+                type="button"
+              >
+                <strong>{option.label}</strong>
+                <small>{option.description}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="pre-match-lineup__tactic-axis">
+          <div className="pre-match-lineup__tactic-axis-heading">
+            <strong>ブロック</strong>
+            <span>相手攻撃への読み方</span>
+          </div>
+          <div
+            aria-label="今回のブロック戦術"
+            className="pre-match-lineup__tactic-options"
+            role="group"
+          >
+            {blockTacticOptions.map((option) => (
+              <button
+                aria-pressed={tactics.block === option.value}
+                disabled={pending}
+                key={option.value}
+                onClick={() =>
+                  setTactics((current) => ({
+                    ...current,
+                    block: option.value,
+                  }))
+                }
+                type="button"
+              >
+                <strong>{option.label}</strong>
+                <small>{option.description}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section
         className="pre-match-lineup__presets"
@@ -325,10 +493,12 @@ export function PreMatchLineupScreen({
       <button
         className="pre-match-lineup__start"
         disabled={pending}
-        onClick={() => onStart(cloneSelection(selection))}
+        onClick={() =>
+          onStart(cloneSelection(selection), cloneTactics(tactics))
+        }
         type="button"
       >
-        {pending ? "試合を開始しています…" : "この編成で試合開始"}
+        {pending ? "試合を開始しています…" : "この編成・戦術で試合開始"}
       </button>
     </main>
   );

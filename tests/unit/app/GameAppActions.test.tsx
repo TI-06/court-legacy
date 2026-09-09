@@ -176,12 +176,18 @@ describe("GameApp cloud actions", () => {
 
     expect(applyAction).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "試合準備" })).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "この編成で試合開始" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
       revision: 1,
-      action: { type: "advance-week", matchSelection: expect.any(Object) },
+      action: {
+        type: "advance-week",
+        matchSelection: expect.any(Object),
+        matchTactics: expect.any(Object),
+      },
     });
     expect(
       await screen.findByRole("heading", { name: "試合ダイジェスト" }),

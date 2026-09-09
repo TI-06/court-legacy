@@ -37,11 +37,11 @@ test("mobile PvP publishes, prepares, challenges, and keeps visible progress and
   await expect(page.getByText("この試合だけの編成です")).toBeVisible();
   await expect(
     page.getByText(
-      "対人戦では相手選手の詳細能力は非公開です。公開戦力を見て編成を決めます。",
+      "対人戦では相手選手の詳細能力は非公開です。公開戦力と戦術傾向を見て編成を決めます。",
     ),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "この編成で試合開始" }).click();
+  await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
   await expect(
     page.getByRole("button", { name: "試合を開始しています…" }),
   ).toBeDisabled({ timeout: 300 });

@@ -131,7 +131,7 @@ test("Home progression prepares and commits an official match once, presents it,
   await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
   await expect(page.getByText("この試合だけの編成です")).toBeVisible();
   await expectNoBodyOverflow(page);
-  await page.getByRole("button", { name: "この編成で試合開始" }).click();
+  await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
 
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),

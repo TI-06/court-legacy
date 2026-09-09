@@ -5,6 +5,7 @@
 }
 
 .pre-match-lineup__hero,
+.pre-match-lineup__tactics,
 .pre-match-lineup__presets,
 .pre-match-lineup__lineup,
 .pre-match-lineup__bench,
@@ -118,6 +119,7 @@
   line-height: 1.6;
 }
 
+.pre-match-lineup__tactics,
 .pre-match-lineup__presets,
 .pre-match-lineup__lineup,
 .pre-match-lineup__bench {
@@ -135,6 +137,131 @@
 .pre-match-lineup__section-heading > span {
   color: #687984;
   font-size: 0.72rem;
+}
+
+.pre-match-lineup__opponent-tactics {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #dce5e9;
+  border-radius: 14px;
+  background: #f6f9fa;
+  padding: 10px;
+}
+
+.pre-match-lineup__opponent-tactics > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pre-match-lineup__opponent-tactics > div > span {
+  color: #687984;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.pre-match-lineup__opponent-tactics > div > strong {
+  color: #687984;
+  font-size: 0.76rem;
+}
+
+.pre-match-lineup__tactic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pre-match-lineup__tactic-chips span {
+  border-radius: 999px;
+  background: #e7f1f3;
+  padding: 5px 8px;
+  color: #285a63;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.pre-match-lineup__matchup {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__matchup--favorable {
+  background: #e5f4ec;
+  color: #2e6f4e;
+}
+
+.pre-match-lineup__matchup--neutral {
+  background: #edf1f3;
+  color: #526b79;
+}
+
+.pre-match-lineup__matchup--unfavorable {
+  background: #faecea;
+  color: #9b4a42;
+}
+
+.pre-match-lineup__tactic-axis {
+  display: grid;
+  gap: 7px;
+  padding: 10px 0;
+  border-top: 1px solid #e4ebee;
+}
+
+.pre-match-lineup__tactic-axis-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: #173b52;
+}
+
+.pre-match-lineup__tactic-axis-heading span {
+  color: #687984;
+  font-size: 0.66rem;
+}
+
+.pre-match-lineup__tactic-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+}
+
+.pre-match-lineup__tactic-options button {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  min-height: 64px;
+  gap: 3px;
+  border: 1px solid #d6e0e5;
+  border-radius: 12px;
+  background: #f8fafb;
+  padding: 7px 6px;
+  color: #173b52;
+  text-align: left;
+}
+
+.pre-match-lineup__tactic-options button[aria-pressed="true"] {
+  border-color: #3a8f9a;
+  background: #e8f4f5;
+  box-shadow: inset 0 0 0 1px #3a8f9a;
+}
+
+.pre-match-lineup__tactic-options strong {
+  font-size: 0.72rem;
+}
+
+.pre-match-lineup__tactic-options small {
+  color: #687984;
+  font-size: 0.6rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .pre-match-lineup__preset-grid {
@@ -294,6 +421,7 @@
 
 @media (max-width: 420px) {
   .pre-match-lineup__hero,
+  .pre-match-lineup__tactics,
   .pre-match-lineup__presets,
   .pre-match-lineup__lineup,
   .pre-match-lineup__bench {
@@ -306,6 +434,30 @@
 
   .pre-match-lineup__versus article {
     padding: 12px 8px;
+  }
+
+  .pre-match-lineup__opponent-tactics {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pre-match-lineup__matchup {
+    align-self: flex-start;
+  }
+
+  .pre-match-lineup__tactic-axis-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pre-match-lineup__tactic-options button {
+    min-height: 68px;
+    padding: 7px 5px;
+  }
+
+  .pre-match-lineup__tactic-options small {
+    display: none;
   }
 
   .pre-match-lineup__preset-grid {
