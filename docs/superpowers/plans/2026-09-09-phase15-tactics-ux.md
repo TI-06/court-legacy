@@ -13,12 +13,14 @@
 ## Task 1: Shared tactics presentation and normal tactics panel
 
 **Files:**
+
 - Create: `src/features/team/tacticsPresentation.ts`
 - Create: `src/features/team/TeamTacticsPanel.tsx`
 - Extend: `src/features/team/player-hub.css`
 - Create: `tests/unit/features/team/TeamTacticsPanel.test.tsx`
 
 **RED first:**
+
 - three axes render with the approved Japanese labels and short trade-off descriptions;
 - current authoritative plan is selected;
 - changing one axis updates only the local draft;
@@ -31,12 +33,14 @@
 ## Task 2: Player Hub tactics tab and authoritative save
 
 **Files:**
+
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/app/GameApp.tsx`
 - Extend: `tests/unit/features/team/PlayerHubScreen.test.tsx`
 - Create: `tests/unit/app/GameApp.teamTactics.test.tsx`
 
 **RED first:**
+
 - Player Hub exposes `選手一覧 / 編成 / チーム状態 / 戦術`;
 - opening `戦術` shows the plan derived from `state.schools[state.userSchoolId].tactics`;
 - saving sends `set-team-tactics` with all three categorical values;
@@ -48,10 +52,12 @@
 ## Task 3: PvE opponent tactic tendency in pre-match preparation
 
 **Files:**
+
 - Modify: `src/features/match/preMatchPreparation.ts`
 - Modify/create focused tests for `preMatchPreparation`.
 
 **RED first:**
+
 - known practice/official schools provide a categorical opponent tactic summary derived from their existing `School.tactics`;
 - unknown/materialized opponent without a school record leaves the summary absent;
 - no player-level or serve-target data enters the preparation DTO.
@@ -61,12 +67,14 @@
 ## Task 4: Pre-match local tactics editor and matchup hint
 
 **Files:**
+
 - Modify: `src/features/match/PreMatchLineupScreen.tsx`
 - Extend: `src/features/match/pre-match-lineup.css`
 - Modify: `tests/unit/features/match/PreMatchLineupScreen.test.tsx`
 - Modify: `tests/unit/features/match/MatchFlow.test.tsx` as needed.
 
 **RED first:**
+
 - initializes `今回の戦術` from authoritative user tactics;
 - allows independent local Serve/Attack/Block choices without writing normal tactics;
 - `基本戦術に戻す` resets tactics only, not lineup;
@@ -81,12 +89,14 @@
 ## Task 5: GameApp normal/PvP match-start plumbing and PvP opponent cards
 
 **Files:**
+
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/features/pvp/PvpScreen.tsx`
 - Extend: `src/features/pvp/pvp.css`
 - Modify/add relevant `GameApp` and `PvpScreen` unit tests.
 
 **RED first:**
+
 - normal pre-match sends both `matchSelection` and `matchTactics` on `advance-week`;
 - PvP pre-match carries `selectedOpponent.tactics` when available;
 - PvP challenge request sends both optional match selection and match tactics;
@@ -98,12 +108,14 @@
 ## Task 6: Five-width mobile acceptance and regression
 
 **Files:**
+
 - Create: `tests/e2e/phase15-tactics-ux.spec.ts`
 - Modify CSS only where tests reveal overflow/touch issues.
 
 **Acceptance widths:** `320 / 360 / 390 / 414 / 480`.
 
 **RED/GREEN coverage:**
+
 - Player Hub four-tab navigation fits without horizontal overflow;
 - tactics controls are readable and touch targets remain usable;
 - normal tactics can be changed/saved and authoritative success feedback remains visible;
