@@ -11,6 +11,11 @@ import type { TeamSelection } from "../model/TeamSelection";
 import type { GameState } from "../model/GameState";
 import type { MatchId, PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import {
+  deriveMatchTacticPlan,
+  getAttackBlockMatchupPoints,
+  type ServePlan,
+} from "../team/matchTactics";
 import { validateTeamSelection } from "../team/validateTeamSelection";
 import { getConditionMatchMultiplier } from "../player/playerCondition";
 
@@ -386,10 +391,21 @@ function serveStrength(server: Player, school: School): number {
   return (
     effectiveAbility(server, "serve") * 0.72 +
     effectiveAbility(server, "mental") * 0.18 +
-    school.coach.tactics * 0.1 +
-    school.tactics.serveRisk * 0.12
+    school.coach.tactics * 0.1
   );
 }
+
+interface ServeTacticProfile {
+  errorChance: number;
+  aceChance: number;
+  receiveQuality: number;
+}
+
+const SERVE_TACTIC_PROFILE: Record<ServePlan, ServeTacticProfile> = {
+  safe: { errorChance: -0.016, aceChance: -0.012, receiveQuality: 2 },
+  balanced: { errorChance: 0, aceChance: 0, receiveQuality: 0 },
+  aggressive: { errorChance: 0.022, aceChance: 0.018, receiveQuality: -4 },
+};
 
 function receiveStrength(receiver: Player, school: School): number {
   return (
@@ -401,19 +417,13 @@ function receiveStrength(receiver: Player, school: School): number {
   );
 }
 
-function blockSystemBonus(school: School): number {
-  switch (school.tactics.blockSystem) {
-    case "commit":
-      return 4;
-    case "read":
-      return 7;
-    case "mixed":
-      return 5.5;
-  }
-}
-
-function defenseBiasBonus(school: School): number {
-  return school.tactics.defenseBias === "balanced" ? 5 : 3;
+function blockMatchupAdjustment(
+  attackingSchool: School,
+  defendingSchool: School,
+): number {
+  const attackPlan = deriveMatchTacticPlan(attackingSchool.tactics).attack;
+  const blockPlan = deriveMatchTacticPlan(defendingSchool.tactics).block;
+  return -getAttackBlockMatchupPoints(attackPlan, blockPlan);
 }
 
 function simulateRally(
@@ -434,10 +444,10 @@ function simulateRally(
   );
   const serverStrength = serveStrength(server, serving.school);
   const receiverStrength = receiveStrength(receiver, receiving.school);
+  const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
+  const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
   const serveErrorChance = clamp(
-    0.024 +
-      serving.school.tactics.serveRisk * 0.00105 -
-      serverStrength * 0.00024,
+    0.024 + 50 * 0.00105 - serverStrength * 0.00024 + serveProfile.errorChance,
     0.012,
     0.17,
   );
@@ -461,7 +471,8 @@ function simulateRally(
   const aceChance = clamp(
     0.024 +
       (serverStrength - receiverStrength) * 0.00205 +
-      serving.school.tactics.serveRisk * 0.00065,
+      50 * 0.00065 +
+      serveProfile.aceChance,
     0.01,
     0.25,
   );
@@ -480,7 +491,8 @@ function simulateRally(
   }
 
   const receiveVariation = (random.next() - 0.5) * 18;
-  const receiveQuality = receiverStrength + receiveVariation;
+  const receiveQuality =
+    receiverStrength + serveProfile.receiveQuality + receiveVariation;
   writer.push(
     "receive",
     runtime,
@@ -529,13 +541,12 @@ function simulateRally(
     effectiveAbility(blocker, "jump") * 0.24 +
     effectiveAbility(blocker, "decision") * 0.14 +
     serving.school.coach.tactics * 0.08 +
-    blockSystemBonus(serving.school);
+    blockMatchupAdjustment(receiving.school, serving.school);
   const digPower =
     effectiveAbility(digger, "receive") * 0.58 +
     effectiveAbility(digger, "speed") * 0.25 +
     effectiveAbility(digger, "decision") * 0.17 +
-    serving.school.coach.leadership * 0.07 +
-    defenseBiasBonus(serving.school);
+    serving.school.coach.leadership * 0.07;
 
   writer.push(
     "attack",
