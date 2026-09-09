@@ -22,9 +22,7 @@ for (const width of widths) {
     await page.goto("/");
     await page.getByRole("button", { name: "選手" }).click();
 
-    await expect(
-      page.getByRole("heading", { name: "選手一覧" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
     await expect(page.getByLabel("選手絞り込み")).toBeVisible();
     await expect(page.getByLabel("並び替え")).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
