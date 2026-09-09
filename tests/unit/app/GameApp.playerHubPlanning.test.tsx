@@ -66,7 +66,8 @@ function responseFor(
 describe("GameApp Player Hub planning", () => {
   it("persists development priorities through the authoritative game action and adopts the returned snapshot", async () => {
     let serverSnapshot = createSnapshot();
-    const school = serverSnapshot.state.schools[serverSnapshot.state.userSchoolId]!;
+    const school =
+      serverSnapshot.state.schools[serverSnapshot.state.userSchoolId]!;
     const player = serverSnapshot.state.players[school.playerIds[0]!]!;
     const playerName = `${player.lastName} ${player.firstName}`;
 
