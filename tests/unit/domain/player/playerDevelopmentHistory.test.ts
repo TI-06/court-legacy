@@ -20,7 +20,7 @@ function trainingResult(state: GameState): TrainingResult {
     playerLogs: [
       {
         playerId,
-        abilityChanges: { attack: 2, jump: 1 },
+        abilityChanges: { spike: 2, jump: 1 },
         totalAbilityGrowth: 3,
         fatigueChange: 0,
         conditionChange: 0,
@@ -54,13 +54,13 @@ describe("playerDevelopmentHistory", () => {
         {
           playerId: result.playerLogs[0]!.playerId,
           totalAbilityGrowth: 3,
-          abilityChanges: { attack: 2, jump: 1 },
+          abilityChanges: { spike: 2, jump: 1 },
         },
       ],
     });
 
-    result.playerLogs[0]!.abilityChanges.attack = 99;
-    expect(week.players[0]!.abilityChanges.attack).toBe(2);
+    result.playerLogs[0]!.abilityChanges.spike = 99;
+    expect(week.players[0]!.abilityChanges.spike).toBe(2);
   });
 
   it("does not append the same game week twice", () => {
