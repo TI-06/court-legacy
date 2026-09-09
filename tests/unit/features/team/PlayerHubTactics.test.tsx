@@ -38,8 +38,10 @@ describe("PlayerHubScreen team tactics", () => {
       ).toBeVisible();
     }
 
-    fireEvent.click(within(navigation).getByRole("button", { name: "戦術" }));
+    const tacticsTab = within(navigation).getByRole("button", { name: "戦術" });
+    fireEvent.click(tacticsTab);
 
+    expect(tacticsTab).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { name: "基本戦術" })).toBeVisible();
     const school = state.schools[state.userSchoolId]!;
     const plan = deriveMatchTacticPlan(school.tactics);
