@@ -10,6 +10,9 @@ on:
       - worker/routes/pvpChallenge.ts
       - worker/routes/pvpPublish.ts
 
+permissions:
+  contents: write
+
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -22,12 +25,14 @@ jobs:
       - run: npm ci --no-audit --fund=false
       - name: Format target files
         run: npx prettier tests/unit/worker/phase15PvpPublicTactics.test.ts worker/routes/pvpChallenge.ts worker/routes/pvpPublish.ts --write
-      - name: Print formatted files
+      - name: Commit formatted files
         run: |
-          echo '===FILE:tests/unit/worker/phase15PvpPublicTactics.test.ts==='
-          cat tests/unit/worker/phase15PvpPublicTactics.test.ts
-          echo '===FILE:worker/routes/pvpChallenge.ts==='
-          cat worker/routes/pvpChallenge.ts
-          echo '===FILE:worker/routes/pvpPublish.ts==='
-          cat worker/routes/pvpPublish.ts
-          echo '===END==='
+          if git diff --quiet -- tests/unit/worker/phase15PvpPublicTactics.test.ts worker/routes/pvpChallenge.ts worker/routes/pvpPublish.ts; then
+            echo "No formatting changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/worker/phase15PvpPublicTactics.test.ts worker/routes/pvpChallenge.ts worker/routes/pvpPublish.ts
+          git commit -m "style: format Phase 15 PvP tactics"
+          git push origin HEAD:feat/phase15-tactics-foundation
