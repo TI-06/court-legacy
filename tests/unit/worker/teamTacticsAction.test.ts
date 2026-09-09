@@ -59,10 +59,10 @@ describe("set-team-tactics action", () => {
 
   it("persists canonical tactics only to the authoritative user school", () => {
     const snapshot = createSnapshot();
-    const before = structuredClone(snapshot);
     const userSchool = snapshot.state.schools[snapshot.state.userSchoolId]!;
     userSchool.tactics.serveTargetPlayerId = userSchool.playerIds[0]!;
     userSchool.tactics.defenseBias = "cross";
+    const before = structuredClone(snapshot);
     const preservedTarget = userSchool.tactics.serveTargetPlayerId;
     const otherSchool = Object.values(snapshot.state.schools).find(
       (school) => school.id !== snapshot.state.userSchoolId,
