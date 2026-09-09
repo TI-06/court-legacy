@@ -252,9 +252,7 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("heading", { name: "今回の戦術" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "今回の戦術" })).toBeVisible();
     expect(screen.getByText("サーブ 強気")).toBeVisible();
     expect(screen.getByText("攻撃 高速")).toBeVisible();
     expect(screen.getByText("ブロック リード")).toBeVisible();
@@ -267,13 +265,12 @@ describe("PreMatchLineupScreen", () => {
       }),
     ).toBeVisible();
 
+    fireEvent.click(within(serveGroup).getByRole("button", { name: /強気/ }));
     fireEvent.click(
-      within(serveGroup).getByRole("button", { name: /強気/ }),
-    );
-    fireEvent.click(
-      within(
-        screen.getByRole("group", { name: "今回の攻撃戦術" }),
-      ).getByRole("button", { name: /高速/ }),
+      within(screen.getByRole("group", { name: "今回の攻撃戦術" })).getByRole(
+        "button",
+        { name: /高速/ },
+      ),
     );
     expect(screen.getByText(/相性/)).toBeVisible();
 
@@ -286,9 +283,7 @@ describe("PreMatchLineupScreen", () => {
     ).toBeVisible();
     expect(selection).toEqual(originalSelection);
 
-    fireEvent.click(
-      within(serveGroup).getByRole("button", { name: /強気/ }),
-    );
+    fireEvent.click(within(serveGroup).getByRole("button", { name: /強気/ }));
     fireEvent.click(
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
     );
