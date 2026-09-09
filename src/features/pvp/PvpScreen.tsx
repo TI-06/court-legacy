@@ -5,6 +5,7 @@ import type {
   PvpPublishedTeamSummary,
   PvpRankingEntry,
 } from "../../domain/pvp/pvpContracts";
+import { tacticOptionLabel } from "../team/tacticsPresentation";
 import "./pvp.css";
 
 export interface PvpScreenProps {
@@ -76,6 +77,26 @@ function OpponentCard({
           <span>公開戦力 {opponent.teamPower}</span>
         </div>
         <b>レート {opponent.rating}</b>
+      </div>
+      <div
+        aria-label={`戦術傾向 ${opponent.schoolName}`}
+        className="pvp-opponent-card__tactics"
+      >
+        {opponent.tactics ? (
+          <>
+            <span>
+              サーブ {tacticOptionLabel("serve", opponent.tactics.serve)}
+            </span>
+            <span>
+              攻撃 {tacticOptionLabel("attack", opponent.tactics.attack)}
+            </span>
+            <span>
+              ブロック {tacticOptionLabel("block", opponent.tactics.block)}
+            </span>
+          </>
+        ) : (
+          <strong>戦術傾向 非公開</strong>
+        )}
       </div>
       <div className="pvp-opponent-card__record">
         <span>

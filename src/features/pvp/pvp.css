@@ -388,6 +388,28 @@
   font-size: 0.76rem;
 }
 
+.pvp-opponent-card__tactics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.pvp-opponent-card__tactics span,
+.pvp-opponent-card__tactics strong {
+  border-radius: 999px;
+  background: #e7f1f3;
+  padding: 5px 8px;
+  color: #285a63;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.pvp-opponent-card__tactics strong {
+  background: #edf1f3;
+  color: #687984;
+}
+
 .pvp-opponent-card__record {
   margin-top: 10px;
   color: #6f8089;

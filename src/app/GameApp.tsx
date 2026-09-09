@@ -40,7 +40,10 @@ import {
 } from "../domain/selectors/matchSelectors";
 import type { FacilityKey } from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-import type { MatchTacticPlan } from "../domain/team/matchTactics";
+import type {
+  MatchTacticPlan,
+  PublicTacticSummary,
+} from "../domain/team/matchTactics";
 import type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
@@ -87,12 +90,14 @@ type PreMatchContext =
       opponentName: string;
       opponentStrength?: number;
       opponentSelection?: TeamSelection;
+      opponentTactics?: PublicTacticSummary;
     }
   | {
       kind: "pvp";
       opponentSnapshotId: string;
       opponentName: string;
       opponentStrength: number;
+      opponentTactics?: PublicTacticSummary;
     };
 type ShopPendingAction = "purchase" | "use";
 type ShopRetryRequest =
@@ -580,6 +585,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const challengePvpTeam = async (
     opponentSnapshotId: string,
     matchSelection?: TeamSelection,
+    matchTactics?: MatchTacticPlan,
   ) => {
     if (
       !api.challengePvpTeam ||
@@ -600,6 +606,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         revision: cloudSession.snapshot.revision,
         opponentSnapshotId,
         ...(matchSelection ? { matchSelection } : {}),
+        ...(matchTactics ? { matchTactics } : {}),
       });
       setPvpResult(response);
       await loadPvpData();
@@ -850,11 +857,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
-  const executeAdvanceWeek = async (matchSelection?: TeamSelection) => {
+  const executeAdvanceWeek = async (
+    matchSelection?: TeamSelection,
+    matchTactics?: MatchTacticPlan,
+  ) => {
     const response = await cloudSession.runAction(
       {
         type: "advance-week",
         ...(matchSelection ? { matchSelection } : {}),
+        ...(matchTactics ? { matchTactics } : {}),
       },
       "練習を実施して次の週へ進めています…",
     );
@@ -898,6 +909,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           : {}),
         ...(preparation.opponentSelection
           ? { opponentSelection: preparation.opponentSelection }
+          : {}),
+        ...(preparation.opponentTactics
+          ? { opponentTactics: preparation.opponentTactics }
           : {}),
       });
       setActiveTab("match");
@@ -959,16 +973,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setPreMatch(null);
           if (kind === "week") setActiveTab("home");
         }}
-        onStart={(selection) => {
+        onStart={(selection, tactics) => {
           if (preMatch.kind === "pvp") {
             const opponentSnapshotId = preMatch.opponentSnapshotId;
             void (async () => {
-              await challengePvpTeam(opponentSnapshotId, selection);
+              await challengePvpTeam(opponentSnapshotId, selection, tactics);
               setPreMatch(null);
             })();
             return;
           }
-          void executeAdvanceWeek(selection);
+          void executeAdvanceWeek(selection, tactics);
         }}
         opponentName={preMatch.opponentName}
         {...(preMatch.opponentStrength !== undefined
@@ -976,6 +990,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           : {})}
         {...(preMatch.kind === "week" && preMatch.opponentSelection
           ? { opponentSelection: preMatch.opponentSelection }
+          : {})}
+        {...(preMatch.opponentTactics
+          ? { opponentTactics: preMatch.opponentTactics }
           : {})}
         pending={preMatchPending}
         state={gameState}
@@ -1071,6 +1088,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             opponentSnapshotId: selectedOpponent.snapshotId,
             opponentName: selectedOpponent.schoolName,
             opponentStrength: selectedOpponent.teamPower,
+            ...(selectedOpponent.tactics
+              ? { opponentTactics: selectedOpponent.tactics }
+              : {}),
           });
         }}
         onPublish={() => {
