@@ -8,7 +8,7 @@ on:
 permissions:
   contents: write
 
-# Temporary implementation/formatter workflow for PR14-3. Remove before merge.
+# Temporary formatter for PR14-3. Remove before merge.
 jobs:
   format:
     if: github.actor != 'github-actions[bot]'
@@ -22,10 +22,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Apply saved-lineup patch
-        run: python .github/scripts/phase14_saved_lineup_patch.py
       - run: npx prettier . --write
-      - name: Commit implementation and formatting
+      - name: Commit formatting
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -33,5 +31,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "feat: manage saved lineups from Player Hub"
+          git commit -m "style: format Phase 14 saved lineup changes"
           git push origin HEAD:feat/phase14-saved-lineup-ux
