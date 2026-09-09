@@ -1,227 +1,144 @@
-# Phase 14 Player Hub Foundation — Implementation Plan
+# Phase 14 Player Hub Foundation Implementation Plan
 
-> Execute with TDD. Keep PR14-1 limited to persistence/domain/action foundations; do not add Player Hub or saved-lineup UI in this PR.
+> **Execution:** Use TDD and keep PR14-1 limited to persistence, domain, and authoritative-action foundations. Player Hub UI belongs to PR14-2 and saved-lineup UI belongs to PR14-3.
 
-## Goal
+**Goal:** Persist real player growth history and coach planning state, migrate v7 saves safely to schema v8, and expose authoritative actions for development priorities and saved lineup presets.
 
-Persist real player growth history and coach planning state, migrate v7 saves safely to schema v8, and expose authoritative actions for development priorities and saved lineup presets.
+**Architecture:** Extend `GameState` with bounded development history and `teamPlanning`, record real growth only from authoritative `TrainingResult.playerLogs`, reuse the existing team-selection validator for saved presets, and keep the existing separate persistent `teamSelection` unchanged by planning actions.
+
+**Tech Stack:** TypeScript 5.9, Vitest 4, Zod, Cloudflare Worker, existing game-state codec and authoritative Worker action flow.
+
+**Spec:** `docs/superpowers/specs/2026-09-09-phase14-player-hub-2-design.md`
 
 ## Baseline
 
 - Base main SHA: `9faf7eeaa629255bf7a757a23c1b112d7ad32d86`
-- Feature branch: `feat/phase14-player-hub-foundation`
-- Current schema version before this work: 7
-- Existing authoritative training integration: `worker/game/applyGameAction.ts::applyTraining`
-- Existing team-selection validator: `src/domain/team/validateTeamSelection.ts`
+- Branch: `feat/phase14-player-hub-foundation`
+- Current schema before this work: v7
+- Training integration point: `worker/game/applyGameAction.ts::applyTraining`
+- Existing selection validator: `src/domain/team/validateTeamSelection.ts`
 
-## Task 1 — Add RED persistence tests for schema v8
+## Task 1 — RED persistence tests
 
-**Modify:** `tests/unit/persistence/gameStateCodec.test.ts`
+**Files:** create `tests/unit/persistence/phase14GameStateMigration.test.ts`.
 
-Add tests that assert:
+- [x] Assert v7 saves migrate to v8.
+- [x] Assert migration adds empty `history.playerDevelopmentWeeks`.
+- [x] Assert migration adds empty `teamPlanning`.
+- [x] Assert v6 school-management migration still survives the additional v8 step.
+- [ ] Confirm the focused expectations fail before implementation.
 
-1. a v7 save migrates to v8;
-2. migration adds `history.playerDevelopmentWeeks = []`;
-3. migration adds empty `teamPlanning`;
-4. roundtrip preserves valid development history and saved lineup data;
-5. malformed planning/history payloads are rejected.
+## Task 2 — RED development-history tests
 
-Run focused test and confirm RED because schema v8 fields do not exist yet.
+**Files:** create `tests/unit/domain/player/playerDevelopmentHistory.test.ts`.
 
-## Task 2 — Add RED domain tests for growth-history retention
+- [x] Define the builder contract from authoritative training logs.
+- [x] Require cloned ability deltas.
+- [x] Require duplicate-week idempotency.
+- [x] Require 52-week retention.
+- [ ] Confirm RED before implementation.
 
-**Create:** `tests/unit/domain/player/playerDevelopmentHistory.test.ts`
+## Task 3 — RED team-planning tests
 
-Test a pure helper contract:
+**Files:** create `tests/unit/domain/team/teamPlanning.test.ts`.
 
-- builds a persisted week from real `TrainingResult.playerLogs`;
-- clones ability changes;
-- duplicate week append is idempotent;
-- 53rd append drops only the oldest record;
-- final order stays chronological/insertion order.
+- [x] Require an empty default planning state.
+- [x] Require 0–3 unique user-roster priority IDs.
+- [x] Require rejection of duplicates, excessive IDs, and non-roster IDs.
+- [x] Require trimmed saved-lineup names, slot replacement, deletion, and deep cloning.
+- [x] Require existing team-selection validation for saved presets.
+- [ ] Confirm RED before implementation.
 
-Run focused test and confirm RED because helper/module does not exist yet.
+## Task 4 — RED authoritative integration tests
 
-## Task 3 — Add RED domain tests for team planning
+**Files:** create `tests/unit/worker/phase14PlayerHubFoundation.test.ts`.
 
-**Create:** `tests/unit/domain/team/teamPlanning.test.ts`
+- [x] Require direct training to record one real development week.
+- [x] Require automatic advance-week training to record one pre-advance week.
+- [x] Require priority changes without persistent lineup mutation.
+- [x] Require saved-preset save/delete without persistent lineup mutation.
+- [x] Require request-schema support and malformed-payload rejection.
+- [ ] Confirm RED before implementation.
 
-Test pure state helpers:
+## Task 5 — Model and schema types
 
-- default state is empty;
-- valid 1–3 development-priority roster IDs accepted;
-- duplicates rejected;
-- >3 rejected;
-- non-roster IDs rejected;
-- valid preset saved to slots 1–3;
-- occupied slot is replaced;
-- names are trimmed and constrained;
-- invalid team selection rejected;
-- deletion is idempotent;
-- saved selection is deep-cloned.
+**Files:** modify `src/domain/model/GameState.ts`; create `src/domain/team/teamPlanningTypes.ts`.
 
-Run focused test and confirm RED.
+- [ ] Set `CURRENT_GAME_SCHEMA_VERSION` to 8.
+- [ ] Add development-week types and `playerDevelopmentWeeks` to `GameHistory`.
+- [ ] Add required `teamPlanning` to `GameState`.
+- [ ] Define saved-lineup slot, preset, and team-planning types.
 
-## Task 4 — Add RED authoritative action tests
+## Task 6 — Development-history domain helper
 
-**Modify:** `tests/unit/worker/applyGameAction.test.ts`
+**Files:** create `src/domain/player/playerDevelopmentHistory.ts`.
 
-Add tests:
+- [ ] Add `MAX_PLAYER_DEVELOPMENT_WEEKS = 52`.
+- [ ] Build a persisted week from pre-training state and `TrainingResult`.
+- [ ] Copy ability-change objects.
+- [ ] Make duplicate week appends idempotent.
+- [ ] Retain only the newest 52 entries.
 
-- direct `training` records one development week matching returned `TrainingResult`;
-- automatic `advance-week` training records one development week using the pre-advance date/week;
-- `set-development-priorities` updates planning without changing `teamSelection`;
-- invalid priorities throw `GameRuleConflictError`;
-- `save-lineup-preset` stores a valid selection without changing regular `teamSelection`;
-- invalid saved selection throws;
-- `delete-lineup-preset` removes only the requested slot.
+## Task 7 — Team-planning domain helper
 
-Run focused test and confirm RED.
+**Files:** create `src/domain/team/teamPlanning.ts`.
 
-## Task 5 — Add RED request-contract tests
+- [ ] Add `createDefaultTeamPlanning()`.
+- [ ] Add development-priority validation and immutable update.
+- [ ] Add saved-preset save/replace/delete helpers.
+- [ ] Reuse `validateTeamSelection` for preset validity.
+- [ ] Deep-clone saved selections.
 
-**Modify:** `tests/unit/worker/gameAction.test.ts`
+## Task 8 — New-game initialization and migration
 
-Add route-level validation tests for:
+**Files:** modify `src/domain/generation/generateWorld.ts`; modify `src/persistence/gameStateCodec.ts`.
 
-- max three priority IDs;
-- valid preset save request;
-- invalid slot/name or extra client-computed fields rejected before mutation.
+- [ ] Initialize empty `teamPlanning` for new games.
+- [ ] Add strict Zod schemas for development history and team planning.
+- [ ] Add explicit v7 → v8 migration.
+- [ ] Preserve the v6 → v7 school-management step before v8 initialization.
+- [ ] Ensure all older supported migrations end at v8.
 
-Run focused test and confirm RED.
+## Task 9 — Authoritative request schema
 
-## Task 6 — Implement schema/model types
+**Files:** modify `worker/game/actionSchema.ts`.
 
-**Modify:** `src/domain/model/GameState.ts`
+- [ ] Add `set-development-priorities` with max three IDs.
+- [ ] Add `save-lineup-preset` with slot 1–3, trimmed name max 24, and existing selection schema.
+- [ ] Add `delete-lineup-preset` with slot 1–3.
+- [ ] Update the `GameAction` union.
 
-- set `CURRENT_GAME_SCHEMA_VERSION = 8`;
-- add `PlayerDevelopmentWeek` / per-player entry types to `GameHistory`;
-- initialize `playerDevelopmentWeeks` in `createEmptyGameHistory()`;
-- add required `teamPlanning: TeamPlanningState` to `GameState`.
+## Task 10 — Authoritative mutations and growth recording
 
-**Create:** `src/domain/team/teamPlanningTypes.ts`
+**Files:** modify `worker/game/applyGameAction.ts`.
 
-- `SavedLineupSlot`;
-- `SavedLineupPreset`;
-- `TeamPlanningState`.
-
-## Task 7 — Implement pure growth-history domain helper
-
-**Create:** `src/domain/player/playerDevelopmentHistory.ts`
-
-Implement:
-
-- `MAX_PLAYER_DEVELOPMENT_WEEKS = 52`;
-- builder from pre-training state + `TrainingResult`;
-- append helper with `(year, week, date)` idempotency;
-- immutable copies and 52-entry retention.
-
-Run Task 2 tests GREEN.
-
-## Task 8 — Implement pure team-planning domain helpers
-
-**Create:** `src/domain/team/teamPlanning.ts`
-
-Implement:
-
-- `createDefaultTeamPlanning()`;
-- `setDevelopmentPriorities(...)`;
-- `saveLineupPreset(...)`;
-- `deleteLineupPreset(...)`;
-- validation error type/codes as needed.
-
-Reuse `validateTeamSelection`; validate IDs against the user's school roster; deep clone saved selections.
-
-Run Task 3 tests GREEN.
-
-## Task 9 — Initialize new games and migrate saves
-
-**Modify:** `src/domain/generation/generateWorld.ts`
-
-- initialize `teamPlanning` using `createDefaultTeamPlanning()`.
-
-**Modify:** `src/persistence/gameStateCodec.ts`
-
-- add strict Zod schemas for development weeks and team planning;
-- add `migrateVersionSeven()`;
-- ensure v6 migration first builds v7 school-management state, then flows through v7 → v8;
-- ensure all earlier migrations eventually reach v8.
-
-Run Task 1 tests GREEN plus all persistence tests.
-
-## Task 10 — Add authoritative action schemas
-
-**Modify:** `worker/game/actionSchema.ts`
-
-Add strict actions:
-
-- `set-development-priorities` with `playerIds` max 3;
-- `save-lineup-preset` with slot 1|2|3, trimmed name min1 max24, and existing team-selection schema;
-- `delete-lineup-preset` with slot 1|2|3.
-
-Update `GameAction` union.
-
-Run Task 5 focused tests; schema-level cases should turn GREEN after this task.
-
-## Task 11 — Integrate authoritative mutations and growth recording
-
-**Modify:** `worker/game/applyGameAction.ts`
-
-- in `applyTraining`, build and append player-development history after successful training resolution and before weekly completion is returned;
-- preserve the pre-training date/year/week when building the entry;
-- implement authoritative priority action using team-planning helper;
-- implement save/delete preset actions;
-- map domain validation failures to `GameRuleConflictError` stable codes;
-- do not modify returned persistent `teamSelection` for planning actions.
-
-Run Task 4 tests GREEN.
-
-## Task 12 — Update durable project context
-
-**Modify:** `docs/PROJECT_CONTEXT.md`
-
-Record that Phase14 PR14-1 foundation now includes:
-
-- schema v8;
-- 52-week real development history;
-- development priorities;
-- saved lineup persistence/actions;
-- PR14-2 remains the next UI phase.
-
-Do not state CI/merge completion until verified.
-
-## Task 13 — Full verification
-
-Run:
-
-```bash
-npm run format:check
-npm run lint
-npm run typecheck
-npm test
-npm run build
-npm run verify
-```
-
-Then push/open Draft PR and require:
-
-- dependency-audit GREEN;
-- quality GREEN;
-- mobile-e2e GREEN.
-
-Inspect changed filenames and critical diffs for accidental files, secrets, generated artifacts or UI scope creep.
-
-Mark ready, merge with expected head SHA, then verify the `main` push workflow for the merge SHA has all three required jobs GREEN.
+- [ ] Append development history after successful training resolution.
+- [ ] Use the pre-training date, academic year, and week.
+- [ ] Route priority and saved-preset actions through domain helpers.
+- [ ] Map planning validation failures to stable `GameRuleConflictError` codes.
+- [ ] Keep the returned persistent `teamSelection` unchanged for planning actions.
+
+## Task 11 — Durable handoff context
+
+**Files:** modify `docs/PROJECT_CONTEXT.md`.
+
+- [ ] Record schema v8 and the PR14-1 foundation once implemented.
+- [ ] Keep PR14-2 as the next unfinished Player Hub UI phase.
+- [ ] Do not claim merge or CI completion until fresh evidence exists.
+
+## Task 12 — Verification and merge
+
+- [ ] Run `npm run format:check`.
+- [ ] Run `npm run lint`.
+- [ ] Run `npm run typecheck`.
+- [ ] Run `npm test`.
+- [ ] Run `npm run build`.
+- [ ] Run `npm run verify`.
+- [ ] Require PR `dependency-audit`, `quality`, and `mobile-e2e` GREEN.
+- [ ] Inspect changed filenames and critical diffs.
+- [ ] Mark PR ready and merge with expected head SHA.
+- [ ] Require post-merge main `dependency-audit`, `quality`, and `mobile-e2e` GREEN.
 
 ## Scope guard
 
-Do not implement in PR14-1:
-
-- roster filters or sorting UI;
-- growth charts;
-- Player Hub card redesign;
-- priority toggle UI;
-- saved-lineup management UI;
-- pre-match saved-lineup picker;
-- tactics or match-command changes;
-- hidden growth bonuses for priority players.
+PR14-1 must not add roster filters, sorting UI, growth charts, Player Hub card redesign, priority controls, saved-lineup management UI, pre-match saved-lineup loading, tactics, match-command changes, or hidden growth bonuses for priority players.
