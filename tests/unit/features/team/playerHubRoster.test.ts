@@ -76,7 +76,7 @@ describe("Player Hub roster selectors", () => {
       { length: 13 },
       (_, index) =>
         developmentWeek(
-          `2026-06-${String(index + 1).padStart(2, "0")}`,
+          `2026-06-${String(index + 1).padStart(2, "0")}` as GameState["date"],
           index + 1,
           [
             {
