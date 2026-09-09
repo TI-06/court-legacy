@@ -89,7 +89,9 @@ for (const width of [320, 360, 390, 414, 480]) {
     await savedPreset.click();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("button", { name: "この編成で試合開始" }).click();
+    await page
+      .getByRole("button", { name: "この編成・戦術で試合開始" })
+      .click();
     await expect(
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
