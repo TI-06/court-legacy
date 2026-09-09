@@ -27,86 +27,60 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str) -> None:
+          def replace(path: str, old: str, new: str) -> None:
               file = Path(path)
               text = file.read_text()
               if old not in text:
-                  raise SystemExit(f"expected text not found in {path}: {old[:100]!r}")
+                  raise SystemExit(f"expected marker not found in {path}: {old[:80]!r}")
               file.write_text(text.replace(old, new, 1))
 
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
-              '''import {
-            repositionTeamSelection,
-            type TeamPlacement,
-          } from "../../domain/team/repositionTeamSelection";
-          import { validateTeamSelection } from "../../domain/team/validateTeamSelection";''',
-              '''import {
-            repositionTeamSelection,
-            type TeamPlacement,
-          } from "../../domain/team/repositionTeamSelection";
-          import { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";
-          import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
-          import { validateTeamSelection } from "../../domain/team/validateTeamSelection";''',
+          team = "src/features/team/TeamScreen.tsx"
+          replace(
+              team,
+              '} from "../../domain/team/repositionTeamSelection";\nimport { validateTeamSelection } from "../../domain/team/validateTeamSelection";',
+              '} from "../../domain/team/repositionTeamSelection";\nimport { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";\nimport type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";\nimport { validateTeamSelection } from "../../domain/team/validateTeamSelection";',
           )
-
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
+          replace(
+              team,
+              'interface TeamScreenProps {\n  state: GameState;\n  selection: TeamSelection;\n  onChange: (selection: TeamSelection) => void;\n  pending?: boolean;\n}',
               '''interface TeamScreenProps {
-            state: GameState;
-            selection: TeamSelection;
-            onChange: (selection: TeamSelection) => void;
-            pending?: boolean;
-          }''',
-              '''interface TeamScreenProps {
-            state: GameState;
-            selection: TeamSelection;
-            onChange: (selection: TeamSelection) => void;
-            pending?: boolean;
-            planningPending?: boolean;
-            onSaveLineupPreset?: (
-              slot: SavedLineupSlot,
-              name: string,
-              selection: TeamSelection,
-            ) => void | Promise<void>;
-            onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
+          state: GameState;
+          selection: TeamSelection;
+          onChange: (selection: TeamSelection) => void;
+          pending?: boolean;
+          planningPending?: boolean;
+          onSaveLineupPreset?: (
+            slot: SavedLineupSlot,
+            name: string,
+            selection: TeamSelection,
+          ) => void | Promise<void>;
+          onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
           }''',
           )
-
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
+          replace(
+              team,
+              'export function TeamScreen({\n  state,\n  selection,\n  onChange,\n  pending = false,\n}: TeamScreenProps) {',
               '''export function TeamScreen({
-            state,
-            selection,
-            onChange,
-            pending = false,
-          }: TeamScreenProps) {
-            const [replacements, setReplacements] = useState<StarterReplacement[]>([]);
-            const [actionError, setActionError] = useState<string | null>(null);''',
-              '''export function TeamScreen({
-            state,
-            selection,
-            onChange,
-            pending = false,
-            planningPending = false,
-            onSaveLineupPreset,
-            onDeleteLineupPreset,
-          }: TeamScreenProps) {
-            const [replacements, setReplacements] = useState<StarterReplacement[]>([]);
-            const [actionError, setActionError] = useState<string | null>(null);
-            const [savedLineupNames, setSavedLineupNames] = useState<
-              Record<SavedLineupSlot, string | undefined>
-            >({ 1: undefined, 2: undefined, 3: undefined });''',
+          state,
+          selection,
+          onChange,
+          pending = false,
+          planningPending = false,
+          onSaveLineupPreset,
+          onDeleteLineupPreset,
+          }: TeamScreenProps) {''',
           )
-
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
-              '''  const issues = validateTeamSelection({
-            state,
-            schoolId: state.userSchoolId,
-            selection,
-          });
-          const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);''',
+          replace(
+              team,
+              '  const [actionError, setActionError] = useState<string | null>(null);',
+              '''  const [actionError, setActionError] = useState<string | null>(null);
+          const [savedLineupNames, setSavedLineupNames] = useState<
+            Record<SavedLineupSlot, string | undefined>
+          >({ 1: undefined, 2: undefined, 3: undefined });''',
+          )
+          replace(
+              team,
+              '  const issues = validateTeamSelection({\n    state,\n    schoolId: state.userSchoolId,\n    selection,\n  });\n  const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);',
               '''  const issues = validateTeamSelection({
             state,
             schoolId: state.userSchoolId,
@@ -116,14 +90,9 @@ jobs:
           const currentLineupValid = issues.length === 0;
           const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);''',
           )
-
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
-              '''  const emitSelection = (next: TeamSelection) => {
-            setReplacements([]);
-            setActionError(null);
-            onChange(next);
-          };''',
+          replace(
+              team,
+              '  const emitSelection = (next: TeamSelection) => {\n    setReplacements([]);\n    setActionError(null);\n    onChange(next);\n  };',
               '''  const savedLineupName = (
             slot: SavedLineupSlot,
             presetName: string | null,
@@ -145,13 +114,8 @@ jobs:
           };''',
           )
 
-          replace_once(
-              "src/features/team/TeamScreen.tsx",
-              '''        <section
-            className="team-panel team-policy-panel"
-            aria-labelledby="policy-heading"
-          >''',
-              '''        <section
+          panel_marker = '        <section\n          className="team-panel team-policy-panel"\n          aria-labelledby="policy-heading"\n        >'
+          panel = '''<section
             className="team-panel saved-lineup-panel"
             aria-labelledby="saved-lineup-heading"
           >
@@ -208,9 +172,7 @@ jobs:
                       {slotView.status === "empty" ? (
                         <button
                           disabled={saveDisabled}
-                          onClick={() =>
-                            saveCurrentLineupToSlot(slotView.slot, null)
-                          }
+                          onClick={() => saveCurrentLineupToSlot(slotView.slot, null)}
                           type="button"
                         >
                           現在の編成を保存
@@ -218,17 +180,10 @@ jobs:
                       ) : (
                         <>
                           <button
-                            disabled={
-                              planningPending || slotView.status !== "valid"
-                            }
+                            disabled={planningPending || slotView.status !== "valid"}
                             onClick={() => {
-                              if (
-                                slotView.status === "valid" &&
-                                slotView.preset
-                              ) {
-                                onChange(
-                                  structuredClone(slotView.preset.selection),
-                                );
+                              if (slotView.status === "valid" && slotView.preset) {
+                                onChange(structuredClone(slotView.preset.selection));
                               }
                             }}
                             type="button"
@@ -249,9 +204,7 @@ jobs:
                           </button>
                           <button
                             disabled={planningPending}
-                            onClick={() =>
-                              void onDeleteLineupPreset?.(slotView.slot)
-                            }
+                            onClick={() => void onDeleteLineupPreset?.(slotView.slot)}
                             type="button"
                           >
                             削除
@@ -268,85 +221,60 @@ jobs:
           <section
             className="team-panel team-policy-panel"
             aria-labelledby="policy-heading"
-          >''',
-          )
+          >'''
+          replace(team, panel_marker, panel)
 
-          replace_once(
-              "src/features/team/PlayerHubScreen.tsx",
-              '''import type { PlayerId } from "../../domain/model/identifiers";
-          import { getPlayerConditionPresentation }''',
-              '''import type { PlayerId } from "../../domain/model/identifiers";
-          import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
-          import { getPlayerConditionPresentation }''',
+          hub = "src/features/team/PlayerHubScreen.tsx"
+          replace(
+              hub,
+              'import type { PlayerId } from "../../domain/model/identifiers";\n',
+              'import type { PlayerId } from "../../domain/model/identifiers";\nimport type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";\n',
           )
-
-          replace_once(
-              "src/features/team/PlayerHubScreen.tsx",
+          replace(
+              hub,
+              '  onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;\n}',
               '''  onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
-          }''',
-              '''  onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
-            onSaveLineupPreset?: (
-              slot: SavedLineupSlot,
-              name: string,
-              selection: TeamSelection,
-            ) => void | Promise<void>;
-            onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
+          onSaveLineupPreset?: (
+            slot: SavedLineupSlot,
+            name: string,
+            selection: TeamSelection,
+          ) => void | Promise<void>;
+          onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
           }''',
           )
-
-          replace_once(
-              "src/features/team/PlayerHubScreen.tsx",
+          replace(
+              hub,
+              '  onChangeTraining,\n  onSetDevelopmentPriorities,\n}: PlayerHubScreenProps) {',
               '''  onChangeTraining,
-            onSetDevelopmentPriorities,
-          }: PlayerHubScreenProps) {''',
-              '''  onChangeTraining,
-            onSetDevelopmentPriorities,
-            onSaveLineupPreset,
-            onDeleteLineupPreset,
+          onSetDevelopmentPriorities,
+          onSaveLineupPreset,
+          onDeleteLineupPreset,
           }: PlayerHubScreenProps) {''',
           )
-
-          replace_once(
-              "src/features/team/PlayerHubScreen.tsx",
-              '''        <TeamScreen onChange={onChange} selection={selection} state={state} />''',
+          replace(
+              hub,
+              '        <TeamScreen onChange={onChange} selection={selection} state={state} />',
               '''        <TeamScreen
-                  onChange={onChange}
-                  onDeleteLineupPreset={onDeleteLineupPreset}
-                  onSaveLineupPreset={onSaveLineupPreset}
-                  pending={planningPending}
-                  planningPending={planningPending}
-                  selection={selection}
-                  state={state}
-                />''',
+          onChange={onChange}
+          onDeleteLineupPreset={onDeleteLineupPreset}
+          onSaveLineupPreset={onSaveLineupPreset}
+          pending={planningPending}
+          planningPending={planningPending}
+          selection={selection}
+          state={state}
+        />''',
           )
 
-          replace_once(
-              "src/app/GameApp.tsx",
-              '''import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-          import type { WeeklyPlan }''',
-              '''import { autoSelectTeam } from "../domain/team/autoSelectTeam";
-          import type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";
-          import type { WeeklyPlan }''',
+          app = "src/app/GameApp.tsx"
+          replace(
+              app,
+              'import { autoSelectTeam } from "../domain/team/autoSelectTeam";\n',
+              'import { autoSelectTeam } from "../domain/team/autoSelectTeam";\nimport type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";\n',
           )
-
-          replace_once(
-              "src/app/GameApp.tsx",
-              '''  const saveDevelopmentPriorities = async (playerIds: PlayerId[]) => {
-            await cloudSession.runAction(
-              { type: "set-development-priorities", playerIds },
-              "重点育成を保存しています…",
-            );
-          };
-
-          const acceptPracticeOffer = async () => {''',
-              '''  const saveDevelopmentPriorities = async (playerIds: PlayerId[]) => {
-            await cloudSession.runAction(
-              { type: "set-development-priorities", playerIds },
-              "重点育成を保存しています…",
-            );
-          };
-
-          const saveLineupPreset = async (
+          replace(
+              app,
+              '  const acceptPracticeOffer = async () => {',
+              '''  const saveLineupPreset = async (
             slot: SavedLineupSlot,
             name: string,
             selection: TeamSelection,
@@ -366,25 +294,19 @@ jobs:
 
           const acceptPracticeOffer = async () => {''',
           )
-
-          replace_once(
-              "src/app/GameApp.tsx",
-              '''        onChangeTraining={changePlayerTraining}
-                  onSetDevelopmentPriorities={saveDevelopmentPriorities}
-                  planningPending={cloudSession.operation.status === "submitting"}''',
-              '''        onChangeTraining={changePlayerTraining}
-                  onDeleteLineupPreset={deleteLineupPreset}
-                  onSaveLineupPreset={saveLineupPreset}
-                  onSetDevelopmentPriorities={saveDevelopmentPriorities}
-                  planningPending={cloudSession.operation.status === "submitting"}''',
+          replace(
+              app,
+              '        onChangeTraining={changePlayerTraining}\n        onSetDevelopmentPriorities={saveDevelopmentPriorities}',
+              '        onChangeTraining={changePlayerTraining}\n        onDeleteLineupPreset={deleteLineupPreset}\n        onSaveLineupPreset={saveLineupPreset}\n        onSetDevelopmentPriorities={saveDevelopmentPriorities}',
           )
 
           css = Path("src/features/team/team-direct.css")
           marker = "/* Phase14 saved lineup management */"
-          if marker not in css.read_text():
-              css.write_text(
-                  css.read_text()
-                  + '''\n\n/* Phase14 saved lineup management */
+          current_css = css.read_text()
+          if marker not in current_css:
+              css.write_text(current_css + '''
+
+          /* Phase14 saved lineup management */
           .saved-lineup-panel {
             min-width: 0;
           }
@@ -486,8 +408,7 @@ jobs:
               grid-template-columns: 1fr;
             }
           }
-          '''
-              )
+          ''')
           PY
       - run: npx prettier . --write
       - name: Commit implementation and formatting
