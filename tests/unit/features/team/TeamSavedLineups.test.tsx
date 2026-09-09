@@ -105,9 +105,7 @@ describe("TeamScreen saved lineups", () => {
     fireEvent.change(within(slot).getByLabelText("保存編成名 スロット2"), {
       target: { value: "速攻型 改" },
     });
-    fireEvent.click(
-      within(slot).getByRole("button", { name: "上書き保存" }),
-    );
+    fireEvent.click(within(slot).getByRole("button", { name: "上書き保存" }));
     expect(onSaveLineupPreset).toHaveBeenCalledWith(2, "速攻型 改", selection);
 
     fireEvent.click(within(slot).getByRole("button", { name: "削除" }));
