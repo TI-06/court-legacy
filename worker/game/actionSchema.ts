@@ -6,6 +6,7 @@ import type {
 } from "../../src/domain/model/SchoolManagement";
 import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
 import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
+import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { SavedLineupSlot } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
@@ -89,6 +90,14 @@ const savedLineupNameSchema = z
   .transform((value) => value.trim())
   .pipe(z.string().min(1).max(24));
 
+export const matchTacticPlanSchema = z
+  .object({
+    serve: z.enum(["safe", "balanced", "aggressive"]),
+    attack: z.enum(["side", "balanced", "quick"]),
+    block: z.enum(["commit", "mixed", "read"]),
+  })
+  .strict();
+
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
   z
@@ -98,6 +107,12 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("team-selection"),
       selection: teamSelectionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("set-team-tactics"),
+      plan: matchTacticPlanSchema,
     })
     .strict(),
   z
@@ -141,6 +156,7 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("advance-week"),
       matchSelection: teamSelectionSchema.optional(),
+      matchTactics: matchTacticPlanSchema.optional(),
     })
     .strict(),
   z
@@ -179,6 +195,7 @@ export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
   | { type: "set-training-plan"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
+  | { type: "set-team-tactics"; plan: MatchTacticPlan }
   | {
       type: "set-team-leadership";
       captainPlayerId: PlayerId;
@@ -197,7 +214,11 @@ export type GameAction =
   | { type: "practice-offer-decline" }
   | { type: "practice-request"; schoolId: SchoolId }
   | { type: "official-match" }
-  | { type: "advance-week"; matchSelection?: TeamSelection }
+  | {
+      type: "advance-week";
+      matchSelection?: TeamSelection;
+      matchTactics?: MatchTacticPlan;
+    }
   | { type: "mark-notification-read"; notificationId: string }
   | { type: "facility-upgrade"; facility: FacilityKey }
   | {

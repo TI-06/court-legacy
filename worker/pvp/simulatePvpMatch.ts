@@ -1,6 +1,7 @@
 import { simulateMatch } from "../../src/domain/match/simulateMatch";
 import { matchId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { PublishedPvpTeamSnapshot } from "../data/PvPStore";
 import { buildPvpSimulationState } from "./buildPvpSimulationState";
@@ -22,6 +23,7 @@ export interface SimulatePvpMatchInput {
   challenger: CloudGameSnapshot;
   defender: PublishedPvpTeamSnapshot;
   matchSeed: string;
+  matchTactics?: MatchTacticPlan;
 }
 
 export interface SimulatePvpMatchResult {
@@ -39,6 +41,7 @@ export function simulatePvpMatch(
       teamSelection: input.challenger.teamSelection,
     },
     defender: input.defender,
+    matchTactics: input.matchTactics,
   });
   const resolved = simulateMatch({
     state: simulation.state,

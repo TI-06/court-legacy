@@ -42,6 +42,7 @@ import {
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
+import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import {
   deleteLineupPreset,
   saveLineupPreset,
@@ -222,6 +223,31 @@ function applyTeamSelection(
   }
 
   return { state, teamSelection: selection };
+}
+
+function applyTeamTactics(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-tactics" }>,
+): AppliedGameAction {
+  const school = state.schools[state.userSchoolId];
+  if (!school) {
+    return conflict("user_school_not_found", "自校の戦術を更新できません");
+  }
+
+  return {
+    state: {
+      ...state,
+      schools: {
+        ...state.schools,
+        [school.id]: {
+          ...school,
+          tactics: applyMatchTacticPlan(school.tactics, action.plan),
+        },
+      },
+    },
+    teamSelection,
+  };
 }
 
 function applyTeamLeadership(
@@ -799,6 +825,8 @@ export function applyGameAction(
       return applyTrainingPlan(state, teamSelection, action);
     case "team-selection":
       return applyTeamSelection(state, action);
+    case "set-team-tactics":
+      return applyTeamTactics(state, teamSelection, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":

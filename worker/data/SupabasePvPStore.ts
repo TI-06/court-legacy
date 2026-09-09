@@ -19,6 +19,13 @@ import type {
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
 
 const jsonObjectSchema = z.object({}).passthrough();
+const publicTacticSummarySchema = z
+  .object({
+    serve: z.enum(["safe", "balanced", "aggressive"]),
+    attack: z.enum(["side", "balanced", "quick"]),
+    block: z.enum(["commit", "mixed", "read"]),
+  })
+  .strict();
 
 const snapshotRowSchema = z.object({
   id: z.string().min(1),
@@ -68,6 +75,7 @@ const opponentRowSchema = z.object({
   wins: z.number().int().nonnegative(),
   losses: z.number().int().nonnegative(),
   current_win_streak: z.number().int().nonnegative(),
+  tactics: publicTacticSummarySchema.nullable().optional(),
 });
 
 const rankingRowSchema = z.object({
@@ -298,6 +306,7 @@ export class SupabasePvPStore implements PvPStore {
         wins: row.wins,
         losses: row.losses,
         currentWinStreak: row.current_win_streak,
+        ...(row.tactics ? { tactics: row.tactics } : {}),
       }),
     );
   }

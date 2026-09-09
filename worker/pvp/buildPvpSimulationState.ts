@@ -8,6 +8,10 @@ import {
   type PlayerId,
   type SchoolId,
 } from "../../src/domain/model/identifiers";
+import {
+  applyMatchTacticPlan,
+  type MatchTacticPlan,
+} from "../../src/domain/team/matchTactics";
 import type { PublishedPvpTeamSnapshot } from "../data/PvPStore";
 
 export interface BuildPvpSimulationStateInput {
@@ -17,6 +21,7 @@ export interface BuildPvpSimulationStateInput {
     teamSelection: TeamSelection;
   };
   defender: PublishedPvpTeamSnapshot;
+  matchTactics?: MatchTacticPlan;
 }
 
 export interface PvpSimulationState {
@@ -175,6 +180,12 @@ export function buildPvpSimulationState(
     challengerPlayerMap,
     defenderPlayerMap,
   );
+  if (input.matchTactics) {
+    challengerSchool.tactics = applyMatchTacticPlan(
+      challengerSchool.tactics,
+      input.matchTactics,
+    );
+  }
   const defenderSchool = remapSchool(
     defenderSourceSchool,
     defenderSchoolId,

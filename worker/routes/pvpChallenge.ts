@@ -3,7 +3,10 @@ import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { pvpJstDayKey, pvpSeasonId } from "../../src/domain/pvp/season";
 import type { GameStore } from "../data/GameStore";
 import type { PvPStore, PublishedPvpTeamSnapshot } from "../data/PvPStore";
-import { teamSelectionSchema } from "../game/actionSchema";
+import {
+  matchTacticPlanSchema,
+  teamSelectionSchema,
+} from "../game/actionSchema";
 import {
   applyGameAction,
   GameRuleConflictError,
@@ -21,6 +24,7 @@ const requestSchema = z
     revision: z.number().int().positive(),
     opponentSnapshotId: z.string().uuid(),
     matchSelection: teamSelectionSchema.optional(),
+    matchTactics: matchTacticPlanSchema.optional(),
   })
   .strict();
 
@@ -291,6 +295,7 @@ export function createPvpChallengeHandler(
       challenger: challengerForMatch,
       defender,
       matchSeed,
+      matchTactics: parsed.data.matchTactics,
     });
 
     try {

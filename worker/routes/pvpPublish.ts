@@ -4,6 +4,7 @@ import { reputationGrade } from "../../src/domain/school/reputation";
 import type { GameStore } from "../data/GameStore";
 import type { PvPStore } from "../data/PvPStore";
 import { json, jsonError } from "../http/json";
+import { freezePublicTactics, readPublicTactics } from "../pvp/publicTactics";
 import type { AuthenticatedRequestHandler } from "../router";
 
 const requestSchema = z
@@ -96,7 +97,7 @@ export function createPvpPublishHandler(
       throw new Error("authoritative school is missing");
     }
 
-    const school = structuredClone(sourceSchool);
+    const school = freezePublicTactics(sourceSchool);
     const roster = sourceSchool.playerIds.map((playerId) => {
       const player = snapshot.state.players[playerId];
       if (!player) {
@@ -124,6 +125,7 @@ export function createPvpPublishHandler(
       reputationRank: rank,
       teamPower: power,
     });
+    const tactics = readPublicTactics(published.school);
 
     return json({
       operationId: parsed.data.operationId,
@@ -136,6 +138,7 @@ export function createPvpPublishHandler(
         teamPower: power,
         academicYear: published.sourceAcademicYear,
         publishedAt: published.publishedAt,
+        ...(tactics ? { tactics } : {}),
       },
     });
   };

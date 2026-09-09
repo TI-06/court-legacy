@@ -1,4 +1,8 @@
 import type { TeamSelection } from "../model/TeamSelection";
+import type {
+  MatchTacticPlan,
+  PublicTacticSummary,
+} from "../team/matchTactics";
 
 export type PvpMatchOutcome = "win" | "loss";
 export type PvpHistoryPerspective = "challenger" | "defender";
@@ -16,6 +20,7 @@ export interface PvpPublishedTeamSummary {
   teamPower: number;
   academicYear: number;
   publishedAt: string;
+  tactics?: PublicTacticSummary;
 }
 
 export interface PvpPublishResponse {
@@ -41,6 +46,7 @@ export interface PvpOpponentSummary {
   wins: number;
   losses: number;
   currentWinStreak: number;
+  tactics?: PublicTacticSummary;
 }
 
 export interface PvpOpponentsResponse {
@@ -54,6 +60,7 @@ export interface PvpChallengeRequest {
   revision: number;
   opponentSnapshotId: string;
   matchSelection?: TeamSelection;
+  matchTactics?: MatchTacticPlan;
 }
 
 export interface PvpPublicSetResult {
