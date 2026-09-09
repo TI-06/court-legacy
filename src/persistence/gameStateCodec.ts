@@ -82,7 +82,10 @@ const teamPlanningSchema = z
         message: "development priority player IDs must be unique",
       });
     }
-    if (new Set(planning.savedLineups.map((preset) => preset.slot)).size !== planning.savedLineups.length) {
+    if (
+      new Set(planning.savedLineups.map((preset) => preset.slot)).size !==
+      planning.savedLineups.length
+    ) {
       context.addIssue({
         code: "custom",
         message: "saved lineup slots must be unique",
