@@ -125,8 +125,12 @@ describe("TeamScreen saved lineups", () => {
     state.schools[state.userSchoolId]!.playerIds = state.schools[
       state.userSchoolId
     ]!.playerIds.filter((id) => id !== removedId);
+    const currentSelection = autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    });
 
-    renderSavedLineups({ state, selection });
+    renderSavedLineups({ state, selection: currentSelection });
     const slot = screen.getByTestId("saved-lineup-slot-1");
 
     expect(within(slot).getByText("再設定が必要")).toBeVisible();
