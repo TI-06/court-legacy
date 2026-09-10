@@ -6,6 +6,7 @@ import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
   CreatePvpMatchSessionInput,
+  PersistedPvpMatchCommandReceipt,
   PersistedPvpMatchSession,
   PersistedPvpOperation,
   PublishedPvpTeamSnapshot,
@@ -68,6 +69,12 @@ const matchSessionRowSchema = z.object({
 const savedMatchSessionCommandRowSchema = matchSessionRowSchema.extend({
   replayed: z.boolean(),
   command_response: z.unknown(),
+});
+
+const matchSessionCommandReceiptRowSchema = z.object({
+  command_id: z.string().min(1),
+  command: z.unknown(),
+  public_response: z.unknown(),
 });
 
 const committedMatchRowSchema = z.object({
@@ -322,6 +329,39 @@ export class SupabasePvPStore implements PvpMatchSessionStore {
         "PvP match session lookup response has duplicate rows",
       );
     return mapMatchSession(rows[0]);
+  }
+
+  async getMatchSessionCommandReceipt(
+    challengerUserId: string,
+    operationId: string,
+    commandId: string,
+  ): Promise<PersistedPvpMatchCommandReceipt | null> {
+    const { data, error } = await this.client.rpc(
+      "get_pvp_match_session_command_receipt",
+      {
+        p_challenger_user_id: challengerUserId,
+        p_operation_id: operationId,
+        p_command_id: commandId,
+      },
+    );
+    if (error) throwRpcError("PvP match session command receipt lookup", error);
+    const rows = parseRows(
+      data,
+      matchSessionCommandReceiptRowSchema,
+      "PvP match session command receipt response",
+    );
+    if (rows.length === 0) return null;
+    if (rows.length !== 1) {
+      throw new PvPStoreDataError(
+        "PvP match session command receipt response has duplicate rows",
+      );
+    }
+    const row = rows[0]!;
+    return {
+      commandId: row.command_id,
+      command: row.command,
+      publicResponse: row.public_response,
+    };
   }
 
   async saveMatchSessionCommand(

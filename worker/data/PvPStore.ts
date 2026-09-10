@@ -80,6 +80,12 @@ export interface SavedPvpMatchSessionCommand {
   commandResponse: unknown;
 }
 
+export interface PersistedPvpMatchCommandReceipt {
+  commandId: string;
+  command: unknown;
+  publicResponse: unknown;
+}
+
 export interface StorePvpMatchSessionFinalResponseInput {
   challengerUserId: string;
   operationId: string;
@@ -193,6 +199,11 @@ export interface PvpMatchSessionStore extends PvPStore {
     challengerUserId: string,
     operationId: string,
   ): Promise<PersistedPvpMatchSession | null>;
+  getMatchSessionCommandReceipt(
+    challengerUserId: string,
+    operationId: string,
+    commandId: string,
+  ): Promise<PersistedPvpMatchCommandReceipt | null>;
   saveMatchSessionCommand(
     input: SavePvpMatchSessionCommandInput,
   ): Promise<SavedPvpMatchSessionCommand>;

@@ -200,6 +200,31 @@ as $$
   limit 1;
 $$;
 
+create or replace function public.get_pvp_match_session_command_receipt(
+  p_challenger_user_id uuid,
+  p_operation_id text,
+  p_command_id text
+)
+returns table(
+  command_id text,
+  command jsonb,
+  public_response jsonb
+)
+language sql
+security definer
+set search_path = ''
+as $$
+  select
+    receipts.command_id,
+    receipts.command,
+    receipts.public_response
+  from public.pvp_match_command_receipts as receipts
+  where receipts.challenger_user_id = p_challenger_user_id
+    and receipts.operation_id = btrim(p_operation_id)
+    and receipts.command_id = btrim(p_command_id)
+  limit 1;
+$$;
+
 create or replace function public.save_pvp_match_session_command(
   p_challenger_user_id uuid,
   p_operation_id text,
@@ -418,10 +443,12 @@ $$;
 
 revoke execute on function public.create_pvp_match_session(uuid, text, uuid, bigint, bigint, jsonb, jsonb) from public, anon, authenticated;
 revoke execute on function public.get_pvp_match_session(uuid, text) from public, anon, authenticated;
+revoke execute on function public.get_pvp_match_session_command_receipt(uuid, text, text) from public, anon, authenticated;
 revoke execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) from public, anon, authenticated;
 revoke execute on function public.store_pvp_match_session_final_response(uuid, text, jsonb) from public, anon, authenticated;
 
 grant execute on function public.create_pvp_match_session(uuid, text, uuid, bigint, bigint, jsonb, jsonb) to service_role;
 grant execute on function public.get_pvp_match_session(uuid, text) to service_role;
+grant execute on function public.get_pvp_match_session_command_receipt(uuid, text, text) to service_role;
 grant execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) to service_role;
 grant execute on function public.store_pvp_match_session_final_response(uuid, text, jsonb) to service_role;
