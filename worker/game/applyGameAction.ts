@@ -16,6 +16,11 @@ import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/o
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
 import {
+  applyMatchCommand,
+  MatchCommandValidationError,
+} from "../../src/domain/match/applyMatchCommand";
+import {
+  resumeMatch,
   simulateMatch,
   startMatch,
   type MatchStepResult,
@@ -505,6 +510,114 @@ function applyPracticeMatch(
   }
 }
 
+function applyPracticeMatchCommand(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "match-command" }>,
+): AppliedGameAction {
+  const activeMatch = state.activeMatch;
+  const scheduledOpponentId =
+    state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  if (!activeMatch?.runtime || !scheduledOpponentId) {
+    return conflict(
+      "active_practice_match_not_found",
+      "進行中の練習試合がありません",
+    );
+  }
+  if (activeMatch.runtime.controlledSchoolId !== state.userSchoolId) {
+    return conflict(
+      "active_practice_match_not_controlled",
+      "この試合では監督指示を実行できません",
+    );
+  }
+  const opponentSchoolId =
+    activeMatch.homeSchoolId === state.userSchoolId
+      ? activeMatch.awaySchoolId
+      : activeMatch.awaySchoolId === state.userSchoolId
+        ? activeMatch.homeSchoolId
+        : null;
+  if (opponentSchoolId !== scheduledOpponentId) {
+    return conflict(
+      "active_practice_match_mismatch",
+      "進行中の試合と練習試合予定が一致しません",
+    );
+  }
+
+  try {
+    const commandedMatch = applyMatchCommand({
+      state,
+      match: activeMatch,
+      schoolId: state.userSchoolId,
+      command: action.command,
+    });
+    const simulation = resumeMatch({ state, match: commandedMatch });
+    const resumedState: GameState = {
+      ...state,
+      randomCursor: simulation.match.randomCursor,
+      activeMatch: simulation.match,
+    };
+
+    if (!simulation.analysis) {
+      return {
+        state: resumedState,
+        teamSelection,
+        outcome: buildPracticePresentation(resumedState, simulation),
+      };
+    }
+
+    const recorded = recordMatchOutcome(resumedState, {
+      matchId: simulation.match.id,
+      date: state.date,
+      homeSchoolId: simulation.match.homeSchoolId,
+      awaySchoolId: simulation.match.awaySchoolId,
+      winnerSchoolId: simulation.analysis.winnerSchoolId,
+      homeSetsWon: simulation.match.homeSetsWon,
+      awaySetsWon: simulation.match.awaySetsWon,
+      tournamentId: null,
+    });
+    const completedState = markWeeklyActionCompleted(
+      recorded,
+      "practice-match",
+    );
+    const finalizedState: GameState = {
+      ...completedState,
+      weeklySchedule: {
+        ...completedState.weeklySchedule,
+        practiceMatch: {
+          ...completedState.weeklySchedule.practiceMatch,
+          scheduledOpponentId: null,
+          scheduledBy: null,
+        },
+        recentPracticeMatches: [
+          ...completedState.weeklySchedule.recentPracticeMatches,
+          {
+            opponentSchoolId: scheduledOpponentId,
+            date: state.date,
+          },
+        ].slice(-8),
+      },
+    };
+    return {
+      state: finalizedState,
+      teamSelection,
+      outcome: buildPracticePresentation(finalizedState, simulation),
+    };
+  } catch (error) {
+    if (error instanceof MatchCommandValidationError) {
+      return conflict(error.code.replaceAll("-", "_"), error.message);
+    }
+    if (error instanceof GameRuleConflictError) {
+      throw error;
+    }
+    return conflict(
+      "match_command_unavailable",
+      error instanceof Error
+        ? error.message
+        : "試合中の監督指示を処理できません",
+    );
+  }
+}
+
 function applyOfficialMatch(
   state: GameState,
   teamSelection: TeamSelection,
@@ -621,17 +734,22 @@ function teamPresentation(
   if (fallback) return { schoolId, ...fallback };
   throw new Error(`match presentation school not found: ${schoolId}`);
 }
-function practicePresentation(
+function buildPracticePresentation(
   state: GameState,
-  applied: AppliedGameAction,
+  simulation: MatchStepResult,
 ): PendingMatchPresentation {
-  const simulation = applied.outcome as MatchStepResult;
   return {
     kind: "practice",
     simulation,
     homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
     awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
   };
+}
+function practicePresentation(
+  state: GameState,
+  applied: AppliedGameAction,
+): PendingMatchPresentation {
+  return buildPracticePresentation(state, applied.outcome as MatchStepResult);
 }
 function officialPresentation(
   state: GameState,
@@ -912,10 +1030,7 @@ export function applyGameAction(
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
     case "match-command":
-      return conflict(
-        "match_command_not_available",
-        "試合中の監督指示は現在処理できません",
-      );
+      return applyPracticeMatchCommand(state, teamSelection, action);
     case "official-match":
       return applyOfficialMatch(state, teamSelection);
     case "advance-week":
