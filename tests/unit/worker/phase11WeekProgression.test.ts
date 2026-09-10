@@ -155,10 +155,9 @@ describe("Phase11 week progression", () => {
       first.state.weeklySchedule.practiceMatch.scheduledOpponentId,
     ).not.toBeNull();
 
-    const reloaded = applyGameAction(
-      snapshotAfter(game, first),
-      { type: "advance-week" },
-    );
+    const reloaded = applyGameAction(snapshotAfter(game, first), {
+      type: "advance-week",
+    });
     expect(reloaded.state.date).toBe(game.state.date);
     expect(reloaded.state.activeMatch).toEqual(first.state.activeMatch);
     expect(reloaded.outcome).toMatchObject({
