@@ -8,8 +8,9 @@ import type {
 import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
+  PersistedPvpMatchSession,
   PublishedPvpTeamSnapshot,
-  PvPStore,
+  PvpMatchSessionStore,
 } from "../../../worker/data/PvPStore";
 import { createPvpChallengeHandler } from "../../../worker/routes/pvpChallenge";
 
@@ -114,8 +115,10 @@ function committedMatch(
 
 function pvpStore(
   defender: PublishedPvpTeamSnapshot | null = createDefenderSnapshot(),
-): PvPStore & { committed: CommitRatedPvpMatchInput[] } {
-  const store: PvPStore & { committed: CommitRatedPvpMatchInput[] } = {
+): PvpMatchSessionStore & { committed: CommitRatedPvpMatchInput[] } {
+  const store: PvpMatchSessionStore & {
+    committed: CommitRatedPvpMatchInput[];
+  } = {
     committed: [],
     publishSnapshot: vi.fn(async () => {
       throw new Error("not used");
@@ -129,6 +132,17 @@ function pvpStore(
     listOpponents: vi.fn(async () => []),
     listRanking: vi.fn(async () => []),
     listHistory: vi.fn(async () => []),
+    createMatchSession: vi.fn(async () => {
+      throw new Error("not used");
+    }),
+    getMatchSession: vi.fn(async () => null),
+    getMatchSessionCommandReceipt: vi.fn(async () => null),
+    saveMatchSessionCommand: vi.fn(async () => {
+      throw new Error("not used");
+    }),
+    storeMatchSessionFinalResponse: vi.fn(async () => {
+      throw new Error("not used");
+    }),
   };
   return store;
 }
