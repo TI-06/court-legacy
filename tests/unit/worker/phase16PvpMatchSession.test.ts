@@ -76,9 +76,9 @@ describe("Phase 16 private resumable PvP match session", () => {
     );
     expect(first.segment.status).toBe("in-progress");
     expect(first.segment.phase).toBe("coach-decision");
-    expect(first.session.match.eventLog.some((event) => event.type === "match-end")).toBe(
-      false,
-    );
+    expect(
+      first.session.match.eventLog.some((event) => event.type === "match-end"),
+    ).toBe(false);
 
     const beforeEvents = structuredClone(first.session.match.eventLog);
     const resumed = resumePvpMatchSession({
@@ -86,9 +86,9 @@ describe("Phase 16 private resumable PvP match session", () => {
       command: continueCommand(),
     });
 
-    expect(resumed.session.match.eventLog.slice(0, beforeEvents.length)).toEqual(
-      beforeEvents,
-    );
+    expect(
+      resumed.session.match.eventLog.slice(0, beforeEvents.length),
+    ).toEqual(beforeEvents);
     expect(resumed.session.match.eventLog.length).toBeGreaterThan(
       beforeEvents.length,
     );
@@ -99,9 +99,10 @@ describe("Phase 16 private resumable PvP match session", () => {
 
   it("keeps defender coaching deterministic and consumes no additional randomness", () => {
     const started = startFixture();
-    const defender = started.session.simulationState.schools[
-      started.session.defenderSchoolId
-    ]!;
+    const defender =
+      started.session.simulationState.schools[
+        started.session.defenderSchoolId
+      ]!;
     const cursorBefore = started.session.match.randomCursor;
 
     const first = chooseAutomaticDefenderCommand({
