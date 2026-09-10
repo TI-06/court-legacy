@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { startMatch } from "../../../../src/domain/match/simulateMatch";
 import type { CoachDecisionReason } from "../../../../src/domain/model/Match";
-import { matchId } from "../../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type PlayerId,
+} from "../../../../src/domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
@@ -41,7 +44,7 @@ function findDecision(reason: CoachDecisionReason) {
 
 function playerName(
   state: ReturnType<typeof createDemoGame>,
-  playerId: string,
+  playerId: PlayerId,
 ): string {
   const player = state.players[playerId];
   if (!player) throw new Error(`player fixture missing: ${playerId}`);
