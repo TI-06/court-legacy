@@ -253,7 +253,9 @@ describe("Phase16 resumable practice match session", () => {
       current.state.weeklySchedule.practiceMatch.scheduledOpponentId,
     ).toBeNull();
     expect(
-      current.state.history.matches.filter((match) => match.matchId === matchId),
+      current.state.history.matches.filter(
+        (match) => match.matchId === matchId,
+      ),
     ).toHaveLength(1);
     expect(
       current.state.weeklySchedule.recentPracticeMatches.filter(
