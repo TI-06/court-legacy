@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
 import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
