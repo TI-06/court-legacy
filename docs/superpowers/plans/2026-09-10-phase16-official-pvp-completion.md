@@ -29,12 +29,14 @@
 ### Task 1: Resumable official tournament sessions
 
 **Files:**
+
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `tests/unit/worker/officialMatchAction.test.ts`
 - Create: `tests/unit/worker/phase16OfficialMatchSession.test.ts`
 - Review: `src/domain/tournament/progressOfficialTournaments.ts`
 
 **Interfaces:**
+
 - Consumes: `startMatch`, `applyMatchCommand`, `resumeMatch`, `findDueUserOfficialMatch`, `recordOfficialTournamentOutcome`, `advanceOfficialTournamentsThroughWeek`.
 - Produces: official `PendingMatchPresentation` with `MatchStepResult`, and `match-command` routing for either scheduled practice or the authoritative due official match.
 
@@ -52,6 +54,7 @@
 ### Task 2: Server-private resumable PvP engine and deterministic defender coaching
 
 **Files:**
+
 - Modify: `worker/pvp/simulatePvpMatch.ts`
 - Create: `worker/pvp/pvpMatchSession.ts`
 - Create: `worker/pvp/automaticDefenderCoach.ts`
@@ -61,6 +64,7 @@
 - Modify: `src/domain/match/simulateMatch.ts` only if a narrow internal automatic-opponent boundary hook is required.
 
 **Interfaces:**
+
 - Produces server-only `PvpServerMatchSession` plus sanitized `PvpMatchSegment`.
 
 - [ ] **Step 1: RED-test challenger-controlled start/resume.** Fixed seed + frozen snapshots must stop at challenger coach decisions without future rallies persisted.
@@ -77,6 +81,7 @@
 ### Task 3: Atomic PvP session persistence and command idempotency
 
 **Files:**
+
 - Create: `supabase/migrations/202609100001_phase16_pvp_match_sessions.sql`
 - Modify: `worker/data/PvPStore.ts`
 - Modify: `worker/data/SupabasePvPStore.ts`
@@ -85,6 +90,7 @@
 - Modify: `tests/unit/worker/pvpMigration.test.ts`
 
 **Interfaces:**
+
 - Keeps the full raw match/session server-private.
 - Adds create/load session, atomic command result persistence keyed by `commandId`, and final-response persistence.
 
@@ -101,6 +107,7 @@
 ### Task 4: PvP start/status/command routes and strict public contracts
 
 **Files:**
+
 - Modify: `src/domain/pvp/pvpContracts.ts`
 - Modify: `worker/routes/pvpChallenge.ts`
 - Create: `worker/routes/pvpChallengeCommand.ts`
@@ -111,6 +118,7 @@
 - Modify: `tests/unit/worker/router.test.ts`
 
 **Interfaces:**
+
 - `POST /api/pvp/challenge`: create or replay a challenge session.
 - `GET /api/pvp/challenge/session?operationId=<id>`: reload current sanitized segment or canonical final response.
 - `POST /api/pvp/challenge/command`: `{ operationId, commandId, command }`.
@@ -129,6 +137,7 @@
 ### Task 5: Official and PvP MatchScreen client integration
 
 **Files:**
+
 - Modify: concrete API client/type file that currently implements `challengePvpTeam`
 - Modify: `src/app/GameApp.tsx`
 - Modify: `src/features/pvp/PvpScreen.tsx` only for pending/recovery presentation
@@ -138,6 +147,7 @@
 - Create: `tests/unit/app/Phase16PvpMatchCommand.test.tsx`
 
 **Interfaces:**
+
 - Existing `/api/game/action` command handler supports official presentation as well as practice.
 - PvP API adds start/status/command methods returning sanitized public segments.
 
@@ -155,12 +165,14 @@
 ### Task 6: Five-width E2E, final privacy review, and Phase 16 completion
 
 **Files:**
+
 - Create or modify: `tests/e2e/phase16-official-pvp.spec.ts`
 - Modify: `tests/e2e/mobile-layout-audit.spec.ts` only if new state coverage is required
 - Modify: `docs/PROJECT_CONTEXT.md`
 - Modify: this plan to mark completed steps
 
 **Interfaces:**
+
 - Final acceptance across official/PvP UI, server persistence, privacy, and CI.
 
 - [ ] **Step 1: Add official E2E at 320/360/390/414/480.** Verify pre-match, bounded playback, decision, command, final result, bracket progression after completion, and no horizontal overflow.

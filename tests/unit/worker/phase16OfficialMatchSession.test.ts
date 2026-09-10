@@ -128,7 +128,9 @@ describe("Phase16 official match sessions", () => {
     expect(applied.state.activeMatch?.phase).toBe("match-complete");
     expect(applied.state.history.matches).toHaveLength(historyBefore + 1);
     expect(
-      applied.state.history.matches.filter((match) => match.matchId === matchId),
+      applied.state.history.matches.filter(
+        (match) => match.matchId === matchId,
+      ),
     ).toHaveLength(1);
     expect(
       applied.state.officialSeason.interhigh.prefectural.matches.find(
