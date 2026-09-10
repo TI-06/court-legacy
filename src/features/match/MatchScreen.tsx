@@ -7,6 +7,8 @@ import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { MatchCommandPanel } from "./MatchCommandPanel";
+import { buildMatchCommandImpactRows } from "./matchCommandPresentation";
+import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
@@ -269,6 +271,14 @@ function MatchScreenContent({
     presentation?.homeTeam.shortName ?? homeSchool.shortName;
   const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
   const userIsHome = result.match.homeSchoolId === state.userSchoolId;
+  const currentTactics = result.match.runtime
+    ? userIsHome
+      ? result.match.runtime.homeTactics
+      : result.match.runtime.awayTactics
+    : null;
+  const commandImpactRows = matchComplete
+    ? buildMatchCommandImpactRows(state, result.match)
+    : [];
   const userWon = result.analysis?.winnerSchoolId === state.userSchoolId;
   const userShortName = userIsHome ? homeShortName : awayShortName;
   const opponentShortName = userIsHome ? awayShortName : homeShortName;
@@ -325,6 +335,20 @@ function MatchScreenContent({
               </small>
             </article>
           </section>
+
+          {currentTactics ? (
+            <section className="match-tactic-summary" aria-label="現在戦術">
+              <span>
+                サーブ {tacticOptionLabel("serve", currentTactics.serve)}
+              </span>
+              <span>
+                攻撃 {tacticOptionLabel("attack", currentTactics.attack)}
+              </span>
+              <span>
+                ブロック {tacticOptionLabel("block", currentTactics.block)}
+              </span>
+            </section>
+          ) : null}
 
           <section
             className={`match-current-event match-current-event--${currentEvent.tone}`}
@@ -460,6 +484,35 @@ function MatchScreenContent({
             homeName={homeShortName}
             awayName={awayShortName}
           />
+
+          {commandImpactRows.length > 0 ? (
+            <section
+              className="match-command-impact"
+              aria-labelledby="match-command-impact-heading"
+            >
+              <div className="section-heading">
+                <div>
+                  <p className="section-kicker">COACHING LOG</p>
+                  <h2 id="match-command-impact-heading">監督采配</h2>
+                </div>
+              </div>
+              <div className="match-command-impact__list">
+                {commandImpactRows.map((row) => (
+                  <article key={row.sequence}>
+                    <span>
+                      第{row.setNumber}セット ・ {row.homeScore}-{row.awayScore}
+                    </span>
+                    <strong>{row.commandLabel}</strong>
+                    <p>
+                      {row.observedRallies > 0
+                        ? `観測 ${row.observedRallies}ラリー：自校 ${row.schoolPoints} - 相手 ${row.opponentPoints}`
+                        : "指示時点の記録"}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section
             className="match-result-actions match-result-actions--fixed"
