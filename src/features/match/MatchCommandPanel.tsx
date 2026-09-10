@@ -70,6 +70,7 @@ export function MatchCommandPanel({
     reason !== null &&
     reason !== undefined;
 
+  // Draft changes stay match-local until one complete command is submitted.
   const currentPlan =
     runtime && match.homeSchoolId === state.userSchoolId
       ? runtime.homeTactics
