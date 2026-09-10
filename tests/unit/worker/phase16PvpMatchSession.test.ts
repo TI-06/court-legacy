@@ -76,6 +76,7 @@ describe("Phase 16 private resumable PvP match session", () => {
     );
     expect(first.segment.status).toBe("in-progress");
     expect(first.segment.phase).toBe("coach-decision");
+    expect(first.session.finalized).toBe(false);
     expect(
       first.session.match.eventLog.some((event) => event.type === "match-end"),
     ).toBe(false);
