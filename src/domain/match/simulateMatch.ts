@@ -1,6 +1,8 @@
 import type {
+  CoachDecisionReason,
   MatchAnalysis,
   MatchAnalysisFactor,
+  MatchCommand,
   MatchEvent,
   MatchRuntimeState,
   MatchSetState,
@@ -43,13 +45,28 @@ export interface MatchStepResult {
   analysis: MatchAnalysis | null;
 }
 
+export interface AutomaticCoachDecisionInput {
+  state: GameState;
+  match: MatchState;
+  schoolId: SchoolId;
+  reason: CoachDecisionReason;
+}
+
+export type AutomaticCoachPolicy = (
+  input: AutomaticCoachDecisionInput,
+) => Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>;
+
 export interface StartMatchInput extends SimulateMatchInput {
   controlledSchoolId: SchoolId;
+  automaticCoachSchoolId?: SchoolId;
+  automaticCoach?: AutomaticCoachPolicy;
 }
 
 export interface ResumeMatchInput {
   state: GameState;
   match: MatchState;
+  automaticCoachSchoolId?: SchoolId;
+  automaticCoach?: AutomaticCoachPolicy;
 }
 
 type MatchSide = "home" | "away";
@@ -1038,11 +1055,105 @@ function decrementTimeoutBoost(match: MatchState): void {
   }
 }
 
+function automaticDecisionAlreadyConsumed(
+  match: MatchState,
+  schoolId: SchoolId,
+  reason: CoachDecisionReason,
+): boolean {
+  const runtime = runtimeOrThrow(match);
+  return runtime.commandHistory.some(
+    (record) =>
+      record.schoolId === schoolId &&
+      record.setNumber === match.currentSetNumber &&
+      record.decisionReason === reason,
+  );
+}
+
+function recordAutomaticCoachCommand(
+  match: MatchState,
+  schoolId: SchoolId,
+  reason: CoachDecisionReason,
+  command: Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>,
+): void {
+  const runtime = runtimeOrThrow(match);
+  const eventSequence = match.eventLog.length;
+
+  if (command.type === "timeout") {
+    if (reason === "set-break") {
+      throw new Error("automatic coach cannot use timeout at a set break");
+    }
+    if (runtime.timeoutUsedSchoolIds.includes(schoolId)) {
+      throw new Error("automatic coach attempted a duplicate timeout");
+    }
+    runtime.timeoutUsedSchoolIds.push(schoolId);
+    runtime.timeoutBoost = { schoolId, ralliesRemaining: 5 };
+    match.eventLog.push({
+      sequence: match.eventLog.length + 1,
+      type: "timeout",
+      setNumber: match.currentSetNumber,
+      homeScore: runtime.homeScore,
+      awayScore: runtime.awayScore,
+      actorPlayerId: null,
+      targetPlayerId: null,
+      winnerSchoolId: schoolId,
+      detailCode: "timeout.automatic-coach",
+    });
+  }
+
+  runtime.commandHistory.push({
+    sequence: runtime.commandHistory.length + 1,
+    schoolId,
+    setNumber: match.currentSetNumber,
+    homeScore: runtime.homeScore,
+    awayScore: runtime.awayScore,
+    decisionReason: reason,
+    command: structuredClone(command),
+    eventSequence,
+  });
+}
+
+function maybeApplyAutomaticCoachDecision(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId | undefined,
+  reason: CoachDecisionReason,
+  policy: AutomaticCoachPolicy | undefined,
+): void {
+  if (!schoolId || !policy) {
+    return;
+  }
+  const runtime = runtimeOrThrow(match);
+  if (schoolId === runtime.controlledSchoolId) {
+    throw new Error(
+      "automatic coach cannot control the human-controlled school",
+    );
+  }
+  if (schoolId !== match.homeSchoolId && schoolId !== match.awaySchoolId) {
+    throw new Error("automatic coach school must be part of the match");
+  }
+  if (automaticDecisionAlreadyConsumed(match, schoolId, reason)) {
+    return;
+  }
+  if (
+    reason === "opponent-run" &&
+    (runtime.runLength < 4 ||
+      runtime.runWinnerSchoolId === null ||
+      runtime.runWinnerSchoolId === schoolId)
+  ) {
+    return;
+  }
+
+  const command = policy({ state, match, schoolId, reason });
+  recordAutomaticCoachCommand(match, schoolId, reason, command);
+}
+
 function finishSet(
   match: MatchState,
   rallyRuntime: RallyRuntime,
   writer: EventWriter,
   simulationState: GameState,
+  automaticCoachSchoolId?: SchoolId,
+  automaticCoach?: AutomaticCoachPolicy,
 ): MatchStepResult | null {
   const runtime = runtimeOrThrow(match);
   const winnerSide: MatchSide =
@@ -1095,6 +1206,14 @@ function finishSet(
     };
   }
 
+  maybeApplyAutomaticCoachDecision(
+    simulationState,
+    match,
+    automaticCoachSchoolId,
+    "set-break",
+    automaticCoach,
+  );
+
   if (runtime.controlledSchoolId !== null) {
     match.phase = "coach-decision";
     match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
@@ -1111,6 +1230,8 @@ function runUntilBoundary(
   state: GameState,
   sourceMatch: MatchState,
   randomOverride?: RandomSource,
+  automaticCoachSchoolId?: SchoolId,
+  automaticCoach?: AutomaticCoachPolicy,
 ): MatchStepResult {
   const match = structuredClone(sourceMatch) as MatchState;
   const runtime = runtimeOrThrow(match);
@@ -1208,12 +1329,27 @@ function runUntilBoundary(
         runtime.awayScore,
       )
     ) {
-      const completed = finishSet(match, rallyRuntime, writer, simulationState);
+      const completed = finishSet(
+        match,
+        rallyRuntime,
+        writer,
+        simulationState,
+        automaticCoachSchoolId,
+        automaticCoach,
+      );
       if (completed) {
         return completed;
       }
       continue;
     }
+
+    maybeApplyAutomaticCoachDecision(
+      simulationState,
+      match,
+      automaticCoachSchoolId,
+      "opponent-run",
+      automaticCoach,
+    );
 
     if (shouldOpenOpponentRunDecision(match)) {
       match.phase = "coach-decision";
@@ -1226,11 +1362,23 @@ function runUntilBoundary(
 
 export function startMatch(input: StartMatchInput): MatchStepResult {
   const match = createInitialMatchState(input, input.controlledSchoolId);
-  return runUntilBoundary(input.state, match);
+  return runUntilBoundary(
+    input.state,
+    match,
+    undefined,
+    input.automaticCoachSchoolId,
+    input.automaticCoach,
+  );
 }
 
 export function resumeMatch(input: ResumeMatchInput): MatchStepResult {
-  return runUntilBoundary(input.state, input.match);
+  return runUntilBoundary(
+    input.state,
+    input.match,
+    undefined,
+    input.automaticCoachSchoolId,
+    input.automaticCoach,
+  );
 }
 
 export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {

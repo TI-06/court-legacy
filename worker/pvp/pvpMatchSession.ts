@@ -113,7 +113,6 @@ function automaticCoachForSession(
 }
 
 function sideForSchool(
-  match: MatchState,
   challengerSchoolId: SchoolId,
   schoolId: SchoolId | null,
 ): "challenger" | "defender" | null {
@@ -130,7 +129,8 @@ export function buildPvpPublicSegment(
   }
 
   return {
-    status: session.match.phase === "match-complete" ? "complete" : "in-progress",
+    status:
+      session.match.phase === "match-complete" ? "complete" : "in-progress",
     operationId: session.operationId,
     matchId: session.match.id,
     phase: session.match.phase,
@@ -146,14 +146,11 @@ export function buildPvpPublicSegment(
       challengerScore: set.homeScore,
       defenderScore: set.awayScore,
       completed: set.completed,
-      winner: sideForSchool(
-        session.match,
-        session.challengerSchoolId,
-        set.winnerSchoolId,
-      ),
+      winner: sideForSchool(session.challengerSchoolId, set.winnerSchoolId),
     })),
     pendingDecisionReason:
-      session.match.pendingCoachCommandForSchoolId === session.challengerSchoolId
+      session.match.pendingCoachCommandForSchoolId ===
+      session.challengerSchoolId
         ? runtime.pendingDecisionReason
         : null,
     events: session.match.eventLog.map((event) => ({
@@ -162,11 +159,7 @@ export function buildPvpPublicSegment(
       setNumber: event.setNumber,
       challengerScore: event.homeScore,
       defenderScore: event.awayScore,
-      winner: sideForSchool(
-        session.match,
-        session.challengerSchoolId,
-        event.winnerSchoolId,
-      ),
+      winner: sideForSchool(session.challengerSchoolId, event.winnerSchoolId),
       detailCode: event.detailCode,
     })),
   };
