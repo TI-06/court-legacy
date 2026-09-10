@@ -199,7 +199,9 @@ export function createPvpChallengeHandler(
       ) {
         return operationConflict();
       }
-      return json(existingSession.finalResponse ?? existingSession.publicResponse);
+      return json(
+        existingSession.finalResponse ?? existingSession.publicResponse,
+      );
     }
 
     const challenger = await deps.gameStore.getSnapshot(user.id);
@@ -215,8 +217,7 @@ export function createPvpChallengeHandler(
     }
 
     const matchSelection = parsed.data.matchSelection as
-      | TeamSelection
-      | undefined;
+      TeamSelection | undefined;
     let challengerForMatch = challenger;
     if (matchSelection) {
       try {
