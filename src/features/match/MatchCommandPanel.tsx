@@ -40,6 +40,7 @@ function TacticChoiceGroup<Value extends string>({
       <div className="match-command-tactics__choices">
         {options.map((option) => (
           <button
+            aria-label={option.label}
             aria-pressed={value === option.value}
             disabled={pending}
             key={option.value}
