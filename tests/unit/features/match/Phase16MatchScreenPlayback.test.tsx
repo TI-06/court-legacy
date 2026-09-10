@@ -29,10 +29,7 @@ function findIncompleteDecisionMatch() {
       random: new SeededRandom(`phase16-match-screen-${index}`),
       controlledSchoolId: state.userSchoolId,
     });
-    if (
-      result.match.phase === "coach-decision" &&
-      result.analysis === null
-    ) {
+    if (result.match.phase === "coach-decision" && result.analysis === null) {
       return { state, opponent, homeSelection, awaySelection, result };
     }
   }
@@ -41,56 +38,47 @@ function findIncompleteDecisionMatch() {
 }
 
 describe("Phase16 MatchScreen authoritative playback", () => {
-  it(
-    "reveals only the current authoritative segment before showing the coach decision",
-    () => {
-      const fixture = findIncompleteDecisionMatch();
-      const eventCount = fixture.result.match.eventLog.length;
-      const interactiveProps = {
-        onCommand: vi.fn(),
-      } as Record<string, unknown>;
+  it("reveals only the current authoritative segment before showing the coach decision", () => {
+    const fixture = findIncompleteDecisionMatch();
+    const eventCount = fixture.result.match.eventLog.length;
+    const interactiveProps = {
+      onCommand: vi.fn(),
+    } as Record<string, unknown>;
 
-      render(
-        <MatchScreen
-          {...interactiveProps}
-          state={fixture.state}
-          opponent={fixture.opponent}
-          homeSelection={fixture.homeSelection}
-          awaySelection={fixture.awaySelection}
-          homeStrength={calculateSelectionStrength(
-            fixture.state,
-            fixture.homeSelection,
-          )}
-          awayStrength={calculateSelectionStrength(
-            fixture.state,
-            fixture.awaySelection,
-          )}
-          result={fixture.result}
-          reducedMotion={false}
-          onStart={vi.fn()}
-          onReturnHome={vi.fn()}
-        />,
-      );
+    render(
+      <MatchScreen
+        {...interactiveProps}
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={fixture.result}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+      />,
+    );
 
-      expect(screen.getByTestId("event-sequence")).toHaveTextContent(
-        `1 / ${eventCount}`,
-      );
-      expect(
-        screen.queryByRole("region", { name: "監督指示" }),
-      ).toBeNull();
-      expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
+    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
+      `1 / ${eventCount}`,
+    );
+    expect(screen.queryByRole("region", { name: "監督指示" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
 
-      fireEvent.click(
-        screen.getByRole("button", { name: "次の判断まで進む" }),
-      );
+    fireEvent.click(screen.getByRole("button", { name: "次の判断まで進む" }));
 
-      expect(screen.getByTestId("event-sequence")).toHaveTextContent(
-        `${eventCount} / ${eventCount}`,
-      );
-      expect(
-        screen.getByRole("region", { name: "監督指示" }),
-      ).toBeVisible();
-      expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
-    },
-  );
+    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
+      `${eventCount} / ${eventCount}`,
+    );
+    expect(screen.getByRole("region", { name: "監督指示" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
+  });
 });
