@@ -1,0 +1,198 @@
+name: Phase16 Task1 Patch Helper
+
+on:
+  push:
+    branches:
+      - feat/phase16-match-command-ux
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Apply Task1 initial session changes
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('src/domain/calendar/advanceWeekOutcome.ts')
+          text = path.read_text()
+          text = text.replace(
+              'import type { SimulateMatchResult } from "../match/simulateMatch";',
+              'import type { MatchStepResult } from "../match/simulateMatch";',
+          )
+          text = text.replace('  simulation: SimulateMatchResult;', '  simulation: MatchStepResult;')
+          path.write_text(text)
+
+          path = Path('worker/game/actionSchema.ts')
+          text = path.read_text()
+          text = text.replace(
+              'import type { TeamSelection } from "../../src/domain/model/TeamSelection";',
+              'import type { MatchCommand } from "../../src/domain/model/Match";\nimport type { TeamSelection } from "../../src/domain/model/TeamSelection";',
+          )
+          anchor = '''export const matchTacticPlanSchema = z
+            .object({
+              serve: z.enum(["safe", "balanced", "aggressive"]),
+              attack: z.enum(["side", "balanced", "quick"]),
+              block: z.enum(["commit", "mixed", "read"]),
+            })
+            .strict();
+          '''
+          replacement = anchor + '''
+          const matchCommandSchema = z.discriminatedUnion("type", [
+            z.object({ type: z.literal("timeout") }).strict(),
+            z
+              .object({
+                type: z.literal("set-match-tactics"),
+                plan: matchTacticPlanSchema,
+              })
+              .strict(),
+            z
+              .object({
+                type: z.literal("substitute"),
+                outgoingPlayerId: playerIdSchema,
+                incomingPlayerId: playerIdSchema,
+              })
+              .strict(),
+            z.object({ type: z.literal("continue") }).strict(),
+          ]);
+          '''
+          if anchor not in text:
+              raise SystemExit('match tactic schema anchor not found')
+          text = text.replace(anchor, replacement, 1)
+          text = text.replace(
+              '  z.object({ type: z.literal("practice-match") }).strict(),',
+              '  z.object({ type: z.literal("practice-match") }).strict(),\n  z\n    .object({ type: z.literal("match-command"), command: matchCommandSchema })\n    .strict(),',
+              1,
+          )
+          text = text.replace(
+              '  | { type: "practice-match" }',
+              '  | { type: "practice-match" }\n  | { type: "match-command"; command: MatchCommand }',
+              1,
+          )
+          path.write_text(text)
+
+          path = Path('worker/game/applyGameAction.ts')
+          text = path.read_text()
+          text = text.replace(
+              '''import {
+            simulateMatch,
+            type SimulateMatchResult,
+          } from "../../src/domain/match/simulateMatch";''',
+              '''import {
+            simulateMatch,
+            startMatch,
+            type MatchStepResult,
+            type SimulateMatchResult,
+          } from "../../src/domain/match/simulateMatch";''',
+              1,
+          )
+          marker = 'function applyPracticeMatch(\n'
+          helper = '''function startPracticeMatchSession(
+            state: GameState,
+            teamSelection: TeamSelection,
+          ): AppliedGameAction {
+            if (isWeeklyActionCompleted(state, "practice-match")) {
+              return conflict(
+                "practice_match_already_completed",
+                "今週の練習試合は完了しています",
+              );
+            }
+
+            if (state.activeMatch && state.activeMatch.phase !== "match-complete") {
+              return conflict(
+                "match_already_in_progress",
+                "進行中の試合を完了してください",
+              );
+            }
+
+            const scheduledOpponentId =
+              state.weeklySchedule.practiceMatch.scheduledOpponentId;
+            if (!scheduledOpponentId) {
+              return conflict(
+                "practice_match_not_scheduled",
+                "練習試合の対戦相手を決めてください",
+              );
+            }
+
+            try {
+              const opponent = state.schools[scheduledOpponentId];
+              if (!opponent) {
+                throw new Error("scheduled practice opponent not found");
+              }
+              const opponentSelection = autoSelectTeam({
+                state,
+                schoolId: opponent.id,
+              });
+              const id = matchId(`practice-${state.date}-${state.randomCursor}`);
+              const random = new SeededRandom(state.seed, state.randomCursor);
+              const simulation = startMatch({
+                state,
+                id,
+                homeSchoolId: state.userSchoolId,
+                awaySchoolId: opponent.id,
+                homeSelection: teamSelection,
+                awaySelection: opponentSelection,
+                bestOfSets: 3,
+                random,
+                controlledSchoolId: state.userSchoolId,
+              });
+
+              return {
+                state: {
+                  ...state,
+                  randomCursor: simulation.match.randomCursor,
+                  activeMatch: simulation.match,
+                },
+                teamSelection,
+                outcome: simulation,
+              };
+            } catch (error) {
+              if (error instanceof GameRuleConflictError) {
+                throw error;
+              }
+              return conflict(
+                "practice_match_unavailable",
+                error instanceof Error ? error.message : "練習試合を開始できません",
+              );
+            }
+          }
+
+          '''
+          if marker not in text:
+              raise SystemExit('practice match marker not found')
+          text = text.replace(marker, helper + marker, 1)
+          text = text.replace(
+              '  const simulation = applied.outcome as SimulateMatchResult;\n  return {\n    kind: "practice",',
+              '  const simulation = applied.outcome as MatchStepResult;\n  return {\n    kind: "practice",',
+              1,
+          )
+          text = text.replace(
+              '    const practice = applyPracticeMatch(currentState, teamSelection);',
+              '    const practice = startPracticeMatchSession(currentState, teamSelection);',
+              1,
+          )
+          text = text.replace(
+              '    case "practice-match":\n      return applyPracticeMatch(state, teamSelection);',
+              '    case "practice-match":\n      return applyPracticeMatch(state, teamSelection);\n    case "match-command":\n      return conflict(\n        "match_command_not_available",\n        "試合中の監督指示は現在処理できません",\n      );',
+              1,
+          )
+          path.write_text(text)
+          PY
+          npx prettier --write src/domain/calendar/advanceWeekOutcome.ts worker/game/actionSchema.ts worker/game/applyGameAction.ts
+          git rm .github/workflows/phase16-task1-patch-helper.yml
+      - name: Commit Task1 initial session changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/calendar/advanceWeekOutcome.ts worker/game/actionSchema.ts worker/game/applyGameAction.ts .github/workflows/phase16-task1-patch-helper.yml
+          git commit -m "feat: start resumable practice match sessions"
+          git push
