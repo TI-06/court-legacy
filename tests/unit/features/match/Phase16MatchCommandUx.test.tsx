@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { startMatch } from "../../../../src/domain/match/simulateMatch";
@@ -8,6 +8,7 @@ import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { MatchCommandPanel } from "../../../../src/features/match/MatchCommandPanel";
+import { tacticOptionLabel } from "../../../../src/features/team/tacticsPresentation";
 
 function findDecision(reason: CoachDecisionReason) {
   const state = createDemoGame();
@@ -122,5 +123,68 @@ describe("Phase16 match command decision panel", () => {
 
     expect(screen.queryByRole("button", { name: "タイムアウト" })).toBeNull();
     expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
+  });
+
+  it("drafts all three tactics from the authoritative match plan and emits only on submit", () => {
+    const fixture = findDecision("set-break");
+    const onCommand = vi.fn();
+    const runtime = fixture.match.runtime;
+    if (!runtime) throw new Error("runtime fixture missing");
+    const currentPlan =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? runtime.homeTactics
+        : runtime.awayTactics;
+    const persistentTactics = JSON.stringify(
+      fixture.state.schools[fixture.state.userSchoolId]!.tactics,
+    );
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "戦術変更" }));
+    const dialog = screen.getByRole("dialog", { name: "戦術変更" });
+    const serveGroup = within(dialog).getByRole("group", { name: "サーブ方針" });
+    const attackGroup = within(dialog).getByRole("group", { name: "攻撃方針" });
+    const blockGroup = within(dialog).getByRole("group", { name: "ブロック方針" });
+
+    expect(
+      within(serveGroup).getByRole("button", {
+        name: tacticOptionLabel("serve", currentPlan.serve),
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(attackGroup).getByRole("button", {
+        name: tacticOptionLabel("attack", currentPlan.attack),
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(blockGroup).getByRole("button", {
+        name: tacticOptionLabel("block", currentPlan.block),
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(within(serveGroup).getByRole("button", { name: "強気" }));
+    fireEvent.click(within(attackGroup).getByRole("button", { name: "高速" }));
+    fireEvent.click(within(blockGroup).getByRole("button", { name: "コミット" }));
+
+    expect(onCommand).not.toHaveBeenCalled();
+    expect(
+      JSON.stringify(fixture.state.schools[fixture.state.userSchoolId]!.tactics),
+    ).toBe(persistentTactics);
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "この戦術で続ける" }),
+    );
+    expect(onCommand).toHaveBeenCalledOnce();
+    expect(onCommand).toHaveBeenCalledWith({
+      type: "set-match-tactics",
+      plan: { serve: "aggressive", attack: "quick", block: "commit" },
+    });
   });
 });
