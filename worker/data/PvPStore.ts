@@ -40,6 +40,52 @@ export interface PersistedPvpOperation {
   response: unknown;
 }
 
+export interface PersistedPvpMatchSession {
+  challengerUserId: string;
+  operationId: string;
+  defenderSnapshotId: string;
+  challengerSourceRevision: number;
+  currentCursor: number;
+  privateSession: unknown;
+  publicResponse: unknown;
+  finalResponse: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePvpMatchSessionInput {
+  challengerUserId: string;
+  operationId: string;
+  defenderSnapshotId: string;
+  challengerSourceRevision: number;
+  currentCursor: number;
+  privateSession: unknown;
+  publicResponse: unknown;
+}
+
+export interface SavePvpMatchSessionCommandInput {
+  challengerUserId: string;
+  operationId: string;
+  commandId: string;
+  command: unknown;
+  expectedCursor: number;
+  nextCursor: number;
+  privateSession: unknown;
+  publicResponse: unknown;
+}
+
+export interface SavedPvpMatchSessionCommand {
+  session: PersistedPvpMatchSession;
+  replayed: boolean;
+  commandResponse: unknown;
+}
+
+export interface StorePvpMatchSessionFinalResponseInput {
+  challengerUserId: string;
+  operationId: string;
+  finalResponse: unknown;
+}
+
 export interface CommitRatedPvpMatchInput {
   seasonId: string;
   challengeDayKey: string;
@@ -131,6 +177,19 @@ export interface PvPStore {
     operationId: string,
   ): Promise<PersistedPvpOperation | null>;
   getSnapshotById(snapshotId: string): Promise<PublishedPvpTeamSnapshot | null>;
+  createMatchSession(
+    input: CreatePvpMatchSessionInput,
+  ): Promise<PersistedPvpMatchSession>;
+  getMatchSession(
+    challengerUserId: string,
+    operationId: string,
+  ): Promise<PersistedPvpMatchSession | null>;
+  saveMatchSessionCommand(
+    input: SavePvpMatchSessionCommandInput,
+  ): Promise<SavedPvpMatchSessionCommand>;
+  storeMatchSessionFinalResponse(
+    input: StorePvpMatchSessionFinalResponseInput,
+  ): Promise<PersistedPvpMatchSession>;
   commitRatedMatch(
     input: CommitRatedPvpMatchInput,
   ): Promise<CommittedRatedPvpMatch>;
