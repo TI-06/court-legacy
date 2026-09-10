@@ -59,14 +59,9 @@ jobs:
               '  const matchComplete = Boolean(\n    result?.analysis && visibleEventIndex >= lastEventIndex,\n  );',
               1,
           )
-          old = '''  const winnerDisplayName =
-            presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
-              ? presentation.homeTeam.displayName
-              : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
-                ? presentation.awayTeam.displayName
-                : state.schools[result.analysis.winnerSchoolId]?.name;
-          '''
-          new = '''  const winnerDisplayName = result.analysis
+          start = text.index('  const winnerDisplayName =\n')
+          end = text.index('  const homeShortName =', start)
+          winner = '''  const winnerDisplayName = result.analysis
             ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
               ? presentation.homeTeam.displayName
               : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
@@ -74,9 +69,7 @@ jobs:
                 : state.schools[result.analysis.winnerSchoolId]?.name
             : null;
           '''
-          if old not in text:
-              raise SystemExit('MatchScreen winner block anchor missing')
-          text = text.replace(old, new, 1)
+          text = text[:start] + winner + text[end:]
           text = text.replace(
               '  const userWon = result.analysis.winnerSchoolId === state.userSchoolId;',
               '  const userWon = result.analysis?.winnerSchoolId === state.userSchoolId;',
