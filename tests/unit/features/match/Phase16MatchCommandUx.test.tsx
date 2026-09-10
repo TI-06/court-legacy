@@ -104,4 +104,23 @@ describe("Phase16 match command decision panel", () => {
       expect(button).toBeDisabled();
     }
   });
+
+  it("hides timeout when it has already been used in the current set", () => {
+    const fixture = findDecision("opponent-run");
+    const match = structuredClone(fixture.match);
+    if (!match.runtime) throw new Error("runtime fixture missing");
+    match.runtime.timeoutUsedSchoolIds.push(fixture.state.userSchoolId);
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={match}
+        pending={false}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "タイムアウト" })).toBeNull();
+    expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
+  });
 });
