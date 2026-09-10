@@ -15,6 +15,7 @@ import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
 import { createPvpChallengeHandler } from "./routes/pvpChallenge";
+import { createPvpChallengeCommandHandler } from "./routes/pvpChallengeCommand";
 import { createPvpChallengeSessionHandler } from "./routes/pvpChallengeSession";
 import { createPvpHistoryHandler } from "./routes/pvpHistory";
 import { createPvpOpponentsHandler } from "./routes/pvpOpponents";
@@ -117,6 +118,9 @@ export function createRouter(
         now: deps.now,
         createMatchNonce: deps.createPvpMatchNonce,
       })
+    : null;
+  const pvpChallengeCommand = pvpSessionStore
+    ? createPvpChallengeCommandHandler({ pvpStore: pvpSessionStore })
     : null;
   const pvpChallengeSession = pvpSessionStore
     ? createPvpChallengeSessionHandler({ pvpStore: pvpSessionStore })
@@ -258,6 +262,13 @@ export function createRouter(
         pvpChallenge
       ) {
         return await pvpChallenge(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/challenge/command" &&
+        request.method === "POST" &&
+        pvpChallengeCommand
+      ) {
+        return await pvpChallengeCommand(request, user);
       }
       if (
         url.pathname === "/api/pvp/challenge/session" &&

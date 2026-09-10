@@ -7,23 +7,26 @@ import type { AuthenticatedRequestHandler } from "../router";
 
 const playerIdSchema = z.string().min(1);
 
-const matchCommandSchema: z.ZodType<MatchCommand> = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("timeout") }).strict(),
-  z
-    .object({
-      type: z.literal("set-match-tactics"),
-      plan: matchTacticPlanSchema,
-    })
-    .strict(),
-  z
-    .object({
-      type: z.literal("substitute"),
-      outgoingPlayerId: playerIdSchema,
-      incomingPlayerId: playerIdSchema,
-    })
-    .strict(),
-  z.object({ type: z.literal("continue") }).strict(),
-]);
+const matchCommandSchema: z.ZodType<MatchCommand> = z.discriminatedUnion(
+  "type",
+  [
+    z.object({ type: z.literal("timeout") }).strict(),
+    z
+      .object({
+        type: z.literal("set-match-tactics"),
+        plan: matchTacticPlanSchema,
+      })
+      .strict(),
+    z
+      .object({
+        type: z.literal("substitute"),
+        outgoingPlayerId: playerIdSchema,
+        incomingPlayerId: playerIdSchema,
+      })
+      .strict(),
+    z.object({ type: z.literal("continue") }).strict(),
+  ],
+);
 
 const requestSchema = z
   .object({
