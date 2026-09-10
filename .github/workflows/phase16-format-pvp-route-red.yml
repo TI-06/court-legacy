@@ -1,0 +1,34 @@
+name: Phase16 format PvP route RED
+
+on:
+  push:
+    branches:
+      - feat/phase16-official-pvp-completion
+    paths:
+      - .github/workflows/phase16-format-pvp-route-red.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write tests/unit/worker/phase16PvpChallengeRoutes.test.ts
+      - name: Remove temporary workflow and commit
+        run: |
+          git rm .github/workflows/phase16-format-pvp-route-red.yml
+          git add tests/unit/worker/phase16PvpChallengeRoutes.test.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "style: format Phase16 PvP challenge route RED test"
+          git push
