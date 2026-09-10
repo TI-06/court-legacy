@@ -89,6 +89,7 @@ describe("Phase11 week progression", () => {
     expect(isWeeklyActionCompleted(completed.state, "practice-match")).toBe(
       true,
     );
+    expect(completed.state.activeMatch?.phase).toBe("match-complete");
     expect(
       completed.state.weeklySchedule.practiceMatch.scheduledOpponentId,
     ).toBeNull();
