@@ -121,7 +121,7 @@ describe("Phase16 resumable practice match session", () => {
     );
     expect(
       result.state.history.matches.some(
-        (match) => match.id === result.state.activeMatch?.id,
+        (match) => match.matchId === result.state.activeMatch?.id,
       ),
     ).toBe(false);
   });
