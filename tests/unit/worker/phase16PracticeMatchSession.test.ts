@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
-import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
+import type {
+  AdvanceWeekOutcome,
+  PendingMatchPresentation,
+} from "../../../src/domain/calendar/advanceWeekOutcome";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
+import {
+  applyGameAction,
+  GameRuleConflictError,
+} from "../../../worker/game/applyGameAction";
 import { applyServerGameAction } from "../../../worker/game/applyServerGameAction";
 
 function createSnapshot(seed: string): {
@@ -49,6 +56,26 @@ function advanceWeekOutcome(
   const outcome = result.outcome as AdvanceWeekOutcome | undefined;
   if (!outcome) throw new Error("advance-week outcome missing");
   return outcome;
+}
+
+function practicePresentation(
+  result: ReturnType<typeof applyServerGameAction>,
+): PendingMatchPresentation {
+  const outcome = result.outcome as PendingMatchPresentation | undefined;
+  if (!outcome) throw new Error("practice presentation missing");
+  return outcome;
+}
+
+function continueSnapshot(
+  previous: CloudGameSnapshot,
+  result: ReturnType<typeof applyServerGameAction>,
+): CloudGameSnapshot {
+  return {
+    ...previous,
+    revision: previous.revision + 1,
+    state: result.state,
+    teamSelection: result.teamSelection,
+  };
 }
 
 describe("Phase16 resumable practice match session", () => {
@@ -162,5 +189,87 @@ describe("Phase16 resumable practice match session", () => {
     expect(result.state.schools[result.state.userSchoolId]!.tactics).toEqual(
       persistentTactics,
     );
+  });
+
+  it("applies one command, resumes the same practice match, and finalizes only at match-complete", () => {
+    const { snapshot, opponentId } = createSnapshot("phase16-practice-command");
+    const persistentSelection = structuredClone(snapshot.teamSelection);
+    const persistentTactics = structuredClone(
+      snapshot.state.schools[snapshot.state.userSchoolId]!.tactics,
+    );
+    const started = applyServerGameAction(snapshot, { type: "advance-week" });
+    const startedMatch = started.state.activeMatch;
+    if (!startedMatch) throw new Error("active practice match missing");
+
+    const matchId = startedMatch.id;
+    const beforeCursor = started.state.randomCursor;
+    let currentSnapshot = continueSnapshot(snapshot, started);
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "match-command",
+      command: {
+        type: "set-match-tactics",
+        plan: { serve: "aggressive", attack: "quick", block: "commit" },
+      },
+    });
+    let presentation = practicePresentation(current);
+
+    expect(presentation.kind).toBe("practice");
+    expect(presentation.simulation.match.id).toBe(matchId);
+    expect(current.state.activeMatch?.runtime?.commandHistory).toHaveLength(1);
+    expect(current.state.activeMatch?.runtime?.homeTactics).toEqual({
+      serve: "aggressive",
+      attack: "quick",
+      block: "commit",
+    });
+    expect(current.state.randomCursor).toBeGreaterThan(beforeCursor);
+    expect(current.teamSelection).toEqual(persistentSelection);
+    expect(current.state.schools[current.state.userSchoolId]!.tactics).toEqual(
+      persistentTactics,
+    );
+
+    let commandCount = 1;
+    for (let guard = 0; guard < 10 && presentation.simulation.analysis === null; guard += 1) {
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+      commandCount += 1;
+      presentation = practicePresentation(current);
+      expect(presentation.simulation.match.id).toBe(matchId);
+      expect(current.state.activeMatch?.runtime?.commandHistory).toHaveLength(
+        commandCount,
+      );
+    }
+
+    expect(presentation.simulation.analysis).not.toBeNull();
+    expect(current.state.activeMatch?.phase).toBe("match-complete");
+    expect(isWeeklyActionCompleted(current.state, "practice-match")).toBe(true);
+    expect(current.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBeNull();
+    expect(
+      current.state.history.matches.filter((match) => match.matchId === matchId),
+    ).toHaveLength(1);
+    expect(
+      current.state.weeklySchedule.recentPracticeMatches.filter(
+        (match) => match.opponentSchoolId === opponentId,
+      ),
+    ).toHaveLength(1);
+    expect(current.teamSelection).toEqual(persistentSelection);
+    expect(current.state.schools[current.state.userSchoolId]!.tactics).toEqual(
+      persistentTactics,
+    );
+  });
+
+  it("rejects match commands when no resumable active match exists without mutating the snapshot", () => {
+    const { snapshot } = createSnapshot("phase16-command-without-match");
+    const before = structuredClone(snapshot);
+
+    expect(() =>
+      applyGameAction(snapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      }),
+    ).toThrow(GameRuleConflictError);
+    expect(snapshot).toEqual(before);
   });
 });
