@@ -149,9 +149,13 @@ describe("Phase16 match command decision panel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "戦術変更" }));
     const dialog = screen.getByRole("dialog", { name: "戦術変更" });
-    const serveGroup = within(dialog).getByRole("group", { name: "サーブ方針" });
+    const serveGroup = within(dialog).getByRole("group", {
+      name: "サーブ方針",
+    });
     const attackGroup = within(dialog).getByRole("group", { name: "攻撃方針" });
-    const blockGroup = within(dialog).getByRole("group", { name: "ブロック方針" });
+    const blockGroup = within(dialog).getByRole("group", {
+      name: "ブロック方針",
+    });
 
     expect(
       within(serveGroup).getByRole("button", {
@@ -171,11 +175,15 @@ describe("Phase16 match command decision panel", () => {
 
     fireEvent.click(within(serveGroup).getByRole("button", { name: "強気" }));
     fireEvent.click(within(attackGroup).getByRole("button", { name: "高速" }));
-    fireEvent.click(within(blockGroup).getByRole("button", { name: "コミット" }));
+    fireEvent.click(
+      within(blockGroup).getByRole("button", { name: "コミット" }),
+    );
 
     expect(onCommand).not.toHaveBeenCalled();
     expect(
-      JSON.stringify(fixture.state.schools[fixture.state.userSchoolId]!.tactics),
+      JSON.stringify(
+        fixture.state.schools[fixture.state.userSchoolId]!.tactics,
+      ),
     ).toBe(persistentTactics);
 
     fireEvent.click(
