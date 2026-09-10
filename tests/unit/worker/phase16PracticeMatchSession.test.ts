@@ -272,6 +272,7 @@ describe("Phase16 resumable practice match session", () => {
     const { snapshot } = createSnapshot("phase16-command-without-match");
     const before = structuredClone(snapshot);
 
+    expect(snapshot.state.activeMatch).toBeNull();
     expect(() =>
       applyGameAction(snapshot, {
         type: "match-command",
