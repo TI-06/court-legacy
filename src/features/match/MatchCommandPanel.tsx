@@ -31,7 +31,11 @@ function TacticChoiceGroup<Value extends string>({
   onChange: (value: Value) => void;
 }) {
   return (
-    <section aria-label={label} className="match-command-tactics__axis" role="group">
+    <section
+      aria-label={label}
+      className="match-command-tactics__axis"
+      role="group"
+    >
       <strong>{label}</strong>
       <div className="match-command-tactics__choices">
         {options.map((option) => (
