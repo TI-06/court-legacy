@@ -49,6 +49,7 @@
 ### Task 1: Authoritative resumable practice-match action flow
 
 **Files:**
+
 - Modify: `src/domain/calendar/advanceWeekOutcome.ts`
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
@@ -56,6 +57,7 @@
 - Regression: `tests/unit/worker/phase15MatchTacticsOverride.test.ts`
 
 **Interfaces:**
+
 - Consumes `startMatch({ ..., controlledSchoolId })`, `applyMatchCommand({ state, match, schoolId, command })`, and `resumeMatch({ state, match })` from PR16-1.
 - Produces `GameAction = { type: "match-command"; command: MatchCommand }`.
 - `PendingMatchPresentation.simulation` becomes `MatchStepResult`; completed `SimulateMatchResult` remains structurally valid.
@@ -72,7 +74,9 @@ expect(outcome.pendingMatchPresentation?.simulation.analysis).toBeNull();
 expect(result.state.activeMatch?.phase).toBe("coach-decision");
 expect(result.state.activeMatch?.eventLog.at(-1)?.type).not.toBe("match-end");
 expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(false);
-expect(result.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBe(opponent.id);
+expect(result.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBe(
+  opponent.id,
+);
 ```
 
 Use a bounded seed search when the first boundary can be either `opponent-run` or `set-break`; never alter production probability merely to simplify the test.
@@ -90,12 +94,19 @@ In `actionSchema.ts`, add a strict discriminated `matchCommandSchema`:
 ```ts
 const matchCommandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("timeout") }).strict(),
-  z.object({ type: z.literal("set-match-tactics"), plan: matchTacticPlanSchema }).strict(),
-  z.object({
-    type: z.literal("substitute"),
-    outgoingPlayerId: playerIdSchema,
-    incomingPlayerId: playerIdSchema,
-  }).strict(),
+  z
+    .object({
+      type: z.literal("set-match-tactics"),
+      plan: matchTacticPlanSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("substitute"),
+      outgoingPlayerId: playerIdSchema,
+      incomingPlayerId: playerIdSchema,
+    })
+    .strict(),
   z.object({ type: z.literal("continue") }).strict(),
 ]);
 ```
@@ -113,6 +124,7 @@ Run the focused tests. Confirm temporary pre-match lineup/tactics still end up i
 - [ ] **Step 5: Write RED tests for accepted command, continuation, and finalization**
 
 From the returned pending active match:
+
 - submit the matching user command;
 - assert same match id, increased command history exactly once, unchanged persistent selection/tactics, and cursor only advances during resumed rallies;
 - loop valid `continue` commands until completion;
@@ -127,6 +139,7 @@ Expected failure: no `match-command` application branch/finalizer exists.
 - [ ] **Step 7: Implement command resume/finalization helpers**
 
 Create focused private helpers in `applyGameAction.ts`:
+
 - build a `practicePresentation` from `MatchStepResult`;
 - validate that `state.activeMatch` belongs to the current scheduled practice opponent and controlled user school;
 - apply one command using `applyMatchCommand`;
@@ -140,6 +153,7 @@ Translate `MatchCommandValidationError` into an explicit `GameRuleConflictError`
 - [ ] **Step 8: Verify GREEN and run related worker regressions**
 
 Run:
+
 - new Phase16 practice session tests;
 - `phase15MatchTacticsOverride`;
 - existing practice scheduling/action tests;
@@ -158,6 +172,7 @@ feat: add resumable practice match actions
 ### Task 2: Pure command presentation and decision panel UI
 
 **Files:**
+
 - Create: `src/features/match/matchCommandPresentation.ts`
 - Create: `src/features/match/MatchCommandPanel.tsx`
 - Modify: `src/features/match/match.css`
@@ -165,6 +180,7 @@ feat: add resumable practice match actions
 - Test: `tests/unit/features/match/Phase16MatchCommandUx.test.tsx`
 
 **Interfaces:**
+
 - `MatchCommandPanel` consumes `state`, `match`, `pending`, and `onCommand(command: MatchCommand)`.
 - It reads only the user's own players plus public/match-local tactic categories.
 - It emits one complete `MatchCommand`; it does not simulate or mutate a match.
@@ -173,6 +189,7 @@ feat: add resumable practice match actions
 - [ ] **Step 1: Write RED pure-presentation tests**
 
 Cover:
+
 - labels for timeout/tactics/substitution/continue;
 - recorded set + score;
 - timeout/tactics next-five `point` events split by commanding school vs opponent;
@@ -195,10 +212,12 @@ Run the focused helper test.
 - [ ] **Step 5: Write RED component tests for opponent-run and set-break panels**
 
 Build resumable fixture matches using real `startMatch()` seed search. Assert opponent-run panel shows:
+
 - `相手に4連続ポイントを許しています`;
 - `タイムアウト`, `戦術変更`, `選手交代`, `このまま続ける`.
 
 Assert set-break panel:
+
 - shows `セット間の監督指示`;
 - hides timeout;
 - uses `このまま次セットへ`.
@@ -228,11 +247,13 @@ feat: add match command decision panel
 ### Task 3: Tactics and substitution command sheets
 
 **Files:**
+
 - Modify: `src/features/match/MatchCommandPanel.tsx`
 - Modify: `src/features/match/match.css`
 - Test: `tests/unit/features/match/Phase16MatchCommandUx.test.tsx`
 
 **Interfaces:**
+
 - Reuse `serveTacticOptions`, `attackTacticOptions`, `blockTacticOptions`, and `tacticOptionLabel` from `features/team/tacticsPresentation.ts`.
 - Reuse `BottomSheet`.
 - Use `getPlayerConditionPresentation`, `calculatePlayerDisplayPower`, and `ratingToGrade` for own-player substitution rows.
@@ -286,6 +307,7 @@ feat: add match tactics and substitution sheets
 ### Task 4: Resumable MatchScreen playback and GameApp wiring
 
 **Files:**
+
 - Modify: `src/features/match/MatchScreen.tsx`
 - Modify: `src/features/match/match.css`
 - Modify: `src/app/GameApp.tsx`
@@ -294,6 +316,7 @@ feat: add match tactics and substitution sheets
 - Regression: relevant `tests/unit/app/GameApp*.test.tsx`
 
 **Interfaces:**
+
 - `MatchScreen.result` accepts `MatchStepResult | null` while legacy completed results remain valid.
 - Add `onCommand?: (command: MatchCommand) => void | Promise<void>` and `commandPending?: boolean`.
 - GameApp dispatches `{ type: "match-command", command }` through `cloudSession.runAction` and adopts the server result already placed in the returned snapshot/outcome.
@@ -302,6 +325,7 @@ feat: add match tactics and substitution sheets
 - [ ] **Step 1: Write RED test for authoritative segment playback**
 
 Render an incomplete match segment. Assert:
+
 - event counter starts at `1 / current authoritative event count`;
 - the command panel is hidden until the current segment's last event has been revealed;
 - `次の判断まで進む` reveals only to the segment end and then shows the decision panel;
@@ -336,6 +360,7 @@ Use `tacticOptionLabel`; use `buildMatchCommandImpactRows`; do not invent causal
 - [ ] **Step 6: Write RED GameApp integration test**
 
 Drive a scheduled practice start from pre-match and mock authoritative server responses:
+
 - first `advance-week` response contains incomplete practice presentation and activeMatch;
 - MatchScreen shows the decision after revealing segment;
 - clicking continue sends one `{ type: "match-command", command: { type: "continue" } }` through `runAction`/API;
@@ -364,17 +389,20 @@ feat: connect interactive practice match UX
 ### Task 5: Mobile E2E, compatibility, full verification, and PR completion
 
 **Files:**
+
 - Modify: `tests/e2e/home-match-flow.spec.ts`
 - Create: `tests/e2e/phase16-match-command-ux.spec.ts`
 - Modify: `docs/PROJECT_CONTEXT.md` only after code/E2E is GREEN
 
 **Interfaces:**
+
 - Browser path must use the real server action flow; no test-only production switches.
 - The E2E helper may use deterministic test data/routes already exposed by the existing E2E environment, but must not add a production backdoor.
 
 - [ ] **Step 1: Write/adjust E2E expectation for bounded fast-forward**
 
 Update the existing Home practice test so after pre-match start it repeatedly:
+
 1. clicks `次の判断まで進む` when present;
 2. handles a visible decision with `このまま続ける` / `このまま次セットへ`;
 3. continues until `試合結果`;
@@ -385,6 +413,7 @@ This prevents the old `結果まで進む` expectation from silently skipping in
 - [ ] **Step 2: Add five-width Phase16 command UX E2E**
 
 For 320/360/390/414/480:
+
 - schedule/start a real practice match;
 - reach at least one deterministic decision (set-break is guaranteed before a non-final next set);
 - assert decision controls are visible and no horizontal overflow;
@@ -409,6 +438,7 @@ Run `npm run test:e2e` and confirm no regression at the established widths.
 - [ ] **Step 6: Review final diff against scope**
 
 Confirm:
+
 - schema stays v8;
 - no official/PvP interactive finalization was added;
 - no browser-side simulation authority;

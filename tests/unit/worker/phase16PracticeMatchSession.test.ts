@@ -109,8 +109,12 @@ describe("Phase16 resumable practice match session", () => {
     expect(result.state.activeMatch?.runtime?.pendingDecisionReason).toMatch(
       /^(opponent-run|set-break)$/,
     );
-    expect(result.state.activeMatch?.eventLog.at(-1)?.type).not.toBe("match-end");
-    expect(result.state.randomCursor).toBe(result.state.activeMatch?.randomCursor);
+    expect(result.state.activeMatch?.eventLog.at(-1)?.type).not.toBe(
+      "match-end",
+    );
+    expect(result.state.randomCursor).toBe(
+      result.state.activeMatch?.randomCursor,
+    );
     expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(false);
     expect(result.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBe(
       opponentId,
@@ -150,7 +154,9 @@ describe("Phase16 resumable practice match session", () => {
       matchTactics: tactics,
     });
 
-    expect(result.state.activeMatch?.runtime?.homeBaseSelection).toEqual(alternate);
+    expect(result.state.activeMatch?.runtime?.homeBaseSelection).toEqual(
+      alternate,
+    );
     expect(result.state.activeMatch?.runtime?.homeTactics).toEqual(tactics);
     expect(result.teamSelection).toEqual(persistentSelection);
     expect(result.state.schools[result.state.userSchoolId]!.tactics).toEqual(
