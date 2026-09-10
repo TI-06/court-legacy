@@ -9,8 +9,9 @@ import type {
   PendingMatchPresentation,
 } from "../domain/calendar/advanceWeekOutcome";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
-import type { SimulateMatchResult } from "../domain/match/simulateMatch";
+import type { MatchStepResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
+import type { MatchCommand } from "../domain/model/Match";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
 import type { TeamSelection } from "../domain/model/TeamSelection";
@@ -153,9 +154,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PlayerId | null>(null);
   const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
     useState<PlayerId | null>(null);
-  const [, setLatestMatchResult] = useState<SimulateMatchResult | null>(null);
+  const [, setLatestMatchResult] = useState<MatchStepResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
-    useState<SimulateMatchResult | null>(null);
+    useState<MatchStepResult | null>(null);
   const [activeMatchPresentation, setActiveMatchPresentation] =
     useState<PendingMatchPresentation | null>(null);
   const [matchView, setMatchView] = useState<MatchView>("practice");
@@ -893,6 +894,22 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab("home");
   };
 
+  const issueMatchCommand = async (command: MatchCommand) => {
+    const response = await cloudSession.runAction(
+      { type: "match-command", command },
+      "監督指示を反映しています…",
+    );
+    if (!response) return;
+
+    const presentation = response.outcome as
+      PendingMatchPresentation | undefined;
+    if (!presentation || presentation.kind !== "practice") return;
+
+    setActiveMatchPresentation(presentation);
+    setActiveMatchResult(presentation.simulation);
+    setLatestMatchResult(presentation.simulation);
+  };
+
   const advanceWeek = async () => {
     const preparation = selectWeekPreMatchPreparation(gameState);
     if (preparation) {
@@ -1143,6 +1160,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             awayStrength={awayStrength}
             homeSelection={teamSelection}
             homeStrength={homeStrength}
+            commandPending={cloudSession.operation.status === "submitting"}
+            onCommand={issueMatchCommand}
             onReturnHome={() => {
               if (activeMatchPresentation) void executeAdvanceWeek();
               else changeTab("home");

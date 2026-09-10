@@ -7,7 +7,10 @@ import {
   findDueUserOfficialMatch,
 } from "../../../src/domain/tournament/progressOfficialTournaments";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
-import { applyGameAction } from "../../../worker/game/applyGameAction";
+import {
+  applyGameAction,
+  type AppliedGameAction,
+} from "../../../worker/game/applyGameAction";
 
 function fixture(seed: string): CloudGameSnapshot {
   const state = createInitialGame({
@@ -26,40 +29,82 @@ function fixture(seed: string): CloudGameSnapshot {
     teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
   };
 }
+
 function schedulePractice(game: CloudGameSnapshot) {
   const opponent = Object.values(game.state.schools).find(
-    (s) => s.id !== game.state.userSchoolId,
+    (school) => school.id !== game.state.userSchoolId,
   );
   if (!opponent) throw new Error("practice opponent fixture missing");
   game.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
   game.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
 }
+
+function snapshotAfter(
+  previous: CloudGameSnapshot,
+  applied: AppliedGameAction,
+): CloudGameSnapshot {
+  return {
+    ...previous,
+    revision: previous.revision + 1,
+    state: applied.state,
+    teamSelection: applied.teamSelection,
+  };
+}
+
+function finishPracticeMatch(
+  initial: CloudGameSnapshot,
+  first: AppliedGameAction,
+): CloudGameSnapshot {
+  let snapshot = snapshotAfter(initial, first);
+  for (let guard = 0; guard < 10; guard += 1) {
+    if (isWeeklyActionCompleted(snapshot.state, "practice-match")) {
+      return snapshot;
+    }
+    const next = applyGameAction(snapshot, {
+      type: "match-command",
+      command: { type: "continue" },
+    });
+    snapshot = snapshotAfter(snapshot, next);
+  }
+  throw new Error("practice match did not complete within command guard");
+}
+
 describe("Phase11 week progression", () => {
   it("presents scheduled practice before advancing, then advances without replay", () => {
     const game = fixture("phase11-practice");
     schedulePractice(game);
     const first = applyGameAction(game, { type: "advance-week" });
+
     expect(first.state.date).toBe(game.state.date);
     expect(isWeeklyActionCompleted(first.state, "training")).toBe(true);
-    expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(true);
+    expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(false);
+    expect(first.state.activeMatch?.phase).toBe("coach-decision");
     expect(first.outcome).toMatchObject({
       weekAdvanced: false,
       pendingMatchPresentation: { kind: "practice" },
     });
-    const matchId = first.state.history.matches.at(-1)?.matchId;
-    const second = applyGameAction(
-      { ...game, state: first.state, teamSelection: first.teamSelection },
-      { type: "advance-week" },
+
+    const matchId = first.state.activeMatch?.id;
+    const completed = finishPracticeMatch(game, first);
+    expect(isWeeklyActionCompleted(completed.state, "practice-match")).toBe(
+      true,
     );
+    expect(completed.state.activeMatch?.phase).toBe("match-complete");
+    expect(
+      completed.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    ).toBeNull();
+
+    const second = applyGameAction(completed, { type: "advance-week" });
     expect(second.state.date).not.toBe(game.state.date);
     expect(second.outcome).toMatchObject({
       weekAdvanced: true,
       pendingMatchPresentation: null,
     });
     expect(
-      second.state.history.matches.filter((m) => m.matchId === matchId),
+      second.state.history.matches.filter((match) => match.matchId === matchId),
     ).toHaveLength(1);
   });
+
   it("presents official before practice and does not force practice afterward", () => {
     const base = fixture("phase11-official");
     const state = advanceOfficialTournamentsThroughWeek({
@@ -82,12 +127,12 @@ describe("Phase11 week progression", () => {
     expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(false);
     const userOfficialIds = first.state.history.matches
       .filter(
-        (m) =>
-          m.tournamentId !== null &&
-          (m.homeSchoolId === state.userSchoolId ||
-            m.awaySchoolId === state.userSchoolId),
+        (match) =>
+          match.tournamentId !== null &&
+          (match.homeSchoolId === state.userSchoolId ||
+            match.awaySchoolId === state.userSchoolId),
       )
-      .map((m) => m.matchId);
+      .map((match) => match.matchId);
     const second = applyGameAction(
       { ...game, state: first.state, teamSelection: first.teamSelection },
       { type: "advance-week" },
@@ -100,12 +145,12 @@ describe("Phase11 week progression", () => {
     expect(isWeeklyActionCompleted(second.state, "practice-match")).toBe(false);
     const afterIds = second.state.history.matches
       .filter(
-        (m) =>
-          m.tournamentId !== null &&
-          (m.homeSchoolId === state.userSchoolId ||
-            m.awaySchoolId === state.userSchoolId),
+        (match) =>
+          match.tournamentId !== null &&
+          (match.homeSchoolId === state.userSchoolId ||
+            match.awaySchoolId === state.userSchoolId),
       )
-      .map((m) => m.matchId);
+      .map((match) => match.matchId);
     expect(afterIds).toEqual(userOfficialIds);
   });
 });

@@ -172,6 +172,38 @@ async function schedulePracticeMatch(page: Page) {
   await expect(scheduled).toBeVisible();
 }
 
+async function finishInteractiveMatch(page: Page) {
+  const resultHeading = page.getByRole("heading", { name: "試合結果" });
+
+  for (let guard = 0; guard < 14; guard += 1) {
+    if (await resultHeading.isVisible().catch(() => false)) return;
+
+    const toDecision = page.getByRole("button", { name: "次の判断まで進む" });
+    const toResult = page.getByRole("button", { name: "結果まで進む" });
+    if (await toDecision.isVisible().catch(() => false)) {
+      await toDecision.click();
+    } else if (await toResult.isVisible().catch(() => false)) {
+      await toResult.click();
+    }
+
+    if (await resultHeading.isVisible().catch(() => false)) return;
+
+    const decision = page.getByRole("region", { name: "監督指示" });
+    await expect(decision).toBeVisible();
+    const nextSet = decision.getByRole("button", {
+      name: "このまま次セットへ",
+    });
+    if (await nextSet.isVisible().catch(() => false)) {
+      await nextSet.click();
+    } else {
+      await decision.getByRole("button", { name: "このまま続ける" }).click();
+    }
+    await expect(decision).toBeHidden();
+  }
+
+  throw new Error("interactive practice match did not reach the result");
+}
+
 const mobileViewports = [
   { width: 320, height: 800 },
   { width: 360, height: 800 },
@@ -297,7 +329,7 @@ for (const viewport of mobileViewports) {
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-live`);
-    await page.getByRole("button", { name: "結果まで進む" }).click();
+    await finishInteractiveMatch(page);
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
     await page.getByRole("button", { name: "結果を確認して次へ" }).click();
     await expect(page.getByTestId("home-screen")).toBeVisible();

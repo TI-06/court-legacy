@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
+import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
+import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
-import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
+import { MatchCommandPanel } from "./MatchCommandPanel";
+import { buildMatchCommandImpactRows } from "./matchCommandPresentation";
+import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
+import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -16,11 +20,13 @@ interface MatchScreenProps {
   awaySelection: TeamSelection;
   homeStrength: number;
   awayStrength: number;
-  result: SimulateMatchResult | null;
+  result: MatchStepResult | null;
   presentation?: PendingMatchPresentation | null;
   reducedMotion: boolean;
   onStart: () => void;
   onReturnHome: () => void;
+  onCommand?: (command: MatchCommand) => void | Promise<void>;
+  commandPending?: boolean;
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -51,6 +57,8 @@ function MatchScreenContent({
   reducedMotion,
   onStart,
   onReturnHome,
+  onCommand,
+  commandPending = false,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -78,10 +86,24 @@ function MatchScreenContent({
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
-  const matchComplete = Boolean(result && visibleEventIndex >= lastEventIndex);
+  const segmentRevealed = visibleEventIndex >= lastEventIndex;
+  const matchComplete = Boolean(result?.analysis && segmentRevealed);
+  const decisionReady = Boolean(
+    result &&
+    segmentRevealed &&
+    result.match.phase === "coach-decision" &&
+    result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
+    onCommand,
+  );
 
   useEffect(() => {
-    if (!result || !playing || matchComplete || reducedMotion) {
+    if (
+      !result ||
+      !playing ||
+      matchComplete ||
+      decisionReady ||
+      reducedMotion
+    ) {
       return;
     }
 
@@ -103,7 +125,15 @@ function MatchScreenContent({
     );
 
     return () => window.clearInterval(timer);
-  }, [lastEventIndex, matchComplete, playing, reducedMotion, result, speed]);
+  }, [
+    decisionReady,
+    lastEventIndex,
+    matchComplete,
+    playing,
+    reducedMotion,
+    result,
+    speed,
+  ]);
 
   const presentedEvents = useMemo(() => {
     if (!result) {
@@ -230,17 +260,26 @@ function MatchScreenContent({
       event.winnerSchoolId === result.match.awaySchoolId,
   ).length;
   const currentEvent = presentedEvents.at(-1);
-  const winnerDisplayName =
-    presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
+  const winnerDisplayName = result.analysis
+    ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
       : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
         ? presentation.awayTeam.displayName
-        : state.schools[result.analysis.winnerSchoolId]?.name;
+        : state.schools[result.analysis.winnerSchoolId]?.name
+    : null;
   const homeShortName =
     presentation?.homeTeam.shortName ?? homeSchool.shortName;
   const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
   const userIsHome = result.match.homeSchoolId === state.userSchoolId;
-  const userWon = result.analysis.winnerSchoolId === state.userSchoolId;
+  const currentTactics = result.match.runtime
+    ? userIsHome
+      ? result.match.runtime.homeTactics
+      : result.match.runtime.awayTactics
+    : null;
+  const commandImpactRows = matchComplete
+    ? buildMatchCommandImpactRows(state, result.match)
+    : [];
+  const userWon = result.analysis?.winnerSchoolId === state.userSchoolId;
   const userShortName = userIsHome ? homeShortName : awayShortName;
   const opponentShortName = userIsHome ? awayShortName : homeShortName;
   const userSetsWon = userIsHome
@@ -251,8 +290,11 @@ function MatchScreenContent({
     : result.match.homeSetsWon;
   const recentEvents = presentedEvents.slice(-4).reverse();
 
-  if (!currentEvent || !winnerDisplayName) {
-    throw new Error("completed match is missing presentation data");
+  if (!currentEvent) {
+    throw new Error("match is missing presentation data");
+  }
+  if (matchComplete && !winnerDisplayName) {
+    throw new Error("completed match is missing winner presentation data");
   }
 
   return (
@@ -294,6 +336,20 @@ function MatchScreenContent({
             </article>
           </section>
 
+          {currentTactics ? (
+            <section className="match-tactic-summary" aria-label="現在戦術">
+              <span>
+                サーブ {tacticOptionLabel("serve", currentTactics.serve)}
+              </span>
+              <span>
+                攻撃 {tacticOptionLabel("attack", currentTactics.attack)}
+              </span>
+              <span>
+                ブロック {tacticOptionLabel("block", currentTactics.block)}
+              </span>
+            </section>
+          ) : null}
+
           <section
             className={`match-current-event match-current-event--${currentEvent.tone}`}
             aria-live="polite"
@@ -310,7 +366,7 @@ function MatchScreenContent({
           <section className="match-controls" aria-label="再生操作">
             <div className="match-playback-row">
               <button
-                disabled={reducedMotion}
+                disabled={reducedMotion || decisionReady}
                 onClick={() => setPlaying((current) => !current)}
                 type="button"
               >
@@ -329,13 +385,14 @@ function MatchScreenContent({
                 次のプレー
               </button>
               <button
+                disabled={decisionReady}
                 onClick={() => {
                   setPlaying(false);
                   setVisibleEventIndex(lastEventIndex);
                 }}
                 type="button"
               >
-                結果まで進む
+                {result.analysis ? "結果まで進む" : "次の判断まで進む"}
               </button>
             </div>
             <div className="match-speed-row" role="group" aria-label="再生速度">
@@ -356,6 +413,15 @@ function MatchScreenContent({
               </p>
             ) : null}
           </section>
+
+          {decisionReady && onCommand ? (
+            <MatchCommandPanel
+              match={result.match}
+              onCommand={onCommand}
+              pending={commandPending}
+              state={state}
+            />
+          ) : null}
 
           <section
             className="match-timeline"
@@ -418,6 +484,35 @@ function MatchScreenContent({
             homeName={homeShortName}
             awayName={awayShortName}
           />
+
+          {commandImpactRows.length > 0 ? (
+            <section
+              className="match-command-impact"
+              aria-labelledby="match-command-impact-heading"
+            >
+              <div className="section-heading">
+                <div>
+                  <p className="section-kicker">COACHING LOG</p>
+                  <h2 id="match-command-impact-heading">監督采配</h2>
+                </div>
+              </div>
+              <div className="match-command-impact__list">
+                {commandImpactRows.map((row) => (
+                  <article key={row.sequence}>
+                    <span>
+                      第{row.setNumber}セット ・ {row.homeScore}-{row.awayScore}
+                    </span>
+                    <strong>{row.commandLabel}</strong>
+                    <p>
+                      {row.observedRallies > 0
+                        ? `観測 ${row.observedRallies}ラリー：自校 ${row.schoolPoints} - 相手 ${row.opponentPoints}`
+                        : "指示時点の記録"}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section
             className="match-result-actions match-result-actions--fixed"

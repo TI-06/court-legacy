@@ -198,7 +198,7 @@ PR14-3 saved-lineup UX completes the Phase 14 Player Hub slice with:
 
 Phase 14 does not fabricate player history, add fatigue-management chores, leak private PvP opponent abilities, silently repair stale saved lineups, or persist match-only lineup changes.
 
-Phase 15 is complete. **Phase 16 — Match Command is in progress.**
+Phase 15 is complete. **Phase 16 — Match Command is in progress with PR16-1 and PR16-2 complete.**
 
 ### Phase 15 — Team Tactics
 
@@ -232,7 +232,19 @@ PR16-1 Match Command Foundation provides:
 - backward-compatible one-shot `simulateMatch()` behavior, including caller random-cursor advancement;
 - save schema remaining v8.
 
-PR16-1 intentionally does not add the major Match Command UI or official/PvP session integration. **PR16-2 Interactive Match Command UX is the next Phase 16 slice**, followed by PR16-3 Official/PvP Completion.
+PR16-2 Interactive Match Command UX adds:
+
+- server-authoritative resumable scheduled-practice matches through `advance-week` + `match-command`;
+- live playback bounded by authoritative decision segments, with unresolved decisions never skipped by fast-forward;
+- opponent-run and set-break command panels for timeout, full three-axis tactics, substitution and continue;
+- mobile BottomSheets for match-local tactics and two-step own-player substitution;
+- current match-local tactic summaries during live play;
+- factual `監督采配` result rows derived from recorded command history and observed post-command rallies, without causal claims;
+- persistent `teamSelection` and `School.tactics` remaining unchanged by match commands;
+- 320 / 360 / 390 / 414 / 480 px interactive-match and layout-audit coverage;
+- save schema remaining v8 and browser-side match simulation authority remaining prohibited.
+
+PR16-2 intentionally keeps official-tournament interactive finalization and asynchronous PvP match-command sessions out of scope. **PR16-3 Official/PvP Completion is the next Phase 16 slice.**
 
 ### Phase 17 — Season Goals & Rankings
 
@@ -278,6 +290,7 @@ Seasonal PvP ranking/endgame layer without pay-to-win progression.
 
 - `docs/superpowers/specs/2026-09-10-phase16-match-command-design.md`
 - `docs/superpowers/plans/2026-09-10-phase16-match-command-foundation.md`
+- `docs/superpowers/plans/2026-09-10-phase16-match-command-ux.md`
 
 ## Handoff rule
 
