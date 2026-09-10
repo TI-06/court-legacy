@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
+import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
+import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
-import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
+import { MatchCommandPanel } from "./MatchCommandPanel";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
+import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -21,6 +23,8 @@ interface MatchScreenProps {
   reducedMotion: boolean;
   onStart: () => void;
   onReturnHome: () => void;
+  onCommand?: (command: MatchCommand) => void | Promise<void>;
+  commandPending?: boolean;
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -51,6 +55,8 @@ function MatchScreenContent({
   reducedMotion,
   onStart,
   onReturnHome,
+  onCommand,
+  commandPending = false,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -78,12 +84,24 @@ function MatchScreenContent({
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
-  const matchComplete = Boolean(
-    result?.analysis && visibleEventIndex >= lastEventIndex,
+  const segmentRevealed = visibleEventIndex >= lastEventIndex;
+  const matchComplete = Boolean(result?.analysis && segmentRevealed);
+  const decisionReady = Boolean(
+    result &&
+      segmentRevealed &&
+      result.match.phase === "coach-decision" &&
+      result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
+      onCommand,
   );
 
   useEffect(() => {
-    if (!result || !playing || matchComplete || reducedMotion) {
+    if (
+      !result ||
+      !playing ||
+      matchComplete ||
+      decisionReady ||
+      reducedMotion
+    ) {
       return;
     }
 
@@ -105,7 +123,15 @@ function MatchScreenContent({
     );
 
     return () => window.clearInterval(timer);
-  }, [lastEventIndex, matchComplete, playing, reducedMotion, result, speed]);
+  }, [
+    decisionReady,
+    lastEventIndex,
+    matchComplete,
+    playing,
+    reducedMotion,
+    result,
+    speed,
+  ]);
 
   const presentedEvents = useMemo(() => {
     if (!result) {
@@ -316,7 +342,7 @@ function MatchScreenContent({
           <section className="match-controls" aria-label="再生操作">
             <div className="match-playback-row">
               <button
-                disabled={reducedMotion}
+                disabled={reducedMotion || decisionReady}
                 onClick={() => setPlaying((current) => !current)}
                 type="button"
               >
@@ -335,13 +361,14 @@ function MatchScreenContent({
                 次のプレー
               </button>
               <button
+                disabled={decisionReady}
                 onClick={() => {
                   setPlaying(false);
                   setVisibleEventIndex(lastEventIndex);
                 }}
                 type="button"
               >
-                結果まで進む
+                {result.analysis ? "結果まで進む" : "次の判断まで進む"}
               </button>
             </div>
             <div className="match-speed-row" role="group" aria-label="再生速度">
@@ -362,6 +389,15 @@ function MatchScreenContent({
               </p>
             ) : null}
           </section>
+
+          {decisionReady && onCommand ? (
+            <MatchCommandPanel
+              match={result.match}
+              onCommand={onCommand}
+              pending={commandPending}
+              state={state}
+            />
+          ) : null}
 
           <section
             className="match-timeline"
