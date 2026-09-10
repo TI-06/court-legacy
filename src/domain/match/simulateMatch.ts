@@ -2,22 +2,24 @@ import type {
   MatchAnalysis,
   MatchAnalysisFactor,
   MatchEvent,
+  MatchRuntimeState,
   MatchSetState,
   MatchState,
 } from "../model/Match";
+import type { GameState } from "../model/GameState";
 import type { Player, PlayerAbilities, Position } from "../model/Player";
 import type { School } from "../model/School";
 import type { TeamSelection } from "../model/TeamSelection";
-import type { GameState } from "../model/GameState";
 import type { MatchId, PlayerId, SchoolId } from "../model/identifiers";
-import type { RandomSource } from "../random/SeededRandom";
+import { getConditionMatchMultiplier } from "../player/playerCondition";
+import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import {
+  applyMatchTacticPlan,
   deriveMatchTacticPlan,
   getAttackBlockMatchupPoints,
   type ServePlan,
 } from "../team/matchTactics";
 import { validateTeamSelection } from "../team/validateTeamSelection";
-import { getConditionMatchMultiplier } from "../player/playerCondition";
 
 export interface SimulateMatchInput {
   state: GameState;
@@ -34,6 +36,20 @@ export interface SimulateMatchInput {
 export interface SimulateMatchResult {
   match: MatchState;
   analysis: MatchAnalysis;
+}
+
+export interface MatchStepResult {
+  match: MatchState;
+  analysis: MatchAnalysis | null;
+}
+
+export interface StartMatchInput extends SimulateMatchInput {
+  controlledSchoolId: SchoolId;
+}
+
+export interface ResumeMatchInput {
+  state: GameState;
+  match: MatchState;
 }
 
 type MatchSide = "home" | "away";
@@ -73,6 +89,10 @@ interface TeamMatchMetrics {
   blockPoints: number;
   defensePoints: number;
   readiness: number;
+}
+
+interface AbilityContext {
+  timeoutBoost: MatchRuntimeState["timeoutBoost"];
 }
 
 const ATTACK_POSITIONS: readonly Position[] = ["OH", "MB", "OP", "S"];
@@ -173,11 +193,36 @@ function readiness(player: Player): number {
   return getConditionMatchMultiplier(player.condition) * injuryPenalty;
 }
 
+function timeoutAbilityMultiplier(
+  player: Player,
+  ability: keyof PlayerAbilities,
+  context: AbilityContext | undefined,
+): number {
+  const boost = context?.timeoutBoost;
+  if (
+    !boost ||
+    boost.ralliesRemaining <= 0 ||
+    player.career.schoolId !== boost.schoolId
+  ) {
+    return 1;
+  }
+  if (ability === "decision") {
+    return 1.04;
+  }
+  if (ability === "mental") {
+    return 1.05;
+  }
+  return 1;
+}
+
 function effectiveAbility(
   player: Player,
   ability: keyof PlayerAbilities,
+  context?: AbilityContext,
 ): number {
-  return player.abilities[ability] * readiness(player);
+  const base = player.abilities[ability] * readiness(player);
+  const multiplier = timeoutAbilityMultiplier(player, ability, context);
+  return multiplier === 1 ? base : clamp(base * multiplier, 0, 100);
 }
 
 function average(values: readonly number[]): number {
@@ -238,6 +283,7 @@ function chooseReceiver(
   servingSchool: School,
   receivingSelection: TeamSelection,
   random: RandomSource,
+  abilityContext?: AbilityContext,
 ): Player {
   const active = activePlayers(state, receivingSelection);
   const configuredTarget = servingSchool.tactics.serveTargetPlayerId;
@@ -253,18 +299,22 @@ function chooseReceiver(
     active,
     (player) =>
       145 -
-      effectiveAbility(player, "receive") -
-      effectiveAbility(player, "speed") * 0.25,
+      effectiveAbility(player, "receive", abilityContext) -
+      effectiveAbility(player, "speed", abilityContext) * 0.25,
     random,
   );
 }
 
-function chooseSetter(state: GameState, selection: TeamSelection): Player {
+function chooseSetter(
+  state: GameState,
+  selection: TeamSelection,
+  abilityContext?: AbilityContext,
+): Player {
   return bestPlayer(rotationPlayers(state, selection), (player) => {
     const positionBonus = player.preferredPosition === "S" ? 35 : 0;
     return (
-      effectiveAbility(player, "set") * 1.8 +
-      effectiveAbility(player, "decision") * 0.7 +
+      effectiveAbility(player, "set", abilityContext) * 1.8 +
+      effectiveAbility(player, "decision", abilityContext) * 0.7 +
       player.positionAptitudes.S * 0.8 +
       positionBonus
     );
@@ -291,6 +341,7 @@ function chooseAttacker(
   state: GameState,
   runtime: SideRuntime,
   random: RandomSource,
+  abilityContext?: AbilityContext,
 ): Player {
   const rotation = rotationPlayers(state, runtime.selection);
   const candidates = rotation.filter((player) =>
@@ -303,25 +354,33 @@ function chooseAttacker(
     (player) =>
       attackPositionWeight(runtime.school, player.preferredPosition) *
       (0.5 +
-        effectiveAbility(player, "spike") / 140 +
+        effectiveAbility(player, "spike", abilityContext) / 140 +
         player.positionAptitudes[player.preferredPosition] / 260),
     random,
   );
 }
 
-function chooseBlocker(state: GameState, selection: TeamSelection): Player {
+function chooseBlocker(
+  state: GameState,
+  selection: TeamSelection,
+  abilityContext?: AbilityContext,
+): Player {
   return bestPlayer(rotationPlayers(state, selection), (player) => {
     const middleBonus = player.preferredPosition === "MB" ? 22 : 0;
     return (
-      effectiveAbility(player, "block") * 1.7 +
-      effectiveAbility(player, "jump") * 0.8 +
+      effectiveAbility(player, "block", abilityContext) * 1.7 +
+      effectiveAbility(player, "jump", abilityContext) * 0.8 +
       player.positionAptitudes.MB * 0.55 +
       middleBonus
     );
   });
 }
 
-function chooseDigger(state: GameState, selection: TeamSelection): Player {
+function chooseDigger(
+  state: GameState,
+  selection: TeamSelection,
+  abilityContext?: AbilityContext,
+): Player {
   if (selection.liberoPlayerId) {
     return playerOrThrow(state, selection.liberoPlayerId);
   }
@@ -329,9 +388,9 @@ function chooseDigger(state: GameState, selection: TeamSelection): Player {
   return bestPlayer(
     rotationPlayers(state, selection),
     (player) =>
-      effectiveAbility(player, "receive") * 1.6 +
-      effectiveAbility(player, "speed") * 0.7 +
-      effectiveAbility(player, "decision") * 0.45,
+      effectiveAbility(player, "receive", abilityContext) * 1.6 +
+      effectiveAbility(player, "speed", abilityContext) * 0.7 +
+      effectiveAbility(player, "decision", abilityContext) * 0.45,
   );
 }
 
@@ -351,9 +410,7 @@ function rotateSelection(selection: TeamSelection): void {
   }
 }
 
-function createEventWriter(): EventWriter {
-  const events: MatchEvent[] = [];
-
+function createEventWriter(events: MatchEvent[] = []): EventWriter {
   return {
     events,
     push(
@@ -387,10 +444,14 @@ function awardPoint(runtime: RallyRuntime, winner: MatchSide): void {
   }
 }
 
-function serveStrength(server: Player, school: School): number {
+function serveStrength(
+  server: Player,
+  school: School,
+  abilityContext?: AbilityContext,
+): number {
   return (
-    effectiveAbility(server, "serve") * 0.72 +
-    effectiveAbility(server, "mental") * 0.18 +
+    effectiveAbility(server, "serve", abilityContext) * 0.72 +
+    effectiveAbility(server, "mental", abilityContext) * 0.18 +
     school.coach.tactics * 0.1
   );
 }
@@ -407,11 +468,15 @@ const SERVE_TACTIC_PROFILE: Record<ServePlan, ServeTacticProfile> = {
   aggressive: { errorChance: 0.022, aceChance: 0.018, receiveQuality: -4 },
 };
 
-function receiveStrength(receiver: Player, school: School): number {
+function receiveStrength(
+  receiver: Player,
+  school: School,
+  abilityContext?: AbilityContext,
+): number {
   return (
-    effectiveAbility(receiver, "receive") * 0.7 +
-    effectiveAbility(receiver, "speed") * 0.18 +
-    effectiveAbility(receiver, "decision") * 0.12 +
+    effectiveAbility(receiver, "receive", abilityContext) * 0.7 +
+    effectiveAbility(receiver, "speed", abilityContext) * 0.18 +
+    effectiveAbility(receiver, "decision", abilityContext) * 0.12 +
     school.coach.tactics * 0.07 +
     school.coach.leadership * 0.04
   );
@@ -431,6 +496,7 @@ function simulateRally(
   runtime: RallyRuntime,
   random: RandomSource,
   writer: EventWriter,
+  abilityContext?: AbilityContext,
 ): MatchSide {
   const serving = runtimeForSide(runtime, runtime.servingSide);
   const receivingSide = opposite(runtime.servingSide);
@@ -441,9 +507,14 @@ function simulateRally(
     serving.school,
     receiving.selection,
     random,
+    abilityContext,
   );
-  const serverStrength = serveStrength(server, serving.school);
-  const receiverStrength = receiveStrength(receiver, receiving.school);
+  const serverStrength = serveStrength(server, serving.school, abilityContext);
+  const receiverStrength = receiveStrength(
+    receiver,
+    receiving.school,
+    abilityContext,
+  );
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
   const serveErrorChance = clamp(
@@ -502,7 +573,7 @@ function simulateRally(
     receiveQuality >= 72 ? "receive.perfect" : "receive.controlled",
   );
 
-  const setter = chooseSetter(state, receiving.selection);
+  const setter = chooseSetter(state, receiving.selection, abilityContext);
   const tempoModifier =
     receiving.school.tactics.attackTempo === "fast"
       ? 5
@@ -510,13 +581,13 @@ function simulateRally(
         ? 2
         : 4;
   const setQuality =
-    effectiveAbility(setter, "set") * 0.66 +
-    effectiveAbility(setter, "decision") * 0.24 +
+    effectiveAbility(setter, "set", abilityContext) * 0.66 +
+    effectiveAbility(setter, "decision", abilityContext) * 0.24 +
     receiveQuality * 0.28 +
     receiving.school.coach.tactics * 0.08 +
     tempoModifier +
     (random.next() - 0.5) * 12;
-  const attacker = chooseAttacker(state, receiving, random);
+  const attacker = chooseAttacker(state, receiving, random, abilityContext);
   writer.push(
     "set",
     runtime,
@@ -527,25 +598,25 @@ function simulateRally(
   );
 
   const attackPower =
-    effectiveAbility(attacker, "spike") * 0.58 +
-    effectiveAbility(attacker, "jump") * 0.19 +
-    effectiveAbility(attacker, "decision") * 0.11 +
+    effectiveAbility(attacker, "spike", abilityContext) * 0.58 +
+    effectiveAbility(attacker, "jump", abilityContext) * 0.19 +
+    effectiveAbility(attacker, "decision", abilityContext) * 0.11 +
     attacker.positionAptitudes[attacker.preferredPosition] * 0.12 +
     setQuality * 0.35 +
     receiving.school.coach.tactics * 0.07 +
     (random.next() - 0.5) * 16;
-  const blocker = chooseBlocker(state, serving.selection);
-  const digger = chooseDigger(state, serving.selection);
+  const blocker = chooseBlocker(state, serving.selection, abilityContext);
+  const digger = chooseDigger(state, serving.selection, abilityContext);
   const blockPower =
-    effectiveAbility(blocker, "block") * 0.62 +
-    effectiveAbility(blocker, "jump") * 0.24 +
-    effectiveAbility(blocker, "decision") * 0.14 +
+    effectiveAbility(blocker, "block", abilityContext) * 0.62 +
+    effectiveAbility(blocker, "jump", abilityContext) * 0.24 +
+    effectiveAbility(blocker, "decision", abilityContext) * 0.14 +
     serving.school.coach.tactics * 0.08 +
     blockMatchupAdjustment(receiving.school, serving.school);
   const digPower =
-    effectiveAbility(digger, "receive") * 0.58 +
-    effectiveAbility(digger, "speed") * 0.25 +
-    effectiveAbility(digger, "decision") * 0.17 +
+    effectiveAbility(digger, "receive", abilityContext) * 0.58 +
+    effectiveAbility(digger, "speed", abilityContext) * 0.25 +
+    effectiveAbility(digger, "decision", abilityContext) * 0.17 +
     serving.school.coach.leadership * 0.07;
 
   writer.push(
@@ -800,149 +871,372 @@ function createMatchAnalysis(
   };
 }
 
-export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
+function runtimeOrThrow(match: MatchState): MatchRuntimeState {
+  if (!match.runtime) {
+    throw new Error("resumable match runtime is missing");
+  }
+  return match.runtime;
+}
+
+function sideForSchool(match: MatchState, schoolId: SchoolId): MatchSide {
+  if (schoolId === match.homeSchoolId) {
+    return "home";
+  }
+  if (schoolId === match.awaySchoolId) {
+    return "away";
+  }
+  throw new Error(`school is not part of match: ${schoolId}`);
+}
+
+function currentServingSide(match: MatchState): MatchSide {
+  return sideForSchool(match, match.servingSchoolId);
+}
+
+function createInitialMatchState(
+  input: SimulateMatchInput,
+  controlledSchoolId: SchoolId | null,
+): MatchState {
   validateMatchInput(input);
+  if (
+    controlledSchoolId !== null &&
+    controlledSchoolId !== input.homeSchoolId &&
+    controlledSchoolId !== input.awaySchoolId
+  ) {
+    throw new Error("controlled school must be one of the match schools");
+  }
 
   const initialRandom = input.random.snapshot();
-  const simulationState = applyDynamicsReadinessToState(
-    input.state,
-    input.dynamicsReadinessByPlayerId,
-  );
-  const homeSchool = simulationState.schools[input.homeSchoolId]!;
-  const awaySchool = simulationState.schools[input.awaySchoolId]!;
-  const writer = createEventWriter();
-  const sets: MatchSetState[] = [];
-  const requiredSetWins = Math.ceil(input.bestOfSets / 2);
-  let homeSetsWon = 0;
-  let awaySetsWon = 0;
-  let finalHomeSelection = cloneSelection(input.homeSelection);
-  let finalAwaySelection = cloneSelection(input.awaySelection);
-  let finalServingSide: MatchSide = "home";
+  const homeSelection = cloneSelection(input.homeSelection);
+  const awaySelection = cloneSelection(input.awaySelection);
+  const homeSchool = input.state.schools[input.homeSchoolId]!;
+  const awaySchool = input.state.schools[input.awaySchoolId]!;
 
-  for (
-    let setNumber = 1;
-    homeSetsWon < requiredSetWins && awaySetsWon < requiredSetWins;
-    setNumber += 1
-  ) {
-    const homeSelection = cloneSelection(input.homeSelection);
-    const awaySelection = cloneSelection(input.awaySelection);
-    const runtime: RallyRuntime = {
-      setNumber,
+  return {
+    id: input.id,
+    homeSchoolId: input.homeSchoolId,
+    awaySchoolId: input.awaySchoolId,
+    homeSelection,
+    awaySelection,
+    bestOfSets: input.bestOfSets,
+    phase: "set-in-progress",
+    currentSetNumber: 1,
+    homeSetsWon: 0,
+    awaySetsWon: 0,
+    sets: [],
+    servingSchoolId: input.homeSchoolId,
+    pendingCoachCommandForSchoolId: null,
+    eventLog: [],
+    randomSeed: initialRandom.seed,
+    randomCursor: initialRandom.cursor,
+    runtime: {
+      controlledSchoolId,
       homeScore: 0,
       awayScore: 0,
-      servingSide: setNumber % 2 === 1 ? "home" : "away",
-      home: { side: "home", school: homeSchool, selection: homeSelection },
-      away: { side: "away", school: awaySchool, selection: awaySelection },
-    };
-    let rallies = 0;
+      homeTactics: deriveMatchTacticPlan(homeSchool.tactics),
+      awayTactics: deriveMatchTacticPlan(awaySchool.tactics),
+      homeBaseSelection: cloneSelection(input.homeSelection),
+      awayBaseSelection: cloneSelection(input.awaySelection),
+      runWinnerSchoolId: null,
+      runLength: 0,
+      opponentRunDecisionConsumed: false,
+      timeoutUsedSchoolIds: [],
+      timeoutBoost: null,
+      pendingDecisionReason: null,
+      commandHistory: [],
+      ralliesInCurrentSet: 0,
+      dynamicsReadinessByPlayerId: input.dynamicsReadinessByPlayerId
+        ? { ...input.dynamicsReadinessByPlayerId }
+        : undefined,
+    },
+  };
+}
 
-    while (
-      !setIsComplete(
-        setNumber,
-        input.bestOfSets,
+function beginNextSet(match: MatchState): void {
+  const runtime = runtimeOrThrow(match);
+  match.currentSetNumber += 1;
+  match.homeSelection = cloneSelection(runtime.homeBaseSelection);
+  match.awaySelection = cloneSelection(runtime.awayBaseSelection);
+  match.servingSchoolId =
+    match.currentSetNumber % 2 === 1 ? match.homeSchoolId : match.awaySchoolId;
+  match.phase = "set-in-progress";
+  match.pendingCoachCommandForSchoolId = null;
+  runtime.homeScore = 0;
+  runtime.awayScore = 0;
+  runtime.runWinnerSchoolId = null;
+  runtime.runLength = 0;
+  runtime.opponentRunDecisionConsumed = false;
+  runtime.timeoutUsedSchoolIds = [];
+  runtime.timeoutBoost = null;
+  runtime.pendingDecisionReason = null;
+  runtime.ralliesInCurrentSet = 0;
+}
+
+function interactiveSimulationState(
+  state: GameState,
+  match: MatchState,
+): GameState {
+  const runtime = runtimeOrThrow(match);
+  const readinessState = applyDynamicsReadinessToState(
+    state,
+    runtime.dynamicsReadinessByPlayerId,
+  );
+  if (runtime.controlledSchoolId === null) {
+    return readinessState;
+  }
+
+  const homeSchool = readinessState.schools[match.homeSchoolId];
+  const awaySchool = readinessState.schools[match.awaySchoolId];
+  if (!homeSchool || !awaySchool) {
+    throw new Error("match school is missing from simulation state");
+  }
+
+  return {
+    ...readinessState,
+    schools: {
+      ...readinessState.schools,
+      [homeSchool.id]: {
+        ...homeSchool,
+        tactics: applyMatchTacticPlan(homeSchool.tactics, runtime.homeTactics),
+      },
+      [awaySchool.id]: {
+        ...awaySchool,
+        tactics: applyMatchTacticPlan(awaySchool.tactics, runtime.awayTactics),
+      },
+    },
+  };
+}
+
+function updateScoringRun(match: MatchState, winnerSchoolId: SchoolId): void {
+  const runtime = runtimeOrThrow(match);
+  if (runtime.runWinnerSchoolId === winnerSchoolId) {
+    runtime.runLength += 1;
+    return;
+  }
+  runtime.runWinnerSchoolId = winnerSchoolId;
+  runtime.runLength = 1;
+}
+
+function shouldOpenOpponentRunDecision(match: MatchState): boolean {
+  const runtime = runtimeOrThrow(match);
+  return (
+    runtime.controlledSchoolId !== null &&
+    !runtime.opponentRunDecisionConsumed &&
+    runtime.runLength >= 4 &&
+    runtime.runWinnerSchoolId !== null &&
+    runtime.runWinnerSchoolId !== runtime.controlledSchoolId
+  );
+}
+
+function decrementTimeoutBoost(match: MatchState): void {
+  const runtime = runtimeOrThrow(match);
+  if (!runtime.timeoutBoost) {
+    return;
+  }
+  runtime.timeoutBoost.ralliesRemaining -= 1;
+  if (runtime.timeoutBoost.ralliesRemaining <= 0) {
+    runtime.timeoutBoost = null;
+  }
+}
+
+function finishSet(
+  match: MatchState,
+  rallyRuntime: RallyRuntime,
+  writer: EventWriter,
+  simulationState: GameState,
+): MatchStepResult | null {
+  const runtime = runtimeOrThrow(match);
+  const winnerSide: MatchSide =
+    rallyRuntime.homeScore > rallyRuntime.awayScore ? "home" : "away";
+  const winnerSchoolId = schoolIdForSide(rallyRuntime, winnerSide);
+
+  if (winnerSide === "home") {
+    match.homeSetsWon += 1;
+  } else {
+    match.awaySetsWon += 1;
+  }
+
+  const completedSet: MatchSetState = {
+    setNumber: match.currentSetNumber,
+    homeScore: rallyRuntime.homeScore,
+    awayScore: rallyRuntime.awayScore,
+    completed: true,
+    winnerSchoolId,
+  };
+  match.sets.push(completedSet);
+  writer.push(
+    "set-end",
+    rallyRuntime,
+    null,
+    null,
+    winnerSchoolId,
+    "set.complete",
+  );
+  runtime.timeoutBoost = null;
+
+  const requiredSetWins = Math.ceil(match.bestOfSets / 2);
+  if (
+    match.homeSetsWon >= requiredSetWins ||
+    match.awaySetsWon >= requiredSetWins
+  ) {
+    match.phase = "match-complete";
+    match.pendingCoachCommandForSchoolId = null;
+    runtime.pendingDecisionReason = null;
+    writer.push(
+      "match-end",
+      rallyRuntime,
+      null,
+      null,
+      winnerSchoolId,
+      "match.complete",
+    );
+    return {
+      match,
+      analysis: createMatchAnalysis(simulationState, match),
+    };
+  }
+
+  if (runtime.controlledSchoolId !== null) {
+    match.phase = "coach-decision";
+    match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
+    runtime.pendingDecisionReason = "set-break";
+    return { match, analysis: null };
+  }
+
+  match.phase = "set-complete";
+  beginNextSet(match);
+  return null;
+}
+
+function runUntilBoundary(
+  state: GameState,
+  sourceMatch: MatchState,
+): MatchStepResult {
+  const match = structuredClone(sourceMatch) as MatchState;
+  const runtime = runtimeOrThrow(match);
+
+  if (match.phase === "coach-decision") {
+    throw new Error("unresolved coach decision must be handled before resume");
+  }
+  if (match.phase === "match-complete") {
+    const simulationState = interactiveSimulationState(state, match);
+    return { match, analysis: createMatchAnalysis(simulationState, match) };
+  }
+  if (match.phase === "set-complete") {
+    beginNextSet(match);
+  }
+  if (match.phase !== "set-in-progress") {
+    throw new Error(`cannot resume match from phase: ${match.phase}`);
+  }
+
+  const simulationState = interactiveSimulationState(state, match);
+  const homeSchool = simulationState.schools[match.homeSchoolId]!;
+  const awaySchool = simulationState.schools[match.awaySchoolId]!;
+  const random = new SeededRandom(match.randomSeed, match.randomCursor);
+  const writer = createEventWriter(match.eventLog);
+
+  while (true) {
+    runtime.ralliesInCurrentSet += 1;
+    if (runtime.ralliesInCurrentSet > MAX_RALLIES_PER_SET) {
+      throw new Error("match set exceeded rally safety limit");
+    }
+
+    const rallyRuntime: RallyRuntime = {
+      setNumber: match.currentSetNumber,
+      homeScore: runtime.homeScore,
+      awayScore: runtime.awayScore,
+      servingSide: currentServingSide(match),
+      home: {
+        side: "home",
+        school: homeSchool,
+        selection: match.homeSelection,
+      },
+      away: {
+        side: "away",
+        school: awaySchool,
+        selection: match.awaySelection,
+      },
+    };
+    const servingBeforeRally = rallyRuntime.servingSide;
+    const winner = simulateRally(
+      simulationState,
+      rallyRuntime,
+      random,
+      writer,
+      { timeoutBoost: runtime.timeoutBoost },
+    );
+
+    if (winner !== servingBeforeRally) {
+      const winnerRuntime = runtimeForSide(rallyRuntime, winner);
+      rotateSelection(winnerRuntime.selection);
+      writer.push(
+        "rotation",
+        rallyRuntime,
+        winnerRuntime.selection.servingOrderPlayerIds[0] ?? null,
+        null,
+        winnerRuntime.school.id,
+        "rotation.side-out",
+      );
+      rallyRuntime.servingSide = winner;
+    }
+
+    runtime.homeScore = rallyRuntime.homeScore;
+    runtime.awayScore = rallyRuntime.awayScore;
+    match.homeSelection = rallyRuntime.home.selection;
+    match.awaySelection = rallyRuntime.away.selection;
+    match.servingSchoolId = schoolIdForSide(
+      rallyRuntime,
+      rallyRuntime.servingSide,
+    );
+    match.randomCursor = random.cursor;
+    decrementTimeoutBoost(match);
+
+    const winnerSchoolId = schoolIdForSide(rallyRuntime, winner);
+    updateScoringRun(match, winnerSchoolId);
+
+    if (
+      setIsComplete(
+        match.currentSetNumber,
+        match.bestOfSets,
         runtime.homeScore,
         runtime.awayScore,
       )
     ) {
-      rallies += 1;
-      if (rallies > MAX_RALLIES_PER_SET) {
-        throw new Error("match set exceeded rally safety limit");
+      const completed = finishSet(match, rallyRuntime, writer, simulationState);
+      if (completed) {
+        return completed;
       }
-
-      const servingBeforeRally = runtime.servingSide;
-      const winner = simulateRally(
-        simulationState,
-        runtime,
-        input.random,
-        writer,
-      );
-      if (winner !== servingBeforeRally) {
-        const winnerRuntime = runtimeForSide(runtime, winner);
-        rotateSelection(winnerRuntime.selection);
-        writer.push(
-          "rotation",
-          runtime,
-          winnerRuntime.selection.servingOrderPlayerIds[0] ?? null,
-          null,
-          winnerRuntime.school.id,
-          "rotation.side-out",
-        );
-        runtime.servingSide = winner;
-      }
+      continue;
     }
 
-    const winnerSide: MatchSide =
-      runtime.homeScore > runtime.awayScore ? "home" : "away";
-    const winnerSchoolId = schoolIdForSide(runtime, winnerSide);
-    if (winnerSide === "home") {
-      homeSetsWon += 1;
-    } else {
-      awaySetsWon += 1;
+    if (shouldOpenOpponentRunDecision(match)) {
+      match.phase = "coach-decision";
+      match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
+      runtime.pendingDecisionReason = "opponent-run";
+      return { match, analysis: null };
     }
+  }
+}
 
-    sets.push({
-      setNumber,
-      homeScore: runtime.homeScore,
-      awayScore: runtime.awayScore,
-      completed: true,
-      winnerSchoolId,
-    });
-    writer.push("set-end", runtime, null, null, winnerSchoolId, "set.complete");
-    finalHomeSelection = runtime.home.selection;
-    finalAwaySelection = runtime.away.selection;
-    finalServingSide = runtime.servingSide;
+export function startMatch(input: StartMatchInput): MatchStepResult {
+  const match = createInitialMatchState(input, input.controlledSchoolId);
+  return runUntilBoundary(input.state, match);
+}
+
+export function resumeMatch(input: ResumeMatchInput): MatchStepResult {
+  return runUntilBoundary(input.state, input.match);
+}
+
+export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
+  const match = createInitialMatchState(input, null);
+  const result = runUntilBoundary(input.state, match);
+  if (!result.analysis || result.match.phase !== "match-complete") {
+    throw new Error("non-interactive match did not complete");
   }
 
-  const winnerSchoolId =
-    homeSetsWon > awaySetsWon ? input.homeSchoolId : input.awaySchoolId;
-  const finalSet = sets.at(-1)!;
-  const finalRuntime: RallyRuntime = {
-    setNumber: finalSet.setNumber,
-    homeScore: finalSet.homeScore,
-    awayScore: finalSet.awayScore,
-    servingSide: finalServingSide,
-    home: {
-      side: "home",
-      school: homeSchool,
-      selection: finalHomeSelection,
-    },
-    away: {
-      side: "away",
-      school: awaySchool,
-      selection: finalAwaySelection,
-    },
-  };
-  writer.push(
-    "match-end",
-    finalRuntime,
-    null,
-    null,
-    winnerSchoolId,
-    "match.complete",
-  );
-
-  const match: MatchState = {
-    id: input.id,
-    homeSchoolId: input.homeSchoolId,
-    awaySchoolId: input.awaySchoolId,
-    homeSelection: finalHomeSelection,
-    awaySelection: finalAwaySelection,
-    bestOfSets: input.bestOfSets,
-    phase: "match-complete",
-    currentSetNumber: finalSet.setNumber,
-    homeSetsWon,
-    awaySetsWon,
-    sets,
-    servingSchoolId:
-      finalServingSide === "home" ? input.homeSchoolId : input.awaySchoolId,
-    pendingCoachCommandForSchoolId: null,
-    eventLog: writer.events,
-    randomSeed: initialRandom.seed,
-    randomCursor: input.random.cursor,
-  };
-
+  const compatibilityMatch = { ...result.match };
+  delete compatibilityMatch.runtime;
   return {
-    match,
-    analysis: createMatchAnalysis(simulationState, match),
+    match: compatibilityMatch,
+    analysis: result.analysis,
   };
 }
