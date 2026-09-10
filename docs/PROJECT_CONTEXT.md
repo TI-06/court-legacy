@@ -198,7 +198,7 @@ PR14-3 saved-lineup UX completes the Phase 14 Player Hub slice with:
 
 Phase 14 does not fabricate player history, add fatigue-management chores, leak private PvP opponent abilities, silently repair stale saved lineups, or persist match-only lineup changes.
 
-Phase 15 is complete. **Phase 16 — Match Command is the next roadmap slice.**
+Phase 15 is complete. **Phase 16 — Match Command is in progress.**
 
 ### Phase 15 — Team Tactics
 
@@ -219,6 +219,20 @@ Phase 15 intentionally does not add per-point tactical commands; those belong to
 ### Phase 16 — Match Command
 
 Limited high-value in-match coaching decisions rather than per-point micromanagement.
+
+PR16-1 Match Command Foundation provides:
+
+- a resumable deterministic match runtime that stops before unresolved coach decisions and never precomputes hidden future rallies;
+- opponent four-point-run and non-final set-break decision boundaries;
+- match-local timeout, tactics-change, substitution and continue command contracts with validation;
+- one timeout per set at opponent-run decisions, applying a five-rally decision/mental boost without fatigue recovery;
+- match-local tactic changes from the next rally onward without overwriting persistent `School.tactics`;
+- match-local substitutions that survive later rallies/sets without overwriting persistent `teamSelection`;
+- seed/cursor and command-history state sufficient for deterministic resume/replay;
+- backward-compatible one-shot `simulateMatch()` behavior, including caller random-cursor advancement;
+- save schema remaining v8.
+
+PR16-1 intentionally does not add the major Match Command UI or official/PvP session integration. **PR16-2 Interactive Match Command UX is the next Phase 16 slice**, followed by PR16-3 Official/PvP Completion.
 
 ### Phase 17 — Season Goals & Rankings
 
@@ -259,6 +273,11 @@ Seasonal PvP ranking/endgame layer without pay-to-win progression.
 - `docs/superpowers/specs/2026-09-09-phase15-team-tactics-design.md`
 - `docs/superpowers/plans/2026-09-09-phase15-team-tactics-foundation.md`
 - `docs/superpowers/plans/2026-09-09-phase15-tactics-ux.md`
+
+### Phase 16
+
+- `docs/superpowers/specs/2026-09-10-phase16-match-command-design.md`
+- `docs/superpowers/plans/2026-09-10-phase16-match-command-foundation.md`
 
 ## Handoff rule
 
