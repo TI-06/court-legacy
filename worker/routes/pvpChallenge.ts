@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { pvpJstDayKey, pvpSeasonId } from "../../src/domain/pvp/season";
 import type { GameStore } from "../data/GameStore";
-import type { PvPStore, PublishedPvpTeamSnapshot } from "../data/PvPStore";
+import type { PvpMatchSessionStore } from "../data/PvPStore";
 import {
   matchTacticPlanSchema,
   teamSelectionSchema,
@@ -12,7 +12,7 @@ import {
   GameRuleConflictError,
 } from "../game/applyGameAction";
 import { json, jsonError } from "../http/json";
-import { simulatePvpMatch } from "../pvp/simulatePvpMatch";
+import { startPvpMatchSession } from "../pvp/pvpMatchSession";
 import type { AuthenticatedRequestHandler } from "../router";
 
 const requestSchema = z
@@ -45,7 +45,7 @@ const publicResultSchema = z
   })
   .strip();
 
-const responseSchema = z
+const completedResponseSchema = z
   .object({
     operationId: z.string().min(1).max(120),
     revision: z.number().int().positive(),
@@ -72,7 +72,7 @@ const responseSchema = z
 
 export interface PvpChallengeHandlerDependencies {
   gameStore: GameStore;
-  pvpStore: PvPStore;
+  pvpStore: PvpMatchSessionStore;
   now?: () => Date;
   createMatchNonce?: () => string;
 }
@@ -158,38 +158,6 @@ async function createMatchSeed(input: {
   return `pvp:${input.operationId}:${digest}`;
 }
 
-function canonicalResponse(input: {
-  operationId: string;
-  revision: number;
-  seasonId: string;
-  defender: PublishedPvpTeamSnapshot;
-  matchId: string;
-  ratingBefore: number;
-  ratingAfter: number;
-  result: unknown;
-  createdAt: string;
-}) {
-  const result = publicResultSchema.parse(input.result);
-  return responseSchema.parse({
-    operationId: input.operationId,
-    revision: input.revision,
-    seasonId: input.seasonId,
-    matchId: input.matchId,
-    opponent: {
-      snapshotId: input.defender.id,
-      schoolName: input.defender.school.name,
-      schoolShortName: input.defender.school.shortName,
-    },
-    rating: {
-      before: input.ratingBefore,
-      after: input.ratingAfter,
-      delta: input.ratingAfter - input.ratingBefore,
-    },
-    result,
-    createdAt: input.createdAt,
-  });
-}
-
 export function createPvpChallengeHandler(
   deps: PvpChallengeHandlerDependencies,
 ): AuthenticatedRequestHandler {
@@ -213,11 +181,25 @@ export function createPvpChallengeHandler(
     );
     if (existing) {
       if (existing.kind !== "challenge") return operationConflict();
-      const replay = responseSchema.safeParse(existing.response);
+      const replay = completedResponseSchema.safeParse(existing.response);
       if (!replay.success) {
         throw new Error("stored PvP challenge response is invalid");
       }
       return json(replay.data);
+    }
+
+    const existingSession = await deps.pvpStore.getMatchSession(
+      user.id,
+      parsed.data.operationId,
+    );
+    if (existingSession) {
+      if (
+        existingSession.defenderSnapshotId !== parsed.data.opponentSnapshotId ||
+        existingSession.challengerSourceRevision !== parsed.data.revision
+      ) {
+        return operationConflict();
+      }
+      return json(existingSession.finalResponse ?? existingSession.publicResponse);
     }
 
     const challenger = await deps.gameStore.getSnapshot(user.id);
@@ -231,14 +213,10 @@ export function createPvpChallengeHandler(
     if (challenger.revision !== parsed.data.revision) {
       return revisionConflict();
     }
-    const challengerSchool =
-      challenger.state.schools[challenger.state.userSchoolId];
-    if (!challengerSchool) {
-      throw new Error("challenger school is missing from authoritative state");
-    }
 
     const matchSelection = parsed.data.matchSelection as
-      TeamSelection | undefined;
+      | TeamSelection
+      | undefined;
     let challengerForMatch = challenger;
     if (matchSelection) {
       try {
@@ -291,78 +269,46 @@ export function createPvpChallengeHandler(
       challengeDayKey,
       nonce: createMatchNonce(),
     });
-    const simulation = simulatePvpMatch({
+    const started = startPvpMatchSession({
+      operationId: parsed.data.operationId,
       challenger: challengerForMatch,
       defender,
+      challengerSourceRevision: challenger.revision,
+      seasonId,
+      challengeDayKey,
       matchSeed,
       matchTactics: parsed.data.matchTactics,
     });
+    const publicResponse = {
+      status: "in-progress" as const,
+      operationId: parsed.data.operationId,
+      revision: challenger.revision,
+      seasonId,
+      opponent: {
+        snapshotId: defender.id,
+        schoolName: defender.school.name,
+        schoolShortName: defender.school.shortName,
+      },
+      segment: started.segment,
+    };
 
     try {
-      const committed = await deps.pvpStore.commitRatedMatch({
-        seasonId,
-        challengeDayKey,
-        operationId: parsed.data.operationId,
+      const persisted = await deps.pvpStore.createMatchSession({
         challengerUserId: user.id,
-        defenderUserId: defender.userId,
+        operationId: parsed.data.operationId,
         defenderSnapshotId: defender.id,
         challengerSourceRevision: challenger.revision,
-        matchSeed,
-        challengerWon: simulation.challengerWon,
-        result: {
-          ...simulation.result,
-          challengerSchoolName: challengerSchool.name,
-        },
+        currentCursor: started.session.match.randomCursor,
+        privateSession: started.session,
+        publicResponse,
       });
-
-      let canonicalDefender = defender;
-      if (committed.defenderSnapshotId !== defender.id) {
-        const racedDefender = await deps.pvpStore.getSnapshotById(
-          committed.defenderSnapshotId,
-        );
-        if (!racedDefender) {
-          throw new Error("canonical PvP defender snapshot is missing");
-        }
-        canonicalDefender = racedDefender;
-      }
-
-      return json(
-        canonicalResponse({
-          operationId: committed.operationId,
-          revision: challenger.revision,
-          seasonId: committed.seasonId,
-          defender: canonicalDefender,
-          matchId: committed.matchId,
-          ratingBefore: committed.challengerRatingBefore,
-          ratingAfter: committed.challengerRatingAfter,
-          result: committed.result,
-          createdAt: committed.createdAt,
-        }),
-      );
+      return json(persisted.finalResponse ?? persisted.publicResponse);
     } catch (error) {
-      if (containsErrorCode(error, "pvp_daily_opponent_limit")) {
-        return jsonError(
-          409,
-          "pvp_daily_opponent_limit",
-          "同じ相手とのレーティング対戦は1日3回までです",
-        );
-      }
-      if (containsErrorCode(error, "pvp_operation_conflict")) {
+      if (
+        containsErrorCode(error, "pvp_operation_conflict") ||
+        containsErrorCode(error, "pvp_session_operation_conflict")
+      ) {
         return operationConflict();
-      }
-      if (containsErrorCode(error, "pvp_opponent_inactive")) {
-        return jsonError(
-          409,
-          "pvp_opponent_inactive",
-          "この公開チームは更新済みです。対戦相手一覧を更新してください",
-        );
-      }
-      if (containsErrorCode(error, "pvp_self_match")) {
-        return jsonError(
-          400,
-          "pvp_self_match",
-          "自分のチームとは対戦できません",
-        );
       }
       throw error;
     }
