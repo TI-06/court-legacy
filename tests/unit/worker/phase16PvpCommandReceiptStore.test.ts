@@ -31,14 +31,11 @@ describe("Phase 16 PvP command receipt lookup", () => {
       "command-001",
     );
 
-    expect(rpc).toHaveBeenCalledWith(
-      "get_pvp_match_session_command_receipt",
-      {
-        p_challenger_user_id: userId,
-        p_operation_id: "phase16-session-operation",
-        p_command_id: "command-001",
-      },
-    );
+    expect(rpc).toHaveBeenCalledWith("get_pvp_match_session_command_receipt", {
+      p_challenger_user_id: userId,
+      p_operation_id: "phase16-session-operation",
+      p_command_id: "command-001",
+    });
     expect(receipt).toEqual({
       commandId: "command-001",
       command: { type: "continue" },
