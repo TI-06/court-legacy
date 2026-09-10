@@ -8,7 +8,6 @@ import type {
 import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
-  PersistedPvpMatchSession,
   PublishedPvpTeamSnapshot,
   PvpMatchSessionStore,
 } from "../../../worker/data/PvPStore";
