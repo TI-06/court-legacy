@@ -12,6 +12,7 @@ import type {
   PublishedPvpTeamSnapshot,
   PvpMatchSessionStore,
 } from "../../../worker/data/PvPStore";
+import { createRouter } from "../../../worker/router";
 import { createPvpChallengeHandler } from "../../../worker/routes/pvpChallenge";
 
 const challengerUserId = "00000000-0000-0000-0000-000000000001";
@@ -153,6 +154,16 @@ function challengeRequest(): Request {
   });
 }
 
+function authenticatedRequest(path: string, init?: RequestInit): Request {
+  return new Request(`https://court-legacy.test${path}`, {
+    ...init,
+    headers: {
+      authorization: "Bearer access-token",
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 describe("Phase 16 PvP challenge routes", () => {
   it("starts one private resumable session and does not commit rating before match completion", async () => {
     const challenger = challengerSnapshot();
@@ -204,5 +215,65 @@ describe("Phase 16 PvP challenge routes", () => {
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+  });
+
+  it("reloads only the authenticated challenger's persisted public session response", async () => {
+    const challenger = challengerSnapshot();
+    const defender = defenderSnapshot();
+    const store = sessionStore(defender);
+    const publicResponse = {
+      status: "in-progress",
+      operationId: "phase16-route-operation",
+      revision: 12,
+      seasonId: "2026-09",
+      opponent: {
+        snapshotId: defenderSnapshotId,
+        schoolName: "白波高校",
+        schoolShortName: "白波",
+      },
+      segment: {
+        status: "in-progress",
+        operationId: "phase16-route-operation",
+        matchId: "pvp-match-1",
+        phase: "coach-decision",
+        currentSetNumber: 1,
+        challengerSetsWon: 0,
+        defenderSetsWon: 0,
+        currentScore: { challenger: 10, defender: 14 },
+        sets: [],
+        pendingDecisionReason: "opponent-run",
+        events: [],
+      },
+    };
+    vi.mocked(store.getMatchSession).mockResolvedValue({
+      challengerUserId,
+      operationId: "phase16-route-operation",
+      defenderSnapshotId,
+      challengerSourceRevision: 12,
+      currentCursor: 42,
+      privateSession: { secret: "server-only" },
+      publicResponse,
+      finalResponse: null,
+      createdAt: "2026-09-10T09:30:00.000Z",
+      updatedAt: "2026-09-10T09:31:00.000Z",
+    });
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: challengerUserId })),
+      store: gameStore(challenger),
+      pvpStore: store,
+    });
+
+    const response = await router(
+      authenticatedRequest(
+        "/api/pvp/challenge/session?operationId=phase16-route-operation",
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(publicResponse);
+    expect(store.getMatchSession).toHaveBeenCalledWith(
+      challengerUserId,
+      "phase16-route-operation",
+    );
   });
 });
