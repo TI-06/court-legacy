@@ -105,7 +105,9 @@ function unusedCommittedMatch(
   };
 }
 
-function sessionStore(defender: PublishedPvpTeamSnapshot): PvpMatchSessionStore {
+function sessionStore(
+  defender: PublishedPvpTeamSnapshot,
+): PvpMatchSessionStore {
   return {
     publishSnapshot: vi.fn(async () => defender),
     findChallengeOperation: vi.fn(async () => null),
