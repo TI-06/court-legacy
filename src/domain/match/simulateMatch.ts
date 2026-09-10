@@ -398,7 +398,12 @@ function rotateSelection(selection: TeamSelection): void {
   selection.rotation = selection.rotation.map((assignment) => ({
     ...assignment,
     slot: (assignment.slot === 1 ? 6 : assignment.slot - 1) as
-      1 | 2 | 3 | 4 | 5 | 6,
+      | 1
+      | 2
+      | 3
+      | 4
+      | 5
+      | 6,
   }));
 
   const firstServer = selection.servingOrderPlayerIds[0];
@@ -1110,6 +1115,7 @@ function finishSet(
 function runUntilBoundary(
   state: GameState,
   sourceMatch: MatchState,
+  randomOverride?: RandomSource,
 ): MatchStepResult {
   const match = structuredClone(sourceMatch) as MatchState;
   const runtime = runtimeOrThrow(match);
@@ -1131,7 +1137,11 @@ function runUntilBoundary(
   const simulationState = interactiveSimulationState(state, match);
   const homeSchool = simulationState.schools[match.homeSchoolId]!;
   const awaySchool = simulationState.schools[match.awaySchoolId]!;
-  const random = new SeededRandom(match.randomSeed, match.randomCursor);
+  const random =
+    randomOverride ?? new SeededRandom(match.randomSeed, match.randomCursor);
+  if (random.cursor !== match.randomCursor) {
+    throw new Error("match random source cursor does not match resumable state");
+  }
   const writer = createEventWriter(match.eventLog);
 
   while (true) {
@@ -1228,7 +1238,7 @@ export function resumeMatch(input: ResumeMatchInput): MatchStepResult {
 
 export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
   const match = createInitialMatchState(input, null);
-  const result = runUntilBoundary(input.state, match);
+  const result = runUntilBoundary(input.state, match, input.random);
   if (!result.analysis || result.match.phase !== "match-complete") {
     throw new Error("non-interactive match did not complete");
   }
