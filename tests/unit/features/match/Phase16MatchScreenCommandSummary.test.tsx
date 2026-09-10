@@ -50,7 +50,9 @@ function findInteractiveDecision(): ReturnType<typeof fixture> & {
   throw new Error("could not find interactive decision fixture");
 }
 
-function completeInteractiveMatch(): ReturnType<typeof findInteractiveDecision> {
+function completeInteractiveMatch(): ReturnType<
+  typeof findInteractiveDecision
+> {
   const base = findInteractiveDecision();
   let match = applyMatchCommand({
     state: base.state,
@@ -77,21 +79,18 @@ function completeInteractiveMatch(): ReturnType<typeof findInteractiveDecision> 
   return { ...base, result };
 }
 
-function renderMatch(base: ReturnType<typeof fixture>, result: MatchStepResult) {
+function renderMatch(
+  base: ReturnType<typeof fixture>,
+  result: MatchStepResult,
+) {
   return render(
     <MatchScreen
       state={base.state}
       opponent={base.opponent}
       homeSelection={base.homeSelection}
       awaySelection={base.awaySelection}
-      homeStrength={calculateSelectionStrength(
-        base.state,
-        base.homeSelection,
-      )}
-      awayStrength={calculateSelectionStrength(
-        base.state,
-        base.awaySelection,
-      )}
+      homeStrength={calculateSelectionStrength(base.state, base.homeSelection)}
+      awayStrength={calculateSelectionStrength(base.state, base.awaySelection)}
       result={result}
       reducedMotion={false}
       onStart={vi.fn()}
