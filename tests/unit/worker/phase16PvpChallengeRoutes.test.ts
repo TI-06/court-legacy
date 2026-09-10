@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type { CloudGameSnapshot, GameStore } from "../../../worker/data/GameStore";
+import type {
+  CloudGameSnapshot,
+  GameStore,
+} from "../../../worker/data/GameStore";
 import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
@@ -22,7 +25,11 @@ function challengerSnapshot(): CloudGameSnapshot {
     schoolShortName: "青葉",
     coachName: "高橋 監督",
     regionId: "region.chiba",
-    uniform: { primary: "#17365D", secondary: "#FFFFFF", accent: "#D99B2B" },
+    uniform: {
+      primary: "#17365D",
+      secondary: "#FFFFFF",
+      accent: "#D99B2B",
+    },
   });
   return {
     userId: challengerUserId,
@@ -40,7 +47,11 @@ function defenderSnapshot(): PublishedPvpTeamSnapshot {
     schoolShortName: "白波",
     coachName: "山本 監督",
     regionId: "region.kanagawa",
-    uniform: { primary: "#224466", secondary: "#F7F7F7", accent: "#BB7722" },
+    uniform: {
+      primary: "#224466",
+      secondary: "#F7F7F7",
+      accent: "#BB7722",
+    },
   });
   const school = state.schools[state.userSchoolId]!;
   return {
@@ -61,7 +72,9 @@ function defenderSnapshot(): PublishedPvpTeamSnapshot {
 
 function gameStore(snapshot: CloudGameSnapshot): GameStore {
   return {
-    getSnapshot: vi.fn(async (userId) => (userId === snapshot.userId ? snapshot : null)),
+    getSnapshot: vi.fn(async (userId) =>
+      userId === snapshot.userId ? snapshot : null,
+    ),
     getOperationResponse: vi.fn(async () => null),
     createGame: vi.fn(async () => {
       throw new Error("not used");
@@ -72,7 +85,9 @@ function gameStore(snapshot: CloudGameSnapshot): GameStore {
   };
 }
 
-function unusedCommittedMatch(input: CommitRatedPvpMatchInput): CommittedRatedPvpMatch {
+function unusedCommittedMatch(
+  input: CommitRatedPvpMatchInput,
+): CommittedRatedPvpMatch {
   return {
     matchId: "00000000-0000-4000-8000-000000000333",
     seasonId: input.seasonId,
@@ -99,18 +114,20 @@ function sessionStore(defender: PublishedPvpTeamSnapshot): PvpMatchSessionStore 
     listOpponents: vi.fn(async () => []),
     listRanking: vi.fn(async () => []),
     listHistory: vi.fn(async () => []),
-    createMatchSession: vi.fn(async (input): Promise<PersistedPvpMatchSession> => ({
-      challengerUserId: input.challengerUserId,
-      operationId: input.operationId,
-      defenderSnapshotId: input.defenderSnapshotId,
-      challengerSourceRevision: input.challengerSourceRevision,
-      currentCursor: input.currentCursor,
-      privateSession: input.privateSession,
-      publicResponse: input.publicResponse,
-      finalResponse: null,
-      createdAt: "2026-09-10T09:30:00.000Z",
-      updatedAt: "2026-09-10T09:30:00.000Z",
-    })),
+    createMatchSession: vi.fn(
+      async (input): Promise<PersistedPvpMatchSession> => ({
+        challengerUserId: input.challengerUserId,
+        operationId: input.operationId,
+        defenderSnapshotId: input.defenderSnapshotId,
+        challengerSourceRevision: input.challengerSourceRevision,
+        currentCursor: input.currentCursor,
+        privateSession: input.privateSession,
+        publicResponse: input.publicResponse,
+        finalResponse: null,
+        createdAt: "2026-09-10T09:30:00.000Z",
+        updatedAt: "2026-09-10T09:30:00.000Z",
+      }),
+    ),
     getMatchSession: vi.fn(async () => null),
     getMatchSessionCommandReceipt: vi.fn(async () => null),
     saveMatchSessionCommand: vi.fn(async () => {
@@ -146,7 +163,9 @@ describe("Phase 16 PvP challenge routes", () => {
       createMatchNonce: () => "fixed-route-nonce",
     });
 
-    const response = await handler(challengeRequest(), { id: challengerUserId });
+    const response = await handler(challengeRequest(), {
+      id: challengerUserId,
+    });
     const body = await response.json();
 
     expect(response.status).toBe(200);
