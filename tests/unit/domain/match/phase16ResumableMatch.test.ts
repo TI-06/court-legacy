@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
+import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
+  simulateMatch,
   startMatch,
 } from "../../../../src/domain/match/simulateMatch";
 import type {
   CoachDecisionReason,
   MatchCommand,
   MatchRuntimeState,
+  MatchState,
 } from "../../../../src/domain/model/Match";
 import { createAbilities } from "../../../../src/domain/model/Player";
 import { matchId } from "../../../../src/domain/model/identifiers";
@@ -99,6 +102,40 @@ function startInteractive(
   });
 }
 
+function findOpponentRunDecision(context: ReturnType<typeof createContext>) {
+  for (let index = 0; index < 240; index += 1) {
+    const step = startInteractive(context, `phase16-run-${index}`);
+    if (step.match.runtime?.pendingDecisionReason === "opponent-run") {
+      return step;
+    }
+  }
+  throw new Error("test fixture could not find an opponent-run decision");
+}
+
+function playToCompletionWithContinue(
+  context: ReturnType<typeof createContext>,
+  randomSeed: string,
+): MatchState {
+  let step = startInteractive(context, randomSeed);
+  let guard = 0;
+
+  while (step.match.phase !== "match-complete") {
+    guard += 1;
+    if (guard > 12) {
+      throw new Error("interactive match did not complete within decision guard");
+    }
+    const commanded = applyMatchCommand({
+      state: context.state,
+      match: step.match,
+      schoolId: context.homeSchoolId,
+      command: { type: "continue" },
+    });
+    step = resumeMatch({ state: context.state, match: commanded });
+  }
+
+  return step.match;
+}
+
 describe("Phase16 resumable match API", () => {
   it("exports the high-level resumable match contract", () => {
     const reason: CoachDecisionReason = "opponent-run";
@@ -136,18 +173,8 @@ describe("Phase16 resumable match API", () => {
 
   it("opens an opponent-run decision exactly when the opponent reaches four straight points", () => {
     const context = createContext("phase16-run-world");
-    let found: ReturnType<typeof startInteractive> | null = null;
-
-    for (let index = 0; index < 160; index += 1) {
-      const candidate = startInteractive(context, `phase16-run-${index}`);
-      if (candidate.match.runtime?.pendingDecisionReason === "opponent-run") {
-        found = candidate;
-        break;
-      }
-    }
-
-    expect(found).not.toBeNull();
-    const pointEvents = found!.match.eventLog.filter(
+    const found = findOpponentRunDecision(context);
+    const pointEvents = found.match.eventLog.filter(
       (event) => event.type === "point",
     );
     const lastFour = pointEvents.slice(-4);
@@ -156,11 +183,27 @@ describe("Phase16 resumable match API", () => {
     expect(
       lastFour.every(
         (event) =>
-          event.setNumber === found!.match.currentSetNumber &&
+          event.setNumber === found.match.currentSetNumber &&
           event.winnerSchoolId === context.awaySchoolId,
       ),
     ).toBe(true);
-    expect(found!.match.runtime?.runLength).toBe(4);
+    expect(found.match.runtime?.runLength).toBe(4);
+  });
+
+  it("does not open a second opponent-run decision in the same set after continue", () => {
+    const context = createContext("phase16-single-run-world");
+    const first = findOpponentRunDecision(context);
+    const commanded = applyMatchCommand({
+      state: context.state,
+      match: first.match,
+      schoolId: context.homeSchoolId,
+      command: { type: "continue" },
+    });
+    const next = resumeMatch({ state: context.state, match: commanded });
+
+    expect(next.match.runtime?.pendingDecisionReason).toBe("set-break");
+    expect(next.match.currentSetNumber).toBe(first.match.currentSetNumber);
+    expect(next.match.runtime?.opponentRunDecisionConsumed).toBe(true);
   });
 
   it("uses a set-break decision after a non-final set without starting the next set", () => {
@@ -178,6 +221,26 @@ describe("Phase16 resumable match API", () => {
     expect(step.match.awaySetsWon).toBe(0);
   });
 
+  it("starts the next set only after a set-break command is accepted", () => {
+    const context = makeHomeDominant(createContext("phase16-next-set-world"));
+    const first = startInteractive(context, "phase16-next-set-random");
+    expect(first.match.runtime?.pendingDecisionReason).toBe("set-break");
+
+    const commanded = applyMatchCommand({
+      state: context.state,
+      match: first.match,
+      schoolId: context.homeSchoolId,
+      command: { type: "continue" },
+    });
+    const second = resumeMatch({ state: context.state, match: commanded });
+
+    expect(second.match.currentSetNumber).toBeGreaterThanOrEqual(2);
+    expect(second.match.eventLog.some((event) => event.setNumber === 2)).toBe(
+      true,
+    );
+    expect(second.match.sets[0]).toEqual(first.match.sets[0]);
+  });
+
   it("does not resume through an unresolved coach decision", () => {
     const context = createContext("phase16-unresolved-world");
     const step = startInteractive(context, "phase16-unresolved-random");
@@ -189,5 +252,84 @@ describe("Phase16 resumable match API", () => {
     );
     expect(step.match).toEqual(snapshot);
     expect(step.match.randomCursor).toBe(cursor);
+  });
+
+  it("replays an identical interactive command sequence exactly", () => {
+    const context = createContext("phase16-replay-world");
+    const first = playToCompletionWithContinue(context, "phase16-replay-random");
+    const second = playToCompletionWithContinue(context, "phase16-replay-random");
+
+    expect(first).toEqual(second);
+    expect(first.phase).toBe("match-complete");
+    expect(first.runtime?.commandHistory.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("expires a timeout boost before the next decision boundary", () => {
+    const context = createContext("phase16-timeout-expiry-world");
+    const first = findOpponentRunDecision(context);
+    const timedOut = applyMatchCommand({
+      state: context.state,
+      match: first.match,
+      schoolId: context.homeSchoolId,
+      command: { type: "timeout" },
+    });
+    expect(timedOut.runtime?.timeoutBoost?.ralliesRemaining).toBe(5);
+
+    const next = resumeMatch({ state: context.state, match: timedOut });
+    expect(next.match.runtime?.timeoutBoost).toBeNull();
+    expect(next.match.runtime?.pendingDecisionReason).toBe("set-break");
+  });
+
+  it("keeps tactics changes future-only and persistent school tactics untouched", () => {
+    const context = createContext("phase16-future-tactics-world");
+    const first = findOpponentRunDecision(context);
+    const prefix = structuredClone(first.match.eventLog);
+    const schoolTactics = structuredClone(
+      context.state.schools[context.homeSchoolId]!.tactics,
+    );
+    const changed = applyMatchCommand({
+      state: context.state,
+      match: first.match,
+      schoolId: context.homeSchoolId,
+      command: {
+        type: "set-match-tactics",
+        plan: { serve: "aggressive", attack: "quick", block: "commit" },
+      },
+    });
+    const next = resumeMatch({ state: context.state, match: changed });
+
+    expect(next.match.eventLog.slice(0, prefix.length)).toEqual(prefix);
+    expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
+      schoolTactics,
+    );
+  });
+
+  it("preserves the existing one-shot simulateMatch contract without runtime state", () => {
+    const context = createContext("phase16-compat-world");
+    const stateBefore = structuredClone(context.state);
+    const homeBefore = structuredClone(context.homeSelection);
+    const awayBefore = structuredClone(context.awaySelection);
+    const execute = () =>
+      simulateMatch({
+        state: context.state,
+        id: matchId("phase16-compat-match"),
+        homeSchoolId: context.homeSchoolId,
+        awaySchoolId: context.awaySchoolId,
+        homeSelection: context.homeSelection,
+        awaySelection: context.awaySelection,
+        bestOfSets: 3,
+        random: new SeededRandom("phase16-compat-random", 12),
+      });
+
+    const first = execute();
+    const second = execute();
+
+    expect(first).toEqual(second);
+    expect(first.match.phase).toBe("match-complete");
+    expect(first.analysis.winnerSchoolId).toBeTruthy();
+    expect(first.match.runtime).toBeUndefined();
+    expect(context.state).toEqual(stateBefore);
+    expect(context.homeSelection).toEqual(homeBefore);
+    expect(context.awaySelection).toEqual(awayBefore);
   });
 });
