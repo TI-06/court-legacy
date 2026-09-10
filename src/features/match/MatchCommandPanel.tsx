@@ -36,7 +36,7 @@ export function MatchCommandPanel({
   return (
     <section className="match-command-panel" aria-label="監督指示">
       <div className="match-command-panel__heading">
-        <span>COACH DECISION</span>
+        <span>判断タイミング</span>
         <h2>監督指示</h2>
         <p>
           {reason === "opponent-run"
