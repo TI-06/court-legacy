@@ -40,6 +40,38 @@ async function schedulePracticeMatch(page: Page) {
   await expect(scheduled).toBeVisible();
 }
 
+async function finishInteractiveMatch(page: Page) {
+  const resultHeading = page.getByRole("heading", { name: "試合結果" });
+
+  for (let guard = 0; guard < 14; guard += 1) {
+    if (await resultHeading.isVisible().catch(() => false)) return;
+
+    const toDecision = page.getByRole("button", { name: "次の判断まで進む" });
+    const toResult = page.getByRole("button", { name: "結果まで進む" });
+    if (await toDecision.isVisible().catch(() => false)) {
+      await toDecision.click();
+    } else if (await toResult.isVisible().catch(() => false)) {
+      await toResult.click();
+    }
+
+    if (await resultHeading.isVisible().catch(() => false)) return;
+
+    const decision = page.getByRole("region", { name: "監督指示" });
+    await expect(decision).toBeVisible();
+    const nextSet = decision.getByRole("button", {
+      name: "このまま次セットへ",
+    });
+    if (await nextSet.isVisible().catch(() => false)) {
+      await nextSet.click();
+    } else {
+      await decision.getByRole("button", { name: "このまま続ける" }).click();
+    }
+    await expect(decision).toBeHidden();
+  }
+
+  throw new Error("interactive practice match did not reach the result");
+}
+
 for (const width of [320, 360, 390, 414, 480]) {
   test(`${width}px Home progression resolves a scheduled practice match and advances the week`, async ({
     page,
@@ -84,7 +116,7 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expect(page.getByTestId("event-sequence")).toContainText("1 /");
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("button", { name: "結果まで進む" }).click();
+    await finishInteractiveMatch(page);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
