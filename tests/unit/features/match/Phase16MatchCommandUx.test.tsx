@@ -179,6 +179,15 @@ describe("Phase16 match command decision panel", () => {
       within(blockGroup).getByRole("button", { name: "コミット" }),
     );
 
+    expect(
+      within(serveGroup).getByRole("button", { name: "強気" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(attackGroup).getByRole("button", { name: "高速" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      within(blockGroup).getByRole("button", { name: "コミット" }),
+    ).toHaveAttribute("aria-pressed", "true");
     expect(onCommand).not.toHaveBeenCalled();
     expect(
       JSON.stringify(
