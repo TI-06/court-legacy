@@ -11,6 +11,7 @@ import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
 import {
   applyGameAction,
   GameRuleConflictError,
+  type AppliedGameAction,
 } from "../../../worker/game/applyGameAction";
 
 function createSnapshot(): CloudGameSnapshot {
@@ -72,6 +73,30 @@ function expectConflict(callback: () => unknown, code: string): void {
     return;
   }
   throw new Error(`expected GameRuleConflictError: ${code}`);
+}
+
+function completeOfficialMatch(snapshot: CloudGameSnapshot): AppliedGameAction {
+  let applied = applyGameAction(snapshot, { type: "official-match" });
+
+  for (let guard = 0; guard < 8; guard += 1) {
+    if (applied.state.activeMatch?.phase === "match-complete") {
+      return applied;
+    }
+    if (applied.state.activeMatch?.phase !== "coach-decision") {
+      throw new Error("official match did not stop at a coach decision");
+    }
+
+    applied = applyGameAction(
+      {
+        ...snapshot,
+        state: applied.state,
+        teamSelection: applied.teamSelection,
+      },
+      { type: "match-command", command: { type: "continue" } },
+    );
+  }
+
+  throw new Error("official match did not complete within guard limit");
 }
 
 describe("official match action schema", () => {
@@ -152,7 +177,7 @@ describe("authoritative official match action", () => {
     );
   });
 
-  it("rejects an invalid current lineup before simulating the official match", () => {
+  it("rejects an invalid current lineup before starting the official match", () => {
     const snapshot = officialWeekSnapshot({ trained: true });
     snapshot.teamSelection.rotation[1]!.playerId =
       snapshot.teamSelection.rotation[0]!.playerId;
@@ -163,7 +188,7 @@ describe("authoritative official match action", () => {
     );
   });
 
-  it("derives the same due opponent and result from the same snapshot without consuming global RNG", () => {
+  it("derives the same due opponent and first authoritative segment without consuming global RNG", () => {
     const snapshot = officialWeekSnapshot({ trained: true });
     const due = findDueUserOfficialMatch(snapshot.state)!;
     const beforeCursor = snapshot.state.randomCursor;
@@ -173,6 +198,7 @@ describe("authoritative official match action", () => {
 
     expect(first).toEqual(second);
     expect(first.state.randomCursor).toBe(beforeCursor);
+    expect(first.state.activeMatch?.phase).toBe("coach-decision");
     expect(first.outcome).toMatchObject({
       officialMatch: {
         tournamentId: due.stage.tournamentId,
@@ -184,10 +210,11 @@ describe("authoritative official match action", () => {
           displayName: due.opponent.displayName,
         },
       },
+      simulation: { analysis: null },
     });
   });
 
-  it("records the authoritative result, advances the bracket, and updates player career stats", () => {
+  it("records the authoritative result, advances the bracket, and updates player career stats only after completion", () => {
     const snapshot = officialWeekSnapshot({ trained: true });
     const due = findDueUserOfficialMatch(snapshot.state)!;
     const schoolBefore = snapshot.state.schools[snapshot.state.userSchoolId]!;
@@ -199,7 +226,15 @@ describe("authoritative official match action", () => {
       snapshot.teamSelection.liberoPlayerId!,
     ]);
 
-    const result = applyGameAction(snapshot, { type: "official-match" });
+    const started = applyGameAction(snapshot, { type: "official-match" });
+    expect(
+      started.state.officialSeason.interhigh.prefectural.matches.find(
+        (match) => match.id === due.match.id,
+      )?.status,
+    ).not.toBe("completed");
+    expect(started.state.history.matches).toHaveLength(historyBefore);
+
+    const result = completeOfficialMatch(snapshot);
     const completed =
       result.state.officialSeason.interhigh.prefectural.matches.find(
         (match) => match.id === due.match.id,
@@ -226,19 +261,39 @@ describe("authoritative official match action", () => {
     expect(findDueUserOfficialMatch(result.state)).toBeNull();
   });
 
-  it("resolves a due official match through week progression before advancing", () => {
+  it("keeps week progression blocked until the official session completes", () => {
     const snapshot = officialWeekSnapshot({ trained: true });
-    const official = applyGameAction(snapshot, { type: "advance-week" });
-    expect(official.state.date).toBe(snapshot.state.date);
-    expect(official.outcome).toMatchObject({
+    const started = applyGameAction(snapshot, { type: "advance-week" });
+    expect(started.state.date).toBe(snapshot.state.date);
+    expect(started.outcome).toMatchObject({
+      weekAdvanced: false,
+      pendingMatchPresentation: {
+        kind: "official",
+        simulation: { analysis: null },
+      },
+    });
+
+    const reloaded = applyGameAction(
+      {
+        ...snapshot,
+        state: started.state,
+        teamSelection: started.teamSelection,
+      },
+      { type: "advance-week" },
+    );
+    expect(reloaded.state.date).toBe(snapshot.state.date);
+    expect(reloaded.state.activeMatch).toEqual(started.state.activeMatch);
+    expect(reloaded.outcome).toMatchObject({
       weekAdvanced: false,
       pendingMatchPresentation: { kind: "official" },
     });
+
+    const completed = completeOfficialMatch(snapshot);
     const advanced = applyGameAction(
       {
         ...snapshot,
-        state: official.state,
-        teamSelection: official.teamSelection,
+        state: completed.state,
+        teamSelection: completed.teamSelection,
       },
       { type: "advance-week" },
     );
