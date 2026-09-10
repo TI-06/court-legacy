@@ -228,7 +228,11 @@ describe("Phase16 resumable practice match session", () => {
     );
 
     let commandCount = 1;
-    for (let guard = 0; guard < 10 && presentation.simulation.analysis === null; guard += 1) {
+    for (
+      let guard = 0;
+      guard < 10 && presentation.simulation.analysis === null;
+      guard += 1
+    ) {
       currentSnapshot = continueSnapshot(currentSnapshot, current);
       current = applyServerGameAction(currentSnapshot, {
         type: "match-command",
@@ -245,7 +249,9 @@ describe("Phase16 resumable practice match session", () => {
     expect(presentation.simulation.analysis).not.toBeNull();
     expect(current.state.activeMatch?.phase).toBe("match-complete");
     expect(isWeeklyActionCompleted(current.state, "practice-match")).toBe(true);
-    expect(current.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBeNull();
+    expect(
+      current.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    ).toBeNull();
     expect(
       current.state.history.matches.filter((match) => match.matchId === matchId),
     ).toHaveLength(1);
