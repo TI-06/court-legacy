@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { MatchCommand } from "../../src/domain/model/Match";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
   AssistantCoachRank,
@@ -98,6 +99,24 @@ export const matchTacticPlanSchema = z
   })
   .strict();
 
+const matchCommandSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("timeout") }).strict(),
+  z
+    .object({
+      type: z.literal("set-match-tactics"),
+      plan: matchTacticPlanSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("substitute"),
+      outgoingPlayerId: playerIdSchema,
+      incomingPlayerId: playerIdSchema,
+    })
+    .strict(),
+  z.object({ type: z.literal("continue") }).strict(),
+]);
+
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
   z
@@ -143,6 +162,9 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
+  z
+    .object({ type: z.literal("match-command"), command: matchCommandSchema })
+    .strict(),
   z.object({ type: z.literal("practice-offer-accept") }).strict(),
   z.object({ type: z.literal("practice-offer-decline") }).strict(),
   z
@@ -210,6 +232,7 @@ export type GameAction =
     }
   | { type: "delete-lineup-preset"; slot: SavedLineupSlot }
   | { type: "practice-match" }
+  | { type: "match-command"; command: MatchCommand }
   | { type: "practice-offer-accept" }
   | { type: "practice-offer-decline" }
   | { type: "practice-request"; schoolId: SchoolId }

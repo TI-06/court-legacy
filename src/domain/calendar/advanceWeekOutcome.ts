@@ -1,5 +1,5 @@
 import type { AcademicYearTransitionSummary } from "./academicYearProgression";
-import type { SimulateMatchResult } from "../match/simulateMatch";
+import type { MatchStepResult } from "../match/simulateMatch";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type {
   TournamentCircuit,
@@ -14,7 +14,7 @@ export interface MatchTeamPresentation {
 }
 export interface PendingMatchPresentation {
   kind: "practice" | "official";
-  simulation: SimulateMatchResult;
+  simulation: MatchStepResult;
   homeTeam: MatchTeamPresentation;
   awayTeam: MatchTeamPresentation;
   official?: {
