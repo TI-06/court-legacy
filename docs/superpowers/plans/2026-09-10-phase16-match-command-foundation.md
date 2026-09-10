@@ -39,10 +39,12 @@
 ### Task 1: Match runtime and command model
 
 **Files:**
+
 - Modify: `src/domain/model/Match.ts`
 - Test: `tests/unit/domain/match/phase16ResumableMatch.test.ts`
 
 **Interfaces:**
+
 - Produces `MatchCommand`, `CoachDecisionReason`, `MatchCommandRecord`, `MatchRuntimeState`, and optional `MatchState.runtime`.
 - Later tasks consume these types directly; no duplicate runtime model is allowed elsewhere.
 
@@ -183,10 +185,12 @@ git commit -m "feat: add Phase16 match command runtime model"
 ### Task 2: Resumable deterministic simulation and decision triggers
 
 **Files:**
+
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: `tests/unit/domain/match/phase16ResumableMatch.test.ts`
 
 **Interfaces:**
+
 - Consumes `MatchRuntimeState` and `MatchStepResult` from Task 1.
 - Produces working `startMatch(input)` and `resumeMatch(input)` that stop only at `coach-decision` or `match-complete`.
 - `simulateMatch(input)` remains the non-interactive compatibility wrapper.
@@ -217,7 +221,10 @@ Expected: FAIL because the Task-1 entry points still throw / do not segment simu
 Keep current rally probability functions in `simulateMatch.ts`. Introduce private helpers with responsibilities equivalent to:
 
 ```ts
-function createInitialMatchState(input: SimulateMatchInput, controlledSchoolId: SchoolId | null): MatchState;
+function createInitialMatchState(
+  input: SimulateMatchInput,
+  controlledSchoolId: SchoolId | null,
+): MatchState;
 function runUntilBoundary(state: GameState, match: MatchState): MatchStepResult;
 function beginNextSet(match: MatchState): MatchState;
 function updateRunAfterPoint(match: MatchState, winnerSchoolId: SchoolId): void;
@@ -281,11 +288,13 @@ git commit -m "feat: make match simulation resumable"
 ### Task 3: High-level coach command validation and match-local effects
 
 **Files:**
+
 - Create: `src/domain/match/applyMatchCommand.ts`
 - Create: `tests/unit/domain/match/phase16MatchCommands.test.ts`
 - Modify: `src/domain/match/simulateMatch.ts`
 
 **Interfaces:**
+
 - Consumes `MatchCommand`, `CoachDecisionReason`, `MatchRuntimeState`.
 - Produces:
 
@@ -405,11 +414,13 @@ git commit -m "feat: apply Phase16 match commands"
 ### Task 4: Timeout stabilization, tactics projection, and deterministic resume
 
 **Files:**
+
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: `tests/unit/domain/match/phase16ResumableMatch.test.ts`
 - Modify: `tests/unit/domain/match/phase16MatchCommands.test.ts`
 
 **Interfaces:**
+
 - Consumes `runtime.timeoutBoost` and runtime `MatchTacticPlan` values.
 - Produces simulation effects that apply only to future rallies.
 
@@ -473,11 +484,13 @@ git commit -m "feat: apply match-local command effects"
 ### Task 5: One-shot compatibility, non-mutation, and PR16-1 verification
 
 **Files:**
+
 - Modify: `tests/unit/domain/match/phase16ResumableMatch.test.ts`
 - Modify if needed: `src/domain/match/simulateMatch.ts`
 - Modify: `docs/PROJECT_CONTEXT.md`
 
 **Interfaces:**
+
 - Produces a PR16-1 foundation that current callers can adopt incrementally in PR16-2/PR16-3.
 
 - [ ] **Step 1: Add compatibility RED/guard tests**

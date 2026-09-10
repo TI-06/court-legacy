@@ -58,10 +58,16 @@ function isMatchSchool(match: MatchState, schoolId: SchoolId): boolean {
   return schoolId === match.homeSchoolId || schoolId === match.awaySchoolId;
 }
 
-function selectionForSchool(match: MatchState, schoolId: SchoolId): TeamSelection {
+function selectionForSchool(
+  match: MatchState,
+  schoolId: SchoolId,
+): TeamSelection {
   if (schoolId === match.homeSchoolId) return match.homeSelection;
   if (schoolId === match.awaySchoolId) return match.awaySelection;
-  return fail("command_school_not_in_match", "この学校は試合に参加していません");
+  return fail(
+    "command_school_not_in_match",
+    "この学校は試合に参加していません",
+  );
 }
 
 function baseSelectionForSchool(
@@ -71,7 +77,10 @@ function baseSelectionForSchool(
 ): TeamSelection {
   if (schoolId === match.homeSchoolId) return runtime.homeBaseSelection;
   if (schoolId === match.awaySchoolId) return runtime.awayBaseSelection;
-  return fail("command_school_not_in_match", "この学校は試合に参加していません");
+  return fail(
+    "command_school_not_in_match",
+    "この学校は試合に参加していません",
+  );
 }
 
 function setSelectionForSchool(
@@ -237,7 +246,10 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
     );
   }
   if (!isMatchSchool(match, input.schoolId)) {
-    return fail("command_school_not_in_match", "この学校は試合に参加していません");
+    return fail(
+      "command_school_not_in_match",
+      "この学校は試合に参加していません",
+    );
   }
   if (match.pendingCoachCommandForSchoolId !== input.schoolId) {
     return fail(
