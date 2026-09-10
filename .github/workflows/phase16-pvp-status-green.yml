@@ -1,0 +1,39 @@
+name: Phase16 PvP status GREEN
+
+on:
+  push:
+    branches:
+      - feat/phase16-official-pvp-completion
+    paths:
+      - .github/workflows/phase16-pvp-status-green.yml
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write worker/router.ts worker/routes/pvpChallengeSession.ts
+      - name: Focused tests
+        run: npx vitest run tests/unit/worker/phase16PvpChallengeRoutes.test.ts tests/unit/worker/router.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Cleanup and commit
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-status-green.yml
+          git add worker/router.ts worker/routes/pvpChallengeSession.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: add PvP challenge session status route"
+          git push
