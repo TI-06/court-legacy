@@ -1,8 +1,5 @@
 import type { GameState } from "../../domain/model/GameState";
-import type {
-  MatchCommandRecord,
-  MatchState,
-} from "../../domain/model/Match";
+import type { MatchCommandRecord, MatchState } from "../../domain/model/Match";
 
 export interface MatchCommandImpactRow {
   sequence: number;
@@ -60,8 +57,7 @@ function observedPointSplit(
   ).length;
   const opponentPoints = points.filter(
     (event) =>
-      event.winnerSchoolId !== null &&
-      event.winnerSchoolId !== record.schoolId,
+      event.winnerSchoolId !== null && event.winnerSchoolId !== record.schoolId,
   ).length;
 
   return {
