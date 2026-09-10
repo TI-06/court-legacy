@@ -88,10 +88,10 @@ function MatchScreenContent({
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
   const decisionReady = Boolean(
     result &&
-      segmentRevealed &&
-      result.match.phase === "coach-decision" &&
-      result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
-      onCommand,
+    segmentRevealed &&
+    result.match.phase === "coach-decision" &&
+    result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
+    onCommand,
   );
 
   useEffect(() => {
