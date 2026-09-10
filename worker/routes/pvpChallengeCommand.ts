@@ -1,11 +1,12 @@
 import { z } from "zod";
 import type { MatchCommand } from "../../src/domain/model/Match";
+import { playerId } from "../../src/domain/model/identifiers";
 import type { PvpMatchSessionStore } from "../data/PvPStore";
 import { matchTacticPlanSchema } from "../game/actionSchema";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 
-const playerIdSchema = z.string().min(1);
+const playerIdSchema = z.string().min(1).transform(playerId);
 
 const matchCommandSchema: z.ZodType<MatchCommand> = z.discriminatedUnion(
   "type",
