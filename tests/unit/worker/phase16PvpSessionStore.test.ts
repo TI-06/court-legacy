@@ -64,9 +64,9 @@ describe("Phase 16 PvP session store", () => {
       p_challenger_user_id: userId,
       p_operation_id: "phase16-session-operation",
     });
-    expect(rpc.mock.calls.some(([name]) => name === "commit_pvp_rated_match")).toBe(
-      false,
-    );
+    expect(
+      rpc.mock.calls.some(([name]) => name === "commit_pvp_rated_match"),
+    ).toBe(false);
   });
 
   it("saves a command with expected cursor and maps duplicate command replay", async () => {
@@ -132,14 +132,11 @@ describe("Phase 16 PvP session store", () => {
       finalResponse,
     });
 
-    expect(rpc).toHaveBeenCalledWith(
-      "store_pvp_match_session_final_response",
-      {
-        p_challenger_user_id: userId,
-        p_operation_id: "phase16-session-operation",
-        p_final_response: finalResponse,
-      },
-    );
+    expect(rpc).toHaveBeenCalledWith("store_pvp_match_session_final_response", {
+      p_challenger_user_id: userId,
+      p_operation_id: "phase16-session-operation",
+      p_final_response: finalResponse,
+    });
     expect(stored.finalResponse).toEqual(finalResponse);
   });
 
@@ -158,8 +155,12 @@ describe("Phase 16 PvP session store", () => {
     expect(sql).toContain(
       "primary key (challenger_user_id, operation_id, command_id)",
     );
-    expect(sql).toContain("create or replace function public.create_pvp_match_session");
-    expect(sql).toContain("create or replace function public.get_pvp_match_session");
+    expect(sql).toContain(
+      "create or replace function public.create_pvp_match_session",
+    );
+    expect(sql).toContain(
+      "create or replace function public.get_pvp_match_session",
+    );
     expect(sql).toContain(
       "create or replace function public.save_pvp_match_session_command",
     );
@@ -170,10 +171,7 @@ describe("Phase 16 PvP session store", () => {
     expect(sql).toContain("pvp_match_session_stale");
     expect(sql).toContain("pvp_command_conflict");
 
-    for (const table of [
-      "pvp_match_sessions",
-      "pvp_match_command_receipts",
-    ]) {
+    for (const table of ["pvp_match_sessions", "pvp_match_command_receipts"]) {
       expect(sql).toContain(
         `alter table public.${table} enable row level security`,
       );
