@@ -51,6 +51,8 @@ export interface MatchRuntimeState {
   awayScore: number;
   homeTactics: MatchTacticPlan;
   awayTactics: MatchTacticPlan;
+  homeBaseSelection: TeamSelection;
+  awayBaseSelection: TeamSelection;
   runWinnerSchoolId: SchoolId | null;
   runLength: number;
   opponentRunDecisionConsumed: boolean;
@@ -61,6 +63,8 @@ export interface MatchRuntimeState {
   } | null;
   pendingDecisionReason: CoachDecisionReason | null;
   commandHistory: MatchCommandRecord[];
+  ralliesInCurrentSet: number;
+  dynamicsReadinessByPlayerId?: Partial<Record<PlayerId, number>>;
 }
 
 export type MatchEventType =
