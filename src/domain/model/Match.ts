@@ -1,3 +1,4 @@
+import type { MatchTacticPlan } from "../team/matchTactics";
 import type { MatchId, PlayerId, SchoolId } from "./identifiers";
 import type { TeamSelection } from "./TeamSelection";
 
@@ -20,6 +21,47 @@ export type CoachCommand =
   | { type: "block-system"; system: "read" | "commit" | "mixed" }
   | { type: "defense-bias"; bias: "cross" | "balanced" | "line" }
   | { type: "encourage"; playerId: PlayerId | null };
+
+export type CoachDecisionReason = "opponent-run" | "set-break";
+
+export type MatchCommand =
+  | { type: "timeout" }
+  | { type: "set-match-tactics"; plan: MatchTacticPlan }
+  | {
+      type: "substitute";
+      outgoingPlayerId: PlayerId;
+      incomingPlayerId: PlayerId;
+    }
+  | { type: "continue" };
+
+export interface MatchCommandRecord {
+  sequence: number;
+  schoolId: SchoolId;
+  setNumber: number;
+  homeScore: number;
+  awayScore: number;
+  decisionReason: CoachDecisionReason;
+  command: MatchCommand;
+  eventSequence: number;
+}
+
+export interface MatchRuntimeState {
+  controlledSchoolId: SchoolId | null;
+  homeScore: number;
+  awayScore: number;
+  homeTactics: MatchTacticPlan;
+  awayTactics: MatchTacticPlan;
+  runWinnerSchoolId: SchoolId | null;
+  runLength: number;
+  opponentRunDecisionConsumed: boolean;
+  timeoutUsedSchoolIds: SchoolId[];
+  timeoutBoost: {
+    schoolId: SchoolId;
+    ralliesRemaining: number;
+  } | null;
+  pendingDecisionReason: CoachDecisionReason | null;
+  commandHistory: MatchCommandRecord[];
+}
 
 export type MatchEventType =
   | "serve"
@@ -73,6 +115,7 @@ export interface MatchState {
   eventLog: MatchEvent[];
   randomSeed: string;
   randomCursor: number;
+  runtime?: MatchRuntimeState;
 }
 
 export interface MatchAnalysisFactor {
