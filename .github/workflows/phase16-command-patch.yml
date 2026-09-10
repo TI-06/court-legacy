@@ -192,16 +192,14 @@ jobs:
           '''
           text = text[:practice_start] + replacement + text[official_start:]
 
-          old_switch = '''    case "match-command":
-              return conflict(
-                "match_command_not_available",
-                "試合中の監督指示は現在処理できません",
-              );'''
-          new_switch = '''    case "match-command":
-              return applyPracticeMatchCommand(state, teamSelection, action);'''
-          if old_switch not in text:
-              raise SystemExit('match command switch anchor missing')
-          text = text.replace(old_switch, new_switch, 1)
+          switch_start = text.index('    case "match-command":\n')
+          switch_end = text.index('    case "official-match":\n', switch_start)
+          text = (
+              text[:switch_start]
+              + '    case "match-command":\n'
+              + '      return applyPracticeMatchCommand(state, teamSelection, action);\n'
+              + text[switch_end:]
+          )
           path.write_text(text)
           PY
           npx prettier --write worker/game/applyGameAction.ts
