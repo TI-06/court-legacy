@@ -9,7 +9,7 @@ import type {
   PendingMatchPresentation,
 } from "../domain/calendar/advanceWeekOutcome";
 import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
-import type { SimulateMatchResult } from "../domain/match/simulateMatch";
+import type { MatchStepResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
@@ -153,9 +153,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PlayerId | null>(null);
   const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
     useState<PlayerId | null>(null);
-  const [, setLatestMatchResult] = useState<SimulateMatchResult | null>(null);
+  const [, setLatestMatchResult] = useState<MatchStepResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
-    useState<SimulateMatchResult | null>(null);
+    useState<MatchStepResult | null>(null);
   const [activeMatchPresentation, setActiveMatchPresentation] =
     useState<PendingMatchPresentation | null>(null);
   const [matchView, setMatchView] = useState<MatchView>("practice");

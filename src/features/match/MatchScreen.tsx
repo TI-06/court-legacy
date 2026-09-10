@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
+import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
 import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
@@ -16,7 +16,7 @@ interface MatchScreenProps {
   awaySelection: TeamSelection;
   homeStrength: number;
   awayStrength: number;
-  result: SimulateMatchResult | null;
+  result: MatchStepResult | null;
   presentation?: PendingMatchPresentation | null;
   reducedMotion: boolean;
   onStart: () => void;
@@ -78,7 +78,9 @@ function MatchScreenContent({
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
-  const matchComplete = Boolean(result && visibleEventIndex >= lastEventIndex);
+  const matchComplete = Boolean(
+    result?.analysis && visibleEventIndex >= lastEventIndex,
+  );
 
   useEffect(() => {
     if (!result || !playing || matchComplete || reducedMotion) {
@@ -230,17 +232,18 @@ function MatchScreenContent({
       event.winnerSchoolId === result.match.awaySchoolId,
   ).length;
   const currentEvent = presentedEvents.at(-1);
-  const winnerDisplayName =
-    presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
+  const winnerDisplayName = result.analysis
+    ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
       : presentation?.awayTeam.schoolId === result.analysis.winnerSchoolId
         ? presentation.awayTeam.displayName
-        : state.schools[result.analysis.winnerSchoolId]?.name;
+        : state.schools[result.analysis.winnerSchoolId]?.name
+    : null;
   const homeShortName =
     presentation?.homeTeam.shortName ?? homeSchool.shortName;
   const awayShortName = presentation?.awayTeam.shortName ?? opponent.shortName;
   const userIsHome = result.match.homeSchoolId === state.userSchoolId;
-  const userWon = result.analysis.winnerSchoolId === state.userSchoolId;
+  const userWon = result.analysis?.winnerSchoolId === state.userSchoolId;
   const userShortName = userIsHome ? homeShortName : awayShortName;
   const opponentShortName = userIsHome ? awayShortName : homeShortName;
   const userSetsWon = userIsHome
@@ -251,8 +254,11 @@ function MatchScreenContent({
     : result.match.homeSetsWon;
   const recentEvents = presentedEvents.slice(-4).reverse();
 
-  if (!currentEvent || !winnerDisplayName) {
-    throw new Error("completed match is missing presentation data");
+  if (!currentEvent) {
+    throw new Error("match is missing presentation data");
+  }
+  if (matchComplete && !winnerDisplayName) {
+    throw new Error("completed match is missing winner presentation data");
   }
 
   return (
