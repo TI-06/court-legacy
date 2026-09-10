@@ -177,6 +177,15 @@ export interface PvPStore {
     operationId: string,
   ): Promise<PersistedPvpOperation | null>;
   getSnapshotById(snapshotId: string): Promise<PublishedPvpTeamSnapshot | null>;
+  commitRatedMatch(
+    input: CommitRatedPvpMatchInput,
+  ): Promise<CommittedRatedPvpMatch>;
+  listOpponents(input: PvpOpponentQuery): Promise<PvpOpponentSummary[]>;
+  listRanking(input: PvpListQuery): Promise<PvpRankingEntry[]>;
+  listHistory(input: PvpHistoryQuery): Promise<PvpHistoryEntry[]>;
+}
+
+export interface PvpMatchSessionStore extends PvPStore {
   createMatchSession(
     input: CreatePvpMatchSessionInput,
   ): Promise<PersistedPvpMatchSession>;
@@ -190,10 +199,4 @@ export interface PvPStore {
   storeMatchSessionFinalResponse(
     input: StorePvpMatchSessionFinalResponseInput,
   ): Promise<PersistedPvpMatchSession>;
-  commitRatedMatch(
-    input: CommitRatedPvpMatchInput,
-  ): Promise<CommittedRatedPvpMatch>;
-  listOpponents(input: PvpOpponentQuery): Promise<PvpOpponentSummary[]>;
-  listRanking(input: PvpListQuery): Promise<PvpRankingEntry[]>;
-  listHistory(input: PvpHistoryQuery): Promise<PvpHistoryEntry[]>;
 }
