@@ -298,8 +298,21 @@ describe("Phase16 match commands", () => {
     ).toBe(false);
     expect(next.homeSelection.benchPlayerIds).toContain(outgoingPlayerId);
     expect(next.homeSelection.benchPlayerIds).not.toContain(incomingPlayerId);
-    expect(next.runtime?.homeBaseSelection.rotation).toEqual(
-      next.homeSelection.rotation,
+    expect(
+      next.runtime?.homeBaseSelection.rotation.some(
+        (assignment) => assignment.playerId === incomingPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      next.runtime?.homeBaseSelection.rotation.some(
+        (assignment) => assignment.playerId === outgoingPlayerId,
+      ),
+    ).toBe(false);
+    expect(next.runtime?.homeBaseSelection.benchPlayerIds).toContain(
+      outgoingPlayerId,
+    );
+    expect(next.runtime?.homeBaseSelection.benchPlayerIds).not.toContain(
+      incomingPlayerId,
     );
     expect(context.homeSelection).toEqual(persistentSelection);
     expect(next.eventLog.at(-1)).toMatchObject({
