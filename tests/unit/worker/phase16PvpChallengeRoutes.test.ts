@@ -276,4 +276,77 @@ describe("Phase 16 PvP challenge routes", () => {
       "phase16-route-operation",
     );
   });
+
+  it("replays an accepted duplicate command from its receipt before loading or resimulating the private session", async () => {
+    const challenger = challengerSnapshot();
+    const defender = defenderSnapshot();
+    const store = sessionStore(defender);
+    const replayResponse = {
+      status: "in-progress",
+      operationId: "phase16-route-operation",
+      revision: 12,
+      seasonId: "2026-09",
+      opponent: {
+        snapshotId: defenderSnapshotId,
+        schoolName: "白波高校",
+        schoolShortName: "白波",
+      },
+      segment: {
+        status: "in-progress",
+        operationId: "phase16-route-operation",
+        matchId: "pvp-match-1",
+        phase: "coach-decision",
+        currentSetNumber: 2,
+        challengerSetsWon: 1,
+        defenderSetsWon: 0,
+        currentScore: { challenger: 6, defender: 4 },
+        sets: [
+          {
+            setNumber: 1,
+            challengerScore: 25,
+            defenderScore: 20,
+            completed: true,
+            winner: "challenger",
+          },
+        ],
+        pendingDecisionReason: "opponent-run",
+        events: [],
+      },
+    };
+    vi.mocked(store.getMatchSessionCommandReceipt).mockResolvedValue({
+      commandId: "command-001",
+      command: { type: "continue" },
+      resultingCursor: 77,
+      publicResponse: replayResponse,
+      createdAt: "2026-09-10T09:32:00.000Z",
+    });
+    const router = createRouter({
+      verifyAccessToken: vi.fn(async () => ({ id: challengerUserId })),
+      store: gameStore(challenger),
+      pvpStore: store,
+    });
+
+    const response = await router(
+      authenticatedRequest("/api/pvp/challenge/command", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          operationId: "phase16-route-operation",
+          commandId: "command-001",
+          command: { type: "continue" },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(replayResponse);
+    expect(store.getMatchSessionCommandReceipt).toHaveBeenCalledWith(
+      challengerUserId,
+      "phase16-route-operation",
+      "command-001",
+    );
+    expect(store.getMatchSession).not.toHaveBeenCalled();
+    expect(store.saveMatchSessionCommand).not.toHaveBeenCalled();
+    expect(store.commitRatedMatch).not.toHaveBeenCalled();
+  });
 });
