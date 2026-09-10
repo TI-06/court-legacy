@@ -1,0 +1,42 @@
+name: Phase16 PvP start format test
+
+on:
+  push:
+    branches:
+      - feat/phase16-official-pvp-completion
+    paths:
+      - .github/workflows/phase16-pvp-start-format-test.yml
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write worker/routes/pvpChallenge.ts
+      - name: Run focused test
+        run: |
+          set +e
+          npx vitest run tests/unit/worker/phase16PvpChallengeRoutes.test.ts
+          echo $? > /tmp/test-status
+          exit 0
+      - name: Commit formatting and cleanup
+        run: |
+          git rm .github/workflows/phase16-pvp-start-format-test.yml
+          git add worker/routes/pvpChallenge.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "style: format Phase16 PvP start route"
+          git push
+      - name: Preserve focused test result
+        run: exit $(cat /tmp/test-status)
