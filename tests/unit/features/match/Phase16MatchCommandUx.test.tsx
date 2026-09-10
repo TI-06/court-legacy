@@ -83,9 +83,7 @@ describe("Phase16 match command decision panel", () => {
     expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
     expect(screen.getByRole("button", { name: "選手交代" })).toBeVisible();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "このまま次セットへ" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "このまま次セットへ" }));
     expect(onCommand).toHaveBeenCalledOnce();
     expect(onCommand).toHaveBeenCalledWith({ type: "continue" });
   });
