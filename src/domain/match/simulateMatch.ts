@@ -398,12 +398,7 @@ function rotateSelection(selection: TeamSelection): void {
   selection.rotation = selection.rotation.map((assignment) => ({
     ...assignment,
     slot: (assignment.slot === 1 ? 6 : assignment.slot - 1) as
-      | 1
-      | 2
-      | 3
-      | 4
-      | 5
-      | 6,
+      1 | 2 | 3 | 4 | 5 | 6,
   }));
 
   const firstServer = selection.servingOrderPlayerIds[0];
@@ -1140,7 +1135,9 @@ function runUntilBoundary(
   const random =
     randomOverride ?? new SeededRandom(match.randomSeed, match.randomCursor);
   if (random.cursor !== match.randomCursor) {
-    throw new Error("match random source cursor does not match resumable state");
+    throw new Error(
+      "match random source cursor does not match resumable state",
+    );
   }
   const writer = createEventWriter(match.eventLog);
 

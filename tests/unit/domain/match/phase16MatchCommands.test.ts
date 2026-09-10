@@ -84,7 +84,8 @@ function findSetBreakDecision(context: ReturnType<typeof createContext>) {
 }
 
 function makeHomeDominant(context: ReturnType<typeof createContext>) {
-  for (const playerId of context.state.schools[context.homeSchoolId]!.playerIds) {
+  for (const playerId of context.state.schools[context.homeSchoolId]!
+    .playerIds) {
     context.state.players[playerId] = {
       ...context.state.players[playerId]!,
       abilities: createAbilities(98),
@@ -94,7 +95,8 @@ function makeHomeDominant(context: ReturnType<typeof createContext>) {
       positionAptitudes: { OH: 98, MB: 98, OP: 98, S: 98, L: 98 },
     };
   }
-  for (const playerId of context.state.schools[context.awaySchoolId]!.playerIds) {
+  for (const playerId of context.state.schools[context.awaySchoolId]!
+    .playerIds) {
     context.state.players[playerId] = {
       ...context.state.players[playerId]!,
       abilities: createAbilities(18),
@@ -246,7 +248,11 @@ describe("Phase16 match commands", () => {
       context.state.schools[context.homeSchoolId]!.tactics,
     );
     const awayPlan = structuredClone(match.runtime!.awayTactics);
-    const plan = { serve: "aggressive", attack: "quick", block: "commit" } as const;
+    const plan = {
+      serve: "aggressive",
+      attack: "quick",
+      block: "commit",
+    } as const;
 
     const next = applyMatchCommand({
       state: context.state,

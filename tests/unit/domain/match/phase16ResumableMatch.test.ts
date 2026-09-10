@@ -54,7 +54,8 @@ function createContext(seed = "phase16-world") {
 }
 
 function makeHomeDominant(context: ReturnType<typeof createContext>) {
-  for (const playerId of context.state.schools[context.homeSchoolId]!.playerIds) {
+  for (const playerId of context.state.schools[context.homeSchoolId]!
+    .playerIds) {
     context.state.players[playerId] = {
       ...context.state.players[playerId]!,
       abilities: createAbilities(98),
@@ -64,7 +65,8 @@ function makeHomeDominant(context: ReturnType<typeof createContext>) {
       positionAptitudes: { OH: 98, MB: 98, OP: 98, S: 98, L: 98 },
     };
   }
-  for (const playerId of context.state.schools[context.awaySchoolId]!.playerIds) {
+  for (const playerId of context.state.schools[context.awaySchoolId]!
+    .playerIds) {
     context.state.players[playerId] = {
       ...context.state.players[playerId]!,
       abilities: createAbilities(18),
@@ -122,7 +124,9 @@ function playToCompletionWithContinue(
   while (step.match.phase !== "match-complete") {
     guard += 1;
     if (guard > 12) {
-      throw new Error("interactive match did not complete within decision guard");
+      throw new Error(
+        "interactive match did not complete within decision guard",
+      );
     }
     const commanded = applyMatchCommand({
       state: context.state,
@@ -159,9 +163,9 @@ describe("Phase16 resumable match API", () => {
       context.homeSchoolId,
     );
     expect(step.match.runtime?.pendingDecisionReason).not.toBeNull();
-    expect(step.match.eventLog.some((event) => event.type === "match-end")).toBe(
-      false,
-    );
+    expect(
+      step.match.eventLog.some((event) => event.type === "match-end"),
+    ).toBe(false);
 
     if (step.match.runtime?.pendingDecisionReason === "opponent-run") {
       expect(step.match.eventLog.at(-1)?.type).toBe("point");
@@ -214,9 +218,9 @@ describe("Phase16 resumable match API", () => {
     expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
     expect(step.match.sets).toHaveLength(1);
     expect(step.match.eventLog.at(-1)?.type).toBe("set-end");
-    expect(
-      step.match.eventLog.some((event) => event.setNumber === 2),
-    ).toBe(false);
+    expect(step.match.eventLog.some((event) => event.setNumber === 2)).toBe(
+      false,
+    );
     expect(step.match.homeSetsWon).toBe(1);
     expect(step.match.awaySetsWon).toBe(0);
   });
@@ -247,17 +251,23 @@ describe("Phase16 resumable match API", () => {
     const cursor = step.match.randomCursor;
     const snapshot = structuredClone(step.match);
 
-    expect(() => resumeMatch({ state: context.state, match: step.match })).toThrow(
-      /coach decision/i,
-    );
+    expect(() =>
+      resumeMatch({ state: context.state, match: step.match }),
+    ).toThrow(/coach decision/i);
     expect(step.match).toEqual(snapshot);
     expect(step.match.randomCursor).toBe(cursor);
   });
 
   it("replays an identical interactive command sequence exactly", () => {
     const context = createContext("phase16-replay-world");
-    const first = playToCompletionWithContinue(context, "phase16-replay-random");
-    const second = playToCompletionWithContinue(context, "phase16-replay-random");
+    const first = playToCompletionWithContinue(
+      context,
+      "phase16-replay-random",
+    );
+    const second = playToCompletionWithContinue(
+      context,
+      "phase16-replay-random",
+    );
 
     expect(first).toEqual(second);
     expect(first.phase).toBe("match-complete");
