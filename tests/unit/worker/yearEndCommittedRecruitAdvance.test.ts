@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
+import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import type { Player } from "../../../src/domain/model/Player";
 import { playerId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
+import type { AppliedGameAction } from "../../../worker/game/applyGameAction";
 import { applyServerGameAction } from "../../../worker/game/applyServerGameAction";
-import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
 
 function createYearEndSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
@@ -46,6 +47,36 @@ function committedCandidate(snapshot: CloudGameSnapshot): Player {
       enrolledYear: snapshot.state.calendar.academicYear + 1,
     },
   };
+}
+
+function snapshotAfter(
+  previous: CloudGameSnapshot,
+  applied: AppliedGameAction,
+): CloudGameSnapshot {
+  return {
+    ...previous,
+    revision: previous.revision + 1,
+    state: applied.state,
+    teamSelection: applied.teamSelection,
+  };
+}
+
+function finishPracticeMatch(
+  initial: CloudGameSnapshot,
+  first: AppliedGameAction,
+): CloudGameSnapshot {
+  let snapshot = snapshotAfter(initial, first);
+  for (let guard = 0; guard < 10; guard += 1) {
+    if (isWeeklyActionCompleted(snapshot.state, "practice-match")) {
+      return snapshot;
+    }
+    const next = applyServerGameAction(snapshot, {
+      type: "match-command",
+      command: { type: "continue" },
+    });
+    snapshot = snapshotAfter(snapshot, next);
+  }
+  throw new Error("practice match did not complete within command guard");
 }
 
 describe("year-end advance with committed recruits", () => {
@@ -99,17 +130,18 @@ describe("year-end advance with committed recruits", () => {
     expect(firstOutcome.trainingResult).toBeDefined();
     expect(firstOutcome.pendingMatchPresentation?.kind).toBe("practice");
     expect(isWeeklyActionCompleted(first.state, "training")).toBe(true);
-    expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(true);
+    expect(isWeeklyActionCompleted(first.state, "practice-match")).toBe(false);
+    expect(first.state.activeMatch?.phase).toBe("coach-decision");
     expect(first.state.date).toBe("2029-03-28");
 
-    const nextSnapshot: CloudGameSnapshot = {
-      ...snapshot,
-      revision: snapshot.revision + 1,
-      state: first.state,
-      teamSelection: first.teamSelection,
-    };
+    const completed = finishPracticeMatch(snapshot, first);
+    expect(isWeeklyActionCompleted(completed.state, "practice-match")).toBe(
+      true,
+    );
+    expect(completed.state.date).toBe("2029-03-28");
+
     const second = applyServerGameAction(
-      nextSnapshot,
+      completed,
       { type: "advance-week" },
       { userIntake: [candidate] },
     );
