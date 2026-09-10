@@ -4,8 +4,11 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { startMatch } from "../../../../src/domain/match/simulateMatch";
 import type { CoachDecisionReason } from "../../../../src/domain/model/Match";
 import { matchId } from "../../../../src/domain/model/identifiers";
+import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
+import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../../../src/domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { MatchCommandPanel } from "../../../../src/features/match/MatchCommandPanel";
 import { tacticOptionLabel } from "../../../../src/features/team/tacticsPresentation";
@@ -34,6 +37,15 @@ function findDecision(reason: CoachDecisionReason) {
   }
 
   throw new Error(`could not find ${reason} decision fixture`);
+}
+
+function playerName(
+  state: ReturnType<typeof createDemoGame>,
+  playerId: string,
+): string {
+  const player = state.players[playerId];
+  if (!player) throw new Error(`player fixture missing: ${playerId}`);
+  return `${player.lastName} ${player.firstName}`;
 }
 
 describe("Phase16 match command decision panel", () => {
@@ -202,6 +214,92 @@ describe("Phase16 match command decision panel", () => {
     expect(onCommand).toHaveBeenCalledWith({
       type: "set-match-tactics",
       plan: { serve: "aggressive", attack: "quick", block: "commit" },
+    });
+  });
+
+  it("selects one current court player then one current bench player and emits one substitution command", () => {
+    const fixture = findDecision("set-break");
+    const onCommand = vi.fn();
+    const selection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.homeSelection
+        : fixture.match.awaySelection;
+    const outgoingPlayerId = selection.rotation[0]!.playerId;
+    const incomingPlayerId = selection.benchPlayerIds[0]!;
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手交代" }));
+    const dialog = screen.getByRole("dialog", { name: "選手交代" });
+    const courtGroup = within(dialog).getByRole("group", {
+      name: "コートの選手",
+    });
+    expect(within(courtGroup).getAllByRole("button")).toHaveLength(6);
+
+    for (const assignment of selection.rotation) {
+      const player = fixture.state.players[assignment.playerId]!;
+      const row = within(courtGroup).getByRole("button", {
+        name: playerName(fixture.state, player.id),
+      });
+      expect(within(row).getByText(player.preferredPosition)).toBeVisible();
+      expect(
+        within(row).getByText(
+          getPlayerConditionPresentation(player.condition).label,
+        ),
+      ).toBeVisible();
+      expect(
+        within(row).getByText(
+          ratingToGrade(Math.round(calculatePlayerDisplayPower(player) / 100)),
+        ),
+      ).toBeVisible();
+    }
+
+    fireEvent.click(
+      within(courtGroup).getByRole("button", {
+        name: playerName(fixture.state, outgoingPlayerId),
+      }),
+    );
+    expect(onCommand).not.toHaveBeenCalled();
+
+    const benchGroup = within(dialog).getByRole("group", { name: "ベンチ" });
+    expect(within(benchGroup).getAllByRole("button")).toHaveLength(
+      selection.benchPlayerIds.length,
+    );
+    for (const playerId of selection.benchPlayerIds) {
+      expect(
+        within(benchGroup).getByRole("button", {
+          name: playerName(fixture.state, playerId),
+        }),
+      ).toBeVisible();
+    }
+
+    fireEvent.click(
+      within(benchGroup).getByRole("button", {
+        name: playerName(fixture.state, incomingPlayerId),
+      }),
+    );
+    expect(onCommand).not.toHaveBeenCalled();
+    expect(
+      within(dialog).getByText(
+        `${playerName(fixture.state, outgoingPlayerId)} → ${playerName(fixture.state, incomingPlayerId)}`,
+      ),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "この交代で続ける" }),
+    );
+    expect(onCommand).toHaveBeenCalledOnce();
+    expect(onCommand).toHaveBeenCalledWith({
+      type: "substitute",
+      outgoingPlayerId,
+      incomingPlayerId,
     });
   });
 });
