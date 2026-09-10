@@ -1,0 +1,95 @@
+name: Phase16 receipt lookup GREEN
+
+on:
+  push:
+    branches:
+      - feat/phase16-official-pvp-completion
+    paths:
+      - .github/workflows/phase16-receipt-lookup-green.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Add command receipt lookup contract, RPC, and store mapping
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('worker/data/PvPStore.ts')
+          text = p.read_text()
+          marker = '''export interface SavedPvpMatchSessionCommand {\n  session: PersistedPvpMatchSession;\n  replayed: boolean;\n  commandResponse: unknown;\n}\n'''
+          addition = marker + '''\nexport interface PersistedPvpMatchCommandReceipt {\n  commandId: string;\n  command: unknown;\n  publicResponse: unknown;\n}\n'''
+          if marker not in text:
+              raise SystemExit('receipt type marker missing')
+          text = text.replace(marker, addition, 1)
+          marker = '''  saveMatchSessionCommand(\n    input: SavePvpMatchSessionCommandInput,\n  ): Promise<SavedPvpMatchSessionCommand>;\n'''
+          addition = '''  getMatchSessionCommandReceipt(\n    challengerUserId: string,\n    operationId: string,\n    commandId: string,\n  ): Promise<PersistedPvpMatchCommandReceipt | null>;\n''' + marker
+          if marker not in text:
+              raise SystemExit('session interface marker missing')
+          text = text.replace(marker, addition, 1)
+          p.write_text(text)
+
+          p = Path('worker/data/SupabasePvPStore.ts')
+          text = p.read_text()
+          text = text.replace(
+            '  PersistedPvpMatchSession,\n  PersistedPvpOperation,',
+            '  PersistedPvpMatchCommandReceipt,\n  PersistedPvpMatchSession,\n  PersistedPvpOperation,',
+            1,
+          )
+          marker = '''const savedMatchSessionCommandRowSchema = matchSessionRowSchema.extend({\n  replayed: z.boolean(),\n  command_response: z.unknown(),\n});\n'''
+          addition = marker + '''\nconst matchSessionCommandReceiptRowSchema = z.object({\n  command_id: z.string().min(1),\n  command: z.unknown(),\n  public_response: z.unknown(),\n});\n'''
+          if marker not in text:
+              raise SystemExit('row schema marker missing')
+          text = text.replace(marker, addition, 1)
+          marker = '''  async saveMatchSessionCommand(\n    input: SavePvpMatchSessionCommandInput,\n  ): Promise<SavedPvpMatchSessionCommand> {'''
+          method = '''  async getMatchSessionCommandReceipt(\n    challengerUserId: string,\n    operationId: string,\n    commandId: string,\n  ): Promise<PersistedPvpMatchCommandReceipt | null> {\n    const { data, error } = await this.client.rpc(\n      "get_pvp_match_session_command_receipt",\n      {\n        p_challenger_user_id: challengerUserId,\n        p_operation_id: operationId,\n        p_command_id: commandId,\n      },\n    );\n    if (error) throwRpcError("PvP match session command receipt lookup", error);\n    const rows = parseRows(\n      data,\n      matchSessionCommandReceiptRowSchema,\n      "PvP match session command receipt response",\n    );\n    if (rows.length === 0) return null;\n    if (rows.length !== 1) {\n      throw new PvPStoreDataError(\n        "PvP match session command receipt response has duplicate rows",\n      );\n    }\n    const row = rows[0]!;\n    return {\n      commandId: row.command_id,\n      command: row.command,\n      publicResponse: row.public_response,\n    };\n  }\n\n'''
+          if marker not in text:
+              raise SystemExit('save command marker missing')
+          text = text.replace(marker, method + marker, 1)
+          p.write_text(text)
+
+          p = Path('supabase/migrations/202609100001_phase16_pvp_match_sessions.sql')
+          text = p.read_text()
+          marker = '''create or replace function public.save_pvp_match_session_command(\n'''
+          rpc = '''create or replace function public.get_pvp_match_session_command_receipt(\n  p_challenger_user_id uuid,\n  p_operation_id text,\n  p_command_id text\n)\nreturns table(\n  command_id text,\n  command jsonb,\n  public_response jsonb\n)\nlanguage sql\nsecurity definer\nset search_path = ''\nas $$\n  select\n    receipts.command_id,\n    receipts.command,\n    receipts.public_response\n  from public.pvp_match_command_receipts as receipts\n  where receipts.challenger_user_id = p_challenger_user_id\n    and receipts.operation_id = btrim(p_operation_id)\n    and receipts.command_id = btrim(p_command_id)\n  limit 1;\n$$;\n\n'''
+          if marker not in text:
+              raise SystemExit('save rpc marker missing')
+          text = text.replace(marker, rpc + marker, 1)
+          old = '''revoke execute on function public.get_pvp_match_session(uuid, text) from public, anon, authenticated;\nrevoke execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) from public, anon, authenticated;'''
+          new = '''revoke execute on function public.get_pvp_match_session(uuid, text) from public, anon, authenticated;\nrevoke execute on function public.get_pvp_match_session_command_receipt(uuid, text, text) from public, anon, authenticated;\nrevoke execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) from public, anon, authenticated;'''
+          if old not in text:
+              raise SystemExit('revoke marker missing')
+          text = text.replace(old, new, 1)
+          old = '''grant execute on function public.get_pvp_match_session(uuid, text) to service_role;\ngrant execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) to service_role;'''
+          new = '''grant execute on function public.get_pvp_match_session(uuid, text) to service_role;\ngrant execute on function public.get_pvp_match_session_command_receipt(uuid, text, text) to service_role;\ngrant execute on function public.save_pvp_match_session_command(uuid, text, text, jsonb, bigint, bigint, jsonb, jsonb) to service_role;'''
+          if old not in text:
+              raise SystemExit('grant marker missing')
+          text = text.replace(old, new, 1)
+          p.write_text(text)
+          PY
+      - run: npx prettier --write worker/data/PvPStore.ts worker/data/SupabasePvPStore.ts tests/unit/worker/phase16PvpCommandReceiptStore.test.ts
+      - name: Focused tests
+        run: npx vitest run tests/unit/worker/phase16PvpCommandReceiptStore.test.ts tests/unit/worker/phase16PvpSessionStore.test.ts tests/unit/worker/supabasePvPStore.test.ts tests/unit/worker/pvpMigration.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Remove temporary workflow and commit
+        run: |
+          git rm .github/workflows/phase16-receipt-lookup-green.yml
+          git add worker/data/PvPStore.ts worker/data/SupabasePvPStore.ts supabase/migrations/202609100001_phase16_pvp_match_sessions.sql tests/unit/worker/phase16PvpCommandReceiptStore.test.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: add PvP command receipt lookup"
+          git push
