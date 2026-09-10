@@ -316,9 +316,7 @@ describe("Phase 16 PvP challenge routes", () => {
     vi.mocked(store.getMatchSessionCommandReceipt).mockResolvedValue({
       commandId: "command-001",
       command: { type: "continue" },
-      resultingCursor: 77,
       publicResponse: replayResponse,
-      createdAt: "2026-09-10T09:32:00.000Z",
     });
     const router = createRouter({
       verifyAccessToken: vi.fn(async () => ({ id: challengerUserId })),
