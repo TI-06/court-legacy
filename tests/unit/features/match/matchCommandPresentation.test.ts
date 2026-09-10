@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { startMatch } from "../../../../src/domain/match/simulateMatch";
-import { matchId } from "../../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type PlayerId,
+} from "../../../../src/domain/model/identifiers";
 import type {
   MatchCommandRecord,
   MatchEvent,
 } from "../../../../src/domain/model/Match";
+import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { buildMatchCommandImpactRows } from "../../../../src/features/match/matchCommandPresentation";
 
 function playerName(
   state: ReturnType<typeof createDemoGame>,
-  playerId: string,
+  playerId: PlayerId,
 ): string {
   const player = state.players[playerId];
   if (!player) throw new Error(`player fixture missing: ${playerId}`);
@@ -32,8 +36,7 @@ function fixture() {
     homeSelection,
     awaySelection,
     bestOfSets: 3,
-    randomSeed: "phase16-command-presentation",
-    randomCursor: 0,
+    random: new SeededRandom("phase16-command-presentation"),
     controlledSchoolId: state.userSchoolId,
   });
   const match = structuredClone(started.match);
@@ -131,7 +134,9 @@ describe("Phase16 match command presentation", () => {
 
     const rows = buildMatchCommandImpactRows(state, match);
 
-    expect(rows.map((row) => row.commandLabel)).toEqual([
+    expect(
+      rows.map(({ commandLabel }: { commandLabel: string }) => commandLabel),
+    ).toEqual([
       "タイムアウト",
       "戦術変更",
       `${playerName(state, outgoingPlayerId)} → ${playerName(state, incomingPlayerId)}`,
