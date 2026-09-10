@@ -124,7 +124,8 @@ describe("Phase16 GameApp match command authority", () => {
     expect(
       await screen.findByRole("region", { name: "監督指示" }),
     ).toBeVisible();
-    const beforeCommandSequence = screen.getByTestId("event-sequence").textContent;
+    const beforeCommandSequence =
+      screen.getByTestId("event-sequence").textContent;
 
     fireEvent.click(screen.getByRole("button", { name: /^このまま/ }));
 
