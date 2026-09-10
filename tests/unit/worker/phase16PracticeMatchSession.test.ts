@@ -200,6 +200,7 @@ describe("Phase16 resumable practice match session", () => {
     const started = applyServerGameAction(snapshot, { type: "advance-week" });
     const startedMatch = started.state.activeMatch;
     if (!startedMatch) throw new Error("active practice match missing");
+    expect(startedMatch.runtime?.commandHistory).toHaveLength(0);
 
     const matchId = startedMatch.id;
     const beforeCursor = started.state.randomCursor;
