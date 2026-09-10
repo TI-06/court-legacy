@@ -225,7 +225,8 @@ describe("Phase 16 PvP command resume route", () => {
       operationId,
     );
     expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
-    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock.calls[0]![0];
+    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
+      .calls[0]![0];
     expect(saveInput.command).toEqual({ type: "continue" });
     expect(saveInput.expectedCursor).toBe(persisted.currentCursor);
     expect(saveInput.nextCursor).toBeGreaterThan(persisted.currentCursor);
