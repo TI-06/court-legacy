@@ -1,0 +1,62 @@
+name: Phase16 PvP command replay GREEN
+
+on:
+  push:
+    branches:
+      - feat/phase16-official-pvp-completion
+    paths:
+      - .github/workflows/phase16-pvp-command-replay-green.yml
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Wire command route
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('worker/router.ts')
+          s = p.read_text()
+          s = s.replace(
+              'import { createPvpChallengeHandler } from "./routes/pvpChallenge";\n',
+              'import { createPvpChallengeHandler } from "./routes/pvpChallenge";\nimport { createPvpChallengeCommandHandler } from "./routes/pvpChallengeCommand";\n',
+              1,
+          )
+          marker = '''  const pvpChallengeSession = pvpSessionStore\n    ? createPvpChallengeSessionHandler({ pvpStore: pvpSessionStore })\n    : null;\n'''
+          addition = '''  const pvpChallengeCommand = pvpSessionStore\n    ? createPvpChallengeCommandHandler({ pvpStore: pvpSessionStore })\n    : null;\n''' + marker
+          if marker not in s:
+              raise SystemExit('challenge session handler marker missing')
+          s = s.replace(marker, addition, 1)
+          marker = '''      if (\n        url.pathname === "/api/pvp/challenge/session" &&\n        request.method === "GET" &&\n        pvpChallengeSession\n      ) {\n        return await pvpChallengeSession(request, user);\n      }\n'''
+          addition = '''      if (\n        url.pathname === "/api/pvp/challenge/command" &&\n        request.method === "POST" &&\n        pvpChallengeCommand\n      ) {\n        return await pvpChallengeCommand(request, user);\n      }\n''' + marker
+          if marker not in s:
+              raise SystemExit('challenge session route marker missing')
+          s = s.replace(marker, addition, 1)
+          p.write_text(s)
+          PY
+      - run: npx prettier --write worker/router.ts worker/routes/pvpChallengeCommand.ts
+      - name: Focused tests
+        run: npx vitest run tests/unit/worker/phase16PvpChallengeRoutes.test.ts tests/unit/worker/router.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Cleanup and commit
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-command-replay-green.yml
+          git add worker/router.ts worker/routes/pvpChallengeCommand.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: replay duplicate PvP match commands idempotently"
+          git push
