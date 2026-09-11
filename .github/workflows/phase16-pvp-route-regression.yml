@@ -1,0 +1,41 @@
+name: Phase16 PvP route regression
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Focused regression
+        run: >-
+          npx vitest run
+          tests/unit/worker/pvpChallenge.test.ts
+          tests/unit/worker/phase16PvpChallengeRoutes.test.ts
+          tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts
+          tests/unit/worker/phase16PvpCommandFinalizationRoutes.test.ts
+          tests/unit/worker/router.test.ts
+          tests/unit/worker/pvpDynamicsLeakage.test.ts
+          tests/unit/worker/pvpTournamentLeakage.test.ts
+          tests/unit/worker/phase15PvpPublicTactics.test.ts
+      - name: Cleanup
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-route-regression.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "ci: remove Phase16 PvP route regression helper"
+          git push
