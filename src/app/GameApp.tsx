@@ -903,7 +903,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     const presentation = response.outcome as
       PendingMatchPresentation | undefined;
-    if (!presentation || presentation.kind !== "practice") return;
+    if (!presentation) return;
 
     setActiveMatchPresentation(presentation);
     setActiveMatchResult(presentation.simulation);
