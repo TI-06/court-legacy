@@ -159,8 +159,7 @@ export interface PvpChallengeResponse {
 }
 
 export type PvpChallengeSessionResponse =
-  | PvpChallengeInProgressResponse
-  | PvpChallengeResponse;
+  PvpChallengeInProgressResponse | PvpChallengeResponse;
 
 export function isPvpChallengeInProgressResponse(
   response: PvpChallengeSessionResponse,

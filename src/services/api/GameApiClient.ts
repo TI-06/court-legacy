@@ -201,12 +201,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
 }
 
 function isPvpTeamSelection(value: unknown): boolean {
   if (!isRecord(value)) return false;
-  if (!Array.isArray(value.rotation) || value.rotation.length !== 6) return false;
+  if (!Array.isArray(value.rotation) || value.rotation.length !== 6)
+    return false;
   if (
     !value.rotation.every(
       (item) =>
