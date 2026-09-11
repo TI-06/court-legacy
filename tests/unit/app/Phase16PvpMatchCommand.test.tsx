@@ -112,9 +112,7 @@ function baseApi(
   snapshot: CloudGameSnapshot,
   challengePvpTeam: NonNullable<GameApiClient["challengePvpTeam"]>,
   commandPvpChallenge: NonNullable<GameApiClient["commandPvpChallenge"]>,
-  getPvpChallengeSession: NonNullable<
-    GameApiClient["getPvpChallengeSession"]
-  >,
+  getPvpChallengeSession: NonNullable<GameApiClient["getPvpChallengeSession"]>,
 ): GameApiClient {
   return {
     bootstrap: vi.fn(),
@@ -141,7 +139,10 @@ function baseApi(
   };
 }
 
-async function openPreparedPvpMatch(api: GameApiClient, snapshot: CloudGameSnapshot) {
+async function openPreparedPvpMatch(
+  api: GameApiClient,
+  snapshot: CloudGameSnapshot,
+) {
   render(
     <GameApp
       api={api}
@@ -164,9 +165,7 @@ async function openPreparedPvpMatch(api: GameApiClient, snapshot: CloudGameSnaps
     await screen.findByRole("heading", { name: "試合ダイジェスト" }),
   ).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "次の判断まで進む" }));
-  expect(
-    await screen.findByRole("region", { name: "監督指示" }),
-  ).toBeVisible();
+  expect(await screen.findByRole("region", { name: "監督指示" })).toBeVisible();
 }
 
 describe("Phase16 GameApp PvP match commands", () => {
