@@ -1,10 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type {
-  CloudGameSnapshot,
-  GameStore,
-} from "../../../worker/data/GameStore";
+import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
@@ -112,19 +109,6 @@ function completedMatchStub(
     defenderRatingAfter: 984,
     result: input.result,
     createdAt: "2026-09-10T10:30:00.000Z",
-  };
-}
-
-function gameStore(snapshot: CloudGameSnapshot): GameStore {
-  return {
-    getSnapshot: vi.fn(async () => snapshot),
-    getOperationResponse: vi.fn(async () => null),
-    createGame: vi.fn(async () => {
-      throw new Error("not used");
-    }),
-    applyOperation: vi.fn(async () => {
-      throw new Error("not used");
-    }),
   };
 }
 
