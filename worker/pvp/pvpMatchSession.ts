@@ -7,6 +7,7 @@ import type {
   MatchState,
 } from "../../src/domain/model/Match";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
@@ -50,6 +51,9 @@ export interface PvpMatchSegment {
     challenger: number;
     defender: number;
   };
+  challengerSelection: TeamSelection;
+  challengerTactics: MatchTacticPlan;
+  timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
   events: PvpPublicMatchEvent[];
@@ -127,6 +131,10 @@ export function buildPvpPublicSegment(
   if (!runtime) {
     throw new Error("PvP match runtime is missing");
   }
+  const pendingDecisionReason =
+    session.match.pendingCoachCommandForSchoolId === session.challengerSchoolId
+      ? runtime.pendingDecisionReason
+      : null;
 
   return {
     status:
@@ -141,6 +149,11 @@ export function buildPvpPublicSegment(
       challenger: runtime.homeScore,
       defender: runtime.awayScore,
     },
+    challengerSelection: session.match.homeSelection,
+    challengerTactics: runtime.homeTactics,
+    timeoutAvailable:
+      pendingDecisionReason === "opponent-run" &&
+      !runtime.timeoutUsedSchoolIds.includes(session.challengerSchoolId),
     sets: session.match.sets.map((set) => ({
       setNumber: set.setNumber,
       challengerScore: set.homeScore,
@@ -148,11 +161,7 @@ export function buildPvpPublicSegment(
       completed: set.completed,
       winner: sideForSchool(session.challengerSchoolId, set.winnerSchoolId),
     })),
-    pendingDecisionReason:
-      session.match.pendingCoachCommandForSchoolId ===
-      session.challengerSchoolId
-        ? runtime.pendingDecisionReason
-        : null,
+    pendingDecisionReason,
     events: session.match.eventLog.map((event) => ({
       sequence: event.sequence,
       type: event.type,
