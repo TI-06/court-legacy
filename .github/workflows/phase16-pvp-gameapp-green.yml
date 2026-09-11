@@ -1,0 +1,263 @@
+name: Phase16 PvP GameApp GREEN
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Wire public PvP sessions into MatchScreen
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          match = Path('src/features/match/MatchScreen.tsx')
+          s = match.read_text()
+          old = '  opponent: School;\n'
+          new = '  opponent: Pick<School, "id" | "name" | "shortName">;\n'
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '  commandPending?: boolean;\n}'
+          new = '  commandPending?: boolean;\n  schoolDisplayNames?: Partial<Record<School["id"], string>>;\n}'
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '  commandPending = false,\n}: MatchScreenProps) {'
+          new = '  commandPending = false,\n  schoolDisplayNames,\n}: MatchScreenProps) {'
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''    const schoolDisplayNames = presentation
+      ? {
+          [presentation.homeTeam.schoolId]: presentation.homeTeam.displayName,
+          [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
+        }
+      : undefined;
+    return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>
+      presentMatchEvent(event, {
+        state,
+        match: result.match,
+        schoolDisplayNames,
+      }),
+    );
+  }, [presentation, result, state, visibleEventIndex]);'''
+          new = '''    const eventSchoolDisplayNames = presentation
+      ? {
+          [presentation.homeTeam.schoolId]: presentation.homeTeam.displayName,
+          [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
+        }
+      : schoolDisplayNames;
+    return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>
+      presentMatchEvent(event, {
+        state,
+        match: result.match,
+        schoolDisplayNames: eventSchoolDisplayNames,
+      }),
+    );
+  }, [presentation, result, schoolDisplayNames, state, visibleEventIndex]);'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          match.write_text(s)
+
+          app = Path('src/app/GameApp.tsx')
+          s = app.read_text()
+          old = 'import type {\n  PvpChallengeResponse,\n'
+          new = 'import { isPvpChallengeInProgressResponse } from "../domain/pvp/pvpContracts";\nimport type {\n  PvpChallengeInProgressResponse,\n  PvpChallengeResponse,\n'
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = 'import { MatchScreen } from "../features/match/MatchScreen";\n'
+          new = 'import { MatchScreen } from "../features/match/MatchScreen";\nimport { buildPvpMatchScreenPresentation } from "../features/match/pvpMatchPresentation";\n'
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''  const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
+  const [pvpLoading, setPvpLoading] = useState(false);'''
+          new = '''  const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
+  const [pvpSession, setPvpSession] =
+    useState<PvpChallengeInProgressResponse | null>(null);
+  const [pvpActiveOpponent, setPvpActiveOpponent] =
+    useState<PvpOpponentSummary | null>(null);
+  const [pvpCommandPending, setPvpCommandPending] = useState(false);
+  const [pvpLoading, setPvpLoading] = useState(false);'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''  const awayStrength = useMemo(
+    () => calculateSelectionStrength(gameState, opponentSelection),
+    [gameState, opponentSelection],
+  );'''
+          new = '''  const awayStrength = useMemo(
+    () => calculateSelectionStrength(gameState, opponentSelection),
+    [gameState, opponentSelection],
+  );
+  const pvpMatchPresentation = useMemo(
+    () =>
+      pvpSession
+        ? buildPvpMatchScreenPresentation(gameState.userSchoolId, pvpSession)
+        : null,
+    [gameState.userSchoolId, pvpSession],
+  );'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          old = '''      const response = await api.challengePvpTeam(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        opponentSnapshotId,
+        ...(matchSelection ? { matchSelection } : {}),
+        ...(matchTactics ? { matchTactics } : {}),
+      });
+      setPvpResult(response);
+      await loadPvpData();'''
+          new = '''      const response = await api.challengePvpTeam(session.accessToken, {
+        operationId: crypto.randomUUID(),
+        revision: cloudSession.snapshot.revision,
+        opponentSnapshotId,
+        ...(matchSelection ? { matchSelection } : {}),
+        ...(matchTactics ? { matchTactics } : {}),
+      });
+      if (isPvpChallengeInProgressResponse(response)) {
+        setPvpSession(response);
+        setPvpActiveOpponent(
+          pvpOpponents.find((item) => item.snapshotId === opponentSnapshotId) ??
+            null,
+        );
+        setPvpResult(null);
+        return;
+      }
+      setPvpSession(null);
+      setPvpActiveOpponent(null);
+      setPvpResult(response);
+      await loadPvpData();'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          marker = '''  const loadShop = async (): Promise<boolean> => {'''
+          assert marker in s
+          block = '''  const adoptPvpCommandResponse = async (
+    response: Awaited<ReturnType<NonNullable<GameApiClient["commandPvpChallenge"]>>>,
+  ) => {
+    if (isPvpChallengeInProgressResponse(response)) {
+      setPvpSession(response);
+      setPvpResult(null);
+      return;
+    }
+    setPvpSession(null);
+    setPvpActiveOpponent(null);
+    setPvpResult(response);
+    await loadPvpData();
+  };
+
+  const issuePvpMatchCommand = async (command: MatchCommand) => {
+    if (!pvpSession || !api.commandPvpChallenge || pvpCommandPending) {
+      if (!api.commandPvpChallenge) {
+        setPvpError("対人戦の監督指示を利用できません");
+      }
+      return;
+    }
+
+    const operationId = pvpSession.operationId;
+    const commandId = crypto.randomUUID();
+    const request = { operationId, commandId, command };
+    setPvpCommandPending(true);
+    setPvpError(null);
+    try {
+      const response = await api.commandPvpChallenge(
+        session.accessToken,
+        request,
+      );
+      await adoptPvpCommandResponse(response);
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === null &&
+        api.getPvpChallengeSession
+      ) {
+        try {
+          const recovered = await api.getPvpChallengeSession(
+            session.accessToken,
+            operationId,
+          );
+          if (!isPvpChallengeInProgressResponse(recovered)) {
+            await adoptPvpCommandResponse(recovered);
+            return;
+          }
+          if (
+            recovered.segment.events.length !==
+              pvpSession.segment.events.length ||
+            recovered.segment.currentScore.challenger !==
+              pvpSession.segment.currentScore.challenger ||
+            recovered.segment.currentScore.defender !==
+              pvpSession.segment.currentScore.defender
+          ) {
+            setPvpSession(recovered);
+            return;
+          }
+          const retried = await api.commandPvpChallenge(
+            session.accessToken,
+            request,
+          );
+          await adoptPvpCommandResponse(retried);
+          return;
+        } catch (recoveryError) {
+          setPvpError(
+            pvpErrorMessage(recoveryError, "対戦状況を復旧できませんでした"),
+          );
+          return;
+        }
+      }
+      setPvpError(pvpErrorMessage(error, "監督指示を反映できませんでした"));
+    } finally {
+      setPvpCommandPending(false);
+    }
+  };
+
+'''
+          s = s.replace(marker, block + marker, 1)
+          old = ''') : activeTab === "match" && matchView === "pvp" ? (
+      <PvpScreen'''
+          new = ''') : activeTab === "match" &&
+      matchView === "pvp" &&
+      pvpSession &&
+      pvpMatchPresentation ? (
+      <MatchScreen
+        awaySelection={pvpMatchPresentation.awaySelection}
+        awayStrength={pvpActiveOpponent?.teamPower ?? 0}
+        homeSelection={pvpMatchPresentation.homeSelection}
+        homeStrength={homeStrength}
+        commandPending={pvpCommandPending}
+        onCommand={issuePvpMatchCommand}
+        onReturnHome={() => undefined}
+        onStart={() => undefined}
+        opponent={pvpMatchPresentation.opponent}
+        reducedMotion={gameState.settings.reducedMotion}
+        result={pvpMatchPresentation.result}
+        schoolDisplayNames={pvpMatchPresentation.schoolDisplayNames}
+        state={gameState}
+      />
+    ) : activeTab === "match" && matchView === "pvp" ? (
+      <PvpScreen'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          app.write_text(s)
+          PY
+      - run: npx prettier --write src/app/GameApp.tsx src/features/match/MatchScreen.tsx src/features/match/pvpMatchPresentation.ts tests/unit/app/Phase16PvpMatchCommand.test.tsx
+      - run: npx vitest run tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/app/GameApp.pvp.test.tsx tests/unit/app/Phase16OfficialMatchCommand.test.tsx tests/unit/app/Phase16GameAppMatchCommand.test.tsx
+      - run: npm run typecheck
+      - name: Cleanup and commit
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-gameapp-green.yml
+          git add src/app/GameApp.tsx src/features/match/MatchScreen.tsx src/features/match/pvpMatchPresentation.ts tests/unit/app/Phase16PvpMatchCommand.test.tsx
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: connect PvP sessions to MatchScreen"
+          git push
