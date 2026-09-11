@@ -131,9 +131,18 @@ function pvpStore(
     listOpponents: vi.fn(async () => []),
     listRanking: vi.fn(async () => []),
     listHistory: vi.fn(async () => []),
-    createMatchSession: vi.fn(async () => {
-      throw new Error("not used");
-    }),
+    createMatchSession: vi.fn(async (input) => ({
+      challengerUserId: input.challengerUserId,
+      operationId: input.operationId,
+      defenderSnapshotId: input.defenderSnapshotId,
+      challengerSourceRevision: input.challengerSourceRevision,
+      currentCursor: input.currentCursor,
+      privateSession: input.privateSession,
+      publicResponse: input.publicResponse,
+      finalResponse: null,
+      createdAt: "2026-08-28T07:30:00.000Z",
+      updatedAt: "2026-08-28T07:30:00.000Z",
+    })),
     getMatchSession: vi.fn(async () => null),
     getMatchSessionCommandReceipt: vi.fn(async () => null),
     saveMatchSessionCommand: vi.fn(async () => {
@@ -163,73 +172,61 @@ function challengeBody(operationId = "challenge-001") {
 }
 
 describe("PvP challenge route", () => {
-  it("simulates from authoritative state and commits only a sanitized server result", async () => {
+  it("starts from authoritative state, persists a private session, and returns only a sanitized public segment", async () => {
     const snapshot = createCloudSnapshot();
     const store = pvpStore();
     const handler = createPvpChallengeHandler({
       gameStore: gameStore(snapshot),
       pvpStore: store,
       now: () => new Date("2026-08-28T07:30:00.000Z"),
+      createMatchNonce: () => "fixed-start-nonce",
     });
 
     const response = await handler(request(challengeBody()), {
       id: CHALLENGER_USER_ID,
     });
+    const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(store.committed).toHaveLength(1);
-    expect(store.committed[0]).toEqual(
+    expect(store.commitRatedMatch).not.toHaveBeenCalled();
+    expect(store.createMatchSession).toHaveBeenCalledTimes(1);
+    expect(store.createMatchSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        seasonId: "2026-08",
-        challengeDayKey: "2026-08-28",
-        operationId: "challenge-001",
         challengerUserId: CHALLENGER_USER_ID,
-        defenderUserId: DEFENDER_USER_ID,
+        operationId: "challenge-001",
         defenderSnapshotId: DEFENDER_SNAPSHOT_ID,
         challengerSourceRevision: 12,
-        matchSeed: expect.stringContaining("challenge-001"),
-        challengerWon: expect.any(Boolean),
+        currentCursor: expect.any(Number),
+        privateSession: expect.any(Object),
+        publicResponse: expect.any(Object),
       }),
     );
-
-    expect(store.committed[0]?.result).toEqual(
-      expect.objectContaining({ challengerSchoolName: "青葉高校" }),
-    );
-
-    const body = await response.json();
-    expect(body).toEqual(
-      expect.objectContaining({
-        operationId: "challenge-001",
-        revision: 12,
-        seasonId: "2026-08",
-        matchId: "00000000-0000-4000-8000-000000000333",
-        opponent: {
-          snapshotId: DEFENDER_SNAPSHOT_ID,
-          schoolName: "白波高校",
-          schoolShortName: "白波",
-        },
-        rating: {
-          before: 1000,
-          after: expect.any(Number),
-          delta: expect.any(Number),
-        },
-        result: expect.objectContaining({
-          outcome: expect.stringMatching(/^(win|loss)$/),
-          challengerSetsWon: expect.any(Number),
-          defenderSetsWon: expect.any(Number),
-          sets: expect.any(Array),
-        }),
-      }),
-    );
+    expect(body).toMatchObject({
+      status: "in-progress",
+      operationId: "challenge-001",
+      revision: 12,
+      seasonId: "2026-08",
+      opponent: {
+        snapshotId: DEFENDER_SNAPSHOT_ID,
+        schoolName: "白波高校",
+        schoolShortName: "白波",
+      },
+      segment: { status: "in-progress", operationId: "challenge-001" },
+    });
     const serialized = JSON.stringify(body);
-    expect(serialized).not.toContain("abilities");
-    expect(serialized).not.toContain("potential");
-    expect(serialized).not.toContain("tier");
-    expect(serialized).not.toContain("hiddenTraitIds");
-    expect(serialized).not.toContain("homeSelection");
-    expect(serialized).not.toContain("awaySelection");
-    expect(serialized).not.toContain("actorPlayerId");
-    expect(serialized).not.toContain("challengerSchoolName");
+    for (const forbidden of [
+      "abilities",
+      "potential",
+      "tier",
+      "hiddenTraitIds",
+      "homeSelection",
+      "awaySelection",
+      "actorPlayerId",
+      "simulationState",
+      "runtime",
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+    }
   });
 
   it("replays a stored challenge response before loading or simulating anything", async () => {
@@ -380,7 +377,7 @@ describe("PvP challenge route", () => {
     expect(forgedStore.commitRatedMatch).not.toHaveBeenCalled();
   });
 
-  it("returns the DB-enforced daily opponent limit without a separate rating write", async () => {
+  it("defers rating and daily-opponent-limit enforcement until the final command", async () => {
     const snapshot = createCloudSnapshot();
     const store = pvpStore();
     vi.mocked(store.commitRatedMatch).mockRejectedValue(
@@ -396,33 +393,55 @@ describe("PvP challenge route", () => {
       id: CHALLENGER_USER_ID,
     });
 
-    expect(response.status).toBe(409);
-    expect((await response.json()).error.code).toBe("pvp_daily_opponent_limit");
-    expect(store.commitRatedMatch).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(200);
+    expect((await response.json()).status).toBe("in-progress");
+    expect(store.commitRatedMatch).not.toHaveBeenCalled();
+    expect(store.createMatchSession).toHaveBeenCalledTimes(1);
     expect(store.listRanking).not.toHaveBeenCalled();
     expect(store.listHistory).not.toHaveBeenCalled();
   });
 
-  it("uses the canonical atomic-store result when concurrent duplicate requests race", async () => {
+  it("uses the canonical persisted session response when concurrent duplicate starts race", async () => {
     const snapshot = createCloudSnapshot();
     const store = pvpStore();
-    vi.mocked(store.commitRatedMatch).mockImplementation(async (input) => ({
-      ...committedMatch(input),
-      result: {
-        outcome: "loss",
-        challengerSetsWon: 0,
-        defenderSetsWon: 2,
-        sets: [
-          { setNumber: 1, challengerScore: 20, defenderScore: 25 },
-          { setNumber: 2, challengerScore: 22, defenderScore: 25 },
-        ],
-      },
-      winnerUserId: DEFENDER_USER_ID,
-      challengerRatingBefore: 1000,
-      challengerRatingAfter: 984,
-      defenderRatingBefore: 1000,
-      defenderRatingAfter: 1016,
-    }));
+    vi.mocked(store.createMatchSession).mockImplementation(async (input) => {
+      const canonicalResponse = {
+        status: "in-progress",
+        operationId: input.operationId,
+        revision: input.challengerSourceRevision,
+        seasonId: "2026-08",
+        opponent: {
+          snapshotId: DEFENDER_SNAPSHOT_ID,
+          schoolName: "白波高校",
+          schoolShortName: "白波",
+        },
+        segment: {
+          status: "in-progress",
+          operationId: input.operationId,
+          matchId: "canonical-session-match",
+          phase: "coach-decision",
+          currentSetNumber: 2,
+          challengerSetsWon: 1,
+          defenderSetsWon: 0,
+          currentScore: { challenger: 7, defender: 5 },
+          sets: [],
+          pendingDecisionReason: "set-break",
+          events: [],
+        },
+      };
+      return {
+        challengerUserId: input.challengerUserId,
+        operationId: input.operationId,
+        defenderSnapshotId: input.defenderSnapshotId,
+        challengerSourceRevision: input.challengerSourceRevision,
+        currentCursor: input.currentCursor,
+        privateSession: input.privateSession,
+        publicResponse: canonicalResponse,
+        finalResponse: null,
+        createdAt: "2026-08-28T07:30:00.000Z",
+        updatedAt: "2026-08-28T07:30:00.000Z",
+      };
+    });
     const handler = createPvpChallengeHandler({
       gameStore: gameStore(snapshot),
       pvpStore: store,
@@ -434,7 +453,8 @@ describe("PvP challenge route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.result.outcome).toBe("loss");
-    expect(body.rating).toEqual({ before: 1000, after: 984, delta: -16 });
+    expect(body.segment.matchId).toBe("canonical-session-match");
+    expect(body.segment.currentScore).toEqual({ challenger: 7, defender: 5 });
+    expect(store.commitRatedMatch).not.toHaveBeenCalled();
   });
 });
