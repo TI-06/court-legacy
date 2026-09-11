@@ -1,0 +1,34 @@
+name: Phase16 PvP E2E harness apply
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: python scripts/phase16_pvp_e2e_harness_patch.py
+      - run: npx prettier --write src/app/createBrowserAppDependencies.ts
+      - run: npm run typecheck
+      - name: Commit and cleanup
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-e2e-harness-apply.yml scripts/phase16_pvp_e2e_harness_patch.py
+          git add src/app/createBrowserAppDependencies.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "test: make browser PvP harness resumable"
+          git push
