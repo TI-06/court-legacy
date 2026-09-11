@@ -100,7 +100,8 @@ function finalDecision(): PvpMatchSessionStep {
 }
 
 function persistedFrom(step: PvpMatchSessionStep): PersistedPvpMatchSession {
-  const defender = step.session.simulationState.schools[step.session.defenderSchoolId]!;
+  const defender =
+    step.session.simulationState.schools[step.session.defenderSchoolId]!;
   return {
     challengerUserId,
     operationId,
@@ -136,7 +137,9 @@ function committedMatch(
     challengerUserId: input.challengerUserId,
     defenderUserId: input.defenderUserId,
     defenderSnapshotId: input.defenderSnapshotId,
-    winnerUserId: input.challengerWon ? input.challengerUserId : input.defenderUserId,
+    winnerUserId: input.challengerWon
+      ? input.challengerUserId
+      : input.defenderUserId,
     challengerRatingBefore: 1000,
     challengerRatingAfter: input.challengerWon ? 1016 : 984,
     defenderRatingBefore: 1000,
@@ -226,9 +229,12 @@ describe("Phase 16 PvP command finalization", () => {
     });
 
     expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
-    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock.calls[0]![0];
+    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
+      .calls[0]![0];
     expect(saveInput.expectedCursor).toBe(persisted.currentCursor);
-    expect(saveInput.nextCursor).toBeGreaterThanOrEqual(persisted.currentCursor);
+    expect(saveInput.nextCursor).toBeGreaterThanOrEqual(
+      persisted.currentCursor,
+    );
     expect(saveInput.privateSession).toMatchObject({ finalized: true });
     expect(saveInput.publicResponse).toEqual(body);
 
