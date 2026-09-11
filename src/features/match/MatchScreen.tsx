@@ -15,7 +15,7 @@ import "./match.css";
 
 interface MatchScreenProps {
   state: GameState;
-  opponent: School;
+  opponent: Pick<School, "id" | "name" | "shortName">;
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
   homeStrength: number;
@@ -27,6 +27,7 @@ interface MatchScreenProps {
   onReturnHome: () => void;
   onCommand?: (command: MatchCommand) => void | Promise<void>;
   commandPending?: boolean;
+  schoolDisplayNames?: Partial<Record<School["id"], string>>;
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -59,6 +60,7 @@ function MatchScreenContent({
   onReturnHome,
   onCommand,
   commandPending = false,
+  schoolDisplayNames,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -139,20 +141,20 @@ function MatchScreenContent({
     if (!result) {
       return [];
     }
-    const schoolDisplayNames = presentation
+    const eventSchoolDisplayNames = presentation
       ? {
           [presentation.homeTeam.schoolId]: presentation.homeTeam.displayName,
           [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
         }
-      : undefined;
+      : schoolDisplayNames;
     return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>
       presentMatchEvent(event, {
         state,
         match: result.match,
-        schoolDisplayNames,
+        schoolDisplayNames: eventSchoolDisplayNames,
       }),
     );
-  }, [presentation, result, state, visibleEventIndex]);
+  }, [presentation, result, schoolDisplayNames, state, visibleEventIndex]);
 
   if (!result) {
     const strengthDifference = homeStrength - awayStrength;

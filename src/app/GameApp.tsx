@@ -20,7 +20,9 @@ import type {
   TournamentCircuit,
   TournamentLevel,
 } from "../domain/tournament/tournamentTypes";
+import { isPvpChallengeInProgressResponse } from "../domain/pvp/pvpContracts";
 import type {
+  PvpChallengeInProgressResponse,
   PvpChallengeResponse,
   PvpHistoryEntry,
   PvpOpponentSummary,
@@ -55,6 +57,7 @@ import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
+import { buildPvpMatchScreenPresentation } from "../features/match/pvpMatchPresentation";
 import { PracticeMatchPlanning } from "../features/match/PracticeMatchPlanning";
 import { PreMatchLineupScreen } from "../features/match/PreMatchLineupScreen";
 import { selectWeekPreMatchPreparation } from "../features/match/preMatchPreparation";
@@ -172,6 +175,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [pvpRanking, setPvpRanking] = useState<PvpRankingEntry[]>([]);
   const [pvpHistory, setPvpHistory] = useState<PvpHistoryEntry[]>([]);
   const [pvpResult, setPvpResult] = useState<PvpChallengeResponse | null>(null);
+  const [pvpSession, setPvpSession] =
+    useState<PvpChallengeInProgressResponse | null>(null);
+  const [pvpActiveOpponent, setPvpActiveOpponent] =
+    useState<PvpOpponentSummary | null>(null);
+  const [pvpCommandPending, setPvpCommandPending] = useState(false);
   const [pvpLoading, setPvpLoading] = useState(false);
   const [pvpPublishing, setPvpPublishing] = useState(false);
   const [pvpChallengingSnapshotId, setPvpChallengingSnapshotId] = useState<
@@ -225,6 +233,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const awayStrength = useMemo(
     () => calculateSelectionStrength(gameState, opponentSelection),
     [gameState, opponentSelection],
+  );
+  const pvpMatchPresentation = useMemo(
+    () =>
+      pvpSession
+        ? buildPvpMatchScreenPresentation(gameState.userSchoolId, pvpSession)
+        : null,
+    [gameState.userSchoolId, pvpSession],
   );
 
   const changeTab = (tab: AppTab) => {
@@ -609,6 +624,17 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         ...(matchSelection ? { matchSelection } : {}),
         ...(matchTactics ? { matchTactics } : {}),
       });
+      if (isPvpChallengeInProgressResponse(response)) {
+        setPvpSession(response);
+        setPvpActiveOpponent(
+          pvpOpponents.find((item) => item.snapshotId === opponentSnapshotId) ??
+            null,
+        );
+        setPvpResult(null);
+        return;
+      }
+      setPvpSession(null);
+      setPvpActiveOpponent(null);
       setPvpResult(response);
       await loadPvpData();
     } catch (error) {
@@ -622,6 +648,86 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setPvpError(pvpErrorMessage(error, "対戦処理に失敗しました"));
     } finally {
       setPvpChallengingSnapshotId(null);
+    }
+  };
+
+  const adoptPvpCommandResponse = async (
+    response: Awaited<
+      ReturnType<NonNullable<GameApiClient["commandPvpChallenge"]>>
+    >,
+  ) => {
+    if (isPvpChallengeInProgressResponse(response)) {
+      setPvpSession(response);
+      setPvpResult(null);
+      return;
+    }
+    setPvpSession(null);
+    setPvpActiveOpponent(null);
+    setPvpResult(response);
+    await loadPvpData();
+  };
+
+  const issuePvpMatchCommand = async (command: MatchCommand) => {
+    if (!pvpSession || !api.commandPvpChallenge || pvpCommandPending) {
+      if (!api.commandPvpChallenge) {
+        setPvpError("対人戦の監督指示を利用できません");
+      }
+      return;
+    }
+
+    const operationId = pvpSession.operationId;
+    const commandId = crypto.randomUUID();
+    const request = { operationId, commandId, command };
+    setPvpCommandPending(true);
+    setPvpError(null);
+    try {
+      const response = await api.commandPvpChallenge(
+        session.accessToken,
+        request,
+      );
+      await adoptPvpCommandResponse(response);
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === null &&
+        api.getPvpChallengeSession
+      ) {
+        try {
+          const recovered = await api.getPvpChallengeSession(
+            session.accessToken,
+            operationId,
+          );
+          if (!isPvpChallengeInProgressResponse(recovered)) {
+            await adoptPvpCommandResponse(recovered);
+            return;
+          }
+          if (
+            recovered.segment.events.length !==
+              pvpSession.segment.events.length ||
+            recovered.segment.currentScore.challenger !==
+              pvpSession.segment.currentScore.challenger ||
+            recovered.segment.currentScore.defender !==
+              pvpSession.segment.currentScore.defender
+          ) {
+            setPvpSession(recovered);
+            return;
+          }
+          const retried = await api.commandPvpChallenge(
+            session.accessToken,
+            request,
+          );
+          await adoptPvpCommandResponse(retried);
+          return;
+        } catch (recoveryError) {
+          setPvpError(
+            pvpErrorMessage(recoveryError, "対戦状況を復旧できませんでした"),
+          );
+          return;
+        }
+      }
+      setPvpError(pvpErrorMessage(error, "監督指示を反映できませんでした"));
+    } finally {
+      setPvpCommandPending(false);
     }
   };
 
@@ -1085,6 +1191,25 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setOfficialTournamentView(null);
           setMatchView("practice");
         }}
+        state={gameState}
+      />
+    ) : activeTab === "match" &&
+      matchView === "pvp" &&
+      pvpSession &&
+      pvpMatchPresentation ? (
+      <MatchScreen
+        awaySelection={pvpMatchPresentation.awaySelection}
+        awayStrength={pvpActiveOpponent?.teamPower ?? 0}
+        homeSelection={pvpMatchPresentation.homeSelection}
+        homeStrength={homeStrength}
+        commandPending={pvpCommandPending}
+        onCommand={issuePvpMatchCommand}
+        onReturnHome={() => undefined}
+        onStart={() => undefined}
+        opponent={pvpMatchPresentation.opponent}
+        reducedMotion={gameState.settings.reducedMotion}
+        result={pvpMatchPresentation.result}
+        schoolDisplayNames={pvpMatchPresentation.schoolDisplayNames}
         state={gameState}
       />
     ) : activeTab === "match" && matchView === "pvp" ? (
