@@ -141,7 +141,9 @@ describe("Phase 16 private resumable PvP match session", () => {
     expect(started.segment.challengerTactics).toEqual(runtime.homeTactics);
     expect(started.segment.timeoutAvailable).toBe(
       runtime.pendingDecisionReason === "opponent-run" &&
-        !runtime.timeoutUsedSchoolIds.includes(started.session.challengerSchoolId),
+        !runtime.timeoutUsedSchoolIds.includes(
+          started.session.challengerSchoolId,
+        ),
     );
 
     for (const forbidden of [
