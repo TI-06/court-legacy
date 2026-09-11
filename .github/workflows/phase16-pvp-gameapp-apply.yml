@@ -1,0 +1,35 @@
+name: Phase16 PvP GameApp apply
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: python scripts/phase16_pvp_gameapp_patch.py
+      - run: npx prettier --write src/app/GameApp.tsx src/features/match/MatchScreen.tsx src/features/match/pvpMatchPresentation.ts tests/unit/app/Phase16PvpMatchCommand.test.tsx
+      - run: npx vitest run tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/app/GameApp.pvp.test.tsx tests/unit/app/Phase16OfficialMatchCommand.test.tsx tests/unit/app/Phase16GameAppMatchCommand.test.tsx
+      - run: npm run typecheck
+      - name: Commit and cleanup
+        if: always()
+        run: |
+          git rm .github/workflows/phase16-pvp-gameapp-apply.yml scripts/phase16_pvp_gameapp_patch.py
+          git add src/app/GameApp.tsx src/features/match/MatchScreen.tsx src/features/match/pvpMatchPresentation.ts tests/unit/app/Phase16PvpMatchCommand.test.tsx
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: connect PvP sessions to MatchScreen"
+          git push
