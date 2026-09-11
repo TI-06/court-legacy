@@ -129,9 +129,20 @@ describe("Phase 16 private resumable PvP match session", () => {
     expect(started.session.match.randomCursor).toBe(cursorBefore);
   });
 
-  it("sanitizes public segments so defender private match state and player identifiers never leave the server", () => {
+  it("sanitizes public segments while exposing only challenger-owned command state", () => {
     const started = startFixture();
+    const runtime = started.session.match.runtime;
+    if (!runtime) throw new Error("PvP runtime missing from fixture");
     const serialized = JSON.stringify(started.segment);
+
+    expect(started.segment.challengerSelection).toEqual(
+      started.session.match.homeSelection,
+    );
+    expect(started.segment.challengerTactics).toEqual(runtime.homeTactics);
+    expect(started.segment.timeoutAvailable).toBe(
+      runtime.pendingDecisionReason === "opponent-run" &&
+        !runtime.timeoutUsedSchoolIds.includes(started.session.challengerSchoolId),
+    );
 
     for (const forbidden of [
       "abilities",
@@ -146,6 +157,13 @@ describe("Phase 16 private resumable PvP match session", () => {
       "defender:",
     ]) {
       expect(serialized).not.toContain(forbidden);
+    }
+
+    const defenderPlayerIds =
+      started.session.simulationState.schools[started.session.defenderSchoolId]!
+        .playerIds;
+    for (const defenderPlayerId of defenderPlayerIds) {
+      expect(serialized).not.toContain(defenderPlayerId);
     }
 
     expect(started.segment.events.length).toBeGreaterThan(0);
