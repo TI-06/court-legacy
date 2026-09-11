@@ -6,7 +6,10 @@ import { markWeeklyActionCompleted } from "../../../src/domain/calendar/weekProg
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import { advanceOfficialTournamentsThroughWeek } from "../../../src/domain/tournament/progressOfficialTournaments";
 import type { GameApiClient } from "../../../src/services/api/GameApiClient";
-import type { AuthClient, AuthSession } from "../../../src/services/auth/AuthClient";
+import type {
+  AuthClient,
+  AuthSession,
+} from "../../../src/services/auth/AuthClient";
 import type {
   CloudGameSnapshot,
   PersistedOperationResponse,
@@ -123,7 +126,8 @@ describe("Phase16 official GameApp match commands", () => {
     expect(
       await screen.findByRole("region", { name: "監督指示" }),
     ).toBeVisible();
-    const beforeCommandSequence = screen.getByTestId("event-sequence").textContent;
+    const beforeCommandSequence =
+      screen.getByTestId("event-sequence").textContent;
 
     fireEvent.click(screen.getByRole("button", { name: /^このまま/ }));
 
