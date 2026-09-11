@@ -378,7 +378,9 @@ export function createPvpChallengeCommandHandler(
     }
 
     const challengerSchool =
-      resumed.session.simulationState.schools[resumed.session.challengerSchoolId];
+      resumed.session.simulationState.schools[
+        resumed.session.challengerSchoolId
+      ];
     if (!challengerSchool) {
       throw new Error("stored PvP challenger school is missing");
     }
