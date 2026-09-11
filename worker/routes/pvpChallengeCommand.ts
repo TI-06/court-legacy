@@ -98,7 +98,9 @@ function parsePrivateSession(
   userId: string,
   operationId: string,
 ): PvpServerMatchSession {
-  const parsed = privateSessionEnvelopeSchema.safeParse(persisted.privateSession);
+  const parsed = privateSessionEnvelopeSchema.safeParse(
+    persisted.privateSession,
+  );
   if (!parsed.success) {
     throw new Error("stored PvP private session is invalid");
   }
@@ -110,7 +112,9 @@ function parsePrivateSession(
     session.challengerSourceRevision !== persisted.challengerSourceRevision ||
     session.match.randomCursor !== persisted.currentCursor
   ) {
-    throw new Error("stored PvP private session does not match persistence metadata");
+    throw new Error(
+      "stored PvP private session does not match persistence metadata",
+    );
   }
   return session as unknown as PvpServerMatchSession;
 }
@@ -119,7 +123,8 @@ function inProgressResponse(
   session: PvpServerMatchSession,
   segment: PvpMatchSegment,
 ) {
-  const defenderSchool = session.simulationState.schools[session.defenderSchoolId];
+  const defenderSchool =
+    session.simulationState.schools[session.defenderSchoolId];
   if (!defenderSchool) {
     throw new Error("stored PvP defender school is missing");
   }
@@ -230,6 +235,8 @@ export function createPvpChallengeCommandHandler(
       publicResponse,
     });
 
-    return json(saved.replayed ? saved.commandResponse : saved.session.publicResponse);
+    return json(
+      saved.replayed ? saved.commandResponse : saved.session.publicResponse,
+    );
   };
 }
