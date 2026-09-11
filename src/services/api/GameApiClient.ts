@@ -5,8 +5,9 @@ import type {
 } from "../../../worker/game/actionSchema";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
+  PvpChallengeCommandRequest,
   PvpChallengeRequest,
-  PvpChallengeResponse,
+  PvpChallengeSessionResponse,
   PvpHistoryResponse,
   PvpListRequestQuery,
   PvpOpponentsResponse,
@@ -130,7 +131,17 @@ export interface GameApiClient {
     accessToken: string,
     request: PvpChallengeRequest,
     signal?: AbortSignal,
-  ): Promise<PvpChallengeResponse>;
+  ): Promise<PvpChallengeSessionResponse>;
+  getPvpChallengeSession?(
+    accessToken: string,
+    operationId: string,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeSessionResponse>;
+  commandPvpChallenge?(
+    accessToken: string,
+    request: PvpChallengeCommandRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeSessionResponse>;
   getPvpRanking?(
     accessToken: string,
     query?: PvpListRequestQuery,
@@ -183,6 +194,192 @@ function pvpListPath(path: string, query?: PvpListRequestQuery): string {
   }
   const encoded = params.toString();
   return encoded ? `${path}?${encoded}` : path;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function isPvpTeamSelection(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (!Array.isArray(value.rotation) || value.rotation.length !== 6) return false;
+  if (
+    !value.rotation.every(
+      (item) =>
+        isRecord(item) &&
+        typeof item.slot === "number" &&
+        Number.isInteger(item.slot) &&
+        item.slot >= 1 &&
+        item.slot <= 6 &&
+        typeof item.playerId === "string",
+    )
+  ) {
+    return false;
+  }
+  if (
+    value.liberoPlayerId !== null &&
+    typeof value.liberoPlayerId !== "string"
+  ) {
+    return false;
+  }
+  if (
+    !isStringArray(value.benchPlayerIds) ||
+    !isStringArray(value.servingOrderPlayerIds) ||
+    !isRecord(value.substitutionPolicy)
+  ) {
+    return false;
+  }
+  const policy = value.substitutionPolicy;
+  return (
+    isStringArray(policy.starterLockPlayerIds) &&
+    typeof policy.allowFatigueBenching === "boolean" &&
+    typeof policy.allowInjuryBenching === "boolean" &&
+    typeof policy.automaticSubstitutions === "boolean" &&
+    typeof policy.automaticSetChanges === "boolean"
+  );
+}
+
+function isPvpTacticPlan(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    ["safe", "balanced", "aggressive"].includes(String(value.serve)) &&
+    ["side", "balanced", "quick"].includes(String(value.attack)) &&
+    ["commit", "mixed", "read"].includes(String(value.block))
+  );
+}
+
+function isPvpSide(value: unknown): boolean {
+  return value === null || value === "challenger" || value === "defender";
+}
+
+function isPvpMatchSegment(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (
+    (value.status !== "in-progress" && value.status !== "complete") ||
+    typeof value.operationId !== "string" ||
+    typeof value.matchId !== "string" ||
+    ![
+      "pre-match",
+      "set-in-progress",
+      "coach-decision",
+      "set-complete",
+      "match-complete",
+    ].includes(String(value.phase)) ||
+    typeof value.currentSetNumber !== "number" ||
+    typeof value.challengerSetsWon !== "number" ||
+    typeof value.defenderSetsWon !== "number" ||
+    !isRecord(value.currentScore) ||
+    typeof value.currentScore.challenger !== "number" ||
+    typeof value.currentScore.defender !== "number" ||
+    !isPvpTeamSelection(value.challengerSelection) ||
+    !isPvpTacticPlan(value.challengerTactics) ||
+    typeof value.timeoutAvailable !== "boolean" ||
+    !Array.isArray(value.sets) ||
+    !Array.isArray(value.events)
+  ) {
+    return false;
+  }
+  if (
+    value.pendingDecisionReason !== null &&
+    value.pendingDecisionReason !== "opponent-run" &&
+    value.pendingDecisionReason !== "set-break"
+  ) {
+    return false;
+  }
+  const setsValid = value.sets.every(
+    (set) =>
+      isRecord(set) &&
+      typeof set.setNumber === "number" &&
+      typeof set.challengerScore === "number" &&
+      typeof set.defenderScore === "number" &&
+      typeof set.completed === "boolean" &&
+      isPvpSide(set.winner),
+  );
+  const eventTypes = new Set([
+    "serve",
+    "receive",
+    "set",
+    "attack",
+    "block",
+    "dig",
+    "point",
+    "rotation",
+    "substitution",
+    "timeout",
+    "injury",
+    "set-end",
+    "match-end",
+  ]);
+  const eventsValid = value.events.every(
+    (event) =>
+      isRecord(event) &&
+      typeof event.sequence === "number" &&
+      eventTypes.has(String(event.type)) &&
+      typeof event.setNumber === "number" &&
+      typeof event.challengerScore === "number" &&
+      typeof event.defenderScore === "number" &&
+      isPvpSide(event.winner) &&
+      typeof event.detailCode === "string",
+  );
+  return setsValid && eventsValid;
+}
+
+function isPvpOpponentIdentity(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.snapshotId === "string" &&
+    typeof value.schoolName === "string" &&
+    typeof value.schoolShortName === "string"
+  );
+}
+
+function isPvpCompletedResponse(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.operationId === "string" &&
+    typeof value.revision === "number" &&
+    typeof value.seasonId === "string" &&
+    typeof value.matchId === "string" &&
+    isPvpOpponentIdentity(value.opponent) &&
+    isRecord(value.rating) &&
+    typeof value.rating.before === "number" &&
+    typeof value.rating.after === "number" &&
+    typeof value.rating.delta === "number" &&
+    isRecord(value.result) &&
+    (value.result.outcome === "win" || value.result.outcome === "loss") &&
+    typeof value.result.challengerSetsWon === "number" &&
+    typeof value.result.defenderSetsWon === "number" &&
+    Array.isArray(value.result.sets) &&
+    typeof value.createdAt === "string"
+  );
+}
+
+function parsePvpChallengeSessionResponse(
+  payload: unknown,
+): PvpChallengeSessionResponse {
+  if (
+    isRecord(payload) &&
+    payload.status === "in-progress" &&
+    typeof payload.operationId === "string" &&
+    typeof payload.revision === "number" &&
+    typeof payload.seasonId === "string" &&
+    isPvpOpponentIdentity(payload.opponent) &&
+    isPvpMatchSegment(payload.segment)
+  ) {
+    return payload as unknown as PvpChallengeSessionResponse;
+  }
+  if (isPvpCompletedResponse(payload)) {
+    return payload as unknown as PvpChallengeSessionResponse;
+  }
+  throw new ApiError(
+    null,
+    "invalid_pvp_response",
+    "対人戦の応答を確認できませんでした",
+  );
 }
 
 const defaultFetch: typeof fetch = (input, init) =>
@@ -378,17 +575,47 @@ export class HttpGameApiClient implements GameApiClient {
     );
   }
 
-  challengePvpTeam(
+  async challengePvpTeam(
     accessToken: string,
     request: PvpChallengeRequest,
     signal?: AbortSignal,
-  ): Promise<PvpChallengeResponse> {
-    return this.request<PvpChallengeResponse>(
+  ): Promise<PvpChallengeSessionResponse> {
+    const payload = await this.request<unknown>(
       "/api/pvp/challenge",
       accessToken,
       { method: "POST", body: JSON.stringify(request) },
       signal,
     );
+    return parsePvpChallengeSessionResponse(payload);
+  }
+
+  async getPvpChallengeSession(
+    accessToken: string,
+    operationId: string,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeSessionResponse> {
+    const params = new URLSearchParams({ operationId });
+    const payload = await this.request<unknown>(
+      `/api/pvp/challenge/session?${params.toString()}`,
+      accessToken,
+      { method: "GET" },
+      signal,
+    );
+    return parsePvpChallengeSessionResponse(payload);
+  }
+
+  async commandPvpChallenge(
+    accessToken: string,
+    request: PvpChallengeCommandRequest,
+    signal?: AbortSignal,
+  ): Promise<PvpChallengeSessionResponse> {
+    const payload = await this.request<unknown>(
+      "/api/pvp/challenge/command",
+      accessToken,
+      { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+    return parsePvpChallengeSessionResponse(payload);
   }
 
   getPvpRanking(
