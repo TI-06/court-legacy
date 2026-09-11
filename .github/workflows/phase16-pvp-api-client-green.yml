@@ -1,0 +1,37 @@
+name: Phase16 PvP API client GREEN
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write src/domain/pvp/pvpContracts.ts src/services/api/GameApiClient.ts tests/unit/services/Phase16PvpGameApiClient.test.ts
+      - run: npx vitest run tests/unit/services/Phase16PvpGameApiClient.test.ts tests/unit/services/GameApiClient.pvp.test.ts
+      - name: Capture typecheck and cleanup
+        run: |
+          set +e
+          npm run typecheck
+          status=$?
+          set -e
+          git rm .github/workflows/phase16-pvp-api-client-green.yml
+          git add src/domain/pvp/pvpContracts.ts src/services/api/GameApiClient.ts tests/unit/services/Phase16PvpGameApiClient.test.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "feat: add resumable PvP browser API"
+          git push
+          exit $status
