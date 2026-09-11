@@ -1,0 +1,36 @@
+name: Phase16 PvP API client RED
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  focused-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write tests/unit/services/Phase16PvpGameApiClient.test.ts
+      - name: Run focused RED and cleanup
+        run: |
+          set +e
+          npx vitest run tests/unit/services/Phase16PvpGameApiClient.test.ts
+          status=$?
+          set -e
+          git rm .github/workflows/phase16-pvp-api-client-red.yml
+          git add tests/unit/services/Phase16PvpGameApiClient.test.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "test: format Phase16 PvP API client RED"
+          git push
+          exit $status
