@@ -25,6 +25,12 @@ const priorityLabels: Record<HomeCommandPriority, string> = {
   complete: "完了",
 };
 
+function rankMovementLabel(movement: number): string {
+  if (movement > 0) return `▲${movement}`;
+  if (movement < 0) return `▼${Math.abs(movement)}`;
+  return "→0";
+}
+
 function actionTask(
   task: Extract<HomeCommandTask, { kind: "action" }>,
   operationPending: boolean,
@@ -106,6 +112,40 @@ export function HomeCommandCenter({
               </button>
             </div>
           </div>
+        ) : null}
+
+        {summary.season ? (
+          <section className="home-season-card" aria-label="今季目標">
+            <div className="home-season-card__goal">
+              <span>今季目標</span>
+              <strong>{summary.season.primaryGoal?.label ?? "目標達成"}</strong>
+              <small>
+                {summary.season.primaryGoal?.progressLabel ?? "全目標達成"}・
+                {summary.season.achievedCount}/{summary.season.goalCount}達成
+              </small>
+            </div>
+            <div className="home-season-card__ranks">
+              <article>
+                <span>県内</span>
+                <strong>{summary.season.regional.rank}位</strong>
+                <small>{rankMovementLabel(summary.season.regional.movement)}</small>
+              </article>
+              <article>
+                <span>全国</span>
+                <strong>{summary.season.national.rank}位</strong>
+                <small>{rankMovementLabel(summary.season.national.movement)}</small>
+              </article>
+            </div>
+            <button
+              disabled={operationPending}
+              onClick={() =>
+                onCommand({ target: "school", view: "records" })
+              }
+              type="button"
+            >
+              記録を見る
+            </button>
+          </section>
         ) : null}
 
         <section
