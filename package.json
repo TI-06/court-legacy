@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier src/domain/season/seasonGoalTypes.ts src/persistence/gameStateCodec.ts --write && git diff -- src/domain/season/seasonGoalTypes.ts src/persistence/gameStateCodec.ts && exit 1",
+    "format:check": "prettier . --check",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
