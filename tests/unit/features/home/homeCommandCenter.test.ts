@@ -76,13 +76,31 @@ function trainingNotification(
 }
 
 describe("selectHomeCommandCenter", () => {
-  it("builds the weekly summary without inventing a prefectural or national rank", () => {
+  it("builds the weekly summary with the Phase17 season goal and rankings", () => {
     const model = select();
 
     expect(model.summary.schoolName).toBe("青葉");
     expect(model.summary.strength).toBe(8120);
     expect(model.summary.weekLabel).toBe("第1週");
-    expect(JSON.stringify(model.summary)).not.toMatch(/県.*位|全国.*位/);
+    expect(model.summary.season).not.toBeNull();
+    expect(model.summary.season).toMatchObject({
+      academicYear: 2026,
+      achievedCount: expect.any(Number),
+      goalCount: 3,
+      primaryGoal: {
+        label: expect.any(String),
+        progressLabel: expect.any(String),
+        achieved: expect.any(Boolean),
+      },
+      regional: {
+        rank: expect.any(Number),
+        movement: expect.any(Number),
+      },
+      national: {
+        rank: expect.any(Number),
+        movement: expect.any(Number),
+      },
+    });
   });
 
   it("warns only when an unanswered incoming practice offer exists", () => {
