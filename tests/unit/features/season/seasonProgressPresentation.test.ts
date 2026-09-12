@@ -3,10 +3,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { buildSeasonProgressPresentation } from "../../../../src/features/season/seasonProgressPresentation";
 
 function tournamentGoalLabel(
-  achievement:
-    | "prefectural-title"
-    | "national-appearance"
-    | "national-title",
+  achievement: "prefectural-title" | "national-appearance" | "national-title",
 ): string {
   if (achievement === "national-title") return "全国大会優勝";
   if (achievement === "national-appearance") return "全国大会出場";
@@ -48,12 +45,12 @@ describe("Phase17 season progress presentation", () => {
     expect(presentation!.national.total).toBeGreaterThanOrEqual(
       presentation!.national.rank,
     );
-    expect(
-      presentation!.regional.nearby.some((row) => row.isUserSchool),
-    ).toBe(true);
-    expect(
-      presentation!.national.nearby.some((row) => row.isUserSchool),
-    ).toBe(true);
+    expect(presentation!.regional.nearby.some((row) => row.isUserSchool)).toBe(
+      true,
+    );
+    expect(presentation!.national.nearby.some((row) => row.isUserSchool)).toBe(
+      true,
+    );
     expect(presentation!.regional.nearby.length).toBeLessThanOrEqual(5);
     expect(presentation!.national.nearby.length).toBeLessThanOrEqual(5);
   });
