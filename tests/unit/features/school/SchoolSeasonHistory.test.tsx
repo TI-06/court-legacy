@@ -37,8 +37,13 @@ describe("school archived season history", () => {
       `全国 ${presentation.national.finalRank}位`,
     );
     for (const goal of presentation.goals) {
-      expect(within(history).getByText(goal.label)).toBeVisible();
-      expect(within(history).getByText(goal.progressLabel)).toBeVisible();
+      const goalRow = within(history).getByTestId(
+        `school-season-history-goal-${goal.id}`,
+      );
+      expect(within(goalRow).getByText(goal.label)).toBeVisible();
+      expect(
+        within(goalRow).getByText(goal.progressLabel, { selector: "small" }),
+      ).toBeVisible();
     }
   });
 
