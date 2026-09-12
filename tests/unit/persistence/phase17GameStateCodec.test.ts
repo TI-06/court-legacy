@@ -53,4 +53,34 @@ describe("Phase17 game state codec", () => {
       ),
     ).toThrow("セーブデータの形式が正しくありません");
   });
+
+  it("rejects goal-kind payloads with incompatible achievement fields", () => {
+    const state = createDemoGame();
+    const goals = structuredClone(state.seasonGoals!.goals);
+    goals[0] = {
+      ...goals[0]!,
+      achievement: "national-title",
+    };
+    const tournamentGoalIndex = goals.findIndex(
+      (goal) => goal.kind === "tournament-achievement",
+    );
+    const tournamentGoal = goals[tournamentGoalIndex]!;
+    goals[tournamentGoalIndex] = {
+      id: tournamentGoal.id,
+      kind: "tournament-achievement",
+      target: tournamentGoal.target,
+    } as typeof tournamentGoal;
+
+    expect(() =>
+      decodeGameState(
+        JSON.stringify({
+          ...state,
+          seasonGoals: {
+            ...state.seasonGoals,
+            goals,
+          },
+        }),
+      ),
+    ).toThrow("セーブデータの形式が正しくありません");
+  });
 });
