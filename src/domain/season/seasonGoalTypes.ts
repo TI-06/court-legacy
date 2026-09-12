@@ -4,12 +4,24 @@ export type SeasonGoalKind =
 export type TournamentAchievementTarget =
   "prefectural-title" | "national-appearance" | "national-title";
 
-export interface SeasonGoalDefinition {
+interface SeasonGoalBase {
   id: string;
-  kind: SeasonGoalKind;
   target: number;
-  achievement?: TournamentAchievementTarget;
 }
+
+export type SeasonGoalDefinition =
+  | (SeasonGoalBase & {
+      kind: "regional-rank";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "official-wins";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "tournament-achievement";
+      achievement: TournamentAchievementTarget;
+    });
 
 export interface SeasonHistoryBaseline {
   officialWins: number;
@@ -32,10 +44,10 @@ export interface SeasonGoalState {
   goals: SeasonGoalDefinition[];
 }
 
-export interface SeasonGoalResult extends SeasonGoalDefinition {
+export type SeasonGoalResult = SeasonGoalDefinition & {
   progress: number;
   achieved: boolean;
-}
+};
 
 export interface SeasonHistoryDelta {
   officialWins: number;
