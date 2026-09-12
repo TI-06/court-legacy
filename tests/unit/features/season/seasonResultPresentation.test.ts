@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
-import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
-import { buildSeasonResultPresentation } from "../../../../src/features/season/seasonResultPresentation";
+import {
+  createDemoGame,
+  gameData,
+} from "../../../../src/app/createDemoGame";
+import {
+  advanceGameWeek,
+} from "../../../../src/domain/calendar/academicYearProgression";
+import {
+  buildSeasonResultPresentation,
+} from "../../../../src/features/season/seasonResultPresentation";
 
 describe("season result presentation", () => {
   it("formats archived goals, rank movement, and season deltas", () => {
