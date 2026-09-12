@@ -56,12 +56,10 @@ describe("Phase17 game state codec", () => {
 
   it("rejects goal-kind payloads with incompatible achievement fields", () => {
     const state = createDemoGame();
-    const goals = JSON.parse(
-      JSON.stringify(state.seasonGoals!.goals),
-    ) as Array<Record<string, unknown>>;
-    const regionalGoal = goals.find(
-      (goal) => goal.kind === "regional-rank",
-    )!;
+    const goals = JSON.parse(JSON.stringify(state.seasonGoals!.goals)) as Array<
+      Record<string, unknown>
+    >;
+    const regionalGoal = goals.find((goal) => goal.kind === "regional-rank")!;
     regionalGoal.achievement = "national-title";
     const tournamentGoal = goals.find(
       (goal) => goal.kind === "tournament-achievement",
