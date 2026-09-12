@@ -1,0 +1,36 @@
+name: Phase16 Task6 E2E apply
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: python scripts/phase16_task6_e2e_patch.py
+      - run: npx prettier --write src/app/createBrowserAppDependencies.ts tests/e2e/pvp-flow.spec.ts tests/e2e/official-tournament-flow.spec.ts
+      - run: npm run typecheck
+      - run: npx vitest run tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/app/Phase16OfficialMatchCommand.test.tsx
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/pvp-flow.spec.ts tests/e2e/official-tournament-flow.spec.ts
+      - name: Commit verified Task6 E2E and cleanup
+        run: |
+          git rm .github/workflows/phase16-task6-e2e-apply.yml scripts/phase16_task6_e2e_patch.py
+          git add src/app/createBrowserAppDependencies.ts tests/e2e/pvp-flow.spec.ts tests/e2e/official-tournament-flow.spec.ts
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "test: cover Phase16 official and PvP resumable E2E"
+          git push
