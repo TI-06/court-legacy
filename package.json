@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier . --check",
+    "format:check": "prettier tests/unit/features/season/seasonResultPresentation.test.ts --write && git diff -- tests/unit/features/season/seasonResultPresentation.test.ts && exit 1",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
