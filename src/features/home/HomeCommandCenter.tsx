@@ -6,6 +6,7 @@ import type {
   HomeCommandTask,
 } from "./homeCommandCenter";
 import "./home-command-center.css";
+import "./home-season-card.css";
 
 interface HomeCommandCenterProps {
   model: HomeCommandCenterModel;
@@ -128,19 +129,21 @@ export function HomeCommandCenter({
               <article>
                 <span>県内</span>
                 <strong>{summary.season.regional.rank}位</strong>
-                <small>{rankMovementLabel(summary.season.regional.movement)}</small>
+                <small>
+                  {rankMovementLabel(summary.season.regional.movement)}
+                </small>
               </article>
               <article>
                 <span>全国</span>
                 <strong>{summary.season.national.rank}位</strong>
-                <small>{rankMovementLabel(summary.season.national.movement)}</small>
+                <small>
+                  {rankMovementLabel(summary.season.national.movement)}
+                </small>
               </article>
             </div>
             <button
               disabled={operationPending}
-              onClick={() =>
-                onCommand({ target: "school", view: "records" })
-              }
+              onClick={() => onCommand({ target: "school", view: "records" })}
               type="button"
             >
               記録を見る
