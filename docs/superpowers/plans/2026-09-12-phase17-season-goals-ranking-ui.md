@@ -25,10 +25,12 @@
 ### Task 1: Shared season progress presentation
 
 **Files:**
+
 - Create: `src/features/season/seasonProgressPresentation.ts`
 - Create: `tests/unit/features/season/seasonProgressPresentation.test.ts`
 
 **Interfaces:**
+
 - Consumes: `GameState`, `evaluateSeasonGoals`, `buildSchoolRankings`.
 - Produces: `buildSeasonProgressPresentation(state: GameState): SeasonProgressPresentation | null`.
 - `SeasonProgressPresentation` exposes `academicYear`, `achievedCount`, `goalCount`, `goals`, `regional`, and `national`.
@@ -48,6 +50,7 @@ Expected: FAIL because `seasonProgressPresentation` does not exist.
 Use `evaluateSeasonGoals(state, state.seasonGoals)` for current progress and `buildSchoolRankings` for nearby regional/national rows. Return `null` for legacy/current states without `seasonGoals`; do not create or persist fallback goals in the selector.
 
 Goal labels:
+
 - `regional-rank`: `県内{target}位以内`
 - `official-wins`: `公式戦{target}勝`
 - `tournament-achievement/prefectural-title`: `県大会優勝`
@@ -55,6 +58,7 @@ Goal labels:
 - `tournament-achievement/national-title`: `全国大会優勝`
 
 Progress labels:
+
 - regional rank: `現在 {progress}位`
 - official wins: `{progress}/{target}勝`
 - tournament achievement: `達成` / `未達成`
@@ -73,6 +77,7 @@ Commit message: `feat: add season progress presentation`
 ### Task 2: Home compact season-goal card
 
 **Files:**
+
 - Modify: `src/features/home/homeCommandCenter.ts`
 - Modify: `src/features/home/HomeCommandCenter.tsx`
 - Modify: `src/features/home/home-command-center.css`
@@ -81,6 +86,7 @@ Commit message: `feat: add season progress presentation`
 - Test: `tests/unit/features/home/HomeScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `buildSeasonProgressPresentation` from Task 1.
 - Produces: `HomeSummary.season`, a compact view containing primary goal, achieved/total goal count, regional/national ranks, and movement.
 - Extends `HomeCommandAction` school view to `"facilities" | "staff" | "records"`.
@@ -112,11 +118,13 @@ Commit message: `feat: show season goals on home`
 ### Task 3: School records ranking dashboard
 
 **Files:**
+
 - Modify: `src/features/school/SchoolScreen.tsx`
 - Modify: `src/features/school/school-screen.css`
 - Test: `tests/unit/features/school/SchoolScreen.test.tsx`
 
 **Interfaces:**
+
 - Consumes: full `SeasonProgressPresentation` from Task 1.
 - Produces: a game-style `今季ランキング` section inside the existing `records` view, before career record totals.
 
@@ -147,9 +155,11 @@ Commit message: `feat: add school ranking dashboard`
 ### Task 4: Verification and integration review
 
 **Files:**
+
 - Modify only files required by findings from verification/review.
 
 **Interfaces:**
+
 - Consumes: Tasks 1-3.
 - Produces: PR17-2 ready for merge with no Phase16/PR17-1 regression.
 
