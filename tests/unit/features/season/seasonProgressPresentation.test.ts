@@ -3,7 +3,10 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { buildSeasonProgressPresentation } from "../../../../src/features/season/seasonProgressPresentation";
 
 function tournamentGoalLabel(
-  achievement: "prefectural-title" | "national-appearance" | "national-title",
+  achievement:
+    | "prefectural-title"
+    | "national-appearance"
+    | "national-title",
 ): string {
   if (achievement === "national-title") return "全国大会優勝";
   if (achievement === "national-appearance") return "全国大会出場";
