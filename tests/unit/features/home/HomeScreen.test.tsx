@@ -97,6 +97,27 @@ describe("Phase 13 Home command center", () => {
     expect(props.onCommand).toHaveBeenCalledWith({ target: "tournament" });
   });
 
+  it("shows the season goal and links directly to school records", () => {
+    const props = createProps();
+    const regionalGoal = props.state.seasonGoals!.goals.find(
+      (goal) => goal.kind === "regional-rank",
+    )!;
+    render(<HomeScreen {...props} />);
+
+    const season = screen.getByRole("region", { name: "今季目標" });
+    expect(
+      within(season).getByText(`県内${regionalGoal.target}位以内`),
+    ).toBeVisible();
+    expect(within(season).getByText("県内")).toBeVisible();
+    expect(within(season).getByText("全国")).toBeVisible();
+
+    fireEvent.click(within(season).getByRole("button", { name: "記録を見る" }));
+    expect(props.onCommand).toHaveBeenCalledWith({
+      target: "school",
+      view: "records",
+    });
+  });
+
   it("emits a team command from the training task", () => {
     const props = createProps();
     render(<HomeScreen {...props} />);
