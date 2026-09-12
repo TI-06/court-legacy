@@ -74,6 +74,8 @@ export const E2E_GAME_STATE_KEY = "court-legacy:e2e-game-state";
 export const E2E_ACTION_DELAY_MS_KEY = "court-legacy:e2e-action-delay-ms";
 export const E2E_SHOP_LOSE_NEXT_RESPONSE_KEY =
   "court-legacy:e2e-shop-lose-next-response";
+export const E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY =
+  "court-legacy:e2e-pvp-lose-next-command-response";
 
 function createHarnessSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
@@ -303,6 +305,14 @@ function consumeHarnessLostShopResponse(
   return true;
 }
 
+function consumeHarnessLostPvpCommandResponse(): boolean {
+  if (readSessionStorage(E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY) !== "1") {
+    return false;
+  }
+  writeSessionStorage(E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY, "");
+  return true;
+}
+
 function tightenHarnessRange(
   range: ScoutReport["estimatedOverall"],
   halfWidth: number,
@@ -329,6 +339,10 @@ class StaticGameApiClient implements GameApiClient {
   private readonly pvpCompletedSessions = new Map<
     string,
     PvpChallengeResponse
+  >();
+  private readonly pvpCommandResponses = new Map<
+    string,
+    PvpChallengeSessionResponse
   >();
 
   constructor(private readonly persistAcrossReloads: boolean) {
@@ -1003,6 +1017,9 @@ class StaticGameApiClient implements GameApiClient {
     request: PvpChallengeCommandRequest,
   ): Promise<PvpChallengeSessionResponse> {
     await this.pvpDelay();
+    const commandKey = `${request.operationId}:${request.commandId}`;
+    const replayed = this.pvpCommandResponses.get(commandKey);
+    if (replayed) return replayed;
     const completed = this.pvpCompletedSessions.get(request.operationId);
     if (completed) return completed;
     const session = this.pvpSessions.get(request.operationId);
@@ -1040,13 +1057,19 @@ class StaticGameApiClient implements GameApiClient {
     }
 
     session.step += 1;
-    if (session.step >= 3) {
-      return this.finishHarnessPvpSession(
-        session,
-        this.requireSnapshot().revision,
+    const response =
+      session.step >= 3
+        ? this.finishHarnessPvpSession(session, this.requireSnapshot().revision)
+        : this.harnessPvpInProgress(session, this.requireSnapshot().revision);
+    this.pvpCommandResponses.set(commandKey, response);
+    if (consumeHarnessLostPvpCommandResponse()) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "対人戦の応答を受信できませんでした",
       );
     }
-    return this.harnessPvpInProgress(session, this.requireSnapshot().revision);
+    return response;
   }
 }
 
