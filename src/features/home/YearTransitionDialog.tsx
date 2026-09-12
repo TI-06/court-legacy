@@ -89,19 +89,27 @@ export function YearTransitionDialog({
             <div className="year-transition-season__ranks">
               <article>
                 <span>
-                  県内 {seasonResult.regional.startingRank}位 → {" "}
+                  県内 {seasonResult.regional.startingRank}位 →{" "}
                   {seasonResult.regional.finalRank}位
                 </span>
-                <b className={seasonResult.regional.movement < 0 ? "is-down" : undefined}>
+                <b
+                  className={
+                    seasonResult.regional.movement < 0 ? "is-down" : undefined
+                  }
+                >
                   {rankMovementLabel(seasonResult.regional.movement)}
                 </b>
               </article>
               <article>
                 <span>
-                  全国 {seasonResult.national.startingRank}位 → {" "}
+                  全国 {seasonResult.national.startingRank}位 →{" "}
                   {seasonResult.national.finalRank}位
                 </span>
-                <b className={seasonResult.national.movement < 0 ? "is-down" : undefined}>
+                <b
+                  className={
+                    seasonResult.national.movement < 0 ? "is-down" : undefined
+                  }
+                >
                   {rankMovementLabel(seasonResult.national.movement)}
                 </b>
               </article>
@@ -132,7 +140,8 @@ export function YearTransitionDialog({
                 県優勝<strong>{seasonResult.deltas.prefecturalTitles}回</strong>
               </span>
               <span>
-                全国出場<strong>{seasonResult.deltas.nationalAppearances}回</strong>
+                全国出場
+                <strong>{seasonResult.deltas.nationalAppearances}回</strong>
               </span>
             </div>
           </section>
