@@ -93,6 +93,8 @@ describe("year transition dialog", () => {
     expect(
       screen.queryByRole("region", { name: "シーズン振り返り" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "新年度を始める" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "新年度を始める" }),
+    ).toBeVisible();
   });
 });
