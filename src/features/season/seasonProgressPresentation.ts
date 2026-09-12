@@ -43,9 +43,7 @@ export interface SeasonProgressPresentation {
   national: SeasonRankingPresentation;
 }
 
-function tournamentGoalLabel(
-  achievement: TournamentAchievementTarget,
-): string {
+function tournamentGoalLabel(achievement: TournamentAchievementTarget): string {
   if (achievement === "national-title") return "全国大会優勝";
   if (achievement === "national-appearance") return "全国大会出場";
   return "県大会優勝";
