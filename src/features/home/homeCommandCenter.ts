@@ -31,10 +31,7 @@ import type {
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 
 export type HomeCommandPriority =
-  | "critical"
-  | "attention"
-  | "normal"
-  | "complete";
+  "critical" | "attention" | "normal" | "complete";
 
 export type HomeCommandAction =
   | { target: "team" }
@@ -654,7 +651,7 @@ export function selectHomeCommandCenter(input: {
     .filter((player): player is Player => Boolean(player));
   const unansweredOffer = Boolean(
     input.state.weeklySchedule.practiceMatch.incomingOffer &&
-      !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
   );
 
   return {
