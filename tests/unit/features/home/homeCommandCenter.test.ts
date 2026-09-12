@@ -84,7 +84,7 @@ describe("selectHomeCommandCenter", () => {
     expect(model.summary.weekLabel).toBe("第1週");
     expect(model.summary.season).not.toBeNull();
     expect(model.summary.season).toMatchObject({
-      academicYear: 2026,
+      academicYear: 1,
       achievedCount: expect.any(Number),
       goalCount: 3,
       primaryGoal: {
