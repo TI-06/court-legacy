@@ -63,6 +63,7 @@ function SeasonHistoryCard({
           {presentation.goals.map((goal) => (
             <article
               className={goal.achieved ? "is-achieved" : undefined}
+              data-testid={`school-season-history-goal-${goal.id}`}
               key={goal.id}
             >
               <div>
