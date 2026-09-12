@@ -9,6 +9,10 @@ import type {
   TournamentAchievementTarget,
 } from "../../domain/season/seasonGoalTypes";
 import { evaluateSeasonGoals } from "../../domain/season/seasonGoals";
+import {
+  buildSeasonResultPresentation,
+  type SeasonResultPresentation,
+} from "./seasonResultPresentation";
 
 export interface SeasonProgressGoalPresentation {
   id: string;
@@ -41,6 +45,7 @@ export interface SeasonProgressPresentation {
   goals: SeasonProgressGoalPresentation[];
   regional: SeasonRankingPresentation;
   national: SeasonRankingPresentation;
+  archivedSeasons: SeasonResultPresentation[];
 }
 
 function tournamentGoalLabel(achievement: TournamentAchievementTarget): string {
@@ -119,6 +124,9 @@ export function buildSeasonProgressPresentation(
     regionId: school.regionId,
   });
   const nationalRankings = buildSchoolRankings(state);
+  const archivedSeasons = [...(state.history.seasonGoalSeasons ?? [])]
+    .reverse()
+    .map(buildSeasonResultPresentation);
 
   return {
     academicYear: summary.academicYear,
@@ -142,5 +150,6 @@ export function buildSeasonProgressPresentation(
       summary.finalRanks.national,
       summary.startingRanks.national,
     ),
+    archivedSeasons,
   };
 }

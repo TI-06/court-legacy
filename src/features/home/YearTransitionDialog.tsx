@@ -4,6 +4,7 @@ import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
+import { buildSeasonResultPresentation } from "../season/seasonResultPresentation";
 import "./year-transition-dialog.css";
 
 interface YearTransitionDialogProps {
@@ -25,6 +26,12 @@ function playerNames(
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player))
     .map((player) => `${player.lastName} ${player.firstName}`);
+}
+
+function rankMovementLabel(movement: number): string {
+  if (movement > 0) return `▲${movement}`;
+  if (movement < 0) return `▼${Math.abs(movement)}`;
+  return "→0";
 }
 
 export function YearTransitionDialog({
@@ -50,6 +57,10 @@ export function YearTransitionDialog({
   const generationalSchool = summary.generationalTalentSchoolId
     ? state.schools[summary.generationalTalentSchoolId]
     : null;
+  const archivedSeason = state.history.seasonGoalSeasons?.at(-1);
+  const seasonResult = archivedSeason
+    ? buildSeasonResultPresentation(archivedSeason)
+    : null;
 
   return (
     <BottomSheet
@@ -60,6 +71,82 @@ export function YearTransitionDialog({
       title={`${summary.academicYear}年目の新年度`}
     >
       <div className="year-transition-body">
+        {seasonResult ? (
+          <section
+            aria-label="シーズン振り返り"
+            className="year-transition-season"
+          >
+            <div className="year-transition-season__heading">
+              <div>
+                <span>SEASON RESULT</span>
+                <h3>{seasonResult.academicYear}年目 シーズン結果</h3>
+              </div>
+              <strong>
+                {seasonResult.achievedCount}/{seasonResult.goalCount}目標達成
+              </strong>
+            </div>
+
+            <div className="year-transition-season__ranks">
+              <article>
+                <span>
+                  県内 {seasonResult.regional.startingRank}位 →{" "}
+                  {seasonResult.regional.finalRank}位
+                </span>
+                <b
+                  className={
+                    seasonResult.regional.movement < 0 ? "is-down" : undefined
+                  }
+                >
+                  {rankMovementLabel(seasonResult.regional.movement)}
+                </b>
+              </article>
+              <article>
+                <span>
+                  全国 {seasonResult.national.startingRank}位 →{" "}
+                  {seasonResult.national.finalRank}位
+                </span>
+                <b
+                  className={
+                    seasonResult.national.movement < 0 ? "is-down" : undefined
+                  }
+                >
+                  {rankMovementLabel(seasonResult.national.movement)}
+                </b>
+              </article>
+            </div>
+
+            <div className="year-transition-season__goals">
+              {seasonResult.goals.map((goal) => (
+                <article
+                  className={goal.achieved ? "is-achieved" : undefined}
+                  key={goal.id}
+                >
+                  <div>
+                    <strong>{goal.label}</strong>
+                    <small>{goal.progressLabel}</small>
+                  </div>
+                  <b aria-label={goal.achieved ? "達成済み" : "未達成"}>
+                    {goal.achieved ? "✓" : "—"}
+                  </b>
+                </article>
+              ))}
+            </div>
+
+            <div className="year-transition-season__deltas">
+              <span>
+                公式戦<strong>{seasonResult.deltas.officialWins}勝</strong>
+              </span>
+              <span>
+                県優勝<strong>{seasonResult.deltas.prefecturalTitles}回</strong>
+              </span>
+              <span>
+                全国出場
+                <strong>{seasonResult.deltas.nationalAppearances}回</strong>
+              </span>
+            </div>
+          </section>
+        ) : null}
+
         <div className="year-transition-metrics">
           <div>
             <span>卒業</span>
