@@ -200,7 +200,9 @@ describe("school management screen", () => {
       `開始時 ${presentation.national.startingRank}位`,
     );
 
-    const userRows = within(dashboard).getAllByTestId("school-ranking-user-row");
+    const userRows = within(dashboard).getAllByTestId(
+      "school-ranking-user-row",
+    );
     expect(userRows).toHaveLength(2);
     expect(userRows[0]).toHaveTextContent(
       state.schools[state.userSchoolId]!.shortName,
