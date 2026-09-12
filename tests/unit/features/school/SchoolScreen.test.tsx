@@ -6,6 +6,7 @@ import {
   type GameDate,
 } from "../../../../src/domain/model/identifiers";
 import { rivalryKey } from "../../../../src/domain/world/rivalWorldProgression";
+import { buildSeasonProgressPresentation } from "../../../../src/features/season/seasonProgressPresentation";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 
 function createState() {
@@ -163,6 +164,50 @@ describe("school management screen", () => {
     expect(rows[0]).toHaveTextContent("2026年4月6日");
     expect(rows[0]).toHaveTextContent(rivals[5]!.name);
     expect(screen.queryByText(rivals[0]!.name)).not.toBeInTheDocument();
+  });
+
+  it("shows current season goals and regional/national ranking progression in records", () => {
+    const state = createState();
+    const presentation = buildSeasonProgressPresentation(state)!;
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+
+    const dashboard = screen.getByRole("region", { name: "今季ランキング" });
+    expect(dashboard).toBeVisible();
+    for (const goal of presentation.goals) {
+      expect(within(dashboard).getByText(goal.label)).toBeVisible();
+      expect(within(dashboard).getByText(goal.progressLabel)).toBeVisible();
+    }
+
+    const regional = within(dashboard).getByRole("region", {
+      name: "県内ランキング",
+    });
+    expect(regional).toHaveTextContent(
+      `${presentation.regional.rank}位 / ${presentation.regional.total}校`,
+    );
+    expect(regional).toHaveTextContent(
+      `開始時 ${presentation.regional.startingRank}位`,
+    );
+
+    const national = within(dashboard).getByRole("region", {
+      name: "全国ランキング",
+    });
+    expect(national).toHaveTextContent(
+      `${presentation.national.rank}位 / ${presentation.national.total}校`,
+    );
+    expect(national).toHaveTextContent(
+      `開始時 ${presentation.national.startingRank}位`,
+    );
+
+    const userRows = within(dashboard).getAllByTestId("school-ranking-user-row");
+    expect(userRows).toHaveLength(2);
+    expect(userRows[0]).toHaveTextContent(
+      state.schools[state.userSchoolId]!.shortName,
+    );
+    expect(userRows[1]).toHaveTextContent(
+      state.schools[state.userSchoolId]!.shortName,
+    );
   });
 
   it("shows a Japanese graduate tab, empty state, and graduate record", () => {
