@@ -71,6 +71,51 @@ async function expectNoBodyOverflow(page: Page) {
   expect(layout.document).toBeLessThanOrEqual(layout.viewport);
 }
 
+async function continueOfficialMatchUntilResult(page: Page) {
+  const resultHeading = page.getByRole("heading", { name: "試合結果" });
+
+  for (let guard = 0; guard < 10; guard += 1) {
+    if (await resultHeading.isVisible().catch(() => false)) return;
+
+    const toResult = page.getByRole("button", { name: "結果まで進む" });
+    if (await toResult.isVisible().catch(() => false)) {
+      await toResult.click();
+      if (await resultHeading.isVisible().catch(() => false)) return;
+    }
+
+    const decision = page.getByRole("region", { name: "監督指示" });
+    if (!(await decision.isVisible().catch(() => false))) {
+      await page.getByRole("button", { name: "次の判断まで進む" }).click();
+      await expect(decision).toBeVisible();
+    }
+
+    const sequenceBefore =
+      (await page.getByTestId("event-sequence").textContent()) ?? "missing";
+    const nextSet = decision.getByRole("button", {
+      name: "このまま次セットへ",
+    });
+    if (await nextSet.isVisible().catch(() => false)) {
+      await nextSet.click();
+    } else {
+      await decision.getByRole("button", { name: "このまま続ける" }).click();
+    }
+
+    await expect
+      .poll(async () => {
+        if (await resultHeading.isVisible().catch(() => false)) return "result";
+        return (
+          (await page
+            .getByTestId("event-sequence")
+            .textContent()
+            .catch(() => null)) ?? "missing"
+        );
+      })
+      .not.toBe(sequenceBefore);
+  }
+
+  await expect(resultHeading).toBeVisible();
+}
+
 test("leadership assignment, training, and an official match persist visible dynamics", async ({
   page,
 }) => {
@@ -126,14 +171,14 @@ test("leadership assignment, training, and an official match persist visible dyn
     0,
   );
 
-  await page.getByRole("button", { name: "結果まで進む" }).click();
+  await continueOfficialMatchUntilResult(page);
   await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
   await page.getByRole("button", { name: "結果を確認して次へ" }).click();
   await expect(page.getByTestId("home-screen")).toBeVisible();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   const persisted = await readPersistedSnapshot(page);
-  expect(persisted.revision).toBe(24);
+  expect(persisted.revision).toBeGreaterThan(24);
   expect(persisted.state.teamDynamics.captainPlayerId).toBe(captainPlayerId);
   expect(persisted.state.teamDynamics.viceCaptainPlayerId).toBe(
     viceCaptainPlayerId,

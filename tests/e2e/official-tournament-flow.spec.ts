@@ -7,7 +7,10 @@ import {
   E2E_SERVER_SNAPSHOT_KEY,
 } from "../../src/app/createBrowserAppDependencies";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
-import { advanceOfficialTournamentsThroughWeek } from "../../src/domain/tournament/progressOfficialTournaments";
+import {
+  advanceOfficialTournamentsThroughWeek,
+  findDueUserOfficialMatch,
+} from "../../src/domain/tournament/progressOfficialTournaments";
 import { advanceWeekFromHome } from "./homeTestHelpers";
 
 function officialSnapshot(): CloudGameSnapshot {
@@ -121,52 +124,156 @@ test("due official match is reference-only in the bracket and executes from Home
   );
 });
 
-test("Home progression prepares and commits an official match once, presents it, advances, and survives reload", async ({
-  page,
-}) => {
-  await seedSnapshot(page, officialSnapshot(), 350);
-  await page.goto("/");
+async function revealOfficialDecision(page: Page) {
+  const decision = page.getByRole("region", { name: "監督指示" });
+  if (await decision.isVisible().catch(() => false)) return decision;
+  await page.getByRole("button", { name: "次の判断まで進む" }).click();
+  await expect(decision).toBeVisible();
+  return decision;
+}
 
-  await advanceWeekFromHome(page);
-  await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
-  await expect(page.getByText("この試合だけの編成です")).toBeVisible();
-  await expectNoBodyOverflow(page);
-  await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
+async function continueOfficialUntilResult(page: Page): Promise<number> {
+  const resultHeading = page.getByRole("heading", { name: "試合結果" });
+  let commands = 0;
 
-  await expect(
-    page.getByRole("heading", { name: "試合ダイジェスト" }),
-  ).toBeVisible({ timeout: 3_000 });
-  await expectNoBodyOverflow(page);
+  for (let guard = 0; guard < 10; guard += 1) {
+    if (await resultHeading.isVisible().catch(() => false)) return commands;
 
-  const afterMatch = await page.evaluate((snapshotKey) => {
-    const raw = sessionStorage.getItem(snapshotKey);
-    return raw ? JSON.parse(raw) : null;
-  }, E2E_SERVER_SNAPSHOT_KEY);
-  expect(afterMatch?.revision).toBe(10);
-  expect(
-    afterMatch?.state?.history?.matches?.some(
-      (match: { tournamentId?: string | null }) => Boolean(match.tournamentId),
-    ),
-  ).toBe(true);
+    const toResult = page.getByRole("button", { name: "結果まで進む" });
+    if (await toResult.isVisible().catch(() => false)) {
+      await toResult.click();
+      if (await resultHeading.isVisible().catch(() => false)) return commands;
+    }
 
-  await page.getByRole("button", { name: "結果まで進む" }).click();
-  await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
-  await page.getByRole("button", { name: "結果を確認して次へ" }).click();
-  await expect(page.getByTestId("home-screen")).toBeVisible();
+    const decision = await revealOfficialDecision(page);
+    const sequenceBefore =
+      (await page.getByTestId("event-sequence").textContent()) ?? "missing";
+    const nextSet = decision.getByRole("button", {
+      name: "このまま次セットへ",
+    });
+    if (await nextSet.isVisible().catch(() => false)) {
+      await nextSet.click();
+    } else {
+      await decision.getByRole("button", { name: "このまま続ける" }).click();
+    }
+    commands += 1;
 
-  const advanced = await page.evaluate((snapshotKey) => {
-    const raw = sessionStorage.getItem(snapshotKey);
-    return raw ? JSON.parse(raw) : null;
-  }, E2E_SERVER_SNAPSHOT_KEY);
-  expect(advanced?.revision).toBe(11);
-  expect(advanced?.state?.calendar?.weekOfYear).toBe(10);
+    await expect
+      .poll(async () => {
+        if (await resultHeading.isVisible().catch(() => false)) return "result";
+        return (
+          (await page
+            .getByTestId("event-sequence")
+            .textContent()
+            .catch(() => null)) ?? "missing"
+        );
+      })
+      .not.toBe(sequenceBefore);
+  }
 
-  await page.reload();
-  await expect(page.getByTestId("home-screen")).toBeVisible();
-  const reloaded = await page.evaluate((snapshotKey) => {
-    const raw = sessionStorage.getItem(snapshotKey);
-    return raw ? JSON.parse(raw) : null;
-  }, E2E_SERVER_SNAPSHOT_KEY);
-  expect(reloaded?.revision).toBe(11);
-  expect(reloaded?.state?.calendar?.weekOfYear).toBe(10);
-});
+  await expect(resultHeading).toBeVisible();
+  return commands;
+}
+
+function tournamentHistoryCount(snapshot: {
+  state?: { history?: { matches?: Array<{ tournamentId?: string | null }> } };
+}) {
+  return (
+    snapshot.state?.history?.matches?.filter((match) =>
+      Boolean(match.tournamentId),
+    ).length ?? 0
+  );
+}
+
+function officialStatus(
+  snapshot: {
+    state?: {
+      officialSeason?: {
+        interhigh?: {
+          prefectural?: { matches?: Array<{ id: string; status: string }> };
+        };
+      };
+    };
+  },
+  matchId: string,
+) {
+  return snapshot.state?.officialSeason?.interhigh?.prefectural?.matches?.find(
+    (match) => match.id === matchId,
+  )?.status;
+}
+
+for (const width of [320, 360, 390, 414, 480]) {
+  test(`Phase16 official match stays pending until completion at ${width}px`, async ({
+    page,
+  }) => {
+    const seeded = officialSnapshot();
+    const due = findDueUserOfficialMatch(seeded.state);
+    if (!due) throw new Error("official E2E fixture has no due match");
+    const historyBefore = tournamentHistoryCount(seeded);
+
+    await page.setViewportSize({
+      width,
+      height: width <= 360 ? 800 : width === 414 ? 824 : 900,
+    });
+    await seedSnapshot(page, seeded);
+    await page.goto("/");
+
+    await advanceWeekFromHome(page);
+    await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+    await expect(page.getByText("この試合だけの編成です")).toBeVisible();
+    await expectNoBodyOverflow(page);
+    await page
+      .getByRole("button", { name: "この編成・戦術で試合開始" })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "試合ダイジェスト" }),
+    ).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByTestId("event-sequence")).toBeVisible();
+    await expectNoBodyOverflow(page);
+
+    const afterStart = await page.evaluate((snapshotKey) => {
+      const raw = sessionStorage.getItem(snapshotKey);
+      return raw ? JSON.parse(raw) : null;
+    }, E2E_SERVER_SNAPSHOT_KEY);
+    expect(afterStart?.revision).toBe(seeded.revision + 1);
+    expect(tournamentHistoryCount(afterStart)).toBe(historyBefore);
+    expect(officialStatus(afterStart, due.match.id)).not.toBe("completed");
+
+    const firstDecision = await revealOfficialDecision(page);
+    await expect(firstDecision).toBeVisible();
+    await expectNoBodyOverflow(page);
+
+    const commandCount = await continueOfficialUntilResult(page);
+    expect(commandCount).toBeGreaterThan(0);
+    await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
+    await expectNoBodyOverflow(page);
+
+    const afterResult = await page.evaluate((snapshotKey) => {
+      const raw = sessionStorage.getItem(snapshotKey);
+      return raw ? JSON.parse(raw) : null;
+    }, E2E_SERVER_SNAPSHOT_KEY);
+    expect(tournamentHistoryCount(afterResult)).toBe(historyBefore + 1);
+    expect(officialStatus(afterResult, due.match.id)).toBe("completed");
+
+    await page.getByRole("button", { name: "結果を確認して次へ" }).click();
+    await expect(page.getByTestId("home-screen")).toBeVisible();
+
+    const advanced = await page.evaluate((snapshotKey) => {
+      const raw = sessionStorage.getItem(snapshotKey);
+      return raw ? JSON.parse(raw) : null;
+    }, E2E_SERVER_SNAPSHOT_KEY);
+    expect(advanced?.revision).toBeGreaterThan(afterResult.revision);
+    expect(advanced?.state?.calendar?.weekOfYear).toBe(10);
+
+    await page.reload();
+    await expect(page.getByTestId("home-screen")).toBeVisible();
+    const reloaded = await page.evaluate((snapshotKey) => {
+      const raw = sessionStorage.getItem(snapshotKey);
+      return raw ? JSON.parse(raw) : null;
+    }, E2E_SERVER_SNAPSHOT_KEY);
+    expect(reloaded?.revision).toBe(advanced.revision);
+    expect(reloaded?.state?.calendar?.weekOfYear).toBe(10);
+    await expectNoBodyOverflow(page);
+  });
+}

@@ -4,7 +4,7 @@ import type {
   VerifyAccessToken,
 } from "./auth/verifyAccessToken";
 import type { GameStore } from "./data/GameStore";
-import type { PvPStore } from "./data/PvPStore";
+import type { PvPStore, PvpMatchSessionStore } from "./data/PvPStore";
 import type { ScoutingStore } from "./data/ScoutingStore";
 import type { ShopStore } from "./data/ShopStore";
 import { json, jsonError } from "./http/json";
@@ -15,6 +15,8 @@ import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
 import { createOnboardingHandler } from "./routes/onboarding";
 import { createPvpChallengeHandler } from "./routes/pvpChallenge";
+import { createPvpChallengeCommandHandler } from "./routes/pvpChallengeCommand";
+import { createPvpChallengeSessionHandler } from "./routes/pvpChallengeSession";
 import { createPvpHistoryHandler } from "./routes/pvpHistory";
 import { createPvpOpponentsHandler } from "./routes/pvpOpponents";
 import { createPvpPublishHandler } from "./routes/pvpPublish";
@@ -40,6 +42,20 @@ export interface WorkerDependencies {
   createCreationNonce?: () => string;
   createPvpMatchNonce?: () => string;
   now?: () => Date;
+}
+
+function hasPvpMatchSessionStore(
+  store: PvPStore | undefined,
+): store is PvpMatchSessionStore {
+  if (!store) return false;
+  const candidate = store as Partial<PvpMatchSessionStore>;
+  return (
+    typeof candidate.createMatchSession === "function" &&
+    typeof candidate.getMatchSession === "function" &&
+    typeof candidate.getMatchSessionCommandReceipt === "function" &&
+    typeof candidate.saveMatchSessionCommand === "function" &&
+    typeof candidate.storeMatchSessionFinalResponse === "function"
+  );
 }
 
 function bearerToken(request: Request): string | null {
@@ -92,13 +108,22 @@ export function createRouter(
         pvpStore: deps.pvpStore,
       })
     : null;
-  const pvpChallenge = deps.pvpStore
+  const pvpSessionStore = hasPvpMatchSessionStore(deps.pvpStore)
+    ? deps.pvpStore
+    : null;
+  const pvpChallenge = pvpSessionStore
     ? createPvpChallengeHandler({
         gameStore: deps.store,
-        pvpStore: deps.pvpStore,
+        pvpStore: pvpSessionStore,
         now: deps.now,
         createMatchNonce: deps.createPvpMatchNonce,
       })
+    : null;
+  const pvpChallengeCommand = pvpSessionStore
+    ? createPvpChallengeCommandHandler({ pvpStore: pvpSessionStore })
+    : null;
+  const pvpChallengeSession = pvpSessionStore
+    ? createPvpChallengeSessionHandler({ pvpStore: pvpSessionStore })
     : null;
   const pvpOpponents = deps.pvpStore
     ? createPvpOpponentsHandler({ pvpStore: deps.pvpStore, now: deps.now })
@@ -237,6 +262,20 @@ export function createRouter(
         pvpChallenge
       ) {
         return await pvpChallenge(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/challenge/command" &&
+        request.method === "POST" &&
+        pvpChallengeCommand
+      ) {
+        return await pvpChallengeCommand(request, user);
+      }
+      if (
+        url.pathname === "/api/pvp/challenge/session" &&
+        request.method === "GET" &&
+        pvpChallengeSession
+      ) {
+        return await pvpChallengeSession(request, user);
       }
       if (
         url.pathname === "/api/pvp/opponents" &&

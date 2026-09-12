@@ -198,7 +198,7 @@ PR14-3 saved-lineup UX completes the Phase 14 Player Hub slice with:
 
 Phase 14 does not fabricate player history, add fatigue-management chores, leak private PvP opponent abilities, silently repair stale saved lineups, or persist match-only lineup changes.
 
-Phase 15 is complete. **Phase 16 — Match Command is in progress with PR16-1 and PR16-2 complete.**
+Phase 15 and Phase 16 are complete through PR16-3. **Phase 17 — Season Goals & Rankings is next.**
 
 ### Phase 15 — Team Tactics
 
@@ -244,7 +244,19 @@ PR16-2 Interactive Match Command UX adds:
 - 320 / 360 / 390 / 414 / 480 px interactive-match and layout-audit coverage;
 - save schema remaining v8 and browser-side match simulation authority remaining prohibited.
 
-PR16-2 intentionally keeps official-tournament interactive finalization and asynchronous PvP match-command sessions out of scope. **PR16-3 Official/PvP Completion is the next Phase 16 slice.**
+PR16-3 Official/PvP Completion completes Phase 16 with:
+
+- official tournament matches using the same authoritative resumable Match Command flow, with bracket/history progression only after match completion;
+- asynchronous rated PvP backed by server-private persisted match sessions, so defender snapshots, runtime, private player IDs and abilities never enter public responses;
+- deterministic server-owned defender coaching while the challenger remains the only human-controlled side;
+- authenticated PvP start/status/command routes with sanitized public segments and command-id replay/idempotency;
+- network-ambiguity recovery through authoritative status before retry, preserving the same command ID when the server state is unchanged;
+- final PvP rating/history still committed only through the existing atomic `commit_pvp_rated_match` authority;
+- official and PvP MatchScreen integration with match-local lineup/tactics that never overwrite persistent team state;
+- 320 / 360 / 390 / 414 / 480 px official/PvP E2E coverage, including bounded decisions, status recovery, finalization timing and horizontal-overflow checks;
+- save schema remaining v8.
+
+Phase 16 is complete. Phase 17 is the next roadmap slice.
 
 ### Phase 17 — Season Goals & Rankings
 

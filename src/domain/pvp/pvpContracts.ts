@@ -1,3 +1,9 @@
+import type {
+  CoachDecisionReason,
+  MatchCommand,
+  MatchEventType,
+  MatchPhase,
+} from "../model/Match";
 import type { TeamSelection } from "../model/TeamSelection";
 import type {
   MatchTacticPlan,
@@ -63,6 +69,63 @@ export interface PvpChallengeRequest {
   matchTactics?: MatchTacticPlan;
 }
 
+export interface PvpPublicMatchEvent {
+  sequence: number;
+  type: MatchEventType;
+  setNumber: number;
+  challengerScore: number;
+  defenderScore: number;
+  winner: "challenger" | "defender" | null;
+  detailCode: string;
+}
+
+export interface PvpPublicSetState {
+  setNumber: number;
+  challengerScore: number;
+  defenderScore: number;
+  completed: boolean;
+  winner: "challenger" | "defender" | null;
+}
+
+export interface PvpMatchSegment {
+  status: "in-progress" | "complete";
+  operationId: string;
+  matchId: string;
+  phase: MatchPhase;
+  currentSetNumber: number;
+  challengerSetsWon: number;
+  defenderSetsWon: number;
+  currentScore: {
+    challenger: number;
+    defender: number;
+  };
+  challengerSelection: TeamSelection;
+  challengerTactics: MatchTacticPlan;
+  timeoutAvailable: boolean;
+  sets: PvpPublicSetState[];
+  pendingDecisionReason: CoachDecisionReason | null;
+  events: PvpPublicMatchEvent[];
+}
+
+export interface PvpChallengeInProgressResponse {
+  status: "in-progress";
+  operationId: string;
+  revision: number;
+  seasonId: string;
+  opponent: {
+    snapshotId: string;
+    schoolName: string;
+    schoolShortName: string;
+  };
+  segment: PvpMatchSegment;
+}
+
+export interface PvpChallengeCommandRequest {
+  operationId: string;
+  commandId: string;
+  command: MatchCommand;
+}
+
 export interface PvpPublicSetResult {
   setNumber: number;
   challengerScore: number;
@@ -93,6 +156,15 @@ export interface PvpChallengeResponse {
   };
   result: PvpPublicMatchResult;
   createdAt: string;
+}
+
+export type PvpChallengeSessionResponse =
+  PvpChallengeInProgressResponse | PvpChallengeResponse;
+
+export function isPvpChallengeInProgressResponse(
+  response: PvpChallengeSessionResponse,
+): response is PvpChallengeInProgressResponse {
+  return "status" in response && response.status === "in-progress";
 }
 
 export interface PvpRankingEntry {

@@ -7,7 +7,11 @@ import { applyGameAction } from "../../worker/game/applyGameAction";
 import type { GameState } from "../domain/model/GameState";
 import { playerId } from "../domain/model/identifiers";
 import type {
+  PvpChallengeCommandRequest,
+  PvpChallengeInProgressResponse,
   PvpChallengeRequest,
+  PvpChallengeResponse,
+  PvpChallengeSessionResponse,
   PvpHistoryEntry,
   PvpListRequestQuery,
   PvpOpponentSummary,
@@ -31,6 +35,7 @@ import {
   isFatigueRecoveryEligible,
 } from "../domain/shop/shopEffects";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
+import { deriveMatchTacticPlan } from "../domain/team/matchTactics";
 import { decodeGameState } from "../persistence/gameStateCodec";
 import {
   ApiError,
@@ -69,6 +74,8 @@ export const E2E_GAME_STATE_KEY = "court-legacy:e2e-game-state";
 export const E2E_ACTION_DELAY_MS_KEY = "court-legacy:e2e-action-delay-ms";
 export const E2E_SHOP_LOSE_NEXT_RESPONSE_KEY =
   "court-legacy:e2e-shop-lose-next-response";
+export const E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY =
+  "court-legacy:e2e-pvp-lose-next-command-response";
 
 function createHarnessSnapshot(): CloudGameSnapshot {
   const state = createDemoGame();
@@ -169,6 +176,14 @@ function createHarnessScoutReports(cycleKey: string): ScoutReport[] {
 }
 
 const HARNESS_PVP_SEASON_ID = "2026-08";
+
+interface HarnessPvpSession {
+  operationId: string;
+  opponent: PvpOpponentSummary;
+  selection: PvpChallengeInProgressResponse["segment"]["challengerSelection"];
+  tactics: PvpChallengeInProgressResponse["segment"]["challengerTactics"];
+  step: number;
+}
 
 function createHarnessPvpOpponents(): PvpOpponentSummary[] {
   return [
@@ -290,6 +305,14 @@ function consumeHarnessLostShopResponse(
   return true;
 }
 
+function consumeHarnessLostPvpCommandResponse(): boolean {
+  if (readSessionStorage(E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY) !== "1") {
+    return false;
+  }
+  writeSessionStorage(E2E_PVP_LOSE_NEXT_COMMAND_RESPONSE_KEY, "");
+  return true;
+}
+
 function tightenHarnessRange(
   range: ScoutReport["estimatedOverall"],
   halfWidth: number,
@@ -312,6 +335,15 @@ class StaticGameApiClient implements GameApiClient {
   private readonly shopHarness: StaticShopHarness;
   private pvpRating = 1000;
   private pvpHistory: PvpHistoryEntry[] = [];
+  private readonly pvpSessions = new Map<string, HarnessPvpSession>();
+  private readonly pvpCompletedSessions = new Map<
+    string,
+    PvpChallengeResponse
+  >();
+  private readonly pvpCommandResponses = new Map<
+    string,
+    PvpChallengeSessionResponse
+  >();
 
   constructor(private readonly persistAcrossReloads: boolean) {
     const explicitGameState = persistAcrossReloads
@@ -802,26 +834,74 @@ class StaticGameApiClient implements GameApiClient {
     };
   }
 
-  async challengePvpTeam(_accessToken: string, request: PvpChallengeRequest) {
-    const snapshot = this.requireSnapshot();
-    if (request.revision !== snapshot.revision) {
-      throw new ApiError(
-        409,
-        "revision_conflict",
-        "別の操作でテスト用データが更新されています",
-      );
-    }
-    const opponent = this.pvpOpponents.find(
-      (candidate) => candidate.snapshotId === request.opponentSnapshotId,
-    );
-    if (!opponent) {
-      throw new ApiError(
-        404,
-        "pvp_opponent_unavailable",
-        "この対戦相手は現在利用できません",
-      );
-    }
-    await this.pvpDelay();
+  private harnessPvpInProgress(
+    session: HarnessPvpSession,
+    revision: number,
+  ): PvpChallengeInProgressResponse {
+    const isSetBreak = session.step === 1;
+    const challengerScore =
+      session.step === 0 ? 8 : session.step === 1 ? 25 : 12;
+    const defenderScore =
+      session.step === 0 ? 12 : session.step === 1 ? 20 : 16;
+    return {
+      status: "in-progress",
+      operationId: session.operationId,
+      revision,
+      seasonId: HARNESS_PVP_SEASON_ID,
+      opponent: {
+        snapshotId: session.opponent.snapshotId,
+        schoolName: session.opponent.schoolName,
+        schoolShortName: session.opponent.schoolShortName,
+      },
+      segment: {
+        status: "in-progress",
+        operationId: session.operationId,
+        matchId: `pvp:harness:${session.operationId}`,
+        phase: "coach-decision",
+        currentSetNumber: session.step === 0 ? 1 : 2,
+        challengerSetsWon: session.step >= 1 ? 1 : 0,
+        defenderSetsWon: 0,
+        currentScore: {
+          challenger: challengerScore,
+          defender: defenderScore,
+        },
+        challengerSelection: session.selection,
+        challengerTactics: session.tactics,
+        timeoutAvailable: !isSetBreak,
+        sets:
+          session.step >= 1
+            ? [
+                {
+                  setNumber: 1,
+                  challengerScore: 25,
+                  defenderScore: 20,
+                  completed: true,
+                  winner: "challenger",
+                },
+              ]
+            : [],
+        pendingDecisionReason: isSetBreak ? "set-break" : "opponent-run",
+        events: [
+          {
+            sequence: session.step + 1,
+            type: isSetBreak ? "set-end" : "point",
+            setNumber: session.step === 0 ? 1 : 2,
+            challengerScore,
+            defenderScore,
+            winner: isSetBreak ? "challenger" : "defender",
+            detailCode: isSetBreak ? "set.end" : "point.attack",
+          },
+        ],
+      },
+    };
+  }
+
+  private finishHarnessPvpSession(
+    session: HarnessPvpSession,
+    revision: number,
+  ): PvpChallengeResponse {
+    const existing = this.pvpCompletedSessions.get(session.operationId);
+    if (existing) return existing;
 
     const before = this.pvpRating;
     const after = before + 16;
@@ -843,8 +923,8 @@ class StaticGameApiClient implements GameApiClient {
     const history: PvpHistoryEntry = {
       matchId,
       createdAt,
-      opponentSnapshotId: opponent.snapshotId,
-      opponentSchoolName: opponent.schoolName,
+      opponentSnapshotId: session.opponent.snapshotId,
+      opponentSchoolName: session.opponent.schoolName,
       perspective: "challenger",
       outcome: result.outcome,
       ratingBefore: before,
@@ -852,21 +932,144 @@ class StaticGameApiClient implements GameApiClient {
       result,
     };
     this.pvpHistory = [history, ...this.pvpHistory];
-
-    return {
-      operationId: request.operationId,
-      revision: snapshot.revision,
+    const response: PvpChallengeResponse = {
+      operationId: session.operationId,
+      revision,
       seasonId: HARNESS_PVP_SEASON_ID,
       matchId,
       opponent: {
-        snapshotId: opponent.snapshotId,
-        schoolName: opponent.schoolName,
-        schoolShortName: opponent.schoolShortName,
+        snapshotId: session.opponent.snapshotId,
+        schoolName: session.opponent.schoolName,
+        schoolShortName: session.opponent.schoolShortName,
       },
       rating: { before, after, delta: after - before },
       result,
       createdAt,
     };
+    this.pvpCompletedSessions.set(session.operationId, response);
+    this.pvpSessions.delete(session.operationId);
+    return response;
+  }
+
+  async challengePvpTeam(
+    _accessToken: string,
+    request: PvpChallengeRequest,
+  ): Promise<PvpChallengeSessionResponse> {
+    const snapshot = this.requireSnapshot();
+    if (request.revision !== snapshot.revision) {
+      throw new ApiError(
+        409,
+        "revision_conflict",
+        "別の操作でテスト用データが更新されています",
+      );
+    }
+    const opponent = this.pvpOpponents.find(
+      (candidate) => candidate.snapshotId === request.opponentSnapshotId,
+    );
+    if (!opponent) {
+      throw new ApiError(
+        404,
+        "pvp_opponent_unavailable",
+        "この対戦相手は現在利用できません",
+      );
+    }
+    await this.pvpDelay();
+
+    const existingCompleted = this.pvpCompletedSessions.get(
+      request.operationId,
+    );
+    if (existingCompleted) return existingCompleted;
+    const existing = this.pvpSessions.get(request.operationId);
+    if (existing) return this.harnessPvpInProgress(existing, snapshot.revision);
+
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const session: HarnessPvpSession = {
+      operationId: request.operationId,
+      opponent,
+      selection: request.matchSelection ?? snapshot.teamSelection,
+      tactics: request.matchTactics ?? deriveMatchTacticPlan(school.tactics),
+      step: 0,
+    };
+    this.pvpSessions.set(request.operationId, session);
+    return this.harnessPvpInProgress(session, snapshot.revision);
+  }
+
+  async getPvpChallengeSession(
+    _accessToken: string,
+    operationId: string,
+  ): Promise<PvpChallengeSessionResponse> {
+    await this.pvpDelay();
+    const completed = this.pvpCompletedSessions.get(operationId);
+    if (completed) return completed;
+    const session = this.pvpSessions.get(operationId);
+    if (!session) {
+      throw new ApiError(
+        404,
+        "pvp_session_not_found",
+        "対戦状況を確認できません",
+      );
+    }
+    return this.harnessPvpInProgress(session, this.requireSnapshot().revision);
+  }
+
+  async commandPvpChallenge(
+    _accessToken: string,
+    request: PvpChallengeCommandRequest,
+  ): Promise<PvpChallengeSessionResponse> {
+    await this.pvpDelay();
+    const commandKey = `${request.operationId}:${request.commandId}`;
+    const replayed = this.pvpCommandResponses.get(commandKey);
+    if (replayed) return replayed;
+    const completed = this.pvpCompletedSessions.get(request.operationId);
+    if (completed) return completed;
+    const session = this.pvpSessions.get(request.operationId);
+    if (!session) {
+      throw new ApiError(
+        404,
+        "pvp_session_not_found",
+        "対戦状況を確認できません",
+      );
+    }
+
+    const command = request.command;
+    if (command.type === "set-match-tactics") {
+      session.tactics = command.plan;
+    } else if (command.type === "substitute") {
+      const rotation = session.selection.rotation.map((assignment) =>
+        assignment.playerId === command.outgoingPlayerId
+          ? { ...assignment, playerId: command.incomingPlayerId }
+          : assignment,
+      );
+      session.selection = {
+        ...session.selection,
+        rotation,
+        benchPlayerIds: [
+          ...session.selection.benchPlayerIds.filter(
+            (id) => id !== command.incomingPlayerId,
+          ),
+          command.outgoingPlayerId,
+        ],
+        servingOrderPlayerIds: session.selection.servingOrderPlayerIds.map(
+          (id) =>
+            id === command.outgoingPlayerId ? command.incomingPlayerId : id,
+        ),
+      };
+    }
+
+    session.step += 1;
+    const response =
+      session.step >= 3
+        ? this.finishHarnessPvpSession(session, this.requireSnapshot().revision)
+        : this.harnessPvpInProgress(session, this.requireSnapshot().revision);
+    this.pvpCommandResponses.set(commandKey, response);
+    if (consumeHarnessLostPvpCommandResponse()) {
+      throw new ApiError(
+        null,
+        "network_error",
+        "対人戦の応答を受信できませんでした",
+      );
+    }
+    return response;
   }
 }
 

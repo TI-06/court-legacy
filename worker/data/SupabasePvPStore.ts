@@ -5,16 +5,22 @@ import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
   CommitRatedPvpMatchInput,
   CommittedRatedPvpMatch,
+  CreatePvpMatchSessionInput,
+  PersistedPvpMatchCommandReceipt,
+  PersistedPvpMatchSession,
   PersistedPvpOperation,
   PublishedPvpTeamSnapshot,
   PublishPvpSnapshotInput,
-  PvPStore,
   PvpHistoryEntry,
   PvpHistoryQuery,
   PvpListQuery,
+  PvpMatchSessionStore,
   PvpOpponentQuery,
   PvpOpponentSummary,
   PvpRankingEntry,
+  SavedPvpMatchSessionCommand,
+  SavePvpMatchSessionCommandInput,
+  StorePvpMatchSessionFinalResponseInput,
 } from "./PvPStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
 
@@ -45,6 +51,30 @@ const operationRowSchema = z.object({
   operation_id: z.string().min(1),
   kind: z.enum(["publish", "challenge"]),
   response: z.unknown(),
+});
+
+const matchSessionRowSchema = z.object({
+  challenger_user_id: z.string().min(1),
+  operation_id: z.string().min(1),
+  defender_snapshot_id: z.string().min(1),
+  challenger_source_revision: z.number().int().positive(),
+  current_cursor: z.number().int().nonnegative(),
+  private_session: z.unknown(),
+  public_response: z.unknown(),
+  final_response: z.unknown().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const savedMatchSessionCommandRowSchema = matchSessionRowSchema.extend({
+  replayed: z.boolean(),
+  command_response: z.unknown(),
+});
+
+const matchSessionCommandReceiptRowSchema = z.object({
+  command_id: z.string().min(1),
+  command: z.unknown(),
+  public_response: z.unknown(),
 });
 
 const committedMatchRowSchema = z.object({
@@ -147,7 +177,29 @@ function throwRpcError(label: string, error: unknown): never {
   throw new PvPStoreDataError(`${label} failed`, { cause: error });
 }
 
-export class SupabasePvPStore implements PvPStore {
+function mapMatchSession(value: unknown): PersistedPvpMatchSession {
+  const parsed = matchSessionRowSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new PvPStoreDataError("PvP match session row is invalid", {
+      cause: parsed.error,
+    });
+  }
+  const row = parsed.data;
+  return {
+    challengerUserId: row.challenger_user_id,
+    operationId: row.operation_id,
+    defenderSnapshotId: row.defender_snapshot_id,
+    challengerSourceRevision: row.challenger_source_revision,
+    currentCursor: row.current_cursor,
+    privateSession: row.private_session,
+    publicResponse: row.public_response,
+    finalResponse: row.final_response,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export class SupabasePvPStore implements PvpMatchSessionStore {
   constructor(private readonly client: SupabaseAdminClient) {}
 
   async publishSnapshot(
@@ -230,6 +282,144 @@ export class SupabasePvPStore implements PvPStore {
       throw new PvPStoreDataError("PvP snapshot response has duplicate rows");
     }
     return mapSnapshot(rows[0]);
+  }
+
+  async createMatchSession(
+    input: CreatePvpMatchSessionInput,
+  ): Promise<PersistedPvpMatchSession> {
+    const { data, error } = await this.client.rpc("create_pvp_match_session", {
+      p_challenger_user_id: input.challengerUserId,
+      p_operation_id: input.operationId,
+      p_defender_snapshot_id: input.defenderSnapshotId,
+      p_challenger_source_revision: input.challengerSourceRevision,
+      p_current_cursor: input.currentCursor,
+      p_private_session: input.privateSession,
+      p_public_response: input.publicResponse,
+    });
+    if (error) throwRpcError("PvP match session create", error);
+    const rows = parseRows(
+      data,
+      matchSessionRowSchema,
+      "PvP match session create response",
+    );
+    if (rows.length !== 1)
+      throw new PvPStoreDataError(
+        "PvP match session create response must contain one row",
+      );
+    return mapMatchSession(rows[0]);
+  }
+
+  async getMatchSession(
+    challengerUserId: string,
+    operationId: string,
+  ): Promise<PersistedPvpMatchSession | null> {
+    const { data, error } = await this.client.rpc("get_pvp_match_session", {
+      p_challenger_user_id: challengerUserId,
+      p_operation_id: operationId,
+    });
+    if (error) throwRpcError("PvP match session lookup", error);
+    const rows = parseRows(
+      data,
+      matchSessionRowSchema,
+      "PvP match session lookup response",
+    );
+    if (rows.length === 0) return null;
+    if (rows.length !== 1)
+      throw new PvPStoreDataError(
+        "PvP match session lookup response has duplicate rows",
+      );
+    return mapMatchSession(rows[0]);
+  }
+
+  async getMatchSessionCommandReceipt(
+    challengerUserId: string,
+    operationId: string,
+    commandId: string,
+  ): Promise<PersistedPvpMatchCommandReceipt | null> {
+    const { data, error } = await this.client.rpc(
+      "get_pvp_match_session_command_receipt",
+      {
+        p_challenger_user_id: challengerUserId,
+        p_operation_id: operationId,
+        p_command_id: commandId,
+      },
+    );
+    if (error) throwRpcError("PvP match session command receipt lookup", error);
+    const rows = parseRows(
+      data,
+      matchSessionCommandReceiptRowSchema,
+      "PvP match session command receipt response",
+    );
+    if (rows.length === 0) return null;
+    if (rows.length !== 1) {
+      throw new PvPStoreDataError(
+        "PvP match session command receipt response has duplicate rows",
+      );
+    }
+    const row = rows[0]!;
+    return {
+      commandId: row.command_id,
+      command: row.command,
+      publicResponse: row.public_response,
+    };
+  }
+
+  async saveMatchSessionCommand(
+    input: SavePvpMatchSessionCommandInput,
+  ): Promise<SavedPvpMatchSessionCommand> {
+    const { data, error } = await this.client.rpc(
+      "save_pvp_match_session_command",
+      {
+        p_challenger_user_id: input.challengerUserId,
+        p_operation_id: input.operationId,
+        p_command_id: input.commandId,
+        p_command: input.command,
+        p_expected_cursor: input.expectedCursor,
+        p_next_cursor: input.nextCursor,
+        p_private_session: input.privateSession,
+        p_public_response: input.publicResponse,
+      },
+    );
+    if (error) throwRpcError("PvP match session command save", error);
+    const rows = parseRows(
+      data,
+      savedMatchSessionCommandRowSchema,
+      "PvP match session command response",
+    );
+    if (rows.length !== 1)
+      throw new PvPStoreDataError(
+        "PvP match session command response must contain one row",
+      );
+    const row = rows[0]!;
+    return {
+      session: mapMatchSession(row),
+      replayed: row.replayed,
+      commandResponse: row.command_response,
+    };
+  }
+
+  async storeMatchSessionFinalResponse(
+    input: StorePvpMatchSessionFinalResponseInput,
+  ): Promise<PersistedPvpMatchSession> {
+    const { data, error } = await this.client.rpc(
+      "store_pvp_match_session_final_response",
+      {
+        p_challenger_user_id: input.challengerUserId,
+        p_operation_id: input.operationId,
+        p_final_response: input.finalResponse,
+      },
+    );
+    if (error) throwRpcError("PvP match session final response store", error);
+    const rows = parseRows(
+      data,
+      matchSessionRowSchema,
+      "PvP match session final response",
+    );
+    if (rows.length !== 1)
+      throw new PvPStoreDataError(
+        "PvP match session final response must contain one row",
+      );
+    return mapMatchSession(rows[0]);
   }
 
   async commitRatedMatch(
