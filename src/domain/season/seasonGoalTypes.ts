@@ -1,12 +1,8 @@
 export type SeasonGoalKind =
-  | "regional-rank"
-  | "official-wins"
-  | "tournament-achievement";
+  "regional-rank" | "official-wins" | "tournament-achievement";
 
 export type TournamentAchievementTarget =
-  | "prefectural-title"
-  | "national-appearance"
-  | "national-title";
+  "prefectural-title" | "national-appearance" | "national-title";
 
 export interface SeasonGoalDefinition {
   id: string;
