@@ -35,6 +35,7 @@ import {
   isFatigueRecoveryEligible,
 } from "../domain/shop/shopEffects";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
+import { deriveMatchTacticPlan } from "../domain/team/matchTactics";
 import { decodeGameState } from "../persistence/gameStateCodec";
 import {
   ApiError,
@@ -972,7 +973,7 @@ class StaticGameApiClient implements GameApiClient {
       operationId: request.operationId,
       opponent,
       selection: request.matchSelection ?? snapshot.teamSelection,
-      tactics: request.matchTactics ?? school.tactics,
+      tactics: request.matchTactics ?? deriveMatchTacticPlan(school.tactics),
       step: 0,
     };
     this.pvpSessions.set(request.operationId, session);
@@ -1013,12 +1014,13 @@ class StaticGameApiClient implements GameApiClient {
       );
     }
 
-    if (request.command.type === "set-match-tactics") {
-      session.tactics = request.command.plan;
-    } else if (request.command.type === "substitute") {
+    const command = request.command;
+    if (command.type === "set-match-tactics") {
+      session.tactics = command.plan;
+    } else if (command.type === "substitute") {
       const rotation = session.selection.rotation.map((assignment) =>
-        assignment.playerId === request.command.outgoingPlayerId
-          ? { ...assignment, playerId: request.command.incomingPlayerId }
+        assignment.playerId === command.outgoingPlayerId
+          ? { ...assignment, playerId: command.incomingPlayerId }
           : assignment,
       );
       session.selection = {
@@ -1026,15 +1028,13 @@ class StaticGameApiClient implements GameApiClient {
         rotation,
         benchPlayerIds: [
           ...session.selection.benchPlayerIds.filter(
-            (id) => id !== request.command.incomingPlayerId,
+            (id) => id !== command.incomingPlayerId,
           ),
-          request.command.outgoingPlayerId,
+          command.outgoingPlayerId,
         ],
         servingOrderPlayerIds: session.selection.servingOrderPlayerIds.map(
           (id) =>
-            id === request.command.outgoingPlayerId
-              ? request.command.incomingPlayerId
-              : id,
+            id === command.outgoingPlayerId ? command.incomingPlayerId : id,
         ),
       };
     }

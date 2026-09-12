@@ -109,7 +109,7 @@ function inProgress(
 }
 
 function baseApi(
-  snapshot: CloudGameSnapshot,
+  _snapshot: CloudGameSnapshot,
   challengePvpTeam: NonNullable<GameApiClient["challengePvpTeam"]>,
   commandPvpChallenge: NonNullable<GameApiClient["commandPvpChallenge"]>,
   getPvpChallengeSession: NonNullable<GameApiClient["getPvpChallengeSession"]>,
