@@ -1,14 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  createDemoGame,
-  gameData,
-} from "../../../../src/app/createDemoGame";
-import {
-  advanceGameWeek,
-} from "../../../../src/domain/calendar/academicYearProgression";
-import {
-  buildSeasonResultPresentation,
-} from "../../../../src/features/season/seasonResultPresentation";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
+import { buildSeasonResultPresentation } from "../../../../src/features/season/seasonResultPresentation";
 
 describe("season result presentation", () => {
   it("formats archived goals, rank movement, and season deltas", () => {
@@ -45,8 +38,6 @@ describe("season result presentation", () => {
     expect(["県大会優勝", "全国大会出場", "全国大会優勝"]).toContain(
       presentation.goals[2]?.label,
     );
-    expect(["達成", "未達成"]).toContain(
-      presentation.goals[2]?.progressLabel,
-    );
+    expect(["達成", "未達成"]).toContain(presentation.goals[2]?.progressLabel);
   });
 });
