@@ -111,11 +111,6 @@ const playerDevelopmentWeekSchema = z
   })
   .strict();
 
-const seasonGoalKindSchema = z.enum([
-  "regional-rank",
-  "official-wins",
-  "tournament-achievement",
-]);
 const tournamentAchievementTargetSchema = z.enum([
   "prefectural-title",
   "national-appearance",
@@ -135,14 +130,30 @@ const seasonHistoryBaselineSchema = z
     nationalTitles: z.number().int().nonnegative(),
   })
   .strict();
-const seasonGoalDefinitionSchema = z
-  .object({
-    id: z.string().min(1),
-    kind: seasonGoalKindSchema,
-    target: z.number().int().positive(),
-    achievement: tournamentAchievementTargetSchema.optional(),
-  })
-  .strict();
+const seasonGoalDefinitionSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("regional-rank"),
+      target: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("official-wins"),
+      target: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("tournament-achievement"),
+      target: z.number().int().positive(),
+      achievement: tournamentAchievementTargetSchema,
+    })
+    .strict(),
+]);
 const seasonGoalStateSchema = z
   .object({
     yearIndex: z.number().int().positive(),
@@ -153,16 +164,36 @@ const seasonGoalStateSchema = z
     goals: z.array(seasonGoalDefinitionSchema).length(3),
   })
   .strict();
-const seasonGoalResultSchema = z
-  .object({
-    id: z.string().min(1),
-    kind: seasonGoalKindSchema,
-    target: z.number().int().positive(),
-    achievement: tournamentAchievementTargetSchema.optional(),
-    progress: z.number().int().nonnegative(),
-    achieved: z.boolean(),
-  })
-  .strict();
+const seasonGoalResultSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("regional-rank"),
+      target: z.number().int().positive(),
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("official-wins"),
+      target: z.number().int().positive(),
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("tournament-achievement"),
+      target: z.number().int().positive(),
+      achievement: tournamentAchievementTargetSchema,
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+]);
 const seasonGoalSeasonSummarySchema = z
   .object({
     yearIndex: z.number().int().positive(),
