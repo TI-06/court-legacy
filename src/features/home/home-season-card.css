@@ -1,0 +1,99 @@
+.home-season-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 9px 10px;
+  gap: 8px;
+  background: linear-gradient(135deg, rgb(46 139 216 / 12%), rgb(255 255 255 / 4%));
+  border: 1px solid rgb(89 167 232 / 22%);
+  border-radius: var(--game-radius-sm);
+}
+
+.home-season-card__goal {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.home-season-card__goal span,
+.home-season-card__ranks span {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+  font-weight: 800;
+}
+
+.home-season-card__goal strong,
+.home-season-card__goal small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-season-card__goal strong {
+  font-size: var(--game-font-card-title);
+}
+
+.home-season-card__goal small {
+  color: var(--game-text-muted);
+  font-size: var(--game-font-label);
+}
+
+.home-season-card__ranks {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  background: rgb(255 255 255 / 4%);
+  border-radius: 9px;
+}
+
+.home-season-card__ranks article {
+  display: grid;
+  min-width: 0;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.home-season-card__ranks article + article {
+  border-left: 1px solid rgb(255 255 255 / 7%);
+}
+
+.home-season-card__ranks strong {
+  margin-top: 2px;
+  color: var(--game-text);
+  font-size: var(--game-font-body);
+}
+
+.home-season-card__ranks small {
+  color: var(--game-accent);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.home-season-card > button {
+  min-height: 32px;
+  padding: 0 8px;
+  color: #bfe4ff;
+  font-size: var(--game-font-label);
+  font-weight: 900;
+  white-space: nowrap;
+  background: rgb(46 139 216 / 12%);
+  border: 1px solid rgb(89 167 232 / 28%);
+  border-radius: 9px;
+}
+
+.home-season-card > button:disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 340px) {
+  .home-season-card {
+    padding-inline: 8px;
+    gap: 6px;
+  }
+
+  .home-season-card > button {
+    padding-inline: 7px;
+  }
+}
