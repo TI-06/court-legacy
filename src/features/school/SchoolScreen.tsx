@@ -18,8 +18,10 @@ import { reputationGrade } from "../../domain/school/reputation";
 import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
+import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
 import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
+import { SchoolSeasonRanking } from "./SchoolSeasonRanking";
 import "./school-economy.css";
 import "./school-screen.css";
 
@@ -149,6 +151,7 @@ export function SchoolScreen({
         (option) => option.rank === assistantCoachContract.rank,
       )
     : null;
+  const seasonProgress = buildSeasonProgressPresentation(state);
 
   const confirmUpgrade = async () => {
     if (
@@ -410,6 +413,9 @@ export function SchoolScreen({
               <h3 id="record-heading">学校記録</h3>
             </div>
           </div>
+          {seasonProgress ? (
+            <SchoolSeasonRanking presentation={seasonProgress} />
+          ) : null}
           <div className="school-record-grid">
             <span>
               公式戦勝利<strong>{school.history.officialWins}</strong>
