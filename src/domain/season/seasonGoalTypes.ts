@@ -22,17 +22,16 @@ export interface SeasonHistoryBaseline {
   nationalTitles: number;
 }
 
+interface SeasonRanks {
+  regional: number;
+  national: number;
+}
+
 export interface SeasonGoalState {
   yearIndex: number;
   academicYear: number;
-  startingRanks: {
-    regional: number;
-    national: number;
-  };
-  rankingTotals: {
-    regional: number;
-    national: number;
-  };
+  startingRanks: SeasonRanks;
+  rankingTotals: SeasonRanks;
   baseline: SeasonHistoryBaseline;
   goals: SeasonGoalDefinition[];
 }
@@ -52,8 +51,8 @@ export interface SeasonHistoryDelta {
 export interface SeasonGoalSeasonSummary {
   yearIndex: number;
   academicYear: number;
-  startingRanks: SeasonGoalState["startingRanks"];
-  finalRanks: SeasonGoalState["startingRanks"];
+  startingRanks: SeasonRanks;
+  finalRanks: SeasonRanks;
   deltas: SeasonHistoryDelta;
   goalResults: SeasonGoalResult[];
   achievedCount: number;
