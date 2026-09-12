@@ -35,7 +35,10 @@ function RankingScope({
       </div>
       <small>開始時 {ranking.startingRank}位</small>
 
-      <div className="school-season-ranking__nearby" aria-label={`${label}周辺校`}>
+      <div
+        className="school-season-ranking__nearby"
+        aria-label={`${label}周辺校`}
+      >
         {ranking.nearby.map((row) => (
           <div
             className={`school-season-ranking__row${row.isUserSchool ? " is-user" : ""}`}
@@ -75,7 +78,10 @@ export function SchoolSeasonRanking({
 
       <div className="school-season-ranking__goals">
         {presentation.goals.map((goal) => (
-          <article className={goal.achieved ? "is-achieved" : undefined} key={goal.id}>
+          <article
+            className={goal.achieved ? "is-achieved" : undefined}
+            key={goal.id}
+          >
             <div>
               <strong>{goal.label}</strong>
               <small>{goal.progressLabel}</small>
