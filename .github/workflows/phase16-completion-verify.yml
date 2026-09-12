@@ -1,0 +1,37 @@
+name: Phase16 completion verify
+
+on:
+  push:
+    branches: [feat/phase16-official-pvp-completion]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase16-official-pvp-completion
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: PvP privacy and migration regression
+        run: npx vitest run tests/unit/worker/pvpChallenge.test.ts tests/unit/worker/pvpDynamicsLeakage.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/pvpMigration.test.ts tests/unit/worker/supabasePvPStore.test.ts
+      - run: npm run verify
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: python scripts/phase16_completion_docs_patch.py
+      - run: npx prettier --write docs/PROJECT_CONTEXT.md docs/superpowers/plans/2026-09-10-phase16-official-pvp-completion.md
+      - name: Commit verified Phase16 completion docs and cleanup
+        run: |
+          git rm .github/workflows/phase16-completion-verify.yml scripts/phase16_completion_docs_patch.py
+          git add docs/PROJECT_CONTEXT.md docs/superpowers/plans/2026-09-10-phase16-official-pvp-completion.md
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "docs: record Phase16 completion"
+          git push
