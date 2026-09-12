@@ -1,6 +1,6 @@
 # Phase 16 Official/PvP Completion Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Complete Phase 16 by moving official tournament matches and asynchronous rated PvP challenges onto the resumable Match Command engine with authoritative, idempotent finalization and strict PvP privacy.
 
@@ -40,14 +40,14 @@
 - Consumes: `startMatch`, `applyMatchCommand`, `resumeMatch`, `findDueUserOfficialMatch`, `recordOfficialTournamentOutcome`, `advanceOfficialTournamentsThroughWeek`.
 - Produces: official `PendingMatchPresentation` with `MatchStepResult`, and `match-command` routing for either scheduled practice or the authoritative due official match.
 
-- [ ] **Step 1: Write RED tests for official start boundaries.** Start a due official through `advance-week`; assert `analysis === null`, `activeMatch.phase === "coach-decision"`, controlled school is the user, bracket/history/career stats are unchanged, and global `randomCursor` is unchanged because the official fork seed is independent.
-- [ ] **Step 2: Run `npx vitest run tests/unit/worker/phase16OfficialMatchSession.test.ts tests/unit/worker/officialMatchAction.test.ts`.** Expected RED: current official path one-shot simulates and finalizes immediately.
-- [ ] **Step 3: Replace one-shot official start with `startMatch(...)`.** Use `matchId(due.match.id)`, the existing deterministic fork `match:${due.stage.tournamentId}:${due.match.id}`, `controlledSchoolId: state.userSchoolId`, and existing PvE dynamics readiness. Persist `activeMatch`; do not call tournament finalization while `analysis === null`.
-- [ ] **Step 4: Route `match-command` by authoritative active-match context.** First recognize the scheduled-practice context; otherwise rediscover `findDueUserOfficialMatch(state)` and require active match ID/participants to match it. Never accept tournament/round/opponent identity from the client.
-- [ ] **Step 5: On official command completion only, call `recordOfficialTournamentOutcome(...)` then `advanceOfficialTournamentsThroughWeek(...)`.** Incomplete commands only update `activeMatch`. Persistent lineup/tactics remain unchanged.
-- [ ] **Step 6: Add reload/idempotency assertions.** Reloading an incomplete state restores the same score/decision/cursor; completion records bracket/history/career stats once; a later command rejects rather than duplicating finalization.
-- [ ] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16OfficialMatchSession.test.ts tests/unit/worker/officialMatchAction.test.ts tests/unit/worker/phase15MatchTacticsOverride.test.ts`.
-- [ ] **Step 8: Commit:** `git commit -am "feat: make official matches resumable"` plus the new test file.
+- [x] **Step 1: Write RED tests for official start boundaries.** Start a due official through `advance-week`; assert `analysis === null`, `activeMatch.phase === "coach-decision"`, controlled school is the user, bracket/history/career stats are unchanged, and global `randomCursor` is unchanged because the official fork seed is independent.
+- [x] **Step 2: Run `npx vitest run tests/unit/worker/phase16OfficialMatchSession.test.ts tests/unit/worker/officialMatchAction.test.ts`.** Expected RED: current official path one-shot simulates and finalizes immediately.
+- [x] **Step 3: Replace one-shot official start with `startMatch(...)`.** Use `matchId(due.match.id)`, the existing deterministic fork `match:${due.stage.tournamentId}:${due.match.id}`, `controlledSchoolId: state.userSchoolId`, and existing PvE dynamics readiness. Persist `activeMatch`; do not call tournament finalization while `analysis === null`.
+- [x] **Step 4: Route `match-command` by authoritative active-match context.** First recognize the scheduled-practice context; otherwise rediscover `findDueUserOfficialMatch(state)` and require active match ID/participants to match it. Never accept tournament/round/opponent identity from the client.
+- [x] **Step 5: On official command completion only, call `recordOfficialTournamentOutcome(...)` then `advanceOfficialTournamentsThroughWeek(...)`.** Incomplete commands only update `activeMatch`. Persistent lineup/tactics remain unchanged.
+- [x] **Step 6: Add reload/idempotency assertions.** Reloading an incomplete state restores the same score/decision/cursor; completion records bracket/history/career stats once; a later command rejects rather than duplicating finalization.
+- [x] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16OfficialMatchSession.test.ts tests/unit/worker/officialMatchAction.test.ts tests/unit/worker/phase15MatchTacticsOverride.test.ts`.
+- [x] **Step 8: Commit:** `git commit -am "feat: make official matches resumable"` plus the new test file.
 
 ---
 
@@ -67,14 +67,14 @@
 
 - Produces server-only `PvpServerMatchSession` plus sanitized `PvpMatchSegment`.
 
-- [ ] **Step 1: RED-test challenger-controlled start/resume.** Fixed seed + frozen snapshots must stop at challenger coach decisions without future rallies persisted.
-- [ ] **Step 2: RED-test privacy.** Serialized public segment must not contain `abilities`, `potential`, `hiddenTraitIds`, `runtime`, `homeSelection`, `awaySelection`, `actorPlayerId`, `targetPlayerId`, or `serveTargetPlayerId`.
-- [ ] **Step 3: Implement `PvpServerMatchSession`.** Store operation/user/snapshot/revision/season/day/seed IDs, server-private simulation state, raw match, and finalized flag. None of the private body is route-output data.
-- [ ] **Step 4: Implement a pure deterministic defender policy.** Set break => continue. A qualifying four-point run against defender may choose timeout only if unused and a deterministic leadership/tactic threshold says so; otherwise continue. It consumes no new randomness.
-- [ ] **Step 5: If needed, add the smallest internal match-engine hook that observes automatic opponent boundaries without creating a second public human decision state.** Preserve all PR16-1 determinism tests.
-- [ ] **Step 6: Implement `startPvpMatchSession(...)` and `resumePvpMatchSession(...)`.** Human commands always apply as challenger school; defender commands remain server-owned.
-- [ ] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16PvpMatchSession.test.ts tests/unit/worker/buildPvpSimulationState.test.ts tests/unit/worker/phase15PvpMatchTactics.test.ts tests/unit/domain/match/phase16ResumableMatch.test.ts tests/unit/domain/match/phase16MatchCommands.test.ts tests/unit/domain/match/phase16RandomCompatibility.test.ts`.
-- [ ] **Step 8: Commit:** `git commit -am "feat: add resumable PvP match sessions"` plus new files.
+- [x] **Step 1: RED-test challenger-controlled start/resume.** Fixed seed + frozen snapshots must stop at challenger coach decisions without future rallies persisted.
+- [x] **Step 2: RED-test privacy.** Serialized public segment must not contain `abilities`, `potential`, `hiddenTraitIds`, `runtime`, `homeSelection`, `awaySelection`, `actorPlayerId`, `targetPlayerId`, or `serveTargetPlayerId`.
+- [x] **Step 3: Implement `PvpServerMatchSession`.** Store operation/user/snapshot/revision/season/day/seed IDs, server-private simulation state, raw match, and finalized flag. None of the private body is route-output data.
+- [x] **Step 4: Implement a pure deterministic defender policy.** Set break => continue. A qualifying four-point run against defender may choose timeout only if unused and a deterministic leadership/tactic threshold says so; otherwise continue. It consumes no new randomness.
+- [x] **Step 5: If needed, add the smallest internal match-engine hook that observes automatic opponent boundaries without creating a second public human decision state.** Preserve all PR16-1 determinism tests.
+- [x] **Step 6: Implement `startPvpMatchSession(...)` and `resumePvpMatchSession(...)`.** Human commands always apply as challenger school; defender commands remain server-owned.
+- [x] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16PvpMatchSession.test.ts tests/unit/worker/buildPvpSimulationState.test.ts tests/unit/worker/phase15PvpMatchTactics.test.ts tests/unit/domain/match/phase16ResumableMatch.test.ts tests/unit/domain/match/phase16MatchCommands.test.ts tests/unit/domain/match/phase16RandomCompatibility.test.ts`.
+- [x] **Step 8: Commit:** `git commit -am "feat: add resumable PvP match sessions"` plus new files.
 
 ---
 
@@ -94,13 +94,13 @@
 - Keeps the full raw match/session server-private.
 - Adds create/load session, atomic command result persistence keyed by `commandId`, and final-response persistence.
 
-- [ ] **Step 1: RED-test a private `pvp_match_sessions` store keyed by `(challenger_user_id, operation_id)` and command receipt uniqueness keyed by `(challenger_user_id, operation_id, command_id)`.
-- [ ] **Step 2: Add `PvPStore` contracts for create/load session, save-or-replay command result with expected cursor, and store/read final response.
-- [ ] **Step 3: Implement Supabase table/RPC persistence.** Same `commandId` replays its stored public response; a stale different command conflicts. Avoid read-then-write races.
-- [ ] **Step 4: Leave `commit_pvp_rated_match` as the final atomic rating/history authority.** Do not duplicate rating writes in session persistence.
-- [ ] **Step 5: Test duplicate start, duplicate command, stale command, duplicate finalization, and that public list/history queries never select private session JSON.
-- [ ] **Step 6: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16PvpSessionStore.test.ts tests/unit/worker/supabasePvPStore.test.ts tests/unit/worker/pvpMigration.test.ts tests/unit/worker/pvpChallenge.test.ts`.
-- [ ] **Step 7: Commit:** `git commit -am "feat: persist authoritative PvP match sessions"` plus migration/new test.
+- [x] **Step 1: RED-test a private `pvp_match_sessions` store keyed by `(challenger_user_id, operation_id)` and command receipt uniqueness keyed by `(challenger_user_id, operation_id, command_id)`.
+- [x] **Step 2: Add `PvPStore` contracts for create/load session, save-or-replay command result with expected cursor, and store/read final response.
+- [x] **Step 3: Implement Supabase table/RPC persistence.** Same `commandId` replays its stored public response; a stale different command conflicts. Avoid read-then-write races.
+- [x] **Step 4: Leave `commit_pvp_rated_match` as the final atomic rating/history authority.** Do not duplicate rating writes in session persistence.
+- [x] **Step 5: Test duplicate start, duplicate command, stale command, duplicate finalization, and that public list/history queries never select private session JSON.
+- [x] **Step 6: Run focused GREEN:** `npx vitest run tests/unit/worker/phase16PvpSessionStore.test.ts tests/unit/worker/supabasePvPStore.test.ts tests/unit/worker/pvpMigration.test.ts tests/unit/worker/pvpChallenge.test.ts`.
+- [x] **Step 7: Commit:** `git commit -am "feat: persist authoritative PvP match sessions"` plus migration/new test.
 
 ---
 
@@ -124,13 +124,13 @@
 - `POST /api/pvp/challenge/command`: `{ operationId, commandId, command }`.
 - Responses are discriminated as `status: "in-progress" | "complete"`.
 
-- [ ] **Step 1: RED-test the three route contracts and forged-field rejection.
-- [ ] **Step 2: Change new challenge start from one-shot finalization to first persisted resumable segment.** Existing completed `pvp_operations` still replays the canonical old/final response.
-- [ ] **Step 3: Implement command route.** Authenticate owner, load private session, validate strict `MatchCommand`, apply as challenger only, atomically save/replay `commandId`, and on completion call existing `commitRatedMatch` exactly once.
-- [ ] **Step 4: Implement status route.** Return only sanitized current segment/final response; unknown operation => 404.
-- [ ] **Step 5: Test frozen defender semantics.** Once a challenge session starts, later defender republish/deactivation cannot swap the opponent snapshot mid-match.
-- [ ] **Step 6: Re-run privacy suites:** `npx vitest run tests/unit/worker/pvpChallenge.test.ts tests/unit/worker/phase16PvpChallengeRoutes.test.ts tests/unit/worker/router.test.ts tests/unit/worker/pvpDynamicsLeakage.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/phase15PvpPublicTactics.test.ts`.
-- [ ] **Step 7: Commit:** `git commit -am "feat: add interactive PvP challenge routes"` plus new route/tests.
+- [x] **Step 1: RED-test the three route contracts and forged-field rejection.
+- [x] **Step 2: Change new challenge start from one-shot finalization to first persisted resumable segment.** Existing completed `pvp_operations` still replays the canonical old/final response.
+- [x] **Step 3: Implement command route.** Authenticate owner, load private session, validate strict `MatchCommand`, apply as challenger only, atomically save/replay `commandId`, and on completion call existing `commitRatedMatch` exactly once.
+- [x] **Step 4: Implement status route.** Return only sanitized current segment/final response; unknown operation => 404.
+- [x] **Step 5: Test frozen defender semantics.** Once a challenge session starts, later defender republish/deactivation cannot swap the opponent snapshot mid-match.
+- [x] **Step 6: Re-run privacy suites:** `npx vitest run tests/unit/worker/pvpChallenge.test.ts tests/unit/worker/phase16PvpChallengeRoutes.test.ts tests/unit/worker/router.test.ts tests/unit/worker/pvpDynamicsLeakage.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/phase15PvpPublicTactics.test.ts`.
+- [x] **Step 7: Commit:** `git commit -am "feat: add interactive PvP challenge routes"` plus new route/tests.
 
 ---
 
@@ -151,14 +151,14 @@
 - Existing `/api/game/action` command handler supports official presentation as well as practice.
 - PvP API adds start/status/command methods returning sanitized public segments.
 
-- [ ] **Step 1: RED-test official GameApp flow:** advance-week -> official decision segment -> command -> next authoritative segment -> completed result -> only then next week progression.
-- [ ] **Step 2: RED-test PvP GameApp flow:** opponent -> pre-match -> challenge start -> MatchScreen -> command round trip -> final rating result -> PvP hub.
-- [ ] **Step 3: Update `issueMatchCommand` to accept both practice and official `PendingMatchPresentation` kinds.
-- [ ] **Step 4: Add strict PvP API parsers and methods for start/status/command.** Do not use unsafe raw session casting.
-- [ ] **Step 5: Reuse MatchScreen for PvP with a public presentation adapter.** Browser receives own-player data needed for substitution plus public score/events/opponent summaries only; it never receives defender raw selection/runtime/private player IDs.
-- [ ] **Step 6: Implement retry recovery.** Reuse the same `commandId` until a canonical response is received; after network ambiguity call status endpoint before generating a new command.
-- [ ] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/app/Phase16OfficialMatchCommand.test.tsx tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/app/Phase16GameAppMatchCommand.test.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx tests/unit/features/match/Phase16MatchScreenPlayback.test.tsx`.
-- [ ] **Step 8: Commit:** `git commit -am "feat: connect official and PvP match commands"` plus new tests.
+- [x] **Step 1: RED-test official GameApp flow:** advance-week -> official decision segment -> command -> next authoritative segment -> completed result -> only then next week progression.
+- [x] **Step 2: RED-test PvP GameApp flow:** opponent -> pre-match -> challenge start -> MatchScreen -> command round trip -> final rating result -> PvP hub.
+- [x] **Step 3: Update `issueMatchCommand` to accept both practice and official `PendingMatchPresentation` kinds.
+- [x] **Step 4: Add strict PvP API parsers and methods for start/status/command.** Do not use unsafe raw session casting.
+- [x] **Step 5: Reuse MatchScreen for PvP with a public presentation adapter.** Browser receives own-player data needed for substitution plus public score/events/opponent summaries only; it never receives defender raw selection/runtime/private player IDs.
+- [x] **Step 6: Implement retry recovery.** Reuse the same `commandId` until a canonical response is received; after network ambiguity call status endpoint before generating a new command.
+- [x] **Step 7: Run focused GREEN:** `npx vitest run tests/unit/app/Phase16OfficialMatchCommand.test.tsx tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/app/Phase16GameAppMatchCommand.test.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx tests/unit/features/match/Phase16MatchScreenPlayback.test.tsx`.
+- [x] **Step 8: Commit:** `git commit -am "feat: connect official and PvP match commands"` plus new tests.
 
 ---
 
@@ -175,11 +175,11 @@
 
 - Final acceptance across official/PvP UI, server persistence, privacy, and CI.
 
-- [ ] **Step 1: Add official E2E at 320/360/390/414/480.** Verify pre-match, bounded playback, decision, command, final result, bracket progression after completion, and no horizontal overflow.
-- [ ] **Step 2: Add PvP E2E at all five widths using deterministic test fixtures.** Verify start, decision, command, status recovery, final rated result, and no overflow. Do not weaken production trigger rules for E2E.
-- [ ] **Step 3: Run privacy/migration regression:** `npx vitest run tests/unit/worker/pvpChallenge.test.ts tests/unit/worker/pvpDynamicsLeakage.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/pvpMigration.test.ts tests/unit/worker/supabasePvPStore.test.ts`.
-- [ ] **Step 4: Run `npm run verify` and `npm run test:e2e`; require zero failures.
-- [ ] **Step 5: Update `docs/PROJECT_CONTEXT.md`.** Record Phase16 complete through PR16-3, save schema v8 unchanged, official/PvP authoritative resumable flow, deterministic defender coaching, idempotent PvP commands/final rating commit, privacy boundary, and Phase17 as next.
+- [x] **Step 1: Add official E2E at 320/360/390/414/480.** Verify pre-match, bounded playback, decision, command, final result, bracket progression after completion, and no horizontal overflow.
+- [x] **Step 2: Add PvP E2E at all five widths using deterministic test fixtures.** Verify start, decision, command, status recovery, final rated result, and no overflow. Do not weaken production trigger rules for E2E.
+- [x] **Step 3: Run privacy/migration regression:** `npx vitest run tests/unit/worker/pvpChallenge.test.ts tests/unit/worker/pvpDynamicsLeakage.test.ts tests/unit/worker/pvpTournamentLeakage.test.ts tests/unit/worker/pvpMigration.test.ts tests/unit/worker/supabasePvPStore.test.ts`.
+- [x] **Step 4: Run `npm run verify` and `npm run test:e2e`; require zero failures.
+- [x] **Step 5: Update `docs/PROJECT_CONTEXT.md`.** Record Phase16 complete through PR16-3, save schema v8 unchanged, official/PvP authoritative resumable flow, deterministic defender coaching, idempotent PvP commands/final rating commit, privacy boundary, and Phase17 as next.
 - [ ] **Step 6: Final diff review.** No temporary workflows/debug files; no schema bump; no raw PvP session/runtime public output; no defender private fields; final rating/history still commits only through `commit_pvp_rated_match`; official bracket/history only finalize after match complete.
 - [ ] **Step 7: Require exact-tree PR CI GREEN for `dependency-audit`, `quality`, `mobile-e2e`.
 - [ ] **Step 8: Mark ready, merge with expected current head SHA, then verify the exact merged-main push CI is GREEN before declaring Phase16 complete.
