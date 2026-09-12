@@ -5,7 +5,11 @@
   min-width: 0;
   padding: 9px 10px;
   gap: 8px;
-  background: linear-gradient(135deg, rgb(46 139 216 / 12%), rgb(255 255 255 / 4%));
+  background: linear-gradient(
+    135deg,
+    rgb(46 139 216 / 12%),
+    rgb(255 255 255 / 4%)
+  );
   border: 1px solid rgb(89 167 232 / 22%);
   border-radius: var(--game-radius-sm);
 }
