@@ -1,0 +1,237 @@
+.school-season-history {
+  display: grid;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 12px;
+  gap: 9px;
+  background: #f7fafb;
+  border: 1px solid #d8e4e7;
+  border-radius: 16px;
+}
+
+.school-season-history__heading,
+.school-season-history__card > summary,
+.school-season-history__goals article {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.school-season-history__heading,
+.school-season-history__card > summary,
+.school-season-history__goals article {
+  justify-content: space-between;
+}
+
+.school-season-history__heading {
+  gap: 8px;
+}
+
+.school-season-history__heading > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.school-season-history__heading span {
+  color: #63808a;
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.school-season-history__heading h4 {
+  margin: 0;
+  color: #244d59;
+  font-size: 0.84rem;
+}
+
+.school-season-history__heading > strong {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #526f77;
+  font-size: 0.6rem;
+  background: #e8eff1;
+  border-radius: 999px;
+}
+
+.school-season-history__list {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-season-history__card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d8e4e7;
+  border-radius: 12px;
+}
+
+.school-season-history__card > summary {
+  padding: 9px 10px;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.school-season-history__card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.school-season-history__card > summary > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.school-season-history__card h5 {
+  margin: 0;
+  color: #214955;
+  font-size: 0.76rem;
+}
+
+.school-season-history__card > summary span {
+  color: #6f838b;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.school-season-history__final-ranks {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.school-season-history__final-ranks span {
+  padding: 4px 6px;
+  color: #285868;
+  background: #e8f2f4;
+  border-radius: 999px;
+}
+
+.school-season-history__body {
+  display: grid;
+  padding: 0 10px 10px;
+  gap: 8px;
+  border-top: 1px solid #edf2f3;
+}
+
+.school-season-history__rank-change {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 8px;
+  gap: 6px;
+}
+
+.school-season-history__rank-change > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 6px;
+  color: #49636d;
+  font-size: 0.6rem;
+  font-weight: 800;
+  background: #f3f7f8;
+  border-radius: 9px;
+}
+
+.school-season-history__rank-change b {
+  flex: 0 0 auto;
+  color: #17815f;
+  font-size: 0.62rem;
+}
+
+.school-season-history__rank-change b.is-down {
+  color: #c85b4f;
+}
+
+.school-season-history__goals {
+  display: grid;
+  gap: 5px;
+}
+
+.school-season-history__goals article {
+  padding: 7px 8px;
+  gap: 8px;
+  background: #f8fafb;
+  border: 1px solid #e2eaec;
+  border-radius: 9px;
+}
+
+.school-season-history__goals article.is-achieved {
+  background: #f0faf6;
+  border-color: #c9e5da;
+}
+
+.school-season-history__goals article > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.school-season-history__goals strong {
+  color: #294d57;
+  font-size: 0.66rem;
+}
+
+.school-season-history__goals small {
+  color: #788991;
+  font-size: 0.56rem;
+}
+
+.school-season-history__goals article > b {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  color: #687b83;
+  font-size: 0.55rem;
+  background: #e9eef0;
+  border-radius: 999px;
+}
+
+.school-season-history__goals article.is-achieved > b {
+  color: #176756;
+  background: #d9efe6;
+}
+
+.school-season-history__results {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.school-season-history__results span {
+  display: grid;
+  padding: 6px 4px;
+  gap: 2px;
+  color: #71828a;
+  font-size: 0.52rem;
+  text-align: center;
+  background: #f2f6f7;
+  border-radius: 8px;
+}
+
+.school-season-history__results strong {
+  color: #274e59;
+  font-size: 0.66rem;
+}
+
+@media (max-width: 350px) {
+  .school-season-history {
+    padding: 10px;
+  }
+
+  .school-season-history__card > summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .school-season-history__rank-change {
+    grid-template-columns: 1fr;
+  }
+
+  .school-season-history__results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
