@@ -28,14 +28,18 @@ import type {
   TournamentLevel,
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
+import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 
 export type HomeCommandPriority =
-  "critical" | "attention" | "normal" | "complete";
+  | "critical"
+  | "attention"
+  | "normal"
+  | "complete";
 
 export type HomeCommandAction =
   | { target: "team" }
   | { target: "player"; playerId: PlayerId }
-  | { target: "school"; view: "facilities" | "staff" }
+  | { target: "school"; view: "facilities" | "staff" | "records" }
   | { target: "scouting" }
   | { target: "practice" }
   | { target: "tournament" }
@@ -60,6 +64,24 @@ export interface HomeSummary {
     detailTitle: string | null;
     timingLabel: string;
     due: boolean;
+  };
+  season: null | {
+    academicYear: number;
+    achievedCount: number;
+    goalCount: number;
+    primaryGoal: null | {
+      label: string;
+      progressLabel: string;
+      achieved: boolean;
+    };
+    regional: {
+      rank: number;
+      movement: number;
+    };
+    national: {
+      rank: number;
+      movement: number;
+    };
   };
 }
 
@@ -258,6 +280,12 @@ function buildSummary(
           due: false,
         }
     : null;
+  const seasonProgress = buildSeasonProgressPresentation(state);
+  const primaryGoal = seasonProgress
+    ? (seasonProgress.goals.find((goal) => !goal.achieved) ??
+      seasonProgress.goals[0] ??
+      null)
+    : null;
 
   return {
     dateLabel: shortDate(state.date),
@@ -273,6 +301,22 @@ function buildSummary(
     cohesion: state.teamDynamics.cohesion,
     cohesionTrend: state.teamDynamics.cohesionTrend,
     official,
+    season: seasonProgress
+      ? {
+          academicYear: seasonProgress.academicYear,
+          achievedCount: seasonProgress.achievedCount,
+          goalCount: seasonProgress.goalCount,
+          primaryGoal,
+          regional: {
+            rank: seasonProgress.regional.rank,
+            movement: seasonProgress.regional.movement,
+          },
+          national: {
+            rank: seasonProgress.national.rank,
+            movement: seasonProgress.national.movement,
+          },
+        }
+      : null,
   };
 }
 
@@ -610,7 +654,7 @@ export function selectHomeCommandCenter(input: {
     .filter((player): player is Player => Boolean(player));
   const unansweredOffer = Boolean(
     input.state.weeklySchedule.practiceMatch.incomingOffer &&
-    !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+      !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
   );
 
   return {
