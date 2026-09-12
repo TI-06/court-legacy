@@ -59,7 +59,9 @@ describe("Phase17 game state codec", () => {
     const goals = JSON.parse(
       JSON.stringify(state.seasonGoals!.goals),
     ) as Array<Record<string, unknown>>;
-    const regionalGoal = goals.find((goal) => goal.kind === "regional-rank")!;
+    const regionalGoal = goals.find(
+      (goal) => goal.kind === "regional-rank",
+    )!;
     regionalGoal.achievement = "national-title";
     const tournamentGoal = goals.find(
       (goal) => goal.kind === "tournament-achievement",
