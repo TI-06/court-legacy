@@ -16,6 +16,7 @@ import {
   legacyReputationFromPoints,
   resolveSeasonReputation,
 } from "../school/reputation";
+import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
@@ -254,6 +255,9 @@ export function advanceAcademicYear(
       return [resolved.id, resolved];
     }),
   ) as GameState["schools"];
+  const completedSeasonGoalSummary = state.seasonGoals
+    ? evaluateSeasonGoals({ ...state, schools }, state.seasonGoals)
+    : null;
   const graduatedPlayerIds: PlayerId[] = [];
   const intakePlayerIds: PlayerId[] = [];
   const graduatedPlayerIdsBySchool = {} as Record<SchoolId, PlayerId[]>;
@@ -386,6 +390,12 @@ export function advanceAcademicYear(
     history: {
       ...state.history,
       graduates: [...state.history.graduates, ...graduatedSummaries],
+      seasonGoalSeasons: completedSeasonGoalSummary
+        ? [
+            ...(state.history.seasonGoalSeasons ?? []),
+            completedSeasonGoalSummary,
+          ].slice(-30)
+        : state.history.seasonGoalSeasons,
     },
     calendar: {
       ...state.calendar,
@@ -459,6 +469,10 @@ export function advanceAcademicYear(
       state: nextState,
       academicYear: nextAcademicYear,
     }),
+  };
+  nextState = {
+    ...nextState,
+    seasonGoals: createSeasonGoals(nextState),
   };
 
   return {
