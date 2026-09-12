@@ -125,8 +125,7 @@
   gap: 7px;
   color: #f6fbfc;
   background:
-    linear-gradient(145deg, rgb(38 104 118 / 96%), rgb(20 52 66 / 98%)),
-    #173b48;
+    linear-gradient(145deg, rgb(38 104 118 / 96%), rgb(20 52 66 / 98%)), #173b48;
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 13px;
 }
