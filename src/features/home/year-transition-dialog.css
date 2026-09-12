@@ -3,6 +3,179 @@
   gap: 13px;
 }
 
+.year-transition-season {
+  display: grid;
+  min-width: 0;
+  padding: 12px;
+  gap: 10px;
+  background: linear-gradient(145deg, #123f4c, #1b5b66);
+  border: 1px solid #387784;
+  border-radius: 16px;
+  box-shadow: inset 0 1px rgb(255 255 255 / 9%);
+}
+
+.year-transition-season__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.year-transition-season__heading > div {
+  min-width: 0;
+}
+
+.year-transition-season__heading span {
+  color: #8fcbd1;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.year-transition-season__heading h3 {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-season__heading > strong {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  color: #173e45;
+  font-size: 0.62rem;
+  background: #b9e8d3;
+  border-radius: 999px;
+}
+
+.year-transition-season__ranks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 11px;
+}
+
+.year-transition-season__ranks article {
+  display: grid;
+  min-width: 0;
+  padding: 8px;
+  gap: 2px;
+}
+
+.year-transition-season__ranks article + article {
+  border-left: 1px solid rgb(255 255 255 / 10%);
+}
+
+.year-transition-season__ranks span {
+  overflow: hidden;
+  color: #e8f6f7;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-season__ranks b {
+  color: #8de0b5;
+  font-size: 0.62rem;
+}
+
+.year-transition-season__ranks b.is-down {
+  color: #ffaaaa;
+}
+
+.year-transition-season__goals {
+  display: grid;
+  gap: 5px;
+}
+
+.year-transition-season__goals article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 8px;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 10px;
+}
+
+.year-transition-season__goals article.is-achieved {
+  background: rgb(101 211 161 / 12%);
+  border-color: rgb(126 227 181 / 24%);
+}
+
+.year-transition-season__goals article > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.year-transition-season__goals strong,
+.year-transition-season__goals small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-season__goals strong {
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.year-transition-season__goals small {
+  color: #b9d8dc;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.year-transition-season__goals article > b {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #aec2c5;
+  font-size: 0.72rem;
+  background: rgb(255 255 255 / 7%);
+  border-radius: 50%;
+}
+
+.year-transition-season__goals article.is-achieved > b {
+  color: #154d38;
+  background: #89dbb3;
+}
+
+.year-transition-season__deltas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.year-transition-season__deltas span {
+  display: grid;
+  min-width: 0;
+  padding: 6px 4px;
+  gap: 1px;
+  color: #9fc3c8;
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-align: center;
+  background: rgb(0 0 0 / 10%);
+  border-radius: 8px;
+}
+
+.year-transition-season__deltas strong {
+  color: #fff;
+  font-size: 0.68rem;
+}
+
 .year-transition-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -111,6 +284,24 @@
 }
 
 @media (max-width: 350px) {
+  .year-transition-season {
+    padding: 10px;
+  }
+
+  .year-transition-season__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .year-transition-season__ranks {
+    grid-template-columns: 1fr;
+  }
+
+  .year-transition-season__ranks article + article {
+    border-top: 1px solid rgb(255 255 255 / 10%);
+    border-left: 0;
+  }
+
   .year-transition-metrics {
     grid-template-columns: 1fr;
   }
