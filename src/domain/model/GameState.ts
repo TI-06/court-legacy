@@ -1,5 +1,9 @@
 import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
 import type { GameNotificationState } from "../notifications/gameNotifications";
+import type {
+  SeasonGoalSeasonSummary,
+  SeasonGoalState,
+} from "../season/seasonGoalTypes";
 import type { ShopGameEffects } from "../shop/shopEffects";
 import type { TeamPlanningState } from "../team/teamPlanningTypes";
 import type {
@@ -90,6 +94,7 @@ export interface GameHistory {
   schoolRecordValues: Record<string, number>;
   officialTournaments: OfficialTournamentSummary[];
   playerDevelopmentWeeks: PlayerDevelopmentWeek[];
+  seasonGoalSeasons?: SeasonGoalSeasonSummary[];
 }
 
 export interface RecruitingState {
@@ -120,6 +125,7 @@ export interface GameState {
   notifications: GameNotificationState;
   schoolManagement: SchoolManagementState;
   teamPlanning: TeamPlanningState;
+  seasonGoals?: SeasonGoalState;
   recruiting?: RecruitingState;
   shopEffects?: ShopGameEffects;
 }
@@ -144,6 +150,7 @@ export function createEmptyGameHistory(): GameHistory {
     schoolRecordValues: {},
     officialTournaments: [],
     playerDevelopmentWeeks: [],
+    seasonGoalSeasons: [],
   };
 }
 

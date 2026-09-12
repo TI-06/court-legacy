@@ -111,9 +111,108 @@ const playerDevelopmentWeekSchema = z
   })
   .strict();
 
+const tournamentAchievementTargetSchema = z.enum([
+  "prefectural-title",
+  "national-appearance",
+  "national-title",
+]);
+const seasonRanksSchema = z
+  .object({
+    regional: z.number().int().positive(),
+    national: z.number().int().positive(),
+  })
+  .strict();
+const seasonHistoryBaselineSchema = z
+  .object({
+    officialWins: z.number().int().nonnegative(),
+    prefecturalTitles: z.number().int().nonnegative(),
+    nationalAppearances: z.number().int().nonnegative(),
+    nationalTitles: z.number().int().nonnegative(),
+  })
+  .strict();
+const seasonGoalDefinitionSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("regional-rank"),
+      target: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("official-wins"),
+      target: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("tournament-achievement"),
+      target: z.number().int().positive(),
+      achievement: tournamentAchievementTargetSchema,
+    })
+    .strict(),
+]);
+const seasonGoalStateSchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    academicYear: z.number().int().positive(),
+    startingRanks: seasonRanksSchema,
+    rankingTotals: seasonRanksSchema,
+    baseline: seasonHistoryBaselineSchema,
+    goals: z.array(seasonGoalDefinitionSchema).length(3),
+  })
+  .strict();
+const seasonGoalResultSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("regional-rank"),
+      target: z.number().int().positive(),
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("official-wins"),
+      target: z.number().int().positive(),
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("tournament-achievement"),
+      target: z.number().int().positive(),
+      achievement: tournamentAchievementTargetSchema,
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+]);
+const seasonGoalSeasonSummarySchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    academicYear: z.number().int().positive(),
+    startingRanks: seasonRanksSchema,
+    finalRanks: seasonRanksSchema,
+    deltas: seasonHistoryBaselineSchema,
+    goalResults: z.array(seasonGoalResultSchema).length(3),
+    achievedCount: z.number().int().min(0).max(3),
+  })
+  .strict();
+
 const gameHistorySchema = z
   .object({
     playerDevelopmentWeeks: z.array(playerDevelopmentWeekSchema).max(52),
+    seasonGoalSeasons: z
+      .array(seasonGoalSeasonSummarySchema)
+      .max(30)
+      .optional(),
   })
   .passthrough();
 
@@ -402,6 +501,7 @@ const gameStateSchema = z
     notifications: notificationStateSchema,
     schoolManagement: schoolManagementSchema,
     teamPlanning: teamPlanningSchema,
+    seasonGoals: seasonGoalStateSchema.optional(),
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })

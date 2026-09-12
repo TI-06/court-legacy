@@ -1,0 +1,67 @@
+export type SeasonGoalKind =
+  "regional-rank" | "official-wins" | "tournament-achievement";
+
+export type TournamentAchievementTarget =
+  "prefectural-title" | "national-appearance" | "national-title";
+
+interface SeasonGoalBase {
+  id: string;
+  target: number;
+}
+
+export type SeasonGoalDefinition =
+  | (SeasonGoalBase & {
+      kind: "regional-rank";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "official-wins";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "tournament-achievement";
+      achievement: TournamentAchievementTarget;
+    });
+
+export interface SeasonHistoryBaseline {
+  officialWins: number;
+  prefecturalTitles: number;
+  nationalAppearances: number;
+  nationalTitles: number;
+}
+
+interface SeasonRanks {
+  regional: number;
+  national: number;
+}
+
+export interface SeasonGoalState {
+  yearIndex: number;
+  academicYear: number;
+  startingRanks: SeasonRanks;
+  rankingTotals: SeasonRanks;
+  baseline: SeasonHistoryBaseline;
+  goals: SeasonGoalDefinition[];
+}
+
+export type SeasonGoalResult = SeasonGoalDefinition & {
+  progress: number;
+  achieved: boolean;
+};
+
+export interface SeasonHistoryDelta {
+  officialWins: number;
+  prefecturalTitles: number;
+  nationalAppearances: number;
+  nationalTitles: number;
+}
+
+export interface SeasonGoalSeasonSummary {
+  yearIndex: number;
+  academicYear: number;
+  startingRanks: SeasonRanks;
+  finalRanks: SeasonRanks;
+  deltas: SeasonHistoryDelta;
+  goalResults: SeasonGoalResult[];
+  achievedCount: number;
+}
