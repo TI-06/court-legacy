@@ -111,9 +111,74 @@ const playerDevelopmentWeekSchema = z
   })
   .strict();
 
+const seasonGoalKindSchema = z.enum([
+  "regional-rank",
+  "official-wins",
+  "tournament-achievement",
+]);
+const tournamentAchievementTargetSchema = z.enum([
+  "prefectural-title",
+  "national-appearance",
+  "national-title",
+]);
+const seasonRanksSchema = z
+  .object({
+    regional: z.number().int().positive(),
+    national: z.number().int().positive(),
+  })
+  .strict();
+const seasonHistoryBaselineSchema = z
+  .object({
+    officialWins: z.number().int().nonnegative(),
+    prefecturalTitles: z.number().int().nonnegative(),
+    nationalAppearances: z.number().int().nonnegative(),
+    nationalTitles: z.number().int().nonnegative(),
+  })
+  .strict();
+const seasonGoalDefinitionSchema = z
+  .object({
+    id: z.string().min(1),
+    kind: seasonGoalKindSchema,
+    target: z.number().int().positive(),
+    achievement: tournamentAchievementTargetSchema.optional(),
+  })
+  .strict();
+const seasonGoalStateSchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    academicYear: z.number().int().positive(),
+    startingRanks: seasonRanksSchema,
+    rankingTotals: seasonRanksSchema,
+    baseline: seasonHistoryBaselineSchema,
+    goals: z.array(seasonGoalDefinitionSchema).length(3),
+  })
+  .strict();
+const seasonGoalResultSchema = z
+  .object({
+    id: z.string().min(1),
+    kind: seasonGoalKindSchema,
+    target: z.number().int().positive(),
+    achievement: tournamentAchievementTargetSchema.optional(),
+    progress: z.number().int().nonnegative(),
+    achieved: z.boolean(),
+  })
+  .strict();
+const seasonGoalSeasonSummarySchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    academicYear: z.number().int().positive(),
+    startingRanks: seasonRanksSchema,
+    finalRanks: seasonRanksSchema,
+    deltas: seasonHistoryBaselineSchema,
+    goalResults: z.array(seasonGoalResultSchema).length(3),
+    achievedCount: z.number().int().min(0).max(3),
+  })
+  .strict();
+
 const gameHistorySchema = z
   .object({
     playerDevelopmentWeeks: z.array(playerDevelopmentWeekSchema).max(52),
+    seasonGoalSeasons: z.array(seasonGoalSeasonSummarySchema).max(30).optional(),
   })
   .passthrough();
 
@@ -402,6 +467,7 @@ const gameStateSchema = z
     notifications: notificationStateSchema,
     schoolManagement: schoolManagementSchema,
     teamPlanning: teamPlanningSchema,
+    seasonGoals: seasonGoalStateSchema.optional(),
     recruiting: recruitingStateSchema.optional(),
     shopEffects: shopGameEffectsSchema.optional(),
   })
