@@ -1,12 +1,8 @@
-import type { SeasonGoalSeasonSummary } from "../../domain/season/seasonGoalTypes";
-import {
-  buildSeasonResultPresentation,
-  type SeasonResultPresentation,
-} from "../season/seasonResultPresentation";
+import type { SeasonResultPresentation } from "../season/seasonResultPresentation";
 import "./school-season-history.css";
 
 interface SchoolSeasonHistoryProps {
-  summaries: readonly SeasonGoalSeasonSummary[];
+  presentations: readonly SeasonResultPresentation[];
 }
 
 function rankMovementLabel(movement: number): string {
@@ -65,7 +61,10 @@ function SeasonHistoryCard({
 
         <div className="school-season-history__goals">
           {presentation.goals.map((goal) => (
-            <article className={goal.achieved ? "is-achieved" : undefined} key={goal.id}>
+            <article
+              className={goal.achieved ? "is-achieved" : undefined}
+              key={goal.id}
+            >
               <div>
                 <strong>{goal.label}</strong>
                 <small>{goal.progressLabel}</small>
@@ -94,14 +93,12 @@ function SeasonHistoryCard({
   );
 }
 
-export function SchoolSeasonHistory({ summaries }: SchoolSeasonHistoryProps) {
-  if (summaries.length === 0) {
+export function SchoolSeasonHistory({
+  presentations,
+}: SchoolSeasonHistoryProps) {
+  if (presentations.length === 0) {
     return null;
   }
-
-  const presentations = [...summaries]
-    .reverse()
-    .map(buildSeasonResultPresentation);
 
   return (
     <section aria-label="過去シーズン" className="school-season-history">
