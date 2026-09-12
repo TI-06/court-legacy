@@ -178,7 +178,10 @@ const seasonGoalSeasonSummarySchema = z
 const gameHistorySchema = z
   .object({
     playerDevelopmentWeeks: z.array(playerDevelopmentWeekSchema).max(52),
-    seasonGoalSeasons: z.array(seasonGoalSeasonSummarySchema).max(30).optional(),
+    seasonGoalSeasons: z
+      .array(seasonGoalSeasonSummarySchema)
+      .max(30)
+      .optional(),
   })
   .passthrough();
 
