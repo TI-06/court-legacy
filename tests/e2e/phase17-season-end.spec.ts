@@ -13,6 +13,20 @@ async function seedYearEndState(page: Page, legacy = false) {
   state.date = "2027-03-31";
   state.calendar.currentDate = state.date;
   state.calendar.weekOfYear = 52;
+  state.weeklySchedule.practiceMatch = {
+    ...state.weeklySchedule.practiceMatch,
+    incomingOffer: null,
+    scheduledOpponentId: null,
+    scheduledBy: null,
+  };
+  state.officialSeason.interhigh.prefectural.userEliminated = true;
+  state.officialSeason.springHigh.prefectural.userEliminated = true;
+  if (state.officialSeason.interhigh.national) {
+    state.officialSeason.interhigh.national.userEliminated = true;
+  }
+  if (state.officialSeason.springHigh.national) {
+    state.officialSeason.springHigh.national.userEliminated = true;
+  }
 
   if (legacy) {
     delete state.seasonGoals;
