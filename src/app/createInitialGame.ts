@@ -1,6 +1,7 @@
 import { gameDataBootstrap } from "../data/gameData";
 import { generateWorld } from "../domain/generation/generateWorld";
 import type { UniformColors } from "../domain/model/School";
+import { createSeasonGoals } from "../domain/season/seasonGoals";
 
 export interface InitialGameSetup {
   seed: string;
@@ -16,7 +17,7 @@ export function createInitialGame(input: InitialGameSetup) {
     throw new Error(gameDataBootstrap.message);
   }
 
-  return generateWorld({
+  const state = generateWorld({
     seed: input.seed,
     data: gameDataBootstrap.data,
     userSchool: {
@@ -27,4 +28,9 @@ export function createInitialGame(input: InitialGameSetup) {
       uniform: input.uniform,
     },
   });
+
+  return {
+    ...state,
+    seasonGoals: createSeasonGoals(state),
+  };
 }
