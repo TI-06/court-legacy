@@ -82,7 +82,10 @@ export function inspectSoakInvariants(
   const rosterOwners = new Map<string, string>();
   for (const [schoolId, school] of Object.entries(state.schools)) {
     const schoolPath = `state.schools.${schoolId}`;
-    if (inspectFinite(items, school.funds, `${schoolPath}.funds`) && school.funds < 0) {
+    if (
+      inspectFinite(items, school.funds, `${schoolPath}.funds`) &&
+      school.funds < 0
+    ) {
       violation(
         items,
         "negative_school_funds",
