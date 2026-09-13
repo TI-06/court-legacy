@@ -458,7 +458,7 @@ function buildBalanceObservations(
     if (metrics.zeroFundWeeks > 0 || metrics.fundsMin === 0) {
       observations.push({
         code: "user_funds_zero",
-        message: `自校資金が年度内に0となった週が${metrics.zeroFundWeeks}週あります。経済バランスを確認してください。`,
+        message: `自校資金の年度内最小残高が0です。週境界で0を観測した回数は${metrics.zeroFundWeeks}回です。経済バランスを確認してください。`,
         yearIndex: metrics.yearIndex,
       });
     }
