@@ -15,9 +15,18 @@ function assert(condition, message) {
   }
 }
 
-assert(/^\d+\.\d+\.\d+$/.test(version), `invalid package version: ${version}`);
-assert(version !== "0.0.0", "release package version must not remain 0.0.0");
-assert(lock.name === pkg.name, "package-lock package name does not match package.json");
+assert(
+  /^\d+\.\d+\.\d+$/.test(version),
+  `invalid package version: ${version}`,
+);
+assert(
+  version !== "0.0.0",
+  "release package version must not remain 0.0.0",
+);
+assert(
+  lock.name === pkg.name,
+  "package-lock package name does not match package.json",
+);
 assert(
   lock.packages?.[""]?.name === pkg.name,
   "package-lock root package name does not match package.json",
@@ -71,7 +80,10 @@ for (const script of [
   "soak:long",
   "release:gate",
 ]) {
-  assert(typeof pkg.scripts?.[script] === "string", `missing required script: ${script}`);
+  assert(
+    typeof pkg.scripts?.[script] === "string",
+    `missing required script: ${script}`,
+  );
 }
 
 console.log(`[OK] release metadata v${version}, save schema v${schemaVersion}`);
