@@ -1,5 +1,7 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
-import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import {
+  calculateSelectionStrength,
+} from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
