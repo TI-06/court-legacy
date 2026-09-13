@@ -27,37 +27,35 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 **Changes**
 
 - Run `push` CI only for `main`.
-- Keep `pull_request` CI for feature/fix/chore branches.
-- Preserve `concurrency` with `cancel-in-progress`.
+- Keep `pull_request` CI for branches targeting `main`.
+- Add `concurrency` with `cancel-in-progress`.
 - Do not change required job contents: dependency audit, quality/verify + soak smoke, and mobile E2E remain intact.
 
 **Verification**
 
 - Workflow syntax remains valid.
-- A feature branch push without an open PR no longer triggers the full CI workflow after this change is present on the branch.
+- Feature branch pushes no longer run the full CI workflow after this change is present on the branch.
 - PR CI and post-merge main CI still execute the full gate.
 
-## Task 2 — Add a critical solo release contract
+## Task 2 — Make the critical solo release contract explicit
 
 **Files**
 
-- Add: `tests/e2e/phase18-critical-solo.spec.ts`
-- Reuse helpers from existing E2E specs where practical.
+- Modify: `tests/e2e/v2-auth-game-flow.spec.ts`
+- Modify: `tests/e2e/app-shell.spec.ts`
+- Modify: `tests/e2e/official-tournament-flow.spec.ts`
+- Modify: `tests/e2e/phase17-season-end.spec.ts`
+- Modify: `package.json`
 
 **Contract**
 
-- Start from the public app/new-game boundary.
-- Perform a training interaction.
-- Perform a roster/lineup interaction through the UI.
-- Advance a week and verify persistence/reload.
-- Exercise an official tournament transition through the public UI/production boundary.
-- Complete a match and verify volleyball-specific result presentation.
-- Exercise season/year transition with deterministic fixture setup where needed.
-- Verify the transitioned save remains playable and persists after reload.
+- Mark stable existing release-critical journeys with `@critical` rather than duplicating them in one giant spec.
+- Cover registration/new game, save persistence/reload, week progression, training, lineup interaction, official tournament progression, match start/completion, volleyball-specific result presentation, year transition, and continued playable state.
+- Add `npm run test:e2e:critical` as the explicit release-contract command.
 
 **TDD**
 
-- First add the contract assertions against current behavior.
+- Add focused assertions only where the existing journey does not yet express a release requirement.
 - Any genuine missing release behavior is fixed minimally in production code.
 - Do not duplicate every historical feature E2E assertion.
 
@@ -65,8 +63,7 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 
 **Files**
 
-- Modify or extend: `tests/e2e/phase16-match-command-ux.spec.ts`
-- Add a release-contract helper/spec only if it materially improves clarity without duplicating the whole Phase16 suite.
+- Modify: `tests/e2e/pvp-flow.spec.ts`
 
 **Contract**
 
@@ -74,9 +71,9 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 - Send a public command.
 - Simulate an ambiguous/transport failure after server application.
 - Refresh authoritative status.
-- Retry only if needed with the same `commandId`.
-- Verify no duplicate command effect.
-- Verify browser-visible payload/state excludes opponent-private runtime, ability, and private selection detail beyond the established public contract.
+- Retry only if needed with the same `commandId` through the existing production path.
+- Verify no duplicate rated result/effect.
+- Verify browser-visible pre-match presentation excludes the established opponent-private comparison/detail surfaces.
 
 **Verification**
 
@@ -88,49 +85,47 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 **Files**
 
 - Add: `tests/e2e/phase18-accessibility.spec.ts`
-- Modify production UI/CSS only where a focused RED assertion exposes a real accessibility gap.
+- Modify: `src/ui/ui.css` only where a focused assertion exposes a real accessibility gap.
 
 **Checks**
 
 - Critical navigation and primary controls expose accessible names.
-- Relevant inputs/forms expose labels or equivalent accessible naming.
+- Relevant registration inputs expose explicit accessible labels.
 - Critical dialogs expose a named dialog role and predictable focus behavior.
 - Keyboard focus is visible/usable on primary critical controls.
-- Loading/disabled/error states have non-color-only text/status where applicable.
-- Primary mobile touch targets meet a practical minimum target size for release-critical actions.
-- `prefers-reduced-motion: reduce` does not make critical navigation/dialog/match setup unusable.
+- Saved-state feedback is communicated with text rather than color alone.
+- Primary mobile touch targets meet a practical 44px minimum for release-critical actions.
+- `prefers-reduced-motion: reduce` disables the bottom-sheet entrance animation without making the dialog unusable.
 
 **Approach**
 
 - Use Playwright role/name/focus/geometry/media-emulation assertions.
 - Do not claim full WCAG certification.
 
-## Task 5 — Improve E2E failure diagnostics without bloating CI
+## Task 5 — Preserve bounded E2E diagnostics
 
 **Files**
 
-- Modify: `playwright.config.ts` only if needed.
+- Keep existing `playwright.config.ts` diagnostics unless a concrete failure demonstrates a gap.
 
 **Changes**
 
 - Retain screenshots/traces already present.
-- Add retained-on-failure video only if it improves release triage without materially destabilizing runtime.
+- Avoid adding duplicate critical/full executions to normal CI; the critical command is available for focused/release use while the normal mobile job still runs the full E2E suite once.
 - Keep workers/retries bounded and deterministic.
 
 ## Task 6 — Verification and PR gate
 
-Run before opening the PR where possible:
+Run before/through the PR gate:
 
-1. focused Phase18 solo E2E
-2. focused Phase18 accessibility E2E
-3. focused Phase16 PvP E2E
-4. `npm run verify`
-5. `npm run soak:smoke`
-6. full `npm run e2e`
+1. `npm run test:e2e:critical`
+2. `npm run verify`
+3. `npm run soak:smoke`
+4. full `npm run test:e2e`
 
 Then:
 
-1. open PR18-3 as Draft or ready only when implementation is believed GREEN;
+1. open PR18-3 only when implementation is believed GREEN;
 2. require exact-head `dependency-audit`, `quality`, and `mobile-e2e` GREEN;
 3. review the complete diff for accidental privacy/schema/version changes;
 4. mark Ready if needed;
