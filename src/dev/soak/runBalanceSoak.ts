@@ -192,7 +192,9 @@ function advanceWeekOutcome(outcome: unknown): AdvanceWeekOutcome {
     !("weekAdvanced" in outcome) ||
     !("academicYearTransition" in outcome)
   ) {
-    throw new Error("soak advance-week did not return an authoritative outcome");
+    throw new Error(
+      "soak advance-week did not return an authoritative outcome",
+    );
   }
   return outcome as AdvanceWeekOutcome;
 }
