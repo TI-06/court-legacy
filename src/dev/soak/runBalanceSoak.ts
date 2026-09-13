@@ -120,6 +120,11 @@ interface SoakYearTracker {
   newInjuries: number;
   healedInjuries: number;
   assistantCoach: SoakSnapshotMetrics["assistantCoach"];
+  assistantCoachSignature: string | null;
+  assistantCoachChanges: number;
+  growthTypeByPlayerId: Record<string, string>;
+  nationalParticipantStrengthValues: number[];
+  observedNationalTournamentIds: Set<string>;
 }
 
 export class SoakActionGuardError extends Error {
@@ -191,6 +196,14 @@ function currentAssistantCoach(
         specialty: coach.specialty,
         contractYearIndex: coach.contractYearIndex,
       }
+    : null;
+}
+
+function coachSignature(
+  coach: SoakSnapshotMetrics["assistantCoach"],
+): string | null {
+  return coach
+    ? `${coach.rank}/${coach.specialty ?? "general"}/${coach.contractYearIndex}`
     : null;
 }
 
@@ -412,8 +425,20 @@ function userInjuredPlayerCount(snapshot: CloudGameSnapshot): number {
   );
 }
 
+function createGrowthTypeMap(
+  snapshot: CloudGameSnapshot,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(snapshot.state.players).map(([playerId, player]) => [
+      playerId,
+      player.growthTypeId,
+    ]),
+  );
+}
+
 function createYearTracker(snapshot: CloudGameSnapshot): SoakYearTracker {
   const funds = userFunds(snapshot);
+  const assistantCoach = currentAssistantCoach(snapshot);
   return {
     academicYearIndex: snapshot.state.yearIndex,
     academicYear: snapshot.state.calendar.academicYear,
@@ -424,27 +449,81 @@ function createYearTracker(snapshot: CloudGameSnapshot): SoakYearTracker {
     injuredPlayerWeeks: 0,
     newInjuries: 0,
     healedInjuries: 0,
-    assistantCoach: currentAssistantCoach(snapshot),
+    assistantCoach,
+    assistantCoachSignature: coachSignature(assistantCoach),
+    assistantCoachChanges: assistantCoach ? 1 : 0,
+    growthTypeByPlayerId: createGrowthTypeMap(snapshot),
+    nationalParticipantStrengthValues: [],
+    observedNationalTournamentIds: new Set<string>(),
   };
+}
+
+function observePlayerGrowthTypes(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  for (const [playerId, player] of Object.entries(snapshot.state.players)) {
+    tracker.growthTypeByPlayerId[playerId] ??= player.growthTypeId;
+  }
+}
+
+function observeAssistantCoach(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  const assistantCoach = currentAssistantCoach(snapshot);
+  const signature = coachSignature(assistantCoach);
+  if (signature !== tracker.assistantCoachSignature) {
+    if (assistantCoach) tracker.assistantCoachChanges += 1;
+    tracker.assistantCoachSignature = signature;
+  }
+  tracker.assistantCoach = assistantCoach ?? tracker.assistantCoach;
+}
+
+function observeNationalParticipants(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  const season = snapshot.state.officialSeason;
+  if (season.academicYear !== tracker.academicYear) return;
+
+  for (const stage of [season.interhigh.national, season.springHigh.national]) {
+    if (
+      !stage ||
+      stage.entrants.length === 0 ||
+      tracker.observedNationalTournamentIds.has(stage.tournamentId)
+    ) {
+      continue;
+    }
+    tracker.observedNationalTournamentIds.add(stage.tournamentId);
+    tracker.nationalParticipantStrengthValues.push(
+      ...stage.entrants.map((entrant) => entrant.seedStrength),
+    );
+  }
 }
 
 function observeWeekStart(
   tracker: SoakYearTracker,
   snapshot: CloudGameSnapshot,
 ): void {
+  observePlayerGrowthTypes(tracker, snapshot);
+  observeAssistantCoach(tracker, snapshot);
+  observeNationalParticipants(tracker, snapshot);
+
   const funds = userFunds(snapshot);
   tracker.fundsMin = Math.min(tracker.fundsMin, funds);
   tracker.fundsMax = Math.max(tracker.fundsMax, funds);
   if (funds === 0) tracker.zeroFundWeeks += 1;
   tracker.injuredPlayerWeeks += userInjuredPlayerCount(snapshot);
-  tracker.assistantCoach =
-    currentAssistantCoach(snapshot) ?? tracker.assistantCoach;
 }
 
 function observeSameYearEnd(
   tracker: SoakYearTracker,
   snapshot: CloudGameSnapshot,
 ): void {
+  observePlayerGrowthTypes(tracker, snapshot);
+  observeNationalParticipants(tracker, snapshot);
+
   const funds = userFunds(snapshot);
   tracker.fundsMin = Math.min(tracker.fundsMin, funds);
   tracker.fundsMax = Math.max(tracker.fundsMax, funds);
@@ -491,8 +570,11 @@ function formatRunSummary(report: SoakRunReport): string {
         .join(",")}`
     : "facilities=none";
   const coachDetail = finalMetrics?.assistantCoach
-    ? `coach=${finalMetrics.assistantCoach.rank}/${finalMetrics.assistantCoach.specialty ?? "general"}`
-    : "coach=none";
+    ? `coach=${finalMetrics.assistantCoach.rank}/${finalMetrics.assistantCoach.specialty ?? "general"} changes=${finalMetrics.assistantCoachChanges}`
+    : `coach=none changes=${finalMetrics?.assistantCoachChanges ?? 0}`;
+  const nationalDetail = finalMetrics
+    ? `national-participants=${finalMetrics.nationalParticipantStrength.count} national-p50=${finalMetrics.nationalParticipantStrength.p50}`
+    : "national-participants=0";
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -502,6 +584,7 @@ function formatRunSummary(report: SoakRunReport): string {
     finalDetail,
     facilityDetail,
     coachDetail,
+    nationalDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -571,6 +654,10 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       newInjuries: tracker.newInjuries,
       healedInjuries: tracker.healedInjuries,
       intakePlayerIds,
+      growthTypeByPlayerId: tracker.growthTypeByPlayerId,
+      nationalParticipantStrengthValues:
+        tracker.nationalParticipantStrengthValues,
+      assistantCoachChanges: tracker.assistantCoachChanges,
     });
     yearly.push({ ...metrics, assistantCoach: tracker.assistantCoach });
     tracker = createYearTracker(snapshot);
