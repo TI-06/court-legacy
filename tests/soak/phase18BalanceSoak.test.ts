@@ -33,8 +33,7 @@ function parseSeeds(raw: string | undefined): string[] {
 
 function safeFilePart(value: string): string {
   return (
-    value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") ||
-    "seed"
+    value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "seed"
   );
 }
 
