@@ -147,10 +147,7 @@ function sortedFacilities(
 }
 
 export function summarizeFacilityMilestones(
-  yearly: readonly Pick<
-    SoakSnapshotMetrics,
-    "yearIndex" | "facilities"
-  >[],
+  yearly: readonly Pick<SoakSnapshotMetrics, "yearIndex" | "facilities">[],
 ): SoakFacilityMilestoneSummary {
   const facilityNames = [
     ...new Set(yearly.flatMap((metrics) => Object.keys(metrics.facilities))),
