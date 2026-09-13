@@ -203,7 +203,8 @@ function officialStatus(
 }
 
 for (const width of [320, 360, 390, 414, 480]) {
-  test(`Phase16 official match stays pending until completion at ${width}px`, async ({
+  const criticalPrefix = width === 390 ? "@critical " : "";
+  test(`${criticalPrefix}Phase18 official match stays pending until completion and presents volleyball stats at ${width}px`, async ({
     page,
   }) => {
     const seeded = officialSnapshot();
@@ -248,6 +249,14 @@ for (const width of [320, 360, 390, 414, 480]) {
     expect(commandCount).toBeGreaterThan(0);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
     await expectNoBodyOverflow(page);
+
+    if (width === 390) {
+      await expect(page.getByRole("heading", { name: "MVP" })).toBeVisible();
+      await expect(page.getByRole("region", { name: "試合個人賞" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "チームスタッツ" }),
+      ).toBeVisible();
+    }
 
     const afterResult = await page.evaluate((snapshotKey) => {
       const raw = sessionStorage.getItem(snapshotKey);
