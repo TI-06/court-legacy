@@ -147,7 +147,10 @@ function sortedFacilities(
 }
 
 export function summarizeFacilityMilestones(
-  yearly: readonly Pick<SoakSnapshotMetrics, "yearIndex" | "facilities">[],
+  yearly: readonly Pick<
+    SoakSnapshotMetrics,
+    "yearIndex" | "facilities"
+  >[],
 ): SoakFacilityMilestoneSummary {
   const facilityNames = [
     ...new Set(yearly.flatMap((metrics) => Object.keys(metrics.facilities))),
@@ -165,7 +168,11 @@ export function summarizeFacilityMilestones(
           0,
           Math.min(FACILITY_MAX_LEVEL, observedLevel),
         );
-        for (let level = maxObservedLevel + 1; level <= boundedLevel; level += 1) {
+        for (
+          let level = maxObservedLevel + 1;
+          level <= boundedLevel;
+          level += 1
+        ) {
           firstYearByLevel[String(level)] = metrics.yearIndex;
         }
         maxObservedLevel = Math.max(maxObservedLevel, boundedLevel);
