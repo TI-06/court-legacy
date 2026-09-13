@@ -11,6 +11,8 @@ import {
 } from "./soakInvariants";
 import {
   captureSoakSnapshotMetrics,
+  summarizeFacilityMilestones,
+  type SoakFacilityMilestoneSummary,
   type SoakSnapshotMetrics,
 } from "./soakMetrics";
 
@@ -61,6 +63,7 @@ export interface SoakRunReport {
     schemaVersion: number;
   };
   yearly: SoakSnapshotMetrics[];
+  facilityMilestones: SoakFacilityMilestoneSummary;
   observations: SoakBalanceObservation[];
 }
 
@@ -342,6 +345,14 @@ function formatRunSummary(report: SoakRunReport): string {
   const finalDetail = finalMetrics
     ? `final-year=${finalMetrics.yearIndex} funds=${finalMetrics.fundsStart}->${finalMetrics.fundsEnd} min=${finalMetrics.fundsMin} max=${finalMetrics.fundsMax} strength=${finalMetrics.userStrength} cpu-p50=${finalMetrics.cpuStrength.p50} growth=${finalMetrics.yearlyGrowthTotal} tournament=${finalMetrics.userBestTournamentRound ?? "none"} intake=${finalMetrics.intakeCount} injuries=${finalMetrics.newInjuries}/${finalMetrics.healedInjuries}`
     : "no-yearly-metrics";
+  const facilityDetail = finalMetrics
+    ? `facilities=${Object.entries(finalMetrics.facilities)
+        .map(([facility, level]) => `${facility}:${level}`)
+        .join(",")}`
+    : "facilities=none";
+  const coachDetail = finalMetrics?.assistantCoach
+    ? `coach=${finalMetrics.assistantCoach.rank}/${finalMetrics.assistantCoach.specialty ?? "general"}`
+    : "coach=none";
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -349,6 +360,8 @@ function formatRunSummary(report: SoakRunReport): string {
     `weeks=${report.metadata.completedWeeks}`,
     `actions=${report.metadata.actions}`,
     finalDetail,
+    facilityDetail,
+    coachDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -421,6 +434,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
 
   const completedSeasons = snapshot.state.yearIndex - startingYearIndex;
   const observations = buildBalanceObservations(yearly);
+  const facilityMilestones = summarizeFacilityMilestones(yearly);
   const report: SoakRunReport = {
     metadata: {
       seed: options.seed,
@@ -432,6 +446,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       schemaVersion: snapshot.state.schemaVersion,
     },
     yearly,
+    facilityMilestones,
     observations,
   };
 
