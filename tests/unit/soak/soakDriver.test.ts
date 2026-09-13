@@ -4,6 +4,10 @@ const subjectPath = "../../../src/dev/soak/runBalanceSoak";
 
 interface SoakDriverSubject {
   createSoakSnapshot(seed: string): CloudGameSnapshot;
+  applySoakManagementPolicy(snapshot: CloudGameSnapshot): {
+    snapshot: CloudGameSnapshot;
+    actionCount: number;
+  };
   advanceSoakUntilWeekChanges(
     snapshot: CloudGameSnapshot,
     options?: { maxActionsPerWeek?: number },
@@ -30,6 +34,48 @@ describe("Phase18 soak production action driver", () => {
     expect(snapshot.teamSelection.rotation).toHaveLength(6);
     expect(snapshot.state.activeMatch).toBeNull();
     expect(snapshot.state.pendingEvent).toBeNull();
+  });
+
+  it("uses production management actions to contract one annual coach and upgrade one facility per policy step", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const before = createSoakSnapshot("phase18-management-seed");
+    const schoolBefore = before.state.schools[before.state.userSchoolId]!;
+    const gymBefore = schoolBefore.facilities.gym;
+
+    const first = applySoakManagementPolicy(before);
+    const firstSchool = first.snapshot.state.schools[first.snapshot.state.userSchoolId]!;
+
+    expect(first.actionCount).toBe(2);
+    expect(first.snapshot.state.schoolManagement.assistantCoach).toEqual({
+      rank: "intermediate",
+      specialty: "attack",
+      contractYearIndex: before.state.yearIndex,
+    });
+    expect(firstSchool.facilities.gym).toBe(gymBefore + 1);
+    expect(firstSchool.funds).toBeLessThan(schoolBefore.funds);
+    expect(firstSchool.funds).toBeGreaterThanOrEqual(300);
+
+    const second = applySoakManagementPolicy(first.snapshot);
+    expect(second.actionCount).toBe(1);
+    expect(second.snapshot.state.schoolManagement.assistantCoach).toEqual(
+      first.snapshot.state.schoolManagement.assistantCoach,
+    );
+  });
+
+  it("keeps the management reserve instead of spending the school below 300", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-management-reserve");
+    snapshot.state.schools[snapshot.state.userSchoolId]!.funds = 300;
+
+    const result = applySoakManagementPolicy(snapshot);
+
+    expect(result.actionCount).toBe(0);
+    expect(
+      result.snapshot.state.schools[result.snapshot.state.userSchoolId]!.funds,
+    ).toBe(300);
+    expect(result.snapshot.state.schoolManagement.assistantCoach).toBeNull();
   });
 
   it("advances a normal game week through the production game action boundary", async () => {
