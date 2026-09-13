@@ -119,6 +119,7 @@ interface SoakYearTracker {
   injuredPlayerWeeks: number;
   newInjuries: number;
   healedInjuries: number;
+  assistantCoach: SoakSnapshotMetrics["assistantCoach"];
 }
 
 export class SoakActionGuardError extends Error {
@@ -178,6 +179,19 @@ function applyAction(
 
 function userFunds(snapshot: CloudGameSnapshot): number {
   return snapshot.state.schools[snapshot.state.userSchoolId]!.funds;
+}
+
+function currentAssistantCoach(
+  snapshot: CloudGameSnapshot,
+): SoakSnapshotMetrics["assistantCoach"] {
+  const coach = snapshot.state.schoolManagement.assistantCoach;
+  return coach
+    ? {
+        rank: coach.rank,
+        specialty: coach.specialty,
+        contractYearIndex: coach.contractYearIndex,
+      }
+    : null;
 }
 
 function coachActionForCurrentYear(
@@ -410,6 +424,7 @@ function createYearTracker(snapshot: CloudGameSnapshot): SoakYearTracker {
     injuredPlayerWeeks: 0,
     newInjuries: 0,
     healedInjuries: 0,
+    assistantCoach: currentAssistantCoach(snapshot),
   };
 }
 
@@ -422,6 +437,7 @@ function observeWeekStart(
   tracker.fundsMax = Math.max(tracker.fundsMax, funds);
   if (funds === 0) tracker.zeroFundWeeks += 1;
   tracker.injuredPlayerWeeks += userInjuredPlayerCount(snapshot);
+  tracker.assistantCoach = currentAssistantCoach(snapshot) ?? tracker.assistantCoach;
 }
 
 function observeSameYearEnd(
@@ -517,6 +533,11 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       throwRunHorizonError(snapshot, completedWeeks, maximumWeeks);
     }
 
+    const managed = applySoakManagementPolicy(snapshot);
+    actions += managed.actionCount;
+    snapshot = managed.snapshot;
+    assertSoakInvariants(snapshot, { actionCount: actions });
+
     const previousYearIndex = snapshot.state.yearIndex;
     observeWeekStart(tracker, snapshot);
     const advanced = advanceSoakUntilWeekChanges(snapshot, {
@@ -538,20 +559,19 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       advanced.academicYearTransition?.intakePlayerIdsBySchool[
         snapshot.state.userSchoolId
       ] ?? [];
-    yearly.push(
-      captureSoakSnapshotMetrics(snapshot, {
-        academicYearIndex: tracker.academicYearIndex,
-        academicYear: tracker.academicYear,
-        fundsStart: tracker.fundsStart,
-        fundsMin: tracker.fundsMin,
-        fundsMax: tracker.fundsMax,
-        zeroFundWeeks: tracker.zeroFundWeeks,
-        injuredPlayerWeeks: tracker.injuredPlayerWeeks,
-        newInjuries: tracker.newInjuries,
-        healedInjuries: tracker.healedInjuries,
-        intakePlayerIds,
-      }),
-    );
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      academicYearIndex: tracker.academicYearIndex,
+      academicYear: tracker.academicYear,
+      fundsStart: tracker.fundsStart,
+      fundsMin: tracker.fundsMin,
+      fundsMax: tracker.fundsMax,
+      zeroFundWeeks: tracker.zeroFundWeeks,
+      injuredPlayerWeeks: tracker.injuredPlayerWeeks,
+      newInjuries: tracker.newInjuries,
+      healedInjuries: tracker.healedInjuries,
+      intakePlayerIds,
+    });
+    yearly.push({ ...metrics, assistantCoach: tracker.assistantCoach });
     tracker = createYearTracker(snapshot);
   }
 
