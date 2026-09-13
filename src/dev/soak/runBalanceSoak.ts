@@ -190,9 +190,7 @@ function coachActionForCurrentYear(
   const specialty = COACH_SPECIALTIES[(state.yearIndex - 1) % 3]!;
   for (const candidate of COACH_POLICY) {
     const action =
-      candidate.rank === "beginner"
-        ? candidate
-        : { ...candidate, specialty };
+      candidate.rank === "beginner" ? candidate : { ...candidate, specialty };
     const evaluation = evaluateAssistantCoachContract(
       state,
       action.rank,
@@ -214,11 +212,16 @@ function facilityAction(
   const state = snapshot.state;
   const school = state.schools[state.userSchoolId]!;
   const ordered = [...FACILITY_DEFINITIONS].sort((left, right) => {
-    const levelDifference = school.facilities[left.key] - school.facilities[right.key];
+    const levelDifference =
+      school.facilities[left.key] - school.facilities[right.key];
     if (levelDifference !== 0) return levelDifference;
     return (
-      FACILITY_DEFINITIONS.findIndex((definition) => definition.key === left.key) -
-      FACILITY_DEFINITIONS.findIndex((definition) => definition.key === right.key)
+      FACILITY_DEFINITIONS.findIndex(
+        (definition) => definition.key === left.key,
+      ) -
+      FACILITY_DEFINITIONS.findIndex(
+        (definition) => definition.key === right.key,
+      )
     );
   });
 
