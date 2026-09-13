@@ -2,6 +2,7 @@ import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
 import type { SchoolFacilities } from "../../domain/model/School";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
+import type { TournamentRound } from "../../domain/tournament/tournamentTypes";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
 export interface SoakDistribution {
@@ -13,22 +14,58 @@ export interface SoakDistribution {
   mean: number;
 }
 
+export interface SoakMetricContext {
+  academicYearIndex?: number;
+  academicYear?: number;
+  fundsStart?: number;
+  fundsMin?: number;
+  fundsMax?: number;
+  zeroFundWeeks?: number;
+  injuredPlayerWeeks?: number;
+  newInjuries?: number;
+  healedInjuries?: number;
+  intakePlayerIds?: readonly string[];
+}
+
 export interface SoakSnapshotMetrics {
   seed: string;
   yearIndex: number;
+  academicYearIndex: number;
+  academicYear: number;
   date: string;
   userFunds: number;
+  fundsStart: number;
+  fundsEnd: number;
+  fundsMin: number;
+  fundsMax: number;
+  zeroFundWeeks: number;
   yearlyIncome: number;
   yearlyExpense: number;
   userStrength: number;
   cpuStrength: SoakDistribution;
   playerAbility: SoakDistribution;
+  yearlyGrowthTotal: number;
+  growthByGrowthType: Record<string, number>;
+  intakeCount: number;
+  intakeTierCounts: Record<string, number>;
+  intakeGrowthTypeCounts: Record<string, number>;
   injuredPlayers: number;
+  injuredPlayerWeeks: number;
+  newInjuries: number;
+  healedInjuries: number;
   condition: SoakDistribution;
+  conditionHistogram: Record<string, number>;
   facilities: Record<string, number>;
-  assistantCoach: { rank: string; specialty: string | null } | null;
+  assistantCoach: {
+    rank: string;
+    specialty: string | null;
+    contractYearIndex: number;
+  } | null;
   tournamentSummaryCount: number;
   userNationalTitles: number;
+  userTournamentTitles: number;
+  userBestTournamentRound: TournamentRound | null;
+  nationalChampionStrength: SoakDistribution;
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
   positionCounts: Record<string, number>;
@@ -70,6 +107,14 @@ function sortedCounts(values: readonly string[]): Record<string, number> {
   );
 }
 
+function sortedTotals(entries: ReadonlyMap<string, number>): Record<string, number> {
+  return Object.fromEntries(
+    [...entries.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value]) => [key, round(value)]),
+  );
+}
+
 function averageAbility(player: Player): number {
   return round(
     ABILITY_KEYS.reduce((sum, ability) => sum + player.abilities[ability], 0) /
@@ -87,14 +132,55 @@ function sortedFacilities(
   );
 }
 
+function conditionHistogram(players: readonly Player[]): Record<string, number> {
+  const histogram = {
+    "0-19": 0,
+    "20-39": 0,
+    "40-59": 0,
+    "60-79": 0,
+    "80-100": 0,
+  };
+  for (const player of players) {
+    if (player.condition < 20) histogram["0-19"] += 1;
+    else if (player.condition < 40) histogram["20-39"] += 1;
+    else if (player.condition < 60) histogram["40-59"] += 1;
+    else if (player.condition < 80) histogram["60-79"] += 1;
+    else histogram["80-100"] += 1;
+  }
+  return histogram;
+}
+
+const TOURNAMENT_ROUND_RANK: Record<TournamentRound, number> = {
+  "round-of-16": 1,
+  quarterfinal: 2,
+  semifinal: 3,
+  final: 4,
+};
+
+function bestTournamentRound(
+  rounds: readonly (TournamentRound | null)[],
+): TournamentRound | null {
+  let best: TournamentRound | null = null;
+  for (const round of rounds) {
+    if (!round) continue;
+    if (!best || TOURNAMENT_ROUND_RANK[round] > TOURNAMENT_ROUND_RANK[best]) {
+      best = round;
+    }
+  }
+  return best;
+}
+
 export function captureSoakSnapshotMetrics(
   snapshot: CloudGameSnapshot,
+  context: SoakMetricContext = {},
 ): SoakSnapshotMetrics {
   const state = snapshot.state;
   const userSchool = state.schools[state.userSchoolId]!;
   const players = Object.values(state.players);
+  const academicYearIndex = context.academicYearIndex ?? state.yearIndex;
+  const academicYear = context.academicYear ?? state.calendar.academicYear;
   const currentLedger = state.schoolManagement.fundsHistory.filter(
-    (entry) => entry.academicYearIndex === state.yearIndex,
+    (entry) => entry.academicYearIndex === academicYearIndex,
   );
   const yearlyIncome = currentLedger
     .filter((entry) => entry.amount > 0)
@@ -102,6 +188,26 @@ export function captureSoakSnapshotMetrics(
   const yearlyExpense = currentLedger
     .filter((entry) => entry.amount < 0)
     .reduce((sum, entry) => sum + Math.abs(entry.amount), 0);
+  const derivedFundsStart = currentLedger[0]
+    ? currentLedger[0].balanceAfter - currentLedger[0].amount
+    : userSchool.funds;
+  const fundsStart = context.fundsStart ?? derivedFundsStart;
+  const fundsEnd =
+    currentLedger.at(-1)?.balanceAfter ??
+    (academicYearIndex === state.yearIndex ? userSchool.funds : fundsStart);
+  const ledgerBalances = currentLedger.map((entry) => entry.balanceAfter);
+  const fundsMin = Math.min(
+    fundsStart,
+    fundsEnd,
+    context.fundsMin ?? Number.POSITIVE_INFINITY,
+    ...ledgerBalances,
+  );
+  const fundsMax = Math.max(
+    fundsStart,
+    fundsEnd,
+    context.fundsMax ?? Number.NEGATIVE_INFINITY,
+    ...ledgerBalances,
+  );
 
   const cpuStrengthValues = Object.values(state.schools)
     .filter((school) => school.id !== state.userSchoolId)
@@ -113,27 +219,89 @@ export function captureSoakSnapshotMetrics(
       ),
     );
 
+  const growthByType = new Map<string, number>();
+  let yearlyGrowthTotal = 0;
+  for (const week of state.history.playerDevelopmentWeeks) {
+    if (week.academicYearIndex !== academicYearIndex) continue;
+    for (const development of week.players) {
+      yearlyGrowthTotal += development.totalAbilityGrowth;
+      const growthType =
+        state.players[development.playerId]?.growthTypeId ?? "unknown";
+      growthByType.set(
+        growthType,
+        (growthByType.get(growthType) ?? 0) + development.totalAbilityGrowth,
+      );
+    }
+  }
+
+  const intakePlayers = [...new Set(context.intakePlayerIds ?? [])]
+    .map((playerId) => state.players[playerId])
+    .filter((player): player is Player => player !== undefined);
+
+  const tournamentSummaries = state.history.officialTournaments.filter(
+    (summary) => summary.academicYear === academicYear,
+  );
+  const nationalChampionStrengthValues = tournamentSummaries
+    .filter((summary) => summary.level === "national")
+    .flatMap((summary) => {
+      const schoolId = summary.champion.schoolId;
+      if (!schoolId || !state.schools[schoolId]) return [];
+      return [
+        calculateSelectionStrength(
+          state,
+          autoSelectTeam({ state, schoolId }),
+        ),
+      ];
+    });
+
   return {
     seed: state.seed,
-    yearIndex: state.yearIndex,
+    yearIndex: academicYearIndex,
+    academicYearIndex,
+    academicYear,
     date: state.date,
     userFunds: userSchool.funds,
+    fundsStart,
+    fundsEnd,
+    fundsMin,
+    fundsMax,
+    zeroFundWeeks: context.zeroFundWeeks ?? 0,
     yearlyIncome,
     yearlyExpense,
     userStrength: calculateSelectionStrength(state, snapshot.teamSelection),
     cpuStrength: distribution(cpuStrengthValues),
     playerAbility: distribution(players.map(averageAbility)),
+    yearlyGrowthTotal: round(yearlyGrowthTotal),
+    growthByGrowthType: sortedTotals(growthByType),
+    intakeCount: intakePlayers.length,
+    intakeTierCounts: sortedCounts(intakePlayers.map((player) => player.tier)),
+    intakeGrowthTypeCounts: sortedCounts(
+      intakePlayers.map((player) => player.growthTypeId),
+    ),
     injuredPlayers: players.filter((player) => player.injury !== null).length,
+    injuredPlayerWeeks: context.injuredPlayerWeeks ?? 0,
+    newInjuries: context.newInjuries ?? 0,
+    healedInjuries: context.healedInjuries ?? 0,
     condition: distribution(players.map((player) => player.condition)),
+    conditionHistogram: conditionHistogram(players),
     facilities: sortedFacilities(userSchool.facilities),
     assistantCoach: state.schoolManagement.assistantCoach
       ? {
           rank: state.schoolManagement.assistantCoach.rank,
           specialty: state.schoolManagement.assistantCoach.specialty,
+          contractYearIndex:
+            state.schoolManagement.assistantCoach.contractYearIndex,
         }
       : null,
-    tournamentSummaryCount: state.history.officialTournaments.length,
+    tournamentSummaryCount: tournamentSummaries.length,
     userNationalTitles: userSchool.history.nationalTitles,
+    userTournamentTitles: tournamentSummaries.filter(
+      (summary) => summary.userResult.champion,
+    ).length,
+    userBestTournamentRound: bestTournamentRound(
+      tournamentSummaries.map((summary) => summary.userResult.bestRound),
+    ),
+    nationalChampionStrength: distribution(nationalChampionStrengthValues),
     playerTierCounts: sortedCounts(players.map((player) => player.tier)),
     growthTypeCounts: sortedCounts(
       players.map((player) => player.growthTypeId),
@@ -150,15 +318,18 @@ export function formatSoakSnapshotSummary(
   const coach = metrics.assistantCoach
     ? `${metrics.assistantCoach.rank}/${metrics.assistantCoach.specialty ?? "general"}`
     : "none";
+  const tournament = metrics.userBestTournamentRound ?? "none";
   return [
     `seed=${metrics.seed}`,
     `year=${metrics.yearIndex}`,
+    `academic-year=${metrics.academicYear}`,
     `date=${metrics.date}`,
-    `funds=${metrics.userFunds} (+${metrics.yearlyIncome}/-${metrics.yearlyExpense})`,
+    `funds=${metrics.fundsEnd} start=${metrics.fundsStart} min=${metrics.fundsMin} max=${metrics.fundsMax} (+${metrics.yearlyIncome}/-${metrics.yearlyExpense}) zero-weeks=${metrics.zeroFundWeeks}`,
     `strength=${metrics.userStrength} cpu-p50=${metrics.cpuStrength.p50}`,
-    `ability-mean=${metrics.playerAbility.mean}`,
-    `injured=${metrics.injuredPlayers} condition-mean=${metrics.condition.mean}`,
-    `national-titles=${metrics.userNationalTitles}`,
+    `ability-mean=${metrics.playerAbility.mean} growth=${metrics.yearlyGrowthTotal}`,
+    `intake=${metrics.intakeCount}`,
+    `injured=${metrics.injuredPlayers} injury-weeks=${metrics.injuredPlayerWeeks} new=${metrics.newInjuries} healed=${metrics.healedInjuries} condition-mean=${metrics.condition.mean}`,
+    `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles}`,
     `assistant-coach=${coach}`,
   ].join(" | ");
 }
