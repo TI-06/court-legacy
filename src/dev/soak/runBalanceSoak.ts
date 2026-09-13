@@ -1,6 +1,11 @@
 import { createInitialGame } from "../../app/createInitialGame";
 import type { AdvanceWeekOutcome } from "../../domain/calendar/advanceWeekOutcome";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { evaluateAssistantCoachContract } from "../../domain/school/assistantCoach";
+import {
+  FACILITY_DEFINITIONS,
+  evaluateFacilityUpgrade,
+} from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
@@ -17,6 +22,27 @@ import {
 } from "./soakMetrics";
 
 const DEFAULT_MAX_ACTIONS_PER_WEEK = 512;
+const SOAK_MANAGEMENT_RESERVE = 300;
+
+const COACH_POLICY: readonly Extract<
+  GameAction,
+  { type: "assistant-coach-contract" }
+>[] = [
+  { type: "assistant-coach-contract", rank: "master", specialty: "attack" },
+  {
+    type: "assistant-coach-contract",
+    rank: "advanced",
+    specialty: "attack",
+  },
+  {
+    type: "assistant-coach-contract",
+    rank: "intermediate",
+    specialty: "attack",
+  },
+  { type: "assistant-coach-contract", rank: "beginner", specialty: null },
+];
+
+const COACH_SPECIALTIES = ["attack", "defense", "physical"] as const;
 
 export const SOAK_PRESETS = {
   smoke: 1,
@@ -39,6 +65,11 @@ export interface AdvanceSoakWeekResult {
   newInjuryPlayerIds: PlayerId[];
   healedPlayerIds: PlayerId[];
   academicYearTransition: AdvanceWeekOutcome["academicYearTransition"];
+}
+
+export interface SoakManagementPolicyResult {
+  snapshot: CloudGameSnapshot;
+  actionCount: number;
 }
 
 export interface RunBalanceSoakOptions extends AdvanceSoakWeekOptions {
@@ -143,6 +174,99 @@ function applyAction(
     },
     outcome: applied.outcome,
   };
+}
+
+function userFunds(snapshot: CloudGameSnapshot): number {
+  return snapshot.state.schools[snapshot.state.userSchoolId]!.funds;
+}
+
+function coachActionForCurrentYear(
+  snapshot: CloudGameSnapshot,
+): Extract<GameAction, { type: "assistant-coach-contract" }> | null {
+  const state = snapshot.state;
+  const currentCoach = state.schoolManagement.assistantCoach;
+  if (currentCoach?.contractYearIndex === state.yearIndex) return null;
+
+  const specialty = COACH_SPECIALTIES[(state.yearIndex - 1) % 3]!;
+  for (const candidate of COACH_POLICY) {
+    const action =
+      candidate.rank === "beginner"
+        ? candidate
+        : { ...candidate, specialty };
+    const evaluation = evaluateAssistantCoachContract(
+      state,
+      action.rank,
+      action.specialty,
+    );
+    if (
+      evaluation.allowed &&
+      evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
+    ) {
+      return action;
+    }
+  }
+  return null;
+}
+
+function facilityAction(
+  snapshot: CloudGameSnapshot,
+): Extract<GameAction, { type: "facility-upgrade" }> | null {
+  const state = snapshot.state;
+  const school = state.schools[state.userSchoolId]!;
+  const ordered = [...FACILITY_DEFINITIONS].sort((left, right) => {
+    const levelDifference = school.facilities[left.key] - school.facilities[right.key];
+    if (levelDifference !== 0) return levelDifference;
+    return (
+      FACILITY_DEFINITIONS.findIndex((definition) => definition.key === left.key) -
+      FACILITY_DEFINITIONS.findIndex((definition) => definition.key === right.key)
+    );
+  });
+
+  for (const definition of ordered) {
+    const evaluation = evaluateFacilityUpgrade(
+      state,
+      state.userSchoolId,
+      definition.key,
+    );
+    if (
+      evaluation.allowed &&
+      evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
+    ) {
+      return { type: "facility-upgrade", facility: definition.key };
+    }
+  }
+  return null;
+}
+
+export function applySoakManagementPolicy(
+  snapshot: CloudGameSnapshot,
+): SoakManagementPolicyResult {
+  if (
+    snapshot.state.pendingEvent ||
+    (snapshot.state.activeMatch &&
+      snapshot.state.activeMatch.phase !== "match-complete")
+  ) {
+    return { snapshot, actionCount: 0 };
+  }
+
+  let current = snapshot;
+  let actionCount = 0;
+
+  const coachAction = coachActionForCurrentYear(current);
+  if (coachAction) {
+    current = applyAction(current, coachAction).snapshot;
+    actionCount += 1;
+    assertSoakInvariants(current, { actionCount });
+  }
+
+  const nextFacilityAction = facilityAction(current);
+  if (nextFacilityAction) {
+    current = applyAction(current, nextFacilityAction).snapshot;
+    actionCount += 1;
+    assertSoakInvariants(current, { actionCount });
+  }
+
+  return { snapshot: current, actionCount };
 }
 
 function actionGuardError(
@@ -260,10 +384,6 @@ export function advanceSoakUntilWeekChanges(
     healedPlayerIds: [...healedPlayerIds].sort(),
     academicYearTransition,
   };
-}
-
-function userFunds(snapshot: CloudGameSnapshot): number {
-  return snapshot.state.schools[snapshot.state.userSchoolId]!.funds;
 }
 
 function userInjuredPlayerCount(snapshot: CloudGameSnapshot): number {
