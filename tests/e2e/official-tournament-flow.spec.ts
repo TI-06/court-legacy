@@ -252,7 +252,9 @@ for (const width of [320, 360, 390, 414, 480]) {
 
     if (width === 390) {
       await expect(page.getByRole("heading", { name: "MVP" })).toBeVisible();
-      await expect(page.getByRole("region", { name: "試合個人賞" })).toBeVisible();
+      await expect(
+        page.getByRole("region", { name: "試合個人賞" }),
+      ).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "チームスタッツ" }),
       ).toBeVisible();
