@@ -1,4 +1,5 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
+import type { SchoolFacilities } from "../../domain/model/School";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
@@ -76,9 +77,7 @@ function averageAbility(player: Player): number {
   );
 }
 
-function sortedFacilities(
-  facilities: Record<string, number>,
-): Record<string, number> {
+function sortedFacilities(facilities: SchoolFacilities): Record<string, number> {
   return Object.fromEntries(
     Object.entries(facilities).sort(([left], [right]) =>
       left.localeCompare(right),
