@@ -2,6 +2,7 @@ import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
 import type { SchoolFacilities } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
+import { FACILITY_MAX_LEVEL } from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { TournamentRound } from "../../domain/tournament/tournamentTypes";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
@@ -72,6 +73,16 @@ export interface SoakSnapshotMetrics {
   positionCounts: Record<string, number>;
 }
 
+export interface SoakFacilityProgress {
+  maxObservedLevel: number;
+  firstYearByLevel: Record<string, number>;
+}
+
+export interface SoakFacilityMilestoneSummary {
+  facilityMaxLevel: number;
+  byFacility: Record<string, SoakFacilityProgress>;
+}
+
 function percentile(sorted: readonly number[], ratio: number): number {
   if (sorted.length === 0) return 0;
   const index = Math.ceil(sorted.length * ratio) - 1;
@@ -133,6 +144,47 @@ function sortedFacilities(
       left.localeCompare(right),
     ),
   );
+}
+
+export function summarizeFacilityMilestones(
+  yearly: readonly Pick<SoakSnapshotMetrics, "yearIndex" | "facilities">[],
+): SoakFacilityMilestoneSummary {
+  const facilityNames = [
+    ...new Set(yearly.flatMap((metrics) => Object.keys(metrics.facilities))),
+  ].sort((left, right) => left.localeCompare(right));
+
+  const byFacility = Object.fromEntries(
+    facilityNames.map((facilityName) => {
+      let maxObservedLevel = 0;
+      const firstYearByLevel: Record<string, number> = {};
+
+      for (const metrics of yearly) {
+        const observedLevel = metrics.facilities[facilityName];
+        if (observedLevel === undefined) continue;
+        const boundedLevel = Math.max(
+          0,
+          Math.min(FACILITY_MAX_LEVEL, observedLevel),
+        );
+        for (let level = maxObservedLevel + 1; level <= boundedLevel; level += 1) {
+          firstYearByLevel[String(level)] = metrics.yearIndex;
+        }
+        maxObservedLevel = Math.max(maxObservedLevel, boundedLevel);
+      }
+
+      return [
+        facilityName,
+        {
+          maxObservedLevel,
+          firstYearByLevel,
+        },
+      ];
+    }),
+  );
+
+  return {
+    facilityMaxLevel: FACILITY_MAX_LEVEL,
+    byFacility,
+  };
 }
 
 function conditionHistogram(
