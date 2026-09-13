@@ -1,5 +1,7 @@
 const subjectPath = "../../../src/dev/soak/runBalanceSoak";
 
+vi.setConfig({ testTimeout: 15_000 });
+
 interface RunResult {
   snapshot: {
     state: {
@@ -80,26 +82,22 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     );
   });
 
-  it(
-    "completes the fast three-season regression without leaving a blocking interaction",
-    async () => {
-      const { runBalanceSoak } = await loadSubject();
+  it("completes the fast three-season regression without leaving a blocking interaction", async () => {
+    const { runBalanceSoak } = await loadSubject();
 
-      const result = runBalanceSoak({
-        seed: "phase18-short-regression",
-        preset: "short",
-      });
+    const result = runBalanceSoak({
+      seed: "phase18-short-regression",
+      preset: "short",
+    });
 
-      expect(result.report.metadata.targetSeasons).toBe(3);
-      expect(result.report.metadata.completedSeasons).toBe(3);
-      expect(result.report.yearly).toHaveLength(3);
-      expect(result.snapshot.state.pendingEvent).toBeNull();
-      expect(
-        result.snapshot.state.activeMatch === null ||
-          result.snapshot.state.activeMatch.phase === "match-complete",
-      ).toBe(true);
-      expect(result.summary).toContain("phase18-short-regression");
-    },
-    15_000,
-  );
+    expect(result.report.metadata.targetSeasons).toBe(3);
+    expect(result.report.metadata.completedSeasons).toBe(3);
+    expect(result.report.yearly).toHaveLength(3);
+    expect(result.snapshot.state.pendingEvent).toBeNull();
+    expect(
+      result.snapshot.state.activeMatch === null ||
+        result.snapshot.state.activeMatch.phase === "match-complete",
+    ).toBe(true);
+    expect(result.summary).toContain("phase18-short-regression");
+  });
 });
