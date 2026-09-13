@@ -15,14 +15,8 @@ function assert(condition, message) {
   }
 }
 
-assert(
-  /^\d+\.\d+\.\d+$/.test(version),
-  `invalid package version: ${version}`,
-);
-assert(
-  version !== "0.0.0",
-  "release package version must not remain 0.0.0",
-);
+assert(/^\d+\.\d+\.\d+$/.test(version), `invalid package version: ${version}`);
+assert(version !== "0.0.0", "release package version must not remain 0.0.0");
 assert(
   lock.name === pkg.name,
   "package-lock package name does not match package.json",
