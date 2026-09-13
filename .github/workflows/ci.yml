@@ -49,10 +49,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Show canonical soak metrics formatting
-        run: |
-          npx prettier src/dev/soak/soakMetrics.ts --write
-          git diff -- src/dev/soak/soakMetrics.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Run Phase18 soak smoke preset
