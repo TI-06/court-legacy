@@ -14,6 +14,12 @@ interface YearlyMetrics {
   injuredPlayerWeeks: number;
   newInjuries: number;
   healedInjuries: number;
+  facilities: Record<string, number>;
+  assistantCoach: {
+    rank: string;
+    specialty: string | null;
+    contractYearIndex: number;
+  } | null;
 }
 
 interface FacilityProgress {
@@ -87,6 +93,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       seed: "phase18-deterministic",
       preset: "smoke",
     });
+    const firstYear = first.report.yearly[0]!;
 
     expect(first.report).toEqual(second.report);
     expect(first.summary).toBe(second.summary);
@@ -98,8 +105,16 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(Object.keys(first.report.facilityMilestones.byFacility).length).toBe(
       8,
     );
+    expect(firstYear.assistantCoach).toEqual({
+      rank: "intermediate",
+      specialty: "attack",
+      contractYearIndex: 1,
+    });
+    expect(first.report.facilityMilestones.byFacility.gym!.maxObservedLevel).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(first.summary).toMatch(/facilit/i);
-    expect(first.summary).toMatch(/coach/i);
+    expect(first.summary).toContain("coach=intermediate/attack");
   });
 
   it("tracks the completed academic year instead of reporting the new rollover year", async () => {
