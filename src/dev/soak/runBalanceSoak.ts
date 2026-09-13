@@ -437,7 +437,8 @@ function observeWeekStart(
   tracker.fundsMax = Math.max(tracker.fundsMax, funds);
   if (funds === 0) tracker.zeroFundWeeks += 1;
   tracker.injuredPlayerWeeks += userInjuredPlayerCount(snapshot);
-  tracker.assistantCoach = currentAssistantCoach(snapshot) ?? tracker.assistantCoach;
+  tracker.assistantCoach =
+    currentAssistantCoach(snapshot) ?? tracker.assistantCoach;
 }
 
 function observeSameYearEnd(
