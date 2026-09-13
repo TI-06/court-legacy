@@ -75,7 +75,7 @@ export class SoakActionGuardError extends Error {
     public readonly maximum: number,
   ) {
     super(
-      `soak action guard exhausted: seed=${seed} date=${date} year=${yearIndex} week=${weekOfYear} actionCount=${actionCount} maxActionsPerWeek=${maximum}`,
+      `soak failure: seed=${seed} date=${date} action guard exhausted: year=${yearIndex} week=${weekOfYear} actionCount=${actionCount} maxActionsPerWeek=${maximum}`,
     );
     this.name = "SoakActionGuardError";
   }
