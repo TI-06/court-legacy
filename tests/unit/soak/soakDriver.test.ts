@@ -52,12 +52,14 @@ describe("Phase18 soak production action driver", () => {
     const { createSoakSnapshot, advanceSoakUntilWeekChanges } =
       await loadSubject();
     const snapshot = createSoakSnapshot("phase18-event-seed");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const actorPlayerId = school.playerIds[0]!;
     snapshot.state.pendingEvent = {
-      eventId: "event.club-room-cleanup",
-      actorPlayerIds: [],
+      eventId: "event.rainy-season-laundry",
+      actorPlayerIds: [actorPlayerId],
       targetSchoolId: null,
       surfacedDate: snapshot.state.date,
-      choiceIds: ["choice.ignore", "choice.clean"],
+      choiceIds: ["rotate", "service"],
       chainId: null,
       chainStage: null,
     } as never;
