@@ -94,6 +94,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       preset: "smoke",
     });
     const firstYear = first.report.yearly[0]!;
+    const gymMilestone = first.report.facilityMilestones.byFacility.gym!;
 
     expect(first.report).toEqual(second.report);
     expect(first.summary).toBe(second.summary);
@@ -110,9 +111,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       specialty: "attack",
       contractYearIndex: 1,
     });
-    expect(first.report.facilityMilestones.byFacility.gym!.maxObservedLevel).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(gymMilestone.maxObservedLevel).toBeGreaterThanOrEqual(1);
     expect(first.summary).toMatch(/facilit/i);
     expect(first.summary).toContain("coach=intermediate/attack");
   });
