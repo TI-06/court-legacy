@@ -204,7 +204,7 @@ function officialStatus(
 
 for (const width of [320, 360, 390, 414, 480]) {
   const criticalPrefix = width === 390 ? "@critical " : "";
-  test(`${criticalPrefix}Phase18 official match stays pending until completion and presents volleyball stats at ${width}px`, async ({
+  test(`${criticalPrefix}official match completes with volleyball stats at ${width}px`, async ({
     page,
   }) => {
     const seeded = officialSnapshot();
