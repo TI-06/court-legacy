@@ -22,6 +22,9 @@ interface MetricContext {
   newInjuries?: number;
   healedInjuries?: number;
   intakePlayerIds?: string[];
+  growthTypeByPlayerId?: Record<string, string>;
+  nationalParticipantStrengthValues?: number[];
+  assistantCoachChanges?: number;
 }
 
 interface SnapshotMetrics {
@@ -58,10 +61,12 @@ interface SnapshotMetrics {
     specialty: string | null;
     contractYearIndex: number;
   } | null;
+  assistantCoachChanges: number;
   tournamentSummaryCount: number;
   userNationalTitles: number;
   userTournamentTitles: number;
   userBestTournamentRound: string | null;
+  nationalParticipantStrength: Distribution;
   nationalChampionStrength: Distribution;
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
@@ -205,7 +210,40 @@ describe("Phase18 soak balance metrics", () => {
     expect(metrics.healedInjuries).toBe(1);
   });
 
-  it("reports user tournament progress and observable national champion strength", async () => {
+  it("preserves growth types for players that have graduated before year-end reporting", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-graduate-growth");
+    const userSchool = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const playerId = userSchool.playerIds[0]!;
+    const growthTypeId = snapshot.state.players[playerId]!.growthTypeId;
+    const year = snapshot.state.yearIndex;
+
+    snapshot.state.history.playerDevelopmentWeeks.push({
+      gameDate: snapshot.state.date,
+      academicYearIndex: year,
+      weekOfYear: snapshot.state.calendar.weekOfYear,
+      trainingMenuId: "balanced",
+      players: [
+        {
+          playerId,
+          totalAbilityGrowth: 9,
+          abilityChanges: { spike: 5, receive: 4 },
+        },
+      ],
+    });
+    delete snapshot.state.players[playerId];
+    userSchool.playerIds = userSchool.playerIds.filter((id) => id !== playerId);
+
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      academicYearIndex: year,
+      growthTypeByPlayerId: { [playerId]: growthTypeId },
+    });
+
+    expect(metrics.growthByGrowthType[growthTypeId]).toBe(9);
+    expect(metrics.growthByGrowthType.unknown).toBeUndefined();
+  });
+
+  it("reports user tournament progress, national participant strength and coach lifecycle counts", async () => {
     const { captureSoakSnapshotMetrics } = await loadSubject();
     const snapshot = createSoakSnapshot("phase18-metrics-tournament");
     const state = snapshot.state;
@@ -230,12 +268,23 @@ describe("Phase18 soak balance metrics", () => {
 
     const metrics = captureSoakSnapshotMetrics(snapshot, {
       academicYear: state.calendar.academicYear,
+      nationalParticipantStrengthValues: [48, 52, 60],
+      assistantCoachChanges: 2,
     });
 
     expect(metrics.userTournamentTitles).toBe(1);
     expect(metrics.userBestTournamentRound).toBe("final");
+    expect(metrics.nationalParticipantStrength).toEqual({
+      count: 3,
+      min: 48,
+      p50: 52,
+      p90: 60,
+      max: 60,
+      mean: 53.33,
+    });
     expect(metrics.nationalChampionStrength.count).toBe(1);
     expect(metrics.nationalChampionStrength.mean).toBeGreaterThan(0);
+    expect(metrics.assistantCoachChanges).toBe(2);
   });
 
   it("formats a concise human-readable per-seed summary", async () => {
