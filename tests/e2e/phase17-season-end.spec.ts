@@ -43,8 +43,10 @@ async function seedYearEndState(page: Page, legacy = false) {
 
   await page.addInitScript(
     ({ gameStateKey, serverSnapshotKey, snapshotValue }) => {
-      sessionStorage.setItem(gameStateKey, "ready");
-      sessionStorage.setItem(serverSnapshotKey, JSON.stringify(snapshotValue));
+      if (!sessionStorage.getItem(serverSnapshotKey)) {
+        sessionStorage.setItem(gameStateKey, "ready");
+        sessionStorage.setItem(serverSnapshotKey, JSON.stringify(snapshotValue));
+      }
     },
     {
       gameStateKey: E2E_GAME_STATE_KEY,
