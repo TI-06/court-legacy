@@ -4,7 +4,7 @@ import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
 
-const DEFAULT_MAX_ACTIONS_PER_WEEK = 64;
+const DEFAULT_MAX_ACTIONS_PER_WEEK = 512;
 
 export interface AdvanceSoakWeekOptions {
   maxActionsPerWeek?: number;
@@ -15,6 +15,22 @@ export interface AdvanceSoakWeekResult {
   actionCount: number;
   resolvedEvents: number;
   completedMatches: number;
+}
+
+export class SoakActionGuardError extends Error {
+  constructor(
+    public readonly seed: string,
+    public readonly date: string,
+    public readonly yearIndex: number,
+    public readonly weekOfYear: number,
+    public readonly actionCount: number,
+    public readonly maximum: number,
+  ) {
+    super(
+      `soak action guard exhausted: seed=${seed} date=${date} year=${yearIndex} week=${weekOfYear} actionCount=${actionCount} maxActionsPerWeek=${maximum}`,
+    );
+    this.name = "SoakActionGuardError";
+  }
 }
 
 export function createSoakSnapshot(seed: string): CloudGameSnapshot {
@@ -53,9 +69,18 @@ function applyAction(
   };
 }
 
-function actionGuardError(snapshot: CloudGameSnapshot, maximum: number): Error {
-  return new Error(
-    `soak action guard exhausted: seed=${snapshot.state.seed} date=${snapshot.state.date} maxActionsPerWeek=${maximum}`,
+function actionGuardError(
+  snapshot: CloudGameSnapshot,
+  actionCount: number,
+  maximum: number,
+): SoakActionGuardError {
+  return new SoakActionGuardError(
+    snapshot.state.seed,
+    snapshot.state.date,
+    snapshot.state.yearIndex,
+    snapshot.state.calendar.weekOfYear,
+    actionCount,
+    maximum,
   );
 }
 
@@ -100,7 +125,7 @@ export function advanceSoakUntilWeekChanges(
 
   while (current.state.date === startingDate) {
     if (actionCount >= maximum) {
-      throw actionGuardError(current, maximum);
+      throw actionGuardError(current, actionCount, maximum);
     }
 
     const action = nextAction(current);
