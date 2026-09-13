@@ -50,17 +50,17 @@ GitHub Actions run `34767072758` completed the management-enabled validation mat
 
 ### 10-season results
 
-| Seed | Weeks | Actions | Final-year funds | User strength | CPU p50 | Final coach | Facility range |
-| --- | ---: | ---: | --- | ---: | ---: | --- | --- |
-| phase18-release-a | 522 | 1427 | 12065 -> 1802 | 95 | 55 | master / attack | about Lv34-35 |
-| phase18-release-b | 522 | 1433 | 2316 -> 771 | 95 | 56 | master / attack | about Lv31-32 |
+| Seed              | Weeks | Actions | Final-year funds | User strength | CPU p50 | Final coach     | Facility range |
+| ----------------- | ----: | ------: | ---------------- | ------------: | ------: | --------------- | -------------- |
+| phase18-release-a |   522 |    1427 | 12065 -> 1802    |            95 |      55 | master / attack | about Lv34-35  |
+| phase18-release-b |   522 |    1433 | 2316 -> 771      |            95 |      56 | master / attack | about Lv31-32  |
 
 ### 30-season results
 
-| Seed | Weeks | Actions | Final-year funds | User strength | CPU p50 | Final coach | Highest observed facility |
-| --- | ---: | ---: | --- | ---: | ---: | --- | ---: |
-| phase18-release-a | 1566 | 4349 | 4033 -> 2719 | 92 | 56 | master / physical | 47 |
-| phase18-release-b | 1566 | 4321 | 10634 -> 9586 | 94 | 56 | master / physical | 38 |
+| Seed              | Weeks | Actions | Final-year funds | User strength | CPU p50 | Final coach       | Highest observed facility |
+| ----------------- | ----: | ------: | ---------------- | ------------: | ------: | ----------------- | ------------------------: |
+| phase18-release-a |  1566 |    4349 | 4033 -> 2719     |            92 |      56 | master / physical |                        47 |
+| phase18-release-b |  1566 |    4321 | 10634 -> 9586    |            94 |      56 | master / physical |                        38 |
 
 Seed A ended with alumni association, dormitory, scouting network and study room at Lv47. Seed B was more evenly distributed, with gym reaching Lv38. Neither release seed reached Lv50 within 30 seasons. This is balance evidence, not an invariant failure; the harness still tracks milestones through the production maximum of Lv50.
 
