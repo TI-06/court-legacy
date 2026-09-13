@@ -66,15 +66,15 @@ function parseArgs(argv) {
   return {
     help: false,
     preset,
-    seeds: [
-      ...new Set(parsedSeeds.length > 0 ? parsedSeeds : DEFAULT_SEEDS),
-    ],
+    seeds: [...new Set(parsedSeeds.length > 0 ? parsedSeeds : DEFAULT_SEEDS)],
     output: output?.trim() || undefined,
   };
 }
 
 function printHelp() {
-  console.log(`Phase18 balance soak\n\nUsage:\n  node scripts/runBalanceSoak.mjs [options]\n\nOptions:\n  --preset smoke|short|balance|long   Horizon (default: short)\n  --seed <seed[,seed...]>             Repeatable deterministic seed\n  --output <directory>                Write JSON and text reports\n  -h, --help                          Show this help\n`);
+  console.log(
+    `Phase18 balance soak\n\nUsage:\n  node scripts/runBalanceSoak.mjs [options]\n\nOptions:\n  --preset smoke|short|balance|long   Horizon (default: short)\n  --seed <seed[,seed...]>             Repeatable deterministic seed\n  --output <directory>                Write JSON and text reports\n  -h, --help                          Show this help\n`,
+  );
 }
 
 function main() {
