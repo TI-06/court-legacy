@@ -87,6 +87,7 @@ export interface GeneratePlayerInput {
   data: GameDataRegistry;
   random: RandomSource;
   preferredPosition?: Position;
+  abilityBonus?: number;
   excludedFullNames: Set<string>;
 }
 
@@ -96,6 +97,7 @@ export interface GenerateInitialSquadInput {
   firstPlayerNumber: number;
   data: GameDataRegistry;
   random: RandomSource;
+  abilityBonus?: number;
 }
 
 export interface GenerateIntakeInput {
@@ -106,6 +108,7 @@ export interface GenerateIntakeInput {
   random: RandomSource;
   currentPlayers: readonly Player[];
   count?: number;
+  abilityBonus?: number;
 }
 
 interface PlayerDevelopmentCharacteristics {
@@ -185,6 +188,7 @@ function generateAbilities(
   position: Position,
   tier: PlayerTier,
   random: RandomSource,
+  abilityBonus: number,
 ): PlayerAbilities {
   const tierOffset = TIER_ABILITY_OFFSET[tier];
   const boosts = POSITION_BOOSTS[position];
@@ -193,7 +197,7 @@ function generateAbilities(
   for (const ability of ABILITY_KEYS) {
     const base = random.int(28, 52);
     abilities[ability] = clampAbility(
-      base + tierOffset + (boosts[ability] ?? 0),
+      base + tierOffset + abilityBonus + (boosts[ability] ?? 0),
     );
   }
 
@@ -305,7 +309,12 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
       input.tier,
       input.random,
     ),
-    abilities: generateAbilities(position, input.tier, input.random),
+    abilities: generateAbilities(
+      position,
+      input.tier,
+      input.random,
+      input.abilityBonus ?? 0,
+    ),
     condition: input.random.int(75, 100),
     fatigue: 0,
     morale: input.random.int(55, 85),
@@ -364,6 +373,7 @@ export function generateInitialSquad(
       enrolledYear: Math.max(1, input.academicYear - grade + 1),
       tier: "normal",
       preferredPosition: position,
+      abilityBonus: input.abilityBonus,
       data: input.data,
       random: input.random,
       excludedFullNames,
@@ -388,6 +398,7 @@ export function generateIntake(input: GenerateIntakeInput): Player[] {
       grade: 1,
       enrolledYear: input.academicYear,
       tier: "normal",
+      abilityBonus: input.abilityBonus,
       data: input.data,
       random: input.random,
       excludedFullNames,
