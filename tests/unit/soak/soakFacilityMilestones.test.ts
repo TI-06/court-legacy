@@ -1,3 +1,5 @@
+export {};
+
 const subjectPath = "../../../src/dev/soak/soakMetrics";
 
 interface FacilityProgress {
