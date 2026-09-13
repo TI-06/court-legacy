@@ -49,6 +49,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Show canonical soak formatting
+        run: |
+          npx prettier scripts/runBalanceSoak.mjs tests/soak/phase18BalanceSoak.test.ts --write
+          git diff -- scripts/runBalanceSoak.mjs tests/soak/phase18BalanceSoak.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
 
