@@ -84,7 +84,7 @@ describe("Phase18 soak hard invariants", () => {
     expect(codes).toContain("invalid_team_selection");
   });
 
-  it("throws one reproducible invariant error with seed, date and action count", async () => {
+  it("throws one reproducible invariant error with seed, date, year, week and action count", async () => {
     const { assertSoakInvariants } = await loadSubject();
     const snapshot = cloneSnapshot(
       createSoakSnapshot("phase18-invariant-repro"),
@@ -92,7 +92,7 @@ describe("Phase18 soak hard invariants", () => {
     snapshot.state.randomCursor = Number.POSITIVE_INFINITY;
 
     expect(() => assertSoakInvariants(snapshot, { actionCount: 17 })).toThrow(
-      /phase18-invariant-repro.*2026-04-01.*17.*non_finite/i,
+      /phase18-invariant-repro.*2026-04-01.*year=1.*week=1.*actionCount=17.*non_finite/i,
     );
   });
 });
