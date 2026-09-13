@@ -44,78 +44,69 @@ async function loadSubject(): Promise<MetricsSubject> {
 }
 
 describe("Phase18 soak balance metrics", () => {
-  it(
-    "captures deterministic financial, strength, ability and facility evidence",
-    async () => {
-      const { captureSoakSnapshotMetrics } = await loadSubject();
-      const snapshot = createSoakSnapshot("phase18-metrics-seed");
+  it("captures deterministic financial, strength, ability and facility evidence", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-seed");
 
-      const first = captureSoakSnapshotMetrics(snapshot);
-      const second = captureSoakSnapshotMetrics(snapshot);
+    const first = captureSoakSnapshotMetrics(snapshot);
+    const second = captureSoakSnapshotMetrics(snapshot);
 
-      expect(first).toEqual(second);
-      expect(first.seed).toBe("phase18-metrics-seed");
-      expect(first.userFunds).toBeGreaterThanOrEqual(0);
-      expect(first.userStrength).toBeGreaterThan(0);
-      expect(first.cpuStrength.count).toBeGreaterThan(0);
-      expect(first.playerAbility.count).toBeGreaterThan(0);
-      expect(first.condition.count).toBeGreaterThan(0);
-      expect(Object.keys(first.facilities).sort()).toHaveLength(8);
-    },
-  );
+    expect(first).toEqual(second);
+    expect(first.seed).toBe("phase18-metrics-seed");
+    expect(first.userFunds).toBeGreaterThanOrEqual(0);
+    expect(first.userStrength).toBeGreaterThan(0);
+    expect(first.cpuStrength.count).toBeGreaterThan(0);
+    expect(first.playerAbility.count).toBeGreaterThan(0);
+    expect(first.condition.count).toBeGreaterThan(0);
+    expect(Object.keys(first.facilities).sort()).toHaveLength(8);
+  });
 
-  it(
-    "keeps stable sorted categorical counts for player balance inspection",
-    async () => {
-      const { captureSoakSnapshotMetrics } = await loadSubject();
-      const snapshot = createSoakSnapshot("phase18-metrics-counts");
-      const metrics = captureSoakSnapshotMetrics(snapshot);
+  it("keeps stable sorted categorical counts for player balance inspection", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-counts");
+    const metrics = captureSoakSnapshotMetrics(snapshot);
 
-      expect(Object.keys(metrics.playerTierCounts)).toEqual(
-        [...Object.keys(metrics.playerTierCounts)].sort(),
-      );
-      expect(Object.keys(metrics.growthTypeCounts)).toEqual(
-        [...Object.keys(metrics.growthTypeCounts)].sort(),
-      );
-      expect(Object.keys(metrics.positionCounts)).toEqual(
-        [...Object.keys(metrics.positionCounts)].sort(),
-      );
-    },
-  );
+    expect(Object.keys(metrics.playerTierCounts)).toEqual(
+      [...Object.keys(metrics.playerTierCounts)].sort(),
+    );
+    expect(Object.keys(metrics.growthTypeCounts)).toEqual(
+      [...Object.keys(metrics.growthTypeCounts)].sort(),
+    );
+    expect(Object.keys(metrics.positionCounts)).toEqual(
+      [...Object.keys(metrics.positionCounts)].sort(),
+    );
+  });
 
-  it(
-    "derives annual income and expense from the authoritative funds ledger",
-    async () => {
-      const { captureSoakSnapshotMetrics } = await loadSubject();
-      const snapshot = createSoakSnapshot("phase18-metrics-ledger");
-      const year = snapshot.state.yearIndex;
-      snapshot.state.schoolManagement.fundsHistory.push(
-        {
-          id: "soak-income",
-          gameDate: snapshot.state.date,
-          academicYearIndex: year,
-          kind: "annual-budget",
-          amount: 120,
-          balanceAfter: 820,
-          label: "test income",
-        },
-        {
-          id: "soak-expense",
-          gameDate: snapshot.state.date,
-          academicYearIndex: year,
-          kind: "facility-upgrade",
-          amount: -45,
-          balanceAfter: 775,
-          label: "test expense",
-        },
-      );
+  it("derives annual income and expense from the authoritative funds ledger", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-ledger");
+    const year = snapshot.state.yearIndex;
+    snapshot.state.schoolManagement.fundsHistory.push(
+      {
+        id: "soak-income",
+        gameDate: snapshot.state.date,
+        academicYearIndex: year,
+        kind: "annual-budget",
+        amount: 120,
+        balanceAfter: 820,
+        label: "test income",
+      },
+      {
+        id: "soak-expense",
+        gameDate: snapshot.state.date,
+        academicYearIndex: year,
+        kind: "facility-upgrade",
+        amount: -45,
+        balanceAfter: 775,
+        label: "test expense",
+      },
+    );
 
-      const metrics = captureSoakSnapshotMetrics(snapshot);
+    const metrics = captureSoakSnapshotMetrics(snapshot);
 
-      expect(metrics.yearlyIncome).toBeGreaterThanOrEqual(120);
-      expect(metrics.yearlyExpense).toBeGreaterThanOrEqual(45);
-    },
-  );
+    expect(metrics.yearlyIncome).toBeGreaterThanOrEqual(120);
+    expect(metrics.yearlyExpense).toBeGreaterThanOrEqual(45);
+  });
 
   it("formats a concise human-readable per-seed summary", async () => {
     const { captureSoakSnapshotMetrics, formatSoakSnapshotSummary } =
