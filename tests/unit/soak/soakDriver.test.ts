@@ -44,10 +44,11 @@ describe("Phase18 soak production action driver", () => {
     const gymBefore = schoolBefore.facilities.gym;
 
     const first = applySoakManagementPolicy(before);
-    const firstSchool = first.snapshot.state.schools[first.snapshot.state.userSchoolId]!;
+    const firstState = first.snapshot.state;
+    const firstSchool = firstState.schools[firstState.userSchoolId]!;
 
     expect(first.actionCount).toBe(2);
-    expect(first.snapshot.state.schoolManagement.assistantCoach).toEqual({
+    expect(firstState.schoolManagement.assistantCoach).toEqual({
       rank: "intermediate",
       specialty: "attack",
       contractYearIndex: before.state.yearIndex,
@@ -59,7 +60,7 @@ describe("Phase18 soak production action driver", () => {
     const second = applySoakManagementPolicy(first.snapshot);
     expect(second.actionCount).toBe(1);
     expect(second.snapshot.state.schoolManagement.assistantCoach).toEqual(
-      first.snapshot.state.schoolManagement.assistantCoach,
+      firstState.schoolManagement.assistantCoach,
     );
   });
 
@@ -70,12 +71,12 @@ describe("Phase18 soak production action driver", () => {
     snapshot.state.schools[snapshot.state.userSchoolId]!.funds = 300;
 
     const result = applySoakManagementPolicy(snapshot);
+    const resultState = result.snapshot.state;
+    const resultSchool = resultState.schools[resultState.userSchoolId]!;
 
     expect(result.actionCount).toBe(0);
-    expect(
-      result.snapshot.state.schools[result.snapshot.state.userSchoolId]!.funds,
-    ).toBe(300);
-    expect(result.snapshot.state.schoolManagement.assistantCoach).toBeNull();
+    expect(resultSchool.funds).toBe(300);
+    expect(resultState.schoolManagement.assistantCoach).toBeNull();
   });
 
   it("advances a normal game week through the production game action boundary", async () => {
