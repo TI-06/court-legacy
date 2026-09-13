@@ -136,7 +136,9 @@ export function captureSoakSnapshotMetrics(
     tournamentSummaryCount: state.history.officialTournaments.length,
     userNationalTitles: userSchool.history.nationalTitles,
     playerTierCounts: sortedCounts(players.map((player) => player.tier)),
-    growthTypeCounts: sortedCounts(players.map((player) => player.growthTypeId)),
+    growthTypeCounts: sortedCounts(
+      players.map((player) => player.growthTypeId),
+    ),
     positionCounts: sortedCounts(
       players.map((player) => player.preferredPosition),
     ),
