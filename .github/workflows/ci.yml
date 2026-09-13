@@ -53,6 +53,10 @@ jobs:
         run: npm run verify
       - name: Run Phase18 soak smoke preset
         run: npm run soak:smoke
+      - name: Run Phase18 soak balance preset
+        run: npm run soak:balance
+      - name: Run Phase18 soak long preset
+        run: npm run soak:long
 
   mobile-e2e:
     needs: quality
