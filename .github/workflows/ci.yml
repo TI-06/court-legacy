@@ -49,11 +49,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Show canonical soak formatting
-        run: |
-          npx prettier src/dev/soak/runBalanceSoak.ts --write
-          git diff -- src/dev/soak/runBalanceSoak.ts
-          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Run Phase18 soak smoke preset
