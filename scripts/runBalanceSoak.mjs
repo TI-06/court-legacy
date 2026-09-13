@@ -66,7 +66,9 @@ function parseArgs(argv) {
   return {
     help: false,
     preset,
-    seeds: [...new Set(parsedSeeds.length > 0 ? parsedSeeds : DEFAULT_SEEDS)],
+    seeds: [
+      ...new Set(parsedSeeds.length > 0 ? parsedSeeds : DEFAULT_SEEDS),
+    ],
     output: output?.trim() || undefined,
   };
 }
@@ -122,7 +124,9 @@ function main() {
   );
 
   if (result.error) {
-    console.error(`[phase18-soak] failed to start Vitest: ${result.error.message}`);
+    console.error(
+      `[phase18-soak] failed to start Vitest: ${result.error.message}`,
+    );
     process.exitCode = 1;
     return;
   }
