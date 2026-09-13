@@ -1,7 +1,5 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
-import {
-  calculateSelectionStrength,
-} from "../../domain/selectors/matchSelectors";
+import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
@@ -138,9 +136,7 @@ export function captureSoakSnapshotMetrics(
     tournamentSummaryCount: state.history.officialTournaments.length,
     userNationalTitles: userSchool.history.nationalTitles,
     playerTierCounts: sortedCounts(players.map((player) => player.tier)),
-    growthTypeCounts: sortedCounts(
-      players.map((player) => player.growthTypeId),
-    ),
+    growthTypeCounts: sortedCounts(players.map((player) => player.growthTypeId)),
     positionCounts: sortedCounts(
       players.map((player) => player.preferredPosition),
     ),
