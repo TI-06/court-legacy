@@ -8,25 +8,31 @@ interface ReloadTarget {
   reload: () => void;
 }
 
+type Registration = ServiceWorkerRegistration | null;
+
 export function useAppUpdate(
   navigatorLike: Navigator = globalThis.navigator,
   reloadTarget: ReloadTarget = globalThis.location,
 ) {
-  const [registration, setRegistration] =
-    useState<ServiceWorkerRegistration | null>(null);
+  const [registration, setRegistration] = useState<Registration>(null);
   const [updateReady, setUpdateReady] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    void registerServiceWorker(
-      () => {
-        if (active) setUpdateReady(true);
-      },
-      navigatorLike,
-    ).then((nextRegistration) => {
+    const handleUpdateReady = () => {
+      if (active) setUpdateReady(true);
+    };
+
+    const register = async () => {
+      const nextRegistration = await registerServiceWorker(
+        handleUpdateReady,
+        navigatorLike,
+      );
       if (active) setRegistration(nextRegistration);
-    });
+    };
+
+    void register();
 
     return () => {
       active = false;
