@@ -77,7 +77,9 @@ function averageAbility(player: Player): number {
   );
 }
 
-function sortedFacilities(facilities: SchoolFacilities): Record<string, number> {
+function sortedFacilities(
+  facilities: SchoolFacilities,
+): Record<string, number> {
   return Object.fromEntries(
     Object.entries(facilities).sort(([left], [right]) =>
       left.localeCompare(right),
