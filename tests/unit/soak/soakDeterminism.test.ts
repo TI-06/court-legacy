@@ -16,15 +16,14 @@ interface YearlyMetrics {
   healedInjuries: number;
 }
 
+interface FacilityProgress {
+  maxObservedLevel: number;
+  firstYearByLevel: Record<string, number>;
+}
+
 interface FacilityMilestones {
   facilityMaxLevel: number;
-  byFacility: Record<
-    string,
-    {
-      maxObservedLevel: number;
-      firstYearByLevel: Record<string, number>;
-    }
-  >;
+  byFacility: Record<string, FacilityProgress>;
 }
 
 interface RunResult {
@@ -96,7 +95,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.report.metadata.actions).toBeGreaterThan(0);
     expect(first.report.metadata.schemaVersion).toBe(8);
     expect(first.report.facilityMilestones.facilityMaxLevel).toBe(50);
-    expect(Object.keys(first.report.facilityMilestones.byFacility)).toHaveLength(
+    expect(Object.keys(first.report.facilityMilestones.byFacility).length).toBe(
       8,
     );
     expect(first.summary).toMatch(/facilit/i);
