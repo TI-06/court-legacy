@@ -51,6 +51,8 @@ jobs:
         run: npm ci --no-audit --fund=false
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
+      - name: Run Phase18 soak smoke preset
+        run: npm run soak:smoke
 
   mobile-e2e:
     needs: quality
