@@ -32,7 +32,10 @@ function parseSeeds(raw: string | undefined): string[] {
 }
 
 function safeFilePart(value: string): string {
-  return value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "seed";
+  return (
+    value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") ||
+    "seed"
+  );
 }
 
 const preset = parsePreset(process.env.PHASE18_SOAK_PRESET);
@@ -64,7 +67,11 @@ async function writeArtifacts(
       `${JSON.stringify(result.report, null, 2)}\n`,
       "utf8",
     ),
-    writeFile(resolve(directory, `${baseName}.txt`), `${result.summary}\n`, "utf8"),
+    writeFile(
+      resolve(directory, `${baseName}.txt`),
+      `${result.summary}\n`,
+      "utf8",
+    ),
   ]);
 }
 
@@ -75,7 +82,9 @@ describeSoak("Phase18 release soak presets", () => {
 
       expect(result.report.metadata.seed).toBe(seed);
       expect(result.report.metadata.preset).toBe(preset);
-      expect(result.report.metadata.completedSeasons).toBe(SOAK_PRESETS[preset]);
+      expect(result.report.metadata.completedSeasons).toBe(
+        SOAK_PRESETS[preset],
+      );
       expect(result.report.metadata.targetSeasons).toBe(SOAK_PRESETS[preset]);
       expect(result.snapshot.state.pendingEvent).toBeNull();
       expect(
