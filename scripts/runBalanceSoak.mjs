@@ -115,7 +115,13 @@ function main() {
 
   const result = spawnSync(
     process.execPath,
-    [vitestEntry, "run", "tests/soak/phase18BalanceSoak.test.ts"],
+    [
+      vitestEntry,
+      "run",
+      "--config",
+      "vitest.soak.config.ts",
+      "tests/soak/phase18BalanceSoak.test.ts",
+    ],
     {
       cwd: process.cwd(),
       env: environment,
