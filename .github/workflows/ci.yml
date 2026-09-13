@@ -49,10 +49,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Diagnose Phase18 report formatting
-        run: |
-          npx prettier docs/superpowers/reports/2026-09-14-phase18-pr18-2-soak-balance-results.md --write
-          git diff -- docs/superpowers/reports/2026-09-14-phase18-pr18-2-soak-balance-results.md
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Run Phase18 soak smoke preset
