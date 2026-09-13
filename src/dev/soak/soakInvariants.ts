@@ -18,11 +18,13 @@ export class SoakInvariantError extends Error {
     public readonly violations: readonly SoakInvariantViolation[],
     public readonly seed: string,
     public readonly date: string,
+    public readonly yearIndex: number,
+    public readonly weekOfYear: number,
     public readonly actionCount: number | undefined,
   ) {
     const codes = violations.map((item) => item.code).join(",");
     super(
-      `soak invariant failure: seed=${seed} date=${date} actionCount=${actionCount ?? "n/a"} codes=${codes}`,
+      `soak invariant failure: seed=${seed} date=${date} year=${yearIndex} week=${weekOfYear} actionCount=${actionCount ?? "n/a"} codes=${codes}`,
     );
     this.name = "SoakInvariantError";
   }
@@ -267,6 +269,8 @@ export function assertSoakInvariants(
     violations,
     snapshot.state.seed,
     snapshot.state.date,
+    snapshot.state.yearIndex,
+    snapshot.state.calendar.weekOfYear,
     context.actionCount,
   );
 }
