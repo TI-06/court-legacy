@@ -1,5 +1,6 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
 import type { SchoolFacilities } from "../../domain/model/School";
+import type { PlayerId } from "../../domain/model/identifiers";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { TournamentRound } from "../../domain/tournament/tournamentTypes";
@@ -24,7 +25,7 @@ export interface SoakMetricContext {
   injuredPlayerWeeks?: number;
   newInjuries?: number;
   healedInjuries?: number;
-  intakePlayerIds?: readonly string[];
+  intakePlayerIds?: readonly PlayerId[];
 }
 
 export interface SoakSnapshotMetrics {
@@ -107,7 +108,9 @@ function sortedCounts(values: readonly string[]): Record<string, number> {
   );
 }
 
-function sortedTotals(entries: ReadonlyMap<string, number>): Record<string, number> {
+function sortedTotals(
+  entries: ReadonlyMap<string, number>,
+): Record<string, number> {
   return Object.fromEntries(
     [...entries.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
@@ -132,7 +135,9 @@ function sortedFacilities(
   );
 }
 
-function conditionHistogram(players: readonly Player[]): Record<string, number> {
+function conditionHistogram(
+  players: readonly Player[],
+): Record<string, number> {
   const histogram = {
     "0-19": 0,
     "20-39": 0,
@@ -247,10 +252,7 @@ export function captureSoakSnapshotMetrics(
       const schoolId = summary.champion.schoolId;
       if (!schoolId || !state.schools[schoolId]) return [];
       return [
-        calculateSelectionStrength(
-          state,
-          autoSelectTeam({ state, schoolId }),
-        ),
+        calculateSelectionStrength(state, autoSelectTeam({ state, schoolId })),
       ];
     });
 
