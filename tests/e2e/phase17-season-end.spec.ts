@@ -45,7 +45,10 @@ async function seedYearEndState(page: Page, legacy = false) {
     ({ gameStateKey, serverSnapshotKey, snapshotValue }) => {
       if (!sessionStorage.getItem(serverSnapshotKey)) {
         sessionStorage.setItem(gameStateKey, "ready");
-        sessionStorage.setItem(serverSnapshotKey, JSON.stringify(snapshotValue));
+        sessionStorage.setItem(
+          serverSnapshotKey,
+          JSON.stringify(snapshotValue),
+        );
       }
     },
     {
