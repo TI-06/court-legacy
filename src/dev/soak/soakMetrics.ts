@@ -27,6 +27,9 @@ export interface SoakMetricContext {
   newInjuries?: number;
   healedInjuries?: number;
   intakePlayerIds?: readonly PlayerId[];
+  growthTypeByPlayerId?: Readonly<Record<string, string>>;
+  nationalParticipantStrengthValues?: readonly number[];
+  assistantCoachChanges?: number;
 }
 
 export interface SoakSnapshotMetrics {
@@ -63,10 +66,12 @@ export interface SoakSnapshotMetrics {
     specialty: string | null;
     contractYearIndex: number;
   } | null;
+  assistantCoachChanges: number;
   tournamentSummaryCount: number;
   userNationalTitles: number;
   userTournamentTitles: number;
   userBestTournamentRound: TournamentRound | null;
+  nationalParticipantStrength: SoakDistribution;
   nationalChampionStrength: SoakDistribution;
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
@@ -287,7 +292,9 @@ export function captureSoakSnapshotMetrics(
     for (const development of week.players) {
       yearlyGrowthTotal += development.totalAbilityGrowth;
       const growthType =
-        state.players[development.playerId]?.growthTypeId ?? "unknown";
+        context.growthTypeByPlayerId?.[development.playerId] ??
+        state.players[development.playerId]?.growthTypeId ??
+        "unknown";
       growthByType.set(
         growthType,
         (growthByType.get(growthType) ?? 0) + development.totalAbilityGrowth,
@@ -351,6 +358,7 @@ export function captureSoakSnapshotMetrics(
             state.schoolManagement.assistantCoach.contractYearIndex,
         }
       : null,
+    assistantCoachChanges: context.assistantCoachChanges ?? 0,
     tournamentSummaryCount: tournamentSummaries.length,
     userNationalTitles: userSchool.history.nationalTitles,
     userTournamentTitles: tournamentSummaries.filter(
@@ -358,6 +366,9 @@ export function captureSoakSnapshotMetrics(
     ).length,
     userBestTournamentRound: bestTournamentRound(
       tournamentSummaries.map((summary) => summary.userResult.bestRound),
+    ),
+    nationalParticipantStrength: distribution(
+      context.nationalParticipantStrengthValues ?? [],
     ),
     nationalChampionStrength: distribution(nationalChampionStrengthValues),
     playerTierCounts: sortedCounts(players.map((player) => player.tier)),
@@ -387,7 +398,7 @@ export function formatSoakSnapshotSummary(
     `ability-mean=${metrics.playerAbility.mean} growth=${metrics.yearlyGrowthTotal}`,
     `intake=${metrics.intakeCount}`,
     `injured=${metrics.injuredPlayers} injury-weeks=${metrics.injuredPlayerWeeks} new=${metrics.newInjuries} healed=${metrics.healedInjuries} condition-mean=${metrics.condition.mean}`,
-    `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles}`,
-    `assistant-coach=${coach}`,
+    `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles} national-participants=${metrics.nationalParticipantStrength.count} national-p50=${metrics.nationalParticipantStrength.p50}`,
+    `assistant-coach=${coach} changes=${metrics.assistantCoachChanges}`,
   ].join(" | ");
 }
