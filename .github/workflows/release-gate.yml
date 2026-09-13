@@ -1,21 +1,19 @@
-name: CI
+name: Release Gate
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: release-gate-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  dependency-audit:
+  release-gate:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,45 +40,18 @@ jobs:
             fi
           done
           exit 1
-
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Install dependencies
-        run: npm ci --no-audit --fund=false
-      - name: Verify formatting, lint, types, tests, and build
-        run: npm run verify
-      - name: Verify release metadata and evidence
-        run: npm run release:check
-      - name: Run Phase18 soak smoke preset
-        run: npm run soak:smoke
-
-  mobile-e2e:
-    needs: quality
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: npm
-      - name: Install dependencies
-        run: npm ci --no-audit --fund=false
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Run mobile E2E tests
-        run: npm run test:e2e
+      - name: Run v0.1.0 release gate
+        env:
+          COURT_LEGACY_RELEASE_LONG_SOAK: "1"
+        run: npm run release:gate
       - name: Upload Playwright diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: release-gate-playwright-report
           path: |
             playwright-report
             test-results
-          retention-days: 7
+          retention-days: 14

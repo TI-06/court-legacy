@@ -1,7 +1,7 @@
 {
   "name": "court-legacy",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,8 @@
     "soak:smoke": "node scripts/runBalanceSoak.mjs --preset smoke",
     "soak:balance": "node scripts/runBalanceSoak.mjs --preset balance",
     "soak:long": "node scripts/runBalanceSoak.mjs --preset long",
+    "release:check": "node scripts/verifyReleaseEvidence.mjs",
+    "release:gate": "node scripts/runReleaseGate.mjs",
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
