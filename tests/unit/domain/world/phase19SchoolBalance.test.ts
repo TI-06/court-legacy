@@ -12,7 +12,7 @@ function averageAbility(player: Player): number {
 
 describe("Phase19 rival school balance", () => {
   it("applies an explicit school baseline bonus when generating a rival recruit", () => {
-    const baseInput = {
+    const createBaseInput = () => ({
       schoolId: schoolId("school-rival"),
       grade: 1 as const,
       enrolledYear: 1,
@@ -20,14 +20,14 @@ describe("Phase19 rival school balance", () => {
       preferredPosition: "OH" as const,
       data: gameData,
       excludedFullNames: new Set<string>(),
-    };
+    });
     const normal = generatePlayer({
-      ...baseInput,
+      ...createBaseInput(),
       id: playerId("player-normal-baseline"),
       random: new SeededRandom("phase19-recruit-baseline"),
     });
     const established = generatePlayer({
-      ...baseInput,
+      ...createBaseInput(),
       id: playerId("player-established-baseline"),
       abilityBonus: 8,
       random: new SeededRandom("phase19-recruit-baseline"),
