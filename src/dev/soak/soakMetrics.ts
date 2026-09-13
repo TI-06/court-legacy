@@ -71,10 +71,8 @@ function sortedCounts(values: readonly string[]): Record<string, number> {
 
 function averageAbility(player: Player): number {
   return round(
-    ABILITY_KEYS.reduce(
-      (sum, ability) => sum + player.abilities[ability],
-      0,
-    ) / ABILITY_KEYS.length,
+    ABILITY_KEYS.reduce((sum, ability) => sum + player.abilities[ability], 0) /
+      ABILITY_KEYS.length,
   );
 }
 
