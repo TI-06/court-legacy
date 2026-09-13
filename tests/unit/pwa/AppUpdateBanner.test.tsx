@@ -3,6 +3,7 @@ import { createElement, type ComponentType } from "react";
 import { vi } from "vitest";
 
 const subjectPath = "../../../src/pwa/AppUpdateBanner";
+const refreshButtonName = "更新して再読み込み";
 
 async function loadBanner() {
   const subject = (await import(subjectPath)) as {
@@ -17,30 +18,28 @@ async function loadBanner() {
 describe("Phase18 app update banner", () => {
   it("renders nothing when no update is ready", async () => {
     const AppUpdateBanner = await loadBanner();
-    render(
-      createElement(AppUpdateBanner, {
-        updateReady: false,
-        onRefresh: () => undefined,
-      }),
-    );
+    const props = {
+      updateReady: false,
+      onRefresh: () => undefined,
+    };
+    render(createElement(AppUpdateBanner, props));
 
-    expect(screen.queryByRole("status")).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: "更新して再読み込み" }),
-    ).toBeNull();
+    const status = screen.queryByRole("status");
+    const button = screen.queryByRole("button", { name: refreshButtonName });
+    expect(status).toBeNull();
+    expect(button).toBeNull();
   });
 
   it("shows a controlled refresh action when an update is ready", async () => {
     const AppUpdateBanner = await loadBanner();
     const onRefresh = vi.fn();
-    render(createElement(AppUpdateBanner, { updateReady: true, onRefresh }));
+    const props = { updateReady: true, onRefresh };
+    render(createElement(AppUpdateBanner, props));
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "新しいバージョンを利用できます",
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: "更新して再読み込み" }),
-    );
+    const status = screen.getByRole("status");
+    const button = screen.getByRole("button", { name: refreshButtonName });
+    expect(status).toHaveTextContent("新しいバージョンを利用できます");
+    fireEvent.click(button);
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 });
