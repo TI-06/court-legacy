@@ -32,6 +32,12 @@ async function startPvpMatch(page: Page) {
       "対人戦では相手選手の詳細能力は非公開です。公開戦力と戦術傾向を見て編成を決めます。",
     ),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "チームステータス比較" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("img", { name: "自校と相手の5項目戦力比較" }),
+  ).toHaveCount(0);
   await expectNoBodyOverflow(page);
 
   await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
@@ -103,7 +109,8 @@ async function continuePvpUntilRatedResult(
 }
 
 for (const width of [320, 360, 390, 414, 480]) {
-  test(`Phase16 PvP is resumable, rated, and mobile-safe at ${width}px`, async ({
+  const criticalPrefix = width === 360 ? "@critical " : "";
+  test(`${criticalPrefix}Phase18 PvP reconnect keeps authoritative state, privacy, and one rated result at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({
