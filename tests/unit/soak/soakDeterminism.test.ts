@@ -10,6 +10,7 @@ interface YearlyMetrics {
   fundsMax: number;
   zeroFundWeeks: number;
   yearlyGrowthTotal: number;
+  growthByGrowthType: Record<string, number>;
   intakeCount: number;
   injuredPlayerWeeks: number;
   newInjuries: number;
@@ -20,6 +21,8 @@ interface YearlyMetrics {
     specialty: string | null;
     contractYearIndex: number;
   } | null;
+  assistantCoachChanges: number;
+  nationalParticipantStrength: { count: number };
 }
 
 interface FacilityProgress {
@@ -117,6 +120,9 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       specialty: "attack",
       contractYearIndex: 1,
     });
+    expect(firstYear.assistantCoachChanges).toBeGreaterThanOrEqual(1);
+    expect(firstYear.nationalParticipantStrength.count).toBeGreaterThan(0);
+    expect(firstYear.growthByGrowthType.unknown).toBeUndefined();
     expect(gymMilestone.maxObservedLevel).toBeGreaterThanOrEqual(1);
     expect(first.summary).toMatch(/facilit/i);
     expect(first.summary).toContain("coach=intermediate/attack");
