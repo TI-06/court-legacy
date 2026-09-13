@@ -2,6 +2,20 @@ const subjectPath = "../../../src/dev/soak/runBalanceSoak";
 
 vi.setConfig({ testTimeout: 15_000 });
 
+interface YearlyMetrics {
+  academicYearIndex: number;
+  fundsStart: number;
+  fundsEnd: number;
+  fundsMin: number;
+  fundsMax: number;
+  zeroFundWeeks: number;
+  yearlyGrowthTotal: number;
+  intakeCount: number;
+  injuredPlayerWeeks: number;
+  newInjuries: number;
+  healedInjuries: number;
+}
+
 interface RunResult {
   snapshot: {
     state: {
@@ -21,7 +35,7 @@ interface RunResult {
       actions: number;
       schemaVersion: number;
     };
-    yearly: unknown[];
+    yearly: YearlyMetrics[];
     observations: unknown[];
   };
   summary: string;
@@ -69,6 +83,28 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.report.metadata.completedWeeks).toBeGreaterThan(0);
     expect(first.report.metadata.actions).toBeGreaterThan(0);
     expect(first.report.metadata.schemaVersion).toBe(8);
+  });
+
+  it("tracks the completed academic year instead of reporting the new rollover year", async () => {
+    const { runBalanceSoak } = await loadSubject();
+    const result = runBalanceSoak({
+      seed: "phase18-yearly-tracking",
+      preset: "smoke",
+    });
+    const year = result.report.yearly[0]!;
+
+    expect(year.academicYearIndex).toBe(result.snapshot.state.yearIndex - 1);
+    expect(year.fundsStart).toBe(700);
+    expect(year.fundsMin).toBeLessThanOrEqual(year.fundsStart);
+    expect(year.fundsMax).toBeGreaterThanOrEqual(year.fundsStart);
+    expect(year.fundsMin).toBeLessThanOrEqual(year.fundsEnd);
+    expect(year.fundsMax).toBeGreaterThanOrEqual(year.fundsEnd);
+    expect(year.zeroFundWeeks).toBeGreaterThanOrEqual(0);
+    expect(year.yearlyGrowthTotal).toBeGreaterThan(0);
+    expect(year.intakeCount).toBeGreaterThan(0);
+    expect(year.injuredPlayerWeeks).toBeGreaterThanOrEqual(0);
+    expect(year.newInjuries).toBeGreaterThanOrEqual(0);
+    expect(year.healedInjuries).toBeGreaterThanOrEqual(0);
   });
 
   it("changes at least one tracked material result for a different seed", async () => {
