@@ -5,7 +5,9 @@ type NavigatorWithServiceWorker = Navigator & {
 function hasServiceWorker(
   navigatorLike: Navigator,
 ): navigatorLike is NavigatorWithServiceWorker {
-  return "serviceWorker" in navigatorLike && navigatorLike.serviceWorker != null;
+  return (
+    "serviceWorker" in navigatorLike && navigatorLike.serviceWorker != null
+  );
 }
 
 export async function registerServiceWorker(
@@ -34,10 +36,7 @@ export async function registerServiceWorker(
       if (!installing) return;
 
       installing.addEventListener("statechange", () => {
-        if (
-          installing.state === "installed" &&
-          container.controller != null
-        ) {
+        if (installing.state === "installed" && container.controller != null) {
           notifyUpdateReady();
         }
       });
