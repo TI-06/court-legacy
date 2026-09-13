@@ -1,0 +1,49 @@
+.app-update-banner {
+  position: fixed;
+  right: 12px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 520px;
+  min-height: 58px;
+  margin: 0 auto;
+  padding: 10px 12px 10px 14px;
+  color: #f7fbfc;
+  background: #132536;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgb(18 36 50 / 24%);
+}
+
+.app-update-banner [role="status"] {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.app-update-banner button {
+  min-height: 44px;
+  padding: 0 13px;
+  color: #132536;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: #f4bb4d;
+  border: 0;
+  border-radius: 12px;
+}
+
+@media (max-width: 420px) {
+  .app-update-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-update-banner button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,28 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 512 512"
+  role="img"
+  aria-label="継承のコート"
+>
+  <rect width="512" height="512" rx="96" fill="#132536" />
+  <path
+    d="M116 148h280v216H116z"
+    fill="none"
+    stroke="#f5f7fa"
+    stroke-width="18"
+  />
+  <path
+    d="M256 148v216M116 256h280"
+    fill="none"
+    stroke="#5dd6c0"
+    stroke-width="12"
+  />
+  <circle cx="256" cy="256" r="66" fill="#f5f7fa" />
+  <path
+    d="M219 205c37 8 63 29 78 64M201 251c39-7 76 0 110 22M229 310c16-37 39-66 69-88"
+    fill="none"
+    stroke="#132536"
+    stroke-width="12"
+    stroke-linecap="round"
+  />
+</svg>

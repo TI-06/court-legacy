@@ -79,7 +79,7 @@
   font-size: 0.6rem;
 }
 
-.bench-rail {
+.team-screen--direct .bench-rail {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: 100%;
@@ -160,11 +160,11 @@
 }
 
 /* Match */
-.match-scoreboard {
+.match-screen .match-scoreboard {
   grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
 }
 
-.match-scoreboard > div {
+.match-screen .match-scoreboard > div {
   padding-inline: 4px;
 }
 
@@ -207,7 +207,7 @@
     height: 42px;
   }
 
-  .bench-rail {
+  .team-screen--direct .bench-rail {
     grid-template-columns: 1fr;
   }
 
