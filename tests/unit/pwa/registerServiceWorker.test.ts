@@ -18,7 +18,9 @@ describe("Phase18 service worker registration", () => {
   it("does nothing when service workers are unavailable", async () => {
     const { registerServiceWorker } = await loadSubject();
 
-    expect(await registerServiceWorker(() => undefined, {} as Navigator)).toBeNull();
+    expect(
+      await registerServiceWorker(() => undefined, {} as Navigator),
+    ).toBeNull();
   });
 
   it("registers /sw.js and reports a waiting worker as update-ready", async () => {
