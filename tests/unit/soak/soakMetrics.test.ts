@@ -11,22 +11,58 @@ interface Distribution {
   mean: number;
 }
 
+interface MetricContext {
+  academicYearIndex?: number;
+  academicYear?: number;
+  fundsStart?: number;
+  fundsMin?: number;
+  fundsMax?: number;
+  zeroFundWeeks?: number;
+  injuredPlayerWeeks?: number;
+  newInjuries?: number;
+  healedInjuries?: number;
+  intakePlayerIds?: string[];
+}
+
 interface SnapshotMetrics {
   seed: string;
   yearIndex: number;
+  academicYearIndex: number;
+  academicYear: number;
   date: string;
   userFunds: number;
+  fundsStart: number;
+  fundsEnd: number;
+  fundsMin: number;
+  fundsMax: number;
+  zeroFundWeeks: number;
   yearlyIncome: number;
   yearlyExpense: number;
   userStrength: number;
   cpuStrength: Distribution;
   playerAbility: Distribution;
+  yearlyGrowthTotal: number;
+  growthByGrowthType: Record<string, number>;
+  intakeCount: number;
+  intakeTierCounts: Record<string, number>;
+  intakeGrowthTypeCounts: Record<string, number>;
   injuredPlayers: number;
+  injuredPlayerWeeks: number;
+  newInjuries: number;
+  healedInjuries: number;
   condition: Distribution;
+  conditionHistogram: Record<string, number>;
   facilities: Record<string, number>;
-  assistantCoach: { rank: string; specialty: string | null } | null;
+  assistantCoach: {
+    rank: string;
+    specialty: string | null;
+    contractYearIndex: number;
+  } | null;
   tournamentSummaryCount: number;
   userNationalTitles: number;
+  userTournamentTitles: number;
+  userBestTournamentRound: string | null;
+  nationalChampionStrength: Distribution;
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
   positionCounts: Record<string, number>;
@@ -35,6 +71,7 @@ interface SnapshotMetrics {
 interface MetricsSubject {
   captureSoakSnapshotMetrics(
     snapshot: ReturnType<typeof createSoakSnapshot>,
+    context?: MetricContext,
   ): SnapshotMetrics;
   formatSoakSnapshotSummary(metrics: SnapshotMetrics): string;
 }
@@ -75,6 +112,13 @@ describe("Phase18 soak balance metrics", () => {
     expect(Object.keys(metrics.positionCounts)).toEqual(
       [...Object.keys(metrics.positionCounts)].sort(),
     );
+    expect(Object.keys(metrics.conditionHistogram)).toEqual([
+      "0-19",
+      "20-39",
+      "40-59",
+      "60-79",
+      "80-100",
+    ]);
   });
 
   it("derives annual income and expense from the authoritative funds ledger", async () => {
@@ -101,11 +145,97 @@ describe("Phase18 soak balance metrics", () => {
         label: "test expense",
       },
     );
+    snapshot.state.schools[snapshot.state.userSchoolId]!.funds = 775;
 
-    const metrics = captureSoakSnapshotMetrics(snapshot);
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      academicYearIndex: year,
+      academicYear: snapshot.state.calendar.academicYear,
+      fundsStart: 700,
+      fundsMin: 0,
+      fundsMax: 820,
+      zeroFundWeeks: 2,
+    });
 
     expect(metrics.yearlyIncome).toBeGreaterThanOrEqual(120);
     expect(metrics.yearlyExpense).toBeGreaterThanOrEqual(45);
+    expect(metrics.fundsStart).toBe(700);
+    expect(metrics.fundsEnd).toBe(775);
+    expect(metrics.fundsMin).toBe(0);
+    expect(metrics.fundsMax).toBe(820);
+    expect(metrics.zeroFundWeeks).toBe(2);
+  });
+
+  it("reports authoritative yearly growth, recruiting and injury movement", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-growth");
+    const userSchool = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const playerId = userSchool.playerIds[0]!;
+    const player = snapshot.state.players[playerId]!;
+    const year = snapshot.state.yearIndex;
+
+    snapshot.state.history.playerDevelopmentWeeks.push({
+      gameDate: snapshot.state.date,
+      academicYearIndex: year,
+      weekOfYear: snapshot.state.calendar.weekOfYear,
+      trainingMenuId: "balanced",
+      players: [
+        {
+          playerId,
+          totalAbilityGrowth: 7,
+          abilityChanges: { spike: 4, receive: 3 },
+        },
+      ],
+    });
+
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      academicYearIndex: year,
+      intakePlayerIds: [playerId],
+      injuredPlayerWeeks: 5,
+      newInjuries: 2,
+      healedInjuries: 1,
+    });
+
+    expect(metrics.yearlyGrowthTotal).toBe(7);
+    expect(metrics.growthByGrowthType[player.growthTypeId]).toBe(7);
+    expect(metrics.intakeCount).toBe(1);
+    expect(metrics.intakeTierCounts[player.tier]).toBe(1);
+    expect(metrics.intakeGrowthTypeCounts[player.growthTypeId]).toBe(1);
+    expect(metrics.injuredPlayerWeeks).toBe(5);
+    expect(metrics.newInjuries).toBe(2);
+    expect(metrics.healedInjuries).toBe(1);
+  });
+
+  it("reports user tournament progress and observable national champion strength", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase18-metrics-tournament");
+    const state = snapshot.state;
+    const userSchool = state.schools[state.userSchoolId]!;
+
+    state.history.officialTournaments.push({
+      tournamentId: "soak-national",
+      academicYear: state.calendar.academicYear,
+      circuit: "interhigh",
+      level: "national",
+      champion: {
+        entrantId: `school:${state.userSchoolId}`,
+        schoolId: state.userSchoolId,
+        displayName: userSchool.name,
+      },
+      userResult: {
+        qualified: true,
+        bestRound: "final",
+        champion: true,
+      },
+    });
+
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      academicYear: state.calendar.academicYear,
+    });
+
+    expect(metrics.userTournamentTitles).toBe(1);
+    expect(metrics.userBestTournamentRound).toBe("final");
+    expect(metrics.nationalChampionStrength.count).toBe(1);
+    expect(metrics.nationalChampionStrength.mean).toBeGreaterThan(0);
   });
 
   it("formats a concise human-readable per-seed summary", async () => {
@@ -119,7 +249,8 @@ describe("Phase18 soak balance metrics", () => {
 
     expect(summary).toContain("phase18-summary-seed");
     expect(summary).toMatch(/funds/i);
-    expect(summary).toMatch(/strength/i);
+    expect(summary).toMatch(/growth/i);
+    expect(summary).toMatch(/tournament/i);
     expect(summary).toMatch(/injured/i);
   });
 });
