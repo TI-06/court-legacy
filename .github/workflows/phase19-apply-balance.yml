@@ -1,0 +1,210 @@
+name: Phase19 Apply Balance
+
+on:
+  push:
+    branches:
+      - feature/phase19-cpu-school-balance
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'ci: apply phase19 school balance implementation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/phase19-cpu-school-balance
+      - name: Apply focused production changes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected exactly one match in {path}, found {text.count(old)}")
+              target.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "src/domain/world/rivalWorldProgression.ts",
+              'import type { RandomSource } from "../random/SeededRandom";\nimport { MAX_OFFICIAL_TOURNAMENT_HISTORY } from "../tournament/tournamentHistory";',
+              'import type { RandomSource } from "../random/SeededRandom";\nimport { MAX_OFFICIAL_TOURNAMENT_HISTORY } from "../tournament/tournamentHistory";\nimport { rivalSchoolBalanceProfile } from "./rivalSchoolBalance";',
+          )
+
+          old_develop = '''function developRivalPlayer(
+            player: Player,
+            school: School,
+            priorityAbilities: readonly (keyof PlayerAbilities)[],
+            random: RandomSource,
+          ): Player {
+            const facilityDevelopment =
+              normalizedFacilityRating(school.facilities.trainingRoom) * 35 +
+              normalizedFacilityRating(school.facilities.gym) * 18;
+            const developmentLevel = clamp(
+              1 + Math.floor((school.coach.development + facilityDevelopment) / 60),
+              1,
+              3,
+            );
+            const gradeBonus = player.grade === 2 ? 1 : 0;
+            const abilities = { ...player.abilities };
+            const overall = abilityAverage(player);
+            const longTermScale = overall >= 95 ? 0.2 : overall >= 90 ? 0.45 : 1;
+
+            for (const ability of ABILITY_KEYS) {
+              const prioritized = priorityAbilities.includes(ability);
+              const rawGrowth = prioritized
+                ? developmentLevel + gradeBonus + random.int(0, 1)
+                : Math.max(0, Math.floor(developmentLevel / 2) + random.int(0, 1));
+              const growth = Math.max(0, Math.round(rawGrowth * longTermScale));
+              abilities[ability] = clampAbility(abilities[ability] + growth);
+            }
+
+            const recovery = 3 + Math.floor(school.coach.conditioning / 25);
+            return {
+              ...player,
+              abilities,
+              fatigue: clamp(player.fatigue - recovery, 0, 100),
+              condition: clamp(player.condition + 2, 0, 100),
+              morale: clamp(player.morale + random.int(-2, 3), 0, 100),
+            };
+          }'''
+          new_develop = '''function developRivalPlayer(
+            player: Player,
+            school: School,
+            priorityAbilities: readonly (keyof PlayerAbilities)[],
+            random: RandomSource,
+          ): Player {
+            const profile = rivalSchoolBalanceProfile(school.reputation);
+            const facilityDevelopment =
+              normalizedFacilityRating(school.facilities.trainingRoom) * 35 +
+              normalizedFacilityRating(school.facilities.gym) * 18;
+            const infrastructureGrowth = clamp(
+              Math.floor((school.coach.development + facilityDevelopment) / 70),
+              0,
+              2,
+            );
+            const gradeBonus = player.grade >= 2 ? 1 : 0;
+            const abilities = { ...player.abilities };
+            const overall = abilityAverage(player);
+            const longTermScale =
+              overall >= 95 ? 0.1 : overall >= 90 ? 0.25 : overall >= 80 ? 0.55 : 1;
+
+            for (const ability of ABILITY_KEYS) {
+              const prioritized = priorityAbilities.includes(ability);
+              const rawGrowth = prioritized
+                ? profile.annualBaseGrowth +
+                  infrastructureGrowth +
+                  gradeBonus +
+                  random.int(0, 1)
+                : Math.max(
+                    1,
+                    profile.annualBaseGrowth -
+                      2 +
+                      Math.floor(infrastructureGrowth / 2) +
+                      random.int(0, 1),
+                  );
+              const growth = Math.max(0, Math.round(rawGrowth * longTermScale));
+              abilities[ability] = clampAbility(abilities[ability] + growth);
+            }
+
+            const recovery = 3 + Math.floor(school.coach.conditioning / 25);
+            return {
+              ...player,
+              abilities,
+              fatigue: clamp(player.fatigue - recovery, 0, 100),
+              condition: clamp(player.condition + 2, 0, 100),
+              morale: clamp(player.morale + random.int(-2, 3), 0, 100),
+            };
+          }'''
+          replace_once("src/domain/world/rivalWorldProgression.ts", old_develop, new_develop)
+
+          replace_once(
+              "src/domain/calendar/academicYearProgression.ts",
+              'import { advanceRivalWorld } from "../world/rivalWorldProgression";',
+              'import { advanceRivalWorld } from "../world/rivalWorldProgression";\nimport { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";',
+          )
+          replace_once(
+              "src/domain/calendar/academicYearProgression.ts",
+              '''      data,
+                random,
+                count: intakeCount - committedIntake.length,''',
+              '''      data,
+                random,
+                abilityBonus:
+                  school.id === state.userSchoolId
+                    ? 0
+                    : rivalSchoolBalanceProfile(school.reputation).recruitAbilityBonus,
+                count: intakeCount - committedIntake.length,''',
+          )
+
+          replace_once(
+              "src/domain/generation/generateWorld.ts",
+              'import type { Player } from "../model/Player";',
+              'import { ABILITY_KEYS, clampAbility, type Player } from "../model/Player";',
+          )
+          replace_once(
+              "src/domain/generation/generateWorld.ts",
+              'import { weightedChoice } from "../random/weightedChoice";',
+              'import { weightedChoice } from "../random/weightedChoice";\nimport { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";',
+          )
+          old_school = '''    schools[id] = generateSchool({
+              id,
+              name: setup.name,
+              shortName: setup.shortName,
+              regionId: setup.regionId,
+              coachName: setup.coachName,
+              uniform,
+              playerIds: squad.map((player) => player.id),
+              captainPlayerId: captain?.id ?? null,
+              data: input.data,
+              random,
+              isUserSchool,
+            });'''
+          new_school = '''    const generatedSchool = generateSchool({
+              id,
+              name: setup.name,
+              shortName: setup.shortName,
+              regionId: setup.regionId,
+              coachName: setup.coachName,
+              uniform,
+              playerIds: squad.map((player) => player.id),
+              captainPlayerId: captain?.id ?? null,
+              data: input.data,
+              random,
+              isUserSchool,
+            });
+            schools[id] = generatedSchool;
+
+            if (!isUserSchool) {
+              const abilityBonus = rivalSchoolBalanceProfile(
+                generatedSchool.reputation,
+              ).recruitAbilityBonus;
+              if (abilityBonus > 0) {
+                for (const player of squad) {
+                  players[player.id] = {
+                    ...player,
+                    abilities: Object.fromEntries(
+                      ABILITY_KEYS.map((ability) => [
+                        ability,
+                        clampAbility(player.abilities[ability] + abilityBonus),
+                      ]),
+                    ) as Player["abilities"],
+                  };
+                }
+              }
+            }'''
+          replace_once("src/domain/generation/generateWorld.ts", old_school, new_school)
+          PY
+          rm .github/workflows/phase19-apply-balance.yml
+      - name: Commit focused implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain .github/workflows/phase19-apply-balance.yml
+          git commit -m "feat: balance rival school progression"
+          git push origin HEAD:feature/phase19-cpu-school-balance
