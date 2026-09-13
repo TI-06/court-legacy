@@ -16,6 +16,17 @@ interface YearlyMetrics {
   healedInjuries: number;
 }
 
+interface FacilityMilestones {
+  facilityMaxLevel: number;
+  byFacility: Record<
+    string,
+    {
+      maxObservedLevel: number;
+      firstYearByLevel: Record<string, number>;
+    }
+  >;
+}
+
 interface RunResult {
   snapshot: {
     state: {
@@ -36,6 +47,7 @@ interface RunResult {
       schemaVersion: number;
     };
     yearly: YearlyMetrics[];
+    facilityMilestones: FacilityMilestones;
     observations: unknown[];
   };
   summary: string;
@@ -83,6 +95,12 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.report.metadata.completedWeeks).toBeGreaterThan(0);
     expect(first.report.metadata.actions).toBeGreaterThan(0);
     expect(first.report.metadata.schemaVersion).toBe(8);
+    expect(first.report.facilityMilestones.facilityMaxLevel).toBe(50);
+    expect(Object.keys(first.report.facilityMilestones.byFacility)).toHaveLength(
+      8,
+    );
+    expect(first.summary).toMatch(/facilit/i);
+    expect(first.summary).toMatch(/coach/i);
   });
 
   it("tracks the completed academic year instead of reporting the new rollover year", async () => {
