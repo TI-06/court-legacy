@@ -22,7 +22,9 @@ describe("Phase18 PWA save compatibility", () => {
 
     expect(registration).toBeNull();
     expect(encodedAfter).toBe(encodedBefore);
-    expect(decodeGameState(encodedAfter)).toEqual(decodeGameState(encodedBefore));
+    expect(decodeGameState(encodedAfter)).toEqual(
+      decodeGameState(encodedBefore),
+    );
     expect(decodeGameState(encodedAfter).schemaVersion).toBe(8);
   });
 
