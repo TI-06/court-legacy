@@ -53,10 +53,10 @@ The earlier management-enabled matrix in run `34767072758` also passed mobile E2
 
 ### 1-season smoke evidence
 
-| Seed              | Weeks | Actions | Funds        | User strength | CPU p50 | Coach                 | National entrants | National p50 |
-| ----------------- | ----: | ------: | ------------ | ------------: | ------: | --------------------- | ----------------: | -----------: |
-| phase18-release-a |    53 |     138 | 700 -> 913   |            91 |      53 | intermediate / attack |                32 |           79 |
-| phase18-release-b |    53 |     148 | 700 -> 1752  |            91 |      54 | intermediate / attack |                32 |           74 |
+| Seed              | Weeks | Actions | Funds       | User strength | CPU p50 | Coach                 | National entrants | National p50 |
+| ----------------- | ----: | ------: | ----------- | ------------: | ------: | --------------------- | ----------------: | -----------: |
+| phase18-release-a |    53 |     138 | 700 -> 913  |            91 |      53 | intermediate / attack |                32 |           79 |
+| phase18-release-b |    53 |     148 | 700 -> 1752 |            91 |      54 | intermediate / attack |                32 |           74 |
 
 Both first seasons recorded one assistant-coach contract change. The deterministic regression also verifies that yearly growth has no `unknown` growth-type bucket after rollover.
 
