@@ -21,15 +21,18 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 ## Task 1 — Reduce duplicate CI runs
 
 **Files**
+
 - Modify: `.github/workflows/ci.yml`
 
 **Changes**
+
 - Run `push` CI only for `main`.
 - Keep `pull_request` CI for feature/fix/chore branches.
 - Preserve `concurrency` with `cancel-in-progress`.
 - Do not change required job contents: dependency audit, quality/verify + soak smoke, and mobile E2E remain intact.
 
 **Verification**
+
 - Workflow syntax remains valid.
 - A feature branch push without an open PR no longer triggers the full CI workflow after this change is present on the branch.
 - PR CI and post-merge main CI still execute the full gate.
@@ -37,10 +40,12 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 ## Task 2 — Add a critical solo release contract
 
 **Files**
+
 - Add: `tests/e2e/phase18-critical-solo.spec.ts`
 - Reuse helpers from existing E2E specs where practical.
 
 **Contract**
+
 - Start from the public app/new-game boundary.
 - Perform a training interaction.
 - Perform a roster/lineup interaction through the UI.
@@ -51,6 +56,7 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 - Verify the transitioned save remains playable and persists after reload.
 
 **TDD**
+
 - First add the contract assertions against current behavior.
 - Any genuine missing release behavior is fixed minimally in production code.
 - Do not duplicate every historical feature E2E assertion.
@@ -58,10 +64,12 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 ## Task 3 — Make the PvP reconnect/privacy release contract explicit
 
 **Files**
+
 - Modify or extend: `tests/e2e/phase16-match-command-ux.spec.ts`
 - Add a release-contract helper/spec only if it materially improves clarity without duplicating the whole Phase16 suite.
 
 **Contract**
+
 - Enter/load authoritative PvP status.
 - Send a public command.
 - Simulate an ambiguous/transport failure after server application.
@@ -71,16 +79,19 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 - Verify browser-visible payload/state excludes opponent-private runtime, ability, and private selection detail beyond the established public contract.
 
 **Verification**
+
 - Existing Phase16 tests remain green.
 - Release-critical test names clearly communicate reconnect/idempotency/privacy coverage.
 
 ## Task 4 — Add practical accessibility release checks
 
 **Files**
+
 - Add: `tests/e2e/phase18-accessibility.spec.ts`
 - Modify production UI/CSS only where a focused RED assertion exposes a real accessibility gap.
 
 **Checks**
+
 - Critical navigation and primary controls expose accessible names.
 - Relevant inputs/forms expose labels or equivalent accessible naming.
 - Critical dialogs expose a named dialog role and predictable focus behavior.
@@ -90,15 +101,18 @@ Turn the Phase18 release-critical browser journeys into a small explicit Playwri
 - `prefers-reduced-motion: reduce` does not make critical navigation/dialog/match setup unusable.
 
 **Approach**
+
 - Use Playwright role/name/focus/geometry/media-emulation assertions.
 - Do not claim full WCAG certification.
 
 ## Task 5 — Improve E2E failure diagnostics without bloating CI
 
 **Files**
+
 - Modify: `playwright.config.ts` only if needed.
 
 **Changes**
+
 - Retain screenshots/traces already present.
 - Add retained-on-failure video only if it improves release triage without materially destabilizing runtime.
 - Keep workers/retries bounded and deterministic.
