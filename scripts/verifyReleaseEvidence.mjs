@@ -74,10 +74,4 @@ for (const script of [
   assert(typeof pkg.scripts?.[script] === "string", `missing required script: ${script}`);
 }
 
-if (lock.version !== version || lock.packages?.[""]?.version !== version) {
-  console.warn(
-    `[WARN] package-lock root version metadata is ${lock.version}; dependency integrity remains enforced by npm ci`,
-  );
-}
-
 console.log(`[OK] release metadata v${version}, save schema v${schemaVersion}`);
