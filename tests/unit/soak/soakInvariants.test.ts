@@ -49,10 +49,22 @@ describe("Phase18 soak hard invariants", () => {
 
     expect(violations).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: "non_finite", path: expect.stringContaining("abilities.spike") }),
-        expect.objectContaining({ code: "player_value_out_of_range", path: expect.stringContaining("condition") }),
-        expect.objectContaining({ code: "negative_school_funds", path: expect.stringContaining("funds") }),
-        expect.objectContaining({ code: "facility_level_out_of_range", path: expect.stringContaining("facilities.gym") }),
+        expect.objectContaining({
+          code: "non_finite",
+          path: expect.stringContaining("abilities.spike"),
+        }),
+        expect.objectContaining({
+          code: "player_value_out_of_range",
+          path: expect.stringContaining("condition"),
+        }),
+        expect.objectContaining({
+          code: "negative_school_funds",
+          path: expect.stringContaining("funds"),
+        }),
+        expect.objectContaining({
+          code: "facility_level_out_of_range",
+          path: expect.stringContaining("facilities.gym"),
+        }),
       ]),
     );
   });
