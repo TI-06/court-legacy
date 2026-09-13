@@ -6,7 +6,7 @@ const GAME_STATE_KEY = "court-legacy:e2e-game-state";
 const SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 const FLOW_INITIALIZED_KEY = "court-legacy:e2e-flow-initialized";
 
-test("registration, onboarding, mutation, and reload keep the cloud game", async ({
+test("@critical registration, onboarding, mutation, and reload keep the cloud game", async ({
   page,
 }) => {
   await page.addInitScript(

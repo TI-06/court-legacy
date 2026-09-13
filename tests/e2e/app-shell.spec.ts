@@ -70,7 +70,7 @@ test("mobile training saves a plan and resolves it with next-week progression", 
   expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
 });
 
-test("mobile team selection uses a court picker without overflow", async ({
+test("@critical mobile team selection uses a court picker without overflow", async ({
   page,
 }) => {
   await page.goto("/");

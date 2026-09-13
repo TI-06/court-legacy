@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:critical": "playwright test --grep @critical",
     "soak": "node scripts/runBalanceSoak.mjs --preset short",
     "soak:smoke": "node scripts/runBalanceSoak.mjs --preset smoke",
     "soak:balance": "node scripts/runBalanceSoak.mjs --preset balance",

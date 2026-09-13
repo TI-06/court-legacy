@@ -285,8 +285,8 @@ button.ui-player-tile:disabled {
 
 .ui-icon-button {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   color: #52666f;
   font-size: 1.35rem;

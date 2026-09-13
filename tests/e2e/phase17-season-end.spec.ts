@@ -43,8 +43,13 @@ async function seedYearEndState(page: Page, legacy = false) {
 
   await page.addInitScript(
     ({ gameStateKey, serverSnapshotKey, snapshotValue }) => {
-      sessionStorage.setItem(gameStateKey, "ready");
-      sessionStorage.setItem(serverSnapshotKey, JSON.stringify(snapshotValue));
+      if (!sessionStorage.getItem(serverSnapshotKey)) {
+        sessionStorage.setItem(gameStateKey, "ready");
+        sessionStorage.setItem(
+          serverSnapshotKey,
+          JSON.stringify(snapshotValue),
+        );
+      }
     },
     {
       gameStateKey: E2E_GAME_STATE_KEY,
@@ -54,7 +59,7 @@ async function seedYearEndState(page: Page, legacy = false) {
   );
 }
 
-test("year rollover shows season review and archives it in School records", async ({
+test("@critical year rollover shows season review and archives it in School records", async ({
   page,
 }) => {
   await seedYearEndState(page);
@@ -79,6 +84,12 @@ test("year rollover shows season review and archives it in School records", asyn
   await expect(archive).toContainText("目標達成");
   await expect(archive).toContainText("県内");
   await expect(archive).toContainText("全国");
+
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+  await expect(page.getByRole("banner")).toContainText("2027年4月");
 
   const layout = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
