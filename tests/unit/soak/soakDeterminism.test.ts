@@ -32,6 +32,12 @@ interface FacilityMilestones {
   byFacility: Record<string, FacilityProgress>;
 }
 
+interface BalanceObservation {
+  code: string;
+  message: string;
+  yearIndex: number;
+}
+
 interface RunResult {
   snapshot: {
     state: {
@@ -53,7 +59,7 @@ interface RunResult {
     };
     yearly: YearlyMetrics[];
     facilityMilestones: FacilityMilestones;
-    observations: unknown[];
+    observations: BalanceObservation[];
   };
   summary: string;
 }
@@ -114,6 +120,25 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(gymMilestone.maxObservedLevel).toBeGreaterThanOrEqual(1);
     expect(first.summary).toMatch(/facilit/i);
     expect(first.summary).toContain("coach=intermediate/attack");
+  });
+
+  it("describes a ledger-only zero-funds dip without claiming zero observed weeks", async () => {
+    const { runBalanceSoak } = await loadSubject();
+    const result = runBalanceSoak({
+      seed: "phase18-release-a",
+      preset: "smoke",
+    });
+    const year = result.report.yearly[0]!;
+    const observation = result.report.observations.find(
+      (item) => item.code === "user_funds_zero",
+    );
+
+    expect(year.fundsMin).toBe(0);
+    expect(year.zeroFundWeeks).toBe(0);
+    expect(observation).toBeDefined();
+    expect(observation!.message).toContain("最小残高が0");
+    expect(observation!.message).toContain("週境界で0を観測した回数は0回");
+    expect(observation!.message).not.toContain("0週あります");
   });
 
   it("tracks the completed academic year instead of reporting the new rollover year", async () => {
