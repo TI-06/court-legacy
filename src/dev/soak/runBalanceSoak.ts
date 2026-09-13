@@ -1,4 +1,6 @@
 import { createInitialGame } from "../../app/createInitialGame";
+import type { AdvanceWeekOutcome } from "../../domain/calendar/advanceWeekOutcome";
+import type { PlayerId } from "../../domain/model/identifiers";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
@@ -32,6 +34,9 @@ export interface AdvanceSoakWeekResult {
   actionCount: number;
   resolvedEvents: number;
   completedMatches: number;
+  newInjuryPlayerIds: PlayerId[];
+  healedPlayerIds: PlayerId[];
+  academicYearTransition: AdvanceWeekOutcome["academicYearTransition"];
 }
 
 export interface RunBalanceSoakOptions extends AdvanceSoakWeekOptions {
@@ -63,6 +68,23 @@ export interface SoakRunResult {
   snapshot: CloudGameSnapshot;
   report: SoakRunReport;
   summary: string;
+}
+
+interface AppliedSoakAction {
+  snapshot: CloudGameSnapshot;
+  outcome: unknown;
+}
+
+interface SoakYearTracker {
+  academicYearIndex: number;
+  academicYear: number;
+  fundsStart: number;
+  fundsMin: number;
+  fundsMax: number;
+  zeroFundWeeks: number;
+  injuredPlayerWeeks: number;
+  newInjuries: number;
+  healedInjuries: number;
 }
 
 export class SoakActionGuardError extends Error {
@@ -107,13 +129,16 @@ export function createSoakSnapshot(seed: string): CloudGameSnapshot {
 function applyAction(
   snapshot: CloudGameSnapshot,
   action: GameAction,
-): CloudGameSnapshot {
+): AppliedSoakAction {
   const applied = applyGameAction(snapshot, action);
   return {
-    ...snapshot,
-    revision: snapshot.revision + 1,
-    state: applied.state,
-    teamSelection: applied.teamSelection,
+    snapshot: {
+      ...snapshot,
+      revision: snapshot.revision + 1,
+      state: applied.state,
+      teamSelection: applied.teamSelection,
+    },
+    outcome: applied.outcome,
   };
 }
 
@@ -160,6 +185,18 @@ function nextAction(snapshot: CloudGameSnapshot): GameAction {
   return { type: "advance-week" };
 }
 
+function advanceWeekOutcome(outcome: unknown): AdvanceWeekOutcome {
+  if (
+    !outcome ||
+    typeof outcome !== "object" ||
+    !("weekAdvanced" in outcome) ||
+    !("academicYearTransition" in outcome)
+  ) {
+    throw new Error("soak advance-week did not return an authoritative outcome");
+  }
+  return outcome as AdvanceWeekOutcome;
+}
+
 export function advanceSoakUntilWeekChanges(
   snapshot: CloudGameSnapshot,
   options: AdvanceSoakWeekOptions = {},
@@ -170,6 +207,10 @@ export function advanceSoakUntilWeekChanges(
   let actionCount = 0;
   let resolvedEvents = 0;
   let completedMatches = 0;
+  const newInjuryPlayerIds = new Set<PlayerId>();
+  const healedPlayerIds = new Set<PlayerId>();
+  let academicYearTransition: AdvanceWeekOutcome["academicYearTransition"] =
+    null;
 
   while (current.state.date === startingDate) {
     if (actionCount >= maximum) {
@@ -178,12 +219,24 @@ export function advanceSoakUntilWeekChanges(
 
     const action = nextAction(current);
     const historyCount = current.state.history.matches.length;
-    const next = applyAction(current, action);
+    const applied = applyAction(current, action);
+    const next = applied.snapshot;
     actionCount += 1;
     assertSoakInvariants(next, { actionCount });
 
     if (action.type === "event-choice") {
       resolvedEvents += 1;
+    }
+    if (action.type === "advance-week") {
+      const outcome = advanceWeekOutcome(applied.outcome);
+      for (const playerId of outcome.trainingResult?.injuredPlayerIds ?? []) {
+        newInjuryPlayerIds.add(playerId);
+      }
+      for (const playerId of outcome.healedPlayerIds) {
+        healedPlayerIds.add(playerId);
+      }
+      academicYearTransition =
+        outcome.academicYearTransition ?? academicYearTransition;
     }
     completedMatches += Math.max(
       0,
@@ -198,7 +251,58 @@ export function advanceSoakUntilWeekChanges(
     actionCount,
     resolvedEvents,
     completedMatches,
+    newInjuryPlayerIds: [...newInjuryPlayerIds].sort(),
+    healedPlayerIds: [...healedPlayerIds].sort(),
+    academicYearTransition,
   };
+}
+
+function userFunds(snapshot: CloudGameSnapshot): number {
+  return snapshot.state.schools[snapshot.state.userSchoolId]!.funds;
+}
+
+function userInjuredPlayerCount(snapshot: CloudGameSnapshot): number {
+  const state = snapshot.state;
+  const school = state.schools[state.userSchoolId]!;
+  return school.playerIds.reduce(
+    (count, playerId) => count + (state.players[playerId]?.injury ? 1 : 0),
+    0,
+  );
+}
+
+function createYearTracker(snapshot: CloudGameSnapshot): SoakYearTracker {
+  const funds = userFunds(snapshot);
+  return {
+    academicYearIndex: snapshot.state.yearIndex,
+    academicYear: snapshot.state.calendar.academicYear,
+    fundsStart: funds,
+    fundsMin: funds,
+    fundsMax: funds,
+    zeroFundWeeks: 0,
+    injuredPlayerWeeks: 0,
+    newInjuries: 0,
+    healedInjuries: 0,
+  };
+}
+
+function observeWeekStart(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  const funds = userFunds(snapshot);
+  tracker.fundsMin = Math.min(tracker.fundsMin, funds);
+  tracker.fundsMax = Math.max(tracker.fundsMax, funds);
+  if (funds === 0) tracker.zeroFundWeeks += 1;
+  tracker.injuredPlayerWeeks += userInjuredPlayerCount(snapshot);
+}
+
+function observeSameYearEnd(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  const funds = userFunds(snapshot);
+  tracker.fundsMin = Math.min(tracker.fundsMin, funds);
+  tracker.fundsMax = Math.max(tracker.fundsMax, funds);
 }
 
 function buildBalanceObservations(
@@ -206,10 +310,10 @@ function buildBalanceObservations(
 ): SoakBalanceObservation[] {
   const observations: SoakBalanceObservation[] = [];
   for (const metrics of yearly) {
-    if (metrics.userFunds === 0) {
+    if (metrics.zeroFundWeeks > 0 || metrics.fundsMin === 0) {
       observations.push({
         code: "user_funds_zero",
-        message: "自校資金が0になっています。経済バランスを確認してください。",
+        message: `自校資金が年度内に0となった週が${metrics.zeroFundWeeks}週あります。経済バランスを確認してください。`,
         yearIndex: metrics.yearIndex,
       });
     }
@@ -234,7 +338,7 @@ function buildBalanceObservations(
 function formatRunSummary(report: SoakRunReport): string {
   const finalMetrics = report.yearly.at(-1);
   const finalDetail = finalMetrics
-    ? `final-year=${finalMetrics.yearIndex} funds=${finalMetrics.userFunds} strength=${finalMetrics.userStrength} cpu-p50=${finalMetrics.cpuStrength.p50} ability-mean=${finalMetrics.playerAbility.mean} injured=${finalMetrics.injuredPlayers}`
+    ? `final-year=${finalMetrics.yearIndex} funds=${finalMetrics.fundsStart}->${finalMetrics.fundsEnd} min=${finalMetrics.fundsMin} max=${finalMetrics.fundsMax} strength=${finalMetrics.userStrength} cpu-p50=${finalMetrics.cpuStrength.p50} growth=${finalMetrics.yearlyGrowthTotal} tournament=${finalMetrics.userBestTournamentRound ?? "none"} intake=${finalMetrics.intakeCount} injuries=${finalMetrics.newInjuries}/${finalMetrics.healedInjuries}`
     : "no-yearly-metrics";
   return [
     `seed=${report.metadata.seed}`,
@@ -264,6 +368,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const targetYearIndex = startingYearIndex + targetSeasons;
   const maximumWeeks = targetSeasons * 60 + 4;
   const yearly: SoakSnapshotMetrics[] = [];
+  let tracker = createYearTracker(snapshot);
   let completedWeeks = 0;
   let actions = 0;
 
@@ -275,17 +380,41 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     }
 
     const previousYearIndex = snapshot.state.yearIndex;
+    observeWeekStart(tracker, snapshot);
     const advanced = advanceSoakUntilWeekChanges(snapshot, {
       maxActionsPerWeek: options.maxActionsPerWeek,
     });
+    tracker.newInjuries += advanced.newInjuryPlayerIds.length;
+    tracker.healedInjuries += advanced.healedPlayerIds.length;
     actions += advanced.actionCount;
     completedWeeks += 1;
     snapshot = advanced.snapshot;
     assertSoakInvariants(snapshot, { actionCount: actions });
 
-    if (snapshot.state.yearIndex > previousYearIndex) {
-      yearly.push(captureSoakSnapshotMetrics(snapshot));
+    if (snapshot.state.yearIndex === previousYearIndex) {
+      observeSameYearEnd(tracker, snapshot);
+      continue;
     }
+
+    const intakePlayerIds =
+      advanced.academicYearTransition?.intakePlayerIdsBySchool[
+        snapshot.state.userSchoolId
+      ] ?? [];
+    yearly.push(
+      captureSoakSnapshotMetrics(snapshot, {
+        academicYearIndex: tracker.academicYearIndex,
+        academicYear: tracker.academicYear,
+        fundsStart: tracker.fundsStart,
+        fundsMin: tracker.fundsMin,
+        fundsMax: tracker.fundsMax,
+        zeroFundWeeks: tracker.zeroFundWeeks,
+        injuredPlayerWeeks: tracker.injuredPlayerWeeks,
+        newInjuries: tracker.newInjuries,
+        healedInjuries: tracker.healedInjuries,
+        intakePlayerIds,
+      }),
+    );
+    tracker = createYearTracker(snapshot);
   }
 
   const completedSeasons = snapshot.state.yearIndex - startingYearIndex;
