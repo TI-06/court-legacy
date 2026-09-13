@@ -48,20 +48,16 @@ describe("Phase18 service worker registration", () => {
   it("reports an update when a newly installing worker reaches installed state", async () => {
     const { registerServiceWorker } = await loadSubject();
     const onUpdateReady = vi.fn();
-    let updateFoundListener: EventListener | null = null;
-    let stateChangeListener: EventListener | null = null;
+    const installingAddEventListener = vi.fn();
     const installing = {
       state: "installing",
-      addEventListener: vi.fn((type: string, listener: EventListener) => {
-        if (type === "statechange") stateChangeListener = listener;
-      }),
+      addEventListener: installingAddEventListener,
     } as unknown as ServiceWorker;
+    const registrationAddEventListener = vi.fn();
     const registrationState = {
       waiting: null,
       installing: null as ServiceWorker | null,
-      addEventListener: vi.fn((type: string, listener: EventListener) => {
-        if (type === "updatefound") updateFoundListener = listener;
-      }),
+      addEventListener: registrationAddEventListener,
     };
     const registration =
       registrationState as unknown as ServiceWorkerRegistration;
@@ -76,14 +72,20 @@ describe("Phase18 service worker registration", () => {
     expect(onUpdateReady).not.toHaveBeenCalled();
 
     registrationState.installing = installing;
-    expect(updateFoundListener).not.toBeNull();
+    const updateFoundListener = registrationAddEventListener.mock.calls.find(
+      ([type]) => type === "updatefound",
+    )?.[1] as EventListener | undefined;
+    expect(updateFoundListener).toBeDefined();
     updateFoundListener?.(new Event("updatefound"));
 
     Object.defineProperty(installing, "state", {
       configurable: true,
       value: "installed",
     });
-    expect(stateChangeListener).not.toBeNull();
+    const stateChangeListener = installingAddEventListener.mock.calls.find(
+      ([type]) => type === "statechange",
+    )?.[1] as EventListener | undefined;
+    expect(stateChangeListener).toBeDefined();
     stateChangeListener?.(new Event("statechange"));
 
     expect(onUpdateReady).toHaveBeenCalledTimes(1);
