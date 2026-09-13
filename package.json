@@ -17,6 +17,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "soak": "node scripts/runBalanceSoak.mjs --preset short",
+    "soak:smoke": "node scripts/runBalanceSoak.mjs --preset smoke",
+    "soak:balance": "node scripts/runBalanceSoak.mjs --preset balance",
+    "soak:long": "node scripts/runBalanceSoak.mjs --preset long",
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
