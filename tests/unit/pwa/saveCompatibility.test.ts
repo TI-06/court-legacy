@@ -5,14 +5,12 @@ import {
   decodeGameState,
   encodeGameState,
 } from "../../../src/persistence/gameStateCodec";
+import { registerServiceWorker } from "../../../src/pwa/registerServiceWorker";
 
 describe("Phase18 PWA save compatibility", () => {
   it("keeps the existing schema v8 save payload unchanged while PWA startup initializes", async () => {
     const state = createDemoGame();
     const encodedBefore = encodeGameState(state);
-    const { registerServiceWorker } = await import(
-      "../../../src/pwa/registerServiceWorker"
-    );
 
     const registration = await registerServiceWorker(
       () => undefined,
