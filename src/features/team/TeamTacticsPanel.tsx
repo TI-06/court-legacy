@@ -8,20 +8,29 @@ import type {
 import {
   attackTacticOptions,
   blockTacticOptions,
+  defenseBiasOptions,
   serveTacticOptions,
+  type DefenseBias,
   type TacticOption,
 } from "./tacticsPresentation";
 import "./team-tactics.css";
 
 export interface TeamTacticsPanelProps {
   currentPlan: MatchTacticPlan;
+  currentDefenseBias: DefenseBias;
   pending: boolean;
   onSave: (plan: MatchTacticPlan) => void;
+  onSaveDefenseBias: (defenseBias: DefenseBias) => void;
 }
 
 interface DraftState {
   baseKey: string;
   plan: MatchTacticPlan;
+}
+
+interface DefenseDraftState {
+  baseValue: DefenseBias;
+  value: DefenseBias;
 }
 
 function samePlan(left: MatchTacticPlan, right: MatchTacticPlan): boolean {
@@ -76,10 +85,14 @@ function TacticChoiceGroup<Value extends string>({
 
 export function TeamTacticsPanel({
   currentPlan,
+  currentDefenseBias,
   pending,
   onSave,
+  onSaveDefenseBias,
 }: TeamTacticsPanelProps) {
   const [draftState, setDraftState] = useState<DraftState | null>(null);
+  const [defenseDraftState, setDefenseDraftState] =
+    useState<DefenseDraftState | null>(null);
   const authoritativeKey = planKey(currentPlan);
   const draft =
     draftState?.baseKey === authoritativeKey ? draftState.plan : currentPlan;
@@ -88,6 +101,11 @@ export function TeamTacticsPanel({
     () => samePlan(draft, currentPlan),
     [currentPlan, draft],
   );
+  const defenseDraft =
+    defenseDraftState?.baseValue === currentDefenseBias
+      ? defenseDraftState.value
+      : currentDefenseBias;
+  const defenseUnchanged = defenseDraft === currentDefenseBias;
 
   const updateDraft = <Axis extends keyof MatchTacticPlan>(
     axis: Axis,
@@ -130,6 +148,26 @@ export function TeamTacticsPanel({
         pending={pending}
         value={draft.block}
       />
+
+      <TacticChoiceGroup<DefenseBias>
+        label="守備配置"
+        onChange={(value) =>
+          setDefenseDraftState({ baseValue: currentDefenseBias, value })
+        }
+        options={defenseBiasOptions}
+        pending={pending}
+        value={defenseDraft}
+      />
+
+      <button
+        aria-label="守備配置を保存"
+        className="team-tactics__save"
+        disabled={pending || defenseUnchanged}
+        onClick={() => onSaveDefenseBias(defenseDraft)}
+        type="button"
+      >
+        {pending ? "守備配置を保存しています…" : "守備配置を保存"}
+      </button>
 
       <button
         aria-label="基本戦術を保存"

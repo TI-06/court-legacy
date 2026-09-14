@@ -78,6 +78,7 @@ export type MatchEventType =
   | "rotation"
   | "substitution"
   | "timeout"
+  | "tactic-change"
   | "injury"
   | "set-end"
   | "match-end";

@@ -200,7 +200,11 @@ describe("Phase16 resumable practice match session", () => {
     const started = applyServerGameAction(snapshot, { type: "advance-week" });
     const startedMatch = started.state.activeMatch;
     if (!startedMatch) throw new Error("active practice match missing");
-    expect(startedMatch.runtime?.commandHistory).toHaveLength(0);
+    expect(
+      startedMatch.runtime?.commandHistory.filter(
+        (record) => record.schoolId === started.state.userSchoolId,
+      ),
+    ).toHaveLength(0);
 
     const matchId = startedMatch.id;
     const beforeCursor = started.state.randomCursor;
@@ -216,7 +220,11 @@ describe("Phase16 resumable practice match session", () => {
 
     expect(presentation.kind).toBe("practice");
     expect(presentation.simulation.match.id).toBe(matchId);
-    expect(current.state.activeMatch?.runtime?.commandHistory).toHaveLength(1);
+    expect(
+      current.state.activeMatch?.runtime?.commandHistory.filter(
+        (record) => record.schoolId === current.state.userSchoolId,
+      ),
+    ).toHaveLength(1);
     expect(current.state.activeMatch?.runtime?.homeTactics).toEqual({
       serve: "aggressive",
       attack: "quick",
@@ -242,9 +250,11 @@ describe("Phase16 resumable practice match session", () => {
       commandCount += 1;
       presentation = practicePresentation(current);
       expect(presentation.simulation.match.id).toBe(matchId);
-      expect(current.state.activeMatch?.runtime?.commandHistory).toHaveLength(
-        commandCount,
-      );
+      expect(
+        current.state.activeMatch?.runtime?.commandHistory.filter(
+          (record) => record.schoolId === current.state.userSchoolId,
+        ),
+      ).toHaveLength(commandCount);
     }
 
     expect(presentation.simulation.analysis).not.toBeNull();

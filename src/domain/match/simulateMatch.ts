@@ -10,7 +10,7 @@ import type {
 } from "../model/Match";
 import type { GameState } from "../model/GameState";
 import type { Player, PlayerAbilities, Position } from "../model/Player";
-import type { School } from "../model/School";
+import type { School, TeamTactics } from "../model/School";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { MatchId, PlayerId, SchoolId } from "../model/identifiers";
 import { getConditionMatchMultiplier } from "../player/playerCondition";
@@ -54,7 +54,10 @@ export interface AutomaticCoachDecisionInput {
 
 export type AutomaticCoachPolicy = (
   input: AutomaticCoachDecisionInput,
-) => Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>;
+) => Extract<
+  MatchCommand,
+  { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }
+>;
 
 export interface StartMatchInput extends SimulateMatchInput {
   controlledSchoolId: SchoolId;
@@ -114,6 +117,18 @@ interface AbilityContext {
 
 const ATTACK_POSITIONS: readonly Position[] = ["OH", "MB", "OP", "S"];
 const MAX_RALLIES_PER_SET = 2_000;
+
+export type AttackDirection = "line" | "cross" | "neutral";
+
+export function getDefenseDirectionAdjustment(
+  defenseBias: TeamTactics["defenseBias"],
+  attackDirection: AttackDirection,
+): number {
+  if (defenseBias === "balanced" || attackDirection === "neutral") {
+    return 0;
+  }
+  return defenseBias === attackDirection ? 3 : -3;
+}
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
@@ -508,6 +523,28 @@ function blockMatchupAdjustment(
   return -getAttackBlockMatchupPoints(attackPlan, blockPlan);
 }
 
+function chooseAttackDirection(
+  attacker: Player,
+  attackingSchool: School,
+  variationRoll: number,
+  abilityContext?: AbilityContext,
+): AttackDirection {
+  if (attacker.preferredPosition === "MB") {
+    const neutralChance =
+      attackingSchool.tactics.attackTempo === "fast" ? 0.72 : 0.58;
+    if (variationRoll < neutralChance) return "neutral";
+    return variationRoll < neutralChance + (1 - neutralChance) / 2
+      ? "line"
+      : "cross";
+  }
+
+  const decision = effectiveAbility(attacker, "decision", abilityContext);
+  const neutralChance = attacker.preferredPosition === "S" ? 0.28 : 0.08;
+  const lineChance = clamp(0.3 + (decision - 50) * 0.0012, 0.24, 0.36);
+  if (variationRoll < neutralChance) return "neutral";
+  return variationRoll < neutralChance + lineChance ? "line" : "cross";
+}
+
 function simulateRally(
   state: GameState,
   runtime: RallyRuntime,
@@ -614,6 +651,13 @@ function simulateRally(
     setQuality >= 82 ? "set.ideal" : "set.available",
   );
 
+  const attackVariationRoll = random.next();
+  const attackDirection = chooseAttackDirection(
+    attacker,
+    receiving.school,
+    attackVariationRoll,
+    abilityContext,
+  );
   const attackPower =
     effectiveAbility(attacker, "spike", abilityContext) * 0.58 +
     effectiveAbility(attacker, "jump", abilityContext) * 0.19 +
@@ -621,7 +665,7 @@ function simulateRally(
     attacker.positionAptitudes[attacker.preferredPosition] * 0.12 +
     setQuality * 0.35 +
     receiving.school.coach.tactics * 0.07 +
-    (random.next() - 0.5) * 16;
+    (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
   const blockPower =
@@ -634,7 +678,11 @@ function simulateRally(
     effectiveAbility(digger, "receive", abilityContext) * 0.58 +
     effectiveAbility(digger, "speed", abilityContext) * 0.25 +
     effectiveAbility(digger, "decision", abilityContext) * 0.17 +
-    serving.school.coach.leadership * 0.07;
+    serving.school.coach.leadership * 0.07 +
+    getDefenseDirectionAdjustment(
+      serving.school.tactics.defenseBias,
+      attackDirection,
+    );
 
   writer.push(
     "attack",
@@ -642,7 +690,7 @@ function simulateRally(
     attacker.id,
     blocker.id,
     null,
-    `attack.${attacker.preferredPosition.toLowerCase()}`,
+    `attack.${attacker.preferredPosition.toLowerCase()}.${attackDirection}`,
   );
 
   const blockKillChance = clamp(
@@ -1073,7 +1121,10 @@ function recordAutomaticCoachCommand(
   match: MatchState,
   schoolId: SchoolId,
   reason: CoachDecisionReason,
-  command: Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>,
+  command: Extract<
+    MatchCommand,
+    { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }
+  >,
 ): void {
   const runtime = runtimeOrThrow(match);
   const eventSequence = match.eventLog.length;
@@ -1097,6 +1148,25 @@ function recordAutomaticCoachCommand(
       targetPlayerId: null,
       winnerSchoolId: schoolId,
       detailCode: "timeout.automatic-coach",
+    });
+  } else if (command.type === "set-match-tactics") {
+    if (schoolId === match.homeSchoolId) {
+      runtime.homeTactics = structuredClone(command.plan);
+    } else if (schoolId === match.awaySchoolId) {
+      runtime.awayTactics = structuredClone(command.plan);
+    } else {
+      throw new Error("automatic coach school must be part of the match");
+    }
+    match.eventLog.push({
+      sequence: match.eventLog.length + 1,
+      type: "tactic-change",
+      setNumber: match.currentSetNumber,
+      homeScore: runtime.homeScore,
+      awayScore: runtime.awayScore,
+      actorPlayerId: null,
+      targetPlayerId: null,
+      winnerSchoolId: schoolId,
+      detailCode: `tactic.automatic.${command.plan.serve}.${command.plan.attack}.${command.plan.block}`,
     });
   }
 

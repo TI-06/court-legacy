@@ -6,6 +6,7 @@ import type {
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
+import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
 import {
@@ -53,6 +54,9 @@ interface PlayerHubScreenProps {
   ) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
+  onSetTeamDefenseBias?: (
+    defenseBias: TeamTactics["defenseBias"],
+  ) => void | Promise<void>;
   onSaveLineupPreset?: (
     slot: SavedLineupSlot,
     name: string,
@@ -162,6 +166,7 @@ export function PlayerHubScreen({
   onChangeTraining,
   onSetDevelopmentPriorities,
   onSetTeamTactics,
+  onSetTeamDefenseBias,
   onSaveLineupPreset,
   onDeleteLineupPreset,
 }: PlayerHubScreenProps) {
@@ -254,8 +259,12 @@ export function PlayerHubScreen({
       <main className="app-content player-hub">
         <HubTabs mode={mode} onChange={setMode} />
         <TeamTacticsPanel
+          currentDefenseBias={school.tactics.defenseBias}
           currentPlan={deriveMatchTacticPlan(school.tactics)}
           onSave={(plan) => void onSetTeamTactics?.(plan)}
+          onSaveDefenseBias={(defenseBias) =>
+            void onSetTeamDefenseBias?.(defenseBias)
+          }
           pending={tacticsPending}
         />
       </main>

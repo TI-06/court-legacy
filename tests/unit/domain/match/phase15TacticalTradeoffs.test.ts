@@ -155,14 +155,24 @@ describe("Phase 15 tactical trade-offs", () => {
     ).toBeLessThanOrEqual(2);
   });
 
-  it("does not give defenseBias a hidden flat simulation bonus", () => {
-    for (let index = 0; index < 8; index += 1) {
+  it("makes defenseBias a real matchup axis without adding a flat team bonus", () => {
+    let changedMatches = 0;
+    for (let index = 0; index < 12; index += 1) {
       const seed = `defense-bias-${index}`;
       const line = run(seed, balanced, balanced, "line");
+      const cross = run(seed, balanced, balanced, "cross");
       const balancedBias = run(seed, balanced, balanced, "balanced");
-      expect(line.match).toEqual(balancedBias.match);
-      expect(line.analysis).toEqual(balancedBias.analysis);
+
+      if (
+        JSON.stringify(line.match.eventLog) !==
+          JSON.stringify(cross.match.eventLog) ||
+        JSON.stringify(line.match.eventLog) !==
+          JSON.stringify(balancedBias.match.eventLog)
+      ) {
+        changedMatches += 1;
+      }
     }
+    expect(changedMatches).toBeGreaterThan(0);
   });
 
   it("keeps the serve axis as a risk/reward trade-off without mutating state", () => {

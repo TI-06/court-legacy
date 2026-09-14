@@ -20,12 +20,18 @@ import {
   MatchCommandValidationError,
 } from "../../src/domain/match/applyMatchCommand";
 import {
+  decideCpuCoachCommand,
+  type CpuCoachPublicView,
+} from "../../src/domain/match/cpuCoachPolicy";
+import {
   resumeMatch,
   simulateMatch,
   startMatch,
+  type AutomaticCoachDecisionInput,
   type MatchStepResult,
   type SimulateMatchResult,
 } from "../../src/domain/match/simulateMatch";
+import type { MatchState } from "../../src/domain/model/Match";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
@@ -33,7 +39,7 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
-import { matchId } from "../../src/domain/model/identifiers";
+import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
   buildTrainingResultNotification,
@@ -171,6 +177,94 @@ function applyCompletedSoloMatchExperience(
   });
 }
 
+function cpuPublicStats(
+  match: MatchState,
+  schoolId: SchoolId,
+  opponentSchoolId: SchoolId,
+): CpuCoachPublicView["publicStats"] {
+  const stats: CpuCoachPublicView["publicStats"] = {
+    ownAces: 0,
+    ownServeErrors: 0,
+    opponentAces: 0,
+    ownAttackPoints: 0,
+    opponentAttackPoints: 0,
+    ownBlockPoints: 0,
+    opponentBlockPoints: 0,
+  };
+
+  for (const event of match.eventLog) {
+    if (event.type !== "point") continue;
+    const ownPoint = event.winnerSchoolId === schoolId;
+    const opponentPoint = event.winnerSchoolId === opponentSchoolId;
+    if (event.detailCode === "point.serve-ace") {
+      if (ownPoint) stats.ownAces += 1;
+      if (opponentPoint) stats.opponentAces += 1;
+    } else if (event.detailCode === "point.serve-error") {
+      if (opponentPoint) stats.ownServeErrors += 1;
+    } else if (event.detailCode === "point.attack") {
+      if (ownPoint) stats.ownAttackPoints += 1;
+      if (opponentPoint) stats.opponentAttackPoints += 1;
+    } else if (event.detailCode === "point.block") {
+      if (ownPoint) stats.ownBlockPoints += 1;
+      if (opponentPoint) stats.opponentBlockPoints += 1;
+    }
+  }
+
+  return stats;
+}
+
+export function buildCpuCoachPublicView(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+): CpuCoachPublicView {
+  const runtime = match.runtime;
+  if (!runtime) {
+    throw new Error("cpu coach requires an interactive match runtime");
+  }
+  const school = state.schools[schoolId];
+  if (!school) {
+    throw new Error(`cpu coach school not found: ${schoolId}`);
+  }
+  const isHome = schoolId === match.homeSchoolId;
+  if (!isHome && schoolId !== match.awaySchoolId) {
+    throw new Error("cpu coach school must be part of the match");
+  }
+  const opponentSchoolId = isHome ? match.awaySchoolId : match.homeSchoolId;
+
+  return {
+    schoolId,
+    opponentSchoolId,
+    archetypeId: school.archetypeId,
+    reputation: school.reputation,
+    coachTactics: school.coach.tactics,
+    ownPlan: structuredClone(
+      isHome ? runtime.homeTactics : runtime.awayTactics,
+    ),
+    opponentPlan: structuredClone(
+      isHome ? runtime.awayTactics : runtime.homeTactics,
+    ),
+    score: {
+      own: isHome ? runtime.homeScore : runtime.awayScore,
+      opponent: isHome ? runtime.awayScore : runtime.homeScore,
+    },
+    setNumber: match.currentSetNumber,
+    ownSetsWon: isHome ? match.homeSetsWon : match.awaySetsWon,
+    opponentSetsWon: isHome ? match.awaySetsWon : match.homeSetsWon,
+    runLength: runtime.runLength,
+    runWinnerSchoolId: runtime.runWinnerSchoolId,
+    timeoutAvailable: !runtime.timeoutUsedSchoolIds.includes(schoolId),
+    publicStats: cpuPublicStats(match, schoolId, opponentSchoolId),
+  };
+}
+
+function pveCpuCoachPolicy(input: AutomaticCoachDecisionInput) {
+  return decideCpuCoachCommand(
+    buildCpuCoachPublicView(input.state, input.match, input.schoolId),
+    input.reason,
+  );
+}
+
 function consumeNextTrainingGrowthBoost(state: GameState): GameState {
   if (!state.shopEffects?.nextTrainingGrowthBoost) {
     return state;
@@ -282,6 +376,34 @@ function applyTeamTactics(
         [school.id]: {
           ...school,
           tactics: applyMatchTacticPlan(school.tactics, action.plan),
+        },
+      },
+    },
+    teamSelection,
+  };
+}
+
+function applyTeamDefenseBias(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-defense-bias" }>,
+): AppliedGameAction {
+  const school = state.schools[state.userSchoolId];
+  if (!school) {
+    return conflict("user_school_not_found", "自校の守備配置を更新できません");
+  }
+
+  return {
+    state: {
+      ...state,
+      schools: {
+        ...state.schools,
+        [school.id]: {
+          ...school,
+          tactics: {
+            ...school.tactics,
+            defenseBias: action.defenseBias,
+          },
         },
       },
     },
@@ -429,6 +551,8 @@ function startPracticeMatchSession(
       bestOfSets: 3,
       random,
       controlledSchoolId: state.userSchoolId,
+      automaticCoachSchoolId: opponent.id,
+      automaticCoach: pveCpuCoachPolicy,
     });
 
     return {
@@ -587,7 +711,12 @@ function applyPracticeMatchCommand(
       schoolId: state.userSchoolId,
       command: action.command,
     });
-    const simulation = resumeMatch({ state, match: commandedMatch });
+    const simulation = resumeMatch({
+      state,
+      match: commandedMatch,
+      automaticCoachSchoolId: opponentSchoolId,
+      automaticCoach: pveCpuCoachPolicy,
+    });
     const resumedState: GameState = {
       ...state,
       randomCursor: simulation.match.randomCursor,
@@ -791,6 +920,8 @@ function applyOfficialMatch(
       bestOfSets: 3,
       random,
       controlledSchoolId: state.userSchoolId,
+      automaticCoachSchoolId: context.schoolId,
+      automaticCoach: pveCpuCoachPolicy,
       dynamicsReadinessByPlayerId: buildPveDynamicsReadinessByPlayerId(state),
     });
 
@@ -864,6 +995,8 @@ function applyOfficialMatchCommand(
     const simulation = resumeMatch({
       state: context.state,
       match: commandedMatch,
+      automaticCoachSchoolId: context.schoolId,
+      automaticCoach: pveCpuCoachPolicy,
     });
     const resumedState: GameState = {
       ...state,
@@ -1255,6 +1388,8 @@ export function applyGameAction(
       return applyTeamSelection(state, action);
     case "set-team-tactics":
       return applyTeamTactics(state, teamSelection, action);
+    case "set-team-defense-bias":
+      return applyTeamDefenseBias(state, teamSelection, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":

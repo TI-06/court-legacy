@@ -1,4 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { applySchoolMatchIdentityDefaults } from "../match/schoolMatchIdentity";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { School, SchoolReputation, UniformColors } from "../model/School";
 import type { RandomSource } from "../random/SeededRandom";
@@ -52,6 +53,20 @@ export function generateSchool(input: GenerateSchoolInput): School {
     : input.random.pick(RIVAL_REPUTATIONS);
   const facilityBase = input.isUserSchool ? 0 : input.random.int(0, 2);
   const usesFastAttack = archetype.attackTempo === "fast";
+  const baseTactics = {
+    serveRisk: input.random.int(35, 70),
+    serveTargetPlayerId: null,
+    attackTempo: archetype.attackTempo,
+    attackDistribution: {
+      OH: usesFastAttack ? 38 : 42,
+      MB: usesFastAttack ? 28 : 20,
+      OP: usesFastAttack ? 30 : 34,
+      S: 4,
+      L: 0,
+    },
+    blockSystem: archetype.blockSystem,
+    defenseBias: input.random.pick(["cross", "balanced", "line"]),
+  } satisfies School["tactics"];
 
   return {
     id: input.id,
@@ -89,20 +104,7 @@ export function generateSchool(input: GenerateSchoolInput): School {
       alumniAssociation: Math.max(0, facilityBase - 1),
       studyRoom: input.random.int(0, 1),
     },
-    tactics: {
-      serveRisk: input.random.int(35, 70),
-      serveTargetPlayerId: null,
-      attackTempo: archetype.attackTempo,
-      attackDistribution: {
-        OH: usesFastAttack ? 38 : 42,
-        MB: usesFastAttack ? 28 : 20,
-        OP: usesFastAttack ? 30 : 34,
-        S: 4,
-        L: 0,
-      },
-      blockSystem: archetype.blockSystem,
-      defenseBias: input.random.pick(["cross", "balanced", "line"]),
-    },
+    tactics: applySchoolMatchIdentityDefaults(baseTactics, archetype.id),
     history: {
       seasons: 0,
       officialWins: 0,
