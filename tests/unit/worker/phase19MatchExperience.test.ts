@@ -107,7 +107,9 @@ describe("Phase19 authoritative match experience", () => {
       snapshot.teamSelection.liberoPlayerId!,
     ]);
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-    const nonParticipantId = school.playerIds.find((id) => !selectedIds.has(id));
+    const nonParticipantId = school.playerIds.find(
+      (id) => !selectedIds.has(id),
+    );
     if (!nonParticipantId) {
       throw new Error("non-participant fixture missing");
     }
