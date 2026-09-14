@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   final-verification:
-    if: github.event.head_commit.message == 'chore: run final phase19 verification'
+    if: "${{ github.event.head_commit.message == 'chore: run final phase19 verification' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
