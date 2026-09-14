@@ -22,6 +22,7 @@ jobs:
       - name: Apply recruit balance wiring
         shell: bash
         run: |
+          set +e
           python - <<'PY'
           from pathlib import Path
 
@@ -30,78 +31,76 @@ jobs:
               text = target.read_text()
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f"expected exactly one match in {path}, found {count}")
+                  raise SystemExit(f"expected exactly one match in {path}, found {count}: {old!r}")
               target.write_text(text.replace(old, new, 1))
 
+          academic = "src/domain/calendar/academicYearProgression.ts"
           replace_once(
-              "src/domain/calendar/academicYearProgression.ts",
+              academic,
               'import { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
               'import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";\nimport { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
           )
           replace_once(
-              "src/domain/calendar/academicYearProgression.ts",
-              '''      data,
-              random,
-              count: intakeCount - committedIntake.length,
-              currentPlayers:''',
-              '''      data,
-              random,
-              abilityBonus:
-                school.id === state.userSchoolId
-                  ? 0
-                  : rivalSchoolBalanceProfile(school.reputation).recruitAbilityBonus,
-              count: intakeCount - committedIntake.length,
-              currentPlayers:''',
+              academic,
+              "      data,\n      random,\n      count: intakeCount - committedIntake.length,\n",
+              "      data,\n      random,\n      abilityBonus:\n        school.id === state.userSchoolId\n          ? 0\n          : rivalSchoolBalanceProfile(school.reputation).recruitAbilityBonus,\n      count: intakeCount - committedIntake.length,\n",
           )
 
-          replace_once(
-              "src/domain/generation/generateWorld.ts",
-              'import { weightedChoice } from "../random/weightedChoice";\n',
-              'import { weightedChoice } from "../random/weightedChoice";\nimport {\n  applyRivalRecruitAbilityBonus,\n  rivalSchoolBalanceProfile,\n} from "../world/rivalSchoolBalance";\n',
+          world_path = Path("src/domain/generation/generateWorld.ts")
+          world = world_path.read_text()
+          import_old = 'import { weightedChoice } from "../random/weightedChoice";\n'
+          import_new = (
+              import_old
+              + 'import {\n'
+              + '  applyRivalRecruitAbilityBonus,\n'
+              + '  rivalSchoolBalanceProfile,\n'
+              + '} from "../world/rivalSchoolBalance";\n'
           )
-          old_school = '''    const captain = squad.find((player) => player.grade === 3) ?? squad[0];
-              schools[id] = generateSchool({
-                id,
-                name: setup.name,
-                shortName: setup.shortName,
-                regionId: setup.regionId,
-                coachName: setup.coachName,
-                uniform,
-                playerIds: squad.map((player) => player.id),
-                captainPlayerId: captain?.id ?? null,
-                data: input.data,
-                random,
-                isUserSchool,
-              });'''
-          new_school = '''    const captain = squad.find((player) => player.grade === 3) ?? squad[0];
-              const generatedSchool = generateSchool({
-                id,
-                name: setup.name,
-                shortName: setup.shortName,
-                regionId: setup.regionId,
-                coachName: setup.coachName,
-                uniform,
-                playerIds: squad.map((player) => player.id),
-                captainPlayerId: captain?.id ?? null,
-                data: input.data,
-                random,
-                isUserSchool,
-              });
-              schools[id] = generatedSchool;
+          if world.count(import_old) != 1:
+              raise SystemExit("generateWorld weightedChoice import is not unique")
+          world = world.replace(import_old, import_new, 1)
 
-              if (!isUserSchool) {
-                const abilityBonus = rivalSchoolBalanceProfile(
-                  generatedSchool.reputation,
-                ).recruitAbilityBonus;
-                for (const player of squad) {
-                  players[player.id] = applyRivalRecruitAbilityBonus(
-                    player,
-                    abilityBonus,
-                  );
-                }
-              }'''
-          replace_once("src/domain/generation/generateWorld.ts", old_school, new_school)
+          start_marker = "    const captain = squad.find((player) => player.grade === 3) ?? squad[0];\n    schools[id] = generateSchool({\n"
+          if world.count(start_marker) != 1:
+              raise SystemExit(f"generateWorld school block start count={world.count(start_marker)}")
+          start = world.index(start_marker)
+          end_marker = "    });\n  };"
+          end = world.index(end_marker, start) + len("    });")
+          replacement = '''    const captain = squad.find((player) => player.grade === 3) ?? squad[0];
+          const generatedSchool = generateSchool({
+            id,
+            name: setup.name,
+            shortName: setup.shortName,
+            regionId: setup.regionId,
+            coachName: setup.coachName,
+            uniform,
+            playerIds: squad.map((player) => player.id),
+            captainPlayerId: captain?.id ?? null,
+            data: input.data,
+            random,
+            isUserSchool,
+          });
+          schools[id] = generatedSchool;
+
+          if (!isUserSchool) {
+            const abilityBonus = rivalSchoolBalanceProfile(
+              generatedSchool.reputation,
+            ).recruitAbilityBonus;
+            for (const player of squad) {
+              players[player.id] = applyRivalRecruitAbilityBonus(
+                player,
+                abilityBonus,
+              );
+            }
+          }'''
+          world_path.write_text(world[:start] + replacement + world[end:])
           PY
+          patch_status=$?
+
+          if [ "$patch_status" -ne 0 ]; then
+            echo "PHASE19_APPLY patch=${patch_status}"
+            exit 0
+          fi
 
           npx prettier --write \
             src/domain/calendar/academicYearProgression.ts \
@@ -111,8 +110,7 @@ jobs:
             src/domain/world/rivalWorldProgression.ts \
             tests/unit/domain/world/phase19SchoolBalance.test.ts \
             docs/superpowers/plans/2026-09-14-phase19-pr19-1-cpu-school-balance.md
-
-          set +e
+          format_status=$?
           npm run typecheck
           type_status=$?
           npx vitest run \
@@ -123,9 +121,9 @@ jobs:
           npm run soak:balance
           soak_status=$?
           set -e
-          echo "PHASE19_APPLY type=${type_status} tests=${test_status} soak=${soak_status}"
+          echo "PHASE19_APPLY patch=${patch_status} format=${format_status} type=${type_status} tests=${test_status} soak=${soak_status}"
 
-          if [ "$type_status" -ne 0 ] || [ "$test_status" -ne 0 ] || [ "$soak_status" -ne 0 ]; then
+          if [ "$format_status" -ne 0 ] || [ "$type_status" -ne 0 ] || [ "$test_status" -ne 0 ] || [ "$soak_status" -ne 0 ]; then
             echo "Focused validation did not pass; leaving repository unchanged."
             exit 0
           fi
