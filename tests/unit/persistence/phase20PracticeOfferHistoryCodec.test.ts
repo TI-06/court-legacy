@@ -10,23 +10,29 @@ import {
 } from "../../../src/persistence/gameStateCodec";
 
 function previousOfferHistory(schoolId: SchoolId) {
-  return Array.from({ length: PRACTICE_INCOMING_HISTORY_LIMIT }, (_, index) => ({
-    schoolId,
-    date: `2025-${String(Math.floor(index / 2) + 1).padStart(2, "0")}-${index % 2 === 0 ? "05" : "19"}` as GameDate,
-  }));
+  return Array.from(
+    { length: PRACTICE_INCOMING_HISTORY_LIMIT },
+    (_, index) => ({
+      schoolId,
+      date: `2025-${String(Math.floor(index / 2) + 1).padStart(2, "0")}-${index % 2 === 0 ? "05" : "19"}` as GameDate,
+    }),
+  );
 }
 
 describe("Phase20-3 practice offer history persistence", () => {
   it("defaults a current-schema save with no offer history to an empty history", () => {
     const state = structuredClone(createDemoGame());
-    const legacyPracticeMatch = state.weeklySchedule.practiceMatch as typeof state.weeklySchedule.practiceMatch & {
+    const legacyPracticeMatch = state.weeklySchedule
+      .practiceMatch as typeof state.weeklySchedule.practiceMatch & {
       incomingOfferHistory?: unknown;
     };
     delete legacyPracticeMatch.incomingOfferHistory;
 
     const decoded = decodeGameState(JSON.stringify(state));
 
-    expect(decoded.weeklySchedule.practiceMatch.incomingOfferHistory).toEqual([]);
+    expect(decoded.weeklySchedule.practiceMatch.incomingOfferHistory).toEqual(
+      [],
+    );
   });
 
   it("round-trips received offer history without changing entries", () => {
