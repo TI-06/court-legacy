@@ -54,7 +54,10 @@ export interface AutomaticCoachDecisionInput {
 
 export type AutomaticCoachPolicy = (
   input: AutomaticCoachDecisionInput,
-) => Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>;
+) => Extract<
+  MatchCommand,
+  { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }
+>;
 
 export interface StartMatchInput extends SimulateMatchInput {
   controlledSchoolId: SchoolId;
@@ -1118,7 +1121,10 @@ function recordAutomaticCoachCommand(
   match: MatchState,
   schoolId: SchoolId,
   reason: CoachDecisionReason,
-  command: Extract<MatchCommand, { type: "timeout" } | { type: "continue" }>,
+  command: Extract<
+    MatchCommand,
+    { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }
+  >,
 ): void {
   const runtime = runtimeOrThrow(match);
   const eventSequence = match.eventLog.length;
@@ -1142,6 +1148,25 @@ function recordAutomaticCoachCommand(
       targetPlayerId: null,
       winnerSchoolId: schoolId,
       detailCode: "timeout.automatic-coach",
+    });
+  } else if (command.type === "set-match-tactics") {
+    if (schoolId === match.homeSchoolId) {
+      runtime.homeTactics = structuredClone(command.plan);
+    } else if (schoolId === match.awaySchoolId) {
+      runtime.awayTactics = structuredClone(command.plan);
+    } else {
+      throw new Error("automatic coach school must be part of the match");
+    }
+    match.eventLog.push({
+      sequence: match.eventLog.length + 1,
+      type: "tactic-change",
+      setNumber: match.currentSetNumber,
+      homeScore: runtime.homeScore,
+      awayScore: runtime.awayScore,
+      actorPlayerId: null,
+      targetPlayerId: null,
+      winnerSchoolId: schoolId,
+      detailCode: `tactic.automatic.${command.plan.serve}.${command.plan.attack}.${command.plan.block}`,
     });
   }
 

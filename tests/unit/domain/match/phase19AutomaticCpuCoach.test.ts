@@ -135,12 +135,13 @@ describe("Phase19-4 automatic CPU coach commands", () => {
       automaticCoach: tacticPolicy,
     });
 
-    const firstSetAutomaticCommands = second.match.runtime?.commandHistory.filter(
-      (record) =>
-        record.schoolId === fixture.awaySchoolId &&
-        record.setNumber === 1 &&
-        record.decisionReason === "set-break",
-    );
+    const firstSetAutomaticCommands =
+      second.match.runtime?.commandHistory.filter(
+        (record) =>
+          record.schoolId === fixture.awaySchoolId &&
+          record.setNumber === 1 &&
+          record.decisionReason === "set-break",
+      );
     expect(firstSetAutomaticCommands).toHaveLength(1);
   });
 });

@@ -151,6 +151,8 @@ function titleFor(event: MatchEvent): string {
       return "選手交代";
     case "timeout":
       return "タイムアウト";
+    case "tactic-change":
+      return "戦術変更";
     case "injury":
       return "アクシデント";
     case "set-end":
@@ -206,6 +208,8 @@ function detailFor(
       return `${actor}と${target}を交代します。`;
     case "timeout":
       return `${winner}がタイムアウトを取ります。`;
+    case "tactic-change":
+      return `${winner}が試合中の戦術を変更しました。`;
     case "injury":
       return `${actor}にアクシデントが発生しました。`;
     case "set-end":
