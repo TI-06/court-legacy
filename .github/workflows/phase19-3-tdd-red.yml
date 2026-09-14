@@ -1,0 +1,28 @@
+name: Phase19-3 Safe TDD Red
+
+on:
+  push:
+    branches:
+      - verify/phase19-3-tdd-red
+
+jobs:
+  red-check:
+    if: "${{ startsWith(github.event.head_commit.message, 'test: define phase19-3') }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Capture expected RED without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts > /tmp/phase19-3-red.log 2>&1
+          status=$?
+          cat /tmp/phase19-3-red.log
+          echo "PHASE19_3_EXPECTED_RED_STATUS=${status}"
+          exit 0
