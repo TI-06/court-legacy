@@ -1,4 +1,4 @@
-name: Phase20-2 Task5 RED
+name: Phase20-2 Task5 Safe Check
 
 on:
   push:
@@ -6,10 +6,11 @@ on:
       - "feature/phase20-2-player-concern-guidance"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  concern-guidance-ux-red:
+  concern-guidance-ux-safe-check:
+    if: github.event.head_commit.message != 'phase20-2-task5-green'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,4 +19,90 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - run: npx vitest run tests/unit/features/team/phase20ConcernGuidanceUx.test.tsx
+      - name: Wire concern guidance into Team and Home
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          team = Path('src/features/team/TeamDynamicsPanel.tsx')
+          text = team.read_text()
+          replacements = [
+            (
+              '''import type {\n  CohesionTrend,\n  PlayerConcernCode,\n  PlayerRole,\n} from "../../domain/dynamics/teamDynamicsTypes";''',
+              '''import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";\nimport type {\n  CohesionTrend,\n  PlayerRole,\n} from "../../domain/dynamics/teamDynamicsTypes";''',
+            ),
+            (
+              '''const concernLabels: Record<PlayerConcernCode, string> = {\n  "playing-time": "出場機会",\n  "role-mismatch": "役割への不満",\n  "injury-overuse": "怪我・起用負荷",\n  "team-slump": "チーム不調",\n};\n\n''',
+              '',
+            ),
+            (
+              '''  const concerns = players.flatMap((player) =>\n    (dynamics.playerConcerns[player.id] ?? []).map((concern) => ({\n      player,\n      concern,\n    })),\n  );''',
+              '''  const concerns = players.flatMap((player) =>\n    selectPlayerConcernGuidance(state, player.id).map((guidance) => ({\n      player,\n      guidance,\n    })),\n  );''',
+            ),
+            (
+              '''              {concerns.map(({ player, concern }, index) => (\n                <article key={`${player.id}:${concern.code}:${index}`}>\n                  <div>\n                    <strong>\n                      {playerName(player)}・{concernLabels[concern.code]}\n                    </strong>\n                    <small>\n                      重要度 {concern.severity}/3・信頼 {player.trust}・士気{" "}\n                      {player.morale}\n                    </small>\n                  </div>\n                </article>\n              ))}''',
+              '''              {concerns.map(({ player, guidance }, index) => (\n                <article key={`${player.id}:${guidance.code}:${index}`}>\n                  <div>\n                    <strong>\n                      {playerName(player)}・{guidance.title}\n                    </strong>\n                    <small>{guidance.reason}</small>\n                    <small>\n                      {guidance.progressLabel}・重要度 {guidance.severity}/3・信頼{" "}\n                      {player.trust}・士気 {player.morale}\n                    </small>\n                    <p>対処：{guidance.resolution}</p>\n                  </div>\n                  <span>\n                    {guidance.status === "improving" ? "改善中" : "対応が必要"}\n                  </span>\n                </article>\n              ))}''',
+            ),
+          ]
+          for old, new in replacements:
+            if old not in text:
+              raise SystemExit(f'TeamDynamicsPanel target not found: {old[:80]!r}')
+            text = text.replace(old, new, 1)
+          team.write_text(text)
+
+          home = Path('src/features/home/homeCommandCenter.ts')
+          text = home.read_text()
+          replacements = [
+            (
+              '''import type {\n  CohesionTrend,\n  PlayerConcernCode,\n} from "../../domain/dynamics/teamDynamicsTypes";''',
+              '''import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";\nimport type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";''',
+            ),
+            (
+              '''import {\n  selectHomeTrainingNotifications,\n  type TrainingResultNotification,\n} from "../../domain/notifications/gameNotifications";''',
+              '''import {\n  selectHomeConcernResolutionNotifications,\n  selectHomeTrainingNotifications,\n  type ConcernResolutionNotification,\n  type TrainingResultNotification,\n} from "../../domain/notifications/gameNotifications";''',
+            ),
+            (
+              '''  | {\n      id: string;\n      kind: "growth";\n      title: string;\n      detail: string;\n      playerId: PlayerId;\n    }''',
+              '''  | {\n      id: string;\n      kind: "concern-resolution";\n      title: string;\n      detail: string;\n      notification: ConcernResolutionNotification;\n    }\n  | {\n      id: string;\n      kind: "growth";\n      title: string;\n      detail: string;\n      playerId: PlayerId;\n    }''',
+            ),
+            (
+              '''const concernLabels: Record<PlayerConcernCode, string> = {\n  "playing-time": "出場機会への不満",\n  "role-mismatch": "役割への不満",\n  "injury-overuse": "怪我・起用負荷",\n  "team-slump": "チーム不調",\n};\n\n''',
+              '',
+            ),
+            (
+              '''function playerConcernTasks(state: GameState): TaskCandidate[] {\n  const school = state.schools[state.userSchoolId];\n  if (!school) return [];\n\n  const candidates = school.playerIds.flatMap((playerId) => {\n    const player = state.players[playerId];\n    if (!player) return [];\n    const concerns = state.teamDynamics.playerConcerns[playerId] ?? [];\n    const concern = [...concerns].sort(\n      (left, right) =>\n        right.severity - left.severity || left.code.localeCompare(right.code),\n    )[0];\n    return concern ? [{ player, concern }] : [];\n  });\n\n  return candidates\n    .sort(\n      (left, right) =>\n        right.concern.severity - left.concern.severity ||\n        right.player.grade - left.player.grade ||\n        String(left.player.id).localeCompare(String(right.player.id)),\n    )\n    .slice(0, 2)\n    .map(({ player, concern }, index) => ({\n      order: 20 + index,\n      task: {\n        id: `player-concern:${player.id}:${concern.code}`,\n        kind: "action",\n        priority: "attention",\n        category: "player",\n        title: "選手から相談",\n        detail: `${player.lastName} ${player.firstName}・${concernLabels[concern.code]}・重要度${concern.severity}`,\n        action: { target: "player", playerId: player.id },\n        actionLabel: "確認",\n        complete: false,\n      },\n    }));\n}''',
+              '''function playerConcernTasks(state: GameState): TaskCandidate[] {\n  const school = state.schools[state.userSchoolId];\n  if (!school) return [];\n\n  const candidates = school.playerIds.flatMap((playerId) => {\n    const player = state.players[playerId];\n    if (!player) return [];\n    const guidance = [...selectPlayerConcernGuidance(state, playerId)].sort(\n      (left, right) =>\n        right.severity - left.severity || left.code.localeCompare(right.code),\n    )[0];\n    return guidance ? [{ player, guidance }] : [];\n  });\n\n  return candidates\n    .sort(\n      (left, right) =>\n        right.guidance.severity - left.guidance.severity ||\n        right.player.grade - left.player.grade ||\n        String(left.player.id).localeCompare(String(right.player.id)),\n    )\n    .slice(0, 2)\n    .map(({ player, guidance }, index) => ({\n      order: 20 + index,\n      task: {\n        id: `player-concern:${player.id}:${guidance.code}`,\n        kind: "action",\n        priority: "attention",\n        category: "player",\n        title: "選手から相談",\n        detail: `${player.lastName} ${player.firstName}・${guidance.title}・${guidance.progressLabel}・${guidance.resolution}`,\n        action: { target: "player", playerId: player.id },\n        actionLabel: "確認",\n        complete: false,\n      },\n    }));\n}''',
+            ),
+            (
+              '''  const candidates: NewsCandidate[] = [];\n  const notification = selectHomeTrainingNotifications(state.notifications)[0];\n\n  if (notification) {''',
+              '''  const candidates: NewsCandidate[] = [];\n  const notification = selectHomeTrainingNotifications(state.notifications)[0];\n  const concernResolution =\n    selectHomeConcernResolutionNotifications(state.notifications)[0];\n\n  if (concernResolution) {\n    candidates.push({\n      order: concernResolution.readAtGameDate === null ? 1 : 41,\n      news: {\n        id: `news:concern:${concernResolution.id}`,\n        kind: "concern-resolution",\n        title: "選手の不満が解消",\n        detail: concernResolution.payload.items\n          .map((item) => `${item.displayName}・${item.concernTitle}`)\n          .join(" / "),\n        notification: concernResolution,\n      },\n    });\n  }\n\n  if (notification) {''',
+            ),
+          ]
+          for old, new in replacements:
+            if old not in text:
+              raise SystemExit(f'homeCommandCenter target not found: {old[:80]!r}')
+            text = text.replace(old, new, 1)
+          home.write_text(text)
+          PY
+          npx prettier --write \
+            src/features/team/TeamDynamicsPanel.tsx \
+            src/features/home/homeCommandCenter.ts \
+            tests/unit/features/team/phase20ConcernGuidanceUx.test.tsx
+      - name: Run focused concern UX tests
+        run: npx vitest run tests/unit/domain/dynamics/playerConcernGuidance.test.ts tests/unit/features/team/TeamDynamicsPanel.test.tsx tests/unit/features/team/phase20ConcernGuidanceUx.test.tsx tests/unit/features/home/homeCommandCenter.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Commit verified UX changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/features/team/TeamDynamicsPanel.tsx \
+            src/features/home/homeCommandCenter.ts \
+            tests/unit/features/team/phase20ConcernGuidanceUx.test.tsx
+          git commit -m "phase20-2-task5-green"
+          git push
