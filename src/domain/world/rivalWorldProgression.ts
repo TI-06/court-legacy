@@ -14,6 +14,7 @@ import type {
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { MAX_OFFICIAL_TOURNAMENT_HISTORY } from "../tournament/tournamentHistory";
+import { rivalSchoolBalanceProfile } from "./rivalSchoolBalance";
 
 export const MAX_MATCH_HISTORY = 500;
 export const MAX_GRADUATE_HISTORY = 640;
@@ -308,24 +309,35 @@ function developRivalPlayer(
   priorityAbilities: readonly (keyof PlayerAbilities)[],
   random: RandomSource,
 ): Player {
+  const profile = rivalSchoolBalanceProfile(school.reputation);
   const facilityDevelopment =
     normalizedFacilityRating(school.facilities.trainingRoom) * 35 +
     normalizedFacilityRating(school.facilities.gym) * 18;
-  const developmentLevel = clamp(
-    1 + Math.floor((school.coach.development + facilityDevelopment) / 60),
-    1,
-    3,
+  const infrastructureGrowth = clamp(
+    Math.floor((school.coach.development + facilityDevelopment) / 70),
+    0,
+    2,
   );
-  const gradeBonus = player.grade === 2 ? 1 : 0;
+  const gradeBonus = player.grade >= 2 ? 1 : 0;
   const abilities = { ...player.abilities };
   const overall = abilityAverage(player);
-  const longTermScale = overall >= 95 ? 0.2 : overall >= 90 ? 0.45 : 1;
+  const longTermScale =
+    overall >= 95 ? 0.1 : overall >= 90 ? 0.25 : overall >= 80 ? 0.55 : 1;
 
   for (const ability of ABILITY_KEYS) {
     const prioritized = priorityAbilities.includes(ability);
     const rawGrowth = prioritized
-      ? developmentLevel + gradeBonus + random.int(0, 1)
-      : Math.max(0, Math.floor(developmentLevel / 2) + random.int(0, 1));
+      ? profile.annualBaseGrowth +
+        infrastructureGrowth +
+        gradeBonus +
+        random.int(0, 1)
+      : Math.max(
+          1,
+          profile.annualBaseGrowth -
+            2 +
+            Math.floor(infrastructureGrowth / 2) +
+            random.int(0, 1),
+        );
     const growth = Math.max(0, Math.round(rawGrowth * longTermScale));
     abilities[ability] = clampAbility(abilities[ability] + growth);
   }

@@ -19,6 +19,7 @@ import {
 import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
+import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { buildPracticePlanning } from "../weekly/practiceMatchPlanning";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
@@ -333,6 +334,10 @@ export function advanceAcademicYear(
       firstPlayerNumber: playerNumber,
       data,
       random,
+      abilityBonus:
+        school.id === state.userSchoolId
+          ? 0
+          : rivalSchoolBalanceProfile(school.reputation).recruitAbilityBonus,
       count: intakeCount - committedIntake.length,
       currentPlayers: [
         ...returningPlayerIds
