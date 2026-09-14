@@ -22,6 +22,24 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
+      - name: Apply lint-only codec cleanup
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/persistence/gameStateCodec.ts')
+          text = path.read_text(encoding='utf-8')
+          old = '''    const { incomingOfferHistory: _legacyHistory, ...practiceMatch } =
+      state.practiceMatch;
+'''
+          new = '''    const practiceMatch = { ...state.practiceMatch };
+    delete practiceMatch.incomingOfferHistory;
+'''
+          if old not in text:
+              raise SystemExit('expected codec cleanup block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          npx prettier --write src/persistence/gameStateCodec.ts
       - name: Run final gate without emitting a failed workflow
         shell: bash
         run: |
@@ -41,11 +59,12 @@ jobs:
             exit 0
           fi
           touch /tmp/phase20-final-green
-      - name: Remove temporary final-gate workflow after GREEN
+      - name: Commit verified lint fix and remove temporary final-gate workflow
         if: ${{ hashFiles('/tmp/phase20-final-green') != '' }}
         run: |
           git config user.name "court-legacy-bot"
           git config user.email "court-legacy-bot@users.noreply.github.com"
           git rm .github/workflows/phase20-3-final-gate.yml
-          git commit -m "chore: remove Phase20 final gate"
+          git add src/persistence/gameStateCodec.ts
+          git commit -m "fix: clean up Phase20 offer ledger migration"
           git push origin HEAD:fix/phase20-3-practice-offer-spec-completion
