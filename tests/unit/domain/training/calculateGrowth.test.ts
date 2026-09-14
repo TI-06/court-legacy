@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../../../../src/data/gameData";
 import type { Player } from "../../../../src/domain/model/Player";
 import type { School } from "../../../../src/domain/model/School";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
+import { calculateMatchExperienceAmount } from "../../../../src/domain/player/playerDevelopment";
 import { calculateGrowth } from "../../../../src/domain/training/calculateGrowth";
 
 if (!gameDataBootstrap.ok) {
@@ -207,6 +208,52 @@ describe("calculateGrowth", () => {
     });
 
     expect(gradeOne.amount).toBeGreaterThan(gradeThree.amount);
+  });
+
+  it("keeps practice specialists ahead in weekly training while match experience stays smaller", () => {
+    const practiceType = data.growthTypes.get("growth.practice")!;
+    const matchType = data.growthTypes.get("growth.match")!;
+    const school = createSchool({
+      coach: { ...createSchool().coach, development: 80 },
+      facilities: { ...createSchool().facilities, trainingRoom: 10 },
+    });
+    const personality = data.personalities.get("personality.calm")!;
+    const practicePlayer = createPlayer({
+      growthTypeId: "growth.practice",
+      potential: 100,
+      condition: 100,
+      academic: 80,
+    });
+    const matchPlayer = createPlayer({
+      growthTypeId: "growth.match",
+      potential: 100,
+      condition: 100,
+      academic: 80,
+    });
+
+    const practiceTraining = calculateGrowth({
+      baseGrowth: 40,
+      player: practicePlayer,
+      school,
+      growthType: practiceType,
+      personality,
+    });
+    const matchTraining = calculateGrowth({
+      baseGrowth: 40,
+      player: matchPlayer,
+      school,
+      growthType: matchType,
+      personality,
+    });
+    const matchExperience = calculateMatchExperienceAmount({
+      player: matchPlayer,
+      growthType: matchType,
+      lost: false,
+      strongerOpponent: false,
+    });
+
+    expect(practiceTraining.amount).toBeGreaterThan(matchTraining.amount);
+    expect(matchTraining.amount).toBeGreaterThan(matchExperience);
   });
 
   it("caps the approved Lv.50 training-room growth bonus at 30 percent", () => {
