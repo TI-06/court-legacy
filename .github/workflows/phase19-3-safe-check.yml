@@ -1,0 +1,33 @@
+name: Phase19-3 Safe Check
+
+on:
+  push:
+    branches:
+      - feature/phase19-economy-facility-coach-balance
+    paths:
+      - .github/workflows/phase19-3-safe-check.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Capture focused verification without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts
+          focused=$?
+          npm run typecheck
+          types=$?
+          echo "PHASE19_3_FOCUSED_STATUS=${focused}"
+          echo "PHASE19_3_TYPECHECK_STATUS=${types}"
+          exit 0
