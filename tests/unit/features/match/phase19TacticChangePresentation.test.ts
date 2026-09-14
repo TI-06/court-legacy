@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { MatchEvent, MatchState } from "../../../../src/domain/model/Match";
+import type {
+  MatchEvent,
+  MatchState,
+} from "../../../../src/domain/model/Match";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";

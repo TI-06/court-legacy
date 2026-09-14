@@ -111,7 +111,10 @@ function eventTone(
   return "neutral";
 }
 
-function titleFor(event: MatchEvent): string {
+function titleFor(
+  event: MatchEvent,
+  context: MatchPresentationContext,
+): string {
   switch (event.type) {
     case "serve":
       return event.detailCode === "serve.ace"
@@ -152,7 +155,10 @@ function titleFor(event: MatchEvent): string {
     case "timeout":
       return "タイムアウト";
     case "tactic-change":
-      return "戦術変更";
+      return event.winnerSchoolId !== null &&
+        event.winnerSchoolId !== context.state.userSchoolId
+        ? "相手戦術変更"
+        : "戦術変更";
     case "injury":
       return "アクシデント";
     case "set-end":
@@ -160,6 +166,20 @@ function titleFor(event: MatchEvent): string {
     case "match-end":
       return "試合終了";
   }
+}
+
+function tacticChangeLabel(detailCode: string): string {
+  const [prefix, source, serve, attack, block] = detailCode.split(".");
+  if (prefix !== "tactic" || source !== "automatic") {
+    return "戦い方";
+  }
+  if (attack === "quick") return "速攻重視";
+  if (attack === "side") return "サイド重視";
+  if (serve === "aggressive") return "強気サーブ";
+  if (serve === "safe") return "安定サーブ";
+  if (block === "commit") return "速攻警戒";
+  if (block === "read") return "サイド警戒";
+  return "バランス型";
 }
 
 function detailFor(
@@ -209,7 +229,7 @@ function detailFor(
     case "timeout":
       return `${winner}がタイムアウトを取ります。`;
     case "tactic-change":
-      return `${winner}が試合中の戦術を変更しました。`;
+      return `${winner}が${tacticChangeLabel(event.detailCode)}へ変更しました。`;
     case "injury":
       return `${actor}にアクシデントが発生しました。`;
     case "set-end":
@@ -538,7 +558,7 @@ export function presentMatchEvent(
 ): PresentedMatchEvent {
   return {
     sequence: event.sequence,
-    title: titleFor(event),
+    title: titleFor(event, context),
     detail: detailFor(event, context),
     tone: eventTone(event, context.match),
     score: `${event.homeScore} - ${event.awayScore}`,
