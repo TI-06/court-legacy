@@ -1,0 +1,146 @@
+name: Phase19 Apply Recruit Balance
+
+on:
+  push:
+    branches:
+      - feature/phase19-cpu-school-balance
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Apply recruit balance wiring
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one match in {path}, found {count}")
+              target.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "src/domain/calendar/academicYearProgression.ts",
+              'import { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
+              'import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";\nimport { advanceRivalWorld } from "../world/rivalWorldProgression";\n',
+          )
+          replace_once(
+              "src/domain/calendar/academicYearProgression.ts",
+              '''      data,
+              random,
+              count: intakeCount - committedIntake.length,
+              currentPlayers:''',
+              '''      data,
+              random,
+              abilityBonus:
+                school.id === state.userSchoolId
+                  ? 0
+                  : rivalSchoolBalanceProfile(school.reputation).recruitAbilityBonus,
+              count: intakeCount - committedIntake.length,
+              currentPlayers:''',
+          )
+
+          replace_once(
+              "src/domain/generation/generateWorld.ts",
+              'import { weightedChoice } from "../random/weightedChoice";\n',
+              'import { weightedChoice } from "../random/weightedChoice";\nimport {\n  applyRivalRecruitAbilityBonus,\n  rivalSchoolBalanceProfile,\n} from "../world/rivalSchoolBalance";\n',
+          )
+          old_school = '''    const captain = squad.find((player) => player.grade === 3) ?? squad[0];
+              schools[id] = generateSchool({
+                id,
+                name: setup.name,
+                shortName: setup.shortName,
+                regionId: setup.regionId,
+                coachName: setup.coachName,
+                uniform,
+                playerIds: squad.map((player) => player.id),
+                captainPlayerId: captain?.id ?? null,
+                data: input.data,
+                random,
+                isUserSchool,
+              });'''
+          new_school = '''    const captain = squad.find((player) => player.grade === 3) ?? squad[0];
+              const generatedSchool = generateSchool({
+                id,
+                name: setup.name,
+                shortName: setup.shortName,
+                regionId: setup.regionId,
+                coachName: setup.coachName,
+                uniform,
+                playerIds: squad.map((player) => player.id),
+                captainPlayerId: captain?.id ?? null,
+                data: input.data,
+                random,
+                isUserSchool,
+              });
+              schools[id] = generatedSchool;
+
+              if (!isUserSchool) {
+                const abilityBonus = rivalSchoolBalanceProfile(
+                  generatedSchool.reputation,
+                ).recruitAbilityBonus;
+                for (const player of squad) {
+                  players[player.id] = applyRivalRecruitAbilityBonus(
+                    player,
+                    abilityBonus,
+                  );
+                }
+              }'''
+          replace_once("src/domain/generation/generateWorld.ts", old_school, new_school)
+          PY
+
+          npx prettier --write \
+            src/domain/calendar/academicYearProgression.ts \
+            src/domain/generation/generateWorld.ts \
+            src/domain/generation/generatePlayer.ts \
+            src/domain/world/rivalSchoolBalance.ts \
+            src/domain/world/rivalWorldProgression.ts \
+            tests/unit/domain/world/phase19SchoolBalance.test.ts \
+            docs/superpowers/plans/2026-09-14-phase19-pr19-1-cpu-school-balance.md
+
+          set +e
+          npm run typecheck
+          type_status=$?
+          npx vitest run \
+            tests/unit/domain/world/phase19SchoolBalance.test.ts \
+            tests/unit/domain/world/rivalWorldProgression.test.ts \
+            tests/unit/domain/world/worldSoak.test.ts
+          test_status=$?
+          npm run soak:balance
+          soak_status=$?
+          set -e
+          echo "PHASE19_APPLY type=${type_status} tests=${test_status} soak=${soak_status}"
+
+          if [ "$type_status" -ne 0 ] || [ "$test_status" -ne 0 ] || [ "$soak_status" -ne 0 ]; then
+            echo "Focused validation did not pass; leaving repository unchanged."
+            exit 0
+          fi
+
+          rm .github/workflows/phase19-apply-recruit-balance.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/domain/calendar/academicYearProgression.ts \
+            src/domain/generation/generateWorld.ts \
+            src/domain/generation/generatePlayer.ts \
+            src/domain/world/rivalSchoolBalance.ts \
+            src/domain/world/rivalWorldProgression.ts \
+            tests/unit/domain/world/phase19SchoolBalance.test.ts \
+            docs/superpowers/plans/2026-09-14-phase19-pr19-1-cpu-school-balance.md \
+            .github/workflows/phase19-apply-recruit-balance.yml
+          git commit -m "feat: wire rival school recruit strength"
+          git push origin HEAD:feature/phase19-cpu-school-balance
