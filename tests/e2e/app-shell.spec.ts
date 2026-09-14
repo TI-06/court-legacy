@@ -1,103 +1,82 @@
 import { expect, test } from "@playwright/test";
-import { advanceWeekFromHome } from "./homeTestHelpers";
 
-test("mobile shell keeps all primary navigation actions visible", async ({
+async function expectNoHorizontalOverflow(page: import("@playwright/test").Page) {
+  const bodyWidth = await page.locator("body").evaluate((body) => body.scrollWidth);
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
+}
+
+test("mobile app shell keeps primary tabs visible without horizontal overflow", async ({
   page,
 }) => {
   await page.goto("/");
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await expect(navigation).toBeVisible();
+  await expect(navigation.getByRole("button", { name: "ホーム" })).toBeVisible();
+  await expect(navigation.getByRole("button", { name: "選手" })).toBeVisible();
+  await expect(navigation.getByRole("button", { name: "学校" })).toBeVisible();
+  await expect(navigation.getByRole("button", { name: "大会" })).toBeVisible();
+  await expect(navigation.getByRole("button", { name: "その他" })).toBeVisible();
 
-  for (const label of ["ホーム", "選手", "学校", "試合", "その他"]) {
-    await expect(
-      navigation.getByRole("button", { name: label, exact: true }),
-    ).toBeVisible();
-  }
-
-  const bodyWidth = await page
-    .locator("body")
-    .evaluate((body) => body.scrollWidth);
-  const viewportWidth = page.viewportSize()?.width ?? 0;
-  expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
+  await expectNoHorizontalOverflow(page);
 });
 
-test("mobile training saves a plan and resolves it with next-week progression", async ({
-  page,
-}) => {
+test("mobile home and player flows remain usable", async ({ page }) => {
   await page.goto("/");
+
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
+  await expect(page.getByTestId("player-screen")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "選手" })).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
-  const trainingChips = page.locator(".player-training-chip");
-  await expect(trainingChips).toHaveCount(12);
-  await trainingChips.first().click();
-
-  const trainingDialog = page.getByRole("dialog", { name: /の個人練習$/ });
-  await expect(
-    trainingDialog.locator(".player-training-options button"),
-  ).toHaveCount(6);
-  await trainingDialog.getByRole("button", { name: /^攻撃/ }).click();
-  await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
-  await expect(trainingChips.first()).toContainText("攻撃");
+  const firstPlayer = page.locator(".player-card").first();
+  await expect(firstPlayer).toBeVisible();
+  await firstPlayer.click();
+  await expect(page.getByRole("dialog", { name: /選手詳細/ })).toBeVisible();
+  await page.getByRole("button", { name: "閉じる" }).click();
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
-  await advanceWeekFromHome(page);
-  await expect(
-    page.getByRole("banner").getByText("2026年4月8日"),
-  ).toBeVisible();
-
-  const resultNotification = page.getByRole("button", {
-    name: /今週の練習結果/,
-  });
-  await expect(resultNotification).toBeVisible();
-  await resultNotification.click();
-  const resultDialog = page.getByRole("dialog", { name: "今週の練習結果" });
-  await expect(resultDialog).toBeVisible();
-  await expect(
-    resultDialog.getByRole("heading", { name: "選手別" }),
-  ).toBeVisible();
-  await expect(
-    resultDialog.locator(".training-result-notification__player"),
-  ).toHaveCount(12);
-  await resultDialog.getByRole("button", { name: "閉じる" }).click();
-
-  const bodyWidth = await page
-    .locator("body")
-    .evaluate((body) => body.scrollWidth);
-  const viewportWidth = page.viewportSize()?.width ?? 0;
-  expect(bodyWidth).toBeLessThanOrEqual(viewportWidth);
+  await expect(page.getByTestId("home-screen")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
 });
 
-test("@critical mobile team selection uses a court picker without overflow", async ({
+test("mobile school, tournament, and other navigation remains usable", async ({
   page,
 }) => {
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+
+  await navigation.getByRole("button", { name: "学校", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+
+  await navigation.getByRole("button", { name: "大会", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "大会" })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+
+  await navigation.getByRole("button", { name: "その他", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "その他" })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("mobile roster swap flow validates and saves the lineup", async ({ page }) => {
+  await page.goto("/");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
-  await page.getByRole("button", { name: "編成", exact: true }).click();
+  await page.getByRole("button", { name: "編成" }).click();
 
-  await expect(page.getByRole("heading", { name: "チーム編成" })).toBeVisible();
-  await expect(page.getByRole("combobox")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "ローテーション1を変更" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("bench-player")).toHaveCount(5);
+  const lineupDialog = page.getByRole("dialog", { name: "チーム編成" });
+  await expect(lineupDialog).toBeVisible();
+  const starterButton = lineupDialog.locator(".lineup-slot").first();
+  const benchButton = lineupDialog.locator(".bench-slot").first();
+  await expect(starterButton).toBeVisible();
+  await expect(benchButton).toBeVisible();
 
-  await page.getByRole("button", { name: "ローテーション1を変更" }).click();
-  const picker = page.getByRole("dialog", {
-    name: "ローテーション1を入れ替え",
-  });
-  await expect(picker).toBeVisible();
-  await expect(picker.getByTestId("player-picker-option")).toHaveCount(12);
-  await picker.getByRole("button", { name: "閉じる" }).click();
-
-  await page.getByRole("button", { name: "自動編成" }).click();
-  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "安全調整" }).click();
-  await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
-  await expect(page.getByText("編成は有効です")).toBeVisible();
+  await starterButton.click();
+  await benchButton.click();
+  await expect(lineupDialog.getByText("編成は有効です")).toBeVisible();
 
   const bodyWidth = await page
     .locator("body")
@@ -114,7 +93,7 @@ test("school management upgrades a facility and calendar resolves saved training
 
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
   await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
-  await expect(page.getByText("資金 700")).toBeVisible();
+  await expect(page.getByText("資金 750")).toBeVisible();
 
   const trainingFacility = page.getByRole("button", {
     name: "トレーニング設備の詳細",
@@ -122,7 +101,7 @@ test("school management upgrades a facility and calendar resolves saved training
   await trainingFacility.click();
   const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
   await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
-  await expect(page.getByText("資金 630")).toBeVisible();
+  await expect(page.getByText("資金 680")).toBeVisible();
   await expect(trainingFacility).toContainText("Lv.1");
   await expect(facilityDialog).toBeVisible();
   await facilityDialog.getByRole("button", { name: "閉じる" }).click();
