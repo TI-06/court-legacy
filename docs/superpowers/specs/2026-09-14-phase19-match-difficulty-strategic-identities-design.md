@@ -45,7 +45,7 @@ Today those identities only partially affect match behavior. Attack tempo and bl
 3. **No universal best tactic.** Every aggressive choice must carry a trade-off or matchup dependency.
 4. **CPU decisions use public match information only.** No access to opponent-private hidden traits, private bench data, unrevealed abilities, or PvP-private runtime data.
 5. **PVE-only adaptive AI.** PvP authority, privacy, idempotency, and reconnect semantics remain unchanged.
-6. **Deterministic under seed.** All policy choices must be deterministic given the same public match state and seeded source.
+6. **Deterministic under seed.** All policy choices must be deterministic given the same public match state. Phase19-4 CPU policy itself will not use randomness.
 7. **Balance by distributions, not anecdotes.** Changes must be validated over many deterministic simulations.
 
 ## Alternatives Considered
@@ -85,7 +85,7 @@ interface SchoolMatchIdentityProfile {
   preferredPlan: MatchTacticPlan;
   attackDistributionBias?: Partial<Record<Position, number>>;
   defensePreference: TeamTactics["defenseBias"];
-  substitutionAggression: number;
+  attackConcentration: "spread" | "balanced" | "ace-heavy";
   adaptationBias: "hold-style" | "balanced" | "counter-heavy";
 }
 ```
@@ -101,7 +101,7 @@ Initial identity intent:
 - ace: aggressive or balanced serve / side-heavy attack / mixed block / ace concentration
 - serve: aggressive serve / balanced attack / commit or mixed block
 - development: balanced conservative plan / read block / stable decisions
-- rotation: balanced plan / mixed block / more substitution willingness
+- rotation: balanced plan / mixed block / spread attack distribution with low ace concentration
 
 The exact initial values are balance data, not schema guarantees. Tests should verify behavioral identity rather than hard-code every internal coefficient unless needed.
 
@@ -114,6 +114,7 @@ Examples:
 - serve school cannot randomly spawn as a low-risk serving team
 - speed school starts with quick-oriented attack tempo
 - height school starts with commit-oriented block behavior
+- rotation school starts with a broader attack distribution rather than heavy dependence on one scoring lane
 
 This affects newly generated worlds. Existing saves keep their stored tactics; no save migration is required.
 
@@ -129,7 +130,7 @@ Add a deterministic attack-direction decision per attacking rally:
 - `cross`
 - `middle/neutral` when appropriate
 
-Direction probability should be derived from attacker role, decision ability, current attack plan, and bounded randomness.
+Direction probability should be derived from attacker role, decision ability, current attack plan, and existing seeded rally randomness.
 
 Defense bias then modifies dig effectiveness:
 
@@ -140,6 +141,19 @@ Defense bias then modifies dig effectiveness:
 The adjustment must be small enough that raw ability remains primary. Proposed target is roughly an effective ±2–4 points in the relevant defensive comparison, subject to simulation tuning.
 
 The public event log should contain a non-sensitive detail code sufficient for presentation/analysis, e.g. `attack.line`, `attack.cross`, or an equivalent existing-safe code path.
+
+#### User control of defense bias
+
+Because `defenseBias` will become meaningful, the user must be able to choose it before a match from the normal team-tactics screen.
+
+Do **not** add it to `MatchTacticPlan`, because that type is shared with the established PvP three-axis contract. Instead:
+
+- keep `MatchTacticPlan` as serve/attack/block only
+- expose `TeamTactics.defenseBias` as a separate team-level setting in PVE/solo management
+- persist it through a separate authoritative solo game action or an equivalent backward-compatible school-tactics action
+- do not allow mid-match defense-bias changes in Phase19-4
+
+This keeps PvP command payloads and public/private boundaries unchanged while ensuring the new defensive mechanic is player-controllable rather than a hidden school-only modifier.
 
 ### 4. CPU coach policy
 
@@ -160,6 +174,8 @@ It consumes only public or school-owned information:
 
 It must not inspect opponent hidden traits, private abilities that are not already public in PVE presentation, unrevealed bench information, or PvP-private structures.
 
+The policy API should receive a deliberately narrowed decision view rather than the entire `GameState` wherever practical.
+
 ### 5. CPU decision tiers
 
 Decision quality is derived from coach tactics plus school reputation, without directly changing player stats.
@@ -172,6 +188,8 @@ Suggested tiers:
 - **Tier 3 — Strong national AI**: evaluates multiple public signals and chooses the best bounded response while still respecting archetype identity.
 
 The tier formula should be deterministic and monotonic in coach tactics/reputation. It should not expose reputation as a direct win multiplier.
+
+Phase19-4 uses deterministic evidence thresholds rather than random CPU mistakes. Lower tiers appear less capable because they require stronger evidence before adapting and evaluate fewer counters, not because a random roll makes them intentionally choose nonsense.
 
 ### 6. Automatic decision behavior
 
@@ -186,9 +204,8 @@ At `set-break`:
 - no timeout
 - assess previous-set public statistics
 - optionally adjust serve/attack/block plan
-- optionally prepare a substitution recommendation/action only if this can be implemented without exposing hidden data and without destabilizing the current match-command model
 
-For Phase19-4, automatic substitution is **not required for initial scope**. The rotation archetype may express higher substitution intent in policy scoring, but actual automatic substitutions should be deferred unless implementation remains clean and testable. This prevents Phase19-4 from expanding into a new substitution AI subsystem.
+For Phase19-4, automatic substitution is explicitly **out of scope**. The rotation archetype remains recognizable through spread attack distribution and lower scoring concentration rather than a new substitution AI subsystem.
 
 ### 7. Extend automatic coach command support
 
@@ -198,9 +215,9 @@ Current `AutomaticCoachPolicy` only returns `timeout | continue`. Phase19-4 shou
 - `set-match-tactics`
 - `continue`
 
-The automatic path should use the same authoritative match-state mutation rules as human commands wherever practical.
+The automatic path should use the same authoritative tactical mutation logic as human commands.
 
-Do not create a second independent tactical mutation implementation.
+If the current `applyMatchCommand` boundary is too coupled to a human pending-command state, extract a smaller pure command-application core that both human and automatic paths call. Do not create a second independent tactical mutation implementation.
 
 ### 8. PVE worker integration
 
@@ -278,14 +295,14 @@ Against the same opponent and same deterministic seed distribution:
 
 - stronger CPU decision tiers should improve or preserve win rate compared with Tier 0
 - improvements should come from changed tactics/timeouts, not raw stat mutation
-- weak CPU schools remain capable of poor/stubborn decisions
+- weak CPU schools remain capable of stubborn/non-adaptive decisions because their evidence threshold is higher
 
 ## Public Information Boundary
 
 CPU policy may read:
 
 - own full team data
-- opponent school identity that is already public
+- opponent school identity that is already public in solo/PVE presentation
 - public/current match tactics
 - score, set, run length
 - public event log and derived match stats
@@ -294,6 +311,7 @@ CPU policy must not read for decision-making:
 
 - opponent hidden trait definitions not exposed to the user
 - opponent private scouting-only values
+- opponent unrevealed bench/player-private details
 - PvP defender-private selection/runtime data
 - private command transport metadata
 
@@ -301,19 +319,20 @@ Even though solo PVE state contains both schools in memory, the policy API shoul
 
 ## Determinism and Idempotency
 
-- Policy evaluation must not call unseeded randomness.
-- If randomness is necessary for imperfect CPU choices, derive it from existing deterministic match seed/cursor or a stable fork keyed by decision identity.
+- CPU policy evaluation itself uses no randomness in Phase19-4.
+- Rally simulation continues using the existing seeded random source.
 - The same authoritative match state must produce the same CPU decision.
 - Existing PvP `commandId` idempotency behavior is untouched.
-- Reconnect/resume of a solo match must not cause a CPU decision to execute twice. Existing command-history consumption semantics should be extended to tactic-change automatic decisions.
+- Reconnect/resume of a solo match must not cause a CPU decision to execute twice.
+- Existing command-history consumption semantics should be extended to automatic tactic-change decisions, keyed by school/set/decision reason so the same boundary cannot apply twice.
 
 ## Data / Save Compatibility
 
 Preferred implementation requires no schema bump.
 
 - school archetype already exists
-- school tactics already exist
-- runtime tactics already exist
+- `TeamTactics.defenseBias` already exists
+- runtime serve/attack/block tactics already exist
 - command history already exists
 
 If implementation requires persisting additional runtime-only public event detail, it should be optional/backward-compatible. A save schema bump is a last resort and requires a separate explicit review.
@@ -325,16 +344,17 @@ If implementation requires persisting additional runtime-only public event detai
 Add Phase19-4 focused tests for:
 
 1. archetype-to-identity mapping
-2. generated serve/speed/height schools preserve recognizable identity
+2. generated serve/speed/height/rotation schools preserve recognizable identity
 3. defenseBias correct-read vs wrong-read effect
 4. balanced defense remains stable and not strictly dominant
-5. CPU decision tier derivation
-6. weak CPU holds style more often
-7. strong CPU counters known public mismatch
-8. automatic tactic change is recorded exactly once
-9. resume does not duplicate automatic decisions
-10. CPU policy cannot require hidden opponent player data
-11. PvP command/authority/privacy tests remain unchanged and GREEN
+5. user can persist team-level defense bias without changing the PvP `MatchTacticPlan` contract
+6. CPU decision tier derivation
+7. weak CPU holds style under evidence where a strong CPU adapts
+8. strong CPU counters known public mismatch
+9. automatic tactic change is recorded exactly once
+10. resume does not duplicate automatic decisions
+11. CPU decision-view construction excludes hidden opponent player data
+12. PvP command/authority/privacy tests remain unchanged and GREEN
 
 ### Simulation harness
 
@@ -387,6 +407,7 @@ Keep UI changes small and mobile-first.
 
 Required:
 
+- add a compact pre-match/team-setting control for `line | balanced | cross` defense bias
 - visible opponent tactic-change notification/event
 - current public opponent tactical summary remains understandable
 
@@ -401,13 +422,13 @@ Not required:
 
 Phase19-4 will not:
 
-- change PvP authority or privacy contracts
+- change PvP authority, privacy, or three-axis command contracts
 - add selectable difficulty levels
 - add hidden CPU stat bonuses
 - rebalance player growth/economy
 - redesign match result UI
 - implement long-term rival memory/history (Phase19-5)
-- add full automatic substitution AI unless it is trivially safe within the existing command model
+- add automatic substitution AI
 
 ## Expected Files / Boundaries
 
@@ -420,8 +441,9 @@ Likely modified files:
 
 - `src/domain/generation/generateSchool.ts`
 - `src/domain/match/simulateMatch.ts`
-- `src/domain/match/applyMatchCommand.ts` if command reuse requires it
-- `worker/game/applyGameAction.ts`
+- `src/domain/match/applyMatchCommand.ts` if command-core reuse requires it
+- `worker/game/actionSchema.ts` and `worker/game/applyGameAction.ts` for the solo defense-bias setting and CPU policy wiring
+- `src/features/team/TeamTacticsPanel.tsx` for defense-bias setup
 - match presentation components for public CPU tactic-change feedback
 - focused unit/simulation tests
 
@@ -433,11 +455,11 @@ Phase19-4 is complete only when all of the following are evidenced:
 
 1. all eight school archetypes have recognizable tactical identities
 2. serve archetype no longer randomly behaves as a low-risk serving school by default
-3. defenseBias has a bounded real matchup effect
+3. defenseBias has a bounded real matchup effect and is player-configurable before matches
 4. PVE opponent coach adapts at existing decision boundaries
 5. stronger CPU coaching quality outperforms or matches weak coaching in appropriate A/B simulations
 6. no hidden raw-stat difficulty multiplier is introduced
 7. no universal tactical best choice appears in the matrix
-8. PvP privacy/authority/idempotency tests remain GREEN
+8. PvP privacy/authority/idempotency and three-axis command contracts remain GREEN and unchanged
 9. focused tests, full verify, release check, PR CI, and post-merge main CI are GREEN
 10. final merge is not declared complete until post-merge main CI is confirmed GREEN
