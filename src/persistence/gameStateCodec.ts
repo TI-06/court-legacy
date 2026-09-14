@@ -319,11 +319,56 @@ const trainingResultNotificationSchema = z
   })
   .strict();
 
-const notificationStateSchema = z
+const concernResolutionNotificationSchema = z
   .object({
-    items: z.array(trainingResultNotificationSchema).max(20),
+    id: z.string().min(1),
+    type: z.literal("concern-resolution"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        items: z
+          .array(
+            z
+              .object({
+                playerId: playerIdSchema,
+                displayName: z.string().min(1),
+                concernCode: z.enum([
+                  "playing-time",
+                  "role-mismatch",
+                  "injury-overuse",
+                  "team-slump",
+                ]),
+                concernTitle: z.string().min(1),
+              })
+              .strict(),
+          )
+          .max(64),
+      })
+      .strict(),
   })
   .strict();
+
+const gameNotificationSchema = z.discriminatedUnion("type", [
+  trainingResultNotificationSchema,
+  concernResolutionNotificationSchema,
+]);
+
+const notificationStateSchema = z
+  .object({
+    items: z.array(gameNotificationSchema).max(20),
+  })
+  .strict()
+  .transform((state) => ({
+    items: state.items.filter(
+      (item, index, items) =>
+        !items
+          .slice(index + 1)
+          .some((candidate) => candidate.type === item.type),
+    ),
+  }));
 
 const playerRoleSchema = z.enum([
   "ace",

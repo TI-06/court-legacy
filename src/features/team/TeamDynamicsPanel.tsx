@@ -3,9 +3,9 @@ import {
   calculateLeadershipSuitability,
   calculateRelationshipSignal,
 } from "../../domain/dynamics/calculateTeamDynamics";
+import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";
 import type {
   CohesionTrend,
-  PlayerConcernCode,
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
@@ -47,13 +47,6 @@ const roleLabels: Record<PlayerRole, string> = {
   rotation: "ローテーション",
   development: "育成枠",
   reserve: "控え",
-};
-
-const concernLabels: Record<PlayerConcernCode, string> = {
-  "playing-time": "出場機会",
-  "role-mismatch": "役割への不満",
-  "injury-overuse": "怪我・起用負荷",
-  "team-slump": "チーム不調",
 };
 
 function playerName(player: Player | undefined): string {
@@ -195,9 +188,9 @@ export function TeamDynamicsPanel({
     school.playerIds,
   );
   const concerns = players.flatMap((player) =>
-    (dynamics.playerConcerns[player.id] ?? []).map((concern) => ({
+    selectPlayerConcernGuidance(state, player.id).map((guidance) => ({
       player,
-      concern,
+      guidance,
     })),
   );
   const leadershipEditorKey = `${dynamics.captainPlayerId ?? "none"}:${dynamics.viceCaptainPlayerId ?? "none"}`;
@@ -281,17 +274,22 @@ export function TeamDynamicsPanel({
           </div>
           {concerns.length > 0 ? (
             <div className="team-dynamics__concern-list">
-              {concerns.map(({ player, concern }, index) => (
-                <article key={`${player.id}:${concern.code}:${index}`}>
+              {concerns.map(({ player, guidance }, index) => (
+                <article key={`${player.id}:${guidance.code}:${index}`}>
                   <div>
                     <strong>
-                      {playerName(player)}・{concernLabels[concern.code]}
+                      {playerName(player)}・{guidance.title}
                     </strong>
+                    <small>{guidance.reason}</small>
                     <small>
-                      重要度 {concern.severity}/3・信頼 {player.trust}・士気{" "}
-                      {player.morale}
+                      {guidance.progressLabel}・重要度 {guidance.severity}
+                      /3・信頼 {player.trust}・士気 {player.morale}
                     </small>
+                    <p>対処：{guidance.resolution}</p>
                   </div>
+                  <span>
+                    {guidance.status === "improving" ? "改善中" : "対応が必要"}
+                  </span>
                 </article>
               ))}
             </div>
