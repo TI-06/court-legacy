@@ -3,14 +3,14 @@ name: Phase20 Format
 on:
   push:
     branches:
-      - feature/phase20-1-rivalry-legacy-foundation
+      - "feature/phase20-1-rivalry-legacy-foundation"
 
 permissions:
   contents: write
 
 jobs:
   format:
-    if: github.event.head_commit.message != 'chore: format Phase20-1'
+    if: github.event.head_commit.message != 'chore-format-phase20-1'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,5 +50,5 @@ jobs:
                   src/features/season/seasonProgressPresentation.ts \
                   tests/unit/domain/world/rivalryHistory.test.ts \
                   tests/unit/features/school/SchoolLegacyPanel.test.tsx
-          git commit -m "chore: format Phase20-1"
+          git commit -m "chore-format-phase20-1"
           git push
