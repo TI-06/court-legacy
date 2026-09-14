@@ -25,12 +25,14 @@
 ### Task 1: Lock economy and domain contracts
 
 **Files:**
+
 - Create: `tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts`
 - Modify: `src/domain/school/schoolEconomy.ts`
 - Modify: `src/domain/school/facilityUpgrade.ts`
 - Modify: `src/domain/school/assistantCoach.ts`
 
 **Interfaces:**
+
 - Produces: `calculateFacilityUpgradeTotalCost(key, currentLevel, levels)`.
 - Produces: `evaluateFacilityUpgrade(state, schoolId, key, levels = 1)`.
 - Produces: `upgradeFacility(state, schoolId, key, levels = 1)`.
@@ -61,12 +63,14 @@ Expected: 7/7 PASS.
 ### Task 2: Extend the authoritative action contract
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `tests/unit/worker/applyGameAction.test.ts`
 - Modify: `tests/unit/worker/assistantCoachAction.test.ts`
 
 **Interfaces:**
+
 - Consumes: facility domain functions from Task 1.
 - Produces: `facility-upgrade` action with optional `levels: 1 | 5 | 10`; omitted means `1`.
 
@@ -90,6 +94,7 @@ Expected: PASS.
 ### Task 3: Wire mobile-first School UI
 
 **Files:**
+
 - Modify: `src/features/school/SchoolScreen.tsx`
 - Modify: `src/features/school/school-screen.css`
 - Modify: `src/app/GameApp.tsx`
@@ -97,6 +102,7 @@ Expected: PASS.
 - Modify: `tests/unit/features/school/AssistantCoachStaffScreen.test.tsx`
 
 **Interfaces:**
+
 - `SchoolScreen.onUpgradeFacility(key, levels)` sends one authoritative action.
 - `SchoolScreen.onContractAssistantCoach(rank, specialty)` sends one authoritative action.
 
@@ -124,10 +130,12 @@ Expected: PASS.
 ### Task 4: Balance evidence and regression gate
 
 **Files:**
+
 - Modify only if evidence requires: economy constants/tests above.
 - Record evidence in this plan or PR description.
 
 **Interfaces:**
+
 - Consumes the final economy/facility/coach behavior from Tasks 1-3.
 
 - [x] **Step 1: Run focused domain/worker/UI tests plus typecheck/format.**
@@ -155,6 +163,7 @@ Do not repeatedly rerun CI without inspecting exact failing logs.
 ### Focused/full regression
 
 Safe verification run `34807523943`:
+
 - Focused Phase19-3 regression: 13 files / 70 tests PASS.
 - Typecheck PASS.
 - `npm run verify` PASS: formatting, lint, typecheck, V2 structure, unit tests, production build.
@@ -163,6 +172,7 @@ Safe verification run `34807523943`:
 ### 10-season normal-management soak
 
 Two deterministic release seeds completed 10/10 seasons through the production action driver.
+
 - `phase18-release-a`: final funds 976, final-year minimum 384; facilities around Lv17-18.
 - `phase18-release-b`: final funds 942, final-year minimum 942; facilities around Lv20-25.
 - Early zero-fund pressure occurs in one seed, but does not persist across later seasons.
@@ -170,6 +180,7 @@ Two deterministic release seeds completed 10/10 seasons through the production a
 ### 30-season normal-management soak
 
 Safe run `34807832559` completed 30/30 seasons for both release seeds.
+
 - `phase18-release-a`: final funds 281; facility milestone maximum Lv46; 0 persistent-zero-fund years (>=10 zero-fund weeks); no facility reached Lv50.
 - `phase18-release-b`: final funds 333; facility milestone maximum Lv45; 0 persistent-zero-fund years; no facility reached Lv50.
 - Therefore normal balanced investment does not automatically max every facility.
@@ -177,6 +188,7 @@ Safe run `34807832559` completed 30/30 seasons for both release seeds.
 ### Focused Lv50 reachability
 
 Safe run `34808265320` executed `tests/soak/phase19FacilityFocusSoak.test.ts` with `vitest.soak.config.ts`.
+
 - Training facility reached Lv50 through authoritative actions only.
 - Reached in year 2 after 76 weeks.
 - 30 upgrade actions: 25 x +1 and 5 x +5; no partial upgrades and no direct state mutation.
