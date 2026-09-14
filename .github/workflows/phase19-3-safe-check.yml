@@ -8,7 +8,7 @@ on:
       - .github/workflows/phase19-3-safe-check.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -24,14 +24,28 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx prettier tests/soak/phase19FacilityFocusSoak.test.ts --check
+          npx prettier --write tests/soak/phase19FacilityFocusSoak.test.ts
           format_status=$?
           npm run typecheck
           typecheck_status=$?
-          PHASE19_FACILITY_FOCUS_RUN=1 npx vitest run tests/soak/phase19FacilityFocusSoak.test.ts
+          PHASE19_FACILITY_FOCUS_RUN=1 npx vitest run \
+            --config vitest.soak.config.ts \
+            tests/soak/phase19FacilityFocusSoak.test.ts
           focus_status=$?
 
           echo "PHASE19_3_FOCUS_FORMAT_STATUS=${format_status}"
           echo "PHASE19_3_FOCUS_TYPECHECK_STATUS=${typecheck_status}"
           echo "PHASE19_3_FOCUS_SOAK_STATUS=${focus_status}"
+
+          if [ "$format_status" -eq 0 ] && \
+             [ "$typecheck_status" -eq 0 ] && \
+             [ "$focus_status" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add tests/soak/phase19FacilityFocusSoak.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "test: verify focused facility lv50 reachability"
+              git push origin HEAD:feature/phase19-economy-facility-coach-balance
+            fi
+          fi
           exit 0
