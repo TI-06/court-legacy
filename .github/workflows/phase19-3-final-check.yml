@@ -1,0 +1,39 @@
+name: Phase19-3 Final Check
+
+on:
+  push:
+    branches:
+      - feature/phase19-economy-facility-coach-balance
+    paths:
+      - .github/workflows/phase19-3-final-check.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Final cleaned-tree verification
+        shell: bash
+        run: |
+          set +e
+          npm run verify
+          verify_status=$?
+          npm run release:check
+          release_status=$?
+          PHASE19_FACILITY_FOCUS_RUN=1 npx vitest run \
+            --config vitest.soak.config.ts \
+            tests/soak/phase19FacilityFocusSoak.test.ts
+          focus_status=$?
+
+          echo "PHASE19_3_FINAL_VERIFY_STATUS=${verify_status}"
+          echo "PHASE19_3_FINAL_RELEASE_STATUS=${release_status}"
+          echo "PHASE19_3_FINAL_FOCUS_STATUS=${focus_status}"
+          exit 0
