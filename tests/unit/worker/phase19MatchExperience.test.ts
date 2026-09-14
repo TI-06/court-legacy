@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
-import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
+import {
+  isWeeklyActionCompleted,
+  markWeeklyActionCompleted,
+} from "../../../src/domain/calendar/weekProgression";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+import {
+  advanceOfficialTournamentsThroughWeek,
+  findDueUserOfficialMatch,
+} from "../../../src/domain/tournament/progressOfficialTournaments";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import {
   applyGameAction,
   GameRuleConflictError,
+  type AppliedGameAction,
 } from "../../../worker/game/applyGameAction";
 
 function createSnapshot(): CloudGameSnapshot {
@@ -40,11 +48,103 @@ function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
   snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
 }
 
+function officialWeekSnapshot(): CloudGameSnapshot {
+  const snapshot = createSnapshot();
+  let state = {
+    ...snapshot.state,
+    calendar: {
+      ...snapshot.state.calendar,
+      weekOfYear: 9,
+    },
+  };
+  state = advanceOfficialTournamentsThroughWeek(state);
+  state = markWeeklyActionCompleted(state, "training");
+  if (!findDueUserOfficialMatch(state)) {
+    throw new Error("official match fixture did not produce a due user match");
+  }
+
+  return {
+    ...snapshot,
+    state,
+    teamSelection: autoSelectTeam({ state, schoolId: state.userSchoolId }),
+  };
+}
+
+function completeOfficialMatch(snapshot: CloudGameSnapshot): AppliedGameAction {
+  let applied = applyGameAction(snapshot, { type: "official-match" });
+
+  for (let guard = 0; guard < 8; guard += 1) {
+    if (applied.state.activeMatch?.phase === "match-complete") {
+      return applied;
+    }
+    if (applied.state.activeMatch?.phase !== "coach-decision") {
+      throw new Error("official match did not stop at a coach decision");
+    }
+
+    applied = applyGameAction(
+      {
+        ...snapshot,
+        state: applied.state,
+        teamSelection: applied.teamSelection,
+      },
+      { type: "match-command", command: { type: "continue" } },
+    );
+  }
+
+  throw new Error("official match did not complete within guard limit");
+}
+
 describe("Phase19 authoritative match experience", () => {
-  it("grants match-type experience once at completed practice-match boundary", () => {
+  it("grants match-type experience once at completed practice-match boundary and excludes non-participants", () => {
     const snapshot = createSnapshot();
     schedulePracticeOpponent(snapshot);
 
+    const starterId = snapshot.teamSelection.rotation[0]!.playerId;
+    const selectedIds = new Set([
+      ...snapshot.teamSelection.rotation.map(
+        (assignment) => assignment.playerId,
+      ),
+      snapshot.teamSelection.liberoPlayerId!,
+    ]);
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const nonParticipantId = school.playerIds.find((id) => !selectedIds.has(id));
+    if (!nonParticipantId) {
+      throw new Error("non-participant fixture missing");
+    }
+    snapshot.teamSelection.benchPlayerIds = [];
+
+    for (const id of [starterId, nonParticipantId]) {
+      const current = snapshot.state.players[id]!;
+      snapshot.state.players[id] = {
+        ...current,
+        growthTypeId: "growth.match",
+        potential: 100,
+        abilities: {
+          ...current.abilities,
+          decision: 50,
+        },
+      };
+    }
+
+    const result = applyGameAction(snapshot, { type: "practice-match" });
+
+    expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(true);
+    expect(result.state.players[starterId]!.abilities.decision).toBe(52);
+    expect(result.state.players[nonParticipantId]!.abilities.decision).toBe(50);
+
+    const completedSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: result.state,
+      teamSelection: result.teamSelection,
+    };
+    expect(() =>
+      applyGameAction(completedSnapshot, { type: "practice-match" }),
+    ).toThrowError(GameRuleConflictError);
+    expect(result.state.players[starterId]!.abilities.decision).toBe(52);
+  });
+
+  it("grants the same bounded experience only when an official match completes", () => {
+    const snapshot = officialWeekSnapshot();
     const starterId = snapshot.teamSelection.rotation[0]!.playerId;
     const starter = snapshot.state.players[starterId]!;
     snapshot.state.players[starterId] = {
@@ -57,10 +157,13 @@ describe("Phase19 authoritative match experience", () => {
       },
     };
 
-    const result = applyGameAction(snapshot, { type: "practice-match" });
+    const started = applyGameAction(snapshot, { type: "official-match" });
+    expect(started.state.players[starterId]!.abilities.decision).toBe(50);
 
-    expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(true);
+    const result = completeOfficialMatch(snapshot);
+    expect(result.state.activeMatch?.phase).toBe("match-complete");
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
+    expect(findDueUserOfficialMatch(result.state)).toBeNull();
 
     const completedSnapshot: CloudGameSnapshot = {
       ...snapshot,
@@ -68,7 +171,10 @@ describe("Phase19 authoritative match experience", () => {
       teamSelection: result.teamSelection,
     };
     expect(() =>
-      applyGameAction(completedSnapshot, { type: "practice-match" }),
+      applyGameAction(completedSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      }),
     ).toThrowError(GameRuleConflictError);
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
   });
