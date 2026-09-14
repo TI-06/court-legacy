@@ -40,9 +40,9 @@ const ATTACK_DISTRIBUTION_BY_PLAN = {
 } satisfies Record<AttackPlan, Record<Position, number>>;
 
 const ATTACK_BLOCK_MATCHUP_POINTS = {
-  side: { commit: 3, mixed: 0, read: -3 },
+  side: { commit: 12, mixed: 0, read: -12 },
   balanced: { commit: 0, mixed: 0, read: 0 },
-  quick: { commit: -3, mixed: 0, read: 3 },
+  quick: { commit: -12, mixed: 0, read: 12 },
 } satisfies Record<AttackPlan, Record<BlockPlan, number>>;
 
 function deriveServePlan(serveRisk: number): ServePlan {
