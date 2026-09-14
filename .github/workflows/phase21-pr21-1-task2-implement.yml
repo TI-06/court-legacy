@@ -36,7 +36,21 @@ jobs:
                   raise SystemExit(f"{path}: expected 1 occurrence, found {count}: {old[:80]!r}")
               p.write_text(text.replace(old, new, 1), encoding="utf-8")
 
-          # PlayerHubScreen imports and props.
+          def add_registry_to_test(path: str, import_old: str, import_new: str):
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if text.count(import_old) != 1:
+                  raise SystemExit(f"{path}: createDemoGame import anchor mismatch")
+              text = text.replace(import_old, import_new, 1)
+              if text.count("<PlayerHubScreen\n") != 1:
+                  raise SystemExit(f"{path}: PlayerHubScreen render anchor mismatch")
+              text = text.replace(
+                  "<PlayerHubScreen\n",
+                  "<PlayerHubScreen\n        data={gameData}\n",
+                  1,
+              )
+              p.write_text(text, encoding="utf-8")
+
           replace_once(
               "src/features/team/PlayerHubScreen.tsx",
               'import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";\n',
@@ -68,14 +82,12 @@ jobs:
               '''        </section>\n\n        {personality ? (\n          <section className="player-detail__personality" aria-label="性格">\n            <div className="player-detail__personality-heading">\n              <h3>性格</h3>\n              <strong>{personality.name}</strong>\n            </div>\n            <p>{personality.description}</p>\n            <div\n              className="player-detail__personality-tendencies"\n              aria-label="性格の傾向"\n            >\n              <span>練習 {personality.trainingStability}</span>\n              <span>関係構築 {personality.relationshipBuilding}</span>\n              <span>プレッシャー {personality.pressureResponse}</span>\n              <span>士気 {personality.moraleVolatility}</span>\n            </div>\n          </section>\n        ) : null}\n\n        <section\n          className="player-detail__growth-summary"\n          aria-label="最近の成長"\n        >\n''',
           )
 
-          # GameApp passes the existing registry.
           replace_once(
               "src/app/GameApp.tsx",
               '    ) : activeTab === "team" ? (\n      <PlayerHubScreen\n        initialPlayerId={teamInitialPlayerId}\n',
               '    ) : activeTab === "team" ? (\n      <PlayerHubScreen\n        data={gameData}\n        initialPlayerId={teamInitialPlayerId}\n',
           )
 
-          # Existing PlayerHub tests use the real game registry at every render site.
           test_path = Path("tests/unit/features/team/PlayerHubScreen.test.tsx")
           test_text = test_path.read_text(encoding="utf-8")
           old_import = 'import { createDemoGame } from "../../../../src/app/createDemoGame";'
@@ -95,7 +107,22 @@ jobs:
           )
           test_path.write_text(test_text, encoding="utf-8")
 
-          # Match the established compact game-panel visual language.
+          add_registry_to_test(
+              "tests/unit/features/abilityStrengthGrades.test.tsx",
+              'import { createDemoGame } from "../../../src/app/createDemoGame";',
+              'import { createDemoGame, gameData } from "../../../src/app/createDemoGame";',
+          )
+          add_registry_to_test(
+              "tests/unit/features/team/PlayerHubInitialFocus.test.tsx",
+              'import { createDemoGame } from "../../../../src/app/createDemoGame";',
+              'import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";',
+          )
+          add_registry_to_test(
+              "tests/unit/features/team/PlayerHubTactics.test.tsx",
+              'import { createDemoGame } from "../../../../src/app/createDemoGame";',
+              'import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";',
+          )
+
           css_path = Path("src/features/team/player-hub.css")
           css = css_path.read_text(encoding="utf-8")
           marker = ".player-detail__growth-summary {\n"
@@ -105,7 +132,18 @@ jobs:
           css_path.write_text(css.replace(marker, personality_css + marker, 1), encoding="utf-8")
           PY
       - name: Format changed files
-        run: npx prettier --write src/features/team/PlayerHubScreen.tsx src/app/GameApp.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx src/domain/player/playerPersonalityPresentation.ts tests/unit/domain/player/playerPersonalityPresentation.test.ts
+        run: >-
+          npx prettier --write
+          src/features/team/PlayerHubScreen.tsx
+          src/app/GameApp.tsx
+          src/features/team/player-hub.css
+          tests/unit/features/team/PlayerHubScreen.test.tsx
+          tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx
+          tests/unit/features/abilityStrengthGrades.test.tsx
+          tests/unit/features/team/PlayerHubInitialFocus.test.tsx
+          tests/unit/features/team/PlayerHubTactics.test.tsx
+          src/domain/player/playerPersonalityPresentation.ts
+          tests/unit/domain/player/playerPersonalityPresentation.test.ts
       - name: Verify Task2 without failing workflow
         id: verify
         shell: bash
@@ -114,7 +152,10 @@ jobs:
           npx vitest run \
             tests/unit/domain/player/playerPersonalityPresentation.test.ts \
             tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx \
-            tests/unit/features/team/PlayerHubScreen.test.tsx
+            tests/unit/features/team/PlayerHubScreen.test.tsx \
+            tests/unit/features/abilityStrengthGrades.test.tsx \
+            tests/unit/features/team/PlayerHubInitialFocus.test.tsx \
+            tests/unit/features/team/PlayerHubTactics.test.tsx
           test_status=$?
           npm run typecheck
           type_status=$?
@@ -133,6 +174,15 @@ jobs:
           rm .github/workflows/phase21-pr21-1-task2-implement.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/features/team/PlayerHubScreen.tsx src/app/GameApp.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx .github/workflows/phase21-pr21-1-task2-implement.yml
+          git add \
+            src/features/team/PlayerHubScreen.tsx \
+            src/app/GameApp.tsx \
+            src/features/team/player-hub.css \
+            tests/unit/features/team/PlayerHubScreen.test.tsx \
+            tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx \
+            tests/unit/features/abilityStrengthGrades.test.tsx \
+            tests/unit/features/team/PlayerHubInitialFocus.test.tsx \
+            tests/unit/features/team/PlayerHubTactics.test.tsx \
+            .github/workflows/phase21-pr21-1-task2-implement.yml
           git commit -m "feat: show player personality in Player Hub"
           git push origin HEAD:${GITHUB_REF_NAME}
