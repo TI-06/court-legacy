@@ -6,11 +6,10 @@ on:
       - feature/phase19-match-difficulty-strategic-identities
     paths:
       - .github/workflows/phase19-4-safe-check.yml
-      - tests/unit/features/team/TeamTacticsPanel.test.tsx
-      - tests/unit/worker/phase19DefenseBiasAction.test.ts
+      - scripts/phase19-4-task6.py
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -22,16 +21,57 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture Task 6 RED without failing workflow
+      - name: Apply Task 6 and capture GREEN
         shell: bash
         run: |
           set +e
-          npx vitest run \
-            tests/unit/features/team/TeamTacticsPanel.test.tsx \
-            tests/unit/worker/phase19DefenseBiasAction.test.ts
-          focused=$?
-          npm run typecheck
-          types=$?
-          echo "PHASE19_4_DEFENSE_ACTION_RED_STATUS=${focused}"
+          python scripts/phase19-4-task6.py
+          patch_status=$?
+          if [ "$patch_status" -eq 0 ]; then
+            npx prettier --write \
+              worker/game/actionSchema.ts \
+              worker/game/applyGameAction.ts \
+              src/features/team/tacticsPresentation.ts \
+              src/features/team/TeamTacticsPanel.tsx \
+              src/features/team/PlayerHubScreen.tsx \
+              src/app/GameApp.tsx \
+              tests/unit/features/team/TeamTacticsPanel.test.tsx \
+              tests/unit/worker/phase19DefenseBiasAction.test.ts
+            format_status=$?
+          else
+            format_status=99
+          fi
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
+            npx vitest run \
+              tests/unit/features/team/TeamTacticsPanel.test.tsx \
+              tests/unit/worker/phase19DefenseBiasAction.test.ts \
+              tests/unit/app/GameAppActions.test.tsx
+            focused=$?
+            npm run typecheck
+            types=$?
+          else
+            focused=99
+            types=99
+          fi
+          echo "PHASE19_4_DEFENSE_ACTION_PATCH_STATUS=${patch_status}"
+          echo "PHASE19_4_DEFENSE_ACTION_FORMAT_STATUS=${format_status}"
+          echo "PHASE19_4_DEFENSE_ACTION_GREEN_STATUS=${focused}"
           echo "PHASE19_4_DEFENSE_ACTION_TYPECHECK_STATUS=${types}"
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add \
+              worker/game/actionSchema.ts \
+              worker/game/applyGameAction.ts \
+              src/features/team/tacticsPresentation.ts \
+              src/features/team/TeamTacticsPanel.tsx \
+              src/features/team/PlayerHubScreen.tsx \
+              src/app/GameApp.tsx \
+              tests/unit/features/team/TeamTacticsPanel.test.tsx \
+              tests/unit/worker/phase19DefenseBiasAction.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "feat: add separate team defense coverage setting"
+              git push origin HEAD:feature/phase19-match-difficulty-strategic-identities
+            fi
+          fi
           exit 0
