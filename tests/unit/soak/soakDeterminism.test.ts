@@ -116,7 +116,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       8,
     );
     expect(firstYear.assistantCoach).toEqual({
-      rank: "intermediate",
+      rank: "advanced",
       specialty: "attack",
       contractYearIndex: 1,
     });
@@ -125,10 +125,10 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(firstYear.growthByGrowthType.unknown).toBeUndefined();
     expect(gymMilestone.maxObservedLevel).toBeGreaterThanOrEqual(1);
     expect(first.summary).toMatch(/facilit/i);
-    expect(first.summary).toContain("coach=intermediate/attack");
+    expect(first.summary).toContain("coach=advanced/attack");
   });
 
-  it("describes a ledger-only zero-funds dip without claiming zero observed weeks", async () => {
+  it("does not invent a zero-funds observation when the opening-year reserve is preserved", async () => {
     const { runBalanceSoak } = await loadSubject();
     const result = runBalanceSoak({
       seed: "phase18-release-a",
@@ -139,12 +139,9 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       (item) => item.code === "user_funds_zero",
     );
 
-    expect(year.fundsMin).toBe(0);
+    expect(year.fundsMin).toBe(300);
     expect(year.zeroFundWeeks).toBe(0);
-    expect(observation).toBeDefined();
-    expect(observation!.message).toContain("最小残高が0");
-    expect(observation!.message).toContain("週境界で0を観測した回数は0回");
-    expect(observation!.message).not.toContain("0週あります");
+    expect(observation).toBeUndefined();
   });
 
   it("tracks the completed academic year instead of reporting the new rollover year", async () => {
@@ -156,7 +153,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     const year = result.report.yearly[0]!;
 
     expect(year.academicYearIndex).toBe(result.snapshot.state.yearIndex - 1);
-    expect(year.fundsStart).toBe(700);
+    expect(year.fundsStart).toBe(750);
     expect(year.fundsMin).toBeLessThanOrEqual(year.fundsStart);
     expect(year.fundsMax).toBeGreaterThanOrEqual(year.fundsStart);
     expect(year.fundsMin).toBeLessThanOrEqual(year.fundsEnd);

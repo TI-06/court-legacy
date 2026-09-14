@@ -94,7 +94,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(initial.game.revision).toBe(1);
     expect(
       initial.game.state.schools[initial.game.state.userSchoolId]!.funds,
-    ).toBe(700);
+    ).toBe(750);
 
     const response = await api.applyAction("e2e-access-token", {
       operationId: "op-facility-1",
@@ -105,7 +105,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(response.game.revision).toBe(2);
     expect(
       response.game.state.schools[response.game.state.userSchoolId]!.funds,
-    ).toBe(630);
+    ).toBe(680);
 
     const reloaded = await api.bootstrap("e2e-access-token");
     expect(reloaded.status).toBe("ready");
@@ -113,7 +113,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(reloaded.game.revision).toBe(2);
     expect(
       reloaded.game.state.schools[reloaded.game.state.userSchoolId]!.funds,
-    ).toBe(630);
+    ).toBe(680);
   });
 
   it("restores the E2E server snapshot when a new browser API client is created", async () => {
@@ -139,7 +139,7 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(reloaded.game.revision).toBe(2);
     expect(
       reloaded.game.state.schools[reloaded.game.state.userSchoolId]!.funds,
-    ).toBe(630);
+    ).toBe(680);
   });
 
   it("replays the same shop purchase without granting the item twice", async () => {

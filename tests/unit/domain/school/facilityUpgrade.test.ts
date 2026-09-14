@@ -56,8 +56,8 @@ describe("facility upgrades", () => {
 
   it("calculates the approved Lv.0-50 upgrade cost curve", () => {
     expect(calculateFacilityUpgradeCost("trainingRoom", 0)).toBe(70);
-    expect(calculateFacilityUpgradeCost("trainingRoom", 3)).toBe(83);
-    expect(calculateFacilityUpgradeCost("gym", 49)).toBe(315);
+    expect(calculateFacilityUpgradeCost("trainingRoom", 3)).toBe(79);
+    expect(calculateFacilityUpgradeCost("gym", 49)).toBe(313);
   });
 
   it("evaluates an available upgrade without mutating state", () => {
@@ -86,11 +86,11 @@ describe("facility upgrades", () => {
     const result = upgradeFacility(state, state.userSchoolId, "gym");
 
     expect(result.schools[state.userSchoolId]!.facilities.gym).toBe(50);
-    expect(result.schools[state.userSchoolId]!.funds).toBe(685);
+    expect(result.schools[state.userSchoolId]!.funds).toBe(687);
     expect(result.schoolManagement.fundsHistory.at(-1)).toMatchObject({
       kind: "facility-upgrade",
-      amount: -315,
-      balanceAfter: 685,
+      amount: -313,
+      balanceAfter: 687,
       relatedId: "gym",
     });
   });
@@ -103,8 +103,8 @@ describe("facility upgrades", () => {
     ).toMatchObject({
       allowed: false,
       reason: "insufficient-funds",
-      cost: 128,
-      fundsAfter: -28,
+      cost: 116,
+      fundsAfter: -16,
     });
     expect(upgradeFacility(state, state.userSchoolId, "gym")).toBe(state);
   });

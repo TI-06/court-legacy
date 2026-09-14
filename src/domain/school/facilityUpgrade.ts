@@ -26,7 +26,9 @@ export interface FacilityUpgradeEvaluation {
 }
 
 export const FACILITY_MAX_LEVEL = 50;
-export const FACILITY_UPGRADE_LEVEL_OPTIONS = [1, 5, 10] as const satisfies readonly FacilityUpgradeLevels[];
+export const FACILITY_UPGRADE_LEVEL_OPTIONS = [
+  1, 5, 10,
+] as const satisfies readonly FacilityUpgradeLevels[];
 
 export const FACILITY_DEFINITIONS: readonly FacilityDefinition[] = [
   {
@@ -91,7 +93,9 @@ function getDefinition(key: FacilityKey): FacilityDefinition {
   return definition;
 }
 
-function isFacilityUpgradeLevels(value: number): value is FacilityUpgradeLevels {
+function isFacilityUpgradeLevels(
+  value: number,
+): value is FacilityUpgradeLevels {
   return FACILITY_UPGRADE_LEVEL_OPTIONS.some((option) => option === value);
 }
 
@@ -131,7 +135,9 @@ export function calculateFacilityUpgradeTotalCost(
     currentLevel >= FACILITY_MAX_LEVEL ||
     currentLevel + levels > FACILITY_MAX_LEVEL
   ) {
-    throw new Error(`invalid facility upgrade range: ${currentLevel} + ${levels}`);
+    throw new Error(
+      `invalid facility upgrade range: ${currentLevel} + ${levels}`,
+    );
   }
 
   let total = 0;

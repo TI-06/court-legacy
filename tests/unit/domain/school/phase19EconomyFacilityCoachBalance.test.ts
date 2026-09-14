@@ -52,7 +52,9 @@ describe("Phase19 PR19-3 economy, facility, and coach balance", () => {
       "trainingRoom",
       5,
     );
-    expect(upgraded.schools[state.userSchoolId]!.facilities.trainingRoom).toBe(5);
+    expect(upgraded.schools[state.userSchoolId]!.facilities.trainingRoom).toBe(
+      5,
+    );
     expect(upgraded.schools[state.userSchoolId]!.funds).toBe(619);
     expect(upgraded.schoolManagement.fundsHistory.at(-1)).toMatchObject({
       kind: "facility-upgrade",
@@ -76,9 +78,9 @@ describe("Phase19 PR19-3 economy, facility, and coach balance", () => {
       cost: 381,
       fundsAfter: -1,
     });
-    expect(
-      upgradeFacility(state, state.userSchoolId, "trainingRoom", 5),
-    ).toBe(state);
+    expect(upgradeFacility(state, state.userSchoolId, "trainingRoom", 5)).toBe(
+      state,
+    );
   });
 
   it("rejects +5/+10 plans that would cross level 50", () => {

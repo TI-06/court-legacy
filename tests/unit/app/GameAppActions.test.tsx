@@ -219,16 +219,20 @@ describe("GameApp cloud actions", () => {
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",
-        { name: "70を使って強化" },
+        { name: "+1 Lv・70を使って強化" },
       ),
     );
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     expect(applyAction.mock.calls[0]![1]).toMatchObject({
       revision: 1,
-      action: { type: "facility-upgrade", facility: "trainingRoom" },
+      action: {
+        type: "facility-upgrade",
+        facility: "trainingRoom",
+        levels: 1,
+      },
     });
-    expect(await screen.findByText("資金 630")).toBeVisible();
+    expect(await screen.findByText("資金 680")).toBeVisible();
   });
 
   it("advances the week on the server using the revision returned by the saved training plan", async () => {
@@ -389,11 +393,11 @@ describe("GameApp cloud actions", () => {
     );
 
     openTrainingFacility();
-    expect(screen.getByText("資金 700")).toBeVisible();
+    expect(screen.getByText("資金 750")).toBeVisible();
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",
-        { name: "70を使って強化" },
+        { name: "+1 Lv・70を使って強化" },
       ),
     );
 

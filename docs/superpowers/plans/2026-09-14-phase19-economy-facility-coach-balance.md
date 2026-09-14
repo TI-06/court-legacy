@@ -25,12 +25,14 @@
 ### Task 1: Lock economy and domain contracts
 
 **Files:**
+
 - Create: `tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts`
 - Modify: `src/domain/school/schoolEconomy.ts`
 - Modify: `src/domain/school/facilityUpgrade.ts`
 - Modify: `src/domain/school/assistantCoach.ts`
 
 **Interfaces:**
+
 - Produces: `calculateFacilityUpgradeTotalCost(key, currentLevel, levels)`.
 - Produces: `evaluateFacilityUpgrade(state, schoolId, key, levels = 1)`.
 - Produces: `upgradeFacility(state, schoolId, key, levels = 1)`.
@@ -61,12 +63,14 @@ Expected: 7/7 PASS.
 ### Task 2: Extend the authoritative action contract
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `tests/unit/worker/applyGameAction.test.ts`
 - Modify: `tests/unit/worker/assistantCoachAction.test.ts`
 
 **Interfaces:**
+
 - Consumes: facility domain functions from Task 1.
 - Produces: `facility-upgrade` action with optional `levels: 1 | 5 | 10`; omitted means `1`.
 
@@ -90,6 +94,7 @@ Expected: PASS.
 ### Task 3: Wire mobile-first School UI
 
 **Files:**
+
 - Modify: `src/features/school/SchoolScreen.tsx`
 - Modify: `src/features/school/school-screen.css`
 - Modify: `src/app/GameApp.tsx`
@@ -97,6 +102,7 @@ Expected: PASS.
 - Modify: `tests/unit/features/school/AssistantCoachStaffScreen.test.tsx`
 
 **Interfaces:**
+
 - `SchoolScreen.onUpgradeFacility(key, levels)` sends one authoritative action.
 - `SchoolScreen.onContractAssistantCoach(rank, specialty)` sends one authoritative action.
 
@@ -124,10 +130,12 @@ Expected: PASS.
 ### Task 4: Balance evidence and regression gate
 
 **Files:**
+
 - Modify only if evidence requires: economy constants/tests above.
 - Record evidence in this plan or PR description.
 
 **Interfaces:**
+
 - Consumes the final economy/facility/coach behavior from Tasks 1-3.
 
 - [ ] **Step 1: Run focused domain/worker/UI tests plus typecheck/format.**
