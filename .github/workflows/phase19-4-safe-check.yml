@@ -8,6 +8,7 @@ on:
       - .github/workflows/phase19-4-safe-check.yml
       - scripts/phase19-4-task8-fix.py
       - tests/soak/phase19TacticalMatrix.test.ts
+      - src/domain/team/matchTactics.ts
 
 permissions:
   contents: write
