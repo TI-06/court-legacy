@@ -27,6 +27,7 @@ jobs:
       - name: Format long-run test
         run: npx prettier --write tests/unit/domain/weekly/phase20PracticeOfferLongRun.test.ts
       - name: Measure long-run behavior without emitting a failed workflow
+        id: measure
         shell: bash
         run: |
           set +e
@@ -35,12 +36,13 @@ jobs:
           set -e
           echo "PHASE20_LONGRUN_EXIT=$code"
           if [ "$code" -ne 0 ]; then
+            echo "green=false" >> "$GITHUB_OUTPUT"
             echo "Long-run candidate needs tuning; no repository commit will be created."
             exit 0
           fi
-          touch /tmp/phase20-longrun-green
+          echo "green=true" >> "$GITHUB_OUTPUT"
       - name: Commit verified evidence test and remove temporary helpers
-        if: ${{ hashFiles('/tmp/phase20-longrun-green') != '' }}
+        if: ${{ steps.measure.outputs.green == 'true' }}
         run: |
           git config user.name "court-legacy-bot"
           git config user.email "court-legacy-bot@users.noreply.github.com"
