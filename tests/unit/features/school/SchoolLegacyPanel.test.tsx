@@ -47,7 +47,8 @@ describe("SchoolLegacyPanel", () => {
 
     const legacy = screen.getByRole("region", { name: "対戦史" });
     expect(legacy).toBeVisible();
-    expect(within(legacy).getByText(rival.shortName)).toBeVisible();
+    const opponentCard = within(legacy).getByTestId("school-legacy-opponent");
+    expect(within(opponentCard).getByText(rival.shortName)).toBeVisible();
     expect(within(legacy).getByText("通算 1勝3敗")).toBeVisible();
     expect(within(legacy).getByText("3連敗中")).toBeVisible();
     expect(within(legacy).getByText("宿敵")).toBeVisible();

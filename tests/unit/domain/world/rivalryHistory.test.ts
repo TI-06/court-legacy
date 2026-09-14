@@ -255,7 +255,7 @@ describe("Phase20 rivalry history", () => {
         ...player,
         abilities: Object.fromEntries(
           Object.keys(player.abilities).map((key) => [key, 100]),
-        ) as typeof player.abilities,
+        ) as unknown as typeof player.abilities,
       };
     }
 
