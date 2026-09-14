@@ -101,7 +101,9 @@ describeSoak("Phase19 focused facility reachability", () => {
       const funds = snapshot.state.schools[snapshot.state.userSchoolId]!.funds;
       expect(funds).toBeGreaterThanOrEqual(0);
       if (completedWeeks > MAX_SEASONS * 60 + 4) {
-        throw new Error("focused facility soak exceeded the 30-season week guard");
+        throw new Error(
+          "focused facility soak exceeded the 30-season week guard",
+        );
       }
     }
 
