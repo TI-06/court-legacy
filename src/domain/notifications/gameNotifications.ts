@@ -1,6 +1,8 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import type { ResolvedPlayerConcern } from "../dynamics/concernResolution";
+import type { PlayerConcernCode } from "../dynamics/teamDynamicsTypes";
 import type { GameState } from "../model/GameState";
-import type { GameDate, PlayerId } from "../model/identifiers";
+import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
 import type { AbilityKey } from "../validation/gameDataSchema";
@@ -36,7 +38,28 @@ export interface TrainingResultNotification {
   payload: TrainingResultNotificationPayload;
 }
 
-export type GameNotification = TrainingResultNotification;
+export interface ConcernResolutionNotificationItem {
+  playerId: PlayerId;
+  displayName: string;
+  concernCode: PlayerConcernCode;
+  concernTitle: string;
+}
+
+export interface ConcernResolutionNotification {
+  id: string;
+  type: "concern-resolution";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    items: ConcernResolutionNotificationItem[];
+  };
+}
+
+export type GameNotification =
+  | TrainingResultNotification
+  | ConcernResolutionNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -48,7 +71,12 @@ export interface BuildTrainingResultNotificationInput {
   data: GameDataRegistry;
 }
 
-const MAX_NOTIFICATION_ITEMS = 1;
+const concernTitles: Record<PlayerConcernCode, string> = {
+  "playing-time": "出場機会への不満",
+  "role-mismatch": "役割への不満",
+  "injury-overuse": "怪我中の起用負荷",
+  "team-slump": "チーム不調への不満",
+};
 
 function trainingNotificationId(state: GameState): string {
   return `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`;
@@ -105,6 +133,38 @@ export function buildTrainingResultNotification(
   };
 }
 
+export function buildConcernResolutionNotification(input: {
+  state: GameState;
+  matchId: MatchId;
+  resolved: readonly ResolvedPlayerConcern[];
+}): ConcernResolutionNotification {
+  const items = input.resolved.map((resolved) => {
+    const player = input.state.players[resolved.playerId];
+    if (!player) {
+      throw new Error(
+        `concern resolution notification references unknown player: ${resolved.playerId}`,
+      );
+    }
+
+    return {
+      playerId: player.id,
+      displayName: `${player.lastName} ${player.firstName}`,
+      concernCode: resolved.code,
+      concernTitle: concernTitles[resolved.code],
+    } satisfies ConcernResolutionNotificationItem;
+  });
+
+  return {
+    id: `concern-resolution:${input.matchId}`,
+    type: "concern-resolution",
+    createdGameDate: input.state.date,
+    academicYearIndex: input.state.yearIndex,
+    weekOfYear: input.state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: { items },
+  };
+}
+
 export function appendNotification(
   state: GameNotificationState,
   item: GameNotification,
@@ -113,22 +173,12 @@ export function appendNotification(
     return state;
   }
 
-  const items = [...state.items, item];
-  while (items.length > MAX_NOTIFICATION_ITEMS) {
-    const oldestReadIndex = items.findIndex(
-      (candidate) => candidate.readAtGameDate !== null,
-    );
-    if (oldestReadIndex >= 0) {
-      items.splice(oldestReadIndex, 1);
-      continue;
-    }
-
-    // The save format is strictly bounded. If every retained item is unread,
-    // keep the newest notifications rather than dropping the new result.
-    items.shift();
-  }
-
-  return { items };
+  return {
+    items: [
+      ...state.items.filter((candidate) => candidate.type !== item.type),
+      item,
+    ],
+  };
 }
 
 export function markNotificationRead(
@@ -156,5 +206,16 @@ export function selectHomeTrainingNotifications(
       item.type === "training-result",
   );
   const newest = trainingItems[trainingItems.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeConcernResolutionNotifications(
+  state: GameNotificationState,
+): ConcernResolutionNotification[] {
+  const concernItems = state.items.filter(
+    (item): item is ConcernResolutionNotification =>
+      item.type === "concern-resolution",
+  );
+  const newest = concernItems[concernItems.length - 1];
   return newest ? [newest] : [];
 }
