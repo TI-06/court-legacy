@@ -9,7 +9,7 @@ import * as practicePlanning from "../../../../src/domain/weekly/practiceMatchPl
 
 interface IncomingOfferHistoryEntry {
   schoolId: SchoolId;
-  date: GameDate;
+  surfacedDate: GameDate;
 }
 
 function eliteState(): GameState {
@@ -41,10 +41,7 @@ function withIncomingHistory(
     ...state,
     weeklySchedule: {
       ...state.weeklySchedule,
-      practiceMatch: {
-        ...state.weeklySchedule.practiceMatch,
-        incomingOfferHistory: entries.map((entry) => ({ ...entry })),
-      },
+      incomingPracticeOfferHistory: entries.map((entry) => ({ ...entry })),
     },
   } as GameState;
 }
@@ -74,8 +71,8 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId[];
     const limited = withIncomingHistory(state, [
-      { schoolId: opponents[0]!, date: "2026-04-03" as GameDate },
-      { schoolId: opponents[1]!, date: "2026-04-10" as GameDate },
+      { schoolId: opponents[0]!, surfacedDate: "2026-04-03" as GameDate },
+      { schoolId: opponents[1]!, surfacedDate: "2026-04-10" as GameDate },
     ]);
 
     expect(
@@ -87,7 +84,7 @@ describe("Phase20-3 incoming practice offer frequency", () => {
     const base = eliteState();
     const { state, schoolId } = findOfferState(base, "2026-04");
     const diversified = withIncomingHistory(state, [
-      { schoolId, date: "2026-04-02" as GameDate },
+      { schoolId, surfacedDate: "2026-04-02" as GameDate },
     ]);
     const offer =
       practicePlanning.buildPracticePlanning(diversified).incomingOffer;
@@ -100,10 +97,10 @@ describe("Phase20-3 incoming practice offer frequency", () => {
     const base = eliteState();
     const { state, schoolId } = findOfferState(base, "2026-04");
     const diversified = withIncomingHistory(state, [
-      { schoolId, date: "2026-01-08" as GameDate },
-      { schoolId, date: "2026-02-05" as GameDate },
-      { schoolId, date: "2026-02-19" as GameDate },
-      { schoolId, date: "2026-03-05" as GameDate },
+      { schoolId, surfacedDate: "2026-01-08" as GameDate },
+      { schoolId, surfacedDate: "2026-02-05" as GameDate },
+      { schoolId, surfacedDate: "2026-02-19" as GameDate },
+      { schoolId, surfacedDate: "2026-03-05" as GameDate },
     ]);
     const offer =
       practicePlanning.buildPracticePlanning(diversified).incomingOffer;
@@ -119,8 +116,8 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId[];
     const afterRollover = withIncomingHistory(state, [
-      { schoolId: opponents[0]!, date: "2026-04-03" as GameDate },
-      { schoolId: opponents[1]!, date: "2026-04-17" as GameDate },
+      { schoolId: opponents[0]!, surfacedDate: "2026-04-03" as GameDate },
+      { schoolId: opponents[1]!, surfacedDate: "2026-04-17" as GameDate },
     ]);
 
     expect(
@@ -135,7 +132,7 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId[];
     const withHistory = withIncomingHistory(state, [
-      { schoolId: opponents[0]!, date: "2026-03-05" as GameDate },
+      { schoolId: opponents[0]!, surfacedDate: "2026-03-05" as GameDate },
     ]);
 
     expect(practicePlanning.buildPracticePlanning(withHistory)).toEqual(

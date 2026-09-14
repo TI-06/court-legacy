@@ -14,7 +14,8 @@ function previousOfferHistory(schoolId: SchoolId) {
     { length: PRACTICE_INCOMING_HISTORY_LIMIT },
     (_, index) => ({
       schoolId,
-      date: `2025-${String(Math.floor(index / 2) + 1).padStart(2, "0")}-${index % 2 === 0 ? "05" : "19"}` as GameDate,
+      surfacedDate:
+        `2025-${String(Math.floor(index / 2) + 1).padStart(2, "0")}-${index % 2 === 0 ? "05" : "19"}` as GameDate,
     }),
   );
 }
@@ -22,17 +23,11 @@ function previousOfferHistory(schoolId: SchoolId) {
 describe("Phase20-3 practice offer history persistence", () => {
   it("defaults a current-schema save with no offer history to an empty history", () => {
     const state = structuredClone(createDemoGame());
-    const legacyPracticeMatch = state.weeklySchedule
-      .practiceMatch as typeof state.weeklySchedule.practiceMatch & {
-      incomingOfferHistory?: unknown;
-    };
-    delete legacyPracticeMatch.incomingOfferHistory;
+    delete state.weeklySchedule.incomingPracticeOfferHistory;
 
     const decoded = decodeGameState(JSON.stringify(state));
 
-    expect(decoded.weeklySchedule.practiceMatch.incomingOfferHistory).toEqual(
-      [],
-    );
+    expect(decoded.weeklySchedule.incomingPracticeOfferHistory).toEqual([]);
   });
 
   it("round-trips received offer history without changing entries", () => {
@@ -40,15 +35,15 @@ describe("Phase20-3 practice offer history persistence", () => {
     const opponents = Object.keys(state.schools).filter(
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId[];
-    state.weeklySchedule.practiceMatch.incomingOfferHistory = [
-      { schoolId: opponents[0]!, date: "2026-04-03" as GameDate },
-      { schoolId: opponents[1]!, date: "2026-04-17" as GameDate },
+    state.weeklySchedule.incomingPracticeOfferHistory = [
+      { schoolId: opponents[0]!, surfacedDate: "2026-04-03" as GameDate },
+      { schoolId: opponents[1]!, surfacedDate: "2026-04-17" as GameDate },
     ];
 
     const decoded = decodeGameState(encodeGameState(state));
 
-    expect(decoded.weeklySchedule.practiceMatch.incomingOfferHistory).toEqual(
-      state.weeklySchedule.practiceMatch.incomingOfferHistory,
+    expect(decoded.weeklySchedule.incomingPracticeOfferHistory).toEqual(
+      state.weeklySchedule.incomingPracticeOfferHistory,
     );
   });
 
@@ -59,7 +54,7 @@ describe("Phase20-3 practice offer history persistence", () => {
     const opponent = Object.keys(state.schools).find(
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId;
-    state.weeklySchedule.practiceMatch.incomingOfferHistory =
+    state.weeklySchedule.incomingPracticeOfferHistory =
       previousOfferHistory(opponent);
 
     let planning = buildPracticePlanning(state);
@@ -70,12 +65,12 @@ describe("Phase20-3 practice offer history persistence", () => {
     }
 
     expect(planning.incomingOffer).not.toBeNull();
-    expect(planning.incomingOfferHistory).toHaveLength(
+    expect(planning.incomingPracticeOfferHistory).toHaveLength(
       PRACTICE_INCOMING_HISTORY_LIMIT,
     );
-    expect(planning.incomingOfferHistory.at(-1)).toMatchObject({
+    expect(planning.incomingPracticeOfferHistory.at(-1)).toMatchObject({
       schoolId: planning.incomingOffer!.schoolId,
-      date: state.date,
+      surfacedDate: state.date,
     });
   });
 
@@ -84,9 +79,9 @@ describe("Phase20-3 practice offer history persistence", () => {
     const opponent = Object.keys(state.schools).find(
       (schoolId) => schoolId !== state.userSchoolId,
     ) as SchoolId;
-    state.weeklySchedule.practiceMatch.incomingOfferHistory = [
+    state.weeklySchedule.incomingPracticeOfferHistory = [
       ...previousOfferHistory(opponent),
-      { schoolId: opponent, date: "2025-12-31" as GameDate },
+      { schoolId: opponent, surfacedDate: "2025-12-31" as GameDate },
     ];
 
     expect(() => decodeGameState(JSON.stringify(state))).toThrow(

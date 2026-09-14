@@ -97,7 +97,8 @@ describe("Phase20-3 canonical incoming practice offer ledger", () => {
     const schoolId = opponentId();
     const entries = Array.from({ length: 32 }, (_, index) => ({
       schoolId,
-      surfacedDate: `2025-${String(Math.floor(index / 3) + 1).padStart(2, "0")}-${String((index % 3) * 7 + 1).padStart(2, "0")}` as GameDate,
+      surfacedDate:
+        `2025-${String(Math.floor(index / 3) + 1).padStart(2, "0")}-${String((index % 3) * 7 + 1).padStart(2, "0")}` as GameDate,
     }));
     const raw = rawState();
     delete practiceMatchOf(raw).incomingOfferHistory;

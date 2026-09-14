@@ -146,7 +146,9 @@ describe("Phase20-3 completion contract", () => {
     };
     const rivalryOffers = offerIdsAcrossApril(rivalryAware);
 
-    expect(rivalryOffers.filter((schoolId) => schoolId === rivalId).length).toBeGreaterThan(
+    expect(
+      rivalryOffers.filter((schoolId) => schoolId === rivalId).length,
+    ).toBeGreaterThan(
       neutralOffers.filter((schoolId) => schoolId === rivalId).length,
     );
   });

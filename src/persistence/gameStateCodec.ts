@@ -453,10 +453,17 @@ const practiceMatchHistoryEntrySchema = z
   })
   .strict();
 
-const practiceIncomingOfferHistoryEntrySchema = z
+const legacyPracticeIncomingOfferHistoryEntrySchema = z
   .object({
     schoolId: z.string().min(1),
     date: gameDateSchema,
+  })
+  .strict();
+
+const incomingPracticeOfferHistoryEntrySchema = z
+  .object({
+    schoolId: z.string().min(1),
+    surfacedDate: gameDateSchema,
   })
   .strict();
 
@@ -523,15 +530,35 @@ const weeklyScheduleSchema = z
         scheduledOpponentId: z.string().min(1).nullable(),
         scheduledBy: z.enum(["incoming", "outgoing"]).nullable(),
         incomingOfferHistory: z
-          .array(practiceIncomingOfferHistoryEntrySchema)
+          .array(legacyPracticeIncomingOfferHistoryEntrySchema)
           .max(24)
-          .default([]),
+          .optional(),
       })
       .strict(),
+    incomingPracticeOfferHistory: z
+      .array(incomingPracticeOfferHistoryEntrySchema)
+      .max(32)
+      .optional(),
     recentPracticeMatches: z.array(practiceMatchHistoryEntrySchema).max(12),
     latestReport: weeklyReportSchema.nullable(),
   })
-  .strict();
+  .strict()
+  .transform((state) => {
+    const legacyHistory = state.practiceMatch.incomingOfferHistory ?? [];
+    const incomingPracticeOfferHistory =
+      state.incomingPracticeOfferHistory ??
+      legacyHistory.map((entry) => ({
+        schoolId: entry.schoolId,
+        surfacedDate: entry.date,
+      }));
+    const { incomingOfferHistory: _legacyHistory, ...practiceMatch } =
+      state.practiceMatch;
+    return {
+      ...state,
+      practiceMatch,
+      incomingPracticeOfferHistory,
+    };
+  });
 
 const gameStateSchema = z
   .object({
