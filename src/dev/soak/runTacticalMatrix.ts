@@ -7,7 +7,7 @@ import {
 import { simulateMatch } from "../../domain/match/simulateMatch";
 import { createAbilities } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
-import { matchId } from "../../domain/model/identifiers";
+import { matchId, type PlayerId } from "../../domain/model/identifiers";
 import { SeededRandom } from "../../domain/random/SeededRandom";
 import {
   applyMatchTacticPlan,
@@ -38,7 +38,6 @@ const BALANCED: MatchTacticPlan = {
   block: "mixed",
 };
 const QUICK: MatchTacticPlan = { ...BALANCED, attack: "quick" };
-const SIDE: MatchTacticPlan = { ...BALANCED, attack: "side" };
 const QUICK_IDENTITY: MatchTacticPlan = {
   serve: "aggressive",
   attack: "quick",
@@ -84,7 +83,7 @@ interface SeriesInput {
 
 function standardizeSchoolPlayers(
   state: ReturnType<typeof generateWorld>,
-  playerIds: readonly string[],
+  playerIds: readonly PlayerId[],
   ability: number,
 ): void {
   for (const playerId of playerIds) {
@@ -161,7 +160,9 @@ function runOne(
 
   const result = simulateMatch({
     state,
-    id: matchId(`phase19-matrix-${input.seed}-${pairIndex}-${focalIsHome ? "h" : "a"}`),
+    id: matchId(
+      `phase19-matrix-${input.seed}-${pairIndex}-${focalIsHome ? "h" : "a"}`,
+    ),
     homeSchoolId,
     awaySchoolId,
     homeSelection,
@@ -269,13 +270,14 @@ export function runTacticalMatrix(input: {
   } as const;
   const planAverageWinRates = Object.fromEntries(
     Object.entries(identities).map(([ownName, ownPlan]) => {
-      const rates = Object.entries(identities).map(([opponentName, opponentPlan]) =>
-        runMirroredSeries({
-          seed: `${input.seed}.matrix.${ownName}.${opponentName}`,
-          matches: matrixMatches,
-          focalPlan: ownPlan,
-          opponentPlan,
-        }),
+      const rates = Object.entries(identities).map(
+        ([opponentName, opponentPlan]) =>
+          runMirroredSeries({
+            seed: `${input.seed}.matrix.${ownName}.${opponentName}`,
+            matches: matrixMatches,
+            focalPlan: ownPlan,
+            opponentPlan,
+          }),
       );
       return [
         ownName,
