@@ -1,91 +1,59 @@
 # Phase21 Player Relationships / Personality / Fullscreen Events Design
 
 Date: 2026-09-15
-Status: approved design draft for implementation planning
-Base: main @ ada00b3ff95dc6523d3b2974233fcff8a5598931
+Status: ready for user review
+Base: main @ `ada00b3ff95dc6523d3b2974233fcff8a5598931`
 
 ## 1. Goal
 
-Phase21 turns existing player personality, trust, morale, player-to-player relationship values, and event content into a visible long-term character system.
+Phase21 turns the existing personality, trust, morale, player-to-player relationship values, and event catalog into a visible long-term character system.
 
-The phase must make players feel different from one another without introducing large hidden combat bonuses. Character systems should primarily influence event selection, relationship development, trust/morale, and small visible training modifiers.
+Players should feel different without adding large hidden combat bonuses. Character systems primarily affect event selection, relationship development, trust/morale, and small visible training modifiers.
 
-The second goal is presentation. Choice-based manager/player events are currently compressed into a BottomSheet. In Phase21, choice-based events become a dedicated fullscreen game experience on mobile and desktop.
+Choice-based manager/player events also move from the current BottomSheet presentation to a dedicated fullscreen game experience.
 
 ## 2. Non-goals
 
-Phase21 does not perform the broader match-presentation overhaul planned for Phase22.
-
-Phase21 does not add large direct match-stat bonuses from friendship, rivalry, personality, or undiscovered character traits.
-
-Phase21 does not turn every notification into a fullscreen screen. Informational notifications such as ordinary training-result summaries remain compact unless they require a user choice.
-
-Phase21 does not increase normal event cadence above the existing roughly once-per-three-weeks schedule. Due chain follow-ups retain their current priority behavior.
+- The broader match-presentation overhaul remains Phase22.
+- Phase21 adds no large direct match-stat bonus from friendship, rivalry, personality, or undiscovered traits.
+- Informational notifications remain compact unless they require a user choice.
+- Normal event cadence does not increase beyond the current gate: `weekOfYear % 3 === 0`, except due follow-ups which retain priority behavior.
 
 ## 3. Existing foundations to reuse
 
-The current model already contains:
+Current state already contains `Player.personalityId`, `traitIds`, `hiddenTraitIds`, morale, trust, leadership, team adaptation, `GameState.playerRelationships`, relationship/captaincy/rivalry events, relationship trigger eligibility, and event effects for relationship/trust/morale changes.
 
-- `Player.personalityId`
-- `Player.traitIds`
-- `Player.hiddenTraitIds`
-- `Player.morale`
-- `Player.trust`
-- `Player.leadership`
-- `Player.teamAdaptation`
-- `GameState.playerRelationships`
-- relationship/captaincy/rivalry event categories
-- relationship-triggered event eligibility
-- event effects that change relationship, trust, morale, ability, fatigue, traits, reputation, funds, facilities, and injury state
-- personality modifiers for training stability, relationship growth, morale volatility, and pressure
-- event memory for recent event/category/actor suppression
-
-The existing personality catalog already includes ten distinct personalities, so Phase21 should expose and connect these systems rather than create a second competing personality model.
+The existing personality catalog already has ten personalities. Phase21 exposes and connects that system rather than creating a second personality model.
 
 ## 4. Product principles
 
-### 4.1 Visible effects over hidden power
+1. **Visible effects over hidden power.** Training modifiers introduced by Phase21 must appear in training results.
+2. **Relationships come from history.** Special relationships are created by an actual event outcome, not merely by crossing a numeric threshold.
+3. **Negative relationships create stories, not punishment loops.** Low relationship scores change events and morale/trust behavior; they do not impose a permanent direct training penalty.
+4. **More character depth without event spam.** Character state changes candidate weights, not the base event cadence.
 
-Any gameplay modifier that affects training growth must be shown in the training result. Phase21 must not add an invisible `+X%` relationship bonus.
+## 5. Public personality presentation
 
-### 4.2 Relationships come from history
+Personality is visible from the beginning.
 
-Special relationships must be established through actual event history, not only because a numeric score crossed a threshold.
-
-### 4.3 Negative relationships create stories, not punishment loops
-
-Low relationships can produce tension, conflict, or reconciliation events, but Phase21 will not apply a permanent direct training penalty merely because two players dislike each other.
-
-### 4.4 Event drama without event spam
-
-Character depth is expressed by changing which eligible event is more likely, not by increasing the base event frequency.
-
-## 5. Player personality presentation
-
-Personality is public from the beginning.
-
-Player detail must display:
+Player detail shows:
 
 - personality name
-- personality description
-- qualitative tendencies derived from the existing personality definition
+- description
+- qualitative training stability
+- qualitative relationship-building tendency
+- qualitative pressure response
+- qualitative morale volatility
 
-Recommended presentation dimensions:
+Use game-language labels such as `高 / 標準 / 低` or `得意 / 普通 / 苦手`. Do not expose raw coefficients by default.
 
-- training stability
-- relationship building
-- pressure response
-- morale volatility
-
-These should be qualitative labels such as `高 / 標準 / 低`, `得意 / 普通 / 苦手`, or equivalent game-language badges. The UI should not expose raw internal coefficient numbers unless a later product decision explicitly requires that.
-
-Personality continues using the existing training calculations. Phase21 must not duplicate the existing personality training modifier.
+The existing personality training modifier remains canonical; Phase21 must not duplicate it.
 
 ## 6. Relationship score presentation
 
-`GameState.playerRelationships` remains the canonical 0-100 pair score.
+`GameState.playerRelationships` remains the canonical 0-100 score using the existing sorted `relationshipKey`.
 
-Presentation labels are:
+Labels:
 
 - 0-19: 犬猿
 - 20-39: 不仲
@@ -93,70 +61,65 @@ Presentation labels are:
 - 60-79: 好相性
 - 80-100: 親友
 
-The player detail screen shows a relationship section containing relevant teammates, a visible gauge, the relationship label, and any special relationship tags.
+Missing entries continue to mean 50.
 
-Default relationship remains 50 when no canonical entry exists.
+Player detail shows relevant teammates as **label + gauge + special relationship tags**.
 
 ## 7. Special relationships
 
-Phase21 introduces three special relationship kinds:
+Kinds:
 
 - `rival` / ライバル
 - `mentor` / 師弟
 - `partner` / 相棒
 
-These tags are separate from the numeric relationship label. A pair can therefore be `ライバル + 不仲`, `ライバル + 好相性`, or another valid combination.
+Special tags are independent of the numeric label. `ライバル + 不仲` and `ライバル + 好相性` are both valid.
 
-A pair may hold at most two special relationship tags.
+A pair may hold at most two special tags.
 
-### 7.1 Rival
+### Rival
 
-Rivalry must be established by a competition-oriented event or explicit relationship transition source. It does not require a minimum relationship score.
+Requirements:
 
-Normal sources include:
+- an explicit competition/rivalry event outcome establishes it
+- no relationship-score minimum
 
-- same-position competition event
-- explicit rivalry chain event
-- repeated competition-related event outcome
+If both rivals share the same preferred position and both actively train that week, each gets a visible `+3%` social training contribution.
 
-When two rivals have the same preferred position and are both actively participating in that week's training, each may receive a visible `+3%` social training modifier.
+### Mentor
 
-### 7.2 Mentor
+Directional relationship with mentor and protege IDs.
 
-Mentor is directional and stores mentor/protege identity.
+Requirements at establishment:
 
-Baseline requirements:
+- different grades
+- explicit mentoring/coaching event outcome
+- relationship >= 60
 
-- players are in different grades
-- a coaching/mentoring event has occurred
-- pair relationship is at least 60 at establishment
+If both actively train that week, the protege gets a visible `+4%` contribution.
 
-When both are actively participating in the same week's training, the protege may receive a visible `+4%` social training modifier.
+### Partner
 
-### 7.3 Partner
+Requirements at establishment:
 
-Baseline requirements:
+- explicit cooperation/coordination event outcome
+- relationship >= 80
 
-- pair relationship is at least 80
-- a cooperation/coordination event has occurred
+If both actively train that week, each gets a visible `+3%` contribution.
 
-Setter-attacker combinations may receive greater event-selection affinity but not a larger training percentage.
+Setter-attacker pairs may receive higher event affinity, but not a higher training percentage.
 
-When both are actively participating in the same week's training, each may receive a visible `+3%` social training modifier.
+### Social training cap
 
-### 7.4 Social training cap
+Relationship-derived training contributions are capped at **+5% total per player per weekly resolution**.
 
-All Phase21 relationship-derived training modifiers combined are capped at `+5%` per player per weekly training resolution.
+The result log still lists contributing relationships. If raw contributions exceed +5%, the result UI must make the cap understandable instead of silently truncating it.
 
-The result log must still identify the contributing relationships. If raw contributions exceed the cap, UI should make the cap understandable rather than silently truncate it.
+No special relationship adds a hidden direct match-stat bonus in Phase21.
 
-No Phase21 special relationship applies a direct hidden match-stat bonus.
+## 8. Canonical relationship state
 
-## 8. Active relationship state
-
-Add a canonical state structure for special relationships rather than encoding them into event history alone.
-
-Recommended model:
+Add a bounded canonical structure keyed by `relationshipKey`.
 
 ```ts
 export type SpecialRelationshipKind = "rival" | "mentor" | "partner";
@@ -164,7 +127,7 @@ export type SpecialRelationshipKind = "rival" | "mentor" | "partner";
 export interface SpecialRelationshipTag {
   kind: SpecialRelationshipKind;
   establishedDate: GameDate;
-  sourceEventId: EventId | null;
+  sourceEventId: EventId;
   lastReinforcedDate: GameDate;
   mentorPlayerId?: PlayerId;
   protegePlayerId?: PlayerId;
@@ -172,63 +135,57 @@ export interface SpecialRelationshipTag {
 
 export interface PlayerRelationshipBond {
   playerIds: [PlayerId, PlayerId];
-  tags: SpecialRelationshipTag[];
+  tags: SpecialRelationshipTag[]; // max 2
 }
 ```
 
-`GameState.playerRelationshipBonds` is a record keyed by the existing sorted `relationshipKey`.
+Recommended state key: `GameState.playerRelationshipBonds`.
 
-The exact TypeScript shape may be adjusted during implementation if persistence simplicity improves, but the canonical behavior must remain directional for mentor relations and bounded to two tags per pair.
+Mentor directionality is mandatory even if the exact persisted shape changes for codec simplicity.
 
-## 9. Relationship reinforcement and removal
+## 9. Explicit event effects for relationship tags
 
-Special relationships do not disappear immediately when the numeric relationship score drops.
+Do not infer a new special relationship from event IDs or UI text.
 
-Each tag records `lastReinforcedDate`.
+Extend the event effect schema with explicit effects equivalent to:
 
-A relationship can be removed or transformed by:
+```ts
+{ type: "relationship-tag-add", kind: "rival" | "partner" }
+{ type: "relationship-tag-add", kind: "mentor", mentorActorIndex: 0, protegeActorIndex: 1 }
+{ type: "relationship-tag-remove", kind: "rival" | "mentor" | "partner" }
+```
 
-- a dedicated event outcome
-- prolonged deterioration below a tag-specific threshold
-- graduation/end of active shared team membership
+Add/remove effects operate on the event actors and call one canonical domain validator. The validator enforces pair capacity, mentor directionality, and score/grade requirements.
 
-Phase21 should prefer event-driven removal when possible. Numeric deterioration is a fallback guard against stale impossible relationships.
+Invalid establishment attempts are deterministic no-ops with a safe visible result; event data should nevertheless be validated so invalid definitions are caught by tests.
 
-Recommended fallback windows:
+Existing relationship events selected for Phase21 are updated to use these explicit effects. This guarantees that every special relationship has an auditable event origin.
 
-- partner: eligible for degradation after at least 8 consecutive weeks below relationship 60
-- mentor: eligible for degradation after at least 8 consecutive weeks below relationship 50
-- rival: does not degrade solely because relationship is low; rivalry can coexist with hostility
+## 10. Reinforcement, degradation, and graduation
 
-Implementation may use a compact weekly streak state or last-qualified-date representation. The persisted form must be deterministic and bounded.
+Special relationships do not disappear after one bad week.
 
-## 10. Graduation / legacy history
+Each tag stores `lastReinforcedDate`.
 
-Important special relationships survive as historical records when a player graduates.
+Removal/transition can occur through an explicit event outcome or a prolonged fallback deterioration rule:
 
-Add a bounded relationship legacy history under `GameHistory`, containing at minimum:
+- partner: eligible for fallback degradation only after at least 8 consecutive weeks below relationship 60
+- mentor: eligible only after at least 8 consecutive weeks below relationship 50
+- rival: never removed solely because the relationship score is low
 
-- both player IDs
-- both display names at archival time
-- relationship kinds
-- mentor/protege direction where relevant
-- establishment dates
-- final relationship score
-- archive/graduation date
+The exact compact persistence for the 8-week window may be a streak or last-qualified date, but it must be deterministic and bounded.
 
-Recommended maximum retained records: 200, keeping newest records.
+When a player graduates, active special bonds involving that player are archived then removed from active state.
 
-Active bonds involving a graduated player are removed after archival.
+Add bounded `GameHistory.relationshipLegacies` entries containing both IDs/names, tags, mentor direction where applicable, establishment dates, final score, and archive date. Keep the newest 200 records.
 
 ## 11. Hidden character traits
 
-### 11.1 Purpose
+### Purpose
 
-`Player.hiddenTraitIds` currently exists but generated players receive an empty array. Phase21 gives this field a concrete role: undiscovered character traits.
+`Player.hiddenTraitIds` currently exists but generated players receive an empty array. Phase21 uses it for **undiscovered character traits**, not hidden ability bonuses.
 
-These are not hidden ability bonuses.
-
-Examples:
+Initial examples include:
 
 - 面倒見がいい
 - 研究熱心
@@ -239,364 +196,297 @@ Examples:
 - 注目されると燃える
 - 競争相手がいると伸びる
 
-### 11.2 Separate catalog from performance traits
+### Separate catalog
 
-Performance traits in `traitIds` already use ability/situation modifier definitions. Character traits must not be forced into that same effect contract.
+Do not reuse performance `traitIds` definitions, whose contract is ability/situation modification.
 
-Phase21 should add a separate character-trait definition/catalog with data needed for:
+Add a separate character-trait catalog containing display text, event affinities, relationship tendencies where applicable, and discovery contexts. Initial catalog size: **8-12 traits**.
 
-- display name
-- description
-- event tags/weights
-- relationship-change tendencies where applicable
-- discovery contexts
+### Assignment contract
 
-The initial Phase21 catalog should stay small and curated. Eight to twelve character traits is sufficient.
+Phase21 supports at most one hidden character trait per player.
 
-### 11.3 Assigned vs revealed
+Initial assignment target:
 
-`hiddenTraitIds` stores assigned character-trait IDs.
+- **60%** of players: one hidden character trait
+- **40%**: none
 
-Add a revealed/discovered subset, recommended as:
+New players use the normal seeded generation path.
 
-```ts
-revealedHiddenTraitIds: string[];
-```
+Existing v8 active players receive a deterministic one-time backfill using stable inputs such as `seed + playerId`. Backfill must not consume or shift the simulation `randomCursor`.
 
-Only revealed traits appear in the player UI and begin applying their event-selection/relationship behavior.
+Persist an initialization guard so reload cannot reroll the assignment.
 
-No hidden character trait applies an unseen training or match modifier before discovery.
+### Revealed state
 
-### 11.4 Assignment
+Add `revealedHiddenTraitIds: string[]`, always a subset of `hiddenTraitIds`.
 
-Phase21 should use at most one hidden character trait per player for the initial implementation. This keeps discovery readable and avoids character sheets becoming cluttered.
+Only revealed traits appear in UI and begin affecting event affinity or relationship behavior.
 
-Newly generated players are assigned zero or one hidden character trait using deterministic seeded generation.
+Before discovery, a hidden character trait applies **no unseen training bonus and no unseen match bonus**.
 
-Existing v8 saves must not require a restart. Existing active players receive deterministic backfill based on stable inputs such as `seed + playerId`, without consuming or shifting the normal simulation `randomCursor`.
+### Discovery
 
-A one-time initialization marker or equivalent deterministic migration guard is required so a player cannot be re-rolled on reload.
+Discovery is contextual. Supported contexts include trust threshold, weeks in program, official appearances, leadership assignment, injury recovery, special relationship establishment, and tagged event outcomes.
 
-### 11.5 Discovery
+Each character trait defines at least one meaningful discovery context. When satisfied, discovery is an informational notification and does not consume the normal event slot.
 
-Discovery is contextual, not a generic random popup.
-
-Supported discovery contexts may include:
-
-- trust threshold
-- minimum weeks in program
-- official match appearances
-- captain/vice-captain assignment
-- injury recovery
-- creation of partner/rival/mentor relationship
-- tagged event outcome
-
-Each character trait should define one or more meaningful discovery contexts. Discovery occurs only when its context is satisfied.
-
-Discovery itself is an informational notification, not a choice event, so it does not consume the normal event slot.
-
-Example notification:
+Example:
 
 > 新しい個性を発見！
 > 田中 悠真「面倒見がいい」
 > 後輩を支える場面が起こりやすくなりました。
 
-## 12. Event-selection integration
+## 12. Event selection and repetition control
 
-Normal event cadence remains unchanged: normal selection is still gated by the existing three-week rhythm, while due follow-ups may surface when due.
+Eligibility, cooldown, once-per-career, and scheduled follow-up checks remain authoritative.
 
-Phase21 modifies candidate weights only after existing eligibility/cooldown checks have passed.
+Only after those checks pass may Phase21 apply bounded candidate weighting from:
 
-New bounded weighting inputs may include:
-
-- personality tags
+- personality affinity
 - current relationship label
-- active special relationship tags
+- active special tags
 - revealed character traits
 
-The combined character/relationship weighting multiplier must be bounded. Recommended final multiplier range is `0.75x` to `1.50x` before existing event/category recent penalties.
+Combined Phase21 affinity multiplier is clamped to **0.75x-1.50x** before the existing recent-event/category penalties.
 
-Special relationship weighting must never bypass:
+Special relationship affinity never bypasses cooldown or eligibility.
 
-- event cooldown
-- trigger eligibility
-- once-per-career guard
-- scheduled follow-up rules
+### Pair repetition
 
-## 13. Pair repetition control
+Extend `EventMemory` with bounded `recentActorPairKeys`, maximum 6 entries.
 
-Phase21 must prevent the same pair from dominating relationship content.
+For two-actor events, an exact recently used pair receives an initial `0.20x` repeat multiplier. Existing recent-event, recent-category, and recent-primary-actor controls remain.
 
-Extend `EventMemory` with a bounded recent pair history, recommended:
+This is specifically intended to stop one attractive pair from monopolizing relationship stories.
 
-```ts
-recentActorPairKeys: string[];
+## 13. Fullscreen choice-event experience
+
+### Scope
+
+Every `PendingEvent` that asks the user to choose an action uses the fullscreen experience, including manager decisions, player events, relationship events, captaincy, rivalry, and other choice-based categories.
+
+Informational notifications do not automatically become fullscreen.
+
+### Replace BottomSheet
+
+The current choice and result states use `BottomSheet`. Phase21 replaces that structural dependency with a dedicated component, recommended as:
+
+```tsx
+<FullscreenEventExperience state={state} data={data} onChoose={...} />
 ```
 
-Recommended length: 6.
+`EventDialog` may temporarily remain as a compatibility wrapper, but final Phase21 choice/result presentation must not depend on BottomSheet sizing.
 
-For two-actor events, an exact pair that appeared in recent pair history receives a strong repeat penalty. Recommended initial multiplier: `0.20x`.
+### Mobile layout
 
-Existing recent-event and recent-category penalties remain in place.
+Use full viewport height with `100vh` fallback and `100dvh`, plus safe-area insets.
 
-Long-run tests must verify that one pair does not monopolize the relationship event stream.
-
-## 14. Fullscreen choice-event experience
-
-### 14.1 Scope
-
-Every `PendingEvent` flow that asks the player to choose an action uses the fullscreen event experience.
-
-This includes manager decision events, player events, relationship events, captaincy events, rivalry events, and other choice-based event categories.
-
-Ordinary informational notifications remain compact.
-
-### 14.2 Replace BottomSheet structure
-
-`EventDialog` currently renders both the choice state and resolution state through `BottomSheet`. Phase21 replaces this with a dedicated fullscreen overlay/screen component.
-
-Recommended component boundary:
-
-```ts
-<FullscreenEventExperience
-  state={state}
-  data={data}
-  onChoose={...}
-/>
-```
-
-The component may preserve `EventDialog` as a compatibility wrapper during migration, but the final Phase21 UI must not rely on BottomSheet sizing for event choices or their results.
-
-### 14.3 Mobile layout
-
-Use the full viewport (`100dvh`) with safe-area handling.
-
-Structure:
+Layout:
 
 1. category/status header
-2. large event title
+2. large title
 3. actor area
-4. scrollable story/content region
-5. sticky choice/action region near the bottom safe area
+4. scrollable story/content area
+5. sticky choice/action area above the bottom safe area
 
-The center content may scroll; choice buttons remain easy to reach.
+Two to four choices must fit without shrinking text to the current BottomSheet scale.
 
-The screen must support 2-4 choices without shrinking text to fit.
+### Actor presentation
 
-### 14.4 Actor presentation
+Show larger actor cards with name, grade/position, public personality, and relevant relationship label/special tag for two-player events.
 
-Actor cards are larger than the current compact BottomSheet cards and show:
+No portrait asset system is required in Phase21; upgraded initials/emblem presentation is sufficient.
 
-- player name
-- grade/position
-- current public personality
-- relevant relationship label/special tag when the event involves two players
+### Result transition
 
-No new player portrait system is required in Phase21. Existing initials/emblem treatment can be upgraded without blocking on art assets.
-
-### 14.5 Choice presentation
-
-Each choice uses a large touch target and shows:
-
-- action label
-- short explanatory detail
-
-The UI does not preview exact hidden numeric results unless the event definition explicitly intends to reveal them. The result screen provides the actual visible outcome.
-
-### 14.6 Resolution presentation
-
-After a choice is resolved, the fullscreen event screen remains open and transitions in-place to a result state.
+After the choice resolves, stay in the fullscreen experience and transition in-place to the result state.
 
 Show:
 
-- selected action
+- chosen action
 - involved players
-- visible result changes
-- relationship label transition when relevant
-- special relationship establishment/removal when relevant
-- character trait discovery if caused synchronously by the resolution
+- visible numeric/state changes
+- relationship label transition if changed
+- special relationship establishment/removal
+- character-trait discovery if synchronously caused by the resolution
 
-The user then explicitly confirms and returns to the game.
+The user explicitly confirms before returning to the main game.
 
-### 14.7 Accessibility
+Mandatory events remain non-dismissible before valid resolution.
 
-The fullscreen event layer must:
+### Accessibility
 
-- use dialog/screen semantics appropriate to the application shell
-- trap or otherwise correctly manage keyboard focus
-- return focus meaningfully when closed
-- lock background interaction
-- respect `prefers-reduced-motion` and the game's reduced-motion setting
-- support mobile safe areas
-- meet existing tap-target and contrast expectations
+The fullscreen event layer must manage focus, block background interaction, restore focus meaningfully, respect reduced-motion settings, support safe areas, and preserve touch-target/contrast requirements.
 
-Mandatory events remain non-dismissible until a valid choice is resolved.
+## 14. Training integration
 
-## 15. Training integration
+Use the existing additional-growth-modifier path; do not create a second training formula.
 
-Relationship-derived growth is implemented through the existing growth modifier path rather than a second training formula.
-
-Add dedicated visible modifier codes, for example:
+Add visible modifier codes equivalent to:
 
 - `relationship-partner`
 - `relationship-mentor`
 - `relationship-rival`
 
-The relationship modifier builder receives current state/player/training participation and returns bounded additional growth modifiers.
+A social modifier applies only when all relevant players are on the active team and are not skipped by injury or auto-rest for that weekly resolution.
 
-A player is considered actively training for a social bonus only when the relevant players are on the active team and are not skipped by injury or auto-rest for that weekly resolution.
+Collect raw social contributions, cap their combined factor at 105%, then pass the visible bounded modifier(s) into normal growth calculation.
 
-The social cap is applied after collecting relationship contributions and before passing them to the normal growth calculation.
+## 15. Notifications
 
-## 16. Notifications
-
-Create compact informational notifications for:
+Compact informational notifications are used for:
 
 - special relationship established
 - special relationship removed/transformed
 - hidden character trait discovered
 
-These notifications must not use the fullscreen choice UI unless they require a player decision.
+Copy explains the gameplay consequence in plain language.
 
-The notification copy should explain the gameplay consequence in plain language.
+These do not use fullscreen presentation unless they also require a choice.
 
-## 17. Persistence and schema migration
+## 16. Persistence and v8 -> v9 migration
 
-Phase21 requires persisted state additions and therefore should increment the game schema from v8 to v9.
+Phase21 increments the game schema to **v9**.
 
-v8 -> v9 migration defaults:
+PR21-2 introduces the complete v9 persistence foundation so PR21-3 does not require another schema bump. Defaults include:
 
 - `playerRelationshipBonds = {}`
 - relationship legacy history = `[]`
-- recent actor pair history = `[]`
+- relationship degradation tracking = empty
+- `EventMemory.recentActorPairKeys = []`
 - `revealedHiddenTraitIds = []` for existing players
-- character-trait initialization marker defaults to false for existing players if such a marker is used
+- character-trait initialization guard = false for existing players
 
-Character trait backfill for existing active players must be deterministic and must not advance the simulation random cursor.
+PR21-2 may add the hidden-character persistence fields before PR21-3 begins using them.
 
-The migration must preserve existing `playerRelationships`, personalities, `traitIds`, event history, and current pending event without semantic changes.
+PR21-3 performs deterministic character-trait backfill after migration using stable non-`randomCursor` inputs, sets the initialization guard, and then saves canonically as v9.
 
-Old saves must load successfully and encode canonically as v9.
+Migration preserves existing `playerRelationships`, personalities, performance `traitIds`, event history, and pending event semantics.
 
-## 18. Long-run balance requirements
+Old v8 saves must load and encode canonically as v9.
 
-Run deterministic long-run evidence with at least two fixed seeds across multiple seasons.
+## 17. Long-run balance gate
+
+Run deterministic multi-season evidence with at least two fixed seeds.
 
 Hard assertions:
 
-- normal event cadence does not exceed the existing schedule solely because of Phase21
-- no invalid special relationship references after graduation
-- no pair has more than two active special relationship tags
+- Phase21 does not increase normal event cadence beyond the existing three-week gate
+- no invalid active special-relationship references remain after graduation
+- no pair exceeds two special tags
 - social training bonus never exceeds +5%
-- hidden character trait backfill does not shift `randomCursor`
-- discovered traits are a subset of assigned hidden traits
-- old v8 saves migrate successfully
+- hidden-trait backfill does not move `randomCursor`
+- revealed traits are always a subset of assigned hidden traits
+- v8 saves migrate successfully
 
-Distribution metrics to record:
+Record:
 
 - relationship events per season
-- unique actor pairs represented
-- maximum share for one actor pair
-- number of partner/rival/mentor establishments
-- relationship removals/transitions
+- unique actor pairs
+- maximum single-pair event share
+- partner/rival/mentor establishments
+- removals/transitions
 - hidden trait discoveries per season
-- percentage of players with a discovered character trait by graduation
-- average and max applied social training modifier
+- percentage discovered by graduation
+- average/max social training modifier
 
-Soft targets for initial tuning:
+Initial soft targets:
 
-- no single pair should account for more than 35% of two-player relationship events over a sufficiently populated sample
-- special relationships should feel notable rather than universal; the majority of all possible teammate pairs should not simultaneously carry special tags
-- hidden trait discoveries should be common enough to be noticed but not fire as a bulk reveal wave immediately after migration
+- no single pair >35% of two-player relationship events in a sufficiently populated sample
+- special relationships remain notable rather than covering most possible teammate pairs
+- migration does not create a bulk hidden-trait discovery wave immediately after load
 
-Exact measured results must be documented before Phase21 completion.
+Measured results must be committed in a Phase21 report before completion.
 
-## 19. PR decomposition
+## 18. PR decomposition
 
 ### PR21-1: Fullscreen Event Experience + Personality Presentation
 
-- replace BottomSheet-based choice/result event UI with fullscreen event experience
-- mobile `100dvh` / safe-area / sticky choices
+- fullscreen choice/result event UI
+- mobile `100dvh`, safe-area, sticky choices
 - in-place result state
-- public personality name/description/tendency presentation on player detail
-- accessibility and mobile E2E coverage
+- personality name/description/tendencies on player detail
+- accessibility and mobile E2E
+- avoid persistence changes
 
-This PR should avoid persistence/schema changes where possible.
+### PR21-2: Relationship Labels + Special Relationships + v9 Foundation
 
-### PR21-2: Relationship Labels + Special Relationships
-
-- relationship presentation selector/labels/gauge
-- special relationship state and schema v9 foundation
-- rival/mentor/partner establishment rules
+- relationship label/gauge selectors
+- special relationship canonical state
+- explicit add/remove event effects and validators
+- rival/mentor/partner establishment
 - event-result relationship transitions
 - player detail relationship section
-- graduation relationship legacy archival
-- compatibility migration defaults
+- graduation legacy archival
+- complete v9 persistence fields/defaults, including fields reserved for PR21-3
 
 ### PR21-3: Hidden Character Traits + Event Weighting
 
-- character trait catalog
-- deterministic assignment/backfill
-- discovery rules and notifications
+- 8-12 trait catalog
+- deterministic assignment/backfill with 60% one-trait target
+- contextual discovery and notifications
 - revealed trait UI
-- bounded personality/relationship/character-trait event weighting
-- recent actor pair suppression
+- bounded event affinity
+- recent actor-pair suppression
 
 ### PR21-4: Visible Training Effects + Balance Gate
 
-- partner +3%, mentor/protege +4%, rival +3% rules
+- partner +3%, mentor/protege +4%, rival +3%
 - combined social cap +5%
-- training result modifier visibility
-- deterministic multi-season / multi-seed balance harness
-- measured Phase21 result report
+- visible training modifiers
+- deterministic multi-season/multi-seed balance harness
+- measured results report
 - full release gates
 
-## 20. Testing strategy
+## 19. Testing strategy
 
 Use TDD for each PR.
 
-Required focused suites include:
+Required focused coverage:
 
 - relationship label boundaries
-- special relationship establishment rules
-- rival with low relationship score remains valid
-- mentor directionality
+- explicit relationship-tag event effects
+- rival valid at low relationship score
+- mentor directionality and grade/score gate
+- partner relationship threshold
 - max-two-tags guard
-- graduation archival and active-state cleanup
-- character trait deterministic backfill
+- degradation windows
+- graduation archival/cleanup
+- deterministic hidden-trait assignment/backfill
+- 60% assignment distribution sanity over a large deterministic sample
 - reveal subset invariant
-- no random cursor movement from migration/backfill
-- event weight bounding
+- no `randomCursor` change from backfill
+- event affinity clamp
 - pair repeat suppression
-- event cadence preservation
-- social training contribution and +5% cap
+- normal event cadence preservation
+- social contributions and +5% cap
 - visible growth modifier labels
-- fullscreen event choice/result flow
-- non-dismissible mandatory event behavior
-- keyboard/focus behavior
-- reduced motion behavior
-- mobile viewport/safe-area behavior
+- fullscreen choice -> result -> confirm flow
+- mandatory-event non-dismissibility
+- keyboard/focus/reduced-motion behavior
+- mobile safe-area behavior
 - v8 -> v9 codec compatibility
 
-Before each PR is opened, use the project's branch-only safe verification approach so intentionally red TDD states and exploratory balance failures do not create avoidable failed GitHub notification noise.
+Before opening each PR, use branch-only safe verification so intentional TDD RED states and exploratory balance failures do not create avoidable GitHub failure-notification noise.
 
-Each final PR must pass official `dependency-audit`, `quality`, and `mobile-e2e` checks before merge. After merge, verify the exact main SHA CI before declaring that PR complete.
+Every final PR must pass official `dependency-audit`, `quality`, and `mobile-e2e`; after merge, verify exact-main-SHA CI before declaring the PR complete.
 
-## 21. Acceptance criteria
+## 20. Acceptance criteria
 
 Phase21 is complete when:
 
-1. Choice-based manager/player events use a fullscreen dedicated event experience rather than BottomSheet.
-2. Event results remain visible in the same fullscreen experience and clearly show consequences.
-3. Every player personality is visible with understandable qualitative tendencies.
-4. Player-to-player relationship scores are visible as label + gauge.
-5. Rival, mentor, and partner relations can be established through actual event history and are shown in player UI.
+1. Choice-based manager/player events use a dedicated fullscreen experience instead of BottomSheet.
+2. Results remain in the same fullscreen flow and clearly show consequences.
+3. Personality is visible with understandable qualitative tendencies.
+4. Player relationships are visible as label + gauge.
+5. Rival, mentor, and partner relationships originate from explicit event outcomes and appear in UI.
 6. Rival can coexist with an unfriendly relationship label.
-7. Relationship-derived training bonuses are visible, contextual, and capped at +5% total.
-8. Hidden character traits are assigned/discovered without invisible performance bonuses before discovery.
-9. Normal event cadence remains at the existing three-week rhythm except for due follow-ups.
-10. Pair/category repetition control prevents one relationship pair from dominating event content.
-11. Important relationships are archived on graduation.
-12. Existing v8 saves migrate to v9 without loss of existing gameplay state.
-13. Long-run multi-seed evidence satisfies hard invariants and documents measured distribution metrics.
-14. All focused, full, release, PR, and exact-main CI gates are green.
+7. Relationship-derived training bonuses are visible, contextual, and capped at +5%.
+8. Hidden character traits are assigned/discovered without unseen performance bonuses before discovery.
+9. Normal event cadence remains the existing three-week rhythm except due follow-ups.
+10. Pair/category repetition controls prevent a single pair from dominating content.
+11. Important relationships are archived at graduation.
+12. Existing v8 saves migrate to v9 without loss of gameplay state.
+13. Long-run multi-seed evidence satisfies hard invariants and records measured distribution metrics.
+14. Focused, full, release, PR, and exact-main CI gates are green.
