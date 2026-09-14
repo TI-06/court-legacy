@@ -6,10 +6,10 @@ on:
       - feature/phase19-match-difficulty-strategic-identities
     paths:
       - .github/workflows/phase19-4-safe-check.yml
-      - scripts/phase19-4-task6.py
+      - tests/unit/features/match/phase19TacticChangePresentation.test.ts
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check:
@@ -21,57 +21,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Apply Task 6 and capture GREEN
+      - name: Capture Task 7 RED without failing workflow
         shell: bash
         run: |
           set +e
-          python scripts/phase19-4-task6.py
-          patch_status=$?
-          if [ "$patch_status" -eq 0 ]; then
-            npx prettier --write \
-              worker/game/actionSchema.ts \
-              worker/game/applyGameAction.ts \
-              src/features/team/tacticsPresentation.ts \
-              src/features/team/TeamTacticsPanel.tsx \
-              src/features/team/PlayerHubScreen.tsx \
-              src/app/GameApp.tsx \
-              tests/unit/features/team/TeamTacticsPanel.test.tsx \
-              tests/unit/worker/phase19DefenseBiasAction.test.ts
-            format_status=$?
-          else
-            format_status=99
-          fi
-          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
-            npx vitest run \
-              tests/unit/features/team/TeamTacticsPanel.test.tsx \
-              tests/unit/worker/phase19DefenseBiasAction.test.ts \
-              tests/unit/app/GameAppActions.test.tsx
-            focused=$?
-            npm run typecheck
-            types=$?
-          else
-            focused=99
-            types=99
-          fi
-          echo "PHASE19_4_DEFENSE_ACTION_PATCH_STATUS=${patch_status}"
-          echo "PHASE19_4_DEFENSE_ACTION_FORMAT_STATUS=${format_status}"
-          echo "PHASE19_4_DEFENSE_ACTION_GREEN_STATUS=${focused}"
-          echo "PHASE19_4_DEFENSE_ACTION_TYPECHECK_STATUS=${types}"
-          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
-            git config user.name "court-legacy-bot"
-            git config user.email "court-legacy-bot@users.noreply.github.com"
-            git add \
-              worker/game/actionSchema.ts \
-              worker/game/applyGameAction.ts \
-              src/features/team/tacticsPresentation.ts \
-              src/features/team/TeamTacticsPanel.tsx \
-              src/features/team/PlayerHubScreen.tsx \
-              src/app/GameApp.tsx \
-              tests/unit/features/team/TeamTacticsPanel.test.tsx \
-              tests/unit/worker/phase19DefenseBiasAction.test.ts
-            if ! git diff --cached --quiet; then
-              git commit -m "feat: add separate team defense coverage setting"
-              git push origin HEAD:feature/phase19-match-difficulty-strategic-identities
-            fi
-          fi
+          npx vitest run tests/unit/features/match/phase19TacticChangePresentation.test.ts
+          focused=$?
+          npm run typecheck
+          types=$?
+          echo "PHASE19_4_TACTIC_PRESENTATION_RED_STATUS=${focused}"
+          echo "PHASE19_4_TACTIC_PRESENTATION_TYPECHECK_STATUS=${types}"
           exit 0
