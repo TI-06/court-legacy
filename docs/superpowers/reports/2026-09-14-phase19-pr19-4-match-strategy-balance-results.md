@@ -40,12 +40,12 @@ The tactical edge was therefore increased without changing the matchup direction
 
 Safe isolated workflow run `34817894501` completed successfully after calibration. Each listed series uses 160 deterministic matches.
 
-| Scenario | Strength | Result | Win rate |
-| --- | --- | ---: | ---: |
-| Balanced / neutral | 80 vs 80 | 80 / 160 | 50.0% |
-| Quick vs read / favorable | 80 vs 80 | 86 / 160 | 53.8% |
-| Quick vs commit / unfavorable | 80 vs 80 | 73 / 160 | 45.6% |
-| Quick vs commit / +10 ability | 90 vs 80 | 133 / 160 | 83.1% |
+| Scenario                      | Strength |    Result | Win rate |
+| ----------------------------- | -------- | --------: | -------: |
+| Balanced / neutral            | 80 vs 80 |  80 / 160 |    50.0% |
+| Quick vs read / favorable     | 80 vs 80 |  86 / 160 |    53.8% |
+| Quick vs commit / unfavorable | 80 vs 80 |  73 / 160 |    45.6% |
+| Quick vs commit / +10 ability | 90 vs 80 | 133 / 160 |    83.1% |
 
 The equal-strength favorable-to-unfavorable spread is **8.2 percentage points**, exceeding the required 3-point separation.
 

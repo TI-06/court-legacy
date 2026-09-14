@@ -27,11 +27,13 @@
 ### Task 1: Canonical school match identities
 
 **Files:**
+
 - Create: `src/domain/match/schoolMatchIdentity.ts`
 - Modify: `src/domain/generation/generateSchool.ts`
 - Test: `tests/unit/domain/match/phase19StrategicIdentity.test.ts`
 
 **Interfaces:**
+
 - Consumes: `SchoolArchetypeDefinition`, `MatchTacticPlan`, `TeamTactics["defenseBias"]`, `Position`.
 - Produces:
   - `SchoolMatchIdentityProfile`
@@ -42,10 +44,18 @@
 
 ```ts
 it("gives all eight archetypes recognizable identities", () => {
-  expect(schoolMatchIdentity("school.speed").preferredPlan.attack).toBe("quick");
-  expect(schoolMatchIdentity("school.height").preferredPlan.block).toBe("commit");
-  expect(schoolMatchIdentity("school.serve").preferredPlan.serve).toBe("aggressive");
-  expect(schoolMatchIdentity("school.rotation").attackDistributionBias).toBeDefined();
+  expect(schoolMatchIdentity("school.speed").preferredPlan.attack).toBe(
+    "quick",
+  );
+  expect(schoolMatchIdentity("school.height").preferredPlan.block).toBe(
+    "commit",
+  );
+  expect(schoolMatchIdentity("school.serve").preferredPlan.serve).toBe(
+    "aggressive",
+  );
+  expect(
+    schoolMatchIdentity("school.rotation").attackDistributionBias,
+  ).toBeDefined();
 });
 
 it("does not allow a generated serve school to become low-risk by default", () => {
@@ -115,11 +125,13 @@ git commit -m "feat: add school match identities"
 ### Task 2: Bounded defense-direction matchup
 
 **Files:**
+
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: `tests/unit/domain/match/phase15TacticalTradeoffs.test.ts`
 - Test: `tests/unit/domain/match/phase19DefenseBias.test.ts`
 
 **Interfaces:**
+
 - Consumes: `TeamTactics["defenseBias"]`, attacker position/decision, deterministic match random source.
 - Produces internal pure helpers with exported test surface only if necessary:
   - `AttackDirection = "line" | "cross" | "neutral"`
@@ -130,13 +142,19 @@ git commit -m "feat: add school match identities"
 ```ts
 it("rewards the correct line read without becoming a flat defense bonus", () => {
   expect(lineDefenseVsLineAttack).toBeGreaterThan(crossDefenseVsLineAttack);
-  expect(Math.abs(lineDefenseVsLineAttack - crossDefenseVsLineAttack)).toBeLessThanOrEqual(8);
+  expect(
+    Math.abs(lineDefenseVsLineAttack - crossDefenseVsLineAttack),
+  ).toBeLessThanOrEqual(8);
 });
 
 it("keeps balanced defense stable but not strictly best", () => {
   expect(lineVsRepresentativeMix).not.toEqual(crossVsRepresentativeMix);
-  expect(balancedVsRepresentativeMix).toBeGreaterThan(Math.min(lineVsRepresentativeMix, crossVsRepresentativeMix));
-  expect(balancedVsRepresentativeMix).toBeLessThan(Math.max(lineVsRepresentativeMix, crossVsRepresentativeMix));
+  expect(balancedVsRepresentativeMix).toBeGreaterThan(
+    Math.min(lineVsRepresentativeMix, crossVsRepresentativeMix),
+  );
+  expect(balancedVsRepresentativeMix).toBeLessThan(
+    Math.max(lineVsRepresentativeMix, crossVsRepresentativeMix),
+  );
 });
 ```
 
@@ -190,10 +208,12 @@ git commit -m "feat: add directional defensive matchups"
 ### Task 3: CPU coach decision model
 
 **Files:**
+
 - Create: `src/domain/match/cpuCoachPolicy.ts`
 - Test: `tests/unit/domain/match/phase19CpuCoachPolicy.test.ts`
 
 **Interfaces:**
+
 - Produces:
 
 ```ts
@@ -225,8 +245,17 @@ export interface CpuCoachPublicView {
   };
 }
 
-export function cpuCoachTier(reputation: SchoolReputation, coachTactics: number): CpuCoachTier;
-export function decideCpuCoachCommand(view: CpuCoachPublicView, reason: CoachDecisionReason): Extract<MatchCommand, { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }>;
+export function cpuCoachTier(
+  reputation: SchoolReputation,
+  coachTactics: number,
+): CpuCoachTier;
+export function decideCpuCoachCommand(
+  view: CpuCoachPublicView,
+  reason: CoachDecisionReason,
+): Extract<
+  MatchCommand,
+  { type: "timeout" } | { type: "set-match-tactics" } | { type: "continue" }
+>;
 ```
 
 - [ ] **Step 1: Write RED policy tests**
@@ -276,6 +305,7 @@ git commit -m "feat: add deterministic cpu coach policy"
 ### Task 4: Reuse authoritative command mutation for automatic CPU tactics
 
 **Files:**
+
 - Modify: `src/domain/match/simulateMatch.ts`
 - Modify: `src/domain/match/applyMatchCommand.ts` only if a shared internal helper is required
 - Test: `tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts`
@@ -283,6 +313,7 @@ git commit -m "feat: add deterministic cpu coach policy"
 - Regression: `tests/unit/domain/match/phase16MatchCommands.test.ts`
 
 **Interfaces:**
+
 - Extend `AutomaticCoachPolicy` return union to `timeout | set-match-tactics | continue`.
 - Automatic tactic changes must update the same runtime tactic state as human `set-match-tactics`.
 - Record exactly one command-history entry per automatic decision boundary.
@@ -337,11 +368,13 @@ git commit -m "feat: apply automatic cpu tactic changes"
 ### Task 5: PVE worker integration with narrowed public CPU view
 
 **Files:**
+
 - Modify: `worker/game/applyGameAction.ts`
 - Test: `tests/unit/worker/phase19CpuCoachIntegration.test.ts`
 - Regression: `tests/unit/worker/phase19MatchExperience.test.ts`
 
 **Interfaces:**
+
 - Add worker-local adapter that converts authoritative PVE match state into `CpuCoachPublicView`.
 - Pass `automaticCoachSchoolId` and policy to `startMatch` and `resumeMatch` for practice and official PVE only.
 - Do not modify PvP Worker/session paths.
@@ -393,6 +426,7 @@ git commit -m "feat: connect cpu coaching to pve matches"
 ### Task 6: Separate user defense-bias setting without changing PvP plan
 
 **Files:**
+
 - Modify: `worker/game/actionSchema.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Modify: `src/app/GameApp.tsx`
@@ -404,10 +438,14 @@ git commit -m "feat: connect cpu coaching to pve matches"
 - Test: `tests/unit/worker/phase19DefenseBiasAction.test.ts`
 
 **Interfaces:**
+
 - Add a separate GameAction:
 
 ```ts
-{ type: "set-team-defense-bias"; defenseBias: "line" | "balanced" | "cross" }
+{
+  type: "set-team-defense-bias";
+  defenseBias: "line" | "balanced" | "cross";
+}
 ```
 
 - `MatchTacticPlan` remains unchanged.
@@ -458,11 +496,13 @@ git commit -m "feat: add team defensive coverage setting"
 ### Task 7: Opponent tactical-change presentation
 
 **Files:**
+
 - Modify: `src/features/match/matchPresentation.ts`
 - Modify: `src/features/match/MatchScreen.tsx` and/or `MatchStatPanels.tsx` only where the existing event presentation belongs
 - Test: `tests/unit/features/match/phase19CpuTacticPresentation.test.tsx`
 
 **Interfaces:**
+
 - Consumes automatic tactic-change event/command-history public data.
 - Produces short Japanese presentation copy such as `相手が速攻重視へ変更`.
 
@@ -506,12 +546,14 @@ git commit -m "feat: show opponent tactical adjustments"
 ### Task 8: Tactical matrix and CPU intelligence balance harness
 
 **Files:**
+
 - Create: `src/dev/soak/runTacticalMatrix.ts`
 - Create: `tests/soak/phase19TacticalMatrix.test.ts`
 - Modify: `vitest.soak.config.ts` only if needed to include the new soak file under the existing pattern.
 - Create: `docs/superpowers/reports/2026-09-14-phase19-4-tactical-balance-results.md`
 
 **Interfaces:**
+
 - Produce deterministic aggregate metrics for a fixed seed list.
 - Minimum metrics: win rate, set win rate, point differential, aces/errors, attack/block/defense points, CPU tactic changes, timeout usage.
 
@@ -571,6 +613,7 @@ git commit -m "test: add phase19 tactical balance matrix"
 ### Task 9: Full regression, cleanup, PR gate
 
 **Files:**
+
 - Delete all temporary Phase19-4 verification workflows/scripts before PR.
 - Update: `docs/superpowers/reports/2026-09-14-phase19-4-tactical-balance-results.md` with exact final evidence.
 

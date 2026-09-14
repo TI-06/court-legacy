@@ -1,11 +1,12 @@
 import type { Position } from "../model/Player";
 import type { TeamTactics } from "../model/School";
-import { applyMatchTacticPlan, type MatchTacticPlan } from "../team/matchTactics";
+import {
+  applyMatchTacticPlan,
+  type MatchTacticPlan,
+} from "../team/matchTactics";
 
 export type SchoolMatchAdaptationBias =
-  | "hold-style"
-  | "balanced"
-  | "counter-heavy";
+  "hold-style" | "balanced" | "counter-heavy";
 
 export interface SchoolMatchIdentityProfile {
   preferredPlan: MatchTacticPlan;

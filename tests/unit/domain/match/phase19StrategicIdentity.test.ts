@@ -30,7 +30,9 @@ describe("Phase19-4 school strategic identities", () => {
     expect(schoolMatchIdentity("school.speed").preferredPlan.attack).toBe(
       "quick",
     );
-    expect(schoolMatchIdentity("school.ace").attackDistributionBias.OH).toBeGreaterThan(
+    expect(
+      schoolMatchIdentity("school.ace").attackDistributionBias.OH,
+    ).toBeGreaterThan(
       schoolMatchIdentity("school.ace").attackDistributionBias.MB ?? 0,
     );
     expect(schoolMatchIdentity("school.serve").preferredPlan.serve).toBe(
@@ -62,7 +64,10 @@ describe("Phase19-4 school strategic identities", () => {
   });
 
   it("keeps a height school committed to height and blocking identity", () => {
-    const height = applySchoolMatchIdentityDefaults(baseTactics, "school.height");
+    const height = applySchoolMatchIdentityDefaults(
+      baseTactics,
+      "school.height",
+    );
 
     expect(height.attackTempo).toBe("slow");
     expect(height.blockSystem).toBe("commit");
