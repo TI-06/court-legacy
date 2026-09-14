@@ -27,6 +27,7 @@ jobs:
         shell: bash
         run: |
           set +e
+          sed -i 's/if new in text:/if new and new in text:/' scripts/phase19_apply_player_growth.py
           python3 scripts/phase19_apply_player_growth.py > /tmp/phase19-patch.log 2>&1
           patch_status=$?
           cat /tmp/phase19-patch.log
