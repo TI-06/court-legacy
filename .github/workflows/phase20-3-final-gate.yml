@@ -25,22 +25,10 @@ jobs:
       - name: Apply lint-only codec cleanup
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('src/persistence/gameStateCodec.ts')
-          text = path.read_text(encoding='utf-8')
-          old = '''    const { incomingOfferHistory: _legacyHistory, ...practiceMatch } =
-      state.practiceMatch;
-'''
-          new = '''    const practiceMatch = { ...state.practiceMatch };
-    delete practiceMatch.incomingOfferHistory;
-'''
-          if old not in text:
-              raise SystemExit('expected codec cleanup block not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
-          PY
+          python -c "from pathlib import Path; p=Path('src/persistence/gameStateCodec.ts'); t=p.read_text(encoding='utf-8'); old='    const { incomingOfferHistory: _legacyHistory, ...practiceMatch } =\\n      state.practiceMatch;\\n'; new='    const practiceMatch = { ...state.practiceMatch };\\n    delete practiceMatch.incomingOfferHistory;\\n'; assert old in t, 'expected codec cleanup block not found'; p.write_text(t.replace(old, new, 1), encoding='utf-8')"
           npx prettier --write src/persistence/gameStateCodec.ts
       - name: Run final gate without emitting a failed workflow
+        id: gate
         shell: bash
         run: |
           set +e
@@ -54,13 +42,14 @@ jobs:
           echo "PHASE20_VERIFY_EXIT=$verify_code"
           echo "PHASE20_RELEASE_EXIT=$release_code"
           echo "PHASE20_SOAK_EXIT=$soak_code"
-          if [ "$verify_code" -ne 0 ] || [ "$release_code" -ne 0 ] || [ "$soak_code" -ne 0 ]; then
+          if [ "$verify_code" -eq 0 ] && [ "$release_code" -eq 0 ] && [ "$soak_code" -eq 0 ]; then
+            echo "green=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "green=false" >> "$GITHUB_OUTPUT"
             echo "Final gate needs correction; no cleanup commit will be created."
-            exit 0
           fi
-          touch /tmp/phase20-final-green
       - name: Commit verified lint fix and remove temporary final-gate workflow
-        if: ${{ hashFiles('/tmp/phase20-final-green') != '' }}
+        if: steps.gate.outputs.green == 'true'
         run: |
           git config user.name "court-legacy-bot"
           git config user.email "court-legacy-bot@users.noreply.github.com"
