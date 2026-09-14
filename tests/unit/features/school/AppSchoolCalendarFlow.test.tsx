@@ -9,17 +9,19 @@ describe("school and calendar app integration", () => {
     expect(
       screen.getByRole("heading", { name: "青葉高校" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("資金 700")).toBeInTheDocument();
+    expect(screen.getByText("資金 750")).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
     );
     const dialog = screen.getByRole("dialog", { name: "設備を強化" });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "70を使って強化" }),
+      within(dialog).getByRole("button", {
+        name: "+1 Lv・70を使って強化",
+      }),
     );
 
-    expect(await screen.findByText("資金 630")).toBeInTheDocument();
+    expect(await screen.findByText("資金 680")).toBeInTheDocument();
     const trainingFacilityTile = screen.getByRole("button", {
       name: "トレーニング設備の詳細",
     });

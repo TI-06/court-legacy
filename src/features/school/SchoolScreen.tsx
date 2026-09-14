@@ -11,8 +11,10 @@ import {
 } from "../../domain/school/assistantCoach";
 import {
   FACILITY_DEFINITIONS,
+  FACILITY_UPGRADE_LEVEL_OPTIONS,
   evaluateFacilityUpgrade,
   type FacilityKey,
+  type FacilityUpgradeLevels,
 } from "../../domain/school/facilityUpgrade";
 import { reputationGrade } from "../../domain/school/reputation";
 import { rivalryKey } from "../../domain/world/rivalWorldProgression";
@@ -27,7 +29,10 @@ import "./school-screen.css";
 
 interface SchoolScreenProps {
   state: GameState;
-  onUpgradeFacility: (key: FacilityKey) => void | Promise<unknown>;
+  onUpgradeFacility: (
+    key: FacilityKey,
+    levels: FacilityUpgradeLevels,
+  ) => void | Promise<unknown>;
   onContractAssistantCoach?: (
     rank: AssistantCoachRank,
     specialty: AssistantCoachSpecialty | null,
@@ -91,6 +96,8 @@ export function SchoolScreen({
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
+  const [selectedUpgradeLevels, setSelectedUpgradeLevels] =
+    useState<FacilityUpgradeLevels>(1);
   const [facilityUpgradePending, setFacilityUpgradePending] = useState(false);
   const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
   const [coachSpecialties, setCoachSpecialties] = useState<
@@ -142,7 +149,12 @@ export function SchoolScreen({
       )
     : null;
   const selectedEvaluation = selectedFacility
-    ? evaluateFacilityUpgrade(state, school.id, selectedFacility)
+    ? evaluateFacilityUpgrade(
+        state,
+        school.id,
+        selectedFacility,
+        selectedUpgradeLevels,
+      )
     : null;
   const fundsHistory = [...state.schoolManagement.fundsHistory].reverse();
   const assistantCoachContract = state.schoolManagement.assistantCoach;
@@ -163,7 +175,7 @@ export function SchoolScreen({
     }
     setFacilityUpgradePending(true);
     try {
-      await onUpgradeFacility(selectedFacility);
+      await onUpgradeFacility(selectedFacility, selectedUpgradeLevels);
     } finally {
       setFacilityUpgradePending(false);
     }
@@ -250,7 +262,10 @@ export function SchoolScreen({
                   className="facility-tile"
                   data-testid="facility-tile"
                   key={definition.key}
-                  onClick={() => setSelectedFacility(definition.key)}
+                  onClick={() => {
+                    setSelectedFacility(definition.key);
+                    setSelectedUpgradeLevels(1);
+                  }}
                   type="button"
                 >
                   <span className="facility-tile__top">
@@ -377,7 +392,11 @@ export function SchoolScreen({
                         ? `あと${missingFunds}必要`
                         : evaluation.reason === "specialty-required"
                           ? "専門を選択してください"
-                          : `契約後 ${evaluation.fundsAfter}`}
+                          : evaluation.reason === "already-contracted-this-year"
+                            ? "今年度は契約済み"
+                            : evaluation.reason === "specialty-not-allowed"
+                              ? "専門指定なしで契約してください"
+                              : `契約後 ${evaluation.fundsAfter}`}
                     </small>
                     <button
                       aria-label={`${option.name}と年間契約`}
@@ -548,7 +567,7 @@ export function SchoolScreen({
       </BottomSheet>
 
       <BottomSheet
-        description="資金を使用して設備レベルを1上げます。連続して強化できます。"
+        description="資金があれば1・5・10レベル単位でまとめて強化できます。費用は各レベル分の合計です。"
         onClose={() => setSelectedFacility(null)}
         open={Boolean(selectedDefinition && selectedEvaluation)}
         title="設備を強化"
@@ -559,6 +578,45 @@ export function SchoolScreen({
             <p className="facility-confirmation__description">
               {selectedDefinition.description}
             </p>
+            <div
+              aria-label="強化レベルを選択"
+              className="facility-upgrade-options"
+              role="group"
+            >
+              {FACILITY_UPGRADE_LEVEL_OPTIONS.map((levels) => {
+                const optionEvaluation = evaluateFacilityUpgrade(
+                  state,
+                  school.id,
+                  selectedDefinition.key,
+                  levels,
+                );
+                return (
+                  <button
+                    aria-pressed={selectedUpgradeLevels === levels}
+                    className={
+                      selectedUpgradeLevels === levels
+                        ? "facility-upgrade-option facility-upgrade-option--selected"
+                        : "facility-upgrade-option"
+                    }
+                    disabled={
+                      !optionEvaluation.allowed || facilityUpgradePending
+                    }
+                    key={levels}
+                    onClick={() => setSelectedUpgradeLevels(levels)}
+                    type="button"
+                  >
+                    <strong>+{levels} Lv</strong>
+                    <small>
+                      {optionEvaluation.reason === "max-level"
+                        ? "上限超過"
+                        : optionEvaluation.reason === "insufficient-funds"
+                          ? `${optionEvaluation.cost}・資金不足`
+                          : `${optionEvaluation.cost}`}
+                    </small>
+                  </button>
+                );
+              })}
+            </div>
             <p className="facility-confirmation__level">
               Lv.{selectedEvaluation.currentLevel} → Lv.
               {selectedEvaluation.nextLevel}
@@ -589,7 +647,7 @@ export function SchoolScreen({
             >
               {facilityUpgradePending
                 ? "強化中…"
-                : `${selectedEvaluation.cost}を使って強化`}
+                : `+${selectedUpgradeLevels} Lv・${selectedEvaluation.cost}を使って強化`}
             </button>
           </div>
         ) : null}

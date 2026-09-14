@@ -1146,10 +1146,12 @@ function applyFacilityUpgrade(
   teamSelection: TeamSelection,
   action: Extract<GameAction, { type: "facility-upgrade" }>,
 ): AppliedGameAction {
+  const levels = action.levels ?? 1;
   const evaluation = evaluateFacilityUpgrade(
     state,
     state.userSchoolId,
     action.facility,
+    levels,
   );
   if (!evaluation.allowed) {
     return conflict(
@@ -1159,7 +1161,7 @@ function applyFacilityUpgrade(
   }
 
   return {
-    state: upgradeFacility(state, state.userSchoolId, action.facility),
+    state: upgradeFacility(state, state.userSchoolId, action.facility, levels),
     teamSelection,
     outcome: evaluation,
   };
@@ -1186,6 +1188,9 @@ function applyAssistantCoachContract(
         break;
       case "specialty-not-allowed":
         message = "初級コーチに専門分野は設定できません";
+        break;
+      case "already-contracted-this-year":
+        message = "今年度のコーチ契約は完了しています";
         break;
       case "available":
         break;

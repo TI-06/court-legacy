@@ -132,7 +132,7 @@ describe("generateWorld", () => {
     expect(world.randomCursor).toBeGreaterThan(0);
 
     const school = world.schools[world.userSchoolId]!;
-    expect(school.funds).toBe(700);
+    expect(school.funds).toBe(750);
     expect(world.schoolManagement.lastAnnualBudgetYearIndex).toBe(1);
     expect(world.schoolManagement.fundsHistory).toEqual([
       expect.objectContaining({
@@ -142,8 +142,8 @@ describe("generateWorld", () => {
       }),
       expect.objectContaining({
         kind: "annual-budget",
-        amount: 400,
-        balanceAfter: 700,
+        amount: 450,
+        balanceAfter: 750,
       }),
     ]);
   });

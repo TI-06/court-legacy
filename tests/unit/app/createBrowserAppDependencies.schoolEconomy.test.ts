@@ -12,7 +12,7 @@ describe("browser shop school economy harness", () => {
     if (initial.status !== "ready") return;
     expect(
       initial.game.state.schools[initial.game.state.userSchoolId]!.funds,
-    ).toBe(700);
+    ).toBe(750);
 
     const status = await api.getShop!("e2e-access-token");
     const request = {
@@ -28,21 +28,21 @@ describe("browser shop school economy harness", () => {
       quantityOwned: 0,
       purchasedCount: 1,
       usedCount: 0,
-      result: { fundsGranted: 300, balanceAfter: 1000 },
+      result: { fundsGranted: 300, balanceAfter: 1050 },
     });
 
     const after = await api.bootstrap("e2e-access-token");
     expect(after.status).toBe("ready");
     if (after.status !== "ready") return;
     expect(after.game.state.schools[after.game.state.userSchoolId]!.funds).toBe(
-      1000,
+      1050,
     );
     expect(after.game.state.schoolManagement.fundsHistory.at(-1)).toMatchObject(
       {
         id: "shop-grant:school-economy-grant-001",
         kind: "shop-grant",
         amount: 300,
-        balanceAfter: 1000,
+        balanceAfter: 1050,
         relatedId: "funds-grant-300",
       },
     );

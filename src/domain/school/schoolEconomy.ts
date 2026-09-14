@@ -10,12 +10,12 @@ import type { GameDate } from "../model/identifiers";
 export const MAX_FUNDS_HISTORY = 50;
 
 const ANNUAL_BUDGETS: Record<SchoolReputation, number> = {
-  unknown: 400,
-  "district-contender": 500,
-  "prefectural-power": 650,
-  "national-qualifier": 850,
-  "national-regular": 1100,
-  elite: 1400,
+  unknown: 450,
+  "district-contender": 560,
+  "prefectural-power": 730,
+  "national-qualifier": 950,
+  "national-regular": 1230,
+  elite: 1570,
 };
 
 export interface SchoolFundsChangeInput {

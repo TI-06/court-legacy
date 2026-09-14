@@ -4,6 +4,7 @@ import type { SchoolId } from "../model/identifiers";
 import { applySchoolFundsChange } from "./schoolEconomy";
 
 export type FacilityKey = keyof SchoolFacilities;
+export type FacilityUpgradeLevels = 1 | 5 | 10;
 
 export interface FacilityDefinition {
   key: FacilityKey;
@@ -25,6 +26,9 @@ export interface FacilityUpgradeEvaluation {
 }
 
 export const FACILITY_MAX_LEVEL = 50;
+export const FACILITY_UPGRADE_LEVEL_OPTIONS = [
+  1, 5, 10,
+] as const satisfies readonly FacilityUpgradeLevels[];
 
 export const FACILITY_DEFINITIONS: readonly FacilityDefinition[] = [
   {
@@ -89,6 +93,12 @@ function getDefinition(key: FacilityKey): FacilityDefinition {
   return definition;
 }
 
+function isFacilityUpgradeLevels(
+  value: number,
+): value is FacilityUpgradeLevels {
+  return FACILITY_UPGRADE_LEVEL_OPTIONS.some((option) => option === value);
+}
+
 export function calculateFacilityUpgradeCost(
   key: FacilityKey,
   currentLevel: number,
@@ -97,20 +107,51 @@ export function calculateFacilityUpgradeCost(
   if (
     !Number.isInteger(currentLevel) ||
     currentLevel < 0 ||
-    currentLevel >= FACILITY_MAX_LEVEL
+    currentLevel > FACILITY_MAX_LEVEL
   ) {
-    if (currentLevel === FACILITY_MAX_LEVEL) {
-      return Math.round(definition.baseCost * (1 + currentLevel * 0.06));
-    }
     throw new Error(`invalid facility level: ${currentLevel}`);
   }
-  return Math.round(definition.baseCost * (1 + currentLevel * 0.06));
+
+  const multiplier =
+    currentLevel < 20
+      ? 1 + currentLevel * 0.045
+      : currentLevel < 40
+        ? 1 + 20 * 0.045 + (currentLevel - 20) * 0.06
+        : 1 + 20 * 0.045 + 20 * 0.06 + (currentLevel - 40) * 0.09;
+  return Math.round(definition.baseCost * multiplier);
+}
+
+export function calculateFacilityUpgradeTotalCost(
+  key: FacilityKey,
+  currentLevel: number,
+  levels: FacilityUpgradeLevels,
+): number {
+  if (!isFacilityUpgradeLevels(levels)) {
+    throw new Error(`invalid facility upgrade levels: ${levels}`);
+  }
+  if (
+    !Number.isInteger(currentLevel) ||
+    currentLevel < 0 ||
+    currentLevel >= FACILITY_MAX_LEVEL ||
+    currentLevel + levels > FACILITY_MAX_LEVEL
+  ) {
+    throw new Error(
+      `invalid facility upgrade range: ${currentLevel} + ${levels}`,
+    );
+  }
+
+  let total = 0;
+  for (let offset = 0; offset < levels; offset += 1) {
+    total += calculateFacilityUpgradeCost(key, currentLevel + offset);
+  }
+  return total;
 }
 
 export function evaluateFacilityUpgrade(
   state: GameState,
   schoolId: SchoolId,
   key: FacilityKey,
+  levels: FacilityUpgradeLevels = 1,
 ): FacilityUpgradeEvaluation {
   getDefinition(key);
   const school = state.schools[schoolId];
@@ -122,7 +163,8 @@ export function evaluateFacilityUpgrade(
   if (
     !Number.isInteger(currentLevel) ||
     currentLevel < 0 ||
-    currentLevel > FACILITY_MAX_LEVEL
+    currentLevel > FACILITY_MAX_LEVEL ||
+    !isFacilityUpgradeLevels(levels)
   ) {
     return {
       allowed: false,
@@ -134,18 +176,19 @@ export function evaluateFacilityUpgrade(
     };
   }
 
-  if (currentLevel === FACILITY_MAX_LEVEL) {
+  const nextLevel = currentLevel + levels;
+  if (currentLevel === FACILITY_MAX_LEVEL || nextLevel > FACILITY_MAX_LEVEL) {
     return {
       allowed: false,
       reason: "max-level",
       currentLevel,
-      nextLevel: FACILITY_MAX_LEVEL,
-      cost: calculateFacilityUpgradeCost(key, currentLevel),
+      nextLevel: Math.min(nextLevel, FACILITY_MAX_LEVEL),
+      cost: 0,
       fundsAfter: school.funds,
     };
   }
 
-  const cost = calculateFacilityUpgradeCost(key, currentLevel);
+  const cost = calculateFacilityUpgradeTotalCost(key, currentLevel, levels);
   const fundsAfter = school.funds - cost;
   const allowed = fundsAfter >= 0;
 
@@ -153,7 +196,7 @@ export function evaluateFacilityUpgrade(
     allowed,
     reason: allowed ? "available" : "insufficient-funds",
     currentLevel,
-    nextLevel: currentLevel + 1,
+    nextLevel,
     cost,
     fundsAfter,
   };
@@ -163,17 +206,18 @@ export function upgradeFacility(
   state: GameState,
   schoolId: SchoolId,
   key: FacilityKey,
+  levels: FacilityUpgradeLevels = 1,
 ): GameState {
-  const evaluation = evaluateFacilityUpgrade(state, schoolId, key);
+  const evaluation = evaluateFacilityUpgrade(state, schoolId, key, levels);
   if (!evaluation.allowed) {
     return state;
   }
 
   const funded = applySchoolFundsChange(state, {
-    id: `facility:${schoolId}:${key}:lv-${evaluation.nextLevel}`,
+    id: `facility:${schoolId}:${key}:lv-${evaluation.currentLevel}-to-${evaluation.nextLevel}`,
     kind: "facility-upgrade",
     amount: -evaluation.cost,
-    label: `${getDefinition(key).name} Lv.${evaluation.nextLevel}強化`,
+    label: `${getDefinition(key).name} Lv.${evaluation.currentLevel}→${evaluation.nextLevel}強化`,
     relatedId: key,
   }).state;
   const school = funded.schools[schoolId]!;

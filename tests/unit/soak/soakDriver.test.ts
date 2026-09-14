@@ -40,6 +40,7 @@ describe("Phase18 soak production action driver", () => {
     const { createSoakSnapshot, applySoakManagementPolicy } =
       await loadSubject();
     const before = createSoakSnapshot("phase18-management-seed");
+    before.state.schools[before.state.userSchoolId]!.funds = 1000;
     const schoolBefore = before.state.schools[before.state.userSchoolId]!;
     const gymBefore = schoolBefore.facilities.gym;
 
@@ -49,7 +50,7 @@ describe("Phase18 soak production action driver", () => {
 
     expect(first.actionCount).toBe(2);
     expect(firstState.schoolManagement.assistantCoach).toEqual({
-      rank: "intermediate",
+      rank: "advanced",
       specialty: "attack",
       contractYearIndex: before.state.yearIndex,
     });

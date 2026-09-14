@@ -8,12 +8,12 @@ import {
 
 describe("school economy", () => {
   it("maps reputation to the approved annual budgets", () => {
-    expect(annualSchoolBudget("unknown")).toBe(400);
-    expect(annualSchoolBudget("district-contender")).toBe(500);
-    expect(annualSchoolBudget("prefectural-power")).toBe(650);
-    expect(annualSchoolBudget("national-qualifier")).toBe(850);
-    expect(annualSchoolBudget("national-regular")).toBe(1100);
-    expect(annualSchoolBudget("elite")).toBe(1400);
+    expect(annualSchoolBudget("unknown")).toBe(450);
+    expect(annualSchoolBudget("district-contender")).toBe(560);
+    expect(annualSchoolBudget("prefectural-power")).toBe(730);
+    expect(annualSchoolBudget("national-qualifier")).toBe(950);
+    expect(annualSchoolBudget("national-regular")).toBe(1230);
+    expect(annualSchoolBudget("elite")).toBe(1570);
   });
 
   it("calculates the deterministic alumni budget contribution", () => {

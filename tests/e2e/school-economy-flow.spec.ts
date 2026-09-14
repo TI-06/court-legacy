@@ -27,7 +27,7 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
     .getByRole("button", { name: "資金 +300を受け取る", exact: true })
     .click();
 
-  await expect(page.getByText("資金 +300 / 残高 1,000")).toBeVisible({
+  await expect(page.getByText("資金 +300 / 残高 1,050")).toBeVisible({
     timeout: 2_500,
   });
   await expect(grant).toContainText("年度残り 2 / 3");
@@ -42,7 +42,7 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
 
   const fundsButton = page.getByRole("button", {
-    name: "資金 1000・履歴を表示",
+    name: "資金 1050・履歴を表示",
     exact: true,
   });
   await expect(fundsButton).toBeVisible();
@@ -53,5 +53,5 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   const latestEntry = ledger.locator("article.funds-ledger__entry").first();
   await expect(latestEntry).toContainText("資金 +300");
   await expect(latestEntry).toContainText("+300");
-  await expect(latestEntry).toContainText("残高 1,000");
+  await expect(latestEntry).toContainText("残高 1,050");
 });
