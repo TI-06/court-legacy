@@ -4,13 +4,9 @@ import {
   progressWeeklyDynamics,
 } from "../dynamics/progressWeeklyDynamics";
 import type { GameState } from "../model/GameState";
-import {
-  ABILITY_KEYS,
-  clampAbility,
-  type Player,
-  type PlayerInjury,
-} from "../model/Player";
+import { ABILITY_KEYS, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
+import { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
 import type {
@@ -124,37 +120,7 @@ function trustChange(base: number, personality: PersonalityDefinition) {
   return Math.round(base * ((100 + personality.relationshipGrowth) / 100));
 }
 
-function abilityCeilingTierBonus(tier: Player["tier"]): number {
-  if (tier === "generational") return 4;
-  if (tier === "monster") return 3;
-  if (tier === "elite") return 2;
-  if (tier === "promising" || tier === "prospect") return 1;
-  return 0;
-}
-
-export function applyLongTermAbilityGrowth(
-  before: number,
-  amount: number,
-  potential: number | undefined,
-  tier: Player["tier"],
-): number {
-  const current = clampAbility(before);
-  if (amount <= 0) return current;
-
-  const safePotential = Math.max(0, Math.min(100, potential ?? 75));
-  const ceiling = clampAbility(
-    82 + safePotential * 0.14 + abilityCeilingTierBonus(tier),
-  );
-  if (current >= ceiling) return current;
-
-  const scale =
-    current >= 95 ? 0.15 : current >= 90 ? 0.3 : current >= 80 ? 0.6 : 1;
-  let adjustedGrowth = Math.max(1, Math.round(amount * scale));
-  if (ceiling - current <= 2) {
-    adjustedGrowth = Math.min(adjustedGrowth, 1);
-  }
-  return Math.min(ceiling, current + adjustedGrowth);
-}
+export { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
 
 function applyGrowth(
   player: Player,
