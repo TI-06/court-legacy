@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/phase19-4-safe-check.yml
       - scripts/phase19-4-task4.py
+      - scripts/phase19-4-task4-presentation.py
 
 permissions:
   contents: write
@@ -28,9 +29,14 @@ jobs:
           python scripts/phase19-4-task4.py
           patch_status=$?
           if [ "$patch_status" -eq 0 ]; then
+            python scripts/phase19-4-task4-presentation.py
+            patch_status=$?
+          fi
+          if [ "$patch_status" -eq 0 ]; then
             npx prettier --write \
               src/domain/model/Match.ts \
               src/domain/match/simulateMatch.ts \
+              src/features/match/matchPresentation.ts \
               tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
             format_status=$?
           else
@@ -55,7 +61,11 @@ jobs:
           if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
             git config user.name "court-legacy-bot"
             git config user.email "court-legacy-bot@users.noreply.github.com"
-            git add src/domain/model/Match.ts src/domain/match/simulateMatch.ts tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
+            git add \
+              src/domain/model/Match.ts \
+              src/domain/match/simulateMatch.ts \
+              src/features/match/matchPresentation.ts \
+              tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
             if ! git diff --cached --quiet; then
               git commit -m "feat: apply automatic cpu tactic changes"
               git push origin HEAD:feature/phase19-match-difficulty-strategic-identities
