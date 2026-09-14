@@ -179,10 +179,7 @@ export function PreMatchComparison({
         </span>
       </div>
 
-      <PreMatchRivalryContext
-        opponentSelection={awaySelection}
-        state={state}
-      />
+      <PreMatchRivalryContext opponentSelection={awaySelection} state={state} />
 
       <div className="match-power-versus" aria-label="総合戦力比較">
         <div>

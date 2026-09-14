@@ -19,7 +19,11 @@ function formatDate(value: string): string {
   return `${month}/${day}`;
 }
 
-function RivalryChips({ opponent }: { opponent: SchoolLegacyOpponentPresentation }) {
+function RivalryChips({
+  opponent,
+}: {
+  opponent: SchoolLegacyOpponentPresentation;
+}) {
   const visible = opponent.labels.slice(0, 3);
   if (visible.length === 0) return null;
   return (
@@ -70,7 +74,9 @@ export function SchoolLegacyPanel({
               </div>
               <div className="school-legacy__opponent-meta">
                 <RivalryChips opponent={opponent} />
-                {opponent.streakLabel ? <span>{opponent.streakLabel}</span> : null}
+                {opponent.streakLabel ? (
+                  <span>{opponent.streakLabel}</span>
+                ) : null}
                 {opponent.rivalryScore > 0 ? (
                   <small>因縁度 {opponent.rivalryScore}</small>
                 ) : null}

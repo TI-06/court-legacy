@@ -37,16 +37,13 @@ function addMatch(
 ): void {
   const userHome = input.userHome ?? true;
   const userSetsWon = input.userSetsWon ?? (input.userWon ? 2 : 1);
-  const opponentSetsWon =
-    input.opponentSetsWon ?? (input.userWon ? 1 : 2);
+  const opponentSetsWon = input.opponentSetsWon ?? (input.userWon ? 1 : 2);
   const summary: HistoricalMatchSummary = {
     matchId: matchId(input.id),
     date: input.date,
     homeSchoolId: userHome ? state.userSchoolId : input.opponentSchoolId,
     awaySchoolId: userHome ? input.opponentSchoolId : state.userSchoolId,
-    winnerSchoolId: input.userWon
-      ? state.userSchoolId
-      : input.opponentSchoolId,
+    winnerSchoolId: input.userWon ? state.userSchoolId : input.opponentSchoolId,
     homeSetsWon: userHome ? userSetsWon : opponentSetsWon,
     awaySetsWon: userHome ? opponentSetsWon : userSetsWon,
     tournamentId: input.official ? `official:${input.id}` : null,

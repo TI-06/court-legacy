@@ -28,6 +28,7 @@
 ### Task 1: Add the optional v8-compatible incoming-offer ledger
 
 **Files:**
+
 - Modify: `src/domain/weekly/weeklyScheduleTypes.ts`
 - Modify: `src/domain/weekly/createWeeklySchedule.ts`
 - Modify: `src/persistence/gameStateCodec.ts`
@@ -35,7 +36,9 @@
 - Modify: `tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts` if initial schedule shape assertions require it
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface IncomingPracticeOfferHistoryEntry {
   schoolId: SchoolId;
@@ -49,8 +52,9 @@ export interface WeeklyScheduleState {
 ```
 
 Codec normalized runtime contract:
+
 ```ts
-state.weeklySchedule.incomingPracticeOfferHistory // always an array after decode
+state.weeklySchedule.incomingPracticeOfferHistory; // always an array after decode
 ```
 
 - [ ] **Step 1: Write RED codec compatibility tests**
@@ -73,11 +77,13 @@ Assert the codec rejects more than 32 entries, invalid dates, and empty school i
 ```bash
 npx vitest run tests/unit/persistence/phase20PracticeOfferCodec.test.ts
 ```
+
 Expected: missing field currently fails strict weekly schedule parsing or does not normalize.
 
 - [ ] **Step 4: Implement types and Zod default**
 
 Add:
+
 ```ts
 const incomingPracticeOfferHistoryEntrySchema = z
   .object({
@@ -88,6 +94,7 @@ const incomingPracticeOfferHistoryEntrySchema = z
 ```
 
 In `weeklyScheduleSchema`:
+
 ```ts
 incomingPracticeOfferHistory: z
   .array(incomingPracticeOfferHistoryEntrySchema)
@@ -112,12 +119,15 @@ git commit -m "feat: add bounded incoming practice offer ledger"
 ### Task 2: Enforce the monthly incoming-offer cap in pure planning
 
 **Files:**
+
 - Modify: `src/domain/weekly/practiceMatchPlanning.ts`
 - Modify: `tests/unit/domain/weekly/practiceMatchPlanning.test.ts`
 
 **Interfaces:**
+
 - Extend `PracticePlanningSource` to expose optional ledger or pass a normalized readonly ledger into `buildPracticePlanningFromSource`.
 - Add pure helpers:
+
 ```ts
 export function practiceOfferMonthKey(date: GameDate): string;
 export function countIncomingOffersForMonth(
@@ -129,6 +139,7 @@ export function countIncomingOffersForMonth(
 - [ ] **Step 1: Write RED tests for month counting**
 
 Cover month boundaries:
+
 ```ts
 expect(countIncomingOffersForMonth(history, "2026-09-28" as GameDate)).toBe(2);
 expect(countIncomingOffersForMonth(history, "2026-10-05" as GameDate)).toBe(0);
@@ -137,6 +148,7 @@ expect(countIncomingOffersForMonth(history, "2026-10-05" as GameDate)).toBe(0);
 - [ ] **Step 2: Write RED planning test for the third offer**
 
 Use a reputation/seed fixture known to produce an incoming offer, seed two prior September ledger entries, and assert:
+
 ```ts
 expect(buildPracticePlanning(state).incomingOffer).toBeNull();
 ```
@@ -152,6 +164,7 @@ npx vitest run tests/unit/domain/weekly/practiceMatchPlanning.test.ts
 - [ ] **Step 4: Implement cap before opponent/chance work**
 
 At the start of incoming-offer construction, normalize:
+
 ```ts
 const offerHistory = state.weeklySchedule?.incomingPracticeOfferHistory ?? [];
 if (countIncomingOffersForMonth(offerHistory, state.date) >= 2) return null;
@@ -175,13 +188,16 @@ git commit -m "feat: cap incoming practice offers by month"
 ### Task 3: Record surfaced incoming offers exactly once
 
 **Files:**
+
 - Modify: `src/domain/weekly/createWeeklySchedule.ts`
 - Modify: `src/domain/calendar/academicYearProgression.ts`
 - Modify: `tests/unit/domain/weekly/phase12DefaultWeeklyPlan.test.ts`
 - Create: `tests/unit/domain/weekly/phase20PracticeOfferLedger.test.ts`
 
 **Interfaces:**
+
 - Add pure helper in `practiceMatchPlanning.ts` or a focused new `practiceOfferHistory.ts`:
+
 ```ts
 export const MAX_INCOMING_PRACTICE_OFFER_HISTORY = 32;
 
@@ -195,6 +211,7 @@ export function appendIncomingPracticeOfferHistory(
 - [ ] **Step 1: Write RED helper tests**
 
 Assert:
+
 - null offer appends nothing,
 - non-null appends `{ schoolId, surfacedDate }`,
 - 33rd append retains latest 32,
@@ -217,6 +234,7 @@ npx vitest run tests/unit/domain/weekly/phase20PracticeOfferLedger.test.ts tests
 - [ ] **Step 5: Implement initial and weekly authoritative append points**
 
 `createInitialWeeklySchedule()`:
+
 ```ts
 const incomingPracticeOfferHistory = appendIncomingPracticeOfferHistory(
   [],
@@ -226,6 +244,7 @@ const incomingPracticeOfferHistory = appendIncomingPracticeOfferHistory(
 ```
 
 `refreshPracticePlanning()` in `academicYearProgression.ts`:
+
 ```ts
 const planning = buildPracticePlanning(state);
 const incomingPracticeOfferHistory = appendIncomingPracticeOfferHistory(
@@ -251,11 +270,14 @@ git commit -m "feat: record surfaced incoming practice offers"
 ### Task 4: Add the eight-week repeat guard and stronger diversity ranking
 
 **Files:**
+
 - Modify: `src/domain/weekly/practiceMatchPlanning.ts`
 - Modify: `tests/unit/domain/weekly/practiceMatchPlanning.test.ts`
 
 **Interfaces:**
+
 - Add pure date helper:
+
 ```ts
 export function wasIncomingOfferRecentlySurfaced(
   history: readonly IncomingPracticeOfferHistoryEntry[],
@@ -264,6 +286,7 @@ export function wasIncomingOfferRecentlySurfaced(
   cooldownDays?: number,
 ): boolean;
 ```
+
 Default `cooldownDays = 56`.
 
 - [ ] **Step 1: Write RED cooldown boundary tests**
@@ -281,10 +304,11 @@ Fixture with only one valid opponent and recent same-school offer. Assert the gu
 - [ ] **Step 3: Write RED diversity-priority tests**
 
 Construct opponents with similar strength and verify the ranking prefers:
+
 1. not recently offered,
 2. not recently played,
 3. never/rarely played,
-before minor strength-target differences.
+   before minor strength-target differences.
 
 Do not assert private numeric coefficients; assert selected ordering/result.
 
@@ -299,6 +323,7 @@ npx vitest run tests/unit/domain/weekly/practiceMatchPlanning.test.ts
 Build a hard-guard pool by filtering recent-offer schools. If that pool is empty, fall back to all opponents.
 
 Then sort/score by bounded components:
+
 - recent-offer penalty dominant,
 - recent completed-practice penalty stronger than current `0.035 * meetingCount`,
 - strength target remains a meaningful but secondary term,
@@ -320,11 +345,13 @@ git commit -m "feat: diversify incoming practice opponents"
 ### Task 5: Add bounded rival-aware offer weighting
 
 **Files:**
+
 - Modify: `src/domain/weekly/practiceMatchPlanning.ts`
 - Modify: `tests/unit/domain/weekly/practiceMatchPlanning.test.ts`
 - Read/Reuse: `src/domain/world/rivalWorldProgression.ts`
 
 **Interfaces:**
+
 - `PracticePlanningSource` must include the minimal `world.rivalryScores` / `destinyRivalSchoolId` data necessary to score eligible opponents.
 - Reuse `rivalryKey()`.
 
@@ -362,10 +389,12 @@ git commit -m "feat: make practice offers rivalry aware"
 ### Task 6: Prove outgoing requests remain uncapped and do not pollute the ledger
 
 **Files:**
+
 - Modify: existing scheduling tests for `src/domain/weekly/practiceMatchScheduling.ts`
 - Create if needed: `tests/unit/domain/weekly/practiceMatchScheduling.test.ts`
 
 **Interfaces:**
+
 - No production interface changes expected.
 
 - [ ] **Step 1: Add regression tests**
@@ -373,9 +402,12 @@ git commit -m "feat: make practice offers rivalry aware"
 Start from a state whose incoming ledger already has two offers for the current month. Assert `requestPracticeMatch(state, schoolId)` still evaluates the outgoing candidate normally.
 
 If accepted, assert:
+
 ```ts
 expect(result.state.weeklySchedule.practiceMatch.scheduledBy).toBe("outgoing");
-expect(result.state.weeklySchedule.incomingPracticeOfferHistory).toEqual(beforeLedger);
+expect(result.state.weeklySchedule.incomingPracticeOfferHistory).toEqual(
+  beforeLedger,
+);
 ```
 
 If declined or incoming offer is declined, assert ledger is also unchanged because surfacing was recorded earlier.
@@ -400,10 +432,12 @@ Do not change outgoing acceptance percentages unless a test exposes a Phase20 re
 ### Task 7: Add deterministic long-run cadence/diversity evidence
 
 **Files:**
+
 - Create: `tests/unit/domain/weekly/phase20PracticeOfferLongRun.test.ts`
 - Create: `docs/superpowers/reports/2026-09-14-phase20-pr20-3-practice-offer-results.md` after final numbers are measured
 
 **Interfaces:**
+
 - Test harness repeatedly advances calendar dates/planning and appends surfaced ledger entries through the same helper used by production.
 
 - [ ] **Step 1: Write a deterministic 24-month simulation test**
@@ -420,6 +454,7 @@ expect(repeatCooldownViolationsWithAlternatives).toBe(0);
 - [ ] **Step 2: Record diversity metrics without overfitting**
 
 Collect:
+
 - total surfaced offers,
 - unique opponent count,
 - maximum single-school share,
@@ -451,6 +486,7 @@ git commit -m "test: prove Phase20 practice offer cadence"
 ### Task 8: Final regression and PR gate
 
 **Files:**
+
 - Modify only for approved-scope verification fixes.
 
 - [ ] **Step 1: Run focused weekly/persistence tests**
@@ -459,6 +495,7 @@ git commit -m "test: prove Phase20 practice offer cadence"
 npx vitest run tests/unit/domain/weekly tests/unit/persistence/gameStateCodec.test.ts tests/unit/persistence/phase20PracticeOfferCodec.test.ts
 npm run typecheck
 ```
+
 Expected: GREEN.
 
 - [ ] **Step 2: Run full repository verification before opening PR**
@@ -468,11 +505,13 @@ npm run verify
 npm run release:check
 npm run soak:smoke
 ```
+
 Expected: GREEN.
 
 - [ ] **Step 3: Review boundaries**
 
 Confirm:
+
 - `CURRENT_GAME_SCHEMA_VERSION === 8`,
 - old v8 missing-ledger test is GREEN,
 - ledger <=32,
@@ -485,6 +524,7 @@ Confirm:
 - [ ] **Step 4: Open PR only after GREEN**
 
 PR title:
+
 ```text
 feat: improve practice offer cadence and variety
 ```

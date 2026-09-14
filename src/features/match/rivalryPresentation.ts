@@ -35,7 +35,11 @@ export function resolveLocalOpponentSchoolId(
   );
   if (schoolIds.size !== 1) return null;
   const [schoolId] = schoolIds;
-  if (!schoolId || schoolId === state.userSchoolId || !state.schools[schoolId]) {
+  if (
+    !schoolId ||
+    schoolId === state.userSchoolId ||
+    !state.schools[schoolId]
+  ) {
     return null;
   }
   return schoolId;
@@ -56,7 +60,8 @@ export function buildPreMatchRivalryPresentation(
     : null;
   const chips = summary.labels.slice(0, 3).map((label) => chipLabels[label]);
   const hasRivalIdentity = summary.labels.some(
-    (label) => label === "destiny-rival" || label === "rivalry" || label === "nemesis",
+    (label) =>
+      label === "destiny-rival" || label === "rivalry" || label === "nemesis",
   );
 
   return {
@@ -71,7 +76,10 @@ export function buildPreMatchRivalryPresentationFromSelection(
   state: GameState,
   opponentSelection: TeamSelection,
 ): PreMatchRivalryPresentation | null {
-  const opponentSchoolId = resolveLocalOpponentSchoolId(state, opponentSelection);
+  const opponentSchoolId = resolveLocalOpponentSchoolId(
+    state,
+    opponentSelection,
+  );
   return opponentSchoolId
     ? buildPreMatchRivalryPresentation(state, opponentSchoolId)
     : null;

@@ -150,9 +150,7 @@ function matchOpponentName(
   match: GameState["history"]["matches"][number],
 ): string {
   const userIsHome = match.homeSchoolId === state.userSchoolId;
-  const opponentSchoolId = userIsHome
-    ? match.awaySchoolId
-    : match.homeSchoolId;
+  const opponentSchoolId = userIsHome ? match.awaySchoolId : match.homeSchoolId;
   const persistedName = userIsHome
     ? match.awayDisplayName
     : match.homeDisplayName;

@@ -1,12 +1,5 @@
-import type {
-  GameState,
-  HistoricalMatchSummary,
-} from "../model/GameState";
-import type {
-  GameDate,
-  MatchId,
-  SchoolId,
-} from "../model/identifiers";
+import type { GameState, HistoricalMatchSummary } from "../model/GameState";
+import type { GameDate, MatchId, SchoolId } from "../model/identifiers";
 import { rivalryKey } from "./rivalWorldProgression";
 
 const RIVALRY_PRESENTATION_THRESHOLD = 40;
@@ -49,11 +42,7 @@ export interface HeadToHeadSummary {
 }
 
 export type NotableMatchReason =
-  | "official"
-  | "close"
-  | "rival"
-  | "destiny-rival"
-  | "rematch";
+  "official" | "close" | "rival" | "destiny-rival" | "rematch";
 
 export interface NotableUserMatch {
   match: HistoricalMatchSummary;
@@ -89,9 +78,7 @@ function toUserMeeting(
   const opponentSchoolId = userIsHome
     ? summary.awaySchoolId
     : summary.homeSchoolId;
-  const userSetsWon = userIsHome
-    ? summary.homeSetsWon
-    : summary.awaySetsWon;
+  const userSetsWon = userIsHome ? summary.homeSetsWon : summary.awaySetsWon;
   const opponentSetsWon = userIsHome
     ? summary.awaySetsWon
     : summary.homeSetsWon;
@@ -101,8 +88,7 @@ function toUserMeeting(
     summary,
     matchId: summary.matchId,
     date: summary.date,
-    result:
-      summary.winnerSchoolId === state.userSchoolId ? "win" : "loss",
+    result: summary.winnerSchoolId === state.userSchoolId ? "win" : "loss",
     userSetsWon,
     opponentSetsWon,
     official: summary.tournamentId !== null,
@@ -179,7 +165,9 @@ export function selectUserHeadToHead(
     (meeting) => meeting.opponentSchoolId === opponentSchoolId,
   );
   const wins = meetings.filter((meeting) => meeting.result === "win").length;
-  const officialMeetings = meetings.filter((meeting) => meeting.official).length;
+  const officialMeetings = meetings.filter(
+    (meeting) => meeting.official,
+  ).length;
   const streak = currentStreak(meetings);
   const last = meetings.at(-1) ?? null;
   const rivalryScore =
@@ -232,9 +220,7 @@ export function selectUserHeadToHeadTable(
   }
 
   return [...opponentIds]
-    .map((opponentSchoolId) =>
-      selectUserHeadToHead(state, opponentSchoolId),
-    )
+    .map((opponentSchoolId) => selectUserHeadToHead(state, opponentSchoolId))
     .sort(
       (left, right) =>
         Number(right.destinyRival) - Number(left.destinyRival) ||

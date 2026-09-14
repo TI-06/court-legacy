@@ -26,13 +26,16 @@
 ### Task 1: Build pure concern guidance selectors
 
 **Files:**
+
 - Create: `src/domain/dynamics/playerConcernGuidance.ts`
 - Create: `tests/unit/domain/dynamics/playerConcernGuidance.test.ts`
 - Read/Reuse: `src/domain/dynamics/derivePlayerDynamics.ts`
 - Read/Reuse: `src/domain/dynamics/teamDynamicsTypes.ts`
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface PlayerConcernGuidance {
   code: PlayerConcernCode;
@@ -73,6 +76,7 @@ Add another still-concerned fixture with non-zero recent usage and assert status
 - [ ] **Step 2: Write RED tests for the other three concern codes**
 
 Assert:
+
 - `role-mismatch`: names current role and instructs starter/ace usage.
 - `injury-overuse`: mentions active injury and recent official usage, instructs stopping official-match use while injured.
 - `team-slump`: reports the current three official losses and says an official win breaks the slump condition.
@@ -82,6 +86,7 @@ Assert:
 ```bash
 npx vitest run tests/unit/domain/dynamics/playerConcernGuidance.test.ts
 ```
+
 Expected: FAIL because selector does not exist.
 
 - [ ] **Step 4: Implement guidance without changing concern derivation**
@@ -107,11 +112,14 @@ git commit -m "feat: explain player concern resolution paths"
 ### Task 2: Derive resolved concern transitions
 
 **Files:**
+
 - Create: `src/domain/dynamics/concernResolution.ts`
 - Create: `tests/unit/domain/dynamics/concernResolution.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface ResolvedPlayerConcern {
   playerId: PlayerId;
@@ -159,13 +167,16 @@ git commit -m "feat: derive resolved player concerns"
 ### Task 3: Add a bounded concern-resolution notification type
 
 **Files:**
+
 - Modify: `src/domain/notifications/gameNotifications.ts`
 - Modify: `src/persistence/gameStateCodec.ts`
 - Modify: `tests/unit/persistence/gameStateCodec.test.ts`
 - Create or Modify: `tests/unit/domain/notifications/gameNotifications.test.ts`
 
 **Interfaces:**
+
 - Extend notifications:
+
 ```ts
 export interface ConcernResolutionNotificationItem {
   playerId: PlayerId;
@@ -185,11 +196,11 @@ export interface ConcernResolutionNotification {
 }
 
 export type GameNotification =
-  | TrainingResultNotification
-  | ConcernResolutionNotification;
+  TrainingResultNotification | ConcernResolutionNotification;
 ```
 
 - Add builder:
+
 ```ts
 export function buildConcernResolutionNotification(input: {
   state: GameState;
@@ -199,6 +210,7 @@ export function buildConcernResolutionNotification(input: {
 ```
 
 - Add selector:
+
 ```ts
 export function selectHomeConcernResolutionNotifications(
   state: GameNotificationState,
@@ -208,14 +220,17 @@ export function selectHomeConcernResolutionNotifications(
 - [ ] **Step 1: Write RED notification tests**
 
 Assert deterministic id:
+
 ```ts
 expect(notification.id).toBe(`concern-resolution:${matchId}`);
 ```
+
 Assert multiple resolved concerns from one official match are grouped into one payload and player display names are materialized.
 
 - [ ] **Step 2: Write RED retention tests**
 
 Start with a training notification, append a concern-resolution notification, then append newer notifications of each type. Assert:
+
 - only newest training result remains,
 - only newest concern-resolution remains,
 - neither type evicts the other,
@@ -228,9 +243,11 @@ The retained item count must never exceed 2.
 Extend the notification Zod union so old training-only v8 saves still decode and a v8 state with a concern-resolution item round-trips.
 
 Run:
+
 ```bash
 npx vitest run tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/persistence/gameStateCodec.test.ts
 ```
+
 Expected: FAIL on the new notification type before implementation.
 
 - [ ] **Step 4: Implement union, builder, per-type retention, selectors, and codec**
@@ -253,11 +270,13 @@ git commit -m "feat: add player concern resolution notifications"
 ### Task 4: Emit resolution notification at authoritative official-match feedback
 
 **Files:**
+
 - Modify: `src/domain/tournament/recordOfficialMatch.ts`
 - Modify: `tests/unit/domain/tournament/recordOfficialMatch.test.ts` if present; otherwise create `tests/unit/domain/tournament/phase20ConcernResolution.test.ts`
 - Regression: `tests/unit/domain/dynamics/officialMatchDynamics.test.ts`
 
 **Interfaces:**
+
 - Consumes: `selectResolvedPlayerConcerns`, `buildConcernResolutionNotification`, `appendNotification`.
 - No new worker action or public API.
 
@@ -308,6 +327,7 @@ git commit -m "feat: notify when player concerns resolve"
 ### Task 5: Replace ambiguous concern UI with actionable guidance
 
 **Files:**
+
 - Modify: `src/features/team/TeamDynamicsPanel.tsx`
 - Modify: `src/features/team/team-dynamics.css`
 - Create or Modify: `tests/unit/features/team/TeamDynamicsPanel.test.tsx`
@@ -315,8 +335,10 @@ git commit -m "feat: notify when player concerns resolve"
 - Modify: existing home-command-center test file under `tests/unit/features/home/`
 
 **Interfaces:**
+
 - `TeamDynamicsPanel` consumes `selectPlayerConcernGuidance(state, player.id)`.
 - `HomeCommandNews` gains:
+
 ```ts
 | {
     id: string;
@@ -329,6 +351,7 @@ git commit -m "feat: notify when player concerns resolve"
 - [ ] **Step 1: Write RED TeamDynamicsPanel tests**
 
 For each concern, assert the rendered card includes:
+
 - readable title,
 - reason,
 - resolution instruction,
@@ -341,6 +364,7 @@ Do not accept only the old `重要度 N/3` output as sufficient.
 - [ ] **Step 2: Write RED Home news tests**
 
 Given a concern-resolution notification, assert home news contains a compact item such as:
+
 - title `選手の不満が解消`
 - detail includes player name and resolved concern title.
 
@@ -351,6 +375,7 @@ Given both training and concern notifications, assert both news types can be sel
 ```bash
 npx vitest run tests/unit/features/team/TeamDynamicsPanel.test.tsx tests/unit/features/home/homeCommandCenter.test.ts
 ```
+
 Use the actual existing home-command-center test filename if it differs.
 
 - [ ] **Step 4: Implement actionable cards and home news**
@@ -380,6 +405,7 @@ git commit -m "feat: make player concerns actionable"
 ### Task 6: Final regression and PR gate
 
 **Files:**
+
 - Modify only for approved-scope verification fixes.
 
 - [ ] **Step 1: Run existing dynamics regressions**
@@ -387,6 +413,7 @@ git commit -m "feat: make player concerns actionable"
 ```bash
 npx vitest run tests/unit/domain/dynamics tests/unit/domain/notifications tests/unit/domain/tournament
 ```
+
 Expected: GREEN.
 
 - [ ] **Step 2: Run repository gates before opening PR**
@@ -395,11 +422,13 @@ Expected: GREEN.
 npm run verify
 npm run release:check
 ```
+
 Expected: GREEN.
 
 - [ ] **Step 3: Review boundaries**
 
 Confirm:
+
 - concern thresholds in `derivePlayerConcerns` were not retuned,
 - no weekly/background concern engine was added,
 - newest training notification behavior still passes,
@@ -410,6 +439,7 @@ Confirm:
 - [ ] **Step 4: Open PR only after GREEN**
 
 PR title:
+
 ```text
 feat: explain and resolve player concerns
 ```

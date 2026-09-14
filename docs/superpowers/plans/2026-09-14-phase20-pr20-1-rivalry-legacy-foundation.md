@@ -26,13 +26,16 @@
 ### Task 1: Define the head-to-head domain contract
 
 **Files:**
+
 - Create: `src/domain/world/rivalryHistory.ts`
 - Create: `tests/unit/domain/world/rivalryHistory.test.ts`
 - Read/Reuse: `src/domain/world/rivalWorldProgression.ts`
 - Read/Reuse: `src/domain/model/GameState.ts`
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export type UserMatchResult = "win" | "loss";
 export type RivalryLabel =
@@ -99,9 +102,11 @@ Also assert `selectUserHeadToHeadTable()` ignores schools that have no meeting a
 - [ ] **Step 2: Run RED**
 
 Run:
+
 ```bash
 npx vitest run tests/unit/domain/world/rivalryHistory.test.ts
 ```
+
 Expected: FAIL because `rivalryHistory.ts` does not exist.
 
 - [ ] **Step 3: Implement meeting normalization and aggregation**
@@ -113,9 +118,11 @@ Use existing `rivalryKey()` to read rivalry score; do not duplicate the key form
 - [ ] **Step 4: Run focused domain tests**
 
 Run:
+
 ```bash
 npx vitest run tests/unit/domain/world/rivalryHistory.test.ts tests/unit/domain/world/rivalWorldProgression.test.ts
 ```
+
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -130,11 +137,14 @@ git commit -m "feat: derive head to head rivalry history"
 ### Task 2: Add objective rivalry labels and notable-match selection
 
 **Files:**
+
 - Modify: `src/domain/world/rivalryHistory.ts`
 - Modify: `tests/unit/domain/world/rivalryHistory.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface NotableUserMatch {
   match: HistoricalMatchSummary;
@@ -162,6 +172,7 @@ expect(streak.labels).toContain("losing-streak");
 ```
 
 Boundary tests:
+
 - rivalry score 39 is not `rivalry`, score 40 is.
 - 3 meetings cannot become `nemesis`.
 - 4 meetings with 1 win / 3 losses plus current losing streak >=2 can become `nemesis`.
@@ -176,6 +187,7 @@ Create old historical matches where current opponent strength is later mutated a
 ```bash
 npx vitest run tests/unit/domain/world/rivalryHistory.test.ts
 ```
+
 Expected: only new label/notable assertions fail.
 
 - [ ] **Step 4: Implement labels and notable scoring**
@@ -205,6 +217,7 @@ git commit -m "feat: classify rivalry context and notable matches"
 ### Task 3: Present legacy history inside the existing School records tab
 
 **Files:**
+
 - Create: `src/features/school/SchoolLegacyPanel.tsx`
 - Modify: `src/features/school/SchoolScreen.tsx`
 - Modify: `src/features/school/school-screen.css`
@@ -212,8 +225,10 @@ git commit -m "feat: classify rivalry context and notable matches"
 - Modify: `tests/unit/features/school/SchoolSeasonHistory.test.tsx` only if an existing assertion must include the new panel
 
 **Interfaces:**
+
 - Consumes: `selectUserHeadToHeadTable`, `selectNotableUserMatches`.
 - Produces:
+
 ```ts
 interface SchoolLegacyPanelProps {
   state: GameState;
@@ -224,6 +239,7 @@ export function SchoolLegacyPanel(props: SchoolLegacyPanelProps): JSX.Element;
 - [ ] **Step 1: Write RED UI tests**
 
 Render a state with a destiny rival and multiple historical opponents. Assert the panel shows:
+
 - `対戦史`
 - opponent name
 - `通算 2勝3敗`-style lifetime record
@@ -239,6 +255,7 @@ Also assert the existing `記録` tab remains the navigation surface; do not add
 ```bash
 npx vitest run tests/unit/features/school/SchoolLegacyPanel.test.tsx tests/unit/features/school/SchoolSeasonHistory.test.tsx
 ```
+
 Expected: FAIL because panel does not exist.
 
 - [ ] **Step 3: Implement compact mobile-first panel**
@@ -265,13 +282,16 @@ git commit -m "feat: show rivalry history in school records"
 ### Task 4: Carry PVE opponent school identity into pre-match preparation
 
 **Files:**
+
 - Modify: `src/features/match/preMatchPreparation.ts`
 - Modify: `src/app/GameApp.tsx`
 - Create: `tests/unit/features/match/preMatchPreparation.test.ts`
 - Modify: `tests/unit/features/match/AppMatchFlow.test.tsx` only if needed for the prop boundary
 
 **Interfaces:**
+
 - Modify `WeekPreMatchPreparation`:
+
 ```ts
 export interface WeekPreMatchPreparation {
   kind: "official" | "practice";
@@ -282,12 +302,14 @@ export interface WeekPreMatchPreparation {
   opponentTactics?: PublicTacticSummary;
 }
 ```
+
 - Add optional `opponentSchoolId` only to `PreMatchContext` branch `{ kind: "week"; ... }`.
 - Do not add it to `{ kind: "pvp"; ... }`.
 
 - [ ] **Step 1: Write RED tests for official/practice/guest identity**
 
 Assert:
+
 ```ts
 expect(practice?.opponentSchoolId).toBe(scheduledSchoolId);
 expect(worldOfficial?.opponentSchoolId).toBe(worldSchoolId);
@@ -318,6 +340,7 @@ git commit -m "feat: carry pve opponent identity to pre match"
 ### Task 5: Show compact rivalry context on the PVE pre-match screen
 
 **Files:**
+
 - Create: `src/features/match/rivalryPresentation.ts`
 - Modify: `src/features/match/PreMatchLineupScreen.tsx`
 - Modify: `src/features/match/pre-match-lineup.css`
@@ -325,7 +348,9 @@ git commit -m "feat: carry pve opponent identity to pre match"
 - Modify: `tests/unit/features/match/PreMatchLineupScreen.test.tsx`
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface PreMatchRivalryPresentation {
   headline: string;
@@ -339,12 +364,14 @@ export function buildPreMatchRivalryPresentation(
   opponentSchoolId: SchoolId,
 ): PreMatchRivalryPresentation | null;
 ```
+
 - Modify `PreMatchLineupScreenProps` with optional `opponentSchoolId?: SchoolId`.
 - `mode === "pvp"` must never call/show this selector.
 
 - [ ] **Step 1: Write RED presentation tests**
 
 Assert first-time neutral opponent returns `null`. Assert repeated opponent can produce:
+
 - `通算 2勝3敗`
 - previous loss text
 - `雪辱戦`
@@ -377,6 +404,7 @@ npx vitest run \
   tests/unit/features/match/PreMatchLineupScreen.test.tsx
 npm run typecheck
 ```
+
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -391,6 +419,7 @@ git commit -m "feat: show pve rivalry context before matches"
 ### Task 6: Final regression and PR gate
 
 **Files:**
+
 - Modify only if verification reveals an approved-scope regression.
 
 - [ ] **Step 1: Format-check changed files**
@@ -418,11 +447,13 @@ npx prettier --check \
 npm run verify
 npm run release:check
 ```
+
 Expected: GREEN.
 
 - [ ] **Step 3: Review diff specifically for boundary violations**
 
 Confirm:
+
 - `CURRENT_GAME_SCHEMA_VERSION` remains 8.
 - no PvP contract file changed.
 - no player ability, match simulation, or rivalry-score mutation formula changed.
@@ -431,6 +462,7 @@ Confirm:
 - [ ] **Step 4: Open PR only after local/focused GREEN**
 
 PR title:
+
 ```text
 feat: add Phase20 rivalry and legacy history
 ```

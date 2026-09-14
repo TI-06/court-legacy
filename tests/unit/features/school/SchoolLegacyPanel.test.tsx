@@ -62,6 +62,8 @@ describe("SchoolLegacyPanel", () => {
 
     expect(screen.getAllByRole("tab")).toHaveLength(5);
     expect(screen.getByRole("tab", { name: "記録" })).toBeVisible();
-    expect(screen.queryByRole("tab", { name: "対戦史" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "対戦史" }),
+    ).not.toBeInTheDocument();
   });
 });
