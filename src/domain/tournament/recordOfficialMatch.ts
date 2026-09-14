@@ -1,6 +1,11 @@
 import type { GameState, HistoricalMatchSummary } from "../model/GameState";
+import { selectResolvedPlayerConcerns } from "../dynamics/concernResolution";
 import { applyOfficialMatchDynamicsFeedback } from "../dynamics/officialMatchDynamics";
 import type { MatchState } from "../model/Match";
+import {
+  appendNotification,
+  buildConcernResolutionNotification,
+} from "../notifications/gameNotifications";
 import { applySchoolFundsChange } from "../school/schoolEconomy";
 import { MAX_MATCH_HISTORY } from "../world/rivalWorldProgression";
 import { officialTournamentFundRewards } from "./officialTournamentRewards";
@@ -189,11 +194,29 @@ export function recordOfficialTournamentOutcome(
     won: userWon,
   });
 
+  const concernsBeforeDynamics = next.teamDynamics.playerConcerns;
   next = applyOfficialMatchDynamicsFeedback({
     state: next,
     match: input.match,
     won: userWon,
   });
+  const resolvedConcerns = selectResolvedPlayerConcerns(
+    concernsBeforeDynamics,
+    next.teamDynamics.playerConcerns,
+  );
+  if (resolvedConcerns.length > 0) {
+    next = {
+      ...next,
+      notifications: appendNotification(
+        next.notifications,
+        buildConcernResolutionNotification({
+          state: next,
+          matchId: input.match.id,
+          resolved: resolvedConcerns,
+        }),
+      ),
+    };
+  }
 
   const containsGuest =
     homeEntrant.source === "guest-representative" ||
