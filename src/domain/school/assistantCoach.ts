@@ -21,7 +21,8 @@ export type AssistantCoachContractReason =
   | "available"
   | "insufficient-funds"
   | "specialty-required"
-  | "specialty-not-allowed";
+  | "specialty-not-allowed"
+  | "already-contracted-this-year";
 
 export interface AssistantCoachContractEvaluation {
   allowed: boolean;
@@ -98,6 +99,17 @@ export function evaluateAssistantCoachContract(
   const option = assistantCoachOption(rank);
   const school = state.schools[state.userSchoolId];
   if (!school) throw new Error("user school is missing");
+
+  if (
+    state.schoolManagement.assistantCoach?.contractYearIndex === state.yearIndex
+  ) {
+    return {
+      allowed: false,
+      reason: "already-contracted-this-year",
+      cost: option.annualCost,
+      fundsAfter: school.funds,
+    };
+  }
 
   if (rank === "beginner" && specialty !== null) {
     return {
