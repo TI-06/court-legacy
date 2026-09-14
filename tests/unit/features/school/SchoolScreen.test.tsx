@@ -29,7 +29,7 @@ describe("school management screen", () => {
     expect(screen.queryByText("SCHOOL MANAGEMENT")).toBeNull();
     expect(screen.queryByText("FACILITIES")).toBeNull();
     expect(screen.getByText(/無名校/)).toBeVisible();
-    expect(screen.getByText("資金 700")).toBeVisible();
+    expect(screen.getByText("資金 750")).toBeVisible();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
@@ -39,12 +39,34 @@ describe("school management screen", () => {
     expect(dialog).toBeVisible();
     expect(within(dialog).getByText("Lv.0 → Lv.1")).toBeVisible();
     expect(within(dialog).getByText("強化後の資金")).toBeVisible();
-    expect(within(dialog).getByText("630")).toBeVisible();
+    expect(within(dialog).getByText("680")).toBeVisible();
 
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "70を使って強化" }),
+      within(dialog).getByRole("button", { name: "+1 Lv・70を使って強化" }),
     );
-    expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom");
+    expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 1);
+  });
+
+  it("lets the player choose +5 or +10 bulk facility upgrades", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 5000 };
+    const onUpgradeFacility = vi.fn();
+
+    render(
+      <SchoolScreen onUpgradeFacility={onUpgradeFacility} state={state} />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "トレーニング設備の詳細" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "設備を強化" });
+
+    fireEvent.click(within(dialog).getByRole("button", { name: /\+5 Lv/ }));
+    expect(within(dialog).getByText("Lv.0 → Lv.5")).toBeVisible();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "+5 Lv・381を使って強化" }),
+    );
+    expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 5);
   });
 
   it("opens the funds ledger and renders persisted history newest first", () => {

@@ -14,6 +14,10 @@ import type { GameState } from "../domain/model/GameState";
 import type { MatchCommand } from "../domain/model/Match";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation } from "../domain/model/School";
+import type {
+  AssistantCoachRank,
+  AssistantCoachSpecialty,
+} from "../domain/model/SchoolManagement";
 import type { TeamSelection } from "../domain/model/TeamSelection";
 import { selectNextOfficialEvent } from "../domain/tournament/tournamentSelectors";
 import type {
@@ -41,7 +45,10 @@ import {
   calculateSelectionStrength,
   selectPracticeOpponent,
 } from "../domain/selectors/matchSelectors";
-import type { FacilityKey } from "../domain/school/facilityUpgrade";
+import type {
+  FacilityKey,
+  FacilityUpgradeLevels,
+} from "../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type {
   MatchTacticPlan,
@@ -950,10 +957,23 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     void loadShop();
   };
 
-  const upgradeSchoolFacility = async (key: FacilityKey) => {
+  const upgradeSchoolFacility = async (
+    key: FacilityKey,
+    levels: FacilityUpgradeLevels,
+  ) => {
     await cloudSession.runAction(
-      { type: "facility-upgrade", facility: key },
-      "施設を更新しています…",
+      { type: "facility-upgrade", facility: key, levels },
+      `施設を${levels}レベル強化しています…`,
+    );
+  };
+
+  const contractAssistantCoachFromUi = async (
+    rank: AssistantCoachRank,
+    specialty: AssistantCoachSpecialty | null,
+  ) => {
+    await cloudSession.runAction(
+      { type: "assistant-coach-contract", rank, specialty },
+      "年間コーチ契約を保存しています…",
     );
   };
 
@@ -1179,6 +1199,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "school" ? (
       <SchoolScreen
+        onContractAssistantCoach={contractAssistantCoachFromUi}
         onOpenScouting={openScouting}
         onUpgradeFacility={upgradeSchoolFacility}
         state={gameState}

@@ -689,3 +689,40 @@
     font-size: 0.58rem;
   }
 }
+
+/* phase19-3 bulk facility upgrades */
+.facility-upgrade-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.facility-upgrade-option {
+  min-width: 0;
+  min-height: 52px;
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  padding: 8px 6px;
+}
+
+.facility-upgrade-option strong,
+.facility-upgrade-option small {
+  white-space: nowrap;
+}
+
+.facility-upgrade-option--selected {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+@media (max-width: 360px) {
+  .facility-upgrade-options {
+    gap: 6px;
+  }
+
+  .facility-upgrade-option {
+    font-size: 0.82rem;
+    padding-inline: 4px;
+  }
+}
