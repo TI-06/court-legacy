@@ -34,13 +34,15 @@ function withIncomingHistory(
   state: GameState,
   entries: readonly IncomingOfferHistoryEntry[],
 ): GameState {
-  const weeklySchedule = {
-    ...state.weeklySchedule,
-    incomingOfferHistory: entries.map((entry) => ({ ...entry })),
-  };
   return {
     ...state,
-    weeklySchedule,
+    weeklySchedule: {
+      ...state.weeklySchedule,
+      practiceMatch: {
+        ...state.weeklySchedule.practiceMatch,
+        incomingOfferHistory: entries.map((entry) => ({ ...entry })),
+      },
+    },
   } as GameState;
 }
 
@@ -73,7 +75,9 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       { schoolId: opponents[1]!, date: "2026-04-10" as GameDate },
     ]);
 
-    expect(practicePlanning.buildPracticePlanning(limited).incomingOffer).toBeNull();
+    expect(
+      practicePlanning.buildPracticePlanning(limited).incomingOffer,
+    ).toBeNull();
   });
 
   it("avoids a school already offered in the same month when alternatives exist", () => {
@@ -114,7 +118,9 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       { schoolId: opponents[1]!, date: "2026-04-17" as GameDate },
     ]);
 
-    expect(practicePlanning.buildPracticePlanning(afterRollover).incomingOffer).not.toBeNull();
+    expect(
+      practicePlanning.buildPracticePlanning(afterRollover).incomingOffer,
+    ).not.toBeNull();
   });
 
   it("remains deterministic for the same seed, date, and offer history", () => {
