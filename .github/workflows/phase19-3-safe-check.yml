@@ -6,12 +6,9 @@ on:
       - feature/phase19-economy-facility-coach-balance
     paths:
       - .github/workflows/phase19-3-safe-check.yml
-      - scripts/phase19-3-apply.py
-      - scripts/phase19-3-test-fix.py
-      - scripts/phase19-3-fix-integration.py
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check:
@@ -23,68 +20,58 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Apply integration patch and capture verification
+      - name: Capture full verification and 10-season balance evidence
         shell: bash
         run: |
           set +e
-          python scripts/phase19-3-apply.py
-          patch_status=$?
-          if [ "$patch_status" -eq 0 ]; then
-            python scripts/phase19-3-test-fix.py
-            patch_status=$?
-          fi
-          if [ "$patch_status" -eq 0 ]; then
-            python scripts/phase19-3-fix-integration.py
-            patch_status=$?
-          fi
+          npm run verify
+          verify_status=$?
 
-          if [ "$patch_status" -eq 0 ]; then
-            npx prettier --write \
-              src/app/GameApp.tsx \
-              src/features/school/SchoolScreen.tsx \
-              src/features/school/school-screen.css \
-              worker/game/applyGameAction.ts \
-              tests/unit/features/school/SchoolScreen.test.tsx \
-              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts
-            format_status=$?
-          else
-            format_status=99
-          fi
+          npm run release:check
+          release_status=$?
 
-          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
-            npx vitest run \
-              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts \
-              tests/unit/features/school/SchoolScreen.test.tsx \
-              tests/unit/features/school/AssistantCoachStaffScreen.test.tsx \
-              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts \
-              tests/unit/worker/assistantCoachAction.test.ts \
-              tests/unit/worker/applyGameAction.test.ts
-            focused=$?
-            npm run typecheck
-            types=$?
-          else
-            focused=99
-            types=99
-          fi
+          rm -rf /tmp/phase19-3-balance
+          node scripts/runBalanceSoak.mjs \
+            --preset balance \
+            --seed phase18-release-a \
+            --seed phase18-release-b \
+            --output /tmp/phase19-3-balance
+          soak_status=$?
 
-          echo "PHASE19_3_PATCH_STATUS=${patch_status}"
-          echo "PHASE19_3_FORMAT_STATUS=${format_status}"
-          echo "PHASE19_3_FOCUSED_STATUS=${focused}"
-          echo "PHASE19_3_TYPECHECK_STATUS=${types}"
-
-          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
-            git config user.name "court-legacy-bot"
-            git config user.email "court-legacy-bot@users.noreply.github.com"
-            git add \
-              src/app/GameApp.tsx \
-              src/features/school/SchoolScreen.tsx \
-              src/features/school/school-screen.css \
-              worker/game/applyGameAction.ts \
-              tests/unit/features/school/SchoolScreen.test.tsx \
-              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts
-            if ! git diff --cached --quiet; then
-              git commit -m "feat: wire bulk facilities and annual coach UI"
-              git push origin HEAD:feature/phase19-economy-facility-coach-balance
+          echo "===== PHASE19-3 BALANCE REPORTS ====="
+          for report in /tmp/phase19-3-balance/*.txt; do
+            if [ -f "$report" ]; then
+              echo "--- $report ---"
+              cat "$report"
             fi
-          fi
+          done
+          echo "===== PHASE19-3 YEARLY ECONOMY/FACILITY/COACH ====="
+          node --input-type=module <<'NODE'
+          import { readdirSync, readFileSync } from "node:fs";
+          const dir = "/tmp/phase19-3-balance";
+          try {
+            for (const file of readdirSync(dir).filter((name) => name.endsWith(".json"))) {
+              const report = JSON.parse(readFileSync(`${dir}/${file}`, "utf8"));
+              console.log(`REPORT ${file}`);
+              for (const year of report.yearly ?? []) {
+                const coach = year.assistantCoach
+                  ? `${year.assistantCoach.rank}/${year.assistantCoach.specialty ?? "general"}`
+                  : "none";
+                const facilities = Object.entries(year.facilities ?? {})
+                  .map(([key, value]) => `${key}:${value}`)
+                  .join(",");
+                console.log(
+                  `year=${year.yearIndex} fundsStart=${year.fundsStart} fundsMin=${year.fundsMin} fundsEnd=${year.fundsEnd} zeroFundWeeks=${year.zeroFundWeeks} coach=${coach} facilities=${facilities}`,
+                );
+              }
+              console.log("MILESTONES", JSON.stringify(report.facilityMilestones ?? {}));
+            }
+          } catch (error) {
+            console.error(error);
+          }
+          NODE
+
+          echo "PHASE19_3_VERIFY_STATUS=${verify_status}"
+          echo "PHASE19_3_RELEASE_STATUS=${release_status}"
+          echo "PHASE19_3_BALANCE_STATUS=${soak_status}"
           exit 0
