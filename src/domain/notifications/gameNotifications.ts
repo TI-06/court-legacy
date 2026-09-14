@@ -58,8 +58,7 @@ export interface ConcernResolutionNotification {
 }
 
 export type GameNotification =
-  | TrainingResultNotification
-  | ConcernResolutionNotification;
+  TrainingResultNotification | ConcernResolutionNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];

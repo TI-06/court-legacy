@@ -20,7 +20,8 @@ function trainingNotification(
   return {
     id,
     type: "training-result",
-    createdGameDate: `2026-04-${String(weekOfYear).padStart(2, "0")}` as GameDate,
+    createdGameDate:
+      `2026-04-${String(weekOfYear).padStart(2, "0")}` as GameDate,
     academicYearIndex: 1,
     weekOfYear,
     readAtGameDate: null,
@@ -41,7 +42,8 @@ function concernNotification(
   return {
     id,
     type: "concern-resolution",
-    createdGameDate: `2026-05-${String(weekOfYear).padStart(2, "0")}` as GameDate,
+    createdGameDate:
+      `2026-05-${String(weekOfYear).padStart(2, "0")}` as GameDate,
     academicYearIndex: 1,
     weekOfYear,
     readAtGameDate: null,
@@ -97,9 +99,9 @@ describe("Phase20 concern resolution notifications", () => {
     state = appendNotification(state, concernNew);
 
     expect(state.items).toHaveLength(2);
-    expect(selectHomeTrainingNotifications(state).map((item) => item.id)).toEqual([
-      "training-new",
-    ]);
+    expect(
+      selectHomeTrainingNotifications(state).map((item) => item.id),
+    ).toEqual(["training-new"]);
     expect(
       selectHomeConcernResolutionNotifications(state).map((item) => item.id),
     ).toEqual(["concern-new"]);
