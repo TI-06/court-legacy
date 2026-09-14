@@ -6,10 +6,9 @@ on:
       - feature/phase19-economy-facility-coach-balance
     paths:
       - .github/workflows/phase19-3-safe-check.yml
-      - scripts/phase19-3-update-baselines.py
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   check:
@@ -21,96 +20,54 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Apply approved baselines and verify candidate
+      - name: Capture 30-season economy and facility evidence
         shell: bash
         run: |
           set +e
-          python scripts/phase19-3-update-baselines.py
-          patch_status=$?
+          rm -rf /tmp/phase19-3-long
+          node scripts/runBalanceSoak.mjs \
+            --preset long \
+            --seed phase18-release-a \
+            --seed phase18-release-b \
+            --output /tmp/phase19-3-long
+          soak_status=$?
 
-          if [ "$patch_status" -eq 0 ]; then
-            npx prettier --write \
-              docs/superpowers/plans/2026-09-14-phase19-economy-facility-coach-balance.md \
-              src/domain/school/facilityUpgrade.ts \
-              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts \
-              tests/unit/domain/school/schoolEconomy.test.ts \
-              tests/unit/domain/school/facilityUpgrade.test.ts \
-              tests/unit/domain/generation/generateWorld.test.ts \
-              tests/unit/app/GameAppActions.test.tsx \
-              tests/unit/app/createBrowserAppDependencies.test.ts \
-              tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
-              tests/unit/features/school/AppSchoolCalendarFlow.test.tsx \
-              tests/unit/soak/soakDeterminism.test.ts \
-              tests/unit/soak/soakDriver.test.ts
-            format_status=$?
-          else
-            format_status=99
-          fi
-
-          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
-            npx vitest run \
-              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts \
-              tests/unit/domain/school/schoolEconomy.test.ts \
-              tests/unit/domain/school/facilityUpgrade.test.ts \
-              tests/unit/domain/generation/generateWorld.test.ts \
-              tests/unit/app/GameAppActions.test.tsx \
-              tests/unit/app/createBrowserAppDependencies.test.ts \
-              tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
-              tests/unit/features/school/AppSchoolCalendarFlow.test.tsx \
-              tests/unit/soak/soakDeterminism.test.ts \
-              tests/unit/soak/soakDriver.test.ts \
-              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts \
-              tests/unit/features/school/SchoolScreen.test.tsx \
-              tests/unit/features/school/AssistantCoachStaffScreen.test.tsx
-            focused_status=$?
-            npm run typecheck
-            typecheck_status=$?
-          else
-            focused_status=99
-            typecheck_status=99
-          fi
-
-          if [ "$focused_status" -eq 0 ] && [ "$typecheck_status" -eq 0 ]; then
-            npm run verify
-            verify_status=$?
-            npm run release:check
-            release_status=$?
-          else
-            verify_status=99
-            release_status=99
-          fi
-
-          echo "PHASE19_3_PATCH_STATUS=${patch_status}"
-          echo "PHASE19_3_FORMAT_STATUS=${format_status}"
-          echo "PHASE19_3_FOCUSED_STATUS=${focused_status}"
-          echo "PHASE19_3_TYPECHECK_STATUS=${typecheck_status}"
-          echo "PHASE19_3_VERIFY_STATUS=${verify_status}"
-          echo "PHASE19_3_RELEASE_STATUS=${release_status}"
-
-          if [ "$patch_status" -eq 0 ] && \
-             [ "$format_status" -eq 0 ] && \
-             [ "$focused_status" -eq 0 ] && \
-             [ "$typecheck_status" -eq 0 ] && \
-             [ "$verify_status" -eq 0 ] && \
-             [ "$release_status" -eq 0 ]; then
-            git config user.name "court-legacy-bot"
-            git config user.email "court-legacy-bot@users.noreply.github.com"
-            git add \
-              docs/superpowers/plans/2026-09-14-phase19-economy-facility-coach-balance.md \
-              src/domain/school/facilityUpgrade.ts \
-              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts \
-              tests/unit/domain/school/schoolEconomy.test.ts \
-              tests/unit/domain/school/facilityUpgrade.test.ts \
-              tests/unit/domain/generation/generateWorld.test.ts \
-              tests/unit/app/GameAppActions.test.tsx \
-              tests/unit/app/createBrowserAppDependencies.test.ts \
-              tests/unit/app/createBrowserAppDependencies.schoolEconomy.test.ts \
-              tests/unit/features/school/AppSchoolCalendarFlow.test.tsx \
-              tests/unit/soak/soakDeterminism.test.ts \
-              tests/unit/soak/soakDriver.test.ts
-            if ! git diff --cached --quiet; then
-              git commit -m "test: update phase19-3 approved baselines"
-              git push origin HEAD:feature/phase19-economy-facility-coach-balance
+          echo "===== PHASE19-3 30-SEASON SUMMARIES ====="
+          for report in /tmp/phase19-3-long/*.txt; do
+            if [ -f "$report" ]; then
+              echo "--- $report ---"
+              cat "$report"
             fi
-          fi
+          done
+
+          echo "===== PHASE19-3 LONG ECONOMY/FACILITY EVIDENCE ====="
+          node --input-type=module <<'NODE'
+          import { readdirSync, readFileSync } from "node:fs";
+          const dir = "/tmp/phase19-3-long";
+          try {
+            for (const file of readdirSync(dir).filter((name) => name.endsWith(".json"))) {
+              const report = JSON.parse(readFileSync(`${dir}/${file}`, "utf8"));
+              const yearly = report.yearly ?? [];
+              const last = yearly.at(-1) ?? {};
+              const levels = Object.values(last.facilities ?? {});
+              const maxed = levels.filter((level) => level === 50).length;
+              const belowMax = levels.filter((level) => level < 50).length;
+              const minLevel = levels.length ? Math.min(...levels) : 0;
+              const maxLevel = levels.length ? Math.max(...levels) : 0;
+              const zeroWeekYears = yearly.filter((year) => (year.zeroFundWeeks ?? 0) > 0);
+              const persistentZeroYears = zeroWeekYears.filter((year) => (year.zeroFundWeeks ?? 0) >= 10);
+              console.log(`REPORT ${file}`);
+              console.log(`finalFunds=${last.fundsEnd} finalMin=${last.fundsMin} finalMax=${last.fundsMax}`);
+              console.log(`finalFacilityMin=${minLevel} finalFacilityMax=${maxLevel} maxedFacilities=${maxed} belowMaxFacilities=${belowMax}`);
+              console.log(`zeroFundYears=${zeroWeekYears.length} persistentZeroYears=${persistentZeroYears.length}`);
+              console.log(`finalCoach=${last.assistantCoach ? `${last.assistantCoach.rank}/${last.assistantCoach.specialty ?? "general"}` : "none"}`);
+              console.log("finalFacilities", JSON.stringify(last.facilities ?? {}));
+              console.log("milestones", JSON.stringify(report.facilityMilestones ?? {}));
+            }
+          } catch (error) {
+            console.error(error);
+          }
+          NODE
+
+          echo "PHASE19_3_LONG_SOAK_STATUS=${soak_status}"
           exit 0
