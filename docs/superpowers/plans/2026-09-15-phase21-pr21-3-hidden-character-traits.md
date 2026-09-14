@@ -4,7 +4,7 @@
 
 **Goal:** Turn the persisted hidden-trait fields introduced in PR21-2 into a deterministic, discoverable character-trait system with compact notifications and no unseen performance bonuses.
 
-**Architecture:** Add a separate character-trait catalog to `GameDataRegistry`; do not reuse performance `traitIds`. Assignment is a pure stable hash of `seed + playerId`, evaluated once per player with a 60% assignment rate and without touching `randomCursor`. A pure discovery engine reveals assigned traits from trust, appearances, captaincy, special relationships, or matching event tags. Authoritative action processing performs legacy backfill and discovery, then emits compact notifications; Player Hub shows only revealed character traits.
+**Architecture:** Add a separate character-trait catalog to `GameDataRegistry`; do not reuse performance `traitIds`. Assignment is a pure stable hash of `seed + playerId`, evaluated once per player with a 60% assignment rate and without touching `randomCursor`. A pure discovery engine reveals assigned traits from trust, appearances, captaincy, special relationships, or matching event tags. Domain transitions return exact discovery records; `worker/game/applyGameAction.ts` is the authoritative boundary that converts those records into compact notifications. Player Hub shows only revealed character traits.
 
 **Tech Stack:** TypeScript 5.9, Zod 4, Vitest, React 19, existing worker action pipeline, existing notification system.
 
@@ -21,6 +21,7 @@
 - Before reveal, a hidden character trait affects neither training growth nor match stats and is absent from UI.
 - Discovery is contextual, not a generic random popup.
 - Discovery notifications are compact and do not create `pendingEvent` or consume the normal event slot.
+- Notification creation happens at the authoritative worker boundary; domain helpers return discovery records and never independently emit duplicate notifications.
 - Schema remains v9; PR21-2 already provides `hiddenTraitAssignmentInitialized` and `revealedHiddenTraitIds` defaults for migrated saves.
 - Use TDD; do not open PR21-3 until focused tests, static checks, `npm run verify`, and the branch safe gate are green.
 
@@ -36,9 +37,9 @@
 - Modify `src/domain/generation/generatePlayer.ts`: keep new Player fields initialized safely; final assignment happens after players exist in state.
 - Modify `src/app/createInitialGame.ts`: run assignment once on newly created game state.
 - Modify `src/domain/calendar/academicYearProgression.ts`: run assignment after new intake/generational players are added.
-- Modify `worker/game/applyGameAction.ts`: backfill uninitialized migrated players before action handling and evaluate non-event discovery after action results.
-- Modify `src/domain/events/resolveEventChoice.ts`: evaluate event-tag discovery after effects.
-- Modify `src/domain/notifications/gameNotifications.ts`: add `character-trait-discovered` compact notification.
+- Modify `src/domain/events/resolveEventChoice.ts`: evaluate event-tag discovery and return discovery records.
+- Modify `worker/game/applyGameAction.ts`: backfill uninitialized migrated players, finalize non-event discovery after every action, and append notifications for both event-specific and general discoveries.
+- Modify `src/domain/notifications/gameNotifications.ts`: add `character-trait-discovered` compact notification builder/selector.
 - Modify Home notification rendering so discovery remains compact, not fullscreen.
 - Modify `src/features/team/PlayerHubScreen.tsx` and `player-hub.css`: show revealed trait only.
 - Create tests under `tests/unit/data`, `tests/unit/domain/player`, `tests/unit/domain/events`, `tests/unit/notifications`.
@@ -296,7 +297,7 @@ git add src/domain/player/characterTraitDiscovery.ts tests/unit/domain/player/ch
 git commit -m "feat: discover hidden character traits"
 ```
 
-### Task 5: Integrate event and post-action discovery
+### Task 5: Event-specific and post-action discovery handoff
 
 **Files:**
 - Modify: `src/domain/events/resolveEventChoice.ts`
@@ -305,12 +306,49 @@ git commit -m "feat: discover hidden character traits"
 - Modify: `tests/unit/worker/gameAction.test.ts`
 
 **Interfaces:**
-- Event choice resolution evaluates discovery with `context.eventTags = event.tags` after all effects are applied.
-- Authoritative action handling evaluates non-event conditions after the action result, allowing trust, appearances, captaincy, and newly established special relationships to reveal traits.
+
+Extend event result exactly:
+
+```ts
+export interface ResolveEventChoiceResult {
+  state: GameState;
+  occurrence: EventOccurrence;
+  characterTraitDiscoveries: CharacterTraitDiscovery[];
+}
+```
+
+`resolveEventChoice` runs:
+
+```ts
+const discovery = discoverEligibleCharacterTraits(nextState, data, {
+  eventTags: event.tags,
+  captainPlayerId: nextState.teamDynamics.captainPlayerId,
+  viceCaptainPlayerId: nextState.teamDynamics.viceCaptainPlayerId,
+});
+```
+
+It returns `discovery.state` and `discovery.discoveries` after event effects/history are finalized.
+
+At worker level, refactor `applyGameAction` from direct `return` in each switch case to:
+
+```ts
+const applied = applyActionByType(canonicalState, teamSelection, action, context);
+const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
+  captainPlayerId: applied.state.teamDynamics.captainPlayerId,
+  viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
+});
+return appendCharacterTraitDiscoveryNotifications(
+  { ...applied, state: finalized.state },
+  eventSpecificDiscoveries + finalized.discoveries,
+  gameData,
+);
+```
+
+Implement this without a recursive second action call. Event-specific discoveries are taken from `ResolveEventChoiceResult`; because those traits are already revealed, the general finalizer will not rediscover them.
 
 - [ ] **Step 1: Write failing event-tag test**
 
-Assign an unrevealed trait with `event-tag: analysis`, resolve an `analysis` event, and assert exactly one reveal.
+Assign an unrevealed trait with `event-tag: analysis`, resolve an `analysis` event, and assert the result contains one `characterTraitDiscoveries` entry and the state reveals it.
 
 - [ ] **Step 2: Write failing post-action threshold test in `tests/unit/worker/gameAction.test.ts`**
 
@@ -322,9 +360,9 @@ Set an assigned `trust-min:70` trait with trust 70, run a canonical action, and 
 npx vitest run tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts
 ```
 
-- [ ] **Step 4: Integrate discovery at the two canonical transition points**
+- [ ] **Step 4: Implement the exact domain-to-worker handoff above**
 
-Do not alter `surfaceWeeklyEvent` cadence and do not inject discovery as an event occurrence.
+Keep `surfaceWeeklyEvent` unchanged. Do not inject trait discovery into `EventOccurrence.visibleResultCodes`.
 
 - [ ] **Step 5: Run GREEN and commit**
 
@@ -339,6 +377,7 @@ git commit -m "feat: reveal character traits from gameplay context"
 
 **Files:**
 - Modify: `src/domain/notifications/gameNotifications.ts`
+- Modify: `worker/game/applyGameAction.ts`
 - Create: `tests/unit/notifications/phase21CharacterTraitNotifications.test.ts`
 - Modify: `src/features/home/HomeScreen.tsx`
 - Modify: `tests/unit/features/home/HomeScreen.test.tsx`
@@ -361,9 +400,25 @@ export interface CharacterTraitDiscoveredNotification {
     description: string;
   };
 }
+
+export function buildCharacterTraitDiscoveredNotification(
+  state: GameState,
+  discovery: CharacterTraitDiscovery,
+  data: GameDataRegistry,
+): CharacterTraitDiscoveredNotification;
 ```
 
-`appendNotification` keeps only the newest item of this type and de-duplicates equal IDs.
+Worker helper contract:
+
+```ts
+function appendCharacterTraitDiscoveryNotifications(
+  applied: AppliedGameAction,
+  discoveries: readonly CharacterTraitDiscovery[],
+  data: GameDataRegistry,
+): AppliedGameAction;
+```
+
+Append discoveries in deterministic order with `appendNotification`; same notification ID is de-duplicated and newest-per-type retention is preserved.
 
 - [ ] **Step 1: Write failing builder/retention tests**
 
@@ -373,9 +428,9 @@ Assert trait/player display data and newest-only behavior.
 
 `npx vitest run tests/unit/notifications/phase21CharacterTraitNotifications.test.ts`
 
-- [ ] **Step 3: Build notifications from returned discovery records at authoritative transition points**
+- [ ] **Step 3: Implement worker notification finalization**
 
-Notification creation must not set `pendingEvent`.
+Event-tag discoveries from Task 5 and generic post-action discoveries flow through the same helper. Notification creation must not modify `pendingEvent`.
 
 - [ ] **Step 4: Add Home UI test**
 
@@ -387,9 +442,9 @@ expect(screen.queryByTestId("fullscreen-event")).not.toBeInTheDocument();
 - [ ] **Step 5: Run GREEN and commit**
 
 ```bash
-npx vitest run tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx
+npx vitest run tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/worker/gameAction.test.ts
 npm run typecheck
-git add src/domain/notifications/gameNotifications.ts src/features/home/HomeScreen.tsx tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx
+git add src/domain/notifications/gameNotifications.ts worker/game/applyGameAction.ts src/features/home/HomeScreen.tsx tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/worker/gameAction.test.ts
 git commit -m "feat: notify discovered character traits"
 ```
 
