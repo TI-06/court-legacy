@@ -8,6 +8,7 @@ on:
       - .github/workflows/phase19-3-safe-check.yml
       - scripts/phase19-3-apply.py
       - scripts/phase19-3-test-fix.py
+      - scripts/phase19-3-fix-integration.py
 
 permissions:
   contents: write
@@ -30,6 +31,10 @@ jobs:
           patch_status=$?
           if [ "$patch_status" -eq 0 ]; then
             python scripts/phase19-3-test-fix.py
+            patch_status=$?
+          fi
+          if [ "$patch_status" -eq 0 ]; then
+            python scripts/phase19-3-fix-integration.py
             patch_status=$?
           fi
 
