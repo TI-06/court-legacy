@@ -116,15 +116,15 @@ describe("applyMatchTacticPlan", () => {
 
 describe("attack/block matchup", () => {
   it.each([
-    ["side", "commit", 3],
+    ["side", "commit", 12],
     ["side", "mixed", 0],
-    ["side", "read", -3],
+    ["side", "read", -12],
     ["balanced", "commit", 0],
     ["balanced", "mixed", 0],
     ["balanced", "read", 0],
-    ["quick", "commit", -3],
+    ["quick", "commit", -12],
     ["quick", "mixed", 0],
-    ["quick", "read", 3],
+    ["quick", "read", 12],
   ] as const)(
     "scores %s attack vs %s block as %s",
     (attack, block, expected) => {
