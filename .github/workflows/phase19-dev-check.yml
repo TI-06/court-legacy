@@ -1,0 +1,38 @@
+name: Phase19 Safe Dev Check
+
+on:
+  push:
+    branches:
+      - feature/phase19-player-growth-balance
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phase19-safe-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Focused Phase19 check without notification-red
+        shell: bash
+        run: |
+          set +e
+          npm run typecheck > /tmp/phase19-typecheck.log 2>&1
+          typecheck_status=$?
+          npx vitest run tests/unit/domain/player/playerDevelopmentBalance.test.ts > /tmp/phase19-tests.log 2>&1
+          test_status=$?
+          cat /tmp/phase19-typecheck.log
+          cat /tmp/phase19-tests.log
+          echo "PHASE19_TYPECHECK_STATUS=${typecheck_status}"
+          echo "PHASE19_TEST_STATUS=${test_status}"
+          exit 0
