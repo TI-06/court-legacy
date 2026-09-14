@@ -453,6 +453,13 @@ const practiceMatchHistoryEntrySchema = z
   })
   .strict();
 
+const practiceIncomingOfferHistoryEntrySchema = z
+  .object({
+    schoolId: z.string().min(1),
+    date: gameDateSchema,
+  })
+  .strict();
+
 const weeklyTrainingGrowthSummarySchema = z
   .object({
     playerId: z.string().min(1),
@@ -515,6 +522,10 @@ const weeklyScheduleSchema = z
         outgoingCandidates: z.array(practiceMatchCandidateSchema).max(3),
         scheduledOpponentId: z.string().min(1).nullable(),
         scheduledBy: z.enum(["incoming", "outgoing"]).nullable(),
+        incomingOfferHistory: z
+          .array(practiceIncomingOfferHistoryEntrySchema)
+          .max(24)
+          .default([]),
       })
       .strict(),
     recentPracticeMatches: z.array(practiceMatchHistoryEntrySchema).max(12),

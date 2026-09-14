@@ -5,6 +5,7 @@ import { calculateTournamentSchoolStrength } from "../tournament/createOfficialS
 import type {
   PracticeMatchCandidate,
   PracticeMatchCandidateTier,
+  PracticeIncomingOfferHistoryEntry,
   PracticeMatchHistoryEntry,
   PracticeMatchOffer,
   PracticeRating,
@@ -29,6 +30,10 @@ export const PRACTICE_INCOMING_TARGET_RATIO: Record<SchoolReputation, number> =
     elite: 1.15,
   };
 
+export const PRACTICE_INCOMING_MONTHLY_LIMIT = 2;
+export const PRACTICE_INCOMING_HISTORY_LIMIT = 24;
+const PRACTICE_INCOMING_HISTORY_REPEAT_PENALTY = 0.2;
+
 export type PracticePlanningSource = Pick<
   GameState,
   | "seed"
@@ -44,6 +49,7 @@ export type PracticePlanningSource = Pick<
 export interface PracticePlanningResult {
   incomingOffer: PracticeMatchOffer | null;
   outgoingCandidates: PracticeMatchCandidate[];
+  incomingOfferHistory: PracticeIncomingOfferHistoryEntry[];
 }
 
 interface RankedOpponent {
@@ -221,12 +227,51 @@ function meetingCount(
   ).length;
 }
 
+function calendarMonth(date: string): string {
+  return date.slice(0, 7);
+}
+
+function incomingOfferCount(
+  history: readonly PracticeIncomingOfferHistoryEntry[],
+  schoolId: string,
+): number {
+  return history.filter((entry) => entry.schoolId === schoolId).length;
+}
+
+function appendIncomingOfferHistory(
+  history: readonly PracticeIncomingOfferHistoryEntry[],
+  offer: PracticeMatchOffer | null,
+  date: PracticePlanningSource["date"],
+): PracticeIncomingOfferHistoryEntry[] {
+  const bounded = [...history].slice(-PRACTICE_INCOMING_HISTORY_LIMIT);
+  if (!offer) return bounded;
+  if (
+    bounded.some(
+      (entry) => entry.date === date && entry.schoolId === offer.schoolId,
+    )
+  ) {
+    return bounded;
+  }
+  return [...bounded, { schoolId: offer.schoolId, date }].slice(
+    -PRACTICE_INCOMING_HISTORY_LIMIT,
+  );
+}
+
 function buildIncomingOffer(
   state: PracticePlanningSource,
   recentPracticeMatches: readonly PracticeMatchHistoryEntry[],
+  incomingOfferHistory: readonly PracticeIncomingOfferHistoryEntry[],
 ): PracticeMatchOffer | null {
   const { homeSchool, opponents } = rankedOpponents(state);
   if (opponents.length === 0) return null;
+
+  const currentMonth = calendarMonth(state.date);
+  const offersThisMonth = incomingOfferHistory.filter(
+    (entry) => calendarMonth(entry.date) === currentMonth,
+  );
+  if (offersThisMonth.length >= PRACTICE_INCOMING_MONTHLY_LIMIT) {
+    return null;
+  }
 
   const random = new SeededRandom(state.seed).fork(
     `practice-incoming:${state.date}:${state.userSchoolId}`,
@@ -239,9 +284,13 @@ function buildIncomingOffer(
   const lastOpponentId = recentPracticeMatches.at(-1)?.opponentSchoolId ?? null;
   const ranked = [...opponents].sort((left, right) => {
     const leftRepeatPenalty =
-      meetingCount(recentPracticeMatches, left.school.id) * 0.035;
+      meetingCount(recentPracticeMatches, left.school.id) * 0.035 +
+      incomingOfferCount(incomingOfferHistory, left.school.id) *
+        PRACTICE_INCOMING_HISTORY_REPEAT_PENALTY;
     const rightRepeatPenalty =
-      meetingCount(recentPracticeMatches, right.school.id) * 0.035;
+      meetingCount(recentPracticeMatches, right.school.id) * 0.035 +
+      incomingOfferCount(incomingOfferHistory, right.school.id) *
+        PRACTICE_INCOMING_HISTORY_REPEAT_PENALTY;
     return (
       Math.abs(left.ratio - targetRatio) +
         leftRepeatPenalty -
@@ -250,13 +299,27 @@ function buildIncomingOffer(
     );
   });
 
+  const offeredThisMonthSchoolIds = new Set(
+    offersThisMonth.map((entry) => entry.schoolId),
+  );
+  const withoutMonthlyRepeat = ranked.some(
+    (opponent) => !offeredThisMonthSchoolIds.has(opponent.school.id),
+  )
+    ? ranked.filter(
+        (opponent) => !offeredThisMonthSchoolIds.has(opponent.school.id),
+      )
+    : ranked;
   const withoutImmediateRepeat =
-    lastOpponentId && ranked.length > 1
-      ? ranked.filter((opponent) => opponent.school.id !== lastOpponentId)
-      : ranked;
-  const pool = (
-    withoutImmediateRepeat.length > 0 ? withoutImmediateRepeat : ranked
-  ).slice(0, Math.min(4, ranked.length));
+    lastOpponentId && withoutMonthlyRepeat.length > 1
+      ? withoutMonthlyRepeat.filter(
+          (opponent) => opponent.school.id !== lastOpponentId,
+        )
+      : withoutMonthlyRepeat;
+  const candidatePool =
+    withoutImmediateRepeat.length > 0
+      ? withoutImmediateRepeat
+      : withoutMonthlyRepeat;
+  const pool = candidatePool.slice(0, Math.min(4, candidatePool.length));
   const opponent = random.pick(pool);
   const rating = practiceRating(opponent.ratio);
 
@@ -270,15 +333,25 @@ function buildIncomingOffer(
 function buildPracticePlanningFromSource(
   state: PracticePlanningSource,
   recentPracticeMatches: readonly PracticeMatchHistoryEntry[],
+  incomingOfferHistory: readonly PracticeIncomingOfferHistoryEntry[],
 ): PracticePlanningResult {
   if (hasDueOfficialMatch(state)) {
     return {
       incomingOffer: null,
       outgoingCandidates: [],
+      incomingOfferHistory: appendIncomingOfferHistory(
+        incomingOfferHistory,
+        null,
+        state.date,
+      ),
     };
   }
 
-  const incomingOffer = buildIncomingOffer(state, recentPracticeMatches);
+  const incomingOffer = buildIncomingOffer(
+    state,
+    recentPracticeMatches,
+    incomingOfferHistory,
+  );
   return {
     incomingOffer,
     outgoingCandidates: buildOutgoingCandidates(
@@ -286,13 +359,18 @@ function buildPracticePlanningFromSource(
       recentPracticeMatches,
       incomingOffer ? new Set([incomingOffer.schoolId]) : undefined,
     ),
+    incomingOfferHistory: appendIncomingOfferHistory(
+      incomingOfferHistory,
+      incomingOffer,
+      state.date,
+    ),
   };
 }
 
 export function buildInitialPracticePlanning(
   state: PracticePlanningSource,
 ): PracticePlanningResult {
-  return buildPracticePlanningFromSource(state, []);
+  return buildPracticePlanningFromSource(state, [], []);
 }
 
 export function buildPracticePlanning(
@@ -301,5 +379,6 @@ export function buildPracticePlanning(
   return buildPracticePlanningFromSource(
     state,
     state.weeklySchedule.recentPracticeMatches,
+    state.weeklySchedule.practiceMatch.incomingOfferHistory ?? [],
   );
 }

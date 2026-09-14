@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
-import type { GameDate, SchoolId } from "../../../../src/domain/model/identifiers";
+import type {
+  GameDate,
+  SchoolId,
+} from "../../../../src/domain/model/identifiers";
 import * as practicePlanning from "../../../../src/domain/weekly/practiceMatchPlanning";
 
 interface IncomingOfferHistoryEntry {
@@ -86,7 +89,8 @@ describe("Phase20-3 incoming practice offer frequency", () => {
     const diversified = withIncomingHistory(state, [
       { schoolId, date: "2026-04-02" as GameDate },
     ]);
-    const offer = practicePlanning.buildPracticePlanning(diversified).incomingOffer;
+    const offer =
+      practicePlanning.buildPracticePlanning(diversified).incomingOffer;
 
     expect(offer).not.toBeNull();
     expect(offer!.schoolId).not.toBe(schoolId);
@@ -101,7 +105,8 @@ describe("Phase20-3 incoming practice offer frequency", () => {
       { schoolId, date: "2026-02-19" as GameDate },
       { schoolId, date: "2026-03-05" as GameDate },
     ]);
-    const offer = practicePlanning.buildPracticePlanning(diversified).incomingOffer;
+    const offer =
+      practicePlanning.buildPracticePlanning(diversified).incomingOffer;
 
     expect(offer).not.toBeNull();
     expect(offer!.schoolId).not.toBe(schoolId);
