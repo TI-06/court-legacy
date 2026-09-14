@@ -16,11 +16,13 @@ import {
 import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
+import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
+import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { StatBar } from "../../ui/theme/StatBar";
@@ -37,6 +39,7 @@ import "./player-hub.css";
 
 interface PlayerHubScreenProps {
   state: GameState;
+  data: GameDataRegistry;
   selection: TeamSelection;
   onChange: (selection: TeamSelection) => void;
   onAssignLeadership: (
@@ -155,6 +158,7 @@ function HubTabs({
 
 export function PlayerHubScreen({
   state,
+  data,
   selection,
   onChange,
   onAssignLeadership,
@@ -277,6 +281,12 @@ export function PlayerHubScreen({
     const concerns = state.teamDynamics.playerConcerns[selectedPlayer.id] ?? [];
     const condition = getPlayerConditionPresentation(selectedPlayer.condition);
     const development = getPlayerDevelopmentPresentation(selectedPlayer);
+    const personalityDefinition = data.personalities.get(
+      selectedPlayer.personalityId,
+    );
+    const personality = personalityDefinition
+      ? getPlayerPersonalityPresentation(personalityDefinition)
+      : null;
     const growth = summarizePlayerGrowth(state, selectedPlayer.id);
     const maxTrendGrowth = Math.max(
       1,
@@ -327,6 +337,25 @@ export function PlayerHubScreen({
             </small>
           </article>
         </section>
+
+        {personality ? (
+          <section className="player-detail__personality" aria-label="性格">
+            <div className="player-detail__personality-heading">
+              <h3>性格</h3>
+              <strong>{personality.name}</strong>
+            </div>
+            <p>{personality.description}</p>
+            <div
+              className="player-detail__personality-tendencies"
+              aria-label="性格の傾向"
+            >
+              <span>練習 {personality.trainingStability}</span>
+              <span>関係構築 {personality.relationshipBuilding}</span>
+              <span>プレッシャー {personality.pressureResponse}</span>
+              <span>士気 {personality.moraleVolatility}</span>
+            </div>
+          </section>
+        ) : null}
 
         <section
           className="player-detail__growth-summary"

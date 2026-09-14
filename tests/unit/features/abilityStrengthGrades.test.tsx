@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { createDemoGame } from "../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../src/app/createDemoGame";
 import {
   calculateSelectionStrength,
   selectPracticeOpponent,
@@ -27,6 +27,7 @@ describe("ability and school strength grades", () => {
 
     render(
       <PlayerHubScreen
+        data={gameData}
         onAssignLeadership={vi.fn()}
         onChange={vi.fn()}
         selection={selection}

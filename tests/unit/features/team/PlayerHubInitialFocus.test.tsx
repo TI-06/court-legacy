@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
@@ -13,6 +13,7 @@ describe("PlayerHubScreen initial player focus", () => {
 
     render(
       <PlayerHubScreen
+        data={gameData}
         initialPlayerId={player.id}
         onAssignLeadership={vi.fn()}
         onChange={vi.fn()}

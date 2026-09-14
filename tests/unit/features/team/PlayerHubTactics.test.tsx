@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { deriveMatchTacticPlan } from "../../../../src/domain/team/matchTactics";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
@@ -12,6 +12,7 @@ function renderHub({ pending = false }: { pending?: boolean } = {}) {
 
   render(
     <PlayerHubScreen
+      data={gameData}
       onAssignLeadership={vi.fn()}
       onChange={vi.fn()}
       onSetTeamTactics={onSetTeamTactics}

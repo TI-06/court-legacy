@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
 import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
@@ -24,6 +24,7 @@ function renderPlayerHub(
     options.onSetDevelopmentPriorities ?? vi.fn();
   const view = render(
     <PlayerHubScreen
+      data={gameData}
       onAssignLeadership={onAssignLeadership}
       onChange={vi.fn()}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
@@ -218,6 +219,7 @@ describe("PlayerHubScreen", () => {
 
     view.rerender(
       <PlayerHubScreen
+        data={gameData}
         onAssignLeadership={vi.fn()}
         onChange={vi.fn()}
         onSetDevelopmentPriorities={onSetDevelopmentPriorities}

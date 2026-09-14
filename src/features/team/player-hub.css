@@ -419,6 +419,67 @@
   line-height: 1.45;
 }
 
+.player-detail__personality {
+  display: grid;
+  min-width: 0;
+  padding: 10px 11px;
+  gap: 7px;
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 8%), transparent 58%),
+    rgb(11 26 45 / 92%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+}
+
+.player-detail__personality-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.player-detail__personality-heading h3,
+.player-detail__personality p {
+  margin: 0;
+}
+
+.player-detail__personality-heading h3 {
+  font-size: 13px;
+}
+
+.player-detail__personality-heading strong {
+  color: #ffd99a;
+  font-size: 14px;
+}
+
+.player-detail__personality p {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.player-detail__personality-tendencies {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.player-detail__personality-tendencies span {
+  min-width: 0;
+  padding: 6px 7px;
+  overflow: hidden;
+  color: #eef9ff;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgb(31 120 171 / 16%);
+  border: 1px solid rgb(116 216 255 / 18%);
+  border-radius: 8px;
+}
+
 .player-detail__growth-summary {
   display: grid;
   min-width: 0;
