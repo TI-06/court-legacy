@@ -115,4 +115,4 @@ The existing soak harness still reports some years where the user school materia
 
 The 10-season and 30-season deterministic evidence supports keeping the current bounded constants. No additional numeric tuning is justified before PR review/CI. Final acceptance still requires exact-head PR CI GREEN and exact merge-SHA main CI GREEN.
 
-Final isolated verification is triggered from this report revision before temporary development-only workflow/helper files are removed.
+Final isolated verification is rerun after applying repository-standard Prettier formatting to the expanded match-experience test.
