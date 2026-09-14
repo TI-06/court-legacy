@@ -6,7 +6,10 @@ import type {
   AssistantCoachSpecialty,
 } from "../../src/domain/model/SchoolManagement";
 import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
-import type { FacilityKey } from "../../src/domain/school/facilityUpgrade";
+import type {
+  FacilityKey,
+  FacilityUpgradeLevels,
+} from "../../src/domain/school/facilityUpgrade";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { SavedLineupSlot } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
@@ -71,6 +74,11 @@ const facilitySchema = z.enum([
   "scoutingNetwork",
   "alumniAssociation",
   "studyRoom",
+]);
+const facilityUpgradeLevelsSchema = z.union([
+  z.literal(1),
+  z.literal(5),
+  z.literal(10),
 ]);
 
 const assistantCoachRankSchema = z.enum([
@@ -188,7 +196,11 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
-    .object({ type: z.literal("facility-upgrade"), facility: facilitySchema })
+    .object({
+      type: z.literal("facility-upgrade"),
+      facility: facilitySchema,
+      levels: facilityUpgradeLevelsSchema.optional(),
+    })
     .strict(),
   z
     .object({
@@ -243,7 +255,11 @@ export type GameAction =
       matchTactics?: MatchTacticPlan;
     }
   | { type: "mark-notification-read"; notificationId: string }
-  | { type: "facility-upgrade"; facility: FacilityKey }
+  | {
+      type: "facility-upgrade";
+      facility: FacilityKey;
+      levels?: FacilityUpgradeLevels;
+    }
   | {
       type: "assistant-coach-contract";
       rank: AssistantCoachRank;
