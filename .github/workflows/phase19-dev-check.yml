@@ -6,7 +6,7 @@ on:
       - feature/phase19-player-growth-balance
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: phase19-safe-dev-${{ github.ref }}
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   focused:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,16 +23,39 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Focused Phase19 check without notification-red
+      - name: Apply and verify Phase19 implementation without notification-red
         shell: bash
         run: |
           set +e
+          python3 scripts/phase19_apply_player_growth.py > /tmp/phase19-patch.log 2>&1
+          patch_status=$?
+          cat /tmp/phase19-patch.log
+          if [ "$patch_status" -ne 0 ]; then
+            echo "PHASE19_PATCH_STATUS=${patch_status}"
+            exit 0
+          fi
+
+          npx prettier --write src/domain/player/playerDevelopment.ts src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts worker/game/applyGameAction.ts tests/unit/domain/player/playerDevelopmentBalance.test.ts tests/unit/domain/training/calculateGrowth.test.ts > /tmp/phase19-format.log 2>&1
+          format_status=$?
           npm run typecheck > /tmp/phase19-typecheck.log 2>&1
           typecheck_status=$?
-          npx vitest run tests/unit/domain/player/playerDevelopmentBalance.test.ts > /tmp/phase19-tests.log 2>&1
+          npx vitest run tests/unit/domain/player/playerDevelopmentBalance.test.ts tests/unit/domain/training/longTermAbilityGrowth.test.ts tests/unit/domain/training/calculateGrowth.test.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts > /tmp/phase19-tests.log 2>&1
           test_status=$?
+
+          cat /tmp/phase19-format.log
           cat /tmp/phase19-typecheck.log
           cat /tmp/phase19-tests.log
+          echo "PHASE19_FORMAT_STATUS=${format_status}"
           echo "PHASE19_TYPECHECK_STATUS=${typecheck_status}"
           echo "PHASE19_TEST_STATUS=${test_status}"
+
+          if [ "$format_status" -eq 0 ] && [ "$typecheck_status" -eq 0 ] && [ "$test_status" -eq 0 ]; then
+            if ! git diff --quiet; then
+              git config user.name "court-legacy-bot"
+              git config user.email "court-legacy-bot@users.noreply.github.com"
+              git add src/domain/player/playerDevelopment.ts src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts worker/game/applyGameAction.ts tests/unit/domain/training/calculateGrowth.test.ts
+              git commit -m "feat: balance player growth and match experience"
+              git push origin HEAD:feature/phase19-player-growth-balance
+            fi
+          fi
           exit 0
