@@ -75,7 +75,7 @@ replace_exact(
     "tests/unit/app/createBrowserAppDependencies.test.ts",
     '''    ).toBe(630);''',
     '''    ).toBe(680);''',
-    expected=2,
+    expected=3,
 )
 
 replace_exact(
