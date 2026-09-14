@@ -73,6 +73,8 @@ Run deterministic 10-season and 30-season soak samples using the established see
 
 Only tune bounded constants when evidence shows a clear imbalance.
 
+Evidence report: `docs/superpowers/reports/2026-09-14-phase19-pr19-2-player-growth-balance-results.md`.
+
 ## Task 7 — Release-quality verification
 
 Run `npm run verify`, release metadata check, soak smoke, mobile E2E and any Phase19-specific focused checks. Open a PR only after the candidate is locally/isolated-run GREEN.
