@@ -11,7 +11,7 @@ describeMatrix("Phase19-4 tactical balance matrix", () => {
   it("keeps tactics meaningful without overpowering roster strength", () => {
     const result = runTacticalMatrix({
       seed: "phase19-4-tactical-matrix",
-      matchesPerSeries: 48,
+      matchesPerSeries: 160,
     });
     const report = result.report;
 
