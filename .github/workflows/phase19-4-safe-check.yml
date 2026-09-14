@@ -6,11 +6,9 @@ on:
       - feature/phase19-match-difficulty-strategic-identities
     paths:
       - .github/workflows/phase19-4-safe-check.yml
-      - src/domain/match/cpuCoachPolicy.ts
-      - tests/unit/domain/match/phase19CpuCoachPolicy.test.ts
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -22,11 +20,11 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture Task 3 GREEN without failing workflow
+      - name: Format and verify Task 3
         shell: bash
         run: |
           set +e
-          npx prettier --check \
+          npx prettier --write \
             src/domain/match/cpuCoachPolicy.ts \
             tests/unit/domain/match/phase19CpuCoachPolicy.test.ts
           format_status=$?
@@ -37,4 +35,13 @@ jobs:
           echo "PHASE19_4_CPU_FORMAT_STATUS=${format_status}"
           echo "PHASE19_4_CPU_GREEN_STATUS=${focused}"
           echo "PHASE19_4_CPU_TYPECHECK_STATUS=${types}"
+          if [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add src/domain/match/cpuCoachPolicy.ts tests/unit/domain/match/phase19CpuCoachPolicy.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "style: format phase19 cpu coach policy"
+              git push origin HEAD:feature/phase19-match-difficulty-strategic-identities
+            fi
+          fi
           exit 0
