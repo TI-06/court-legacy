@@ -1,0 +1,56 @@
+name: Phase20-3 Completion Apply
+
+on:
+  push:
+    branches:
+      - "fix/phase20-3-practice-offer-spec-completion"
+    paths:
+      - ".github/workflows/phase20-3-completion-apply.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/phase20-3-practice-offer-spec-completion
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Apply completion patch
+        run: python scripts/phase20_3_completion_patch.py
+      - name: Format touched files
+        run: |
+          npx prettier --write \
+            src/domain/weekly/weeklyScheduleTypes.ts \
+            src/domain/weekly/practiceMatchPlanning.ts \
+            src/domain/weekly/createWeeklySchedule.ts \
+            src/domain/calendar/academicYearProgression.ts \
+            src/persistence/gameStateCodec.ts \
+            tests/unit/domain/weekly/phase20PracticeOfferCompletion.test.ts \
+            tests/unit/domain/weekly/phase20PracticeOfferFrequency.test.ts \
+            tests/unit/persistence/phase20PracticeOfferCanonicalCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferHistoryCodec.test.ts
+      - name: Focused Phase20-3 verification
+        run: |
+          npx vitest run \
+            tests/unit/domain/weekly/phase20PracticeOfferCompletion.test.ts \
+            tests/unit/domain/weekly/phase20PracticeOfferFrequency.test.ts \
+            tests/unit/domain/weekly/practiceMatchPlanning.test.ts \
+            tests/unit/persistence/phase20PracticeOfferCanonicalCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferHistoryCodec.test.ts \
+            tests/unit/persistence/gameStateCodec.test.ts
+          npm run typecheck
+      - name: Commit verified implementation and remove temporary helpers
+        run: |
+          git config user.name "court-legacy-bot"
+          git config user.email "court-legacy-bot@users.noreply.github.com"
+          git rm .github/workflows/phase20-3-completion-apply.yml scripts/phase20_3_completion_patch.py
+          git add src tests
+          git commit -m "feat: complete Phase20 practice offer diversity"
+          git push origin HEAD:fix/phase20-3-practice-offer-spec-completion
