@@ -20,54 +20,18 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture 30-season economy and facility evidence
+      - name: Verify focused Lv.50 reachability
         shell: bash
         run: |
           set +e
-          rm -rf /tmp/phase19-3-long
-          node scripts/runBalanceSoak.mjs \
-            --preset long \
-            --seed phase18-release-a \
-            --seed phase18-release-b \
-            --output /tmp/phase19-3-long
-          soak_status=$?
+          npx prettier tests/soak/phase19FacilityFocusSoak.test.ts --check
+          format_status=$?
+          npm run typecheck
+          typecheck_status=$?
+          PHASE19_FACILITY_FOCUS_RUN=1 npx vitest run tests/soak/phase19FacilityFocusSoak.test.ts
+          focus_status=$?
 
-          echo "===== PHASE19-3 30-SEASON SUMMARIES ====="
-          for report in /tmp/phase19-3-long/*.txt; do
-            if [ -f "$report" ]; then
-              echo "--- $report ---"
-              cat "$report"
-            fi
-          done
-
-          echo "===== PHASE19-3 LONG ECONOMY/FACILITY EVIDENCE ====="
-          node --input-type=module <<'NODE'
-          import { readdirSync, readFileSync } from "node:fs";
-          const dir = "/tmp/phase19-3-long";
-          try {
-            for (const file of readdirSync(dir).filter((name) => name.endsWith(".json"))) {
-              const report = JSON.parse(readFileSync(`${dir}/${file}`, "utf8"));
-              const yearly = report.yearly ?? [];
-              const last = yearly.at(-1) ?? {};
-              const levels = Object.values(last.facilities ?? {});
-              const maxed = levels.filter((level) => level === 50).length;
-              const belowMax = levels.filter((level) => level < 50).length;
-              const minLevel = levels.length ? Math.min(...levels) : 0;
-              const maxLevel = levels.length ? Math.max(...levels) : 0;
-              const zeroWeekYears = yearly.filter((year) => (year.zeroFundWeeks ?? 0) > 0);
-              const persistentZeroYears = zeroWeekYears.filter((year) => (year.zeroFundWeeks ?? 0) >= 10);
-              console.log(`REPORT ${file}`);
-              console.log(`finalFunds=${last.fundsEnd} finalMin=${last.fundsMin} finalMax=${last.fundsMax}`);
-              console.log(`finalFacilityMin=${minLevel} finalFacilityMax=${maxLevel} maxedFacilities=${maxed} belowMaxFacilities=${belowMax}`);
-              console.log(`zeroFundYears=${zeroWeekYears.length} persistentZeroYears=${persistentZeroYears.length}`);
-              console.log(`finalCoach=${last.assistantCoach ? `${last.assistantCoach.rank}/${last.assistantCoach.specialty ?? "general"}` : "none"}`);
-              console.log("finalFacilities", JSON.stringify(last.facilities ?? {}));
-              console.log("milestones", JSON.stringify(report.facilityMilestones ?? {}));
-            }
-          } catch (error) {
-            console.error(error);
-          }
-          NODE
-
-          echo "PHASE19_3_LONG_SOAK_STATUS=${soak_status}"
+          echo "PHASE19_3_FOCUS_FORMAT_STATUS=${format_status}"
+          echo "PHASE19_3_FOCUS_TYPECHECK_STATUS=${typecheck_status}"
+          echo "PHASE19_3_FOCUS_SOAK_STATUS=${focus_status}"
           exit 0
