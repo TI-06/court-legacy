@@ -75,4 +75,4 @@ The balancing change is implemented inside the existing attack/block matchup res
 
 Keep the calibrated `±12` matchup value. The deterministic matrix demonstrates both required properties: tactical counters materially affect equal-strength outcomes, while a +10 ability advantage still clearly outweighs an unfavorable tactical matchup.
 
-Final acceptance requires repository-standard PR CI GREEN on the exact PR head and main CI GREEN on the exact squash-merge SHA.
+Final acceptance requires repository-standard PR CI GREEN on the exact PR head and main CI GREEN on the exact squash-merge SHA. Repository-standard PR CI is rerun after the final formatting cleanup recorded on this branch.
