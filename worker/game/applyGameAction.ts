@@ -383,6 +383,34 @@ function applyTeamTactics(
   };
 }
 
+function applyTeamDefenseBias(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-defense-bias" }>,
+): AppliedGameAction {
+  const school = state.schools[state.userSchoolId];
+  if (!school) {
+    return conflict("user_school_not_found", "自校の守備配置を更新できません");
+  }
+
+  return {
+    state: {
+      ...state,
+      schools: {
+        ...state.schools,
+        [school.id]: {
+          ...school,
+          tactics: {
+            ...school.tactics,
+            defenseBias: action.defenseBias,
+          },
+        },
+      },
+    },
+    teamSelection,
+  };
+}
+
 function applyTeamLeadership(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1360,6 +1388,8 @@ export function applyGameAction(
       return applyTeamSelection(state, action);
     case "set-team-tactics":
       return applyTeamTactics(state, teamSelection, action);
+    case "set-team-defense-bias":
+      return applyTeamDefenseBias(state, teamSelection, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":

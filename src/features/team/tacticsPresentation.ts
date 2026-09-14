@@ -1,3 +1,4 @@
+import type { TeamTactics } from "../../domain/model/School";
 import type {
   AttackPlan,
   BlockPlan,
@@ -5,6 +6,8 @@ import type {
   ServePlan,
   TacticMatchupRating,
 } from "../../domain/team/matchTactics";
+
+export type DefenseBias = TeamTactics["defenseBias"];
 
 export interface TacticOption<Value extends string> {
   value: Value;
@@ -45,6 +48,24 @@ export const attackTacticOptions: readonly TacticOption<AttackPlan>[] = [
     value: "quick",
     label: "高速",
     description: "MB参加を増やしブロック完成前を狙う",
+  },
+];
+
+export const defenseBiasOptions: readonly TacticOption<DefenseBias>[] = [
+  {
+    value: "line",
+    label: "ライン警戒",
+    description: "ストレートを厚く守り、クロス側の空間と引き換えに止める",
+  },
+  {
+    value: "balanced",
+    label: "バランス",
+    description: "ラインとクロスを均等に守り、大きな読み外しを避ける",
+  },
+  {
+    value: "cross",
+    label: "クロス警戒",
+    description: "クロスを厚く守り、ライン側の空間と引き換えに止める",
   },
 ];
 

@@ -144,6 +144,12 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .strict(),
   z
     .object({
+      type: z.literal("set-team-defense-bias"),
+      defenseBias: z.enum(["line", "balanced", "cross"]),
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("set-team-leadership"),
       captainPlayerId: playerIdSchema,
       viceCaptainPlayerId: playerIdSchema,
@@ -230,6 +236,10 @@ export type GameAction =
   | { type: "set-training-plan"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
   | { type: "set-team-tactics"; plan: MatchTacticPlan }
+  | {
+      type: "set-team-defense-bias";
+      defenseBias: "line" | "balanced" | "cross";
+    }
   | {
       type: "set-team-leadership";
       captainPlayerId: PlayerId;

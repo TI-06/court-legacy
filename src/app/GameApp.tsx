@@ -13,7 +13,7 @@ import type { MatchStepResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
 import type { MatchCommand } from "../domain/model/Match";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
-import type { SchoolReputation } from "../domain/model/School";
+import type { SchoolReputation, TeamTactics } from "../domain/model/School";
 import type {
   AssistantCoachRank,
   AssistantCoachSpecialty,
@@ -456,6 +456,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-team-tactics", plan },
       "基本戦術を保存しています…",
+    );
+  };
+
+  const saveTeamDefenseBias = async (
+    defenseBias: TeamTactics["defenseBias"],
+  ) => {
+    await cloudSession.runAction(
+      { type: "set-team-defense-bias", defenseBias },
+      "守備配置を保存しています…",
     );
   };
 
@@ -1162,6 +1171,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onDeleteLineupPreset={deleteLineupPreset}
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
+        onSetTeamDefenseBias={saveTeamDefenseBias}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}
         tacticsPending={cloudSession.operation.status === "submitting"}

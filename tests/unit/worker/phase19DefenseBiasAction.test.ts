@@ -59,10 +59,8 @@ describe("Phase19-4 team defense coverage action", () => {
 
     expect(schoolAfter.tactics.defenseBias).toBe("cross");
     expect(deriveMatchTacticPlan(schoolAfter.tactics)).toEqual(planBefore);
-    expect(Object.keys(deriveMatchTacticPlan(schoolAfter.tactics)).sort()).toEqual([
-      "attack",
-      "block",
-      "serve",
-    ]);
+    expect(
+      Object.keys(deriveMatchTacticPlan(schoolAfter.tactics)).sort(),
+    ).toEqual(["attack", "block", "serve"]);
   });
 });
