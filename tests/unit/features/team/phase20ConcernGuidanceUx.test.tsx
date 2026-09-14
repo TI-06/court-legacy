@@ -24,9 +24,9 @@ describe("Phase20 player concern guidance UX", () => {
       />,
     );
 
-    const concernSection = screen.getByRole("heading", {
-      name: "気になる選手",
-    }).parentElement?.parentElement;
+    const concernSection = screen
+      .getByRole("heading", { name: "気になる選手" })
+      .closest("section");
     expect(concernSection).not.toBeNull();
     const scope = within(concernSection!);
     expect(scope.getByText(/出場機会への不満/)).toBeVisible();
