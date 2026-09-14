@@ -6,9 +6,7 @@ on:
       - feature/phase19-match-difficulty-strategic-identities
     paths:
       - .github/workflows/phase19-4-safe-check.yml
-      - src/domain/match/schoolMatchIdentity.ts
-      - src/domain/generation/generateSchool.ts
-      - tests/unit/domain/match/phase19StrategicIdentity.test.ts
+      - tests/unit/domain/match/phase19DefenseBias.test.ts
 
 permissions:
   contents: read
@@ -23,16 +21,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture Task 1 GREEN without failing workflow
+      - name: Capture Task 2 RED without failing workflow
         shell: bash
         run: |
           set +e
-          npx vitest run \
-            tests/unit/domain/match/phase19StrategicIdentity.test.ts \
-            tests/unit/domain/generation/generateWorld.test.ts
+          npx vitest run tests/unit/domain/match/phase19DefenseBias.test.ts
           focused=$?
           npm run typecheck
           types=$?
-          echo "PHASE19_4_IDENTITY_GREEN_STATUS=${focused}"
-          echo "PHASE19_4_IDENTITY_TYPECHECK_STATUS=${types}"
+          echo "PHASE19_4_DEFENSE_RED_STATUS=${focused}"
+          echo "PHASE19_4_DEFENSE_TYPECHECK_STATUS=${types}"
           exit 0
