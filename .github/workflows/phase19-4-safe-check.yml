@@ -1,0 +1,34 @@
+name: Phase19-4 Safe Check
+
+on:
+  push:
+    branches:
+      - feature/phase19-match-difficulty-strategic-identities
+    paths:
+      - .github/workflows/phase19-4-safe-check.yml
+      - tests/unit/domain/match/phase19StrategicIdentity.test.ts
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Capture RED without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/domain/match/phase19StrategicIdentity.test.ts
+          focused=$?
+          npm run typecheck
+          types=$?
+          echo "PHASE19_4_IDENTITY_RED_STATUS=${focused}"
+          echo "PHASE19_4_IDENTITY_TYPECHECK_STATUS=${types}"
+          exit 0
