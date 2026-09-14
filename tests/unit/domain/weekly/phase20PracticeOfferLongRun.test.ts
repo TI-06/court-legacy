@@ -1,6 +1,4 @@
-from pathlib import Path
-
-Path("tests/unit/domain/weekly/phase20PracticeOfferLongRun.test.ts").write_text(r'''import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
 import type {
@@ -43,7 +41,8 @@ function strongestEligibleRival(state: GameState): SchoolId {
     .map((school) => ({
       schoolId: school.id,
       distance: Math.abs(
-        calculateTournamentSchoolStrength(state, school) / Math.max(1, homeStrength) -
+        calculateTournamentSchoolStrength(state, school) /
+          Math.max(1, homeStrength) -
           1.15,
       ),
     }))
@@ -173,5 +172,3 @@ describe("Phase20-3 long-run practice offer cadence and diversity", () => {
     },
   );
 });
-''', encoding="utf-8")
-print("Phase20-3 long-run evidence test staged")
