@@ -1,0 +1,26 @@
+name: Phase20-2 Safe Check
+
+on:
+  push:
+    branches:
+      - "feature/phase20-2-player-concern-guidance"
+
+permissions:
+  contents: read
+
+jobs:
+  safe-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Verify formatting, lint, types, tests, and build
+        run: npm run verify
+      - name: Verify release metadata and evidence
+        run: npm run release:check
+      - name: Run Phase18 soak smoke preset
+        run: npm run soak:smoke
