@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
 
+# Temporary pre-PR gate. Delete after a READY=true run.
 jobs:
   safe-gate:
     runs-on: ubuntu-latest
