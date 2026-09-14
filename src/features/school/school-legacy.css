@@ -1,0 +1,123 @@
+.school-legacy {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.school-legacy__heading,
+.school-legacy__opponent-main,
+.school-legacy__opponent-meta,
+.school-legacy__notable article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.school-legacy__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.school-legacy__heading span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.62;
+}
+
+.school-legacy__heading h4,
+.school-legacy__notable h5 {
+  margin: 0;
+}
+
+.school-legacy__opponents,
+.school-legacy__notable {
+  display: grid;
+  gap: 8px;
+}
+
+.school-legacy__opponent,
+.school-legacy__notable article {
+  border: 1px solid var(--line-subtle, rgba(15, 23, 42, 0.1));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface-raised, rgba(255, 255, 255, 0.72));
+}
+
+.school-legacy__opponent {
+  display: grid;
+  gap: 8px;
+}
+
+.school-legacy__opponent-main > div,
+.school-legacy__notable article > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.school-legacy__opponent-main strong,
+.school-legacy__notable strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-legacy__opponent-main small,
+.school-legacy__notable small,
+.school-legacy__heading small,
+.school-legacy__opponent-meta small,
+.school-legacy__notable time {
+  font-size: 0.74rem;
+  opacity: 0.7;
+}
+
+.school-legacy__opponent-main b,
+.school-legacy__notable b {
+  flex: 0 0 auto;
+  font-size: 0.86rem;
+}
+
+.school-legacy__opponent-meta {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.school-legacy__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.school-legacy__chips span,
+.school-legacy__opponent-meta > span {
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: var(--surface-muted, rgba(15, 23, 42, 0.06));
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.school-legacy__notable article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+@media (max-width: 520px) {
+  .school-legacy__heading {
+    align-items: flex-end;
+  }
+
+  .school-legacy__opponent-main {
+    align-items: flex-start;
+  }
+
+  .school-legacy__notable article {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .school-legacy__notable b {
+    grid-column: 2;
+  }
+}

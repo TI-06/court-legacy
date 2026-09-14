@@ -1,0 +1,58 @@
+.pre-match-rivalry {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  border: 1px solid var(--line-subtle, rgba(15, 23, 42, 0.1));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--surface-raised, rgba(255, 255, 255, 0.72));
+}
+
+.pre-match-rivalry__heading,
+.pre-match-rivalry__record,
+.pre-match-rivalry__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pre-match-rivalry__heading {
+  justify-content: space-between;
+}
+
+.pre-match-rivalry__heading > span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.58;
+}
+
+.pre-match-rivalry__heading > strong {
+  font-size: 0.92rem;
+}
+
+.pre-match-rivalry__record {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.pre-match-rivalry__record b {
+  font-size: 0.92rem;
+}
+
+.pre-match-rivalry__record span {
+  font-size: 0.76rem;
+  opacity: 0.76;
+}
+
+.pre-match-rivalry__chips {
+  flex-wrap: wrap;
+}
+
+.pre-match-rivalry__chips span {
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: var(--surface-muted, rgba(15, 23, 42, 0.06));
+  font-size: 0.7rem;
+  font-weight: 800;
+}
