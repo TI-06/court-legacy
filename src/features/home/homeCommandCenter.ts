@@ -1,9 +1,7 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
-import type {
-  CohesionTrend,
-  PlayerConcernCode,
-} from "../../domain/dynamics/teamDynamicsTypes";
+import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";
+import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
 import type {
   GameState,
   HistoricalMatchSummary,
@@ -11,7 +9,9 @@ import type {
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 import {
+  selectHomeConcernResolutionNotifications,
   selectHomeTrainingNotifications,
+  type ConcernResolutionNotification,
   type TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
@@ -127,6 +127,13 @@ export type HomeCommandNews =
     }
   | {
       id: string;
+      kind: "concern-resolution";
+      title: string;
+      detail: string;
+      notification: ConcernResolutionNotification;
+    }
+  | {
+      id: string;
       kind: "growth";
       title: string;
       detail: string;
@@ -177,13 +184,6 @@ const roundLabels: Record<TournamentRound, string> = {
   quarterfinal: "準々決勝",
   semifinal: "準決勝",
   final: "決勝",
-};
-
-const concernLabels: Record<PlayerConcernCode, string> = {
-  "playing-time": "出場機会への不満",
-  "role-mismatch": "役割への不満",
-  "injury-overuse": "怪我・起用負荷",
-  "team-slump": "チーム不調",
 };
 
 const cohesionTrendLabels: Record<CohesionTrend, string> = {
@@ -324,31 +324,30 @@ function playerConcernTasks(state: GameState): TaskCandidate[] {
   const candidates = school.playerIds.flatMap((playerId) => {
     const player = state.players[playerId];
     if (!player) return [];
-    const concerns = state.teamDynamics.playerConcerns[playerId] ?? [];
-    const concern = [...concerns].sort(
+    const guidance = [...selectPlayerConcernGuidance(state, playerId)].sort(
       (left, right) =>
         right.severity - left.severity || left.code.localeCompare(right.code),
     )[0];
-    return concern ? [{ player, concern }] : [];
+    return guidance ? [{ player, guidance }] : [];
   });
 
   return candidates
     .sort(
       (left, right) =>
-        right.concern.severity - left.concern.severity ||
+        right.guidance.severity - left.guidance.severity ||
         right.player.grade - left.player.grade ||
         String(left.player.id).localeCompare(String(right.player.id)),
     )
     .slice(0, 2)
-    .map(({ player, concern }, index) => ({
+    .map(({ player, guidance }, index) => ({
       order: 20 + index,
       task: {
-        id: `player-concern:${player.id}:${concern.code}`,
+        id: `player-concern:${player.id}:${guidance.code}`,
         kind: "action",
         priority: "attention",
         category: "player",
         title: "選手から相談",
-        detail: `${player.lastName} ${player.firstName}・${concernLabels[concern.code]}・重要度${concern.severity}`,
+        detail: `${player.lastName} ${player.firstName}・${guidance.title}・${guidance.progressLabel}・${guidance.resolution}`,
         action: { target: "player", playerId: player.id },
         actionLabel: "確認",
         complete: false,
@@ -552,6 +551,24 @@ function buildTasks(
 function buildNews(state: GameState): HomeCommandNews[] {
   const candidates: NewsCandidate[] = [];
   const notification = selectHomeTrainingNotifications(state.notifications)[0];
+  const concernResolution = selectHomeConcernResolutionNotifications(
+    state.notifications,
+  )[0];
+
+  if (concernResolution) {
+    candidates.push({
+      order: concernResolution.readAtGameDate === null ? 1 : 41,
+      news: {
+        id: `news:concern:${concernResolution.id}`,
+        kind: "concern-resolution",
+        title: "選手の不満が解消",
+        detail: concernResolution.payload.items
+          .map((item) => `${item.displayName}・${item.concernTitle}`)
+          .join(" / "),
+        notification: concernResolution,
+      },
+    });
+  }
 
   if (notification) {
     candidates.push({
