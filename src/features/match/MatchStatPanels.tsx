@@ -9,6 +9,7 @@ import {
   type TeamProfile,
 } from "./matchPresentation";
 import "./matchGameStats.css";
+import { PreMatchRivalryContext } from "./PreMatchRivalryContext";
 import { ratingToGrade } from "./teamRatingGrade";
 
 interface PreMatchComparisonProps {
@@ -177,6 +178,11 @@ export function PreMatchComparison({
           {strengthDifference}
         </span>
       </div>
+
+      <PreMatchRivalryContext
+        opponentSelection={awaySelection}
+        state={state}
+      />
 
       <div className="match-power-versus" aria-label="総合戦力比較">
         <div>
