@@ -13,9 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  long-soak:
+  final-verification:
+    if: github.event.head_commit.message == 'chore: run final phase19 verification'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,19 +24,43 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Run Phase19 long soak without notification-red
+      - run: npx playwright install --with-deps chromium
+      - name: Verify Phase19 final candidate without notification-red
         shell: bash
         run: |
           set +e
-          rm -rf /tmp/phase19-long
-          node scripts/runBalanceSoak.mjs --preset long --output /tmp/phase19-long > /tmp/phase19-long.log 2>&1
-          soak_status=$?
-          cat /tmp/phase19-long.log
-          if [ -d /tmp/phase19-long ]; then
-            for file in /tmp/phase19-long/*.json; do
-              [ -f "$file" ] || continue
-              node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const y=r.yearly.at(-1); console.log(JSON.stringify({seed:r.metadata.seed,seasons:r.metadata.completedSeasons,final:{userStrength:y.userStrength,cpu:y.cpuStrength,ability:y.playerAbility,national:y.nationalParticipantStrength,growth:y.yearlyGrowthTotal,growthByGrowthType:y.growthByGrowthType,growthTypeCounts:y.growthTypeCounts,playerTierCounts:y.playerTierCounts}},null,2));' "$file"
-            done
-          fi
-          echo "PHASE19_SOAK_LONG_STATUS=${soak_status}"
+          npx vitest run \
+            tests/unit/domain/player/playerDevelopmentBalance.test.ts \
+            tests/unit/domain/training/longTermAbilityGrowth.test.ts \
+            tests/unit/domain/training/calculateGrowth.test.ts \
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
+            tests/unit/worker/phase19MatchExperience.test.ts \
+            tests/unit/worker/applyGameAction.test.ts \
+            tests/unit/worker/officialMatchAction.test.ts \
+            tests/unit/worker/phase16OfficialMatchSession.test.ts \
+            tests/unit/worker/phase16PracticeMatchSession.test.ts \
+            tests/unit/worker/phase16PvpCommandFinalizationRoutes.test.ts \
+            tests/unit/worker/phase16PvpCommandReceiptStore.test.ts \
+            tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts \
+            > /tmp/phase19-focused.log 2>&1
+          focused_status=$?
+          npm run verify > /tmp/phase19-verify.log 2>&1
+          verify_status=$?
+          npm run release:check > /tmp/phase19-release.log 2>&1
+          release_status=$?
+          npm run soak:smoke > /tmp/phase19-smoke.log 2>&1
+          smoke_status=$?
+          npm run test:e2e > /tmp/phase19-e2e.log 2>&1
+          e2e_status=$?
+
+          cat /tmp/phase19-focused.log
+          cat /tmp/phase19-verify.log
+          cat /tmp/phase19-release.log
+          cat /tmp/phase19-smoke.log
+          cat /tmp/phase19-e2e.log
+          echo "PHASE19_FOCUSED_STATUS=${focused_status}"
+          echo "PHASE19_VERIFY_STATUS=${verify_status}"
+          echo "PHASE19_RELEASE_STATUS=${release_status}"
+          echo "PHASE19_SOAK_SMOKE_STATUS=${smoke_status}"
+          echo "PHASE19_E2E_STATUS=${e2e_status}"
           exit 0
