@@ -6,10 +6,10 @@ on:
       - feature/phase19-match-difficulty-strategic-identities
     paths:
       - .github/workflows/phase19-4-safe-check.yml
-      - tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
+      - scripts/phase19-4-task4.py
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -21,14 +21,44 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture Task 4 RED without failing workflow
+      - name: Apply Task 4 and capture GREEN
         shell: bash
         run: |
           set +e
-          npx vitest run tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
-          focused=$?
-          npm run typecheck
-          types=$?
-          echo "PHASE19_4_AUTO_RED_STATUS=${focused}"
+          python scripts/phase19-4-task4.py
+          patch_status=$?
+          if [ "$patch_status" -eq 0 ]; then
+            npx prettier --write \
+              src/domain/model/Match.ts \
+              src/domain/match/simulateMatch.ts \
+              tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
+            format_status=$?
+          else
+            format_status=99
+          fi
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
+            npx vitest run \
+              tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts \
+              tests/unit/domain/match/phase16ResumableMatch.test.ts \
+              tests/unit/domain/match/phase16MatchCommands.test.ts
+            focused=$?
+            npm run typecheck
+            types=$?
+          else
+            focused=99
+            types=99
+          fi
+          echo "PHASE19_4_AUTO_PATCH_STATUS=${patch_status}"
+          echo "PHASE19_4_AUTO_FORMAT_STATUS=${format_status}"
+          echo "PHASE19_4_AUTO_GREEN_STATUS=${focused}"
           echo "PHASE19_4_AUTO_TYPECHECK_STATUS=${types}"
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add src/domain/model/Match.ts src/domain/match/simulateMatch.ts tests/unit/domain/match/phase19AutomaticCpuCoach.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "feat: apply automatic cpu tactic changes"
+              git push origin HEAD:feature/phase19-match-difficulty-strategic-identities
+            fi
+          fi
           exit 0
