@@ -6,9 +6,11 @@ on:
       - feature/phase19-economy-facility-coach-balance
     paths:
       - .github/workflows/phase19-3-safe-check.yml
+      - scripts/phase19-3-apply.py
+      - scripts/phase19-3-test-fix.py
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -20,14 +22,64 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture focused verification without failing workflow
+      - name: Apply integration patch and capture verification
         shell: bash
         run: |
           set +e
-          npx vitest run tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts
-          focused=$?
-          npm run typecheck
-          types=$?
+          python scripts/phase19-3-apply.py
+          patch_status=$?
+          if [ "$patch_status" -eq 0 ]; then
+            python scripts/phase19-3-test-fix.py
+            patch_status=$?
+          fi
+
+          if [ "$patch_status" -eq 0 ]; then
+            npx prettier --write \
+              src/app/GameApp.tsx \
+              src/features/school/SchoolScreen.tsx \
+              src/features/school/school-screen.css \
+              worker/game/applyGameAction.ts \
+              tests/unit/features/school/SchoolScreen.test.tsx \
+              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts
+            format_status=$?
+          else
+            format_status=99
+          fi
+
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ]; then
+            npx vitest run \
+              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts \
+              tests/unit/features/school/SchoolScreen.test.tsx \
+              tests/unit/features/school/AssistantCoachStaffScreen.test.tsx \
+              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts \
+              tests/unit/worker/assistantCoachAction.test.ts \
+              tests/unit/worker/applyGameAction.test.ts
+            focused=$?
+            npm run typecheck
+            types=$?
+          else
+            focused=99
+            types=99
+          fi
+
+          echo "PHASE19_3_PATCH_STATUS=${patch_status}"
+          echo "PHASE19_3_FORMAT_STATUS=${format_status}"
           echo "PHASE19_3_FOCUSED_STATUS=${focused}"
           echo "PHASE19_3_TYPECHECK_STATUS=${types}"
+
+          if [ "$patch_status" -eq 0 ] && [ "$format_status" -eq 0 ] && [ "$focused" -eq 0 ] && [ "$types" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add \
+              src/app/GameApp.tsx \
+              src/features/school/SchoolScreen.tsx \
+              src/features/school/school-screen.css \
+              worker/game/applyGameAction.ts \
+              tests/unit/features/school/SchoolScreen.test.tsx \
+              tests/unit/worker/phase19EconomyFacilityCoachAction.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "feat: wire bulk facilities and annual coach UI"
+              git push origin HEAD:feature/phase19-economy-facility-coach-balance
+            fi
+          fi
           exit 0
