@@ -1,8 +1,4 @@
-import {
-  ABILITY_KEYS,
-  clampAbility,
-  type Player,
-} from "../model/Player";
+import { ABILITY_KEYS, clampAbility, type Player } from "../model/Player";
 import type { SchoolReputation } from "../model/School";
 
 export interface RivalSchoolBalanceProfile {
@@ -53,9 +49,7 @@ export function applyRivalRecruitAbilityBonus(
 
   const abilities = { ...player.abilities };
   for (const ability of ABILITY_KEYS) {
-    abilities[ability] = clampAbility(
-      abilities[ability] + abilityBonus,
-    );
+    abilities[ability] = clampAbility(abilities[ability] + abilityBonus);
   }
 
   return {

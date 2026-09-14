@@ -15,6 +15,10 @@ import { playerId, schoolId } from "../model/identifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
 import {
+  applyRivalRecruitAbilityBonus,
+  rivalSchoolBalanceProfile,
+} from "../world/rivalSchoolBalance";
+import {
   annualSchoolBudget,
   createInitialSchoolManagement,
 } from "../school/schoolEconomy";
@@ -234,7 +238,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     }
 
     const captain = squad.find((player) => player.grade === 3) ?? squad[0];
-    schools[id] = generateSchool({
+    const generatedSchool = generateSchool({
       id,
       name: setup.name,
       shortName: setup.shortName,
@@ -247,6 +251,19 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       random,
       isUserSchool,
     });
+    schools[id] = generatedSchool;
+
+    if (!isUserSchool) {
+      const abilityBonus = rivalSchoolBalanceProfile(
+        generatedSchool.reputation,
+      ).recruitAbilityBonus;
+      for (const player of squad) {
+        players[player.id] = applyRivalRecruitAbilityBonus(
+          player,
+          abilityBonus,
+        );
+      }
+    }
   };
 
   createSchoolAndSquad(
