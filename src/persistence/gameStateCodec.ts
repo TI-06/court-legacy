@@ -551,8 +551,8 @@ const weeklyScheduleSchema = z
         schoolId: entry.schoolId,
         surfacedDate: entry.date,
       }));
-    const { incomingOfferHistory: _legacyHistory, ...practiceMatch } =
-      state.practiceMatch;
+    const practiceMatch = { ...state.practiceMatch };
+    delete practiceMatch.incomingOfferHistory;
     return {
       ...state,
       practiceMatch,
