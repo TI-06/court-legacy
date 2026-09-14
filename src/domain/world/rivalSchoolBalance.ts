@@ -1,3 +1,8 @@
+import {
+  ABILITY_KEYS,
+  clampAbility,
+  type Player,
+} from "../model/Player";
 import type { SchoolReputation } from "../model/School";
 
 export interface RivalSchoolBalanceProfile {
@@ -36,4 +41,23 @@ export function rivalSchoolBalanceProfile(
   reputation: SchoolReputation,
 ): RivalSchoolBalanceProfile {
   return PROFILES[reputation];
+}
+
+export function applyRivalRecruitAbilityBonus(
+  player: Player,
+  abilityBonus: number,
+): Player {
+  if (abilityBonus <= 0) {
+    return player;
+  }
+
+  return {
+    ...player,
+    abilities: Object.fromEntries(
+      ABILITY_KEYS.map((ability) => [
+        ability,
+        clampAbility(player.abilities[ability] + abilityBonus),
+      ]),
+    ) as Player["abilities"],
+  };
 }
