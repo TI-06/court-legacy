@@ -1,0 +1,67 @@
+name: Phase21 PR21-1 Safe Gate
+
+on:
+  push:
+    branches:
+      - feat/phase21-1-fullscreen-events-personality
+
+permissions:
+  contents: read
+
+jobs:
+  safe-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run PR21-1 gate without failure-email status
+        shell: bash
+        run: |
+          set +e
+
+          npx vitest run \
+            tests/unit/domain/player/playerPersonalityPresentation.test.ts \
+            tests/unit/features/team/phase21PlayerPersonalityDetail.test.tsx \
+            tests/unit/features/team/PlayerHubScreen.test.tsx \
+            tests/unit/features/abilityStrengthGrades.test.tsx \
+            tests/unit/features/team/PlayerHubInitialFocus.test.tsx \
+            tests/unit/features/team/PlayerHubTactics.test.tsx \
+            tests/unit/features/home/phase21FullscreenEventChoice.test.tsx \
+            tests/unit/features/home/phase21FullscreenEventResult.test.tsx \
+            tests/unit/features/home/EventDialog.test.tsx
+          focused_status=$?
+
+          npm run typecheck
+          typecheck_status=$?
+
+          npm run lint
+          lint_status=$?
+
+          npm run format:check
+          format_status=$?
+
+          npm run verify
+          verify_status=$?
+
+          set -e
+
+          echo "focused_status=$focused_status"
+          echo "typecheck_status=$typecheck_status"
+          echo "lint_status=$lint_status"
+          echo "format_status=$format_status"
+          echo "verify_status=$verify_status"
+
+          if [ "$focused_status" -eq 0 ] && \
+             [ "$typecheck_status" -eq 0 ] && \
+             [ "$lint_status" -eq 0 ] && \
+             [ "$format_status" -eq 0 ] && \
+             [ "$verify_status" -eq 0 ]; then
+            echo "PHASE21_PR21_1_SAFE_GATE_READY=true"
+          else
+            echo "PHASE21_PR21_1_SAFE_GATE_READY=false"
+          fi
