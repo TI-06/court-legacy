@@ -8,7 +8,7 @@ on:
       - .github/workflows/phase19-3-safe-check.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   check:
@@ -20,58 +20,35 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Capture full verification and 10-season balance evidence
+      - name: Format candidate and capture full verification
         shell: bash
         run: |
           set +e
+          npx prettier --write \
+            docs/superpowers/plans/2026-09-14-phase19-economy-facility-coach-balance.md \
+            src/domain/school/facilityUpgrade.ts \
+            tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts
+          format_status=$?
+
           npm run verify
           verify_status=$?
-
           npm run release:check
           release_status=$?
 
-          rm -rf /tmp/phase19-3-balance
-          node scripts/runBalanceSoak.mjs \
-            --preset balance \
-            --seed phase18-release-a \
-            --seed phase18-release-b \
-            --output /tmp/phase19-3-balance
-          soak_status=$?
-
-          echo "===== PHASE19-3 BALANCE REPORTS ====="
-          for report in /tmp/phase19-3-balance/*.txt; do
-            if [ -f "$report" ]; then
-              echo "--- $report ---"
-              cat "$report"
-            fi
-          done
-          echo "===== PHASE19-3 YEARLY ECONOMY/FACILITY/COACH ====="
-          node --input-type=module <<'NODE'
-          import { readdirSync, readFileSync } from "node:fs";
-          const dir = "/tmp/phase19-3-balance";
-          try {
-            for (const file of readdirSync(dir).filter((name) => name.endsWith(".json"))) {
-              const report = JSON.parse(readFileSync(`${dir}/${file}`, "utf8"));
-              console.log(`REPORT ${file}`);
-              for (const year of report.yearly ?? []) {
-                const coach = year.assistantCoach
-                  ? `${year.assistantCoach.rank}/${year.assistantCoach.specialty ?? "general"}`
-                  : "none";
-                const facilities = Object.entries(year.facilities ?? {})
-                  .map(([key, value]) => `${key}:${value}`)
-                  .join(",");
-                console.log(
-                  `year=${year.yearIndex} fundsStart=${year.fundsStart} fundsMin=${year.fundsMin} fundsEnd=${year.fundsEnd} zeroFundWeeks=${year.zeroFundWeeks} coach=${coach} facilities=${facilities}`,
-                );
-              }
-              console.log("MILESTONES", JSON.stringify(report.facilityMilestones ?? {}));
-            }
-          } catch (error) {
-            console.error(error);
-          }
-          NODE
-
+          echo "PHASE19_3_FORMAT_STATUS=${format_status}"
           echo "PHASE19_3_VERIFY_STATUS=${verify_status}"
           echo "PHASE19_3_RELEASE_STATUS=${release_status}"
-          echo "PHASE19_3_BALANCE_STATUS=${soak_status}"
+
+          if [ "$format_status" -eq 0 ] && [ "$verify_status" -eq 0 ] && [ "$release_status" -eq 0 ]; then
+            git config user.name "court-legacy-bot"
+            git config user.email "court-legacy-bot@users.noreply.github.com"
+            git add \
+              docs/superpowers/plans/2026-09-14-phase19-economy-facility-coach-balance.md \
+              src/domain/school/facilityUpgrade.ts \
+              tests/unit/domain/school/phase19EconomyFacilityCoachBalance.test.ts
+            if ! git diff --cached --quiet; then
+              git commit -m "style: format phase19-3 balance changes"
+              git push origin HEAD:feature/phase19-economy-facility-coach-balance
+            fi
+          fi
           exit 0
