@@ -1,8 +1,5 @@
 import type { PlayerId } from "../model/identifiers";
-import type {
-  PlayerConcernCode,
-  TeamDynamicsState,
-} from "./teamDynamicsTypes";
+import type { PlayerConcernCode, TeamDynamicsState } from "./teamDynamicsTypes";
 
 export interface ResolvedPlayerConcern {
   playerId: PlayerId;
