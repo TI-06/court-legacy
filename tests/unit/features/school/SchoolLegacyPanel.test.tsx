@@ -36,10 +36,9 @@ describe("SchoolLegacyPanel", () => {
     )!;
 
     appendResult(state, rival.id, 0, true, true);
-    appendResult(state, rival.id, 1, true);
+    appendResult(state, rival.id, 1, false);
     appendResult(state, rival.id, 2, false, true);
     appendResult(state, rival.id, 3, false);
-    appendResult(state, rival.id, 4, false, true);
     state.world.destinyRivalSchoolId = rival.id;
     state.world.rivalryScores[rivalryKey(state.userSchoolId, rival.id)] = 82;
 
@@ -49,7 +48,7 @@ describe("SchoolLegacyPanel", () => {
     const legacy = screen.getByRole("region", { name: "対戦史" });
     expect(legacy).toBeVisible();
     expect(within(legacy).getByText(rival.shortName)).toBeVisible();
-    expect(within(legacy).getByText("通算 2勝3敗")).toBeVisible();
+    expect(within(legacy).getByText("通算 1勝3敗")).toBeVisible();
     expect(within(legacy).getByText("3連敗中")).toBeVisible();
     expect(within(legacy).getByText("宿敵")).toBeVisible();
     expect(within(legacy).getByText("天敵")).toBeVisible();
