@@ -1,0 +1,477 @@
+name: Phase21 PR21-1 Task3 Implement
+
+on:
+  push:
+    branches:
+      - feat/phase21-1-fullscreen-events-personality
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Build fullscreen choice experience
+        shell: bash
+        run: |
+          cat > src/features/home/FullscreenEventExperience.tsx <<'EOF'
+          import { useState } from "react";
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import { renderEventText } from "../../domain/events/renderEventText";
+          import type { GameState } from "../../domain/model/GameState";
+          import { BottomSheet } from "../../ui/BottomSheet";
+          import { SchoolEmblem } from "../../ui/SchoolEmblem";
+          import "../../ui/ui.css";
+          import "./event-dialog.css";
+          import "./fullscreen-event.css";
+
+          export interface FullscreenEventExperienceProps {
+            state: GameState;
+            data: GameDataRegistry;
+            onChoose: (choiceId: string) => void | Promise<void>;
+          }
+
+          const abilityResultLabels: Record<string, string> = {
+            spike: "スパイク",
+            jump: "ジャンプ",
+            receive: "レシーブ",
+            serve: "サーブ",
+            set: "トス",
+            block: "ブロック",
+            speed: "スピード",
+            stamina: "スタミナ",
+            decision: "判断力",
+            mental: "メンタル",
+          };
+
+          const eventCategoryLabels: Record<string, string> = {
+            individual: "選手イベント",
+            relationship: "関係イベント",
+            practice: "練習イベント",
+            injury: "コンディション",
+            academic: "学校生活",
+            match: "試合イベント",
+            captaincy: "チーム運営",
+            scouting: "スカウト",
+            rivalry: "ライバルイベント",
+            ob: "OBイベント",
+            rare: "特別イベント",
+            seasonal: "季節イベント",
+          };
+
+          function formatVisibleResult(code: string): string {
+            const [head, ...rest] = code.split(" ");
+            const label = abilityResultLabels[head ?? ""];
+            return label ? `${label} ${rest.join(" ")}` : code;
+          }
+
+          export function FullscreenEventExperience({
+            state,
+            data,
+            onChoose,
+          }: FullscreenEventExperienceProps) {
+            const [selectedResolution, setSelectedResolution] = useState<{
+              eventId: string;
+              choiceId: string;
+            } | null>(null);
+            const [resolvingChoiceId, setResolvingChoiceId] = useState<string | null>(
+              null,
+            );
+            const pending = state.pendingEvent;
+            const latestOccurrence = state.eventMemory.history.at(-1);
+
+            if (!pending && selectedResolution && latestOccurrence) {
+              const resolvedEvent = data.events.get(latestOccurrence.eventId);
+              const resolvedChoice = resolvedEvent?.choices.find(
+                (choice) => choice.id === latestOccurrence.choiceId,
+              );
+              const matchesSelection =
+                latestOccurrence.eventId === selectedResolution.eventId &&
+                latestOccurrence.choiceId === selectedResolution.choiceId;
+
+              if (matchesSelection && resolvedEvent && resolvedChoice) {
+                const actorNames = latestOccurrence.actorPlayerIds
+                  .map((playerId) => state.players[playerId])
+                  .filter(Boolean)
+                  .map((player) => `${player!.lastName} ${player!.firstName}`);
+
+                return (
+                  <BottomSheet
+                    description={`${resolvedEvent.title}への対応結果です。`}
+                    onClose={() => setSelectedResolution(null)}
+                    open
+                    title="対応結果"
+                  >
+                    <div className="event-result" aria-live="polite">
+                      <div className="event-result__choice">
+                        <span>選んだ対応</span>
+                        <strong>{resolvedChoice.label}</strong>
+                        {actorNames.length > 0 ? (
+                          <small>{actorNames.join("・")}</small>
+                        ) : null}
+                      </div>
+                      <section aria-label="対応による変化">
+                        <h3>起きた変化</h3>
+                        {latestOccurrence.visibleResultCodes.length > 0 ? (
+                          <ul>
+                            {latestOccurrence.visibleResultCodes.map((code, index) => (
+                              <li key={`${code}:${index}`}>
+                                {formatVisibleResult(code)}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>今回は大きな数値変化はありませんでした。</p>
+                        )}
+                      </section>
+                      <button
+                        className="event-result__close"
+                        onClick={() => setSelectedResolution(null)}
+                        type="button"
+                      >
+                        結果を確認した
+                      </button>
+                    </div>
+                  </BottomSheet>
+                );
+              }
+            }
+
+            if (!pending) {
+              return null;
+            }
+            const event = data.events.get(pending.eventId);
+            if (!event) {
+              return null;
+            }
+            const actors = pending.actorPlayerIds.map((playerId) => {
+              const player = state.players[playerId];
+              const school = player ? state.schools[player.career.schoolId] : undefined;
+              const personality = player
+                ? data.personalities.get(player.personalityId)
+                : undefined;
+              return { playerId, player, school, personality };
+            });
+
+            const choose = async (choiceId: string) => {
+              if (resolvingChoiceId !== null) return;
+              setSelectedResolution({ eventId: pending.eventId, choiceId });
+              setResolvingChoiceId(choiceId);
+              try {
+                await onChoose(choiceId);
+              } finally {
+                setResolvingChoiceId(null);
+              }
+            };
+
+            return (
+              <div className="fullscreen-event-layer">
+                <section
+                  aria-labelledby="fullscreen-event-title"
+                  aria-modal="true"
+                  className="fullscreen-event"
+                  data-phase="choice"
+                  data-testid="fullscreen-event"
+                  role="dialog"
+                >
+                  <header className="fullscreen-event__header">
+                    <div>
+                      <span className="fullscreen-event__category">
+                        {eventCategoryLabels[event.category] ?? "監督判断"}
+                      </span>
+                      <h2 id="fullscreen-event-title">{event.title}</h2>
+                      <p>監督として対応を選んでください。</p>
+                    </div>
+                  </header>
+
+                  <main className="fullscreen-event__content">
+                    <div className="event-actors" aria-label="関係する選手">
+                      {actors.map(({ playerId, player, school, personality }) => {
+                        if (!player) {
+                          return <span key={playerId}>不明な選手</span>;
+                        }
+
+                        return (
+                          <article className="event-actor-card" key={playerId}>
+                            <span className="event-actor-character" aria-hidden="true">
+                              {player.lastName.slice(0, 1)}
+                              {player.firstName.slice(0, 1)}
+                            </span>
+                            <div className="event-actor-card__identity">
+                              <span className="event-actor-card__school">
+                                <SchoolEmblem compact school={school} />
+                                {school?.name ?? "所属校不明"}
+                              </span>
+                              <strong>
+                                {player.lastName} {player.firstName}
+                              </strong>
+                              <small>
+                                {player.grade}年・{player.preferredPosition}
+                              </small>
+                              <span className="event-actor-card__personality">
+                                {personality?.name ?? "性格不明"}
+                              </span>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                    <p className="event-story">
+                      {renderEventText(event.bodyTemplate, state, pending.actorPlayerIds)}
+                    </p>
+                  </main>
+
+                  <footer className="fullscreen-event__actions">
+                    <div className="event-choice-list" aria-label="対応を選択">
+                      {event.choices
+                        .filter((choice) => pending.choiceIds.includes(choice.id))
+                        .map((choice) => (
+                          <button
+                            className="event-choice"
+                            disabled={resolvingChoiceId !== null}
+                            key={choice.id}
+                            onClick={() => void choose(choice.id)}
+                            type="button"
+                          >
+                            <strong>
+                              {resolvingChoiceId === choice.id
+                                ? "結果を反映しています…"
+                                : choice.label}
+                            </strong>
+                            <span>{choice.detail}</span>
+                          </button>
+                        ))}
+                    </div>
+                  </footer>
+                </section>
+              </div>
+            );
+          }
+          EOF
+
+          cat > src/features/home/fullscreen-event.css <<'EOF'
+          .fullscreen-event-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            overflow: hidden;
+            color: var(--game-text, #f4f7fb);
+            background:
+              radial-gradient(circle at 16% 8%, rgb(46 139 216 / 22%), transparent 36%),
+              radial-gradient(circle at 90% 22%, rgb(244 122 24 / 16%), transparent 30%),
+              #050b14;
+          }
+
+          .fullscreen-event {
+            box-sizing: border-box;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            width: min(100%, 760px);
+            min-height: 100dvh;
+            height: 100dvh;
+            margin: 0 auto;
+            padding-top: env(safe-area-inset-top);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            overflow: hidden;
+            background: linear-gradient(180deg, rgb(8 20 35 / 96%), rgb(5 11 20 / 99%));
+            border-inline: 1px solid rgb(255 255 255 / 8%);
+          }
+
+          .fullscreen-event__header {
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid rgb(255 255 255 / 9%);
+          }
+
+          .fullscreen-event__header h2,
+          .fullscreen-event__header p {
+            margin: 0;
+          }
+
+          .fullscreen-event__header h2 {
+            margin-top: 5px;
+            font-size: clamp(1.35rem, 5.5vw, 2rem);
+            line-height: 1.2;
+          }
+
+          .fullscreen-event__header p {
+            margin-top: 6px;
+            color: var(--game-text-muted, #a9b8ca);
+            font-size: 0.82rem;
+          }
+
+          .fullscreen-event__category {
+            display: inline-flex;
+            padding: 4px 8px;
+            color: #ffd99a;
+            font-size: 0.68rem;
+            font-weight: 900;
+            background: rgb(244 122 24 / 14%);
+            border: 1px solid rgb(244 122 24 / 30%);
+            border-radius: 999px;
+          }
+
+          .fullscreen-event__content {
+            display: grid;
+            align-content: start;
+            min-height: 0;
+            padding: 16px 18px 24px;
+            gap: 20px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+          }
+
+          .fullscreen-event__actions {
+            position: sticky;
+            bottom: 0;
+            padding: 12px 18px max(12px, env(safe-area-inset-bottom));
+            background: linear-gradient(180deg, rgb(5 11 20 / 55%), #050b14 22%);
+            border-top: 1px solid rgb(255 255 255 / 9%);
+          }
+
+          .fullscreen-event .event-actors {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+          }
+
+          .fullscreen-event .event-actor-card {
+            min-width: 0;
+            padding: 9px;
+            color: var(--game-text, #f4f7fb);
+            background: linear-gradient(145deg, rgb(16 41 69 / 94%), rgb(8 20 35 / 96%));
+            border-color: rgb(255 255 255 / 11%);
+          }
+
+          .fullscreen-event .event-actor-character {
+            color: #ffd99a;
+            background: linear-gradient(160deg, #173c61, #0b1a2d);
+          }
+
+          .fullscreen-event .event-actor-card__school,
+          .fullscreen-event .event-actor-card__identity small {
+            color: var(--game-text-muted, #a9b8ca);
+          }
+
+          .event-actor-card__personality {
+            justify-self: start;
+            margin-top: 2px;
+            padding: 2px 7px;
+            color: #ffd99a;
+            font-size: 0.64rem;
+            font-weight: 900;
+            background: rgb(244 122 24 / 12%);
+            border: 1px solid rgb(244 122 24 / 22%);
+            border-radius: 999px;
+          }
+
+          .fullscreen-event .event-story {
+            padding: 16px;
+            color: #e9f1f8;
+            font-size: 1rem;
+            line-height: 1.85;
+            background: rgb(11 26 45 / 78%);
+            border: 1px solid rgb(255 255 255 / 9%);
+            border-radius: 14px;
+          }
+
+          .fullscreen-event .event-choice-list {
+            gap: 8px;
+          }
+
+          .fullscreen-event .event-choice {
+            min-height: 64px;
+            color: #f4f7fb;
+            background: linear-gradient(135deg, #102945, #0b1a2d);
+            border-color: rgb(255 255 255 / 13%);
+          }
+
+          .fullscreen-event .event-choice:active {
+            background: #173c61;
+          }
+
+          .fullscreen-event .event-choice strong {
+            font-size: 0.92rem;
+          }
+
+          .fullscreen-event .event-choice span {
+            color: var(--game-text-muted, #a9b8ca);
+            font-size: 0.78rem;
+          }
+
+          @media (max-width: 520px) {
+            .fullscreen-event .event-actors {
+              grid-template-columns: 1fr;
+            }
+
+            .fullscreen-event__header,
+            .fullscreen-event__content,
+            .fullscreen-event__actions {
+              padding-inline: 14px;
+            }
+          }
+          EOF
+
+          cat > src/features/home/EventDialog.tsx <<'EOF'
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import type { GameState } from "../../domain/model/GameState";
+          import { FullscreenEventExperience } from "./FullscreenEventExperience";
+
+          interface EventDialogProps {
+            state: GameState;
+            data: GameDataRegistry;
+            onChoose: (choiceId: string) => void | Promise<void>;
+          }
+
+          export function EventDialog(props: EventDialogProps) {
+            return <FullscreenEventExperience {...props} />;
+          }
+          EOF
+      - name: Format changed files
+        run: npx prettier --write src/features/home/FullscreenEventExperience.tsx src/features/home/fullscreen-event.css src/features/home/EventDialog.tsx tests/unit/features/home/phase21FullscreenEventChoice.test.tsx
+      - name: Verify Task3 without failing workflow
+        id: verify
+        shell: bash
+        run: |
+          set +e
+          npx vitest run \
+            tests/unit/features/home/phase21FullscreenEventChoice.test.tsx \
+            tests/unit/features/home/EventDialog.test.tsx
+          test_status=$?
+          npm run typecheck
+          type_status=$?
+          set -e
+          if [ "$test_status" -ne 0 ] || [ "$type_status" -ne 0 ]; then
+            echo "Task3 verification did not pass; leaving branch unmodified for diagnosis."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Task3 focused tests and typecheck passed."
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit verified Task3 and remove this workflow
+        if: steps.verify.outputs.ready == 'true'
+        shell: bash
+        run: |
+          rm .github/workflows/phase21-pr21-1-task3-implement.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/features/home/FullscreenEventExperience.tsx \
+            src/features/home/fullscreen-event.css \
+            src/features/home/EventDialog.tsx \
+            tests/unit/features/home/phase21FullscreenEventChoice.test.tsx \
+            .github/workflows/phase21-pr21-1-task3-implement.yml
+          git commit -m "feat: make choice events fullscreen"
+          git push origin HEAD:${GITHUB_REF_NAME}
