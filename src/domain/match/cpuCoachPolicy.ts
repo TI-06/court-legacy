@@ -1,7 +1,4 @@
-import type {
-  CoachDecisionReason,
-  MatchCommand,
-} from "../model/Match";
+import type { CoachDecisionReason, MatchCommand } from "../model/Match";
 import type { SchoolReputation } from "../model/School";
 import type { SchoolId } from "../model/identifiers";
 import type { MatchTacticPlan } from "../team/matchTactics";
@@ -76,7 +73,10 @@ function shouldUseTimeout(
   view: CpuCoachPublicView,
   tier: CpuCoachTier,
 ): boolean {
-  if (!view.timeoutAvailable || view.runWinnerSchoolId !== view.opponentSchoolId) {
+  if (
+    !view.timeoutAvailable ||
+    view.runWinnerSchoolId !== view.opponentSchoolId
+  ) {
     return false;
   }
   const requiredRun = tier === 0 ? 6 : tier === 1 ? 5 : 4;
@@ -114,10 +114,7 @@ export function decideCpuCoachCommand(
     ) {
       return withPlan(view.ownPlan, { block: "commit" });
     }
-    if (
-      view.opponentPlan.attack === "side" &&
-      view.ownPlan.block !== "read"
-    ) {
+    if (view.opponentPlan.attack === "side" && view.ownPlan.block !== "read") {
       return withPlan(view.ownPlan, { block: "read" });
     }
   }

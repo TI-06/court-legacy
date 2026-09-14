@@ -9,9 +9,7 @@ import {
 const cpuId = schoolId("school.cpu");
 const userId = schoolId("school.user");
 
-function view(
-  overrides: Partial<CpuCoachPublicView> = {},
-): CpuCoachPublicView {
+function view(overrides: Partial<CpuCoachPublicView> = {}): CpuCoachPublicView {
   return {
     schoolId: cpuId,
     opponentSchoolId: userId,
