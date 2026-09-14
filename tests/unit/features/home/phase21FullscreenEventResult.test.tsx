@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
@@ -8,7 +14,8 @@ import { EventDialog } from "../../../../src/features/home/EventDialog";
 
 function eventState() {
   const state = createDemoGame();
-  const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+  const player =
+    state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
   state.settings.reducedMotion = true;
   state.pendingEvent = {
     eventId: eventId("event.first-position-request"),
@@ -36,7 +43,11 @@ describe("Phase21 fullscreen event result experience", () => {
         new SeededRandom("phase21-fullscreen-result"),
       ).state;
       rerenderView.current?.(
-        <EventDialog data={gameData} onChoose={onChoose} state={currentState} />,
+        <EventDialog
+          data={gameData}
+          onChoose={onChoose}
+          state={currentState}
+        />,
       );
     });
 
@@ -47,9 +58,9 @@ describe("Phase21 fullscreen event result experience", () => {
 
     const choiceSurface = screen.getByTestId("fullscreen-event");
     expect(choiceSurface).toHaveClass("fullscreen-event--reduced-motion");
-    const firstChoice = within(screen.getByLabelText("対応を選択")).getAllByRole(
-      "button",
-    )[0]!;
+    const firstChoice = within(
+      screen.getByLabelText("対応を選択"),
+    ).getAllByRole("button")[0]!;
     await waitFor(() => expect(firstChoice).toHaveFocus());
     expect(document.body.style.overflow).toBe("hidden");
 
@@ -63,14 +74,18 @@ describe("Phase21 fullscreen event result experience", () => {
     );
     expect(screen.getByRole("dialog", { name: "対応結果" })).toBeVisible();
     expect(screen.queryByText("選んだ対応")).toBeVisible();
-    expect(screen.getByRole("region", { name: "対応による変化" })).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "対応による変化" }),
+    ).toBeVisible();
     expect(view.container.querySelector(".ui-bottom-sheet")).toBeNull();
 
     const confirm = screen.getByRole("button", { name: "結果を確認した" });
     await waitFor(() => expect(confirm).toHaveFocus());
     fireEvent.click(confirm);
 
-    await waitFor(() => expect(screen.queryByTestId("fullscreen-event")).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByTestId("fullscreen-event")).toBeNull(),
+    );
     expect(document.body.style.overflow).toBe("");
   });
 
@@ -106,7 +121,9 @@ describe("Phase21 fullscreen event result experience", () => {
       within(screen.getByLabelText("対応を選択")).getAllByRole("button")[0]!,
     );
 
-    await waitFor(() => expect(screen.queryByTestId("fullscreen-event")).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByTestId("fullscreen-event")).toBeNull(),
+    );
     expect(screen.queryByRole("dialog", { name: "対応結果" })).toBeNull();
   });
 });

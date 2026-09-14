@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { renderEventText } from "../../domain/events/renderEventText";
 import type { GameState } from "../../domain/model/GameState";
-import { BottomSheet } from "../../ui/BottomSheet";
 import { SchoolEmblem } from "../../ui/SchoolEmblem";
 import "../../ui/ui.css";
 import "./event-dialog.css";
@@ -42,6 +41,15 @@ const eventCategoryLabels: Record<string, string> = {
   seasonal: "季節イベント",
 };
 
+const focusableSelector = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 function formatVisibleResult(code: string): string {
   const [head, ...rest] = code.split(" ");
   const label = abilityResultLabels[head ?? ""];
@@ -60,73 +68,170 @@ export function FullscreenEventExperience({
   const [resolvingChoiceId, setResolvingChoiceId] = useState<string | null>(
     null,
   );
+  const dialogRef = useRef<HTMLElement>(null);
+  const firstActionRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+
   const pending = state.pendingEvent;
+  const event = pending ? data.events.get(pending.eventId) : undefined;
   const latestOccurrence = state.eventMemory.history.at(-1);
 
-  if (!pending && selectedResolution && latestOccurrence) {
+  const resolvedPresentation = (() => {
+    if (pending || !selectedResolution || !latestOccurrence) {
+      return null;
+    }
+    if (
+      latestOccurrence.eventId !== selectedResolution.eventId ||
+      latestOccurrence.choiceId !== selectedResolution.choiceId
+    ) {
+      return null;
+    }
     const resolvedEvent = data.events.get(latestOccurrence.eventId);
     const resolvedChoice = resolvedEvent?.choices.find(
       (choice) => choice.id === latestOccurrence.choiceId,
     );
-    const matchesSelection =
-      latestOccurrence.eventId === selectedResolution.eventId &&
-      latestOccurrence.choiceId === selectedResolution.choiceId;
+    if (!resolvedEvent || !resolvedChoice) {
+      return null;
+    }
+    const actorNames = latestOccurrence.actorPlayerIds
+      .map((playerId) => state.players[playerId])
+      .filter(Boolean)
+      .map((player) => `${player!.lastName} ${player!.firstName}`);
+    return {
+      event: resolvedEvent,
+      choice: resolvedChoice,
+      occurrence: latestOccurrence,
+      actorNames,
+    };
+  })();
 
-    if (matchesSelection && resolvedEvent && resolvedChoice) {
-      const actorNames = latestOccurrence.actorPlayerIds
-        .map((playerId) => state.players[playerId])
-        .filter(Boolean)
-        .map((player) => `${player!.lastName} ${player!.firstName}`);
+  const phase: "choice" | "result" | null =
+    pending && event ? "choice" : resolvedPresentation ? "result" : null;
+  const active = phase !== null;
 
-      return (
-        <BottomSheet
-          description={`${resolvedEvent.title}への対応結果です。`}
-          onClose={() => setSelectedResolution(null)}
-          open
-          title="対応結果"
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    if (!restoreFocusRef.current) {
+      restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    }
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key !== "Tab" || !dialogRef.current) {
+        return;
+      }
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      if (focusable.length === 0) {
+        return;
+      }
+      const currentIndex = focusable.indexOf(
+        document.activeElement as HTMLElement,
+      );
+      const baseIndex = currentIndex >= 0 ? currentIndex : 0;
+      const nextIndex = keyboardEvent.shiftKey
+        ? (baseIndex - 1 + focusable.length) % focusable.length
+        : (baseIndex + 1) % focusable.length;
+      keyboardEvent.preventDefault();
+      focusable[nextIndex]?.focus();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      restoreFocusRef.current?.focus();
+      restoreFocusRef.current = null;
+    };
+  }, [active]);
+
+  useEffect(() => {
+    if (!phase) {
+      return;
+    }
+    firstActionRef.current?.focus();
+  }, [phase]);
+
+  if (!phase) {
+    return null;
+  }
+
+  const reducedMotionClass = state.settings.reducedMotion
+    ? " fullscreen-event--reduced-motion"
+    : "";
+
+  if (phase === "result" && resolvedPresentation) {
+    return (
+      <div className="fullscreen-event-layer">
+        <section
+          aria-labelledby="fullscreen-event-result-title"
+          aria-modal="true"
+          className={`fullscreen-event${reducedMotionClass}`}
+          data-phase="result"
+          data-testid="fullscreen-event"
+          ref={dialogRef}
+          role="dialog"
         >
-          <div className="event-result" aria-live="polite">
-            <div className="event-result__choice">
-              <span>選んだ対応</span>
-              <strong>{resolvedChoice.label}</strong>
-              {actorNames.length > 0 ? (
-                <small>{actorNames.join("・")}</small>
-              ) : null}
+          <header className="fullscreen-event__header fullscreen-event__header--result">
+            <div>
+              <span className="fullscreen-event__category">対応結果</span>
+              <h2 id="fullscreen-event-result-title">対応結果</h2>
+              <p>{resolvedPresentation.event.title}への対応結果です。</p>
             </div>
-            <section aria-label="対応による変化">
-              <h3>起きた変化</h3>
-              {latestOccurrence.visibleResultCodes.length > 0 ? (
-                <ul>
-                  {latestOccurrence.visibleResultCodes.map((code, index) => (
-                    <li key={`${code}:${index}`}>
-                      {formatVisibleResult(code)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>今回は大きな数値変化はありませんでした。</p>
-              )}
-            </section>
+          </header>
+
+          <main className="fullscreen-event__content fullscreen-event__content--result">
+            <div className="event-result" aria-live="polite">
+              <div className="event-result__choice">
+                <span>選んだ対応</span>
+                <strong>{resolvedPresentation.choice.label}</strong>
+                {resolvedPresentation.actorNames.length > 0 ? (
+                  <small>{resolvedPresentation.actorNames.join("・")}</small>
+                ) : null}
+              </div>
+              <section aria-label="対応による変化">
+                <h3>起きた変化</h3>
+                {resolvedPresentation.occurrence.visibleResultCodes.length >
+                0 ? (
+                  <ul>
+                    {resolvedPresentation.occurrence.visibleResultCodes.map(
+                      (code, index) => (
+                        <li key={`${code}:${index}`}>
+                          {formatVisibleResult(code)}
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                ) : (
+                  <p>今回は大きな数値変化はありませんでした。</p>
+                )}
+              </section>
+            </div>
+          </main>
+
+          <footer className="fullscreen-event__actions">
             <button
-              className="event-result__close"
+              className="event-result__close fullscreen-event__confirm"
               onClick={() => setSelectedResolution(null)}
+              ref={firstActionRef}
               type="button"
             >
               結果を確認した
             </button>
-          </div>
-        </BottomSheet>
-      );
-    }
+          </footer>
+        </section>
+      </div>
+    );
   }
 
-  if (!pending) {
+  if (!pending || !event) {
     return null;
   }
-  const event = data.events.get(pending.eventId);
-  if (!event) {
-    return null;
-  }
+
   const actors = pending.actorPlayerIds.map((playerId) => {
     const player = state.players[playerId];
     const school = player ? state.schools[player.career.schoolId] : undefined;
@@ -135,6 +240,9 @@ export function FullscreenEventExperience({
       : undefined;
     return { playerId, player, school, personality };
   });
+  const choices = event.choices.filter((choice) =>
+    pending.choiceIds.includes(choice.id),
+  );
 
   const choose = async (choiceId: string) => {
     if (resolvingChoiceId !== null) return;
@@ -152,9 +260,10 @@ export function FullscreenEventExperience({
       <section
         aria-labelledby="fullscreen-event-title"
         aria-modal="true"
-        className="fullscreen-event"
+        className={`fullscreen-event${reducedMotionClass}`}
         data-phase="choice"
         data-testid="fullscreen-event"
+        ref={dialogRef}
         role="dialog"
       >
         <header className="fullscreen-event__header">
@@ -206,24 +315,23 @@ export function FullscreenEventExperience({
 
         <footer className="fullscreen-event__actions">
           <div className="event-choice-list" aria-label="対応を選択">
-            {event.choices
-              .filter((choice) => pending.choiceIds.includes(choice.id))
-              .map((choice) => (
-                <button
-                  className="event-choice"
-                  disabled={resolvingChoiceId !== null}
-                  key={choice.id}
-                  onClick={() => void choose(choice.id)}
-                  type="button"
-                >
-                  <strong>
-                    {resolvingChoiceId === choice.id
-                      ? "結果を反映しています…"
-                      : choice.label}
-                  </strong>
-                  <span>{choice.detail}</span>
-                </button>
-              ))}
+            {choices.map((choice, index) => (
+              <button
+                className="event-choice"
+                disabled={resolvingChoiceId !== null}
+                key={choice.id}
+                onClick={() => void choose(choice.id)}
+                ref={index === 0 ? firstActionRef : undefined}
+                type="button"
+              >
+                <strong>
+                  {resolvingChoiceId === choice.id
+                    ? "結果を反映しています…"
+                    : choice.label}
+                </strong>
+                <span>{choice.detail}</span>
+              </button>
+            ))}
           </div>
         </footer>
       </section>
