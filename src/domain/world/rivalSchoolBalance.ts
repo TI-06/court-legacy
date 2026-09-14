@@ -51,13 +51,15 @@ export function applyRivalRecruitAbilityBonus(
     return player;
   }
 
+  const abilities = { ...player.abilities };
+  for (const ability of ABILITY_KEYS) {
+    abilities[ability] = clampAbility(
+      abilities[ability] + abilityBonus,
+    );
+  }
+
   return {
     ...player,
-    abilities: Object.fromEntries(
-      ABILITY_KEYS.map((ability) => [
-        ability,
-        clampAbility(player.abilities[ability] + abilityBonus),
-      ]),
-    ) as Player["abilities"],
+    abilities,
   };
 }
