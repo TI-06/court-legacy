@@ -2,6 +2,7 @@ import type {
   SeasonProgressPresentation,
   SeasonRankingPresentation,
 } from "../season/seasonProgressPresentation";
+import { SchoolLegacyPanel } from "./SchoolLegacyPanel";
 import { SchoolSeasonHistory } from "./SchoolSeasonHistory";
 import "./school-season-ranking.css";
 
@@ -99,6 +100,7 @@ export function SchoolSeasonRanking({
         <RankingScope label="全国" ranking={presentation.national} />
       </div>
 
+      <SchoolLegacyPanel presentation={presentation.legacy} />
       <SchoolSeasonHistory presentations={presentation.archivedSeasons} />
     </section>
   );
