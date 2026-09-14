@@ -497,15 +497,17 @@ export function advanceAcademicYear(
 
 function refreshPracticePlanning(state: GameState): GameState {
   const planning = buildPracticePlanning(state);
+  const { incomingPracticeOfferHistory, ...practiceMatch } = planning;
   return {
     ...state,
     weeklySchedule: {
       ...state.weeklySchedule,
       practiceMatch: {
-        ...planning,
+        ...practiceMatch,
         scheduledOpponentId: null,
         scheduledBy: null,
       },
+      incomingPracticeOfferHistory,
     },
   };
 }

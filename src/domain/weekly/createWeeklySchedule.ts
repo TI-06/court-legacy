@@ -30,15 +30,17 @@ export function createDefaultWeeklyPlan(
 export function createInitialWeeklySchedule(
   state: WeeklyScheduleSource,
 ): WeeklyScheduleState {
-  const practicePlanning = buildInitialPracticePlanning(state);
+  const planning = buildInitialPracticePlanning(state);
+  const { incomingPracticeOfferHistory, ...practiceMatch } = planning;
 
   return {
     trainingPlan: createDefaultWeeklyPlan(state),
     practiceMatch: {
-      ...practicePlanning,
+      ...practiceMatch,
       scheduledOpponentId: null,
       scheduledBy: null,
     },
+    incomingPracticeOfferHistory,
     recentPracticeMatches: [],
     latestReport: null,
   };

@@ -34,9 +34,9 @@ export interface PracticeMatchHistoryEntry {
   date: GameDate;
 }
 
-export interface PracticeIncomingOfferHistoryEntry {
+export interface IncomingPracticeOfferHistoryEntry {
   schoolId: SchoolId;
-  date: GameDate;
+  surfacedDate: GameDate;
 }
 
 export interface WeeklyTrainingGrowthSummary {
@@ -87,8 +87,8 @@ export interface WeeklyScheduleState {
     outgoingCandidates: PracticeMatchCandidate[];
     scheduledOpponentId: SchoolId | null;
     scheduledBy: "incoming" | "outgoing" | null;
-    incomingOfferHistory?: PracticeIncomingOfferHistoryEntry[];
   };
+  incomingPracticeOfferHistory?: IncomingPracticeOfferHistoryEntry[];
   recentPracticeMatches: PracticeMatchHistoryEntry[];
   latestReport: WeeklyReport | null;
 }
