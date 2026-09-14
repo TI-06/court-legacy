@@ -4,44 +4,40 @@
 
 **Goal:** Make visible special relationships matter lightly in training and event selection, suppress repetitive actor pairs, and prove the system remains bounded over multi-season deterministic simulations.
 
-**Architecture:** Keep the normal training formula intact and feed one capped social-growth modifier into its existing `additionalGrowthModifiers` path while separately logging the contributing relationships for UI transparency. Add a pure character/relationship event-weight multiplier bounded to 0.75x-1.50x, then apply the existing recent event/category penalties and a 0.20x recent-pair penalty. Extend event memory updates with the v9 `recentActorPairKeys` field created in PR21-2. Finish with deterministic multi-season evidence using two fixed seeds.
+**Architecture:** Build social training contributions separately, collapse them to one additive-equivalent capped `relationship-social` growth modifier, and retain contribution metadata for UI transparency. Add a pure event-weight multiplier bounded to 75-150%, then apply existing recent event/category penalties and a 0.20 exact-pair repeat penalty. Update the v9 `recentActorPairKeys` memory on resolution and finish with two-seed, three-season deterministic evidence.
 
-**Tech Stack:** TypeScript 5.9, Vitest, existing seeded simulation, existing training and event systems, React training-result notification UI.
+**Tech Stack:** TypeScript 5.9, Vitest, existing seeded simulation, existing training/event systems, React training-result notification UI.
 
 **Spec:** `docs/superpowers/specs/2026-09-15-phase21-player-relationships-fullscreen-events-design.md`
 
 ## Global Constraints
 
-- `partner` contributes +3 percentage points to each participating player.
-- `mentor` contributes +4 percentage points to the protege only.
-- `rival` contributes +3 percentage points only when both rivals have the same preferred position.
-- Both players in the relevant bond must be active in that week's training; injured or auto-rested players cannot enable a social bonus.
-- Raw social contributions are additive but the applied weekly social growth bonus is capped at +5 percentage points per player.
-- Social growth effects are visible in training results; no relationship-derived growth modifier is hidden.
-- Low affinity/non-friendship never directly applies a training-growth penalty in Phase21.
-- No direct hidden match-stat bonus is added.
-- Normal event cadence remains the existing three-week rhythm; Phase21 changes candidate weights, not cadence.
-- Character/relationship event weighting multiplier is clamped to 0.75x-1.50x before existing recent event/category penalties.
-- Exact two-actor pairs in `recentActorPairKeys` receive a 0.20x repeat penalty; history length is 6.
-- Existing eligibility, cooldown, once-per-career, and scheduled-follow-up rules are never bypassed by Phase21 weighting.
-- Long-run evidence uses at least two fixed seeds and multiple seasons.
-- Use TDD and a branch safe gate before PR creation.
+- `partner`: +3 percentage points to each active participant.
+- `mentor`: +4 percentage points to the protege only.
+- `rival`: +3 percentage points only when both active rivals share `preferredPosition`.
+- Injured, auto-rested, or `instruction.rest` players do not enable social bonuses for themselves or partners.
+- Raw social contributions are additive; applied social growth is capped at +5 percentage points/player/week.
+- Training result UI must show contributing relationships and explain when the +5 cap truncates raw total.
+- No negative relationship training modifier and no direct relationship match-stat modifier in Phase21.
+- Normal event cadence remains the existing three-week rhythm.
+- Character/relationship event multiplier is clamped to 75-150 before existing recent penalties.
+- Recent exact two-actor pair penalty is 0.20; recent pair history length is 6.
+- Weighting never bypasses eligibility, cooldown, once-per-career, or scheduled-follow-up rules.
+- Long-run evidence uses two fixed seeds for at least 156 weeks each.
+- Use TDD and a branch safe gate before opening PR21-4.
 
 ---
 
 ## File Structure
 
-- Create `src/domain/training/relationshipTrainingModifiers.ts`: build social contributions and one capped growth modifier.
-- Modify `src/domain/training/calculateGrowth.ts`: allow `relationship-social` additional modifier code.
-- Modify `src/domain/training/resolveWeeklyTraining.ts`: compute active participant set, feed capped social modifier, record contribution metadata.
-- Modify `src/domain/notifications/gameNotifications.ts`: preserve social contribution details in training notifications.
-- Modify `src/features/home/TrainingResultNotificationSheet.tsx`: display contribution chips and +5% cap note.
-- Modify `src/features/home/training-result-notification.css`.
-- Create `src/domain/events/characterEventWeight.ts`: pure bounded multiplier.
-- Modify `src/domain/events/selectEvent.ts`: apply character multiplier and exact-pair repeat penalty.
-- Modify `src/domain/events/resolveEventChoice.ts`: append pair keys to bounded recent pair memory.
+- Create `src/domain/training/relationshipTrainingModifiers.ts`.
+- Modify `src/domain/training/calculateGrowth.ts` and `resolveWeeklyTraining.ts`.
+- Modify `src/domain/notifications/gameNotifications.ts`.
+- Modify `src/features/home/TrainingResultNotificationSheet.tsx` and CSS.
+- Create `src/domain/events/characterEventWeight.ts`.
+- Modify `src/domain/events/selectEvent.ts` and `resolveEventChoice.ts`.
 - Create `tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts`.
-- Modify `tests/unit/domain/training/resolveWeeklyTraining.test.ts` or the repository's canonical training-resolution test file.
+- Modify `tests/unit/domain/training/resolveWeeklyTraining.test.ts`.
 - Modify `tests/unit/features/home/TrainingResultNotificationSheet.test.tsx`.
 - Create `tests/unit/domain/events/phase21CharacterEventWeight.test.ts`.
 - Create `tests/unit/domain/events/phase21PairRepetition.test.ts`.
@@ -84,40 +80,23 @@ export function calculateRelationshipTrainingModifier(
 ): RelationshipTrainingModifierSummary;
 ```
 
-Behavior:
+- [ ] **Step 1: Write failing tests**
 
-- inspect only bonds containing `playerId`;
-- counterpart must be in `activeTrainingPlayerIds`;
-- current player must also be active;
-- `partner`: +3 to current player;
-- `mentor`: +4 only when current player equals `protegePlayerId`;
-- `rival`: +3 only when counterpart and current player share `preferredPosition`;
-- same kind from duplicate/corrupt data is de-duplicated by bond/kind defensively;
-- `appliedPercentPoints = min(5, rawPercentPoints)`;
-- sort contributions by code then related player ID for deterministic logs.
-
-- [ ] **Step 1: Write failing contribution tests**
-
-Cover partner, mentor mentor-side no-bonus, mentor protege +4, same-position rival +3, different-position rival 0, inactive counterpart 0, and partner+mentor raw7/applied5/capped true.
+Cover partner +3, mentor protege +4, mentor side 0, same-position rival +3, different-position rival 0, inactive counterpart 0, and partner+mentor raw7/applied5/capped true.
 
 - [ ] **Step 2: Run RED**
 
 `npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts`
 
-- [ ] **Step 3: Implement pure builder**
+- [ ] **Step 3: Implement immutable deterministic calculation**
 
-The helper must not mutate state and must not inspect event history.
+Sort contributions by code then relatedPlayerId and de-duplicate same bond/kind defensively.
 
-- [ ] **Step 4: Run GREEN**
+- [ ] **Step 4: Run GREEN and commit**
 
 ```bash
 npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts
 npm run typecheck
-```
-
-- [ ] **Step 5: Commit**
-
-```bash
 git add src/domain/training/relationshipTrainingModifiers.ts tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts
 git commit -m "feat: calculate relationship training bonuses"
 ```
@@ -127,85 +106,66 @@ git commit -m "feat: calculate relationship training bonuses"
 **Files:**
 - Modify: `src/domain/training/calculateGrowth.ts`
 - Modify: `src/domain/training/resolveWeeklyTraining.ts`
-- Modify: canonical weekly training test file.
+- Modify: `tests/unit/domain/training/resolveWeeklyTraining.test.ts`
 
 **Interfaces:**
 
-Extend additional growth codes with:
-
-```ts
-| "relationship-social"
-```
-
-Extend `PlayerGrowthLog`:
+Add `"relationship-social"` to `AdditionalGrowthModifier` codes. Extend `PlayerGrowthLog`:
 
 ```ts
 socialGrowth: RelationshipTrainingModifierSummary;
 ```
 
-Actual calculation modifier:
+Actual formula input is one modifier only:
 
 ```ts
-const socialModifier: AdditionalGrowthModifier | null =
-  social.appliedPercentPoints > 0
-    ? {
-        code: "relationship-social",
-        label: "人間関係",
-        percent: 100 + social.appliedPercentPoints,
-      }
-    : null;
+{
+  code: "relationship-social",
+  label: "人間関係",
+  percent: 100 + social.appliedPercentPoints,
+}
 ```
 
-Do not pass separate 103/104 modifiers for each bond because multiplicative stacking would violate the additive +5 percentage-point contract.
+Do not pass separate 103/104 modifiers because multiplicative stacking would exceed the additive cap contract.
 
-- [ ] **Step 1: Write failing integration test**
-
-Create partner+mentor contributions with raw7 and resolve training. Assert:
+- [ ] **Step 1: Write failing integration test in `resolveWeeklyTraining.test.ts`**
 
 ```ts
 expect(log.socialGrowth.rawPercentPoints).toBe(7);
 expect(log.socialGrowth.appliedPercentPoints).toBe(5);
-expect(log.socialGrowth.capped).toBe(true);
 expect(log.modifiers).toContainEqual(
   expect.objectContaining({ code: "relationship-social", percent: 105 }),
 );
 ```
 
-- [ ] **Step 2: Add injured/auto-rest counterpart regression**
+- [ ] **Step 2: Add injury/auto-rest/rest-instruction cases**
 
-If the related player is injured before resolution or present in `restingPlayerIds`, the counterpart is removed from the active training set and contributes zero.
+A counterpart in any of those states contributes zero.
 
 - [ ] **Step 3: Run RED**
 
-Run the canonical training test file plus `phase21RelationshipTrainingModifiers.test.ts`.
-
-- [ ] **Step 4: Build active set before player loop**
-
-```ts
-const activeTrainingPlayerIds = new Set(
-  validated.school.playerIds.filter((id) => {
-    const player = input.state.players[id];
-    return Boolean(player && !player.injury && !input.restingPlayerIds?.has(id));
-  }),
-);
+```bash
+npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts
 ```
 
-For `instruction.rest`, remove that player from bonus participation as well before social summaries are calculated. To avoid order dependence, precompute a second set excluding players assigned `instruction.rest`.
+- [ ] **Step 4: Precompute active-training IDs before player resolution**
 
-- [ ] **Step 5: Add one capped modifier plus contribution log**
+Exclude pre-existing injuries, `restingPlayerIds`, and players assigned `instruction.rest`; this avoids loop-order dependence.
 
-Preserve existing assistant-coach, morale, trust, and shop modifiers unchanged.
+- [ ] **Step 5: Feed one capped modifier into existing growth path and persist summary in log**
+
+Preserve assistant-coach, morale, trust, condition, and shop modifiers unchanged.
 
 - [ ] **Step 6: Run GREEN and commit**
 
 ```bash
-npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts <training-resolution-test-path>
+npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts
 npm run typecheck
-git add src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts <training-resolution-test-path>
+git add src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts
 git commit -m "feat: apply visible capped social training growth"
 ```
 
-### Task 3: Show social effects in training result notification
+### Task 3: Preserve and display social contributions in training results
 
 **Files:**
 - Modify: `src/domain/notifications/gameNotifications.ts`
@@ -215,39 +175,27 @@ git commit -m "feat: apply visible capped social training growth"
 
 **Interfaces:**
 
-Extend notification player payload:
+Add to `TrainingResultNotificationPlayer`:
 
 ```ts
-socialGrowth: {
-  contributions: Array<{
-    code: SocialGrowthContributionCode;
-    label: string;
-    percentPoints: number;
-    relatedPlayerId: PlayerId;
-  }>;
-  rawPercentPoints: number;
-  appliedPercentPoints: number;
-  capped: boolean;
-};
+socialGrowth: RelationshipTrainingModifierSummary;
 ```
 
-- [ ] **Step 1: Write failing notification UI test**
+Notification builder copies the resolution-time summary; UI never recomputes historical relationships.
 
-For raw7/applied5, assert visible text contains contributor labels such as `相棒 +3%`, `師弟 +4%`, and `関係性効果は上限 +5%`.
+- [ ] **Step 1: Write failing UI test**
+
+For raw7/applied5 assert `相棒 +3%`, `師弟 +4%`, and `関係性効果は上限 +5%` are visible.
 
 - [ ] **Step 2: Run RED**
 
 `npx vitest run tests/unit/features/home/TrainingResultNotificationSheet.test.tsx`
 
-- [ ] **Step 3: Copy social log into notification builder**
+- [ ] **Step 3: Copy social summary into notification payload and render contributor chips**
 
-Do not recompute relationships when displaying a historical notification; copy the resolution-time contribution data.
+No social section when contributions are empty.
 
-- [ ] **Step 4: Render chips/cap note under the affected player**
-
-No social block is rendered when `contributions.length===0`.
-
-- [ ] **Step 5: Run GREEN and commit**
+- [ ] **Step 4: Run GREEN and commit**
 
 ```bash
 npx vitest run tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
@@ -256,7 +204,7 @@ git add src/domain/notifications/gameNotifications.ts src/features/home/Training
 git commit -m "feat: show relationship effects in training results"
 ```
 
-### Task 4: Bounded character/relationship event weighting
+### Task 4: Pure bounded event-weight multiplier
 
 **Files:**
 - Create: `src/domain/events/characterEventWeight.ts`
@@ -273,31 +221,34 @@ export function characterEventWeightMultiplier(
 ): number;
 ```
 
-Return an integer percentage in `[75, 150]`, where `100` means 1.0x.
+Return integer percentage in `[75, 150]`.
 
-Exact scoring contract before clamp:
+Exact score before clamp:
 
-1. Start `percent = 100`.
-2. For each actor, if any public personality tag intersects `event.tags`, add 10; combined personality-tag bonus capped at +20.
-3. For `relationship` or `rivalry` event categories, add `round(personality.relationshipGrowth / 2)` for each actor; combined personality relationship adjustment clamped to -15..+15.
-4. For each actor's **revealed** character trait, if any `trait.eventTags` intersects `event.tags`, add 15; combined character-tag bonus capped at +30.
-5. For `relationship` or `rivalry` categories, add each revealed trait's `relationshipBias`; combined character relationship adjustment clamped to -15..+15.
-6. For a two-actor bond: add +20 for `rival` when category is `rivalry` or tags include `competition`/`rivalry`; add +20 for `mentor` when tags include `mentor`/`guidance`; add +20 for `partner` when tags include `pair`/`cooperation`/`coordination`. Special-relationship contribution is capped at +20 total, not +20 per tag.
-7. Clamp final percent to 75..150.
+```text
+start = 100
++10 per actor when public personality tags intersect event.tags; total personality-tag bonus max +20
+for relationship/rivalry categories: add round(personality.relationshipGrowth / 2) per actor; combined clamp -15..+15
++15 per actor when a revealed character trait eventTags intersects event.tags; total character-tag bonus max +30
+for relationship/rivalry categories: add each revealed trait relationshipBias; combined clamp -15..+15
+for two-actor active bond: at most +20 total when
+  rival and category=rivalry or tags include competition/rivalry
+  mentor and tags include mentor/guidance
+  partner and tags include pair/cooperation/coordination
+final clamp 75..150
+```
 
-No weighting term is allowed to change eligibility.
+- [ ] **Step 1: Write failing exact-score tests**
 
-- [ ] **Step 1: Write failing exact-scoring tests**
-
-Test neutral=100, negative relationship growth floor >=75, stacked positive cap=150, hidden unrevealed trait ignored, revealed trait applied, and rival bonus applied only to matching event tags/category.
+Cover neutral 100, negative floor 75, positive cap 150, unrevealed trait ignored, revealed trait included, and bond-tag matching.
 
 - [ ] **Step 2: Run RED**
 
 `npx vitest run tests/unit/domain/events/phase21CharacterEventWeight.test.ts`
 
-- [ ] **Step 3: Implement pure multiplier**
+- [ ] **Step 3: Implement pure multiplier without changing eligibility**
 
-Use registry lookups defensively; unresolved IDs contribute zero.
+Unresolved personality/trait IDs contribute zero defensively.
 
 - [ ] **Step 4: Run GREEN and commit**
 
@@ -308,7 +259,7 @@ git add src/domain/events/characterEventWeight.ts tests/unit/domain/events/phase
 git commit -m "feat: weight events by visible character context"
 ```
 
-### Task 5: Pair repetition memory and candidate integration
+### Task 5: Recent-pair penalty and memory update
 
 **Files:**
 - Modify: `src/domain/events/selectEvent.ts`
@@ -318,16 +269,16 @@ git commit -m "feat: weight events by visible character context"
 **Interfaces:**
 
 ```ts
-export function eventActorPairKey(actorPlayerIds: readonly PlayerId[]): string | null;
+export function eventActorPairKey(
+  actorPlayerIds: readonly PlayerId[],
+): string | null;
 ```
 
-Returns `relationshipKey(a,b)` only for exactly two distinct actors; otherwise null.
+Only exactly two distinct actors produce a sorted `relationshipKey`; all other actor counts return null.
 
-Candidate formula:
+Candidate weight formula:
 
 ```ts
-const characterPercent = characterEventWeightMultiplier(...);
-const pairKey = eventActorPairKey(actorPlayerIds);
 const pairPenalty = pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey)
   ? 0.2
   : 1;
@@ -335,7 +286,7 @@ const finalWeight = Math.max(
   1,
   Math.round(
     event.weight *
-      (characterPercent / 100) *
+      (characterEventWeightMultiplier(state, data, event, actorPlayerIds) / 100) *
       recentEventPenalty *
       recentCategoryPenalty *
       pairPenalty,
@@ -343,32 +294,25 @@ const finalWeight = Math.max(
 );
 ```
 
-Keep the existing recent-primary-actor avoidance pass/fallback unchanged.
+On resolution append pair key to `recentActorPairKeys` using existing `pushLimited(..., 6)` pattern.
 
-On resolution, append exact two-actor pair key to `recentActorPairKeys` with limit 6.
+- [ ] **Step 1: Write failing tests**
 
-- [ ] **Step 1: Write failing pair-memory tests**
-
-Assert two-actor resolution appends canonical key, seventh key evicts oldest, one-actor event does not append, and exact recent pair receives 0.20x candidate penalty.
+Assert canonical key, 7th entry evicts oldest, one-actor events do not append, and recent pair gets exact 0.20 factor while eligibility remains unchanged.
 
 - [ ] **Step 2: Run RED**
 
 `npx vitest run tests/unit/domain/events/phase21PairRepetition.test.ts`
 
-- [ ] **Step 3: Integrate multiplier and pair penalty after eligibility**
+- [ ] **Step 3: Integrate multiplier/penalty after eligibility checks**
 
-Do not modify `isEventEligibleForActors`, cooldown logic, follow-up priority, or event cadence.
+Keep follow-up priority and recent-primary-actor two-pass behavior unchanged.
 
-- [ ] **Step 4: Run event regression suite**
+- [ ] **Step 4: Run event regression suite and commit**
 
 ```bash
 npx vitest run tests/unit/domain/events
 npm run typecheck
-```
-
-- [ ] **Step 5: Commit**
-
-```bash
 git add src/domain/events/selectEvent.ts src/domain/events/resolveEventChoice.ts tests/unit/domain/events/phase21PairRepetition.test.ts
 git commit -m "feat: diversify relationship event actor pairs"
 ```
@@ -379,8 +323,6 @@ git commit -m "feat: diversify relationship event actor pairs"
 - Create: `tests/unit/domain/events/phase21RelationshipLongRun.test.ts`
 
 **Interfaces:**
-
-Create an in-test simulation helper:
 
 ```ts
 interface Phase21LongRunMetrics {
@@ -399,7 +341,7 @@ interface Phase21LongRunMetrics {
 }
 ```
 
-Run two fixed seeds for at least 156 weeks each (3 seasons). Resolve every surfaced event with a deterministic choice rule: first eligible choice ID, no user-dependent randomness. Continue ordinary weekly/training progression through the canonical domain path.
+Simulate two fixed seeds for 156 weeks each through canonical week/event/training progression. Resolve a surfaced event with the first available choice ID to keep the harness deterministic.
 
 Hard assertions per seed:
 
@@ -407,39 +349,30 @@ Hard assertions per seed:
 simulatedWeeks >= 156
 maxObservedSocialBonus <= 5
 invalidBondReferences == 0
-every active pair tags.length <= 2
-every revealedHiddenTraitId is present in hiddenTraitIds
-normal event cadence is not greater than one normal event per three-week eligible slot
-uniqueActorPairs >= 4 when relationshipEvents >= 8
-maxPairShare <= 0.40 when relationshipEvents >= 10
+every active pair has <= 2 tags
+every revealed hidden trait is assigned
+normal non-follow-up event count never exceeds available three-week cadence slots
+when relationshipEvents >= 8: uniqueActorPairs >= 4
+when relationshipEvents >= 10: maxPairShare <= 0.40
+same seed rerun => identical metrics
 ```
 
-Also assert rerunning the same seed produces identical metrics.
+Failure messages include seed/date/yearIndex/weekOfYear and metric name.
 
-- [ ] **Step 1: Write long-run test with metrics logging**
+- [ ] **Step 1: Write the long-run test and compact metric logging**
 
-Log one compact line per seed using `console.info` only when the test completes; do not snapshot random full state.
+Use `console.info` once per completed seed; do not snapshot full game state.
 
-- [ ] **Step 2: Run RED or first baseline**
-
-`npx vitest run tests/unit/domain/events/phase21RelationshipLongRun.test.ts --reporter=verbose`
-
-If a hard assertion fails, treat it as balance RED and fix production weighting/caps rather than relaxing the assertion without evidence.
-
-- [ ] **Step 3: Add any required deterministic invariant metadata to thrown assertions**
-
-Failure messages must include `seed`, `date`, `yearIndex`, `weekOfYear`, and the violated metric so CI failures are diagnosable without rerunning blindly.
-
-- [ ] **Step 4: Run twice and compare outputs**
+- [ ] **Step 2: Run the test twice**
 
 ```bash
 npx vitest run tests/unit/domain/events/phase21RelationshipLongRun.test.ts --reporter=verbose
 npx vitest run tests/unit/domain/events/phase21RelationshipLongRun.test.ts --reporter=verbose
 ```
 
-Expected: both PASS and metric lines identical per seed.
+Both must pass with identical metrics. If a hard bound fails, fix production balance rather than weakening the assertion without evidence.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add tests/unit/domain/events/phase21RelationshipLongRun.test.ts
@@ -449,24 +382,30 @@ git commit -m "test: audit Phase21 relationship balance long term"
 ### Task 7: PR21-4 final verification and evidence
 
 **Files:**
-- No planned production changes unless a failing test exposes a defect.
+- No planned production changes.
 
-- [ ] **Step 1: Run Phase21-4 focused suites**
+- [ ] **Step 1: Run PR21-4 focused suites**
 
 ```bash
 npx vitest run \
   tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
+  tests/unit/domain/training/resolveWeeklyTraining.test.ts \
   tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
   tests/unit/domain/events/phase21PairRepetition.test.ts \
   tests/unit/domain/events/phase21RelationshipLongRun.test.ts \
   tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
 ```
 
-- [ ] **Step 2: Run all Phase21 focused suites across PR21-1..4**
+- [ ] **Step 2: Run all Phase21 tests plus critical UI regressions**
 
-Run all tests whose filenames contain `phase21`, plus `EventDialog.test.tsx`, `PlayerHubScreen.test.tsx`, and `TrainingResultNotificationSheet.test.tsx`.
+```bash
+npx vitest run --testNamePattern="Phase21|phase21"
+npx vitest run tests/unit/features/home/EventDialog.test.tsx tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
+```
 
-- [ ] **Step 3: Run static checks and full verification**
+If Vitest pattern matching does not select file-name-only tests, run the explicit Phase21 file list instead of changing tests.
+
+- [ ] **Step 3: Run static/full checks**
 
 ```bash
 npm run typecheck
@@ -476,25 +415,23 @@ npm run verify
 npm run soak:smoke
 ```
 
-- [ ] **Step 4: Run branch safe gate in GitHub Actions before PR**
+- [ ] **Step 4: Run branch safe gate before PR and delete temporary workflow**
 
-Safe gate includes Phase21 focused suites, `npm run verify`, and `npm run soak:smoke`. Delete temporary workflow before opening PR. Do not knowingly open a red PR.
+Safe gate includes focused Phase21 tests, `npm run verify`, and `npm run soak:smoke`. Never open the PR while this gate is red.
 
 - [ ] **Step 5: Record PR evidence**
 
-PR body must include the two-seed long-run metrics, confirmation that social bonus max is 5, confirmation that normal event cadence did not increase, and exact safe-gate run ID.
+PR body includes both seed metrics, max observed social bonus, normal-event cadence proof, pair-distribution proof, and exact safe-gate run ID.
 
-- [ ] **Step 6: Final diff review**
-
-Confirm:
+- [ ] **Step 6: Final diff invariants**
 
 ```text
-no direct match-stat relationship bonus
+no direct relationship match-stat bonus
 no negative social training modifier
 character weight clamp = 75..150
 pair repeat penalty = 0.20
 recent pair history max = 6
 social applied bonus max = +5 percentage points
 schema remains v9
-no temporary workflow file
+no temporary workflow file remains
 ```
