@@ -1,0 +1,51 @@
+name: Phase20 Safe Check
+
+on:
+  push:
+    branches:
+      - "feature/phase20-1-rivalry-legacy-foundation"
+
+permissions:
+  contents: write
+
+jobs:
+  safe-check:
+    if: github.event.head_commit.message != 'fix-type-fixture-phase20-1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Fix typed test fixture
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/unit/domain/world/rivalryHistory.test.ts')
+          text = path.read_text()
+          old = ') as typeof player.abilities,'
+          new = ') as unknown as typeof player.abilities,'
+          if old not in text:
+              raise SystemExit('expected fixture cast not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          npx prettier --write tests/unit/domain/world/rivalryHistory.test.ts
+      - name: Verify
+        run: npm run verify
+      - name: Verify release metadata and evidence
+        run: npm run release:check
+      - name: Run Phase18 soak smoke preset
+        run: npm run soak:smoke
+      - name: Commit verified fix
+        run: |
+          if git diff --quiet; then
+            echo "No fix to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/unit/domain/world/rivalryHistory.test.ts
+          git commit -m "fix-type-fixture-phase20-1"
+          git push
