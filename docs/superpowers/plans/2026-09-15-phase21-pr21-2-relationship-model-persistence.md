@@ -4,9 +4,9 @@
 
 **Goal:** Add canonical special relationships (`rival`, `mentor`, `partner`), make them form from real authored events, show them with numeric-affinity labels in Player Hub, degrade stale partner/mentor bonds safely, archive them at graduation, notify the player compactly, and migrate saves to schema v9.
 
-**Architecture:** Keep `GameState.playerRelationships` as the canonical 0-100 affinity score and add a separate `playerRelationshipBonds` record keyed by existing `relationshipKey`. Special tags are changed only by explicit relationship effects or the documented weekly degradation guard; score thresholds alone never create tags. PR21-2 owns the v8->v9 bump and adds all persisted Phase21 fields so PR21-3/4 remain on schema v9.
+**Architecture:** Keep `GameState.playerRelationships` as the canonical 0-100 affinity score and add a separate `playerRelationshipBonds` record keyed by existing `relationshipKey`. Special tags are changed only by explicit relationship effects or the documented weekly degradation guard; score thresholds alone never create tags. Domain transitions return exact `SpecialRelationshipTransition` records, while `worker/game/applyGameAction.ts` is the authoritative layer that appends compact notifications. PR21-2 owns the v8->v9 bump and adds all persisted Phase21 fields so PR21-3/4 remain on schema v9.
 
-**Tech Stack:** TypeScript 5.9, Zod 4, Vitest, React 19, existing event pipeline, weekly/year progression, notification state, and game-state codec.
+**Tech Stack:** TypeScript 5.9, Zod 4, Vitest, React 19, existing event pipeline, weekly/year progression, worker action pipeline, notification state, and game-state codec.
 
 **Spec:** `docs/superpowers/specs/2026-09-15-phase21-player-relationships-fullscreen-events-design.md`
 
@@ -22,6 +22,7 @@
 - Important bonds archive at graduation; active bonds referencing a graduate are removed after archival.
 - Relationship legacy history keeps newest 200 records.
 - Special relationship establishment/removal uses compact notifications in addition to fullscreen event result text when the transition was caused by an event.
+- Notification creation happens at the authoritative worker boundary; domain helpers return transitions and never independently emit duplicate notifications.
 - PR21-2 changes `CURRENT_GAME_SCHEMA_VERSION` from 8 to 9 and initializes all Phase21 persisted fields.
 - v8 saves preserve existing numeric relationships, pending event, event memory, personalities, and performance traits.
 - No direct match-stat bonus and no social training-growth modifier in PR21-2.
@@ -40,10 +41,12 @@
 - Modify `src/data/events/relationship.json`.
 - Modify `src/domain/calendar/weekProgression.ts` and `academicYearProgression.ts`.
 - Modify `src/domain/notifications/gameNotifications.ts`.
+- Modify `worker/game/applyGameAction.ts` to translate domain transitions into compact notifications.
 - Modify `src/features/home/HomeScreen.tsx` and its tests for compact relationship notifications.
 - Modify `src/features/team/PlayerHubScreen.tsx` and `player-hub.css`.
 - Modify `src/persistence/gameStateCodec.ts`.
 - Create focused tests under `tests/unit/domain/relationships`, `tests/unit/domain/events`, `tests/unit/domain/calendar`, `tests/unit/notifications`, and `tests/unit/persistence`.
+- Modify `tests/unit/worker/applyGameAction.test.ts` for notification handoff coverage.
 
 ---
 
@@ -106,8 +109,14 @@ Player.hiddenTraitAssignmentInitialized: boolean;
 Pure helpers:
 
 ```ts
-addSpecialRelationship(state, input): { state: GameState; transition: SpecialRelationshipTransition | null };
-removeSpecialRelationship(state, input): { state: GameState; transition: SpecialRelationshipTransition | null };
+addSpecialRelationship(state, input): {
+  state: GameState;
+  transition: SpecialRelationshipTransition | null;
+};
+removeSpecialRelationship(state, input): {
+  state: GameState;
+  transition: SpecialRelationshipTransition | null;
+};
 getRelationshipBond(state, left, right): PlayerRelationshipBond | null;
 ```
 
@@ -182,11 +191,23 @@ Add effects:
 }
 ```
 
-`higher-grade` requires different grades and selects the older grade as mentor. Add effect runs in choice-effect order, so relationship changes earlier in the same choice are visible before tag creation.
+`higher-grade` requires different grades and selects the older grade as mentor. Effects run in choice-effect order, so relationship changes earlier in the same choice are visible before tag creation.
+
+Extend event resolution:
+
+```ts
+export interface ResolveEventChoiceResult {
+  state: GameState;
+  occurrence: EventOccurrence;
+  specialRelationshipTransitions: SpecialRelationshipTransition[];
+}
+```
+
+`applyEffect` returns optional `specialRelationshipTransition`; `resolveEventChoice` collects transitions in effect order and returns them alongside the occurrence.
 
 - [ ] **Step 1: Write failing schema/eligibility/effect tests**
 
-Cover same-position true/false, different-grade true/false, rival add, partner add, mentor higher-grade direction, remove, duplicate reinforcement, and visible result strings `特殊関係 ライバル成立`, `特殊関係 師弟成立`, `特殊関係 相棒成立` and corresponding `解消`.
+Cover same-position true/false, different-grade true/false, rival add, partner add, mentor higher-grade direction, remove, duplicate reinforcement, transition records, and visible result strings `特殊関係 ライバル成立`, `特殊関係 師弟成立`, `特殊関係 相棒成立` and corresponding `解消`.
 
 - [ ] **Step 2: Run RED**
 
@@ -196,7 +217,7 @@ Cover same-position true/false, different-grade true/false, rival add, partner a
 
 Existing trigger rules remain unchanged when the new fields are absent.
 
-- [ ] **Step 4: Apply effects through `addSpecialRelationship`/`removeSpecialRelationship`**
+- [ ] **Step 4: Apply effects through `addSpecialRelationship`/`removeSpecialRelationship` and collect transitions**
 
 Do not duplicate bond mutation logic inside the event resolver.
 
@@ -231,7 +252,7 @@ git commit -m "feat: support special relationship event transitions"
 
 - [ ] **Step 1: Write failing data tests**
 
-Load registry, locate all three event IDs, assert new trigger/effect contracts, then resolve each with states at the exact threshold and assert the expected tag is formed.
+Load registry, locate all three event IDs, assert new trigger/effect contracts, then resolve each with states at the exact threshold and assert the expected tag/transition is formed.
 
 - [ ] **Step 2: Run RED**
 
@@ -266,6 +287,19 @@ export function progressSpecialRelationshipsWeekly(
 ): { state: GameState; transitions: SpecialRelationshipTransition[] };
 ```
 
+Extend weekly result:
+
+```ts
+export interface WeekProgressionResult {
+  state: GameState;
+  recoveredPlayerIds: PlayerId[];
+  healedPlayerIds: PlayerId[];
+  specialRelationshipTransitions: SpecialRelationshipTransition[];
+}
+```
+
+`advanceOneWeek` calls the relationship progressor after calculating `nextDate` and returns its transitions. `advanceGameWeek` already spreads `WeekProgressionResult`, so the transitions reach `applyAdvanceWeek` without a second state mutation.
+
 Rules:
 
 ```text
@@ -280,15 +314,15 @@ reinforcement: clears belowThresholdSince and updates lastReinforcedDate
 
 - [ ] **Step 1: Write failing degradation tests**
 
-Cover 7 weeks retained, week 8 removed, recovery resets timer, mentor threshold, rival immunity, and a pair with two tags removing only the degraded tag.
+Cover 7 weeks retained, week 8 removed, recovery resets timer, mentor threshold, rival immunity, transition emission, and a pair with two tags removing only the degraded tag.
 
 - [ ] **Step 2: Run RED**
 
 `npx vitest run tests/unit/domain/relationships/phase21RelationshipDegradation.test.ts`
 
-- [ ] **Step 3: Implement pure weekly progression and call from `advanceOneWeek` after next date is calculated**
+- [ ] **Step 3: Implement pure weekly progression and integrate with `advanceOneWeek`**
 
-Preserve injury progression behavior and return transitions for notification creation.
+Preserve injury progression behavior exactly.
 
 - [ ] **Step 4: Run GREEN and commit**
 
@@ -299,14 +333,14 @@ git add src/domain/relationships/specialRelationships.ts src/domain/calendar/wee
 git commit -m "feat: degrade stale partner and mentor bonds"
 ```
 
-### Task 5: Compact special-relationship notifications
+### Task 5: Compact special-relationship notifications at worker boundary
 
 **Files:**
 - Modify: `src/domain/notifications/gameNotifications.ts`
-- Modify: `src/domain/events/resolveEventChoice.ts`
-- Modify: `src/domain/calendar/weekProgression.ts`
-- Modify: `src/features/home/HomeScreen.tsx`
+- Modify: `worker/game/applyGameAction.ts`
 - Create: `tests/unit/notifications/phase21RelationshipNotifications.test.ts`
+- Modify: `tests/unit/worker/applyGameAction.test.ts`
+- Modify: `src/features/home/HomeScreen.tsx`
 - Modify: `tests/unit/features/home/HomeScreen.test.tsx`
 
 **Interfaces:**
@@ -326,30 +360,54 @@ export interface SpecialRelationshipNotification {
     displayNames: [string, string];
   };
 }
+
+export function buildSpecialRelationshipNotification(
+  state: GameState,
+  transition: SpecialRelationshipTransition,
+): SpecialRelationshipNotification;
 ```
+
+Worker helper:
+
+```ts
+function appendSpecialRelationshipNotifications(
+  state: GameState,
+  transitions: readonly SpecialRelationshipTransition[],
+): GameState;
+```
+
+`applyEventChoice` consumes `resolution.specialRelationshipTransitions` and appends notifications to `resolution.state` before returning.
+
+`applyAdvanceWeek` consumes `progression.specialRelationshipTransitions`, appends notifications to `progression.state`, then calls `surfaceWeeklyEvent` on that notified state. Thus informational relationship changes never create another `pendingEvent`.
 
 `appendNotification` keeps only newest notification of this type and de-duplicates by ID.
 
 - [ ] **Step 1: Write failing builder/retention tests**
 
-- [ ] **Step 2: Run RED**
+- [ ] **Step 2: Write failing worker handoff tests**
 
-`npx vitest run tests/unit/notifications/phase21RelationshipNotifications.test.ts`
+One event-choice test asserts an establishment transition creates one notification. One advance-week test with an 8-week stale partner asserts a removal transition creates one notification.
 
-- [ ] **Step 3: Append notifications from event transitions and weekly degradation transitions**
-
-Event transitions still keep visible result text in fullscreen result; notification is informational and must not create another fullscreen event.
-
-- [ ] **Step 4: Add Home UI test**
-
-Assert `ライバル関係が成立` or corresponding removal copy is visible and `fullscreen-event` is absent when opening the compact notification itself.
-
-- [ ] **Step 5: Run GREEN and commit**
+- [ ] **Step 3: Run RED**
 
 ```bash
-npx vitest run tests/unit/notifications/phase21RelationshipNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx
+npx vitest run tests/unit/notifications/phase21RelationshipNotifications.test.ts tests/unit/worker/applyGameAction.test.ts
+```
+
+- [ ] **Step 4: Implement worker-only notification append path**
+
+Keep fullscreen event result text from the original occurrence; the compact notification is separate informational history/UI.
+
+- [ ] **Step 5: Add Home UI test**
+
+Assert `ライバル関係が成立` or corresponding removal copy is visible and `fullscreen-event` is absent when viewing the compact notification.
+
+- [ ] **Step 6: Run GREEN and commit**
+
+```bash
+npx vitest run tests/unit/notifications/phase21RelationshipNotifications.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx
 npm run typecheck
-git add src/domain/notifications/gameNotifications.ts src/domain/events/resolveEventChoice.ts src/domain/calendar/weekProgression.ts src/features/home/HomeScreen.tsx tests/unit/notifications/phase21RelationshipNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx
+git add src/domain/notifications/gameNotifications.ts worker/game/applyGameAction.ts src/features/home/HomeScreen.tsx tests/unit/notifications/phase21RelationshipNotifications.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx
 git commit -m "feat: notify special relationship changes"
 ```
 
@@ -463,7 +521,7 @@ Assert version9, all defaults, preservation of known numeric relationship and pe
 
 - [ ] **Step 3: Add strict v9 schemas and migration normalization**
 
-Validate max2 tags, mentor IDs within pair, `belowThresholdSince` game-date/null, legacy max200, and special relationship notification shape.
+Validate max2 tags, mentor IDs within pair, `belowThresholdSince` game-date/null, legacy max200, `recentActorPairKeys`, new Player fields, and special relationship notification shape.
 
 - [ ] **Step 4: Add v9 round-trip test with rival+mentor bond, deterioration timer, legacy record, recent pair memory, and notification**
 
@@ -490,6 +548,7 @@ npx vitest run \
   tests/unit/domain/calendar/phase21RelationshipLegacy.test.ts \
   tests/unit/notifications/phase21RelationshipNotifications.test.ts \
   tests/unit/persistence/phase21GameStateMigration.test.ts \
+  tests/unit/worker/applyGameAction.test.ts \
   tests/unit/features/home/HomeScreen.test.tsx \
   tests/unit/features/team/PlayerHubScreen.test.tsx
 ```
@@ -516,6 +575,7 @@ legacy max = 200
 rival does not affinity-degrade
 partner/mentor degradation = 8 consecutive weeks
 real authored event exists for rival, mentor, partner
+relationship notifications originate from worker transition handoff
 no relationship training bonus yet
 no direct match-stat bonus
 normal event cadence unchanged
