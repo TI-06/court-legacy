@@ -42,6 +42,7 @@
 ### Task 1: Pure personality presentation
 
 **Files:**
+
 - Create: `src/domain/player/playerPersonalityPresentation.ts`
 - Create: `tests/unit/domain/player/playerPersonalityPresentation.test.ts`
 
@@ -91,6 +92,7 @@ git commit -m "feat: add player personality presentation"
 ### Task 2: Public personality in Player Hub
 
 **Files:**
+
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/player-hub.css`
 - Modify: `src/app/GameApp.tsx`
@@ -119,6 +121,7 @@ git commit -m "feat: show player personality in Player Hub"
 ### Task 3: Fullscreen event choice state with personality actor cards
 
 **Files:**
+
 - Create: `src/features/home/FullscreenEventExperience.tsx`
 - Create: `src/features/home/fullscreen-event.css`
 - Modify: `src/features/home/EventDialog.tsx`
@@ -164,6 +167,7 @@ git commit -m "feat: make choice events fullscreen"
 ### Task 4: In-place fullscreen result and accessibility
 
 **Files:**
+
 - Modify: `src/features/home/FullscreenEventExperience.tsx`
 - Modify: `src/features/home/fullscreen-event.css`
 - Modify: `tests/unit/features/home/EventDialog.test.tsx`

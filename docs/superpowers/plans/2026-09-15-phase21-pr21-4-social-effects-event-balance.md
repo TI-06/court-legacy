@@ -43,6 +43,7 @@
 ### Task 1: Pure social training contribution builder
 
 **Files:**
+
 - Create: `src/domain/training/relationshipTrainingModifiers.ts`
 - Create: `tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts`
 
@@ -50,9 +51,7 @@
 
 ```ts
 export type SocialGrowthContributionCode =
-  | "relationship-partner"
-  | "relationship-mentor"
-  | "relationship-rival";
+  "relationship-partner" | "relationship-mentor" | "relationship-rival";
 
 export interface SocialGrowthContribution {
   code: SocialGrowthContributionCode;
@@ -90,6 +89,7 @@ git commit -m "feat: calculate relationship training bonuses"
 ### Task 2: Integrate capped social growth into weekly training
 
 **Files:**
+
 - Modify: `src/domain/training/calculateGrowth.ts`
 - Modify: `src/domain/training/resolveWeeklyTraining.ts`
 - Modify: `tests/unit/domain/training/resolveWeeklyTraining.test.ts`
@@ -124,6 +124,7 @@ git commit -m "feat: apply visible capped social training growth"
 ### Task 3: Preserve/display social contributions in training results
 
 **Files:**
+
 - Modify: `src/domain/notifications/gameNotifications.ts`
 - Modify: `src/features/home/TrainingResultNotificationSheet.tsx`
 - Modify: `src/features/home/training-result-notification.css`
@@ -145,6 +146,7 @@ git commit -m "feat: show relationship effects in training results"
 ### Task 4: Pure bounded event-weight multiplier
 
 **Files:**
+
 - Create: `src/domain/events/characterEventWeight.ts`
 - Create: `tests/unit/domain/events/phase21CharacterEventWeight.test.ts`
 
@@ -190,6 +192,7 @@ git commit -m "feat: weight events by visible character context"
 ### Task 5: Recent-pair penalty and memory
 
 **Files:**
+
 - Modify: `src/domain/events/selectEvent.ts`
 - Modify: `src/domain/events/resolveEventChoice.ts`
 - Create: `tests/unit/domain/events/phase21PairRepetition.test.ts`
@@ -207,14 +210,14 @@ Only exactly two distinct actors return canonical `relationshipKey`.
 Candidate formula:
 
 ```ts
-const pairPenalty = pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey)
-  ? 0.2
-  : 1;
+const pairPenalty =
+  pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey) ? 0.2 : 1;
 const finalWeight = Math.max(
   1,
   Math.round(
     event.weight *
-      (characterEventWeightMultiplier(state, data, event, actorPlayerIds) / 100) *
+      (characterEventWeightMultiplier(state, data, event, actorPlayerIds) /
+        100) *
       recentEventPenalty *
       recentCategoryPenalty *
       pairPenalty,
@@ -238,6 +241,7 @@ git commit -m "feat: diversify relationship event actor pairs"
 ### Task 6: Multi-season deterministic balance audit
 
 **Files:**
+
 - Create: `tests/unit/domain/events/phase21RelationshipLongRun.test.ts`
 
 **Metrics:**

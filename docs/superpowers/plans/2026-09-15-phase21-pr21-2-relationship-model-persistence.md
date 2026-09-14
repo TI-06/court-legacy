@@ -49,6 +49,7 @@
 ### Task 1: v9 model, relationship labels, and pure bond helpers
 
 **Files:**
+
 - Create: `src/domain/relationships/relationshipTypes.ts`
 - Create: `src/domain/relationships/specialRelationships.ts`
 - Create: `src/domain/relationships/relationshipPresentation.ts`
@@ -145,6 +146,7 @@ git commit -m "feat: add Phase21 relationship state model"
 ### Task 2: Pair-aware event eligibility and explicit relationship effects
 
 **Files:**
+
 - Modify: `src/domain/validation/gameDataSchema.ts`
 - Modify: `src/domain/events/eventEligibility.ts`
 - Modify: `src/domain/events/resolveEventChoice.ts`
@@ -162,9 +164,19 @@ Evaluate these only for actorCount >=2 using first two actors.
 **Effect additions:**
 
 ```ts
-{ type: "special-relationship-add"; kind: "rival" | "partner" }
-{ type: "special-relationship-add"; kind: "mentor"; mentor: "higher-grade" | "actor-0" | "actor-1" }
-{ type: "special-relationship-remove"; kind: "rival" | "mentor" | "partner" }
+{
+  type: "special-relationship-add";
+  kind: "rival" | "partner";
+}
+{
+  type: "special-relationship-add";
+  kind: "mentor";
+  mentor: "higher-grade" | "actor-0" | "actor-1";
+}
+{
+  type: "special-relationship-remove";
+  kind: "rival" | "mentor" | "partner";
+}
 ```
 
 `higher-grade` requires different grades. Effects execute in listed choice order.
@@ -203,6 +215,7 @@ git commit -m "feat: support special relationship event transitions"
 ### Task 3: Author real rival, mentor, and partner formation events
 
 **Files:**
+
 - Modify: `src/data/events/relationship.json`
 - Create: `tests/unit/domain/events/phase21RelationshipEventData.test.ts`
 
@@ -240,6 +253,7 @@ git commit -m "feat: form special relationships from authored events"
 ### Task 4: Weekly deterioration guard
 
 **Files:**
+
 - Modify: `src/domain/relationships/specialRelationships.ts`
 - Modify: `src/domain/calendar/weekProgression.ts`
 - Create: `tests/unit/domain/relationships/phase21RelationshipDegradation.test.ts`
@@ -286,6 +300,7 @@ git commit -m "feat: degrade stale partner and mentor bonds"
 ### Task 5: Worker-boundary compact relationship notifications
 
 **Files:**
+
 - Modify: `src/domain/notifications/gameNotifications.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Create: `tests/unit/notifications/phase21RelationshipNotifications.test.ts`
@@ -345,6 +360,7 @@ git commit -m "feat: notify special relationship changes"
 ### Task 6: Relationship presentation in Player Hub and fullscreen events
 
 **Files:**
+
 - Modify: `src/domain/relationships/relationshipPresentation.ts`
 - Modify: `tests/unit/domain/relationships/relationshipPresentation.test.ts`
 - Modify: `src/features/team/PlayerHubScreen.tsx`
@@ -393,6 +409,7 @@ git commit -m "feat: show player relationships across character UI"
 ### Task 7: Graduation legacy archival
 
 **Files:**
+
 - Modify: `src/domain/calendar/academicYearProgression.ts`
 - Create: `tests/unit/domain/calendar/phase21RelationshipLegacy.test.ts`
 
@@ -423,6 +440,7 @@ git commit -m "feat: archive relationships at graduation"
 ### Task 8: v8→v9 codec migration
 
 **Files:**
+
 - Modify: `src/persistence/gameStateCodec.ts`
 - Create: `tests/unit/persistence/phase21GameStateMigration.test.ts`
 - Modify: `tests/unit/persistence/gameStateCodec.test.ts`
@@ -430,11 +448,11 @@ git commit -m "feat: archive relationships at graduation"
 Defaults:
 
 ```ts
-playerRelationshipBonds = {}
-history.relationshipLegacyHistory = []
-eventMemory.recentActorPairKeys = []
-player.revealedHiddenTraitIds = []
-player.hiddenTraitAssignmentInitialized = false
+playerRelationshipBonds = {};
+history.relationshipLegacyHistory = [];
+eventMemory.recentActorPairKeys = [];
+player.revealedHiddenTraitIds = [];
+player.hiddenTraitAssignmentInitialized = false;
 ```
 
 - [ ] **Step 1:** RED v8 migration test: version9/defaults + preserve numeric relationship, pending event, event history, personality/performance traits.

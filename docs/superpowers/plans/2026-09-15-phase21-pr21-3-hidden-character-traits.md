@@ -50,6 +50,7 @@
 ### Task 1: Character-trait catalog and registry
 
 **Files:**
+
 - Modify: `src/domain/validation/gameDataSchema.ts`
 - Modify: `src/data/rawGameData.ts`
 - Modify: `src/data/dataRegistry.ts`
@@ -58,16 +59,28 @@
 **Interfaces:**
 
 ```ts
-export const characterTraitDiscoveryConditionSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("trust-min"), value: z.number().int().min(0).max(100) }),
-  z.object({ type: z.literal("appearances-min"), value: z.number().int().min(1).max(1000) }),
-  z.object({ type: z.literal("captaincy") }),
-  z.object({
-    type: z.literal("special-relationship"),
-    kind: z.enum(["rival", "mentor", "partner"]).optional(),
-  }),
-  z.object({ type: z.literal("event-tag"), tag: z.string().trim().min(1).max(30) }),
-]);
+export const characterTraitDiscoveryConditionSchema = z.discriminatedUnion(
+  "type",
+  [
+    z.object({
+      type: z.literal("trust-min"),
+      value: z.number().int().min(0).max(100),
+    }),
+    z.object({
+      type: z.literal("appearances-min"),
+      value: z.number().int().min(1).max(1000),
+    }),
+    z.object({ type: z.literal("captaincy") }),
+    z.object({
+      type: z.literal("special-relationship"),
+      kind: z.enum(["rival", "mentor", "partner"]).optional(),
+    }),
+    z.object({
+      type: z.literal("event-tag"),
+      tag: z.string().trim().min(1).max(30),
+    }),
+  ],
+);
 
 export const characterTraitDefinitionSchema = z.object({
   id: dataIdSchema,
@@ -75,7 +88,10 @@ export const characterTraitDefinitionSchema = z.object({
   description: z.string().trim().min(1).max(180),
   eventTags: z.array(z.string().trim().min(1).max(30)).max(8),
   relationshipBias: z.number().int().min(-10).max(10),
-  discoveryConditions: z.array(characterTraitDiscoveryConditionSchema).min(1).max(4),
+  discoveryConditions: z
+    .array(characterTraitDiscoveryConditionSchema)
+    .min(1)
+    .max(4),
 });
 ```
 
@@ -135,6 +151,7 @@ git commit -m "feat: add character trait catalog"
 ### Task 2: Stable assignment/backfill helper
 
 **Files:**
+
 - Create: `src/domain/player/characterTraitAssignment.ts`
 - Create: `tests/unit/domain/player/characterTraitAssignment.test.ts`
 
@@ -197,6 +214,7 @@ git commit -m "feat: assign hidden character traits deterministically"
 ### Task 3: Assign new and migrated players at canonical lifecycle points
 
 **Files:**
+
 - Modify: `src/domain/generation/generatePlayer.ts`
 - Modify: `src/app/createInitialGame.ts`
 - Modify: `src/domain/calendar/academicYearProgression.ts`
@@ -205,6 +223,7 @@ git commit -m "feat: assign hidden character traits deterministically"
 - Modify: `tests/unit/worker/academicYearRecruitment.test.ts`
 
 **Interfaces:**
+
 - `generatePlayer` initializes `hiddenTraitIds: []`, `revealedHiddenTraitIds: []`, `hiddenTraitAssignmentInitialized: false`.
 - `createInitialGame` calls `ensureCharacterTraitAssignments` after world/player construction.
 - `advanceAcademicYear` calls the same helper after all intake and generational-talent players are inserted.
@@ -240,6 +259,7 @@ git commit -m "feat: initialize character traits across player lifecycle"
 ### Task 4: Pure discovery engine
 
 **Files:**
+
 - Create: `src/domain/player/characterTraitDiscovery.ts`
 - Create: `tests/unit/domain/player/characterTraitDiscovery.test.ts`
 
@@ -300,6 +320,7 @@ git commit -m "feat: discover hidden character traits"
 ### Task 5: Event-specific and post-action discovery handoff
 
 **Files:**
+
 - Modify: `src/domain/events/resolveEventChoice.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Create: `tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts`
@@ -332,7 +353,12 @@ It returns `discovery.state` and `discovery.discoveries` after event effects/his
 At worker level, refactor `applyGameAction` from direct `return` in each switch case to:
 
 ```ts
-const applied = applyActionByType(canonicalState, teamSelection, action, context);
+const applied = applyActionByType(
+  canonicalState,
+  teamSelection,
+  action,
+  context,
+);
 const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
   captainPlayerId: applied.state.teamDynamics.captainPlayerId,
   viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
@@ -376,6 +402,7 @@ git commit -m "feat: reveal character traits from gameplay context"
 ### Task 6: Compact discovery notification
 
 **Files:**
+
 - Modify: `src/domain/notifications/gameNotifications.ts`
 - Modify: `worker/game/applyGameAction.ts`
 - Create: `tests/unit/notifications/phase21CharacterTraitNotifications.test.ts`
@@ -451,11 +478,13 @@ git commit -m "feat: notify discovered character traits"
 ### Task 7: Player Hub revealed-trait presentation
 
 **Files:**
+
 - Modify: `src/features/team/PlayerHubScreen.tsx`
 - Modify: `src/features/team/player-hub.css`
 - Modify: `tests/unit/features/team/PlayerHubScreen.test.tsx`
 
 **Interfaces:**
+
 - Show `aria-label="発見した個性"` only when a `revealedHiddenTraitId` resolves in `data.characterTraits`.
 - Never render assigned-but-unrevealed IDs.
 
@@ -487,6 +516,7 @@ git commit -m "feat: show discovered character traits"
 ### Task 8: PR21-3 verification gate
 
 **Files:**
+
 - No planned production changes.
 
 - [ ] **Step 1: Run focused suites**
