@@ -29,6 +29,10 @@ import {
 import type { GameState } from "../../src/domain/model/GameState";
 import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import {
+  applyUserMatchExperience,
+  calculateSelectionAverageAbility,
+} from "../../src/domain/player/playerDevelopment";
 import { matchId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
@@ -138,6 +142,33 @@ function trainingGrowthModifiers(state: GameState): AdditionalGrowthModifier[] {
       percent: 100 + pendingBoost.percent,
     },
   ];
+}
+
+function applyCompletedSoloMatchExperience(
+  state: GameState,
+  strengthState: GameState,
+  match: SimulateMatchResult["match"],
+): GameState {
+  const userIsHome = match.homeSchoolId === state.userSchoolId;
+  const userSelection = userIsHome ? match.homeSelection : match.awaySelection;
+  const opponentSelection = userIsHome
+    ? match.awaySelection
+    : match.homeSelection;
+  const userStrength = calculateSelectionAverageAbility(
+    strengthState,
+    userSelection,
+  );
+  const opponentStrength = calculateSelectionAverageAbility(
+    strengthState,
+    opponentSelection,
+  );
+  return applyUserMatchExperience({
+    state,
+    data: gameData,
+    match,
+    selection: userSelection,
+    strongerOpponent: opponentStrength > userStrength + 2,
+  });
 }
 
 function consumeNextTrainingGrowthBoost(state: GameState): GameState {
@@ -466,7 +497,12 @@ function applyPracticeMatch(
       randomCursor: simulation.match.randomCursor,
       activeMatch: simulation.match,
     };
-    const recorded = recordMatchOutcome(matchState, {
+    const experiencedState = applyCompletedSoloMatchExperience(
+      matchState,
+      matchState,
+      simulation.match,
+    );
+    const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
       homeSchoolId: simulation.match.homeSchoolId,
@@ -566,7 +602,12 @@ function applyPracticeMatchCommand(
       };
     }
 
-    const recorded = recordMatchOutcome(resumedState, {
+    const experiencedState = applyCompletedSoloMatchExperience(
+      resumedState,
+      resumedState,
+      simulation.match,
+    );
+    const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
       homeSchoolId: simulation.match.homeSchoolId,
@@ -840,8 +881,13 @@ function applyOfficialMatchCommand(
       };
     }
 
+    const experiencedState = applyCompletedSoloMatchExperience(
+      resumedState,
+      context.state,
+      simulation.match,
+    );
     const recorded = recordOfficialTournamentOutcome({
-      state: resumedState,
+      state: experiencedState,
       circuit: due.circuit,
       level: due.level,
       bracketMatchId: due.match.id,

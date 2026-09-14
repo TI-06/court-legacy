@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../../../../src/data/gameData";
 import type { Player } from "../../../../src/domain/model/Player";
 import type { School } from "../../../../src/domain/model/School";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
+import { calculateMatchExperienceAmount } from "../../../../src/domain/player/playerDevelopment";
 import { calculateGrowth } from "../../../../src/domain/training/calculateGrowth";
 
 if (!gameDataBootstrap.ok) {
@@ -209,6 +210,52 @@ describe("calculateGrowth", () => {
     expect(gradeOne.amount).toBeGreaterThan(gradeThree.amount);
   });
 
+  it("keeps practice specialists ahead in weekly training while match experience stays smaller", () => {
+    const practiceType = data.growthTypes.get("growth.practice")!;
+    const matchType = data.growthTypes.get("growth.match")!;
+    const school = createSchool({
+      coach: { ...createSchool().coach, development: 80 },
+      facilities: { ...createSchool().facilities, trainingRoom: 10 },
+    });
+    const personality = data.personalities.get("personality.calm")!;
+    const practicePlayer = createPlayer({
+      growthTypeId: "growth.practice",
+      potential: 100,
+      condition: 100,
+      academic: 80,
+    });
+    const matchPlayer = createPlayer({
+      growthTypeId: "growth.match",
+      potential: 100,
+      condition: 100,
+      academic: 80,
+    });
+
+    const practiceTraining = calculateGrowth({
+      baseGrowth: 40,
+      player: practicePlayer,
+      school,
+      growthType: practiceType,
+      personality,
+    });
+    const matchTraining = calculateGrowth({
+      baseGrowth: 40,
+      player: matchPlayer,
+      school,
+      growthType: matchType,
+      personality,
+    });
+    const matchExperience = calculateMatchExperienceAmount({
+      player: matchPlayer,
+      growthType: matchType,
+      lost: false,
+      strongerOpponent: false,
+    });
+
+    expect(practiceTraining.amount).toBeGreaterThan(matchTraining.amount);
+    expect(matchTraining.amount).toBeGreaterThan(matchExperience);
+  });
+
   it("caps the approved Lv.50 training-room growth bonus at 30 percent", () => {
     const result = calculateGrowth({
       baseGrowth: 10,
@@ -252,7 +299,7 @@ describe("calculateGrowth", () => {
     expect(strongEnvironment.amount).toBeGreaterThan(weakEnvironment.amount);
   });
 
-  it("slows growth sharply after a player reaches the nineties", () => {
+  it("leaves long-term ceiling enforcement to the canonical player policy", () => {
     const common = {
       baseGrowth: 40,
       school: createSchool({
@@ -264,45 +311,14 @@ describe("calculateGrowth", () => {
     };
     const developing = calculateGrowth({
       ...common,
-      player: createPlayer({
-        abilities: abilities(75),
-        potential: 70,
-        academic: 80,
-        condition: 100,
-      }),
+      player: createPlayer({ abilities: abilities(75), potential: 70 }),
     });
     const advanced = calculateGrowth({
       ...common,
-      player: createPlayer({
-        abilities: abilities(92),
-        potential: 70,
-        academic: 80,
-        condition: 100,
-      }),
+      player: createPlayer({ abilities: abilities(92), potential: 70 }),
     });
 
-    expect(developing.amount).toBeGreaterThan(advanced.amount);
-    expect(advanced.amount).toBeGreaterThanOrEqual(0);
-  });
-
-  it("stops routine training growth once the potential-derived ceiling is reached", () => {
-    const result = calculateGrowth({
-      baseGrowth: 80,
-      player: createPlayer({
-        abilities: abilities(96),
-        potential: 60,
-        academic: 80,
-        condition: 100,
-      }),
-      school: createSchool({
-        coach: { ...createSchool().coach, development: 100 },
-        facilities: { ...createSchool().facilities, trainingRoom: 50 },
-      }),
-      growthType: data.growthTypes.get("growth.standard")!,
-      personality: data.personalities.get("personality.calm")!,
-    });
-
-    expect(result.amount).toBe(0);
+    expect(advanced.amount).toBe(developing.amount);
   });
 
   it("ignores legacy fatigue while keeping academic restriction active", () => {
