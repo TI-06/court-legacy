@@ -112,7 +112,9 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.report.metadata.completedSeasons).toBe(1);
     expect(first.report.metadata.completedWeeks).toBeGreaterThan(0);
     expect(first.report.metadata.actions).toBeGreaterThan(0);
-    expect(first.report.metadata.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
+    expect(first.report.metadata.schemaVersion).toBe(
+      CURRENT_GAME_SCHEMA_VERSION,
+    );
     expect(first.report.facilityMilestones.facilityMaxLevel).toBe(50);
     expect(Object.keys(first.report.facilityMilestones.byFacility).length).toBe(
       8,

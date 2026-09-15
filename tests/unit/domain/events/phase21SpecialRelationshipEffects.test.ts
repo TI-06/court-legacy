@@ -83,7 +83,9 @@ function firstTwoPlayers() {
 
 describe("Phase21 special relationship event effects", () => {
   it("accepts the pair-aware trigger and special relationship effect schema", () => {
-    expect(eventDefinitionSchema.safeParse(phase21EventInput).success).toBe(true);
+    expect(eventDefinitionSchema.safeParse(phase21EventInput).success).toBe(
+      true,
+    );
   });
 
   it("requires same preferred position and different grades when requested", () => {
@@ -227,7 +229,9 @@ describe("Phase21 special relationship event effects", () => {
       "特殊関係 ライバル解消",
     );
     expect(
-      getRelationshipBond(removed.state, left, right)?.tags.map((tag) => tag.kind),
+      getRelationshipBond(removed.state, left, right)?.tags.map(
+        (tag) => tag.kind,
+      ),
     ).toEqual(["mentor"]);
   });
 
@@ -267,7 +271,9 @@ describe("Phase21 special relationship event effects", () => {
     );
 
     expect(
-      getRelationshipBond(result.state, left, right)?.tags.map((tag) => tag.kind),
+      getRelationshipBond(result.state, left, right)?.tags.map(
+        (tag) => tag.kind,
+      ),
     ).toEqual(["rival", "mentor"]);
     expect(result.occurrence.visibleResultCodes).toEqual([
       "特殊関係 相棒変化なし",
