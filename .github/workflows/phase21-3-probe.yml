@@ -1,4 +1,4 @@
-name: Phase21-3 Task5 Discovery Handoff Probe
+name: Phase21-3 Task6 Notification Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task5:
+  task6:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,25 +20,23 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task5 failing tests
+      - name: Add Task6 failing tests
         shell: bash
         run: |
-          mkdir -p tests/unit/domain/events
-          cat > tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts <<'EOF'
+          mkdir -p tests/unit/notifications
+          cat > tests/unit/notifications/phase21CharacterTraitNotifications.test.ts <<'EOF'
           import { describe, expect, it } from "vitest";
-          import { createInitialGame } from "../../../../src/app/createInitialGame";
-          import { loadGameData } from "../../../../src/data/dataRegistry";
-          import { rawGameData } from "../../../../src/data/rawGameData";
-          import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
-          import { eventId } from "../../../../src/domain/model/identifiers";
-          import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
-          import type { EventDefinition } from "../../../../src/domain/validation/gameDataSchema";
-
-          const baseData = loadGameData(rawGameData);
+          import { createInitialGame } from "../../../src/app/createInitialGame";
+          import { gameData } from "../../../src/app/createDemoGame";
+          import {
+            appendNotification,
+            buildCharacterTraitDiscoveredNotification,
+            selectHomeCharacterTraitNotifications,
+          } from "../../../src/domain/notifications/gameNotifications";
 
           function createState() {
-            const state = createInitialGame({
-              seed: "phase21-event-discovery",
+            return createInitialGame({
+              seed: "phase21-trait-notification",
               schoolName: "青葉高校",
               schoolShortName: "青葉",
               coachName: "高橋 監督",
@@ -49,321 +47,491 @@ jobs:
                 accent: "#D99B2B",
               },
             });
-            for (const player of Object.values(state.players)) {
-              player.hiddenTraitIds = [];
-              player.revealedHiddenTraitIds = [];
-              player.hiddenTraitAssignmentInitialized = true;
-            }
-            return state;
           }
 
-          describe("Phase21 event-tag character trait discovery", () => {
-            it("reveals an assigned event-tag trait from the resolved event context", () => {
+          describe("Phase21 character trait discovery notifications", () => {
+            it("builds player and trait display data from canonical state and registry", () => {
               const state = createState();
               const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
               const player = state.players[playerId]!;
-              player.hiddenTraitIds = ["character.analytical"];
-              player.revealedHiddenTraitIds = [];
-              player.career.appearances = 0;
+              const trait = gameData.characterTraits.get("character.training-lover")!;
 
-              const event: EventDefinition = {
-                id: "event.phase21-analysis-reveal",
-                version: 1,
-                category: "individual",
-                title: "映像分析",
-                bodyTemplate: "映像を見返した。",
-                tags: ["analysis"],
-                trigger: {},
-                weight: 1,
-                cooldownWeeks: 0,
-                oncePerCareer: false,
-                actorCount: 1,
-                choices: [
-                  {
-                    id: "observe",
-                    label: "分析する",
-                    detail: "映像を確認する",
-                    effects: [{ type: "trust-change", amount: 0 }],
-                  },
-                  {
-                    id: "skip",
-                    label: "切り上げる",
-                    detail: "今日はここまでにする",
-                    effects: [{ type: "morale-change", amount: 0 }],
-                  },
-                ],
-              };
-              const data = {
-                ...baseData,
-                events: new Map([...baseData.events, [event.id, event]]),
-              };
-              state.pendingEvent = {
-                eventId: eventId(event.id),
-                actorPlayerIds: [playerId],
-                targetSchoolId: null,
-                surfacedDate: state.date,
-                choiceIds: event.choices.map((choice) => choice.id),
-                chainId: null,
-                chainStage: null,
-              };
-
-              const result = resolveEventChoice(
+              const notification = buildCharacterTraitDiscoveredNotification(
                 state,
-                "observe",
-                data,
-                new SeededRandom(state.seed, state.randomCursor),
+                { playerId, traitId: trait.id },
+                gameData,
               );
 
-              expect(result.characterTraitDiscoveries).toEqual([
-                { playerId, traitId: "character.analytical" },
-              ]);
-              expect(result.state.players[playerId]!.revealedHiddenTraitIds).toEqual([
-                "character.analytical",
-              ]);
-              expect(result.occurrence.visibleResultCodes).not.toContain(
-                "character.analytical",
+              expect(notification).toMatchObject({
+                type: "character-trait-discovered",
+                createdGameDate: state.date,
+                academicYearIndex: state.yearIndex,
+                weekOfYear: state.calendar.weekOfYear,
+                readAtGameDate: null,
+                payload: {
+                  playerId,
+                  displayName: `${player.lastName} ${player.firstName}`,
+                  traitId: trait.id,
+                  traitName: trait.name,
+                  description: trait.description,
+                },
+              });
+            });
+
+            it("retains only the newest discovery notification of this type", () => {
+              const state = createState();
+              const [firstPlayerId, secondPlayerId] = state.schools[state.userSchoolId]!.playerIds;
+              const first = buildCharacterTraitDiscoveredNotification(
+                state,
+                { playerId: firstPlayerId!, traitId: "character.training-lover" },
+                gameData,
               );
+              const second = buildCharacterTraitDiscoveredNotification(
+                state,
+                { playerId: secondPlayerId!, traitId: "character.team-first" },
+                gameData,
+              );
+
+              const once = appendNotification({ items: [] }, first);
+              const twice = appendNotification(once, second);
+              const duplicate = appendNotification(twice, second);
+
+              expect(twice.items).toEqual([second]);
+              expect(duplicate).toBe(twice);
+              expect(selectHomeCharacterTraitNotifications(twice)).toEqual([second]);
             });
           });
           EOF
 
           python - <<'PY'
           from pathlib import Path
-          path = Path("tests/unit/worker/gameAction.test.ts")
-          text = path.read_text(encoding="utf-8")
-          marker = 'describe("game action route", () => {\n'
-          if 'reveals an eligible trait after a canonical action without surfacing a new event' not in text:
-              addition = '''  it("reveals an eligible trait after a canonical action without surfacing a new event", async () => {
-            const snapshot = createSnapshot();
-            for (const player of Object.values(snapshot.state.players)) {
-              player.hiddenTraitIds = [];
-              player.revealedHiddenTraitIds = [];
-              player.hiddenTraitAssignmentInitialized = true;
-            }
-            const playerId = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
-            const player = snapshot.state.players[playerId]!;
-            player.hiddenTraitIds = ["character.training-lover"];
-            player.trust = 65;
-            snapshot.state.pendingEvent = null;
-            const store = createStore(snapshot);
-            const handler = createGameActionHandler(store);
 
-            const response = await handler(
-              actionRequest({
-                ...operation,
-                action: {
-                  type: "team-selection",
-                  selection: snapshot.teamSelection,
-                },
-              }),
-              { id: "user-123" },
-            );
+          route_path = Path("tests/unit/worker/gameAction.test.ts")
+          route = route_path.read_text(encoding="utf-8")
+          marker = '''    expect(persisted.state.pendingEvent).toBeNull();
+          '''
+          if 'character-trait-discovered' not in route:
+              replacement = '''    expect(persisted.state.pendingEvent).toBeNull();
+              expect(persisted.state.notifications.items).toEqual(
+                expect.arrayContaining([
+                  expect.objectContaining({
+                    type: "character-trait-discovered",
+                    payload: expect.objectContaining({
+                      playerId,
+                      traitId: "character.training-lover",
+                    }),
+                  }),
+                ]),
+              );
+          '''
+              if marker not in route:
+                  raise SystemExit("route notification assertion marker missing")
+              route = route.replace(marker, replacement, 1)
+              route_path.write_text(route, encoding="utf-8")
 
-            expect(response.status).toBe(200);
-            const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
-            expect(persisted.state.players[playerId]!.revealedHiddenTraitIds).toEqual([
-              "character.training-lover",
-            ]);
-            expect(persisted.state.pendingEvent).toBeNull();
-          });
+          home_path = Path("tests/unit/features/home/HomeScreen.test.tsx")
+          home = home_path.read_text(encoding="utf-8")
+          if 'buildCharacterTraitDiscoveredNotification' not in home:
+              home = home.replace(
+                  'import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";\n',
+                  'import {\n  buildCharacterTraitDiscoveredNotification,\n  type TrainingResultNotification,\n} from "../../../../src/domain/notifications/gameNotifications";\n',
+                  1,
+              )
+          test_marker = '  it("disables conflicting actions while an authoritative operation is pending", () => {\n'
+          if 'shows a compact character trait discovery without opening a fullscreen event' not in home:
+              addition = '''  it("shows a compact character trait discovery without opening a fullscreen event", () => {
+                const props = createProps();
+                const playerId = props.state.schools[props.state.userSchoolId]!.playerIds[0]!;
+                const notification = buildCharacterTraitDiscoveredNotification(
+                  props.state,
+                  { playerId, traitId: "character.training-lover" },
+                  gameData,
+                );
+                props.state.notifications.items = [notification];
+
+                render(<HomeScreen {...props} />);
+
+                expect(screen.getByText("新しい個性を発見！")).toBeInTheDocument();
+                expect(screen.queryByTestId("fullscreen-event")).not.toBeInTheDocument();
+                fireEvent.click(
+                  screen.getByRole("button", { name: /新しい個性を発見！/ }),
+                );
+                expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
+              });
 
           '''
-              if marker not in text:
-                  raise SystemExit("game action describe marker missing")
-              text = text.replace(marker, marker + addition, 1)
-              path.write_text(text, encoding="utf-8")
+              if test_marker not in home:
+                  raise SystemExit("HomeScreen test marker missing")
+              home = home.replace(test_marker, addition + test_marker, 1)
+              home_path.write_text(home, encoding="utf-8")
           PY
-          npx prettier tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts --write
+          npx prettier tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/worker/gameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx --write
           git diff --check
-      - name: Prove Task5 RED
+      - name: Prove Task6 RED
         id: red
         continue-on-error: true
-        run: npx vitest run tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts
-      - name: Assert Task5 was RED before implementation
+        run: npx vitest run tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/worker/gameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx
+      - name: Assert Task6 was RED before implementation
         run: test "${{ steps.red.outcome }}" = "failure"
-      - name: Implement Task5 discovery handoff
+      - name: Implement Task6 notification pipeline
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          event_path = Path("src/domain/events/resolveEventChoice.ts")
-          event = event_path.read_text(encoding="utf-8")
-          if 'player/characterTraitDiscovery' not in event:
-              marker = 'import type { GameDataRegistry } from "../../data/dataRegistry";\n'
-              if marker not in event:
-                  raise SystemExit("resolveEventChoice import marker missing")
-              event = event.replace(
+          notifications_path = Path("src/domain/notifications/gameNotifications.ts")
+          text = notifications_path.read_text(encoding="utf-8")
+          if 'player/characterTraitDiscovery' not in text:
+              marker = 'import type { Position } from "../model/Player";\n'
+              text = text.replace(
                   marker,
-                  marker + 'import {\n  discoverEligibleCharacterTraits,\n  type CharacterTraitDiscovery,\n} from "../player/characterTraitDiscovery";\n',
+                  marker + 'import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";\n',
                   1,
               )
-          old_interface = '''export interface ResolveEventChoiceResult {
-            state: GameState;
-            occurrence: EventOccurrence;
-            specialRelationshipTransitions: SpecialRelationshipTransition[];
-          }
+          if 'export interface CharacterTraitDiscoveredNotification' not in text:
+              marker = '''export type GameNotification =
           '''
-          if 'characterTraitDiscoveries: CharacterTraitDiscovery[];' not in event:
-              new_interface = '''export interface ResolveEventChoiceResult {
-            state: GameState;
-            occurrence: EventOccurrence;
-            specialRelationshipTransitions: SpecialRelationshipTransition[];
-            characterTraitDiscoveries: CharacterTraitDiscovery[];
+              block = '''export interface CharacterTraitDiscoveredNotification {
+            id: string;
+            type: "character-trait-discovered";
+            createdGameDate: GameDate;
+            academicYearIndex: number;
+            weekOfYear: number;
+            readAtGameDate: GameDate | null;
+            payload: {
+              playerId: PlayerId;
+              displayName: string;
+              traitId: string;
+              traitName: string;
+              description: string;
+            };
           }
-          '''
-              if old_interface not in event:
-                  raise SystemExit("resolveEventChoice result interface marker missing")
-              event = event.replace(old_interface, new_interface, 1)
-          old_return = '  return { state: nextState, occurrence, specialRelationshipTransitions };\n'
-          if old_return in event:
-              new_return = '''  const characterTraitDiscovery = discoverEligibleCharacterTraits(
-            nextState,
-            data,
-            {
-              eventTags: event.tags,
-              captainPlayerId: nextState.teamDynamics.captainPlayerId,
-              viceCaptainPlayerId: nextState.teamDynamics.viceCaptainPlayerId,
-            },
-          );
-          nextState = characterTraitDiscovery.state;
 
-          return {
-            state: nextState,
-            occurrence,
-            specialRelationshipTransitions,
-            characterTraitDiscoveries: characterTraitDiscovery.discoveries,
-          };
           '''
-              event = event.replace(old_return, new_return, 1)
-          elif 'characterTraitDiscoveries: characterTraitDiscovery.discoveries' not in event:
-              raise SystemExit("resolveEventChoice return marker missing")
-          event_path.write_text(event, encoding="utf-8")
+              if marker not in text:
+                  raise SystemExit("notification union marker missing")
+              text = text.replace(marker, block + marker, 1)
+          old_union = '''export type GameNotification =
+            | TrainingResultNotification
+            | ConcernResolutionNotification
+            | SpecialRelationshipNotification;
+          '''
+          if '| CharacterTraitDiscoveredNotification' not in text:
+              new_union = '''export type GameNotification =
+            | TrainingResultNotification
+            | ConcernResolutionNotification
+            | SpecialRelationshipNotification
+            | CharacterTraitDiscoveredNotification;
+          '''
+              if old_union not in text:
+                  raise SystemExit("notification union block missing")
+              text = text.replace(old_union, new_union, 1)
+          if 'buildCharacterTraitDiscoveredNotification(' not in text:
+              marker = 'export function appendNotification(\n'
+              builder = '''export function buildCharacterTraitDiscoveredNotification(
+            state: GameState,
+            discovery: CharacterTraitDiscovery,
+            data: GameDataRegistry,
+          ): CharacterTraitDiscoveredNotification {
+            const player = state.players[discovery.playerId];
+            if (!player) {
+              throw new Error(
+                `character trait notification references unknown player: ${discovery.playerId}`,
+              );
+            }
+            const trait = data.characterTraits.get(discovery.traitId);
+            if (!trait) {
+              throw new Error(
+                `character trait notification references unknown trait: ${discovery.traitId}`,
+              );
+            }
+
+            return {
+              id: `character-trait-discovered:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}:${discovery.playerId}:${discovery.traitId}`,
+              type: "character-trait-discovered",
+              createdGameDate: state.date,
+              academicYearIndex: state.yearIndex,
+              weekOfYear: state.calendar.weekOfYear,
+              readAtGameDate: null,
+              payload: {
+                playerId: player.id,
+                displayName: `${player.lastName} ${player.firstName}`,
+                traitId: trait.id,
+                traitName: trait.name,
+                description: trait.description,
+              },
+            };
+          }
+
+          '''
+              if marker not in text:
+                  raise SystemExit("appendNotification marker missing")
+              text = text.replace(marker, builder + marker, 1)
+          if 'selectHomeCharacterTraitNotifications' not in text:
+              text = text.rstrip() + '''
+
+          export function selectHomeCharacterTraitNotifications(
+            state: GameNotificationState,
+          ): CharacterTraitDiscoveredNotification[] {
+            const items = state.items.filter(
+              (item): item is CharacterTraitDiscoveredNotification =>
+                item.type === "character-trait-discovered",
+            );
+            const newest = items[items.length - 1];
+            return newest ? [newest] : [];
+          }
+          '''
+          notifications_path.write_text(text, encoding="utf-8")
 
           worker_path = Path("worker/game/applyGameAction.ts")
           worker = worker_path.read_text(encoding="utf-8")
-          if 'player/characterTraitDiscovery' not in worker:
-              marker = 'import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";\n'
-              if marker not in worker:
-                  raise SystemExit("worker assignment import marker missing")
+          if 'type { GameDataRegistry }' not in worker:
               worker = worker.replace(
-                  marker,
-                  marker + 'import {\n  discoverEligibleCharacterTraits,\n  type CharacterTraitDiscovery,\n} from "../../src/domain/player/characterTraitDiscovery";\n',
+                  'import { gameDataBootstrap } from "../../src/data/gameData";\n',
+                  'import type { GameDataRegistry } from "../../src/data/dataRegistry";\nimport { gameDataBootstrap } from "../../src/data/gameData";\n',
                   1,
               )
-          interface_marker = '''export interface AppliedGameAction {
-            state: GameState;
-            teamSelection: TeamSelection;
-            outcome?: unknown;
-          }
-          '''
-          if 'characterTraitDiscoveries?: CharacterTraitDiscovery[];' not in worker:
-              replacement = '''export interface AppliedGameAction {
-            state: GameState;
-            teamSelection: TeamSelection;
-            outcome?: unknown;
-            characterTraitDiscoveries?: CharacterTraitDiscovery[];
-          }
-          '''
-              if interface_marker not in worker:
-                  raise SystemExit("AppliedGameAction marker missing")
-              worker = worker.replace(interface_marker, replacement, 1)
-
-          event_return_marker = '''      teamSelection,
-                outcome: resolution.occurrence,
-              };
-          '''
-          if 'characterTraitDiscoveries: resolution.characterTraitDiscoveries' not in worker:
-              replacement = '''      teamSelection,
-                outcome: resolution.occurrence,
-                characterTraitDiscoveries: resolution.characterTraitDiscoveries,
-              };
-          '''
-              if event_return_marker not in worker:
-                  raise SystemExit("event action return marker missing")
-              worker = worker.replace(event_return_marker, replacement, 1)
-
-          old_header = '''export function applyGameAction(
-            snapshot: CloudGameSnapshot,
-            action: GameAction,
-            context: ApplyGameActionContext = {},
+          if 'buildCharacterTraitDiscoveredNotification' not in worker:
+              worker = worker.replace(
+                  '  appendNotification,\n',
+                  '  appendNotification,\n  buildCharacterTraitDiscoveredNotification,\n',
+                  1,
+              )
+          helper_marker = 'function applyTraining(\n'
+          if 'function appendCharacterTraitDiscoveryNotifications(' not in worker:
+              helper = '''function appendCharacterTraitDiscoveryNotifications(
+            applied: AppliedGameAction,
+            discoveries: readonly CharacterTraitDiscovery[],
+            data: GameDataRegistry,
           ): AppliedGameAction {
-            const state = ensureCharacterTraitAssignments(
-              structuredClone(snapshot.state) as GameState,
-              gameData,
-            );
-            const teamSelection = cloneTeamSelection(snapshot.teamSelection);
-
-            switch (action.type) {
-          '''
-          if 'function applyActionByType(' not in worker:
-              new_header = '''function applyActionByType(
-            state: GameState,
-            teamSelection: TeamSelection,
-            action: GameAction,
-            context: ApplyGameActionContext,
-          ): AppliedGameAction {
-            switch (action.type) {
-          '''
-              if old_header not in worker:
-                  raise SystemExit("applyGameAction header marker missing")
-              worker = worker.replace(old_header, new_header, 1)
-
-          if 'const finalized = discoverEligibleCharacterTraits(applied.state, gameData' not in worker:
-              wrapper = '''
-
-          export function applyGameAction(
-            snapshot: CloudGameSnapshot,
-            action: GameAction,
-            context: ApplyGameActionContext = {},
-          ): AppliedGameAction {
-            const state = ensureCharacterTraitAssignments(
-              structuredClone(snapshot.state) as GameState,
-              gameData,
-            );
-            const teamSelection = cloneTeamSelection(snapshot.teamSelection);
-            const applied = applyActionByType(state, teamSelection, action, context);
-            const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
-              captainPlayerId: applied.state.teamDynamics.captainPlayerId,
-              viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
-            });
-            const characterTraitDiscoveries = [
-              ...(applied.characterTraitDiscoveries ?? []),
-              ...finalized.discoveries,
-            ].sort(
-              (left, right) =>
-                left.playerId.localeCompare(right.playerId) ||
-                left.traitId.localeCompare(right.traitId),
-            );
-
-            return {
-              state: finalized.state,
-              teamSelection: applied.teamSelection,
-              ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
-              ...(characterTraitDiscoveries.length > 0
-                ? { characterTraitDiscoveries }
-                : {}),
-            };
+            if (discoveries.length === 0) {
+              return applied;
+            }
+            let notifications = applied.state.notifications;
+            for (const discovery of discoveries) {
+              notifications = appendNotification(
+                notifications,
+                buildCharacterTraitDiscoveredNotification(
+                  applied.state,
+                  discovery,
+                  data,
+                ),
+              );
+            }
+            return notifications === applied.state.notifications
+              ? applied
+              : {
+                  ...applied,
+                  state: { ...applied.state, notifications },
+                };
           }
+
           '''
-              worker = worker.rstrip() + wrapper
+              if helper_marker not in worker:
+                  raise SystemExit("worker helper marker missing")
+              worker = worker.replace(helper_marker, helper + helper_marker, 1)
+          old_return = '''  return {
+            state: finalized.state,
+            teamSelection: applied.teamSelection,
+            ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+            ...(characterTraitDiscoveries.length > 0
+              ? { characterTraitDiscoveries }
+              : {}),
+          };
+          '''
+          if 'appendCharacterTraitDiscoveryNotifications(' not in worker.split('export function applyGameAction', 1)[1]:
+              new_return = '''  const finalizedApplied: AppliedGameAction = {
+            state: finalized.state,
+            teamSelection: applied.teamSelection,
+            ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+            ...(characterTraitDiscoveries.length > 0
+              ? { characterTraitDiscoveries }
+              : {}),
+          };
+
+          return appendCharacterTraitDiscoveryNotifications(
+            finalizedApplied,
+            characterTraitDiscoveries,
+            gameData,
+          );
+          '''
+              if old_return not in worker:
+                  raise SystemExit("worker final return marker missing")
+              worker = worker.replace(old_return, new_return, 1)
           worker_path.write_text(worker, encoding="utf-8")
+
+          model_path = Path("src/features/home/homeCommandCenter.ts")
+          model = model_path.read_text(encoding="utf-8")
+          if 'selectHomeCharacterTraitNotifications' not in model:
+              model = model.replace(
+                  '  selectHomeConcernResolutionNotifications,\n',
+                  '  selectHomeCharacterTraitNotifications,\n  selectHomeConcernResolutionNotifications,\n',
+                  1,
+              )
+              model = model.replace(
+                  '  type ConcernResolutionNotification,\n',
+                  '  type CharacterTraitDiscoveredNotification,\n  type ConcernResolutionNotification,\n',
+                  1,
+              )
+          union_marker = '''  | {
+              id: string;
+              kind: "growth";
+          '''
+          if 'kind: "character-trait-discovered"' not in model:
+              block = '''  | {
+              id: string;
+              kind: "character-trait-discovered";
+              title: string;
+              detail: string;
+              notification: CharacterTraitDiscoveredNotification;
+            }
+          '''
+              if union_marker not in model:
+                  raise SystemExit("HomeCommandNews union marker missing")
+              model = model.replace(union_marker, block + union_marker, 1)
+          selection_marker = '''  const specialRelationship = selectHomeSpecialRelationshipNotifications(
+            state.notifications,
+          )[0];
+          '''
+          if 'const characterTraitDiscovery =' not in model:
+              addition = '''  const characterTraitDiscovery = selectHomeCharacterTraitNotifications(
+            state.notifications,
+          )[0];
+          '''
+              if selection_marker not in model:
+                  raise SystemExit("home news selection marker missing")
+              model = model.replace(selection_marker, selection_marker + addition, 1)
+          insertion_marker = '  if (notification) {\n'
+          if 'news:character-trait:' not in model:
+              block = '''  if (characterTraitDiscovery) {
+            candidates.push({
+              order: characterTraitDiscovery.readAtGameDate === null ? 3 : 43,
+              news: {
+                id: `news:character-trait:${characterTraitDiscovery.id}`,
+                kind: "character-trait-discovered",
+                title: "新しい個性を発見！",
+                detail: `${characterTraitDiscovery.payload.displayName}・${characterTraitDiscovery.payload.traitName}`,
+                notification: characterTraitDiscovery,
+              },
+            });
+          }
+
+          '''
+              if insertion_marker not in model:
+                  raise SystemExit("home news insertion marker missing")
+              model = model.replace(insertion_marker, block + insertion_marker, 1)
+          model_path.write_text(model, encoding="utf-8")
+
+          center_path = Path("src/features/home/HomeCommandCenter.tsx")
+          center = center_path.read_text(encoding="utf-8")
+          if 'CharacterTraitDiscoveredNotification' not in center:
+              center = center.replace(
+                  'import type {\n  SpecialRelationshipNotification,\n',
+                  'import type {\n  CharacterTraitDiscoveredNotification,\n  SpecialRelationshipNotification,\n',
+                  1,
+              )
+          props_marker = '''  onOpenRelationshipNotification: (
+            notification: SpecialRelationshipNotification,
+          ) => void;
+          '''
+          if 'onAcknowledgeCharacterTraitNotification' not in center:
+              addition = '''  onAcknowledgeCharacterTraitNotification: (
+            notification: CharacterTraitDiscoveredNotification,
+          ) => void;
+          '''
+              if props_marker not in center:
+                  raise SystemExit("HomeCommandCenter props marker missing")
+              center = center.replace(props_marker, props_marker + addition, 1)
+              center = center.replace(
+                  '  onOpenRelationshipNotification,\n}: HomeCommandCenterProps) {',
+                  '  onOpenRelationshipNotification,\n  onAcknowledgeCharacterTraitNotification,\n}: HomeCommandCenterProps) {',
+                  1,
+              )
+          render_marker = '              if (news.kind === "growth") {\n'
+          if 'news.kind === "character-trait-discovered"' not in center:
+              block = '''              if (news.kind === "character-trait-discovered") {
+                const unread = news.notification.readAtGameDate === null;
+                return (
+                  <button
+                    aria-label={`${news.title} ${news.detail}`}
+                    className={`home-command-news-row${unread ? " is-unread" : ""}`}
+                    data-testid="home-command-news"
+                    key={news.id}
+                    onClick={() =>
+                      onAcknowledgeCharacterTraitNotification(news.notification)
+                    }
+                    type="button"
+                  >
+                    <span>
+                      <strong>{news.title}</strong>
+                      <small>{news.detail}</small>
+                    </span>
+                    <b aria-hidden="true">›</b>
+                  </button>
+                );
+              }
+          '''
+              if render_marker not in center:
+                  raise SystemExit("HomeCommandCenter render marker missing")
+              center = center.replace(render_marker, block + render_marker, 1)
+          center_path.write_text(center, encoding="utf-8")
+
+          home_path = Path("src/features/home/HomeScreen.tsx")
+          home = home_path.read_text(encoding="utf-8")
+          if 'CharacterTraitDiscoveredNotification' not in home:
+              home = home.replace(
+                  'import type {\n  SpecialRelationshipNotification,\n',
+                  'import type {\n  CharacterTraitDiscoveredNotification,\n  SpecialRelationshipNotification,\n',
+                  1,
+              )
+          relationship_handler = '''  const acknowledgeRelationshipNotification = (
+            notification: SpecialRelationshipNotification,
+          ) => {
+            if (notification.readAtGameDate === null) {
+              void onMarkNotificationRead(notification.id);
+            }
+          };
+          '''
+          if 'acknowledgeCharacterTraitNotification' not in home:
+              addition = '''
+
+          const acknowledgeCharacterTraitNotification = (
+            notification: CharacterTraitDiscoveredNotification,
+          ) => {
+            if (notification.readAtGameDate === null) {
+              void onMarkNotificationRead(notification.id);
+            }
+          };
+          '''
+              if relationship_handler not in home:
+                  raise SystemExit("HomeScreen handler marker missing")
+              home = home.replace(
+                  relationship_handler,
+                  relationship_handler + addition,
+                  1,
+              )
+              home = home.replace(
+                  '        onOpenRelationshipNotification={acknowledgeRelationshipNotification}\n',
+                  '        onOpenRelationshipNotification={acknowledgeRelationshipNotification}\n        onAcknowledgeCharacterTraitNotification={acknowledgeCharacterTraitNotification}\n',
+                  1,
+              )
+          home_path.write_text(home, encoding="utf-8")
           PY
-          npx prettier src/domain/events/resolveEventChoice.ts worker/game/applyGameAction.ts tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts --write
+          npx prettier src/domain/notifications/gameNotifications.ts worker/game/applyGameAction.ts src/features/home/homeCommandCenter.ts src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/worker/gameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx --write
           git diff --check
-      - name: Run Task5 GREEN regression
-        run: npx vitest run tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts tests/unit/worker/applyGameAction.test.ts tests/unit/domain/player/characterTraitDiscovery.test.ts
+      - name: Run Task6 GREEN regression
+        run: npx vitest run tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/worker/gameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/worker/applyGameAction.test.ts tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts
       - name: Typecheck
         run: npm run typecheck
-      - name: Commit verified Task5 changes
+      - name: Commit verified Task6 changes
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/domain/events/resolveEventChoice.ts worker/game/applyGameAction.ts tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts tests/unit/worker/gameAction.test.ts
+          git add src/domain/notifications/gameNotifications.ts worker/game/applyGameAction.ts src/features/home/homeCommandCenter.ts src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx tests/unit/notifications/phase21CharacterTraitNotifications.test.ts tests/unit/worker/gameAction.test.ts tests/unit/features/home/HomeScreen.test.tsx
           if git diff --cached --quiet; then
-            echo "Task5 changes already committed"
+            echo "Task6 changes already committed"
             exit 0
           fi
-          git commit -m "feat: reveal character traits from gameplay context"
+          git commit -m "feat: notify discovered character traits"
           git push origin HEAD:tmp/phase21-3-hidden-character-traits
