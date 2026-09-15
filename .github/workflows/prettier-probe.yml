@@ -1,4 +1,4 @@
-name: Phase21 Preflight
+name: Phase21 Prettier Capture
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,15 +19,16 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Check changed-file formatting
+      - name: Format remaining files
         run: |
-          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts tests/unit/persistence/phase14GameStateMigration.test.ts tests/unit/persistence/phase17GameStateCodec.test.ts tests/unit/persistence/phase20ConcernNotificationCodec.test.ts tests/unit/pwa/saveCompatibility.test.ts tests/unit/soak/soakDeterminism.test.ts tests/unit/soak/soakDriver.test.ts --check
-          git diff --check
-      - name: Run focused regression suites
-        run: npx vitest run tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/specialRelationships.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts tests/unit/persistence/phase14GameStateMigration.test.ts tests/unit/persistence/phase17GameStateCodec.test.ts tests/unit/persistence/phase20ConcernNotificationCodec.test.ts tests/unit/pwa/saveCompatibility.test.ts tests/unit/soak/soakDeterminism.test.ts tests/unit/soak/soakDriver.test.ts
-      - name: Run full verify
-        run: npm run verify
-      - name: Verify release metadata and evidence
-        run: npm run release:check
-      - name: Run Phase18 soak smoke preset
-        run: npm run soak:smoke
+          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/soak/soakDeterminism.test.ts --write
+          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/soak/soakDeterminism.test.ts --check
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase21-formatted-final
+          path: |
+            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts
+            tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts
+            tests/unit/soak/soakDeterminism.test.ts
+          retention-days: 1
