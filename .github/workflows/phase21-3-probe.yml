@@ -1,4 +1,4 @@
-name: Phase21-3 Task2 Green Probe
+name: Phase21-3 Task3 Lifecycle Probe
 
 on:
   push:
@@ -9,7 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  task2-green:
+  task3:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,96 +20,200 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Apply Task2 implementation
+      - name: Add Task3 failing lifecycle tests
         shell: bash
         run: |
-          cat > src/domain/player/characterTraitAssignment.ts <<'EOF'
-          import type { GameDataRegistry } from "../../data/dataRegistry";
-          import type { GameState } from "../model/GameState";
-          import type { PlayerId } from "../model/identifiers";
+          python - <<'PY'
+          from pathlib import Path
 
-          function fnv1a32(value: string): number {
-            let hash = 0x811c9dc5;
-            for (let index = 0; index < value.length; index += 1) {
-              hash ^= value.charCodeAt(index);
-              hash = Math.imul(hash, 0x01000193);
-            }
-            return hash >>> 0;
-          }
+          action_path = Path("tests/unit/worker/applyGameAction.test.ts")
+          action = action_path.read_text(encoding="utf-8")
+          marker = 'describe("applyGameAction", () => {\n'
+          if 'initializes deterministic character traits in a newly created game' not in action:
+              tests = '''  it("initializes deterministic character traits in a newly created game", () => {
+            const snapshot = createSnapshot();
+            const players = Object.values(snapshot.state.players);
 
-          export function assignCharacterTraitDeterministically(
-            seed: string,
-            playerId: PlayerId,
-            characterTraitIds: readonly string[],
-          ): {
-            hiddenTraitIds: string[];
-            hiddenTraitAssignmentInitialized: true;
-          } {
-            const ids = [...characterTraitIds].sort((left, right) =>
-              left.localeCompare(right),
+            expect(players.length).toBeGreaterThan(0);
+            expect(
+              players.every(
+                (player) => player.hiddenTraitAssignmentInitialized === true,
+              ),
+            ).toBe(true);
+            expect(players.every((player) => player.hiddenTraitIds.length <= 1)).toBe(
+              true,
             );
-            if (ids.length === 0) {
-              throw new Error("character trait catalog must not be empty");
+            expect(
+              players.every(
+                (player) => (player.revealedHiddenTraitIds ?? []).length === 0,
+              ),
+            ).toBe(true);
+          });
+
+          it("backfills legacy character traits before a zero-random administrative action", () => {
+            const snapshot = createSnapshot();
+            const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+            const targetPlayerId = school.playerIds[0]!;
+            const targetPlayer = snapshot.state.players[targetPlayerId]!;
+            targetPlayer.hiddenTraitIds = [];
+            targetPlayer.revealedHiddenTraitIds = [];
+            targetPlayer.hiddenTraitAssignmentInitialized = false;
+            const cursorBefore = snapshot.state.randomCursor;
+
+            const result = applyGameAction(snapshot, {
+              type: "set-training-plan",
+              plan: createTrainingPlan(snapshot),
+            });
+
+            expect(result.state.randomCursor).toBe(cursorBefore);
+            expect(
+              result.state.players[targetPlayerId]!.hiddenTraitAssignmentInitialized,
+            ).toBe(true);
+            expect(
+              result.state.players[targetPlayerId]!.hiddenTraitIds.length,
+            ).toBeLessThanOrEqual(1);
+          });
+
+          '''
+              if marker not in action:
+                  raise SystemExit("applyGameAction describe marker missing")
+              action = action.replace(marker, marker + tests, 1)
+              action_path.write_text(action, encoding="utf-8")
+
+          recruitment_path = Path("tests/unit/worker/academicYearRecruitment.test.ts")
+          recruitment = recruitment_path.read_text(encoding="utf-8")
+          recruitment = recruitment.replace(
+              '    expect(enrolled).toEqual(committed.player);\n',
+              '''    expect(enrolled).toMatchObject({
+                id: committed.player.id,
+                firstName: committed.player.firstName,
+                lastName: committed.player.lastName,
+              });
+          ''',
+              1,
+          )
+          year_marker = '    expect(persisted.state.yearIndex).toBe(2);\n'
+          if 'newIntakePlayers' not in recruitment:
+              intake_assertions = '''    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
+            const newIntakePlayers = userSchool.playerIds
+              .map((playerId) => persisted.state.players[playerId])
+              .filter(
+                (player) =>
+                  player?.career.enrolledYear === persisted.state.calendar.academicYear,
+              );
+            expect(newIntakePlayers.length).toBeGreaterThan(0);
+            for (const player of newIntakePlayers) {
+              expect(player?.hiddenTraitAssignmentInitialized).toBe(true);
+              expect(player?.hiddenTraitIds.length).toBeLessThanOrEqual(1);
+              expect(player?.revealedHiddenTraitIds).toEqual([]);
             }
-
-            const hash = fnv1a32(
-              `${seed}:phase21-character-trait:${playerId}`,
-            );
-            if (hash % 100 >= 60) {
-              return {
-                hiddenTraitIds: [],
-                hiddenTraitAssignmentInitialized: true,
-              };
-            }
-
-            return {
-              hiddenTraitIds: [ids[Math.floor(hash / 100) % ids.length]!],
-              hiddenTraitAssignmentInitialized: true,
-            };
-          }
-
-          export function ensureCharacterTraitAssignments(
-            state: GameState,
-            data: GameDataRegistry,
-          ): GameState {
-            const characterTraitIds = [...data.characterTraits.keys()];
-            let changed = false;
-            const players = { ...state.players };
-
-            for (const player of Object.values(state.players)) {
-              if (player.hiddenTraitAssignmentInitialized === true) {
-                continue;
-              }
-
-              players[player.id] = {
-                ...player,
-                ...assignCharacterTraitDeterministically(
-                  state.seed,
-                  player.id,
-                  characterTraitIds,
-                ),
-              };
-              changed = true;
-            }
-
-            return changed ? { ...state, players } : state;
-          }
-          EOF
-          npx prettier src/domain/player/characterTraitAssignment.ts tests/unit/domain/player/characterTraitAssignment.test.ts --write
+          '''
+              if year_marker not in recruitment:
+                  raise SystemExit("academic year assertion marker missing")
+              recruitment = recruitment.replace(
+                  year_marker,
+                  year_marker + intake_assertions,
+                  1,
+              )
+          recruitment_path.write_text(recruitment, encoding="utf-8")
+          PY
+          npx prettier tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts --write
           git diff --check
-      - name: Run Task2 focused tests
-        run: npx vitest run tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
+      - name: Prove Task3 RED
+        id: red
+        continue-on-error: true
+        run: npx vitest run tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts
+      - name: Assert Task3 was RED before implementation
+        shell: bash
+        run: |
+          test "${{ steps.red.outcome }}" = "failure"
+      - name: Apply Task3 lifecycle implementation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          initial_path = Path("src/app/createInitialGame.ts")
+          initial = initial_path.read_text(encoding="utf-8")
+          if 'characterTraitAssignment' not in initial:
+              initial = initial.replace(
+                  'import type { UniformColors } from "../domain/model/School";\n',
+                  'import type { UniformColors } from "../domain/model/School";\nimport { ensureCharacterTraitAssignments } from "../domain/player/characterTraitAssignment";\n',
+                  1,
+              )
+          if 'stateWithCharacterTraits' not in initial:
+              old = '''  return {
+            ...state,
+            seasonGoals: createSeasonGoals(state),
+          };
+          '''
+              new = '''  const stateWithCharacterTraits = ensureCharacterTraitAssignments(
+            state,
+            gameDataBootstrap.data,
+          );
+
+          return {
+            ...stateWithCharacterTraits,
+            seasonGoals: createSeasonGoals(stateWithCharacterTraits),
+          };
+          '''
+              if old not in initial:
+                  raise SystemExit("createInitialGame return marker missing")
+              initial = initial.replace(old, new, 1)
+          initial_path.write_text(initial, encoding="utf-8")
+
+          year_path = Path("src/domain/calendar/academicYearProgression.ts")
+          year = year_path.read_text(encoding="utf-8")
+          if 'player/characterTraitAssignment' not in year:
+              year = year.replace(
+                  'import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";\n',
+                  'import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";\nimport { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";\n',
+                  1,
+              )
+          assignment_marker = '  nextState = advanceRivalWorld(nextState, data, random);\n'
+          if 'ensureCharacterTraitAssignments(nextState, data)' not in year:
+              if assignment_marker not in year:
+                  raise SystemExit("academic year assignment marker missing")
+              year = year.replace(
+                  assignment_marker,
+                  '  nextState = ensureCharacterTraitAssignments(nextState, data);\n' + assignment_marker,
+                  1,
+              )
+          year_path.write_text(year, encoding="utf-8")
+
+          action_path = Path("worker/game/applyGameAction.ts")
+          action = action_path.read_text(encoding="utf-8")
+          if 'player/characterTraitAssignment' not in action:
+              action = action.replace(
+                  'import {\n  applyUserMatchExperience,\n',
+                  'import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";\nimport {\n  applyUserMatchExperience,\n',
+                  1,
+              )
+          old_state = '  const state = structuredClone(snapshot.state) as GameState;\n'
+          new_state = '''  const state = ensureCharacterTraitAssignments(
+            structuredClone(snapshot.state) as GameState,
+            gameData,
+          );
+          '''
+          if old_state in action:
+              action = action.replace(old_state, new_state, 1)
+          action_path.write_text(action, encoding="utf-8")
+          PY
+          npx prettier src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts --write
+          git diff --check
+      - name: Run Task3 GREEN regression
+        run: npx vitest run tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
       - name: Typecheck
         run: npm run typecheck
-      - name: Commit Task2 implementation
+      - name: Commit Task3 verified changes
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/domain/player/characterTraitAssignment.ts tests/unit/domain/player/characterTraitAssignment.test.ts
+          git add src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts
           if git diff --cached --quiet; then
-            echo "Task2 implementation already committed"
+            echo "Task3 changes already committed"
             exit 0
           fi
-          git commit -m "feat: assign hidden character traits deterministically"
+          git commit -m "feat: initialize character traits across player lifecycle"
           git push origin HEAD:tmp/phase21-3-hidden-character-traits
