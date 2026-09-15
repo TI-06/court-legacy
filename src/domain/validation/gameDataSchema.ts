@@ -101,6 +101,41 @@ export const traitDefinitionSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(30)).max(8),
 });
 
+export const characterTraitDiscoveryConditionSchema = z.discriminatedUnion(
+  "type",
+  [
+    z.object({
+      type: z.literal("trust-min"),
+      value: z.number().int().min(0).max(100),
+    }),
+    z.object({
+      type: z.literal("appearances-min"),
+      value: z.number().int().min(1).max(1000),
+    }),
+    z.object({ type: z.literal("captaincy") }),
+    z.object({
+      type: z.literal("special-relationship"),
+      kind: z.enum(["rival", "mentor", "partner"]).optional(),
+    }),
+    z.object({
+      type: z.literal("event-tag"),
+      tag: z.string().trim().min(1).max(30),
+    }),
+  ],
+);
+
+export const characterTraitDefinitionSchema = z.object({
+  id: dataIdSchema,
+  name: z.string().trim().min(1).max(24),
+  description: z.string().trim().min(1).max(180),
+  eventTags: z.array(z.string().trim().min(1).max(30)).max(8),
+  relationshipBias: z.number().int().min(-10).max(10),
+  discoveryConditions: z
+    .array(characterTraitDiscoveryConditionSchema)
+    .min(1)
+    .max(4),
+});
+
 export const trainingMenuDefinitionSchema = z.object({
   id: dataIdSchema,
   name: z.string().trim().min(1).max(30),
@@ -310,6 +345,7 @@ export const rawGameDataSchema = z.object({
   personalities: z.array(personalityDefinitionSchema).min(1),
   growthTypes: z.array(growthTypeDefinitionSchema).min(1),
   traits: z.array(traitDefinitionSchema).min(1),
+  characterTraits: z.array(characterTraitDefinitionSchema).min(1),
   trainingMenus: z.array(trainingMenuDefinitionSchema).min(1),
   individualTrainingInstructions: z
     .array(individualTrainingInstructionDefinitionSchema)
@@ -324,6 +360,9 @@ export type NameEntry = z.infer<typeof nameEntrySchema>;
 export type PersonalityDefinition = z.infer<typeof personalityDefinitionSchema>;
 export type GrowthTypeDefinition = z.infer<typeof growthTypeDefinitionSchema>;
 export type TraitDefinition = z.infer<typeof traitDefinitionSchema>;
+export type CharacterTraitDefinition = z.infer<
+  typeof characterTraitDefinitionSchema
+>;
 export type TrainingMenuDefinition = z.infer<
   typeof trainingMenuDefinitionSchema
 >;

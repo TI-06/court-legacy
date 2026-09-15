@@ -1,5 +1,6 @@
 import type {
   AbilityKey,
+  CharacterTraitDefinition,
   EventDefinition,
   GrowthTypeDefinition,
   NameEntry,
@@ -842,6 +843,119 @@ const traits: TraitDefinition[] = [
   ),
 ];
 
+const characterTraits: CharacterTraitDefinition[] = [
+  {
+    id: "character.caring",
+    name: "面倒見がいい",
+    description: "後輩や仲間の様子に気づき、自然に支えようとする。",
+    eventTags: ["mentor", "guidance", "teamwork"],
+    relationshipBias: 5,
+    discoveryConditions: [
+      { type: "special-relationship", kind: "mentor" },
+      { type: "event-tag", tag: "guidance" },
+    ],
+  },
+  {
+    id: "character.analytical",
+    name: "研究熱心",
+    description: "プレーを観察し、理由を考えて改善点を探すのが好き。",
+    eventTags: ["analysis", "tactics"],
+    relationshipBias: 0,
+    discoveryConditions: [
+      { type: "event-tag", tag: "analysis" },
+      { type: "appearances-min", value: 8 },
+    ],
+  },
+  {
+    id: "character.training-lover",
+    name: "練習の虫",
+    description: "地道な反復を苦にせず、納得するまで練習を続ける。",
+    eventTags: ["practice", "training"],
+    relationshipBias: 0,
+    discoveryConditions: [
+      { type: "event-tag", tag: "practice" },
+      { type: "trust-min", value: 65 },
+    ],
+  },
+  {
+    id: "character.resilient",
+    name: "負けを引きずらない",
+    description: "失敗や敗戦を切り替え、次の行動へ意識を向けられる。",
+    eventTags: ["recovery", "adversity", "match"],
+    relationshipBias: 1,
+    discoveryConditions: [
+      { type: "appearances-min", value: 6 },
+      { type: "event-tag", tag: "recovery" },
+    ],
+  },
+  {
+    id: "character.team-first",
+    name: "仲間思い",
+    description: "自分の成果より、チーム全体が動きやすい選択を優先する。",
+    eventTags: ["teamwork", "cooperation", "pair"],
+    relationshipBias: 6,
+    discoveryConditions: [
+      { type: "special-relationship", kind: "partner" },
+      { type: "trust-min", value: 75 },
+    ],
+  },
+  {
+    id: "character.bottles-up",
+    name: "一人で抱え込みやすい",
+    description: "悩みを周囲に見せず、自分だけで解決しようとしやすい。",
+    eventTags: ["quiet", "pressure", "concern"],
+    relationshipBias: -5,
+    discoveryConditions: [
+      { type: "trust-min", value: 60 },
+      { type: "event-tag", tag: "concern" },
+    ],
+  },
+  {
+    id: "character.spotlight",
+    name: "注目されると燃える",
+    description: "責任や視線が集まる場面ほど、気持ちを前向きに高める。",
+    eventTags: ["leadership", "spotlight", "match"],
+    relationshipBias: 0,
+    discoveryConditions: [
+      { type: "captaincy" },
+      { type: "appearances-min", value: 10 },
+    ],
+  },
+  {
+    id: "character.competitive-growth",
+    name: "競争相手がいると伸びる",
+    description: "身近な競争相手の存在を、自分を高める刺激に変える。",
+    eventTags: ["competition", "rivalry"],
+    relationshipBias: -1,
+    discoveryConditions: [
+      { type: "special-relationship", kind: "rival" },
+      { type: "event-tag", tag: "competition" },
+    ],
+  },
+  {
+    id: "character.quiet-observer",
+    name: "静かな観察眼",
+    description: "多くを語らず、周囲の変化や相手の癖をよく見ている。",
+    eventTags: ["analysis", "quiet", "observation"],
+    relationshipBias: 1,
+    discoveryConditions: [
+      { type: "appearances-min", value: 12 },
+      { type: "event-tag", tag: "analysis" },
+    ],
+  },
+  {
+    id: "character.clutch-support",
+    name: "ここぞで支える",
+    description: "重要な局面で周囲に声をかけ、仲間を支える行動を選ぶ。",
+    eventTags: ["leadership", "teamwork", "support"],
+    relationshipBias: 4,
+    discoveryConditions: [
+      { type: "captaincy" },
+      { type: "special-relationship" },
+    ],
+  },
+];
+
 const trainingMenus: TrainingMenuDefinition[] = [
   {
     id: "training.spike",
@@ -1311,6 +1425,7 @@ export const rawGameData: RawGameData = {
   personalities,
   growthTypes,
   traits,
+  characterTraits,
   trainingMenus,
   schoolArchetypes,
   events,
