@@ -709,3 +709,112 @@
     grid-template-columns: 1fr;
   }
 }
+
+.player-detail__relationships {
+  display: grid;
+  min-width: 0;
+  padding: 10px 11px;
+  gap: 8px;
+  background:
+    linear-gradient(135deg, rgb(46 139 216 / 8%), transparent 58%),
+    rgb(11 26 45 / 92%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+}
+
+.player-detail__relationships-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-detail__relationships-heading h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.player-detail__relationships-heading > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.player-detail__relationship-list {
+  display: grid;
+  gap: 6px;
+}
+
+.player-detail__relationship-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 9px;
+  gap: 6px 9px;
+  background: rgb(16 41 69 / 58%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 10px;
+}
+
+.player-detail__relationship-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.player-detail__relationship-copy strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-detail__relationship-copy small {
+  color: #d8e8f7;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.player-detail__relationship-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.player-detail__relationship-tags span,
+.player-detail__relationship-tags small {
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 900;
+  border-radius: 999px;
+}
+
+.player-detail__relationship-tags span {
+  color: #ffd99a;
+  background: rgb(244 122 24 / 14%);
+  border: 1px solid rgb(244 122 24 / 26%);
+}
+
+.player-detail__relationship-tags small {
+  color: #bfe7ff;
+  background: rgb(46 139 216 / 12%);
+  border: 1px solid rgb(116 216 255 / 18%);
+}
+
+.player-detail__relationship-meter {
+  grid-column: 1 / -1;
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 8%);
+  border-radius: 999px;
+}
+
+.player-detail__relationship-meter-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #2e8bd8, #f47a18);
+  border-radius: inherit;
+}

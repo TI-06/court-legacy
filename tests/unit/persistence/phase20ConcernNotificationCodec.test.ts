@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import type { GameDate } from "../../../src/domain/model/identifiers";
 import {
   decodeGameState,
@@ -6,7 +7,7 @@ import {
 } from "../../../src/persistence/gameStateCodec";
 
 describe("Phase20 concern notification codec", () => {
-  it("round-trips a concern-resolution notification in schema v8", () => {
+  it("round-trips a concern-resolution notification on the current schema", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const player = state.players[playerId]!;
@@ -33,11 +34,11 @@ describe("Phase20 concern notification codec", () => {
 
     const decoded = decodeGameState(encodeGameState(state));
 
-    expect(decoded.schemaVersion).toBe(8);
+    expect(decoded.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(decoded.notifications).toEqual(state.notifications);
   });
 
-  it("still round-trips a schema v8 state with training notifications only", () => {
+  it("still round-trips a state with training notifications only", () => {
     const state = createDemoGame();
     state.notifications.items = [
       {

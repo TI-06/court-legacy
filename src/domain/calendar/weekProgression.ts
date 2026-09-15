@@ -1,6 +1,8 @@
 import type { GameState } from "../model/GameState";
 import type { Player, PlayerInjury } from "../model/Player";
 import type { GameDate, PlayerId } from "../model/identifiers";
+import { progressSpecialRelationshipsWeekly } from "../relationships/specialRelationships";
+import type { SpecialRelationshipTransition } from "../relationships/relationshipTypes";
 
 export type WeeklyAction = "training" | "practice-match";
 
@@ -8,6 +10,7 @@ export interface WeekProgressionResult {
   state: GameState;
   recoveredPlayerIds: PlayerId[];
   healedPlayerIds: PlayerId[];
+  specialRelationshipTransitions: SpecialRelationshipTransition[];
 }
 
 export interface AdvanceOneWeekOptions {
@@ -107,20 +110,25 @@ export function advanceOneWeek(
   }
 
   const date = addDays(state.date, 7);
+  const relationshipProgression = progressSpecialRelationshipsWeekly(
+    state,
+    date,
+  );
 
   return {
     state: {
-      ...state,
+      ...relationshipProgression.state,
       date,
       players,
       activeMatch: null,
       calendar: {
-        ...state.calendar,
+        ...relationshipProgression.state.calendar,
         currentDate: date,
         weekOfYear: state.calendar.weekOfYear + 1,
       },
     },
     recoveredPlayerIds,
     healedPlayerIds,
+    specialRelationshipTransitions: relationshipProgression.transitions,
   };
 }

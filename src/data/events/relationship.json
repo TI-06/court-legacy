@@ -63,7 +63,9 @@
     "title": "同ポジションの火花",
     "bodyTemplate": "先発を争う{{player}}と{{player2}}の競争が、練習の緊張感を高めている。",
     "tags": ["competition", "position"],
-    "trigger": {},
+    "trigger": {
+      "samePreferredPosition": true
+    },
     "weight": 80,
     "cooldownWeeks": 14,
     "oncePerCareer": false,
@@ -86,6 +88,10 @@
           {
             "type": "relationship-change",
             "amount": -5
+          },
+          {
+            "type": "special-relationship-add",
+            "kind": "rival"
           }
         ]
       },
@@ -175,7 +181,12 @@
     "title": "先輩のサーブ指導",
     "bodyTemplate": "{{player}}が{{player2}}へ自主的にサーブを教え始めた。",
     "tags": ["mentor", "serve"],
-    "trigger": {},
+    "trigger": {
+      "differentGrades": true,
+      "relationship": {
+        "min": 54
+      }
+    },
     "weight": 62,
     "cooldownWeeks": 16,
     "oncePerCareer": false,
@@ -198,6 +209,11 @@
           {
             "type": "fatigue-change",
             "amount": 3
+          },
+          {
+            "type": "special-relationship-add",
+            "kind": "mentor",
+            "mentor": "higher-grade"
           }
         ]
       },
@@ -282,7 +298,11 @@
     "title": "二人だけの映像研究",
     "bodyTemplate": "{{player}}と{{player2}}が対戦映像を見ながら、互いの動きを細かく確認している。",
     "tags": ["analysis", "pair"],
-    "trigger": {},
+    "trigger": {
+      "relationship": {
+        "min": 75
+      }
+    },
     "weight": 55,
     "cooldownWeeks": 18,
     "oncePerCareer": false,
@@ -305,6 +325,10 @@
           {
             "type": "fatigue-change",
             "amount": 2
+          },
+          {
+            "type": "special-relationship-add",
+            "kind": "partner"
           }
         ]
       },

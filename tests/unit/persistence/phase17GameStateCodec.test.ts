@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import {
   decodeGameState,
   encodeGameState,
 } from "../../../src/persistence/gameStateCodec";
 
 describe("Phase17 game state codec", () => {
-  it("round-trips season goals on schema v8", () => {
+  it("round-trips season goals on the current schema", () => {
     const state = createDemoGame();
 
     const decoded = decodeGameState(encodeGameState(state));
 
-    expect(decoded.schemaVersion).toBe(8);
+    expect(decoded.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(decoded.seasonGoals).toEqual(state.seasonGoals);
     expect(decoded.history.seasonGoalSeasons).toEqual([]);
   });
@@ -22,12 +23,13 @@ describe("Phase17 game state codec", () => {
       seasonGoals?: unknown;
       history: typeof state.history & { seasonGoalSeasons?: unknown };
     };
+    legacy.schemaVersion = 8;
     delete legacy.seasonGoals;
     delete legacy.history.seasonGoalSeasons;
 
     const decoded = decodeGameState(JSON.stringify(legacy));
 
-    expect(decoded.schemaVersion).toBe(8);
+    expect(decoded.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(decoded.seasonGoals).toBeUndefined();
     expect(decoded.history.seasonGoalSeasons).toBeUndefined();
   });

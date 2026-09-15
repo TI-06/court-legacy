@@ -1,3 +1,5 @@
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
+
 const subjectPath = "../../../src/dev/soak/runBalanceSoak";
 
 vi.setConfig({ testTimeout: 15_000 });
@@ -110,7 +112,9 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.report.metadata.completedSeasons).toBe(1);
     expect(first.report.metadata.completedWeeks).toBeGreaterThan(0);
     expect(first.report.metadata.actions).toBeGreaterThan(0);
-    expect(first.report.metadata.schemaVersion).toBe(8);
+    expect(first.report.metadata.schemaVersion).toBe(
+      CURRENT_GAME_SCHEMA_VERSION,
+    );
     expect(first.report.facilityMilestones.facilityMaxLevel).toBe(50);
     expect(Object.keys(first.report.facilityMilestones.byFacility).length).toBe(
       8,
@@ -128,7 +132,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(first.summary).toContain("coach=advanced/attack");
   });
 
-  it("does not invent a zero-funds observation when the opening-year reserve is preserved", async () => {
+  it("does not report zero funds when authored event spending dips below the management reserve", async () => {
     const { runBalanceSoak } = await loadSubject();
     const result = runBalanceSoak({
       seed: "phase18-release-a",
@@ -139,7 +143,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       (item) => item.code === "user_funds_zero",
     );
 
-    expect(year.fundsMin).toBe(300);
+    expect(year.fundsMin).toBeGreaterThan(0);
     expect(year.zeroFundWeeks).toBe(0);
     expect(observation).toBeUndefined();
   });

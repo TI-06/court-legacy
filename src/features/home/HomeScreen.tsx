@@ -4,7 +4,10 @@ import { gameDataBootstrap } from "../../data/gameData";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
-import type { TrainingResultNotification } from "../../domain/notifications/gameNotifications";
+import type {
+  SpecialRelationshipNotification,
+  TrainingResultNotification,
+} from "../../domain/notifications/gameNotifications";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { StickyActionBar } from "../../ui/StickyActionBar";
 import "../../ui/ui.css";
@@ -77,6 +80,14 @@ export function HomeScreen({
     }
   };
 
+  const acknowledgeRelationshipNotification = (
+    notification: SpecialRelationshipNotification,
+  ) => {
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+  };
+
   const requestAdvance = () => {
     if (operationPending) return;
     if (model.advance.requiresConfirmation) {
@@ -125,6 +136,7 @@ export function HomeScreen({
         onCommand={dispatchCommand}
         onDeclinePracticeOffer={onDeclinePracticeOffer}
         onOpenTrainingNotification={openNotification}
+        onOpenRelationshipNotification={acknowledgeRelationshipNotification}
         operationPending={operationPending}
       />
 

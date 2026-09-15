@@ -10,6 +10,10 @@ import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
 import {
+  selectPlayerRelationships,
+  specialRelationshipKindLabel,
+} from "../../domain/relationships/relationshipPresentation";
+import {
   deriveMatchTacticPlan,
   type MatchTacticPlan,
 } from "../../domain/team/matchTactics";
@@ -288,6 +292,7 @@ export function PlayerHubScreen({
       ? getPlayerPersonalityPresentation(personalityDefinition)
       : null;
     const growth = summarizePlayerGrowth(state, selectedPlayer.id);
+    const relationships = selectPlayerRelationships(state, selectedPlayer.id);
     const maxTrendGrowth = Math.max(
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
@@ -428,6 +433,58 @@ export function PlayerHubScreen({
             <span>信頼</span>
             <strong>{selectedPlayer.trust}</strong>
           </article>
+        </section>
+
+        <section className="player-detail__relationships" aria-label="人間関係">
+          <div className="player-detail__relationships-heading">
+            <h3>人間関係</h3>
+            <span>{relationships.length}人</span>
+          </div>
+          <div className="player-detail__relationship-list">
+            {relationships.map((relationship) => (
+              <article
+                className="player-detail__relationship-row"
+                key={relationship.playerId}
+              >
+                <div className="player-detail__relationship-copy">
+                  <strong>{relationship.displayName}</strong>
+                  <small>{relationship.label}</small>
+                </div>
+                {relationship.specialKinds.length > 0 ? (
+                  <div
+                    className="player-detail__relationship-tags"
+                    aria-label="特殊関係"
+                  >
+                    {relationship.specialKinds.map((kind) => (
+                      <span key={kind}>
+                        {specialRelationshipKindLabel(kind)}
+                      </span>
+                    ))}
+                    {relationship.mentorDirection ? (
+                      <small>
+                        {relationship.mentorDirection === "mentor"
+                          ? "教える側"
+                          : "教わる側"}
+                      </small>
+                    ) : null}
+                  </div>
+                ) : null}
+                <span
+                  aria-label={`関係値 ${relationship.score}`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={relationship.score}
+                  className="player-detail__relationship-meter"
+                  role="meter"
+                >
+                  <span
+                    className="player-detail__relationship-meter-fill"
+                    style={{ width: `${relationship.score}%` }}
+                  />
+                </span>
+              </article>
+            ))}
+          </div>
         </section>
 
         {concerns.length ? (

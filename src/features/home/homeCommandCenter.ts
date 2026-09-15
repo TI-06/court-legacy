@@ -10,8 +10,10 @@ import type { Player } from "../../domain/model/Player";
 import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 import {
   selectHomeConcernResolutionNotifications,
+  selectHomeSpecialRelationshipNotifications,
   selectHomeTrainingNotifications,
   type ConcernResolutionNotification,
+  type SpecialRelationshipNotification,
   type TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
@@ -131,6 +133,13 @@ export type HomeCommandNews =
       title: string;
       detail: string;
       notification: ConcernResolutionNotification;
+    }
+  | {
+      id: string;
+      kind: "special-relationship";
+      title: string;
+      detail: string;
+      notification: SpecialRelationshipNotification;
     }
   | {
       id: string;
@@ -554,6 +563,9 @@ function buildNews(state: GameState): HomeCommandNews[] {
   const concernResolution = selectHomeConcernResolutionNotifications(
     state.notifications,
   )[0];
+  const specialRelationship = selectHomeSpecialRelationshipNotifications(
+    state.notifications,
+  )[0];
 
   if (concernResolution) {
     candidates.push({
@@ -566,6 +578,21 @@ function buildNews(state: GameState): HomeCommandNews[] {
           .map((item) => `${item.displayName}・${item.concernTitle}`)
           .join(" / "),
         notification: concernResolution,
+      },
+    });
+  }
+
+  if (specialRelationship) {
+    const actionLabel =
+      specialRelationship.payload.action === "established" ? "成立" : "解消";
+    candidates.push({
+      order: specialRelationship.readAtGameDate === null ? 2 : 42,
+      news: {
+        id: `news:relationship:${specialRelationship.id}`,
+        kind: "special-relationship",
+        title: `${specialRelationship.payload.kindLabel}関係が${actionLabel}`,
+        detail: `${specialRelationship.payload.displayNames[0]} × ${specialRelationship.payload.displayNames[1]}`,
+        notification: specialRelationship,
       },
     });
   }
