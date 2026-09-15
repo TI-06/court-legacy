@@ -10,6 +10,7 @@ import {
 import type { Grade, Player } from "../model/Player";
 import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
+import { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { grantAnnualSchoolBudget } from "../school/schoolEconomy";
 import {
@@ -498,6 +499,7 @@ export function advanceAcademicYear(
     ];
   }
 
+  nextState = ensureCharacterTraitAssignments(nextState, data);
   nextState = advanceRivalWorld(nextState, data, random);
   nextState = restoreCanonicalReputation(nextState, schools);
   nextState = grantAnnualSchoolBudget(nextState);

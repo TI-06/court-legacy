@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../data/gameData";
 import { generateWorld } from "../domain/generation/generateWorld";
 import type { GameState } from "../domain/model/GameState";
 import type { UniformColors } from "../domain/model/School";
+import { ensureCharacterTraitAssignments } from "../domain/player/characterTraitAssignment";
 import { createSeasonGoals } from "../domain/season/seasonGoals";
 
 export interface InitialGameSetup {
@@ -30,8 +31,13 @@ export function createInitialGame(input: InitialGameSetup): GameState {
     },
   });
 
+  const stateWithCharacterTraits = ensureCharacterTraitAssignments(
+    state,
+    gameDataBootstrap.data,
+  );
+
   return {
-    ...state,
-    seasonGoals: createSeasonGoals(state),
+    ...stateWithCharacterTraits,
+    seasonGoals: createSeasonGoals(stateWithCharacterTraits),
   };
 }

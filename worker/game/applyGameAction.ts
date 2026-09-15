@@ -35,6 +35,7 @@ import type { MatchState } from "../../src/domain/model/Match";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";
 import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
@@ -1402,7 +1403,10 @@ export function applyGameAction(
   action: GameAction,
   context: ApplyGameActionContext = {},
 ): AppliedGameAction {
-  const state = structuredClone(snapshot.state) as GameState;
+  const state = ensureCharacterTraitAssignments(
+    structuredClone(snapshot.state) as GameState,
+    gameData,
+  );
   const teamSelection = cloneTeamSelection(snapshot.teamSelection);
 
   switch (action.type) {
