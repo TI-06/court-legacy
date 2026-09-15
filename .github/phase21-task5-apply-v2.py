@@ -9,7 +9,7 @@ end = text.find(end_marker, start)
 if start < 0 or end < 0:
     raise SystemExit("Task5 Home news patch block not found")
 
-corrected = r'''replace_once(
+corrected = r"""replace_once(
     model,
     '''  if (notification) {
     candidates.push({
@@ -38,7 +38,7 @@ corrected = r'''replace_once(
       news: {
         id: `news:training:${notification.id}`,
 ''',
-)'''
+)"""
 
 path.write_text(text[:start] + corrected + text[end:])
 exec(compile(path.read_text(), str(path), "exec"))
