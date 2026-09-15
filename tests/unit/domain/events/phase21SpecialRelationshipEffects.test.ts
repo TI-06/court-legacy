@@ -57,10 +57,6 @@ const phase21EventInput = {
   ],
 } as const;
 
-function parsedEvent(): EventDefinition {
-  return eventDefinitionSchema.parse(phase21EventInput);
-}
-
 function registryWith(event: EventDefinition): GameDataRegistry {
   return {
     ...gameData,
