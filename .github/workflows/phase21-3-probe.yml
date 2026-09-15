@@ -1,0 +1,23 @@
+name: Phase21-3 Task1 Probe
+
+on:
+  push:
+    branches:
+      - tmp/phase21-3-hidden-character-traits
+
+permissions:
+  contents: read
+
+jobs:
+  task1-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run Task1 catalog test
+        run: npx vitest run tests/unit/data/phase21CharacterTraits.test.ts
