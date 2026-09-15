@@ -8,8 +8,10 @@ import {
   encodeGameState,
 } from "../../../src/persistence/gameStateCodec";
 
-function asMutableRecord(value: unknown): Record<string, any> {
-  return value as Record<string, any>;
+type MutableRecord = Record<string, unknown>;
+
+function asMutableRecord(value: unknown): MutableRecord {
+  return value as MutableRecord;
 }
 
 describe("Phase21 schema v9 migration", () => {
@@ -47,14 +49,12 @@ describe("Phase21 schema v9 migration", () => {
     const legacy = asMutableRecord(structuredClone(current));
     legacy.schemaVersion = 8;
     delete legacy.playerRelationshipBonds;
-    delete legacy.history.relationshipLegacyHistory;
-    delete legacy.eventMemory.recentActorPairKeys;
-    for (const legacyPlayer of Object.values(legacy.players) as Record<
-      string,
-      any
-    >[]) {
-      delete legacyPlayer.revealedHiddenTraitIds;
-      delete legacyPlayer.hiddenTraitAssignmentInitialized;
+    delete asMutableRecord(legacy.history).relationshipLegacyHistory;
+    delete asMutableRecord(legacy.eventMemory).recentActorPairKeys;
+    for (const legacyPlayer of Object.values(asMutableRecord(legacy.players))) {
+      const mutablePlayer = asMutableRecord(legacyPlayer);
+      delete mutablePlayer.revealedHiddenTraitIds;
+      delete mutablePlayer.hiddenTraitAssignmentInitialized;
     }
 
     const migrated = decodeGameState(JSON.stringify(legacy));
@@ -155,7 +155,7 @@ describe("Phase21 schema v9 migration", () => {
       lastReinforcedDate: state.date,
       belowThresholdSince: null,
     };
-    asMutableRecord(state).playerRelationshipBonds[pairKey] = {
+    asMutableRecord(asMutableRecord(state).playerRelationshipBonds)[pairKey] = {
       playerIds: [leftId, rightId].sort(),
       tags: [
         { ...baseTag, kind: "rival" },
@@ -181,7 +181,7 @@ describe("Phase21 schema v9 migration", () => {
     const rightId = school.playerIds[1]!;
     const outsiderId = school.playerIds[2]!;
     const pairKey = relationshipKey(leftId, rightId);
-    asMutableRecord(state).playerRelationshipBonds[pairKey] = {
+    asMutableRecord(asMutableRecord(state).playerRelationshipBonds)[pairKey] = {
       playerIds: [leftId, rightId].sort(),
       tags: [
         {

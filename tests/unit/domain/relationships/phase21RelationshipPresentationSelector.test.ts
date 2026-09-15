@@ -46,9 +46,9 @@ describe("Phase21 relationship presentation selector", () => {
 
     const rows = selectPlayerRelationships(state, selectedId);
 
-    expect(
-      rows.slice(0, 2).every((row) => row.specialKinds.length > 0),
-    ).toBe(true);
+    expect(rows.slice(0, 2).every((row) => row.specialKinds.length > 0)).toBe(
+      true,
+    );
     expect(rows[0]?.playerId).toBe(rivalId);
     expect(rows.find((row) => row.playerId === protegeId)).toMatchObject({
       specialKinds: ["mentor"],

@@ -1,3 +1,4 @@
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
 const subjectPath = "../../../src/dev/soak/runBalanceSoak";
@@ -30,7 +31,7 @@ describe("Phase18 soak production action driver", () => {
     const snapshot = createSoakSnapshot("phase18-driver-seed");
 
     expect(snapshot.state.seed).toBe("phase18-driver-seed");
-    expect(snapshot.state.schemaVersion).toBe(8);
+    expect(snapshot.state.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(snapshot.teamSelection.rotation).toHaveLength(6);
     expect(snapshot.state.activeMatch).toBeNull();
     expect(snapshot.state.pendingEvent).toBeNull();
