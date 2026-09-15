@@ -1,16 +1,12 @@
-name: Phase21-3 Task7 Player Hub Probe
+name: Phase21-3 Final Preflight
 
 on:
   push:
     branches:
       - tmp/phase21-3-hidden-character-traits
 
-permissions:
-  contents: write
-
 jobs:
-  task7:
-    if: github.actor != 'github-actions[bot]'
+  preflight:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,198 +16,28 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task7 failing UI test
-        shell: bash
+      - name: Formatting
+        run: npm run format:check
+      - name: Phase21-3 focused regression
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("tests/unit/features/team/PlayerHubScreen.test.tsx")
-          text = path.read_text(encoding="utf-8")
-          if 'shows only revealed hidden character traits in player detail' not in text:
-              marker = '  it("keeps the existing lineup editor available", () => {\n'
-              test = '''  it("shows only revealed hidden character traits in player detail", () => {
-                const state = createDemoGame();
-                const school = state.schools[state.userSchoolId]!;
-                const playerId = school.playerIds[0]!;
-                const player = state.players[playerId]!;
-                player.hiddenTraitIds = ["character.caring"];
-                player.revealedHiddenTraitIds = [];
-                player.hiddenTraitAssignmentInitialized = true;
-                const { view, selection } = renderPlayerHub(state);
-
-                fireEvent.click(
-                  screen.getByRole("button", {
-                    name: `選手詳細 ${player.lastName} ${player.firstName}`,
-                  }),
-                );
-
-                expect(screen.queryByRole("region", { name: "発見した個性" })).toBeNull();
-                expect(screen.queryByText("面倒見がいい")).toBeNull();
-
-                player.revealedHiddenTraitIds = [
-                  "character.caring",
-                  "character.missing",
-                ];
-                view.rerender(
-                  <PlayerHubScreen
-                    data={gameData}
-                    onAssignLeadership={vi.fn()}
-                    onChange={vi.fn()}
-                    selection={selection}
-                    state={state}
-                  />,
-                );
-
-                const region = screen.getByRole("region", { name: "発見した個性" });
-                expect(within(region).getByText("面倒見がいい")).toBeVisible();
-                expect(
-                  within(region).getByText(
-                    "後輩や仲間の様子に気づき、自然に支えようとする。",
-                  ),
-                ).toBeVisible();
-                expect(within(region).queryByText("character.missing")).toBeNull();
-              });
-
-          '''
-              if marker not in text:
-                  raise SystemExit("PlayerHub test insertion marker missing")
-              text = text.replace(marker, test + marker, 1)
-              path.write_text(text, encoding="utf-8")
-          PY
-          npx prettier tests/unit/features/team/PlayerHubScreen.test.tsx --write
-          git diff --check
-      - name: Prove Task7 RED
-        id: red
-        continue-on-error: true
-        run: npx vitest run tests/unit/features/team/PlayerHubScreen.test.tsx
-      - name: Assert Task7 was RED before implementation
-        run: test "${{ steps.red.outcome }}" = "failure"
-      - name: Implement Task7 revealed trait presentation
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          screen_path = Path("src/features/team/PlayerHubScreen.tsx")
-          text = screen_path.read_text(encoding="utf-8")
-          if 'const revealedCharacterTraits =' not in text:
-              marker = '    const relationships = selectPlayerRelationships(state, selectedPlayer.id);\n'
-              addition = '''    const revealedCharacterTraits = (
-                selectedPlayer.revealedHiddenTraitIds ?? []
-              )
-                .map((traitId) => data.characterTraits.get(traitId))
-                .filter((trait) => trait !== undefined);
-          '''
-              if marker not in text:
-                  raise SystemExit("PlayerHub relationships marker missing")
-              text = text.replace(marker, marker + addition, 1)
-          if 'aria-label="発見した個性"' not in text:
-              metrics_start = text.index('        <section className="player-detail__metrics" aria-label="選手状態">')
-              metrics_end = text.index('        </section>', metrics_start) + len('        </section>')
-              block = '''
-
-              {revealedCharacterTraits.length > 0 ? (
-                <section
-                  className="player-detail__character-traits"
-                  aria-label="発見した個性"
-                >
-                  <div className="player-detail__character-traits-heading">
-                    <h3>発見した個性</h3>
-                    <span>{revealedCharacterTraits.length}件</span>
-                  </div>
-                  <div className="player-detail__character-trait-list">
-                    {revealedCharacterTraits.map((trait) => (
-                      <article key={trait.id}>
-                        <strong>{trait.name}</strong>
-                        <p>{trait.description}</p>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-          '''
-              text = text[:metrics_end] + block + text[metrics_end:]
-          screen_path.write_text(text, encoding="utf-8")
-
-          css_path = Path("src/features/team/player-hub.css")
-          css = css_path.read_text(encoding="utf-8")
-          if '.player-detail__character-traits {' not in css:
-              css = css.rstrip() + '''
-
-          .player-detail__character-traits {
-            display: grid;
-            min-width: 0;
-            padding: 9px 11px;
-            gap: 7px;
-            background: rgb(11 26 45 / 88%);
-            border: 1px solid rgb(244 122 24 / 18%);
-            border-radius: 11px;
-          }
-
-          .player-detail__character-traits-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-          }
-
-          .player-detail__character-traits-heading h3,
-          .player-detail__character-trait-list p {
-            margin: 0;
-          }
-
-          .player-detail__character-traits-heading h3 {
-            font-size: 13px;
-          }
-
-          .player-detail__character-traits-heading span {
-            color: var(--game-text-muted, #a9b8ca);
-            font-size: 10px;
-            font-weight: 800;
-          }
-
-          .player-detail__character-trait-list {
-            display: grid;
-            gap: 6px;
-          }
-
-          .player-detail__character-trait-list article {
-            display: grid;
-            min-width: 0;
-            padding: 7px 8px;
-            gap: 3px;
-            background: rgb(244 122 24 / 7%);
-            border-radius: 8px;
-          }
-
-          .player-detail__character-trait-list strong {
-            color: #ffd99a;
-            font-size: 12px;
-          }
-
-          .player-detail__character-trait-list p {
-            color: var(--game-text-muted, #a9b8ca);
-            font-size: 10px;
-            line-height: 1.45;
-          }
-          '''
-          css_path.write_text(css, encoding="utf-8")
-          PY
-          npx prettier src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx --write
-          git diff --check
-      - name: Run Task7 GREEN regression
-        run: npx vitest run tests/unit/features/team/PlayerHubScreen.test.tsx
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Commit verified Task7 changes
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx
-          if git diff --cached --quiet; then
-            echo "Task7 changes already committed"
-            exit 0
-          fi
-          git commit -m "feat: show discovered character traits"
-          git push origin HEAD:tmp/phase21-3-hidden-character-traits
+          npx vitest run \
+            tests/unit/data/phase21CharacterTraits.test.ts \
+            tests/unit/domain/player/characterTraitAssignment.test.ts \
+            tests/unit/domain/player/characterTraitDiscovery.test.ts \
+            tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts \
+            tests/unit/notifications/phase21CharacterTraitNotifications.test.ts \
+            tests/unit/worker/applyGameAction.test.ts \
+            tests/unit/worker/gameAction.test.ts \
+            tests/unit/worker/academicYearRecruitment.test.ts \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/team/PlayerHubScreen.test.tsx
+      - name: Full verification
+        run: npm run verify
+      - name: Release evidence
+        run: npm run release:check
+      - name: Soak smoke
+        run: npm run soak:smoke
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Full mobile E2E
+        run: npm run test:e2e
