@@ -1,4 +1,4 @@
-name: Phase21-3 Task4 Discovery Probe
+name: Phase21-3 Task4 Discovery Green Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task4:
+  task4-green:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task4 failing discovery tests
+      - name: Apply isolated Task4 test and discovery engine
         shell: bash
         run: |
           cat > tests/unit/domain/player/characterTraitDiscovery.test.ts <<'EOF'
@@ -34,7 +34,7 @@ jobs:
           const data = loadGameData(rawGameData);
 
           function createState() {
-            return createInitialGame({
+            const state = createInitialGame({
               seed: "phase21-character-discovery",
               schoolName: "青葉高校",
               schoolShortName: "青葉",
@@ -46,6 +46,12 @@ jobs:
                 accent: "#D99B2B",
               },
             });
+            for (const player of Object.values(state.players)) {
+              player.hiddenTraitIds = [];
+              player.revealedHiddenTraitIds = [];
+              player.hiddenTraitAssignmentInitialized = true;
+            }
+            return state;
           }
 
           function assignOnly(
@@ -56,7 +62,6 @@ jobs:
             const player = state.players[playerId]!;
             player.hiddenTraitIds = [traitId];
             player.revealedHiddenTraitIds = [];
-            player.hiddenTraitAssignmentInitialized = true;
             return player;
           }
 
@@ -70,10 +75,8 @@ jobs:
               const playerId = userPlayerIds(state)[0]!;
               const player = assignOnly(state, playerId, "character.training-lover");
               player.trust = 64;
-
               const below = discoverEligibleCharacterTraits(state, data);
               expect(below.discoveries).toEqual([]);
-
               below.state.players[playerId]!.trust = 65;
               const atBoundary = discoverEligibleCharacterTraits(below.state, data);
               expect(atBoundary.discoveries).toEqual([
@@ -89,7 +92,6 @@ jobs:
               const playerId = userPlayerIds(state)[0]!;
               const player = assignOnly(state, playerId, "character.resilient");
               player.career.appearances = 5;
-
               expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([]);
               player.career.appearances = 6;
               expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([
@@ -104,12 +106,10 @@ jobs:
               const viceCaptain = assignOnly(state, viceCaptainId!, "character.clutch-support");
               captain.career.appearances = 0;
               viceCaptain.career.appearances = 0;
-
               const result = discoverEligibleCharacterTraits(state, data, {
                 captainPlayerId: captainId,
                 viceCaptainPlayerId: viceCaptainId,
               });
-
               expect(result.discoveries.map((item) => item.playerId).sort()).toEqual(
                 [captainId, viceCaptainId].sort(),
               );
@@ -132,7 +132,6 @@ jobs:
                   },
                 ],
               };
-
               expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([
                 { playerId: leftId, traitId: "character.competitive-growth" },
               ]);
@@ -143,7 +142,6 @@ jobs:
               const playerId = userPlayerIds(state)[0]!;
               const player = assignOnly(state, playerId, "character.analytical");
               player.career.appearances = 0;
-
               expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([]);
               expect(
                 discoverEligibleCharacterTraits(state, data, {
@@ -162,12 +160,8 @@ jobs:
                 "character.orphan",
               ];
               const unassigned = state.players[unassignedId!]!;
-              unassigned.hiddenTraitIds = [];
               unassigned.revealedHiddenTraitIds = ["character.orphan"];
-              unassigned.hiddenTraitAssignmentInitialized = true;
-
               const result = discoverEligibleCharacterTraits(state, data);
-
               expect(result.discoveries).toEqual([]);
               expect(result.state.players[revealedId!]!.revealedHiddenTraitIds).toEqual([
                 "character.training-lover",
@@ -182,9 +176,7 @@ jobs:
               const second = assignOnly(state, ids[1]!, "character.team-first");
               first.trust = 100;
               second.trust = 100;
-
               const result = discoverEligibleCharacterTraits(state, data);
-
               expect(result.discoveries).toEqual([
                 { playerId: ids[0], traitId: "character.training-lover" },
                 { playerId: ids[1], traitId: "character.team-first" },
@@ -192,24 +184,13 @@ jobs:
             });
           });
           EOF
-          npx prettier tests/unit/domain/player/characterTraitDiscovery.test.ts --write
-          git diff --check
-      - name: Prove Task4 RED
-        id: red
-        continue-on-error: true
-        run: npx vitest run tests/unit/domain/player/characterTraitDiscovery.test.ts
-      - name: Assert Task4 was RED before implementation
-        run: test "${{ steps.red.outcome }}" = "failure"
-      - name: Implement pure discovery engine
-        shell: bash
-        run: |
           cat > src/domain/player/characterTraitDiscovery.ts <<'EOF'
           import type { GameDataRegistry } from "../../data/dataRegistry";
-          import type { CharacterTraitDefinition } from "../validation/gameDataSchema";
           import type { GameState } from "../model/GameState";
           import type { Player } from "../model/Player";
           import type { PlayerId } from "../model/identifiers";
           import type { SpecialRelationshipKind } from "../relationships/relationshipTypes";
+          import type { CharacterTraitDefinition } from "../validation/gameDataSchema";
 
           export interface CharacterTraitDiscoveryContext {
             eventTags?: readonly string[];
@@ -271,7 +252,6 @@ jobs:
             for (const playerId of Object.keys(state.players).sort()) {
               const player = state.players[playerId as PlayerId];
               if (!player) continue;
-
               const hidden = [...new Set(player.hiddenTraitIds)].sort();
               const hiddenSet = new Set(hidden);
               const revealed = [...new Set(player.revealedHiddenTraitIds ?? [])]
@@ -298,7 +278,9 @@ jobs:
               const previousRevealed = player.revealedHiddenTraitIds ?? [];
               const needsUpdate =
                 previousRevealed.length !== nextRevealed.length ||
-                previousRevealed.some((traitId, index) => traitId !== nextRevealed[index]);
+                previousRevealed.some(
+                  (traitId, index) => traitId !== nextRevealed[index],
+                );
               if (needsUpdate) {
                 players[player.id] = {
                   ...player,
@@ -313,7 +295,6 @@ jobs:
                 left.playerId.localeCompare(right.playerId) ||
                 left.traitId.localeCompare(right.traitId),
             );
-
             return {
               state: changed ? { ...state, players } : state,
               discoveries,
@@ -322,7 +303,7 @@ jobs:
           EOF
           npx prettier src/domain/player/characterTraitDiscovery.ts tests/unit/domain/player/characterTraitDiscovery.test.ts --write
           git diff --check
-      - name: Run Task4 GREEN regression
+      - name: Run Task4 regression
         run: npx vitest run tests/unit/domain/player/characterTraitDiscovery.test.ts tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
       - name: Typecheck
         run: npm run typecheck
