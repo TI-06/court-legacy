@@ -42,9 +42,11 @@ import {
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
+  buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
   markNotificationRead,
 } from "../../src/domain/notifications/gameNotifications";
+import type { SpecialRelationshipTransition } from "../../src/domain/relationships/relationshipTypes";
 import {
   appendPlayerDevelopmentWeek,
   buildPlayerDevelopmentWeek,
@@ -274,6 +276,22 @@ function consumeNextTrainingGrowthBoost(state: GameState): GameState {
     ...state,
     shopEffects: undefined,
   };
+}
+
+function appendSpecialRelationshipNotifications(
+  state: GameState,
+  transitions: readonly SpecialRelationshipTransition[],
+): GameState {
+  let notifications = state.notifications;
+  for (const transition of transitions) {
+    notifications = appendNotification(
+      notifications,
+      buildSpecialRelationshipNotification({ state, transition }),
+    );
+  }
+  return notifications === state.notifications
+    ? state
+    : { ...state, notifications };
 }
 
 function applyTraining(
@@ -1234,9 +1252,14 @@ function applyAdvanceWeek(
     const progression = advanceGameWeek(currentState, gameData, {
       userIntake: context.userIntake,
     });
+    const stateWithRelationshipNotifications =
+      appendSpecialRelationshipNotifications(
+        progression.state,
+        progression.specialRelationshipTransitions,
+      );
     const nextState = progression.academicYearTransition
-      ? progression.state
-      : surfaceWeeklyEvent(progression.state, gameData);
+      ? stateWithRelationshipNotifications
+      : surfaceWeeklyEvent(stateWithRelationshipNotifications, gameData);
     const nextSelection = progression.academicYearTransition
       ? autoSelectTeam({ state: nextState, schoolId: nextState.userSchoolId })
       : teamSelection;
@@ -1359,7 +1382,10 @@ function applyEventChoice(
       random,
     );
     return {
-      state: resolution.state,
+      state: appendSpecialRelationshipNotifications(
+        resolution.state,
+        resolution.specialRelationshipTransitions,
+      ),
       teamSelection,
       outcome: resolution.occurrence,
     };

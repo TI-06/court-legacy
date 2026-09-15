@@ -1,4 +1,7 @@
-import type { TrainingResultNotification } from "../../domain/notifications/gameNotifications";
+import type {
+  SpecialRelationshipNotification,
+  TrainingResultNotification,
+} from "../../domain/notifications/gameNotifications";
 import type {
   HomeCommandAction,
   HomeCommandCenterModel,
@@ -16,6 +19,9 @@ interface HomeCommandCenterProps {
   onDeclinePracticeOffer: () => void;
   onOpenTrainingNotification: (
     notification: TrainingResultNotification,
+  ) => void;
+  onOpenRelationshipNotification: (
+    notification: SpecialRelationshipNotification,
   ) => void;
 }
 
@@ -71,6 +77,7 @@ export function HomeCommandCenter({
   onAcceptPracticeOffer,
   onDeclinePracticeOffer,
   onOpenTrainingNotification,
+  onOpenRelationshipNotification,
 }: HomeCommandCenterProps) {
   const { summary } = model;
 
@@ -280,6 +287,27 @@ export function HomeCommandCenter({
                       <strong>
                         {unread ? "NEW" : "確認済み"} {news.title}
                       </strong>
+                      <small>{news.detail}</small>
+                    </span>
+                    <b aria-hidden="true">›</b>
+                  </button>
+                );
+              }
+              if (news.kind === "special-relationship") {
+                const unread = news.notification.readAtGameDate === null;
+                return (
+                  <button
+                    aria-label={`${news.title} ${news.detail}`}
+                    className={`home-command-news-row${unread ? " is-unread" : ""}`}
+                    data-testid="home-command-news"
+                    key={news.id}
+                    onClick={() =>
+                      onOpenRelationshipNotification(news.notification)
+                    }
+                    type="button"
+                  >
+                    <span>
+                      <strong>{news.title}</strong>
                       <small>{news.detail}</small>
                     </span>
                     <b aria-hidden="true">›</b>

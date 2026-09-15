@@ -5,6 +5,10 @@ import type { GameState } from "../model/GameState";
 import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
+import type {
+  SpecialRelationshipKind,
+  SpecialRelationshipTransition,
+} from "../relationships/relationshipTypes";
 import type { AbilityKey } from "../validation/gameDataSchema";
 
 export interface TrainingResultNotificationPlayer {
@@ -57,8 +61,26 @@ export interface ConcernResolutionNotification {
   };
 }
 
+export interface SpecialRelationshipNotification {
+  id: string;
+  type: "special-relationship";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    action: SpecialRelationshipTransition["action"];
+    kind: SpecialRelationshipKind;
+    kindLabel: string;
+    playerIds: [PlayerId, PlayerId];
+    displayNames: [string, string];
+  };
+}
+
 export type GameNotification =
-  TrainingResultNotification | ConcernResolutionNotification;
+  | TrainingResultNotification
+  | ConcernResolutionNotification
+  | SpecialRelationshipNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -75,6 +97,12 @@ const concernTitles: Record<PlayerConcernCode, string> = {
   "role-mismatch": "役割への不満",
   "injury-overuse": "怪我中の起用負荷",
   "team-slump": "チーム不調への不満",
+};
+
+const specialRelationshipKindLabels: Record<SpecialRelationshipKind, string> = {
+  rival: "ライバル",
+  mentor: "師弟",
+  partner: "相棒",
 };
 
 function trainingNotificationId(state: GameState): string {
@@ -164,6 +192,40 @@ export function buildConcernResolutionNotification(input: {
   };
 }
 
+export function buildSpecialRelationshipNotification(input: {
+  state: GameState;
+  transition: SpecialRelationshipTransition;
+}): SpecialRelationshipNotification {
+  const [leftId, rightId] = input.transition.playerIds;
+  const left = input.state.players[leftId];
+  const right = input.state.players[rightId];
+  if (!left || !right) {
+    throw new Error(
+      "special relationship notification references unknown player",
+    );
+  }
+  const pairKey = input.transition.playerIds.join(":");
+
+  return {
+    id: `special-relationship:${input.state.userSchoolId}:${input.state.yearIndex}:${input.state.calendar.weekOfYear}:${input.state.date}:${input.transition.action}:${input.transition.kind}:${pairKey}`,
+    type: "special-relationship",
+    createdGameDate: input.state.date,
+    academicYearIndex: input.state.yearIndex,
+    weekOfYear: input.state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      action: input.transition.action,
+      kind: input.transition.kind,
+      kindLabel: specialRelationshipKindLabels[input.transition.kind],
+      playerIds: [...input.transition.playerIds] as [PlayerId, PlayerId],
+      displayNames: [
+        `${left.lastName} ${left.firstName}`,
+        `${right.lastName} ${right.firstName}`,
+      ],
+    },
+  };
+}
+
 export function appendNotification(
   state: GameNotificationState,
   item: GameNotification,
@@ -216,5 +278,16 @@ export function selectHomeConcernResolutionNotifications(
       item.type === "concern-resolution",
   );
   const newest = concernItems[concernItems.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeSpecialRelationshipNotifications(
+  state: GameNotificationState,
+): SpecialRelationshipNotification[] {
+  const items = state.items.filter(
+    (item): item is SpecialRelationshipNotification =>
+      item.type === "special-relationship",
+  );
+  const newest = items[items.length - 1];
   return newest ? [newest] : [];
 }
