@@ -1,4 +1,8 @@
 import type { TeamDynamicsState } from "../dynamics/teamDynamicsTypes";
+import type {
+  PlayerRelationshipBond,
+  RelationshipLegacyRecord,
+} from "../relationships/relationshipTypes";
 import type { GameNotificationState } from "../notifications/gameNotifications";
 import type {
   SeasonGoalSeasonSummary,
@@ -94,6 +98,7 @@ export interface GameHistory {
   schoolRecordValues: Record<string, number>;
   officialTournaments: OfficialTournamentSummary[];
   playerDevelopmentWeeks: PlayerDevelopmentWeek[];
+  relationshipLegacyHistory: RelationshipLegacyRecord[];
   seasonGoalSeasons?: SeasonGoalSeasonSummary[];
 }
 
@@ -112,6 +117,7 @@ export interface GameState {
   schools: Record<SchoolId, School>;
   players: Record<PlayerId, Player>;
   playerRelationships: Record<string, number>;
+  playerRelationshipBonds: Record<string, PlayerRelationshipBond>;
   calendar: CalendarState;
   activeMatch: MatchState | null;
   pendingEvent: PendingEvent | null;
@@ -130,7 +136,7 @@ export interface GameState {
   shopEffects?: ShopGameEffects;
 }
 
-export const CURRENT_GAME_SCHEMA_VERSION = 8;
+export const CURRENT_GAME_SCHEMA_VERSION = 9;
 
 export function createDefaultGameSettings(): GameSettings {
   return {
@@ -150,6 +156,7 @@ export function createEmptyGameHistory(): GameHistory {
     schoolRecordValues: {},
     officialTournaments: [],
     playerDevelopmentWeeks: [],
+    relationshipLegacyHistory: [],
     seasonGoalSeasons: [],
   };
 }

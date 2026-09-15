@@ -132,6 +132,7 @@ function createEmptyEventMemory(): EventMemory {
     recentEventIds: [],
     recentCategoryIds: [],
     recentPrimaryActorPlayerIds: [],
+    recentActorPairKeys: [],
     scheduledFollowUps: [],
     history: [],
   };
@@ -324,6 +325,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
     schools,
     players,
     playerRelationships,
+    playerRelationshipBonds: {},
     calendar: {
       currentDate: initialDate,
       academicYear: 1,

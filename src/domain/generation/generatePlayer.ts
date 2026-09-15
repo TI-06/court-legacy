@@ -324,6 +324,8 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
     growthTypeId: growthType.id,
     traitIds,
     hiddenTraitIds: [],
+    revealedHiddenTraitIds: [],
+    hiddenTraitAssignmentInitialized: false,
     tier: input.tier,
     ...development,
     injury: null,

@@ -47,6 +47,7 @@ export interface EventMemory {
   recentEventIds: EventId[];
   recentCategoryIds: EventCategory[];
   recentPrimaryActorPlayerIds: PlayerId[];
+  recentActorPairKeys: string[];
   scheduledFollowUps: ScheduledEventFollowUp[];
   history: EventOccurrence[];
 }

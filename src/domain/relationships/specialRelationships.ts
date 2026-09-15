@@ -1,7 +1,4 @@
-from pathlib import Path
-
-Path("src/domain/relationships/specialRelationships.ts").write_text(
-    '''import { relationshipKey } from "../model/GameState";
+import { relationshipKey } from "../model/GameState";
 import type { EventId, GameDate, PlayerId } from "../model/identifiers";
 import type {
   PlayerRelationshipBond,
@@ -47,7 +44,10 @@ function validateMentorDirection(
     throw new Error("mentor and protege must be different players");
   }
   const pairIds = new Set(pair);
-  if (!pairIds.has(input.mentorPlayerId) || !pairIds.has(input.protegePlayerId)) {
+  if (
+    !pairIds.has(input.mentorPlayerId) ||
+    !pairIds.has(input.protegePlayerId)
+  ) {
     throw new Error("mentor and protege must belong to the relationship pair");
   }
 }
@@ -83,7 +83,9 @@ export function addSpecialRelationship<T extends RelationshipStateLike>(
     playerIds: pair,
     tags: [],
   };
-  const existingIndex = existing.tags.findIndex((tag) => tag.kind === input.kind);
+  const existingIndex = existing.tags.findIndex(
+    (tag) => tag.kind === input.kind,
+  );
 
   if (existingIndex >= 0) {
     const tags = existing.tags.map((tag, index) =>
@@ -153,18 +155,3 @@ export function removeSpecialRelationship<T extends RelationshipStateLike>(
     transition: { action: "removed", kind: input.kind, playerIds: pair },
   };
 }
-'''
-)
-
-player_path = Path("src/domain/model/Player.ts")
-player_text = player_path.read_text()
-old = "  revealedHiddenTraitIds: string[];\n  hiddenTraitAssignmentInitialized: boolean;\n"
-if player_text.count(old) != 1:
-    raise SystemExit(f"expected Player compatibility fields once, got {player_text.count(old)}")
-player_path.write_text(
-    player_text.replace(
-        old,
-        "  revealedHiddenTraitIds?: string[];\n  hiddenTraitAssignmentInitialized?: boolean;\n",
-        1,
-    )
-)

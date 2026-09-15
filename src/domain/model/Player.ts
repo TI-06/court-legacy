@@ -61,6 +61,8 @@ export interface Player {
   growthTypeId: string;
   traitIds: string[];
   hiddenTraitIds: string[];
+  revealedHiddenTraitIds?: string[];
+  hiddenTraitAssignmentInitialized?: boolean;
   tier: PlayerTier;
   potential?: number;
   trainingEfficiency?: number;
