@@ -37,6 +37,10 @@ import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";
 import {
+  discoverEligibleCharacterTraits,
+  type CharacterTraitDiscovery,
+} from "../../src/domain/player/characterTraitDiscovery";
+import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
@@ -113,6 +117,7 @@ export interface AppliedGameAction {
   state: GameState;
   teamSelection: TeamSelection;
   outcome?: unknown;
+  characterTraitDiscoveries?: CharacterTraitDiscovery[];
 }
 
 export interface ApplyGameActionContext {
@@ -1389,6 +1394,7 @@ function applyEventChoice(
       ),
       teamSelection,
       outcome: resolution.occurrence,
+      characterTraitDiscoveries: resolution.characterTraitDiscoveries,
     };
   } catch (error) {
     return conflict(
@@ -1398,17 +1404,12 @@ function applyEventChoice(
   }
 }
 
-export function applyGameAction(
-  snapshot: CloudGameSnapshot,
+function applyActionByType(
+  state: GameState,
+  teamSelection: TeamSelection,
   action: GameAction,
-  context: ApplyGameActionContext = {},
+  context: ApplyGameActionContext,
 ): AppliedGameAction {
-  const state = ensureCharacterTraitAssignments(
-    structuredClone(snapshot.state) as GameState,
-    gameData,
-  );
-  const teamSelection = cloneTeamSelection(snapshot.teamSelection);
-
   switch (action.type) {
     case "training":
       return applyTraining(state, teamSelection, action);
@@ -1447,4 +1448,38 @@ export function applyGameAction(
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
   }
+}
+
+export function applyGameAction(
+  snapshot: CloudGameSnapshot,
+  action: GameAction,
+  context: ApplyGameActionContext = {},
+): AppliedGameAction {
+  const state = ensureCharacterTraitAssignments(
+    structuredClone(snapshot.state) as GameState,
+    gameData,
+  );
+  const teamSelection = cloneTeamSelection(snapshot.teamSelection);
+  const applied = applyActionByType(state, teamSelection, action, context);
+  const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
+    captainPlayerId: applied.state.teamDynamics.captainPlayerId,
+    viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
+  });
+  const characterTraitDiscoveries = [
+    ...(applied.characterTraitDiscoveries ?? []),
+    ...finalized.discoveries,
+  ].sort(
+    (left, right) =>
+      left.playerId.localeCompare(right.playerId) ||
+      left.traitId.localeCompare(right.traitId),
+  );
+
+  return {
+    state: finalized.state,
+    teamSelection: applied.teamSelection,
+    ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+    ...(characterTraitDiscoveries.length > 0
+      ? { characterTraitDiscoveries }
+      : {}),
+  };
 }
