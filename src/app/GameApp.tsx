@@ -1163,6 +1163,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       />
     ) : activeTab === "team" ? (
       <PlayerHubScreen
+        data={gameData}
         initialPlayerId={teamInitialPlayerId}
         leadershipPending={cloudSession.operation.status === "submitting"}
         onAssignLeadership={saveTeamLeadership}

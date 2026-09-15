@@ -16,7 +16,7 @@ async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 }
 
-test("weekly progression surfaces a non-dismissible event with tradeoffs", async ({
+test("weekly progression surfaces a non-dismissible fullscreen event", async ({
   page,
 }) => {
   await page.goto("/");
@@ -28,10 +28,9 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
   const eventDialog = page.getByRole("dialog");
   await expect(eventDialog).toBeVisible();
   await expect(
-    eventDialog.getByText(
-      "監督として対応を選んでください。結果には利点と負担があります。",
-    ),
+    eventDialog.getByText("監督として対応を選んでください。"),
   ).toBeVisible();
+  await expect(eventDialog).toHaveAttribute("data-phase", "choice");
   await expect(eventDialog.getByRole("button", { name: "閉じる" })).toHaveCount(
     0,
   );
@@ -41,6 +40,7 @@ test("weekly progression surfaces a non-dismissible event with tradeoffs", async
 
   const resultDialog = page.getByRole("dialog", { name: "対応結果" });
   await expect(resultDialog).toBeVisible();
+  await expect(resultDialog).toHaveAttribute("data-phase", "result");
   await expect(resultDialog.getByText("選んだ対応")).toBeVisible();
   await expect(
     resultDialog.getByRole("region", { name: "対応による変化" }),
