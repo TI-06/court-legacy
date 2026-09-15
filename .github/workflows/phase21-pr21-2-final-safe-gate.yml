@@ -1,0 +1,78 @@
+name: Phase21 PR21-2 Final Safe Gate
+
+on:
+  push:
+    branches:
+      - feat/phase21-2-relationship-model-persistence
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Phase21 focused suites
+        id: focused
+        continue-on-error: true
+        run: |
+          npx vitest run \
+            tests/unit/domain/relationships \
+            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts \
+            tests/unit/domain/events/phase21RelationshipEventData.test.ts \
+            tests/unit/domain/calendar/phase21RelationshipLegacy.test.ts \
+            tests/unit/domain/notifications/phase21SpecialRelationshipNotifications.test.ts \
+            tests/unit/worker/phase21SpecialRelationshipNotifications.test.ts \
+            tests/unit/worker/applyGameAction.test.ts \
+            tests/unit/persistence/phase21GameStateMigration.test.ts \
+            tests/unit/persistence/gameStateCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferCanonicalCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferHistoryCodec.test.ts \
+            tests/unit/features/home/Phase21RelationshipNotice.test.tsx \
+            tests/unit/features/home/Phase21EventRelationships.test.tsx \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/home/EventDialog.test.tsx \
+            tests/unit/features/team/Phase21PlayerHubRelationships.test.tsx \
+            tests/unit/features/team/PlayerHubScreen.test.tsx
+      - name: Typecheck
+        id: types
+        continue-on-error: true
+        run: npm run typecheck
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+      - name: Format check
+        id: format
+        continue-on-error: true
+        run: npm run format:check
+      - name: Full verify
+        id: verify
+        continue-on-error: true
+        run: npm run verify
+      - name: Report safe-gate outcomes
+        if: always()
+        run: |
+          echo "focused=${{ steps.focused.outcome }}"
+          echo "types=${{ steps.types.outcome }}"
+          echo "lint=${{ steps.lint.outcome }}"
+          echo "format=${{ steps.format.outcome }}"
+          echo "verify=${{ steps.verify.outcome }}"
+      - name: Remove temporary safe gate after complete success
+        if: ${{ steps.focused.outcome == 'success' && steps.types.outcome == 'success' && steps.lint.outcome == 'success' && steps.format.outcome == 'success' && steps.verify.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          rm .github/workflows/phase21-pr21-2-final-safe-gate.yml
+          git config user.name "TI-06"
+          git config user.email "iretaku.shop@gmail.com"
+          git add -A
+          git commit -m "ci: remove Phase21-2 temporary safe gate"
+          git push origin HEAD:feat/phase21-2-relationship-model-persistence
