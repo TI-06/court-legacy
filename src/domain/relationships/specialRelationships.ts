@@ -1,4 +1,5 @@
-import { relationshipKey } from "../model/GameState";
+import { weeksBetween } from "../events/eventDate";
+import { relationshipKey, type GameState } from "../model/GameState";
 import type { EventId, GameDate, PlayerId } from "../model/identifiers";
 import type {
   PlayerRelationshipBond,
@@ -61,6 +62,12 @@ function replaceBond<T extends RelationshipStateLike>(
   if (bond) nextBonds[key] = bond;
   else delete nextBonds[key];
   return { ...state, playerRelationshipBonds: nextBonds };
+}
+
+function deteriorationThreshold(kind: SpecialRelationshipKind): number | null {
+  if (kind === "partner") return 60;
+  if (kind === "mentor") return 50;
+  return null;
 }
 
 export function getRelationshipBond(
@@ -153,5 +160,62 @@ export function removeSpecialRelationship<T extends RelationshipStateLike>(
       tags.length > 0 ? { ...existing, playerIds: pair, tags } : null,
     ),
     transition: { action: "removed", kind: input.kind, playerIds: pair },
+  };
+}
+
+export function progressSpecialRelationshipsWeekly(
+  state: GameState,
+  nextDate: GameDate,
+): { state: GameState; transitions: SpecialRelationshipTransition[] } {
+  const nextBonds = { ...state.playerRelationshipBonds };
+  const transitions: SpecialRelationshipTransition[] = [];
+
+  for (const [key, bond] of Object.entries(state.playerRelationshipBonds)) {
+    const score = state.playerRelationships[key] ?? 50;
+    const nextTags: SpecialRelationshipTag[] = [];
+
+    for (const tag of bond.tags) {
+      const threshold = deteriorationThreshold(tag.kind);
+      if (threshold === null) {
+        nextTags.push(tag);
+        continue;
+      }
+
+      if (score >= threshold) {
+        nextTags.push(
+          tag.belowThresholdSince === null
+            ? tag
+            : { ...tag, belowThresholdSince: null },
+        );
+        continue;
+      }
+
+      if (tag.belowThresholdSince === null) {
+        nextTags.push({ ...tag, belowThresholdSince: state.date });
+        continue;
+      }
+
+      if (weeksBetween(tag.belowThresholdSince, nextDate) >= 8) {
+        transitions.push({
+          action: "removed",
+          kind: tag.kind,
+          playerIds: bond.playerIds,
+        });
+        continue;
+      }
+
+      nextTags.push(tag);
+    }
+
+    if (nextTags.length > 0) {
+      nextBonds[key] = { ...bond, tags: nextTags };
+    } else {
+      delete nextBonds[key];
+    }
+  }
+
+  return {
+    state: { ...state, playerRelationshipBonds: nextBonds },
+    transitions,
   };
 }
