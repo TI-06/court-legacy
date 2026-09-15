@@ -1,0 +1,39 @@
+name: Phase21 PR21-2 Task8 RED
+
+on:
+  push:
+    branches:
+      - feat/phase21-2-relationship-model-persistence
+
+permissions:
+  contents: read
+
+jobs:
+  expected-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Confirm Task8 tests are RED without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run \
+            tests/unit/persistence/phase21GameStateMigration.test.ts \
+            tests/unit/persistence/gameStateCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferCanonicalCodec.test.ts \
+            tests/unit/persistence/phase20PracticeOfferHistoryCodec.test.ts \
+            2>&1 | tee /tmp/task8-red.log
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "test_status=$status"
+          if [ "$status" -ne 0 ]; then
+            echo "PHASE21_PR21_2_TASK8_RED_CONFIRMED=true"
+            exit 0
+          fi
+          echo "PHASE21_PR21_2_TASK8_RED_CONFIRMED=false"
+          exit 1
