@@ -206,9 +206,123 @@ const seasonGoalSeasonSummarySchema = z
   })
   .strict();
 
+const specialRelationshipKindSchema = z.enum(["rival", "mentor", "partner"]);
+const relationshipPlayerPairSchema = z.tuple([playerIdSchema, playerIdSchema]);
+const relationshipTagBase = {
+  establishedDate: gameDateSchema,
+  sourceEventId: z.string().min(1).nullable(),
+  lastReinforcedDate: gameDateSchema,
+  belowThresholdSince: gameDateSchema.nullable(),
+};
+const specialRelationshipTagSchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("rival"),
+      ...relationshipTagBase,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("partner"),
+      ...relationshipTagBase,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("mentor"),
+      ...relationshipTagBase,
+      mentorPlayerId: playerIdSchema,
+      protegePlayerId: playerIdSchema,
+    })
+    .strict(),
+]);
+
+const playerRelationshipBondSchema = z
+  .object({
+    playerIds: relationshipPlayerPairSchema,
+    tags: z.array(specialRelationshipTagSchema).max(2),
+  })
+  .strict()
+  .superRefine((bond, context) => {
+    const [leftId, rightId] = bond.playerIds;
+    if (leftId === rightId) {
+      context.addIssue({
+        code: "custom",
+        message: "relationship pair must contain two different players",
+      });
+    }
+    if (new Set(bond.tags.map((tag) => tag.kind)).size !== bond.tags.length) {
+      context.addIssue({
+        code: "custom",
+        message: "relationship tags must have unique kinds",
+      });
+    }
+    for (const tag of bond.tags) {
+      if (tag.kind !== "mentor") continue;
+      if (
+        tag.mentorPlayerId === tag.protegePlayerId ||
+        !bond.playerIds.includes(tag.mentorPlayerId) ||
+        !bond.playerIds.includes(tag.protegePlayerId)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "mentor direction must reference both players in the pair",
+        });
+      }
+    }
+  });
+
+const playerRelationshipBondsSchema = z
+  .record(z.string().min(1), playerRelationshipBondSchema)
+  .superRefine((bonds, context) => {
+    for (const [key, bond] of Object.entries(bonds)) {
+      const canonicalKey = [...bond.playerIds].sort().join("::");
+      if (key !== canonicalKey) {
+        context.addIssue({
+          code: "custom",
+          message: "relationship bond key must match its canonical player pair",
+        });
+      }
+    }
+  });
+
+const relationshipLegacyRecordSchema = z
+  .object({
+    playerIds: relationshipPlayerPairSchema,
+    displayNames: z.tuple([z.string().min(1), z.string().min(1)]),
+    tags: z.array(specialRelationshipTagSchema).max(2),
+    finalRelationshipScore: z.number().min(0).max(100),
+    archivedDate: gameDateSchema,
+  })
+  .strict()
+  .superRefine((record, context) => {
+    if (
+      new Set(record.tags.map((tag) => tag.kind)).size !== record.tags.length
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "legacy relationship tags must have unique kinds",
+      });
+    }
+    for (const tag of record.tags) {
+      if (tag.kind !== "mentor") continue;
+      if (
+        tag.mentorPlayerId === tag.protegePlayerId ||
+        !record.playerIds.includes(tag.mentorPlayerId) ||
+        !record.playerIds.includes(tag.protegePlayerId)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "legacy mentor direction must reference both players",
+        });
+      }
+    }
+  });
+
 const gameHistorySchema = z
   .object({
     playerDevelopmentWeeks: z.array(playerDevelopmentWeekSchema).max(52),
+    relationshipLegacyHistory: z.array(relationshipLegacyRecordSchema).max(200),
     seasonGoalSeasons: z
       .array(seasonGoalSeasonSummarySchema)
       .max(30)
@@ -351,9 +465,30 @@ const concernResolutionNotificationSchema = z
   })
   .strict();
 
+const specialRelationshipNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("special-relationship"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        action: z.enum(["established", "removed"]),
+        kind: specialRelationshipKindSchema,
+        kindLabel: z.string().min(1),
+        playerIds: relationshipPlayerPairSchema,
+        displayNames: z.tuple([z.string().min(1), z.string().min(1)]),
+      })
+      .strict(),
+  })
+  .strict();
+
 const gameNotificationSchema = z.discriminatedUnion("type", [
   trainingResultNotificationSchema,
   concernResolutionNotificationSchema,
+  specialRelationshipNotificationSchema,
 ]);
 
 const notificationStateSchema = z
@@ -560,22 +695,46 @@ const weeklyScheduleSchema = z
     };
   });
 
+const persistedPlayerSchema = z
+  .object({
+    hiddenTraitIds: z.array(z.string().min(1)),
+    revealedHiddenTraitIds: z.array(z.string().min(1)),
+    hiddenTraitAssignmentInitialized: z.boolean(),
+  })
+  .passthrough()
+  .superRefine((player, context) => {
+    const hidden = new Set(player.hiddenTraitIds);
+    if (player.revealedHiddenTraitIds.some((traitId) => !hidden.has(traitId))) {
+      context.addIssue({
+        code: "custom",
+        message: "revealed hidden traits must be assigned hidden traits",
+      });
+    }
+  });
+
+const eventMemorySchema = z
+  .object({
+    recentActorPairKeys: z.array(z.string().min(1)).max(6),
+  })
+  .passthrough();
+
 const gameStateSchema = z
   .object({
-    schemaVersion: z.number().int().nonnegative(),
+    schemaVersion: z.literal(CURRENT_GAME_SCHEMA_VERSION),
     seed: z.string().min(1),
     randomCursor: z.number().int().nonnegative(),
     date: gameDateSchema,
     yearIndex: z.number().int().positive(),
     userSchoolId: z.string().min(1),
     schools: z.record(z.string(), objectSchema),
-    players: z.record(z.string(), objectSchema),
+    players: z.record(z.string(), persistedPlayerSchema),
     playerRelationships: z.record(z.string(), z.number().min(0).max(100)),
+    playerRelationshipBonds: playerRelationshipBondsSchema,
     calendar: objectSchema,
     activeMatch: z.unknown().nullable(),
     pendingEvent: z.unknown().nullable(),
     history: gameHistorySchema,
-    eventMemory: objectSchema,
+    eventMemory: eventMemorySchema,
     settings: gameSettingsSchema,
     world: objectSchema,
     officialSeason: objectSchema,
@@ -617,16 +776,62 @@ function historyWithOfficialTournaments(
   };
 }
 
-function migrateVersionSeven(legacy: Record<string, unknown>): unknown {
+function migrateVersionEight(legacy: Record<string, unknown>): unknown {
+  const legacyPlayers =
+    legacy.players &&
+    typeof legacy.players === "object" &&
+    !Array.isArray(legacy.players)
+      ? (legacy.players as Record<string, unknown>)
+      : {};
+  const players = Object.fromEntries(
+    Object.entries(legacyPlayers).map(([id, value]) => {
+      const player =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as Record<string, unknown>)
+          : {};
+      return [
+        id,
+        {
+          ...player,
+          revealedHiddenTraitIds: [],
+          hiddenTraitAssignmentInitialized: false,
+        },
+      ];
+    }),
+  );
+  const eventMemory =
+    legacy.eventMemory &&
+    typeof legacy.eventMemory === "object" &&
+    !Array.isArray(legacy.eventMemory)
+      ? (legacy.eventMemory as Record<string, unknown>)
+      : {};
+
   return {
     ...legacy,
     schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    players,
+    playerRelationshipBonds: {},
+    history: {
+      ...historyObject(legacy.history),
+      relationshipLegacyHistory: [],
+    },
+    eventMemory: {
+      ...eventMemory,
+      recentActorPairKeys: [],
+    },
+  };
+}
+
+function migrateVersionSeven(legacy: Record<string, unknown>): unknown {
+  return migrateVersionEight({
+    ...legacy,
+    schemaVersion: 8,
     history: {
       ...historyObject(legacy.history),
       playerDevelopmentWeeks: [],
     },
     teamPlanning: createDefaultTeamPlanning(),
-  };
+  });
 }
 
 function migrateVersionSix(legacy: Record<string, unknown>): unknown {
@@ -760,6 +965,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 7) {
     return migrateVersionSeven(legacy);
+  }
+  if (version === 8) {
+    return migrateVersionEight(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);

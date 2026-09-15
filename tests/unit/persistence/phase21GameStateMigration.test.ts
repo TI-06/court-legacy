@@ -133,7 +133,9 @@ describe("Phase21 schema v9 migration", () => {
 
     const decoded = decodeGameState(encodeGameState(state));
 
-    expect(decoded.playerRelationshipBonds).toEqual(state.playerRelationshipBonds);
+    expect(decoded.playerRelationshipBonds).toEqual(
+      state.playerRelationshipBonds,
+    );
     expect(decoded.history.relationshipLegacyHistory).toEqual(
       state.history.relationshipLegacyHistory,
     );
