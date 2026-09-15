@@ -192,6 +192,22 @@ export function isEventEligibleForActors(
   ) {
     return false;
   }
+  if (actorPlayerIds.length >= 2) {
+    const [leftActor, rightActor] = actors as [Player, Player, ...Player[]];
+    if (
+      trigger.samePreferredPosition !== undefined &&
+      (leftActor.preferredPosition === rightActor.preferredPosition) !==
+        trigger.samePreferredPosition
+    ) {
+      return false;
+    }
+    if (
+      trigger.differentGrades !== undefined &&
+      (leftActor.grade !== rightActor.grade) !== trigger.differentGrades
+    ) {
+      return false;
+    }
+  }
   if (trigger.relationship && actorPlayerIds.length >= 2) {
     const [left, right] = actorPlayerIds;
     if (!left || !right) {

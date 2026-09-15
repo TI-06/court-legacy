@@ -169,6 +169,8 @@ export const eventTriggerSchema = z.object({
   trust: numericRangeSchema.optional(),
   academic: numericRangeSchema.optional(),
   relationship: numericRangeSchema.optional(),
+  samePreferredPosition: z.boolean().optional(),
+  differentGrades: z.boolean().optional(),
   injuryState: z.enum(["healthy", "injured"]).optional(),
   schoolReputationMin: z.number().int().min(0).max(1000).optional(),
   schoolReputationMax: z.number().int().min(0).max(1000).optional(),
@@ -192,6 +194,8 @@ const facilityKeySchema = z.enum([
   "studyRoom",
 ]);
 
+const specialRelationshipKindSchema = z.enum(["rival", "mentor", "partner"]);
+
 export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("ability-change"),
@@ -213,6 +217,15 @@ export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("relationship-change"),
     amount: z.number().int().min(-50).max(50),
+  }),
+  z.object({
+    type: z.literal("special-relationship-add"),
+    kind: specialRelationshipKindSchema,
+    mentor: z.enum(["higher-grade", "actor-0", "actor-1"]).optional(),
+  }),
+  z.object({
+    type: z.literal("special-relationship-remove"),
+    kind: specialRelationshipKindSchema,
   }),
   z.object({
     type: z.literal("reputation-change"),

@@ -14,12 +14,25 @@ import { eventId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { applySchoolFundsChange } from "../school/schoolEconomy";
 import { addWeeks } from "./eventDate";
+import { relationshipLabel } from "../relationships/relationshipPresentation";
+import {
+  addSpecialRelationship,
+  removeSpecialRelationship,
+} from "../relationships/specialRelationships";
+import type {
+  SpecialRelationshipKind,
+  SpecialRelationshipTransition,
+} from "../relationships/relationshipTypes";
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(maximum, Math.round(value)));
 
 function signed(value: number): string {
   return value >= 0 ? `+${value}` : String(value);
+}
+
+function specialRelationshipLabel(kind: SpecialRelationshipKind): string {
+  return kind === "rival" ? "ライバル" : kind === "mentor" ? "師弟" : "相棒";
 }
 
 function updateActors(
@@ -49,6 +62,7 @@ function applyEffect(
   state: GameState;
   visibleResult: string;
   followUp?: ScheduledEventFollowUp;
+  specialRelationshipTransition?: SpecialRelationshipTransition;
 } {
   switch (effect.type) {
     case "ability-change":
@@ -86,15 +100,100 @@ function applyEffect(
       }
       const key = relationshipKey(left, right);
       const current = state.playerRelationships[key] ?? 50;
+      const next = clamp(current + effect.amount, 0, 100);
+      const beforeLabel = relationshipLabel(current);
+      const afterLabel = relationshipLabel(next);
       return {
         state: {
           ...state,
           playerRelationships: {
             ...state.playerRelationships,
-            [key]: clamp(current + effect.amount, 0, 100),
+            [key]: next,
           },
         },
-        visibleResult: `連携 ${signed(effect.amount)}`,
+        visibleResult:
+          beforeLabel === afterLabel
+            ? `連携 ${signed(effect.amount)}`
+            : `連携 ${signed(effect.amount)}（${beforeLabel} → ${afterLabel}）`,
+      };
+    }
+    case "special-relationship-add": {
+      const [left, right] = actorPlayerIds;
+      if (!left || !right) {
+        return { state, visibleResult: "特殊関係変化なし" };
+      }
+      let mentorPlayerId: PlayerId | undefined;
+      let protegePlayerId: PlayerId | undefined;
+      if (effect.kind === "mentor") {
+        const mentorMode = effect.mentor;
+        if (!mentorMode) {
+          throw new Error(
+            "mentor special relationship requires mentor direction",
+          );
+        }
+        if (mentorMode === "actor-0") {
+          mentorPlayerId = left;
+          protegePlayerId = right;
+        } else if (mentorMode === "actor-1") {
+          mentorPlayerId = right;
+          protegePlayerId = left;
+        } else {
+          const leftPlayer = state.players[left];
+          const rightPlayer = state.players[right];
+          if (
+            !leftPlayer ||
+            !rightPlayer ||
+            leftPlayer.grade === rightPlayer.grade
+          ) {
+            throw new Error(
+              "higher-grade mentor requires actors from different grades",
+            );
+          }
+          if (leftPlayer.grade > rightPlayer.grade) {
+            mentorPlayerId = left;
+            protegePlayerId = right;
+          } else {
+            mentorPlayerId = right;
+            protegePlayerId = left;
+          }
+        }
+      }
+      const added = addSpecialRelationship(state, {
+        playerIds: [left, right],
+        kind: effect.kind,
+        establishedDate: state.date,
+        sourceEventId: eventId(event.id),
+        ...(mentorPlayerId && protegePlayerId
+          ? { mentorPlayerId, protegePlayerId }
+          : {}),
+      });
+      return {
+        state: added.state,
+        visibleResult: `特殊関係 ${specialRelationshipLabel(effect.kind)}${
+          added.transition ? "成立" : "継続"
+        }`,
+        ...(added.transition
+          ? { specialRelationshipTransition: added.transition }
+          : {}),
+      };
+    }
+    case "special-relationship-remove": {
+      const [left, right] = actorPlayerIds;
+      if (!left || !right) {
+        return { state, visibleResult: "特殊関係変化なし" };
+      }
+      const removed = removeSpecialRelationship(state, {
+        playerIds: [left, right],
+        kind: effect.kind,
+      });
+      return {
+        state: removed.state,
+        visibleResult: removed.transition
+          ? `特殊関係 ${specialRelationshipLabel(effect.kind)}解消`
+          : `特殊関係 ${specialRelationshipLabel(effect.kind)}変化なし`,
+        ...(removed.transition
+          ? { specialRelationshipTransition: removed.transition }
+          : {}),
       };
     }
     case "reputation-change": {
@@ -249,6 +348,7 @@ function pushLimited<T>(items: readonly T[], item: T, limit: number): T[] {
 export interface ResolveEventChoiceResult {
   state: GameState;
   occurrence: EventOccurrence;
+  specialRelationshipTransitions: SpecialRelationshipTransition[];
 }
 
 export function resolveEventChoice(
@@ -273,6 +373,7 @@ export function resolveEventChoice(
   let nextState: GameState = state;
   const visibleResultCodes: string[] = [];
   const scheduledFollowUps: ScheduledEventFollowUp[] = [];
+  const specialRelationshipTransitions: SpecialRelationshipTransition[] = [];
   for (const [effectIndex, effect] of choice.effects.entries()) {
     const applied = applyEffect(
       nextState,
@@ -287,6 +388,11 @@ export function resolveEventChoice(
     visibleResultCodes.push(applied.visibleResult);
     if (applied.followUp) {
       scheduledFollowUps.push(applied.followUp);
+    }
+    if (applied.specialRelationshipTransition) {
+      specialRelationshipTransitions.push(
+        applied.specialRelationshipTransition,
+      );
     }
   }
   const choiceFollowUp = scheduleChoiceFollowUp(
@@ -355,5 +461,5 @@ export function resolveEventChoice(
     },
   };
 
-  return { state: nextState, occurrence };
+  return { state: nextState, occurrence, specialRelationshipTransitions };
 }
