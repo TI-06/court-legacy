@@ -138,7 +138,9 @@ describe("Phase21 relationship graduation legacy", () => {
     expect(result.history.relationshipLegacyHistory[0]?.displayNames[0]).toBe(
       "old-1",
     );
-    expect(result.history.relationshipLegacyHistory.at(-1)?.displayNames[0]).toBe(
+    expect(
+      result.history.relationshipLegacyHistory.at(-1)?.displayNames[0],
+    ).toBe(
       `${state.players[graduateId]!.lastName} ${state.players[graduateId]!.firstName}`,
     );
   });

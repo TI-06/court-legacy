@@ -149,6 +149,48 @@ function rebuildRelationships(
   return relationships;
 }
 
+export function archiveGraduatingRelationships(
+  state: GameState,
+  graduatedPlayerIds: readonly PlayerId[],
+  archivedDate: GameDate,
+): Pick<GameState, "playerRelationshipBonds" | "history"> {
+  const graduated = new Set(graduatedPlayerIds);
+  const playerRelationshipBonds = { ...state.playerRelationshipBonds };
+  const archived = [];
+
+  for (const [key, bond] of Object.entries(state.playerRelationshipBonds)) {
+    if (!bond.playerIds.some((playerId) => graduated.has(playerId))) {
+      continue;
+    }
+
+    const [leftId, rightId] = bond.playerIds;
+    const left = state.players[leftId];
+    const right = state.players[rightId];
+    archived.push({
+      playerIds: [...bond.playerIds] as [PlayerId, PlayerId],
+      displayNames: [
+        left ? `${left.lastName} ${left.firstName}` : String(leftId),
+        right ? `${right.lastName} ${right.firstName}` : String(rightId),
+      ] as [string, string],
+      tags: bond.tags.map((tag) => ({ ...tag })),
+      finalRelationshipScore: state.playerRelationships[key] ?? 50,
+      archivedDate,
+    });
+    delete playerRelationshipBonds[key];
+  }
+
+  return {
+    playerRelationshipBonds,
+    history: {
+      ...state.history,
+      relationshipLegacyHistory: [
+        ...state.history.relationshipLegacyHistory,
+        ...archived,
+      ].slice(-200),
+    },
+  };
+}
+
 function promoteGrade(grade: Grade): Grade {
   if (grade === 1) {
     return 2;
@@ -459,6 +501,12 @@ export function advanceAcademicYear(
   nextState = advanceRivalWorld(nextState, data, random);
   nextState = restoreCanonicalReputation(nextState, schools);
   nextState = grantAnnualSchoolBudget(nextState);
+  const archivedRelationships = archiveGraduatingRelationships(
+    nextState,
+    graduatedPlayerIds,
+    nextState.date,
+  );
+  nextState = { ...nextState, ...archivedRelationships };
   const playerRelationships = rebuildRelationships(nextState, random);
   nextState = {
     ...nextState,
