@@ -20,29 +20,27 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Align legacy and training fixtures with Phase21 backfill contract
+      - name: Align legacy and training fixtures with Phase21 discovery contract
         shell: bash
         run: |
           cat > tests/unit/persistence/phase21LegacyCharacterTraitTestHelpers.ts <<'EOF'
-          export function stripCharacterTraitFieldsFromLegacyPlayers(
+          export function stripCharacterTraitDiscoveryFieldsFromLegacyPlayers(
             players: unknown,
           ): void {
             const record = players as Record<string, Record<string, unknown>>;
             for (const player of Object.values(record)) {
-              delete player.hiddenTraitIds;
               delete player.revealedHiddenTraitIds;
               delete player.hiddenTraitAssignmentInitialized;
             }
           }
 
-          export function withoutCharacterTraitFields(
+          export function withoutCharacterTraitDiscoveryFields(
             players: unknown,
           ): Record<string, unknown> {
             const record = players as Record<string, unknown>;
             return Object.fromEntries(
               Object.entries(record).map(([playerId, player]) => {
                 const copy = structuredClone(player) as Record<string, unknown>;
-                delete copy.hiddenTraitIds;
                 delete copy.revealedHiddenTraitIds;
                 delete copy.hiddenTraitAssignmentInitialized;
                 return [playerId, copy];
@@ -50,7 +48,7 @@ jobs:
             );
           }
 
-          export function hasPendingCharacterTraitAssignments(
+          export function hasPendingCharacterTraitDiscovery(
             players: unknown,
           ): boolean {
             const record = players as Record<
@@ -63,9 +61,8 @@ jobs:
             >;
             return Object.values(record).every(
               (player) =>
-                player.hiddenTraitAssignmentInitialized === false &&
                 Array.isArray(player.hiddenTraitIds) &&
-                player.hiddenTraitIds.length === 0 &&
+                player.hiddenTraitAssignmentInitialized === false &&
                 Array.isArray(player.revealedHiddenTraitIds) &&
                 player.revealedHiddenTraitIds.length === 0,
             );
@@ -82,9 +79,9 @@ jobs:
               "tests/unit/persistence/phase10GameStateMigration.test.ts",
           ]
           helper_import = '''import {
-            hasPendingCharacterTraitAssignments,
-            stripCharacterTraitFieldsFromLegacyPlayers,
-            withoutCharacterTraitFields,
+            hasPendingCharacterTraitDiscovery,
+            stripCharacterTraitDiscoveryFieldsFromLegacyPlayers,
+            withoutCharacterTraitDiscoveryFields,
           } from "./phase21LegacyCharacterTraitTestHelpers";
           '''
 
@@ -97,15 +94,14 @@ jobs:
                       raise SystemExit(f"codec import marker missing: {filename}")
                   text = text.replace(codec_import, codec_import + helper_import, 1)
 
-              if 'stripCharacterTraitFieldsFromLegacyPlayers(legacy.players);' not in text:
+              if 'stripCharacterTraitDiscoveryFieldsFromLegacyPlayers(legacy.players);' not in text:
                   delete_markers = [
                       '    delete legacy.officialSeason;\n',
                       '    delete legacy.teamDynamics;\n',
                       '    delete legacy.weeklySchedule;\n',
                       '    delete legacy.notifications;\n',
                   ]
-                  insertion = '''    stripCharacterTraitFieldsFromLegacyPlayers(legacy.players);
-          '''
+                  insertion = '    stripCharacterTraitDiscoveryFieldsFromLegacyPlayers(legacy.players);\n'
                   for marker in delete_markers:
                       if marker in text:
                           text = text.replace(marker, insertion + marker, 1)
@@ -113,28 +109,27 @@ jobs:
                   else:
                       raise SystemExit(f"legacy delete marker missing: {filename}")
 
-              exact_candidates = [
-                  '    expect(migrated.players).toEqual(originalPlayers);\n',
-                  '    expect(migrated.players).toEqual(current.players);\n',
-              ]
-              if 'hasPendingCharacterTraitAssignments(migrated.players)' not in text:
-                  replacement = '''    expect(withoutCharacterTraitFields(migrated.players)).toEqual(
-                withoutCharacterTraitFields(ORIGINAL_PLAYERS),
+              if 'hasPendingCharacterTraitDiscovery(migrated.players)' not in text:
+                  replacements = [
+                      (
+                          '    expect(migrated.players).toEqual(originalPlayers);\n',
+                          'originalPlayers',
+                      ),
+                      (
+                          '    expect(migrated.players).toEqual(current.players);\n',
+                          'current.players',
+                      ),
+                  ]
+                  for marker, original in replacements:
+                      if marker in text:
+                          replacement = f'''    expect(withoutCharacterTraitDiscoveryFields(migrated.players)).toEqual(
+                withoutCharacterTraitDiscoveryFields({original}),
               );
-              expect(hasPendingCharacterTraitAssignments(migrated.players)).toBe(true);
+              expect(hasPendingCharacterTraitDiscovery(migrated.players)).toBe(true);
           '''
-                  replaced = False
-                  for candidate in exact_candidates:
-                      if candidate in text:
-                          original_expr = 'originalPlayers' if 'originalPlayers' in candidate else 'current.players'
-                          text = text.replace(
-                              candidate,
-                              replacement.replace('ORIGINAL_PLAYERS', original_expr),
-                              1,
-                          )
-                          replaced = True
+                          text = text.replace(marker, replacement, 1)
                           break
-                  if not replaced:
+                  else:
                       raise SystemExit(f"player equality marker missing: {filename}")
 
               path.write_text(text, encoding="utf-8")
@@ -142,14 +137,9 @@ jobs:
           deferred_path = Path("tests/unit/worker/deferredTrainingPlan.test.ts")
           deferred = deferred_path.read_text(encoding="utf-8")
           if 'deferred-training fixture intentionally disables unrelated Phase21 trait discovery' not in deferred:
-              marker = '''  });
-
-            return {
-          '''
+              marker = '  });\n\n  return {\n'
               replacement = '''  });
 
-            // This suite isolates deferred training behavior. Trait discovery has its own
-            // focused coverage and must not add unrelated player/notification changes here.
             for (const player of Object.values(state.players)) {
               player.hiddenTraitIds = [];
               player.revealedHiddenTraitIds = [];
