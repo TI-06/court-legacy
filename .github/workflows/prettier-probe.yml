@@ -1,0 +1,33 @@
+name: Prettier Probe
+
+on:
+  push:
+    branches:
+      - tmp/phase21-prettier-probe
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Format target files
+        run: |
+          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts --write
+          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts --check
+      - name: Upload formatted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase21-prettier-output
+          path: |
+            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts
+            tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts
+          retention-days: 1
