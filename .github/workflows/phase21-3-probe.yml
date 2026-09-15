@@ -103,6 +103,11 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
+          def insert_after_block(text: str, start_token: str, end_token: str, addition: str) -> str:
+              start = text.index(start_token)
+              end = text.index(end_token, start) + len(end_token)
+              return text[:end] + addition + text[end:]
+
           route_path = Path("tests/unit/worker/gameAction.test.ts")
           route = route_path.read_text(encoding="utf-8")
           if 'type: "character-trait-discovered"' not in route:
@@ -120,7 +125,7 @@ jobs:
               );
           '''
               if marker not in route:
-                  raise SystemExit("route notification assertion marker missing")
+                  raise SystemExit("route assertion marker missing")
               route = route.replace(marker, marker + addition, 1)
               route_path.write_text(route, encoding="utf-8")
 
@@ -134,7 +139,7 @@ jobs:
               } from "../../../../src/domain/notifications/gameNotifications";
           '''
               if marker not in home_test:
-                  raise SystemExit("HomeScreen notification import marker missing")
+                  raise SystemExit("HomeScreen test import marker missing")
               home_test = home_test.replace(marker, replacement, 1)
           if 'shows a compact character trait discovery without opening a fullscreen event' not in home_test:
               marker = '  it("disables conflicting actions while an authoritative operation is pending", () => {\n'
@@ -166,8 +171,6 @@ jobs:
           text = notifications_path.read_text(encoding="utf-8")
           if 'CharacterTraitDiscovery' not in text:
               marker = 'import type { Position } from "../model/Player";\n'
-              if marker not in text:
-                  raise SystemExit("notification import marker missing")
               text = text.replace(
                   marker,
                   marker + 'import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";\n',
@@ -192,15 +195,10 @@ jobs:
               }
 
           '''
-              if marker not in text:
-                  raise SystemExit("notification union marker missing")
               text = text.replace(marker, block + marker, 1)
           if '| CharacterTraitDiscoveredNotification' not in text:
-              marker = '  | SpecialRelationshipNotification;\n'
-              if marker not in text:
-                  raise SystemExit("notification union end missing")
               text = text.replace(
-                  marker,
+                  '  | SpecialRelationshipNotification;\n',
                   '  | SpecialRelationshipNotification\n  | CharacterTraitDiscoveredNotification;\n',
                   1,
               )
@@ -213,15 +211,11 @@ jobs:
               ): CharacterTraitDiscoveredNotification {
                 const player = state.players[discovery.playerId];
                 if (!player) {
-                  throw new Error(
-                    `character trait notification references unknown player: ${discovery.playerId}`,
-                  );
+                  throw new Error(`character trait notification references unknown player: ${discovery.playerId}`);
                 }
                 const trait = data.characterTraits.get(discovery.traitId);
                 if (!trait) {
-                  throw new Error(
-                    `character trait notification references unknown trait: ${discovery.traitId}`,
-                  );
+                  throw new Error(`character trait notification references unknown trait: ${discovery.traitId}`);
                 }
                 return {
                   id: `character-trait-discovered:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}:${discovery.playerId}:${discovery.traitId}`,
@@ -241,8 +235,6 @@ jobs:
               }
 
           '''
-              if marker not in text:
-                  raise SystemExit("appendNotification marker missing")
               text = text.replace(marker, builder + marker, 1)
           if 'export function selectHomeCharacterTraitNotifications(' not in text:
               text = text.rstrip() + '''
@@ -269,12 +261,9 @@ jobs:
                   1,
               )
           if 'buildCharacterTraitDiscoveredNotification' not in worker:
-              marker = '  appendNotification,\n'
-              if marker not in worker:
-                  raise SystemExit("worker notification import marker missing")
               worker = worker.replace(
-                  marker,
-                  marker + '  buildCharacterTraitDiscoveredNotification,\n',
+                  '  appendNotification,\n',
+                  '  appendNotification,\n  buildCharacterTraitDiscoveredNotification,\n',
                   1,
               )
           if 'function appendCharacterTraitDiscoveryNotifications(' not in worker:
@@ -289,24 +278,15 @@ jobs:
                 for (const discovery of discoveries) {
                   notifications = appendNotification(
                     notifications,
-                    buildCharacterTraitDiscoveredNotification(
-                      applied.state,
-                      discovery,
-                      data,
-                    ),
+                    buildCharacterTraitDiscoveredNotification(applied.state, discovery, data),
                   );
                 }
                 return notifications === applied.state.notifications
                   ? applied
-                  : {
-                      ...applied,
-                      state: { ...applied.state, notifications },
-                    };
+                  : { ...applied, state: { ...applied.state, notifications } };
               }
 
           '''
-              if marker not in worker:
-                  raise SystemExit("worker helper marker missing")
               worker = worker.replace(marker, helper + marker, 1)
           wrapper_start = worker.index('export function applyGameAction(')
           discoveries_pos = worker.index('  const characterTraitDiscoveries = [', wrapper_start)
@@ -355,20 +335,16 @@ jobs:
                 }
           '''
               if marker not in model:
-                  raise SystemExit("HomeCommandNews union marker missing")
+                  raise SystemExit("HomeCommandNews growth union marker missing")
               model = model.replace(marker, block + marker, 1)
           if 'const characterTraitDiscovery =' not in model:
-              marker = '''  const specialRelationship = selectHomeSpecialRelationshipNotifications(
+              start_token = '  const specialRelationship = selectHomeSpecialRelationshipNotifications('
+              end_token = ')[0];'
+              addition = '''
+              const characterTraitDiscovery = selectHomeCharacterTraitNotifications(
                 state.notifications,
-              )[0];
-          '''
-              addition = '''  const characterTraitDiscovery = selectHomeCharacterTraitNotifications(
-                state.notifications,
-              )[0];
-          '''
-              if marker not in model:
-                  raise SystemExit("home news selector marker missing")
-              model = model.replace(marker, marker + addition, 1)
+              )[0];'''
+              model = insert_after_block(model, start_token, end_token, addition)
           if 'news:character-trait:' not in model:
               marker = '  if (notification) {\n'
               block = '''  if (characterTraitDiscovery) {
@@ -385,8 +361,6 @@ jobs:
               }
 
           '''
-              if marker not in model:
-                  raise SystemExit("home news insertion marker missing")
               model = model.replace(marker, block + marker, 1)
           model_path.write_text(model, encoding="utf-8")
 
@@ -399,17 +373,13 @@ jobs:
                   1,
               )
           if 'onAcknowledgeCharacterTraitNotification' not in center:
-              marker = '''  onOpenRelationshipNotification: (
-                notification: SpecialRelationshipNotification,
-              ) => void;
-          '''
-              addition = '''  onAcknowledgeCharacterTraitNotification: (
+              start_token = '  onOpenRelationshipNotification: ('
+              end_token = ') => void;'
+              addition = '''
+              onAcknowledgeCharacterTraitNotification: (
                 notification: CharacterTraitDiscoveredNotification,
-              ) => void;
-          '''
-              if marker not in center:
-                  raise SystemExit("HomeCommandCenter prop marker missing")
-              center = center.replace(marker, marker + addition, 1)
+              ) => void;'''
+              center = insert_after_block(center, start_token, end_token, addition)
               center = center.replace(
                   '  onOpenRelationshipNotification,\n}: HomeCommandCenterProps) {',
                   '  onOpenRelationshipNotification,\n  onAcknowledgeCharacterTraitNotification,\n}: HomeCommandCenterProps) {',
@@ -425,9 +395,7 @@ jobs:
                     className={`home-command-news-row${unread ? " is-unread" : ""}`}
                     data-testid="home-command-news"
                     key={news.id}
-                    onClick={() =>
-                      onAcknowledgeCharacterTraitNotification(news.notification)
-                    }
+                    onClick={() => onAcknowledgeCharacterTraitNotification(news.notification)}
                     type="button"
                   >
                     <span>
@@ -439,8 +407,6 @@ jobs:
                 );
               }
           '''
-              if marker not in center:
-                  raise SystemExit("HomeCommandCenter render marker missing")
               center = center.replace(marker, block + marker, 1)
           center_path.write_text(center, encoding="utf-8")
 
@@ -453,14 +419,9 @@ jobs:
                   1,
               )
           if 'acknowledgeCharacterTraitNotification' not in home:
-              marker = '''  const acknowledgeRelationshipNotification = (
-                notification: SpecialRelationshipNotification,
-              ) => {
-                if (notification.readAtGameDate === null) {
-                  void onMarkNotificationRead(notification.id);
-                }
-              };
-          '''
+              start_token = '  const acknowledgeRelationshipNotification = ('
+              start = home.index(start_token)
+              end = home.index('\n  };', start) + len('\n  };')
               addition = '''
 
               const acknowledgeCharacterTraitNotification = (
@@ -469,14 +430,9 @@ jobs:
                 if (notification.readAtGameDate === null) {
                   void onMarkNotificationRead(notification.id);
                 }
-              };
-          '''
-              if marker not in home:
-                  raise SystemExit("HomeScreen relationship handler marker missing")
-              home = home.replace(marker, marker + addition, 1)
+              };'''
+              home = home[:end] + addition + home[end:]
               prop_marker = '        onOpenRelationshipNotification={acknowledgeRelationshipNotification}\n'
-              if prop_marker not in home:
-                  raise SystemExit("HomeScreen relationship prop marker missing")
               home = home.replace(
                   prop_marker,
                   prop_marker + '        onAcknowledgeCharacterTraitNotification={acknowledgeCharacterTraitNotification}\n',
