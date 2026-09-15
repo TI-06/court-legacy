@@ -1,4 +1,4 @@
-name: Phase21 Final Preflight
+name: Phase21 Mobile Layout Probe
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - tmp/phase21-prettier-probe
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -19,15 +19,51 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Check changed-file formatting
+      - name: Move relationship section below player core
+        shell: bash
         run: |
-          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts tests/unit/persistence/phase14GameStateMigration.test.ts tests/unit/persistence/phase17GameStateCodec.test.ts tests/unit/persistence/phase20ConcernNotificationCodec.test.ts tests/unit/pwa/saveCompatibility.test.ts tests/unit/soak/soakDeterminism.test.ts tests/unit/soak/soakDriver.test.ts --check
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/features/team/PlayerHubScreen.tsx")
+          text = path.read_text(encoding="utf-8")
+          start_marker = '        <section className="player-detail__relationships" aria-label="人間関係">'
+          growth_marker = '\n\n        <section\n          className="player-detail__growth-summary"'
+          concerns_marker = '\n\n        {concerns.length ? ('
+
+          start = text.find(start_marker)
+          growth = text.find(growth_marker)
+          concerns = text.find(concerns_marker)
+          if min(start, growth, concerns) < 0:
+              raise SystemExit("required PlayerHub markers were not found")
+
+          if start < growth:
+              block = text[start:growth]
+              text = text[:start] + text[growth:]
+              concerns = text.find(concerns_marker)
+              text = text[:concerns] + "\n\n" + block.rstrip() + text[concerns:]
+              path.write_text(text, encoding="utf-8")
+              print("moved relationships below player metrics")
+          else:
+              print("relationship section already moved")
+          PY
+          npx prettier src/features/team/PlayerHubScreen.tsx --write
           git diff --check
-      - name: Run focused regression suites
-        run: npx vitest run tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/specialRelationships.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts tests/unit/persistence/phase14GameStateMigration.test.ts tests/unit/persistence/phase17GameStateCodec.test.ts tests/unit/persistence/phase20ConcernNotificationCodec.test.ts tests/unit/pwa/saveCompatibility.test.ts tests/unit/soak/soakDeterminism.test.ts tests/unit/soak/soakDriver.test.ts
-      - name: Run full verify
-        run: npm run verify
-      - name: Verify release metadata and evidence
-        run: npm run release:check
-      - name: Run Phase18 soak smoke preset
-        run: npm run soak:smoke
+      - name: Commit temp-only layout fix when needed
+        shell: bash
+        run: |
+          if git diff --quiet -- src/features/team/PlayerHubScreen.tsx; then
+            echo "No PlayerHub change to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/team/PlayerHubScreen.tsx
+          git commit -m "fix: keep player core above mobile navigation"
+          git push origin HEAD:tmp/phase21-prettier-probe
+      - name: Run relationship UI unit test
+        run: npx vitest run tests/unit/features/team/Phase21PlayerHubRelationships.test.tsx
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run 414px mobile layout audit
+        run: npx playwright test tests/e2e/mobile-layout-audit.spec.ts --project=mobile-chromium --grep "414px"
