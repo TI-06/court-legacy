@@ -2,7 +2,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
-import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
+import {
+  buildCharacterTraitDiscoveredNotification,
+  type TrainingResultNotification,
+} from "../../../../src/domain/notifications/gameNotifications";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
 
 function createProps(state = createDemoGame()) {
@@ -204,6 +207,23 @@ describe("Phase 13 Home command center", () => {
     expect(
       screen.getByRole("dialog", { name: "今週の練習結果" }),
     ).toBeVisible();
+    expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
+  });
+
+  it("shows a compact character trait discovery without opening a fullscreen event", () => {
+    const props = createProps();
+    const playerId =
+      props.state.schools[props.state.userSchoolId]!.playerIds[0]!;
+    const notification = buildCharacterTraitDiscoveredNotification(
+      props.state,
+      { playerId, traitId: "character.training-lover" },
+      gameData,
+    );
+    props.state.notifications.items = [notification];
+    render(<HomeScreen {...props} />);
+    expect(screen.getByText("新しい個性を発見！")).toBeInTheDocument();
+    expect(screen.queryByTestId("fullscreen-event")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /新しい個性を発見！/ }));
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 

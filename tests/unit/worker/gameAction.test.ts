@@ -122,6 +122,17 @@ describe("game action route", () => {
       "character.training-lover",
     ]);
     expect(persisted.state.pendingEvent).toBeNull();
+    expect(persisted.state.notifications.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "character-trait-discovered",
+          payload: expect.objectContaining({
+            playerId,
+            traitId: "character.training-lover",
+          }),
+        }),
+      ]),
+    );
   });
 
   it("persists a legal action at exactly the next revision", async () => {

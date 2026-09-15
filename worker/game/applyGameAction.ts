@@ -1,3 +1,4 @@
+import type { GameDataRegistry } from "../../src/data/dataRegistry";
 import { gameDataBootstrap } from "../../src/data/gameData";
 import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";
 import type {
@@ -47,6 +48,7 @@ import {
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
+  buildCharacterTraitDiscoveredNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
   markNotificationRead,
@@ -298,6 +300,24 @@ function appendSpecialRelationshipNotifications(
   return notifications === state.notifications
     ? state
     : { ...state, notifications };
+}
+
+function appendCharacterTraitDiscoveryNotifications(
+  applied: AppliedGameAction,
+  discoveries: readonly CharacterTraitDiscovery[],
+  data: GameDataRegistry,
+): AppliedGameAction {
+  if (discoveries.length === 0) return applied;
+  let notifications = applied.state.notifications;
+  for (const discovery of discoveries) {
+    notifications = appendNotification(
+      notifications,
+      buildCharacterTraitDiscoveredNotification(applied.state, discovery, data),
+    );
+  }
+  return notifications === applied.state.notifications
+    ? applied
+    : { ...applied, state: { ...applied.state, notifications } };
 }
 
 function applyTraining(
@@ -1474,7 +1494,7 @@ export function applyGameAction(
       left.traitId.localeCompare(right.traitId),
   );
 
-  return {
+  const finalizedApplied: AppliedGameAction = {
     state: finalized.state,
     teamSelection: applied.teamSelection,
     ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
@@ -1482,4 +1502,10 @@ export function applyGameAction(
       ? { characterTraitDiscoveries }
       : {}),
   };
+
+  return appendCharacterTraitDiscoveryNotifications(
+    finalizedApplied,
+    characterTraitDiscoveries,
+    gameData,
+  );
 }
