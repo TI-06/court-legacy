@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import {
   decodeGameState,
   encodeGameState,
@@ -8,7 +9,7 @@ import {
 import { registerServiceWorker } from "../../../src/pwa/registerServiceWorker";
 
 describe("Phase18 PWA save compatibility", () => {
-  it("keeps the existing schema v8 save payload unchanged while PWA startup initializes", async () => {
+  it("keeps the existing current-schema save payload unchanged while PWA startup initializes", async () => {
     const state = createDemoGame();
     const encodedBefore = encodeGameState(state);
 
@@ -23,7 +24,9 @@ describe("Phase18 PWA save compatibility", () => {
     expect(decodeGameState(encodedAfter)).toEqual(
       decodeGameState(encodedBefore),
     );
-    expect(decodeGameState(encodedAfter).schemaVersion).toBe(8);
+    expect(decodeGameState(encodedAfter).schemaVersion).toBe(
+      CURRENT_GAME_SCHEMA_VERSION,
+    );
   });
 
   it("keeps the service worker outside every client-side game save namespace", () => {

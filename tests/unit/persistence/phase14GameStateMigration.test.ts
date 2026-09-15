@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
+import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
 import { decodeGameState } from "../../../src/persistence/gameStateCodec";
 
 describe("Phase 14 game-state migration", () => {
-  it("migrates v7 saves to v8 without inventing player growth history", () => {
+  it("migrates v7 saves to the current schema without inventing player growth history", () => {
     const legacy = structuredClone(createDemoGame()) as unknown as Record<
       string,
       unknown
@@ -23,7 +24,7 @@ describe("Phase 14 game-state migration", () => {
       };
     };
 
-    expect(migrated.schemaVersion).toBe(8);
+    expect(migrated.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(migrated.history.playerDevelopmentWeeks).toEqual([]);
     expect(migrated.teamPlanning).toEqual({
       developmentPriorityPlayerIds: [],
@@ -31,7 +32,7 @@ describe("Phase 14 game-state migration", () => {
     });
   });
 
-  it("keeps v6 school management while continuing through the v8 migration", () => {
+  it("keeps v6 school management while continuing through the current migration", () => {
     const current = structuredClone(createDemoGame()) as unknown as Record<
       string,
       unknown
@@ -58,7 +59,7 @@ describe("Phase 14 game-state migration", () => {
       teamPlanning: unknown;
     };
 
-    expect(migrated.schemaVersion).toBe(8);
+    expect(migrated.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(migrated.schools[migrated.userSchoolId]!.funds).toBe(777);
     expect(migrated.schoolManagement).toEqual({
       assistantCoach: null,
