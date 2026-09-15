@@ -5,6 +5,7 @@ import {
   appendNotification,
   buildSpecialRelationshipNotification,
   selectHomeSpecialRelationshipNotifications,
+  type TrainingResultNotification,
 } from "../../../../src/domain/notifications/gameNotifications";
 
 function firstPair() {
@@ -72,7 +73,7 @@ describe("Phase21 special relationship notifications", () => {
         playerIds: [left, right].sort() as [typeof left, typeof right],
       },
     });
-    const unrelated = {
+    const unrelated: TrainingResultNotification = {
       id: "training-fixture",
       type: "training-result",
       createdGameDate: state.date,
@@ -86,7 +87,7 @@ describe("Phase21 special relationship notifications", () => {
         injuredCount: 0,
         players: [],
       },
-    } as const;
+    };
 
     const withFirst = appendNotification({ items: [unrelated] }, first);
     const next = appendNotification(withFirst, newest);
