@@ -1,4 +1,4 @@
-name: Phase21-3 Task3 Green Probe
+name: Phase21-3 Task4 Discovery Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task3-green:
+  task4:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,129 +20,317 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Apply verified Task3 tests and implementation
+      - name: Add Task4 failing discovery tests
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
+          cat > tests/unit/domain/player/characterTraitDiscovery.test.ts <<'EOF'
+          import { createInitialGame } from "../../../../src/app/createInitialGame";
+          import { loadGameData } from "../../../../src/data/dataRegistry";
+          import { rawGameData } from "../../../../src/data/rawGameData";
+          import { relationshipKey } from "../../../../src/domain/model/GameState";
+          import type { PlayerId } from "../../../../src/domain/model/identifiers";
+          import { discoverEligibleCharacterTraits } from "../../../../src/domain/player/characterTraitDiscovery";
 
-          action_test_path = Path("tests/unit/worker/applyGameAction.test.ts")
-          action_test = action_test_path.read_text(encoding="utf-8")
-          marker = 'describe("applyGameAction", () => {\n'
-          if 'initializes deterministic character traits in a newly created game' not in action_test:
-              tests = '''  it("initializes deterministic character traits in a newly created game", () => {
-            const snapshot = createSnapshot();
-            const players = Object.values(snapshot.state.players);
-            expect(players.length).toBeGreaterThan(0);
-            expect(players.every((player) => player.hiddenTraitAssignmentInitialized === true)).toBe(true);
-            expect(players.every((player) => player.hiddenTraitIds.length <= 1)).toBe(true);
-            expect(players.every((player) => (player.revealedHiddenTraitIds ?? []).length === 0)).toBe(true);
-          });
+          const data = loadGameData(rawGameData);
 
-          it("backfills legacy character traits before a zero-random administrative action", () => {
-            const snapshot = createSnapshot();
-            const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-            const targetPlayerId = school.playerIds[0]!;
-            const targetPlayer = snapshot.state.players[targetPlayerId]!;
-            targetPlayer.hiddenTraitIds = [];
-            targetPlayer.revealedHiddenTraitIds = [];
-            targetPlayer.hiddenTraitAssignmentInitialized = false;
-            const cursorBefore = snapshot.state.randomCursor;
-            const result = applyGameAction(snapshot, {
-              type: "set-training-plan",
-              plan: createTrainingPlan(snapshot),
+          function createState() {
+            return createInitialGame({
+              seed: "phase21-character-discovery",
+              schoolName: "青葉高校",
+              schoolShortName: "青葉",
+              coachName: "高橋 監督",
+              regionId: "region.chiba",
+              uniform: {
+                primary: "#17365D",
+                secondary: "#FFFFFF",
+                accent: "#D99B2B",
+              },
             });
-            expect(result.state.randomCursor).toBe(cursorBefore);
-            expect(result.state.players[targetPlayerId]!.hiddenTraitAssignmentInitialized).toBe(true);
-            expect(result.state.players[targetPlayerId]!.hiddenTraitIds.length).toBeLessThanOrEqual(1);
+          }
+
+          function assignOnly(
+            state: ReturnType<typeof createState>,
+            playerId: PlayerId,
+            traitId: string,
+          ) {
+            const player = state.players[playerId]!;
+            player.hiddenTraitIds = [traitId];
+            player.revealedHiddenTraitIds = [];
+            player.hiddenTraitAssignmentInitialized = true;
+            return player;
+          }
+
+          function userPlayerIds(state: ReturnType<typeof createState>) {
+            return state.schools[state.userSchoolId]!.playerIds;
+          }
+
+          describe("Phase21 character trait discovery", () => {
+            it("discovers trust-min exactly at the configured boundary", () => {
+              const state = createState();
+              const playerId = userPlayerIds(state)[0]!;
+              const player = assignOnly(state, playerId, "character.training-lover");
+              player.trust = 64;
+
+              const below = discoverEligibleCharacterTraits(state, data);
+              expect(below.discoveries).toEqual([]);
+
+              below.state.players[playerId]!.trust = 65;
+              const atBoundary = discoverEligibleCharacterTraits(below.state, data);
+              expect(atBoundary.discoveries).toEqual([
+                { playerId, traitId: "character.training-lover" },
+              ]);
+              expect(atBoundary.state.players[playerId]!.revealedHiddenTraitIds).toEqual([
+                "character.training-lover",
+              ]);
+            });
+
+            it("discovers appearances-min exactly at the configured boundary", () => {
+              const state = createState();
+              const playerId = userPlayerIds(state)[0]!;
+              const player = assignOnly(state, playerId, "character.resilient");
+              player.career.appearances = 5;
+
+              expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([]);
+              player.career.appearances = 6;
+              expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([
+                { playerId, traitId: "character.resilient" },
+              ]);
+            });
+
+            it("discovers captaincy for captain or vice captain", () => {
+              const state = createState();
+              const [captainId, viceCaptainId] = userPlayerIds(state);
+              const captain = assignOnly(state, captainId!, "character.spotlight");
+              const viceCaptain = assignOnly(state, viceCaptainId!, "character.clutch-support");
+              captain.career.appearances = 0;
+              viceCaptain.career.appearances = 0;
+
+              const result = discoverEligibleCharacterTraits(state, data, {
+                captainPlayerId: captainId,
+                viceCaptainPlayerId: viceCaptainId,
+              });
+
+              expect(result.discoveries.map((item) => item.playerId).sort()).toEqual(
+                [captainId, viceCaptainId].sort(),
+              );
+            });
+
+            it("discovers a requested active special relationship kind", () => {
+              const state = createState();
+              const [leftId, rightId] = userPlayerIds(state);
+              assignOnly(state, leftId!, "character.competitive-growth");
+              const key = relationshipKey(leftId!, rightId!);
+              state.playerRelationshipBonds[key] = {
+                playerIds: [leftId!, rightId!].sort() as [PlayerId, PlayerId],
+                tags: [
+                  {
+                    kind: "rival",
+                    establishedDate: state.date,
+                    sourceEventId: null,
+                    lastReinforcedDate: state.date,
+                    belowThresholdSince: null,
+                  },
+                ],
+              };
+
+              expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([
+                { playerId: leftId, traitId: "character.competitive-growth" },
+              ]);
+            });
+
+            it("discovers event-tag only when the current event supplies the configured tag", () => {
+              const state = createState();
+              const playerId = userPlayerIds(state)[0]!;
+              const player = assignOnly(state, playerId, "character.analytical");
+              player.career.appearances = 0;
+
+              expect(discoverEligibleCharacterTraits(state, data).discoveries).toEqual([]);
+              expect(
+                discoverEligibleCharacterTraits(state, data, {
+                  eventTags: ["analysis"],
+                }).discoveries,
+              ).toEqual([{ playerId, traitId: "character.analytical" }]);
+            });
+
+            it("does not rediscover revealed or unassigned traits and repairs the revealed subset invariant", () => {
+              const state = createState();
+              const [revealedId, unassignedId] = userPlayerIds(state);
+              const revealed = assignOnly(state, revealedId!, "character.training-lover");
+              revealed.trust = 100;
+              revealed.revealedHiddenTraitIds = [
+                "character.training-lover",
+                "character.orphan",
+              ];
+              const unassigned = state.players[unassignedId!]!;
+              unassigned.hiddenTraitIds = [];
+              unassigned.revealedHiddenTraitIds = ["character.orphan"];
+              unassigned.hiddenTraitAssignmentInitialized = true;
+
+              const result = discoverEligibleCharacterTraits(state, data);
+
+              expect(result.discoveries).toEqual([]);
+              expect(result.state.players[revealedId!]!.revealedHiddenTraitIds).toEqual([
+                "character.training-lover",
+              ]);
+              expect(result.state.players[unassignedId!]!.revealedHiddenTraitIds).toEqual([]);
+            });
+
+            it("orders simultaneous discoveries by player id then trait id", () => {
+              const state = createState();
+              const ids = userPlayerIds(state).slice(0, 2).sort();
+              const first = assignOnly(state, ids[0]!, "character.training-lover");
+              const second = assignOnly(state, ids[1]!, "character.team-first");
+              first.trust = 100;
+              second.trust = 100;
+
+              const result = discoverEligibleCharacterTraits(state, data);
+
+              expect(result.discoveries).toEqual([
+                { playerId: ids[0], traitId: "character.training-lover" },
+                { playerId: ids[1], traitId: "character.team-first" },
+              ]);
+            });
           });
-
-          '''
-              if marker not in action_test:
-                  raise SystemExit("applyGameAction describe marker missing")
-              action_test = action_test.replace(marker, marker + tests, 1)
-          action_test_path.write_text(action_test, encoding="utf-8")
-
-          recruitment_path = Path("tests/unit/worker/academicYearRecruitment.test.ts")
-          recruitment = recruitment_path.read_text(encoding="utf-8")
-          if 'expect(enrolled).toEqual(committed.player);' in recruitment:
-              recruitment = recruitment.replace(
-                  '    expect(enrolled).toEqual(committed.player);\n',
-                  '    expect(enrolled).toMatchObject({ id: committed.player.id, firstName: committed.player.firstName, lastName: committed.player.lastName });\n',
-                  1,
-              )
-          year_marker = '    expect(persisted.state.yearIndex).toBe(2);\n'
-          if 'newIntakePlayers' not in recruitment:
-              addition = '''    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
-            const newIntakePlayers = userSchool.playerIds
-              .map((playerId) => persisted.state.players[playerId])
-              .filter((player) => player?.career.enrolledYear === persisted.state.calendar.academicYear);
-            expect(newIntakePlayers.length).toBeGreaterThan(0);
-            for (const player of newIntakePlayers) {
-              expect(player?.hiddenTraitAssignmentInitialized).toBe(true);
-              expect(player?.hiddenTraitIds.length).toBeLessThanOrEqual(1);
-              expect(player?.revealedHiddenTraitIds).toEqual([]);
-            }
-          '''
-              if year_marker not in recruitment:
-                  raise SystemExit("academic year assertion marker missing")
-              recruitment = recruitment.replace(year_marker, year_marker + addition, 1)
-          recruitment_path.write_text(recruitment, encoding="utf-8")
-
-          initial_path = Path("src/app/createInitialGame.ts")
-          initial = initial_path.read_text(encoding="utf-8")
-          if 'characterTraitAssignment' not in initial:
-              initial = initial.replace(
-                  'import type { UniformColors } from "../domain/model/School";\n',
-                  'import type { UniformColors } from "../domain/model/School";\nimport { ensureCharacterTraitAssignments } from "../domain/player/characterTraitAssignment";\n',
-                  1,
-              )
-          if 'stateWithCharacterTraits' not in initial:
-              needle = '  return {\n    ...state,\n    seasonGoals: createSeasonGoals(state),\n  };\n'
-              replacement = '  const stateWithCharacterTraits = ensureCharacterTraitAssignments(\n    state,\n    gameDataBootstrap.data,\n  );\n\n  return {\n    ...stateWithCharacterTraits,\n    seasonGoals: createSeasonGoals(stateWithCharacterTraits),\n  };\n'
-              if needle not in initial:
-                  raise SystemExit("createInitialGame return marker missing")
-              initial = initial.replace(needle, replacement, 1)
-          initial_path.write_text(initial, encoding="utf-8")
-
-          year_path = Path("src/domain/calendar/academicYearProgression.ts")
-          year = year_path.read_text(encoding="utf-8")
-          if 'player/characterTraitAssignment' not in year:
-              year = year.replace(
-                  'import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";\n',
-                  'import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";\nimport { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";\n',
-                  1,
-              )
-          marker2 = '  nextState = advanceRivalWorld(nextState, data, random);\n'
-          if 'ensureCharacterTraitAssignments(nextState, data)' not in year:
-              if marker2 not in year:
-                  raise SystemExit("academic year assignment marker missing")
-              year = year.replace(marker2, '  nextState = ensureCharacterTraitAssignments(nextState, data);\n' + marker2, 1)
-          year_path.write_text(year, encoding="utf-8")
-
-          worker_path = Path("worker/game/applyGameAction.ts")
-          worker = worker_path.read_text(encoding="utf-8")
-          if 'player/characterTraitAssignment' not in worker:
-              marker3 = 'import {\n  applyUserMatchExperience,\n'
-              if marker3 not in worker:
-                  raise SystemExit("worker import marker missing")
-              worker = worker.replace(marker3, 'import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";\n' + marker3, 1)
-          old = '  const state = structuredClone(snapshot.state) as GameState;\n'
-          if old in worker:
-              worker = worker.replace(old, '  const state = ensureCharacterTraitAssignments(\n    structuredClone(snapshot.state) as GameState,\n    gameData,\n  );\n', 1)
-          worker_path.write_text(worker, encoding="utf-8")
-          PY
-          npx prettier src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts --write
+          EOF
+          npx prettier tests/unit/domain/player/characterTraitDiscovery.test.ts --write
           git diff --check
-      - name: Run Task3 regression
-        run: npx vitest run tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
+      - name: Prove Task4 RED
+        id: red
+        continue-on-error: true
+        run: npx vitest run tests/unit/domain/player/characterTraitDiscovery.test.ts
+      - name: Assert Task4 was RED before implementation
+        run: test "${{ steps.red.outcome }}" = "failure"
+      - name: Implement pure discovery engine
+        shell: bash
+        run: |
+          cat > src/domain/player/characterTraitDiscovery.ts <<'EOF'
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import type { CharacterTraitDefinition } from "../validation/gameDataSchema";
+          import type { GameState } from "../model/GameState";
+          import type { Player } from "../model/Player";
+          import type { PlayerId } from "../model/identifiers";
+          import type { SpecialRelationshipKind } from "../relationships/relationshipTypes";
+
+          export interface CharacterTraitDiscoveryContext {
+            eventTags?: readonly string[];
+            captainPlayerId?: PlayerId | null;
+            viceCaptainPlayerId?: PlayerId | null;
+          }
+
+          export interface CharacterTraitDiscovery {
+            playerId: PlayerId;
+            traitId: string;
+          }
+
+          type DiscoveryCondition = CharacterTraitDefinition["discoveryConditions"][number];
+
+          function hasSpecialRelationship(
+            state: GameState,
+            playerId: PlayerId,
+            kind?: SpecialRelationshipKind,
+          ): boolean {
+            return Object.values(state.playerRelationshipBonds).some(
+              (bond) =>
+                bond.playerIds.includes(playerId) &&
+                bond.tags.some((tag) => kind === undefined || tag.kind === kind),
+            );
+          }
+
+          function conditionMatches(
+            state: GameState,
+            player: Player,
+            condition: DiscoveryCondition,
+            context: CharacterTraitDiscoveryContext,
+          ): boolean {
+            switch (condition.type) {
+              case "trust-min":
+                return player.trust >= condition.value;
+              case "appearances-min":
+                return player.career.appearances >= condition.value;
+              case "captaincy":
+                return (
+                  player.id === context.captainPlayerId ||
+                  player.id === context.viceCaptainPlayerId
+                );
+              case "special-relationship":
+                return hasSpecialRelationship(state, player.id, condition.kind);
+              case "event-tag":
+                return context.eventTags?.includes(condition.tag) ?? false;
+            }
+          }
+
+          export function discoverEligibleCharacterTraits(
+            state: GameState,
+            data: GameDataRegistry,
+            context: CharacterTraitDiscoveryContext = {},
+          ): { state: GameState; discoveries: CharacterTraitDiscovery[] } {
+            const players = { ...state.players };
+            const discoveries: CharacterTraitDiscovery[] = [];
+            let changed = false;
+
+            for (const playerId of Object.keys(state.players).sort()) {
+              const player = state.players[playerId as PlayerId];
+              if (!player) continue;
+
+              const hidden = [...new Set(player.hiddenTraitIds)].sort();
+              const hiddenSet = new Set(hidden);
+              const revealed = [...new Set(player.revealedHiddenTraitIds ?? [])]
+                .filter((traitId) => hiddenSet.has(traitId))
+                .sort();
+              const revealedSet = new Set(revealed);
+
+              for (const traitId of hidden) {
+                if (revealedSet.has(traitId)) continue;
+                const trait = data.characterTraits.get(traitId);
+                if (!trait) continue;
+                if (
+                  !trait.discoveryConditions.some((condition) =>
+                    conditionMatches(state, player, condition, context),
+                  )
+                ) {
+                  continue;
+                }
+                revealedSet.add(traitId);
+                discoveries.push({ playerId: player.id, traitId });
+              }
+
+              const nextRevealed = [...revealedSet].sort();
+              const previousRevealed = player.revealedHiddenTraitIds ?? [];
+              const needsUpdate =
+                previousRevealed.length !== nextRevealed.length ||
+                previousRevealed.some((traitId, index) => traitId !== nextRevealed[index]);
+              if (needsUpdate) {
+                players[player.id] = {
+                  ...player,
+                  revealedHiddenTraitIds: nextRevealed,
+                };
+                changed = true;
+              }
+            }
+
+            discoveries.sort(
+              (left, right) =>
+                left.playerId.localeCompare(right.playerId) ||
+                left.traitId.localeCompare(right.traitId),
+            );
+
+            return {
+              state: changed ? { ...state, players } : state,
+              discoveries,
+            };
+          }
+          EOF
+          npx prettier src/domain/player/characterTraitDiscovery.ts tests/unit/domain/player/characterTraitDiscovery.test.ts --write
+          git diff --check
+      - name: Run Task4 GREEN regression
+        run: npx vitest run tests/unit/domain/player/characterTraitDiscovery.test.ts tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
       - name: Typecheck
         run: npm run typecheck
-      - name: Commit verified Task3 changes
+      - name: Commit verified Task4 changes
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts
-          git commit -m "feat: initialize character traits across player lifecycle"
+          git add src/domain/player/characterTraitDiscovery.ts tests/unit/domain/player/characterTraitDiscovery.test.ts
+          git commit -m "feat: discover hidden character traits"
           git push origin HEAD:tmp/phase21-3-hidden-character-traits
