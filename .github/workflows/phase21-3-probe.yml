@@ -1,4 +1,4 @@
-name: Phase21-3 Task2 Red Probe
+name: Phase21-3 Task2 Green Probe
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - tmp/phase21-3-hidden-character-traits
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  task2-red:
+  task2-green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,5 +19,96 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Run Task2 assignment test
-        run: npx vitest run tests/unit/domain/player/characterTraitAssignment.test.ts
+      - name: Apply Task2 implementation
+        shell: bash
+        run: |
+          cat > src/domain/player/characterTraitAssignment.ts <<'EOF'
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import type { GameState } from "../model/GameState";
+          import type { PlayerId } from "../model/identifiers";
+
+          function fnv1a32(value: string): number {
+            let hash = 0x811c9dc5;
+            for (let index = 0; index < value.length; index += 1) {
+              hash ^= value.charCodeAt(index);
+              hash = Math.imul(hash, 0x01000193);
+            }
+            return hash >>> 0;
+          }
+
+          export function assignCharacterTraitDeterministically(
+            seed: string,
+            playerId: PlayerId,
+            characterTraitIds: readonly string[],
+          ): {
+            hiddenTraitIds: string[];
+            hiddenTraitAssignmentInitialized: true;
+          } {
+            const ids = [...characterTraitIds].sort((left, right) =>
+              left.localeCompare(right),
+            );
+            if (ids.length === 0) {
+              throw new Error("character trait catalog must not be empty");
+            }
+
+            const hash = fnv1a32(
+              `${seed}:phase21-character-trait:${playerId}`,
+            );
+            if (hash % 100 >= 60) {
+              return {
+                hiddenTraitIds: [],
+                hiddenTraitAssignmentInitialized: true,
+              };
+            }
+
+            return {
+              hiddenTraitIds: [ids[Math.floor(hash / 100) % ids.length]!],
+              hiddenTraitAssignmentInitialized: true,
+            };
+          }
+
+          export function ensureCharacterTraitAssignments(
+            state: GameState,
+            data: GameDataRegistry,
+          ): GameState {
+            const characterTraitIds = [...data.characterTraits.keys()];
+            let changed = false;
+            const players = { ...state.players };
+
+            for (const player of Object.values(state.players)) {
+              if (player.hiddenTraitAssignmentInitialized === true) {
+                continue;
+              }
+
+              players[player.id] = {
+                ...player,
+                ...assignCharacterTraitDeterministically(
+                  state.seed,
+                  player.id,
+                  characterTraitIds,
+                ),
+              };
+              changed = true;
+            }
+
+            return changed ? { ...state, players } : state;
+          }
+          EOF
+          npx prettier src/domain/player/characterTraitAssignment.ts tests/unit/domain/player/characterTraitAssignment.test.ts --write
+          git diff --check
+      - name: Run Task2 focused tests
+        run: npx vitest run tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Commit Task2 implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/player/characterTraitAssignment.ts tests/unit/domain/player/characterTraitAssignment.test.ts
+          if git diff --cached --quiet; then
+            echo "Task2 implementation already committed"
+            exit 0
+          fi
+          git commit -m "feat: assign hidden character traits deterministically"
+          git push origin HEAD:tmp/phase21-3-hidden-character-traits
