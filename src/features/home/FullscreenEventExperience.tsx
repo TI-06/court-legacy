@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { renderEventText } from "../../domain/events/renderEventText";
-import type { GameState } from "../../domain/model/GameState";
+import { relationshipKey, type GameState } from "../../domain/model/GameState";
+import {
+  relationshipLabel,
+  specialRelationshipKindLabel,
+} from "../../domain/relationships/relationshipPresentation";
+import { getRelationshipBond } from "../../domain/relationships/specialRelationships";
 import { SchoolEmblem } from "../../ui/SchoolEmblem";
 import "../../ui/ui.css";
 import "./event-dialog.css";
@@ -243,6 +248,24 @@ export function FullscreenEventExperience({
   const choices = event.choices.filter((choice) =>
     pending.choiceIds.includes(choice.id),
   );
+  const pairRelationship = (() => {
+    if (pending.actorPlayerIds.length !== 2) return null;
+    const [leftId, rightId] = pending.actorPlayerIds;
+    if (!leftId || !rightId) return null;
+    const score = Math.max(
+      0,
+      Math.min(
+        100,
+        state.playerRelationships[relationshipKey(leftId, rightId)] ?? 50,
+      ),
+    );
+    const bond = getRelationshipBond(state, leftId, rightId);
+    return {
+      score,
+      label: relationshipLabel(score),
+      specialKinds: bond?.tags.map((tag) => tag.kind) ?? [],
+    };
+  })();
 
   const choose = async (choiceId: string) => {
     if (resolvingChoiceId !== null) return;
@@ -308,6 +331,34 @@ export function FullscreenEventExperience({
               );
             })}
           </div>
+          {pairRelationship ? (
+            <section aria-label="選手間の関係" className="event-relationship">
+              <div className="event-relationship__summary">
+                <span>現在の関係</span>
+                <strong>{pairRelationship.label}</strong>
+              </div>
+              {pairRelationship.specialKinds.length > 0 ? (
+                <div className="event-relationship__tags">
+                  {pairRelationship.specialKinds.map((kind) => (
+                    <span key={kind}>{specialRelationshipKindLabel(kind)}</span>
+                  ))}
+                </div>
+              ) : null}
+              <span
+                aria-label={`関係値 ${pairRelationship.score}`}
+                aria-valuemax={100}
+                aria-valuemin={0}
+                aria-valuenow={pairRelationship.score}
+                className="event-relationship__meter"
+                role="meter"
+              >
+                <span
+                  className="event-relationship__meter-fill"
+                  style={{ width: `${pairRelationship.score}%` }}
+                />
+              </span>
+            </section>
+          ) : null}
           <p className="event-story">
             {renderEventText(event.bodyTemplate, state, pending.actorPlayerIds)}
           </p>

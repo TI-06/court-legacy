@@ -40,7 +40,9 @@ describe("Phase21 Player Hub relationships", () => {
     const region = screen.getByRole("region", { name: "人間関係" });
     expect(within(region).getByText("人間関係")).toBeVisible();
     const teammateName = `${teammate.lastName} ${teammate.firstName}`;
-    const teammateRow = within(region).getByText(teammateName).closest("article");
+    const teammateRow = within(region)
+      .getByText(teammateName)
+      .closest("article");
     expect(teammateRow).not.toBeNull();
     const relationship = within(teammateRow!);
     expect(relationship.getByText(teammateName)).toBeVisible();
