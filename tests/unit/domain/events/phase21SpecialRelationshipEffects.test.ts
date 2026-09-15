@@ -4,7 +4,10 @@ import { resolveEventChoice } from "../../../../src/domain/events/resolveEventCh
 import { relationshipKey } from "../../../../src/domain/model/GameState";
 import { eventId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
-import { getRelationshipBond } from "../../../../src/domain/relationships/specialRelationships";
+import {
+  addSpecialRelationship,
+  getRelationshipBond,
+} from "../../../../src/domain/relationships/specialRelationships";
 import type { GameDataRegistry } from "../../../../src/data/dataRegistry";
 import {
   eventDefinitionSchema,
@@ -47,6 +50,12 @@ const phase21EventInput = {
           mentor: "higher-grade",
         },
       ],
+    },
+    {
+      id: "partner",
+      label: "息を合わせる",
+      detail: "相棒関係を築く。",
+      effects: [{ type: "special-relationship-add", kind: "partner" }],
     },
     {
       id: "remove-rival",
@@ -130,7 +139,11 @@ describe("Phase21 special relationship event effects", () => {
       "特殊関係 ライバル成立",
     ]);
     expect(result.specialRelationshipTransitions).toEqual([
-      { action: "established", kind: "rival", playerIds: [left, right].sort() },
+      {
+        action: "established",
+        kind: "rival",
+        playerIds: [left, right].sort(),
+      },
     ]);
     expect(getRelationshipBond(result.state, left, right)?.tags[0]?.kind).toBe(
       "rival",
@@ -204,7 +217,11 @@ describe("Phase21 special relationship event effects", () => {
     );
 
     expect(removed.specialRelationshipTransitions).toEqual([
-      { action: "removed", kind: "rival", playerIds: [left, right].sort() },
+      {
+        action: "removed",
+        kind: "rival",
+        playerIds: [left, right].sort(),
+      },
     ]);
     expect(removed.occurrence.visibleResultCodes).toContain(
       "特殊関係 ライバル解消",
@@ -212,5 +229,50 @@ describe("Phase21 special relationship event effects", () => {
     expect(
       getRelationshipBond(removed.state, left, right)?.tags.map((tag) => tag.kind),
     ).toEqual(["mentor"]);
+  });
+
+  it("resolves a third distinct special relationship as no change", () => {
+    const event = phase21EventInput as unknown as EventDefinition;
+    const { state, left, right } = firstTwoPlayers();
+    const rival = addSpecialRelationship(state, {
+      playerIds: [left, right],
+      kind: "rival",
+      establishedDate: state.date,
+    });
+    const mentored = addSpecialRelationship(rival.state, {
+      playerIds: [left, right],
+      kind: "mentor",
+      establishedDate: state.date,
+      mentorPlayerId: right,
+      protegePlayerId: left,
+    });
+    const eventState = {
+      ...mentored.state,
+      pendingEvent: {
+        eventId: eventId(event.id),
+        actorPlayerIds: [left, right],
+        targetSchoolId: null,
+        surfacedDate: state.date,
+        choiceIds: ["partner"],
+        chainId: null,
+        chainStage: null,
+      },
+    };
+
+    const result = resolveEventChoice(
+      eventState,
+      "partner",
+      registryWith(event),
+      new SeededRandom(eventState.seed, eventState.randomCursor),
+    );
+
+    expect(
+      getRelationshipBond(result.state, left, right)?.tags.map((tag) => tag.kind),
+    ).toEqual(["rival", "mentor"]);
+    expect(result.occurrence.visibleResultCodes).toEqual([
+      "特殊関係 相棒変化なし",
+    ]);
+    expect(result.specialRelationshipTransitions).toEqual([]);
+    expect(result.state.pendingEvent).toBeNull();
   });
 });

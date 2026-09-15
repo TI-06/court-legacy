@@ -36,7 +36,9 @@ describe("Phase21 authoritative relationship notifications", () => {
     const snapshot = createSnapshot();
     const event = gameData.events.get("event.position-rivalry");
     if (!event) throw new Error("relationship event missing");
-    const choice = event.choices.find((candidate) => candidate.id === "competition");
+    const choice = event.choices.find(
+      (candidate) => candidate.id === "competition",
+    );
     if (!choice) throw new Error("competition choice missing");
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     const [left, right] = school.playerIds;

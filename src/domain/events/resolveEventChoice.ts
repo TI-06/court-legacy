@@ -122,6 +122,18 @@ function applyEffect(
       if (!left || !right) {
         return { state, visibleResult: "特殊関係変化なし" };
       }
+      const existingBond =
+        state.playerRelationshipBonds[relationshipKey(left, right)];
+      if (
+        existingBond &&
+        existingBond.tags.length >= 2 &&
+        !existingBond.tags.some((tag) => tag.kind === effect.kind)
+      ) {
+        return {
+          state,
+          visibleResult: `特殊関係 ${specialRelationshipLabel(effect.kind)}変化なし`,
+        };
+      }
       let mentorPlayerId: PlayerId | undefined;
       let protegePlayerId: PlayerId | undefined;
       if (effect.kind === "mentor") {

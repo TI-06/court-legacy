@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
-import { addSpecialRelationship } from "../../../../src/domain/relationships/specialRelationships";
 import { selectPlayerRelationships } from "../../../../src/domain/relationships/relationshipPresentation";
+import { addSpecialRelationship } from "../../../../src/domain/relationships/specialRelationships";
 
 describe("Phase21 relationship presentation selector", () => {
   it("uses default 50 for absent affinity and returns current teammates only", () => {
@@ -46,13 +46,17 @@ describe("Phase21 relationship presentation selector", () => {
 
     const rows = selectPlayerRelationships(state, selectedId);
 
-    expect(rows.slice(0, 2).every((row) => row.specialKinds.length > 0)).toBe(true);
+    expect(
+      rows.slice(0, 2).every((row) => row.specialKinds.length > 0),
+    ).toBe(true);
     expect(rows[0]?.playerId).toBe(rivalId);
     expect(rows.find((row) => row.playerId === protegeId)).toMatchObject({
       specialKinds: ["mentor"],
       mentorDirection: "mentor",
     });
-    const firstUntagged = rows.findIndex((row) => row.specialKinds.length === 0);
+    const firstUntagged = rows.findIndex(
+      (row) => row.specialKinds.length === 0,
+    );
     expect(rows[firstUntagged]?.playerId).toBe(extremeId);
   });
 });

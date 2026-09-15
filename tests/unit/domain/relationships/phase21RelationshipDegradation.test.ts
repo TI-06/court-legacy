@@ -52,7 +52,12 @@ function progressWeeks(
   return { state, transitions };
 }
 
-function setScore(state: GameState, left: PlayerId, right: PlayerId, score: number) {
+function setScore(
+  state: GameState,
+  left: PlayerId,
+  right: PlayerId,
+  score: number,
+) {
   return {
     ...state,
     playerRelationships: {
@@ -66,7 +71,9 @@ describe("Phase21 special relationship deterioration", () => {
   it("keeps a partner through week 7 and removes it at week 8 below 60", () => {
     const { state, left, right } = pairState("partner", 59);
     const week7 = progressWeeks(state, 7);
-    expect(getRelationshipBond(week7.state, left, right)?.tags[0]).toMatchObject({
+    expect(
+      getRelationshipBond(week7.state, left, right)?.tags[0],
+    ).toMatchObject({
       kind: "partner",
       belowThresholdSince: "2026-04-01",
     });
@@ -75,7 +82,11 @@ describe("Phase21 special relationship deterioration", () => {
     const week8 = progressWeeks(week7.state, 1);
     expect(getRelationshipBond(week8.state, left, right)).toBeNull();
     expect(week8.transitions).toEqual([
-      { action: "removed", kind: "partner", playerIds: [left, right].sort() },
+      {
+        action: "removed",
+        kind: "partner",
+        playerIds: [left, right].sort(),
+      },
     ]);
   });
 
@@ -85,14 +96,15 @@ describe("Phase21 special relationship deterioration", () => {
     const recovered = setScore(week4.state, left, right, 60);
     const recoveryWeek = progressWeeks(recovered, 1);
     expect(
-      getRelationshipBond(recoveryWeek.state, left, right)?.tags[0]?.belowThresholdSince,
+      getRelationshipBond(recoveryWeek.state, left, right)?.tags[0]
+        ?.belowThresholdSince,
     ).toBeNull();
 
     const lowAgain = setScore(recoveryWeek.state, left, right, 59);
     const week7Again = progressWeeks(lowAgain, 7);
-    expect(getRelationshipBond(week7Again.state, left, right)?.tags[0]?.kind).toBe(
-      "partner",
-    );
+    expect(
+      getRelationshipBond(week7Again.state, left, right)?.tags[0]?.kind,
+    ).toBe("partner");
   });
 
   it("uses 50 as the mentor threshold", () => {
@@ -103,15 +115,17 @@ describe("Phase21 special relationship deterioration", () => {
 
     const safe = pairState("mentor", 50);
     const retained = progressWeeks(safe.state, 12);
-    expect(getRelationshipBond(retained.state, safe.left, safe.right)?.tags[0]?.kind).toBe(
-      "mentor",
-    );
+    expect(
+      getRelationshipBond(retained.state, safe.left, safe.right)?.tags[0]?.kind,
+    ).toBe("mentor");
   });
 
   it("never affinity-degrades a rival", () => {
     const { state, left, right } = pairState("rival", 0);
     const progressed = progressWeeks(state, 20);
-    expect(getRelationshipBond(progressed.state, left, right)?.tags[0]).toMatchObject({
+    expect(
+      getRelationshipBond(progressed.state, left, right)?.tags[0],
+    ).toMatchObject({
       kind: "rival",
       belowThresholdSince: null,
     });
@@ -160,7 +174,11 @@ describe("Phase21 special relationship deterioration", () => {
 
     const result = advanceOneWeek(primed);
     expect(result.specialRelationshipTransitions).toEqual([
-      { action: "removed", kind: "partner", playerIds: [left, right].sort() },
+      {
+        action: "removed",
+        kind: "partner",
+        playerIds: [left, right].sort(),
+      },
     ]);
     expect(getRelationshipBond(result.state, left, right)).toBeNull();
   });

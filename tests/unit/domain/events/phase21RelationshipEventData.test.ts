@@ -50,7 +50,11 @@ describe("Phase21 authored relationship events", () => {
   it("forms a rival from the same-position competition choice", () => {
     const event = eventById("event.position-rivalry");
     expect(event.trigger.samePreferredPosition).toBe(true);
-    expect(event.choices.find((choice) => choice.id === "competition")?.effects.at(-1)).toEqual({
+    expect(
+      event.choices
+        .find((choice) => choice.id === "competition")
+        ?.effects.at(-1),
+    ).toEqual({
       type: "special-relationship-add",
       kind: "rival",
     });
@@ -71,17 +75,23 @@ describe("Phase21 authored relationship events", () => {
       },
     );
 
-    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(45);
-    expect(getRelationshipBond(result.state, left, right)?.tags.map((tag) => tag.kind)).toContain(
-      "rival",
+    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(
+      45,
     );
+    expect(
+      getRelationshipBond(result.state, left, right)?.tags.map(
+        (tag) => tag.kind,
+      ),
+    ).toContain("rival");
   });
 
   it("forms a mentor bond exactly from affinity 54 plus the authored +6", () => {
     const event = eventById("event.senior-junior-serve");
     expect(event.trigger.differentGrades).toBe(true);
     expect(event.trigger.relationship?.min).toBe(54);
-    expect(event.choices.find((choice) => choice.id === "encourage")?.effects.at(-1)).toEqual({
+    expect(
+      event.choices.find((choice) => choice.id === "encourage")?.effects.at(-1),
+    ).toEqual({
       type: "special-relationship-add",
       kind: "mentor",
       mentor: "higher-grade",
@@ -97,7 +107,9 @@ describe("Phase21 authored relationship events", () => {
       },
     );
 
-    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(60);
+    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(
+      60,
+    );
     expect(getRelationshipBond(result.state, left, right)?.tags).toContainEqual(
       expect.objectContaining({
         kind: "mentor",
@@ -110,7 +122,9 @@ describe("Phase21 authored relationship events", () => {
   it("forms a partner bond exactly from affinity 75 plus the authored +5", () => {
     const event = eventById("event.shared-video-review");
     expect(event.trigger.relationship?.min).toBe(75);
-    expect(event.choices.find((choice) => choice.id === "formalize")?.effects.at(-1)).toEqual({
+    expect(
+      event.choices.find((choice) => choice.id === "formalize")?.effects.at(-1),
+    ).toEqual({
       type: "special-relationship-add",
       kind: "partner",
     });
@@ -123,9 +137,13 @@ describe("Phase21 authored relationship events", () => {
       },
     );
 
-    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(80);
-    expect(getRelationshipBond(result.state, left, right)?.tags.map((tag) => tag.kind)).toContain(
-      "partner",
+    expect(result.state.playerRelationships[relationshipKey(left, right)]).toBe(
+      80,
     );
+    expect(
+      getRelationshipBond(result.state, left, right)?.tags.map(
+        (tag) => tag.kind,
+      ),
+    ).toContain("partner");
   });
 });
