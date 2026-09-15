@@ -3,6 +3,11 @@ import { createDemoGame } from "../../../src/app/createDemoGame";
 import type { GameState } from "../../../src/domain/model/GameState";
 import type { WeeklyScheduleState } from "../../../src/domain/weekly/weeklyScheduleTypes";
 import { decodeGameState } from "../../../src/persistence/gameStateCodec";
+import {
+  hasPendingCharacterTraitDiscovery,
+  stripCharacterTraitDiscoveryFieldsFromLegacyPlayers,
+  withoutCharacterTraitDiscoveryFields,
+} from "./phase21LegacyCharacterTraitTestHelpers";
 
 type Phase8GameState = GameState & { weeklySchedule: WeeklyScheduleState };
 
@@ -32,6 +37,7 @@ describe("Phase 8 game-state migration", () => {
         },
       },
     } as Record<string, unknown>;
+    stripCharacterTraitDiscoveryFieldsFromLegacyPlayers(legacy.players);
     delete legacy.weeklySchedule;
     delete legacy.notifications;
 
@@ -40,7 +46,10 @@ describe("Phase 8 game-state migration", () => {
     expect(migrated.schemaVersion).toBe(current.schemaVersion);
     expect(migrated.notifications).toEqual({ items: [] });
     expect(migrated.randomCursor).toBe(current.randomCursor + 41);
-    expect(migrated.players).toEqual(originalPlayers);
+    expect(withoutCharacterTraitDiscoveryFields(migrated.players)).toEqual(
+      withoutCharacterTraitDiscoveryFields(originalPlayers),
+    );
+    expect(hasPendingCharacterTraitDiscovery(migrated.players)).toBe(true);
     expect(migrated.schools).toEqual(originalSchools);
     expect(migrated.world).toEqual(originalWorld);
     expect(migrated.officialSeason).toEqual(originalOfficialSeason);
