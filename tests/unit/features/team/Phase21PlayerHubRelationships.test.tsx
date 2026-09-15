@@ -39,13 +39,15 @@ describe("Phase21 Player Hub relationships", () => {
     ).toBeVisible();
     const region = screen.getByRole("region", { name: "人間関係" });
     expect(within(region).getByText("人間関係")).toBeVisible();
+    const teammateName = `${teammate.lastName} ${teammate.firstName}`;
+    const teammateRow = within(region).getByText(teammateName).closest("article");
+    expect(teammateRow).not.toBeNull();
+    const relationship = within(teammateRow!);
+    expect(relationship.getByText(teammateName)).toBeVisible();
+    expect(relationship.getByText("好相性")).toBeVisible();
     expect(
-      within(region).getByText(`${teammate.lastName} ${teammate.firstName}`),
-    ).toBeVisible();
-    expect(within(region).getByText("好相性")).toBeVisible();
-    expect(
-      within(region).getByRole("meter", { name: "関係値 74" }),
+      relationship.getByRole("meter", { name: "関係値 74" }),
     ).toHaveAttribute("aria-valuenow", "74");
-    expect(within(region).getByText("ライバル")).toBeVisible();
+    expect(relationship.getByText("ライバル")).toBeVisible();
   });
 });
