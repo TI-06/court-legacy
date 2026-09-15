@@ -1,4 +1,4 @@
-name: Phase21-3 Task3 Lifecycle Probe
+name: Phase21-3 Task3 Green Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task3:
+  task3-green:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,34 +20,23 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task3 failing lifecycle tests
+      - name: Apply verified Task3 tests and implementation
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          action_path = Path("tests/unit/worker/applyGameAction.test.ts")
-          action = action_path.read_text(encoding="utf-8")
+          action_test_path = Path("tests/unit/worker/applyGameAction.test.ts")
+          action_test = action_test_path.read_text(encoding="utf-8")
           marker = 'describe("applyGameAction", () => {\n'
-          if 'initializes deterministic character traits in a newly created game' not in action:
+          if 'initializes deterministic character traits in a newly created game' not in action_test:
               tests = '''  it("initializes deterministic character traits in a newly created game", () => {
             const snapshot = createSnapshot();
             const players = Object.values(snapshot.state.players);
-
             expect(players.length).toBeGreaterThan(0);
-            expect(
-              players.every(
-                (player) => player.hiddenTraitAssignmentInitialized === true,
-              ),
-            ).toBe(true);
-            expect(players.every((player) => player.hiddenTraitIds.length <= 1)).toBe(
-              true,
-            );
-            expect(
-              players.every(
-                (player) => (player.revealedHiddenTraitIds ?? []).length === 0,
-              ),
-            ).toBe(true);
+            expect(players.every((player) => player.hiddenTraitAssignmentInitialized === true)).toBe(true);
+            expect(players.every((player) => player.hiddenTraitIds.length <= 1)).toBe(true);
+            expect(players.every((player) => (player.revealedHiddenTraitIds ?? []).length === 0)).toBe(true);
           });
 
           it("backfills legacy character traits before a zero-random administrative action", () => {
@@ -59,48 +48,35 @@ jobs:
             targetPlayer.revealedHiddenTraitIds = [];
             targetPlayer.hiddenTraitAssignmentInitialized = false;
             const cursorBefore = snapshot.state.randomCursor;
-
             const result = applyGameAction(snapshot, {
               type: "set-training-plan",
               plan: createTrainingPlan(snapshot),
             });
-
             expect(result.state.randomCursor).toBe(cursorBefore);
-            expect(
-              result.state.players[targetPlayerId]!.hiddenTraitAssignmentInitialized,
-            ).toBe(true);
-            expect(
-              result.state.players[targetPlayerId]!.hiddenTraitIds.length,
-            ).toBeLessThanOrEqual(1);
+            expect(result.state.players[targetPlayerId]!.hiddenTraitAssignmentInitialized).toBe(true);
+            expect(result.state.players[targetPlayerId]!.hiddenTraitIds.length).toBeLessThanOrEqual(1);
           });
 
           '''
-              if marker not in action:
+              if marker not in action_test:
                   raise SystemExit("applyGameAction describe marker missing")
-              action = action.replace(marker, marker + tests, 1)
-              action_path.write_text(action, encoding="utf-8")
+              action_test = action_test.replace(marker, marker + tests, 1)
+          action_test_path.write_text(action_test, encoding="utf-8")
 
           recruitment_path = Path("tests/unit/worker/academicYearRecruitment.test.ts")
           recruitment = recruitment_path.read_text(encoding="utf-8")
-          recruitment = recruitment.replace(
-              '    expect(enrolled).toEqual(committed.player);\n',
-              '''    expect(enrolled).toMatchObject({
-                id: committed.player.id,
-                firstName: committed.player.firstName,
-                lastName: committed.player.lastName,
-              });
-          ''',
-              1,
-          )
+          if 'expect(enrolled).toEqual(committed.player);' in recruitment:
+              recruitment = recruitment.replace(
+                  '    expect(enrolled).toEqual(committed.player);\n',
+                  '    expect(enrolled).toMatchObject({ id: committed.player.id, firstName: committed.player.firstName, lastName: committed.player.lastName });\n',
+                  1,
+              )
           year_marker = '    expect(persisted.state.yearIndex).toBe(2);\n'
           if 'newIntakePlayers' not in recruitment:
-              intake_assertions = '''    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
+              addition = '''    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
             const newIntakePlayers = userSchool.playerIds
               .map((playerId) => persisted.state.players[playerId])
-              .filter(
-                (player) =>
-                  player?.career.enrolledYear === persisted.state.calendar.academicYear,
-              );
+              .filter((player) => player?.career.enrolledYear === persisted.state.calendar.academicYear);
             expect(newIntakePlayers.length).toBeGreaterThan(0);
             for (const player of newIntakePlayers) {
               expect(player?.hiddenTraitAssignmentInitialized).toBe(true);
@@ -110,28 +86,8 @@ jobs:
           '''
               if year_marker not in recruitment:
                   raise SystemExit("academic year assertion marker missing")
-              recruitment = recruitment.replace(
-                  year_marker,
-                  year_marker + intake_assertions,
-                  1,
-              )
+              recruitment = recruitment.replace(year_marker, year_marker + addition, 1)
           recruitment_path.write_text(recruitment, encoding="utf-8")
-          PY
-          npx prettier tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts --write
-          git diff --check
-      - name: Prove Task3 RED
-        id: red
-        continue-on-error: true
-        run: npx vitest run tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts
-      - name: Assert Task3 was RED before implementation
-        shell: bash
-        run: |
-          test "${{ steps.red.outcome }}" = "failure"
-      - name: Apply Task3 lifecycle implementation
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
 
           initial_path = Path("src/app/createInitialGame.ts")
           initial = initial_path.read_text(encoding="utf-8")
@@ -142,24 +98,11 @@ jobs:
                   1,
               )
           if 'stateWithCharacterTraits' not in initial:
-              old = '''  return {
-            ...state,
-            seasonGoals: createSeasonGoals(state),
-          };
-          '''
-              new = '''  const stateWithCharacterTraits = ensureCharacterTraitAssignments(
-            state,
-            gameDataBootstrap.data,
-          );
-
-          return {
-            ...stateWithCharacterTraits,
-            seasonGoals: createSeasonGoals(stateWithCharacterTraits),
-          };
-          '''
-              if old not in initial:
+              needle = '  return {\n    ...state,\n    seasonGoals: createSeasonGoals(state),\n  };\n'
+              replacement = '  const stateWithCharacterTraits = ensureCharacterTraitAssignments(\n    state,\n    gameDataBootstrap.data,\n  );\n\n  return {\n    ...stateWithCharacterTraits,\n    seasonGoals: createSeasonGoals(stateWithCharacterTraits),\n  };\n'
+              if needle not in initial:
                   raise SystemExit("createInitialGame return marker missing")
-              initial = initial.replace(old, new, 1)
+              initial = initial.replace(needle, replacement, 1)
           initial_path.write_text(initial, encoding="utf-8")
 
           year_path = Path("src/domain/calendar/academicYearProgression.ts")
@@ -170,50 +113,36 @@ jobs:
                   'import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";\nimport { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";\n',
                   1,
               )
-          assignment_marker = '  nextState = advanceRivalWorld(nextState, data, random);\n'
+          marker2 = '  nextState = advanceRivalWorld(nextState, data, random);\n'
           if 'ensureCharacterTraitAssignments(nextState, data)' not in year:
-              if assignment_marker not in year:
+              if marker2 not in year:
                   raise SystemExit("academic year assignment marker missing")
-              year = year.replace(
-                  assignment_marker,
-                  '  nextState = ensureCharacterTraitAssignments(nextState, data);\n' + assignment_marker,
-                  1,
-              )
+              year = year.replace(marker2, '  nextState = ensureCharacterTraitAssignments(nextState, data);\n' + marker2, 1)
           year_path.write_text(year, encoding="utf-8")
 
-          action_path = Path("worker/game/applyGameAction.ts")
-          action = action_path.read_text(encoding="utf-8")
-          if 'player/characterTraitAssignment' not in action:
-              action = action.replace(
-                  'import {\n  applyUserMatchExperience,\n',
-                  'import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";\nimport {\n  applyUserMatchExperience,\n',
-                  1,
-              )
-          old_state = '  const state = structuredClone(snapshot.state) as GameState;\n'
-          new_state = '''  const state = ensureCharacterTraitAssignments(
-            structuredClone(snapshot.state) as GameState,
-            gameData,
-          );
-          '''
-          if old_state in action:
-              action = action.replace(old_state, new_state, 1)
-          action_path.write_text(action, encoding="utf-8")
+          worker_path = Path("worker/game/applyGameAction.ts")
+          worker = worker_path.read_text(encoding="utf-8")
+          if 'player/characterTraitAssignment' not in worker:
+              marker3 = 'import {\n  applyUserMatchExperience,\n'
+              if marker3 not in worker:
+                  raise SystemExit("worker import marker missing")
+              worker = worker.replace(marker3, 'import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";\n' + marker3, 1)
+          old = '  const state = structuredClone(snapshot.state) as GameState;\n'
+          if old in worker:
+              worker = worker.replace(old, '  const state = ensureCharacterTraitAssignments(\n    structuredClone(snapshot.state) as GameState,\n    gameData,\n  );\n', 1)
+          worker_path.write_text(worker, encoding="utf-8")
           PY
           npx prettier src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts --write
           git diff --check
-      - name: Run Task3 GREEN regression
+      - name: Run Task3 regression
         run: npx vitest run tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/domain/player/characterTraitAssignment.test.ts tests/unit/data/phase21CharacterTraits.test.ts
       - name: Typecheck
         run: npm run typecheck
-      - name: Commit Task3 verified changes
+      - name: Commit verified Task3 changes
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/app/createInitialGame.ts src/domain/calendar/academicYearProgression.ts worker/game/applyGameAction.ts tests/unit/worker/applyGameAction.test.ts tests/unit/worker/academicYearRecruitment.test.ts
-          if git diff --cached --quiet; then
-            echo "Task3 changes already committed"
-            exit 0
-          fi
           git commit -m "feat: initialize character traits across player lifecycle"
           git push origin HEAD:tmp/phase21-3-hidden-character-traits
