@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  diagnose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,26 +19,5 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Format target files exactly as CI expects
-        run: |
-          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts --write
-          npx prettier tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts --check
-          git diff --check
-      - name: Run focused relationship tests
-        run: npx vitest run tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts tests/unit/domain/relationships/specialRelationships.test.ts tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts tests/unit/persistence/phase21GameStateMigration.test.ts
-      - name: Run full verify
-        run: npm run verify
-      - name: Verify release metadata and evidence
-        run: npm run release:check
-      - name: Run Phase18 soak smoke preset
-        run: npm run soak:smoke
-      - name: Upload formatted files
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase21-final-preflight-output
-          path: |
-            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts
-            tests/unit/domain/relationships/phase21RelationshipPresentationSelector.test.ts
-            tests/unit/persistence/phase21GameStateMigration.test.ts
-          retention-days: 1
+      - name: Diagnose release-a funds ledger
+        run: npx vitest run tests/unit/soak/phase21FundsDiagnostic.test.ts --reporter=verbose
