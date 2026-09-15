@@ -42,9 +42,9 @@ describe("Phase21 character trait assignment", () => {
       (assignment) => assignment.hiddenTraitIds.length === 1,
     ).length;
 
-    expect(assignments.every((assignment) => assignment.hiddenTraitIds.length <= 1)).toBe(
-      true,
-    );
+    expect(
+      assignments.every((assignment) => assignment.hiddenTraitIds.length <= 1),
+    ).toBe(true);
     expect(assignedCount / assignments.length).toBeGreaterThanOrEqual(0.58);
     expect(assignedCount / assignments.length).toBeLessThanOrEqual(0.62);
   });
