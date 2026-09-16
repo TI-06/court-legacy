@@ -1,4 +1,4 @@
-name: Phase21-4 Task3 TDD Probe
+name: Phase21-4 Task3 Green Probe
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task3 RED tests
+      - name: Apply Task3 implementation, tests, and typed fixtures
         shell: bash
         run: |
           cat >> tests/unit/domain/notifications/gameNotifications.test.ts <<'EOF'
@@ -78,7 +78,6 @@ jobs:
                 result,
                 data: gameData,
               });
-
               expect(notification.payload.players[0]).toMatchObject({
                 socialGrowth: {
                   rawPercentPoints: 7,
@@ -107,19 +106,7 @@ jobs:
               const player = notification.payload.players[0]!;
               const state = createDemoGame();
               const relatedPlayerId = state.schools[state.userSchoolId]!.playerIds[1]!;
-              (player as unknown as {
-                socialGrowth: {
-                  contributions: Array<{
-                    code: "relationship-partner" | "relationship-mentor";
-                    label: string;
-                    percentPoints: 3 | 4;
-                    relatedPlayerId: typeof relatedPlayerId;
-                  }>;
-                  rawPercentPoints: number;
-                  appliedPercentPoints: number;
-                  capped: boolean;
-                };
-              }).socialGrowth = {
+              player.socialGrowth = {
                 contributions: [
                   {
                     code: "relationship-partner",
@@ -138,7 +125,6 @@ jobs:
                 appliedPercentPoints: 5,
                 capped: true,
               };
-
               render(
                 <TrainingResultNotificationSheet
                   notification={notification}
@@ -152,28 +138,7 @@ jobs:
             });
           });
           EOF
-          npx prettier \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx --write
-      - name: Verify RED
-        shell: bash
-        run: |
-          set +e
-          npx vitest run \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
-            > /tmp/task3-red.log 2>&1
-          status=$?
-          set -e
-          cat /tmp/task3-red.log
-          if [ "$status" -eq 0 ]; then
-            echo "Expected Task3 RED, but tests passed"
-            exit 1
-          fi
-          grep -q "socialGrowth\|相棒 +3%\|関係性効果" /tmp/task3-red.log
-      - name: Implement Task3
-        shell: bash
-        run: |
+
           python - <<'PY'
           from pathlib import Path
           import re
@@ -216,7 +181,9 @@ jobs:
           marker = '                      <div className="training-result-notification__changes">\n'
           if marker not in sheet:
               raise SystemExit("sheet changes marker missing")
-          social_block = '''                      {player.socialGrowth.contributions.length > 0 ? (
+          sheet = sheet.replace(
+              marker,
+              '''                      {player.socialGrowth.contributions.length > 0 ? (
                             <div
                               className="training-result-notification__social"
                               aria-label="人間関係効果"
@@ -238,37 +205,10 @@ jobs:
                             </div>
                           ) : null}
 
-          '''
-          sheet = sheet.replace(marker, social_block + marker, 1)
+          ''' + marker,
+              1,
+          )
           sheet_path.write_text(sheet, encoding="utf-8")
-
-          ui_test = Path("tests/unit/features/home/TrainingResultNotificationSheet.test.tsx")
-          ui = ui_test.read_text(encoding="utf-8")
-          pattern = re.compile(
-              r'(?P<indent>\s*)abilityChanges: \{\n(?P=indent)  spike: 2,\n(?P=indent)  jump: 1,\n(?P=indent)\},'
-          )
-          match = pattern.search(ui)
-          if not match:
-              raise SystemExit("UI abilityChanges fixture marker missing")
-          indent = match.group("indent")
-          empty_social = (
-              match.group(0)
-              + "\n"
-              + indent
-              + "socialGrowth: {\n"
-              + indent
-              + "  contributions: [],\n"
-              + indent
-              + "  rawPercentPoints: 0,\n"
-              + indent
-              + "  appliedPercentPoints: 0,\n"
-              + indent
-              + "  capped: false,\n"
-              + indent
-              + "},"
-          )
-          ui = ui[:match.start()] + empty_social + ui[match.end():]
-          ui_test.write_text(ui, encoding="utf-8")
 
           css_path = Path("src/features/home/training-result-notification.css")
           css = css_path.read_text(encoding="utf-8")
@@ -304,18 +244,53 @@ jobs:
           }
           '''
           css_path.write_text(css, encoding="utf-8")
+
+          empty_social = '''socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },'''
+
+          for filename in [
+              "tests/unit/features/home/TrainingResultNotificationSheet.test.tsx",
+              "tests/unit/features/home/HomeScreen.test.tsx",
+              "tests/unit/features/home/homeCommandCenter.test.ts",
+          ]:
+              p = Path(filename)
+              source = p.read_text(encoding="utf-8")
+              # Add the new required notification field to the first presentation fixture.
+              if filename.endswith("TrainingResultNotificationSheet.test.tsx"):
+                  pattern = re.compile(
+                      r'(?P<indent>\s*)abilityChanges: \{\n(?P=indent)  spike: 2,\n(?P=indent)  jump: 1,\n(?P=indent)\},'
+                  )
+              else:
+                  pattern = re.compile(r'^(?P<indent>\s*)abilityChanges: \{\},\s*$', re.MULTILINE)
+              match = pattern.search(source)
+              if not match:
+                  raise SystemExit(f"notification fixture marker missing: {filename}")
+              indent = match.group("indent")
+              formatted = "\n".join(indent + line if line else line for line in empty_social.splitlines())
+              source = source[:match.end()] + "\n" + formatted + source[match.end():]
+              p.write_text(source, encoding="utf-8")
           PY
+
           npx prettier \
             src/domain/notifications/gameNotifications.ts \
             src/features/home/TrainingResultNotificationSheet.tsx \
             src/features/home/training-result-notification.css \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx --write
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts --write
           git diff --check
       - name: Verify GREEN
         run: |
           npx vitest run \
             tests/unit/domain/notifications/gameNotifications.test.ts \
             tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts \
             tests/unit/domain/training/resolveWeeklyTraining.test.ts \
             tests/unit/domain/player/playerDevelopmentHistory.test.ts
       - name: Typecheck
@@ -330,6 +305,8 @@ jobs:
             src/features/home/TrainingResultNotificationSheet.tsx \
             src/features/home/training-result-notification.css \
             tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts
           git commit -m "feat: show social growth in training results"
           git push origin HEAD:tmp/phase21-4-social-effects-event-balance
