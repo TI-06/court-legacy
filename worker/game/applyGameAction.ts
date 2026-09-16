@@ -1,3 +1,4 @@
+import type { GameDataRegistry } from "../../src/data/dataRegistry";
 import { gameDataBootstrap } from "../../src/data/gameData";
 import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";
 import type {
@@ -35,6 +36,11 @@ import type { MatchState } from "../../src/domain/model/Match";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { Player } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import { ensureCharacterTraitAssignments } from "../../src/domain/player/characterTraitAssignment";
+import {
+  discoverEligibleCharacterTraits,
+  type CharacterTraitDiscovery,
+} from "../../src/domain/player/characterTraitDiscovery";
 import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
@@ -42,6 +48,7 @@ import {
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
+  buildCharacterTraitDiscoveredNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
   markNotificationRead,
@@ -112,6 +119,7 @@ export interface AppliedGameAction {
   state: GameState;
   teamSelection: TeamSelection;
   outcome?: unknown;
+  characterTraitDiscoveries?: CharacterTraitDiscovery[];
 }
 
 export interface ApplyGameActionContext {
@@ -292,6 +300,24 @@ function appendSpecialRelationshipNotifications(
   return notifications === state.notifications
     ? state
     : { ...state, notifications };
+}
+
+function appendCharacterTraitDiscoveryNotifications(
+  applied: AppliedGameAction,
+  discoveries: readonly CharacterTraitDiscovery[],
+  data: GameDataRegistry,
+): AppliedGameAction {
+  if (discoveries.length === 0) return applied;
+  let notifications = applied.state.notifications;
+  for (const discovery of discoveries) {
+    notifications = appendNotification(
+      notifications,
+      buildCharacterTraitDiscoveredNotification(applied.state, discovery, data),
+    );
+  }
+  return notifications === applied.state.notifications
+    ? applied
+    : { ...applied, state: { ...applied.state, notifications } };
 }
 
 function applyTraining(
@@ -1388,6 +1414,7 @@ function applyEventChoice(
       ),
       teamSelection,
       outcome: resolution.occurrence,
+      characterTraitDiscoveries: resolution.characterTraitDiscoveries,
     };
   } catch (error) {
     return conflict(
@@ -1397,14 +1424,12 @@ function applyEventChoice(
   }
 }
 
-export function applyGameAction(
-  snapshot: CloudGameSnapshot,
+function applyActionByType(
+  state: GameState,
+  teamSelection: TeamSelection,
   action: GameAction,
-  context: ApplyGameActionContext = {},
+  context: ApplyGameActionContext,
 ): AppliedGameAction {
-  const state = structuredClone(snapshot.state) as GameState;
-  const teamSelection = cloneTeamSelection(snapshot.teamSelection);
-
   switch (action.type) {
     case "training":
       return applyTraining(state, teamSelection, action);
@@ -1443,4 +1468,44 @@ export function applyGameAction(
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
   }
+}
+
+export function applyGameAction(
+  snapshot: CloudGameSnapshot,
+  action: GameAction,
+  context: ApplyGameActionContext = {},
+): AppliedGameAction {
+  const state = ensureCharacterTraitAssignments(
+    structuredClone(snapshot.state) as GameState,
+    gameData,
+  );
+  const teamSelection = cloneTeamSelection(snapshot.teamSelection);
+  const applied = applyActionByType(state, teamSelection, action, context);
+  const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
+    captainPlayerId: applied.state.teamDynamics.captainPlayerId,
+    viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
+  });
+  const characterTraitDiscoveries = [
+    ...(applied.characterTraitDiscoveries ?? []),
+    ...finalized.discoveries,
+  ].sort(
+    (left, right) =>
+      left.playerId.localeCompare(right.playerId) ||
+      left.traitId.localeCompare(right.traitId),
+  );
+
+  const finalizedApplied: AppliedGameAction = {
+    state: finalized.state,
+    teamSelection: applied.teamSelection,
+    ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+    ...(characterTraitDiscoveries.length > 0
+      ? { characterTraitDiscoveries }
+      : {}),
+  };
+
+  return appendCharacterTraitDiscoveryNotifications(
+    finalizedApplied,
+    characterTraitDiscoveries,
+    gameData,
+  );
 }

@@ -9,9 +9,11 @@ import type {
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 import {
+  selectHomeCharacterTraitNotifications,
   selectHomeConcernResolutionNotifications,
   selectHomeSpecialRelationshipNotifications,
   selectHomeTrainingNotifications,
+  type CharacterTraitDiscoveredNotification,
   type ConcernResolutionNotification,
   type SpecialRelationshipNotification,
   type TrainingResultNotification,
@@ -140,6 +142,13 @@ export type HomeCommandNews =
       title: string;
       detail: string;
       notification: SpecialRelationshipNotification;
+    }
+  | {
+      id: string;
+      kind: "character-trait-discovered";
+      title: string;
+      detail: string;
+      notification: CharacterTraitDiscoveredNotification;
     }
   | {
       id: string;
@@ -566,6 +575,9 @@ function buildNews(state: GameState): HomeCommandNews[] {
   const specialRelationship = selectHomeSpecialRelationshipNotifications(
     state.notifications,
   )[0];
+  const characterTraitDiscovery = selectHomeCharacterTraitNotifications(
+    state.notifications,
+  )[0];
 
   if (concernResolution) {
     candidates.push({
@@ -593,6 +605,19 @@ function buildNews(state: GameState): HomeCommandNews[] {
         title: `${specialRelationship.payload.kindLabel}関係が${actionLabel}`,
         detail: `${specialRelationship.payload.displayNames[0]} × ${specialRelationship.payload.displayNames[1]}`,
         notification: specialRelationship,
+      },
+    });
+  }
+
+  if (characterTraitDiscovery) {
+    candidates.push({
+      order: characterTraitDiscovery.readAtGameDate === null ? 3 : 43,
+      news: {
+        id: `news:character-trait:${characterTraitDiscovery.id}`,
+        kind: "character-trait-discovered",
+        title: "新しい個性を発見！",
+        detail: `${characterTraitDiscovery.payload.displayName}・${characterTraitDiscovery.payload.traitName}`,
+        notification: characterTraitDiscovery,
       },
     });
   }

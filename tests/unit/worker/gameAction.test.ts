@@ -89,6 +89,52 @@ const operation = {
 };
 
 describe("game action route", () => {
+  it("reveals an eligible trait after a canonical action without surfacing a new event", async () => {
+    const snapshot = createSnapshot();
+    for (const player of Object.values(snapshot.state.players)) {
+      player.hiddenTraitIds = [];
+      player.revealedHiddenTraitIds = [];
+      player.hiddenTraitAssignmentInitialized = true;
+    }
+    const playerId =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+    const player = snapshot.state.players[playerId]!;
+    player.hiddenTraitIds = ["character.training-lover"];
+    player.trust = 65;
+    snapshot.state.pendingEvent = null;
+    const store = createStore(snapshot);
+    const handler = createGameActionHandler(store);
+
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "team-selection",
+          selection: snapshot.teamSelection,
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(persisted.state.players[playerId]!.revealedHiddenTraitIds).toEqual([
+      "character.training-lover",
+    ]);
+    expect(persisted.state.pendingEvent).toBeNull();
+    expect(persisted.state.notifications.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "character-trait-discovered",
+          payload: expect.objectContaining({
+            playerId,
+            traitId: "character.training-lover",
+          }),
+        }),
+      ]),
+    );
+  });
+
   it("persists a legal action at exactly the next revision", async () => {
     const snapshot = createSnapshot();
     const store = createStore(snapshot);

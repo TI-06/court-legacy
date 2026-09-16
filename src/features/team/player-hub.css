@@ -818,3 +818,60 @@
   background: linear-gradient(90deg, #2e8bd8, #f47a18);
   border-radius: inherit;
 }
+
+.player-detail__character-traits {
+  display: grid;
+  min-width: 0;
+  padding: 9px 11px;
+  gap: 7px;
+  background: rgb(11 26 45 / 88%);
+  border: 1px solid rgb(244 122 24 / 18%);
+  border-radius: 11px;
+}
+
+.player-detail__character-traits-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-detail__character-traits-heading h3,
+.player-detail__character-trait-list p {
+  margin: 0;
+}
+
+.player-detail__character-traits-heading h3 {
+  font-size: 13px;
+}
+
+.player-detail__character-traits-heading span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.player-detail__character-trait-list {
+  display: grid;
+  gap: 6px;
+}
+
+.player-detail__character-trait-list article {
+  display: grid;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 3px;
+  background: rgb(244 122 24 / 7%);
+  border-radius: 8px;
+}
+
+.player-detail__character-trait-list strong {
+  color: #ffd99a;
+  font-size: 12px;
+}
+
+.player-detail__character-trait-list p {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  line-height: 1.45;
+}

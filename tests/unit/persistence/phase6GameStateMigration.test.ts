@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { decodeGameState } from "../../../src/persistence/gameStateCodec";
+import {
+  hasPendingCharacterTraitDiscovery,
+  stripCharacterTraitDiscoveryFieldsFromLegacyPlayers,
+  withoutCharacterTraitDiscoveryFields,
+} from "./phase21LegacyCharacterTraitTestHelpers";
 
 describe("Phase 6 game-state migration", () => {
   it("migrates a Phase 5 schema-v2 save without rerolling persistent game data", () => {
@@ -31,6 +36,7 @@ describe("Phase 6 game-state migration", () => {
         },
       },
     } as Record<string, unknown>;
+    stripCharacterTraitDiscoveryFieldsFromLegacyPlayers(legacy.players);
     delete legacy.officialSeason;
     delete legacy.teamDynamics;
     delete legacy.weeklySchedule;
@@ -41,7 +47,10 @@ describe("Phase 6 game-state migration", () => {
     expect(migrated.schemaVersion).toBe(current.schemaVersion);
     expect(migrated.notifications).toEqual({ items: [] });
     expect(migrated.randomCursor).toBe(current.randomCursor + 37);
-    expect(migrated.players).toEqual(originalPlayers);
+    expect(withoutCharacterTraitDiscoveryFields(migrated.players)).toEqual(
+      withoutCharacterTraitDiscoveryFields(originalPlayers),
+    );
+    expect(hasPendingCharacterTraitDiscovery(migrated.players)).toBe(true);
     expect(migrated.schools).toEqual(originalSchools);
     expect(migrated.world).toEqual(originalWorld);
     expect(migrated.recruiting).toEqual({

@@ -4,6 +4,7 @@ import type { PlayerConcernCode } from "../dynamics/teamDynamicsTypes";
 import type { GameState } from "../model/GameState";
 import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
+import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
 import type {
   SpecialRelationshipKind,
@@ -77,10 +78,27 @@ export interface SpecialRelationshipNotification {
   };
 }
 
+export interface CharacterTraitDiscoveredNotification {
+  id: string;
+  type: "character-trait-discovered";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    playerId: PlayerId;
+    displayName: string;
+    traitId: string;
+    traitName: string;
+    description: string;
+  };
+}
+
 export type GameNotification =
   | TrainingResultNotification
   | ConcernResolutionNotification
-  | SpecialRelationshipNotification;
+  | SpecialRelationshipNotification
+  | CharacterTraitDiscoveredNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -226,6 +244,40 @@ export function buildSpecialRelationshipNotification(input: {
   };
 }
 
+export function buildCharacterTraitDiscoveredNotification(
+  state: GameState,
+  discovery: CharacterTraitDiscovery,
+  data: GameDataRegistry,
+): CharacterTraitDiscoveredNotification {
+  const player = state.players[discovery.playerId];
+  if (!player) {
+    throw new Error(
+      `character trait notification references unknown player: ${discovery.playerId}`,
+    );
+  }
+  const trait = data.characterTraits.get(discovery.traitId);
+  if (!trait) {
+    throw new Error(
+      `character trait notification references unknown trait: ${discovery.traitId}`,
+    );
+  }
+  return {
+    id: `character-trait-discovered:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}:${discovery.playerId}:${discovery.traitId}`,
+    type: "character-trait-discovered",
+    createdGameDate: state.date,
+    academicYearIndex: state.yearIndex,
+    weekOfYear: state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      playerId: player.id,
+      displayName: `${player.lastName} ${player.firstName}`,
+      traitId: trait.id,
+      traitName: trait.name,
+      description: trait.description,
+    },
+  };
+}
+
 export function appendNotification(
   state: GameNotificationState,
   item: GameNotification,
@@ -287,6 +339,17 @@ export function selectHomeSpecialRelationshipNotifications(
   const items = state.items.filter(
     (item): item is SpecialRelationshipNotification =>
       item.type === "special-relationship",
+  );
+  const newest = items[items.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeCharacterTraitNotifications(
+  state: GameNotificationState,
+): CharacterTraitDiscoveredNotification[] {
+  const items = state.items.filter(
+    (item): item is CharacterTraitDiscoveredNotification =>
+      item.type === "character-trait-discovered",
   );
   const newest = items[items.length - 1];
   return newest ? [newest] : [];

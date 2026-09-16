@@ -5,6 +5,7 @@ import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
 import type {
+  CharacterTraitDiscoveredNotification,
   SpecialRelationshipNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -88,6 +89,14 @@ export function HomeScreen({
     }
   };
 
+  const acknowledgeCharacterTraitNotification = (
+    notification: CharacterTraitDiscoveredNotification,
+  ) => {
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+  };
+
   const requestAdvance = () => {
     if (operationPending) return;
     if (model.advance.requiresConfirmation) {
@@ -137,6 +146,9 @@ export function HomeScreen({
         onDeclinePracticeOffer={onDeclinePracticeOffer}
         onOpenTrainingNotification={openNotification}
         onOpenRelationshipNotification={acknowledgeRelationshipNotification}
+        onAcknowledgeCharacterTraitNotification={
+          acknowledgeCharacterTraitNotification
+        }
         operationPending={operationPending}
       />
 

@@ -293,6 +293,11 @@ export function PlayerHubScreen({
       : null;
     const growth = summarizePlayerGrowth(state, selectedPlayer.id);
     const relationships = selectPlayerRelationships(state, selectedPlayer.id);
+    const revealedCharacterTraits = (
+      selectedPlayer.revealedHiddenTraitIds ?? []
+    )
+      .map((traitId) => data.characterTraits.get(traitId))
+      .filter((trait) => trait !== undefined);
     const maxTrendGrowth = Math.max(
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
@@ -434,6 +439,26 @@ export function PlayerHubScreen({
             <strong>{selectedPlayer.trust}</strong>
           </article>
         </section>
+
+        {revealedCharacterTraits.length > 0 ? (
+          <section
+            className="player-detail__character-traits"
+            aria-label="発見した個性"
+          >
+            <div className="player-detail__character-traits-heading">
+              <h3>発見した個性</h3>
+              <span>{revealedCharacterTraits.length}件</span>
+            </div>
+            <div className="player-detail__character-trait-list">
+              {revealedCharacterTraits.map((trait) => (
+                <article key={trait.id}>
+                  <strong>{trait.name}</strong>
+                  <p>{trait.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="player-detail__relationships" aria-label="人間関係">
           <div className="player-detail__relationships-heading">
