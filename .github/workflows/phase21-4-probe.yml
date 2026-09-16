@@ -1,4 +1,4 @@
-name: Phase21-4 Task2 TDD Probe
+name: Phase21-4 Task2 Green Probe
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Add Task2 RED integration tests
+      - name: Apply verified Task2 implementation and tests
         shell: bash
         run: |
           cat >> tests/unit/domain/training/resolveWeeklyTraining.test.ts <<'EOF'
@@ -71,7 +71,6 @@ jobs:
               const log = resolution.result.playerLogs.find(
                 (entry) => entry.playerId === protege,
               )!;
-
               expect(log.socialGrowth).toMatchObject({
                 rawPercentPoints: 7,
                 appliedPercentPoints: 5,
@@ -153,25 +152,10 @@ jobs:
             });
           });
           EOF
-          npx prettier tests/unit/domain/training/resolveWeeklyTraining.test.ts --write
-      - name: Verify RED
-        shell: bash
-        run: |
-          set +e
-          npx vitest run tests/unit/domain/training/resolveWeeklyTraining.test.ts > /tmp/task2-red.log 2>&1
-          status=$?
-          set -e
-          cat /tmp/task2-red.log
-          if [ "$status" -eq 0 ]; then
-            echo "Expected Task2 RED, but tests passed"
-            exit 1
-          fi
-          grep -q "socialGrowth\|relationship-social" /tmp/task2-red.log
-      - name: Implement Task2
-        shell: bash
-        run: |
+
           python - <<'PY'
           from pathlib import Path
+          import re
 
           growth_path = Path("src/domain/training/calculateGrowth.ts")
           growth = growth_path.read_text(encoding="utf-8")
@@ -208,12 +192,12 @@ jobs:
               '  modifiers: GrowthModifier[];\n  socialGrowth: RelationshipTrainingModifierSummary;\n',
               1,
           )
-          marker = '''function clampState(value: number) {
+          clamp_marker = '''function clampState(value: number) {
             return Math.max(0, Math.min(100, Math.round(value)));
           }
 
           '''
-          insert = '''function clampState(value: number) {
+          social_helper = '''function clampState(value: number) {
             return Math.max(0, Math.min(100, Math.round(value)));
           }
 
@@ -227,19 +211,19 @@ jobs:
           }
 
           '''
-          if marker not in text:
+          if clamp_marker not in text:
               raise SystemExit("clampState marker missing")
-          text = text.replace(marker, insert, 1)
+          text = text.replace(clamp_marker, social_helper, 1)
           text = text.replace(
               '    modifiers: [],\n',
               '    modifiers: [],\n    socialGrowth: emptySocialGrowth(),\n',
               1,
           )
-          marker = '''  const assignments: IndividualTrainingAssignment[] = [];
+          active_marker = '''  const assignments: IndividualTrainingAssignment[] = [];
             const includeDynamics = input.schoolId === input.state.userSchoolId;
 
           '''
-          insert = '''  const assignments: IndividualTrainingAssignment[] = [];
+          active_block = '''  const assignments: IndividualTrainingAssignment[] = [];
             const includeDynamics = input.schoolId === input.state.userSchoolId;
             const activeTrainingPlayerIds = new Set<PlayerId>(
               validated.school.playerIds.filter((id) => {
@@ -255,14 +239,14 @@ jobs:
             );
 
           '''
-          if marker not in text:
-              raise SystemExit("active set insertion marker missing")
-          text = text.replace(marker, insert, 1)
-          marker = '''    const original = input.state.players[id]!;
+          if active_marker not in text:
+              raise SystemExit("active set marker missing")
+          text = text.replace(active_marker, active_block, 1)
+          loop_marker = '''    const original = input.state.players[id]!;
               const log = emptyLog(id);
 
           '''
-          insert = '''    const original = input.state.players[id]!;
+          loop_block = '''    const original = input.state.players[id]!;
               const log = emptyLog(id);
               log.socialGrowth = calculateRelationshipTrainingModifier(
                 input.state,
@@ -271,9 +255,9 @@ jobs:
               );
 
           '''
-          if marker not in text:
-              raise SystemExit("loop log marker missing")
-          text = text.replace(marker, insert, 1)
+          if loop_marker not in text:
+              raise SystemExit("loop marker missing")
+          text = text.replace(loop_marker, loop_block, 1)
           old_extra = '''    const extraModifiers = includeDynamics
                 ? [
                     ...(input.additionalGrowthModifiers ?? []),
@@ -320,25 +304,25 @@ jobs:
           ]:
               fixture_path = Path(filename)
               fixture = fixture_path.read_text(encoding="utf-8")
-              marker = '          modifiers: [],\n'
-              if marker not in fixture:
+              pattern = re.compile(r'^(?P<indent>\s*)modifiers: \[\],\s*$', re.MULTILINE)
+              match = pattern.search(fixture)
+              if not match:
                   raise SystemExit(f"fixture modifiers marker missing: {filename}")
-              fixture = fixture.replace(
-                  marker,
-                  marker + '''          socialGrowth: {
-                    contributions: [],
-                    rawPercentPoints: 0,
-                    appliedPercentPoints: 0,
-                    capped: false,
-                  },
-          ''',
-                  1,
-              )
+              indent = match.group("indent")
+              replacement = match.group(0) + "\n" + indent + '''socialGrowth: {
+          ''' + indent + '''  contributions: [],
+          ''' + indent + '''  rawPercentPoints: 0,
+          ''' + indent + '''  appliedPercentPoints: 0,
+          ''' + indent + '''  capped: false,
+          ''' + indent + '''},'''
+              fixture = fixture[:match.start()] + replacement + fixture[match.end():]
               fixture_path.write_text(fixture, encoding="utf-8")
           PY
+
           npx prettier \
             src/domain/training/calculateGrowth.ts \
             src/domain/training/resolveWeeklyTraining.ts \
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
             tests/unit/domain/notifications/gameNotifications.test.ts \
             tests/unit/domain/player/playerDevelopmentHistory.test.ts --write
           git diff --check
