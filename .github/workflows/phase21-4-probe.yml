@@ -1,4 +1,4 @@
-name: Phase21-4 Event Weighting TDD Probe
+name: Phase21-4 Event Weighting Green Probe
 
 on:
   push:
@@ -20,9 +20,113 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Task4 RED tests
+      - name: Apply verified Task4 and Task5 implementation
         shell: bash
         run: |
+          cat > src/domain/events/characterEventWeight.ts <<'EOF'
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import { relationshipKey, type GameState } from "../model/GameState";
+          import type { PlayerId } from "../model/identifiers";
+          import type { EventDefinition } from "../validation/gameDataSchema";
+
+          const clamp = (value: number, minimum: number, maximum: number) =>
+            Math.max(minimum, Math.min(maximum, Math.round(value)));
+
+          function intersects(left: readonly string[], right: readonly string[]): boolean {
+            const rightSet = new Set(right);
+            return left.some((value) => rightSet.has(value));
+          }
+
+          function isRelationshipCategory(event: EventDefinition): boolean {
+            return event.category === "relationship" || event.category === "rivalry";
+          }
+
+          function bondMatchesEvent(
+            state: GameState,
+            event: EventDefinition,
+            actorPlayerIds: readonly PlayerId[],
+          ): boolean {
+            if (actorPlayerIds.length !== 2 || actorPlayerIds[0] === actorPlayerIds[1]) {
+              return false;
+            }
+            const bond = state.playerRelationshipBonds[
+              relationshipKey(actorPlayerIds[0]!, actorPlayerIds[1]!)
+            ];
+            if (!bond) return false;
+            const tags = new Set(event.tags);
+            return bond.tags.some((tag) => {
+              if (tag.kind === "rival") {
+                return (
+                  event.category === "rivalry" ||
+                  tags.has("competition") ||
+                  tags.has("rivalry")
+                );
+              }
+              if (tag.kind === "mentor") {
+                return tags.has("mentor") || tags.has("guidance");
+              }
+              return (
+                tags.has("pair") ||
+                tags.has("cooperation") ||
+                tags.has("coordination")
+              );
+            });
+          }
+
+          export function characterEventWeightMultiplier(
+            state: GameState,
+            data: GameDataRegistry,
+            event: EventDefinition,
+            actorPlayerIds: readonly PlayerId[],
+          ): number {
+            let score = 100;
+            let personalityTagBonus = 0;
+            let personalityRelationshipBias = 0;
+            let characterTraitTagBonus = 0;
+            let characterTraitRelationshipBias = 0;
+            const relationshipCategory = isRelationshipCategory(event);
+
+            for (const actorId of actorPlayerIds) {
+              const player = state.players[actorId];
+              if (!player) continue;
+              const personality = data.personalities.get(player.personalityId);
+              if (personality) {
+                if (intersects(personality.tags, event.tags)) {
+                  personalityTagBonus += 10;
+                }
+                if (relationshipCategory) {
+                  personalityRelationshipBias += Math.round(
+                    personality.relationshipGrowth / 2,
+                  );
+                }
+              }
+              for (const traitId of player.revealedHiddenTraitIds ?? []) {
+                const trait = data.characterTraits.get(traitId);
+                if (!trait) continue;
+                if (intersects(trait.eventTags, event.tags)) {
+                  characterTraitTagBonus += 15;
+                }
+                if (relationshipCategory) {
+                  characterTraitRelationshipBias += trait.relationshipBias;
+                }
+              }
+            }
+
+            score += Math.min(20, personalityTagBonus);
+            score += relationshipCategory
+              ? clamp(personalityRelationshipBias, -15, 15)
+              : 0;
+            score += Math.min(30, characterTraitTagBonus);
+            score += relationshipCategory
+              ? clamp(characterTraitRelationshipBias, -15, 15)
+              : 0;
+            if (bondMatchesEvent(state, event, actorPlayerIds)) {
+              score += 20;
+            }
+            return clamp(score, 75, 150);
+          }
+          EOF
+
           cat > tests/unit/domain/events/phase21CharacterEventWeight.test.ts <<'EOF'
           import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
           import { relationshipKey } from "../../../../src/domain/model/GameState";
@@ -167,131 +271,7 @@ jobs:
             });
           });
           EOF
-          npx prettier tests/unit/domain/events/phase21CharacterEventWeight.test.ts --write
-          set +e
-          npx vitest run tests/unit/domain/events/phase21CharacterEventWeight.test.ts > /tmp/task4-red.log 2>&1
-          status=$?
-          set -e
-          cat /tmp/task4-red.log
-          if [ "$status" -eq 0 ]; then exit 1; fi
-          grep -q "characterEventWeight" /tmp/task4-red.log
-      - name: Implement Task4
-        shell: bash
-        run: |
-          cat > src/domain/events/characterEventWeight.ts <<'EOF'
-          import type { GameDataRegistry } from "../../data/dataRegistry";
-          import { relationshipKey, type GameState } from "../model/GameState";
-          import type { PlayerId } from "../model/identifiers";
-          import type { EventDefinition } from "../validation/gameDataSchema";
 
-          const clamp = (value: number, minimum: number, maximum: number) =>
-            Math.max(minimum, Math.min(maximum, Math.round(value)));
-
-          function intersects(left: readonly string[], right: readonly string[]): boolean {
-            const rightSet = new Set(right);
-            return left.some((value) => rightSet.has(value));
-          }
-
-          function isRelationshipCategory(event: EventDefinition): boolean {
-            return event.category === "relationship" || event.category === "rivalry";
-          }
-
-          function bondMatchesEvent(
-            state: GameState,
-            event: EventDefinition,
-            actorPlayerIds: readonly PlayerId[],
-          ): boolean {
-            if (actorPlayerIds.length !== 2 || actorPlayerIds[0] === actorPlayerIds[1]) {
-              return false;
-            }
-            const bond = state.playerRelationshipBonds[
-              relationshipKey(actorPlayerIds[0]!, actorPlayerIds[1]!)
-            ];
-            if (!bond) return false;
-            const tags = new Set(event.tags);
-            return bond.tags.some((tag) => {
-              if (tag.kind === "rival") {
-                return (
-                  event.category === "rivalry" ||
-                  tags.has("competition") ||
-                  tags.has("rivalry")
-                );
-              }
-              if (tag.kind === "mentor") {
-                return tags.has("mentor") || tags.has("guidance");
-              }
-              return (
-                tags.has("pair") ||
-                tags.has("cooperation") ||
-                tags.has("coordination")
-              );
-            });
-          }
-
-          export function characterEventWeightMultiplier(
-            state: GameState,
-            data: GameDataRegistry,
-            event: EventDefinition,
-            actorPlayerIds: readonly PlayerId[],
-          ): number {
-            let score = 100;
-            let personalityTagBonus = 0;
-            let personalityRelationshipBias = 0;
-            let characterTraitTagBonus = 0;
-            let characterTraitRelationshipBias = 0;
-            const relationshipCategory = isRelationshipCategory(event);
-
-            for (const actorId of actorPlayerIds) {
-              const player = state.players[actorId];
-              if (!player) continue;
-
-              const personality = data.personalities.get(player.personalityId);
-              if (personality) {
-                if (intersects(personality.tags, event.tags)) {
-                  personalityTagBonus += 10;
-                }
-                if (relationshipCategory) {
-                  personalityRelationshipBias += Math.round(
-                    personality.relationshipGrowth / 2,
-                  );
-                }
-              }
-
-              for (const traitId of player.revealedHiddenTraitIds ?? []) {
-                const trait = data.characterTraits.get(traitId);
-                if (!trait) continue;
-                if (intersects(trait.eventTags, event.tags)) {
-                  characterTraitTagBonus += 15;
-                }
-                if (relationshipCategory) {
-                  characterTraitRelationshipBias += trait.relationshipBias;
-                }
-              }
-            }
-
-            score += Math.min(20, personalityTagBonus);
-            score += relationshipCategory
-              ? clamp(personalityRelationshipBias, -15, 15)
-              : 0;
-            score += Math.min(30, characterTraitTagBonus);
-            score += relationshipCategory
-              ? clamp(characterTraitRelationshipBias, -15, 15)
-              : 0;
-            if (bondMatchesEvent(state, event, actorPlayerIds)) {
-              score += 20;
-            }
-            return clamp(score, 75, 150);
-          }
-          EOF
-          npx prettier src/domain/events/characterEventWeight.ts --write
-          npx vitest run tests/unit/domain/events/phase21CharacterEventWeight.test.ts
-          git add src/domain/events/characterEventWeight.ts tests/unit/domain/events/phase21CharacterEventWeight.test.ts
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "feat: weight events by visible character context"
-      - name: Task5 RED tests
-        shell: bash
-        run: |
           cat > tests/unit/domain/events/phase21PairRepetition.test.ts <<'EOF'
           import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
           import { relationshipKey } from "../../../../src/domain/model/GameState";
@@ -350,10 +330,8 @@ jobs:
               const event = neutralEvent();
               state.eventMemory.recentActorPairKeys = [];
               expect(eventSelectionWeight(state, gameData, event, actors)).toBe(100);
-
               state.eventMemory.recentActorPairKeys = [relationshipKey(...actors)];
               expect(eventSelectionWeight(state, gameData, event, actors)).toBe(20);
-
               state.eventMemory.recentEventIds = [eventId(event.id)];
               state.eventMemory.recentCategoryIds = [event.category];
               expect(eventSelectionWeight(state, gameData, event, actors)).toBe(1);
@@ -401,19 +379,10 @@ jobs:
             });
           });
           EOF
-          npx prettier tests/unit/domain/events/phase21PairRepetition.test.ts --write
-          set +e
-          npx vitest run tests/unit/domain/events/phase21PairRepetition.test.ts > /tmp/task5-red.log 2>&1
-          status=$?
-          set -e
-          cat /tmp/task5-red.log
-          if [ "$status" -eq 0 ]; then exit 1; fi
-          grep -q "eventActorPairKey\|eventSelectionWeight\|recentActorPairKeys" /tmp/task5-red.log
-      - name: Implement Task5
-        shell: bash
-        run: |
+
           python - <<'PY'
           from pathlib import Path
+          import re
 
           select_path = Path("src/domain/events/selectEvent.ts")
           text = select_path.read_text(encoding="utf-8")
@@ -422,15 +391,15 @@ jobs:
               'import { relationshipKey, type GameState } from "../model/GameState";\n',
               1,
           )
-          import_marker = 'import { isEventEligibleForActors } from "./eventEligibility";\n'
-          if import_marker not in text:
+          marker = 'import { isEventEligibleForActors } from "./eventEligibility";\n'
+          if marker not in text:
               raise SystemExit("selectEvent import marker missing")
           text = text.replace(
-              import_marker,
-              import_marker + 'import { characterEventWeightMultiplier } from "./characterEventWeight";\n',
+              marker,
+              marker + 'import { characterEventWeightMultiplier } from "./characterEventWeight";\n',
               1,
           )
-          insertion_marker = '''export interface EventSelectionResult {
+          interface_marker = '''export interface EventSelectionResult {
             state: GameState;
             pendingEvent: PendingEvent | null;
           }
@@ -495,94 +464,76 @@ jobs:
           }
 
           '''
-          if insertion_marker not in text:
+          if interface_marker not in text:
               raise SystemExit("selection result marker missing")
-          text = text.replace(insertion_marker, helpers, 1)
-          old_weight = '''      const recentEventPenalty = state.eventMemory.recentEventIds.includes(
-                eventId(event.id),
-              )
-                ? 0.2
-                : 1;
-              const recentCategoryPenalty =
-                state.eventMemory.recentCategoryIds.includes(event.category) ? 0.35 : 1;
+          text = text.replace(interface_marker, helpers, 1)
+
+          pattern = re.compile(
+              r'\n\s*const recentEventPenalty = state\.eventMemory\.recentEventIds\.includes\([\s\S]*?\n\s*candidates\.push\(\{\n\s*event,\n\s*actorPlayerIds,\n\s*weight: Math\.max\([\s\S]*?\n\s*\}\);',
+              re.MULTILINE,
+          )
+          match = pattern.search(text)
+          if not match:
+              raise SystemExit("candidate weight block not found")
+          replacement = '''
               candidates.push({
                 event,
                 actorPlayerIds,
-                weight: Math.max(
-                  1,
-                  Math.round(event.weight * recentEventPenalty * recentCategoryPenalty),
-                ),
-              });
-          '''
-          new_weight = '''      candidates.push({
-                event,
-                actorPlayerIds,
                 weight: eventSelectionWeight(state, data, event, actorPlayerIds),
-              });
-          '''
-          if old_weight not in text:
-              raise SystemExit("candidate weight marker missing")
-          text = text.replace(old_weight, new_weight, 1)
+              });'''
+          text = text[:match.start()] + replacement + text[match.end():]
           select_path.write_text(text, encoding="utf-8")
 
           resolve_path = Path("src/domain/events/resolveEventChoice.ts")
           resolve = resolve_path.read_text(encoding="utf-8")
-          import_marker = 'import { eventCareerKey } from "./eventEligibility";\n'
-          if import_marker not in resolve:
+          marker = 'import { eventCareerKey } from "./eventEligibility";\n'
+          if marker not in resolve:
               raise SystemExit("resolve import marker missing")
-          resolve = resolve.replace(
-              import_marker,
-              import_marker + 'import { eventActorPairKey } from "./selectEvent";\n',
-              1,
-          )
-          primary_marker = '  const primaryActor = pending.actorPlayerIds[0];\n'
-          if primary_marker not in resolve:
+          resolve = resolve.replace(marker, marker + 'import { eventActorPairKey } from "./selectEvent";\n', 1)
+          marker = '  const primaryActor = pending.actorPlayerIds[0];\n'
+          if marker not in resolve:
               raise SystemExit("primary actor marker missing")
-          resolve = resolve.replace(
-              primary_marker,
-              primary_marker + '  const actorPairKey = eventActorPairKey(pending.actorPlayerIds);\n',
-              1,
-          )
-          memory_marker = '''      recentPrimaryActorPlayerIds: primaryActor
-                ? pushLimited(
-                    nextState.eventMemory.recentPrimaryActorPlayerIds,
-                    primaryActor,
-                    8,
-                  )
-                : nextState.eventMemory.recentPrimaryActorPlayerIds,
-              scheduledFollowUps: [
-          '''
-          memory_replacement = '''      recentPrimaryActorPlayerIds: primaryActor
-                ? pushLimited(
-                    nextState.eventMemory.recentPrimaryActorPlayerIds,
-                    primaryActor,
-                    8,
-                  )
-                : nextState.eventMemory.recentPrimaryActorPlayerIds,
-              recentActorPairKeys: actorPairKey
+          resolve = resolve.replace(marker, marker + '  const actorPairKey = eventActorPairKey(pending.actorPlayerIds);\n', 1)
+          marker = '      scheduledFollowUps: [\n'
+          if marker not in resolve:
+              raise SystemExit("scheduled followups marker missing")
+          pair_memory = '''      recentActorPairKeys: actorPairKey
                 ? pushLimited(
                     nextState.eventMemory.recentActorPairKeys,
                     actorPairKey,
                     6,
                   )
                 : nextState.eventMemory.recentActorPairKeys,
-              scheduledFollowUps: [
           '''
-          if memory_marker not in resolve:
-              raise SystemExit("event memory marker missing")
-          resolve = resolve.replace(memory_marker, memory_replacement, 1)
+          resolve = resolve.replace(marker, pair_memory + marker, 1)
           resolve_path.write_text(resolve, encoding="utf-8")
           PY
-          npx prettier src/domain/events/selectEvent.ts src/domain/events/resolveEventChoice.ts --write
+
+          npx prettier \
+            src/domain/events/characterEventWeight.ts \
+            src/domain/events/selectEvent.ts \
+            src/domain/events/resolveEventChoice.ts \
+            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
+            tests/unit/domain/events/phase21PairRepetition.test.ts --write
           git diff --check
+      - name: Verify event GREEN
+        run: |
           npx vitest run \
             tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
             tests/unit/domain/events/phase21PairRepetition.test.ts \
             tests/unit/domain/events
-          npm run typecheck
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Commit Task4 and Task5
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
+            src/domain/events/characterEventWeight.ts \
             src/domain/events/selectEvent.ts \
             src/domain/events/resolveEventChoice.ts \
+            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
             tests/unit/domain/events/phase21PairRepetition.test.ts
-          git commit -m "feat: suppress repeated event actor pairs"
+          git commit -m "feat: weight events and suppress repeated actor pairs"
           git push origin HEAD:tmp/phase21-4-social-effects-event-balance
