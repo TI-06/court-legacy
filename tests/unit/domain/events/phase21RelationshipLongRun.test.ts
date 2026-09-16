@@ -51,9 +51,9 @@ function applyAction(
 function isAdvanceWeekOutcome(value: unknown): value is AdvanceWeekOutcome {
   return Boolean(
     value &&
-      typeof value === "object" &&
-      "weekAdvanced" in value &&
-      "academicYearTransition" in value,
+    typeof value === "object" &&
+    "weekAdvanced" in value &&
+    "academicYearTransition" in value,
   );
 }
 
@@ -64,14 +64,17 @@ function stateContext(state: GameState, metric: string): string {
 function invalidBondReferenceCount(state: GameState): number {
   return Object.values(state.playerRelationshipBonds).reduce(
     (count, bond) =>
-      count + bond.playerIds.filter((playerId) => !state.players[playerId]).length,
+      count +
+      bond.playerIds.filter((playerId) => !state.players[playerId]).length,
     0,
   );
 }
 
 function validateStateInvariants(state: GameState): number {
   const invalidReferences = invalidBondReferenceCount(state);
-  expect(invalidReferences, stateContext(state, "invalidBondReferences")).toBe(0);
+  expect(invalidReferences, stateContext(state, "invalidBondReferences")).toBe(
+    0,
+  );
   expect(
     state.eventMemory.recentActorPairKeys.length,
     stateContext(state, "recentActorPairKeys.length"),
@@ -100,7 +103,9 @@ function validateStateInvariants(state: GameState): number {
 function firstChoiceAction(state: GameState): GameAction {
   const pending = state.pendingEvent;
   if (!pending) {
-    throw new Error(`pending event missing: ${stateContext(state, "pendingEvent")}`);
+    throw new Error(
+      `pending event missing: ${stateContext(state, "pendingEvent")}`,
+    );
   }
   const choiceId = pending.choiceIds[0];
   if (!choiceId) {
@@ -264,24 +269,31 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
     normalCadenceSlots,
   };
 
-  expect(metrics.simulatedWeeks, `${seed}: simulatedWeeks`).toBeGreaterThanOrEqual(
-    TARGET_WEEKS,
-  );
+  expect(
+    metrics.simulatedWeeks,
+    `${seed}: simulatedWeeks`,
+  ).toBeGreaterThanOrEqual(TARGET_WEEKS);
   expect(
     metrics.maxObservedSocialBonus,
     `${seed}: maxObservedSocialBonus`,
   ).toBeLessThanOrEqual(5);
-  expect(metrics.invalidBondReferences, `${seed}: invalidBondReferences`).toBe(0);
-  expect(metrics.normalEvents, `${seed}: normal event cadence`).toBeLessThanOrEqual(
-    metrics.normalCadenceSlots,
+  expect(metrics.invalidBondReferences, `${seed}: invalidBondReferences`).toBe(
+    0,
   );
+  expect(
+    metrics.normalEvents,
+    `${seed}: normal event cadence`,
+  ).toBeLessThanOrEqual(metrics.normalCadenceSlots);
   if (metrics.relationshipEvents >= 8) {
-    expect(metrics.uniqueActorPairs, `${seed}: uniqueActorPairs`).toBeGreaterThanOrEqual(
-      4,
-    );
+    expect(
+      metrics.uniqueActorPairs,
+      `${seed}: uniqueActorPairs`,
+    ).toBeGreaterThanOrEqual(4);
   }
   if (metrics.relationshipEvents >= 10) {
-    expect(metrics.maxPairShare, `${seed}: maxPairShare`).toBeLessThanOrEqual(0.4);
+    expect(metrics.maxPairShare, `${seed}: maxPairShare`).toBeLessThanOrEqual(
+      0.4,
+    );
   }
 
   console.info(
