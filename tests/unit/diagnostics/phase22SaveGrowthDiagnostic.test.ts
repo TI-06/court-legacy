@@ -28,7 +28,8 @@ interface DiagnosticPoint {
 }
 
 function bytes(value: unknown): number {
-  return Buffer.byteLength(JSON.stringify(value), "utf8");
+  const serialized = JSON.stringify(value);
+  return serialized === undefined ? 0 : Buffer.byteLength(serialized, "utf8");
 }
 
 function topLevelStateBytes(state: GameState): Record<string, number> {
