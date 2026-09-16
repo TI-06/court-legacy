@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   advanceSoakUntilWeekChanges,
   createSoakSnapshot,
-} from "../../src/dev/soak/runBalanceSoak";
-import type { GameState } from "../../src/domain/model/GameState";
+} from "../../../src/dev/soak/runBalanceSoak";
+import type { GameState } from "../../../src/domain/model/GameState";
 
 interface DiagnosticPoint {
   week: number;

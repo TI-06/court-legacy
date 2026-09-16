@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
       - name: Measure 156-week save growth
-        run: npx vitest run tests/diagnostics/phase22SaveGrowthDiagnostic.test.ts --reporter=verbose
+        run: npx vitest run tests/unit/diagnostics/phase22SaveGrowthDiagnostic.test.ts --reporter=verbose
       - name: Upload save growth diagnostics
         if: always()
         uses: actions/upload-artifact@v4
