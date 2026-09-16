@@ -1,4 +1,4 @@
-name: Phase21-4 Notification Codec RED Probe
+name: Phase21-4 Notification Codec Fix Probe
 
 on:
   push:
@@ -6,10 +6,11 @@ on:
       - tmp/phase21-4-social-effects-event-balance
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  notification-codec-red:
+  notification-codec-fix:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,15 +20,59 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Confirm persistence regression reproduces
+      - name: Patch current-schema notification codec
         shell: bash
         run: |
-          set +e
-          npx vitest run tests/unit/persistence/phase21NotificationCodec.test.ts
-          status=$?
-          set -e
-          if [ "$status" -eq 0 ]; then
-            echo "Expected the new persistence regression test to be RED before the codec fix."
-            exit 1
-          fi
-          echo "Expected RED reproduced without failing the workflow."
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/persistence/gameStateCodec.ts")
+          text = path.read_text()
+
+          marker = 'const notificationPlayerSchema = z\n  .object({\n'
+          if marker not in text:
+              raise SystemExit("notificationPlayerSchema marker missing")
+          social_schema = '''const socialGrowthContributionSchema = z\n  .object({\n    code: z.enum([\n      "relationship-partner",\n      "relationship-mentor",\n      "relationship-rival",\n    ]),\n    label: z.string().min(1),\n    percentPoints: z.union([z.literal(3), z.literal(4)]),\n    relatedPlayerId: playerIdSchema,\n  })\n  .strict();\n\nconst relationshipTrainingModifierSummarySchema = z\n  .object({\n    contributions: z.array(socialGrowthContributionSchema).max(64),\n    rawPercentPoints: z.number().int().nonnegative(),\n    appliedPercentPoints: z.number().int().min(0).max(5),\n    capped: z.boolean(),\n  })\n  .strict();\n\nconst emptyRelationshipTrainingModifierSummary = {\n  contributions: [],\n  rawPercentPoints: 0,\n  appliedPercentPoints: 0,\n  capped: false,\n};\n\n'''
+          text = text.replace(marker, social_schema + marker, 1)
+
+          old_player_tail = '''    injured: z.boolean(),\n    abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),\n  })\n  .strict();\n\nconst trainingResultNotificationSchema = z\n'''
+          new_player_tail = '''    injured: z.boolean(),\n    abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),\n    socialGrowth: relationshipTrainingModifierSummarySchema.default(\n      emptyRelationshipTrainingModifierSummary,\n    ),\n  })\n  .strict();\n\nconst trainingResultNotificationSchema = z\n'''
+          if old_player_tail not in text:
+              raise SystemExit("notification player tail marker missing")
+          text = text.replace(old_player_tail, new_player_tail, 1)
+
+          old_union = '''const gameNotificationSchema = z.discriminatedUnion("type", [\n  trainingResultNotificationSchema,\n  concernResolutionNotificationSchema,\n  specialRelationshipNotificationSchema,\n]);\n'''
+          new_union = '''const characterTraitDiscoveredNotificationSchema = z\n  .object({\n    id: z.string().min(1),\n    type: z.literal("character-trait-discovered"),\n    createdGameDate: gameDateSchema,\n    academicYearIndex: z.number().int().positive(),\n    weekOfYear: z.number().int().positive(),\n    readAtGameDate: gameDateSchema.nullable(),\n    payload: z\n      .object({\n        playerId: playerIdSchema,\n        displayName: z.string().min(1),\n        traitId: z.string().min(1),\n        traitName: z.string().min(1),\n        description: z.string().min(1),\n      })\n      .strict(),\n  })\n  .strict();\n\nconst gameNotificationSchema = z.discriminatedUnion("type", [\n  trainingResultNotificationSchema,\n  concernResolutionNotificationSchema,\n  specialRelationshipNotificationSchema,\n  characterTraitDiscoveredNotificationSchema,\n]);\n'''
+          if old_union not in text:
+              raise SystemExit("game notification union marker missing")
+          text = text.replace(old_union, new_union, 1)
+
+          path.write_text(text)
+          PY
+          npx prettier src/persistence/gameStateCodec.ts --write
+          git diff --check
+      - name: Notification codec regression
+        run: |
+          npx vitest run \
+            tests/unit/persistence/phase21NotificationCodec.test.ts \
+            tests/unit/persistence/phase20ConcernNotificationCodec.test.ts \
+            tests/unit/persistence/phase21GameStateMigration.test.ts
+      - name: Type check
+        run: npm run typecheck
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Re-run previously failing reload E2E coverage
+        run: |
+          npx playwright test \
+            tests/e2e/official-tournament-flow.spec.ts \
+            tests/e2e/phase10-notifications.spec.ts \
+            tests/e2e/phase17-season-end.spec.ts \
+            tests/e2e/v2-auth-game-flow.spec.ts
+      - name: Commit codec fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/persistence/gameStateCodec.ts
+          git commit -m "fix: persist Phase21 notification metadata"
+          git push origin HEAD:tmp/phase21-4-social-effects-event-balance
