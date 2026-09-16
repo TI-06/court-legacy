@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(
-  new URL(
-    "../../../../supabase/migrations/202609170001_phase22_game_operation_retention.sql",
-    import.meta.url,
+  resolve(
+    process.cwd(),
+    "supabase/migrations/202609170001_phase22_game_operation_retention.sql",
   ),
   "utf8",
 );
