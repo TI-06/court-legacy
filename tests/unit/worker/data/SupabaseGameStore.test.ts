@@ -19,10 +19,10 @@ function createClient(result: RpcResult): MockSupabaseAdminClient {
 }
 
 describe("SupabaseGameStore Phase22 save stability", () => {
-  it("sends only the operation outcome envelope instead of duplicating the full game response", async () => {
+  it("keeps the exact operation response as the replay payload", async () => {
     const snapshot = createSoakSnapshot("phase22-save-store");
     const operationId = "phase22-op-001";
-    const outcome = { weekAdvanced: true, marker: "small-outcome" };
+    const outcome = { weekAdvanced: true, marker: "replay-contract" };
     const response = {
       operationId,
       game: {
@@ -54,15 +54,12 @@ describe("SupabaseGameStore Phase22 save stability", () => {
       p_expected_revision: snapshot.revision,
       p_state: response.game.state,
       p_team_selection: response.game.teamSelection,
-      p_response: {
-        hasOutcome: true,
-        outcome,
-      },
+      p_response: response,
     });
   });
 
-  it("sends a tiny no-outcome envelope when an action has no public outcome", async () => {
-    const snapshot = createSoakSnapshot("phase22-save-no-outcome");
+  it("returns an exact replay response from the operation RPC", async () => {
+    const snapshot = createSoakSnapshot("phase22-save-replay");
     const operationId = "phase22-op-002";
     const response = {
       operationId,
@@ -70,27 +67,23 @@ describe("SupabaseGameStore Phase22 save stability", () => {
         ...snapshot,
         revision: snapshot.revision + 1,
       },
+      outcome: { marker: "original-response" },
     };
     const client = createClient({
-      data: [{ response, replayed: false }],
+      data: [{ response, replayed: true }],
       error: null,
     });
     const store = new SupabaseGameStore(client);
 
-    await store.applyOperation({
-      userId: snapshot.userId,
-      operationId,
-      expectedRevision: snapshot.revision,
-      state: response.game.state,
-      teamSelection: response.game.teamSelection,
-      response,
-    });
-
-    expect(client.rpc).toHaveBeenCalledWith(
-      "apply_game_operation",
-      expect.objectContaining({
-        p_response: { hasOutcome: false },
+    await expect(
+      store.applyOperation({
+        userId: snapshot.userId,
+        operationId,
+        expectedRevision: snapshot.revision,
+        state: response.game.state,
+        teamSelection: response.game.teamSelection,
+        response,
       }),
-    );
+    ).resolves.toEqual({ response, replayed: true });
   });
 });
