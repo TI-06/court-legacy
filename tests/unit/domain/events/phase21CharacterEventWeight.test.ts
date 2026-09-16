@@ -108,9 +108,9 @@ describe("Phase21 character-aware event weight", () => {
         },
       ],
     };
-    expect(characterEventWeightMultiplier(state, registry(), event(), ids)).toBe(
-      150,
-    );
+    expect(
+      characterEventWeightMultiplier(state, registry(), event(), ids),
+    ).toBe(150);
   });
 
   it("clamps negative relationship tendencies to a floor of 75", () => {

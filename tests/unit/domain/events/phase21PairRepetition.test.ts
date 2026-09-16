@@ -5,11 +5,16 @@ import {
   eventSelectionWeight,
 } from "../../../../src/domain/events/selectEvent";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
-import { eventId, type PlayerId } from "../../../../src/domain/model/identifiers";
+import {
+  eventId,
+  type PlayerId,
+} from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import type { EventDefinition } from "../../../../src/domain/validation/gameDataSchema";
 
-function neutralEvent(overrides: Partial<EventDefinition> = {}): EventDefinition {
+function neutralEvent(
+  overrides: Partial<EventDefinition> = {},
+): EventDefinition {
   const base = [...gameData.events.values()][0]!;
   return {
     ...base,
@@ -107,7 +112,9 @@ describe("Phase21 actor pair repetition", () => {
     expect(resolved.state.eventMemory.recentActorPairKeys.at(-1)).toBe(
       relationshipKey(...actors),
     );
-    expect(resolved.state.eventMemory.recentActorPairKeys).not.toContain("a::b");
+    expect(resolved.state.eventMemory.recentActorPairKeys).not.toContain(
+      "a::b",
+    );
   });
 
   it("does not append pair memory for a one-actor event", () => {

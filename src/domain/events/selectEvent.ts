@@ -51,7 +51,9 @@ export function eventSelectionWeight(
     : 1;
   const pairKey = eventActorPairKey(actorPlayerIds);
   const pairPenalty =
-    pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey) ? 0.2 : 1;
+    pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey)
+      ? 0.2
+      : 1;
 
   return Math.max(
     1,

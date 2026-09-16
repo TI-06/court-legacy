@@ -6,7 +6,10 @@ import type { EventDefinition } from "../validation/gameDataSchema";
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(maximum, Math.round(value)));
 
-function intersects(left: readonly string[], right: readonly string[]): boolean {
+function intersects(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
   const rightSet = new Set(right);
   return left.some((value) => rightSet.has(value));
 }
@@ -41,9 +44,7 @@ function bondMatchesEvent(
       return tags.has("mentor") || tags.has("guidance");
     }
     return (
-      tags.has("pair") ||
-      tags.has("cooperation") ||
-      tags.has("coordination")
+      tags.has("pair") || tags.has("cooperation") || tags.has("coordination")
     );
   });
 }
