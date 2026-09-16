@@ -1,4 +1,4 @@
-name: Phase21-4 Final Safe Gate
+name: Phase21-4 Notification Codec RED Probe
 
 on:
   push:
@@ -6,11 +6,10 @@ on:
       - tmp/phase21-4-social-effects-event-balance
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  safe-gate:
-    if: github.actor != 'github-actions[bot]'
+  notification-codec-red:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,64 +19,15 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Normalize long-run audit formatting
-        run: |
-          npx prettier tests/unit/domain/events/phase21RelationshipLongRun.test.ts --write
-          git diff --check
-      - name: Phase21-4 focused regression
-        run: |
-          npx vitest run \
-            tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
-            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
-            tests/unit/domain/events/phase21PairRepetition.test.ts \
-            tests/unit/domain/events/phase21RelationshipLongRun.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
-      - name: Phase21 cross-PR regression
-        run: |
-          npx vitest run \
-            tests/unit/domain/player/playerPersonalityPresentation.test.ts \
-            tests/unit/domain/relationships/specialRelationships.test.ts \
-            tests/unit/domain/relationships/phase21RelationshipDegradation.test.ts \
-            tests/unit/domain/relationships/relationshipPresentation.test.ts \
-            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts \
-            tests/unit/domain/events/phase21RelationshipEventData.test.ts \
-            tests/unit/domain/calendar/phase21RelationshipLegacy.test.ts \
-            tests/unit/notifications/phase21RelationshipNotifications.test.ts \
-            tests/unit/persistence/phase21GameStateMigration.test.ts \
-            tests/unit/data/phase21CharacterTraits.test.ts \
-            tests/unit/domain/player/characterTraitAssignment.test.ts \
-            tests/unit/domain/player/characterTraitDiscovery.test.ts \
-            tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts \
-            tests/unit/notifications/phase21CharacterTraitNotifications.test.ts \
-            tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
-            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
-            tests/unit/domain/events/phase21PairRepetition.test.ts \
-            tests/unit/domain/events/phase21RelationshipLongRun.test.ts \
-            tests/unit/worker/applyGameAction.test.ts \
-            tests/unit/worker/gameAction.test.ts \
-            tests/unit/worker/academicYearRecruitment.test.ts \
-            tests/unit/features/home/EventDialog.test.tsx \
-            tests/unit/features/home/HomeScreen.test.tsx \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
-            tests/unit/features/team/PlayerHubScreen.test.tsx
-      - name: Full verification
-        run: npm run verify
-      - name: Balance smoke
-        run: npm run soak:smoke
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: End-to-end regression
-        run: npm run test:e2e
-      - name: Persist normalized audit formatting
+      - name: Confirm persistence regression reproduces
         shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/unit/domain/events/phase21RelationshipLongRun.test.ts
-          if git diff --cached --quiet; then
-            echo "No formatting changes to commit"
-            exit 0
+          set +e
+          npx vitest run tests/unit/persistence/phase21NotificationCodec.test.ts
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected the new persistence regression test to be RED before the codec fix."
+            exit 1
           fi
-          git commit -m "style: format Phase21 relationship audit"
-          git push origin HEAD:tmp/phase21-4-social-effects-event-balance
+          echo "Expected RED reproduced without failing the workflow."
