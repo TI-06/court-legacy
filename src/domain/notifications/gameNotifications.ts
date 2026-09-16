@@ -6,6 +6,7 @@ import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
+import type { RelationshipTrainingModifierSummary } from "../training/relationshipTrainingModifiers";
 import type {
   SpecialRelationshipKind,
   SpecialRelationshipTransition,
@@ -23,6 +24,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  socialGrowth: RelationshipTrainingModifierSummary;
 }
 
 export interface TrainingResultNotificationPayload {
@@ -152,6 +154,14 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      socialGrowth: {
+        contributions: log.socialGrowth.contributions.map((contribution) => ({
+          ...contribution,
+        })),
+        rawPercentPoints: log.socialGrowth.rawPercentPoints,
+        appliedPercentPoints: log.socialGrowth.appliedPercentPoints,
+        capped: log.socialGrowth.capped,
+      },
     } satisfies TrainingResultNotificationPlayer;
   });
 

@@ -10,6 +10,7 @@ import type {
 } from "../validation/gameDataSchema";
 import type { EventOccurrence, ScheduledEventFollowUp } from "../model/Event";
 import { eventCareerKey } from "./eventEligibility";
+import { eventActorPairKey } from "./selectEvent";
 import { relationshipKey, type GameState } from "../model/GameState";
 import { clampAbility, type Player } from "../model/Player";
 import type { SchoolFacilities } from "../model/School";
@@ -435,6 +436,7 @@ export function resolveEventChoice(
     ? [...new Set([...state.eventMemory.occurredCareerKeys, careerKey])]
     : state.eventMemory.occurredCareerKeys;
   const primaryActor = pending.actorPlayerIds[0];
+  const actorPairKey = eventActorPairKey(pending.actorPlayerIds);
 
   nextState = {
     ...nextState,
@@ -470,6 +472,13 @@ export function resolveEventChoice(
             8,
           )
         : nextState.eventMemory.recentPrimaryActorPlayerIds,
+      recentActorPairKeys: actorPairKey
+        ? pushLimited(
+            nextState.eventMemory.recentActorPairKeys,
+            actorPairKey,
+            6,
+          )
+        : nextState.eventMemory.recentActorPairKeys,
       scheduledFollowUps: [
         ...nextState.eventMemory.scheduledFollowUps,
         ...scheduledFollowUps,

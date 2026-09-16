@@ -55,6 +55,12 @@ describe("game notifications", () => {
           injury: null,
           skippedReason: null,
           modifiers: [],
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
         },
       ],
       injuredPlayerIds: [],
@@ -151,5 +157,79 @@ describe("game notifications", () => {
 
   it("creates new games with an empty notification state", () => {
     expect(createDemoGame().notifications).toEqual({ items: [] });
+  });
+});
+
+describe("Phase21 social growth notification snapshot", () => {
+  it("copies the resolved social growth summary instead of retaining mutable references", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const relatedPlayerId = school.playerIds[1]!;
+    const result: TrainingResult = {
+      schoolId: state.userSchoolId,
+      teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
+      individualAssignments:
+        state.weeklySchedule.trainingPlan.individualAssignments,
+      playerLogs: [
+        {
+          playerId,
+          abilityChanges: {},
+          totalAbilityGrowth: 0,
+          fatigueChange: 0,
+          conditionChange: 0,
+          trustChange: 0,
+          academicRestricted: false,
+          injuryRisk: 0,
+          injury: null,
+          skippedReason: null,
+          modifiers: [],
+          socialGrowth: {
+            contributions: [
+              {
+                code: "relationship-partner",
+                label: "相棒",
+                percentPoints: 3,
+                relatedPlayerId,
+              },
+              {
+                code: "relationship-mentor",
+                label: "師弟",
+                percentPoints: 4,
+                relatedPlayerId,
+              },
+            ],
+            rawPercentPoints: 7,
+            appliedPercentPoints: 5,
+            capped: true,
+          },
+        },
+      ],
+      injuredPlayerIds: [],
+      randomCursor: state.randomCursor,
+    };
+
+    const notification = buildTrainingResultNotification({
+      stateBeforeTraining: state,
+      result,
+      data: gameData,
+    });
+    expect(notification.payload.players[0]).toMatchObject({
+      socialGrowth: {
+        rawPercentPoints: 7,
+        appliedPercentPoints: 5,
+        capped: true,
+        contributions: [
+          { code: "relationship-partner", label: "相棒", percentPoints: 3 },
+          { code: "relationship-mentor", label: "師弟", percentPoints: 4 },
+        ],
+      },
+    });
+    result.playerLogs[0]!.socialGrowth.contributions[0]!.relatedPlayerId =
+      playerId;
+    expect(
+      notification.payload.players[0]!.socialGrowth.contributions[0]!
+        .relatedPlayerId,
+    ).toBe(relatedPlayerId);
   });
 });

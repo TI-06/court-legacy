@@ -125,6 +125,32 @@ export function TrainingResultNotificationSheet({
                         </p>
                       )}
 
+                      {player.socialGrowth.contributions.length > 0 ? (
+                        <div
+                          className="training-result-notification__social"
+                          aria-label="人間関係効果"
+                        >
+                          <div className="training-result-notification__social-chips">
+                            {player.socialGrowth.contributions.map(
+                              (contribution) => (
+                                <span
+                                  key={`${contribution.code}:${contribution.relatedPlayerId}`}
+                                >
+                                  {contribution.label} +
+                                  {contribution.percentPoints}%
+                                </span>
+                              ),
+                            )}
+                          </div>
+                          {player.socialGrowth.capped ? (
+                            <small>
+                              関係性効果は上限 +
+                              {player.socialGrowth.appliedPercentPoints}%
+                            </small>
+                          ) : null}
+                        </div>
+                      ) : null}
+
                       <div className="training-result-notification__changes">
                         <span data-tone={fatigueTone(player.fatigueChange)}>
                           疲労 {signed(player.fatigueChange)}

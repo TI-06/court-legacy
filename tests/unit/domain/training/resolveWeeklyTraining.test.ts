@@ -324,3 +324,128 @@ describe("resolveWeeklyTraining", () => {
     expect(first).toEqual(second);
   });
 });
+
+describe("Phase21 social training integration", () => {
+  function socialFixture() {
+    const state = createTrainingState();
+    const school = state.schools[state.userSchoolId]!;
+    const mentor = school.playerIds[0]!;
+    const protege = school.playerIds[1]!;
+    state.playerRelationshipBonds = {};
+    state.players[mentor] = { ...state.players[mentor]!, injury: null };
+    state.players[protege] = { ...state.players[protege]!, injury: null };
+    const pair = [mentor, protege].sort() as [PlayerId, PlayerId];
+    state.playerRelationshipBonds[pair.join("::")] = {
+      playerIds: pair,
+      tags: [
+        {
+          kind: "partner",
+          establishedDate: state.date,
+          sourceEventId: null,
+          lastReinforcedDate: state.date,
+          belowThresholdSince: null,
+        },
+        {
+          kind: "mentor",
+          establishedDate: state.date,
+          sourceEventId: null,
+          lastReinforcedDate: state.date,
+          belowThresholdSince: null,
+          mentorPlayerId: mentor,
+          protegePlayerId: protege,
+        },
+      ],
+    };
+    return { state, mentor, protege, plan: createPlan(school.playerIds) };
+  }
+
+  it("collapses raw social contributions to one capped 105 percent modifier", () => {
+    const { state, protege, plan } = socialFixture();
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+    });
+    const log = resolution.result.playerLogs.find(
+      (entry) => entry.playerId === protege,
+    )!;
+    expect(log.socialGrowth).toMatchObject({
+      rawPercentPoints: 7,
+      appliedPercentPoints: 5,
+      capped: true,
+    });
+    expect(log.socialGrowth.contributions).toHaveLength(2);
+    expect(
+      log.modifiers.filter(
+        (modifier) => modifier.code === "relationship-social",
+      ),
+    ).toEqual([
+      { code: "relationship-social", label: "人間関係", percent: 105 },
+    ]);
+  });
+
+  it("does not enable social growth from an injured counterpart", () => {
+    const { state, mentor, protege, plan } = socialFixture();
+    state.players[mentor] = {
+      ...state.players[mentor]!,
+      injury: {
+        injuryId: "injury.test",
+        severity: "minor",
+        remainingWeeks: 1,
+        recurrenceRisk: 0,
+      },
+    };
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+    });
+    const log = resolution.result.playerLogs.find(
+      (entry) => entry.playerId === protege,
+    )!;
+    expect(log.socialGrowth.appliedPercentPoints).toBe(0);
+    expect(
+      log.modifiers.some((modifier) => modifier.code === "relationship-social"),
+    ).toBe(false);
+  });
+
+  it("does not enable social growth from an auto-rested counterpart", () => {
+    const { state, mentor, protege, plan } = socialFixture();
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+      restingPlayerIds: new Set<PlayerId>([mentor]),
+    });
+    const log = resolution.result.playerLogs.find(
+      (entry) => entry.playerId === protege,
+    )!;
+    expect(log.socialGrowth.appliedPercentPoints).toBe(0);
+  });
+
+  it("does not enable social growth from an instruction.rest counterpart", () => {
+    const { state, mentor, protege, plan } = socialFixture();
+    plan.individualAssignments = plan.individualAssignments.map((assignment) =>
+      assignment.playerId === mentor
+        ? { ...assignment, instructionId: "instruction.rest" }
+        : assignment,
+    );
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+    });
+    const log = resolution.result.playerLogs.find(
+      (entry) => entry.playerId === protege,
+    )!;
+    expect(log.socialGrowth.appliedPercentPoints).toBe(0);
+  });
+});

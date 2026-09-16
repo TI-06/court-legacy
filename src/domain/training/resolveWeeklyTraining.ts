@@ -20,6 +20,10 @@ import {
   type GrowthModifier,
 } from "./calculateGrowth";
 import {
+  calculateRelationshipTrainingModifier,
+  type RelationshipTrainingModifierSummary,
+} from "./relationshipTrainingModifiers";
+import {
   calculatePhase12InjuryRisk,
   getWeeklyConditionDrift,
 } from "./phase12TrainingRules";
@@ -48,6 +52,7 @@ export interface PlayerGrowthLog {
   injury: PlayerInjury | null;
   skippedReason: ActivitySkipReason;
   modifiers: GrowthModifier[];
+  socialGrowth: RelationshipTrainingModifierSummary;
 }
 
 export interface TrainingResult {
@@ -100,6 +105,15 @@ function clampState(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function emptySocialGrowth(): RelationshipTrainingModifierSummary {
+  return {
+    contributions: [],
+    rawPercentPoints: 0,
+    appliedPercentPoints: 0,
+    capped: false,
+  };
+}
+
 function emptyLog(playerId: PlayerId): PlayerGrowthLog {
   return {
     playerId,
@@ -113,6 +127,7 @@ function emptyLog(playerId: PlayerId): PlayerGrowthLog {
     injury: null,
     skippedReason: null,
     modifiers: [],
+    socialGrowth: emptySocialGrowth(),
   };
 }
 
@@ -324,10 +339,27 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const assignments: IndividualTrainingAssignment[] = [];
   const includeDynamics = input.schoolId === input.state.userSchoolId;
+  const activeTrainingPlayerIds = new Set<PlayerId>(
+    validated.school.playerIds.filter((id) => {
+      const player = input.state.players[id]!;
+      const instruction =
+        validated.instructionByPlayerId.get(id) ?? validated.fallback;
+      return (
+        !input.restingPlayerIds?.has(id) &&
+        !player.injury &&
+        instruction.id !== "instruction.rest"
+      );
+    }),
+  );
 
   for (const id of validated.school.playerIds) {
     const original = input.state.players[id]!;
     const log = emptyLog(id);
+    log.socialGrowth = calculateRelationshipTrainingModifier(
+      input.state,
+      id,
+      activeTrainingPlayerIds,
+    );
 
     if (input.restingPlayerIds?.has(id)) {
       log.skippedReason = "auto-rest";
@@ -356,6 +388,16 @@ export function resolveWeeklyTraining(
       continue;
     }
 
+    const socialModifiers: AdditionalGrowthModifier[] =
+      log.socialGrowth.appliedPercentPoints > 0
+        ? [
+            {
+              code: "relationship-social",
+              label: "人間関係",
+              percent: 100 + log.socialGrowth.appliedPercentPoints,
+            },
+          ]
+        : [];
     const extraModifiers = includeDynamics
       ? [
           ...(input.additionalGrowthModifiers ?? []),
@@ -365,8 +407,9 @@ export function resolveWeeklyTraining(
             original,
             instruction.targetAbilities,
           ),
+          ...socialModifiers,
         ]
-      : (input.additionalGrowthModifiers ?? []);
+      : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
     const updated = applyActivity(
       original,
       activityFromInstruction(instruction),
