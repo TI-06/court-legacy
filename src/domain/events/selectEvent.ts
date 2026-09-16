@@ -1,11 +1,11 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
-import type { EventDefinition } from "../validation/gameDataSchema";
 import type { PendingEvent, ScheduledEventFollowUp } from "../model/Event";
-import type { GameState } from "../model/GameState";
-import type { PlayerId } from "../model/identifiers";
-import { eventId } from "../model/identifiers";
+import { relationshipKey, type GameState } from "../model/GameState";
+import { eventId, type PlayerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import type { EventDefinition } from "../validation/gameDataSchema";
 import { weightedChoice } from "../random/weightedChoice";
+import { characterEventWeightMultiplier } from "./characterEventWeight";
 import { isEventEligibleForActors } from "./eventEligibility";
 
 interface EventCandidate {
@@ -17,6 +17,53 @@ interface EventCandidate {
 export interface EventSelectionResult {
   state: GameState;
   pendingEvent: PendingEvent | null;
+}
+
+export function eventActorPairKey(
+  actorPlayerIds: readonly PlayerId[],
+): string | null {
+  if (
+    actorPlayerIds.length !== 2 ||
+    !actorPlayerIds[0] ||
+    !actorPlayerIds[1] ||
+    actorPlayerIds[0] === actorPlayerIds[1]
+  ) {
+    return null;
+  }
+  return relationshipKey(actorPlayerIds[0], actorPlayerIds[1]);
+}
+
+export function eventSelectionWeight(
+  state: GameState,
+  data: GameDataRegistry,
+  event: EventDefinition,
+  actorPlayerIds: readonly PlayerId[],
+): number {
+  const recentEventPenalty = state.eventMemory.recentEventIds.includes(
+    eventId(event.id),
+  )
+    ? 0.2
+    : 1;
+  const recentCategoryPenalty = state.eventMemory.recentCategoryIds.includes(
+    event.category,
+  )
+    ? 0.35
+    : 1;
+  const pairKey = eventActorPairKey(actorPlayerIds);
+  const pairPenalty =
+    pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey) ? 0.2 : 1;
+
+  return Math.max(
+    1,
+    Math.round(
+      event.weight *
+        (characterEventWeightMultiplier(state, data, event, actorPlayerIds) /
+          100) *
+        recentEventPenalty *
+        recentCategoryPenalty *
+        pairPenalty,
+    ),
+  );
 }
 
 function combinations<T>(items: readonly T[], count: number): T[][] {
@@ -135,20 +182,10 @@ function normalCandidates(
       if (!isEventEligibleForActors(state, event, actorPlayerIds)) {
         continue;
       }
-      const recentEventPenalty = state.eventMemory.recentEventIds.includes(
-        eventId(event.id),
-      )
-        ? 0.2
-        : 1;
-      const recentCategoryPenalty =
-        state.eventMemory.recentCategoryIds.includes(event.category) ? 0.35 : 1;
       candidates.push({
         event,
         actorPlayerIds,
-        weight: Math.max(
-          1,
-          Math.round(event.weight * recentEventPenalty * recentCategoryPenalty),
-        ),
+        weight: eventSelectionWeight(state, data, event, actorPlayerIds),
       });
     }
   }
