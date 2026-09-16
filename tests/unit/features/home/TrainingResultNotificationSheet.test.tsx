@@ -36,6 +36,12 @@ function createNotification(): TrainingResultNotification {
             spike: 2,
             jump: 1,
           },
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
         },
       ],
     },
@@ -82,5 +88,43 @@ describe("TrainingResultNotificationSheet", () => {
       "data-tone",
       "danger",
     );
+  });
+});
+
+describe("Phase21 social growth presentation", () => {
+  it("shows contributor chips and the capped applied value", () => {
+    const notification = createNotification();
+    const player = notification.payload.players[0]!;
+    const state = createDemoGame();
+    const relatedPlayerId = state.schools[state.userSchoolId]!.playerIds[1]!;
+    player.socialGrowth = {
+      contributions: [
+        {
+          code: "relationship-partner",
+          label: "相棒",
+          percentPoints: 3,
+          relatedPlayerId,
+        },
+        {
+          code: "relationship-mentor",
+          label: "師弟",
+          percentPoints: 4,
+          relatedPlayerId,
+        },
+      ],
+      rawPercentPoints: 7,
+      appliedPercentPoints: 5,
+      capped: true,
+    };
+    render(
+      <TrainingResultNotificationSheet
+        notification={notification}
+        onClose={vi.fn()}
+      />,
+    );
+    const dialog = screen.getByRole("dialog", { name: "今週の練習結果" });
+    expect(within(dialog).getByText("相棒 +3%")).toBeVisible();
+    expect(within(dialog).getByText("師弟 +4%")).toBeVisible();
+    expect(within(dialog).getByText("関係性効果は上限 +5%")).toBeVisible();
   });
 });

@@ -61,6 +61,12 @@ function trainingNotification(
           trustChange: 0,
           injured: false,
           abilityChanges: {},
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
         },
       ],
     },
