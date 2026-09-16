@@ -1,4 +1,4 @@
-name: Phase21-4 Task3 Green Probe
+name: Phase21-4 Event Weighting TDD Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task3:
+  event-weighting:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,293 +20,569 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Apply Task3 implementation, tests, and typed fixtures
+      - name: Task4 RED tests
         shell: bash
         run: |
-          cat >> tests/unit/domain/notifications/gameNotifications.test.ts <<'EOF'
+          cat > tests/unit/domain/events/phase21CharacterEventWeight.test.ts <<'EOF'
+          import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+          import { relationshipKey } from "../../../../src/domain/model/GameState";
+          import type { PlayerId } from "../../../../src/domain/model/identifiers";
+          import { characterEventWeightMultiplier } from "../../../../src/domain/events/characterEventWeight";
+          import type {
+            CharacterTraitDefinition,
+            EventDefinition,
+            PersonalityDefinition,
+          } from "../../../../src/domain/validation/gameDataSchema";
 
-          describe("Phase21 social growth notification snapshot", () => {
-            it("copies the resolved social growth summary instead of retaining mutable references", () => {
-              const state = createDemoGame();
-              const school = state.schools[state.userSchoolId]!;
-              const playerId = school.playerIds[0]!;
-              const relatedPlayerId = school.playerIds[1]!;
-              const result: TrainingResult = {
-                schoolId: state.userSchoolId,
-                teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
-                individualAssignments: state.weeklySchedule.trainingPlan.individualAssignments,
-                playerLogs: [
-                  {
-                    playerId,
-                    abilityChanges: {},
-                    totalAbilityGrowth: 0,
-                    fatigueChange: 0,
-                    conditionChange: 0,
-                    trustChange: 0,
-                    academicRestricted: false,
-                    injuryRisk: 0,
-                    injury: null,
-                    skippedReason: null,
-                    modifiers: [],
-                    socialGrowth: {
-                      contributions: [
-                        {
-                          code: "relationship-partner",
-                          label: "相棒",
-                          percentPoints: 3,
-                          relatedPlayerId,
-                        },
-                        {
-                          code: "relationship-mentor",
-                          label: "師弟",
-                          percentPoints: 4,
-                          relatedPlayerId,
-                        },
-                      ],
-                      rawPercentPoints: 7,
-                      appliedPercentPoints: 5,
-                      capped: true,
-                    },
-                  },
-                ],
-                injuredPlayerIds: [],
-                randomCursor: state.randomCursor,
+          const personalityId = "personality.phase21-weight";
+          const traitId = "character.phase21-weight";
+
+          function registry(input: {
+            relationshipGrowth?: number;
+            personalityTags?: string[];
+            relationshipBias?: number;
+            traitTags?: string[];
+          } = {}) {
+            const personality: PersonalityDefinition = {
+              id: personalityId,
+              name: "重み確認",
+              description: "Phase21重み確認用",
+              trainingStability: 0,
+              moraleVolatility: 0,
+              relationshipGrowth: input.relationshipGrowth ?? 20,
+              pressureModifier: 0,
+              tags: input.personalityTags ?? ["focus"],
+            };
+            const characterTrait: CharacterTraitDefinition = {
+              id: traitId,
+              name: "重み個性",
+              description: "Phase21重み確認用",
+              eventTags: input.traitTags ?? ["focus"],
+              relationshipBias: input.relationshipBias ?? 10,
+              discoveryConditions: [{ type: "trust-min", value: 1 }],
+            };
+            return {
+              ...gameData,
+              personalities: new Map([
+                ...gameData.personalities,
+                [personality.id, personality] as const,
+              ]),
+              characterTraits: new Map([
+                ...gameData.characterTraits,
+                [characterTrait.id, characterTrait] as const,
+              ]),
+            };
+          }
+
+          function event(overrides: Partial<EventDefinition> = {}): EventDefinition {
+            const base = [...gameData.events.values()][0]!;
+            return {
+              ...base,
+              id: "event.phase21-weight",
+              category: "relationship",
+              tags: ["focus", "cooperation"],
+              ...overrides,
+            };
+          }
+
+          function actors(revealed = true) {
+            const state = structuredClone(createDemoGame());
+            const ids = state.schools[state.userSchoolId]!.playerIds.slice(0, 2) as [
+              PlayerId,
+              PlayerId,
+            ];
+            for (const id of ids) {
+              state.players[id] = {
+                ...state.players[id]!,
+                personalityId,
+                hiddenTraitIds: [traitId],
+                revealedHiddenTraitIds: revealed ? [traitId] : [],
               };
+            }
+            state.playerRelationshipBonds = {};
+            return { state, ids };
+          }
 
-              const notification = buildTrainingResultNotification({
-                stateBeforeTraining: state,
-                result,
-                data: gameData,
-              });
-              expect(notification.payload.players[0]).toMatchObject({
-                socialGrowth: {
-                  rawPercentPoints: 7,
-                  appliedPercentPoints: 5,
-                  capped: true,
-                  contributions: [
-                    { code: "relationship-partner", label: "相棒", percentPoints: 3 },
-                    { code: "relationship-mentor", label: "師弟", percentPoints: 4 },
-                  ],
-                },
-              });
-              result.playerLogs[0]!.socialGrowth.contributions[0]!.relatedPlayerId = playerId;
+          describe("Phase21 character-aware event weight", () => {
+            it("uses public personality but ignores an unrevealed hidden character trait", () => {
+              const { state, ids } = actors(false);
               expect(
-                notification.payload.players[0]!.socialGrowth.contributions[0]!
-                  .relatedPlayerId,
-              ).toBe(relatedPlayerId);
+                characterEventWeightMultiplier(state, registry(), event(), [ids[0]]),
+              ).toBe(120);
             });
-          });
-          EOF
 
-          cat >> tests/unit/features/home/TrainingResultNotificationSheet.test.tsx <<'EOF'
+            it("adds only revealed character trait tags and relationship bias", () => {
+              const { state, ids } = actors(true);
+              expect(
+                characterEventWeightMultiplier(state, registry(), event(), [ids[0]]),
+              ).toBe(145);
+            });
 
-          describe("Phase21 social growth presentation", () => {
-            it("shows contributor chips and the capped applied value", () => {
-              const notification = createNotification();
-              const player = notification.payload.players[0]!;
-              const state = createDemoGame();
-              const relatedPlayerId = state.schools[state.userSchoolId]!.playerIds[1]!;
-              player.socialGrowth = {
-                contributions: [
+            it("adds a matching special bond once and clamps the final multiplier to 150", () => {
+              const { state, ids } = actors(true);
+              state.playerRelationshipBonds[relationshipKey(ids[0], ids[1])] = {
+                playerIds: [...ids].sort() as [PlayerId, PlayerId],
+                tags: [
                   {
-                    code: "relationship-partner",
-                    label: "相棒",
-                    percentPoints: 3,
-                    relatedPlayerId,
-                  },
-                  {
-                    code: "relationship-mentor",
-                    label: "師弟",
-                    percentPoints: 4,
-                    relatedPlayerId,
+                    kind: "partner",
+                    establishedDate: state.date,
+                    sourceEventId: null,
+                    lastReinforcedDate: state.date,
+                    belowThresholdSince: null,
                   },
                 ],
-                rawPercentPoints: 7,
-                appliedPercentPoints: 5,
-                capped: true,
               };
-              render(
-                <TrainingResultNotificationSheet
-                  notification={notification}
-                  onClose={vi.fn()}
-                />,
-              );
-              const dialog = screen.getByRole("dialog", { name: "今週の練習結果" });
-              expect(within(dialog).getByText("相棒 +3%")).toBeVisible();
-              expect(within(dialog).getByText("師弟 +4%")).toBeVisible();
-              expect(within(dialog).getByText("関係性効果は上限 +5%")).toBeVisible();
+              expect(
+                characterEventWeightMultiplier(state, registry(), event(), ids),
+              ).toBe(150);
+            });
+
+            it("clamps negative relationship tendencies to a floor of 75", () => {
+              const { state, ids } = actors(true);
+              expect(
+                characterEventWeightMultiplier(
+                  state,
+                  registry({
+                    relationshipGrowth: -20,
+                    personalityTags: ["other"],
+                    relationshipBias: -10,
+                    traitTags: ["other"],
+                  }),
+                  event({ tags: ["focus"] }),
+                  ids,
+                ),
+              ).toBe(75);
+            });
+
+            it("does not apply relationship bias outside relationship/rivalry categories", () => {
+              const { state, ids } = actors(false);
+              expect(
+                characterEventWeightMultiplier(
+                  state,
+                  registry({ personalityTags: ["other"] }),
+                  event({ category: "practice", tags: ["focus"] }),
+                  [ids[0]],
+                ),
+              ).toBe(100);
             });
           });
           EOF
-
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          notification_path = Path("src/domain/notifications/gameNotifications.ts")
-          text = notification_path.read_text(encoding="utf-8")
-          import_marker = 'import type { TrainingResult } from "../training/resolveWeeklyTraining";\n'
-          social_import = 'import type { RelationshipTrainingModifierSummary } from "../training/relationshipTrainingModifiers";\n'
-          if import_marker not in text:
-              raise SystemExit("notification import marker missing")
-          text = text.replace(import_marker, import_marker + social_import, 1)
-          field_marker = '  abilityChanges: Partial<Record<AbilityKey, number>>;\n'
-          if field_marker not in text:
-              raise SystemExit("notification field marker missing")
-          text = text.replace(
-              field_marker,
-              field_marker + '  socialGrowth: RelationshipTrainingModifierSummary;\n',
-              1,
-          )
-          builder_marker = '      abilityChanges: { ...log.abilityChanges },\n'
-          if builder_marker not in text:
-              raise SystemExit("notification builder marker missing")
-          text = text.replace(
-              builder_marker,
-              builder_marker + '''      socialGrowth: {
-                contributions: log.socialGrowth.contributions.map((contribution) => ({
-                  ...contribution,
-                })),
-                rawPercentPoints: log.socialGrowth.rawPercentPoints,
-                appliedPercentPoints: log.socialGrowth.appliedPercentPoints,
-                capped: log.socialGrowth.capped,
-              },
-          ''',
-              1,
-          )
-          notification_path.write_text(text, encoding="utf-8")
-
-          sheet_path = Path("src/features/home/TrainingResultNotificationSheet.tsx")
-          sheet = sheet_path.read_text(encoding="utf-8")
-          marker = '                      <div className="training-result-notification__changes">\n'
-          if marker not in sheet:
-              raise SystemExit("sheet changes marker missing")
-          sheet = sheet.replace(
-              marker,
-              '''                      {player.socialGrowth.contributions.length > 0 ? (
-                            <div
-                              className="training-result-notification__social"
-                              aria-label="人間関係効果"
-                            >
-                              <div className="training-result-notification__social-chips">
-                                {player.socialGrowth.contributions.map((contribution) => (
-                                  <span
-                                    key={`${contribution.code}:${contribution.relatedPlayerId}`}
-                                  >
-                                    {contribution.label} +{contribution.percentPoints}%
-                                  </span>
-                                ))}
-                              </div>
-                              {player.socialGrowth.capped ? (
-                                <small>
-                                  関係性効果は上限 +{player.socialGrowth.appliedPercentPoints}%
-                                </small>
-                              ) : null}
-                            </div>
-                          ) : null}
-
-          ''' + marker,
-              1,
-          )
-          sheet_path.write_text(sheet, encoding="utf-8")
-
-          css_path = Path("src/features/home/training-result-notification.css")
-          css = css_path.read_text(encoding="utf-8")
-          css += '''
-
-          .training-result-notification__social {
-            display: grid;
-            gap: 5px;
-          }
-
-          .training-result-notification__social-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-          }
-
-          .training-result-notification__social-chips span {
-            padding: 5px 7px;
-            color: #5d4310;
-            font-size: var(--game-font-label);
-            font-weight: 900;
-            line-height: 1.25;
-            background: #fff4d5;
-            border: 1px solid #e5ca83;
-            border-radius: 8px;
-          }
-
-          .training-result-notification__social small {
-            color: #6b5a36;
-            font-size: var(--game-font-label);
-            font-weight: 800;
-            line-height: 1.3;
-          }
-          '''
-          css_path.write_text(css, encoding="utf-8")
-
-          empty_social = '''socialGrowth: {
-            contributions: [],
-            rawPercentPoints: 0,
-            appliedPercentPoints: 0,
-            capped: false,
-          },'''
-
-          for filename in [
-              "tests/unit/features/home/TrainingResultNotificationSheet.test.tsx",
-              "tests/unit/features/home/HomeScreen.test.tsx",
-              "tests/unit/features/home/homeCommandCenter.test.ts",
-          ]:
-              p = Path(filename)
-              source = p.read_text(encoding="utf-8")
-              # Add the new required notification field to the first presentation fixture.
-              if filename.endswith("TrainingResultNotificationSheet.test.tsx"):
-                  pattern = re.compile(
-                      r'(?P<indent>\s*)abilityChanges: \{\n(?P=indent)  spike: 2,\n(?P=indent)  jump: 1,\n(?P=indent)\},'
-                  )
-              else:
-                  pattern = re.compile(r'^(?P<indent>\s*)abilityChanges: \{\},\s*$', re.MULTILINE)
-              match = pattern.search(source)
-              if not match:
-                  raise SystemExit(f"notification fixture marker missing: {filename}")
-              indent = match.group("indent")
-              formatted = "\n".join(indent + line if line else line for line in empty_social.splitlines())
-              source = source[:match.end()] + "\n" + formatted + source[match.end():]
-              p.write_text(source, encoding="utf-8")
-          PY
-
-          npx prettier \
-            src/domain/notifications/gameNotifications.ts \
-            src/features/home/TrainingResultNotificationSheet.tsx \
-            src/features/home/training-result-notification.css \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
-            tests/unit/features/home/HomeScreen.test.tsx \
-            tests/unit/features/home/homeCommandCenter.test.ts --write
-          git diff --check
-      - name: Verify GREEN
-        run: |
-          npx vitest run \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
-            tests/unit/features/home/HomeScreen.test.tsx \
-            tests/unit/features/home/homeCommandCenter.test.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
-            tests/unit/domain/player/playerDevelopmentHistory.test.ts
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Commit Task3
+          npx prettier tests/unit/domain/events/phase21CharacterEventWeight.test.ts --write
+          set +e
+          npx vitest run tests/unit/domain/events/phase21CharacterEventWeight.test.ts > /tmp/task4-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/task4-red.log
+          if [ "$status" -eq 0 ]; then exit 1; fi
+          grep -q "characterEventWeight" /tmp/task4-red.log
+      - name: Implement Task4
         shell: bash
         run: |
+          cat > src/domain/events/characterEventWeight.ts <<'EOF'
+          import type { GameDataRegistry } from "../../data/dataRegistry";
+          import { relationshipKey, type GameState } from "../model/GameState";
+          import type { PlayerId } from "../model/identifiers";
+          import type { EventDefinition } from "../validation/gameDataSchema";
+
+          const clamp = (value: number, minimum: number, maximum: number) =>
+            Math.max(minimum, Math.min(maximum, Math.round(value)));
+
+          function intersects(left: readonly string[], right: readonly string[]): boolean {
+            const rightSet = new Set(right);
+            return left.some((value) => rightSet.has(value));
+          }
+
+          function isRelationshipCategory(event: EventDefinition): boolean {
+            return event.category === "relationship" || event.category === "rivalry";
+          }
+
+          function bondMatchesEvent(
+            state: GameState,
+            event: EventDefinition,
+            actorPlayerIds: readonly PlayerId[],
+          ): boolean {
+            if (actorPlayerIds.length !== 2 || actorPlayerIds[0] === actorPlayerIds[1]) {
+              return false;
+            }
+            const bond = state.playerRelationshipBonds[
+              relationshipKey(actorPlayerIds[0]!, actorPlayerIds[1]!)
+            ];
+            if (!bond) return false;
+            const tags = new Set(event.tags);
+            return bond.tags.some((tag) => {
+              if (tag.kind === "rival") {
+                return (
+                  event.category === "rivalry" ||
+                  tags.has("competition") ||
+                  tags.has("rivalry")
+                );
+              }
+              if (tag.kind === "mentor") {
+                return tags.has("mentor") || tags.has("guidance");
+              }
+              return (
+                tags.has("pair") ||
+                tags.has("cooperation") ||
+                tags.has("coordination")
+              );
+            });
+          }
+
+          export function characterEventWeightMultiplier(
+            state: GameState,
+            data: GameDataRegistry,
+            event: EventDefinition,
+            actorPlayerIds: readonly PlayerId[],
+          ): number {
+            let score = 100;
+            let personalityTagBonus = 0;
+            let personalityRelationshipBias = 0;
+            let characterTraitTagBonus = 0;
+            let characterTraitRelationshipBias = 0;
+            const relationshipCategory = isRelationshipCategory(event);
+
+            for (const actorId of actorPlayerIds) {
+              const player = state.players[actorId];
+              if (!player) continue;
+
+              const personality = data.personalities.get(player.personalityId);
+              if (personality) {
+                if (intersects(personality.tags, event.tags)) {
+                  personalityTagBonus += 10;
+                }
+                if (relationshipCategory) {
+                  personalityRelationshipBias += Math.round(
+                    personality.relationshipGrowth / 2,
+                  );
+                }
+              }
+
+              for (const traitId of player.revealedHiddenTraitIds ?? []) {
+                const trait = data.characterTraits.get(traitId);
+                if (!trait) continue;
+                if (intersects(trait.eventTags, event.tags)) {
+                  characterTraitTagBonus += 15;
+                }
+                if (relationshipCategory) {
+                  characterTraitRelationshipBias += trait.relationshipBias;
+                }
+              }
+            }
+
+            score += Math.min(20, personalityTagBonus);
+            score += relationshipCategory
+              ? clamp(personalityRelationshipBias, -15, 15)
+              : 0;
+            score += Math.min(30, characterTraitTagBonus);
+            score += relationshipCategory
+              ? clamp(characterTraitRelationshipBias, -15, 15)
+              : 0;
+            if (bondMatchesEvent(state, event, actorPlayerIds)) {
+              score += 20;
+            }
+            return clamp(score, 75, 150);
+          }
+          EOF
+          npx prettier src/domain/events/characterEventWeight.ts --write
+          npx vitest run tests/unit/domain/events/phase21CharacterEventWeight.test.ts
+          git add src/domain/events/characterEventWeight.ts tests/unit/domain/events/phase21CharacterEventWeight.test.ts
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: weight events by visible character context"
+      - name: Task5 RED tests
+        shell: bash
+        run: |
+          cat > tests/unit/domain/events/phase21PairRepetition.test.ts <<'EOF'
+          import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+          import { relationshipKey } from "../../../../src/domain/model/GameState";
+          import { eventId, type PlayerId } from "../../../../src/domain/model/identifiers";
+          import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
+          import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
+          import {
+            eventActorPairKey,
+            eventSelectionWeight,
+          } from "../../../../src/domain/events/selectEvent";
+          import type { EventDefinition } from "../../../../src/domain/validation/gameDataSchema";
+
+          function neutralEvent(overrides: Partial<EventDefinition> = {}): EventDefinition {
+            const base = [...gameData.events.values()][0]!;
+            return {
+              ...base,
+              id: "event.phase21-pair-weight",
+              category: "individual",
+              tags: [],
+              weight: 100,
+              actorCount: 2,
+              choices: [
+                {
+                  id: "accept",
+                  label: "受け入れる",
+                  detail: "確認用",
+                  effects: [{ type: "trust-change", amount: 1 }],
+                },
+                {
+                  id: "decline",
+                  label: "見送る",
+                  detail: "確認用",
+                  effects: [{ type: "trust-change", amount: 0 }],
+                },
+              ],
+              ...overrides,
+            };
+          }
+
+          describe("Phase21 actor pair repetition", () => {
+            it("creates a canonical key only for exactly two distinct actors", () => {
+              const state = createDemoGame();
+              const [left, right, third] = state.schools[state.userSchoolId]!.playerIds;
+              expect(eventActorPairKey([right!, left!])).toBe(relationshipKey(left!, right!));
+              expect(eventActorPairKey([left!])).toBeNull();
+              expect(eventActorPairKey([left!, left!])).toBeNull();
+              expect(eventActorPairKey([left!, right!, third!])).toBeNull();
+            });
+
+            it("applies the exact recent-pair 0.20 penalty without bypassing existing penalties", () => {
+              const state = structuredClone(createDemoGame());
+              const actors = state.schools[state.userSchoolId]!.playerIds.slice(0, 2) as [
+                PlayerId,
+                PlayerId,
+              ];
+              const event = neutralEvent();
+              state.eventMemory.recentActorPairKeys = [];
+              expect(eventSelectionWeight(state, gameData, event, actors)).toBe(100);
+
+              state.eventMemory.recentActorPairKeys = [relationshipKey(...actors)];
+              expect(eventSelectionWeight(state, gameData, event, actors)).toBe(20);
+
+              state.eventMemory.recentEventIds = [eventId(event.id)];
+              state.eventMemory.recentCategoryIds = [event.category];
+              expect(eventSelectionWeight(state, gameData, event, actors)).toBe(1);
+            });
+
+            it("records the resolved pair canonically and retains only the latest six", () => {
+              const state = structuredClone(createDemoGame());
+              const actors = state.schools[state.userSchoolId]!.playerIds.slice(0, 2) as [
+                PlayerId,
+                PlayerId,
+              ];
+              const event = neutralEvent();
+              const data = {
+                ...gameData,
+                events: new Map([...gameData.events, [event.id, event] as const]),
+              };
+              state.eventMemory.recentActorPairKeys = [
+                "a::b",
+                "c::d",
+                "e::f",
+                "g::h",
+                "i::j",
+                "k::l",
+              ];
+              state.pendingEvent = {
+                eventId: eventId(event.id),
+                actorPlayerIds: [...actors],
+                targetSchoolId: null,
+                surfacedDate: state.date,
+                choiceIds: event.choices.map((choice) => choice.id),
+                chainId: null,
+                chainStage: null,
+              };
+              const resolved = resolveEventChoice(
+                state,
+                "accept",
+                data,
+                new SeededRandom(state.seed, state.randomCursor),
+              );
+              expect(resolved.state.eventMemory.recentActorPairKeys).toHaveLength(6);
+              expect(resolved.state.eventMemory.recentActorPairKeys.at(-1)).toBe(
+                relationshipKey(...actors),
+              );
+              expect(resolved.state.eventMemory.recentActorPairKeys).not.toContain("a::b");
+            });
+          });
+          EOF
+          npx prettier tests/unit/domain/events/phase21PairRepetition.test.ts --write
+          set +e
+          npx vitest run tests/unit/domain/events/phase21PairRepetition.test.ts > /tmp/task5-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/task5-red.log
+          if [ "$status" -eq 0 ]; then exit 1; fi
+          grep -q "eventActorPairKey\|eventSelectionWeight\|recentActorPairKeys" /tmp/task5-red.log
+      - name: Implement Task5
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          select_path = Path("src/domain/events/selectEvent.ts")
+          text = select_path.read_text(encoding="utf-8")
+          text = text.replace(
+              'import type { GameState } from "../model/GameState";\n',
+              'import { relationshipKey, type GameState } from "../model/GameState";\n',
+              1,
+          )
+          import_marker = 'import { isEventEligibleForActors } from "./eventEligibility";\n'
+          if import_marker not in text:
+              raise SystemExit("selectEvent import marker missing")
+          text = text.replace(
+              import_marker,
+              import_marker + 'import { characterEventWeightMultiplier } from "./characterEventWeight";\n',
+              1,
+          )
+          insertion_marker = '''export interface EventSelectionResult {
+            state: GameState;
+            pendingEvent: PendingEvent | null;
+          }
+
+          '''
+          helpers = '''export interface EventSelectionResult {
+            state: GameState;
+            pendingEvent: PendingEvent | null;
+          }
+
+          export function eventActorPairKey(
+            actorPlayerIds: readonly PlayerId[],
+          ): string | null {
+            if (
+              actorPlayerIds.length !== 2 ||
+              !actorPlayerIds[0] ||
+              !actorPlayerIds[1] ||
+              actorPlayerIds[0] === actorPlayerIds[1]
+            ) {
+              return null;
+            }
+            return relationshipKey(actorPlayerIds[0], actorPlayerIds[1]);
+          }
+
+          export function eventSelectionWeight(
+            state: GameState,
+            data: GameDataRegistry,
+            event: EventDefinition,
+            actorPlayerIds: readonly PlayerId[],
+          ): number {
+            const recentEventPenalty = state.eventMemory.recentEventIds.includes(
+              eventId(event.id),
+            )
+              ? 0.2
+              : 1;
+            const recentCategoryPenalty = state.eventMemory.recentCategoryIds.includes(
+              event.category,
+            )
+              ? 0.35
+              : 1;
+            const pairKey = eventActorPairKey(actorPlayerIds);
+            const pairPenalty =
+              pairKey && state.eventMemory.recentActorPairKeys.includes(pairKey)
+                ? 0.2
+                : 1;
+            return Math.max(
+              1,
+              Math.round(
+                event.weight *
+                  (characterEventWeightMultiplier(
+                    state,
+                    data,
+                    event,
+                    actorPlayerIds,
+                  ) /
+                    100) *
+                  recentEventPenalty *
+                  recentCategoryPenalty *
+                  pairPenalty,
+              ),
+            );
+          }
+
+          '''
+          if insertion_marker not in text:
+              raise SystemExit("selection result marker missing")
+          text = text.replace(insertion_marker, helpers, 1)
+          old_weight = '''      const recentEventPenalty = state.eventMemory.recentEventIds.includes(
+                eventId(event.id),
+              )
+                ? 0.2
+                : 1;
+              const recentCategoryPenalty =
+                state.eventMemory.recentCategoryIds.includes(event.category) ? 0.35 : 1;
+              candidates.push({
+                event,
+                actorPlayerIds,
+                weight: Math.max(
+                  1,
+                  Math.round(event.weight * recentEventPenalty * recentCategoryPenalty),
+                ),
+              });
+          '''
+          new_weight = '''      candidates.push({
+                event,
+                actorPlayerIds,
+                weight: eventSelectionWeight(state, data, event, actorPlayerIds),
+              });
+          '''
+          if old_weight not in text:
+              raise SystemExit("candidate weight marker missing")
+          text = text.replace(old_weight, new_weight, 1)
+          select_path.write_text(text, encoding="utf-8")
+
+          resolve_path = Path("src/domain/events/resolveEventChoice.ts")
+          resolve = resolve_path.read_text(encoding="utf-8")
+          import_marker = 'import { eventCareerKey } from "./eventEligibility";\n'
+          if import_marker not in resolve:
+              raise SystemExit("resolve import marker missing")
+          resolve = resolve.replace(
+              import_marker,
+              import_marker + 'import { eventActorPairKey } from "./selectEvent";\n',
+              1,
+          )
+          primary_marker = '  const primaryActor = pending.actorPlayerIds[0];\n'
+          if primary_marker not in resolve:
+              raise SystemExit("primary actor marker missing")
+          resolve = resolve.replace(
+              primary_marker,
+              primary_marker + '  const actorPairKey = eventActorPairKey(pending.actorPlayerIds);\n',
+              1,
+          )
+          memory_marker = '''      recentPrimaryActorPlayerIds: primaryActor
+                ? pushLimited(
+                    nextState.eventMemory.recentPrimaryActorPlayerIds,
+                    primaryActor,
+                    8,
+                  )
+                : nextState.eventMemory.recentPrimaryActorPlayerIds,
+              scheduledFollowUps: [
+          '''
+          memory_replacement = '''      recentPrimaryActorPlayerIds: primaryActor
+                ? pushLimited(
+                    nextState.eventMemory.recentPrimaryActorPlayerIds,
+                    primaryActor,
+                    8,
+                  )
+                : nextState.eventMemory.recentPrimaryActorPlayerIds,
+              recentActorPairKeys: actorPairKey
+                ? pushLimited(
+                    nextState.eventMemory.recentActorPairKeys,
+                    actorPairKey,
+                    6,
+                  )
+                : nextState.eventMemory.recentActorPairKeys,
+              scheduledFollowUps: [
+          '''
+          if memory_marker not in resolve:
+              raise SystemExit("event memory marker missing")
+          resolve = resolve.replace(memory_marker, memory_replacement, 1)
+          resolve_path.write_text(resolve, encoding="utf-8")
+          PY
+          npx prettier src/domain/events/selectEvent.ts src/domain/events/resolveEventChoice.ts --write
+          git diff --check
+          npx vitest run \
+            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
+            tests/unit/domain/events/phase21PairRepetition.test.ts \
+            tests/unit/domain/events
+          npm run typecheck
           git add \
-            src/domain/notifications/gameNotifications.ts \
-            src/features/home/TrainingResultNotificationSheet.tsx \
-            src/features/home/training-result-notification.css \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
-            tests/unit/features/home/HomeScreen.test.tsx \
-            tests/unit/features/home/homeCommandCenter.test.ts
-          git commit -m "feat: show social growth in training results"
+            src/domain/events/selectEvent.ts \
+            src/domain/events/resolveEventChoice.ts \
+            tests/unit/domain/events/phase21PairRepetition.test.ts
+          git commit -m "feat: suppress repeated event actor pairs"
           git push origin HEAD:tmp/phase21-4-social-effects-event-balance
