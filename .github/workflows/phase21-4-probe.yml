@@ -1,4 +1,4 @@
-name: Phase21-4 Task2 Green Probe
+name: Phase21-4 Task3 TDD Probe
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  task2:
+  task3:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,331 +20,278 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Apply verified Task2 implementation and tests
+      - name: Add Task3 RED tests
         shell: bash
         run: |
-          cat >> tests/unit/domain/training/resolveWeeklyTraining.test.ts <<'EOF'
+          python - <<'PY'
+          from pathlib import Path
 
-          describe("Phase21 social training integration", () => {
-            function socialFixture() {
-              const state = createTrainingState();
-              const school = state.schools[state.userSchoolId]!;
-              const mentor = school.playerIds[0]!;
-              const protege = school.playerIds[1]!;
-              state.playerRelationshipBonds = {};
-              state.players[mentor] = { ...state.players[mentor]!, injury: null };
-              state.players[protege] = { ...state.players[protege]!, injury: null };
-              const pair = [mentor, protege].sort() as [PlayerId, PlayerId];
-              state.playerRelationshipBonds[pair.join("::")] = {
-                playerIds: pair,
-                tags: [
-                  {
-                    kind: "partner",
-                    establishedDate: state.date,
-                    sourceEventId: null,
-                    lastReinforcedDate: state.date,
-                    belowThresholdSince: null,
+          notification_test = Path("tests/unit/domain/notifications/gameNotifications.test.ts")
+          text = notification_test.read_text(encoding="utf-8")
+          old = '''          socialGrowth: {
+                    contributions: [],
+                    rawPercentPoints: 0,
+                    appliedPercentPoints: 0,
+                    capped: false,
                   },
-                  {
-                    kind: "mentor",
-                    establishedDate: state.date,
-                    sourceEventId: null,
-                    lastReinforcedDate: state.date,
-                    belowThresholdSince: null,
-                    mentorPlayerId: mentor,
-                    protegePlayerId: protege,
+          '''
+          new = '''          socialGrowth: {
+                    contributions: [
+                      {
+                        code: "relationship-partner",
+                        label: "相棒",
+                        percentPoints: 3,
+                        relatedPlayerId: state.schools[state.userSchoolId]!.playerIds[1]!,
+                      },
+                      {
+                        code: "relationship-mentor",
+                        label: "師弟",
+                        percentPoints: 4,
+                        relatedPlayerId: state.schools[state.userSchoolId]!.playerIds[1]!,
+                      },
+                    ],
+                    rawPercentPoints: 7,
+                    appliedPercentPoints: 5,
+                    capped: true,
                   },
-                ],
-              };
-              return { state, mentor, protege, plan: createPlan(school.playerIds) };
-            }
-
-            it("collapses raw social contributions to one capped 105 percent modifier", () => {
-              const { state, protege, plan } = socialFixture();
-              const resolution = resolveWeeklyTraining({
-                state,
-                schoolId: state.userSchoolId,
-                plan,
-                data,
-                random: new FixedRandom(100),
-              });
-              const log = resolution.result.playerLogs.find(
-                (entry) => entry.playerId === protege,
-              )!;
-              expect(log.socialGrowth).toMatchObject({
+          '''
+          if old not in text:
+              raise SystemExit("notification socialGrowth fixture marker missing")
+          text = text.replace(old, new, 1)
+          assertion_marker = '''      abilityChanges: { serve: 2, jump: 1 },
+            });
+          '''
+          assertion_replacement = '''      abilityChanges: { serve: 2, jump: 1 },
+              socialGrowth: {
                 rawPercentPoints: 7,
                 appliedPercentPoints: 5,
                 capped: true,
-              });
-              expect(log.socialGrowth.contributions).toHaveLength(2);
-              expect(
-                log.modifiers.filter(
-                  (modifier) => modifier.code === "relationship-social",
-                ),
-              ).toEqual([
-                { code: "relationship-social", label: "人間関係", percent: 105 },
-              ]);
+                contributions: [
+                  {
+                    code: "relationship-partner",
+                    label: "相棒",
+                    percentPoints: 3,
+                  },
+                  {
+                    code: "relationship-mentor",
+                    label: "師弟",
+                    percentPoints: 4,
+                  },
+                ],
+              },
             });
+            const capturedRelatedPlayerId =
+              notification.payload.players[0]!.socialGrowth.contributions[0]!
+                .relatedPlayerId;
+            result.playerLogs[0]!.socialGrowth.contributions[0]!.relatedPlayerId = playerId;
+            expect(
+              notification.payload.players[0]!.socialGrowth.contributions[0]!
+                .relatedPlayerId,
+            ).toBe(capturedRelatedPlayerId);
+          '''
+          if assertion_marker not in text:
+              raise SystemExit("notification assertion marker missing")
+          text = text.replace(assertion_marker, assertion_replacement, 1)
+          notification_test.write_text(text, encoding="utf-8")
 
-            it("does not enable social growth from an injured counterpart", () => {
-              const { state, mentor, protege, plan } = socialFixture();
-              state.players[mentor] = {
-                ...state.players[mentor]!,
-                injury: {
-                  injuryId: "injury.test",
-                  severity: "minor",
-                  remainingWeeks: 1,
-                  recurrenceRisk: 0,
-                },
-              };
-              const resolution = resolveWeeklyTraining({
-                state,
-                schoolId: state.userSchoolId,
-                plan,
-                data,
-                random: new FixedRandom(100),
-              });
-              const log = resolution.result.playerLogs.find(
-                (entry) => entry.playerId === protege,
-              )!;
-              expect(log.socialGrowth.appliedPercentPoints).toBe(0);
-              expect(
-                log.modifiers.some(
-                  (modifier) => modifier.code === "relationship-social",
-                ),
-              ).toBe(false);
-            });
-
-            it("does not enable social growth from an auto-rested counterpart", () => {
-              const { state, mentor, protege, plan } = socialFixture();
-              const resolution = resolveWeeklyTraining({
-                state,
-                schoolId: state.userSchoolId,
-                plan,
-                data,
-                random: new FixedRandom(100),
-                restingPlayerIds: new Set<PlayerId>([mentor]),
-              });
-              const log = resolution.result.playerLogs.find(
-                (entry) => entry.playerId === protege,
-              )!;
-              expect(log.socialGrowth.appliedPercentPoints).toBe(0);
-            });
-
-            it("does not enable social growth from an instruction.rest counterpart", () => {
-              const { state, mentor, protege, plan } = socialFixture();
-              plan.individualAssignments = plan.individualAssignments.map((assignment) =>
-                assignment.playerId === mentor
-                  ? { ...assignment, instructionId: "instruction.rest" }
-                  : assignment,
-              );
-              const resolution = resolveWeeklyTraining({
-                state,
-                schoolId: state.userSchoolId,
-                plan,
-                data,
-                random: new FixedRandom(100),
-              });
-              const log = resolution.result.playerLogs.find(
-                (entry) => entry.playerId === protege,
-              )!;
-              expect(log.socialGrowth.appliedPercentPoints).toBe(0);
-            });
-          });
-          EOF
-
+          ui_test = Path("tests/unit/features/home/TrainingResultNotificationSheet.test.tsx")
+          ui = ui_test.read_text(encoding="utf-8")
+          fixture_marker = '''          abilityChanges: {
+                    spike: 2,
+                    jump: 1,
+                  },
+          '''
+          fixture_replacement = '''          abilityChanges: {
+                    spike: 2,
+                    jump: 1,
+                  },
+                  socialGrowth: {
+                    contributions: [
+                      {
+                        code: "relationship-partner",
+                        label: "相棒",
+                        percentPoints: 3,
+                        relatedPlayerId: school.playerIds[1]!,
+                      },
+                      {
+                        code: "relationship-mentor",
+                        label: "師弟",
+                        percentPoints: 4,
+                        relatedPlayerId: school.playerIds[1]!,
+                      },
+                    ],
+                    rawPercentPoints: 7,
+                    appliedPercentPoints: 5,
+                    capped: true,
+                  },
+          '''
+          if fixture_marker not in ui:
+              raise SystemExit("UI fixture marker missing")
+          ui = ui.replace(fixture_marker, fixture_replacement, 1)
+          ui_assert_marker = '''    expect(within(dialog).getByText("怪我あり")).toBeVisible();
+          '''
+          ui_assert_replacement = '''    expect(within(dialog).getByText("怪我あり")).toBeVisible();
+            expect(within(dialog).getByText("相棒 +3%")).toBeVisible();
+            expect(within(dialog).getByText("師弟 +4%")).toBeVisible();
+            expect(within(dialog).getByText("関係性効果は上限 +5%")).toBeVisible();
+          '''
+          if ui_assert_marker not in ui:
+              raise SystemExit("UI assertion marker missing")
+          ui = ui.replace(ui_assert_marker, ui_assert_replacement, 1)
+          ui_test.write_text(ui, encoding="utf-8")
+          PY
+          npx prettier \
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx --write
+      - name: Verify RED
+        shell: bash
+        run: |
+          set +e
+          npx vitest run \
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            > /tmp/task3-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/task3-red.log
+          if [ "$status" -eq 0 ]; then
+            echo "Expected Task3 RED, but tests passed"
+            exit 1
+          fi
+          grep -q "socialGrowth\|相棒 +3%\|関係性効果" /tmp/task3-red.log
+      - name: Implement Task3
+        shell: bash
+        run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
-          growth_path = Path("src/domain/training/calculateGrowth.ts")
-          growth = growth_path.read_text(encoding="utf-8")
-          growth = growth.replace(
-              '  | "assistant-coach-first-year"\n  | "academic";',
-              '  | "assistant-coach-first-year"\n  | "relationship-social"\n  | "academic";',
-              1,
-          )
-          growth = growth.replace(
-              '    | "assistant-coach-first-year";',
-              '    | "assistant-coach-first-year"\n    | "relationship-social";',
-              1,
-          )
-          growth_path.write_text(growth, encoding="utf-8")
+          notification_path = Path("src/domain/notifications/gameNotifications.ts")
+          text = notification_path.read_text(encoding="utf-8")
+          import_marker = 'import type { TrainingResult } from "../training/resolveWeeklyTraining";\n'
+          social_import = 'import type { RelationshipTrainingModifierSummary } from "../training/relationshipTrainingModifiers";\n'
+          if social_import not in text:
+              if import_marker not in text:
+                  raise SystemExit("notification training import marker missing")
+              text = text.replace(import_marker, import_marker + social_import, 1)
+          field_marker = '  abilityChanges: Partial<Record<AbilityKey, number>>;\n'
+          if '  socialGrowth: RelationshipTrainingModifierSummary;\n' not in text:
+              if field_marker not in text:
+                  raise SystemExit("notification player field marker missing")
+              text = text.replace(
+                  field_marker,
+                  field_marker + '  socialGrowth: RelationshipTrainingModifierSummary;\n',
+                  1,
+              )
+          builder_marker = '      abilityChanges: { ...log.abilityChanges },\n'
+          builder_add = '''      abilityChanges: { ...log.abilityChanges },
+                socialGrowth: {
+                  contributions: log.socialGrowth.contributions.map((contribution) => ({
+                    ...contribution,
+                  })),
+                  rawPercentPoints: log.socialGrowth.rawPercentPoints,
+                  appliedPercentPoints: log.socialGrowth.appliedPercentPoints,
+                  capped: log.socialGrowth.capped,
+                },
+          '''
+          if 'contributions: log.socialGrowth.contributions.map' not in text:
+              if builder_marker not in text:
+                  raise SystemExit("notification builder marker missing")
+              text = text.replace(builder_marker, builder_add, 1)
+          notification_path.write_text(text, encoding="utf-8")
 
-          path = Path("src/domain/training/resolveWeeklyTraining.ts")
-          text = path.read_text(encoding="utf-8")
-          import_marker = '''import {
-            calculateGrowth,
-            type AdditionalGrowthModifier,
-            type GrowthModifier,
-          } from "./calculateGrowth";
+          sheet_path = Path("src/features/home/TrainingResultNotificationSheet.tsx")
+          sheet = sheet_path.read_text(encoding="utf-8")
+          insertion_marker = '''                      <div className="training-result-notification__changes">
           '''
-          relationship_import = '''import {
-            calculateRelationshipTrainingModifier,
-            type RelationshipTrainingModifierSummary,
-          } from "./relationshipTrainingModifiers";
+          social_block = '''                      {player.socialGrowth.contributions.length > 0 ? (
+                            <div
+                              className="training-result-notification__social"
+                              aria-label="人間関係効果"
+                            >
+                              <div className="training-result-notification__social-chips">
+                                {player.socialGrowth.contributions.map((contribution) => (
+                                  <span
+                                    key={`${contribution.code}:${contribution.relatedPlayerId}`}
+                                  >
+                                    {contribution.label} +{contribution.percentPoints}%
+                                  </span>
+                                ))}
+                              </div>
+                              {player.socialGrowth.capped ? (
+                                <small>
+                                  関係性効果は上限 +{player.socialGrowth.appliedPercentPoints}%
+                                </small>
+                              ) : null}
+                            </div>
+                          ) : null}
+
           '''
-          if import_marker not in text:
-              raise SystemExit("calculateGrowth import marker missing")
-          text = text.replace(import_marker, import_marker + relationship_import, 1)
-          text = text.replace(
-              '  modifiers: GrowthModifier[];\n',
-              '  modifiers: GrowthModifier[];\n  socialGrowth: RelationshipTrainingModifierSummary;\n',
-              1,
-          )
-          clamp_marker = '''function clampState(value: number) {
-            return Math.max(0, Math.min(100, Math.round(value)));
+          if 'className="training-result-notification__social"' not in sheet:
+              if insertion_marker not in sheet:
+                  raise SystemExit("sheet changes marker missing")
+              sheet = sheet.replace(insertion_marker, social_block + insertion_marker, 1)
+          sheet_path.write_text(sheet, encoding="utf-8")
+
+          css_path = Path("src/features/home/training-result-notification.css")
+          css = css_path.read_text(encoding="utf-8")
+          if '.training-result-notification__social {' not in css:
+              css += '''
+
+          .training-result-notification__social {
+            display: grid;
+            gap: 5px;
           }
 
-          '''
-          social_helper = '''function clampState(value: number) {
-            return Math.max(0, Math.min(100, Math.round(value)));
+          .training-result-notification__social-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
           }
 
-          function emptySocialGrowth(): RelationshipTrainingModifierSummary {
-            return {
-              contributions: [],
-              rawPercentPoints: 0,
-              appliedPercentPoints: 0,
-              capped: false,
-            };
+          .training-result-notification__social-chips span {
+            padding: 5px 7px;
+            color: #5d4310;
+            font-size: var(--game-font-label);
+            font-weight: 900;
+            line-height: 1.25;
+            background: #fff4d5;
+            border: 1px solid #e5ca83;
+            border-radius: 8px;
           }
 
+          .training-result-notification__social small {
+            color: #6b5a36;
+            font-size: var(--game-font-label);
+            font-weight: 800;
+            line-height: 1.3;
+          }
           '''
-          if clamp_marker not in text:
-              raise SystemExit("clampState marker missing")
-          text = text.replace(clamp_marker, social_helper, 1)
-          text = text.replace(
-              '    modifiers: [],\n',
-              '    modifiers: [],\n    socialGrowth: emptySocialGrowth(),\n',
-              1,
-          )
-          active_marker = '''  const assignments: IndividualTrainingAssignment[] = [];
-            const includeDynamics = input.schoolId === input.state.userSchoolId;
-
-          '''
-          active_block = '''  const assignments: IndividualTrainingAssignment[] = [];
-            const includeDynamics = input.schoolId === input.state.userSchoolId;
-            const activeTrainingPlayerIds = new Set<PlayerId>(
-              validated.school.playerIds.filter((id) => {
-                const player = input.state.players[id]!;
-                const instruction =
-                  validated.instructionByPlayerId.get(id) ?? validated.fallback;
-                return (
-                  !input.restingPlayerIds?.has(id) &&
-                  !player.injury &&
-                  instruction.id !== "instruction.rest"
-                );
-              }),
-            );
-
-          '''
-          if active_marker not in text:
-              raise SystemExit("active set marker missing")
-          text = text.replace(active_marker, active_block, 1)
-          loop_marker = '''    const original = input.state.players[id]!;
-              const log = emptyLog(id);
-
-          '''
-          loop_block = '''    const original = input.state.players[id]!;
-              const log = emptyLog(id);
-              log.socialGrowth = calculateRelationshipTrainingModifier(
-                input.state,
-                id,
-                activeTrainingPlayerIds,
-              );
-
-          '''
-          if loop_marker not in text:
-              raise SystemExit("loop marker missing")
-          text = text.replace(loop_marker, loop_block, 1)
-          old_extra = '''    const extraModifiers = includeDynamics
-                ? [
-                    ...(input.additionalGrowthModifiers ?? []),
-                    ...calculateDynamicsTrainingModifiers(original),
-                    ...assistantCoachTrainingModifiers(
-                      input.state,
-                      original,
-                      instruction.targetAbilities,
-                    ),
-                  ]
-                : (input.additionalGrowthModifiers ?? []);
-          '''
-          new_extra = '''    const socialModifiers: AdditionalGrowthModifier[] =
-                log.socialGrowth.appliedPercentPoints > 0
-                  ? [
-                      {
-                        code: "relationship-social",
-                        label: "人間関係",
-                        percent: 100 + log.socialGrowth.appliedPercentPoints,
-                      },
-                    ]
-                  : [];
-              const extraModifiers = includeDynamics
-                ? [
-                    ...(input.additionalGrowthModifiers ?? []),
-                    ...calculateDynamicsTrainingModifiers(original),
-                    ...assistantCoachTrainingModifiers(
-                      input.state,
-                      original,
-                      instruction.targetAbilities,
-                    ),
-                    ...socialModifiers,
-                  ]
-                : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
-          '''
-          if old_extra not in text:
-              raise SystemExit("extra modifier block marker missing")
-          text = text.replace(old_extra, new_extra, 1)
-          path.write_text(text, encoding="utf-8")
-
-          for filename in [
-              "tests/unit/domain/notifications/gameNotifications.test.ts",
-              "tests/unit/domain/player/playerDevelopmentHistory.test.ts",
-          ]:
-              fixture_path = Path(filename)
-              fixture = fixture_path.read_text(encoding="utf-8")
-              pattern = re.compile(r'^(?P<indent>\s*)modifiers: \[\],\s*$', re.MULTILINE)
-              match = pattern.search(fixture)
-              if not match:
-                  raise SystemExit(f"fixture modifiers marker missing: {filename}")
-              indent = match.group("indent")
-              replacement = match.group(0) + "\n" + indent + '''socialGrowth: {
-          ''' + indent + '''  contributions: [],
-          ''' + indent + '''  rawPercentPoints: 0,
-          ''' + indent + '''  appliedPercentPoints: 0,
-          ''' + indent + '''  capped: false,
-          ''' + indent + '''},'''
-              fixture = fixture[:match.start()] + replacement + fixture[match.end():]
-              fixture_path.write_text(fixture, encoding="utf-8")
+          css_path.write_text(css, encoding="utf-8")
           PY
-
           npx prettier \
-            src/domain/training/calculateGrowth.ts \
-            src/domain/training/resolveWeeklyTraining.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
-            tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/domain/player/playerDevelopmentHistory.test.ts --write
+            src/domain/notifications/gameNotifications.ts \
+            src/features/home/TrainingResultNotificationSheet.tsx \
+            src/features/home/training-result-notification.css --write
           git diff --check
       - name: Verify GREEN
         run: |
           npx vitest run \
-            tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
             tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
             tests/unit/domain/player/playerDevelopmentHistory.test.ts
       - name: Typecheck
         run: npm run typecheck
-      - name: Commit Task2
+      - name: Commit Task3
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
-            src/domain/training/calculateGrowth.ts \
-            src/domain/training/resolveWeeklyTraining.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
+            src/domain/notifications/gameNotifications.ts \
+            src/features/home/TrainingResultNotificationSheet.tsx \
+            src/features/home/training-result-notification.css \
             tests/unit/domain/notifications/gameNotifications.test.ts \
-            tests/unit/domain/player/playerDevelopmentHistory.test.ts
-          git commit -m "feat: apply visible capped social training growth"
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
+          git commit -m "feat: show social growth in training results"
           git push origin HEAD:tmp/phase21-4-social-effects-event-balance
