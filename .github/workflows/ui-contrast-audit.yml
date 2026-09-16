@@ -1,0 +1,52 @@
+name: Temporary UI Contrast Audit
+
+on:
+  push:
+    branches: [tmp/ui-contrast-audit]
+
+concurrency:
+  group: ui-contrast-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run diagnostic contrast audit
+        shell: bash
+        run: |
+          set +e
+          npx playwright test tests/e2e/ui-contrast-audit.spec.ts --workers=1
+          status=$?
+          echo "contrast audit exit code: $status"
+          exit 0
+      - name: Upload contrast audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-contrast-audit
+          path: contrast-audit
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload Playwright diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-contrast-playwright
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
