@@ -1,0 +1,328 @@
+name: Phase21-4 Task1 TDD Probe
+
+on:
+  push:
+    branches:
+      - tmp/phase21-4-social-effects-event-balance
+
+permissions:
+  contents: write
+
+jobs:
+  task1:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Write Task1 RED tests
+        shell: bash
+        run: |
+          mkdir -p tests/unit/domain/training
+          cat > tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts <<'EOF'
+          import { createDemoGame } from "../../../../src/app/createDemoGame";
+          import { relationshipKey } from "../../../../src/domain/model/GameState";
+          import type { PlayerId } from "../../../../src/domain/model/identifiers";
+          import { calculateRelationshipTrainingModifier } from "../../../../src/domain/training/relationshipTrainingModifiers";
+
+          function fixture() {
+            const state = structuredClone(createDemoGame());
+            const ids = state.schools[state.userSchoolId]!.playerIds.slice(0, 3) as [
+              PlayerId,
+              PlayerId,
+              PlayerId,
+            ];
+            state.playerRelationshipBonds = {};
+            return { state, ids };
+          }
+
+          function tagBase(state: ReturnType<typeof createDemoGame>) {
+            return {
+              establishedDate: state.date,
+              sourceEventId: null,
+              lastReinforcedDate: state.date,
+              belowThresholdSince: null,
+            } as const;
+          }
+
+          describe("Phase21 relationship training modifiers", () => {
+            it("gives both active partner participants +3 percentage points", () => {
+              const { state, ids: [left, right] } = fixture();
+              state.playerRelationshipBonds[relationshipKey(left, right)] = {
+                playerIds: [left, right].sort() as [PlayerId, PlayerId],
+                tags: [{ ...tagBase(state), kind: "partner" }],
+              };
+              const active = new Set<PlayerId>([left, right]);
+
+              expect(calculateRelationshipTrainingModifier(state, left, active)).toEqual({
+                contributions: [
+                  {
+                    code: "relationship-partner",
+                    label: "相棒",
+                    percentPoints: 3,
+                    relatedPlayerId: right,
+                  },
+                ],
+                rawPercentPoints: 3,
+                appliedPercentPoints: 3,
+                capped: false,
+              });
+              expect(calculateRelationshipTrainingModifier(state, right, active).appliedPercentPoints).toBe(3);
+            });
+
+            it("gives mentor bonus only to the active protege", () => {
+              const { state, ids: [mentor, protege] } = fixture();
+              state.playerRelationshipBonds[relationshipKey(mentor, protege)] = {
+                playerIds: [mentor, protege].sort() as [PlayerId, PlayerId],
+                tags: [
+                  {
+                    ...tagBase(state),
+                    kind: "mentor",
+                    mentorPlayerId: mentor,
+                    protegePlayerId: protege,
+                  },
+                ],
+              };
+              const active = new Set<PlayerId>([mentor, protege]);
+
+              expect(calculateRelationshipTrainingModifier(state, mentor, active).appliedPercentPoints).toBe(0);
+              expect(calculateRelationshipTrainingModifier(state, protege, active).contributions).toEqual([
+                {
+                  code: "relationship-mentor",
+                  label: "師弟",
+                  percentPoints: 4,
+                  relatedPlayerId: mentor,
+                },
+              ]);
+            });
+
+            it("gives rival bonus only when both active rivals share preferredPosition", () => {
+              const { state, ids: [left, right] } = fixture();
+              state.playerRelationshipBonds[relationshipKey(left, right)] = {
+                playerIds: [left, right].sort() as [PlayerId, PlayerId],
+                tags: [{ ...tagBase(state), kind: "rival" }],
+              };
+              const active = new Set<PlayerId>([left, right]);
+              state.players[right]!.preferredPosition = state.players[left]!.preferredPosition;
+
+              expect(calculateRelationshipTrainingModifier(state, left, active).appliedPercentPoints).toBe(3);
+
+              state.players[right]!.preferredPosition =
+                state.players[left]!.preferredPosition === "OH" ? "MB" : "OH";
+              expect(calculateRelationshipTrainingModifier(state, left, active).appliedPercentPoints).toBe(0);
+            });
+
+            it("does not enable a social bonus when the counterpart is inactive", () => {
+              const { state, ids: [left, right] } = fixture();
+              state.playerRelationshipBonds[relationshipKey(left, right)] = {
+                playerIds: [left, right].sort() as [PlayerId, PlayerId],
+                tags: [{ ...tagBase(state), kind: "partner" }],
+              };
+
+              expect(
+                calculateRelationshipTrainingModifier(
+                  state,
+                  left,
+                  new Set<PlayerId>([left]),
+                ).appliedPercentPoints,
+              ).toBe(0);
+            });
+
+            it("adds contributions but caps the applied social bonus at +5", () => {
+              const { state, ids: [mentor, protege] } = fixture();
+              const key = relationshipKey(mentor, protege);
+              state.playerRelationshipBonds[key] = {
+                playerIds: [mentor, protege].sort() as [PlayerId, PlayerId],
+                tags: [
+                  { ...tagBase(state), kind: "partner" },
+                  {
+                    ...tagBase(state),
+                    kind: "mentor",
+                    mentorPlayerId: mentor,
+                    protegePlayerId: protege,
+                  },
+                ],
+              };
+
+              expect(
+                calculateRelationshipTrainingModifier(
+                  state,
+                  protege,
+                  new Set<PlayerId>([mentor, protege]),
+                ),
+              ).toEqual({
+                contributions: [
+                  {
+                    code: "relationship-mentor",
+                    label: "師弟",
+                    percentPoints: 4,
+                    relatedPlayerId: mentor,
+                  },
+                  {
+                    code: "relationship-partner",
+                    label: "相棒",
+                    percentPoints: 3,
+                    relatedPlayerId: mentor,
+                  },
+                ],
+                rawPercentPoints: 7,
+                appliedPercentPoints: 5,
+                capped: true,
+              });
+            });
+          });
+          EOF
+          npx prettier tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts --write
+      - name: Verify RED
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts > /tmp/task1-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/task1-red.log
+          if [ "$status" -eq 0 ]; then
+            echo "Expected Task1 RED, but tests passed"
+            exit 1
+          fi
+          grep -q "relationshipTrainingModifiers" /tmp/task1-red.log
+      - name: Implement Task1
+        shell: bash
+        run: |
+          cat > src/domain/training/relationshipTrainingModifiers.ts <<'EOF'
+          import type { GameState } from "../model/GameState";
+          import type { PlayerId } from "../model/identifiers";
+
+          export type SocialGrowthContributionCode =
+            | "relationship-partner"
+            | "relationship-mentor"
+            | "relationship-rival";
+
+          export interface SocialGrowthContribution {
+            code: SocialGrowthContributionCode;
+            label: string;
+            percentPoints: 3 | 4;
+            relatedPlayerId: PlayerId;
+          }
+
+          export interface RelationshipTrainingModifierSummary {
+            contributions: SocialGrowthContribution[];
+            rawPercentPoints: number;
+            appliedPercentPoints: number;
+            capped: boolean;
+          }
+
+          const EMPTY_SUMMARY: RelationshipTrainingModifierSummary = {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          };
+
+          export function calculateRelationshipTrainingModifier(
+            state: GameState,
+            playerId: PlayerId,
+            activeTrainingPlayerIds: ReadonlySet<PlayerId>,
+          ): RelationshipTrainingModifierSummary {
+            if (!activeTrainingPlayerIds.has(playerId)) {
+              return EMPTY_SUMMARY;
+            }
+
+            const contributions: SocialGrowthContribution[] = [];
+            const seen = new Set<string>();
+
+            for (const bond of Object.values(state.playerRelationshipBonds)) {
+              if (!bond.playerIds.includes(playerId)) continue;
+              const relatedPlayerId = bond.playerIds.find((id) => id !== playerId);
+              if (!relatedPlayerId || !activeTrainingPlayerIds.has(relatedPlayerId)) {
+                continue;
+              }
+
+              for (const tag of bond.tags) {
+                const dedupeKey = `${tag.kind}:${relatedPlayerId}`;
+                if (seen.has(dedupeKey)) continue;
+
+                if (tag.kind === "partner") {
+                  seen.add(dedupeKey);
+                  contributions.push({
+                    code: "relationship-partner",
+                    label: "相棒",
+                    percentPoints: 3,
+                    relatedPlayerId,
+                  });
+                  continue;
+                }
+
+                if (
+                  tag.kind === "mentor" &&
+                  tag.protegePlayerId === playerId &&
+                  tag.mentorPlayerId === relatedPlayerId
+                ) {
+                  seen.add(dedupeKey);
+                  contributions.push({
+                    code: "relationship-mentor",
+                    label: "師弟",
+                    percentPoints: 4,
+                    relatedPlayerId,
+                  });
+                  continue;
+                }
+
+                if (tag.kind === "rival") {
+                  const player = state.players[playerId];
+                  const relatedPlayer = state.players[relatedPlayerId];
+                  if (
+                    player &&
+                    relatedPlayer &&
+                    player.preferredPosition === relatedPlayer.preferredPosition
+                  ) {
+                    seen.add(dedupeKey);
+                    contributions.push({
+                      code: "relationship-rival",
+                      label: "ライバル",
+                      percentPoints: 3,
+                      relatedPlayerId,
+                    });
+                  }
+                }
+              }
+            }
+
+            contributions.sort(
+              (left, right) =>
+                left.code.localeCompare(right.code) ||
+                left.relatedPlayerId.localeCompare(right.relatedPlayerId),
+            );
+            const rawPercentPoints = contributions.reduce(
+              (sum, contribution) => sum + contribution.percentPoints,
+              0,
+            );
+            const appliedPercentPoints = Math.min(5, rawPercentPoints);
+
+            return {
+              contributions,
+              rawPercentPoints,
+              appliedPercentPoints,
+              capped: rawPercentPoints > appliedPercentPoints,
+            };
+          }
+          EOF
+          npx prettier src/domain/training/relationshipTrainingModifiers.ts --write
+          git diff --check
+      - name: Verify GREEN
+        run: npx vitest run tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Commit Task1
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/training/relationshipTrainingModifiers.ts tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts
+          git commit -m "feat: calculate relationship training bonuses"
+          git push origin HEAD:tmp/phase21-4-social-effects-event-balance
