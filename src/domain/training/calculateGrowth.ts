@@ -20,6 +20,7 @@ export type GrowthModifierCode =
   | "assistant-coach-specialty"
   | "assistant-coach-condition"
   | "assistant-coach-first-year"
+  | "relationship-social"
   | "academic";
 
 export interface GrowthModifier {
@@ -36,7 +37,8 @@ export type AdditionalGrowthModifier = GrowthModifier & {
     | "assistant-coach"
     | "assistant-coach-specialty"
     | "assistant-coach-condition"
-    | "assistant-coach-first-year";
+    | "assistant-coach-first-year"
+    | "relationship-social";
 };
 
 export interface GrowthCalculationInput {

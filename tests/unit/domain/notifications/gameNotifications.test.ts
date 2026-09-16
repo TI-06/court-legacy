@@ -55,6 +55,12 @@ describe("game notifications", () => {
           injury: null,
           skippedReason: null,
           modifiers: [],
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
         },
       ],
       injuredPlayerIds: [],
