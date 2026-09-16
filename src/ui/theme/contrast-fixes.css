@@ -24,6 +24,7 @@
 .match-controls,
 .match-timeline,
 .match-analysis,
+.match-command-impact,
 .match-result-actions,
 .calendar-section,
 .calendar-advance-panel {
@@ -43,6 +44,7 @@
 .match-prep-panel .section-kicker,
 .match-timeline .section-kicker,
 .match-analysis .section-kicker,
+.match-command-impact .section-kicker,
 .calendar-section .section-kicker,
 .calendar-advance-panel .section-kicker {
   color: var(--light-surface-kicker);
@@ -53,8 +55,23 @@
 .rotation-card__body > label:first-child,
 .player-status-line,
 .bench-grid span,
+.bench-player-card span,
+.bench-player-card small,
 .policy-list small {
   color: var(--light-surface-muted);
+}
+
+.libero-player-button > span:last-child {
+  color: #855816;
+}
+
+/* Saved lineup cards are deliberately dark inside a light team panel. */
+.saved-lineup-card {
+  color: var(--game-text, #f4f7fb);
+}
+
+.saved-lineup-card__heading span {
+  color: #c4d0df;
 }
 
 /* School navigation and management cards. */
@@ -71,7 +88,8 @@
 .assistant-coach-current > small,
 .assistant-coach-none,
 .assistant-coach-card small,
-.school-record-grid span {
+.school-record-grid span,
+.school-season-ranking small {
   color: var(--light-surface-muted);
 }
 
@@ -85,6 +103,10 @@
 
 .scouting-stars {
   color: #9a6c17;
+}
+
+.scouting-hero .section-kicker {
+  color: #8fc6d1;
 }
 
 /* PVP panels are light cards embedded in the dark match shell. */
@@ -106,6 +128,15 @@
 .practice-planning__empty,
 .practice-planning__heading > span {
   color: var(--light-surface-muted);
+}
+
+/* Official tournament entry is light and gold; strengthen its gold accents. */
+.match-official-entry .section-kicker {
+  color: #855816;
+}
+
+.match-official-entry > button {
+  background: #965b14;
 }
 
 /* Pre-match white cards. */
@@ -136,18 +167,21 @@
 .match-analysis__list p,
 .match-recommendations p,
 .match-analysis__list article > span,
-.match-timeline__list article > span {
+.match-timeline__list article > span,
+.match-command-impact__list span,
+.match-command-impact__list p {
   color: var(--light-surface-muted);
 }
 
 .match-scoreboard > div strong {
-  color: #667b86;
+  color: var(--light-surface-muted);
 }
 
 .match-analysis button,
 .match-timeline strong,
 .match-analysis strong,
-.match-current-event strong {
+.match-current-event strong,
+.match-command-impact strong {
   color: var(--light-surface-text);
 }
 
