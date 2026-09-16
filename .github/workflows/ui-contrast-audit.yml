@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx playwright test tests/e2e/ui-contrast-audit.spec.ts --workers=1
+          npx playwright test tests/e2e/ui-contrast-audit*.spec.ts --workers=1
           status=$?
           echo "contrast audit exit code: $status"
           exit 0
