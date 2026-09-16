@@ -1,4 +1,4 @@
-name: Phase21-4 Event Integration Gate
+name: Phase21-4 Long Run Audit
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
       - tmp/phase21-4-social-effects-event-balance
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  event-integration:
+  long-run-audit:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,74 +20,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Record resolved actor pairs
+      - name: Run deterministic 156-week audit twice
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("src/domain/events/resolveEventChoice.ts")
-          text = path.read_text(encoding="utf-8")
-
-          event_import = 'import { eventCareerKey } from "./eventEligibility";\n'
-          pair_import = 'import { eventActorPairKey } from "./selectEvent";\n'
-          if pair_import not in text:
-              if event_import not in text:
-                  raise SystemExit("eventEligibility import marker missing")
-              text = text.replace(event_import, event_import + pair_import, 1)
-
-          primary = '  const primaryActor = pending.actorPlayerIds[0];\n'
-          pair_decl = '  const actorPairKey = eventActorPairKey(pending.actorPlayerIds);\n'
-          if pair_decl not in text:
-              if primary not in text:
-                  raise SystemExit("primary actor marker missing")
-              text = text.replace(primary, primary + pair_decl, 1)
-
-          if '      recentActorPairKeys: actorPairKey\n' not in text:
-              scheduled = '      scheduledFollowUps: [\n'
-              if scheduled not in text:
-                  raise SystemExit("scheduled follow-up marker missing")
-              pair_memory = '''      recentActorPairKeys: actorPairKey
-                ? pushLimited(
-                    nextState.eventMemory.recentActorPairKeys,
-                    actorPairKey,
-                    6,
-                  )
-                : nextState.eventMemory.recentActorPairKeys,
-          '''
-              text = text.replace(scheduled, pair_memory + scheduled, 1)
-
-          path.write_text(text, encoding="utf-8")
-          PY
-          npx prettier \
-            src/domain/events/characterEventWeight.ts \
-            src/domain/events/selectEvent.ts \
-            src/domain/events/resolveEventChoice.ts \
-            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
-            tests/unit/domain/events/phase21PairRepetition.test.ts --write
-          git diff --check
-      - name: Event regression
-        run: |
-          npx vitest run \
-            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
-            tests/unit/domain/events/phase21PairRepetition.test.ts \
-            tests/unit/domain/events
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Commit resolved pair memory
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            src/domain/events/characterEventWeight.ts \
-            src/domain/events/selectEvent.ts \
-            src/domain/events/resolveEventChoice.ts \
-            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
-            tests/unit/domain/events/phase21PairRepetition.test.ts
-          if git diff --cached --quiet; then
-            echo "No event integration changes to commit"
+          TEST=tests/unit/domain/events/phase21RelationshipLongRun.test.ts
+          if [ ! -f "$TEST" ]; then
+            echo "Task6 test not present yet; workflow setup only."
             exit 0
           fi
-          git commit -m "feat: complete character-aware event selection"
-          git push origin HEAD:tmp/phase21-4-social-effects-event-balance
+          npx vitest run "$TEST" --reporter=verbose
+          npx vitest run "$TEST" --reporter=verbose
+          npm run typecheck
