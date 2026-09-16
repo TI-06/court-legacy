@@ -89,7 +89,7 @@
 .assistant-coach-none,
 .assistant-coach-card small,
 .school-record-grid span,
-.school-season-ranking small {
+.school-season-ranking__goals small {
   color: var(--light-surface-muted);
 }
 
