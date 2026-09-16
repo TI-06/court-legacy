@@ -398,6 +398,35 @@ const schoolManagementSchema = z
   })
   .strict();
 
+const socialGrowthContributionSchema = z
+  .object({
+    code: z.enum([
+      "relationship-partner",
+      "relationship-mentor",
+      "relationship-rival",
+    ]),
+    label: z.string().min(1),
+    percentPoints: z.union([z.literal(3), z.literal(4)]),
+    relatedPlayerId: playerIdSchema,
+  })
+  .strict();
+
+const relationshipTrainingModifierSummarySchema = z
+  .object({
+    contributions: z.array(socialGrowthContributionSchema).max(64),
+    rawPercentPoints: z.number().int().nonnegative(),
+    appliedPercentPoints: z.number().int().min(0).max(5),
+    capped: z.boolean(),
+  })
+  .strict();
+
+const emptyRelationshipTrainingModifierSummary = {
+  contributions: [],
+  rawPercentPoints: 0,
+  appliedPercentPoints: 0,
+  capped: false,
+};
+
 const notificationPlayerSchema = z
   .object({
     playerId: z.string().min(1),
@@ -410,6 +439,9 @@ const notificationPlayerSchema = z
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    socialGrowth: relationshipTrainingModifierSummarySchema.default(
+      emptyRelationshipTrainingModifierSummary,
+    ),
   })
   .strict();
 
@@ -485,10 +517,31 @@ const specialRelationshipNotificationSchema = z
   })
   .strict();
 
+const characterTraitDiscoveredNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("character-trait-discovered"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        playerId: playerIdSchema,
+        displayName: z.string().min(1),
+        traitId: z.string().min(1),
+        traitName: z.string().min(1),
+        description: z.string().min(1),
+      })
+      .strict(),
+  })
+  .strict();
+
 const gameNotificationSchema = z.discriminatedUnion("type", [
   trainingResultNotificationSchema,
   concernResolutionNotificationSchema,
   specialRelationshipNotificationSchema,
+  characterTraitDiscoveredNotificationSchema,
 ]);
 
 const notificationStateSchema = z
