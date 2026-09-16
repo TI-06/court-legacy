@@ -2,11 +2,7 @@ import { gameData } from "../../../../src/app/createDemoGame";
 import type { AdvanceWeekOutcome } from "../../../../src/domain/calendar/advanceWeekOutcome";
 import { eventActorPairKey } from "../../../../src/domain/events/selectEvent";
 import type { GameState } from "../../../../src/domain/model/GameState";
-import type { PlayerId } from "../../../../src/domain/model/identifiers";
-import {
-  createSoakSnapshot,
-  type SoakRunResult,
-} from "../../../../src/dev/soak/runBalanceSoak";
+import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import type { CloudGameSnapshot } from "../../../../worker/data/GameStore";
 import type { GameAction } from "../../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../../worker/game/applyGameAction";
