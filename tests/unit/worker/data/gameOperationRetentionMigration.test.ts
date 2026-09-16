@@ -15,7 +15,9 @@ describe("Phase22 game operation retention migration", () => {
     expect(migration).toContain("partition by operation.user_id");
     expect(migration).toContain("operation.resulting_revision desc");
     expect(migration).toContain("where ranked.retention_rank > 128");
-    expect(migration).toContain("delete from public.game_operations as operation");
+    expect(migration).toContain(
+      "delete from public.game_operations as operation",
+    );
   });
 
   it("prunes after a successful operation insert inside apply_game_operation", () => {
@@ -39,7 +41,9 @@ describe("Phase22 game operation retention migration", () => {
   });
 
   it("preserves exact response replay and never prunes the authoritative save", () => {
-    expect(migration).toContain("return query select v_existing_response, true");
+    expect(migration).toContain(
+      "return query select v_existing_response, true",
+    );
     expect(migration).toContain("return query select p_response, false");
     expect(migration).not.toContain("delete from public.game_saves");
   });
