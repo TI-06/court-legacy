@@ -1,4 +1,5 @@
 import type {
+  CharacterTraitDiscoveredNotification,
   SpecialRelationshipNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -22,6 +23,9 @@ interface HomeCommandCenterProps {
   ) => void;
   onOpenRelationshipNotification: (
     notification: SpecialRelationshipNotification,
+  ) => void;
+  onAcknowledgeCharacterTraitNotification: (
+    notification: CharacterTraitDiscoveredNotification,
   ) => void;
 }
 
@@ -78,6 +82,7 @@ export function HomeCommandCenter({
   onDeclinePracticeOffer,
   onOpenTrainingNotification,
   onOpenRelationshipNotification,
+  onAcknowledgeCharacterTraitNotification,
 }: HomeCommandCenterProps) {
   const { summary } = model;
 
@@ -303,6 +308,27 @@ export function HomeCommandCenter({
                     key={news.id}
                     onClick={() =>
                       onOpenRelationshipNotification(news.notification)
+                    }
+                    type="button"
+                  >
+                    <span>
+                      <strong>{news.title}</strong>
+                      <small>{news.detail}</small>
+                    </span>
+                    <b aria-hidden="true">›</b>
+                  </button>
+                );
+              }
+              if (news.kind === "character-trait-discovered") {
+                const unread = news.notification.readAtGameDate === null;
+                return (
+                  <button
+                    aria-label={`${news.title} ${news.detail}`}
+                    className={`home-command-news-row${unread ? " is-unread" : ""}`}
+                    data-testid="home-command-news"
+                    key={news.id}
+                    onClick={() =>
+                      onAcknowledgeCharacterTraitNotification(news.notification)
                     }
                     type="button"
                   >

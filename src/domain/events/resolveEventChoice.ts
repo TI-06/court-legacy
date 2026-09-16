@@ -1,4 +1,8 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import {
+  discoverEligibleCharacterTraits,
+  type CharacterTraitDiscovery,
+} from "../player/characterTraitDiscovery";
 import type {
   EventChoiceDefinition,
   EventDefinition,
@@ -361,6 +365,7 @@ export interface ResolveEventChoiceResult {
   state: GameState;
   occurrence: EventOccurrence;
   specialRelationshipTransitions: SpecialRelationshipTransition[];
+  characterTraitDiscoveries: CharacterTraitDiscovery[];
 }
 
 export function resolveEventChoice(
@@ -473,5 +478,21 @@ export function resolveEventChoice(
     },
   };
 
-  return { state: nextState, occurrence, specialRelationshipTransitions };
+  const characterTraitDiscovery = discoverEligibleCharacterTraits(
+    nextState,
+    data,
+    {
+      eventTags: event.tags,
+      captainPlayerId: nextState.teamDynamics.captainPlayerId,
+      viceCaptainPlayerId: nextState.teamDynamics.viceCaptainPlayerId,
+    },
+  );
+  nextState = characterTraitDiscovery.state;
+
+  return {
+    state: nextState,
+    occurrence,
+    specialRelationshipTransitions,
+    characterTraitDiscoveries: characterTraitDiscovery.discoveries,
+  };
 }

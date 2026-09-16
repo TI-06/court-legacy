@@ -88,6 +88,47 @@ function schedulePracticeOpponent(snapshot: CloudGameSnapshot): void {
 }
 
 describe("applyGameAction", () => {
+  it("initializes deterministic character traits in a newly created game", () => {
+    const snapshot = createSnapshot();
+    const players = Object.values(snapshot.state.players);
+    expect(players.length).toBeGreaterThan(0);
+    expect(
+      players.every(
+        (player) => player.hiddenTraitAssignmentInitialized === true,
+      ),
+    ).toBe(true);
+    expect(players.every((player) => player.hiddenTraitIds.length <= 1)).toBe(
+      true,
+    );
+    expect(
+      players.every(
+        (player) => (player.revealedHiddenTraitIds ?? []).length === 0,
+      ),
+    ).toBe(true);
+  });
+
+  it("backfills legacy character traits before a zero-random administrative action", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const targetPlayerId = school.playerIds[0]!;
+    const targetPlayer = snapshot.state.players[targetPlayerId]!;
+    targetPlayer.hiddenTraitIds = [];
+    targetPlayer.revealedHiddenTraitIds = [];
+    targetPlayer.hiddenTraitAssignmentInitialized = false;
+    const cursorBefore = snapshot.state.randomCursor;
+    const result = applyGameAction(snapshot, {
+      type: "set-training-plan",
+      plan: createTrainingPlan(snapshot),
+    });
+    expect(result.state.randomCursor).toBe(cursorBefore);
+    expect(
+      result.state.players[targetPlayerId]!.hiddenTraitAssignmentInitialized,
+    ).toBe(true);
+    expect(
+      result.state.players[targetPlayerId]!.hiddenTraitIds.length,
+    ).toBeLessThanOrEqual(1);
+  });
+
   it("applies training server-side, marks the weekly action, and does not mutate the snapshot", () => {
     const snapshot = createSnapshot();
     const before = structuredClone(snapshot);

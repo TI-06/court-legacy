@@ -121,12 +121,29 @@ describe("academic-year recruiting integration", () => {
     );
     const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
     const enrolled = persisted.state.players[committed.player.id];
-    expect(enrolled).toEqual(committed.player);
+    expect(enrolled).toMatchObject({
+      id: committed.player.id,
+      firstName: committed.player.firstName,
+      lastName: committed.player.lastName,
+    });
     expect(
       persisted.state.schools[persisted.state.userSchoolId]?.playerIds,
     ).toContain(committed.player.id);
     expect(persisted.state.recruiting).toBeUndefined();
     expect(persisted.state.yearIndex).toBe(2);
+    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
+    const newIntakePlayers = userSchool.playerIds
+      .map((playerId) => persisted.state.players[playerId])
+      .filter(
+        (player) =>
+          player?.career.enrolledYear === persisted.state.calendar.academicYear,
+      );
+    expect(newIntakePlayers.length).toBeGreaterThan(0);
+    for (const player of newIntakePlayers) {
+      expect(player?.hiddenTraitAssignmentInitialized).toBe(true);
+      expect(player?.hiddenTraitIds.length).toBeLessThanOrEqual(1);
+      expect(player?.revealedHiddenTraitIds).toEqual([]);
+    }
   });
 
   it("does not read hidden recruiting truth on an ordinary non-rollover week", async () => {

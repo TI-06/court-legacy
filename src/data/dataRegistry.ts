@@ -1,6 +1,7 @@
 import * as z from "zod";
 import {
   rawGameDataSchema,
+  type CharacterTraitDefinition,
   type EventDefinition,
   type GrowthTypeDefinition,
   type IndividualTrainingInstructionDefinition,
@@ -18,6 +19,7 @@ export interface GameDataRegistry {
   personalities: ReadonlyMap<string, PersonalityDefinition>;
   growthTypes: ReadonlyMap<string, GrowthTypeDefinition>;
   traits: ReadonlyMap<string, TraitDefinition>;
+  characterTraits: ReadonlyMap<string, CharacterTraitDefinition>;
   trainingMenus: ReadonlyMap<string, TrainingMenuDefinition>;
   individualTrainingInstructions: ReadonlyMap<
     string,
@@ -185,6 +187,7 @@ export function loadGameData(input: unknown): GameDataRegistry {
   assertUniqueIds("personalities", parsed.personalities);
   assertUniqueIds("growthTypes", parsed.growthTypes);
   assertUniqueIds("traits", parsed.traits);
+  assertUniqueIds("characterTraits", parsed.characterTraits);
   assertUniqueIds("trainingMenus", parsed.trainingMenus);
   assertUniqueIds(
     "individualTrainingInstructions",
@@ -202,6 +205,10 @@ export function loadGameData(input: unknown): GameDataRegistry {
     personalities: createReadOnlyMap(parsed.personalities, (item) => item.id),
     growthTypes: createReadOnlyMap(parsed.growthTypes, (item) => item.id),
     traits: createReadOnlyMap(parsed.traits, (item) => item.id),
+    characterTraits: createReadOnlyMap(
+      parsed.characterTraits,
+      (item) => item.id,
+    ),
     trainingMenus: createReadOnlyMap(parsed.trainingMenus, (item) => item.id),
     individualTrainingInstructions: createReadOnlyMap(
       individualTrainingInstructions,

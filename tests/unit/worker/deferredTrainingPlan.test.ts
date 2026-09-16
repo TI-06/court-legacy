@@ -28,6 +28,13 @@ function createSnapshot(): CloudGameSnapshot {
     },
   });
 
+  for (const player of Object.values(state.players)) {
+    player.hiddenTraitIds = [];
+    player.revealedHiddenTraitIds = [];
+    player.hiddenTraitAssignmentInitialized = true;
+  }
+  // deferred-training fixture intentionally disables unrelated Phase21 trait discovery
+
   return {
     userId: "user-123",
     schoolDbId: "00000000-0000-4000-8000-000000000001",

@@ -370,6 +370,46 @@ describe("PlayerHubScreen", () => {
     expect(bars[1]).toHaveAttribute("data-growth", "5");
   });
 
+  it("shows only revealed hidden character traits in player detail", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.hiddenTraitIds = ["character.caring"];
+    player.revealedHiddenTraitIds = [];
+    player.hiddenTraitAssignmentInitialized = true;
+    const { view, selection } = renderPlayerHub(state);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+
+    expect(screen.queryByRole("region", { name: "発見した個性" })).toBeNull();
+    expect(screen.queryByText("面倒見がいい")).toBeNull();
+
+    player.revealedHiddenTraitIds = ["character.caring", "character.missing"];
+    view.rerender(
+      <PlayerHubScreen
+        data={gameData}
+        onAssignLeadership={vi.fn()}
+        onChange={vi.fn()}
+        selection={selection}
+        state={state}
+      />,
+    );
+
+    const region = screen.getByRole("region", { name: "発見した個性" });
+    expect(within(region).getByText("面倒見がいい")).toBeVisible();
+    expect(
+      within(region).getByText(
+        "後輩や仲間の様子に気づき、自然に支えようとする。",
+      ),
+    ).toBeVisible();
+    expect(within(region).queryByText("character.missing")).toBeNull();
+  });
+
   it("keeps the existing lineup editor available", () => {
     renderPlayerHub();
 
