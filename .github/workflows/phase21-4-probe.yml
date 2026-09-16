@@ -23,123 +23,135 @@ jobs:
       - name: Add Task3 RED tests
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
+          cat >> tests/unit/domain/notifications/gameNotifications.test.ts <<'EOF'
 
-          notification_test = Path("tests/unit/domain/notifications/gameNotifications.test.ts")
-          text = notification_test.read_text(encoding="utf-8")
-          old = '''          socialGrowth: {
-                    contributions: [],
-                    rawPercentPoints: 0,
-                    appliedPercentPoints: 0,
-                    capped: false,
+          describe("Phase21 social growth notification snapshot", () => {
+            it("copies the resolved social growth summary instead of retaining mutable references", () => {
+              const state = createDemoGame();
+              const school = state.schools[state.userSchoolId]!;
+              const playerId = school.playerIds[0]!;
+              const relatedPlayerId = school.playerIds[1]!;
+              const result: TrainingResult = {
+                schoolId: state.userSchoolId,
+                teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
+                individualAssignments: state.weeklySchedule.trainingPlan.individualAssignments,
+                playerLogs: [
+                  {
+                    playerId,
+                    abilityChanges: {},
+                    totalAbilityGrowth: 0,
+                    fatigueChange: 0,
+                    conditionChange: 0,
+                    trustChange: 0,
+                    academicRestricted: false,
+                    injuryRisk: 0,
+                    injury: null,
+                    skippedReason: null,
+                    modifiers: [],
+                    socialGrowth: {
+                      contributions: [
+                        {
+                          code: "relationship-partner",
+                          label: "相棒",
+                          percentPoints: 3,
+                          relatedPlayerId,
+                        },
+                        {
+                          code: "relationship-mentor",
+                          label: "師弟",
+                          percentPoints: 4,
+                          relatedPlayerId,
+                        },
+                      ],
+                      rawPercentPoints: 7,
+                      appliedPercentPoints: 5,
+                      capped: true,
+                    },
                   },
-          '''
-          new = '''          socialGrowth: {
-                    contributions: [
-                      {
-                        code: "relationship-partner",
-                        label: "相棒",
-                        percentPoints: 3,
-                        relatedPlayerId: state.schools[state.userSchoolId]!.playerIds[1]!,
-                      },
-                      {
-                        code: "relationship-mentor",
-                        label: "師弟",
-                        percentPoints: 4,
-                        relatedPlayerId: state.schools[state.userSchoolId]!.playerIds[1]!,
-                      },
-                    ],
-                    rawPercentPoints: 7,
-                    appliedPercentPoints: 5,
-                    capped: true,
-                  },
-          '''
-          if old not in text:
-              raise SystemExit("notification socialGrowth fixture marker missing")
-          text = text.replace(old, new, 1)
-          assertion_marker = '''      abilityChanges: { serve: 2, jump: 1 },
+                ],
+                injuredPlayerIds: [],
+                randomCursor: state.randomCursor,
+              };
+
+              const notification = buildTrainingResultNotification({
+                stateBeforeTraining: state,
+                result,
+                data: gameData,
+              });
+
+              expect(notification.payload.players[0]).toMatchObject({
+                socialGrowth: {
+                  rawPercentPoints: 7,
+                  appliedPercentPoints: 5,
+                  capped: true,
+                  contributions: [
+                    { code: "relationship-partner", label: "相棒", percentPoints: 3 },
+                    { code: "relationship-mentor", label: "師弟", percentPoints: 4 },
+                  ],
+                },
+              });
+              result.playerLogs[0]!.socialGrowth.contributions[0]!.relatedPlayerId = playerId;
+              expect(
+                notification.payload.players[0]!.socialGrowth.contributions[0]!
+                  .relatedPlayerId,
+              ).toBe(relatedPlayerId);
             });
-          '''
-          assertion_replacement = '''      abilityChanges: { serve: 2, jump: 1 },
-              socialGrowth: {
-                rawPercentPoints: 7,
-                appliedPercentPoints: 5,
-                capped: true,
+          });
+          EOF
+
+          cat >> tests/unit/features/home/TrainingResultNotificationSheet.test.tsx <<'EOF'
+
+          describe("Phase21 social growth presentation", () => {
+            it("shows contributor chips and the capped applied value", () => {
+              const notification = createNotification();
+              const player = notification.payload.players[0]!;
+              const state = createDemoGame();
+              const relatedPlayerId = state.schools[state.userSchoolId]!.playerIds[1]!;
+              (player as unknown as {
+                socialGrowth: {
+                  contributions: Array<{
+                    code: "relationship-partner" | "relationship-mentor";
+                    label: string;
+                    percentPoints: 3 | 4;
+                    relatedPlayerId: typeof relatedPlayerId;
+                  }>;
+                  rawPercentPoints: number;
+                  appliedPercentPoints: number;
+                  capped: boolean;
+                };
+              }).socialGrowth = {
                 contributions: [
                   {
                     code: "relationship-partner",
                     label: "相棒",
                     percentPoints: 3,
+                    relatedPlayerId,
                   },
                   {
                     code: "relationship-mentor",
                     label: "師弟",
                     percentPoints: 4,
+                    relatedPlayerId,
                   },
                 ],
-              },
-            });
-            const capturedRelatedPlayerId =
-              notification.payload.players[0]!.socialGrowth.contributions[0]!
-                .relatedPlayerId;
-            result.playerLogs[0]!.socialGrowth.contributions[0]!.relatedPlayerId = playerId;
-            expect(
-              notification.payload.players[0]!.socialGrowth.contributions[0]!
-                .relatedPlayerId,
-            ).toBe(capturedRelatedPlayerId);
-          '''
-          if assertion_marker not in text:
-              raise SystemExit("notification assertion marker missing")
-          text = text.replace(assertion_marker, assertion_replacement, 1)
-          notification_test.write_text(text, encoding="utf-8")
+                rawPercentPoints: 7,
+                appliedPercentPoints: 5,
+                capped: true,
+              };
 
-          ui_test = Path("tests/unit/features/home/TrainingResultNotificationSheet.test.tsx")
-          ui = ui_test.read_text(encoding="utf-8")
-          fixture_marker = '''          abilityChanges: {
-                    spike: 2,
-                    jump: 1,
-                  },
-          '''
-          fixture_replacement = '''          abilityChanges: {
-                    spike: 2,
-                    jump: 1,
-                  },
-                  socialGrowth: {
-                    contributions: [
-                      {
-                        code: "relationship-partner",
-                        label: "相棒",
-                        percentPoints: 3,
-                        relatedPlayerId: school.playerIds[1]!,
-                      },
-                      {
-                        code: "relationship-mentor",
-                        label: "師弟",
-                        percentPoints: 4,
-                        relatedPlayerId: school.playerIds[1]!,
-                      },
-                    ],
-                    rawPercentPoints: 7,
-                    appliedPercentPoints: 5,
-                    capped: true,
-                  },
-          '''
-          if fixture_marker not in ui:
-              raise SystemExit("UI fixture marker missing")
-          ui = ui.replace(fixture_marker, fixture_replacement, 1)
-          ui_assert_marker = '''    expect(within(dialog).getByText("怪我あり")).toBeVisible();
-          '''
-          ui_assert_replacement = '''    expect(within(dialog).getByText("怪我あり")).toBeVisible();
-            expect(within(dialog).getByText("相棒 +3%")).toBeVisible();
-            expect(within(dialog).getByText("師弟 +4%")).toBeVisible();
-            expect(within(dialog).getByText("関係性効果は上限 +5%")).toBeVisible();
-          '''
-          if ui_assert_marker not in ui:
-              raise SystemExit("UI assertion marker missing")
-          ui = ui.replace(ui_assert_marker, ui_assert_replacement, 1)
-          ui_test.write_text(ui, encoding="utf-8")
-          PY
+              render(
+                <TrainingResultNotificationSheet
+                  notification={notification}
+                  onClose={vi.fn()}
+                />,
+              );
+              const dialog = screen.getByRole("dialog", { name: "今週の練習結果" });
+              expect(within(dialog).getByText("相棒 +3%")).toBeVisible();
+              expect(within(dialog).getByText("師弟 +4%")).toBeVisible();
+              expect(within(dialog).getByText("関係性効果は上限 +5%")).toBeVisible();
+            });
+          });
+          EOF
           npx prettier \
             tests/unit/domain/notifications/gameNotifications.test.ts \
             tests/unit/features/home/TrainingResultNotificationSheet.test.tsx --write
@@ -164,45 +176,46 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           notification_path = Path("src/domain/notifications/gameNotifications.ts")
           text = notification_path.read_text(encoding="utf-8")
           import_marker = 'import type { TrainingResult } from "../training/resolveWeeklyTraining";\n'
           social_import = 'import type { RelationshipTrainingModifierSummary } from "../training/relationshipTrainingModifiers";\n'
-          if social_import not in text:
-              if import_marker not in text:
-                  raise SystemExit("notification training import marker missing")
-              text = text.replace(import_marker, import_marker + social_import, 1)
+          if import_marker not in text:
+              raise SystemExit("notification import marker missing")
+          text = text.replace(import_marker, import_marker + social_import, 1)
           field_marker = '  abilityChanges: Partial<Record<AbilityKey, number>>;\n'
-          if '  socialGrowth: RelationshipTrainingModifierSummary;\n' not in text:
-              if field_marker not in text:
-                  raise SystemExit("notification player field marker missing")
-              text = text.replace(
-                  field_marker,
-                  field_marker + '  socialGrowth: RelationshipTrainingModifierSummary;\n',
-                  1,
-              )
+          if field_marker not in text:
+              raise SystemExit("notification field marker missing")
+          text = text.replace(
+              field_marker,
+              field_marker + '  socialGrowth: RelationshipTrainingModifierSummary;\n',
+              1,
+          )
           builder_marker = '      abilityChanges: { ...log.abilityChanges },\n'
-          builder_add = '''      abilityChanges: { ...log.abilityChanges },
-                socialGrowth: {
-                  contributions: log.socialGrowth.contributions.map((contribution) => ({
-                    ...contribution,
-                  })),
-                  rawPercentPoints: log.socialGrowth.rawPercentPoints,
-                  appliedPercentPoints: log.socialGrowth.appliedPercentPoints,
-                  capped: log.socialGrowth.capped,
-                },
-          '''
-          if 'contributions: log.socialGrowth.contributions.map' not in text:
-              if builder_marker not in text:
-                  raise SystemExit("notification builder marker missing")
-              text = text.replace(builder_marker, builder_add, 1)
+          if builder_marker not in text:
+              raise SystemExit("notification builder marker missing")
+          text = text.replace(
+              builder_marker,
+              builder_marker + '''      socialGrowth: {
+                contributions: log.socialGrowth.contributions.map((contribution) => ({
+                  ...contribution,
+                })),
+                rawPercentPoints: log.socialGrowth.rawPercentPoints,
+                appliedPercentPoints: log.socialGrowth.appliedPercentPoints,
+                capped: log.socialGrowth.capped,
+              },
+          ''',
+              1,
+          )
           notification_path.write_text(text, encoding="utf-8")
 
           sheet_path = Path("src/features/home/TrainingResultNotificationSheet.tsx")
           sheet = sheet_path.read_text(encoding="utf-8")
-          insertion_marker = '''                      <div className="training-result-notification__changes">
-          '''
+          marker = '                      <div className="training-result-notification__changes">\n'
+          if marker not in sheet:
+              raise SystemExit("sheet changes marker missing")
           social_block = '''                      {player.socialGrowth.contributions.length > 0 ? (
                             <div
                               className="training-result-notification__social"
@@ -226,16 +239,40 @@ jobs:
                           ) : null}
 
           '''
-          if 'className="training-result-notification__social"' not in sheet:
-              if insertion_marker not in sheet:
-                  raise SystemExit("sheet changes marker missing")
-              sheet = sheet.replace(insertion_marker, social_block + insertion_marker, 1)
+          sheet = sheet.replace(marker, social_block + marker, 1)
           sheet_path.write_text(sheet, encoding="utf-8")
+
+          ui_test = Path("tests/unit/features/home/TrainingResultNotificationSheet.test.tsx")
+          ui = ui_test.read_text(encoding="utf-8")
+          pattern = re.compile(
+              r'(?P<indent>\s*)abilityChanges: \{\n(?P=indent)  spike: 2,\n(?P=indent)  jump: 1,\n(?P=indent)\},'
+          )
+          match = pattern.search(ui)
+          if not match:
+              raise SystemExit("UI abilityChanges fixture marker missing")
+          indent = match.group("indent")
+          empty_social = (
+              match.group(0)
+              + "\n"
+              + indent
+              + "socialGrowth: {\n"
+              + indent
+              + "  contributions: [],\n"
+              + indent
+              + "  rawPercentPoints: 0,\n"
+              + indent
+              + "  appliedPercentPoints: 0,\n"
+              + indent
+              + "  capped: false,\n"
+              + indent
+              + "},"
+          )
+          ui = ui[:match.start()] + empty_social + ui[match.end():]
+          ui_test.write_text(ui, encoding="utf-8")
 
           css_path = Path("src/features/home/training-result-notification.css")
           css = css_path.read_text(encoding="utf-8")
-          if '.training-result-notification__social {' not in css:
-              css += '''
+          css += '''
 
           .training-result-notification__social {
             display: grid;
@@ -271,7 +308,8 @@ jobs:
           npx prettier \
             src/domain/notifications/gameNotifications.ts \
             src/features/home/TrainingResultNotificationSheet.tsx \
-            src/features/home/training-result-notification.css --write
+            src/features/home/training-result-notification.css \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx --write
           git diff --check
       - name: Verify GREEN
         run: |
