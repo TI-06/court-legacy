@@ -1,18 +1,18 @@
-name: Temporary UI Contrast Audit
+name: Temporary UI Readability Safe Gate
 
 on:
   push:
     branches: [tmp/ui-contrast-audit]
 
 concurrency:
-  group: ui-contrast-audit-${{ github.ref }}
+  group: ui-readability-safe-gate-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  audit:
+  safe-gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,31 +22,39 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - id: verify
+        name: Run full verify
+        continue-on-error: true
+        run: npm run verify
       - name: Install Chromium
+        if: always()
         run: npx playwright install --with-deps chromium
-      - name: Run diagnostic contrast audit
+      - id: e2e
+        name: Run full mobile E2E
+        if: always()
+        continue-on-error: true
+        run: npm run test:e2e
+      - name: Record safe gate outcomes
+        if: always()
         shell: bash
         run: |
-          set +e
-          npx playwright test tests/e2e/ui-contrast-audit-remaining.spec.ts --workers=1 --retries=0
-          status=$?
-          echo "contrast audit exit code: $status"
-          exit 0
-      - name: Upload contrast audit
+          {
+            echo "verify=${{ steps.verify.outcome }}"
+            echo "e2e=${{ steps.e2e.outcome }}"
+          } | tee ui-readability-safe-gate.txt
+      - name: Upload safe gate result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-contrast-audit
-          path: contrast-audit
-          if-no-files-found: warn
+          name: ui-readability-safe-gate
+          path: ui-readability-safe-gate.txt
           retention-days: 7
       - name: Upload Playwright diagnostics
-        if: always()
+        if: steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: ui-contrast-playwright
+          name: ui-readability-playwright
           path: |
             playwright-report
             test-results
-          if-no-files-found: ignore
           retention-days: 7
