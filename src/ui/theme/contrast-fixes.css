@@ -1,0 +1,216 @@
+/* Cross-screen readability fixes for light surfaces inside the dark game shell. */
+
+:root {
+  --light-surface-text: #173b52;
+  --light-surface-muted: #526b79;
+  --light-surface-kicker: #2f6f7c;
+}
+
+/* Light cards must not inherit the dark-shell foreground color. */
+.team-panel,
+.school-panel,
+.pvp-publish-card,
+.pvp-panel,
+.practice-planning,
+.pre-match-lineup__versus,
+.pre-match-lineup__tactics,
+.pre-match-lineup__presets,
+.pre-match-lineup__lineup,
+.pre-match-lineup__bench,
+.match-versus-card,
+.match-prep-panel,
+.match-scoreboard,
+.match-current-event,
+.match-controls,
+.match-timeline,
+.match-analysis,
+.match-command-impact,
+.match-result-actions,
+.calendar-section,
+.calendar-advance-panel {
+  color: var(--light-surface-text);
+}
+
+/* Section labels that sit on white/light cards need a darker teal. */
+.team-panel .section-kicker,
+.school-panel .section-kicker,
+.pvp-publish-card .section-kicker,
+.pvp-panel .section-kicker,
+.practice-planning .section-kicker,
+.pre-match-lineup__tactics .section-kicker,
+.pre-match-lineup__presets .section-kicker,
+.pre-match-lineup__lineup .section-kicker,
+.pre-match-lineup__bench .section-kicker,
+.match-prep-panel .section-kicker,
+.match-timeline .section-kicker,
+.match-analysis .section-kicker,
+.match-command-impact .section-kicker,
+.calendar-section .section-kicker,
+.calendar-advance-panel .section-kicker {
+  color: var(--light-surface-kicker);
+}
+
+/* Player lineup / bench light-surface copy. */
+.team-summary span,
+.rotation-card__body > label:first-child,
+.player-status-line,
+.bench-grid span,
+.bench-player-card span,
+.bench-player-card small,
+.policy-list small {
+  color: var(--light-surface-muted);
+}
+
+.libero-player-button > span:last-child {
+  color: #855816;
+}
+
+/* Saved lineup cards are deliberately dark inside a light team panel. */
+.saved-lineup-card {
+  color: var(--game-text, #f4f7fb);
+}
+
+.saved-lineup-card__heading span {
+  color: #c4d0df;
+}
+
+/* School navigation and management cards. */
+.school-segments button {
+  color: #4d626d;
+}
+
+.school-section-heading > span,
+.school-match-record time,
+.alumni-list article span,
+.school-empty-state,
+.facility-confirmation__description,
+.facility-confirmation dt,
+.assistant-coach-current > small,
+.assistant-coach-none,
+.assistant-coach-card small,
+.school-record-grid span,
+.school-season-ranking__goals small {
+  color: var(--light-surface-muted);
+}
+
+/* Scouting cards use a light background, so keep metadata and stars strong. */
+.scouting-card__identity p,
+.scouting-estimates span,
+.scouting-excluded-card span,
+.scouting-empty-active {
+  color: var(--light-surface-muted);
+}
+
+.scouting-stars {
+  color: #9a6c17;
+}
+
+.scouting-hero .section-kicker {
+  color: #8fc6d1;
+}
+
+/* PVP panels are light cards embedded in the dark match shell. */
+.pvp-publish-note,
+.pvp-empty-state,
+.pvp-opponent-card__topline,
+.pvp-opponent-card__school span,
+.pvp-opponent-card__record,
+.pvp-ranking-list span,
+.pvp-history-list span,
+.pvp-opponent-card__tactics strong {
+  color: var(--light-surface-muted);
+}
+
+/* Practice match cards. */
+.practice-planning__heading p,
+.practice-planning__scheduled span,
+.practice-planning__school-copy span,
+.practice-planning__empty,
+.practice-planning__heading > span {
+  color: var(--light-surface-muted);
+}
+
+/* Official tournament entry is light and gold; strengthen its gold accents. */
+.match-official-entry .section-kicker {
+  color: #855816;
+}
+
+.match-official-entry > button {
+  background: #965b14;
+}
+
+/* Pre-match white cards. */
+.pre-match-lineup__versus article span,
+.pre-match-lineup__privacy-note,
+.pre-match-lineup__section-heading > span,
+.pre-match-lineup__opponent-tactics > div > span,
+.pre-match-lineup__opponent-tactics > div > strong,
+.pre-match-lineup__tactic-axis-heading span,
+.pre-match-lineup__tactic-options small,
+.pre-match-lineup__saved-heading span,
+.pre-match-lineup__saved-presets button > span,
+.pre-match-lineup__saved-presets button > small,
+.pre-match-lineup__slot > span,
+.pre-match-lineup__libero > span,
+.pre-match-lineup__bench span {
+  color: var(--light-surface-muted);
+}
+
+/* Live match / result white panels. */
+.match-team-card span,
+.match-versus-mark span,
+.match-prep-summary span,
+.match-scoreboard span,
+.match-scoreboard small,
+.match-current-event p,
+.match-timeline__list p,
+.match-analysis__list p,
+.match-recommendations p,
+.match-analysis__list article > span,
+.match-timeline__list article > span,
+.match-command-impact__list span,
+.match-command-impact__list p {
+  color: var(--light-surface-muted);
+}
+
+.match-scoreboard > div strong {
+  color: var(--light-surface-muted);
+}
+
+.match-analysis button,
+.match-timeline strong,
+.match-analysis strong,
+.match-current-event strong,
+.match-command-impact strong {
+  color: var(--light-surface-text);
+}
+
+/* Calendar light panels. Keep the dark current-week hero unchanged. */
+.calendar-section-heading > span,
+.calendar-empty-state,
+.calendar-activity-list time,
+.calendar-activity-list article > div span,
+.calendar-week-guide span,
+.calendar-guide-note,
+.calendar-advance-panel p {
+  color: var(--light-surface-muted);
+}
+
+/* Bottom-sheet training choices were especially washed out on white. */
+.ui-sheet-header p {
+  color: var(--light-surface-muted);
+}
+
+.player-training-options button {
+  color: var(--light-surface-text);
+}
+
+.player-training-options small {
+  color: var(--light-surface-muted);
+}
+
+/* Home orange text on the dark action chip was just under AA. */
+.home-command-objective__action button,
+.home-command-summary__top > strong {
+  color: #ff8a2f;
+}
