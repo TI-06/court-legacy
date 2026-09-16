@@ -5,6 +5,10 @@ import {
   createSoakSnapshot,
 } from "../../../src/dev/soak/runBalanceSoak";
 import type { GameState } from "../../../src/domain/model/GameState";
+import {
+  decodeGameState,
+  encodeGameState,
+} from "../../../src/persistence/gameStateCodec";
 
 interface DiagnosticPoint {
   week: number;
@@ -41,7 +45,7 @@ function topLevelStateBytes(state: GameState): Record<string, number> {
 }
 
 describe("Phase22 save growth diagnostic", () => {
-  it("captures 156 weeks of snapshot growth without turning diagnostics into a failing gate", () => {
+  it("captures 156 weeks of snapshot growth and preserves codec round-tripping", () => {
     let snapshot = createSoakSnapshot("phase22-save-growth");
     let totalActions = 0;
     let cumulativeEstimatedOperationBytes = 0;
@@ -89,6 +93,10 @@ describe("Phase22 save growth diagnostic", () => {
       }
     }
 
+    const encoded = encodeGameState(snapshot.state);
+    const decoded = decodeGameState(encoded);
+    const reencoded = encodeGameState(decoded);
+
     mkdirSync(".phase22-diagnostics", { recursive: true });
     writeFileSync(
       ".phase22-diagnostics/save-growth.json",
@@ -97,5 +105,8 @@ describe("Phase22 save growth diagnostic", () => {
     );
 
     expect(points.at(-1)?.week).toBe(156);
+    expect(decoded.date).toBe(snapshot.state.date);
+    expect(decoded.yearIndex).toBe(snapshot.state.yearIndex);
+    expect(reencoded).toBe(encoded);
   });
 });
