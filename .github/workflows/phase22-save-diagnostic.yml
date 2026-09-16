@@ -19,14 +19,16 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Check compact save payload expectation
-        id: payload-check
-        continue-on-error: true
-        run: npx vitest run tests/unit/worker/data/SupabaseGameStore.test.ts --reporter=verbose
-      - name: Record payload check result
-        run: echo "payload_check=${{ steps.payload-check.outcome }}"
-      - name: Measure 156-week save growth
+      - name: Verify operation replay and retention contracts
+        run: >-
+          npx vitest run
+          tests/unit/worker/data/SupabaseGameStore.test.ts
+          tests/unit/worker/data/gameOperationRetentionMigration.test.ts
+          --reporter=verbose
+      - name: Measure 156-week save growth and codec stability
         run: npx vitest run tests/unit/diagnostics/phase22SaveGrowthDiagnostic.test.ts --reporter=verbose
+      - name: Typecheck Phase22 changes
+        run: npm run typecheck
       - name: Upload save growth diagnostics
         if: always()
         uses: actions/upload-artifact@v4
