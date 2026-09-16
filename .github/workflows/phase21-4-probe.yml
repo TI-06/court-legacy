@@ -1,4 +1,4 @@
-name: Phase21-4 Long Run Audit
+name: Phase21-4 Final Safe Gate
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  long-run-audit:
+  safe-gate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -20,14 +20,46 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Run deterministic 156-week audit twice
-        shell: bash
+      - name: Phase21-4 focused regression
         run: |
-          TEST=tests/unit/domain/events/phase21RelationshipLongRun.test.ts
-          if [ ! -f "$TEST" ]; then
-            echo "Task6 test not present yet; workflow setup only."
-            exit 0
-          fi
-          npx vitest run "$TEST" --reporter=verbose
-          npx vitest run "$TEST" --reporter=verbose
-          npm run typecheck
+          npx vitest run \
+            tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
+            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
+            tests/unit/domain/events/phase21PairRepetition.test.ts \
+            tests/unit/domain/events/phase21RelationshipLongRun.test.ts \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx
+      - name: Phase21 cross-PR regression
+        run: |
+          npx vitest run \
+            tests/unit/domain/player/playerPersonalityPresentation.test.ts \
+            tests/unit/domain/relationships/specialRelationships.test.ts \
+            tests/unit/domain/relationships/phase21RelationshipDegradation.test.ts \
+            tests/unit/domain/relationships/relationshipPresentation.test.ts \
+            tests/unit/domain/events/phase21SpecialRelationshipEffects.test.ts \
+            tests/unit/domain/events/phase21RelationshipEventData.test.ts \
+            tests/unit/domain/calendar/phase21RelationshipLegacy.test.ts \
+            tests/unit/notifications/phase21RelationshipNotifications.test.ts \
+            tests/unit/persistence/phase21GameStateMigration.test.ts \
+            tests/unit/data/phase21CharacterTraits.test.ts \
+            tests/unit/domain/player/characterTraitAssignment.test.ts \
+            tests/unit/domain/player/characterTraitDiscovery.test.ts \
+            tests/unit/domain/events/phase21CharacterTraitEventDiscovery.test.ts \
+            tests/unit/notifications/phase21CharacterTraitNotifications.test.ts \
+            tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
+            tests/unit/domain/events/phase21CharacterEventWeight.test.ts \
+            tests/unit/domain/events/phase21PairRepetition.test.ts \
+            tests/unit/domain/events/phase21RelationshipLongRun.test.ts \
+            tests/unit/worker/applyGameAction.test.ts \
+            tests/unit/worker/gameAction.test.ts \
+            tests/unit/worker/academicYearRecruitment.test.ts \
+            tests/unit/features/home/EventDialog.test.tsx \
+            tests/unit/features/home/HomeScreen.test.tsx \
+            tests/unit/features/home/TrainingResultNotificationSheet.test.tsx \
+            tests/unit/features/team/PlayerHubScreen.test.tsx
+      - name: Full verification
+        run: npm run verify
+      - name: Balance smoke
+        run: npm run soak:smoke
+      - name: End-to-end regression
+        run: npm run test:e2e
