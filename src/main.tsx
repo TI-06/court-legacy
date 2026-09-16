@@ -6,6 +6,7 @@ import "./mobile-layout.css";
 import "./pwa/app-update-banner.css";
 import { ReleaseAwareApplicationRoot } from "./pwa/ReleaseAwareApplicationRoot";
 import "./ui/theme/game-theme.css";
+import "./ui/theme/contrast-fixes.css";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Application root element was not found");
