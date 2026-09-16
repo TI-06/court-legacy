@@ -56,7 +56,7 @@ jobs:
                   },
                 ],
               };
-              return { state, school, mentor, protege, plan: createPlan(school.playerIds) };
+              return { state, mentor, protege, plan: createPlan(school.playerIds) };
             }
 
             it("collapses raw social contributions to one capped 105 percent modifier", () => {
@@ -98,7 +98,6 @@ jobs:
                   recurrenceRisk: 0,
                 },
               };
-
               const resolution = resolveWeeklyTraining({
                 state,
                 schoolId: state.userSchoolId,
@@ -140,7 +139,6 @@ jobs:
                   ? { ...assignment, instructionId: "instruction.rest" }
                   : assignment,
               );
-
               const resolution = resolveWeeklyTraining({
                 state,
                 schoolId: state.userSchoolId,
@@ -177,22 +175,20 @@ jobs:
 
           growth_path = Path("src/domain/training/calculateGrowth.ts")
           growth = growth_path.read_text(encoding="utf-8")
-          if '| "relationship-social"' not in growth:
-              growth = growth.replace(
-                  '  | "assistant-coach-first-year"\n  | "academic";',
-                  '  | "assistant-coach-first-year"\n  | "relationship-social"\n  | "academic";',
-                  1,
-              )
-              growth = growth.replace(
-                  '    | "assistant-coach-first-year";',
-                  '    | "assistant-coach-first-year"\n    | "relationship-social";',
-                  1,
-              )
+          growth = growth.replace(
+              '  | "assistant-coach-first-year"\n  | "academic";',
+              '  | "assistant-coach-first-year"\n  | "relationship-social"\n  | "academic";',
+              1,
+          )
+          growth = growth.replace(
+              '    | "assistant-coach-first-year";',
+              '    | "assistant-coach-first-year"\n    | "relationship-social";',
+              1,
+          )
           growth_path.write_text(growth, encoding="utf-8")
 
           path = Path("src/domain/training/resolveWeeklyTraining.ts")
           text = path.read_text(encoding="utf-8")
-
           import_marker = '''import {
             calculateGrowth,
             type AdditionalGrowthModifier,
@@ -204,24 +200,20 @@ jobs:
             type RelationshipTrainingModifierSummary,
           } from "./relationshipTrainingModifiers";
           '''
-          if 'from "./relationshipTrainingModifiers"' not in text:
-              if import_marker not in text:
-                  raise SystemExit("calculateGrowth import marker missing")
-              text = text.replace(import_marker, import_marker + relationship_import, 1)
-
-          if '  socialGrowth: RelationshipTrainingModifierSummary;\n' not in text:
-              marker = '  modifiers: GrowthModifier[];\n'
-              if marker not in text:
-                  raise SystemExit("PlayerGrowthLog marker missing")
-              text = text.replace(marker, marker + '  socialGrowth: RelationshipTrainingModifierSummary;\n', 1)
-
-          if 'function emptySocialGrowth()' not in text:
-              marker = '''function clampState(value: number) {
+          if import_marker not in text:
+              raise SystemExit("calculateGrowth import marker missing")
+          text = text.replace(import_marker, import_marker + relationship_import, 1)
+          text = text.replace(
+              '  modifiers: GrowthModifier[];\n',
+              '  modifiers: GrowthModifier[];\n  socialGrowth: RelationshipTrainingModifierSummary;\n',
+              1,
+          )
+          marker = '''function clampState(value: number) {
             return Math.max(0, Math.min(100, Math.round(value)));
           }
 
           '''
-              insert = '''function clampState(value: number) {
+          insert = '''function clampState(value: number) {
             return Math.max(0, Math.min(100, Math.round(value)));
           }
 
@@ -235,22 +227,19 @@ jobs:
           }
 
           '''
-              if marker not in text:
-                  raise SystemExit("clampState marker missing")
-              text = text.replace(marker, insert, 1)
-
-          if '    socialGrowth: emptySocialGrowth(),\n' not in text:
-              marker = '    modifiers: [],\n'
-              if marker not in text:
-                  raise SystemExit("emptyLog modifiers marker missing")
-              text = text.replace(marker, marker + '    socialGrowth: emptySocialGrowth(),\n', 1)
-
-          if 'const activeTrainingPlayerIds = new Set<PlayerId>' not in text:
-              marker = '''  const assignments: IndividualTrainingAssignment[] = [];
+          if marker not in text:
+              raise SystemExit("clampState marker missing")
+          text = text.replace(marker, insert, 1)
+          text = text.replace(
+              '    modifiers: [],\n',
+              '    modifiers: [],\n    socialGrowth: emptySocialGrowth(),\n',
+              1,
+          )
+          marker = '''  const assignments: IndividualTrainingAssignment[] = [];
             const includeDynamics = input.schoolId === input.state.userSchoolId;
 
           '''
-              insert = '''  const assignments: IndividualTrainingAssignment[] = [];
+          insert = '''  const assignments: IndividualTrainingAssignment[] = [];
             const includeDynamics = input.schoolId === input.state.userSchoolId;
             const activeTrainingPlayerIds = new Set<PlayerId>(
               validated.school.playerIds.filter((id) => {
@@ -266,16 +255,14 @@ jobs:
             );
 
           '''
-              if marker not in text:
-                  raise SystemExit("active set insertion marker missing")
-              text = text.replace(marker, insert, 1)
-
-          if '    log.socialGrowth = calculateRelationshipTrainingModifier(' not in text:
-              marker = '''    const original = input.state.players[id]!;
+          if marker not in text:
+              raise SystemExit("active set insertion marker missing")
+          text = text.replace(marker, insert, 1)
+          marker = '''    const original = input.state.players[id]!;
               const log = emptyLog(id);
 
           '''
-              insert = '''    const original = input.state.players[id]!;
+          insert = '''    const original = input.state.players[id]!;
               const log = emptyLog(id);
               log.socialGrowth = calculateRelationshipTrainingModifier(
                 input.state,
@@ -284,10 +271,9 @@ jobs:
               );
 
           '''
-              if marker not in text:
-                  raise SystemExit("loop log marker missing")
-              text = text.replace(marker, insert, 1)
-
+          if marker not in text:
+              raise SystemExit("loop log marker missing")
+          text = text.replace(marker, insert, 1)
           old_extra = '''    const extraModifiers = includeDynamics
                 ? [
                     ...(input.additionalGrowthModifiers ?? []),
@@ -323,20 +309,46 @@ jobs:
                   ]
                 : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
           '''
-          if 'code: "relationship-social"' not in text:
-              if old_extra not in text:
-                  raise SystemExit("extra modifier block marker missing")
-              text = text.replace(old_extra, new_extra, 1)
-
+          if old_extra not in text:
+              raise SystemExit("extra modifier block marker missing")
+          text = text.replace(old_extra, new_extra, 1)
           path.write_text(text, encoding="utf-8")
+
+          for filename in [
+              "tests/unit/domain/notifications/gameNotifications.test.ts",
+              "tests/unit/domain/player/playerDevelopmentHistory.test.ts",
+          ]:
+              fixture_path = Path(filename)
+              fixture = fixture_path.read_text(encoding="utf-8")
+              marker = '          modifiers: [],\n'
+              if marker not in fixture:
+                  raise SystemExit(f"fixture modifiers marker missing: {filename}")
+              fixture = fixture.replace(
+                  marker,
+                  marker + '''          socialGrowth: {
+                    contributions: [],
+                    rawPercentPoints: 0,
+                    appliedPercentPoints: 0,
+                    capped: false,
+                  },
+          ''',
+                  1,
+              )
+              fixture_path.write_text(fixture, encoding="utf-8")
           PY
-          npx prettier src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts --write
+          npx prettier \
+            src/domain/training/calculateGrowth.ts \
+            src/domain/training/resolveWeeklyTraining.ts \
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/domain/player/playerDevelopmentHistory.test.ts --write
           git diff --check
       - name: Verify GREEN
         run: |
           npx vitest run \
             tests/unit/domain/training/phase21RelationshipTrainingModifiers.test.ts \
-            tests/unit/domain/training/resolveWeeklyTraining.test.ts
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/domain/player/playerDevelopmentHistory.test.ts
       - name: Typecheck
         run: npm run typecheck
       - name: Commit Task2
@@ -344,6 +356,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/domain/training/calculateGrowth.ts src/domain/training/resolveWeeklyTraining.ts tests/unit/domain/training/resolveWeeklyTraining.test.ts
+          git add \
+            src/domain/training/calculateGrowth.ts \
+            src/domain/training/resolveWeeklyTraining.ts \
+            tests/unit/domain/training/resolveWeeklyTraining.test.ts \
+            tests/unit/domain/notifications/gameNotifications.test.ts \
+            tests/unit/domain/player/playerDevelopmentHistory.test.ts
           git commit -m "feat: apply visible capped social training growth"
           git push origin HEAD:tmp/phase21-4-social-effects-event-balance
