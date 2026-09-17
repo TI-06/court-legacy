@@ -1,0 +1,151 @@
+name: Phase22-3 Final UI Gate
+
+on:
+  push:
+    branches:
+      - tmp/phase22-3-compact-player-list
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Define final compact-row expectations
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/unit/features/team/PlayerHubScreen.test.tsx')
+          text = path.read_text()
+
+          old = '''    expect(\n      within(rosterRow).queryByRole("button", { name: /練習/ }),\n    ).toBeNull();\n\n    fireEvent.click(detailButton);\n    const settings = screen.getByRole("region", { name: "選手設定" });\n    const trainingButton = within(settings).getByRole("button", {\n      name: `${player.lastName} ${player.firstName} 個人練習 全体`,\n    });\n'''
+          new = '''    expect(\n      within(rosterRow).queryByRole("button", { name: /練習/ }),\n    ).toBeNull();\n    expect(\n      within(rosterRow).queryByRole("button", { name: /重点育成/ }),\n    ).toBeNull();\n\n    fireEvent.click(detailButton);\n    const settings = screen.getByRole("region", { name: "選手設定" });\n    expect(\n      within(settings).getByRole("button", {\n        name: `重点育成から外す ${player.lastName} ${player.firstName}`,\n      }),\n    ).toBeVisible();\n    const trainingButton = within(settings).getByRole("button", {\n      name: `${player.lastName} ${player.firstName} 個人練習 全体`,\n    });\n'''
+          if old not in text:
+              raise SystemExit('compact status test anchor not found')
+          text = text.replace(old, new, 1)
+
+          old_priority = '''    const fourthAdd = screen.getByRole("button", {\n      name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,\n    });\n    expect(fourthAdd).toBeDisabled();\n\n    const first = state.players[firstThree[0]!]!;\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `重点育成から外す ${first.lastName} ${first.firstName}`,\n      }),\n    );\n    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith(\n      firstThree.slice(1),\n    );\n\n    view.rerender(\n      <PlayerHubScreen\n        data={gameData}\n        onAssignLeadership={vi.fn()}\n        onChange={vi.fn()}\n        onSetDevelopmentPriorities={onSetDevelopmentPriorities}\n        selection={autoSelectTeam({ state, schoolId: state.userSchoolId })}\n        state={{\n          ...state,\n          teamPlanning: {\n            ...state.teamPlanning,\n            developmentPriorityPlayerIds: firstThree.slice(1),\n          },\n        }}\n      />,\n    );\n\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,\n      }),\n    );\n    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith([\n      ...firstThree.slice(1),\n      fourthId,\n    ]);\n'''
+          new_priority = '''    fireEvent.click(\n      screen.getByRole("button", {\n        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,\n      }),\n    );\n    const fourthAdd = screen.getByRole("button", {\n      name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,\n    });\n    expect(fourthAdd).toBeDisabled();\n    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));\n\n    const first = state.players[firstThree[0]!]!;\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `選手詳細 ${first.lastName} ${first.firstName}`,\n      }),\n    );\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `重点育成から外す ${first.lastName} ${first.firstName}`,\n      }),\n    );\n    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith(\n      firstThree.slice(1),\n    );\n\n    view.rerender(\n      <PlayerHubScreen\n        data={gameData}\n        onAssignLeadership={vi.fn()}\n        onChange={vi.fn()}\n        onSetDevelopmentPriorities={onSetDevelopmentPriorities}\n        selection={autoSelectTeam({ state, schoolId: state.userSchoolId })}\n        state={{\n          ...state,\n          teamPlanning: {\n            ...state.teamPlanning,\n            developmentPriorityPlayerIds: firstThree.slice(1),\n          },\n        }}\n      />,\n    );\n    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,\n      }),\n    );\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,\n      }),\n    );\n    expect(onSetDevelopmentPriorities).toHaveBeenLastCalledWith([\n      ...firstThree.slice(1),\n      fourthId,\n    ]);\n'''
+          if old_priority not in text:
+              raise SystemExit('priority mutation test anchor not found')
+          text = text.replace(old_priority, new_priority, 1)
+
+          old_pending = '''    const priorityButtons = screen.getAllByRole("button", {\n      name: /重点育成(に追加|から外す)/,\n    });\n    expect(priorityButtons.length).toBeGreaterThan(0);\n    expect(\n      priorityButtons.every((button) => button.hasAttribute("disabled")),\n    ).toBe(true);\n'''
+          new_pending = '''    const first = state.players[school.playerIds[0]!]!;\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `選手詳細 ${first.lastName} ${first.firstName}`,\n      }),\n    );\n    expect(\n      screen.getByRole("button", {\n        name: `重点育成から外す ${first.lastName} ${first.firstName}`,\n      }),\n    ).toBeDisabled();\n'''
+          if old_pending not in text:
+              raise SystemExit('priority pending test anchor not found')
+          text = text.replace(old_pending, new_pending, 1)
+          path.write_text(text)
+
+          app_path = Path('tests/unit/app/GameApp.playerHubPlanning.test.tsx')
+          app = app_path.read_text()
+          old_app = '''    fireEvent.click(screen.getByRole("button", { name: "選手" }));\n    fireEvent.click(\n      await screen.findByRole("button", {\n        name: `重点育成に追加 ${playerName}`,\n      }),\n    );\n'''
+          new_app = '''    fireEvent.click(screen.getByRole("button", { name: "選手" }));\n    fireEvent.click(\n      await screen.findByRole("button", {\n        name: `選手詳細 ${playerName}`,\n      }),\n    );\n    fireEvent.click(\n      screen.getByRole("button", {\n        name: `重点育成に追加 ${playerName}`,\n      }),\n    );\n'''
+          if old_app not in app:
+              raise SystemExit('GameApp planning anchor not found')
+          app = app.replace(old_app, new_app, 1)
+          app_path.write_text(app)
+          PY
+
+      - name: Confirm RED
+        shell: bash
+        run: |
+          set +e
+          npm test -- tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/app/GameApp.playerHubPlanning.test.tsx > /tmp/phase22-3-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/phase22-3-red.log
+          if [ "$status" -eq 0 ]; then
+            echo "Final compact-control expectations unexpectedly passed before implementation"
+            exit 1
+          fi
+          echo "RED confirmed"
+
+      - name: Move priority control into player detail
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('src/features/team/PlayerHubScreen.tsx')
+          text = path.read_text()
+
+          anchor = '''    const maxTrendGrowth = Math.max(\n      1,\n      ...growth.trend12.map((point) => point.totalAbilityGrowth),\n    );\n\n    return (\n'''
+          replacement = '''    const maxTrendGrowth = Math.max(\n      1,\n      ...growth.trend12.map((point) => point.totalAbilityGrowth),\n    );\n    const selectedIsPriority = priorityIds.includes(selectedPlayer.id);\n    const priorityCapReached = priorityIds.length >= 3;\n\n    return (\n'''
+          if anchor not in text:
+              raise SystemExit('detail state anchor not found')
+          text = text.replace(anchor, replacement, 1)
+
+          quick_anchor = '''        <section className="player-detail__quick-actions" aria-label="選手設定">\n          <button\n            aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}\n'''
+          quick_replacement = '''        <section className="player-detail__quick-actions" aria-label="選手設定">\n          <button\n            aria-label={\n              selectedIsPriority\n                ? `重点育成から外す ${playerName(selectedPlayer)}`\n                : `重点育成に追加 ${playerName(selectedPlayer)}`\n            }\n            className={`player-priority-chip player-priority-chip--detail${selectedIsPriority ? " player-priority-chip--active" : ""}`}\n            disabled={\n              planningPending || (!selectedIsPriority && priorityCapReached)\n            }\n            onClick={() => togglePriority(selectedPlayer.id)}\n            type="button"\n          >\n            <span>重点育成</span>\n            <strong>{selectedIsPriority ? "設定中" : "設定する"}</strong>\n          </button>\n          <button\n            aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}\n'''
+          if quick_anchor not in text:
+              raise SystemExit('quick action anchor not found')
+          text = text.replace(quick_anchor, quick_replacement, 1)
+
+          map_old = '''          const isPriority = item.isPriority;\n          const priorityCapReached = priorityIds.length >= 3;\n          const isCaptain = state.teamDynamics.captainPlayerId === player.id;\n'''
+          map_new = '''          const isPriority = item.isPriority;\n          const isCaptain = state.teamDynamics.captainPlayerId === player.id;\n'''
+          if map_old not in text:
+              raise SystemExit('roster local state anchor not found')
+          text = text.replace(map_old, map_new, 1)
+
+          button_block = '''\n              <button\n                aria-label={\n                  isPriority\n                    ? `重点育成から外す ${playerName(player)}`\n                    : `重点育成に追加 ${playerName(player)}`\n                }\n                className={`player-priority-chip player-priority-chip--compact${isPriority ? " player-priority-chip--active" : ""}`}\n                disabled={planningPending || (!isPriority && priorityCapReached)}\n                onClick={() => togglePriority(player.id)}\n                type="button"\n              >\n                {isPriority ? "解除" : "重点"}\n              </button>\n'''
+          if button_block not in text:
+              raise SystemExit('compact priority button block not found')
+          text = text.replace(button_block, '', 1)
+          path.write_text(text)
+
+          css_path = Path('src/features/team/player-hub.css')
+          css = css_path.read_text()
+          css = css.replace(
+              '''.player-roster__row--compact {\n  grid-template-columns: minmax(0, 1fr) 50px;\n  align-items: stretch;\n  border-radius: 9px;\n}\n''',
+              '''.player-roster__row--compact {\n  grid-template-columns: minmax(0, 1fr);\n  align-items: stretch;\n  border-radius: 9px;\n}\n''',
+              1,
+          )
+          compact_block = '''.player-priority-chip--compact {\n  align-self: center;\n  min-width: 44px;\n  min-height: 44px;\n  margin-right: 5px;\n  padding: 4px;\n  font-size: 9px;\n  border-radius: 8px;\n}\n\n'''
+          if compact_block not in css:
+              raise SystemExit('compact priority css anchor not found')
+          css = css.replace(compact_block, '', 1)
+          css = css.replace(
+              '''.player-detail__quick-actions {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  gap: 6px;\n}\n\n.player-training-chip--detail {\n  display: flex;\n''',
+              '''.player-detail__quick-actions {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 6px;\n}\n\n.player-training-chip--detail,\n.player-priority-chip--detail {\n  display: flex;\n''',
+              1,
+          )
+          css = css.replace(
+              '''.player-training-chip--detail strong {\n  color: #fff;\n  font-size: 12px;\n}\n''',
+              '''.player-training-chip--detail strong,\n.player-priority-chip--detail strong {\n  color: #fff;\n  font-size: 12px;\n}\n''',
+              1,
+          )
+          css_path.write_text(css)
+          PY
+
+      - name: Format changed files
+        run: npx prettier --write src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/app/GameApp.playerHubPlanning.test.tsx
+
+      - name: Focused regression tests
+        run: npm test -- tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/training/TrainingFlow.test.tsx tests/unit/app/GameAppActions.test.tsx tests/unit/app/GameApp.playerHubPlanning.test.tsx
+
+      - name: Full verify
+        run: npm run verify
+
+      - name: Commit verified final Phase22-3 changes
+        shell: bash
+        run: |
+          rm .github/workflows/phase22-3-final-ui.yml
+          git config user.name "court-legacy-bot"
+          git config user.email "court-legacy-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: move player planning controls into detail"
+          git push origin HEAD:tmp/phase22-3-compact-player-list
