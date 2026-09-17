@@ -127,11 +127,17 @@ describe("Phase 13 Home command center", () => {
     });
   });
 
-  it("emits a team command from the training task", () => {
+  it("emits a team command when individual training is unconfigured", () => {
     const props = createProps();
+    const school = props.state.schools[props.state.userSchoolId]!;
+    const unconfiguredPlayerId = school.playerIds.at(-1)!;
+    props.state.weeklySchedule.trainingPlan.individualAssignments =
+      props.state.weeklySchedule.trainingPlan.individualAssignments.filter(
+        (assignment) => assignment.playerId !== unconfiguredPlayerId,
+      );
     render(<HomeScreen {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "練習 確認" }));
+    fireEvent.click(screen.getByRole("button", { name: /個人練習を設定/ }));
     expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
   });
 

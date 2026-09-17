@@ -405,7 +405,7 @@ function MatchScreenContent({
                 }}
                 type="button"
               >
-                {result.analysis ? "ダイジェスト末尾へ" : "次の判断まで進む"}
+                {result.analysis ? "結果まで進む" : "次の判断まで進む"}
               </button>
               {allowResultSkip ? (
                 <button
