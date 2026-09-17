@@ -53,7 +53,9 @@ describe("Phase17 school rankings", () => {
     );
 
     expect(regional).toHaveLength(Object.keys(state.schools).length);
-    expect(representatives).toHaveLength(nationalRepresentativeRegionCount() - 1);
+    expect(representatives).toHaveLength(
+      nationalRepresentativeRegionCount() - 1,
+    );
     expect(representatives.some((row) => row.regionId === user.regionId)).toBe(
       false,
     );
@@ -83,7 +85,9 @@ describe("Phase17 school rankings", () => {
     expect(national[0]!.schoolId).toBe(opponent.id);
     expect(regional.some((row) => row.schoolId === opponent.id)).toBe(false);
     expect(snapshot.national.total).toBe(national.length);
-    expect(snapshot.national.total).toBeGreaterThan(Object.keys(state.schools).length);
+    expect(snapshot.national.total).toBeGreaterThan(
+      Object.keys(state.schools).length,
+    );
     expect(snapshot.regional.total).toBe(
       Object.values(state.schools).filter(
         (school) => school.regionId === user.regionId,
@@ -121,7 +125,9 @@ describe("Phase17 school rankings", () => {
     );
     expect(
       current.some((row) => {
-        const next = nextYear.find((candidate) => candidate.schoolId === row.schoolId);
+        const next = nextYear.find(
+          (candidate) => candidate.schoolId === row.schoolId,
+        );
         return next?.reputationPoints !== row.reputationPoints;
       }),
     ).toBe(true);

@@ -56,7 +56,9 @@ function createGuestEntrants(
   const selected = shuffle(representatives, identityRandom).slice(0, 15);
 
   if (selected.length !== 15) {
-    throw new Error("national tournament requires at least 15 external representatives");
+    throw new Error(
+      "national tournament requires at least 15 external representatives",
+    );
   }
 
   return selected.map((representative, slotIndex) => {
