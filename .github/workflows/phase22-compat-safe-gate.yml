@@ -55,7 +55,7 @@ jobs:
             render(<HomeScreen {...props} />);
 
             fireEvent.click(
-              screen.getByRole("button", { name: "個人練習を設定" }),
+              screen.getByRole("button", { name: /個人練習を設定/ }),
             );
             expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
           });
