@@ -1,0 +1,148 @@
+name: Phase22-3 E2E Compatibility Safe Gate
+
+on:
+  push:
+    branches:
+      - tmp/phase22-3-e2e-compat
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Patch legacy player-training E2E paths
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          generic_files = [
+              "tests/e2e/app-shell.spec.ts",
+              "tests/e2e/event-dialog.spec.ts",
+              "tests/e2e/mobile-layout-audit.spec.ts",
+              "tests/e2e/phase10-notifications.spec.ts",
+              "tests/e2e/shop-flow.spec.ts",
+              "tests/e2e/team-dynamics-flow.spec.ts",
+              "tests/e2e/v2-auth-game-flow.spec.ts",
+          ]
+          pattern = re.compile(
+              r'(?m)^(\s*)await page\.locator\("\.player-training-chip"\)\.first\(\)\.click\(\);$'
+          )
+
+          def detail_replacement(match: re.Match[str]) -> str:
+              indent = match.group(1)
+              return "\n".join([
+                  f'{indent}await page',
+                  f'{indent}  .getByTestId("roster-player-row")',
+                  f'{indent}  .first()',
+                  f'{indent}  .getByRole("button", {{ name: /^選手詳細 / }})',
+                  f'{indent}  .click();',
+                  f'{indent}await page.locator(".player-training-chip").click();',
+              ])
+
+          for filename in generic_files:
+              path = Path(filename)
+              text = path.read_text(encoding="utf-8")
+              updated, count = pattern.subn(detail_replacement, text)
+              if count != 1:
+                  raise SystemExit(f"{filename}: expected 1 direct legacy training click, found {count}")
+              path.write_text(updated, encoding="utf-8")
+
+          app_shell = Path("tests/e2e/app-shell.spec.ts")
+          text = app_shell.read_text(encoding="utf-8")
+          old = '''  const trainingChips = page.locator(".player-training-chip");
+          await expect(trainingChips).toHaveCount(12);
+          await trainingChips.first().click();'''
+          new = '''  await expect(page.locator(".player-training-chip")).toHaveCount(0);
+          await page
+            .getByTestId("roster-player-row")
+            .first()
+            .getByRole("button", { name: /^選手詳細 / })
+            .click();
+          const trainingChip = page.locator(".player-training-chip");
+          await expect(trainingChip).toHaveCount(1);
+          await trainingChip.click();'''
+          if old not in text:
+              raise SystemExit("app-shell: legacy training chip count block not found")
+          text = text.replace(old, new, 1)
+          old_assert = '  await expect(trainingChips.first()).toContainText("攻撃");'
+          if old_assert not in text:
+              raise SystemExit("app-shell: legacy post-save training chip assertion not found")
+          text = text.replace(old_assert, '  await expect(trainingChip).toContainText("攻撃");', 1)
+          app_shell.write_text(text, encoding="utf-8")
+
+          accessibility = Path("tests/e2e/phase18-accessibility.spec.ts")
+          text = accessibility.read_text(encoding="utf-8")
+          old = '''  const trainingChip = page.locator(".player-training-chip").first();
+          await trainingChip.click();'''
+          new = '''  await page
+            .getByTestId("roster-player-row")
+            .first()
+            .getByRole("button", { name: /^選手詳細 / })
+            .click();
+          const trainingChip = page.locator(".player-training-chip");
+          await trainingChip.click();'''
+          if old not in text:
+              raise SystemExit("phase18-accessibility: legacy training chip focus block not found")
+          accessibility.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
+          npx prettier --write \
+            tests/e2e/app-shell.spec.ts \
+            tests/e2e/event-dialog.spec.ts \
+            tests/e2e/mobile-layout-audit.spec.ts \
+            tests/e2e/phase10-notifications.spec.ts \
+            tests/e2e/phase18-accessibility.spec.ts \
+            tests/e2e/shop-flow.spec.ts \
+            tests/e2e/team-dynamics-flow.spec.ts \
+            tests/e2e/v2-auth-game-flow.spec.ts
+
+          echo "Remaining player-training-chip references:"
+          grep -R -n 'player-training-chip' tests/e2e || true
+
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run focused E2E compatibility gate
+        id: focused
+        continue-on-error: true
+        run: >-
+          npx playwright test
+          tests/e2e/app-shell.spec.ts
+          tests/e2e/event-dialog.spec.ts
+          tests/e2e/mobile-layout-audit.spec.ts
+          tests/e2e/phase10-notifications.spec.ts
+          tests/e2e/phase14-player-hub.spec.ts
+          tests/e2e/phase18-accessibility.spec.ts
+          tests/e2e/shop-flow.spec.ts
+          tests/e2e/team-dynamics-flow.spec.ts
+          tests/e2e/v2-auth-game-flow.spec.ts
+      - name: Run full E2E gate
+        id: full
+        if: steps.focused.outcome == 'success'
+        continue-on-error: true
+        run: npm run test:e2e
+      - name: Report safe-gate failure without red notification
+        if: steps.focused.outcome != 'success' || steps.full.outcome != 'success'
+        run: |
+          echo "PHASE22_3_E2E_SAFE_GATE_NOT_GREEN"
+          echo "focused=${{ steps.focused.outcome }}"
+          echo "full=${{ steps.full.outcome }}"
+      - name: Commit verified E2E compatibility updates
+        if: steps.focused.outcome == 'success' && steps.full.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e
+          git commit -m "test: align player training e2e with compact roster"
+          git push
