@@ -4,7 +4,12 @@ import { advanceWeekFromHome } from "./homeTestHelpers";
 async function saveTrainingAndAdvance(page: import("@playwright/test").Page) {
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
-  await page.locator(".player-training-chip").first().click();
+  await page
+    .getByTestId("roster-player-row")
+    .first()
+    .getByRole("button", { name: /^選手詳細 / })
+    .click();
+  await page.locator(".player-training-chip").click();
   await page
     .getByRole("dialog", { name: /の個人練習$/ })
     .getByRole("button", { name: /^攻撃/ })

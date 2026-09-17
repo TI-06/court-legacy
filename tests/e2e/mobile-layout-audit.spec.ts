@@ -288,7 +288,12 @@ for (const viewport of mobileViewports) {
       testInfo,
       `${viewport.width}-players-training`,
     );
-    await page.locator(".player-training-chip").first().click();
+    await page
+      .getByTestId("roster-player-row")
+      .first()
+      .getByRole("button", { name: /^選手詳細 / })
+      .click();
+    await page.locator(".player-training-chip").click();
     await expectLayoutFits(
       page,
       testInfo,
