@@ -128,12 +128,12 @@ const trainingReplacement = `  const trainingCompleted = isWeeklyActionCompleted
   const unconfiguredCount = school.playerIds.length - configuredCount;
   const individualSummary = [...instructionCounts.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, summary]) => \`${summary.name} ${summary.count}名\`);
+    .map(([, summary]) => \`\${summary.name} \${summary.count}名\`);
   if (unconfiguredCount > 0) {
-    individualSummary.push(\`未設定 ${unconfiguredCount}名\`);
+    individualSummary.push(\`未設定 \${unconfiguredCount}名\`);
   }
   individualSummary.push(
-    \`設定済み ${configuredCount}/${school.playerIds.length}名\`,
+    \`設定済み \${configuredCount}/\${school.playerIds.length}名\`,
   );
   const needsIndividualSetup = !trainingCompleted && unconfiguredCount > 0;
   candidates.push({
@@ -145,7 +145,7 @@ const trainingReplacement = `  const trainingCompleted = isWeeklyActionCompleted
       category: "training",
       title: "個人練習",
       detail: trainingCompleted
-        ? \`${individualSummary.join("・")}・今週分完了 ✓\`
+        ? \`\${individualSummary.join("・")}・今週分完了 ✓\`
         : individualSummary.join("・"),
       action: needsIndividualSetup ? { target: "team" } : undefined,
       actionLabel: needsIndividualSetup ? "個人練習を設定" : undefined,
