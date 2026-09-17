@@ -75,19 +75,71 @@ replaceOnce(
 );
 
 replaceOnce(
+  "src/features/match/matchCommandPresentation.ts",
+  '    case "continue":\n      return "このまま続ける";\n  }',
+  '    case "continue":\n      return "このまま続ける";\n    case "skip-to-result":\n      return "結果までスキップ";\n  }',
+);
+
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '  commandPending?: boolean;\n  schoolDisplayNames?: Partial<Record<School["id"], string>>;',
+  '  commandPending?: boolean;\n  allowResultSkip?: boolean;\n  schoolDisplayNames?: Partial<Record<School["id"], string>>;',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '  onCommand,\n  commandPending = false,\n  schoolDisplayNames,',
+  '  onCommand,\n  commandPending = false,\n  allowResultSkip = false,\n  schoolDisplayNames,',
+);
+replaceOnce(
   "src/features/match/MatchScreen.tsx",
   '  const [speed, setSpeed] = useState<PlaybackSpeed>(1);\n  const result = presentation?.simulation ?? legacyResult;',
   '  const [speed, setSpeed] = useState<PlaybackSpeed>(1);\n  const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(null);\n  const result = presentation?.simulation ?? legacyResult;',
 );
 replaceOnce(
   "src/features/match/MatchScreen.tsx",
-  "  const presentedEvents = useMemo(() => {",
-  '  useEffect(() => {\n    if (\n      !result?.analysis ||\n      skipTargetMatchId !== String(result.match.id)\n    ) {\n      return;\n    }\n    setPlaying(false);\n    setVisibleEventIndex(lastEventIndex);\n    setSkipTargetMatchId(null);\n  }, [lastEventIndex, result, skipTargetMatchId]);\n\n  const presentedEvents = useMemo(() => {',
+  '  const eventCount = result?.match.eventLog.length ?? 0;\n  const lastEventIndex = Math.max(0, eventCount - 1);\n  const segmentRevealed = visibleEventIndex >= lastEventIndex;',
+  '  const eventCount = result?.match.eventLog.length ?? 0;\n  const lastEventIndex = Math.max(0, eventCount - 1);\n  const resultSkipResolved = Boolean(\n    result?.analysis && skipTargetMatchId === String(result.match.id),\n  );\n  const revealedEventIndex = resultSkipResolved\n    ? lastEventIndex\n    : visibleEventIndex;\n  const segmentRevealed = revealedEventIndex >= lastEventIndex;',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '    return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>',
+  '    return result.match.eventLog.slice(0, revealedEventIndex + 1).map((event) =>',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '  }, [presentation, result, schoolDisplayNames, state, visibleEventIndex]);',
+  '  }, [presentation, result, revealedEventIndex, schoolDisplayNames, state]);',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '  const visibleRawEvents = result.match.eventLog.slice(\n    0,\n    visibleEventIndex + 1,\n  );',
+  '  const visibleRawEvents = result.match.eventLog.slice(\n    0,\n    revealedEventIndex + 1,\n  );',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '              {visibleEventIndex + 1} / {eventCount}',
+  '              {revealedEventIndex + 1} / {eventCount}',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '                第{result.match.eventLog[visibleEventIndex]!.setNumber}セット',
+  '                第{result.match.eventLog[revealedEventIndex]!.setNumber}セット',
+);
+replaceOnce(
+  "src/features/match/MatchScreen.tsx",
+  '                disabled={visibleEventIndex >= lastEventIndex}',
+  '                disabled={revealedEventIndex >= lastEventIndex}',
 );
 replaceOnce(
   "src/features/match/MatchScreen.tsx",
   '                {result.analysis ? "結果まで進む" : "次の判断まで進む"}\n              </button>\n            </div>',
-  '                {result.analysis ? "ダイジェスト末尾へ" : "次の判断まで進む"}\n              </button>\n              <button\n                disabled={commandPending || (!result.analysis && !onCommand)}\n                onClick={() => {\n                  setPlaying(false);\n                  if (result.analysis) {\n                    setVisibleEventIndex(lastEventIndex);\n                    return;\n                  }\n                  if (!onCommand) return;\n                  setSkipTargetMatchId(String(result.match.id));\n                  void Promise.resolve(\n                    onCommand({ type: "skip-to-result" }),\n                  ).catch(() => setSkipTargetMatchId(null));\n                }}\n                type="button"\n              >\n                結果までスキップ\n              </button>\n            </div>',
+  '                {result.analysis ? "ダイジェスト末尾へ" : "次の判断まで進む"}\n              </button>\n              {allowResultSkip ? (\n                <button\n                  disabled={commandPending || (!result.analysis && !onCommand)}\n                  onClick={() => {\n                    setPlaying(false);\n                    if (result.analysis) {\n                      setVisibleEventIndex(lastEventIndex);\n                      return;\n                    }\n                    if (!onCommand) return;\n                    setSkipTargetMatchId(String(result.match.id));\n                    void Promise.resolve(\n                      onCommand({ type: "skip-to-result" }),\n                    ).catch(() => setSkipTargetMatchId(null));\n                  }}\n                  type="button"\n                >\n                  結果までスキップ\n                </button>\n              ) : null}\n            </div>',
+);
+
+replaceOnce(
+  "src/app/GameApp.tsx",
+  '            commandPending={cloudSession.operation.status === "submitting"}\n            onCommand={issueMatchCommand}',
+  '            commandPending={cloudSession.operation.status === "submitting"}\n            allowResultSkip\n            onCommand={issueMatchCommand}',
 );
 
 replaceOnce(
@@ -158,6 +210,29 @@ replaceBetween(
   '  const trainingCompleted = isWeeklyActionCompleted(state, "training");',
   "  const affordableFacilities = FACILITY_DEFINITIONS.filter(",
   trainingReplacement,
+);
+
+replaceOnce(
+  "tests/unit/features/home/Phase22HomeTraining.test.tsx",
+  '    expect(screen.getByText("未設定 1名")).toBeVisible();\n    expect(screen.getByText(`設定済み ${school.playerIds.length - 1}/${school.playerIds.length}名`)).toBeVisible();',
+  '    expect(screen.getByText(/未設定 1名/)).toBeVisible();\n    expect(\n      screen.getByText(\n        new RegExp(\n          `設定済み ${school.playerIds.length - 1}/${school.playerIds.length}名`,\n        ),\n      ),\n    ).toBeVisible();',
+);
+
+replaceOnce(
+  "tests/unit/features/home/homeCommandCenter.test.ts",
+  '    expect(training).toMatchObject({\n      priority: "normal",\n      action: { target: "team" },\n      complete: false,\n    });',
+  '    expect(training).toMatchObject({\n      priority: "normal",\n      action: undefined,\n      complete: false,\n    });',
+);
+
+replaceOnce(
+  "tests/unit/features/match/Phase22MatchSkip.test.tsx",
+  '        result={fixture.result}\n        reducedMotion={false}',
+  '        result={fixture.result}\n        allowResultSkip\n        reducedMotion={false}',
+);
+replaceOnce(
+  "tests/unit/features/match/Phase22MatchSkip.test.tsx",
+  '    expect(onCommand).toHaveBeenCalledWith({ type: "skip-to-result" });\n  });\n});',
+  '    expect(onCommand).toHaveBeenCalledWith({ type: "skip-to-result" });\n  });\n\n  it("does not expose result skip unless the caller explicitly enables it", () => {\n    const fixture = findIncompleteDecisionMatch();\n\n    render(\n      <MatchScreen\n        state={fixture.state}\n        opponent={fixture.opponent}\n        homeSelection={fixture.homeSelection}\n        awaySelection={fixture.awaySelection}\n        homeStrength={calculateSelectionStrength(\n          fixture.state,\n          fixture.homeSelection,\n        )}\n        awayStrength={calculateSelectionStrength(\n          fixture.state,\n          fixture.awaySelection,\n        )}\n        result={fixture.result}\n        reducedMotion={false}\n        onStart={vi.fn()}\n        onReturnHome={vi.fn()}\n        onCommand={vi.fn()}\n      />,\n    );\n\n    expect(\n      screen.queryByRole("button", { name: "結果までスキップ" }),\n    ).toBeNull();\n  });\n});',
 );
 
 console.log("Phase22-2 patch applied");
