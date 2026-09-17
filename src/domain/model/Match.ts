@@ -32,7 +32,8 @@ export type MatchCommand =
       outgoingPlayerId: PlayerId;
       incomingPlayerId: PlayerId;
     }
-  | { type: "continue" };
+  | { type: "continue" }
+  | { type: "skip-to-result" };
 
 export interface MatchCommandRecord {
   sequence: number;

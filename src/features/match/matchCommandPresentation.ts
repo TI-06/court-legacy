@@ -29,6 +29,8 @@ function commandLabel(state: GameState, record: MatchCommandRecord): string {
       return `${playerDisplayName(state, record.command.outgoingPlayerId)} → ${playerDisplayName(state, record.command.incomingPlayerId)}`;
     case "continue":
       return "このまま続ける";
+    case "skip-to-result":
+      return "結果までスキップ";
   }
 }
 

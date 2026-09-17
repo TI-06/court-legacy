@@ -1318,6 +1318,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             homeSelection={teamSelection}
             homeStrength={homeStrength}
             commandPending={cloudSession.operation.status === "submitting"}
+            allowResultSkip
             onCommand={issueMatchCommand}
             onReturnHome={() => {
               if (activeMatchPresentation) void executeAdvanceWeek();

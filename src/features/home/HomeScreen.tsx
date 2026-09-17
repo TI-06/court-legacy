@@ -23,7 +23,10 @@ import "./training-result-notification.css";
 
 interface HomeScreenProps {
   state: GameState;
-  data?: Pick<GameDataRegistry, "trainingMenus">;
+  data?: Pick<
+    GameDataRegistry,
+    "trainingMenus" | "individualTrainingInstructions"
+  >;
   homeStrength: number;
   onCommand?: (action: HomeCommandAction) => void;
   onAdvanceWeek: () => void;

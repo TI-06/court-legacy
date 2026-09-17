@@ -267,6 +267,10 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
   ensureCommandAllowed(reason, input.command);
 
   const historyEventSequence = match.eventLog.length;
+  const skipToResult = input.command.type === "skip-to-result";
+  const recordedCommand: MatchCommand = skipToResult
+    ? { type: "continue" }
+    : input.command;
 
   switch (input.command.type) {
     case "timeout": {
@@ -330,6 +334,7 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
       break;
     }
     case "continue":
+    case "skip-to-result":
       break;
   }
 
@@ -340,7 +345,7 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
     homeScore: runtime.homeScore,
     awayScore: runtime.awayScore,
     decisionReason: reason,
-    command: structuredClone(input.command),
+    command: structuredClone(recordedCommand),
     eventSequence: historyEventSequence,
   });
 
@@ -352,6 +357,9 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
   }
   match.pendingCoachCommandForSchoolId = null;
   runtime.pendingDecisionReason = null;
+  if (skipToResult) {
+    runtime.controlledSchoolId = null;
+  }
 
   return match;
 }

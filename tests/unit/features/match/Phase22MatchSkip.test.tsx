@@ -57,6 +57,7 @@ describe("Phase22 match result skip", () => {
           fixture.awaySelection,
         )}
         result={fixture.result}
+        allowResultSkip
         reducedMotion={false}
         onStart={vi.fn()}
         onReturnHome={vi.fn()}
@@ -72,5 +73,35 @@ describe("Phase22 match result skip", () => {
 
     expect(onCommand).toHaveBeenCalledTimes(1);
     expect(onCommand).toHaveBeenCalledWith({ type: "skip-to-result" });
+  });
+
+  it("does not expose result skip unless the caller explicitly enables it", () => {
+    const fixture = findIncompleteDecisionMatch();
+
+    render(
+      <MatchScreen
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={fixture.result}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "結果までスキップ" }),
+    ).toBeNull();
   });
 });

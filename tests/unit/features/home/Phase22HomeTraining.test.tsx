@@ -45,16 +45,20 @@ describe("Phase22 Home individual training summary", () => {
     expect(screen.getByText(/守備 3名/)).toBeVisible();
     expect(screen.getByText(/全体 \d+名/)).toBeVisible();
     expect(screen.queryByText("スパイク練習")).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: /個人練習を設定/ }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /個人練習を設定/ })).toBeNull();
   });
 
   it("shows a setup action only while at least one roster player is truly unconfigured", () => {
     const { school } = renderHomeWithAssignments(false);
 
-    expect(screen.getByText("未設定 1名")).toBeVisible();
-    expect(screen.getByText(`設定済み ${school.playerIds.length - 1}/${school.playerIds.length}名`)).toBeVisible();
+    expect(screen.getByText(/未設定 1名/)).toBeVisible();
+    expect(
+      screen.getByText(
+        new RegExp(
+          `設定済み ${school.playerIds.length - 1}/${school.playerIds.length}名`,
+        ),
+      ),
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: /個人練習を設定/ }),
     ).toBeVisible();

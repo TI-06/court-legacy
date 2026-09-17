@@ -415,7 +415,10 @@ function injuryTask(players: readonly Player[]): TaskCandidate | null {
 
 function buildTasks(
   state: GameState,
-  data: Pick<GameDataRegistry, "trainingMenus">,
+  data: Pick<
+    GameDataRegistry,
+    "trainingMenus" | "individualTrainingInstructions"
+  >,
   players: readonly Player[],
 ): HomeCommandTask[] {
   const school = state.schools[state.userSchoolId];
@@ -490,9 +493,36 @@ function buildTasks(
   }
 
   const trainingCompleted = isWeeklyActionCompleted(state, "training");
-  const trainingMenu = data.trainingMenus.get(
-    state.weeklySchedule.trainingPlan.teamTrainingMenuId,
+  const assignmentByPlayerId = new Map(
+    state.weeklySchedule.trainingPlan.individualAssignments
+      .filter((assignment) => school.playerIds.includes(assignment.playerId))
+      .map((assignment) => [assignment.playerId, assignment.instructionId]),
   );
+  const instructionCounts = new Map<string, { name: string; count: number }>();
+  let configuredCount = 0;
+  for (const playerId of school.playerIds) {
+    const instructionId = assignmentByPlayerId.get(playerId);
+    if (!instructionId) continue;
+    const instruction = data.individualTrainingInstructions.get(instructionId);
+    if (!instruction) continue;
+    configuredCount += 1;
+    const current = instructionCounts.get(instruction.id);
+    instructionCounts.set(instruction.id, {
+      name: instruction.name,
+      count: (current?.count ?? 0) + 1,
+    });
+  }
+  const unconfiguredCount = school.playerIds.length - configuredCount;
+  const individualSummary = [...instructionCounts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, summary]) => `${summary.name} ${summary.count}名`);
+  if (unconfiguredCount > 0) {
+    individualSummary.push(`未設定 ${unconfiguredCount}名`);
+  }
+  individualSummary.push(
+    `設定済み ${configuredCount}/${school.playerIds.length}名`,
+  );
+  const needsIndividualSetup = !trainingCompleted && unconfiguredCount > 0;
   candidates.push({
     order: 50,
     task: {
@@ -500,12 +530,12 @@ function buildTasks(
       kind: "action",
       priority: trainingCompleted ? "complete" : "normal",
       category: "training",
-      title: "練習",
+      title: "個人練習",
       detail: trainingCompleted
-        ? `${trainingMenu?.name ?? "今週の練習"}・今週分完了 ✓`
-        : `${trainingMenu?.name ?? "今週の練習"}・設定済み`,
-      action: trainingCompleted ? undefined : { target: "team" },
-      actionLabel: trainingCompleted ? undefined : "確認",
+        ? `${individualSummary.join("・")}・今週分完了 ✓`
+        : individualSummary.join("・"),
+      action: needsIndividualSetup ? { target: "team" } : undefined,
+      actionLabel: needsIndividualSetup ? "個人練習を設定" : undefined,
       complete: trainingCompleted,
     },
   });
@@ -708,7 +738,10 @@ function buildNews(state: GameState): HomeCommandNews[] {
 
 export function selectHomeCommandCenter(input: {
   state: GameState;
-  data: Pick<GameDataRegistry, "trainingMenus">;
+  data: Pick<
+    GameDataRegistry,
+    "trainingMenus" | "individualTrainingInstructions"
+  >;
   homeStrength: number;
 }): HomeCommandCenterModel {
   const school = input.state.schools[input.state.userSchoolId];

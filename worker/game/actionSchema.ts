@@ -123,6 +123,7 @@ const matchCommandSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("continue") }).strict(),
+  z.object({ type: z.literal("skip-to-result") }).strict(),
 ]);
 
 const gameActionSchema = z.discriminatedUnion("type", [
