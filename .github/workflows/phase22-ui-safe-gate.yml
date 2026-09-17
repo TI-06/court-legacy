@@ -1,0 +1,41 @@
+name: Phase22 UI Safe Gate
+
+on:
+  push:
+    branches:
+      - feat/phase22-match-skip-home-training
+
+permissions:
+  contents: read
+
+jobs:
+  phase22-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Confirm expected RED without failing the workflow
+        shell: bash
+        run: |
+          set +e
+          npm test -- \
+            tests/unit/features/home/Phase22HomeTraining.test.tsx \
+            tests/unit/features/match/Phase22MatchSkip.test.tsx
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "Expected Phase22-2 RED, but focused tests are already green."
+            exit 1
+          fi
+          echo "Expected Phase22-2 RED confirmed."
