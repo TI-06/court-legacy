@@ -27,6 +27,7 @@ interface MatchScreenProps {
   onReturnHome: () => void;
   onCommand?: (command: MatchCommand) => void | Promise<void>;
   commandPending?: boolean;
+  allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
 }
 
@@ -60,11 +61,15 @@ function MatchScreenContent({
   onReturnHome,
   onCommand,
   commandPending = false,
+  allowResultSkip = false,
   schoolDisplayNames,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
+    null,
+  );
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -88,7 +93,13 @@ function MatchScreenContent({
   const canStart = homeIssues.length === 0 && awayIssues.length === 0;
   const eventCount = result?.match.eventLog.length ?? 0;
   const lastEventIndex = Math.max(0, eventCount - 1);
-  const segmentRevealed = visibleEventIndex >= lastEventIndex;
+  const resultSkipResolved = Boolean(
+    result?.analysis && skipTargetMatchId === String(result.match.id),
+  );
+  const revealedEventIndex = resultSkipResolved
+    ? lastEventIndex
+    : visibleEventIndex;
+  const segmentRevealed = revealedEventIndex >= lastEventIndex;
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
   const decisionReady = Boolean(
     result &&
@@ -147,14 +158,14 @@ function MatchScreenContent({
           [presentation.awayTeam.schoolId]: presentation.awayTeam.displayName,
         }
       : schoolDisplayNames;
-    return result.match.eventLog.slice(0, visibleEventIndex + 1).map((event) =>
+    return result.match.eventLog.slice(0, revealedEventIndex + 1).map((event) =>
       presentMatchEvent(event, {
         state,
         match: result.match,
         schoolDisplayNames: eventSchoolDisplayNames,
       }),
     );
-  }, [presentation, result, schoolDisplayNames, state, visibleEventIndex]);
+  }, [presentation, result, revealedEventIndex, schoolDisplayNames, state]);
 
   if (!result) {
     const strengthDifference = homeStrength - awayStrength;
@@ -249,7 +260,7 @@ function MatchScreenContent({
 
   const visibleRawEvents = result.match.eventLog.slice(
     0,
-    visibleEventIndex + 1,
+    revealedEventIndex + 1,
   );
   const revealedHomeSets = visibleRawEvents.filter(
     (event) =>
@@ -311,7 +322,7 @@ function MatchScreenContent({
               <h2 id="live-heading">試合ダイジェスト</h2>
             </div>
             <span data-testid="event-sequence">
-              {visibleEventIndex + 1} / {eventCount}
+              {revealedEventIndex + 1} / {eventCount}
             </span>
           </section>
 
@@ -325,7 +336,7 @@ function MatchScreenContent({
             </article>
             <div>
               <span>
-                第{result.match.eventLog[visibleEventIndex]!.setNumber}セット
+                第{result.match.eventLog[revealedEventIndex]!.setNumber}セット
               </span>
               <strong>—</strong>
             </div>
@@ -375,7 +386,7 @@ function MatchScreenContent({
                 {playing ? "一時停止" : "再生"}
               </button>
               <button
-                disabled={visibleEventIndex >= lastEventIndex}
+                disabled={revealedEventIndex >= lastEventIndex}
                 onClick={() => {
                   setPlaying(false);
                   setVisibleEventIndex((current) =>
@@ -396,6 +407,26 @@ function MatchScreenContent({
               >
                 {result.analysis ? "結果まで進む" : "次の判断まで進む"}
               </button>
+              {allowResultSkip ? (
+                <button
+                  disabled={commandPending || (!result.analysis && !onCommand)}
+                  onClick={() => {
+                    setPlaying(false);
+                    if (result.analysis) {
+                      setVisibleEventIndex(lastEventIndex);
+                      return;
+                    }
+                    if (!onCommand) return;
+                    setSkipTargetMatchId(String(result.match.id));
+                    void Promise.resolve(
+                      onCommand({ type: "skip-to-result" }),
+                    ).catch(() => setSkipTargetMatchId(null));
+                  }}
+                  type="button"
+                >
+                  結果までスキップ
+                </button>
+              ) : null}
             </div>
             <div className="match-speed-row" role="group" aria-label="再生速度">
               {([1, 2, 4] as const).map((value) => (

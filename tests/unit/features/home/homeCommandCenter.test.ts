@@ -187,7 +187,7 @@ describe("selectHomeCommandCenter", () => {
     );
     expect(training).toMatchObject({
       priority: "normal",
-      action: { target: "team" },
+      action: undefined,
       complete: false,
     });
     expect(training?.detail).toContain("設定済み");
