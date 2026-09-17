@@ -19,6 +19,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - name: Patch legacy player-training E2E paths
+        id: patch
+        continue-on-error: true
         shell: bash
         run: |
           python - <<'PY'
@@ -59,18 +61,22 @@ jobs:
 
           app_shell = Path("tests/e2e/app-shell.spec.ts")
           text = app_shell.read_text(encoding="utf-8")
-          old = '''  const trainingChips = page.locator(".player-training-chip");
-          await expect(trainingChips).toHaveCount(12);
-          await trainingChips.first().click();'''
-          new = '''  await expect(page.locator(".player-training-chip")).toHaveCount(0);
-          await page
-            .getByTestId("roster-player-row")
-            .first()
-            .getByRole("button", { name: /^選手詳細 / })
-            .click();
-          const trainingChip = page.locator(".player-training-chip");
-          await expect(trainingChip).toHaveCount(1);
-          await trainingChip.click();'''
+          old = "\n".join([
+              '  const trainingChips = page.locator(".player-training-chip");',
+              '  await expect(trainingChips).toHaveCount(12);',
+              '  await trainingChips.first().click();',
+          ])
+          new = "\n".join([
+              '  await expect(page.locator(".player-training-chip")).toHaveCount(0);',
+              '  await page',
+              '    .getByTestId("roster-player-row")',
+              '    .first()',
+              '    .getByRole("button", { name: /^選手詳細 / })',
+              '    .click();',
+              '  const trainingChip = page.locator(".player-training-chip");',
+              '  await expect(trainingChip).toHaveCount(1);',
+              '  await trainingChip.click();',
+          ])
           if old not in text:
               raise SystemExit("app-shell: legacy training chip count block not found")
           text = text.replace(old, new, 1)
@@ -82,15 +88,19 @@ jobs:
 
           accessibility = Path("tests/e2e/phase18-accessibility.spec.ts")
           text = accessibility.read_text(encoding="utf-8")
-          old = '''  const trainingChip = page.locator(".player-training-chip").first();
-          await trainingChip.click();'''
-          new = '''  await page
-            .getByTestId("roster-player-row")
-            .first()
-            .getByRole("button", { name: /^選手詳細 / })
-            .click();
-          const trainingChip = page.locator(".player-training-chip");
-          await trainingChip.click();'''
+          old = "\n".join([
+              '  const trainingChip = page.locator(".player-training-chip").first();',
+              '  await trainingChip.click();',
+          ])
+          new = "\n".join([
+              '  await page',
+              '    .getByTestId("roster-player-row")',
+              '    .first()',
+              '    .getByRole("button", { name: /^選手詳細 / })',
+              '    .click();',
+              '  const trainingChip = page.locator(".player-training-chip");',
+              '  await trainingChip.click();',
+          ])
           if old not in text:
               raise SystemExit("phase18-accessibility: legacy training chip focus block not found")
           accessibility.write_text(text.replace(old, new, 1), encoding="utf-8")
@@ -110,11 +120,14 @@ jobs:
           grep -R -n 'player-training-chip' tests/e2e || true
 
       - name: Install dependencies
+        if: steps.patch.outcome == 'success'
         run: npm ci --no-audit --fund=false
       - name: Install Chromium
+        if: steps.patch.outcome == 'success'
         run: npx playwright install --with-deps chromium
       - name: Run focused E2E compatibility gate
         id: focused
+        if: steps.patch.outcome == 'success'
         continue-on-error: true
         run: >-
           npx playwright test
@@ -129,17 +142,17 @@ jobs:
           tests/e2e/v2-auth-game-flow.spec.ts
       - name: Run full E2E gate
         id: full
-        if: steps.focused.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.focused.outcome == 'success'
         continue-on-error: true
         run: npm run test:e2e
-      - name: Report safe-gate failure without red notification
-        if: steps.focused.outcome != 'success' || steps.full.outcome != 'success'
+      - name: Report safe-gate status without red notification
+        if: always()
         run: |
-          echo "PHASE22_3_E2E_SAFE_GATE_NOT_GREEN"
+          echo "patch=${{ steps.patch.outcome }}"
           echo "focused=${{ steps.focused.outcome }}"
           echo "full=${{ steps.full.outcome }}"
       - name: Commit verified E2E compatibility updates
-        if: steps.focused.outcome == 'success' && steps.full.outcome == 'success'
+        if: steps.patch.outcome == 'success' && steps.focused.outcome == 'success' && steps.full.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
