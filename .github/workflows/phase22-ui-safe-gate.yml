@@ -49,13 +49,16 @@ jobs:
             exit 0
           fi
           npx prettier --write \
+            src/app/GameApp.tsx \
             src/domain/model/Match.ts \
             src/domain/match/applyMatchCommand.ts \
             worker/game/actionSchema.ts \
             src/features/match/MatchScreen.tsx \
+            src/features/match/matchCommandPresentation.ts \
             src/features/home/HomeScreen.tsx \
             src/features/home/homeCommandCenter.ts \
             tests/unit/features/home/Phase22HomeTraining.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts \
             tests/unit/features/match/Phase22MatchSkip.test.tsx \
             tests/unit/worker/phase22MatchSkip.test.ts
 
@@ -81,25 +84,31 @@ jobs:
           type_status=$?
 
           npx prettier --check \
+            src/app/GameApp.tsx \
             src/domain/model/Match.ts \
             src/domain/match/applyMatchCommand.ts \
             worker/game/actionSchema.ts \
             src/features/match/MatchScreen.tsx \
+            src/features/match/matchCommandPresentation.ts \
             src/features/home/HomeScreen.tsx \
             src/features/home/homeCommandCenter.ts \
             tests/unit/features/home/Phase22HomeTraining.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts \
             tests/unit/features/match/Phase22MatchSkip.test.tsx \
             tests/unit/worker/phase22MatchSkip.test.ts
           format_status=$?
 
           npx eslint \
+            src/app/GameApp.tsx \
             src/domain/model/Match.ts \
             src/domain/match/applyMatchCommand.ts \
             worker/game/actionSchema.ts \
             src/features/match/MatchScreen.tsx \
+            src/features/match/matchCommandPresentation.ts \
             src/features/home/HomeScreen.tsx \
             src/features/home/homeCommandCenter.ts \
             tests/unit/features/home/Phase22HomeTraining.test.tsx \
+            tests/unit/features/home/homeCommandCenter.test.ts \
             tests/unit/features/match/Phase22MatchSkip.test.tsx \
             tests/unit/worker/phase22MatchSkip.test.ts
           lint_status=$?
@@ -123,16 +132,7 @@ jobs:
             exit 0
           fi
 
-          git add \
-            src/domain/model/Match.ts \
-            src/domain/match/applyMatchCommand.ts \
-            worker/game/actionSchema.ts \
-            src/features/match/MatchScreen.tsx \
-            src/features/home/HomeScreen.tsx \
-            src/features/home/homeCommandCenter.ts \
-            tests/unit/features/home/Phase22HomeTraining.test.tsx \
-            tests/unit/features/match/Phase22MatchSkip.test.tsx \
-            tests/unit/worker/phase22MatchSkip.test.ts
+          git add -A
 
           if git diff --cached --quiet; then
             echo "Verified implementation already committed."
