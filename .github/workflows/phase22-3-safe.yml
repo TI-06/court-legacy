@@ -1,0 +1,143 @@
+name: Phase22-3 Safe Gate
+
+on:
+  push:
+    branches:
+      - tmp/phase22-3-compact-player-list
+
+permissions:
+  contents: write
+
+jobs:
+  compact-player-list:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Write Phase22-3 RED expectations
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/unit/features/team/PlayerHubScreen.test.tsx')
+          text = path.read_text()
+
+          text = text.replace(
+              'it("renders a dense portrait-free mobile roster with growth and talent labels", () => {',
+              'it("renders a compact portrait-free mobile roster with only decision-critical row data", () => {',
+              1,
+          )
+          text = text.replace(
+              '    const development = getPlayerDevelopmentPresentation(player);\n',
+              '',
+              1,
+          )
+          old_meta = '''    expect(\n      within(firstRow).getByText(\n        `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,\n      ),\n    ).toBeVisible();\n    expect(\n      within(firstRow).getByText(\n        `${development.growthLabel}・${development.talentLabel}`,\n      ),\n    ).toBeVisible();\n'''
+          new_meta = '''    expect(\n      within(firstRow).getByText(\n        `${player.grade}年・${player.preferredPosition}`,\n      ),\n    ).toBeVisible();\n    expect(\n      within(firstRow).queryByText(new RegExp(`${player.heightCm}cm`)),\n    ).toBeNull();\n'''
+          if old_meta not in text:
+              raise SystemExit('first roster metadata expectation anchor not found')
+          text = text.replace(old_meta, new_meta, 1)
+          text = text.replace(
+              '    expect(within(firstRow).getByText("4週 --")).toBeVisible();\n',
+              '    expect(within(firstRow).queryByText(/4週/)).toBeNull();\n',
+              1,
+          )
+          text = text.replace(
+              '    expect(within(rows[0]!).getByText("4週 +8")).toBeVisible();\n',
+              '    expect(within(rows[0]!).queryByText(/4週/)).toBeNull();\n',
+              1,
+          )
+
+          marker = '  it("filters the roster and exposes all required sort options", () => {'
+          phase_test = '''  it("shows compact status badges and moves individual training into player detail", () => {\n    const state = createDemoGame();\n    const school = state.schools[state.userSchoolId]!;\n    const playerId = school.playerIds[0]!;\n    const player = state.players[playerId]!;\n    state.teamDynamics.captainPlayerId = playerId;\n    state.teamPlanning.developmentPriorityPlayerIds = [playerId];\n    player.injury = {\n      injuryId: "injury.phase22-3",\n      severity: "minor",\n      remainingWeeks: 1,\n      recurrenceRisk: 0,\n    };\n    renderPlayerHub(state);\n\n    const detailButton = screen.getByRole("button", {\n      name: `選手詳細 ${player.lastName} ${player.firstName}`,\n    });\n    const row = detailButton.closest('[data-testid="roster-player-row"]');\n    expect(row).not.toBeNull();\n    const rosterRow = row as HTMLElement;\n    expect(within(rosterRow).getByText("主将")).toBeVisible();\n    expect(within(rosterRow).getByText("怪我")).toBeVisible();\n    expect(within(rosterRow).getByText("重点")).toBeVisible();\n    expect(\n      within(rosterRow).queryByRole("button", { name: /練習/ }),\n    ).toBeNull();\n\n    fireEvent.click(detailButton);\n    const settings = screen.getByRole("region", { name: "選手設定" });\n    const trainingButton = within(settings).getByRole("button", {\n      name: `${player.lastName} ${player.firstName} 個人練習 全体`,\n    });\n    fireEvent.click(trainingButton);\n    expect(\n      screen.getByText(`${player.lastName} ${player.firstName}の個人練習`),\n    ).toBeVisible();\n  });\n\n'''
+          if marker not in text:
+              raise SystemExit('test insertion marker not found')
+          text = text.replace(marker, phase_test + marker, 1)
+          path.write_text(text)
+          PY
+
+      - name: Confirm RED
+        shell: bash
+        run: |
+          set +e
+          npm test -- tests/unit/features/team/PlayerHubScreen.test.tsx > /tmp/phase22-red.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/phase22-red.log
+          if [ "$status" -eq 0 ]; then
+            echo "Phase22-3 expectations unexpectedly passed before implementation"
+            exit 1
+          fi
+          echo "RED confirmed"
+
+      - name: Implement compact roster
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('src/features/team/PlayerHubScreen.tsx')
+          text = path.read_text()
+
+          old_roster = '''        {rosterItems.map((item, index) => {\n          const player = item.player;\n          const condition = getPlayerConditionPresentation(player.condition);\n          const development = getPlayerDevelopmentPresentation(player);\n          const training = assignmentName(player.id);\n          const isPriority = item.isPriority;\n          const priorityCapReached = priorityIds.length >= 3;\n\n          return (\n            <article\n              className="player-roster__row"\n              data-testid="roster-player-row"\n              key={player.id}\n            >\n              <button\n                aria-label={`選手詳細 ${playerName(player)}`}\n                className="player-roster__main"\n                onClick={() => setSelectedPlayerId(player.id)}\n                type="button"\n              >\n                <span className="player-roster__number">{index + 1}</span>\n                <span className="player-roster__name">\n                  <strong>{playerName(player)}</strong>\n                  <small>\n                    {player.grade}年・{player.preferredPosition}・\n                    {player.heightCm}cm\n                  </small>\n                  <span className="player-roster__growth">\n                    {development.growthLabel}・{development.talentLabel}\n                  </span>\n                </span>\n                <span\n                  className={`player-roster__condition player-condition--${condition.colorToken}`}\n                  title={condition.label}\n                >\n                  <b aria-hidden="true">{condition.icon}</b>\n                  <small>{condition.label}</small>\n                </span>\n                <span className="player-roster__overall">\n                  <small>総合</small>\n                  <strong>{playerOverall(player)}</strong>\n                </span>\n              </button>\n\n              <div className="player-roster__actions">\n                <span className="player-roster__recent-growth">\n                  {growthLabel(4, item.growth.fourWeekGrowth)}\n                </span>\n                <button\n                  aria-label={\n                    isPriority\n                      ? `重点育成から外す ${playerName(player)}`\n                      : `重点育成に追加 ${playerName(player)}`\n                  }\n                  className={`player-priority-chip${isPriority ? " player-priority-chip--active" : ""}`}\n                  disabled={\n                    planningPending || (!isPriority && priorityCapReached)\n                  }\n                  onClick={() => togglePriority(player.id)}\n                  type="button"\n                >\n                  {isPriority ? "重点解除" : "重点"}\n                </button>\n                <button\n                  aria-label={`${playerName(player)} 練習 ${training}`}\n                  className="player-training-chip"\n                  disabled={trainingPending || trainingDone}\n                  onClick={() => setTrainingPlayerId(player.id)}\n                  type="button"\n                >\n                  {training}\n                </button>\n              </div>\n            </article>\n          );\n        })}\n'''
+          new_roster = '''        {rosterItems.map((item, index) => {\n          const player = item.player;\n          const condition = getPlayerConditionPresentation(player.condition);\n          const isPriority = item.isPriority;\n          const priorityCapReached = priorityIds.length >= 3;\n          const isCaptain = state.teamDynamics.captainPlayerId === player.id;\n\n          return (\n            <article\n              className="player-roster__row player-roster__row--compact"\n              data-testid="roster-player-row"\n              key={player.id}\n            >\n              <button\n                aria-label={`選手詳細 ${playerName(player)}`}\n                className="player-roster__main"\n                onClick={() => setSelectedPlayerId(player.id)}\n                type="button"\n              >\n                <span className="player-roster__number">{index + 1}</span>\n                <span className="player-roster__name">\n                  <strong>{playerName(player)}</strong>\n                  <span className="player-roster__meta">\n                    <small>\n                      {player.grade}年・{player.preferredPosition}\n                    </small>\n                    <span className="player-roster__status-badges">\n                      {isCaptain ? (\n                        <span className="player-roster__status-badge">主将</span>\n                      ) : null}\n                      {item.isInjured ? (\n                        <span className="player-roster__status-badge player-roster__status-badge--danger">\n                          怪我\n                        </span>\n                      ) : null}\n                      {isPriority ? (\n                        <span className="player-roster__status-badge player-roster__status-badge--priority">\n                          重点\n                        </span>\n                      ) : null}\n                    </span>\n                  </span>\n                </span>\n                <span\n                  className={`player-roster__condition player-condition--${condition.colorToken}`}\n                  title={condition.label}\n                >\n                  <b aria-hidden="true">{condition.icon}</b>\n                  <small>{condition.label}</small>\n                </span>\n                <span className="player-roster__overall">\n                  <small>総合</small>\n                  <strong>{playerOverall(player)}</strong>\n                </span>\n              </button>\n\n              <button\n                aria-label={\n                  isPriority\n                    ? `重点育成から外す ${playerName(player)}`\n                    : `重点育成に追加 ${playerName(player)}`\n                }\n                className={`player-priority-chip player-priority-chip--compact${isPriority ? " player-priority-chip--active" : ""}`}\n                disabled={planningPending || (!isPriority && priorityCapReached)}\n                onClick={() => togglePriority(player.id)}\n                type="button"\n              >\n                {isPriority ? "解除" : "重点"}\n              </button>\n            </article>\n          );\n        })}\n'''
+          if old_roster not in text:
+              raise SystemExit('roster implementation anchor not found')
+          text = text.replace(old_roster, new_roster, 1)
+
+          development_anchor = '''        </section>\n\n        <section\n          className="player-detail__development"\n          aria-label="成長タイプと才能"\n        >\n'''
+          development_replacement = '''        </section>\n\n        <section className="player-detail__quick-actions" aria-label="選手設定">\n          <button\n            aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}\n            className="player-training-chip player-training-chip--detail"\n            disabled={trainingPending || trainingDone}\n            onClick={() => setTrainingPlayerId(selectedPlayer.id)}\n            type="button"\n          >\n            <span>個人練習</span>\n            <strong>{assignmentName(selectedPlayer.id)}</strong>\n          </button>\n        </section>\n\n        <section\n          className="player-detail__development"\n          aria-label="成長タイプと才能"\n        >\n'''
+          if development_anchor not in text:
+              raise SystemExit('detail quick action anchor not found')
+          text = text.replace(development_anchor, development_replacement, 1)
+
+          detail_end = '''        ) : null}\n      </main>\n    );\n  }\n\n  return (\n'''
+          detail_end_replacement = '''        ) : null}\n\n        <BottomSheet\n          open={Boolean(trainingPlayer)}\n          onClose={() => setTrainingPlayerId(null)}\n          title={\n            trainingPlayer\n              ? `${playerName(trainingPlayer)}の個人練習`\n              : "個人練習"\n          }\n          description="今週の練習を選択"\n        >\n          <div className="player-training-options">\n            {individualTrainingInstructions.map((item) => (\n              <button\n                key={item.id}\n                disabled={trainingPending || trainingDone}\n                onClick={() => {\n                  if (trainingPlayer) {\n                    void onChangeTraining?.(trainingPlayer.id, item.id);\n                  }\n                  setTrainingPlayerId(null);\n                }}\n                type="button"\n              >\n                <strong>{item.name}</strong>\n                <small>{item.description}</small>\n              </button>\n            ))}\n          </div>\n        </BottomSheet>\n      </main>\n    );\n  }\n\n  return (\n'''
+          if detail_end not in text:
+              raise SystemExit('detail bottom sheet anchor not found')
+          text = text.replace(detail_end, detail_end_replacement, 1)
+          path.write_text(text)
+
+          css_path = Path('src/features/team/player-hub.css')
+          css = css_path.read_text()
+          marker = '/* Phase22-3 compact roster */'
+          if marker not in css:
+              css += '''\n\n/* Phase22-3 compact roster */\n.player-roster {\n  gap: 4px;\n}\n\n.player-roster__row--compact {\n  grid-template-columns: minmax(0, 1fr) 50px;\n  align-items: stretch;\n  border-radius: 9px;\n}\n\n.player-roster__row--compact .player-roster__main {\n  grid-template-columns: 20px minmax(0, 1fr) 44px 36px;\n  min-height: 56px;\n  padding: 5px 4px 5px 7px;\n  gap: 4px;\n}\n\n.player-roster__row--compact .player-roster__number {\n  font-size: 12px;\n}\n\n.player-roster__row--compact .player-roster__name {\n  gap: 1px;\n}\n\n.player-roster__row--compact .player-roster__name strong {\n  font-size: 13px;\n  line-height: 1.15;\n}\n\n.player-roster__meta {\n  display: flex;\n  align-items: center;\n  min-width: 0;\n  gap: 4px;\n  white-space: nowrap;\n}\n\n.player-roster__meta > small {\n  flex: 0 1 auto;\n  min-width: 0;\n  font-size: 10px;\n}\n\n.player-roster__status-badges {\n  display: flex;\n  flex: 0 0 auto;\n  align-items: center;\n  gap: 2px;\n}\n\n.player-roster__status-badge {\n  padding: 1px 4px;\n  color: #dcecff;\n  font-size: 8px;\n  font-weight: 900;\n  line-height: 1.45;\n  background: rgb(78 136 190 / 22%);\n  border: 1px solid rgb(129 190 240 / 24%);\n  border-radius: 999px;\n}\n\n.player-roster__status-badge--danger {\n  color: #ffb0a9;\n  background: rgb(214 71 62 / 18%);\n  border-color: rgb(255 102 95 / 32%);\n}\n\n.player-roster__status-badge--priority {\n  color: #ffd99a;\n  background: rgb(244 122 24 / 18%);\n  border-color: rgb(244 122 24 / 34%);\n}\n\n.player-roster__row--compact .player-roster__condition {\n  font-size: 15px;\n}\n\n.player-roster__row--compact .player-roster__condition small,\n.player-roster__row--compact .player-roster__overall small {\n  font-size: 8px;\n}\n\n.player-roster__row--compact .player-roster__overall strong {\n  font-size: 13px;\n}\n\n.player-priority-chip--compact {\n  align-self: center;\n  min-width: 44px;\n  min-height: 44px;\n  margin-right: 5px;\n  padding: 4px;\n  font-size: 9px;\n  border-radius: 8px;\n}\n\n.player-detail__quick-actions {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  gap: 6px;\n}\n\n.player-training-chip--detail {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  width: 100%;\n  min-height: 44px;\n  padding: 8px 11px;\n  text-align: left;\n}\n\n.player-training-chip--detail strong {\n  color: #fff;\n  font-size: 12px;\n}\n'''
+          css_path.write_text(css)
+          PY
+
+      - name: Format changed files
+        run: npx prettier --write src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/features/team/PlayerHubScreen.test.tsx
+
+      - name: Focused tests
+        run: npm test -- tests/unit/features/team/PlayerHubScreen.test.tsx
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Commit verified implementation
+        shell: bash
+        run: |
+          rm .github/workflows/phase22-3-safe.yml
+          git config user.name "court-legacy-bot"
+          git config user.email "court-legacy-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: compact player roster for mobile"
+          git push origin HEAD:tmp/phase22-3-compact-player-list
