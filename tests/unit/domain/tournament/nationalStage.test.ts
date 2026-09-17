@@ -6,6 +6,7 @@ import type {
   GuestTournamentEntrant,
   WorldSchoolTournamentEntrant,
 } from "../../../../src/domain/tournament/tournamentTypes";
+import { buildNationalRepresentativeSchools } from "../../../../src/domain/world/nationalRepresentativeSchools";
 
 function createState(seed = "phase6-national-stage") {
   return createInitialGame({
@@ -38,7 +39,7 @@ function userChampion(
 }
 
 describe("createNationalStage", () => {
-  it("creates one persistent champion and 15 deterministic guest representatives", () => {
+  it("creates one persistent champion and 15 deterministic prefectural representatives", () => {
     const state = createState();
     const before = structuredClone(state);
     const champion = userChampion(state);
@@ -71,12 +72,23 @@ describe("createNationalStage", () => {
       (entrant): entrant is GuestTournamentEntrant =>
         entrant.source === "guest-representative",
     );
+    const userRegionId = state.schools[state.userSchoolId]!.regionId;
+    const representativeNames = new Set(
+      buildNationalRepresentativeSchools({
+        academicYear: state.calendar.academicYear,
+        excludedRegionIds: [userRegionId],
+      }).map((representative) => representative.displayName),
+    );
 
     expect(worldEntrants).toHaveLength(1);
     expect(worldEntrants[0]?.schoolId).toBe(champion.schoolId);
     expect(guests).toHaveLength(15);
     expect(new Set(guests.map((guest) => guest.guestSeed)).size).toBe(15);
     expect(new Set(guests.map((guest) => guest.displayName)).size).toBe(15);
+    expect(new Set(guests.map((guest) => guest.regionLabel)).size).toBe(15);
+    expect(
+      guests.every((guest) => representativeNames.has(guest.displayName)),
+    ).toBe(true);
     expect(
       guests.every(
         (guest) => guest.seedStrength >= 45 && guest.seedStrength <= 115,
@@ -84,7 +96,7 @@ describe("createNationalStage", () => {
     ).toBe(true);
   });
 
-  it("changes the deterministic guest field across circuit or academic year", () => {
+  it("changes the deterministic representative field across circuit or academic year", () => {
     const state = createState("phase6-national-distinct");
     const champion = userChampion(state);
 
