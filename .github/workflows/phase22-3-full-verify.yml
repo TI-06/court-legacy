@@ -21,13 +21,58 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run verify
-      - name: Remove temporary workflow after green verify
+
+      - name: Align integration tests with compact roster navigation
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          training_path = Path('tests/unit/features/training/TrainingFlow.test.tsx')
+          training = training_path.read_text()
+          old_helper = '''  function openFirstPlayerTraining() {\n    fireEvent.click(screen.getByRole("button", { name: "選手" }));\n    const trainingButton = screen.getAllByRole("button", { name: / 練習 / })[0];\n    if (!trainingButton) {\n      throw new Error("player training button missing");\n    }\n    fireEvent.click(trainingButton);\n    return screen.getByRole("dialog", { name: /の個人練習$/ });\n  }\n'''
+          new_helper = '''  function openFirstPlayerTraining() {\n    fireEvent.click(screen.getByRole("button", { name: "選手" }));\n    const detailButton = screen.getAllByRole("button", {\n      name: /^選手詳細 /,\n    })[0];\n    if (!detailButton) {\n      throw new Error("player detail button missing");\n    }\n    fireEvent.click(detailButton);\n    const trainingButton = screen.getByRole("button", {\n      name: / 個人練習 /,\n    });\n    fireEvent.click(trainingButton);\n    return screen.getByRole("dialog", { name: /の個人練習$/ });\n  }\n'''
+          if old_helper not in training:
+              raise SystemExit('TrainingFlow helper anchor not found')
+          training = training.replace(old_helper, new_helper, 1)
+
+          old_roster_expect = '''    expect(\n      screen.getAllByRole("button", { name: / 練習 / }).length,\n    ).toBeGreaterThan(0);\n'''
+          new_roster_expect = '''    const detailButtons = screen.getAllByRole("button", {\n      name: /^選手詳細 /,\n    });\n    expect(detailButtons.length).toBeGreaterThan(0);\n    expect(screen.queryByRole("button", { name: / 個人練習 / })).toBeNull();\n    fireEvent.click(detailButtons[0]!);\n    expect(screen.getByRole("button", { name: / 個人練習 / })).toBeVisible();\n'''
+          if old_roster_expect not in training:
+              raise SystemExit('TrainingFlow roster expectation anchor not found')
+          training = training.replace(old_roster_expect, new_roster_expect, 1)
+          training = training.replace(
+              'it("opens an individual-training sheet directly from a player row", async () => {',
+              'it("opens an individual-training sheet from the compact player detail", async () => {',
+              1,
+          )
+          training_path.write_text(training)
+
+          actions_path = Path('tests/unit/app/GameAppActions.test.tsx')
+          actions = actions_path.read_text()
+          old_actions_helper = '''function setOverallTrainingFromRoster(): void {\n  fireEvent.click(screen.getByRole("button", { name: "選手" }));\n  const trainingButton = screen.getAllByRole("button", {\n    name: /練習 全体$/,\n  })[0];\n  if (!trainingButton) {\n    throw new Error("overall training button missing");\n  }\n  fireEvent.click(trainingButton);\n  const trainingDialog = screen.getByRole("dialog", {\n    name: /の個人練習$/,\n  });\n  fireEvent.click(\n    within(trainingDialog).getByRole("button", { name: /^全体/ }),\n  );\n}\n'''
+          new_actions_helper = '''function setOverallTrainingFromRoster(): void {\n  fireEvent.click(screen.getByRole("button", { name: "選手" }));\n  const detailButton = screen.getAllByRole("button", {\n    name: /^選手詳細 /,\n  })[0];\n  if (!detailButton) {\n    throw new Error("player detail button missing");\n  }\n  fireEvent.click(detailButton);\n  const trainingButton = screen.getByRole("button", {\n    name: / 個人練習 全体$/,\n  });\n  fireEvent.click(trainingButton);\n  const trainingDialog = screen.getByRole("dialog", {\n    name: /の個人練習$/,\n  });\n  fireEvent.click(\n    within(trainingDialog).getByRole("button", { name: /^全体/ }),\n  );\n}\n'''
+          if old_actions_helper not in actions:
+              raise SystemExit('GameAppActions helper anchor not found')
+          actions = actions.replace(old_actions_helper, new_actions_helper, 1)
+          actions_path.write_text(actions)
+          PY
+
+      - name: Format updated tests
+        run: npx prettier --write tests/unit/features/training/TrainingFlow.test.tsx tests/unit/app/GameAppActions.test.tsx
+
+      - name: Focused regression tests
+        run: npm test -- tests/unit/features/team/PlayerHubScreen.test.tsx tests/unit/features/training/TrainingFlow.test.tsx tests/unit/app/GameAppActions.test.tsx
+
+      - name: Full verify
+        run: npm run verify
+
+      - name: Commit verified Phase22-3 changes
         shell: bash
         run: |
           rm .github/workflows/phase22-3-full-verify.yml
           git config user.name "court-legacy-bot"
           git config user.email "court-legacy-bot@users.noreply.github.com"
           git add -A
-          git commit -m "chore: remove temporary phase22-3 full verify"
+          git commit -m "test: align training flows with compact player roster"
           git push origin HEAD:tmp/phase22-3-compact-player-list
