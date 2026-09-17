@@ -1,5 +1,6 @@
 import type { GameState } from "../model/GameState";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
+import { buildNationalRepresentativeSchools } from "../world/nationalRepresentativeSchools";
 import { calculateTournamentSchoolStrength } from "./createOfficialSeason";
 import { tournamentRoundWeek } from "./tournamentSchedule";
 import type {
@@ -11,57 +12,6 @@ import type {
   TournamentStageState,
   WorldSchoolTournamentEntrant,
 } from "./tournamentTypes";
-
-const GUEST_SCHOOL_NAMES = [
-  "北嶺学園",
-  "蒼天高校",
-  "白鷺学院",
-  "東雲工業",
-  "龍峰高校",
-  "碧海学園",
-  "星陵学院",
-  "常盤高校",
-  "紫苑学園",
-  "鳳翔高校",
-  "暁星工業",
-  "銀河学院",
-  "瑞雲高校",
-  "天翔学園",
-  "玄武高校",
-  "青嵐学院",
-  "白虎工業",
-  "飛鳥高校",
-  "海星学園",
-  "緋桜学院",
-  "朝凪高校",
-  "神峰学園",
-  "大樹工業",
-  "光陵高校",
-  "金剛学院",
-  "翠嶺高校",
-  "夕凪学園",
-  "旭峰工業",
-  "清流学院",
-  "雷鳴高校",
-] as const;
-
-const GUEST_REGION_LABELS = [
-  "北海地区",
-  "北東地区",
-  "東北地区",
-  "北関東地区",
-  "東関東地区",
-  "南関東地区",
-  "甲信地区",
-  "北陸地区",
-  "東海地区",
-  "近畿北地区",
-  "近畿南地区",
-  "中国地区",
-  "四国地区",
-  "北九州地区",
-  "南九州地区",
-] as const;
 
 const ROUND_LAYOUT: ReadonlyArray<{
   round: TournamentRound;
@@ -79,12 +29,6 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
 }
 
-function average(values: readonly number[]): number {
-  return values.length === 0
-    ? 0
-    : values.reduce((total, value) => total + value, 0) / values.length;
-}
-
 function shuffle<T>(items: readonly T[], random: RandomSource): T[] {
   const shuffled = [...items];
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
@@ -100,30 +44,36 @@ function createGuestEntrants(
   state: GameState,
   circuit: TournamentCircuit,
   academicYear: number,
+  excludedRegionId: string,
 ): GuestTournamentEntrant[] {
-  const strengthAverage = average(
-    Object.values(state.schools).map((school) =>
-      calculateTournamentSchoolStrength(state, school),
-    ),
-  );
+  const representatives = buildNationalRepresentativeSchools({
+    academicYear,
+    excludedRegionIds: [excludedRegionId],
+  });
   const identityRandom = new SeededRandom(state.seed).fork(
-    `tournament:${academicYear}:${circuit}:national:guest-identities`,
+    `tournament:${academicYear}:${circuit}:national:representatives`,
   );
-  const names = shuffle(GUEST_SCHOOL_NAMES, identityRandom).slice(0, 15);
+  const selected = shuffle(representatives, identityRandom).slice(0, 15);
 
-  return names.map((displayName, slotIndex) => {
-    const guestSeed = `${state.seed}::official:${circuit}:${academicYear}:national:guest:${slotIndex}`;
+  if (selected.length !== 15) {
+    throw new Error(
+      "national tournament requires at least 15 external representatives",
+    );
+  }
+
+  return selected.map((representative, slotIndex) => {
+    const guestSeed = `${state.seed}::official:${circuit}:${academicYear}:national:representative:${representative.regionId}:${slotIndex}`;
     const strengthRandom = new SeededRandom(guestSeed).fork("strength");
     const seedStrength = Math.round(
-      clamp(strengthAverage + 8 + strengthRandom.int(-12, 18), 45, 115),
+      clamp(representative.seedStrength + strengthRandom.int(-3, 3), 45, 115),
     );
 
     return {
-      entrantId: `guest:${circuit}:${academicYear}:${slotIndex}`,
+      entrantId: `guest:${circuit}:${academicYear}:${representative.regionId}`,
       source: "guest-representative",
-      displayName,
-      shortName: displayName.replace(/(高校|学院|学園|工業)$/u, ""),
-      regionLabel: GUEST_REGION_LABELS[slotIndex]!,
+      displayName: representative.displayName,
+      shortName: representative.shortName,
+      regionLabel: representative.regionLabel,
       guestSeed,
       seedStrength,
     };
@@ -217,7 +167,12 @@ export function createNationalStage(input: {
       canonicalChampion,
     ),
   };
-  const guests = createGuestEntrants(input.state, input.circuit, academicYear);
+  const guests = createGuestEntrants(
+    input.state,
+    input.circuit,
+    academicYear,
+    canonicalChampion.regionId,
+  );
   const entrants: TournamentEntrant[] = [champion, ...guests];
   const bracketRandom = new SeededRandom(input.state.seed).fork(
     `tournament:${academicYear}:${input.circuit}:national:bracket`,
