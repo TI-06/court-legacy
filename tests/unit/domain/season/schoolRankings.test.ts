@@ -42,6 +42,9 @@ describe("Phase17 school rankings", () => {
 
   it("keeps the prefectural pool local while expanding the national pool", () => {
     const state = createDemoGame();
+    for (const school of Object.values(state.schools)) {
+      school.regionId = "region.chiba";
+    }
     const user = state.schools[state.userSchoolId]!;
     const national = buildSchoolRankings(state);
     const regional = buildSchoolRankings(state, { regionId: user.regionId });
