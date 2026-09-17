@@ -4,10 +4,16 @@ import App from "../../../../src/App";
 describe("Phase 12 player training flow", () => {
   function openFirstPlayerTraining() {
     fireEvent.click(screen.getByRole("button", { name: "選手" }));
-    const trainingButton = screen.getAllByRole("button", { name: / 練習 / })[0];
-    if (!trainingButton) {
-      throw new Error("player training button missing");
+    const detailButton = screen.getAllByRole("button", {
+      name: /^選手詳細 /,
+    })[0];
+    if (!detailButton) {
+      throw new Error("player detail button missing");
     }
+    fireEvent.click(detailButton);
+    const trainingButton = screen.getByRole("button", {
+      name: / 個人練習 /,
+    });
     fireEvent.click(trainingButton);
     return screen.getByRole("dialog", { name: /の個人練習$/ });
   }
@@ -20,16 +26,20 @@ describe("Phase 12 player training flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "選手" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
-    expect(
-      screen.getAllByRole("button", { name: / 練習 / }).length,
-    ).toBeGreaterThan(0);
+    const detailButtons = screen.getAllByRole("button", {
+      name: /^選手詳細 /,
+    });
+    expect(detailButtons.length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: / 個人練習 / })).toBeNull();
+    fireEvent.click(detailButtons[0]!);
+    expect(screen.getByRole("button", { name: / 個人練習 / })).toBeVisible();
     expect(
       screen.queryByRole("button", { name: /チーム練習.*変更/ }),
     ).toBeNull();
     expect(screen.queryByRole("button", { name: "この内容で設定" })).toBeNull();
   });
 
-  it("opens an individual-training sheet directly from a player row", async () => {
+  it("opens an individual-training sheet from the compact player detail", async () => {
     render(<App />);
     await screen.findByRole("button", { name: "選手" });
 
