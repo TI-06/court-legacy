@@ -302,6 +302,8 @@ export function PlayerHubScreen({
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
     );
+    const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
+    const priorityCapReached = priorityIds.length >= 3;
 
     return (
       <main className="app-content player-hub player-detail">
@@ -326,6 +328,35 @@ export function PlayerHubScreen({
             <span>総合力</span>
             <strong>{playerOverall(selectedPlayer)}</strong>
           </div>
+        </section>
+
+        <section className="player-detail__quick-actions" aria-label="選手設定">
+          <button
+            aria-label={
+              selectedIsPriority
+                ? `重点育成から外す ${playerName(selectedPlayer)}`
+                : `重点育成に追加 ${playerName(selectedPlayer)}`
+            }
+            className={`player-priority-chip player-priority-chip--detail${selectedIsPriority ? " player-priority-chip--active" : ""}`}
+            disabled={
+              planningPending || (!selectedIsPriority && priorityCapReached)
+            }
+            onClick={() => togglePriority(selectedPlayer.id)}
+            type="button"
+          >
+            <span>重点育成</span>
+            <strong>{selectedIsPriority ? "設定中" : "設定する"}</strong>
+          </button>
+          <button
+            aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}
+            className="player-training-chip player-training-chip--detail"
+            disabled={trainingPending || trainingDone}
+            onClick={() => setTrainingPlayerId(selectedPlayer.id)}
+            type="button"
+          >
+            <span>個人練習</span>
+            <strong>{assignmentName(selectedPlayer.id)}</strong>
+          </button>
         </section>
 
         <section
@@ -527,6 +558,36 @@ export function PlayerHubScreen({
             </ul>
           </section>
         ) : null}
+
+        <BottomSheet
+          open={Boolean(trainingPlayer)}
+          onClose={() => setTrainingPlayerId(null)}
+          title={
+            trainingPlayer
+              ? `${playerName(trainingPlayer)}の個人練習`
+              : "個人練習"
+          }
+          description="今週の練習を選択"
+        >
+          <div className="player-training-options">
+            {individualTrainingInstructions.map((item) => (
+              <button
+                key={item.id}
+                disabled={trainingPending || trainingDone}
+                onClick={() => {
+                  if (trainingPlayer) {
+                    void onChangeTraining?.(trainingPlayer.id, item.id);
+                  }
+                  setTrainingPlayerId(null);
+                }}
+                type="button"
+              >
+                <strong>{item.name}</strong>
+                <small>{item.description}</small>
+              </button>
+            ))}
+          </div>
+        </BottomSheet>
       </main>
     );
   }
@@ -587,14 +648,12 @@ export function PlayerHubScreen({
         {rosterItems.map((item, index) => {
           const player = item.player;
           const condition = getPlayerConditionPresentation(player.condition);
-          const development = getPlayerDevelopmentPresentation(player);
-          const training = assignmentName(player.id);
           const isPriority = item.isPriority;
-          const priorityCapReached = priorityIds.length >= 3;
+          const isCaptain = state.teamDynamics.captainPlayerId === player.id;
 
           return (
             <article
-              className="player-roster__row"
+              className="player-roster__row player-roster__row--compact"
               data-testid="roster-player-row"
               key={player.id}
             >
@@ -607,12 +666,27 @@ export function PlayerHubScreen({
                 <span className="player-roster__number">{index + 1}</span>
                 <span className="player-roster__name">
                   <strong>{playerName(player)}</strong>
-                  <small>
-                    {player.grade}年・{player.preferredPosition}・
-                    {player.heightCm}cm
-                  </small>
-                  <span className="player-roster__growth">
-                    {development.growthLabel}・{development.talentLabel}
+                  <span className="player-roster__meta">
+                    <small>
+                      {player.grade}年・{player.preferredPosition}
+                    </small>
+                    <span className="player-roster__status-badges">
+                      {isCaptain ? (
+                        <span className="player-roster__status-badge">
+                          主将
+                        </span>
+                      ) : null}
+                      {item.isInjured ? (
+                        <span className="player-roster__status-badge player-roster__status-badge--danger">
+                          怪我
+                        </span>
+                      ) : null}
+                      {isPriority ? (
+                        <span className="player-roster__status-badge player-roster__status-badge--priority">
+                          重点
+                        </span>
+                      ) : null}
+                    </span>
                   </span>
                 </span>
                 <span
@@ -627,36 +701,6 @@ export function PlayerHubScreen({
                   <strong>{playerOverall(player)}</strong>
                 </span>
               </button>
-
-              <div className="player-roster__actions">
-                <span className="player-roster__recent-growth">
-                  {growthLabel(4, item.growth.fourWeekGrowth)}
-                </span>
-                <button
-                  aria-label={
-                    isPriority
-                      ? `重点育成から外す ${playerName(player)}`
-                      : `重点育成に追加 ${playerName(player)}`
-                  }
-                  className={`player-priority-chip${isPriority ? " player-priority-chip--active" : ""}`}
-                  disabled={
-                    planningPending || (!isPriority && priorityCapReached)
-                  }
-                  onClick={() => togglePriority(player.id)}
-                  type="button"
-                >
-                  {isPriority ? "重点解除" : "重点"}
-                </button>
-                <button
-                  aria-label={`${playerName(player)} 練習 ${training}`}
-                  className="player-training-chip"
-                  disabled={trainingPending || trainingDone}
-                  onClick={() => setTrainingPlayerId(player.id)}
-                  type="button"
-                >
-                  {training}
-                </button>
-              </div>
             </article>
           );
         })}

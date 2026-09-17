@@ -41,8 +41,7 @@ for (const width of widths) {
     ).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
 
-    await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
-    const trainingButton = page.locator(".player-training-chip").first();
+    const trainingButton = page.locator(".player-training-chip--detail");
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
     await expect(trainingButton).toBeVisible();
     await expect(navigation).toBeVisible();
@@ -58,6 +57,8 @@ for (const width of widths) {
     expect(trainingBox.y + trainingBox.height).toBeLessThanOrEqual(
       navigationBox.y + 1,
     );
+
+    await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
     await expectPlayerHubNoHorizontalOverflow(page);
   });
 }
@@ -65,6 +66,10 @@ for (const width of widths) {
 test("Player Hub persists a development priority", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "選手" }).click();
+
+  const firstPlayer = page.getByTestId("roster-player-row").first();
+  await expect(firstPlayer).toBeVisible();
+  await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 
   const addButton = page
     .getByRole("button", { name: /^重点育成に追加 / })

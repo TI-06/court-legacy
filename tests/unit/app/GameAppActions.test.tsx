@@ -80,12 +80,16 @@ function responseFor(
 
 function setOverallTrainingFromRoster(): void {
   fireEvent.click(screen.getByRole("button", { name: "選手" }));
-  const trainingButton = screen.getAllByRole("button", {
-    name: /練習 全体$/,
+  const detailButton = screen.getAllByRole("button", {
+    name: /^選手詳細 /,
   })[0];
-  if (!trainingButton) {
-    throw new Error("overall training button missing");
+  if (!detailButton) {
+    throw new Error("player detail button missing");
   }
+  fireEvent.click(detailButton);
+  const trainingButton = screen.getByRole("button", {
+    name: / 個人練習 全体$/,
+  });
   fireEvent.click(trainingButton);
   const trainingDialog = screen.getByRole("dialog", {
     name: /の個人練習$/,
