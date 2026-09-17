@@ -44,7 +44,7 @@ function renderPlayerHub(
 }
 
 describe("PlayerHubScreen", () => {
-  it("renders a dense portrait-free mobile roster with growth and talent labels", () => {
+  it("renders a compact portrait-free mobile roster with only decision-critical row data", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = school.playerIds
@@ -56,7 +56,6 @@ describe("PlayerHubScreen", () => {
           left.id.localeCompare(right.id),
       )[0]!;
     const condition = getPlayerConditionPresentation(player.condition);
-    const development = getPlayerDevelopmentPresentation(player);
     const rows = screen.getAllByTestId("roster-player-row");
 
     expect(rows).toHaveLength(school.playerIds.length);
@@ -72,14 +71,12 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     expect(
       within(firstRow).getByText(
-        `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
+        `${player.grade}年・${player.preferredPosition}`,
       ),
     ).toBeVisible();
     expect(
-      within(firstRow).getByText(
-        `${development.growthLabel}・${development.talentLabel}`,
-      ),
-    ).toBeVisible();
+      within(firstRow).queryByText(new RegExp(`${player.heightCm}cm`)),
+    ).toBeNull();
     expect(within(firstRow).getByText("総合")).toBeVisible();
     expect(
       within(firstRow).getByText(
@@ -88,7 +85,46 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     expect(within(firstRow).getByTitle(condition.label)).toBeVisible();
     expect(within(firstRow).getByText(condition.label)).toBeVisible();
-    expect(within(firstRow).getByText("4週 --")).toBeVisible();
+    expect(within(firstRow).queryByText(/4週/)).toBeNull();
+  });
+
+  it("shows compact status badges and moves individual training into player detail", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+    state.teamDynamics.captainPlayerId = playerId;
+    state.teamPlanning.developmentPriorityPlayerIds = [playerId];
+    player.injury = {
+      injuryId: "injury.phase22-3",
+      severity: "minor",
+      remainingWeeks: 1,
+      recurrenceRisk: 0,
+    };
+    renderPlayerHub(state);
+
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest('[data-testid="roster-player-row"]');
+    expect(row).not.toBeNull();
+    const rosterRow = row as HTMLElement;
+    expect(within(rosterRow).getByText("主将")).toBeVisible();
+    expect(within(rosterRow).getByText("怪我")).toBeVisible();
+    expect(within(rosterRow).getByText("重点")).toBeVisible();
+    expect(
+      within(rosterRow).queryByRole("button", { name: /練習/ }),
+    ).toBeNull();
+
+    fireEvent.click(detailButton);
+    const settings = screen.getByRole("region", { name: "選手設定" });
+    const trainingButton = within(settings).getByRole("button", {
+      name: `${player.lastName} ${player.firstName} 個人練習 全体`,
+    });
+    fireEvent.click(trainingButton);
+    expect(
+      screen.getByText(`${player.lastName} ${player.firstName}の個人練習`),
+    ).toBeVisible();
   });
 
   it("filters the roster and exposes all required sort options", () => {
@@ -187,7 +223,7 @@ describe("PlayerHubScreen", () => {
         `${state.players[growingId]!.lastName} ${state.players[growingId]!.firstName}`,
       ),
     ).toBeVisible();
-    expect(within(rows[0]!).getByText("4週 +8")).toBeVisible();
+    expect(within(rows[0]!).queryByText(/4週/)).toBeNull();
   });
 
   it("adds and removes explicit development priorities while enforcing the three-player UI cap", () => {

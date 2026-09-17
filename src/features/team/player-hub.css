@@ -875,3 +875,122 @@
   font-size: 10px;
   line-height: 1.45;
 }
+
+/* Phase22-3 compact roster */
+.player-roster {
+  gap: 4px;
+}
+
+.player-roster__row--compact {
+  grid-template-columns: minmax(0, 1fr) 50px;
+  align-items: stretch;
+  border-radius: 9px;
+}
+
+.player-roster__row--compact .player-roster__main {
+  grid-template-columns: 20px minmax(0, 1fr) 44px 36px;
+  min-height: 56px;
+  padding: 5px 4px 5px 7px;
+  gap: 4px;
+}
+
+.player-roster__row--compact .player-roster__number {
+  font-size: 12px;
+}
+
+.player-roster__row--compact .player-roster__name {
+  gap: 1px;
+}
+
+.player-roster__row--compact .player-roster__name strong {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.player-roster__meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.player-roster__meta > small {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 10px;
+}
+
+.player-roster__status-badges {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+
+.player-roster__status-badge {
+  padding: 1px 4px;
+  color: #dcecff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.45;
+  background: rgb(78 136 190 / 22%);
+  border: 1px solid rgb(129 190 240 / 24%);
+  border-radius: 999px;
+}
+
+.player-roster__status-badge--danger {
+  color: #ffb0a9;
+  background: rgb(214 71 62 / 18%);
+  border-color: rgb(255 102 95 / 32%);
+}
+
+.player-roster__status-badge--priority {
+  color: #ffd99a;
+  background: rgb(244 122 24 / 18%);
+  border-color: rgb(244 122 24 / 34%);
+}
+
+.player-roster__row--compact .player-roster__condition {
+  font-size: 15px;
+}
+
+.player-roster__row--compact .player-roster__condition small,
+.player-roster__row--compact .player-roster__overall small {
+  font-size: 8px;
+}
+
+.player-roster__row--compact .player-roster__overall strong {
+  font-size: 13px;
+}
+
+.player-priority-chip--compact {
+  align-self: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: 5px;
+  padding: 4px;
+  font-size: 9px;
+  border-radius: 8px;
+}
+
+.player-detail__quick-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.player-training-chip--detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 11px;
+  text-align: left;
+}
+
+.player-training-chip--detail strong {
+  color: #fff;
+  font-size: 12px;
+}
