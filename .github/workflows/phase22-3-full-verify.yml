@@ -1,0 +1,33 @@
+name: Phase22-3 Full Verify
+
+on:
+  push:
+    branches:
+      - tmp/phase22-3-compact-player-list
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - name: Remove temporary workflow after green verify
+        shell: bash
+        run: |
+          rm .github/workflows/phase22-3-full-verify.yml
+          git config user.name "court-legacy-bot"
+          git config user.email "court-legacy-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: remove temporary phase22-3 full verify"
+          git push origin HEAD:tmp/phase22-3-compact-player-list
