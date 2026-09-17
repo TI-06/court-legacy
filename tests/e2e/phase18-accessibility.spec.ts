@@ -56,7 +56,12 @@ test("@critical gameplay dialog traps and restores focus and respects reduced mo
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
 
-  const trainingChip = page.locator(".player-training-chip").first();
+  await page
+    .getByTestId("roster-player-row")
+    .first()
+    .getByRole("button", { name: /^選手詳細 / })
+    .click();
+  const trainingChip = page.locator(".player-training-chip");
   await trainingChip.click();
 
   const dialog = page.getByRole("dialog", { name: /の個人練習$/ });

@@ -30,9 +30,15 @@ test("mobile training saves a plan and resolves it with next-week progression", 
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
 
   await expect(page.getByRole("heading", { name: "選手一覧" })).toBeVisible();
-  const trainingChips = page.locator(".player-training-chip");
-  await expect(trainingChips).toHaveCount(12);
-  await trainingChips.first().click();
+  await expect(page.locator(".player-training-chip")).toHaveCount(0);
+  await page
+    .getByTestId("roster-player-row")
+    .first()
+    .getByRole("button", { name: /^選手詳細 / })
+    .click();
+  const trainingChip = page.locator(".player-training-chip");
+  await expect(trainingChip).toHaveCount(1);
+  await trainingChip.click();
 
   const trainingDialog = page.getByRole("dialog", { name: /の個人練習$/ });
   await expect(
@@ -40,7 +46,7 @@ test("mobile training saves a plan and resolves it with next-week progression", 
   ).toHaveCount(6);
   await trainingDialog.getByRole("button", { name: /^攻撃/ }).click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
-  await expect(trainingChips.first()).toContainText("攻撃");
+  await expect(trainingChip).toContainText("攻撃");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await advanceWeekFromHome(page);
@@ -129,7 +135,12 @@ test("school management upgrades a facility and calendar resolves saved training
   await expect(facilityDialog).toBeHidden();
 
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
-  await page.locator(".player-training-chip").first().click();
+  await page
+    .getByTestId("roster-player-row")
+    .first()
+    .getByRole("button", { name: /^選手詳細 / })
+    .click();
+  await page.locator(".player-training-chip").click();
   await page
     .getByRole("dialog", { name: /の個人練習$/ })
     .getByRole("button", { name: /^攻撃/ })
