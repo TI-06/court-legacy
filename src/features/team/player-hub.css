@@ -882,7 +882,7 @@
 }
 
 .player-roster__row--compact {
-  grid-template-columns: minmax(0, 1fr) 50px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   border-radius: 9px;
 }
@@ -964,23 +964,14 @@
   font-size: 13px;
 }
 
-.player-priority-chip--compact {
-  align-self: center;
-  min-width: 44px;
-  min-height: 44px;
-  margin-right: 5px;
-  padding: 4px;
-  font-size: 9px;
-  border-radius: 8px;
-}
-
 .player-detail__quick-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
-.player-training-chip--detail {
+.player-training-chip--detail,
+.player-priority-chip--detail {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -990,7 +981,8 @@
   text-align: left;
 }
 
-.player-training-chip--detail strong {
+.player-training-chip--detail strong,
+.player-priority-chip--detail strong {
   color: #fff;
   font-size: 12px;
 }

@@ -96,6 +96,11 @@ describe("GameApp Player Hub planning", () => {
     fireEvent.click(screen.getByRole("button", { name: "選手" }));
     fireEvent.click(
       await screen.findByRole("button", {
+        name: `選手詳細 ${playerName}`,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
         name: `重点育成に追加 ${playerName}`,
       }),
     );

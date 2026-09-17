@@ -115,9 +115,17 @@ describe("PlayerHubScreen", () => {
     expect(
       within(rosterRow).queryByRole("button", { name: /練習/ }),
     ).toBeNull();
+    expect(
+      within(rosterRow).queryByRole("button", { name: /重点育成/ }),
+    ).toBeNull();
 
     fireEvent.click(detailButton);
     const settings = screen.getByRole("region", { name: "選手設定" });
+    expect(
+      within(settings).getByRole("button", {
+        name: `重点育成から外す ${player.lastName} ${player.firstName}`,
+      }),
+    ).toBeVisible();
     const trainingButton = within(settings).getByRole("button", {
       name: `${player.lastName} ${player.firstName} 個人練習 全体`,
     });
@@ -238,12 +246,23 @@ describe("PlayerHubScreen", () => {
       onSetDevelopmentPriorities,
     });
 
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,
+      }),
+    );
     const fourthAdd = screen.getByRole("button", {
       name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
     });
     expect(fourthAdd).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
 
     const first = state.players[firstThree[0]!]!;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${first.lastName} ${first.firstName}`,
+      }),
+    );
     fireEvent.click(
       screen.getByRole("button", {
         name: `重点育成から外す ${first.lastName} ${first.firstName}`,
@@ -269,7 +288,12 @@ describe("PlayerHubScreen", () => {
         }}
       />,
     );
-
+    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,
+      }),
+    );
     fireEvent.click(
       screen.getByRole("button", {
         name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
@@ -287,13 +311,17 @@ describe("PlayerHubScreen", () => {
     state.teamPlanning.developmentPriorityPlayerIds = [school.playerIds[0]!];
     renderPlayerHub(state, vi.fn(), { planningPending: true });
 
-    const priorityButtons = screen.getAllByRole("button", {
-      name: /重点育成(に追加|から外す)/,
-    });
-    expect(priorityButtons.length).toBeGreaterThan(0);
+    const first = state.players[school.playerIds[0]!]!;
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${first.lastName} ${first.firstName}`,
+      }),
+    );
     expect(
-      priorityButtons.every((button) => button.hasAttribute("disabled")),
-    ).toBe(true);
+      screen.getByRole("button", {
+        name: `重点育成から外す ${first.lastName} ${first.firstName}`,
+      }),
+    ).toBeDisabled();
   });
 
   it("opens a compact player detail with growth type, talent and potential", () => {

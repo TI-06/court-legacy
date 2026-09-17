@@ -302,6 +302,8 @@ export function PlayerHubScreen({
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
     );
+    const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
+    const priorityCapReached = priorityIds.length >= 3;
 
     return (
       <main className="app-content player-hub player-detail">
@@ -329,6 +331,22 @@ export function PlayerHubScreen({
         </section>
 
         <section className="player-detail__quick-actions" aria-label="選手設定">
+          <button
+            aria-label={
+              selectedIsPriority
+                ? `重点育成から外す ${playerName(selectedPlayer)}`
+                : `重点育成に追加 ${playerName(selectedPlayer)}`
+            }
+            className={`player-priority-chip player-priority-chip--detail${selectedIsPriority ? " player-priority-chip--active" : ""}`}
+            disabled={
+              planningPending || (!selectedIsPriority && priorityCapReached)
+            }
+            onClick={() => togglePriority(selectedPlayer.id)}
+            type="button"
+          >
+            <span>重点育成</span>
+            <strong>{selectedIsPriority ? "設定中" : "設定する"}</strong>
+          </button>
           <button
             aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}
             className="player-training-chip player-training-chip--detail"
@@ -631,7 +649,6 @@ export function PlayerHubScreen({
           const player = item.player;
           const condition = getPlayerConditionPresentation(player.condition);
           const isPriority = item.isPriority;
-          const priorityCapReached = priorityIds.length >= 3;
           const isCaptain = state.teamDynamics.captainPlayerId === player.id;
 
           return (
@@ -683,22 +700,6 @@ export function PlayerHubScreen({
                   <small>総合</small>
                   <strong>{playerOverall(player)}</strong>
                 </span>
-              </button>
-
-              <button
-                aria-label={
-                  isPriority
-                    ? `重点育成から外す ${playerName(player)}`
-                    : `重点育成に追加 ${playerName(player)}`
-                }
-                className={`player-priority-chip player-priority-chip--compact${isPriority ? " player-priority-chip--active" : ""}`}
-                disabled={
-                  planningPending || (!isPriority && priorityCapReached)
-                }
-                onClick={() => togglePriority(player.id)}
-                type="button"
-              >
-                {isPriority ? "解除" : "重点"}
               </button>
             </article>
           );
