@@ -38,14 +38,12 @@ jobs:
 
           home_path = Path("tests/unit/features/home/HomeScreen.test.tsx")
           home_text = home_path.read_text(encoding="utf-8")
-          old_test = '''  it("emits a team command from the training task", () => {
-            const props = createProps();
-            render(<HomeScreen {...props} />);
-
-            fireEvent.click(screen.getByRole("button", { name: "練習 確認" }));
-            expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
-          });'''
-          old_test = "\n".join(line[10:] if line.startswith("          ") else line for line in old_test.splitlines())
+          start_marker = '  it("emits a team command from the training task", () => {'
+          end_marker = '  it("shows explicit practice-offer controls and warns before discarding the offer", () => {'
+          start = home_text.find(start_marker)
+          end = home_text.find(end_marker, start + 1)
+          if start < 0 or end < 0:
+              raise SystemExit("Home training test marker range missing")
           new_test = '''  it("emits a team command when individual training is unconfigured", () => {
             const props = createProps();
             const school = props.state.schools[props.state.userSchoolId]!;
@@ -60,11 +58,11 @@ jobs:
               screen.getByRole("button", { name: "個人練習を設定" }),
             );
             expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
-          });'''
-          new_test = "\n".join(line[10:] if line.startswith("          ") else line for line in new_test.splitlines())
-          if old_test not in home_text:
-              raise SystemExit("legacy Home training test target missing")
-          home_path.write_text(home_text.replace(old_test, new_test, 1), encoding="utf-8")
+          });
+
+          '''
+          new_test = "\n".join(line[10:] if line.startswith("          ") else line for line in new_test.splitlines()) + "\n"
+          home_path.write_text(home_text[:start] + new_test + home_text[end:], encoding="utf-8")
           PY
       - name: Format and verify focused regressions
         shell: bash
