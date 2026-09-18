@@ -31,6 +31,7 @@ export interface SeasonNearbySchoolPresentation {
   schoolId: SchoolId;
   displayName: string;
   shortName: string;
+  regionLabel: string;
   reputationPoints: number;
   isUserSchool: boolean;
 }
@@ -39,6 +40,8 @@ export interface SeasonRankingPresentation {
   rank: number;
   total: number;
   startingRank: number;
+  startingTotal: number;
+  baselineComparable: boolean;
   movement: number;
   nearby: SeasonNearbySchoolPresentation[];
 }
@@ -125,6 +128,7 @@ function nearbyRows(
     schoolId: row.schoolId,
     displayName: row.displayName,
     shortName: row.shortName,
+    regionLabel: row.regionLabel,
     reputationPoints: row.reputationPoints,
     isUserSchool: row.schoolId === userSchoolId,
   }));
@@ -135,12 +139,16 @@ function rankingPresentation(
   userSchoolId: SchoolId,
   currentRank: number,
   startingRank: number,
+  startingTotal: number,
 ): SeasonRankingPresentation {
+  const baselineComparable = startingTotal === rankings.length;
   return {
     rank: currentRank,
     total: rankings.length,
     startingRank,
-    movement: startingRank - currentRank,
+    startingTotal,
+    baselineComparable,
+    movement: baselineComparable ? startingRank - currentRank : 0,
     nearby: nearbyRows(rankings, userSchoolId),
   };
 }
@@ -238,13 +246,15 @@ export function buildSeasonProgressPresentation(
       regionalRankings,
       state.userSchoolId,
       summary.finalRanks.regional,
-      summary.startingRanks.regional,
+      seasonGoals.startingRanks.regional,
+      seasonGoals.rankingTotals.regional,
     ),
     national: rankingPresentation(
       nationalRankings,
       state.userSchoolId,
       summary.finalRanks.national,
-      summary.startingRanks.national,
+      seasonGoals.startingRanks.national,
+      seasonGoals.rankingTotals.national,
     ),
     archivedSeasons,
     legacy: legacyPresentation(state),
