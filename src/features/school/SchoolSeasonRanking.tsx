@@ -68,7 +68,9 @@ function RankingScope({
             <b>{row.rank}</b>
             <span title={row.displayName}>
               {row.shortName}
-              {label === "全国" ? ` · ${row.regionLabel}` : ""}
+              {label === "全国" && row.regionLabel
+                ? ` · ${row.regionLabel}`
+                : ""}
             </span>
             <small>評判 {row.reputationPoints}</small>
           </div>
