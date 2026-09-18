@@ -6,12 +6,20 @@ import {
   type NationalRepresentativeSchool,
 } from "../world/nationalRepresentativeSchools";
 
+const NATIONAL_REGION_LABELS = new Map(
+  buildNationalRepresentativeSchools({ academicYear: 1 }).map((school) => [
+    school.regionId,
+    school.regionLabel,
+  ]),
+);
+
 export interface SchoolRankingRow {
   rank: number;
   schoolId: SchoolId;
   displayName: string;
   shortName: string;
   regionId: string;
+  regionLabel: string;
   reputationPoints: number;
   source: "world-school" | "national-representative";
 }
@@ -38,6 +46,7 @@ interface RankingCandidate {
   displayName: string;
   shortName: string;
   regionId: string;
+  regionLabel: string;
   reputationPoints: number;
   nationalTitles: number;
   nationalAppearances: number;
@@ -53,6 +62,7 @@ function worldSchoolCandidate(school: School): RankingCandidate {
     displayName: school.name,
     shortName: school.shortName,
     regionId: school.regionId,
+    regionLabel: NATIONAL_REGION_LABELS.get(school.regionId) ?? school.regionId,
     reputationPoints: school.reputationPoints,
     nationalTitles: school.history.nationalTitles,
     nationalAppearances: school.history.nationalAppearances,
@@ -71,6 +81,7 @@ function representativeCandidate(
     displayName: school.displayName,
     shortName: school.shortName,
     regionId: school.regionId,
+    regionLabel: school.regionLabel,
     reputationPoints: school.reputationPoints,
     nationalTitles: school.nationalTitles,
     nationalAppearances: school.nationalAppearances,
@@ -134,6 +145,7 @@ export function buildSchoolRankings(
       displayName: school.displayName,
       shortName: school.shortName,
       regionId: school.regionId,
+      regionLabel: school.regionLabel,
       reputationPoints: school.reputationPoints,
       source: school.source,
     }));
