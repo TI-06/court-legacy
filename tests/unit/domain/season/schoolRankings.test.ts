@@ -62,6 +62,9 @@ describe("Phase17 school rankings", () => {
     expect(new Set(representatives.map((row) => row.regionId)).size).toBe(
       representatives.length,
     );
+    expect(
+      representatives.every((row) => !row.regionLabel.startsWith("region.")),
+    ).toBe(true);
     expect(national).toHaveLength(
       Object.keys(state.schools).length + representatives.length,
     );
