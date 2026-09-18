@@ -7,8 +7,10 @@ import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
 interface RenderOptions {
+  onChangeTraining?: (playerId: string, instructionId: string) => void;
   onSetDevelopmentPriorities?: (playerIds: string[]) => void;
   planningPending?: boolean;
+  trainingPending?: boolean;
 }
 
 function renderPlayerHub(
@@ -27,10 +29,12 @@ function renderPlayerHub(
       data={gameData}
       onAssignLeadership={onAssignLeadership}
       onChange={vi.fn()}
+      onChangeTraining={options.onChangeTraining}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
+      trainingPending={options.trainingPending}
     />,
   );
 
@@ -88,20 +92,25 @@ describe("PlayerHubScreen", () => {
     expect(within(firstRow).queryByText(/4週/)).toBeNull();
   });
 
-  it("shows compact status badges and moves individual training into player detail", () => {
+  it("exposes training and priority controls directly in roster rows", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
     const player = state.players[playerId]!;
+    const onChangeTraining = vi.fn();
+    const onSetDevelopmentPriorities = vi.fn();
     state.teamDynamics.captainPlayerId = playerId;
     state.teamPlanning.developmentPriorityPlayerIds = [playerId];
     player.injury = {
-      injuryId: "injury.phase22-3",
+      injuryId: "injury.phase24-1",
       severity: "minor",
       remainingWeeks: 1,
       recurrenceRisk: 0,
     };
-    renderPlayerHub(state);
+    renderPlayerHub(state, vi.fn(), {
+      onChangeTraining,
+      onSetDevelopmentPriorities,
+    });
 
     const detailButton = screen.getByRole("button", {
       name: `選手詳細 ${player.lastName} ${player.firstName}`,
@@ -112,27 +121,27 @@ describe("PlayerHubScreen", () => {
     expect(within(rosterRow).getByText("主将")).toBeVisible();
     expect(within(rosterRow).getByText("怪我")).toBeVisible();
     expect(within(rosterRow).getByText("重点")).toBeVisible();
-    expect(
-      within(rosterRow).queryByRole("button", { name: /練習/ }),
-    ).toBeNull();
-    expect(
-      within(rosterRow).queryByRole("button", { name: /重点育成/ }),
-    ).toBeNull();
 
-    fireEvent.click(detailButton);
-    const settings = screen.getByRole("region", { name: "選手設定" });
-    expect(
-      within(settings).getByRole("button", {
-        name: `重点育成から外す ${player.lastName} ${player.firstName}`,
-      }),
-    ).toBeVisible();
-    const trainingButton = within(settings).getByRole("button", {
+    const priorityButton = within(rosterRow).getByRole("button", {
+      name: `重点育成から外す ${player.lastName} ${player.firstName}`,
+    });
+    fireEvent.click(priorityButton);
+    expect(onSetDevelopmentPriorities).toHaveBeenCalledWith([]);
+
+    const trainingButton = within(rosterRow).getByRole("button", {
       name: `${player.lastName} ${player.firstName} 個人練習 全体`,
     });
     fireEvent.click(trainingButton);
     expect(
       screen.getByText(`${player.lastName} ${player.firstName}の個人練習`),
     ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: /^攻撃/ }));
+    expect(onChangeTraining).toHaveBeenCalledWith(
+      playerId,
+      "instruction.attack",
+    );
+    expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
   });
 
   it("filters the roster and exposes all required sort options", () => {
@@ -234,7 +243,7 @@ describe("PlayerHubScreen", () => {
     expect(within(rows[0]!).queryByText(/4週/)).toBeNull();
   });
 
-  it("adds and removes explicit development priorities while enforcing the three-player UI cap", () => {
+  it("manages development priorities directly from the roster", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const firstThree = school.playerIds.slice(0, 3);
@@ -246,23 +255,13 @@ describe("PlayerHubScreen", () => {
       onSetDevelopmentPriorities,
     });
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,
-      }),
-    );
     const fourthAdd = screen.getByRole("button", {
       name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
     });
     expect(fourthAdd).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
+    expect(fourthAdd).toHaveAttribute("title", "重点育成は3名まで");
 
     const first = state.players[firstThree[0]!]!;
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `選手詳細 ${first.lastName} ${first.firstName}`,
-      }),
-    );
     fireEvent.click(
       screen.getByRole("button", {
         name: `重点育成から外す ${first.lastName} ${first.firstName}`,
@@ -288,12 +287,7 @@ describe("PlayerHubScreen", () => {
         }}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `選手詳細 ${fourth.lastName} ${fourth.firstName}`,
-      }),
-    );
+
     fireEvent.click(
       screen.getByRole("button", {
         name: `重点育成に追加 ${fourth.lastName} ${fourth.firstName}`,
@@ -305,18 +299,13 @@ describe("PlayerHubScreen", () => {
     ]);
   });
 
-  it("disables every priority mutation while planning is pending", () => {
+  it("disables every roster priority mutation while planning is pending", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     state.teamPlanning.developmentPriorityPlayerIds = [school.playerIds[0]!];
     renderPlayerHub(state, vi.fn(), { planningPending: true });
 
     const first = state.players[school.playerIds[0]!]!;
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `選手詳細 ${first.lastName} ${first.firstName}`,
-      }),
-    );
     expect(
       screen.getByRole("button", {
         name: `重点育成から外す ${first.lastName} ${first.firstName}`,

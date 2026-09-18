@@ -208,6 +208,7 @@ export function PlayerHubScreen({
     : null;
   const trainingDone = isWeeklyActionCompleted(state, "training");
   const priorityIds = state.teamPlanning.developmentPriorityPlayerIds;
+  const priorityCapReached = priorityIds.length >= 3;
 
   const assignmentName = (id: PlayerId) => {
     const assignment =
@@ -303,7 +304,6 @@ export function PlayerHubScreen({
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
     );
     const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
-    const priorityCapReached = priorityIds.length >= 3;
 
     return (
       <main className="app-content player-hub player-detail">
@@ -701,6 +701,46 @@ export function PlayerHubScreen({
                   <strong>{playerOverall(player)}</strong>
                 </span>
               </button>
+              <div
+                aria-label={`${playerName(player)} 育成設定`}
+                className="player-roster__quick-actions"
+                role="group"
+              >
+                <button
+                  aria-label={`${playerName(player)} 個人練習 ${assignmentName(player.id)}`}
+                  className="player-roster__training-action"
+                  disabled={trainingPending || trainingDone}
+                  onClick={() => setTrainingPlayerId(player.id)}
+                  type="button"
+                >
+                  <span>個人練習</span>
+                  <strong>{assignmentName(player.id)}</strong>
+                  <small>{trainingDone ? "実施済" : "変更"}</small>
+                </button>
+                <button
+                  aria-label={
+                    isPriority
+                      ? `重点育成から外す ${playerName(player)}`
+                      : `重点育成に追加 ${playerName(player)}`
+                  }
+                  className={`player-roster__priority-action${
+                    isPriority ? " player-roster__priority-action--active" : ""
+                  }`}
+                  disabled={
+                    planningPending || (!isPriority && priorityCapReached)
+                  }
+                  onClick={() => togglePriority(player.id)}
+                  title={
+                    !isPriority && priorityCapReached
+                      ? "重点育成は3名まで"
+                      : undefined
+                  }
+                  type="button"
+                >
+                  <span aria-hidden="true">{isPriority ? "★" : "☆"}</span>
+                  <strong>重点育成</strong>
+                </button>
+              </div>
             </article>
           );
         })}
