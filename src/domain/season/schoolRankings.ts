@@ -7,10 +7,9 @@ import {
 } from "../world/nationalRepresentativeSchools";
 
 const NATIONAL_REGION_LABELS = new Map(
-  buildNationalRepresentativeSchools({ academicYear: 1 }).map((school) => [
-    school.regionId,
-    school.regionLabel,
-  ]),
+  buildNationalRepresentativeSchools({ academicYear: 1 }).map(
+    (school) => [school.regionId, school.regionLabel] as const,
+  ),
 );
 
 export interface SchoolRankingRow {
