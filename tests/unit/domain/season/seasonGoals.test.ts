@@ -48,6 +48,17 @@ describe("Phase17 season goals", () => {
     expect(result.goalResults).toHaveLength(goals.goals.length);
   });
 
+  it("resets archived rank baselines when the ranking pool size changed", () => {
+    const state = createDemoGame();
+    const goals = createSeasonGoals(state);
+    goals.rankingTotals.national = 16;
+
+    const result = evaluateSeasonGoals(state, goals);
+
+    expect(result.startingRanks.national).toBe(result.finalRanks.national);
+    expect(result.startingRanks.regional).toBe(goals.startingRanks.regional);
+  });
+
   it("evaluates final regional and national ranks against persisted targets", () => {
     const state = createDemoGame();
     const goals = createSeasonGoals(state);
