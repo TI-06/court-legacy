@@ -34,6 +34,19 @@ for (const width of widths) {
     await page.getByLabel("選手絞り込み").selectOption("all");
     const firstPlayer = page.getByTestId("roster-player-row").first();
     await expect(firstPlayer).toBeVisible();
+    await expect(
+      firstPlayer.getByRole("button", { name: /個人練習/ }),
+    ).toBeVisible();
+    await expect(
+      firstPlayer.getByRole("button", { name: /重点育成/ }),
+    ).toBeVisible();
+
+    await firstPlayer.getByRole("button", { name: /個人練習/ }).click();
+    const trainingSheet = page.getByRole("dialog");
+    await expect(trainingSheet).toBeVisible();
+    await expect(trainingSheet.getByRole("heading")).toContainText("個人練習");
+    await trainingSheet.getByRole("button", { name: "閉じる" }).click();
+
     await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 
     await expect(
@@ -69,11 +82,10 @@ test("Player Hub persists a development priority", async ({ page }) => {
 
   const firstPlayer = page.getByTestId("roster-player-row").first();
   await expect(firstPlayer).toBeVisible();
-  await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 
-  const addButton = page
-    .getByRole("button", { name: /^重点育成に追加 / })
-    .first();
+  const addButton = firstPlayer.getByRole("button", {
+    name: /^重点育成に追加 /,
+  });
   await expect(addButton).toBeEnabled();
 
   const addLabel = await addButton.getAttribute("aria-label");

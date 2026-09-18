@@ -986,3 +986,105 @@
   color: #fff;
   font-size: 12px;
 }
+
+/* Phase24-1: direct roster training and development-priority controls */
+.player-roster__quick-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 94px;
+  min-width: 0;
+  padding: 0 5px 5px 7px;
+  gap: 4px;
+}
+
+.player-roster__training-action,
+.player-roster__priority-action {
+  min-width: 0;
+  min-height: 40px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  border-radius: 8px;
+}
+
+.player-roster__training-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 5px;
+  text-align: left;
+  background: rgb(31 120 171 / 18%);
+  border: 1px solid rgb(116 216 255 / 24%);
+}
+
+.player-roster__training-action span,
+.player-roster__training-action small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.player-roster__training-action strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #dff4ff;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-roster__priority-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 7px;
+  gap: 5px;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 28%);
+}
+
+.player-roster__priority-action span {
+  color: #ffd99a;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.player-roster__priority-action strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-roster__priority-action--active {
+  color: #ffd99a;
+  background: rgb(244 122 24 / 22%);
+  border-color: rgb(244 122 24 / 55%);
+}
+
+.player-roster__training-action:disabled,
+.player-roster__priority-action:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+@media (max-width: 350px) {
+  .player-roster__quick-actions {
+    grid-template-columns: minmax(0, 1fr) 84px;
+    padding-inline: 5px;
+  }
+
+  .player-roster__training-action {
+    padding-inline: 6px;
+    gap: 4px;
+  }
+
+  .player-roster__priority-action {
+    padding-inline: 5px;
+    gap: 4px;
+  }
+
+  .player-roster__priority-action strong {
+    font-size: 9px;
+  }
+}
