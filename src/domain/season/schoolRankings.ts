@@ -61,7 +61,7 @@ function worldSchoolCandidate(school: School): RankingCandidate {
     displayName: school.name,
     shortName: school.shortName,
     regionId: school.regionId,
-    regionLabel: NATIONAL_REGION_LABELS.get(school.regionId) ?? school.regionId,
+    regionLabel: NATIONAL_REGION_LABELS.get(school.regionId) ?? "",
     reputationPoints: school.reputationPoints,
     nationalTitles: school.history.nationalTitles,
     nationalAppearances: school.history.nationalAppearances,
