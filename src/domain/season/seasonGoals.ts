@@ -137,6 +137,10 @@ export function evaluateSeasonGoals(
     throw new Error("season goals do not belong to the current academic year");
   }
   const ranking = schoolRankingSnapshot(state, school.id);
+  const regionalBaselineComparable =
+    seasonGoals.rankingTotals.regional === ranking.regional.total;
+  const nationalBaselineComparable =
+    seasonGoals.rankingTotals.national === ranking.national.total;
   const deltas = historyDelta(school, seasonGoals.baseline);
   const goalResults = seasonGoals.goals.map((goal) => {
     const progress =
@@ -155,7 +159,14 @@ export function evaluateSeasonGoals(
   return {
     yearIndex: seasonGoals.yearIndex,
     academicYear: seasonGoals.academicYear,
-    startingRanks: { ...seasonGoals.startingRanks },
+    startingRanks: {
+      regional: regionalBaselineComparable
+        ? seasonGoals.startingRanks.regional
+        : ranking.regional.rank,
+      national: nationalBaselineComparable
+        ? seasonGoals.startingRanks.national
+        : ranking.national.rank,
+    },
     finalRanks: {
       regional: ranking.regional.rank,
       national: ranking.national.rank,

@@ -6,7 +6,11 @@ import { SchoolLegacyPanel } from "./SchoolLegacyPanel";
 import { SchoolSeasonHistory } from "./SchoolSeasonHistory";
 import "./school-season-ranking.css";
 
-function rankMovementLabel(movement: number): string {
+function rankMovementLabel(
+  movement: number,
+  baselineComparable: boolean,
+): string {
+  if (!baselineComparable) return "基準更新";
   if (movement > 0) return `▲${movement}`;
   if (movement < 0) return `▼${Math.abs(movement)}`;
   return "→0";
@@ -31,11 +35,21 @@ function RankingScope({
             {ranking.rank}位 / {ranking.total}校
           </strong>
         </div>
-        <b className={ranking.movement < 0 ? "is-down" : undefined}>
-          {rankMovementLabel(ranking.movement)}
+        <b
+          className={
+            ranking.baselineComparable && ranking.movement < 0
+              ? "is-down"
+              : undefined
+          }
+        >
+          {rankMovementLabel(ranking.movement, ranking.baselineComparable)}
         </b>
       </div>
-      <small>開始時 {ranking.startingRank}位</small>
+      <small>
+        {ranking.baselineComparable
+          ? `開始時 ${ranking.startingRank}位`
+          : `順位母集団 ${ranking.startingTotal}校 → ${ranking.total}校`}
+      </small>
 
       <div
         className="school-season-ranking__nearby"
@@ -52,7 +66,12 @@ function RankingScope({
             key={row.schoolId}
           >
             <b>{row.rank}</b>
-            <span title={row.displayName}>{row.shortName}</span>
+            <span title={row.displayName}>
+              {row.shortName}
+              {label === "全国" && row.regionLabel
+                ? ` · ${row.regionLabel}`
+                : ""}
+            </span>
             <small>評判 {row.reputationPoints}</small>
           </div>
         ))}

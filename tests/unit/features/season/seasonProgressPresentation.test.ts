@@ -76,6 +76,20 @@ describe("Phase17 season progress presentation", () => {
     ).toBe(1);
   });
 
+  it("does not compare ranks across different ranking pool sizes", () => {
+    const state = createDemoGame();
+    const originalStartingRank = state.seasonGoals!.startingRanks.national;
+    state.seasonGoals!.rankingTotals.national = 16;
+
+    const presentation = buildSeasonProgressPresentation(state)!;
+
+    expect(presentation.national.startingRank).toBe(originalStartingRank);
+    expect(presentation.national.startingTotal).toBe(16);
+    expect(presentation.national.total).toBeGreaterThan(16);
+    expect(presentation.national.baselineComparable).toBe(false);
+    expect(presentation.national.movement).toBe(0);
+  });
+
   it("returns null for a legacy state that has no season goals", () => {
     const state = createDemoGame();
     delete state.seasonGoals;
