@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
@@ -37,6 +37,7 @@ describe("Phase21 Player Hub relationships", () => {
         name: `${selected.lastName} ${selected.firstName}`,
       }),
     ).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "人物" }));
     const region = screen.getByRole("region", { name: "人間関係" });
     expect(within(region).getByText("人間関係")).toBeVisible();
     const teammateName = `${teammate.lastName} ${teammate.firstName}`;

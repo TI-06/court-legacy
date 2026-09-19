@@ -73,6 +73,7 @@ interface PlayerHubScreenProps {
 }
 
 type HubMode = "roster" | "lineup" | "dynamics" | "tactics";
+type PlayerDetailMode = "ability" | "growth" | "personality";
 
 const abilityLabels = {
   attack: "攻撃",
@@ -160,6 +161,35 @@ function HubTabs({
   );
 }
 
+function PlayerDetailTabs({
+  mode,
+  onChange,
+}: {
+  mode: PlayerDetailMode;
+  onChange: (mode: PlayerDetailMode) => void;
+}) {
+  return (
+    <nav className="player-detail__tabs" aria-label="選手詳細の表示切替">
+      {(
+        [
+          ["ability", "能力"],
+          ["growth", "成長"],
+          ["personality", "人物"],
+        ] as const
+      ).map(([id, label]) => (
+        <button
+          aria-current={mode === id ? "page" : undefined}
+          key={id}
+          onClick={() => onChange(id)}
+          type="button"
+        >
+          {label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 export function PlayerHubScreen({
   state,
   data,
@@ -179,6 +209,7 @@ export function PlayerHubScreen({
   onDeleteLineupPreset,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
+  const [detailMode, setDetailMode] = useState<PlayerDetailMode>("ability");
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
     initialPlayerId,
   );
@@ -330,233 +361,267 @@ export function PlayerHubScreen({
           </div>
         </section>
 
-        <section className="player-detail__quick-actions" aria-label="選手設定">
-          <button
-            aria-label={
-              selectedIsPriority
-                ? `重点育成から外す ${playerName(selectedPlayer)}`
-                : `重点育成に追加 ${playerName(selectedPlayer)}`
-            }
-            className={`player-priority-chip player-priority-chip--detail${selectedIsPriority ? " player-priority-chip--active" : ""}`}
-            disabled={
-              planningPending || (!selectedIsPriority && priorityCapReached)
-            }
-            onClick={() => togglePriority(selectedPlayer.id)}
-            type="button"
-          >
-            <span>重点育成</span>
-            <strong>{selectedIsPriority ? "設定中" : "設定する"}</strong>
-          </button>
-          <button
-            aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}
-            className="player-training-chip player-training-chip--detail"
-            disabled={trainingPending || trainingDone}
-            onClick={() => setTrainingPlayerId(selectedPlayer.id)}
-            type="button"
-          >
-            <span>個人練習</span>
-            <strong>{assignmentName(selectedPlayer.id)}</strong>
-          </button>
-        </section>
+        <PlayerDetailTabs mode={detailMode} onChange={setDetailMode} />
 
-        <section
-          className="player-detail__development"
-          aria-label="成長タイプと才能"
-        >
-          <article>
-            <span>成長タイプ</span>
-            <strong>{development.growthLabel}</strong>
-            <small>{development.growthDescription}</small>
-          </article>
-          <article>
-            <span>才能</span>
-            <strong>{development.talentLabel}</strong>
-            <small>
-              {development.potential === null
-                ? "将来性は未判定"
-                : `将来性 ${development.potentialGrade}・${development.potential}`}
-            </small>
-          </article>
-        </section>
-
-        {personality ? (
-          <section className="player-detail__personality" aria-label="性格">
-            <div className="player-detail__personality-heading">
-              <h3>性格</h3>
-              <strong>{personality.name}</strong>
-            </div>
-            <p>{personality.description}</p>
-            <div
-              className="player-detail__personality-tendencies"
-              aria-label="性格の傾向"
+        {detailMode === "ability" ? (
+          <div
+            className="player-detail__tab-panel"
+            data-testid="player-detail-ability"
+          >
+            <section
+              className="player-detail__quick-actions"
+              aria-label="選手設定"
             >
-              <span>練習 {personality.trainingStability}</span>
-              <span>関係構築 {personality.relationshipBuilding}</span>
-              <span>プレッシャー {personality.pressureResponse}</span>
-              <span>士気 {personality.moraleVolatility}</span>
-            </div>
-          </section>
-        ) : null}
-
-        <section
-          className="player-detail__growth-summary"
-          aria-label="最近の成長"
-        >
-          <div className="player-detail__growth-heading">
-            <h3>最近の成長</h3>
-            <span>{growth.observedWeeks12}週記録</span>
-          </div>
-          <div className="player-detail__growth-metrics">
-            <strong>{growthLabel(4, growth.fourWeekGrowth)}</strong>
-            <strong>{growthLabel(12, growth.twelveWeekGrowth)}</strong>
-          </div>
-          {growth.trend12.length === 0 ? (
-            <p className="player-detail__growth-empty">
-              成長履歴はまだありません
-            </p>
-          ) : (
-            <div className="player-growth-trend" aria-label="直近の成長推移">
-              {growth.trend12.map((point, index) => {
-                const percent = Math.max(
-                  8,
-                  Math.round((point.totalAbilityGrowth / maxTrendGrowth) * 100),
-                );
-                return (
-                  <span
-                    aria-label={`${point.gameDate} 成長 +${point.totalAbilityGrowth}`}
-                    className="player-growth-trend__bar"
-                    data-growth={point.totalAbilityGrowth}
-                    data-testid="player-growth-trend-bar"
-                    key={`${point.gameDate}:${index}`}
-                    style={{ height: `${percent}%` }}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="player-detail__stats" aria-label="選手能力">
-          {Object.entries(abilities).map(([key, value]) => (
-            <StatBar
-              key={key}
-              label={abilityLabels[key as keyof typeof abilityLabels]}
-              tone="accent"
-              value={value}
-              valueLabel={ratingToGrade(value)}
-            />
-          ))}
-        </section>
-
-        <section className="player-detail__metrics" aria-label="選手状態">
-          <article
-            className={`player-condition player-condition--${condition.colorToken}`}
-          >
-            <span>調子</span>
-            <strong>
-              {condition.icon} {condition.label}
-            </strong>
-          </article>
-          <article>
-            <span>士気</span>
-            <strong>{selectedPlayer.morale}</strong>
-          </article>
-          <article>
-            <span>役割</span>
-            <strong>{roleLabels[role]}</strong>
-          </article>
-          <article>
-            <span>信頼</span>
-            <strong>{selectedPlayer.trust}</strong>
-          </article>
-        </section>
-
-        {revealedCharacterTraits.length > 0 ? (
-          <section
-            className="player-detail__character-traits"
-            aria-label="発見した個性"
-          >
-            <div className="player-detail__character-traits-heading">
-              <h3>発見した個性</h3>
-              <span>{revealedCharacterTraits.length}件</span>
-            </div>
-            <div className="player-detail__character-trait-list">
-              {revealedCharacterTraits.map((trait) => (
-                <article key={trait.id}>
-                  <strong>{trait.name}</strong>
-                  <p>{trait.description}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <section className="player-detail__relationships" aria-label="人間関係">
-          <div className="player-detail__relationships-heading">
-            <h3>人間関係</h3>
-            <span>{relationships.length}人</span>
-          </div>
-          <div className="player-detail__relationship-list">
-            {relationships.map((relationship) => (
-              <article
-                className="player-detail__relationship-row"
-                key={relationship.playerId}
+              <button
+                aria-label={
+                  selectedIsPriority
+                    ? `重点育成から外す ${playerName(selectedPlayer)}`
+                    : `重点育成に追加 ${playerName(selectedPlayer)}`
+                }
+                className={`player-priority-chip player-priority-chip--detail${selectedIsPriority ? " player-priority-chip--active" : ""}`}
+                disabled={
+                  planningPending || (!selectedIsPriority && priorityCapReached)
+                }
+                onClick={() => togglePriority(selectedPlayer.id)}
+                type="button"
               >
-                <div className="player-detail__relationship-copy">
-                  <strong>{relationship.displayName}</strong>
-                  <small>{relationship.label}</small>
-                </div>
-                {relationship.specialKinds.length > 0 ? (
-                  <div
-                    className="player-detail__relationship-tags"
-                    aria-label="特殊関係"
-                  >
-                    {relationship.specialKinds.map((kind) => (
-                      <span key={kind}>
-                        {specialRelationshipKindLabel(kind)}
-                      </span>
-                    ))}
-                    {relationship.mentorDirection ? (
-                      <small>
-                        {relationship.mentorDirection === "mentor"
-                          ? "教える側"
-                          : "教わる側"}
-                      </small>
-                    ) : null}
-                  </div>
-                ) : null}
-                <span
-                  aria-label={`関係値 ${relationship.score}`}
-                  aria-valuemax={100}
-                  aria-valuemin={0}
-                  aria-valuenow={relationship.score}
-                  className="player-detail__relationship-meter"
-                  role="meter"
-                >
-                  <span
-                    className="player-detail__relationship-meter-fill"
-                    style={{ width: `${relationship.score}%` }}
-                  />
-                </span>
-              </article>
-            ))}
-          </div>
-        </section>
+                <span>重点育成</span>
+                <strong>{selectedIsPriority ? "設定中" : "設定する"}</strong>
+              </button>
+              <button
+                aria-label={`${playerName(selectedPlayer)} 個人練習 ${assignmentName(selectedPlayer.id)}`}
+                className="player-training-chip player-training-chip--detail"
+                disabled={trainingPending || trainingDone}
+                onClick={() => setTrainingPlayerId(selectedPlayer.id)}
+                type="button"
+              >
+                <span>個人練習</span>
+                <strong>{assignmentName(selectedPlayer.id)}</strong>
+              </button>
+            </section>
 
-        {concerns.length ? (
-          <section
-            className="player-detail__concerns"
-            aria-label="選手の気になる状態"
-          >
-            <h3>気になる状態</h3>
-            <ul>
-              {concerns.map((concern, index) => (
-                <li key={`${concern.code}:${index}`}>
-                  {concernLabels[concern.code]}・重要度 {concern.severity}/3
-                </li>
+            <section className="player-detail__metrics" aria-label="選手状態">
+              <article
+                className={`player-condition player-condition--${condition.colorToken}`}
+              >
+                <span>調子</span>
+                <strong>
+                  {condition.icon} {condition.label}
+                </strong>
+              </article>
+              <article>
+                <span>士気</span>
+                <strong>{selectedPlayer.morale}</strong>
+              </article>
+              <article>
+                <span>役割</span>
+                <strong>{roleLabels[role]}</strong>
+              </article>
+              <article>
+                <span>信頼</span>
+                <strong>{selectedPlayer.trust}</strong>
+              </article>
+            </section>
+
+            <section className="player-detail__stats" aria-label="選手能力">
+              {Object.entries(abilities).map(([key, value]) => (
+                <StatBar
+                  key={key}
+                  label={abilityLabels[key as keyof typeof abilityLabels]}
+                  tone="accent"
+                  value={value}
+                  valueLabel={ratingToGrade(value)}
+                />
               ))}
-            </ul>
-          </section>
+            </section>
+          </div>
+        ) : null}
+
+        {detailMode === "growth" ? (
+          <div
+            className="player-detail__tab-panel"
+            data-testid="player-detail-growth"
+          >
+            <section
+              className="player-detail__development"
+              aria-label="成長タイプと才能"
+            >
+              <article>
+                <span>成長タイプ</span>
+                <strong>{development.growthLabel}</strong>
+                <small>{development.growthDescription}</small>
+              </article>
+              <article>
+                <span>才能</span>
+                <strong>{development.talentLabel}</strong>
+                <small>
+                  {development.potential === null
+                    ? "将来性は未判定"
+                    : `将来性 ${development.potentialGrade}・${development.potential}`}
+                </small>
+              </article>
+            </section>
+
+            <section
+              className="player-detail__growth-summary"
+              aria-label="最近の成長"
+            >
+              <div className="player-detail__growth-heading">
+                <h3>最近の成長</h3>
+                <span>{growth.observedWeeks12}週記録</span>
+              </div>
+              <div className="player-detail__growth-metrics">
+                <strong>{growthLabel(4, growth.fourWeekGrowth)}</strong>
+                <strong>{growthLabel(12, growth.twelveWeekGrowth)}</strong>
+              </div>
+              {growth.trend12.length === 0 ? (
+                <p className="player-detail__growth-empty">
+                  成長履歴はまだありません
+                </p>
+              ) : (
+                <div
+                  className="player-growth-trend"
+                  aria-label="直近の成長推移"
+                >
+                  {growth.trend12.map((point, index) => {
+                    const percent = Math.max(
+                      8,
+                      Math.round(
+                        (point.totalAbilityGrowth / maxTrendGrowth) * 100,
+                      ),
+                    );
+                    return (
+                      <span
+                        aria-label={`${point.gameDate} 成長 +${point.totalAbilityGrowth}`}
+                        className="player-growth-trend__bar"
+                        data-growth={point.totalAbilityGrowth}
+                        data-testid="player-growth-trend-bar"
+                        key={`${point.gameDate}:${index}`}
+                        style={{ height: `${percent}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
+        ) : null}
+
+        {detailMode === "personality" ? (
+          <div
+            className="player-detail__tab-panel"
+            data-testid="player-detail-personality"
+          >
+            {personality ? (
+              <section className="player-detail__personality" aria-label="性格">
+                <div className="player-detail__personality-heading">
+                  <h3>性格</h3>
+                  <strong>{personality.name}</strong>
+                </div>
+                <p>{personality.description}</p>
+                <div
+                  className="player-detail__personality-tendencies"
+                  aria-label="性格の傾向"
+                >
+                  <span>練習 {personality.trainingStability}</span>
+                  <span>関係構築 {personality.relationshipBuilding}</span>
+                  <span>プレッシャー {personality.pressureResponse}</span>
+                  <span>士気 {personality.moraleVolatility}</span>
+                </div>
+              </section>
+            ) : null}
+
+            {revealedCharacterTraits.length > 0 ? (
+              <section
+                className="player-detail__character-traits"
+                aria-label="発見した個性"
+              >
+                <div className="player-detail__character-traits-heading">
+                  <h3>発見した個性</h3>
+                  <span>{revealedCharacterTraits.length}件</span>
+                </div>
+                <div className="player-detail__character-trait-list">
+                  {revealedCharacterTraits.map((trait) => (
+                    <article key={trait.id}>
+                      <strong>{trait.name}</strong>
+                      <p>{trait.description}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <section
+              className="player-detail__relationships"
+              aria-label="人間関係"
+            >
+              <div className="player-detail__relationships-heading">
+                <h3>人間関係</h3>
+                <span>{relationships.length}人</span>
+              </div>
+              <div className="player-detail__relationship-list">
+                {relationships.map((relationship) => (
+                  <article
+                    className="player-detail__relationship-row"
+                    key={relationship.playerId}
+                  >
+                    <div className="player-detail__relationship-copy">
+                      <strong>{relationship.displayName}</strong>
+                      <small>{relationship.label}</small>
+                    </div>
+                    {relationship.specialKinds.length > 0 ? (
+                      <div
+                        className="player-detail__relationship-tags"
+                        aria-label="特殊関係"
+                      >
+                        {relationship.specialKinds.map((kind) => (
+                          <span key={kind}>
+                            {specialRelationshipKindLabel(kind)}
+                          </span>
+                        ))}
+                        {relationship.mentorDirection ? (
+                          <small>
+                            {relationship.mentorDirection === "mentor"
+                              ? "教える側"
+                              : "教わる側"}
+                          </small>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <span
+                      aria-label={`関係値 ${relationship.score}`}
+                      aria-valuemax={100}
+                      aria-valuemin={0}
+                      aria-valuenow={relationship.score}
+                      className="player-detail__relationship-meter"
+                      role="meter"
+                    >
+                      <span
+                        className="player-detail__relationship-meter-fill"
+                        style={{ width: `${relationship.score}%` }}
+                      />
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {concerns.length ? (
+              <section
+                className="player-detail__concerns"
+                aria-label="選手の気になる状態"
+              >
+                <h3>気になる状態</h3>
+                <ul>
+                  {concerns.map((concern, index) => (
+                    <li key={`${concern.code}:${index}`}>
+                      {concernLabels[concern.code]}・重要度 {concern.severity}/3
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </div>
         ) : null}
 
         <BottomSheet
@@ -660,7 +725,10 @@ export function PlayerHubScreen({
               <button
                 aria-label={`選手詳細 ${playerName(player)}`}
                 className="player-roster__main"
-                onClick={() => setSelectedPlayerId(player.id)}
+                onClick={() => {
+                  setDetailMode("ability");
+                  setSelectedPlayerId(player.id);
+                }}
                 type="button"
               >
                 <span className="player-roster__number">{index + 1}</span>
