@@ -245,6 +245,9 @@ describe("Phase16 match command decision panel", () => {
       name: "コートの選手",
     });
     expect(within(courtGroup).getAllByRole("button")).toHaveLength(6);
+    expect(within(dialog).getByLabelText("交代手順")).toHaveTextContent(
+      "OUTを選ぶ",
+    );
 
     for (const assignment of selection.rotation) {
       const player = fixture.state.players[assignment.playerId]!;
@@ -296,7 +299,7 @@ describe("Phase16 match command decision panel", () => {
     ).toBeVisible();
 
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "この交代で続ける" }),
+      within(dialog).getByRole("button", { name: "この交代を実行" }),
     );
     expect(onCommand).toHaveBeenCalledOnce();
     expect(onCommand).toHaveBeenCalledWith({

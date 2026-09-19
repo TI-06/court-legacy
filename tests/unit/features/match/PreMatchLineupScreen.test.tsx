@@ -40,15 +40,29 @@ describe("PreMatchLineupScreen", () => {
     expect(screen.getByText("この試合だけの編成です")).toBeInTheDocument();
     expect(screen.getByText("ライバル高校")).toBeInTheDocument();
     expect(screen.getByText("戦力 78")).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "この試合のコート配置" }),
+    ).toBeVisible();
+    expect(document.querySelector("select")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "1年中心" }));
     expect(selection).toEqual(original);
 
     const firstBenchId = original.benchPlayerIds[0];
     expect(firstBenchId).toBeDefined();
-    fireEvent.change(screen.getByLabelText("ローテーション1"), {
-      target: { value: firstBenchId },
+    fireEvent.click(
+      screen.getByRole("button", { name: "ローテーション1を変更" }),
+    );
+    const picker = screen.getByRole("dialog", {
+      name: "ローテーション1を変更",
     });
+    const firstBench = state.players[firstBenchId!];
+    expect(firstBench).toBeDefined();
+    fireEvent.click(
+      within(picker).getByRole("button", {
+        name: `${firstBench!.lastName} ${firstBench!.firstName}をローテーション1に入れる`,
+      }),
+    );
 
     fireEvent.click(
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
