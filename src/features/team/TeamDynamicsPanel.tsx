@@ -11,6 +11,7 @@ import type {
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { BottomSheet } from "../../ui/BottomSheet";
 import "./team-dynamics.css";
 
 interface TeamDynamicsPanelProps {
@@ -72,6 +73,7 @@ function LeadershipEditor({
   const [viceCaptainPlayerId, setViceCaptainPlayerId] = useState<string>(
     authoritativeViceCaptainPlayerId ?? "",
   );
+  const [pickerRole, setPickerRole] = useState<"captain" | "vice" | null>(null);
   const canSave =
     !pending &&
     captainPlayerId.length > 0 &&
@@ -84,6 +86,19 @@ function LeadershipEditor({
       captainPlayerId as PlayerId,
       viceCaptainPlayerId as PlayerId,
     );
+  };
+
+  const selectedCaptain = candidates.find(
+    ({ player }) => player.id === captainPlayerId,
+  );
+  const selectedViceCaptain = candidates.find(
+    ({ player }) => player.id === viceCaptainPlayerId,
+  );
+  const pickerTitle = pickerRole === "captain" ? "主将を選ぶ" : "副主将を選ぶ";
+  const chooseLeader = (playerId: PlayerId) => {
+    if (pickerRole === "captain") setCaptainPlayerId(playerId);
+    if (pickerRole === "vice") setViceCaptainPlayerId(playerId);
+    setPickerRole(null);
   };
 
   return (
@@ -99,38 +114,44 @@ function LeadershipEditor({
         <span>保存はサーバーで確定</span>
       </div>
       <div className="team-dynamics__selectors">
-        <label>
-          <span>主将</span>
-          <select
-            aria-label="主将"
-            disabled={pending}
-            onChange={(event) => setCaptainPlayerId(event.target.value)}
-            value={captainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>副主将</span>
-          <select
-            aria-label="副主将"
-            disabled={pending}
-            onChange={(event) => setViceCaptainPlayerId(event.target.value)}
-            value={viceCaptainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
+        <button
+          aria-label="主将"
+          className="team-dynamics__leader-card"
+          disabled={pending}
+          onClick={() => setPickerRole("captain")}
+          type="button"
+        >
+          <span>CAPTAIN</span>
+          <strong>
+            {selectedCaptain
+              ? playerName(selectedCaptain.player)
+              : "選手を選ぶ"}
+          </strong>
+          <small>
+            {selectedCaptain
+              ? `${selectedCaptain.player.grade}年・適性${selectedCaptain.suitability}`
+              : "タップして候補を表示"}
+          </small>
+        </button>
+        <button
+          aria-label="副主将"
+          className="team-dynamics__leader-card"
+          disabled={pending}
+          onClick={() => setPickerRole("vice")}
+          type="button"
+        >
+          <span>VICE CAPTAIN</span>
+          <strong>
+            {selectedViceCaptain
+              ? playerName(selectedViceCaptain.player)
+              : "選手を選ぶ"}
+          </strong>
+          <small>
+            {selectedViceCaptain
+              ? `${selectedViceCaptain.player.grade}年・適性${selectedViceCaptain.suitability}`
+              : "タップして候補を表示"}
+          </small>
+        </button>
       </div>
       <button
         className="team-dynamics__save"
@@ -145,6 +166,42 @@ function LeadershipEditor({
           主将と副主将は別の選手を選んでください。
         </p>
       ) : null}
+      <BottomSheet
+        description="主将適性の高い順に表示しています。"
+        onClose={() => setPickerRole(null)}
+        open={pickerRole !== null}
+        title={pickerTitle}
+      >
+        <div
+          aria-label={pickerRole === "captain" ? "主将候補" : "副主将候補"}
+          className="team-dynamics__leader-picker"
+          role="group"
+        >
+          {candidates.map(({ player, suitability }, index) => (
+            <button
+              aria-label={`${pickerRole === "captain" ? "主将" : "副主将"}に${playerName(player)}を選ぶ`}
+              aria-pressed={
+                pickerRole === "captain"
+                  ? player.id === captainPlayerId
+                  : player.id === viceCaptainPlayerId
+              }
+              disabled={pending}
+              key={player.id}
+              onClick={() => chooseLeader(player.id)}
+              type="button"
+            >
+              <span>{index + 1}</span>
+              <div>
+                <strong>{playerName(player)}</strong>
+                <small>
+                  {player.grade}年・{player.preferredPosition}
+                </small>
+              </div>
+              <b>{suitability}</b>
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
     </section>
   );
 }

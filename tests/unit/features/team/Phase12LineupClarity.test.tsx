@@ -33,13 +33,20 @@ describe("Phase 12 lineup clarity", () => {
     );
   });
 
-  it("does not expose fatigue-driven benching controls", async () => {
+  it("uses game-style policy switches without native checkbox controls", async () => {
     render(<App />);
     await openLineup();
 
+    expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
     expect(
-      screen.queryByRole("checkbox", { name: "重度疲労時はベンチを許可" }),
-    ).toBeNull();
+      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("switch", { name: "試合中の自動交代" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("switch", { name: "セット間の自動変更" }),
+    ).toBeVisible();
     expect(screen.queryByText(/疲労85以上/)).toBeNull();
   });
 });

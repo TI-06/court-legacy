@@ -398,25 +398,34 @@ export function SchoolScreen({
                       ) : null}
                     </div>
                     {option.rank !== "beginner" ? (
-                      <label className="assistant-coach-specialty">
-                        専門
-                        <select
-                          aria-label={`${option.name}の専門`}
-                          onChange={(event) =>
-                            setCoachSpecialties((current) => ({
-                              ...current,
-                              [option.rank]: event.target
-                                .value as AssistantCoachSpecialty,
-                            }))
-                          }
-                          value={specialty ?? ""}
-                        >
-                          <option value="">選択してください</option>
-                          <option value="attack">攻撃</option>
-                          <option value="defense">守備</option>
-                          <option value="physical">フィジカル</option>
-                        </select>
-                      </label>
+                      <div className="assistant-coach-specialty">
+                        <span>専門</span>
+                        <div aria-label={`${option.name}の専門`} role="group">
+                          {(
+                            [
+                              ["attack", "攻撃"],
+                              ["defense", "守備"],
+                              ["physical", "フィジカル"],
+                            ] as const satisfies ReadonlyArray<
+                              readonly [AssistantCoachSpecialty, string]
+                            >
+                          ).map(([value, label]) => (
+                            <button
+                              aria-pressed={specialty === value}
+                              key={value}
+                              onClick={() =>
+                                setCoachSpecialties((current) => ({
+                                  ...current,
+                                  [option.rank]: value,
+                                }))
+                              }
+                              type="button"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ) : null}
                     <div className="assistant-coach-card__footer">
                       <small>
