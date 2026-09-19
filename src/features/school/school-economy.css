@@ -65,3 +65,23 @@
 .funds-ledger__amount--negative {
   color: #a24f3b;
 }
+
+/* Phase24-4 dark school ledger */
+.funds-ledger__entry {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.funds-ledger__entry time,
+.funds-ledger__amounts span {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.funds-ledger__amount--positive {
+  color: #7bdca5;
+}
+
+.funds-ledger__amount--negative {
+  color: #ff9a95;
+}

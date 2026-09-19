@@ -496,7 +496,7 @@ describe("PlayerHubScreen", () => {
     const onAssignLeadership = vi.fn();
     renderPlayerHub(state, onAssignLeadership);
 
-    fireEvent.click(screen.getByRole("button", { name: "チーム状態" }));
+    fireEvent.click(screen.getByRole("button", { name: "チーム" }));
     expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
 
     fireEvent.change(screen.getByLabelText("主将"), {

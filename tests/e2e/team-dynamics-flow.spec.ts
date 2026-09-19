@@ -133,7 +133,12 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
-  await page.getByRole("button", { name: "チーム状態", exact: true }).click();
+  const playerHubTabs = page.getByRole("navigation", {
+    name: "選手画面の表示切替",
+  });
+  await playerHubTabs
+    .getByRole("button", { name: "チーム", exact: true })
+    .click();
 
   await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
   await expect(page.getByLabel("チーム結束力")).toContainText("1");
@@ -150,7 +155,9 @@ test("leadership assignment, training, and an official match persist visible dyn
     page.getByText(viceCaptainName, { exact: true }).first(),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "選手一覧", exact: true }).click();
+  await playerHubTabs
+    .getByRole("button", { name: "選手", exact: true })
+    .click();
   await page
     .getByTestId("roster-player-row")
     .first()
@@ -193,7 +200,9 @@ test("leadership assignment, training, and an official match persist visible dyn
   expect(persisted.state.teamDynamics.cohesion).toBeLessThanOrEqual(100);
 
   await navigation.getByRole("button", { name: "選手", exact: true }).click();
-  await page.getByRole("button", { name: "チーム状態", exact: true }).click();
+  await playerHubTabs
+    .getByRole("button", { name: "チーム", exact: true })
+    .click();
 
   const cohesion = page.getByLabel("チーム結束力");
   await expect(cohesion).toContainText(
@@ -214,7 +223,12 @@ for (const width of [320, 360, 390, 480]) {
 
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
-    await page.getByRole("button", { name: "チーム状態", exact: true }).click();
+    const playerHubTabs = page.getByRole("navigation", {
+      name: "選手画面の表示切替",
+    });
+    await playerHubTabs
+      .getByRole("button", { name: "チーム", exact: true })
+      .click();
 
     await expect(
       page.getByRole("heading", { name: "チーム状態" }),

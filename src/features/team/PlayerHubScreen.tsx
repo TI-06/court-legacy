@@ -142,9 +142,9 @@ function HubTabs({
     <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
       {(
         [
-          ["roster", "選手一覧"],
+          ["roster", "選手"],
           ["lineup", "編成"],
-          ["dynamics", "チーム状態"],
+          ["dynamics", "チーム"],
           ["tactics", "戦術"],
         ] as const
       ).map(([id, label]) => (

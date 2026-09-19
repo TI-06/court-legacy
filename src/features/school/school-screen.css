@@ -876,3 +876,234 @@
     font-size: 0.66rem;
   }
 }
+
+/* Phase24-4: align school management with the dark game shell */
+.school-screen {
+  color: var(--game-text, #f4f7fb);
+  color-scheme: dark;
+}
+
+.school-hero,
+.school-panel {
+  color: var(--game-text, #f4f7fb);
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 5%), transparent 58%),
+    var(--game-panel, #0b1a2d);
+  border-color: rgb(255 255 255 / 9%);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 20%);
+}
+
+.school-hero--compact {
+  background:
+    radial-gradient(circle at 88% 12%, rgb(244 122 24 / 18%), transparent 30%),
+    linear-gradient(145deg, #102945, #071321);
+}
+
+.school-hero .section-kicker,
+.school-section-heading > span,
+.school-subsection-heading small,
+.school-subsection-heading > span {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-overview-grid article,
+.school-overview-card {
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-overview-grid span,
+.school-overview-grid small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-overview-card--button {
+  color: #ffd0a8;
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 30%);
+}
+
+.school-overview-card--button:focus-visible,
+.school-screen button:focus-visible,
+.school-screen select:focus-visible {
+  outline: 2px solid #ffb46f;
+  outline-offset: 2px;
+}
+
+.school-segments {
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+.school-segments button {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-segments .school-segment--active {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  box-shadow: 0 5px 14px rgb(244 122 24 / 18%);
+}
+
+.school-section-heading h3,
+.school-subsection-heading h4,
+.school-panel h4 {
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-management-section {
+  border-top-color: rgb(255 255 255 / 9%);
+}
+
+.facility-tile,
+.assistant-coach-card,
+.assistant-coach-none,
+.school-match-record,
+.alumni-list article,
+.school-record-grid span,
+.school-empty-state {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.facility-tile__top b {
+  color: #ffbf86;
+  background: rgb(244 122 24 / 12%);
+}
+
+.facility-tile small,
+.school-match-record time,
+.alumni-list article span,
+.assistant-coach-card__footer small,
+.assistant-coach-none {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.facility-tile .facility-tile__warning {
+  color: #ffc269;
+}
+
+.facility-tile__detail {
+  color: #ffc08a;
+}
+
+.facility-tile__progress {
+  accent-color: var(--game-accent, #f47a18);
+}
+
+.assistant-coach-current {
+  background: rgb(51 181 121 / 10%);
+  border-color: rgb(51 181 121 / 28%);
+}
+
+.assistant-coach-current > span {
+  color: #8fe0ad;
+}
+
+.assistant-coach-current > strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.assistant-coach-current > small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.assistant-coach-card__heading strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.assistant-coach-card__heading span {
+  color: #ffc18b;
+}
+
+.assistant-coach-effects span,
+.alumni-metrics span {
+  color: #c4d7e6;
+  background: rgb(46 139 216 / 11%);
+}
+
+.assistant-coach-specialty {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.assistant-coach-specialty select {
+  color: var(--game-text, #f4f7fb);
+  background: #0e2032;
+  border-color: rgb(255 255 255 / 14%);
+}
+
+.assistant-coach-card__footer button {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.assistant-coach-card__footer button:disabled {
+  color: #788593;
+  background: rgb(255 255 255 / 8%);
+}
+
+.school-record-grid strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-record-grid span {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-result--win {
+  color: #7bdca5;
+}
+
+.school-result--loss {
+  color: #ff9a95;
+}
+
+.school-empty-state {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-record-tabs {
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+.school-record-tabs button {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-record-tabs .school-record-tab--active {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  box-shadow: 0 4px 12px rgb(244 122 24 / 18%);
+}
+
+.facility-confirmation {
+  color: var(--game-text, #f4f7fb);
+}
+
+.facility-confirmation__description,
+.facility-confirmation dt {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.facility-confirmation__level {
+  color: #ffc08a;
+}
+
+.facility-confirmation dl div,
+.facility-upgrade-option {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 10px;
+}
+
+.facility-upgrade-option--selected {
+  color: #ffd0a8;
+  outline-color: var(--game-accent, #f47a18);
+}
+
+.facility-upgrade-option:disabled {
+  opacity: 0.45;
+}

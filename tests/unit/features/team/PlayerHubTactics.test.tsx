@@ -33,7 +33,7 @@ describe("PlayerHubScreen team tactics", () => {
     });
 
     expect(within(navigation).getAllByRole("button")).toHaveLength(4);
-    for (const label of ["選手一覧", "編成", "チーム状態", "戦術"]) {
+    for (const label of ["選手", "編成", "チーム", "戦術"]) {
       expect(
         within(navigation).getByRole("button", { name: label }),
       ).toBeVisible();

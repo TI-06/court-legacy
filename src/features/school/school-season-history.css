@@ -235,3 +235,69 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Phase24-4 dark archived seasons */
+.school-season-history {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(7 20 35 / 74%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-season-history__heading span,
+.school-season-history__card > summary span,
+.school-season-history__goals small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-season-history__heading h4,
+.school-season-history__card h5,
+.school-season-history__goals strong,
+.school-season-history__results strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-season-history__heading > strong,
+.school-season-history__final-ranks span {
+  color: #c4d7e6;
+  background: rgb(46 139 216 / 11%);
+}
+
+.school-season-history__card {
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-season-history__body {
+  border-top-color: rgb(255 255 255 / 8%);
+}
+
+.school-season-history__rank-change > span,
+.school-season-history__goals article,
+.school-season-history__results span {
+  color: var(--game-text-muted, #a9b8ca);
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.school-season-history__goals article.is-achieved {
+  background: rgb(51 181 121 / 8%);
+  border-color: rgb(51 181 121 / 22%);
+}
+
+.school-season-history__rank-change b {
+  color: #7bdca5;
+}
+
+.school-season-history__rank-change b.is-down {
+  color: #ff9a95;
+}
+
+.school-season-history__goals article > b {
+  color: #b8d5e8;
+  background: rgb(46 139 216 / 12%);
+}
+
+.school-season-history__goals article.is-achieved > b {
+  color: #8fe0ad;
+  background: rgb(51 181 121 / 13%);
+}

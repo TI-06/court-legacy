@@ -251,6 +251,9 @@ for (const viewport of mobileViewports) {
     }
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
+    const playerHubTabs = page.getByRole("navigation", {
+      name: "選手画面の表示切替",
+    });
     await expectLayoutFits(page, testInfo, `${viewport.width}-players`);
     await expectNavigationFixed(page, `${viewport.width}-players`);
 
@@ -275,14 +278,18 @@ for (const viewport of mobileViewports) {
       .getByRole("button", { name: "閉じる" })
       .click();
 
-    await page.getByRole("button", { name: "チーム状態", exact: true }).click();
+    await playerHubTabs
+      .getByRole("button", { name: "チーム", exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { name: "チーム状態" }),
     ).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-dynamics`);
     await expectNavigationFixed(page, `${viewport.width}-team-dynamics`);
 
-    await page.getByRole("button", { name: "選手一覧", exact: true }).click();
+    await playerHubTabs
+      .getByRole("button", { name: "選手", exact: true })
+      .click();
     await expectLayoutFits(
       page,
       testInfo,

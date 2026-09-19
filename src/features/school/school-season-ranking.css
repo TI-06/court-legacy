@@ -222,3 +222,62 @@
     font-size: 0.52rem;
   }
 }
+
+/* Phase24-4 dark season records */
+.school-season-ranking {
+  color: var(--game-text, #f4f7fb);
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 6%), transparent 62%),
+    rgb(7 20 35 / 74%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-season-ranking__heading span,
+.school-season-ranking__goals small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.school-season-ranking__heading h4,
+.school-season-ranking__goals strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-season-ranking__heading > strong {
+  color: #8fe0ad;
+  background: rgb(51 181 121 / 12%);
+}
+
+.school-season-ranking__goals article {
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-season-ranking__goals article.is-achieved {
+  background: rgb(51 181 121 / 8%);
+  border-color: rgb(51 181 121 / 24%);
+}
+
+.school-season-ranking__goals article > b {
+  color: #b8d5e8;
+  background: rgb(46 139 216 / 12%);
+}
+
+.school-season-ranking__goals article.is-achieved > b {
+  color: #8fe0ad;
+  background: rgb(51 181 121 / 13%);
+}
+
+.school-season-ranking__scope {
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 9%), transparent 68%), #10243a;
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.school-season-ranking__row {
+  background: rgb(255 255 255 / 5%);
+}
+
+.school-season-ranking__row.is-user {
+  background: rgb(244 122 24 / 13%);
+  outline-color: rgb(244 122 24 / 34%);
+}
