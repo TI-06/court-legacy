@@ -7,6 +7,7 @@ interface BottomSheetProps {
   onClose: () => void;
   children: ReactNode;
   dismissible?: boolean;
+  className?: string;
 }
 
 const focusableSelector = [
@@ -25,6 +26,7 @@ export function BottomSheet({
   onClose,
   children,
   dismissible = true,
+  className,
 }: BottomSheetProps) {
   const titleId = useId();
   const descriptionId = useId();
@@ -100,7 +102,7 @@ export function BottomSheet({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="ui-bottom-sheet"
+        className={`ui-bottom-sheet${className ? ` ${className}` : ""}`}
         ref={sheetRef}
         role="dialog"
       >

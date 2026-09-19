@@ -66,7 +66,9 @@ describe("TeamDynamicsPanel", () => {
     const cohesion = screen.getByLabelText("チーム結束力");
     expect(within(cohesion).getByText("64")).toBeVisible();
     expect(within(cohesion).getByText("上向き")).toBeVisible();
-    expect(screen.getAllByText("未設定")).toHaveLength(2);
+    expect(
+      within(screen.getByLabelText("チーム状態指標")).getAllByText("未設定"),
+    ).toHaveLength(2);
     expect(screen.getByText("関係性 良好")).toBeVisible();
     expect(
       screen.getByText(new RegExp(`${playerName(first)}.*出場機会`)),
@@ -89,12 +91,20 @@ describe("TeamDynamicsPanel", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("主将"), {
-      target: { value: captainPlayerId },
-    });
-    fireEvent.change(screen.getByLabelText("副主将"), {
-      target: { value: viceCaptainPlayerId },
-    });
+    fireEvent.click(screen.getByLabelText("主将"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "主将を選ぶ" })).getByRole(
+        "button",
+        { name: playerName(state.players[captainPlayerId]!) },
+      ),
+    );
+    fireEvent.click(screen.getByLabelText("副主将"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "副主将を選ぶ" })).getByRole(
+        "button",
+        { name: playerName(state.players[viceCaptainPlayerId]!) },
+      ),
+    );
     fireEvent.click(screen.getByRole("button", { name: "役職を保存" }));
 
     expect(onAssignLeadership).toHaveBeenCalledWith(

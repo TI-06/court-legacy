@@ -18,6 +18,7 @@ import {
 } from "../../domain/school/facilityUpgrade";
 import { reputationGrade } from "../../domain/school/reputation";
 import { BottomSheet } from "../../ui/BottomSheet";
+import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
@@ -398,25 +399,32 @@ export function SchoolScreen({
                       ) : null}
                     </div>
                     {option.rank !== "beginner" ? (
-                      <label className="assistant-coach-specialty">
-                        専門
-                        <select
-                          aria-label={`${option.name}の専門`}
-                          onChange={(event) =>
-                            setCoachSpecialties((current) => ({
-                              ...current,
-                              [option.rank]: event.target
-                                .value as AssistantCoachSpecialty,
-                            }))
-                          }
-                          value={specialty ?? ""}
-                        >
-                          <option value="">選択してください</option>
-                          <option value="attack">攻撃</option>
-                          <option value="defense">守備</option>
-                          <option value="physical">フィジカル</option>
-                        </select>
-                      </label>
+                      <MobileChoiceSheet
+                        ariaLabel={`${option.name}の専門`}
+                        className="assistant-coach-specialty"
+                        label="専門"
+                        layout="grid"
+                        onChange={(value) =>
+                          setCoachSpecialties((current) => {
+                            const next = { ...current };
+                            if (value) {
+                              next[option.rank] =
+                                value as AssistantCoachSpecialty;
+                            } else {
+                              delete next[option.rank];
+                            }
+                            return next;
+                          })
+                        }
+                        options={[
+                          { value: "", label: "未選択" },
+                          { value: "attack", label: "攻撃" },
+                          { value: "defense", label: "守備" },
+                          { value: "physical", label: "フィジカル" },
+                        ]}
+                        title={`${option.name}の専門を選ぶ`}
+                        value={specialty ?? ""}
+                      />
                     ) : null}
                     <div className="assistant-coach-card__footer">
                       <small>

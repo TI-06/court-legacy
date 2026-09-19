@@ -1107,3 +1107,11 @@
 .facility-upgrade-option:disabled {
   opacity: 0.45;
 }
+
+/* Phase25-2 touch-first coach specialty */
+.assistant-coach-specialty {
+  grid-template-columns: 1fr;
+}
+.assistant-coach-specialty .mobile-choice-trigger {
+  min-height: 42px;
+}

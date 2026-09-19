@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { SchoolSetupScreen } from "../../../../src/features/onboarding/SchoolSetupScreen";
 
@@ -26,7 +26,7 @@ describe("SchoolSetupScreen", () => {
     expect(screen.queryByLabelText("学校名")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("監督名")).not.toBeInTheDocument();
     expect(screen.getByLabelText("略称")).toHaveValue("青葉");
-    expect(screen.getByLabelText("都道府県")).toHaveValue("region.chiba");
+    expect(screen.getByLabelText("都道府県")).toHaveTextContent("千葉県");
   });
 
   it("submits registered profile values with the chosen short name and region", async () => {
@@ -40,9 +40,13 @@ describe("SchoolSetupScreen", () => {
     fireEvent.change(screen.getByLabelText("略称"), {
       target: { value: "  青葉VC  " },
     });
-    fireEvent.change(screen.getByLabelText("都道府県"), {
-      target: { value: "region.tokyo" },
-    });
+    fireEvent.click(screen.getByLabelText("都道府県"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "都道府県を選ぶ" })).getByRole(
+        "button",
+        { name: "東京都" },
+      ),
+    );
     fireEvent.click(screen.getByRole("button", { name: "学校を作成" }));
 
     expect(screen.getByRole("status")).toHaveTextContent(

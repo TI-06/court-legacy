@@ -151,11 +151,10 @@ describe("PlayerHubScreen", () => {
       (id) => state.players[id]!.grade === 1,
     ).length;
 
-    const filter = screen.getByLabelText("選手絞り込み");
-    const sort = screen.getByLabelText("並び替え");
-
-    expect(within(filter).getByRole("option", { name: "全員" })).toBeVisible();
+    fireEvent.click(screen.getByLabelText("選手絞り込み"));
+    const filterDialog = screen.getByRole("dialog", { name: "表示する選手" });
     for (const label of [
+      "全員",
       "1年",
       "2年",
       "3年",
@@ -169,8 +168,14 @@ describe("PlayerHubScreen", () => {
       "重点育成",
       "怪我中",
     ]) {
-      expect(within(filter).getByRole("option", { name: label })).toBeVisible();
+      expect(
+        within(filterDialog).getByRole("button", { name: label }),
+      ).toBeVisible();
     }
+    fireEvent.click(within(filterDialog).getByRole("button", { name: "1年" }));
+
+    fireEvent.click(screen.getByLabelText("並び替え"));
+    const sortDialog = screen.getByRole("dialog", { name: "並び順" });
     for (const label of [
       "総合力順",
       "将来性順",
@@ -178,10 +183,13 @@ describe("PlayerHubScreen", () => {
       "直近4週の成長順",
       "学年順",
     ]) {
-      expect(within(sort).getByRole("option", { name: label })).toBeVisible();
+      expect(
+        within(sortDialog).getByRole("button", { name: label }),
+      ).toBeVisible();
     }
-
-    fireEvent.change(filter, { target: { value: "grade-1" } });
+    fireEvent.click(
+      within(sortDialog).getByRole("button", { name: "総合力順" }),
+    );
     expect(screen.getAllByTestId("roster-player-row")).toHaveLength(
       expectedGradeOne,
     );
@@ -200,9 +208,13 @@ describe("PlayerHubScreen", () => {
     }
     renderPlayerHub(state);
 
-    fireEvent.change(screen.getByLabelText("選手絞り込み"), {
-      target: { value: "injured" },
-    });
+    fireEvent.click(screen.getByLabelText("選手絞り込み"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "表示する選手" })).getByRole(
+        "button",
+        { name: "怪我中" },
+      ),
+    );
 
     expect(screen.queryAllByTestId("roster-player-row")).toHaveLength(0);
     expect(screen.getByText("条件に該当する選手はいません")).toBeVisible();
@@ -230,9 +242,13 @@ describe("PlayerHubScreen", () => {
     ];
     renderPlayerHub(state);
 
-    fireEvent.change(screen.getByLabelText("並び替え"), {
-      target: { value: "growth-4w" },
-    });
+    fireEvent.click(screen.getByLabelText("並び替え"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "並び順" })).getByRole(
+        "button",
+        { name: "直近4週の成長順" },
+      ),
+    );
 
     const rows = screen.getAllByTestId("roster-player-row");
     expect(
@@ -499,12 +515,24 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "チーム" }));
     expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
 
-    fireEvent.change(screen.getByLabelText("主将"), {
-      target: { value: captainPlayerId },
-    });
-    fireEvent.change(screen.getByLabelText("副主将"), {
-      target: { value: viceCaptainPlayerId },
-    });
+    fireEvent.click(screen.getByLabelText("主将"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "主将を選ぶ" })).getByRole(
+        "button",
+        {
+          name: `${state.players[captainPlayerId]!.lastName} ${state.players[captainPlayerId]!.firstName}`,
+        },
+      ),
+    );
+    fireEvent.click(screen.getByLabelText("副主将"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "副主将を選ぶ" })).getByRole(
+        "button",
+        {
+          name: `${state.players[viceCaptainPlayerId]!.lastName} ${state.players[viceCaptainPlayerId]!.firstName}`,
+        },
+      ),
+    );
     fireEvent.click(screen.getByRole("button", { name: "役職を保存" }));
 
     expect(onAssignLeadership).toHaveBeenCalledWith(

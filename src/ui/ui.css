@@ -381,3 +381,177 @@ button.ui-player-tile:disabled {
     animation: none;
   }
 }
+
+/* Phase25-2: touch-first game choice sheets */
+.ui-bottom-sheet--game-choice {
+  color: var(--game-text, #f4f7fb);
+  color-scheme: dark;
+  background:
+    radial-gradient(circle at 88% 8%, rgb(244 122 24 / 12%), transparent 32%),
+    linear-gradient(160deg, #102945, #071321 76%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 0;
+  box-shadow: 0 -18px 54px rgb(0 0 0 / 42%);
+}
+
+.ui-bottom-sheet--game-choice .ui-sheet-handle {
+  background: rgb(255 255 255 / 25%);
+}
+
+.ui-bottom-sheet--game-choice .ui-sheet-header h2,
+.ui-bottom-sheet--game-choice .ui-sheet-content {
+  color: var(--game-text, #f4f7fb);
+}
+
+.ui-bottom-sheet--game-choice .ui-sheet-header p {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.ui-bottom-sheet--game-choice .ui-icon-button {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.mobile-choice-field {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.mobile-choice-field__label {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+.mobile-choice-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 7px 8px 7px 12px;
+  gap: 8px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-align: left;
+  background: rgb(16 41 69 / 92%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 11px;
+}
+
+.mobile-choice-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-choice-trigger > b {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  color: #ffc08a;
+  font-size: 1.1rem;
+  background: rgb(244 122 24 / 10%);
+  border-radius: 8px;
+  place-items: center;
+}
+
+.mobile-choice-trigger:focus-visible,
+.mobile-choice-option:focus-visible {
+  outline: 2px solid #ffb46f;
+  outline-offset: 2px;
+}
+
+.mobile-choice-trigger:disabled {
+  opacity: 0.48;
+}
+
+.mobile-choice-list {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.mobile-choice-list--grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mobile-choice-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 28px;
+  align-items: center;
+  min-width: 0;
+  min-height: 58px;
+  padding: 9px 8px 9px 11px;
+  gap: 7px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+}
+
+.mobile-choice-option > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.mobile-choice-option strong {
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-choice-option small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.57rem;
+  line-height: 1.35;
+}
+
+.mobile-choice-option > b {
+  color: #ffc08a;
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+.mobile-choice-option > i {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  color: #ffc08a;
+  font-size: 0.82rem;
+  font-style: normal;
+  background: rgb(244 122 24 / 10%);
+  border-radius: 8px;
+  place-items: center;
+}
+
+.mobile-choice-option.is-selected {
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 15%), transparent 70%),
+    rgb(255 255 255 / 6%);
+  border-color: rgb(244 122 24 / 42%);
+}
+
+.mobile-choice-option.is-selected > i {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+@media (max-width: 350px) {
+  .mobile-choice-list--grid {
+    gap: 6px;
+  }
+
+  .mobile-choice-option {
+    padding-inline: 8px;
+  }
+}
