@@ -22,6 +22,16 @@ async function inspectLayout(page: Page) {
         continue;
       }
 
+      const intentionalHorizontalScroller = element.closest<HTMLElement>(
+        '[data-layout-scroll-x="true"]',
+      );
+      if (
+        intentionalHorizontalScroller &&
+        intentionalHorizontalScroller !== element
+      ) {
+        continue;
+      }
+
       const rect = element.getBoundingClientRect();
       const style = window.getComputedStyle(element);
       const visuallyOutside =

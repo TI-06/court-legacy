@@ -826,3 +826,377 @@
   font-size: 0.67rem;
   line-height: 1.5;
 }
+
+/* Phase25: mobile-game-first coaching and substitutions */
+.match-command-panel {
+  color: var(--game-text, #f4f7fb);
+  background:
+    radial-gradient(circle at 88% 8%, rgb(244 122 24 / 14%), transparent 34%),
+    linear-gradient(145deg, #102945, #071321);
+  border-color: rgb(244 122 24 / 24%);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 22%);
+}
+
+.match-command-panel__heading > span {
+  color: #ffd0a8;
+  background: rgb(244 122 24 / 13%);
+}
+
+.match-command-panel__heading h2 {
+  color: var(--game-text, #f4f7fb);
+}
+
+.match-command-panel__heading p {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.match-command-actions button {
+  color: #dbe9f1;
+  background: rgb(255 255 255 / 6%);
+  border-color: rgb(255 255 255 / 10%);
+}
+
+.match-command-actions__continue {
+  color: #071321 !important;
+  background: var(--game-accent, #f47a18) !important;
+  border-color: var(--game-accent, #f47a18) !important;
+  box-shadow: 0 8px 18px rgb(244 122 24 / 22%);
+}
+
+.match-command-substitution {
+  display: grid;
+  gap: 12px;
+}
+
+.match-command-substitution__progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+}
+
+.match-command-substitution__progress > i {
+  height: 2px;
+  background: rgb(255 255 255 / 12%);
+  border-radius: 999px;
+}
+
+.match-command-substitution__progress-step {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.match-command-substitution__progress-step:last-child {
+  justify-content: flex-end;
+}
+
+.match-command-substitution__progress-step b {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  color: var(--game-text-muted, #a9b8ca);
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  place-items: center;
+}
+
+.match-command-substitution__progress-step.is-active {
+  color: #ffc08a;
+}
+
+.match-command-substitution__progress-step.is-active b {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  border-color: var(--game-accent, #f47a18);
+}
+
+.match-command-substitution__progress-step.is-complete {
+  color: #8fe0ad;
+}
+
+.match-command-substitution__progress-step.is-complete b {
+  color: #071321;
+  background: #58c78a;
+  border-color: #58c78a;
+}
+
+.match-command-substitution__court-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.match-command-substitution__court-label span {
+  color: #ffc08a;
+  font-size: 0.55rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.match-command-substitution__court-label strong {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.62rem;
+}
+
+.match-command-substitution__court {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+  padding: 10px;
+  gap: 7px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(255 255 255 / 38%) 49.6%,
+      rgb(255 255 255 / 38%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(145deg, #b96024, #743617);
+  border: 1px solid #ea9850;
+  border-radius: 16px;
+}
+
+.match-command-substitution__bench {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  gap: 7px;
+}
+
+.match-command-substitution__player {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 42px;
+  align-items: center;
+  min-width: 0;
+  min-height: 62px;
+  padding: 8px;
+  gap: 6px;
+  color: var(--game-text, #f4f7fb);
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+}
+
+.match-command-substitution__court .match-command-substitution__player {
+  grid-template-columns: 1fr;
+  min-height: 96px;
+  text-align: center;
+  background: rgb(6 18 31 / 93%);
+  border-color: rgb(255 255 255 / 14%);
+  box-shadow: 0 5px 13px rgb(44 17 4 / 28%);
+}
+
+.match-command-substitution__player[aria-pressed="true"] {
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 14%), transparent 68%),
+    rgb(255 255 255 / 6%);
+  border-color: rgb(244 122 24 / 45%);
+  box-shadow: inset 0 0 0 1px rgb(244 122 24 / 22%);
+}
+
+.match-command-substitution__identity,
+.match-command-substitution__condition,
+.match-command-substitution__grade {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-command-substitution__identity > span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+}
+
+.match-command-substitution__identity > span b {
+  display: inline-grid;
+  min-width: 23px;
+  min-height: 21px;
+  color: #071321;
+  font-size: 0.58rem;
+  background: var(--game-accent, #f47a18);
+  border-radius: 6px;
+  place-items: center;
+}
+
+.match-command-substitution__identity > span small,
+.match-command-substitution__identity > small,
+.match-command-substitution__condition small,
+.match-command-substitution__grade small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.53rem;
+}
+
+.match-command-substitution__identity > strong {
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-substitution__condition,
+.match-command-substitution__grade {
+  justify-items: center;
+}
+
+.match-command-substitution__grade strong {
+  color: #ffc08a;
+  font-size: 0.78rem;
+}
+
+.match-command-substitution__court
+  .match-command-substitution__identity
+  > span {
+  justify-content: center;
+}
+
+.match-command-substitution__court .match-command-substitution__condition,
+.match-command-substitution__court .match-command-substitution__grade {
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.match-command-substitution__selected-out {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 9px;
+  gap: 9px;
+  background: rgb(227 72 72 / 8%);
+  border: 1px solid rgb(227 72 72 / 24%);
+  border-radius: 13px;
+}
+
+.match-command-substitution__selected-out > span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 950;
+  background: #c84f4a;
+  border-radius: 10px;
+  place-items: center;
+}
+
+.match-command-substitution__selected-out > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-command-substitution__selected-out small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.55rem;
+}
+
+.match-command-substitution__selected-out strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-substitution__selected-out button {
+  min-height: 36px;
+  padding: 0 10px;
+  color: #ffc08a;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 9px;
+  font-weight: 900;
+}
+
+.match-command-substitution__swap-preview {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  padding: 10px;
+  gap: 7px;
+  background: rgb(46 139 216 / 8%);
+  border: 1px solid rgb(46 139 216 / 22%);
+  border-radius: 13px;
+}
+
+.match-command-substitution__swap-preview > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-command-substitution__swap-preview > span:last-of-type {
+  text-align: right;
+}
+
+.match-command-substitution__swap-preview small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.53rem;
+  font-weight: 900;
+}
+
+.match-command-substitution__swap-preview strong {
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-substitution__swap-preview > b {
+  color: #ffc08a;
+  text-align: center;
+}
+
+.match-command-substitution__swap-preview > p {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.match-command-substitution__submit {
+  width: 100%;
+  min-height: 52px;
+  color: #071321;
+  font-size: 0.8rem;
+  font-weight: 950;
+  background: var(--game-accent, #f47a18);
+  border: 0;
+  border-radius: 13px;
+  box-shadow: 0 8px 20px rgb(244 122 24 / 22%);
+}
+
+.match-command-substitution__submit:disabled {
+  color: #76828e;
+  background: rgb(255 255 255 / 8%);
+  box-shadow: none;
+}
+
+@media (max-width: 350px) {
+  .match-command-substitution__court {
+    padding: 8px;
+    gap: 5px;
+  }
+
+  .match-command-substitution__court .match-command-substitution__player {
+    min-height: 90px;
+    padding-inline: 5px;
+  }
+
+  .match-command-substitution__bench {
+    grid-template-columns: 1fr;
+  }
+}
