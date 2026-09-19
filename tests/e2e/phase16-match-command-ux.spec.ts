@@ -67,6 +67,28 @@ async function startInteractivePractice(page: Page) {
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await page.getByRole("button", { name: "今週を進める" }).click();
   await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "この試合のコート配置" }),
+  ).toBeVisible();
+  await expect(page.locator(".pre-match-lineup select")).toHaveCount(0);
+  const benchRail = page.locator(
+    '.pre-match-lineup__bench-rail[data-layout-scroll-x="true"]',
+  );
+  await expect(benchRail).toBeVisible();
+  const benchLayout = await benchRail.evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(benchLayout.scrollWidth).toBeGreaterThan(benchLayout.clientWidth);
+  await page.getByRole("button", { name: "ローテーション1を変更" }).click();
+  const preparationPicker = page.getByRole("dialog", {
+    name: "ローテーション1を変更",
+  });
+  await expect(preparationPicker).toBeVisible();
+  await expect(
+    preparationPicker.getByRole("group", { name: "試合前の交代候補" }),
+  ).toBeVisible();
+  await preparationPicker.getByRole("button", { name: "閉じる" }).click();
   await page.getByRole("button", { name: "この編成・戦術で試合開始" }).click();
   await expect(
     page.getByRole("heading", { name: "試合ダイジェスト" }),
@@ -150,7 +172,11 @@ for (const width of [320, 360, 390, 414, 480]) {
     await decision.getByRole("button", { name: "選手交代" }).click();
     const substitution = page.getByRole("dialog", { name: "選手交代" });
     await expect(substitution).toBeVisible();
+    await expect(substitution.getByLabel("交代手順")).toContainText(
+      "OUTを選ぶ",
+    );
     const court = substitution.getByRole("group", { name: "コートの選手" });
+    await expect(court.getByRole("button")).toHaveCount(6);
     await expect(court.getByRole("button").first()).toBeVisible();
     await court.getByRole("button").first().click();
     const bench = substitution.getByRole("group", { name: "ベンチ" });
@@ -158,7 +184,7 @@ for (const width of [320, 360, 390, 414, 480]) {
     await bench.getByRole("button").first().click();
     await expectSheetFits(substitution, page);
     await substitution
-      .getByRole("button", { name: "この交代で続ける" })
+      .getByRole("button", { name: "この交代を実行" })
       .click({ trial: true });
     await substitution.getByRole("button", { name: "閉じる" }).click();
 

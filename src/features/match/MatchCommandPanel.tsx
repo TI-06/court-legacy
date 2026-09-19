@@ -15,6 +15,8 @@ import {
 } from "../team/tacticsPresentation";
 import { BottomSheet } from "../../ui/BottomSheet";
 
+const substitutionCourtOrder = [4, 3, 2, 5, 6, 1] as const;
+
 interface MatchCommandPanelProps {
   state: GameState;
   match: MatchState;
@@ -35,11 +37,13 @@ function SubstitutionPlayerButton({
   player,
   pending,
   selected,
+  slot,
   onSelect,
 }: {
   player: Player;
   pending: boolean;
   selected: boolean;
+  slot?: number;
   onSelect: () => void;
 }) {
   const condition = getPlayerConditionPresentation(player.condition);
@@ -54,6 +58,10 @@ function SubstitutionPlayerButton({
       type="button"
     >
       <span className="match-command-substitution__identity">
+        <span>
+          {slot ? <b>R{slot}</b> : null}
+          <small>{slot ? "COURT" : "BENCH"}</small>
+        </span>
         <strong>{playerName(player)}</strong>
         <small>{player.preferredPosition}</small>
       </span>
@@ -154,9 +162,21 @@ export function MatchCommandPanel({
   const continueLabel =
     reason === "set-break" ? "このまま次セットへ" : "このまま続ける";
   const tacticsDraft = draftPlan ?? currentPlan;
-  const courtPlayers = userSelection.rotation
+  const courtPlayers = substitutionCourtOrder
+    .map((slot) =>
+      userSelection.rotation.find((assignment) => assignment.slot === slot),
+    )
+    .filter(
+      (assignment): assignment is (typeof userSelection.rotation)[number] =>
+        Boolean(assignment),
+    )
     .map((assignment) => state.players[assignment.playerId])
     .filter((player): player is Player => Boolean(player));
+  const courtSlotByPlayerId = new Map(
+    userSelection.rotation.map(
+      (assignment) => [assignment.playerId, assignment.slot] as const,
+    ),
+  );
   const benchPlayers = userSelection.benchPlayerIds
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player));
@@ -301,25 +321,64 @@ export function MatchCommandPanel({
         title="選手交代"
       >
         <div className="match-command-substitution">
-          {!outgoingPlayer ? (
-            <section
-              aria-label="コートの選手"
-              className="match-command-substitution__list"
-              role="group"
+          <div
+            aria-label="交代手順"
+            className="match-command-substitution__progress"
+          >
+            <span
+              className={
+                outgoingPlayer
+                  ? "match-command-substitution__progress-step is-complete"
+                  : "match-command-substitution__progress-step is-active"
+              }
             >
-              {courtPlayers.map((player) => (
-                <SubstitutionPlayerButton
-                  key={player.id}
-                  onSelect={() => selectOutgoingPlayer(player.id)}
-                  pending={pending}
-                  player={player}
-                  selected={false}
-                />
-              ))}
-            </section>
+              <b>1</b>
+              OUTを選ぶ
+            </span>
+            <i aria-hidden="true" />
+            <span
+              className={
+                outgoingPlayer
+                  ? "match-command-substitution__progress-step is-active"
+                  : "match-command-substitution__progress-step"
+              }
+            >
+              <b>2</b>
+              INを選ぶ
+            </span>
+          </div>
+
+          {!outgoingPlayer ? (
+            <>
+              <div className="match-command-substitution__court-label">
+                <span>ON COURT</span>
+                <strong>下げる選手をタップ</strong>
+              </div>
+              <section
+                aria-label="コートの選手"
+                className="match-command-substitution__court"
+                role="group"
+              >
+                {courtPlayers.map((player) => (
+                  <SubstitutionPlayerButton
+                    key={player.id}
+                    onSelect={() => selectOutgoingPlayer(player.id)}
+                    pending={pending}
+                    player={player}
+                    selected={false}
+                    slot={courtSlotByPlayerId.get(player.id)}
+                  />
+                ))}
+              </section>
+            </>
           ) : (
             <>
-              <div className="match-command-substitution__step">
+              <div className="match-command-substitution__selected-out">
+                <span>OUT</span>
+                <div>
+                  <small>コートから下げる選手</small>
+                  <strong>{playerName(outgoingPlayer)}</strong>
+                </div>
                 <button
                   disabled={pending}
                   onClick={() => {
@@ -328,15 +387,16 @@ export function MatchCommandPanel({
                   }}
                   type="button"
                 >
-                  戻る
+                  変更
                 </button>
-                <span>
-                  OUT <strong>{playerName(outgoingPlayer)}</strong>
-                </span>
+              </div>
+              <div className="match-command-substitution__court-label">
+                <span>BENCH</span>
+                <strong>入れる選手をタップ</strong>
               </div>
               <section
                 aria-label="ベンチ"
-                className="match-command-substitution__list"
+                className="match-command-substitution__bench"
                 role="group"
               >
                 {benchPlayers.map((player) => (
@@ -350,9 +410,20 @@ export function MatchCommandPanel({
                 ))}
               </section>
               {incomingPlayer ? (
-                <p className="match-command-substitution__confirmation">
-                  {playerName(outgoingPlayer)} → {playerName(incomingPlayer)}
-                </p>
+                <div className="match-command-substitution__swap-preview">
+                  <span>
+                    <small>OUT</small>
+                    <strong>{playerName(outgoingPlayer)}</strong>
+                  </span>
+                  <b aria-hidden="true">→</b>
+                  <span>
+                    <small>IN</small>
+                    <strong>{playerName(incomingPlayer)}</strong>
+                  </span>
+                  <p aria-label="交代内容">
+                    {playerName(outgoingPlayer)} → {playerName(incomingPlayer)}
+                  </p>
+                </div>
               ) : null}
               <button
                 className="match-command-substitution__submit"
@@ -360,7 +431,7 @@ export function MatchCommandPanel({
                 onClick={submitSubstitution}
                 type="button"
               >
-                この交代で続ける
+                この交代を実行
               </button>
             </>
           )}
