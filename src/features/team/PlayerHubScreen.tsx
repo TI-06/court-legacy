@@ -672,38 +672,46 @@ export function PlayerHubScreen({
       </section>
 
       <section className="player-hub__controls" aria-label="選手一覧の表示設定">
-        <label>
+        <div className="player-hub__control-group">
           <span>絞り込み</span>
-          <select
+          <div
             aria-label="選手絞り込み"
-            onChange={(event) =>
-              setFilter(event.currentTarget.value as PlayerHubFilter)
-            }
-            value={filter}
+            className="player-hub__choice-rail"
+            data-layout-scroll-x="true"
+            role="group"
           >
             {filterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
+              <button
+                aria-pressed={filter === option.value}
+                key={option.value}
+                onClick={() => setFilter(option.value)}
+                type="button"
+              >
                 {option.label}
-              </option>
+              </button>
             ))}
-          </select>
-        </label>
-        <label>
+          </div>
+        </div>
+        <div className="player-hub__control-group">
           <span>並び替え</span>
-          <select
+          <div
             aria-label="並び替え"
-            onChange={(event) =>
-              setSort(event.currentTarget.value as PlayerHubSort)
-            }
-            value={sort}
+            className="player-hub__choice-rail"
+            data-layout-scroll-x="true"
+            role="group"
           >
             {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
+              <button
+                aria-pressed={sort === option.value}
+                key={option.value}
+                onClick={() => setSort(option.value)}
+                type="button"
+              >
                 {option.label}
-              </option>
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
       </section>
 
       <div className="player-roster">

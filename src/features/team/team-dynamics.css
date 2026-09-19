@@ -374,3 +374,111 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase25-2: tap-first leadership selection */
+.team-dynamics__selectors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-dynamics__leader-card {
+  display: grid;
+  min-width: 0;
+  min-height: 86px;
+  padding: 10px;
+  gap: 4px;
+  color: var(--game-text, #f4f7fb);
+  text-align: left;
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 8%), transparent 68%),
+    rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 13px;
+}
+
+.team-dynamics__leader-card > span {
+  color: #ffc08a;
+  font-size: 0.53rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.team-dynamics__leader-card > strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dynamics__leader-card > small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.57rem;
+  line-height: 1.35;
+}
+
+.team-dynamics__leader-picker {
+  display: grid;
+  gap: 7px;
+}
+
+.team-dynamics__leader-picker > button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 42px;
+  align-items: center;
+  min-width: 0;
+  min-height: 58px;
+  padding: 8px;
+  gap: 8px;
+  color: var(--game-text, #f4f7fb);
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 11px;
+}
+
+.team-dynamics__leader-picker > button[aria-pressed="true"] {
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 36%);
+}
+
+.team-dynamics__leader-picker > button > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  color: #071321;
+  font-size: 0.62rem;
+  font-weight: 950;
+  background: var(--game-accent, #f47a18);
+  border-radius: 9px;
+  place-items: center;
+}
+
+.team-dynamics__leader-picker > button > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.team-dynamics__leader-picker strong {
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dynamics__leader-picker small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.55rem;
+}
+
+.team-dynamics__leader-picker b {
+  color: #ffc08a;
+  text-align: center;
+}
+
+@media (max-width: 350px) {
+  .team-dynamics__selectors {
+    grid-template-columns: 1fr;
+  }
+}
