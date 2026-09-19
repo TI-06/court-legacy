@@ -47,9 +47,12 @@ describe("school staff screen", () => {
     );
 
     const advancedCard = screen.getByTestId("assistant-coach-advanced");
-    fireEvent.change(within(advancedCard).getByRole("combobox"), {
-      target: { value: "attack" },
-    });
+    fireEvent.click(within(advancedCard).getByLabelText("上級コーチの専門"));
+    fireEvent.click(
+      within(
+        screen.getByRole("dialog", { name: "上級コーチの専門を選ぶ" }),
+      ).getByRole("button", { name: "攻撃" }),
+    );
     fireEvent.click(
       within(advancedCard).getByRole("button", {
         name: "上級コーチと年間契約",

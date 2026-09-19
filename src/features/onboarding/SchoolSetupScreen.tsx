@@ -3,6 +3,7 @@ import type {
   AccountProfile,
   OnboardingInput,
 } from "../../services/api/GameApiClient";
+import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import "./onboarding.css";
 
 const REGION_OPTIONS = [
@@ -147,20 +148,17 @@ export function SchoolSetupScreen({
               value={schoolShortName}
             />
           </label>
-          <label>
-            都道府県
-            <select
-              disabled={pending}
-              onChange={(event) => setRegionId(event.target.value)}
-              value={regionId}
-            >
-              {REGION_OPTIONS.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <MobileChoiceSheet
+            ariaLabel="都道府県"
+            className="onboarding-region-choice"
+            disabled={pending}
+            label="都道府県"
+            layout="grid"
+            onChange={setRegionId}
+            options={REGION_OPTIONS.map(([value, label]) => ({ value, label }))}
+            title="都道府県を選ぶ"
+            value={regionId}
+          />
           <button disabled={pending} type="submit">
             {pending ? "作成中…" : "学校を作成"}
           </button>

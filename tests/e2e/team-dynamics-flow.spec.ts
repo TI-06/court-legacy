@@ -142,10 +142,16 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
   await expect(page.getByLabel("チーム結束力")).toContainText("1");
-  await page.getByLabel("主将", { exact: true }).selectOption(captainPlayerId);
+  await page.getByLabel("主将", { exact: true }).click();
   await page
-    .getByLabel("副主将", { exact: true })
-    .selectOption(viceCaptainPlayerId);
+    .getByRole("dialog", { name: "主将を選ぶ" })
+    .getByRole("button", { name: captainName })
+    .click();
+  await page.getByLabel("副主将", { exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "副主将を選ぶ" })
+    .getByRole("button", { name: viceCaptainName })
+    .click();
   await page.getByRole("button", { name: "役職を保存" }).click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
   await expect(
