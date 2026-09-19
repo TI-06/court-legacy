@@ -755,6 +755,7 @@
 .pre-match-lineup__bench-heading {
   display: flex;
   align-items: end;
+  margin-top: 0;
   justify-content: space-between;
   gap: 8px;
 }
@@ -811,6 +812,12 @@
 .pre-match-lineup__bench-player small {
   color: var(--game-text-muted, #a9b8ca);
   font-size: 0.56rem;
+}
+
+.pre-match-lineup__bench-player span {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .pre-match-lineup__picker {
