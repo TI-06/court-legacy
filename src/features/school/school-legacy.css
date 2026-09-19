@@ -121,3 +121,32 @@
     grid-column: 2;
   }
 }
+
+/* Phase24-4 dark rivalry history */
+.school-legacy {
+  --line-subtle: rgb(255 255 255 / 9%);
+  --surface-raised: rgb(255 255 255 / 5%);
+  --surface-muted: rgb(46 139 216 / 11%);
+
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-legacy__heading span,
+.school-legacy__heading small,
+.school-legacy__opponent-main small,
+.school-legacy__opponent-meta small,
+.school-legacy__notable small,
+.school-legacy__notable time {
+  color: var(--game-text-muted, #a9b8ca);
+  opacity: 1;
+}
+
+.school-legacy__chips span,
+.school-legacy__opponent-meta > span {
+  color: #c4d7e6;
+}
+
+.school-legacy__opponent-main b,
+.school-legacy__notable b {
+  color: #ffc08a;
+}

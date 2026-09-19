@@ -545,3 +545,216 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase24-4: align lineup management with the dark game shell */
+.team-screen--direct {
+  color: var(--game-text, #f4f7fb);
+}
+
+.team-screen__header h2,
+.team-screen--direct .team-section-heading h3,
+.team-screen--direct .policy-list strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.team-screen__header p,
+.team-screen--direct .section-kicker,
+.team-screen--direct .policy-list small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.team-screen__header .team-secondary-action {
+  color: #ffd0a8;
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 34%);
+}
+
+.team-screen__header .team-secondary-action:focus-visible,
+.team-screen--direct button:focus-visible {
+  outline: 2px solid #ffb46f;
+  outline-offset: 2px;
+}
+
+.team-screen--direct .team-dynamics-inline,
+.team-screen--direct .team-panel {
+  color: var(--game-text, #f4f7fb);
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 5%), transparent 58%),
+    var(--game-panel, #0b1a2d);
+  border: 1px solid rgb(255 255 255 / 9%);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 20%);
+}
+
+.team-screen--direct .team-dynamics-inline {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.team-screen--direct .team-dynamics-inline strong {
+  color: var(--game-text, #f4f7fb);
+}
+
+.team-screen--direct .team-valid {
+  color: #8fe0ad;
+  background: rgb(51 181 121 / 14%);
+}
+
+.team-screen--direct .team-invalid,
+.team-screen--direct .availability--danger {
+  color: #ff9a95;
+  background: rgb(227 72 72 / 15%);
+}
+
+.team-screen--direct .bench-count,
+.team-screen--direct .availability {
+  color: #b8d5e8;
+  background: rgb(46 139 216 / 12%);
+}
+
+.volleyball-court {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.5%,
+      rgb(255 255 255 / 58%) 49.5%,
+      rgb(255 255 255 / 58%) 50.5%,
+      transparent 50.5%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 49.5%,
+      rgb(255 255 255 / 42%) 49.5%,
+      rgb(255 255 255 / 42%) 50.5%,
+      transparent 50.5%
+    ),
+    linear-gradient(145deg, #c66f28, #8f451f);
+  border-color: #f0a25b;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 24%),
+    0 10px 22px rgb(0 0 0 / 18%);
+}
+
+.court-player-button {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(7 19 33 / 94%);
+  border-color: rgb(255 255 255 / 14%);
+  box-shadow: 0 5px 12px rgb(33 14 4 / 28%);
+}
+
+.court-player-button__top b {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.court-player-button__top small {
+  color: #ffd0a1;
+}
+
+.court-player-button > span:last-child {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.libero-player-button {
+  color: var(--game-text, #f4f7fb);
+  background:
+    linear-gradient(135deg, rgb(227 165 58 / 12%), transparent 70%), #0e2032;
+  border-color: rgb(227 165 58 / 35%);
+}
+
+.libero-player-button__mark {
+  color: #071321;
+  background: var(--game-warning, #e3a53a);
+}
+
+.libero-player-button__main small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.libero-player-button > span:last-child {
+  color: #ffc56e;
+}
+
+.bench-player-card {
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.bench-player-card span,
+.bench-player-card small {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.slot-editor-lock,
+.slot-editor-context,
+.team-screen--direct .policy-list > label {
+  color: var(--game-text-muted, #a9b8ca);
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 10%);
+}
+
+.slot-editor-lock strong,
+.slot-editor-context strong,
+.slot-editor-context p {
+  color: var(--game-text, #f4f7fb);
+}
+
+.slot-editor-lock.is-active {
+  color: #ffc18b;
+  background: rgb(244 122 24 / 12%);
+  border-color: rgb(244 122 24 / 38%);
+}
+
+.slot-editor-lock.is-active strong,
+.slot-editor-context b {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.slot-editor-context span {
+  color: var(--game-text-muted, #a9b8ca);
+}
+
+.team-screen--direct .policy-list input {
+  accent-color: var(--game-accent, #f47a18);
+}
+
+.team-screen--direct .team-primary-action {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  box-shadow: 0 8px 18px rgb(244 122 24 / 22%);
+}
+
+.team-screen--direct .team-primary-action:disabled,
+.team-screen__header .team-secondary-action:disabled {
+  opacity: 0.5;
+}
+
+.team-screen--direct .selection-feedback {
+  color: #b8d5e8;
+  background: rgb(46 139 216 / 10%);
+  border-color: rgb(46 139 216 / 28%);
+}
+
+.team-screen--direct .selection-feedback--error {
+  color: #ffaba4;
+  background: rgb(227 72 72 / 10%);
+  border-color: rgb(227 72 72 / 28%);
+}
+
+.saved-lineup-card {
+  background:
+    linear-gradient(145deg, rgb(46 139 216 / 6%), transparent 65%),
+    rgb(7 20 35 / 82%);
+}
+
+.saved-lineup-card__actions button {
+  color: #cbe7f8;
+  background: rgb(46 139 216 / 13%);
+  border-color: rgb(116 216 255 / 22%);
+}
+
+.saved-lineup-card__actions button:first-child {
+  color: #ffd0a8;
+  background: rgb(244 122 24 / 11%);
+  border-color: rgb(244 122 24 / 28%);
+}
