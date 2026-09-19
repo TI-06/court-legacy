@@ -313,7 +313,7 @@ describe("PlayerHubScreen", () => {
     ).toBeDisabled();
   });
 
-  it("opens a compact player detail with growth type, talent and potential", () => {
+  it("splits player detail into ability, growth, and personality views", () => {
     const { state, view } = renderPlayerHub();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
@@ -337,6 +337,17 @@ describe("PlayerHubScreen", () => {
         `${player.grade}年・${player.preferredPosition}・${player.heightCm}cm`,
       ),
     ).toBeVisible();
+    expect(screen.getByRole("button", { name: "能力" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("region", { name: "選手能力" })).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "成長タイプと才能" }),
+    ).toBeNull();
+    expect(screen.queryByRole("region", { name: "性格" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
     const developmentRegion = screen.getByRole("region", {
       name: "成長タイプと才能",
     });
@@ -355,11 +366,6 @@ describe("PlayerHubScreen", () => {
         ),
       ).toBeVisible();
     }
-    expect(screen.queryByText(player.reading)).toBeNull();
-    expect(view.container.querySelector(".player-detail__hero")).toBeNull();
-    expect(
-      view.container.querySelector(".player-detail__summary"),
-    ).not.toBeNull();
 
     const growthRegion = screen.getByRole("region", { name: "最近の成長" });
     expect(within(growthRegion).getByText("4週 --")).toBeVisible();
@@ -367,9 +373,17 @@ describe("PlayerHubScreen", () => {
     expect(
       within(growthRegion).getByText("成長履歴はまだありません"),
     ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "人物" }));
+    expect(screen.getByRole("region", { name: "性格" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "人間関係" })).toBeVisible();
+    expect(screen.queryByRole("region", { name: "選手能力" })).toBeNull();
+
+    expect(screen.queryByText(player.reading)).toBeNull();
+    expect(view.container.querySelector(".player-detail__hero")).toBeNull();
     expect(
-      within(growthRegion).queryAllByTestId("player-growth-trend-bar"),
-    ).toHaveLength(0);
+      view.container.querySelector(".player-detail__summary"),
+    ).not.toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
@@ -413,6 +427,8 @@ describe("PlayerHubScreen", () => {
       }),
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
     const growthRegion = screen.getByRole("region", { name: "最近の成長" });
     expect(within(growthRegion).getByText("4週 +5")).toBeVisible();
     expect(within(growthRegion).getByText("12週 +5")).toBeVisible();
@@ -438,6 +454,8 @@ describe("PlayerHubScreen", () => {
         name: `選手詳細 ${player.lastName} ${player.firstName}`,
       }),
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "人物" }));
 
     expect(screen.queryByRole("region", { name: "発見した個性" })).toBeNull();
     expect(screen.queryByText("面倒見がいい")).toBeNull();
@@ -518,6 +536,9 @@ describe("PlayerHubScreen", () => {
     expect(screen.getByText("エース")).toBeVisible();
     expect(screen.getByText("信頼")).toBeVisible();
     expect(screen.getByText(String(player.trust))).toBeVisible();
+    expect(screen.queryByText(/出場機会/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "人物" }));
     expect(screen.getByText(/出場機会/)).toBeVisible();
   });
 });

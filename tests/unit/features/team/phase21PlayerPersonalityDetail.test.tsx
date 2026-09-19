@@ -28,6 +28,8 @@ describe("Phase21 Player Hub personality", () => {
       }),
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "人物" }));
+
     const region = screen.getByRole("region", { name: "性格" });
     expect(within(region).getByRole("heading", { name: "性格" })).toBeVisible();
     expect(within(region).getByText(expected.name)).toBeVisible();

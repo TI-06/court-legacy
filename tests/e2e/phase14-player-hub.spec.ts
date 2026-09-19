@@ -49,11 +49,24 @@ for (const width of widths) {
 
     await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 
+    await expect(page.getByRole("button", { name: "能力" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByLabel("選手能力")).toBeVisible();
+    await expectPlayerHubNoHorizontalOverflow(page);
+
+    await page.getByRole("button", { name: "成長" }).click();
     await expect(
       page.getByRole("heading", { name: "最近の成長" }),
     ).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
 
+    await page.getByRole("button", { name: "人物" }).click();
+    await expect(page.getByRole("heading", { name: "人間関係" })).toBeVisible();
+    await expectPlayerHubNoHorizontalOverflow(page);
+
+    await page.getByRole("button", { name: "能力" }).click();
     const trainingButton = page.locator(".player-training-chip--detail");
     const navigation = page.getByRole("navigation", { name: "主要メニュー" });
     await expect(trainingButton).toBeVisible();
