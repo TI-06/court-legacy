@@ -384,8 +384,8 @@ for (const viewport of mobileViewports) {
 
     await page.getByRole("tab", { name: "記録", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-school-records`);
-    await page.getByRole("tab", { name: "卒業生", exact: true }).click();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-alumni`);
+    await page.getByRole("tab", { name: "歴史", exact: true }).click();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-history`);
 
     await page.getByRole("button", { name: "予定を確認" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-calendar`);

@@ -3,12 +3,19 @@ import App from "../../../../src/App";
 import { FACILITY_DEFINITIONS } from "../../../../src/domain/school/facilityUpgrade";
 
 describe("Phase 12 compact school management", () => {
-  it("uses School as a direct destination with scouting beside facilities", async () => {
+  it("uses School as a direct destination with three primary views", async () => {
     render(<App />);
     fireEvent.click(await screen.findByRole("button", { name: "学校" }));
 
-    expect(screen.getByRole("heading", { name: "設備を強化" })).toBeVisible();
-    expect(screen.getByRole("tab", { name: "スカウト" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "運営" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "設備" })).toBeVisible();
+    const primaryTabs = screen.getByRole("tablist", {
+      name: "学校運営メニュー",
+    });
+    expect(within(primaryTabs).getAllByRole("tab")).toHaveLength(3);
+    expect(
+      within(primaryTabs).getByRole("tab", { name: "スカウト" }),
+    ).toBeVisible();
   });
 
   it("shows facilities as compact tiles and moves descriptions into the detail sheet", async () => {

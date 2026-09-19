@@ -33,7 +33,7 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
   expect(bodyWidth).toBeLessThanOrEqual(360);
 
   await page.getByRole("button", { name: "学校へ戻る" }).click();
-  await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "学校" })).toBeVisible();
   await page.getByRole("tab", { name: "スカウト", exact: true }).click();
 
   await expect(

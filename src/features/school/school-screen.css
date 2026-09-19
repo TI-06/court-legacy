@@ -99,7 +99,7 @@
 
 .school-segments {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
   padding: 4px;
   gap: 4px;
@@ -724,5 +724,155 @@
   .facility-upgrade-option {
     font-size: 0.82rem;
     padding-inline: 4px;
+  }
+}
+
+/* Phase24-3: school information architecture */
+.school-hero__title {
+  display: grid;
+  gap: 2px;
+}
+
+.school-hero__title h2,
+.school-hero__title p {
+  margin: 0;
+}
+
+.school-hero__title h2 {
+  font-size: 1rem;
+}
+
+.school-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.school-overview-grid article,
+.school-overview-card {
+  display: grid;
+  min-width: 0;
+  min-height: 58px;
+  padding: 7px 6px;
+  gap: 2px;
+  color: #f7fbfc;
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.school-overview-grid span,
+.school-overview-grid small {
+  overflow: hidden;
+  color: #bcd4d9;
+  font-size: 0.56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-overview-grid strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-overview-card--button {
+  cursor: pointer;
+}
+
+.school-management-section {
+  min-width: 0;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2eaed;
+}
+
+.school-management-section:first-of-type {
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.school-subsection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 10px;
+}
+
+.school-subsection-heading h4,
+.school-subsection-heading small {
+  margin: 0;
+}
+
+.school-subsection-heading h4 {
+  font-size: 0.84rem;
+}
+
+.school-subsection-heading small,
+.school-subsection-heading > span {
+  color: #75858e;
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.school-record-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 10px;
+  padding: 3px;
+  gap: 3px;
+  background: #e7eef1;
+  border-radius: 11px;
+}
+
+.school-record-tabs button {
+  min-height: 38px;
+  padding: 6px 8px;
+  color: #667881;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-record-tabs .school-record-tab--active {
+  color: #174f5c;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(18 45 57 / 9%);
+}
+
+.school-record-content {
+  display: grid;
+  min-width: 0;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.school-alumni-section {
+  min-width: 0;
+  padding-top: 4px;
+}
+
+@media (max-width: 350px) {
+  .school-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .school-overview-grid article,
+  .school-overview-card {
+    min-height: 52px;
+  }
+
+  .school-segments button {
+    font-size: 0.66rem;
   }
 }

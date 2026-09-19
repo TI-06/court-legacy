@@ -6,10 +6,10 @@ describe("school and calendar app integration", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole("button", { name: "学校" }));
+    expect(screen.getByRole("heading", { name: "学校" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "青葉高校" }),
+      screen.getByRole("button", { name: "資金 750・履歴を表示" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("資金 750")).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: "トレーニング設備の詳細" }),
@@ -21,7 +21,11 @@ describe("school and calendar app integration", () => {
       }),
     );
 
-    expect(await screen.findByText("資金 680")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", {
+        name: "資金 680・履歴を表示",
+      }),
+    ).toBeInTheDocument();
     const trainingFacilityTile = screen.getByRole("button", {
       name: "トレーニング設備の詳細",
     });

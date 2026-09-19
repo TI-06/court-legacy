@@ -17,15 +17,18 @@ import {
   type FacilityUpgradeLevels,
 } from "../../domain/school/facilityUpgrade";
 import { reputationGrade } from "../../domain/school/reputation";
-import { rivalryKey } from "../../domain/world/rivalWorldProgression";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
 import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
+import { SchoolLegacyPanel } from "./SchoolLegacyPanel";
+import { SchoolSeasonHistory } from "./SchoolSeasonHistory";
 import { SchoolSeasonRanking } from "./SchoolSeasonRanking";
 import "./school-economy.css";
 import "./school-screen.css";
+
+type SchoolRecordView = "season" | "results" | "history";
 
 interface SchoolScreenProps {
   state: GameState;
@@ -93,6 +96,7 @@ export function SchoolScreen({
   onOpenScouting,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
+  const [recordView, setRecordView] = useState<SchoolRecordView>("season");
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
@@ -133,13 +137,6 @@ export function SchoolScreen({
     );
   }
 
-  const destinyRivalId = state.world.destinyRivalSchoolId;
-  const destinyRival = destinyRivalId
-    ? state.schools[destinyRivalId]
-    : undefined;
-  const destinyRivalScore = destinyRival
-    ? (state.world.rivalryScores[rivalryKey(school.id, destinyRival.id)] ?? 0)
-    : 0;
   const graduates = state.history.graduates.filter(
     (graduate) => graduate.schoolId === school.id,
   );
@@ -192,229 +189,266 @@ export function SchoolScreen({
         className="school-hero school-hero--compact"
         data-testid="school-hero"
       >
-        <p className="section-kicker">学校運営</p>
-        <div className="school-hero__heading">
-          <div>
-            <h2>{school.name}</h2>
-            <p>
-              {reputationLabels[school.reputation]}・評判{" "}
+        <div className="school-hero__title">
+          <p className="section-kicker">学校運営</p>
+          <h2>学校</h2>
+        </div>
+        <div
+          aria-label="学校サマリー"
+          className="school-overview-grid"
+          role="region"
+        >
+          <article aria-label="評判">
+            <span>評判</span>
+            <strong>
               {reputationGrade(school.reputationPoints)}{" "}
               {school.reputationPoints}
-            </p>
-          </div>
+            </strong>
+            <small>{reputationLabels[school.reputation]}</small>
+          </article>
           <button
             aria-label={`資金 ${school.funds}・履歴を表示`}
-            className="school-funds-button"
+            className="school-overview-card school-overview-card--button"
             onClick={() => setFundsHistoryOpen(true)}
             type="button"
           >
-            資金 {school.funds}
+            <span>資金</span>
+            <strong>{school.funds}</strong>
+            <small>履歴を見る</small>
           </button>
-        </div>
-        <div className="school-summary-grid">
-          <span>
-            監督<strong>{school.coach.name}</strong>
-          </span>
-          {destinyRival ? (
-            <span>
-              宿命校
-              <strong>
-                {destinyRival.name}・因縁 {destinyRivalScore}
-              </strong>
-            </span>
-          ) : null}
-          <span>
-            通算シーズン<strong>{school.history.seasons}</strong>
-          </span>
+          <article aria-label="県内順位">
+            <span>県内</span>
+            <strong>
+              {seasonProgress ? `${seasonProgress.regional.rank}位` : "--"}
+            </strong>
+            <small>
+              {seasonProgress
+                ? `/${seasonProgress.regional.total}校`
+                : "順位未集計"}
+            </small>
+          </article>
+          <article aria-label="全国順位">
+            <span>全国</span>
+            <strong>
+              {seasonProgress ? `${seasonProgress.national.rank}位` : "--"}
+            </strong>
+            <small>
+              {seasonProgress
+                ? `/${seasonProgress.national.total}校`
+                : "順位未集計"}
+            </small>
+          </article>
         </div>
       </section>
 
       <SchoolNavigationTabs activeView={view} onSelect={selectView} />
 
-      {view === "facilities" ? (
-        <section className="school-panel" aria-labelledby="facility-heading">
+      {view === "management" ? (
+        <section className="school-panel" aria-labelledby="management-heading">
           <div className="school-section-heading">
             <div>
-              <p className="section-kicker">施設</p>
-              <h3 id="facility-heading">設備を強化</h3>
+              <p className="section-kicker">学校運営</p>
+              <h3 id="management-heading">運営</h3>
             </div>
-            <span>最大 Lv.50</span>
+            <span>設備・スタッフ</span>
           </div>
-          <div className="facility-grid">
-            {FACILITY_DEFINITIONS.map((definition) => {
-              const evaluation = evaluateFacilityUpgrade(
-                state,
-                school.id,
-                definition.key,
-              );
-              const missingFunds = Math.max(0, evaluation.cost - school.funds);
-              const status =
-                evaluation.reason === "max-level"
-                  ? "最大Lv"
-                  : evaluation.reason === "insufficient-funds"
-                    ? `あと${missingFunds}必要`
-                    : evaluation.reason === "invalid-level"
-                      ? "要確認"
-                      : `次 ${evaluation.cost}`;
-              return (
-                <button
-                  aria-label={`${definition.name}の詳細`}
-                  className="facility-tile"
-                  data-testid="facility-tile"
-                  key={definition.key}
-                  onClick={() => {
-                    setSelectedFacility(definition.key);
-                    setSelectedUpgradeLevels(1);
-                  }}
-                  type="button"
-                >
-                  <span className="facility-tile__top">
-                    <strong>{definition.name}</strong>
-                    <b>Lv.{evaluation.currentLevel} / 50</b>
-                  </span>
-                  <progress
-                    aria-label={`${definition.name} レベル進捗`}
-                    className="facility-tile__progress"
-                    max={50}
-                    value={evaluation.currentLevel}
-                  />
-                  <small
-                    className={
-                      evaluation.allowed ? undefined : "facility-tile__warning"
-                    }
+
+          <section
+            className="school-management-section"
+            aria-labelledby="facility-heading"
+          >
+            <div className="school-subsection-heading">
+              <div>
+                <h4 id="facility-heading">設備</h4>
+                <small>学校の育成環境を強化</small>
+              </div>
+              <span>最大 Lv.50</span>
+            </div>
+            <div className="facility-grid">
+              {FACILITY_DEFINITIONS.map((definition) => {
+                const evaluation = evaluateFacilityUpgrade(
+                  state,
+                  school.id,
+                  definition.key,
+                );
+                const missingFunds = Math.max(
+                  0,
+                  evaluation.cost - school.funds,
+                );
+                const status =
+                  evaluation.reason === "max-level"
+                    ? "最大Lv"
+                    : evaluation.reason === "insufficient-funds"
+                      ? `あと${missingFunds}必要`
+                      : evaluation.reason === "invalid-level"
+                        ? "要確認"
+                        : `次 ${evaluation.cost}`;
+                return (
+                  <button
+                    aria-label={`${definition.name}の詳細`}
+                    className="facility-tile"
+                    data-testid="facility-tile"
+                    key={definition.key}
+                    onClick={() => {
+                      setSelectedFacility(definition.key);
+                      setSelectedUpgradeLevels(1);
+                    }}
+                    type="button"
                   >
-                    {status}
-                  </small>
-                  <span className="facility-tile__detail" aria-hidden="true">
-                    詳細 ›
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      ) : null}
-
-      {view === "staff" ? (
-        <section className="school-panel" aria-labelledby="staff-heading">
-          <div className="school-section-heading">
-            <div>
-              <p className="section-kicker">年間契約</p>
-              <h3 id="staff-heading">スタッフ</h3>
-            </div>
-            <span>年度更新で契約終了</span>
-          </div>
-
-          {assistantCoachContract && assistantCoachContractOption ? (
-            <div
-              className="assistant-coach-current"
-              data-testid="assistant-coach-current"
-            >
-              <span>契約中</span>
-              <strong>
-                {assistantCoachRankLabels[assistantCoachContract.rank]}
-                {assistantCoachContract.specialty
-                  ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
-                  : "・総合"}
-              </strong>
-              <small>
-                {state.calendar.academicYear}年度・全体成長 +
-                {assistantCoachContractOption.generalPercent - 100}%
-              </small>
-            </div>
-          ) : (
-            <p className="assistant-coach-none">現在契約中のコーチはいません</p>
-          )}
-
-          <div className="assistant-coach-grid">
-            {ASSISTANT_COACH_OPTIONS.map((option) => {
-              const specialty =
-                option.rank === "beginner"
-                  ? null
-                  : (coachSpecialties[option.rank] ?? null);
-              const evaluation = evaluateAssistantCoachContract(
-                state,
-                option.rank,
-                specialty,
-              );
-              const missingFunds = Math.max(
-                0,
-                option.annualCost - school.funds,
-              );
-              return (
-                <article
-                  className="assistant-coach-card"
-                  data-testid={`assistant-coach-${option.rank}`}
-                  key={option.rank}
-                >
-                  <div className="assistant-coach-card__heading">
-                    <strong>{option.name}</strong>
-                    <span>年間 {option.annualCost}</span>
-                  </div>
-                  <div className="assistant-coach-effects">
-                    <span>全体 +{option.generalPercent - 100}%</span>
-                    {option.specialtyPercent ? (
-                      <span>専門 +{option.specialtyPercent - 100}%</span>
-                    ) : (
-                      <span>総合指導</span>
-                    )}
-                    {option.conditionPercent ? (
-                      <span>低調子 +{option.conditionPercent - 100}%</span>
-                    ) : null}
-                    {option.firstYearPercent ? (
-                      <span>1年生 +{option.firstYearPercent - 100}%</span>
-                    ) : null}
-                  </div>
-                  {option.rank !== "beginner" ? (
-                    <label className="assistant-coach-specialty">
-                      専門
-                      <select
-                        aria-label={`${option.name}の専門`}
-                        onChange={(event) =>
-                          setCoachSpecialties((current) => ({
-                            ...current,
-                            [option.rank]: event.target
-                              .value as AssistantCoachSpecialty,
-                          }))
-                        }
-                        value={specialty ?? ""}
-                      >
-                        <option value="">選択してください</option>
-                        <option value="attack">攻撃</option>
-                        <option value="defense">守備</option>
-                        <option value="physical">フィジカル</option>
-                      </select>
-                    </label>
-                  ) : null}
-                  <div className="assistant-coach-card__footer">
-                    <small>
-                      {evaluation.reason === "insufficient-funds"
-                        ? `あと${missingFunds}必要`
-                        : evaluation.reason === "specialty-required"
-                          ? "専門を選択してください"
-                          : evaluation.reason === "already-contracted-this-year"
-                            ? "今年度は契約済み"
-                            : evaluation.reason === "specialty-not-allowed"
-                              ? "専門指定なしで契約してください"
-                              : `契約後 ${evaluation.fundsAfter}`}
-                    </small>
-                    <button
-                      aria-label={`${option.name}と年間契約`}
-                      disabled={
-                        !onContractAssistantCoach || !evaluation.allowed
+                    <span className="facility-tile__top">
+                      <strong>{definition.name}</strong>
+                      <b>Lv.{evaluation.currentLevel} / 50</b>
+                    </span>
+                    <progress
+                      aria-label={`${definition.name} レベル進捗`}
+                      className="facility-tile__progress"
+                      max={50}
+                      value={evaluation.currentLevel}
+                    />
+                    <small
+                      className={
+                        evaluation.allowed
+                          ? undefined
+                          : "facility-tile__warning"
                       }
-                      onClick={() =>
-                        onContractAssistantCoach?.(option.rank, specialty)
-                      }
-                      type="button"
                     >
-                      契約する
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                      {status}
+                    </small>
+                    <span className="facility-tile__detail" aria-hidden="true">
+                      詳細 ›
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section
+            className="school-management-section"
+            aria-labelledby="staff-heading"
+          >
+            <div className="school-subsection-heading">
+              <div>
+                <h4 id="staff-heading">スタッフ</h4>
+                <small>年間コーチ契約</small>
+              </div>
+              <span>年度更新で終了</span>
+            </div>
+
+            {assistantCoachContract && assistantCoachContractOption ? (
+              <div
+                className="assistant-coach-current"
+                data-testid="assistant-coach-current"
+              >
+                <span>契約中</span>
+                <strong>
+                  {assistantCoachRankLabels[assistantCoachContract.rank]}
+                  {assistantCoachContract.specialty
+                    ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
+                    : "・総合"}
+                </strong>
+                <small>
+                  {state.calendar.academicYear}年度・全体成長 +
+                  {assistantCoachContractOption.generalPercent - 100}%
+                </small>
+              </div>
+            ) : (
+              <p className="assistant-coach-none">
+                現在契約中のコーチはいません
+              </p>
+            )}
+
+            <div className="assistant-coach-grid">
+              {ASSISTANT_COACH_OPTIONS.map((option) => {
+                const specialty =
+                  option.rank === "beginner"
+                    ? null
+                    : (coachSpecialties[option.rank] ?? null);
+                const evaluation = evaluateAssistantCoachContract(
+                  state,
+                  option.rank,
+                  specialty,
+                );
+                const missingFunds = Math.max(
+                  0,
+                  option.annualCost - school.funds,
+                );
+                return (
+                  <article
+                    className="assistant-coach-card"
+                    data-testid={`assistant-coach-${option.rank}`}
+                    key={option.rank}
+                  >
+                    <div className="assistant-coach-card__heading">
+                      <strong>{option.name}</strong>
+                      <span>年間 {option.annualCost}</span>
+                    </div>
+                    <div className="assistant-coach-effects">
+                      <span>全体 +{option.generalPercent - 100}%</span>
+                      {option.specialtyPercent ? (
+                        <span>専門 +{option.specialtyPercent - 100}%</span>
+                      ) : (
+                        <span>総合指導</span>
+                      )}
+                      {option.conditionPercent ? (
+                        <span>低調子 +{option.conditionPercent - 100}%</span>
+                      ) : null}
+                      {option.firstYearPercent ? (
+                        <span>1年生 +{option.firstYearPercent - 100}%</span>
+                      ) : null}
+                    </div>
+                    {option.rank !== "beginner" ? (
+                      <label className="assistant-coach-specialty">
+                        専門
+                        <select
+                          aria-label={`${option.name}の専門`}
+                          onChange={(event) =>
+                            setCoachSpecialties((current) => ({
+                              ...current,
+                              [option.rank]: event.target
+                                .value as AssistantCoachSpecialty,
+                            }))
+                          }
+                          value={specialty ?? ""}
+                        >
+                          <option value="">選択してください</option>
+                          <option value="attack">攻撃</option>
+                          <option value="defense">守備</option>
+                          <option value="physical">フィジカル</option>
+                        </select>
+                      </label>
+                    ) : null}
+                    <div className="assistant-coach-card__footer">
+                      <small>
+                        {evaluation.reason === "insufficient-funds"
+                          ? `あと${missingFunds}必要`
+                          : evaluation.reason === "specialty-required"
+                            ? "専門を選択してください"
+                            : evaluation.reason ===
+                                "already-contracted-this-year"
+                              ? "今年度は契約済み"
+                              : evaluation.reason === "specialty-not-allowed"
+                                ? "専門指定なしで契約してください"
+                                : `契約後 ${evaluation.fundsAfter}`}
+                      </small>
+                      <button
+                        aria-label={`${option.name}と年間契約`}
+                        disabled={
+                          !onContractAssistantCoach || !evaluation.allowed
+                        }
+                        onClick={() =>
+                          onContractAssistantCoach?.(option.rank, specialty)
+                        }
+                        type="button"
+                      >
+                        契約する
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
         </section>
       ) : null}
 
@@ -428,103 +462,165 @@ export function SchoolScreen({
         <section className="school-panel" aria-labelledby="record-heading">
           <div className="school-section-heading">
             <div>
-              <p className="section-kicker">戦績</p>
+              <p className="section-kicker">記録</p>
               <h3 id="record-heading">学校記録</h3>
             </div>
           </div>
-          {seasonProgress ? (
-            <SchoolSeasonRanking presentation={seasonProgress} />
-          ) : null}
-          <div className="school-record-grid">
-            <span>
-              公式戦勝利<strong>{school.history.officialWins}</strong>
-            </span>
-            <span>
-              公式戦敗北<strong>{school.history.officialLosses}</strong>
-            </span>
-            <span>
-              県大会優勝<strong>{school.history.prefecturalTitles}</strong>
-            </span>
-            <span>
-              全国出場<strong>{school.history.nationalAppearances}</strong>
-            </span>
-            <span>
-              全国優勝<strong>{school.history.nationalTitles}</strong>
-            </span>
-          </div>
-          <h4>直近の試合</h4>
-          {recentMatches.length === 0 ? (
-            <p className="school-empty-state">試合記録はまだありません</p>
-          ) : (
-            <div className="school-match-list">
-              {recentMatches.map((match) => {
-                const home = match.homeSchoolId === school.id;
-                const opponentId = home
-                  ? match.awaySchoolId
-                  : match.homeSchoolId;
-                const opponent = state.schools[opponentId]!;
-                const userSets = home ? match.homeSetsWon : match.awaySetsWon;
-                const opponentSets = home
-                  ? match.awaySetsWon
-                  : match.homeSetsWon;
-                const won = match.winnerSchoolId === school.id;
-                return (
-                  <article
-                    className="school-match-record"
-                    data-testid="school-match-record"
-                    key={match.matchId}
-                  >
-                    <div>
-                      <time>{formatDate(match.date)}</time>
-                      <strong>{opponent.name}</strong>
-                    </div>
-                    <span
-                      className={
-                        won ? "school-result--win" : "school-result--loss"
-                      }
-                    >
-                      {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
-                    </span>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      ) : null}
 
-      {view === "alumni" ? (
-        <section className="school-panel" aria-labelledby="alumni-heading">
-          <div className="school-section-heading">
-            <div>
-              <p className="section-kicker">卒業生</p>
-              <h3 id="alumni-heading">卒業生記録</h3>
-            </div>
+          <div
+            aria-label="学校記録メニュー"
+            className="school-record-tabs"
+            role="tablist"
+          >
+            {(
+              [
+                ["season", "今季"],
+                ["results", "戦績"],
+                ["history", "歴史"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                aria-selected={recordView === id}
+                className={
+                  recordView === id ? "school-record-tab--active" : undefined
+                }
+                key={id}
+                onClick={() => setRecordView(id)}
+                role="tab"
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
           </div>
-          {graduates.length === 0 ? (
-            <p className="school-empty-state">卒業生の記録はまだありません</p>
-          ) : (
-            <div className="alumni-list">
-              {graduates.map((graduate) => (
-                <article
-                  key={`${graduate.playerId}-${graduate.graduationYear}`}
-                >
-                  <div>
-                    <strong>{graduate.displayName}</strong>
-                    <span>
-                      {graduate.graduationYear}年卒・{graduate.position}
-                    </span>
-                  </div>
-                  <div className="alumni-metrics">
-                    <span>出場 {graduate.appearances}</span>
-                    <span>得点 {graduate.points}</span>
-                    <span>ブロック {graduate.blocks}</span>
-                    <span>サービスエース {graduate.serviceAces}</span>
-                  </div>
-                </article>
-              ))}
+
+          {recordView === "season" ? (
+            seasonProgress ? (
+              <SchoolSeasonRanking presentation={seasonProgress} />
+            ) : (
+              <p className="school-empty-state">今季の記録はまだありません</p>
+            )
+          ) : null}
+
+          {recordView === "results" ? (
+            <div
+              className="school-record-content"
+              data-testid="school-record-results"
+            >
+              <div className="school-record-grid">
+                <span>
+                  公式戦勝利<strong>{school.history.officialWins}</strong>
+                </span>
+                <span>
+                  公式戦敗北<strong>{school.history.officialLosses}</strong>
+                </span>
+                <span>
+                  県大会優勝<strong>{school.history.prefecturalTitles}</strong>
+                </span>
+                <span>
+                  全国出場<strong>{school.history.nationalAppearances}</strong>
+                </span>
+                <span>
+                  全国優勝<strong>{school.history.nationalTitles}</strong>
+                </span>
+              </div>
+              <h4>直近の試合</h4>
+              {recentMatches.length === 0 ? (
+                <p className="school-empty-state">試合記録はまだありません</p>
+              ) : (
+                <div className="school-match-list">
+                  {recentMatches.map((match) => {
+                    const home = match.homeSchoolId === school.id;
+                    const opponentId = home
+                      ? match.awaySchoolId
+                      : match.homeSchoolId;
+                    const opponent = state.schools[opponentId]!;
+                    const userSets = home
+                      ? match.homeSetsWon
+                      : match.awaySetsWon;
+                    const opponentSets = home
+                      ? match.awaySetsWon
+                      : match.homeSetsWon;
+                    const won = match.winnerSchoolId === school.id;
+                    return (
+                      <article
+                        className="school-match-record"
+                        data-testid="school-match-record"
+                        key={match.matchId}
+                      >
+                        <div>
+                          <time>{formatDate(match.date)}</time>
+                          <strong>{opponent.name}</strong>
+                        </div>
+                        <span
+                          className={
+                            won ? "school-result--win" : "school-result--loss"
+                          }
+                        >
+                          {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
+                        </span>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
+
+          {recordView === "history" ? (
+            <div
+              className="school-record-content"
+              data-testid="school-record-history"
+            >
+              {seasonProgress ? (
+                <>
+                  <SchoolLegacyPanel presentation={seasonProgress.legacy} />
+                  <SchoolSeasonHistory
+                    presentations={seasonProgress.archivedSeasons}
+                  />
+                </>
+              ) : null}
+
+              <section
+                className="school-alumni-section"
+                aria-labelledby="alumni-heading"
+              >
+                <div className="school-subsection-heading">
+                  <div>
+                    <h4 id="alumni-heading">卒業生記録</h4>
+                    <small>学校を巣立った選手</small>
+                  </div>
+                  <span>{graduates.length}人</span>
+                </div>
+                {graduates.length === 0 ? (
+                  <p className="school-empty-state">
+                    卒業生の記録はまだありません
+                  </p>
+                ) : (
+                  <div className="alumni-list">
+                    {graduates.map((graduate) => (
+                      <article
+                        key={`${graduate.playerId}-${graduate.graduationYear}`}
+                      >
+                        <div>
+                          <strong>{graduate.displayName}</strong>
+                          <span>
+                            {graduate.graduationYear}年卒・{graduate.position}
+                          </span>
+                        </div>
+                        <div className="alumni-metrics">
+                          <span>出場 {graduate.appearances}</span>
+                          <span>得点 {graduate.points}</span>
+                          <span>ブロック {graduate.blocks}</span>
+                          <span>サービスエース {graduate.serviceAces}</span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
