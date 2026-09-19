@@ -2,8 +2,6 @@ import type {
   SeasonProgressPresentation,
   SeasonRankingPresentation,
 } from "../season/seasonProgressPresentation";
-import { SchoolLegacyPanel } from "./SchoolLegacyPanel";
-import { SchoolSeasonHistory } from "./SchoolSeasonHistory";
 import "./school-season-ranking.css";
 
 function rankMovementLabel(
@@ -118,9 +116,6 @@ export function SchoolSeasonRanking({
         <RankingScope label="県内" ranking={presentation.regional} />
         <RankingScope label="全国" ranking={presentation.national} />
       </div>
-
-      <SchoolLegacyPanel presentation={presentation.legacy} />
-      <SchoolSeasonHistory presentations={presentation.archivedSeasons} />
     </section>
   );
 }

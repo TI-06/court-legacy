@@ -55,3 +55,50 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   await expect(latestEntry).toContainText("+300");
   await expect(latestEntry).toContainText("残高 1,050");
 });
+
+async function expectSchoolNoHorizontalOverflow(page: Page) {
+  const layout = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    body: document.body.scrollWidth,
+    document: document.documentElement.scrollWidth,
+    schoolClient: document.querySelector(".school-screen")?.clientWidth ?? 0,
+    schoolScroll: document.querySelector(".school-screen")?.scrollWidth ?? 0,
+  }));
+
+  expect(layout.body).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.document).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.schoolScroll).toBeLessThanOrEqual(layout.schoolClient + 1);
+}
+
+for (const width of [320, 360, 390, 414, 480] as const) {
+  test(`${width}px school management navigation fits`, async ({ page }) => {
+    await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "学校", exact: true }).click();
+
+    const primary = page.getByRole("tablist", { name: "学校運営メニュー" });
+    await expect(primary.getByRole("tab")).toHaveCount(3);
+    await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await primary.getByRole("tab", { name: "記録" }).click();
+    const recordTabs = page.getByRole("tablist", { name: "学校記録メニュー" });
+    await expect(recordTabs.getByRole("tab")).toHaveCount(3);
+    await expect(
+      page.getByRole("region", { name: "今季ランキング" }),
+    ).toBeVisible();
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await recordTabs.getByRole("tab", { name: "戦績" }).click();
+    await expect(page.getByTestId("school-record-results")).toBeVisible();
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await recordTabs.getByRole("tab", { name: "歴史" }).click();
+    await expect(
+      page.getByRole("heading", { name: "卒業生記録" }),
+    ).toBeVisible();
+    await expectSchoolNoHorizontalOverflow(page);
+  });
+}

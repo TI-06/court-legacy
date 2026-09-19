@@ -9,8 +9,6 @@ describe("school staff screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
-
     expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     expect(screen.getByText("初級コーチ")).toBeVisible();
     expect(screen.getByText("中級コーチ")).toBeVisible();
@@ -30,8 +28,6 @@ describe("school staff screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
-
     const currentContract = screen.getByTestId("assistant-coach-current");
     expect(within(currentContract).getByText("契約中")).toBeVisible();
     expect(within(currentContract).getByText(/上級/)).toBeVisible();
@@ -50,7 +46,6 @@ describe("school staff screen", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("tab", { name: "スタッフ" }));
     const advancedCard = screen.getByTestId("assistant-coach-advanced");
     fireEvent.change(within(advancedCard).getByRole("combobox"), {
       target: { value: "attack" },

@@ -82,7 +82,7 @@ test("management task deep-links to the requested School view", async ({
   await facilityTask.click();
 
   await expect(
-    page.getByRole("tab", { name: "設備", exact: true }),
+    page.getByRole("tab", { name: "運営", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(
     page.getByRole("button", { name: "トレーニング設備の詳細" }),

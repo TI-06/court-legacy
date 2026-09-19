@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
@@ -14,7 +14,8 @@ describe("school reputation presentation", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    expect(screen.getByText(/評判 A/)).toBeVisible();
-    expect(screen.getByText(/825/)).toBeVisible();
+    const summary = screen.getByRole("region", { name: "学校サマリー" });
+    const reputation = within(summary).getByRole("article", { name: "評判" });
+    expect(reputation).toHaveTextContent("A 825");
   });
 });

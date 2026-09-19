@@ -44,6 +44,7 @@ describe("SchoolLegacyPanel", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
     fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+    fireEvent.click(screen.getByRole("tab", { name: "歴史" }));
 
     const legacy = screen.getByRole("region", { name: "対戦史" });
     expect(legacy).toBeVisible();
@@ -57,14 +58,19 @@ describe("SchoolLegacyPanel", () => {
     expect(within(legacy).getByText("記憶に残る試合")).toBeVisible();
   });
 
-  it("does not add another school navigation tab", () => {
+  it("keeps only three primary school navigation tabs", () => {
     const state = createDemoGame();
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    expect(screen.getAllByRole("tab")).toHaveLength(5);
-    expect(screen.getByRole("tab", { name: "記録" })).toBeVisible();
+    const primaryTabs = screen.getByRole("tablist", {
+      name: "学校運営メニュー",
+    });
+    expect(within(primaryTabs).getAllByRole("tab")).toHaveLength(3);
     expect(
-      screen.queryByRole("tab", { name: "対戦史" }),
+      within(primaryTabs).getByRole("tab", { name: "記録" }),
+    ).toBeVisible();
+    expect(
+      within(primaryTabs).queryByRole("tab", { name: "卒業生" }),
     ).not.toBeInTheDocument();
   });
 });

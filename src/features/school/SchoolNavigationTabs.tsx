@@ -1,7 +1,6 @@
 import "./school-screen.css";
 
-export type SchoolView =
-  "facilities" | "staff" | "scouting" | "records" | "alumni";
+export type SchoolView = "management" | "scouting" | "records";
 
 interface SchoolNavigationTabsProps {
   activeView: SchoolView;
@@ -9,11 +8,9 @@ interface SchoolNavigationTabsProps {
 }
 
 const schoolViews: readonly [SchoolView, string][] = [
-  ["facilities", "設備"],
-  ["staff", "スタッフ"],
+  ["management", "運営"],
   ["scouting", "スカウト"],
   ["records", "記録"],
-  ["alumni", "卒業生"],
 ];
 
 export function SchoolNavigationTabs({

@@ -77,6 +77,7 @@ test("@critical year rollover shows season review and archives it in School reco
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
   await page.getByRole("tab", { name: "記録" }).click();
+  await page.getByRole("tab", { name: "歴史" }).click();
 
   const archive = page.getByRole("region", { name: "過去シーズン" });
   await expect(archive).toBeVisible();

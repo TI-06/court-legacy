@@ -122,13 +122,21 @@ describe("GameApp Phase 13 Home commands", () => {
         name: /強化可能な設備 \d+件 設備を見る/,
       }),
     );
-    expect(screen.getByRole("heading", { name: "設備を強化" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: "運営" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("heading", { name: "設備" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     fireEvent.click(
       screen.getByRole("button", {
         name: "年間コーチ未契約 スタッフを見る",
       }),
+    );
+    expect(screen.getByRole("tab", { name: "運営" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
     expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
   });

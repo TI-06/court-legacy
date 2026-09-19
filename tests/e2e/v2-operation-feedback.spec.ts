@@ -28,5 +28,7 @@ test("authoritative mutations show visible feedback within 300ms", async ({
   await expect(status).toHaveText("保存中…");
 
   await expect(status).toHaveText("保存済み ✓", { timeout: 1_200 });
-  await expect(page.getByText("資金 680")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "資金 680・履歴を表示" }),
+  ).toBeVisible();
 });

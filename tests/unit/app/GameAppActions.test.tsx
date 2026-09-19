@@ -236,7 +236,11 @@ describe("GameApp cloud actions", () => {
         levels: 1,
       },
     });
-    expect(await screen.findByText("資金 680")).toBeVisible();
+    expect(
+      await screen.findByRole("button", {
+        name: "資金 680・履歴を表示",
+      }),
+    ).toBeVisible();
   });
 
   it("advances the week on the server using the revision returned by the saved training plan", async () => {
@@ -397,7 +401,9 @@ describe("GameApp cloud actions", () => {
     );
 
     openTrainingFacility();
-    expect(screen.getByText("資金 750")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "資金 750・履歴を表示" }),
+    ).toBeVisible();
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "設備を強化" })).getByRole(
         "button",
@@ -405,7 +411,11 @@ describe("GameApp cloud actions", () => {
       ),
     );
 
-    expect(await screen.findByText("資金 777")).toBeVisible();
+    expect(
+      await screen.findByRole("button", {
+        name: "資金 777・履歴を表示",
+      }),
+    ).toBeVisible();
     expect(screen.getByRole("status")).toHaveTextContent(
       "他の端末の更新を読み込みました。もう一度実行してください",
     );

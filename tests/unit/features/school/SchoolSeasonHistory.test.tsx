@@ -19,6 +19,7 @@ describe("school archived season history", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={result.state} />);
     fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+    fireEvent.click(screen.getByRole("tab", { name: "歴史" }));
 
     const history = screen.getByRole("region", { name: "過去シーズン" });
     expect(history).toBeVisible();
@@ -52,6 +53,7 @@ describe("school archived season history", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
     fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+    fireEvent.click(screen.getByRole("tab", { name: "歴史" }));
 
     expect(
       screen.queryByRole("region", { name: "過去シーズン" }),

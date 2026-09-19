@@ -119,8 +119,10 @@ test("school management upgrades a facility and calendar resolves saved training
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
 
   await navigation.getByRole("button", { name: "学校", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "青葉高校" })).toBeVisible();
-  await expect(page.getByText("資金 750")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "学校" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "資金 750・履歴を表示" }),
+  ).toBeVisible();
 
   const trainingFacility = page.getByRole("button", {
     name: "トレーニング設備の詳細",
@@ -128,7 +130,9 @@ test("school management upgrades a facility and calendar resolves saved training
   await trainingFacility.click();
   const facilityDialog = page.getByRole("dialog", { name: "設備を強化" });
   await facilityDialog.getByRole("button", { name: "70を使って強化" }).click();
-  await expect(page.getByText("資金 680")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "資金 680・履歴を表示" }),
+  ).toBeVisible();
   await expect(trainingFacility).toContainText("Lv.1");
   await expect(facilityDialog).toBeVisible();
   await facilityDialog.getByRole("button", { name: "閉じる" }).click();
