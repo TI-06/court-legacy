@@ -708,51 +708,69 @@ export function TeamScreen({
             </div>
           </div>
           <div className="policy-list">
-            <label>
+            <button
+              aria-checked={selection.substitutionPolicy.allowInjuryBenching}
+              aria-label="怪我時はベンチを許可"
+              disabled={pending}
+              onClick={() =>
+                updatePolicy(
+                  "allowInjuryBenching",
+                  !selection.substitutionPolicy.allowInjuryBenching,
+                )
+              }
+              role="switch"
+              type="button"
+            >
               <span>
                 <strong>怪我時はベンチを許可</strong>
                 <small>先発固定より安全を優先します。</small>
               </span>
-              <input
-                aria-label="怪我時はベンチを許可"
-                checked={selection.substitutionPolicy.allowInjuryBenching}
-                disabled={pending}
-                onChange={(event) =>
-                  updatePolicy("allowInjuryBenching", event.target.checked)
-                }
-                type="checkbox"
-              />
-            </label>
-            <label>
+              <span className="team-policy-switch" aria-hidden="true">
+                <i />
+              </span>
+            </button>
+            <button
+              aria-checked={selection.substitutionPolicy.automaticSubstitutions}
+              aria-label="試合中の自動交代"
+              disabled={pending}
+              onClick={() =>
+                updatePolicy(
+                  "automaticSubstitutions",
+                  !selection.substitutionPolicy.automaticSubstitutions,
+                )
+              }
+              role="switch"
+              type="button"
+            >
               <span>
                 <strong>試合中の自動交代</strong>
                 <small>試合中に状態を見て安全交代します。</small>
               </span>
-              <input
-                aria-label="試合中の自動交代"
-                checked={selection.substitutionPolicy.automaticSubstitutions}
-                disabled={pending}
-                onChange={(event) =>
-                  updatePolicy("automaticSubstitutions", event.target.checked)
-                }
-                type="checkbox"
-              />
-            </label>
-            <label>
+              <span className="team-policy-switch" aria-hidden="true">
+                <i />
+              </span>
+            </button>
+            <button
+              aria-checked={selection.substitutionPolicy.automaticSetChanges}
+              aria-label="セット間の自動変更"
+              disabled={pending}
+              onClick={() =>
+                updatePolicy(
+                  "automaticSetChanges",
+                  !selection.substitutionPolicy.automaticSetChanges,
+                )
+              }
+              role="switch"
+              type="button"
+            >
               <span>
                 <strong>セット間の自動変更</strong>
                 <small>セット終了時に編成を見直します。</small>
               </span>
-              <input
-                aria-label="セット間の自動変更"
-                checked={selection.substitutionPolicy.automaticSetChanges}
-                disabled={pending}
-                onChange={(event) =>
-                  updatePolicy("automaticSetChanges", event.target.checked)
-                }
-                type="checkbox"
-              />
-            </label>
+              <span className="team-policy-switch" aria-hidden="true">
+                <i />
+              </span>
+            </button>
           </div>
           <button
             className="team-primary-action"

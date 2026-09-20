@@ -16,6 +16,18 @@ async function expectPlayerHubNoHorizontalOverflow(page: Page) {
   expect(layout.hubScroll).toBeLessThanOrEqual(layout.hubClient + 1);
 }
 
+async function chooseMobileChoice(
+  page: Page,
+  triggerName: string,
+  dialogName: string,
+  optionName: string,
+) {
+  await page.getByLabel(triggerName).click();
+  const dialog = page.getByRole("dialog", { name: dialogName });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: optionName }).click();
+}
+
 for (const width of widths) {
   test(`${width}px Player Hub fits`, async ({ page }) => {
     await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
@@ -27,11 +39,11 @@ for (const width of widths) {
     await expect(page.getByLabel("並び替え")).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
 
-    await page.getByLabel("選手絞り込み").selectOption("grade-1");
+    await chooseMobileChoice(page, "選手絞り込み", "表示する選手", "1年");
     await expect(page.getByTestId("roster-player-row").first()).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
 
-    await page.getByLabel("選手絞り込み").selectOption("all");
+    await chooseMobileChoice(page, "選手絞り込み", "表示する選手", "全員");
     const firstPlayer = page.getByTestId("roster-player-row").first();
     await expect(firstPlayer).toBeVisible();
     await expect(
@@ -85,6 +97,14 @@ for (const width of widths) {
     );
 
     await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
+    await expectPlayerHubNoHorizontalOverflow(page);
+
+    await page.getByRole("button", { name: "チーム" }).click();
+    await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
+    await expectPlayerHubNoHorizontalOverflow(page);
+
+    await page.getByRole("button", { name: "編成" }).click();
+    await expect(page.getByRole("heading", { name: "チーム編成" })).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
   });
 }

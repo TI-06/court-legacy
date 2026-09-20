@@ -53,7 +53,11 @@ test("@critical registration, onboarding, mutation, and reload keep the cloud ga
   await expect(page.getByText("E2E高校", { exact: true })).toBeVisible();
 
   await page.getByLabel("略称").fill("E2E");
-  await page.getByLabel("都道府県").selectOption("region.chiba");
+  await page.getByLabel("都道府県").click();
+  await page
+    .getByRole("dialog", { name: "都道府県を選ぶ" })
+    .getByRole("button", { name: "千葉県" })
+    .click();
   await page.getByRole("button", { name: "学校を作成" }).click();
 
   await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
