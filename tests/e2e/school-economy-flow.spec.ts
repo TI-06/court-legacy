@@ -80,6 +80,11 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(primary.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
+    await expectSchoolNoHorizontalOverflow(page);
+
+    const management = page.getByRole("tablist", { name: "運営メニュー" });
+    await expect(management.getByRole("tab")).toHaveCount(2);
+    await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
 
