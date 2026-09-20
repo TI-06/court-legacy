@@ -48,7 +48,6 @@ describe("school management screen", () => {
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 1);
   });
 
-
   it("switches School management between facilities and coaches", () => {
     const state = createState();
 

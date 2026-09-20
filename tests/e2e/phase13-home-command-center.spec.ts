@@ -105,7 +105,6 @@ test("management task deep-links to the requested School view", async ({
   ).toBeVisible();
 });
 
-
 test("Home keeps secondary tasks in a game-style sheet", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

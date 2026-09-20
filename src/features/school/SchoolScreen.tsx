@@ -295,7 +295,7 @@ export function SchoolScreen({
           </div>
 
           {managementView === "facilities" ? (
-  <section
+            <section
               className="school-management-section"
               aria-labelledby="facility-heading"
             >
@@ -367,7 +367,7 @@ export function SchoolScreen({
           ) : null}
 
           {managementView === "staff" ? (
-  <section
+            <section
               className="school-management-section"
               aria-labelledby="staff-heading"
             >

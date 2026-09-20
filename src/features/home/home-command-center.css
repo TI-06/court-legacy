@@ -440,7 +440,6 @@ button.home-command-news-row {
   }
 }
 
-
 /* Phase25-3: Home is a one-screen mobile command desk, not a scrolling dashboard. */
 .home-screen {
   height: calc(100dvh - 60px - env(safe-area-inset-top, 0px));

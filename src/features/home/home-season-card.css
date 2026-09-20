@@ -102,7 +102,6 @@
   }
 }
 
-
 /* Phase25-3: keep season status readable inside the fixed Home command screen. */
 .home-command-summary__briefing .home-season-card {
   grid-template-columns: minmax(0, 1fr) auto auto;
