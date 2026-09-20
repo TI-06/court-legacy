@@ -374,3 +374,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase25-2 touch-first leadership controls */
+.team-dynamics__selectors .mobile-choice-trigger {
+  min-height: 50px;
+}
+.team-dynamics__selectors .mobile-choice-field__label {
+  font-size: 0.68rem;
+}

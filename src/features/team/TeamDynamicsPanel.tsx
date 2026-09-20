@@ -11,6 +11,7 @@ import type {
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import "./team-dynamics.css";
 
 interface TeamDynamicsPanelProps {
@@ -99,38 +100,40 @@ function LeadershipEditor({
         <span>保存はサーバーで確定</span>
       </div>
       <div className="team-dynamics__selectors">
-        <label>
-          <span>主将</span>
-          <select
-            aria-label="主将"
-            disabled={pending}
-            onChange={(event) => setCaptainPlayerId(event.target.value)}
-            value={captainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>副主将</span>
-          <select
-            aria-label="副主将"
-            disabled={pending}
-            onChange={(event) => setViceCaptainPlayerId(event.target.value)}
-            value={viceCaptainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
+        <MobileChoiceSheet
+          ariaLabel="主将"
+          disabled={pending}
+          label="主将"
+          onChange={setCaptainPlayerId}
+          options={[
+            { value: "", label: "未設定" },
+            ...candidates.map(({ player, suitability }) => ({
+              value: player.id,
+              label: playerName(player),
+              description: `${player.grade}年・${player.preferredPosition}`,
+              meta: `適性 ${suitability}`,
+            })),
+          ]}
+          title="主将を選ぶ"
+          value={captainPlayerId}
+        />
+        <MobileChoiceSheet
+          ariaLabel="副主将"
+          disabled={pending}
+          label="副主将"
+          onChange={setViceCaptainPlayerId}
+          options={[
+            { value: "", label: "未設定" },
+            ...candidates.map(({ player, suitability }) => ({
+              value: player.id,
+              label: playerName(player),
+              description: `${player.grade}年・${player.preferredPosition}`,
+              meta: `適性 ${suitability}`,
+            })),
+          ]}
+          title="副主将を選ぶ"
+          value={viceCaptainPlayerId}
+        />
       </div>
       <button
         className="team-dynamics__save"

@@ -29,6 +29,7 @@ import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
+import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
@@ -672,38 +673,23 @@ export function PlayerHubScreen({
       </section>
 
       <section className="player-hub__controls" aria-label="選手一覧の表示設定">
-        <label>
-          <span>絞り込み</span>
-          <select
-            aria-label="選手絞り込み"
-            onChange={(event) =>
-              setFilter(event.currentTarget.value as PlayerHubFilter)
-            }
-            value={filter}
-          >
-            {filterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>並び替え</span>
-          <select
-            aria-label="並び替え"
-            onChange={(event) =>
-              setSort(event.currentTarget.value as PlayerHubSort)
-            }
-            value={sort}
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <MobileChoiceSheet
+          ariaLabel="選手絞り込み"
+          label="絞り込み"
+          layout="grid"
+          onChange={setFilter}
+          options={filterOptions}
+          title="表示する選手"
+          value={filter}
+        />
+        <MobileChoiceSheet
+          ariaLabel="並び替え"
+          label="並び替え"
+          onChange={setSort}
+          options={sortOptions}
+          title="並び順"
+          value={sort}
+        />
       </section>
 
       <div className="player-roster">

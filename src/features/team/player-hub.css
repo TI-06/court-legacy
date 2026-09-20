@@ -80,30 +80,8 @@
   border-radius: 11px;
 }
 
-.player-hub__controls label {
-  display: grid;
+.player-hub__controls .mobile-choice-field {
   min-width: 0;
-  gap: 4px;
-}
-
-.player-hub__controls label > span {
-  color: var(--game-text-muted, #a9b8ca);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.player-hub__controls select {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  padding: 0 30px 0 10px;
-  color: var(--game-text, #f4f7fb);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  background: #102945;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 9px;
 }
 
 .player-roster {

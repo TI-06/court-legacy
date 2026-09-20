@@ -70,8 +70,7 @@
   font-size: 0.85rem;
   font-weight: 700;
 }
-.onboarding-form input,
-.onboarding-form select {
+.onboarding-form input {
   min-height: 50px;
   box-sizing: border-box;
   width: 100%;
@@ -131,4 +130,19 @@
   .onboarding-form {
     grid-template-columns: 1fr;
   }
+}
+
+/* Phase25-2 touch-first region picker */
+.onboarding-region-choice .mobile-choice-field__label {
+  color: #dce7ec;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.onboarding-region-choice .mobile-choice-trigger {
+  min-height: 50px;
+  color: #f5f8fa;
+  font-size: 16px;
+  background: #0a1921;
+  border-color: rgb(255 255 255 / 14%);
+  border-radius: 12px;
 }
