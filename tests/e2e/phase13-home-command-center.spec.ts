@@ -59,10 +59,10 @@ for (const viewport of mobileViewports) {
     }
 
     expect(buttonBox.x).toBeGreaterThanOrEqual(advanceBox.x - 1);
-    expect(buttonBox.x + buttonBox.viewport.width).toBeLessThanOrEqual(
-      advanceBox.x + advanceBox.viewport.width + 1,
+    expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(
+      advanceBox.x + advanceBox.width + 1,
     );
-    expect(buttonBox.viewport.width).toBeGreaterThanOrEqual(advanceBox.viewport.width - 2);
+    expect(buttonBox.width).toBeGreaterThanOrEqual(advanceBox.width - 2);
     expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(
       navigationBox.y + 1,
     );
@@ -114,7 +114,7 @@ test("management task deep-links to the requested School view", async ({
 });
 
 test("Home keeps secondary tasks in a game-style sheet", async ({ page }) => {
-  await page.setViewportSize({ viewport.width: 390, height: 844 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
   const allTasks = page.getByRole("button", { name: "やることをすべて見る" });
