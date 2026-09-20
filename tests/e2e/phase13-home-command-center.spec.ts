@@ -99,9 +99,17 @@ test("management task deep-links to the requested School view", async ({
 }) => {
   await page.goto("/");
 
-  const facilityTask = page.getByRole("button", {
+  let facilityTask = page.getByRole("button", {
     name: /強化可能な設備.*設備を見る/,
   });
+  if (!(await facilityTask.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "やることをすべて見る" }).click();
+    const taskSheet = page.getByRole("dialog", { name: "今週やること" });
+    await expect(taskSheet).toBeVisible();
+    facilityTask = taskSheet.getByRole("button", {
+      name: /強化可能な設備.*設備を見る/,
+    });
+  }
   await expect(facilityTask).toBeVisible();
   await facilityTask.click();
 
