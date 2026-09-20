@@ -403,7 +403,11 @@ for (const viewport of mobileViewports) {
     await expect(
       page.getByRole("heading", { name: "スタッフ" }),
     ).toBeVisible();
-    await expectLayoutFits(page, testInfo, `${viewport.width}-school-coaches`);
+    await expectLayoutFits(
+      page,
+      testInfo,
+      `${viewport.width}-school-coaches`,
+    );
     await page.getByRole("tab", { name: "設備", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "設備" }),

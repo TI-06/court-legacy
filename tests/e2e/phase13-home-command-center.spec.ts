@@ -36,9 +36,7 @@ for (const viewport of mobileViewports) {
       clientHeight: element.clientHeight,
       scrollHeight: element.scrollHeight,
     }));
-    expect(homeSize.scrollWidth).toBeLessThanOrEqual(
-      homeSize.clientWidth + 1,
-    );
+    expect(homeSize.scrollWidth).toBeLessThanOrEqual(homeSize.clientWidth + 1);
     expect(
       homeSize.scrollHeight,
       "Home should not require vertical scrolling",
