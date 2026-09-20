@@ -120,7 +120,9 @@ describe("Phase 13 Home command center", () => {
     expect(within(season).getByText("県内")).toBeVisible();
     expect(within(season).getByText("全国")).toBeVisible();
 
-    fireEvent.click(within(season).getByRole("button", { name: "記録を見る" }));
+    fireEvent.click(
+      within(season).getByRole("button", { name: "今季の記録を見る" }),
+    );
     expect(props.onCommand).toHaveBeenCalledWith({
       target: "school",
       view: "records",
