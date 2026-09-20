@@ -48,6 +48,35 @@ describe("school management screen", () => {
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 1);
   });
 
+
+  it("switches School management between facilities and coaches", () => {
+    const state = createState();
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    const managementTabs = screen.getByRole("tablist", {
+      name: "運営メニュー",
+    });
+    expect(
+      within(managementTabs).getByRole("tab", { name: "設備" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("heading", { name: "設備" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "スタッフ" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(
+      within(managementTabs).getByRole("tab", { name: "コーチ" }),
+    );
+    expect(
+      within(managementTabs).getByRole("tab", { name: "コーチ" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "設備" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
