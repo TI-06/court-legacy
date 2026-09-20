@@ -400,18 +400,10 @@ for (const viewport of mobileViewports) {
       .click();
 
     await page.getByRole("tab", { name: "コーチ", exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name: "スタッフ" }),
-    ).toBeVisible();
-    await expectLayoutFits(
-      page,
-      testInfo,
-      `${viewport.width}-school-coaches`,
-    );
+    await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
+    await expectLayoutFits(page, testInfo, `${viewport.width}-school-coaches`);
     await page.getByRole("tab", { name: "設備", exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name: "設備" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
 
     await page.getByRole("tab", { name: "記録", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-school-records`);

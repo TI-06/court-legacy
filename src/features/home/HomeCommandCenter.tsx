@@ -254,9 +254,7 @@ export function HomeCommandCenter({
         <div className="home-command-summary__briefing">
           {summary.official ? (
             <div
-              className={`home-command-objective home-official-card${
-                summary.official.due ? " is-due" : ""
-              }`}
+              className={`home-command-objective home-official-card${summary.official.due ? " is-due" : ""}`}
             >
               <div>
                 <span>次の公式戦</span>
@@ -282,7 +280,9 @@ export function HomeCommandCenter({
             <section className="home-season-card" aria-label="今季目標">
               <div className="home-season-card__goal">
                 <span>今季目標</span>
-                <strong>{summary.season.primaryGoal?.label ?? "目標達成"}</strong>
+                <strong>
+                  {summary.season.primaryGoal?.label ?? "目標達成"}
+                </strong>
                 <small>
                   {summary.season.primaryGoal?.progressLabel ?? "全目標達成"}・
                   {summary.season.achievedCount}/{summary.season.goalCount}達成
@@ -386,9 +386,7 @@ export function HomeCommandCenter({
           className="home-command-section home-command-news home-notification-list"
           aria-labelledby="home-command-news-heading"
         >
-          <div
-            className="home-command-section__heading home-command-section__heading--news"
-          >
+          <div className="home-command-section__heading home-command-section__heading--news">
             <div>
               <span>NEWS</span>
               <h3 id="home-command-news-heading">最近の動き</h3>
