@@ -439,3 +439,239 @@ button.home-command-news-row {
     padding-inline: 7px;
   }
 }
+
+
+/* Phase25-3: Home is a one-screen mobile command desk, not a scrolling dashboard. */
+.home-screen {
+  height: calc(100dvh - 60px - env(safe-area-inset-top, 0px));
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: stretch;
+  padding: 8px 12px calc(var(--bottom-navigation-height) + 8px);
+  gap: 8px;
+}
+
+.home-command-center {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: start;
+  gap: 8px;
+}
+
+.home-command-summary {
+  gap: 7px;
+  padding: 9px 10px;
+}
+
+.home-command-summary__briefing {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.home-command-summary__top h2 {
+  margin-top: 1px;
+  font-size: 15px;
+}
+
+.home-command-summary__top > strong {
+  padding-block: 4px;
+}
+
+.home-command-objective {
+  min-height: 52px;
+  padding: 7px 8px;
+}
+
+.home-command-objective strong {
+  font-size: 14px;
+}
+
+.home-command-objective small,
+.home-command-objective__action b {
+  font-size: 10px;
+}
+
+.home-command-objective__action button {
+  min-height: 30px;
+  padding-inline: 7px;
+  font-size: 10px;
+}
+
+.home-command-summary__metrics article {
+  padding: 6px 5px;
+}
+
+.home-command-summary__metrics strong {
+  margin: 2px 0 1px;
+  font-size: 16px;
+}
+
+.home-command-section {
+  padding: 8px;
+}
+
+.home-command-section__heading {
+  min-height: 28px;
+  margin-bottom: 5px;
+}
+
+.home-command-section__heading h3 {
+  font-size: 14px;
+}
+
+.home-command-section__heading-actions {
+  display: flex !important;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 6px !important;
+}
+
+.home-command-section__heading-actions small {
+  color: var(--game-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.home-command-section__heading-actions button,
+.home-command-section__heading--news > button {
+  min-height: 28px;
+  padding: 0 8px;
+  color: #ffc08a;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 8px;
+}
+
+.home-command-task-list {
+  gap: 5px;
+}
+
+.home-command-task {
+  min-height: 48px;
+  padding: 6px 7px;
+}
+
+.home-command-task__copy strong {
+  font-size: 12px;
+}
+
+.home-command-task__copy small {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.home-command-task > button,
+.home-command-offer-actions button {
+  min-height: 34px;
+  padding-inline: 7px;
+  font-size: 10px;
+}
+
+.home-command-news {
+  padding-block: 7px;
+}
+
+.home-command-news .home-command-section__heading {
+  min-height: 24px;
+  margin-bottom: 4px;
+}
+
+.home-command-news-row {
+  min-height: 38px;
+  padding: 5px 7px;
+}
+
+.home-command-news-row strong {
+  font-size: 11px;
+}
+
+.home-command-news-row small {
+  font-size: 10px;
+}
+
+.home-command-advance {
+  position: static;
+  margin: 0;
+}
+
+.home-command-advance .ui-sticky-action-bar {
+  padding: 0;
+}
+
+.home-command-advance .ui-sticky-action-bar button {
+  min-height: 46px;
+}
+
+.home-command-sheet-list {
+  display: grid;
+  gap: 7px;
+}
+
+@media (max-width: 340px) {
+  .home-screen {
+    padding-inline: 9px;
+  }
+
+  .home-command-summary,
+  .home-command-section {
+    padding-inline: 7px;
+  }
+
+  .home-command-task__badge {
+    display: none;
+  }
+
+  .home-command-task {
+    gap: 5px;
+  }
+}
+
+@media (max-height: 820px) {
+  .home-command-center {
+    gap: 6px;
+  }
+
+  .home-command-summary {
+    gap: 5px;
+    padding-block: 7px;
+  }
+
+  .home-command-summary__top > div > span,
+  .home-command-section__heading span {
+    display: none;
+  }
+
+  .home-command-summary__metrics small {
+    display: none;
+  }
+
+  .home-command-summary__metrics article {
+    padding-block: 5px;
+  }
+
+  .home-command-section {
+    padding-block: 6px;
+  }
+
+  .home-command-task {
+    min-height: 44px;
+    padding-block: 5px;
+  }
+
+  .home-command-news .home-command-section__heading {
+    display: none;
+  }
+
+  .home-command-news {
+    padding-block: 5px;
+  }
+
+  .home-command-news-row {
+    min-height: 36px;
+  }
+}

@@ -101,3 +101,57 @@
     padding-inline: 7px;
   }
 }
+
+
+/* Phase25-3: keep season status readable inside the fixed Home command screen. */
+.home-command-summary__briefing .home-season-card {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 6px 8px;
+  gap: 6px;
+}
+
+.home-command-summary__briefing .home-season-card__goal {
+  gap: 1px;
+}
+
+.home-command-summary__briefing .home-season-card__goal span,
+.home-command-summary__briefing .home-season-card__goal small,
+.home-command-summary__briefing .home-season-card__ranks span,
+.home-command-summary__briefing .home-season-card__ranks small {
+  font-size: 9px;
+}
+
+.home-command-summary__briefing .home-season-card__goal strong {
+  font-size: 12px;
+}
+
+.home-command-summary__briefing .home-season-card__ranks {
+  grid-column: auto;
+  grid-template-columns: repeat(2, auto);
+  background: transparent;
+}
+
+.home-command-summary__briefing .home-season-card__ranks article {
+  padding: 2px 5px;
+}
+
+.home-command-summary__briefing .home-season-card__ranks strong {
+  margin-top: 0;
+  font-size: 11px;
+}
+
+.home-command-summary__briefing .home-season-card > button {
+  min-height: 30px;
+  padding-inline: 7px;
+  font-size: 10px;
+}
+
+@media (max-width: 340px) {
+  .home-command-summary__briefing .home-season-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-command-summary__briefing .home-season-card__ranks {
+    display: none;
+  }
+}
