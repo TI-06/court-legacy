@@ -100,11 +100,15 @@ for (const width of widths) {
     await expectPlayerHubNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "チーム" }).click();
-    await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "チーム状態" }),
+    ).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "編成" }).click();
-    await expect(page.getByRole("heading", { name: "チーム編成" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "チーム編成" }),
+    ).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
   });
 }
