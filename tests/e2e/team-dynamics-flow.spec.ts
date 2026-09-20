@@ -142,10 +142,16 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
   await expect(page.getByLabel("チーム結束力")).toContainText("1");
-  await page.getByLabel("主将", { exact: true }).selectOption(captainPlayerId);
+  await page.getByRole("button", { name: "主将", exact: true }).click();
   await page
-    .getByLabel("副主将", { exact: true })
-    .selectOption(viceCaptainPlayerId);
+    .getByRole("dialog", { name: "主将を選ぶ" })
+    .getByRole("button", { name: `${captainName}を主将にする` })
+    .click();
+  await page.getByRole("button", { name: "副主将", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "副主将を選ぶ" })
+    .getByRole("button", { name: `${viceCaptainName}を副主将にする` })
+    .click();
   await page.getByRole("button", { name: "役職を保存" }).click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
   await expect(
@@ -233,8 +239,12 @@ for (const width of [320, 360, 390, 480]) {
     await expect(
       page.getByRole("heading", { name: "チーム状態" }),
     ).toBeVisible();
-    await expect(page.getByLabel("主将", { exact: true })).toBeVisible();
-    await expect(page.getByLabel("副主将", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "主将", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "副主将", exact: true }),
+    ).toBeVisible();
     await expectNoBodyOverflow(page);
   });
 }

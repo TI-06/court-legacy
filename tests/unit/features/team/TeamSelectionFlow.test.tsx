@@ -124,12 +124,12 @@ describe("team selection direct-touch UI", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: "怪我時はベンチを許可" }),
+      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
     );
     await waitFor(() =>
       expect(
-        screen.getByRole("checkbox", { name: "怪我時はベンチを許可" }),
-      ).not.toBeChecked(),
+        screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+      ).toHaveAttribute("aria-checked", "false"),
     );
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
@@ -153,8 +153,8 @@ describe("team selection direct-touch UI", () => {
       ).getByRole("button", { name: "閉じる" }),
     );
     expect(
-      screen.getByRole("checkbox", { name: "怪我時はベンチを許可" }),
-    ).not.toBeChecked();
+      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+    ).toHaveAttribute("aria-checked", "false");
   });
 
   it("can rebuild and safety-adjust the lineup", async () => {

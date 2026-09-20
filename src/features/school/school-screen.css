@@ -1107,3 +1107,37 @@
 .facility-upgrade-option:disabled {
   opacity: 0.45;
 }
+
+/* Phase25-2: assistant coach specialty as game choices */
+.assistant-coach-specialty {
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+.assistant-coach-specialty > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+.assistant-coach-specialty__choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+.assistant-coach-specialty__choices button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 5px 4px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 0.65rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9px;
+}
+.assistant-coach-specialty__choices button[aria-pressed="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  border-color: var(--game-accent, #f47a18);
+  box-shadow: 0 5px 14px rgb(244 122 24 / 18%);
+}

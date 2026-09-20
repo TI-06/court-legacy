@@ -89,12 +89,22 @@ describe("TeamDynamicsPanel", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("主将"), {
-      target: { value: captainPlayerId },
-    });
-    fireEvent.change(screen.getByLabelText("副主将"), {
-      target: { value: viceCaptainPlayerId },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "主将" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "主将を選ぶ" })).getByRole(
+        "button",
+        { name: `${playerName(state.players[captainPlayerId]!)}を主将にする` },
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "副主将" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "副主将を選ぶ" })).getByRole(
+        "button",
+        {
+          name: `${playerName(state.players[viceCaptainPlayerId]!)}を副主将にする`,
+        },
+      ),
+    );
     fireEvent.click(screen.getByRole("button", { name: "役職を保存" }));
 
     expect(onAssignLeadership).toHaveBeenCalledWith(

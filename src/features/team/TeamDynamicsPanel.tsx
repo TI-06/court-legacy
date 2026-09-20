@@ -11,6 +11,7 @@ import type {
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { BottomSheet } from "../../ui/BottomSheet";
 import "./team-dynamics.css";
 
 interface TeamDynamicsPanelProps {
@@ -72,6 +73,20 @@ function LeadershipEditor({
   const [viceCaptainPlayerId, setViceCaptainPlayerId] = useState<string>(
     authoritativeViceCaptainPlayerId ?? "",
   );
+  const [pickerRole, setPickerRole] = useState<"captain" | "vice" | null>(null);
+  const captainCandidate = candidates.find(
+    ({ player }) => player.id === captainPlayerId,
+  );
+  const viceCaptainCandidate = candidates.find(
+    ({ player }) => player.id === viceCaptainPlayerId,
+  );
+  const selectedRolePlayerId =
+    pickerRole === "captain"
+      ? captainPlayerId
+      : pickerRole === "vice"
+        ? viceCaptainPlayerId
+        : "";
+  const pickerRoleLabel = pickerRole === "captain" ? "主将" : "副主将";
   const canSave =
     !pending &&
     captainPlayerId.length > 0 &&
@@ -99,39 +114,95 @@ function LeadershipEditor({
         <span>保存はサーバーで確定</span>
       </div>
       <div className="team-dynamics__selectors">
-        <label>
+        <button
+          aria-label="主将"
+          className="team-dynamics__role-button"
+          disabled={pending}
+          onClick={() => setPickerRole("captain")}
+          type="button"
+        >
           <span>主将</span>
-          <select
-            aria-label="主将"
-            disabled={pending}
-            onChange={(event) => setCaptainPlayerId(event.target.value)}
-            value={captainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
+          <strong>
+            {captainCandidate
+              ? playerName(captainCandidate.player)
+              : "選択する"}
+          </strong>
+          <small>
+            {captainCandidate
+              ? `${captainCandidate.player.grade}年・適性${captainCandidate.suitability}`
+              : "チームを引っ張る選手"}
+          </small>
+          <b>変更 ›</b>
+        </button>
+        <button
+          aria-label="副主将"
+          className="team-dynamics__role-button"
+          disabled={pending}
+          onClick={() => setPickerRole("vice")}
+          type="button"
+        >
           <span>副主将</span>
-          <select
-            aria-label="副主将"
-            disabled={pending}
-            onChange={(event) => setViceCaptainPlayerId(event.target.value)}
-            value={viceCaptainPlayerId}
-          >
-            <option value="">選択してください</option>
-            {candidates.map(({ player, suitability }) => (
-              <option key={player.id} value={player.id}>
-                {playerName(player)}・{player.grade}年・適性{suitability}
-              </option>
-            ))}
-          </select>
-        </label>
+          <strong>
+            {viceCaptainCandidate
+              ? playerName(viceCaptainCandidate.player)
+              : "選択する"}
+          </strong>
+          <small>
+            {viceCaptainCandidate
+              ? `${viceCaptainCandidate.player.grade}年・適性${viceCaptainCandidate.suitability}`
+              : "主将を支える選手"}
+          </small>
+          <b>変更 ›</b>
+        </button>
       </div>
+
+      <BottomSheet
+        description="主将適性と学年を見て役職を選びます。保存するまでは確定しません。"
+        onClose={() => setPickerRole(null)}
+        open={pickerRole !== null}
+        title={`${pickerRoleLabel}を選ぶ`}
+      >
+        <div
+          aria-label="役職候補"
+          className="team-dynamics__role-candidates"
+          role="group"
+        >
+          {candidates.map(({ player, suitability }, index) => {
+            const selected = player.id === selectedRolePlayerId;
+            const blocked =
+              pickerRole === "captain"
+                ? player.id === viceCaptainPlayerId
+                : player.id === captainPlayerId;
+            return (
+              <button
+                aria-label={`${playerName(player)}を${pickerRoleLabel}にする`}
+                aria-pressed={selected}
+                disabled={pending || blocked}
+                key={player.id}
+                onClick={() => {
+                  if (pickerRole === "captain") {
+                    setCaptainPlayerId(player.id);
+                  } else if (pickerRole === "vice") {
+                    setViceCaptainPlayerId(player.id);
+                  }
+                  setPickerRole(null);
+                }}
+                type="button"
+              >
+                <span>{index + 1}</span>
+                <div>
+                  <strong>{playerName(player)}</strong>
+                  <small>
+                    {player.grade}年・{player.preferredPosition}
+                  </small>
+                </div>
+                <b>適性 {suitability}</b>
+                <em>{selected ? "選択中" : blocked ? "別役職" : "選ぶ"}</em>
+              </button>
+            );
+          })}
+        </div>
+      </BottomSheet>
       <button
         className="team-dynamics__save"
         disabled={!canSave}

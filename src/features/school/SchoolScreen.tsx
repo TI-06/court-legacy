@@ -58,6 +58,12 @@ const assistantCoachSpecialtyLabels: Record<AssistantCoachSpecialty, string> = {
   physical: "フィジカル",
 };
 
+const assistantCoachSpecialtyOptions = [
+  ["attack", "攻撃"],
+  ["defense", "守備"],
+  ["physical", "フィジカル"],
+] as const satisfies readonly (readonly [AssistantCoachSpecialty, string])[];
+
 const assistantCoachRankLabels: Record<AssistantCoachRank, string> = {
   beginner: "初級",
   intermediate: "中級",
@@ -398,25 +404,32 @@ export function SchoolScreen({
                       ) : null}
                     </div>
                     {option.rank !== "beginner" ? (
-                      <label className="assistant-coach-specialty">
-                        専門
-                        <select
-                          aria-label={`${option.name}の専門`}
-                          onChange={(event) =>
-                            setCoachSpecialties((current) => ({
-                              ...current,
-                              [option.rank]: event.target
-                                .value as AssistantCoachSpecialty,
-                            }))
-                          }
-                          value={specialty ?? ""}
-                        >
-                          <option value="">選択してください</option>
-                          <option value="attack">攻撃</option>
-                          <option value="defense">守備</option>
-                          <option value="physical">フィジカル</option>
-                        </select>
-                      </label>
+                      <div
+                        aria-label={`${option.name}の専門`}
+                        className="assistant-coach-specialty"
+                        role="group"
+                      >
+                        <span>専門</span>
+                        <div className="assistant-coach-specialty__choices">
+                          {assistantCoachSpecialtyOptions.map(
+                            ([specialtyId, label]) => (
+                              <button
+                                aria-pressed={specialty === specialtyId}
+                                key={specialtyId}
+                                onClick={() =>
+                                  setCoachSpecialties((current) => ({
+                                    ...current,
+                                    [option.rank]: specialtyId,
+                                  }))
+                                }
+                                type="button"
+                              >
+                                {label}
+                              </button>
+                            ),
+                          )}
+                        </div>
+                      </div>
                     ) : null}
                     <div className="assistant-coach-card__footer">
                       <small>

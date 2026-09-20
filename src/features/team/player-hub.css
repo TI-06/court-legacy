@@ -1133,3 +1133,57 @@
       background 140ms ease;
   }
 }
+
+/* Phase25-2: tap-first roster controls */
+.player-hub__controls {
+  grid-template-columns: 1fr;
+  padding: 8px 0;
+  gap: 8px;
+  overflow: hidden;
+}
+.player-hub__control-block {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+.player-hub__control-block > span {
+  padding-inline: 9px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  font-weight: 900;
+}
+.player-hub__chip-rail {
+  display: flex;
+  min-width: 0;
+  padding: 0 9px 2px;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.player-hub__chip-rail::-webkit-scrollbar {
+  display: none;
+}
+.player-hub__chip-rail button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 11px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  scroll-snap-align: start;
+}
+.player-hub__chip-rail button[aria-pressed="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  border-color: var(--game-accent, #f47a18);
+  box-shadow: 0 5px 14px rgb(244 122 24 / 20%);
+}
+.player-hub__chip-rail button:focus-visible {
+  outline: 2px solid #ffb46f;
+  outline-offset: 1px;
+}

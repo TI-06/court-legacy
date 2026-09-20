@@ -151,11 +151,11 @@ describe("PlayerHubScreen", () => {
       (id) => state.players[id]!.grade === 1,
     ).length;
 
-    const filter = screen.getByLabelText("選手絞り込み");
-    const sort = screen.getByLabelText("並び替え");
+    const filter = screen.getByRole("group", { name: "選手絞り込み" });
+    const sort = screen.getByRole("group", { name: "並び替え" });
 
-    expect(within(filter).getByRole("option", { name: "全員" })).toBeVisible();
     for (const label of [
+      "全員",
       "1年",
       "2年",
       "3年",
@@ -169,7 +169,7 @@ describe("PlayerHubScreen", () => {
       "重点育成",
       "怪我中",
     ]) {
-      expect(within(filter).getByRole("option", { name: label })).toBeVisible();
+      expect(within(filter).getByRole("button", { name: label })).toBeVisible();
     }
     for (const label of [
       "総合力順",
@@ -178,10 +178,14 @@ describe("PlayerHubScreen", () => {
       "直近4週の成長順",
       "学年順",
     ]) {
-      expect(within(sort).getByRole("option", { name: label })).toBeVisible();
+      expect(within(sort).getByRole("button", { name: label })).toBeVisible();
     }
 
-    fireEvent.change(filter, { target: { value: "grade-1" } });
+    fireEvent.click(within(filter).getByRole("button", { name: "1年" }));
+    expect(within(filter).getByRole("button", { name: "1年" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     expect(screen.getAllByTestId("roster-player-row")).toHaveLength(
       expectedGradeOne,
     );
@@ -200,9 +204,12 @@ describe("PlayerHubScreen", () => {
     }
     renderPlayerHub(state);
 
-    fireEvent.change(screen.getByLabelText("選手絞り込み"), {
-      target: { value: "injured" },
-    });
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "選手絞り込み" })).getByRole(
+        "button",
+        { name: "怪我中" },
+      ),
+    );
 
     expect(screen.queryAllByTestId("roster-player-row")).toHaveLength(0);
     expect(screen.getByText("条件に該当する選手はいません")).toBeVisible();
@@ -230,9 +237,12 @@ describe("PlayerHubScreen", () => {
     ];
     renderPlayerHub(state);
 
-    fireEvent.change(screen.getByLabelText("並び替え"), {
-      target: { value: "growth-4w" },
-    });
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "並び替え" })).getByRole(
+        "button",
+        { name: "直近4週の成長順" },
+      ),
+    );
 
     const rows = screen.getAllByTestId("roster-player-row");
     expect(

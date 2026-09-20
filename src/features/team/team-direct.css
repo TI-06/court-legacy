@@ -758,3 +758,65 @@
   background: rgb(244 122 24 / 11%);
   border-color: rgb(244 122 24 / 28%);
 }
+
+/* Phase25-2: game-style substitution policy switches */
+.team-screen--direct .policy-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+  padding: 8px 9px;
+  gap: 10px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 10px;
+}
+.team-screen--direct .policy-list > button > span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.team-screen--direct .policy-list > button[aria-checked="true"] {
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 9%), transparent 70%),
+    rgb(255 255 255 / 4%);
+  border-color: rgb(244 122 24 / 28%);
+}
+.policy-toggle {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 26px;
+  justify-self: end;
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.policy-toggle i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: #9aa8b6;
+  border-radius: 999px;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+.policy-list > button[aria-checked="true"] .policy-toggle {
+  background: rgb(244 122 24 / 30%);
+  border-color: rgb(244 122 24 / 55%);
+}
+.policy-list > button[aria-checked="true"] .policy-toggle i {
+  background: var(--game-accent, #f47a18);
+  transform: translateX(18px);
+}
