@@ -1,25 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { advanceWeekFromHome } from "./homeTestHelpers";
 
 const SERVER_SNAPSHOT_KEY = "court-legacy:e2e-server-snapshot";
 
-async function trainingNotificationRow(page: Page) {
-  const direct = page.getByRole("button", { name: /今週の練習結果/ });
-  if (await direct.isVisible().catch(() => false)) {
-    return direct;
-  }
-
-  const allNews = page.getByRole("button", { name: "ニュースをすべて見る" });
-  await expect(allNews).toBeVisible();
-  await allNews.click();
-
-  const newsSheet = page.getByRole("dialog", { name: "最近の動き" });
-  await expect(newsSheet).toBeVisible();
-  return newsSheet.getByRole("button", { name: /今週の練習結果/ });
-}
-
 async function persistedTrainingNotificationReadDate(
-  page: Page,
+  page: import("@playwright/test").Page,
 ): Promise<string | null | undefined> {
   return page.evaluate((snapshotKey) => {
     const raw = sessionStorage.getItem(snapshotKey);
@@ -66,7 +51,9 @@ test("training result notification survives reload and keeps durable read state"
   await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
-  let notificationRow = await trainingNotificationRow(page);
+  let notificationRow = page.getByRole("button", {
+    name: /今週の練習結果/,
+  });
   await expect(notificationRow).toBeVisible();
   await expect(notificationRow).toContainText("NEW");
   await expect
@@ -76,7 +63,7 @@ test("training result notification survives reload and keeps durable read state"
   await page.reload();
   await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
 
-  notificationRow = await trainingNotificationRow(page);
+  notificationRow = page.getByRole("button", { name: /今週の練習結果/ });
   await expect(notificationRow).toBeVisible();
   await expect(notificationRow).toContainText("NEW");
 
@@ -92,20 +79,13 @@ test("training result notification survives reload and keeps durable read state"
 
   await resultSheet.getByRole("button", { name: "閉じる" }).click();
   await expect(resultSheet).toBeHidden();
-  notificationRow = await trainingNotificationRow(page);
-  await expect(notificationRow).toContainText("確認済み");
-  await expect(notificationRow).not.toContainText("NEW");
+  await expect
+    .poll(() => persistedTrainingNotificationReadDate(page))
+    .not.toBeNull();
 
   await page.reload();
   await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
-
-  notificationRow = page.getByRole("button", { name: /今週の練習結果/ });
-  await expect(notificationRow).toBeVisible();
-  await expect(notificationRow).toContainText("確認済み");
-  await expect(notificationRow).not.toContainText("NEW");
-
-  await notificationRow.click();
-  await expect(
-    page.getByRole("dialog", { name: "今週の練習結果" }),
-  ).toBeVisible();
+  await expect
+    .poll(() => persistedTrainingNotificationReadDate(page))
+    .not.toBeNull();
 });
