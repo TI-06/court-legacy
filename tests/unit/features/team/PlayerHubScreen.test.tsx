@@ -726,7 +726,9 @@ describe("PlayerHubScreen", () => {
       ),
     ).toBeVisible();
     expect(
-      within(dialog).getByText(`${restPlayer.lastName} ${restPlayer.firstName}`),
+      within(dialog).getByText(
+        `${restPlayer.lastName} ${restPlayer.firstName}`,
+      ),
     ).toBeVisible();
     expect(within(dialog).getByText(/怪我中のため回復を優先/)).toBeVisible();
 
@@ -748,5 +750,4 @@ describe("PlayerHubScreen", () => {
       ]),
     );
   });
-
 });
