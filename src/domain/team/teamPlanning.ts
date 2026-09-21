@@ -1,11 +1,16 @@
 import type { GameState } from "../model/GameState";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
-import type { SavedLineupSlot, TeamPlanningState } from "./teamPlanningTypes";
+import type {
+  PlayerDevelopmentGoal,
+  SavedLineupSlot,
+  TeamPlanningState,
+} from "./teamPlanningTypes";
 import { validateTeamSelection } from "./validateTeamSelection";
 
 export type TeamPlanningValidationCode =
   | "invalid-development-priorities"
+  | "invalid-development-goal"
   | "invalid-saved-lineup-name"
   | "invalid-saved-lineup";
 
@@ -22,6 +27,7 @@ export class TeamPlanningValidationError extends Error {
 export function createDefaultTeamPlanning(): TeamPlanningState {
   return {
     developmentPriorityPlayerIds: [],
+    developmentGoalsByPlayerId: {},
     savedLineups: [],
   };
 }
@@ -73,6 +79,35 @@ export function setDevelopmentPriorities(
     teamPlanning: {
       ...state.teamPlanning,
       developmentPriorityPlayerIds: [...playerIds],
+    },
+  };
+}
+
+export function setPlayerDevelopmentGoal(
+  state: GameState,
+  playerId: PlayerId,
+  goal: PlayerDevelopmentGoal | null,
+): GameState {
+  const school = state.schools[state.userSchoolId];
+  if (!school || !school.playerIds.includes(playerId)) {
+    throw new TeamPlanningValidationError(
+      "invalid-development-goal",
+      "育成目標には現在所属している選手だけを選択できます",
+    );
+  }
+
+  const current = { ...(state.teamPlanning.developmentGoalsByPlayerId ?? {}) };
+  if (goal) {
+    current[playerId] = { ...goal };
+  } else {
+    delete current[playerId];
+  }
+
+  return {
+    ...state,
+    teamPlanning: {
+      ...state.teamPlanning,
+      developmentGoalsByPlayerId: current,
     },
   };
 }
