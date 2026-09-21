@@ -465,7 +465,8 @@ export function PlayerHubScreen({
     );
     const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
     const selectedGoal =
-      state.teamPlanning.developmentGoalsByPlayerId?.[selectedPlayer.id] ?? null;
+      state.teamPlanning.developmentGoalsByPlayerId?.[selectedPlayer.id] ??
+      null;
     const selectedGoalProgress = selectedGoal
       ? getPlayerDevelopmentGoalProgress(selectedPlayer, selectedGoal)
       : null;
@@ -579,10 +580,7 @@ export function PlayerHubScreen({
             className="player-detail__tab-panel"
             data-testid="player-detail-growth"
           >
-            <section
-              className="player-development-goal"
-              aria-label="育成目標"
-            >
+            <section className="player-development-goal" aria-label="育成目標">
               <div className="player-development-goal__heading">
                 <div>
                   <span>育成目標</span>
