@@ -18,8 +18,8 @@ function createClient(result: RpcResult): MockSupabaseAdminClient {
   } as unknown as MockSupabaseAdminClient;
 }
 
-describe("SupabaseGameStore Phase22 save stability", () => {
-  it("keeps the exact operation response as the replay payload", async () => {
+describe("SupabaseGameStore save stability", () => {
+  it("avoids uploading the duplicate full response on a normal save", async () => {
     const snapshot = createSoakSnapshot("phase22-save-store");
     const operationId = "phase22-op-001";
     const outcome = { weekAdvanced: true, marker: "replay-contract" };
@@ -32,7 +32,7 @@ describe("SupabaseGameStore Phase22 save stability", () => {
       outcome,
     };
     const client = createClient({
-      data: [{ response, replayed: false }],
+      data: [{ response: null, replayed: false }],
       error: null,
     });
     const store = new SupabaseGameStore(client);
@@ -48,14 +48,16 @@ describe("SupabaseGameStore Phase22 save stability", () => {
       }),
     ).resolves.toEqual({ response, replayed: false });
 
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation", {
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v2", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
       p_state: response.game.state,
       p_team_selection: response.game.teamSelection,
-      p_response: response,
+      p_outcome: outcome,
     });
+    const rpcPayload = vi.mocked(client.rpc).mock.calls[0]?.[1];
+    expect(rpcPayload).not.toHaveProperty("p_response");
   });
 
   it("returns an exact replay response from the operation RPC", async () => {

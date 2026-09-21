@@ -108,14 +108,6 @@ export function createScoutingRecruitmentHandler(
       return invalidRequest();
     }
 
-    const cached = await deps.gameStore.getOperationResponse(
-      user.id,
-      parsed.data.operationId,
-    );
-    if (cached) {
-      return json(cached);
-    }
-
     const snapshot = await deps.gameStore.getSnapshot(user.id);
     if (!snapshot) {
       return jsonError(
@@ -125,6 +117,13 @@ export function createScoutingRecruitmentHandler(
       );
     }
     if (snapshot.revision !== parsed.data.revision) {
+      const cached = await deps.gameStore.getOperationResponse(
+        user.id,
+        parsed.data.operationId,
+      );
+      if (cached) {
+        return json(cached);
+      }
       return revisionConflict();
     }
 

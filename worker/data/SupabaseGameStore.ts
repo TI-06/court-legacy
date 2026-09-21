@@ -278,13 +278,13 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const { data, error } = await this.client.rpc("apply_game_operation", {
+    const { data, error } = await this.client.rpc("apply_game_operation_v2", {
       p_user_id: input.userId,
       p_operation_id: input.operationId,
       p_expected_revision: input.expectedRevision,
       p_state: input.state,
       p_team_selection: input.teamSelection,
-      p_response: input.response,
+      p_outcome: input.response.outcome ?? null,
     });
 
     if (error && isRevisionConflict(error)) {
@@ -304,9 +304,18 @@ export class SupabaseGameStore implements GameStore {
     }
 
     const result = parsed.data[0]!;
+    if (!result.replayed) {
+      return {
+        response: input.response,
+        replayed: false,
+      };
+    }
+    if (result.response == null) {
+      throw new GameStoreDataError("replayed game operation response is missing");
+    }
     return {
       response: mapOperationResponse(result.response),
-      replayed: result.replayed,
+      replayed: true,
     };
   }
 }

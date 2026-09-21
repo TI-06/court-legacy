@@ -109,6 +109,7 @@ describe("scouting recruitment route", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(gameStore.getOperationResponse).not.toHaveBeenCalled();
     expect(gameStore.applyOperation).toHaveBeenCalledTimes(1);
     const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
     expect(persisted.expectedRevision).toBe(7);
@@ -131,8 +132,8 @@ describe("scouting recruitment route", () => {
     });
   });
 
-  it("returns a cached duplicate operation without another scouting or game mutation", async () => {
-    const snapshot = createSnapshot();
+  it("returns a cached duplicate operation after the save revision has advanced", async () => {
+    const snapshot = createSnapshot(8);
     const gameStore = createGameStore(snapshot);
     const scouting = createScoutingStore(snapshot);
     const candidate = scouting.pool.candidates[0]!;
@@ -162,7 +163,7 @@ describe("scouting recruitment route", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(cached);
-    expect(gameStore.getSnapshot).not.toHaveBeenCalled();
+    expect(gameStore.getSnapshot).toHaveBeenCalledWith("user-123");
     expect(scouting.store.getCandidatePool).not.toHaveBeenCalled();
     expect(gameStore.applyOperation).not.toHaveBeenCalled();
   });
@@ -186,6 +187,10 @@ describe("scouting recruitment route", () => {
     );
 
     expect(response.status).toBe(409);
+    expect(gameStore.getOperationResponse).toHaveBeenCalledWith(
+      "user-123",
+      "recruit-op-stale",
+    );
     expect((await response.json()).error.code).toBe("revision_conflict");
     expect(scouting.store.getCandidatePool).not.toHaveBeenCalled();
     expect(gameStore.applyOperation).not.toHaveBeenCalled();

@@ -109,14 +109,6 @@ export function createGameActionHandler(
     }
     const actionRequest = parsed.data as unknown as GameActionRequest;
 
-    const cached = await store.getOperationResponse(
-      user.id,
-      actionRequest.operationId,
-    );
-    if (cached) {
-      return json(cached);
-    }
-
     const loadedSnapshot = await store.getSnapshot(user.id);
     if (!loadedSnapshot) {
       return jsonError(
@@ -127,6 +119,13 @@ export function createGameActionHandler(
     }
     const snapshot = compactGameSnapshot(loadedSnapshot);
     if (snapshot.revision !== actionRequest.revision) {
+      const cached = await store.getOperationResponse(
+        user.id,
+        actionRequest.operationId,
+      );
+      if (cached) {
+        return json(cached);
+      }
       return revisionConflict();
     }
 

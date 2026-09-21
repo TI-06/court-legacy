@@ -72,6 +72,15 @@ function notFound(): Response {
   return jsonError(404, "not_found", "API route not found");
 }
 
+function logServerError(request: Request, error: unknown): void {
+  const path = new URL(request.url).pathname;
+  const detail =
+    error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : "unknown server error";
+  console.error("[court-legacy] server_error", request.method, path, detail);
+}
+
 export function createRouter(
   deps: WorkerDependencies,
 ): (request: Request) => Promise<Response> {
@@ -181,7 +190,8 @@ export function createRouter(
       ) {
         return await accountLogin(request);
       }
-    } catch {
+    } catch (error) {
+      logServerError(request, error);
       return jsonError(500, "server_error", "サーバー処理に失敗しました");
     }
 
@@ -299,7 +309,8 @@ export function createRouter(
         return await pvpHistory(request, user);
       }
       return notFound();
-    } catch {
+    } catch (error) {
+      logServerError(request, error);
       return jsonError(500, "server_error", "サーバー処理に失敗しました");
     }
   };
