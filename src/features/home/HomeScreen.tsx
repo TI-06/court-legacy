@@ -190,7 +190,6 @@ export function HomeScreen({
         }}
       />
 
-
       <BottomSheet
         description="練習試合の申し込みが未回答です。このまま次週へ進みますか？"
         onClose={() => setAdvanceWarningOpen(false)}
