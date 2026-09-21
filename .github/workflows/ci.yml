@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase26-4 formatting diagnostic
+        run: |
+          npx prettier src/domain/training/coachTrainingRecommendations.ts src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/domain/training/coachTrainingRecommendations.test.ts tests/unit/features/team/PlayerHubScreen.test.tsx --write
+          git diff -- src/domain/training/coachTrainingRecommendations.ts src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/unit/domain/training/coachTrainingRecommendations.test.ts tests/unit/features/team/PlayerHubScreen.test.tsx
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
