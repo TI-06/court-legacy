@@ -64,7 +64,9 @@ export function recruitmentBaseInterest(
   const demandPenalty = (evaluationStars - 1) * 12;
 
   return clamp(
-    Math.round(70 + reputationBonus + charismaBonus + facilityBonus - demandPenalty),
+    Math.round(
+      70 + reputationBonus + charismaBonus + facilityBonus - demandPenalty,
+    ),
     25,
     95,
   );
@@ -110,10 +112,7 @@ export interface RecruitmentActionResult {
   state: GameState;
   applied: boolean;
   reason:
-    | "applied"
-    | "already-committed"
-    | "visit-limit"
-    | "recommendation-limit";
+    "applied" | "already-committed" | "visit-limit" | "recommendation-limit";
 }
 
 export function applyRecruitmentAction(
