@@ -22,6 +22,11 @@ import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
 } from "../../domain/team/teamPlanningTypes";
+import {
+  buildCoachTrainingRecommendations,
+  coachRecommendationQuality,
+  coachRecommendationQualityLabel,
+} from "../../domain/training/coachTrainingRecommendations";
 import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import {
@@ -243,6 +248,8 @@ export function PlayerHubScreen({
   const [trainingDrafts, setTrainingDrafts] = useState<Record<string, string>>(
     {},
   );
+  const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
+    useState(false);
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
 
@@ -258,6 +265,11 @@ export function PlayerHubScreen({
     () => selectPlayerHubRoster({ state, selection, filter, sort }),
     [state, selection, filter, sort],
   );
+  const coachRecommendations = useMemo(
+    () => buildCoachTrainingRecommendations(state),
+    [state],
+  );
+  const recommendationQuality = coachRecommendationQuality(state);
   const selectedPlayer = selectedPlayerId
     ? (state.players[selectedPlayerId] ?? null)
     : null;
