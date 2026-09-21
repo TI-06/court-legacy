@@ -316,11 +316,19 @@ export function ScoutingScreen({
           {activeReports.map((report) => {
             const isCommitted = committed.has(report.candidateId);
             const isRecruiting = recruitingCandidateId === report.candidateId;
+            const hasCompetition =
+              (report.recruitment?.competitorSchoolNames.length ?? 0) > 0;
             const buttonLabel = isCommitted
               ? "獲得済み"
               : isRecruiting
-                ? "入学交渉中…"
-                : "獲得候補にする";
+                ? recruitingAction === "visit"
+                  ? "訪問中…"
+                  : recruitingAction === "recommendation"
+                    ? "推薦交渉中…"
+                    : "入学交渉中…"
+                : hasCompetition
+                  ? "入学交渉"
+                  : "獲得候補にする";
             const researchPending =
               shopPendingItemId === "scout-research" &&
               shopPendingCandidateId === report.candidateId;
@@ -504,10 +512,7 @@ export function ScoutingScreen({
                       recruitingCandidateId !== null
                     }
                     onClick={() => {
-                      if (
-                        report.recruitment &&
-                        report.recruitment.competitorSchoolNames.length > 0
-                      ) {
+                      if (hasCompetition) {
                         setNegotiatingCandidateId(report.candidateId);
                         return;
                       }
@@ -515,18 +520,7 @@ export function ScoutingScreen({
                     }}
                     type="button"
                   >
-                    {isCommitted
-                      ? "獲得済み"
-                      : isRecruiting
-                        ? recruitingAction === "visit"
-                          ? "訪問中…"
-                          : recruitingAction === "recommendation"
-                            ? "推薦交渉中…"
-                            : "入学交渉中…"
-                        : report.recruitment &&
-                            report.recruitment.competitorSchoolNames.length > 0
-                          ? "入学交渉"
-                          : "獲得候補にする"}
+                    {buttonLabel}
                   </button>
                 </div>
               </article>
