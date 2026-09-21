@@ -78,7 +78,7 @@ function responseFor(
   };
 }
 
-function setOverallTrainingFromRoster(): void {
+function saveAttackTrainingFromRoster(): void {
   fireEvent.click(screen.getByRole("button", { name: "選手" }));
   const detailButton = screen.getAllByRole("button", {
     name: /^選手詳細 /,
@@ -95,8 +95,9 @@ function setOverallTrainingFromRoster(): void {
     name: /の個人練習$/,
   });
   fireEvent.click(
-    within(trainingDialog).getByRole("button", { name: /^全体/ }),
+    within(trainingDialog).getByRole("button", { name: /^攻撃/ }),
   );
+  fireEvent.click(screen.getByRole("button", { name: "まとめて保存（1人）" }));
 }
 
 function openTrainingFacility(): void {
@@ -132,7 +133,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    setOverallTrainingFromRoster();
+    saveAttackTrainingFromRoster();
 
     expect(applyAction).toHaveBeenCalledTimes(1);
     const [accessToken, request] = applyAction.mock.calls[0]!;
@@ -141,7 +142,9 @@ describe("GameApp cloud actions", () => {
       revision: 1,
       action: { type: "set-training-plan" },
     });
-    expect(screen.getByText("保存中…")).toBeVisible();
+    expect(document.querySelector(".operation-status")).toHaveTextContent(
+      "保存中…",
+    );
     expect(
       screen.queryByRole("heading", { name: "直近の練習結果" }),
     ).not.toBeInTheDocument();
@@ -267,7 +270,7 @@ describe("GameApp cloud actions", () => {
       />,
     );
 
-    setOverallTrainingFromRoster();
+    saveAttackTrainingFromRoster();
     await screen.findByText("保存済み ✓");
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));

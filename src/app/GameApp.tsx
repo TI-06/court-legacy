@@ -55,7 +55,10 @@ import type {
   PublicTacticSummary,
 } from "../domain/team/matchTactics";
 import type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";
-import type { WeeklyPlan } from "../domain/training/resolveWeeklyTraining";
+import type {
+  IndividualTrainingAssignment,
+  WeeklyPlan,
+} from "../domain/training/resolveWeeklyTraining";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
@@ -408,19 +411,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
-  const changePlayerTraining = async (
-    playerId: PlayerId,
-    instructionId: string,
+  const savePlayerTrainingAssignments = async (
+    individualAssignments: IndividualTrainingAssignment[],
   ) => {
     const current = gameState.weeklySchedule.trainingPlan;
     await saveTrainingPlan({
       ...current,
-      individualAssignments: [
-        ...current.individualAssignments.filter(
-          (item) => item.playerId !== playerId,
-        ),
-        { playerId, instructionId },
-      ],
+      individualAssignments,
     });
   };
 
@@ -1168,7 +1165,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         leadershipPending={cloudSession.operation.status === "submitting"}
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
-        onChangeTraining={changePlayerTraining}
+        onSaveTrainingAssignments={savePlayerTrainingAssignments}
         onDeleteLineupPreset={deleteLineupPreset}
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}

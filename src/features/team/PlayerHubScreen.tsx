@@ -18,6 +18,7 @@ import {
   type MatchTacticPlan,
 } from "../../domain/team/matchTactics";
 import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
+import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
@@ -56,9 +57,8 @@ interface PlayerHubScreenProps {
   trainingPending?: boolean;
   planningPending?: boolean;
   tacticsPending?: boolean;
-  onChangeTraining?: (
-    playerId: PlayerId,
-    instructionId: string,
+  onSaveTrainingAssignments?: (
+    assignments: IndividualTrainingAssignment[],
   ) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
@@ -83,6 +83,14 @@ const abilityLabels = {
   stamina: "スタミナ",
   mental: "メンタル",
 } as const;
+
+const rosterAbilityLabels = [
+  ["attack", "攻"],
+  ["defense", "守"],
+  ["jump", "跳"],
+  ["stamina", "ス"],
+  ["mental", "メ"],
+] as const;
 
 const roleLabels: Record<PlayerRole, string> = {
   ace: "エース",
@@ -202,7 +210,7 @@ export function PlayerHubScreen({
   trainingPending = false,
   planningPending = false,
   tacticsPending = false,
-  onChangeTraining,
+  onSaveTrainingAssignments,
   onSetDevelopmentPriorities,
   onSetTeamTactics,
   onSetTeamDefenseBias,
@@ -216,6 +224,9 @@ export function PlayerHubScreen({
   );
   const [trainingPlayerId, setTrainingPlayerId] = useState<PlayerId | null>(
     null,
+  );
+  const [trainingDrafts, setTrainingDrafts] = useState<Record<string, string>>(
+    {},
   );
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
@@ -242,19 +253,121 @@ export function PlayerHubScreen({
   const priorityIds = state.teamPlanning.developmentPriorityPlayerIds;
   const priorityCapReached = priorityIds.length >= 3;
 
-  const assignmentName = (id: PlayerId) => {
-    const assignment =
-      state.weeklySchedule.trainingPlan.individualAssignments.find(
-        (candidate) => candidate.playerId === id,
-      );
-    return (
-      individualTrainingInstructions.find(
-        (instruction) =>
-          instruction.id ===
-          (assignment?.instructionId ?? "instruction.overall"),
-      )?.name ?? "全体"
-    );
+  const persistedInstructionId = (id: PlayerId) =>
+    state.weeklySchedule.trainingPlan.individualAssignments.find(
+      (candidate) => candidate.playerId === id,
+    )?.instructionId ?? "instruction.overall";
+
+  const effectiveInstructionId = (id: PlayerId) =>
+    trainingDrafts[id] ?? persistedInstructionId(id);
+
+  const assignmentName = (id: PlayerId) =>
+    individualTrainingInstructions.find(
+      (instruction) => instruction.id === effectiveInstructionId(id),
+    )?.name ?? "全体";
+
+  const trainingDraftCount = Object.keys(trainingDrafts).length;
+
+  const stageTrainingAssignment = (
+    playerId: PlayerId,
+    instructionId: string,
+  ) => {
+    setTrainingDrafts((current) => {
+      const next = { ...current };
+      if (instructionId === persistedInstructionId(playerId)) {
+        delete next[playerId];
+      } else {
+        next[playerId] = instructionId;
+      }
+      return next;
+    });
   };
+
+  const saveTrainingDrafts = async () => {
+    if (
+      trainingDraftCount === 0 ||
+      trainingPending ||
+      trainingDone ||
+      !onSaveTrainingAssignments
+    ) {
+      return;
+    }
+
+    const changedPlayerIds = new Set(Object.keys(trainingDrafts));
+    const assignments: IndividualTrainingAssignment[] = [
+      ...state.weeklySchedule.trainingPlan.individualAssignments.filter(
+        (assignment) => !changedPlayerIds.has(String(assignment.playerId)),
+      ),
+      ...Object.entries(trainingDrafts).map(([playerId, instructionId]) => ({
+        playerId: playerId as PlayerId,
+        instructionId,
+      })),
+    ];
+
+    await onSaveTrainingAssignments(assignments);
+    setTrainingDrafts({});
+  };
+
+  const trainingSaveBar =
+    trainingDraftCount > 0 ? (
+      <aside
+        aria-label="個人練習の未保存変更"
+        className="player-training-save-bar"
+      >
+        <div>
+          <span>個人練習</span>
+          <strong>{trainingDraftCount}人変更中</strong>
+        </div>
+        <button
+          disabled={trainingPending || trainingDone}
+          onClick={() => void saveTrainingDrafts()}
+          type="button"
+        >
+          {trainingPending
+            ? "保存中…"
+            : `まとめて保存（${trainingDraftCount}人）`}
+        </button>
+      </aside>
+    ) : null;
+
+  const trainingSheet = (
+    <BottomSheet
+      description="選択内容はまだ保存されません。全選手を調整してからまとめて保存できます。"
+      onClose={() => setTrainingPlayerId(null)}
+      open={Boolean(trainingPlayer)}
+      title={
+        trainingPlayer ? `${playerName(trainingPlayer)}の個人練習` : "個人練習"
+      }
+    >
+      <div className="player-training-options">
+        {individualTrainingInstructions.map((item) => {
+          const selected =
+            trainingPlayer !== null &&
+            effectiveInstructionId(trainingPlayer.id) === item.id;
+          return (
+            <button
+              aria-pressed={selected}
+              className={
+                selected ? "player-training-option--selected" : undefined
+              }
+              disabled={trainingPending || trainingDone}
+              key={item.id}
+              onClick={() => {
+                if (trainingPlayer) {
+                  stageTrainingAssignment(trainingPlayer.id, item.id);
+                }
+                setTrainingPlayerId(null);
+              }}
+              type="button"
+            >
+              <strong>{item.name}</strong>
+              <small>{item.description}</small>
+            </button>
+          );
+        })}
+      </div>
+    </BottomSheet>
+  );
 
   const togglePriority = (playerId: PlayerId) => {
     const selected = priorityIds.includes(playerId);
@@ -625,35 +738,8 @@ export function PlayerHubScreen({
           </div>
         ) : null}
 
-        <BottomSheet
-          open={Boolean(trainingPlayer)}
-          onClose={() => setTrainingPlayerId(null)}
-          title={
-            trainingPlayer
-              ? `${playerName(trainingPlayer)}の個人練習`
-              : "個人練習"
-          }
-          description="今週の練習を選択"
-        >
-          <div className="player-training-options">
-            {individualTrainingInstructions.map((item) => (
-              <button
-                key={item.id}
-                disabled={trainingPending || trainingDone}
-                onClick={() => {
-                  if (trainingPlayer) {
-                    void onChangeTraining?.(trainingPlayer.id, item.id);
-                  }
-                  setTrainingPlayerId(null);
-                }}
-                type="button"
-              >
-                <strong>{item.name}</strong>
-                <small>{item.description}</small>
-              </button>
-            ))}
-          </div>
-        </BottomSheet>
+        {trainingSaveBar}
+        {trainingSheet}
       </main>
     );
   }
@@ -699,6 +785,7 @@ export function PlayerHubScreen({
         {rosterItems.map((item, index) => {
           const player = item.player;
           const condition = getPlayerConditionPresentation(player.condition);
+          const abilities = summarizePlayerAbilities(player);
           const isPriority = item.isPriority;
           const isCaptain = state.teamDynamics.captainPlayerId === player.id;
 
@@ -756,6 +843,24 @@ export function PlayerHubScreen({
                 </span>
               </button>
               <div
+                aria-label={`${playerName(player)} 能力ランク`}
+                className="player-roster__abilities"
+              >
+                {rosterAbilityLabels.map(([key, label]) => {
+                  const grade = ratingToGrade(abilities[key]);
+                  return (
+                    <span
+                      aria-label={`${abilityLabels[key]} ${grade}`}
+                      data-grade={grade}
+                      key={key}
+                    >
+                      <small>{label}</small>
+                      <strong>{grade}</strong>
+                    </span>
+                  );
+                })}
+              </div>
+              <div
                 aria-label={`${playerName(player)} 育成設定`}
                 className="player-roster__quick-actions"
                 role="group"
@@ -769,7 +874,13 @@ export function PlayerHubScreen({
                 >
                   <span>個人練習</span>
                   <strong>{assignmentName(player.id)}</strong>
-                  <small>{trainingDone ? "実施済" : "変更"}</small>
+                  <small>
+                    {trainingDone
+                      ? "実施済"
+                      : trainingDrafts[player.id]
+                        ? "未保存"
+                        : "変更"}
+                  </small>
                 </button>
                 <button
                   aria-label={
@@ -800,35 +911,8 @@ export function PlayerHubScreen({
         })}
       </div>
 
-      <BottomSheet
-        open={Boolean(trainingPlayer)}
-        onClose={() => setTrainingPlayerId(null)}
-        title={
-          trainingPlayer
-            ? `${playerName(trainingPlayer)}の個人練習`
-            : "個人練習"
-        }
-        description="今週の練習を選択"
-      >
-        <div className="player-training-options">
-          {individualTrainingInstructions.map((item) => (
-            <button
-              key={item.id}
-              disabled={trainingPending || trainingDone}
-              onClick={() => {
-                if (trainingPlayer) {
-                  void onChangeTraining?.(trainingPlayer.id, item.id);
-                }
-                setTrainingPlayerId(null);
-              }}
-              type="button"
-            >
-              <strong>{item.name}</strong>
-              <small>{item.description}</small>
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
+      {trainingSaveBar}
+      {trainingSheet}
     </main>
   );
 }
