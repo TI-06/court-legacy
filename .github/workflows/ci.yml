@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase26 formatting diagnostic
+        run: |
+          npx prettier src/domain/team/teamPlanningTypes.ts tests/unit/domain/team/teamPlanning.test.ts tests/unit/persistence/gameStateCodec.test.ts --write
+          git diff -- src/domain/team/teamPlanningTypes.ts tests/unit/domain/team/teamPlanning.test.ts tests/unit/persistence/gameStateCodec.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
