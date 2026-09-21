@@ -531,3 +531,255 @@
     animation: none;
   }
 }
+
+
+/* Phase25-5: dense mobile scouting board with approximate ability ranges. */
+.scouting-ability-estimates {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-width: 0;
+  margin-top: 6px;
+  gap: 4px;
+}
+
+.scouting-ability-estimates > span {
+  display: grid;
+  min-width: 0;
+  padding: 5px 2px 4px;
+  gap: 1px;
+  text-align: center;
+  background: #edf4f6;
+  border: 1px solid #d5e4e8;
+  border-radius: 8px;
+}
+
+.scouting-ability-estimates small {
+  color: #6a7d86;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.scouting-ability-estimates strong {
+  overflow: hidden;
+  color: #174f60;
+  font-size: 0.64rem;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .scouting-screen {
+    gap: 7px;
+  }
+
+  .scouting-hero {
+    padding: 8px 9px;
+    border-radius: 13px;
+  }
+
+  .scouting-back {
+    min-height: 28px;
+    font-size: 0.65rem;
+  }
+
+  .scouting-hero__heading {
+    align-items: center;
+    margin-top: 0;
+    gap: 7px;
+  }
+
+  .scouting-hero__heading .section-kicker,
+  .scouting-hero p {
+    display: none;
+  }
+
+  .scouting-hero h1 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .scouting-grade {
+    padding: 4px 7px;
+    font-size: 0.6rem;
+  }
+
+  .scouting-summary {
+    margin-top: 6px;
+    gap: 4px;
+  }
+
+  .scouting-summary > div {
+    padding: 5px 3px;
+    border-radius: 8px;
+  }
+
+  .scouting-summary span {
+    font-size: 0.51rem;
+  }
+
+  .scouting-summary strong {
+    margin-top: 1px;
+    font-size: 0.67rem;
+  }
+
+  .scouting-list {
+    margin-top: 6px;
+    gap: 6px;
+  }
+
+  .scouting-card {
+    padding: 8px 9px;
+    border-radius: 13px;
+    box-shadow: 0 3px 10px rgb(18 36 50 / 5%);
+  }
+
+  .scouting-card__topline {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .scouting-card__identity {
+    gap: 7px;
+  }
+
+  .scouting-position {
+    width: 32px;
+    height: 32px;
+    font-size: 0.64rem;
+    border-radius: 9px;
+  }
+
+  .scouting-card h2 {
+    font-size: 0.82rem;
+  }
+
+  .scouting-card__identity p {
+    margin-top: 1px;
+    font-size: 0.58rem;
+  }
+
+  .scouting-stars {
+    font-size: 0.64rem;
+    letter-spacing: 0;
+  }
+
+  .scouting-tags {
+    margin-top: 5px;
+    gap: 4px;
+  }
+
+  .scouting-tags span {
+    min-height: 18px;
+    padding: 1px 5px;
+    font-size: 0.55rem;
+  }
+
+  .scouting-estimates {
+    margin-top: 5px;
+    gap: 4px;
+  }
+
+  .scouting-estimates > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 5px 7px;
+    gap: 5px;
+    border-radius: 8px;
+  }
+
+  .scouting-estimates span {
+    font-size: 0.55rem;
+  }
+
+  .scouting-estimates strong {
+    margin-top: 0;
+    font-size: 0.69rem;
+    white-space: nowrap;
+  }
+
+  .scouting-ability-estimates {
+    margin-top: 5px;
+    gap: 3px;
+  }
+
+  .scouting-ability-estimates > span {
+    padding: 3px 1px;
+    border-radius: 6px;
+  }
+
+  .scouting-ability-estimates small {
+    font-size: 0.48rem;
+  }
+
+  .scouting-ability-estimates strong {
+    font-size: 0.56rem;
+  }
+
+  .scouting-comments {
+    margin-top: 5px;
+    gap: 0;
+  }
+
+  .scouting-comments li {
+    overflow: hidden;
+    font-size: 0.58rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scouting-comments li:not(:first-child) {
+    display: none;
+  }
+
+  .scouting-comments li::before {
+    margin-right: 4px;
+    font-size: 0.42rem;
+  }
+
+  .scouting-shop-actions {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    margin-top: 5px;
+    padding: 5px;
+    gap: 5px;
+    border-radius: 8px;
+  }
+
+  .scouting-shop-actions__label {
+    display: none;
+  }
+
+  .scouting-shop-actions__buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .scouting-shop-actions__button {
+    min-height: 32px;
+    padding: 4px 6px;
+    font-size: 0.57rem;
+    border-radius: 7px;
+  }
+
+  .scouting-shop-actions__button small {
+    padding: 1px 4px;
+    font-size: 0.49rem;
+  }
+
+  .scouting-candidate-actions {
+    grid-template-columns: minmax(72px, 0.3fr) minmax(0, 1fr);
+    margin-top: 6px;
+    gap: 5px;
+  }
+
+  .scouting-recruit,
+  .scouting-exclude {
+    min-height: 34px;
+    font-size: 0.64rem;
+    border-radius: 8px;
+  }
+}

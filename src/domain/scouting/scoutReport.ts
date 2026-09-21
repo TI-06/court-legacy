@@ -1,6 +1,10 @@
 import type { Player, Position } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import {
+  summarizePlayerAbilities,
+  type PlayerAbilitySummary,
+} from "../selectors/playerPresentation";
 
 export type MiddleSchoolAchievement =
   | "unknown"
@@ -18,6 +22,10 @@ export interface EstimatedRange {
   max: number;
 }
 
+export type ScoutAbilityEstimates = {
+  [Key in keyof PlayerAbilitySummary]: EstimatedRange;
+};
+
 export interface ScoutReport {
   candidateId: PlayerId;
   displayName: string;
@@ -28,6 +36,7 @@ export interface ScoutReport {
   evaluationStars: 1 | 2 | 3 | 4 | 5;
   estimatedOverall: EstimatedRange;
   estimatedPotential: EstimatedRange;
+  estimatedAbilities?: ScoutAbilityEstimates;
   confidence: ScoutConfidence;
   comments: string[];
 }
@@ -108,6 +117,53 @@ function estimatedRange(
   return {
     min: Math.round(clamp(center - halfWidth, 0, 100)),
     max: Math.round(clamp(center + halfWidth, 0, 100)),
+  };
+}
+
+function estimatedAbilityRanges(
+  player: Player,
+  quality: number,
+  random: RandomSource,
+): ScoutAbilityEstimates {
+  const summary = summarizePlayerAbilities(player);
+  const abilityRandom = random.fork(`ability-estimates:${player.id}`);
+
+  return {
+    attack: estimatedRange(
+      summary.attack,
+      quality,
+      16,
+      5,
+      abilityRandom.fork("attack"),
+    ),
+    defense: estimatedRange(
+      summary.defense,
+      quality,
+      16,
+      5,
+      abilityRandom.fork("defense"),
+    ),
+    jump: estimatedRange(
+      summary.jump,
+      quality,
+      16,
+      5,
+      abilityRandom.fork("jump"),
+    ),
+    stamina: estimatedRange(
+      summary.stamina,
+      quality,
+      16,
+      5,
+      abilityRandom.fork("stamina"),
+    ),
+    mental: estimatedRange(
+      summary.mental,
+      quality,
+      16,
+      5,
+      abilityRandom.fork("mental"),
+    ),
   };
 }
 
@@ -229,6 +285,11 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
     potentialPrecision === "appraised"
       ? appraisedPotentialRange(potentialTruth, input.random)
       : estimatedRange(potentialTruth, potentialQuality, 24, 7, input.random);
+  const estimatedAbilities = estimatedAbilityRanges(
+    input.player,
+    overallQuality,
+    input.random,
+  );
 
   return {
     candidateId: input.player.id,
@@ -244,6 +305,7 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
     ),
     estimatedOverall,
     estimatedPotential,
+    estimatedAbilities,
     confidence: confidenceFromQuality(overallQuality),
     comments: [
       strongestAbilityComment(input.player),

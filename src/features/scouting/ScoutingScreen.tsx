@@ -55,8 +55,29 @@ const handednessLabels = {
   left: "左利き",
 } as const;
 
+const estimatedAbilityLabels = [
+  ["attack", "攻"],
+  ["defense", "守"],
+  ["jump", "跳"],
+  ["stamina", "体"],
+  ["mental", "心"],
+] as const;
+
 function stars(value: ScoutReport["evaluationStars"]): string {
   return `${"★".repeat(value)}${"☆".repeat(5 - value)}`;
+}
+
+function estimatedAbilities(report: ScoutReport) {
+  const fallback = report.estimatedOverall;
+  return (
+    report.estimatedAbilities ?? {
+      attack: fallback,
+      defense: fallback,
+      jump: fallback,
+      stamina: fallback,
+      mental: fallback,
+    }
+  );
 }
 
 function currentCycleKey(state: GameState): string {
@@ -297,9 +318,14 @@ export function ScoutingScreen({
             const appraisalAvailable =
               Boolean(appraisalStatus?.canUse) &&
               (appraisalStatus?.quantityOwned ?? 0) > 0;
+            const abilityEstimates = estimatedAbilities(report);
 
             return (
-              <article className="scouting-card" key={report.candidateId}>
+              <article
+                className="scouting-card"
+                data-testid="scouting-candidate-card"
+                key={report.candidateId}
+              >
                 <div className="scouting-card__topline">
                   <div className="scouting-card__identity">
                     <span className="scouting-position">{report.position}</span>
@@ -328,17 +354,38 @@ export function ScoutingScreen({
 
                 <div className="scouting-estimates">
                   <div>
+                    <span>総合</span>
                     <strong>
-                      現在能力 {report.estimatedOverall.min}〜
-                      {report.estimatedOverall.max}
+                      {report.estimatedOverall.min}〜{report.estimatedOverall.max}
                     </strong>
                   </div>
                   <div>
+                    <span>将来</span>
                     <strong>
-                      将来性 {report.estimatedPotential.min}〜
+                      {report.estimatedPotential.min}〜
                       {report.estimatedPotential.max}
                     </strong>
                   </div>
+                </div>
+
+                <div
+                  aria-label={`${report.displayName} 推定能力`}
+                  className="scouting-ability-estimates"
+                >
+                  {estimatedAbilityLabels.map(([key, label]) => {
+                    const range = abilityEstimates[key];
+                    return (
+                      <span
+                        aria-label={`${label} 推定 ${range.min}〜${range.max}`}
+                        key={key}
+                      >
+                        <small>{label}</small>
+                        <strong>
+                          {range.min}〜{range.max}
+                        </strong>
+                      </span>
+                    );
+                  })}
                 </div>
 
                 <ul className="scouting-comments">

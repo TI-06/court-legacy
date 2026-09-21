@@ -1233,3 +1233,38 @@
     font-size: 11px;
   }
 }
+
+
+/* Phase25-5: make individual training choices readable inside the dark game UI. */
+.player-training-options button {
+  color: #f5f9fd;
+  background: #102945;
+  border-color: rgb(116 216 255 / 28%);
+}
+
+.player-training-options strong {
+  color: #fff;
+  font-weight: 900;
+}
+
+.player-training-options small {
+  color: #c8d9e8;
+  line-height: 1.35;
+}
+
+.player-training-options .player-training-option--selected {
+  color: #fff;
+  background: linear-gradient(145deg, #173b60, rgb(244 122 24 / 28%));
+  border-color: rgb(244 122 24 / 82%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 218 160 / 22%),
+    0 0 0 1px rgb(244 122 24 / 12%);
+}
+
+.player-training-options .player-training-option--selected strong {
+  color: #fff0ce;
+}
+
+.player-training-options .player-training-option--selected small {
+  color: #ffe0ba;
+}
