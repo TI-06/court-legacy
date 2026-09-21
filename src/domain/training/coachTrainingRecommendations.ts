@@ -12,6 +12,7 @@ export type CoachTrainingRecommendationReason =
   | "injury"
   | "condition"
   | "development-goal"
+  | "balanced"
   | "assistant-specialty"
   | "weakness";
 
@@ -164,7 +165,18 @@ export function buildCoachTrainingRecommendation(
     }
   }
 
-  const specialty = specialtyArea(state, player);
+  const quality = coachRecommendationQuality(state);
+  if (quality === "basic") {
+    return {
+      playerId: player.id,
+      instructionId: "instruction.overall",
+      instructionName: "全体",
+      reason: "balanced",
+      reasonLabel: "監督の基本方針で基礎をバランス強化",
+    };
+  }
+
+  const specialty = quality === "detailed" ? specialtyArea(state, player) : null;
   if (specialty) {
     const instruction = areaInstruction(specialty);
     const contract = state.schoolManagement.assistantCoach!;
