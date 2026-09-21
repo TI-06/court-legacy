@@ -11,7 +11,10 @@ import type {
   FacilityUpgradeLevels,
 } from "../../src/domain/school/facilityUpgrade";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
-import type { SavedLineupSlot } from "../../src/domain/team/teamPlanningTypes";
+import type {
+  PlayerDevelopmentGoal,
+  SavedLineupSlot,
+} from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
 
@@ -94,6 +97,12 @@ const savedLineupSlotSchema = z.union([
   z.literal(2),
   z.literal(3),
 ]);
+const developmentGoalSchema = z
+  .object({
+    area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
+    targetGrade: z.enum(["A", "B", "C", "D", "E", "F", "G"]),
+  })
+  .strict();
 const savedLineupNameSchema = z
   .string()
   .transform((value) => value.trim())
@@ -160,6 +169,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("set-development-priorities"),
       playerIds: z.array(playerIdSchema).max(3),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("set-player-development-goal"),
+      playerId: playerIdSchema,
+      goal: developmentGoalSchema.nullable(),
     })
     .strict(),
   z
@@ -247,6 +263,11 @@ export type GameAction =
       viceCaptainPlayerId: PlayerId;
     }
   | { type: "set-development-priorities"; playerIds: PlayerId[] }
+  | {
+      type: "set-player-development-goal";
+      playerId: PlayerId;
+      goal: PlayerDevelopmentGoal | null;
+    }
   | {
       type: "save-lineup-preset";
       slot: SavedLineupSlot;
