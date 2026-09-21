@@ -53,12 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Capture GameAppActions Prettier diff
-        run: |
-          npx prettier tests/unit/app/GameAppActions.test.tsx --write
-          echo "=== GAME_APP_ACTIONS_PRETTIER_DIFF_BEGIN ==="
-          git diff -- tests/unit/app/GameAppActions.test.tsx
-          echo "=== GAME_APP_ACTIONS_PRETTIER_DIFF_END ==="
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
