@@ -74,7 +74,11 @@ function setFlowChip(
   opponentSetsWon: number,
 ): string | null {
   const completedSets = match.sets.filter((set) => set.completed).length;
-  if (completedSets >= 3 && userSetsWon > 0 && opponentSetsWon > 0) {
+  if (
+    completedSets === match.bestOfSets &&
+    userSetsWon > 0 &&
+    opponentSetsWon > 0
+  ) {
     return "フルセット";
   }
   if (opponentSetsWon === 0) return "ストレート勝ち";
