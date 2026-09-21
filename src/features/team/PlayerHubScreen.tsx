@@ -323,7 +323,9 @@ export function PlayerHubScreen({
           onClick={() => void saveTrainingDrafts()}
           type="button"
         >
-          {trainingPending ? "保存中…" : `まとめて保存（${trainingDraftCount}人）`}
+          {trainingPending
+            ? "保存中…"
+            : `まとめて保存（${trainingDraftCount}人）`}
         </button>
       </aside>
     ) : null;
@@ -334,9 +336,7 @@ export function PlayerHubScreen({
       onClose={() => setTrainingPlayerId(null)}
       open={Boolean(trainingPlayer)}
       title={
-        trainingPlayer
-          ? `${playerName(trainingPlayer)}の個人練習`
-          : "個人練習"
+        trainingPlayer ? `${playerName(trainingPlayer)}の個人練習` : "個人練習"
       }
     >
       <div className="player-training-options">
