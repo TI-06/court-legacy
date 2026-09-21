@@ -294,4 +294,79 @@ describe("ScoutingScreen", () => {
       ).getByText("青木 蓮"),
     ).toBeVisible();
   });
+  it("opens a compact negotiation sheet for contested prospects and wires recruiting actions", () => {
+    const onRecruit = vi.fn();
+    const contestedReports: ScoutReport[] = [
+      {
+        ...reports[0]!,
+        recruitment: {
+          interestScore: 48,
+          interestLevel: "medium",
+          canCommit: false,
+          competitorSchoolNames: ["皇星", "青凪"],
+        },
+      },
+      reports[1]!,
+    ];
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={onRecruit}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={contestedReports}
+        state={stateWithCommitted()}
+      />,
+    );
+
+    expect(screen.getByText("志望度 48")).toBeVisible();
+    expect(screen.getByText("競合 2校")).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "入学交渉 青木 蓮" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "青木 蓮の入学交渉",
+    });
+    expect(within(dialog).getByText("競合: 皇星 / 青凪")).toBeVisible();
+    expect(within(dialog).getByText("志望度60で入学確約できます")).toBeVisible();
+    expect(
+      within(dialog).getByRole("button", { name: /入学確約/ }),
+    ).toBeDisabled();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: /学校訪問/ }),
+    );
+    expect(onRecruit).toHaveBeenCalledWith(candidateA, "visit");
+  });
+
+  it("shows annual visit and recommendation resources in the scouting summary", () => {
+    const state = stateWithCommitted();
+    state.recruiting = {
+      ...state.recruiting!,
+      visitActionsUsed: 2,
+      recommendationUsed: true,
+    };
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={state}
+      />,
+    );
+
+    const summary = screen.getByLabelText("スカウト状況");
+    expect(within(summary).getByText("残2回")).toBeVisible();
+    expect(within(summary).getByText("使用済")).toBeVisible();
+  });
+
 });
