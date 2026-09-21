@@ -18,9 +18,7 @@ import {
   type MatchTacticPlan,
 } from "../../domain/team/matchTactics";
 import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
-import type {
-  IndividualTrainingAssignment,
-} from "../../domain/training/resolveWeeklyTraining";
+import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
