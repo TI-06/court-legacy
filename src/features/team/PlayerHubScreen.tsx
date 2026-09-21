@@ -422,6 +422,69 @@ export function PlayerHubScreen({
     </BottomSheet>
   );
 
+  const coachRecommendationSheet = (
+    <BottomSheet
+      description={`監督育成力 ${school.coach.development}・${coachRecommendationQualityLabel(
+        recommendationQuality,
+      )}。育成目標、調子、年間コーチ、弱点の順に判断します。`}
+      onClose={() => setCoachRecommendationsOpen(false)}
+      open={coachRecommendationsOpen}
+      title="コーチの個人練習提案"
+    >
+      <div className="player-coach-proposal">
+        <div className="player-coach-proposal__summary">
+          <strong>{coachRecommendationChangeCount}人を変更提案</strong>
+          <span>手動で変更中の選手は上書きしません</span>
+        </div>
+        <div
+          aria-label="コーチの練習提案一覧"
+          className="player-coach-proposal__list"
+        >
+          {coachRecommendations.map((recommendation) => {
+            const player = state.players[recommendation.playerId];
+            if (!player) return null;
+            const currentInstruction = assignmentName(recommendation.playerId);
+            const changed =
+              recommendation.instructionId !==
+              effectiveInstructionId(recommendation.playerId);
+            return (
+              <article
+                className={
+                  changed
+                    ? "player-coach-proposal__row player-coach-proposal__row--changed"
+                    : "player-coach-proposal__row"
+                }
+                key={recommendation.playerId}
+              >
+                <div>
+                  <strong>{playerName(player)}</strong>
+                  <small>{recommendation.reasonLabel}</small>
+                </div>
+                <span>
+                  {currentInstruction}
+                  {changed ? ` → ${recommendation.instructionName}` : " 維持"}
+                </span>
+              </article>
+            );
+          })}
+        </div>
+        <button
+          className="player-coach-proposal__apply"
+          disabled={
+            coachRecommendationChangeCount === 0 ||
+            trainingPending ||
+            trainingDone
+          }
+          onClick={stageCoachRecommendations}
+          type="button"
+        >
+          {trainingDone
+            ? "今週の練習は実施済み"
+            : `提案をセット（${coachRecommendationChangeCount}人）`}
+        </button>
+      </div>
+    </BottomSheet>
+  );
   const togglePriority = (playerId: PlayerId) => {
     const selected = priorityIds.includes(playerId);
     const nextIds = selected
