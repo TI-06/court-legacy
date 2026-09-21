@@ -374,7 +374,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       });
       await cloudSession.adoptServerSnapshot(
         response.game,
-        action === "commit" ? "入学確約を保存しました" : "勧誘結果を保存しました",
+        action === "commit"
+          ? "入学確約を保存しました"
+          : "勧誘結果を保存しました",
       );
       if (action !== "commit") {
         await loadScoutingBoard(response.game.revision);
@@ -411,7 +413,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setScoutingError(
         scoutingErrorMessage(
           error,
-          action === "commit" ? "入学確約に失敗しました" : "勧誘処理に失敗しました",
+          action === "commit"
+            ? "入学確約に失敗しました"
+            : "勧誘処理に失敗しました",
         ),
       );
       setRetryRecruitRequest({ candidateId, action });
