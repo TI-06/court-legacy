@@ -6,12 +6,14 @@ import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
 import type {
   CharacterTraitDiscoveredNotification,
+  DevelopmentGoalAchievementNotification,
   SpecialRelationshipNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { StickyActionBar } from "../../ui/StickyActionBar";
 import "../../ui/ui.css";
+import { DevelopmentGoalAchievementSheet } from "./DevelopmentGoalAchievementSheet";
 import { HomeCommandCenter } from "./HomeCommandCenter";
 import {
   selectHomeCommandCenter,
@@ -64,6 +66,8 @@ export function HomeScreen({
 }: HomeScreenProps) {
   const [selectedNotification, setSelectedNotification] =
     useState<TrainingResultNotification | null>(null);
+  const [selectedGoalAchievement, setSelectedGoalAchievement] =
+    useState<DevelopmentGoalAchievementNotification | null>(null);
   const [advanceWarningOpen, setAdvanceWarningOpen] = useState(false);
   const resolvedData =
     data ?? (gameDataBootstrap.ok ? gameDataBootstrap.data : null);
@@ -79,6 +83,15 @@ export function HomeScreen({
 
   const openNotification = (notification: TrainingResultNotification) => {
     setSelectedNotification(notification);
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+  };
+
+  const openDevelopmentGoalAchievement = (
+    notification: DevelopmentGoalAchievementNotification,
+  ) => {
+    setSelectedGoalAchievement(notification);
     if (notification.readAtGameDate === null) {
       void onMarkNotificationRead(notification.id);
     }
@@ -149,6 +162,7 @@ export function HomeScreen({
         onDeclinePracticeOffer={onDeclinePracticeOffer}
         onOpenTrainingNotification={openNotification}
         onOpenRelationshipNotification={acknowledgeRelationshipNotification}
+        onOpenDevelopmentGoalAchievement={openDevelopmentGoalAchievement}
         onAcknowledgeCharacterTraitNotification={
           acknowledgeCharacterTraitNotification
         }
@@ -167,6 +181,15 @@ export function HomeScreen({
         notification={selectedNotification}
         onClose={() => setSelectedNotification(null)}
       />
+      <DevelopmentGoalAchievementSheet
+        notification={selectedGoalAchievement}
+        onClose={() => setSelectedGoalAchievement(null)}
+        onOpenPlayerGrowth={(playerId) => {
+          setSelectedGoalAchievement(null);
+          dispatchCommand({ target: "player", playerId, detail: "growth" });
+        }}
+      />
+
 
       <BottomSheet
         description="練習試合の申し込みが未回答です。このまま次週へ進みますか？"
