@@ -356,11 +356,10 @@ function applyTraining(
         ),
       },
     };
-    const goalAchievement =
-      buildDevelopmentGoalAchievementNotification({
-        stateBeforeTraining: state,
-        stateAfterTraining: stateWithDevelopmentHistory,
-      });
+    const goalAchievement = buildDevelopmentGoalAchievementNotification({
+      stateBeforeTraining: state,
+      stateAfterTraining: stateWithDevelopmentHistory,
+    });
     const stateWithGoalAchievement = goalAchievement
       ? {
           ...stateWithDevelopmentHistory,
