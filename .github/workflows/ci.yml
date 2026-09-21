@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Phase27-1 formatting diagnostic
-        run: |
-          npx prettier src/app/GameApp.tsx src/domain/notifications/gameNotifications.ts src/features/home/DevelopmentGoalAchievementSheet.tsx src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/homeCommandCenter.ts src/features/home/training-result-notification.css src/features/team/PlayerHubScreen.tsx src/persistence/gameStateCodec.ts tests/unit/app/GameApp.notifications.test.tsx tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/applyGameAction.test.ts worker/game/applyGameAction.ts --write
-          git diff -- src/app/GameApp.tsx src/domain/notifications/gameNotifications.ts src/features/home/DevelopmentGoalAchievementSheet.tsx src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/homeCommandCenter.ts src/features/home/training-result-notification.css src/features/team/PlayerHubScreen.tsx src/persistence/gameStateCodec.ts tests/unit/app/GameApp.notifications.test.tsx tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/applyGameAction.test.ts worker/game/applyGameAction.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
