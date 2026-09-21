@@ -379,5 +379,4 @@ describe("scouting recruitment route", () => {
     );
     expect(gameStore.applyOperation).not.toHaveBeenCalled();
   });
-
 });
