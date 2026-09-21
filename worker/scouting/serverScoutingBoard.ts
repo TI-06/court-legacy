@@ -150,9 +150,8 @@ export function generateServerScoutingCandidates(
 }
 
 function competitorCount(evaluationStars: ScoutReport["evaluationStars"]): number {
-  if (evaluationStars >= 5) return 3;
-  if (evaluationStars === 4) return 2;
-  if (evaluationStars === 3) return 1;
+  if (evaluationStars >= 5) return 2;
+  if (evaluationStars === 4) return 1;
   return 0;
 }
 
