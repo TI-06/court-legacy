@@ -53,6 +53,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Capture Player Hub Prettier diff
+        run: |
+          npx prettier src/features/team/PlayerHubScreen.tsx --write
+          echo "=== PLAYER_HUB_PRETTIER_DIFF_BEGIN ==="
+          git diff -- src/features/team/PlayerHubScreen.tsx
+          echo "=== PLAYER_HUB_PRETTIER_DIFF_END ==="
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
