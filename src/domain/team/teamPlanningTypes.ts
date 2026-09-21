@@ -8,7 +8,14 @@ export type DevelopmentGoalArea =
   | "jump"
   | "stamina"
   | "mental";
-export type DevelopmentGoalGrade = "A" | "B" | "C" | "D" | "E" | "F" | "G";
+export type DevelopmentGoalGrade =
+  | "A"
+  | "B"
+  | "C"
+  | "D"
+  | "E"
+  | "F"
+  | "G";
 
 export interface PlayerDevelopmentGoal {
   area: DevelopmentGoalArea;
@@ -23,6 +30,8 @@ export interface SavedLineupPreset {
 
 export interface TeamPlanningState {
   developmentPriorityPlayerIds: PlayerId[];
-  developmentGoalsByPlayerId?: Partial<Record<PlayerId, PlayerDevelopmentGoal>>;
+  developmentGoalsByPlayerId?: Partial<
+    Record<PlayerId, PlayerDevelopmentGoal>
+  >;
   savedLineups: SavedLineupPreset[];
 }
