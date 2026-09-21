@@ -198,6 +198,7 @@ describe("game state codec", () => {
       ),
     ).toThrow("新しいバージョンのセーブデータです");
   });
+
   it("round-trips development goals while accepting saves that predate the optional field", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
@@ -217,5 +218,4 @@ describe("game state codec", () => {
       legacyShape.teamPlanning,
     );
   });
-
 });
