@@ -59,6 +59,17 @@ const savedLineupSlotSchema = z.union([
 const teamPlanningSchema = z
   .object({
     developmentPriorityPlayerIds: z.array(playerIdSchema).max(3),
+    developmentGoalsByPlayerId: z
+      .record(
+        playerIdSchema,
+        z
+          .object({
+            area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
+            targetGrade: z.enum(["A", "B", "C", "D", "E", "F", "G"]),
+          })
+          .strict(),
+      )
+      .optional(),
     savedLineups: z
       .array(
         z
