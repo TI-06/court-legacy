@@ -198,4 +198,24 @@ describe("game state codec", () => {
       ),
     ).toThrow("新しいバージョンのセーブデータです");
   });
+  it("round-trips development goals while accepting saves that predate the optional field", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.teamPlanning.developmentGoalsByPlayerId = {
+      [playerId]: { area: "mental", targetGrade: "B" },
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+    expect(decoded.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual({
+      area: "mental",
+      targetGrade: "B",
+    });
+
+    const legacyShape = structuredClone(state);
+    delete legacyShape.teamPlanning.developmentGoalsByPlayerId;
+    expect(decodeGameState(JSON.stringify(legacyShape)).teamPlanning).toEqual(
+      legacyShape.teamPlanning,
+    );
+  });
+
 });
