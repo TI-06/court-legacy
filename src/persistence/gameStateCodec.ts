@@ -64,13 +64,7 @@ const teamPlanningSchema = z
         playerIdSchema,
         z
           .object({
-            area: z.enum([
-              "attack",
-              "defense",
-              "jump",
-              "stamina",
-              "mental",
-            ]),
+            area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
             targetGrade: z.enum(["A", "B", "C", "D", "E", "F", "G"]),
           })
           .strict(),
