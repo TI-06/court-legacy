@@ -18,6 +18,8 @@ describe("game state codec", () => {
 
   it("round-trips a training-result notification", () => {
     const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
     const withNotification = {
       ...state,
       notifications: {
@@ -34,7 +36,34 @@ describe("game state codec", () => {
               totalAbilityGrowth: 3,
               totalFatigueChange: 5,
               injuredCount: 0,
-              players: [],
+              players: [
+                {
+                  playerId,
+                  displayName: `${player.lastName} ${player.firstName}`,
+                  grade: player.grade,
+                  preferredPosition: player.preferredPosition,
+                  totalAbilityGrowth: 3,
+                  fatigueChange: 5,
+                  conditionChange: 0,
+                  trustChange: 1,
+                  injured: false,
+                  abilityChanges: { jump: 1 },
+                  rankUps: [
+                    {
+                      area: "jump" as const,
+                      areaLabel: "跳躍",
+                      fromGrade: "E" as const,
+                      toGrade: "D" as const,
+                    },
+                  ],
+                  socialGrowth: {
+                    contributions: [],
+                    rawPercentPoints: 0,
+                    appliedPercentPoints: 0,
+                    capped: false,
+                  },
+                },
+              ],
             },
           },
         ],
