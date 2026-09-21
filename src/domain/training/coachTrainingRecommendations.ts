@@ -73,13 +73,16 @@ function specialtyArea(
   const nearWeakness = (key: keyof typeof summary) =>
     summary[key] <= weakest[1] + 5;
 
-  if (contract.specialty === "attack" && nearWeakness("attack")) return "attack";
+  if (contract.specialty === "attack" && nearWeakness("attack"))
+    return "attack";
   if (contract.specialty === "defense" && nearWeakness("defense")) {
     return "defense";
   }
   if (contract.specialty === "physical") {
     const physical =
-      summary.jump <= summary.stamina ? ("jump" as const) : ("stamina" as const);
+      summary.jump <= summary.stamina
+        ? ("jump" as const)
+        : ("stamina" as const);
     if (nearWeakness(physical)) return physical;
   }
   return null;
@@ -176,7 +179,8 @@ export function buildCoachTrainingRecommendation(
     };
   }
 
-  const specialty = quality === "detailed" ? specialtyArea(state, player) : null;
+  const specialty =
+    quality === "detailed" ? specialtyArea(state, player) : null;
   if (specialty) {
     const instruction = areaInstruction(specialty);
     const contract = state.schoolManagement.assistantCoach!;
