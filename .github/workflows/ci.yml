@@ -53,6 +53,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Capture save V2 migration test formatting
+        run: |
+          npx prettier tests/unit/worker/data/serverSavePayloadV2Migration.test.ts --write
+          echo "=== SAVE_V2_PRETTIER_DIFF_BEGIN ==="
+          git diff -- tests/unit/worker/data/serverSavePayloadV2Migration.test.ts
+          echo "=== SAVE_V2_PRETTIER_DIFF_END ==="
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
