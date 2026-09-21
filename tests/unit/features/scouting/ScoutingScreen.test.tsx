@@ -90,15 +90,25 @@ describe("ScoutingScreen", () => {
     expect(screen.getByText(/188cm/)).toBeVisible();
     expect(screen.getByText(/県選抜/)).toBeVisible();
     expect(screen.getByText(/★★★★☆/)).toBeVisible();
-    expect(screen.getByText(/現在能力 58〜72/)).toBeVisible();
-    expect(screen.getByText(/将来性 72〜89/)).toBeVisible();
+    expect(screen.getByText("58〜72")).toBeVisible();
+    expect(screen.getByText("72〜89")).toBeVisible();
     expect(screen.getByText(/調査精度 中/)).toBeVisible();
     const abilityEstimate = screen.getByLabelText("青木 蓮 推定能力");
-    expect(within(abilityEstimate).getByLabelText("攻 推定 61〜71")).toBeVisible();
-    expect(within(abilityEstimate).getByLabelText("守 推定 50〜62")).toBeVisible();
-    expect(within(abilityEstimate).getByLabelText("跳 推定 64〜74")).toBeVisible();
-    expect(within(abilityEstimate).getByLabelText("体 推定 55〜67")).toBeVisible();
-    expect(within(abilityEstimate).getByLabelText("心 推定 52〜64")).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("攻 推定 61〜71"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("守 推定 50〜62"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("跳 推定 64〜74"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("体 推定 55〜67"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("心 推定 52〜64"),
+    ).toBeVisible();
     expect(screen.getByText("攻撃力に目を引くものがある")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),

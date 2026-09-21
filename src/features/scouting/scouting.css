@@ -532,7 +532,6 @@
   }
 }
 
-
 /* Phase25-5: dense mobile scouting board with approximate ability ranges. */
 .scouting-ability-estimates {
   display: grid;

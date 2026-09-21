@@ -53,12 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Capture Phase25-5 Prettier diff
-        run: |
-          npx prettier src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx src/features/team/player-hub.css tests/unit/features/scouting/ScoutingScreen.test.tsx --write
-          echo "=== PHASE25_5_PRETTIER_DIFF_BEGIN ==="
-          git diff -- src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx src/features/team/player-hub.css tests/unit/features/scouting/ScoutingScreen.test.tsx
-          echo "=== PHASE25_5_PRETTIER_DIFF_END ==="
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence

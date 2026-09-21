@@ -356,7 +356,8 @@ export function ScoutingScreen({
                   <div>
                     <span>総合</span>
                     <strong>
-                      {report.estimatedOverall.min}〜{report.estimatedOverall.max}
+                      {report.estimatedOverall.min}〜
+                      {report.estimatedOverall.max}
                     </strong>
                   </div>
                   <div>
