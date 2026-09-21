@@ -270,4 +270,97 @@ describe("GameApp scouting flow", () => {
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
     ).toBeEnabled();
   });
+  it("persists a school visit and refreshes the candidate interest from the server", async () => {
+    const snapshot = createSnapshot();
+    const contestedReport: ScoutReport = {
+      ...report,
+      recruitment: {
+        interestScore: 48,
+        interestLevel: "medium",
+        canCommit: false,
+        competitorSchoolNames: ["皇星"],
+      },
+    };
+    const improvedReport: ScoutReport = {
+      ...contestedReport,
+      recruitment: {
+        interestScore: 60,
+        interestLevel: "ready",
+        canCommit: true,
+        competitorSchoolNames: ["皇星"],
+      },
+    };
+    const getScoutingBoard = vi
+      .fn<NonNullable<GameApiClient["getScoutingBoard"]>>()
+      .mockResolvedValueOnce({
+        operationId: "board-before-visit",
+        revision: snapshot.revision,
+        cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+        reports: [contestedReport],
+      })
+      .mockResolvedValueOnce({
+        operationId: "board-after-visit",
+        revision: snapshot.revision + 1,
+        cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+        reports: [improvedReport],
+      });
+    const commitRecruit = vi.fn<NonNullable<GameApiClient["commitRecruit"]>>(
+      async (_accessToken, request) => ({
+        operationId: request.operationId,
+        game: {
+          ...snapshot,
+          revision: snapshot.revision + 1,
+          state: {
+            ...snapshot.state,
+            recruiting: {
+              cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+              committedCandidateIds: [],
+              visitActionsUsed: 1,
+              recommendationUsed: false,
+              candidateEngagements: {
+                [candidateId]: {
+                  interestBonus: 12,
+                  visits: 1,
+                  recommendationUsed: false,
+                },
+              },
+            },
+          },
+        },
+        outcome: {
+          candidateId,
+          committedCandidateIds: [],
+          cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+          action: "visit",
+          recruitment: improvedReport.recruitment,
+        },
+      }),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getScoutingBoard,
+      commitRecruit,
+    };
+
+    renderApp(api, snapshot);
+    openScouting();
+
+    expect(await screen.findByText("志望度 48")).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "入学交渉 青木 蓮" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /学校訪問/ }));
+
+    await waitFor(() => expect(commitRecruit).toHaveBeenCalledTimes(1));
+    expect(commitRecruit.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      candidateId,
+      action: "visit",
+    });
+    expect(await screen.findByText("志望度 60")).toBeVisible();
+    expect(getScoutingBoard).toHaveBeenCalledTimes(2);
+  });
+
 });
