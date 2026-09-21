@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { useGameSession } from "../../../src/app/useGameSession";
@@ -154,7 +154,7 @@ describe("useGameSession", () => {
     });
   });
 
-  it("retries a network-ambiguous mutation with the exact same operation id and revision", async () => {
+  it("automatically retries one network-ambiguous mutation with the exact same operation id and revision", async () => {
     const recovery = cache();
     const nextSnapshot = createSnapshot(2);
     const applyAction = vi
@@ -177,27 +177,60 @@ describe("useGameSession", () => {
       await result.current.runAction({ type: "advance-week" }, "週進行を保存");
     });
 
-    expect(result.current.operation.status).toBe("offline");
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[0]?.[1]).toEqual(
+      applyAction.mock.calls[1]?.[1],
+    );
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "週進行を保存",
+    });
+    expect(recovery.write).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        snapshot: nextSnapshot,
+        pendingOperation: null,
+      }),
+    );
+  });
+
+  it("shows a retry action only after the automatic server-error retry also fails", async () => {
+    const recovery = cache();
+    const applyAction = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(500, "server_error", "サーバー処理に失敗しました"),
+      );
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot: createSnapshot(1),
+        api: api({ applyAction }),
+        recoveryCache: recovery,
+        createOperationId: () => "op-server-error",
+      }),
+    );
+
+    await act(async () => {
+      await result.current.runAction({ type: "advance-week" }, "週進行を保存");
+    });
+
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[0]?.[1]).toEqual(
+      applyAction.mock.calls[1]?.[1],
+    );
+    expect(result.current.operation).toMatchObject({
+      status: "error",
+      label: "保存に失敗しました",
+    });
     expect(recovery.write).toHaveBeenLastCalledWith(
       expect.objectContaining({
         pendingOperation: expect.objectContaining({
-          operationId: "op-keep",
+          operationId: "op-server-error",
           revision: 1,
         }),
       }),
     );
-
-    act(() => {
-      if (result.current.operation.status === "offline") {
-        result.current.operation.retry();
-      }
-    });
-
-    await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(2));
-    expect(applyAction.mock.calls[0]?.[1]).toEqual(
-      applyAction.mock.calls[1]?.[1],
-    );
-    await waitFor(() => expect(result.current.snapshot.revision).toBe(2));
   });
 
   it("reloads the authoritative cloud snapshot after a revision conflict", async () => {

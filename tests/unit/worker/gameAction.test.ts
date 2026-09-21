@@ -153,6 +153,7 @@ describe("game action route", () => {
 
     expect(response.status).toBe(200);
     expect(store.applyOperation).toHaveBeenCalledTimes(1);
+    expect(store.getOperationResponse).not.toHaveBeenCalled();
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.userId).toBe("user-123");
     expect(persisted.expectedRevision).toBe(4);
@@ -177,6 +178,10 @@ describe("game action route", () => {
     );
 
     expect(response.status).toBe(409);
+    expect(store.getOperationResponse).toHaveBeenCalledWith(
+      "user-123",
+      "operation-001",
+    );
     await expect(response.json()).resolves.toEqual({
       error: {
         code: "revision_conflict",
@@ -186,8 +191,8 @@ describe("game action route", () => {
     expect(store.applyOperation).not.toHaveBeenCalled();
   });
 
-  it("returns the cached notification response for a duplicate operation without another mutation", async () => {
-    const snapshot = createSnapshot();
+  it("returns the cached notification response only after detecting a stale retry revision", async () => {
+    const snapshot = createSnapshot(5);
     const notification = trainingNotification(snapshot);
     const cached = {
       game: {
@@ -219,11 +224,11 @@ describe("game action route", () => {
       "user-123",
       "operation-001",
     );
-    expect(store.getSnapshot).not.toHaveBeenCalled();
+    expect(store.getSnapshot).toHaveBeenCalledWith("user-123");
     expect(store.applyOperation).not.toHaveBeenCalled();
   });
 
-  it("scopes operation lookup and save reads to the authenticated user", async () => {
+  it("scopes save reads to the authenticated user before any replay lookup", async () => {
     const snapshot = createSnapshot();
     const store = createStore(snapshot);
     const handler = createGameActionHandler(store);
@@ -239,11 +244,8 @@ describe("game action route", () => {
       { id: "other-user" },
     );
 
-    expect(store.getOperationResponse).toHaveBeenCalledWith(
-      "other-user",
-      "operation-001",
-    );
     expect(store.getSnapshot).toHaveBeenCalledWith("other-user");
+    expect(store.getOperationResponse).not.toHaveBeenCalled();
     expect(store.applyOperation).not.toHaveBeenCalled();
   });
 

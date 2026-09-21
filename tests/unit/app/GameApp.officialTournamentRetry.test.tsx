@@ -77,7 +77,7 @@ function responseFor(
 }
 
 describe("GameApp official tournament retry", () => {
-  it("retries an ambiguous Home progression request with the exact same operation id", async () => {
+  it("automatically retries an ambiguous Home progression request with the exact same operation id", async () => {
     const snapshot = createOfficialSnapshot();
     const applyAction = vi
       .fn<GameApiClient["applyAction"]>()
@@ -108,8 +108,8 @@ describe("GameApp official tournament retry", () => {
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
     );
 
-    expect(await screen.findByText("オフライン")).toBeVisible();
-    expect(applyAction).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("保存済み ✓")).toBeVisible();
+    expect(applyAction).toHaveBeenCalledTimes(2);
     const firstRequest = applyAction.mock.calls[0]![1];
     expect(firstRequest).toMatchObject({
       revision: 9,
@@ -119,14 +119,10 @@ describe("GameApp official tournament retry", () => {
         matchTactics: expect.any(Object),
       },
     });
-
-    fireEvent.click(screen.getByRole("button", { name: "再試行" }));
-
-    expect(await screen.findByText("保存済み ✓")).toBeVisible();
-    expect(applyAction).toHaveBeenCalledTimes(2);
     expect(applyAction.mock.calls[1]![1]).toEqual(firstRequest);
     expect(firstRequest.operationId).toBe(
       applyAction.mock.calls[1]![1].operationId,
     );
+    expect(screen.queryByText("オフライン")).not.toBeInTheDocument();
   });
 });

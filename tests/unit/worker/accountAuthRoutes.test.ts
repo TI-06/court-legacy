@@ -114,6 +114,47 @@ describe("account auth routes", () => {
     });
   });
 
+  it("logs unexpected server errors without changing the public error payload", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const auth = accountAuth({
+      register: vi.fn(async () => {
+        throw new Error("database unavailable");
+      }),
+    });
+
+    try {
+      const response = await router(auth)(
+        new Request("https://court-legacy.test/api/auth/register", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: "coach@example.com",
+            loginId: "coach.taku",
+            password: "password123",
+            coachName: "高城 監督",
+            schoolName: "青葉高校",
+          }),
+        }),
+      );
+
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({
+        error: {
+          code: "server_error",
+          message: "サーバー処理に失敗しました",
+        },
+      });
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[court-legacy] server_error",
+        "POST",
+        "/api/auth/register",
+        "Error: database unavailable",
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it("keeps account profile private behind bearer authentication", async () => {
     const auth = accountAuth();
     const route = router(auth);

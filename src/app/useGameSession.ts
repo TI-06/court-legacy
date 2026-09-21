@@ -101,6 +101,7 @@ export function useGameSession({
   async function submitRequest(
     request: GameActionRequest,
     label: string,
+    ambiguousRetryCount = 0,
   ): Promise<GameActionResponse | null> {
     setOperation({
       status: "submitting",
@@ -149,6 +150,9 @@ export function useGameSession({
       }
 
       if (isNetworkAmbiguous(error) || isServerAmbiguous(error)) {
+        if (ambiguousRetryCount < 1) {
+          return submitRequest(request, label, ambiguousRetryCount + 1);
+        }
         await writeRecovery(snapshotRef.current, request);
         const retry = () => void submitRequest(request, label);
         setOperation(
