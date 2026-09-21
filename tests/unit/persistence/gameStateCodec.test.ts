@@ -48,6 +48,37 @@ describe("game state codec", () => {
     );
   });
 
+  it("round-trips a development-goal achievement notification", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.notifications.items = [
+      {
+        id: "development-goal-achieved:test",
+        type: "development-goal-achieved",
+        createdGameDate: state.date,
+        academicYearIndex: state.yearIndex,
+        weekOfYear: state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          items: [
+            {
+              playerId,
+              displayName: "山田 太郎",
+              area: "jump",
+              areaLabel: "跳躍",
+              targetGrade: "D",
+              achievedGrade: "D",
+            },
+          ],
+        },
+      },
+    ];
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.notifications.items).toEqual(state.notifications.items);
+  });
+
   it("rejects malformed notification payloads", () => {
     const state = createDemoGame();
 
