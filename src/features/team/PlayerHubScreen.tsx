@@ -639,9 +639,7 @@ export function PlayerHubScreen({
                     >
                       <span>{developmentGoalAreaLabels[area]}</span>
                       <strong>
-                        {maxed
-                          ? "A・最高"
-                          : `${currentGrade} → ${targetGrade}`}
+                        {maxed ? "A・最高" : `${currentGrade} → ${targetGrade}`}
                       </strong>
                     </button>
                   );
