@@ -197,15 +197,18 @@ export function buildRecruitmentCompetitionProfile(
     report.evaluationStars,
   );
 
+  const competitors = competitorSchoolNames(
+    state,
+    report.candidateId,
+    report.evaluationStars,
+  );
+
   return {
     interestScore,
     interestLevel: recruitmentInterestLevel(interestScore),
-    canCommit: interestScore >= RECRUITMENT_COMMIT_THRESHOLD,
-    competitorSchoolNames: competitorSchoolNames(
-      state,
-      report.candidateId,
-      report.evaluationStars,
-    ),
+    canCommit:
+      competitors.length === 0 || interestScore >= RECRUITMENT_COMMIT_THRESHOLD,
+    competitorSchoolNames: competitors,
   };
 }
 
