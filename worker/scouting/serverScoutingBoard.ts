@@ -149,7 +149,9 @@ export function generateServerScoutingCandidates(
   );
 }
 
-function competitorCount(evaluationStars: ScoutReport["evaluationStars"]): number {
+function competitorCount(
+  evaluationStars: ScoutReport["evaluationStars"],
+): number {
   if (evaluationStars >= 5) return 2;
   if (evaluationStars === 4) return 1;
   return 0;
@@ -174,7 +176,12 @@ function competitorSchoolNames(
   if (candidates.length === 0) return [];
 
   const random = new SeededRandom(
-    [state.seed, "recruiting-competition", scoutingCycleKey(state), candidateId].join(":"),
+    [
+      state.seed,
+      "recruiting-competition",
+      scoutingCycleKey(state),
+      candidateId,
+    ].join(":"),
   );
   const pool = [...candidates];
   const selected: string[] = [];
