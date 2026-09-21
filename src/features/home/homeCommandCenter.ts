@@ -11,10 +11,12 @@ import type { PlayerId, SchoolId } from "../../domain/model/identifiers";
 import {
   selectHomeCharacterTraitNotifications,
   selectHomeConcernResolutionNotifications,
+  selectHomeDevelopmentGoalAchievementNotifications,
   selectHomeSpecialRelationshipNotifications,
   selectHomeTrainingNotifications,
   type CharacterTraitDiscoveredNotification,
   type ConcernResolutionNotification,
+  type DevelopmentGoalAchievementNotification,
   type SpecialRelationshipNotification,
   type TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -149,6 +151,13 @@ export type HomeCommandNews =
       title: string;
       detail: string;
       notification: CharacterTraitDiscoveredNotification;
+    }
+  | {
+      id: string;
+      kind: "development-goal-achieved";
+      title: string;
+      detail: string;
+      notification: DevelopmentGoalAchievementNotification;
     }
   | {
       id: string;
@@ -608,6 +617,25 @@ function buildNews(state: GameState): HomeCommandNews[] {
   const characterTraitDiscovery = selectHomeCharacterTraitNotifications(
     state.notifications,
   )[0];
+  const developmentGoalAchievement =
+    selectHomeDevelopmentGoalAchievementNotifications(state.notifications)[0];
+
+  if (developmentGoalAchievement) {
+    const items = developmentGoalAchievement.payload.items;
+    candidates.push({
+      order: developmentGoalAchievement.readAtGameDate === null ? -1 : 39,
+      news: {
+        id: `news:development-goal:${developmentGoalAchievement.id}`,
+        kind: "development-goal-achieved",
+        title: "育成目標達成！",
+        detail:
+          items.length === 1
+            ? `${items[0]!.displayName}・${items[0]!.areaLabel} ${items[0]!.targetGrade}達成`
+            : `${items.length}人が育成目標を達成`,
+        notification: developmentGoalAchievement,
+      },
+    });
+  }
 
   if (concernResolution) {
     candidates.push({
