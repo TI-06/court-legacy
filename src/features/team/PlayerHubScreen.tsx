@@ -982,6 +982,17 @@ export function PlayerHubScreen({
           title="並び順"
           value={sort}
         />
+        <button
+          aria-label="コーチの個人練習提案"
+          className="player-hub__coach-proposal"
+          disabled={trainingPending || trainingDone}
+          onClick={() => setCoachRecommendationsOpen(true)}
+          type="button"
+        >
+          <span>COACH</span>
+          <strong>練習提案</strong>
+          <small>{coachRecommendationQualityLabel(recommendationQuality)}</small>
+        </button>
       </section>
 
       <div className="player-roster">
@@ -1126,6 +1137,7 @@ export function PlayerHubScreen({
 
       {trainingSaveBar}
       {trainingSheet}
+      {coachRecommendationSheet}
     </main>
   );
 }
