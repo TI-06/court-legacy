@@ -5,7 +5,12 @@ import type { GameState } from "../model/GameState";
 import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
-import { getPlayerDevelopmentGoalProgress } from "../player/playerDevelopmentGoals";
+import {
+  developmentGoalAreaLabels,
+  getPlayerDevelopmentGoalProgress,
+} from "../player/playerDevelopmentGoals";
+import { summarizePlayerAbilities } from "../selectors/playerPresentation";
+import { ratingToGrade } from "../selectors/ratingGrades";
 import type {
   DevelopmentGoalArea,
   DevelopmentGoalGrade,
@@ -18,6 +23,13 @@ import type {
 } from "../relationships/relationshipTypes";
 import type { AbilityKey } from "../validation/gameDataSchema";
 
+export interface TrainingResultRankUp {
+  area: DevelopmentGoalArea;
+  areaLabel: string;
+  fromGrade: DevelopmentGoalGrade;
+  toGrade: DevelopmentGoalGrade;
+}
+
 export interface TrainingResultNotificationPlayer {
   playerId: PlayerId;
   displayName: string;
@@ -29,6 +41,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
 
@@ -156,6 +169,48 @@ function trainingNotificationId(state: GameState): string {
   return `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`;
 }
 
+function buildTrainingRankUps(
+  player: GameState["players"][PlayerId],
+  abilityChanges: Partial<Record<AbilityKey, number>>,
+): TrainingResultRankUp[] {
+  const afterPlayer = {
+    ...player,
+    abilities: { ...player.abilities },
+  };
+  for (const [ability, change] of Object.entries(abilityChanges) as [
+    AbilityKey,
+    number | undefined,
+  ][]) {
+    if (typeof change !== "number" || change === 0) continue;
+    afterPlayer.abilities[ability] = Math.max(
+      0,
+      Math.min(100, afterPlayer.abilities[ability] + change),
+    );
+  }
+
+  const beforeSummary = summarizePlayerAbilities(player);
+  const afterSummary = summarizePlayerAbilities(afterPlayer);
+  const areas = Object.keys(
+    developmentGoalAreaLabels,
+  ) as DevelopmentGoalArea[];
+
+  return areas.flatMap((area) => {
+    const fromGrade = ratingToGrade(
+      beforeSummary[area],
+    ) as DevelopmentGoalGrade;
+    const toGrade = ratingToGrade(afterSummary[area]) as DevelopmentGoalGrade;
+    if (fromGrade === toGrade) return [];
+    return [
+      {
+        area,
+        areaLabel: developmentGoalAreaLabels[area],
+        fromGrade,
+        toGrade,
+      },
+    ];
+  });
+}
+
 export function buildTrainingResultNotification(
   input: BuildTrainingResultNotificationInput,
 ): TrainingResultNotification {
@@ -181,6 +236,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
           ...contribution,
