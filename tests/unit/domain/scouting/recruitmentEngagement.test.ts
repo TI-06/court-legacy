@@ -63,11 +63,7 @@ describe("recruitmentEngagement", () => {
     });
 
     expect(
-      applyRecruitmentAction(
-        first.state,
-        secondCandidateId,
-        "recommendation",
-      ),
+      applyRecruitmentAction(first.state, secondCandidateId, "recommendation"),
     ).toMatchObject({
       applied: false,
       reason: "recommendation-limit",
