@@ -328,4 +328,84 @@ describe("PreMatchLineupScreen", () => {
 
     expect(screen.getByText("戦術傾向 非公開")).toBeVisible();
   });
+  it("applies the opponent analysis recommendation to the match-only tactics", () => {
+    const { state, selection } = fixture();
+    const school = state.schools[state.userSchoolId]!;
+    school.coach.observation = 80;
+    school.facilities.analysisRoom = 5;
+    const opponent = Object.values(state.schools).find(
+      (candidate) => candidate.id !== state.userSchoolId,
+    );
+    if (!opponent) throw new Error("opponent fixture missing");
+    const opponentSelection = autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    });
+    const onStart = vi.fn();
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={onStart}
+        opponentName={opponent.name}
+        opponentSelection={opponentSelection}
+        opponentStrength={88}
+        opponentTactics={{
+          serve: "aggressive",
+          attack: "quick",
+          block: "read",
+        }}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const analysis = screen.getByRole("region", { name: "相手分析" });
+    expect(within(analysis).getByText(/詳細分析/)).toBeVisible();
+    expect(
+      within(analysis).getByRole("button", { name: "分析結果を戦術へ反映" }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(analysis).getByRole("button", { name: "分析結果を戦術へ反映" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
+
+    expect(onStart).toHaveBeenCalledWith(
+      selection,
+      expect.objectContaining({
+        attack: "quick",
+        block: "commit",
+      }),
+    );
+  });
+
+  it("does not expose full opponent analysis in PvP", () => {
+    const { state, selection } = fixture();
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pvp"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName="オンライン高校"
+        opponentStrength={90}
+        opponentTactics={{
+          serve: "balanced",
+          attack: "quick",
+          block: "read",
+        }}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    expect(screen.queryByRole("region", { name: "相手分析" })).toBeNull();
+    expect(screen.getByText("攻撃 高速")).toBeVisible();
+  });
 });
