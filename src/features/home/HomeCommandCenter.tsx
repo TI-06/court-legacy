@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BottomSheet } from "../../ui/BottomSheet";
 import type {
   CharacterTraitDiscoveredNotification,
+  DevelopmentGoalAchievementNotification,
   SpecialRelationshipNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -25,6 +26,9 @@ interface HomeCommandCenterProps {
   ) => void;
   onOpenRelationshipNotification: (
     notification: SpecialRelationshipNotification,
+  ) => void;
+  onOpenDevelopmentGoalAchievement: (
+    notification: DevelopmentGoalAchievementNotification,
   ) => void;
   onAcknowledgeCharacterTraitNotification: (
     notification: CharacterTraitDiscoveredNotification,
@@ -84,6 +88,7 @@ export function HomeCommandCenter({
   onDeclinePracticeOffer,
   onOpenTrainingNotification,
   onOpenRelationshipNotification,
+  onOpenDevelopmentGoalAchievement,
   onAcknowledgeCharacterTraitNotification,
 }: HomeCommandCenterProps) {
   const [tasksOpen, setTasksOpen] = useState(false);
@@ -154,6 +159,25 @@ export function HomeCommandCenter({
             <strong>
               {unread ? "NEW" : "確認済み"} {news.title}
             </strong>
+            <small>{news.detail}</small>
+          </span>
+          <b aria-hidden="true">›</b>
+        </button>
+      );
+    }
+    if (news.kind === "development-goal-achieved") {
+      const unread = news.notification.readAtGameDate === null;
+      return (
+        <button
+          aria-label={`${news.title} ${news.detail}`}
+          className={`home-command-news-row${unread ? " is-unread" : ""}`}
+          data-testid="home-command-news"
+          key={news.id}
+          onClick={() => onOpenDevelopmentGoalAchievement(news.notification)}
+          type="button"
+        >
+          <span>
+            <strong>{unread ? `NEW ${news.title}` : news.title}</strong>
             <small>{news.detail}</small>
           </span>
           <b aria-hidden="true">›</b>

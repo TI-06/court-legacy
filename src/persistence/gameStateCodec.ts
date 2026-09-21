@@ -544,6 +544,42 @@ const specialRelationshipNotificationSchema = z
   })
   .strict();
 
+const developmentGoalAchievementNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("development-goal-achieved"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        items: z
+          .array(
+            z
+              .object({
+                playerId: playerIdSchema,
+                displayName: z.string().min(1),
+                area: z.enum([
+                  "attack",
+                  "defense",
+                  "jump",
+                  "stamina",
+                  "mental",
+                ]),
+                areaLabel: z.string().min(1),
+                targetGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
+                achievedGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(64),
+      })
+      .strict(),
+  })
+  .strict();
+
 const characterTraitDiscoveredNotificationSchema = z
   .object({
     id: z.string().min(1),
@@ -569,6 +605,7 @@ const gameNotificationSchema = z.discriminatedUnion("type", [
   concernResolutionNotificationSchema,
   specialRelationshipNotificationSchema,
   characterTraitDiscoveredNotificationSchema,
+  developmentGoalAchievementNotificationSchema,
 ]);
 
 const notificationStateSchema = z

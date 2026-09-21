@@ -177,6 +177,53 @@ describe("applyGameAction", () => {
     expect(snapshot).toEqual(before);
   });
 
+  it("persists a goal-achievement notification when training crosses the target grade", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = snapshot.state.players[playerId]!;
+    player.abilities.jump = 49;
+    player.potential = 100;
+    player.condition = 100;
+    player.academic = 100;
+    player.injury = null;
+    school.coach.development = 100;
+    school.facilities.trainingRoom = 50;
+    snapshot.state.teamPlanning.developmentGoalsByPlayerId = {
+      [playerId]: { area: "jump", targetGrade: "D" },
+    };
+    const plan = createTrainingPlan(snapshot);
+    plan.individualAssignments[0] = {
+      playerId,
+      instructionId: "instruction.jump",
+    };
+
+    const result = applyGameAction(snapshot, {
+      type: "training",
+      plan,
+    });
+
+    expect(
+      result.state.players[playerId]!.abilities.jump,
+    ).toBeGreaterThanOrEqual(50);
+    expect(
+      result.state.notifications.items.find(
+        (item) => item.type === "development-goal-achieved",
+      ),
+    ).toMatchObject({
+      type: "development-goal-achieved",
+      payload: {
+        items: [
+          expect.objectContaining({
+            playerId,
+            area: "jump",
+            targetGrade: "D",
+          }),
+        ],
+      },
+    });
+  });
+
   it("rejects a duplicate weekly training action", () => {
     const snapshot = createSnapshot();
     const first = applyGameAction(snapshot, {

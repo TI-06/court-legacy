@@ -49,6 +49,7 @@ import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
+  buildDevelopmentGoalAchievementNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
   markNotificationRead,
@@ -355,8 +356,21 @@ function applyTraining(
         ),
       },
     };
+    const goalAchievement = buildDevelopmentGoalAchievementNotification({
+      stateBeforeTraining: state,
+      stateAfterTraining: stateWithDevelopmentHistory,
+    });
+    const stateWithGoalAchievement = goalAchievement
+      ? {
+          ...stateWithDevelopmentHistory,
+          notifications: appendNotification(
+            stateWithDevelopmentHistory.notifications,
+            goalAchievement,
+          ),
+        }
+      : stateWithDevelopmentHistory;
     return {
-      state: markWeeklyActionCompleted(stateWithDevelopmentHistory, "training"),
+      state: markWeeklyActionCompleted(stateWithGoalAchievement, "training"),
       teamSelection,
       outcome: resolution.result,
     };

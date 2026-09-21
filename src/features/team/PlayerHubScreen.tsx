@@ -68,6 +68,7 @@ interface PlayerHubScreenProps {
     viceCaptainPlayerId: PlayerId,
   ) => void | Promise<void>;
   initialPlayerId?: PlayerId | null;
+  initialDetailMode?: PlayerDetailMode;
   leadershipPending?: boolean;
   trainingPending?: boolean;
   planningPending?: boolean;
@@ -93,7 +94,7 @@ interface PlayerHubScreenProps {
 }
 
 type HubMode = "roster" | "lineup" | "dynamics" | "tactics";
-type PlayerDetailMode = "ability" | "growth" | "personality";
+export type PlayerDetailMode = "ability" | "growth" | "personality";
 
 const abilityLabels = {
   attack: "攻撃",
@@ -225,6 +226,7 @@ export function PlayerHubScreen({
   onChange,
   onAssignLeadership,
   initialPlayerId = null,
+  initialDetailMode = "ability",
   leadershipPending = false,
   trainingPending = false,
   planningPending = false,
@@ -238,7 +240,8 @@ export function PlayerHubScreen({
   onDeleteLineupPreset,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
-  const [detailMode, setDetailMode] = useState<PlayerDetailMode>("ability");
+  const [detailMode, setDetailMode] =
+    useState<PlayerDetailMode>(initialDetailMode);
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(
     initialPlayerId,
   );

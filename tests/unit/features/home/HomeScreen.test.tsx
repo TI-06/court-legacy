@@ -4,6 +4,7 @@ import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
 import {
   buildCharacterTraitDiscoveredNotification,
+  type DevelopmentGoalAchievementNotification,
   type TrainingResultNotification,
 } from "../../../../src/domain/notifications/gameNotifications";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
@@ -222,6 +223,58 @@ describe("Phase 13 Home command center", () => {
       screen.getByRole("dialog", { name: "今週の練習結果" }),
     ).toBeVisible();
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
+  });
+
+  it("opens development goal achievements and deep-links to the player's growth tab", () => {
+    const props = createProps();
+    const playerId =
+      props.state.schools[props.state.userSchoolId]!.playerIds[0]!;
+    const player = props.state.players[playerId]!;
+    const notification: DevelopmentGoalAchievementNotification = {
+      id: "development-goal-achieved:home",
+      type: "development-goal-achieved",
+      createdGameDate: props.state.date,
+      academicYearIndex: props.state.yearIndex,
+      weekOfYear: props.state.calendar.weekOfYear,
+      readAtGameDate: null,
+      payload: {
+        items: [
+          {
+            playerId,
+            displayName: `${player.lastName} ${player.firstName}`,
+            area: "jump",
+            areaLabel: "跳躍",
+            targetGrade: "D",
+            achievedGrade: "D",
+          },
+        ],
+      },
+    };
+    props.state.notifications.items = [notification];
+
+    render(<HomeScreen {...props} />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /育成目標達成！/,
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "育成目標達成" });
+    expect(dialog).toHaveTextContent("GOAL COMPLETE");
+    expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
+
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `${player.lastName} ${player.firstName}の成長画面を開く`,
+      }),
+    );
+
+    expect(props.onCommand).toHaveBeenCalledWith({
+      target: "player",
+      playerId,
+      detail: "growth",
+    });
   });
 
   it("shows a compact character trait discovery without opening a fullscreen event", () => {

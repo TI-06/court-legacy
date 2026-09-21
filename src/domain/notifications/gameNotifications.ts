@@ -5,6 +5,11 @@ import type { GameState } from "../model/GameState";
 import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
+import { getPlayerDevelopmentGoalProgress } from "../player/playerDevelopmentGoals";
+import type {
+  DevelopmentGoalArea,
+  DevelopmentGoalGrade,
+} from "../team/teamPlanningTypes";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
 import type { RelationshipTrainingModifierSummary } from "../training/relationshipTrainingModifiers";
 import type {
@@ -96,11 +101,33 @@ export interface CharacterTraitDiscoveredNotification {
   };
 }
 
+export interface DevelopmentGoalAchievementNotificationItem {
+  playerId: PlayerId;
+  displayName: string;
+  area: DevelopmentGoalArea;
+  areaLabel: string;
+  targetGrade: DevelopmentGoalGrade;
+  achievedGrade: DevelopmentGoalGrade;
+}
+
+export interface DevelopmentGoalAchievementNotification {
+  id: string;
+  type: "development-goal-achieved";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    items: DevelopmentGoalAchievementNotificationItem[];
+  };
+}
+
 export type GameNotification =
   | TrainingResultNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
-  | CharacterTraitDiscoveredNotification;
+  | CharacterTraitDiscoveredNotification
+  | DevelopmentGoalAchievementNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -185,6 +212,54 @@ export function buildTrainingResultNotification(
       injuredCount: input.result.injuredPlayerIds.length,
       players,
     },
+  };
+}
+
+export function buildDevelopmentGoalAchievementNotification(input: {
+  stateBeforeTraining: GameState;
+  stateAfterTraining: GameState;
+}): DevelopmentGoalAchievementNotification | null {
+  const goals =
+    input.stateBeforeTraining.teamPlanning.developmentGoalsByPlayerId ?? {};
+  const items = Object.entries(goals).flatMap(([rawPlayerId, goal]) => {
+    if (!goal) return [];
+    const playerId = rawPlayerId as PlayerId;
+    const beforePlayer = input.stateBeforeTraining.players[playerId];
+    const afterPlayer = input.stateAfterTraining.players[playerId];
+    if (!beforePlayer || !afterPlayer) return [];
+
+    const before = getPlayerDevelopmentGoalProgress(beforePlayer, goal);
+    const after = getPlayerDevelopmentGoalProgress(afterPlayer, goal);
+    if (before.achieved || !after.achieved) return [];
+
+    return [
+      {
+        playerId,
+        displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
+        area: goal.area,
+        areaLabel: after.areaLabel,
+        targetGrade: goal.targetGrade,
+        achievedGrade: after.currentGrade,
+      } satisfies DevelopmentGoalAchievementNotificationItem,
+    ];
+  });
+
+  if (items.length === 0) return null;
+
+  items.sort(
+    (left, right) =>
+      left.displayName.localeCompare(right.displayName, "ja") ||
+      String(left.playerId).localeCompare(String(right.playerId)),
+  );
+
+  return {
+    id: `development-goal-achieved:${input.stateBeforeTraining.userSchoolId}:${input.stateBeforeTraining.yearIndex}:${input.stateBeforeTraining.calendar.weekOfYear}:${input.stateBeforeTraining.date}`,
+    type: "development-goal-achieved",
+    createdGameDate: input.stateBeforeTraining.date,
+    academicYearIndex: input.stateBeforeTraining.yearIndex,
+    weekOfYear: input.stateBeforeTraining.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: { items },
   };
 }
 
@@ -349,6 +424,17 @@ export function selectHomeSpecialRelationshipNotifications(
   const items = state.items.filter(
     (item): item is SpecialRelationshipNotification =>
       item.type === "special-relationship",
+  );
+  const newest = items[items.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeDevelopmentGoalAchievementNotifications(
+  state: GameNotificationState,
+): DevelopmentGoalAchievementNotification[] {
+  const items = state.items.filter(
+    (item): item is DevelopmentGoalAchievementNotification =>
+      item.type === "development-goal-achieved",
   );
   const newest = items[items.length - 1];
   return newest ? [newest] : [];
