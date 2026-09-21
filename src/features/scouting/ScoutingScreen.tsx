@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
+import {
+  recruitmentRecommendationAvailable,
+  recruitmentVisitsRemaining,
+  type RecruitmentAction,
+} from "../../domain/scouting/recruitmentEngagement";
 import { reputationGrade } from "../../domain/school/reputation";
 import type {
   MiddleSchoolAchievement,
@@ -18,6 +23,7 @@ import {
   type SchoolView,
 } from "../school/SchoolNavigationTabs";
 import type { ShopUsePresentation } from "../shop/shopUsePresentation";
+import { BottomSheet } from "../../ui/BottomSheet";
 import "./scouting.css";
 
 interface ScoutingScreenProps {
@@ -26,13 +32,14 @@ interface ScoutingScreenProps {
   loading: boolean;
   error: string | null;
   recruitingCandidateId: PlayerId | null;
+  recruitingAction?: RecruitmentAction | null;
   shopStatus?: ShopStatusResponse | null;
   shopPendingItemId?: ShopItemId | null;
   shopPendingCandidateId?: string | null;
   latestShopUseResult?: ShopUsePresentation | null;
   onBack: () => void;
   onRetry: () => void;
-  onRecruit: (candidateId: PlayerId) => void;
+  onRecruit: (candidateId: PlayerId, action?: RecruitmentAction) => void;
   onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
 }
 
@@ -165,6 +172,7 @@ export function ScoutingScreen({
   loading,
   error,
   recruitingCandidateId,
+  recruitingAction = null,
   shopStatus = null,
   shopPendingItemId = null,
   shopPendingCandidateId = null,
@@ -176,6 +184,8 @@ export function ScoutingScreen({
 }: ScoutingScreenProps) {
   const school = state.schools[state.userSchoolId]!;
   const cycleKey = currentCycleKey(state);
+  const [negotiatingCandidateId, setNegotiatingCandidateId] =
+    useState<PlayerId | null>(null);
   const [excludedState, setExcludedState] = useState<{
     cycleKey: string;
     candidateIds: Set<PlayerId>;
@@ -209,6 +219,11 @@ export function ScoutingScreen({
       reports.filter((report) => excludedCandidateIds.has(report.candidateId)),
     [excludedCandidateIds, reports],
   );
+  const negotiatingReport =
+    reports.find((report) => report.candidateId === negotiatingCandidateId) ??
+    null;
+  const visitsRemaining = recruitmentVisitsRemaining(state);
+  const recommendationAvailable = recruitmentRecommendationAvailable(state);
 
   const selectSchoolView = (view: SchoolView) => {
     if (view === "scouting") return;
@@ -257,16 +272,16 @@ export function ScoutingScreen({
             <strong>Lv.{school.facilities.scoutingNetwork}</strong>
           </div>
           <div>
-            <span>監督観察力</span>
-            <strong>{school.coach.observation}</strong>
-          </div>
-          <div>
             <span>獲得人数</span>
             <strong>{committedCandidateIds.length}人</strong>
           </div>
           <div>
-            <span>対象外</span>
-            <strong>{excludedReports.length}人</strong>
+            <span>学校訪問</span>
+            <strong>残{visitsRemaining}回</strong>
+          </div>
+          <div>
+            <span>推薦枠</span>
+            <strong>{recommendationAvailable ? "残1" : "使用済"}</strong>
           </div>
         </div>
       </section>
@@ -350,6 +365,19 @@ export function ScoutingScreen({
                     {achievementLabels[report.middleSchoolAchievement]}
                   </span>
                   <span>調査精度 {confidenceLabels[report.confidence]}</span>
+                  {report.recruitment ? (
+                    <span
+                      className={`scouting-interest scouting-interest--${report.recruitment.interestLevel}`}
+                    >
+                      志望度 {report.recruitment.interestScore}
+                    </span>
+                  ) : null}
+                  {(report.recruitment?.competitorSchoolNames.length ?? 0) >
+                  0 ? (
+                    <span className="scouting-competition">
+                      競合 {report.recruitment!.competitorSchoolNames.length}校
+                    </span>
+                  ) : null}
                 </div>
 
                 <div className="scouting-estimates">
@@ -475,10 +503,30 @@ export function ScoutingScreen({
                       isRecruiting ||
                       recruitingCandidateId !== null
                     }
-                    onClick={() => onRecruit(report.candidateId)}
+                    onClick={() => {
+                      if (
+                        report.recruitment &&
+                        report.recruitment.competitorSchoolNames.length > 0
+                      ) {
+                        setNegotiatingCandidateId(report.candidateId);
+                        return;
+                      }
+                      onRecruit(report.candidateId, "commit");
+                    }}
                     type="button"
                   >
-                    {buttonLabel}
+                    {isCommitted
+                      ? "獲得済み"
+                      : isRecruiting
+                        ? recruitingAction === "visit"
+                          ? "訪問中…"
+                          : recruitingAction === "recommendation"
+                            ? "推薦交渉中…"
+                            : "入学交渉中…"
+                        : report.recruitment &&
+                            report.recruitment.competitorSchoolNames.length > 0
+                          ? "入学交渉"
+                          : "獲得候補にする"}
                   </button>
                 </div>
               </article>
@@ -490,6 +538,82 @@ export function ScoutingScreen({
       {!loading && reports.length > 0 && activeReports.length === 0 ? (
         <p className="scouting-empty-active">表示中の候補はいません</p>
       ) : null}
+
+      <BottomSheet
+        description={
+          negotiatingReport?.recruitment
+            ? `競合: ${negotiatingReport.recruitment.competitorSchoolNames.join(" / ")}`
+            : undefined
+        }
+        onClose={() => setNegotiatingCandidateId(null)}
+        open={Boolean(negotiatingReport)}
+        title={
+          negotiatingReport
+            ? `${negotiatingReport.displayName}の入学交渉`
+            : "入学交渉"
+        }
+      >
+        {negotiatingReport?.recruitment ? (
+          <div className="scouting-negotiation">
+            <div className="scouting-negotiation__interest">
+              <span>現在の志望度</span>
+              <strong>{negotiatingReport.recruitment.interestScore}</strong>
+              <small>
+                {negotiatingReport.recruitment.canCommit
+                  ? "入学確約を取れる状態です"
+                  : "志望度60で入学確約できます"}
+              </small>
+            </div>
+            <div className="scouting-negotiation__actions">
+              <button
+                disabled={
+                  visitsRemaining <= 0 || recruitingCandidateId !== null
+                }
+                onClick={() => {
+                  onRecruit(negotiatingReport.candidateId, "visit");
+                  setNegotiatingCandidateId(null);
+                }}
+                type="button"
+              >
+                <strong>学校訪問</strong>
+                <small>志望度 +12・残{visitsRemaining}回</small>
+              </button>
+              <button
+                disabled={
+                  !recommendationAvailable || recruitingCandidateId !== null
+                }
+                onClick={() => {
+                  onRecruit(negotiatingReport.candidateId, "recommendation");
+                  setNegotiatingCandidateId(null);
+                }}
+                type="button"
+              >
+                <strong>推薦枠を使う</strong>
+                <small>志望度 +24・年1回</small>
+              </button>
+              <button
+                className="scouting-negotiation__commit"
+                disabled={
+                  !negotiatingReport.recruitment.canCommit ||
+                  recruitingCandidateId !== null
+                }
+                onClick={() => {
+                  onRecruit(negotiatingReport.candidateId, "commit");
+                  setNegotiatingCandidateId(null);
+                }}
+                type="button"
+              >
+                <strong>入学確約</strong>
+                <small>
+                  {negotiatingReport.recruitment.canCommit
+                    ? "この選手の入学を確定する"
+                    : "まだ志望度が足りません"}
+                </small>
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </BottomSheet>
 
       {!loading && excludedReports.length > 0 ? (
         <details className="scouting-excluded-list">
