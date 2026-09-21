@@ -169,6 +169,16 @@ function trainingNotificationId(state: GameState): string {
   return `training-result:${state.userSchoolId}:${state.yearIndex}:${state.calendar.weekOfYear}:${state.date}`;
 }
 
+const developmentGradeOrder: readonly DevelopmentGoalGrade[] = [
+  "G",
+  "F",
+  "E",
+  "D",
+  "C",
+  "B",
+  "A",
+];
+
 function buildTrainingRankUps(
   player: GameState["players"][PlayerId],
   abilityChanges: Partial<Record<AbilityKey, number>>,
@@ -199,7 +209,13 @@ function buildTrainingRankUps(
       beforeSummary[area],
     ) as DevelopmentGoalGrade;
     const toGrade = ratingToGrade(afterSummary[area]) as DevelopmentGoalGrade;
-    if (fromGrade === toGrade) return [];
+    if (
+      fromGrade === toGrade ||
+      developmentGradeOrder.indexOf(toGrade) <=
+        developmentGradeOrder.indexOf(fromGrade)
+    ) {
+      return [];
+    }
     return [
       {
         area,
