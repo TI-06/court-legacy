@@ -94,12 +94,8 @@ function saveAttackTrainingFromRoster(): void {
   const trainingDialog = screen.getByRole("dialog", {
     name: /の個人練習$/,
   });
-  fireEvent.click(
-    within(trainingDialog).getByRole("button", { name: /^攻撃/ }),
-  );
-  fireEvent.click(
-    screen.getByRole("button", { name: "まとめて保存（1人）" }),
-  );
+  fireEvent.click(within(trainingDialog).getByRole("button", { name: /^攻撃/ }));
+  fireEvent.click(screen.getByRole("button", { name: "まとめて保存（1人）" }));
 }
 
 function openTrainingFacility(): void {
