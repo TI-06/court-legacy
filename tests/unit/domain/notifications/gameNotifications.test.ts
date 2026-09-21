@@ -93,6 +93,57 @@ describe("game notifications", () => {
     });
   });
 
+  it("captures five-category grade transitions from exact training ability changes", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.abilities.jump = 49;
+    const result: TrainingResult = {
+      schoolId: state.userSchoolId,
+      teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
+      individualAssignments:
+        state.weeklySchedule.trainingPlan.individualAssignments,
+      playerLogs: [
+        {
+          playerId,
+          abilityChanges: { jump: 1 },
+          totalAbilityGrowth: 1,
+          fatigueChange: 0,
+          conditionChange: 0,
+          trustChange: 0,
+          academicRestricted: false,
+          injuryRisk: 0,
+          injury: null,
+          skippedReason: null,
+          modifiers: [],
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
+        },
+      ],
+      injuredPlayerIds: [],
+      randomCursor: state.randomCursor,
+    };
+
+    const notification = buildTrainingResultNotification({
+      stateBeforeTraining: state,
+      result,
+      data: gameData,
+    });
+
+    expect(notification.payload.players[0]?.rankUps).toEqual([
+      {
+        area: "jump",
+        areaLabel: "跳躍",
+        fromGrade: "E",
+        toGrade: "D",
+      },
+    ]);
+  });
+
   it("emits one notification only when development goals cross their target grades", () => {
     const before = createDemoGame();
     const school = before.schools[before.userSchoolId]!;
