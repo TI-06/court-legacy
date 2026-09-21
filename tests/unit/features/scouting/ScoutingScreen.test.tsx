@@ -324,22 +324,20 @@ describe("ScoutingScreen", () => {
 
     expect(screen.getByText("志望度 48")).toBeVisible();
     expect(screen.getByText("競合 2校")).toBeVisible();
-    fireEvent.click(
-      screen.getByRole("button", { name: "入学交渉 青木 蓮" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "入学交渉 青木 蓮" }));
 
     const dialog = screen.getByRole("dialog", {
       name: "青木 蓮の入学交渉",
     });
     expect(within(dialog).getByText("競合: 皇星 / 青凪")).toBeVisible();
-    expect(within(dialog).getByText("志望度60で入学確約できます")).toBeVisible();
+    expect(
+      within(dialog).getByText("志望度60で入学確約できます"),
+    ).toBeVisible();
     expect(
       within(dialog).getByRole("button", { name: /入学確約/ }),
     ).toBeDisabled();
 
-    fireEvent.click(
-      within(dialog).getByRole("button", { name: /学校訪問/ }),
-    );
+    fireEvent.click(within(dialog).getByRole("button", { name: /学校訪問/ }));
     expect(onRecruit).toHaveBeenCalledWith(candidateA, "visit");
   });
 
@@ -368,5 +366,4 @@ describe("ScoutingScreen", () => {
     expect(within(summary).getByText("残2回")).toBeVisible();
     expect(within(summary).getByText("使用済")).toBeVisible();
   });
-
 });
