@@ -66,6 +66,7 @@ describe("coachTrainingRecommendations", () => {
       mental: 74,
       set: 70,
     };
+    school.coach.development = 80;
     state.schoolManagement.assistantCoach = {
       rank: "advanced",
       specialty: "attack",
@@ -75,6 +76,36 @@ describe("coachTrainingRecommendations", () => {
     expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
       instructionId: "instruction.attack",
       reason: "assistant-specialty",
+    });
+  });
+
+  it("uses balanced fundamentals for a basic coach and weakness training for a standard coach", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const player = state.players[school.playerIds[0]!]!;
+    player.condition = 80;
+    player.abilities = {
+      ...player.abilities,
+      spike: 70,
+      serve: 70,
+      receive: 30,
+      block: 30,
+      jump: 70,
+      stamina: 70,
+      decision: 70,
+      mental: 70,
+    };
+
+    school.coach.development = 40;
+    expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
+      instructionId: "instruction.overall",
+      reason: "balanced",
+    });
+
+    school.coach.development = 60;
+    expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
+      instructionId: "instruction.defense",
+      reason: "weakness",
     });
   });
 
