@@ -684,4 +684,69 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "目標を解除" }));
     expect(onSetPlayerDevelopmentGoal).toHaveBeenLastCalledWith(playerId, null);
   });
+  it("reviews coach proposals, preserves manual drafts, and stages the rest for one batch save", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const manualId = school.playerIds[0]!;
+    const restId = school.playerIds[1]!;
+    const manualPlayer = state.players[manualId]!;
+    const restPlayer = state.players[restId]!;
+    const onSaveTrainingAssignments = vi.fn();
+
+    state.teamPlanning.developmentGoalsByPlayerId = {
+      [manualId]: { area: "defense", targetGrade: "A" },
+    };
+    restPlayer.injury = {
+      injuryId: "injury.phase26-4-ui",
+      severity: "minor",
+      remainingWeeks: 1,
+      recurrenceRisk: 0,
+    };
+
+    renderPlayerHub(state, vi.fn(), { onSaveTrainingAssignments });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `${manualPlayer.lastName} ${manualPlayer.firstName} 個人練習 全体`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^攻撃/ }));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "コーチの個人練習提案" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "コーチの個人練習提案",
+    });
+    expect(within(dialog).getByText(/監督育成力/)).toBeVisible();
+    expect(
+      within(dialog).getByText(
+        `${manualPlayer.lastName} ${manualPlayer.firstName}`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(dialog).getByText(`${restPlayer.lastName} ${restPlayer.firstName}`),
+    ).toBeVisible();
+    expect(within(dialog).getByText(/怪我中のため回復を優先/)).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: /提案をセット/ }),
+    );
+
+    expect(onSaveTrainingAssignments).not.toHaveBeenCalled();
+    const saveButton = screen.getByRole("button", {
+      name: /まとめて保存（\d+人）/,
+    });
+    fireEvent.click(saveButton);
+
+    expect(onSaveTrainingAssignments).toHaveBeenCalledTimes(1);
+    expect(onSaveTrainingAssignments).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        { playerId: manualId, instructionId: "instruction.attack" },
+        { playerId: restId, instructionId: "instruction.rest" },
+      ]),
+    );
+  });
+
 });
