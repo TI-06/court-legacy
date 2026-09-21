@@ -367,6 +367,7 @@ describe("applyGameAction", () => {
 
     expect(result.state.pendingEvent).toBeNull();
   });
+
   it("persists a player development goal through the canonical game action", () => {
     const snapshot = createSnapshot();
     const playerId =
@@ -378,7 +379,9 @@ describe("applyGameAction", () => {
       goal: { area: "attack", targetGrade: "B" },
     });
 
-    expect(saved.state.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual({
+    expect(
+      saved.state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toEqual({
       area: "attack",
       targetGrade: "B",
     });
@@ -398,5 +401,4 @@ describe("applyGameAction", () => {
       cleared.state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
     ).toBeUndefined();
   });
-
 });
