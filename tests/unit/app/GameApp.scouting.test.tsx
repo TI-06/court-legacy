@@ -348,9 +348,7 @@ describe("GameApp scouting flow", () => {
     openScouting();
 
     expect(await screen.findByText("志望度 48")).toBeVisible();
-    fireEvent.click(
-      screen.getByRole("button", { name: "入学交渉 青木 蓮" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "入学交渉 青木 蓮" }));
     fireEvent.click(screen.getByRole("button", { name: /学校訪問/ }));
 
     await waitFor(() => expect(commitRecruit).toHaveBeenCalledTimes(1));
@@ -362,5 +360,4 @@ describe("GameApp scouting flow", () => {
     expect(await screen.findByText("志望度 60")).toBeVisible();
     expect(getScoutingBoard).toHaveBeenCalledTimes(2);
   });
-
 });
