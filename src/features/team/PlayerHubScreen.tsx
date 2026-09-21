@@ -22,6 +22,11 @@ import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
 } from "../../domain/team/teamPlanningTypes";
+import {
+  buildCoachTrainingRecommendations,
+  coachRecommendationQuality,
+  coachRecommendationQualityLabel,
+} from "../../domain/training/coachTrainingRecommendations";
 import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import {
@@ -243,6 +248,8 @@ export function PlayerHubScreen({
   const [trainingDrafts, setTrainingDrafts] = useState<Record<string, string>>(
     {},
   );
+  const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
+    useState(false);
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
 
@@ -258,6 +265,11 @@ export function PlayerHubScreen({
     () => selectPlayerHubRoster({ state, selection, filter, sort }),
     [state, selection, filter, sort],
   );
+  const coachRecommendations = useMemo(
+    () => buildCoachTrainingRecommendations(state),
+    [state],
+  );
+  const recommendationQuality = coachRecommendationQuality(state);
   const selectedPlayer = selectedPlayerId
     ? (state.players[selectedPlayerId] ?? null)
     : null;
@@ -282,6 +294,12 @@ export function PlayerHubScreen({
     )?.name ?? "全体";
 
   const trainingDraftCount = Object.keys(trainingDrafts).length;
+  const coachRecommendationChangeCount = coachRecommendations.filter(
+    (recommendation) =>
+      trainingDrafts[recommendation.playerId] === undefined &&
+      recommendation.instructionId !==
+        persistedInstructionId(recommendation.playerId),
+  ).length;
 
   const stageTrainingAssignment = (
     playerId: PlayerId,
@@ -296,6 +314,26 @@ export function PlayerHubScreen({
       }
       return next;
     });
+  };
+
+  const stageCoachRecommendations = () => {
+    if (trainingPending || trainingDone) return;
+
+    setTrainingDrafts((current) => {
+      const next = { ...current };
+      for (const recommendation of coachRecommendations) {
+        if (current[recommendation.playerId] !== undefined) continue;
+        if (
+          recommendation.instructionId ===
+          persistedInstructionId(recommendation.playerId)
+        ) {
+          continue;
+        }
+        next[recommendation.playerId] = recommendation.instructionId;
+      }
+      return next;
+    });
+    setCoachRecommendationsOpen(false);
   };
 
   const saveTrainingDrafts = async () => {
@@ -384,6 +422,69 @@ export function PlayerHubScreen({
     </BottomSheet>
   );
 
+  const coachRecommendationSheet = (
+    <BottomSheet
+      description={`監督育成力 ${school.coach.development}・${coachRecommendationQualityLabel(
+        recommendationQuality,
+      )}。育成目標、調子、年間コーチ、弱点の順に判断します。`}
+      onClose={() => setCoachRecommendationsOpen(false)}
+      open={coachRecommendationsOpen}
+      title="コーチの個人練習提案"
+    >
+      <div className="player-coach-proposal">
+        <div className="player-coach-proposal__summary">
+          <strong>{coachRecommendationChangeCount}人を変更提案</strong>
+          <span>手動で変更中の選手は上書きしません</span>
+        </div>
+        <div
+          aria-label="コーチの練習提案一覧"
+          className="player-coach-proposal__list"
+        >
+          {coachRecommendations.map((recommendation) => {
+            const player = state.players[recommendation.playerId];
+            if (!player) return null;
+            const currentInstruction = assignmentName(recommendation.playerId);
+            const changed =
+              recommendation.instructionId !==
+              effectiveInstructionId(recommendation.playerId);
+            return (
+              <article
+                className={
+                  changed
+                    ? "player-coach-proposal__row player-coach-proposal__row--changed"
+                    : "player-coach-proposal__row"
+                }
+                key={recommendation.playerId}
+              >
+                <div>
+                  <strong>{playerName(player)}</strong>
+                  <small>{recommendation.reasonLabel}</small>
+                </div>
+                <span>
+                  {currentInstruction}
+                  {changed ? ` → ${recommendation.instructionName}` : " 維持"}
+                </span>
+              </article>
+            );
+          })}
+        </div>
+        <button
+          className="player-coach-proposal__apply"
+          disabled={
+            coachRecommendationChangeCount === 0 ||
+            trainingPending ||
+            trainingDone
+          }
+          onClick={stageCoachRecommendations}
+          type="button"
+        >
+          {trainingDone
+            ? "今週の練習は実施済み"
+            : `提案をセット（${coachRecommendationChangeCount}人）`}
+        </button>
+      </div>
+    </BottomSheet>
+  );
   const togglePriority = (playerId: PlayerId) => {
     const selected = priorityIds.includes(playerId);
     const nextIds = selected
@@ -881,6 +982,19 @@ export function PlayerHubScreen({
           title="並び順"
           value={sort}
         />
+        <button
+          aria-label="コーチの個人練習提案"
+          className="player-hub__coach-proposal"
+          disabled={trainingPending || trainingDone}
+          onClick={() => setCoachRecommendationsOpen(true)}
+          type="button"
+        >
+          <span>COACH</span>
+          <strong>練習提案</strong>
+          <small>
+            {coachRecommendationQualityLabel(recommendationQuality)}
+          </small>
+        </button>
       </section>
 
       <div className="player-roster">
@@ -1025,6 +1139,7 @@ export function PlayerHubScreen({
 
       {trainingSaveBar}
       {trainingSheet}
+      {coachRecommendationSheet}
     </main>
   );
 }
