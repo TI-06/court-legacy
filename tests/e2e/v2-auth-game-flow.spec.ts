@@ -75,9 +75,7 @@ test("@critical registration, onboarding, mutation, and reload keep the cloud ga
     .getByRole("dialog", { name: /の個人練習$/ })
     .getByRole("button", { name: /^攻撃/ })
     .click();
-  await page
-    .getByRole("button", { name: "まとめて保存（1人）" })
-    .click();
+  await page.getByRole("button", { name: "まとめて保存（1人）" }).click();
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
