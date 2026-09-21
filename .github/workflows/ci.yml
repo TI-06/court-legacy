@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase27-2 formatting diagnostic
+        run: |
+          npx prettier src/domain/notifications/gameNotifications.ts src/features/home/TrainingResultNotificationSheet.tsx src/features/home/homeCommandCenter.ts src/features/home/training-result-notification.css src/persistence/gameStateCodec.ts tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/TrainingResultNotificationSheet.test.tsx tests/unit/persistence/gameStateCodec.test.ts --write
+          git diff -- src/domain/notifications/gameNotifications.ts src/features/home/TrainingResultNotificationSheet.tsx src/features/home/homeCommandCenter.ts src/features/home/training-result-notification.css src/persistence/gameStateCodec.ts tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/TrainingResultNotificationSheet.test.tsx tests/unit/persistence/gameStateCodec.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
