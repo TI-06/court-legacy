@@ -225,6 +225,34 @@ describe("Phase 13 Home command center", () => {
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 
+  it("promotes a training rank-up in Home news and the result sheet", () => {
+    const props = createProps();
+    const notification = trainingNotification(props.state);
+    notification.payload.players[0]!.rankUps = [
+      {
+        area: "jump",
+        areaLabel: "跳躍",
+        fromGrade: "E",
+        toGrade: "D",
+      },
+    ];
+    props.state.notifications.items = [notification];
+
+    render(<HomeScreen {...props} />);
+
+    expect(screen.getByText("NEW 能力ランクアップ！")).toBeVisible();
+    expect(screen.getByText(/跳躍 E→D/)).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /今週の練習結果 スパイク練習/ }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "今週の練習結果" });
+    expect(
+      within(dialog).getByRole("region", { name: "能力ランクアップ" }),
+    ).toBeVisible();
+  });
+
   it("opens development goal achievements and deep-links to the player's growth tab", () => {
     const props = createProps();
     const playerId =
