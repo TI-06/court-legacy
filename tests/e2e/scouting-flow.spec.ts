@@ -13,6 +13,18 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
   await expect(
     page.getByRole("heading", { name: "新入生スカウト" }),
   ).toBeVisible();
+  const cards = page.getByTestId("scouting-candidate-card");
+  expect(await cards.count()).toBeGreaterThanOrEqual(2);
+  await expect(cards.first().getByLabel(/ 推定能力$/)).toBeVisible();
+
+  const secondCardBox = await cards.nth(1).boundingBox();
+  const navigationBox = await navigation.boundingBox();
+  expect(secondCardBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect(secondCardBox!.y + secondCardBox!.height).toBeLessThanOrEqual(
+    navigationBox!.y + 1,
+  );
+
   const recruitButton = page
     .getByRole("button", { name: /^獲得候補にする / })
     .first();

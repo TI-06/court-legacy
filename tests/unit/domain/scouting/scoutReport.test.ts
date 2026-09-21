@@ -47,6 +47,13 @@ describe("scoutReport", () => {
     expect(report.evaluationStars).toBeGreaterThanOrEqual(1);
     expect(report.evaluationStars).toBeLessThanOrEqual(5);
     expect(report.comments.length).toBeGreaterThan(0);
+    expect(Object.keys(report.estimatedAbilities ?? {})).toEqual([
+      "attack",
+      "defense",
+      "jump",
+      "stamina",
+      "mental",
+    ]);
 
     expect(serialized).not.toContain('"tier"');
     expect(serialized).not.toContain('"growthPeakGrade"');
@@ -78,6 +85,19 @@ describe("scoutReport", () => {
     expect(
       high.estimatedPotential.max - high.estimatedPotential.min,
     ).toBeLessThan(low.estimatedPotential.max - low.estimatedPotential.min);
+    for (const key of [
+      "attack",
+      "defense",
+      "jump",
+      "stamina",
+      "mental",
+    ] as const) {
+      const highRange = high.estimatedAbilities![key];
+      const lowRange = low.estimatedAbilities![key];
+      expect(highRange.max - highRange.min).toBeLessThan(
+        lowRange.max - lowRange.min,
+      );
+    }
     expect(high.confidence).toBe("high");
     expect(low.confidence).toBe("low");
   });

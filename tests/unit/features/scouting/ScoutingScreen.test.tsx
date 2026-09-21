@@ -20,6 +20,13 @@ const reports: ScoutReport[] = [
     evaluationStars: 4,
     estimatedOverall: { min: 58, max: 72 },
     estimatedPotential: { min: 72, max: 89 },
+    estimatedAbilities: {
+      attack: { min: 61, max: 71 },
+      defense: { min: 50, max: 62 },
+      jump: { min: 64, max: 74 },
+      stamina: { min: 55, max: 67 },
+      mental: { min: 52, max: 64 },
+    },
     confidence: "medium",
     comments: ["攻撃力に目を引くものがある", "高さは武器になりそう"],
   },
@@ -33,6 +40,13 @@ const reports: ScoutReport[] = [
     evaluationStars: 5,
     estimatedOverall: { min: 68, max: 80 },
     estimatedPotential: { min: 82, max: 96 },
+    estimatedAbilities: {
+      attack: { min: 69, max: 77 },
+      defense: { min: 63, max: 71 },
+      jump: { min: 60, max: 68 },
+      stamina: { min: 66, max: 74 },
+      mental: { min: 74, max: 82 },
+    },
     confidence: "high",
     comments: ["トスワークの感覚が良い", "大舞台の経験がある"],
   },
@@ -76,9 +90,25 @@ describe("ScoutingScreen", () => {
     expect(screen.getByText(/188cm/)).toBeVisible();
     expect(screen.getByText(/県選抜/)).toBeVisible();
     expect(screen.getByText(/★★★★☆/)).toBeVisible();
-    expect(screen.getByText(/現在能力 58〜72/)).toBeVisible();
-    expect(screen.getByText(/将来性 72〜89/)).toBeVisible();
+    expect(screen.getByText("58〜72")).toBeVisible();
+    expect(screen.getByText("72〜89")).toBeVisible();
     expect(screen.getByText(/調査精度 中/)).toBeVisible();
+    const abilityEstimate = screen.getByLabelText("青木 蓮 推定能力");
+    expect(
+      within(abilityEstimate).getByLabelText("攻 推定 61〜71"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("守 推定 50〜62"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("跳 推定 64〜74"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("体 推定 55〜67"),
+    ).toBeVisible();
+    expect(
+      within(abilityEstimate).getByLabelText("心 推定 52〜64"),
+    ).toBeVisible();
     expect(screen.getByText("攻撃力に目を引くものがある")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),

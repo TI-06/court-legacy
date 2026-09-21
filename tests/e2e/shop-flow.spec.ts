@@ -84,7 +84,7 @@ async function openShopFromInventory(page: Page) {
   await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
 }
 
-function readRange(text: string, label: "現在能力" | "将来性") {
+function readRange(text: string, label: "総合" | "将来") {
   const match = text.match(new RegExp(`${label}\\s*(\\d+)〜(\\d+)`));
   if (!match) throw new Error(`${label} range not found: ${text}`);
   return { min: Number(match[1]), max: Number(match[2]) };
@@ -270,16 +270,16 @@ test("scouting research and appraisal tighten only public report ranges", async 
   const candidate = page.locator("article.scouting-card").first();
   await expect(candidate).toBeVisible();
   const beforeText = (await candidate.textContent()) ?? "";
-  const beforeOverall = readRange(beforeText, "現在能力");
-  const beforePotential = readRange(beforeText, "将来性");
+  const beforeOverall = readRange(beforeText, "総合");
+  const beforePotential = readRange(beforeText, "将来");
 
   await candidate.getByRole("button", { name: /^スカウト再調査 / }).click();
   await expect(
     page.getByRole("heading", { name: "スカウト再調査の結果" }),
   ).toBeVisible({ timeout: 2_500 });
   const researchedText = (await candidate.textContent()) ?? "";
-  const researchedOverall = readRange(researchedText, "現在能力");
-  const researchedPotential = readRange(researchedText, "将来性");
+  const researchedOverall = readRange(researchedText, "総合");
+  const researchedPotential = readRange(researchedText, "将来");
   expect(researchedOverall.max - researchedOverall.min).toBeLessThan(
     beforeOverall.max - beforeOverall.min,
   );
@@ -293,7 +293,7 @@ test("scouting research and appraisal tighten only public report ranges", async 
     page.getByRole("heading", { name: "潜在能力鑑定の結果" }),
   ).toBeVisible({ timeout: 2_500 });
   const appraisedText = (await candidate.textContent()) ?? "";
-  const appraisedPotential = readRange(appraisedText, "将来性");
+  const appraisedPotential = readRange(appraisedText, "将来");
   expect(appraisedPotential.max - appraisedPotential.min).toBeLessThanOrEqual(
     4,
   );
