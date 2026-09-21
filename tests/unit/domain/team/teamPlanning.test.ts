@@ -113,7 +113,9 @@ describe("teamPlanning", () => {
       targetGrade: "B",
     });
 
-    expect(updated.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual({
+    expect(
+      updated.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toEqual({
       area: "defense",
       targetGrade: "B",
     });
