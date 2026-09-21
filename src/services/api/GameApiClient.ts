@@ -15,6 +15,7 @@ import type {
   PvpPublishResponse,
   PvpRankingResponse,
 } from "../../domain/pvp/pvpContracts";
+import type { RecruitmentAction } from "../../domain/scouting/recruitmentEngagement";
 import type { ScoutReport } from "../../domain/scouting/scoutReport";
 import type {
   ShopPurchaseRequest,
@@ -62,6 +63,7 @@ export interface ScoutingRecruitmentRequest {
   operationId: string;
   revision: number;
   candidateId: PlayerId;
+  action?: RecruitmentAction;
 }
 
 export interface ScoutingRecruitmentResponse {
@@ -71,6 +73,8 @@ export interface ScoutingRecruitmentResponse {
     candidateId: PlayerId;
     committedCandidateIds: PlayerId[];
     cycleKey: string;
+    action?: RecruitmentAction;
+    recruitment?: ScoutReport["recruitment"] | null;
   };
 }
 

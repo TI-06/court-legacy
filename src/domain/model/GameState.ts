@@ -102,9 +102,20 @@ export interface GameHistory {
   seasonGoalSeasons?: SeasonGoalSeasonSummary[];
 }
 
+export interface RecruitingCandidateEngagement {
+  interestBonus: number;
+  visits: number;
+  recommendationUsed: boolean;
+}
+
 export interface RecruitingState {
   cycleKey: string;
   committedCandidateIds: PlayerId[];
+  visitActionsUsed?: number;
+  recommendationUsed?: boolean;
+  candidateEngagements?: Partial<
+    Record<PlayerId, RecruitingCandidateEngagement>
+  >;
 }
 
 export interface GameState {

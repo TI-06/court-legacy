@@ -26,6 +26,13 @@ export type ScoutAbilityEstimates = {
   [Key in keyof PlayerAbilitySummary]: EstimatedRange;
 };
 
+export interface RecruitmentCompetitionProfile {
+  interestScore: number;
+  interestLevel: "low" | "medium" | "high" | "ready";
+  canCommit: boolean;
+  competitorSchoolNames: string[];
+}
+
 export interface ScoutReport {
   candidateId: PlayerId;
   displayName: string;
@@ -39,6 +46,7 @@ export interface ScoutReport {
   estimatedAbilities?: ScoutAbilityEstimates;
   confidence: ScoutConfidence;
   comments: string[];
+  recruitment?: RecruitmentCompetitionProfile;
 }
 
 export interface CreateScoutReportInput {

@@ -11,8 +11,14 @@ import {
 import {
   createScoutReport,
   type MiddleSchoolAchievement,
+  type RecruitmentCompetitionProfile,
   type ScoutReport,
 } from "../../src/domain/scouting/scoutReport";
+import {
+  recruitmentInterestLevel,
+  recruitmentInterestScore,
+  RECRUITMENT_COMMIT_THRESHOLD,
+} from "../../src/domain/scouting/recruitmentEngagement";
 import type {
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
@@ -143,6 +149,75 @@ export function generateServerScoutingCandidates(
   );
 }
 
+function competitorCount(
+  evaluationStars: ScoutReport["evaluationStars"],
+): number {
+  if (evaluationStars >= 5) return 2;
+  if (evaluationStars === 4) return 1;
+  return 0;
+}
+
+function competitorSchoolNames(
+  state: GameState,
+  candidateId: string,
+  evaluationStars: ScoutReport["evaluationStars"],
+): string[] {
+  const count = competitorCount(evaluationStars);
+  if (count === 0) return [];
+
+  const candidates = Object.values(state.schools)
+    .filter((school) => school.id !== state.userSchoolId)
+    .sort((left, right) => {
+      if (right.reputationPoints !== left.reputationPoints) {
+        return right.reputationPoints - left.reputationPoints;
+      }
+      return left.id.localeCompare(right.id);
+    });
+  if (candidates.length === 0) return [];
+
+  const random = new SeededRandom(
+    [
+      state.seed,
+      "recruiting-competition",
+      scoutingCycleKey(state),
+      candidateId,
+    ].join(":"),
+  );
+  const pool = [...candidates];
+  const selected: string[] = [];
+  while (selected.length < Math.min(count, pool.length)) {
+    const index = random.int(0, pool.length - 1);
+    const [school] = pool.splice(index, 1);
+    if (school) selected.push(school.shortName);
+  }
+  return selected;
+}
+
+export function buildRecruitmentCompetitionProfile(
+  state: GameState,
+  report: ScoutReport,
+): RecruitmentCompetitionProfile {
+  const interestScore = recruitmentInterestScore(
+    state,
+    report.candidateId,
+    report.evaluationStars,
+  );
+
+  const competitors = competitorSchoolNames(
+    state,
+    report.candidateId,
+    report.evaluationStars,
+  );
+
+  return {
+    interestScore,
+    interestLevel: recruitmentInterestLevel(interestScore),
+    canCommit:
+      competitors.length === 0 || interestScore >= RECRUITMENT_COMMIT_THRESHOLD,
+    competitorSchoolNames: competitors,
+  };
+}
+
 export function buildServerScoutReports(
   state: GameState,
   pool: ScoutingCandidatePool,
@@ -174,7 +249,7 @@ export function buildServerScoutReports(
       ].join(":"),
     );
 
-    return createScoutReport({
+    const report = createScoutReport({
       player: candidate.player,
       middleSchoolAchievement: candidate.middleSchoolAchievement,
       observation: school.coach.observation,
@@ -183,5 +258,10 @@ export function buildServerScoutReports(
       potentialPrecision,
       random,
     });
+
+    return {
+      ...report,
+      recruitment: buildRecruitmentCompetitionProfile(state, report),
+    };
   });
 }

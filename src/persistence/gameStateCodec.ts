@@ -349,10 +349,26 @@ const gameSettingsSchema = z.object({
   autosaveEnabled: z.boolean(),
 });
 
-const recruitingStateSchema = z.object({
-  cycleKey: z.string().min(1),
-  committedCandidateIds: z.array(z.string().min(1)),
-});
+const recruitingStateSchema = z
+  .object({
+    cycleKey: z.string().min(1),
+    committedCandidateIds: z.array(z.string().min(1)),
+    visitActionsUsed: z.number().int().min(0).max(4).optional(),
+    recommendationUsed: z.boolean().optional(),
+    candidateEngagements: z
+      .record(
+        z.string().min(1),
+        z
+          .object({
+            interestBonus: z.number().int().min(0).max(100),
+            visits: z.number().int().min(0).max(4),
+            recommendationUsed: z.boolean(),
+          })
+          .strict(),
+      )
+      .optional(),
+  })
+  .strict();
 
 const shopGameEffectsSchema = z
   .object({

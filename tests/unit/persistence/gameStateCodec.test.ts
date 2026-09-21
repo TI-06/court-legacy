@@ -220,4 +220,35 @@ describe("game state codec", () => {
       legacyShape.teamPlanning,
     );
   });
+  it("round-trips optional recruiting engagement while accepting the legacy recruiting shape", () => {
+    const state = createDemoGame();
+    const candidateId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const cycleKey = `${state.userSchoolId}:year-${state.yearIndex}`;
+    state.recruiting = {
+      cycleKey,
+      committedCandidateIds: [],
+      visitActionsUsed: 2,
+      recommendationUsed: true,
+      candidateEngagements: {
+        [candidateId]: {
+          interestBonus: 36,
+          visits: 1,
+          recommendationUsed: true,
+        },
+      },
+    };
+
+    expect(decodeGameState(encodeGameState(state)).recruiting).toEqual(
+      state.recruiting,
+    );
+
+    const legacy = structuredClone(state);
+    legacy.recruiting = {
+      cycleKey,
+      committedCandidateIds: [],
+    };
+    expect(decodeGameState(JSON.stringify(legacy)).recruiting).toEqual(
+      legacy.recruiting,
+    );
+  });
 });

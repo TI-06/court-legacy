@@ -13,6 +13,7 @@ import type {
 } from "../../../worker/data/ScoutingStore";
 import { createScoutingRecruitmentHandler } from "../../../worker/routes/scoutingRecruitment";
 import {
+  buildServerScoutReports,
   generateServerScoutingCandidates,
   scoutingCycleKey,
 } from "../../../worker/scouting/serverScoutingBoard";
@@ -78,6 +79,36 @@ function createScoutingStore(snapshot: CloudGameSnapshot): {
     listCandidateInsights: vi.fn(async () => []),
   };
   return { store, pool };
+}
+
+function makeFirstCandidateContested(
+  snapshot: CloudGameSnapshot,
+  pool: ScoutingCandidatePool,
+): void {
+  const candidate = pool.candidates[0]!;
+  candidate.player = {
+    ...candidate.player,
+    potential: 95,
+    abilities: {
+      ...candidate.player.abilities,
+      spike: 90,
+      jump: 90,
+      receive: 90,
+      serve: 90,
+      set: 90,
+      block: 90,
+      speed: 90,
+      stamina: 90,
+      decision: 90,
+      mental: 90,
+    },
+  };
+  candidate.middleSchoolAchievement = "national-event";
+
+  const report = buildServerScoutReports(snapshot.state, pool)[0]!;
+  expect(report.evaluationStars).toBeGreaterThanOrEqual(4);
+  expect(report.recruitment?.competitorSchoolNames.length).toBeGreaterThan(0);
+  expect(report.recruitment?.canCommit).toBe(false);
 }
 
 function recruitmentRequest(body: unknown): Request {
@@ -242,5 +273,110 @@ describe("scouting recruitment route", () => {
     expect(response.status).toBe(400);
     expect(gameStore.getSnapshot).not.toHaveBeenCalled();
     expect(scouting.store.getCandidatePool).not.toHaveBeenCalled();
+  });
+  it("blocks a contested top prospect until interest reaches the commitment threshold", async () => {
+    const snapshot = createSnapshot();
+    const gameStore = createGameStore(snapshot);
+    const scouting = createScoutingStore(snapshot);
+    makeFirstCandidateContested(snapshot, scouting.pool);
+    const candidate = scouting.pool.candidates[0]!;
+    const handler = createScoutingRecruitmentHandler({
+      gameStore,
+      scoutingStore: scouting.store,
+    });
+
+    const response = await handler(
+      recruitmentRequest({
+        operationId: "recruit-op-contested",
+        revision: 7,
+        candidateId: candidate.player.id,
+        action: "commit",
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("candidate_not_ready");
+    expect(gameStore.applyOperation).not.toHaveBeenCalled();
+  });
+
+  it("persists a school visit and returns the updated public interest profile", async () => {
+    const snapshot = createSnapshot();
+    const gameStore = createGameStore(snapshot);
+    const scouting = createScoutingStore(snapshot);
+    makeFirstCandidateContested(snapshot, scouting.pool);
+    const candidate = scouting.pool.candidates[0]!;
+    const before = buildServerScoutReports(snapshot.state, scouting.pool)[0]!;
+    const handler = createScoutingRecruitmentHandler({
+      gameStore,
+      scoutingStore: scouting.store,
+    });
+
+    const response = await handler(
+      recruitmentRequest({
+        operationId: "recruit-op-visit",
+        revision: 7,
+        candidateId: candidate.player.id,
+        action: "visit",
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(persisted.state.recruiting).toMatchObject({
+      cycleKey: scouting.pool.cycleKey,
+      committedCandidateIds: [],
+      visitActionsUsed: 1,
+      candidateEngagements: {
+        [candidate.player.id]: {
+          interestBonus: 12,
+          visits: 1,
+          recommendationUsed: false,
+        },
+      },
+    });
+    const body = await response.json();
+    expect(body.outcome).toMatchObject({
+      candidateId: candidate.player.id,
+      committedCandidateIds: [],
+      cycleKey: scouting.pool.cycleKey,
+      action: "visit",
+    });
+    expect(body.outcome.recruitment.interestScore).toBe(
+      before.recruitment!.interestScore + 12,
+    );
+  });
+
+  it("rejects a second recommendation slot in the same recruiting year", async () => {
+    const snapshot = createSnapshot();
+    const scouting = createScoutingStore(snapshot);
+    const candidate = scouting.pool.candidates[0]!;
+    snapshot.state.recruiting = {
+      cycleKey: scouting.pool.cycleKey,
+      committedCandidateIds: [],
+      recommendationUsed: true,
+    };
+    const gameStore = createGameStore(snapshot);
+    const handler = createScoutingRecruitmentHandler({
+      gameStore,
+      scoutingStore: scouting.store,
+    });
+
+    const response = await handler(
+      recruitmentRequest({
+        operationId: "recruit-op-recommendation-limit",
+        revision: 7,
+        candidateId: candidate.player.id,
+        action: "recommendation",
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe(
+      "recruitment_recommendation_limit",
+    );
+    expect(gameStore.applyOperation).not.toHaveBeenCalled();
   });
 });

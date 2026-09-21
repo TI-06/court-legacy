@@ -1,11 +1,18 @@
 import { z } from "zod";
 import type { GameState } from "../../src/domain/model/GameState";
+import {
+  applyRecruitmentAction,
+  type RecruitmentAction,
+} from "../../src/domain/scouting/recruitmentEngagement";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
-import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
+import {
+  buildServerScoutReports,
+  scoutingCycleKey,
+} from "../scouting/serverScoutingBoard";
 
 const requestSchema = z
   .object({
@@ -18,6 +25,7 @@ const requestSchema = z
       .string()
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(160)),
+    action: z.enum(["visit", "recommendation", "commit"]).optional(),
   })
   .strict();
 
@@ -71,6 +79,30 @@ function recruitmentCapacityReached(): Response {
     409,
     "recruitment_capacity_reached",
     "翌年度の選手枠が上限に達しています",
+  );
+}
+
+function candidateNotReady(): Response {
+  return jsonError(
+    409,
+    "candidate_not_ready",
+    "人気候補です。学校訪問や推薦枠で志望度を上げてください",
+  );
+}
+
+function visitLimitReached(): Response {
+  return jsonError(
+    409,
+    "recruitment_visit_limit",
+    "今年度の学校訪問回数を使い切りました",
+  );
+}
+
+function recommendationLimitReached(): Response {
+  return jsonError(
+    409,
+    "recruitment_recommendation_limit",
+    "今年度の推薦枠はすでに使用済みです",
   );
 }
 
@@ -140,12 +172,81 @@ export function createScoutingRecruitmentHandler(
       return candidateUnavailable();
     }
 
+    const action: RecruitmentAction = parsed.data.action ?? "commit";
     const currentCommitments =
       snapshot.state.recruiting?.cycleKey === cycleKey
         ? snapshot.state.recruiting.committedCandidateIds
         : [];
     if (currentCommitments.includes(candidate.player.id)) {
       return candidateAlreadyCommitted();
+    }
+
+    if (action !== "commit") {
+      const applied = applyRecruitmentAction(
+        snapshot.state,
+        candidate.player.id,
+        action,
+      );
+      if (!applied.applied) {
+        if (applied.reason === "visit-limit") return visitLimitReached();
+        if (applied.reason === "recommendation-limit") {
+          return recommendationLimitReached();
+        }
+        return candidateAlreadyCommitted();
+      }
+
+      const insights = await deps.scoutingStore.listCandidateInsights(
+        user.id,
+        cycleKey,
+      );
+      const updatedReport = buildServerScoutReports(
+        applied.state,
+        pool,
+        insights,
+      ).find((report) => report.candidateId === candidate.player.id);
+      const response: PersistedOperationResponse = {
+        game: {
+          ...snapshot,
+          revision: snapshot.revision + 1,
+          state: applied.state,
+        },
+        operationId: parsed.data.operationId,
+        outcome: {
+          candidateId: candidate.player.id,
+          committedCandidateIds: currentCommitments,
+          cycleKey,
+          action,
+          recruitment: updatedReport?.recruitment ?? null,
+        },
+      };
+
+      try {
+        const persisted = await deps.gameStore.applyOperation({
+          userId: user.id,
+          operationId: parsed.data.operationId,
+          expectedRevision: snapshot.revision,
+          state: applied.state,
+          teamSelection: snapshot.teamSelection,
+          response,
+        });
+        return json(persisted.response);
+      } catch (error) {
+        if (error instanceof RevisionConflictError) {
+          return revisionConflict();
+        }
+        throw error;
+      }
+    }
+
+    const insights = await deps.scoutingStore.listCandidateInsights(
+      user.id,
+      cycleKey,
+    );
+    const report = buildServerScoutReports(snapshot.state, pool, insights).find(
+      (candidateReport) => candidateReport.candidateId === candidate.player.id,
+    );
+    if (!report?.recruitment?.canCommit) {
+      return candidateNotReady();
     }
     if (
       currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)
@@ -154,10 +255,14 @@ export function createScoutingRecruitmentHandler(
     }
 
     const committedCandidateIds = [...currentCommitments, candidate.player.id];
+    const activeRecruiting =
+      snapshot.state.recruiting?.cycleKey === cycleKey
+        ? snapshot.state.recruiting
+        : { cycleKey, committedCandidateIds: [] };
     const nextState = {
       ...snapshot.state,
       recruiting: {
-        cycleKey,
+        ...activeRecruiting,
         committedCandidateIds,
       },
     };
