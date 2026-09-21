@@ -21,7 +21,11 @@ import { BottomSheet } from "../../ui/BottomSheet";
 import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
-import { consumeSchoolViewAfterScouting } from "./SchoolNavigationState";
+import {
+  consumeSchoolManagementViewAfterScouting,
+  consumeSchoolViewAfterScouting,
+  type SchoolManagementView,
+} from "./SchoolNavigationState";
 import { SchoolNavigationTabs, type SchoolView } from "./SchoolNavigationTabs";
 import { SchoolLegacyPanel } from "./SchoolLegacyPanel";
 import { SchoolSeasonHistory } from "./SchoolSeasonHistory";
@@ -97,6 +101,9 @@ export function SchoolScreen({
   onOpenScouting,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
+  const [managementView, setManagementView] = useState<SchoolManagementView>(
+    consumeSchoolManagementViewAfterScouting,
+  );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
@@ -251,12 +258,46 @@ export function SchoolScreen({
               <p className="section-kicker">学校運営</p>
               <h3 id="management-heading">運営</h3>
             </div>
-            <span>設備・スタッフ</span>
+            <span>育成拠点</span>
+          </div>
+
+          <div
+            aria-label="運営メニュー"
+            className="school-management-tabs"
+            role="tablist"
+          >
+            <button
+              aria-selected={managementView === "facilities"}
+              className={
+                managementView === "facilities"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("facilities")}
+              role="tab"
+              type="button"
+            >
+              設備
+            </button>
+            <button
+              aria-selected={managementView === "staff"}
+              className={
+                managementView === "staff"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("staff")}
+              role="tab"
+              type="button"
+            >
+              コーチ
+            </button>
           </div>
 
           <section
-            className="school-management-section"
             aria-labelledby="facility-heading"
+            className="school-management-section"
+            hidden={managementView !== "facilities"}
           >
             <div className="school-subsection-heading">
               <div>
@@ -325,8 +366,9 @@ export function SchoolScreen({
           </section>
 
           <section
-            className="school-management-section"
             aria-labelledby="staff-heading"
+            className="school-management-section"
+            hidden={managementView !== "staff"}
           >
             <div className="school-subsection-heading">
               <div>

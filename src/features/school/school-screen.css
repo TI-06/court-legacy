@@ -1115,3 +1115,39 @@
 .assistant-coach-specialty .mobile-choice-trigger {
   min-height: 42px;
 }
+
+/* Phase25-3: management is a game menu, not one long admin form. */
+.school-management-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px;
+  padding: 3px;
+  gap: 3px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 11px;
+}
+
+.school-management-tabs button {
+  min-height: 40px;
+  padding: 6px 8px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-management-tabs .school-management-tab--active {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  box-shadow: 0 4px 12px rgb(244 122 24 / 18%);
+}
+
+.school-management-tabs + .school-management-section {
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: 0;
+}

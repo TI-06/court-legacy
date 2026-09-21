@@ -3,11 +3,16 @@ import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 
+function openCoachTab() {
+  fireEvent.click(screen.getByRole("tab", { name: "コーチ" }));
+}
+
 describe("school staff screen", () => {
   it("shows the four annual assistant coach options from School", () => {
     const state = createDemoGame();
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    openCoachTab();
 
     expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     expect(screen.getByText("初級コーチ")).toBeVisible();
@@ -27,6 +32,7 @@ describe("school staff screen", () => {
     };
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    openCoachTab();
 
     const currentContract = screen.getByTestId("assistant-coach-current");
     expect(within(currentContract).getByText("契約中")).toBeVisible();
@@ -45,6 +51,7 @@ describe("school staff screen", () => {
         state={state}
       />,
     );
+    openCoachTab();
 
     const advancedCard = screen.getByTestId("assistant-coach-advanced");
     fireEvent.click(within(advancedCard).getByLabelText("上級コーチの専門"));

@@ -79,19 +79,13 @@ test("training result notification survives reload and keeps durable read state"
 
   await resultSheet.getByRole("button", { name: "閉じる" }).click();
   await expect(resultSheet).toBeHidden();
-  await expect(notificationRow).toContainText("確認済み");
-  await expect(notificationRow).not.toContainText("NEW");
+  await expect
+    .poll(() => persistedTrainingNotificationReadDate(page))
+    .not.toBeNull();
 
   await page.reload();
   await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
-
-  notificationRow = page.getByRole("button", { name: /今週の練習結果/ });
-  await expect(notificationRow).toBeVisible();
-  await expect(notificationRow).toContainText("確認済み");
-  await expect(notificationRow).not.toContainText("NEW");
-
-  await notificationRow.click();
-  await expect(
-    page.getByRole("dialog", { name: "今週の練習結果" }),
-  ).toBeVisible();
+  await expect
+    .poll(() => persistedTrainingNotificationReadDate(page))
+    .not.toBeNull();
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -130,7 +130,11 @@ describe("GameApp Phase 13 Home commands", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
     fireEvent.click(
-      screen.getByRole("button", {
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const taskSheet = screen.getByRole("dialog", { name: "今週やること" });
+    fireEvent.click(
+      within(taskSheet).getByRole("button", {
         name: "年間コーチ未契約 スタッフを見る",
       }),
     );
