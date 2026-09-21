@@ -267,7 +267,11 @@ for (const viewport of mobileViewports) {
     await expectLayoutFits(page, testInfo, `${viewport.width}-players`);
     await expectNavigationFixed(page, `${viewport.width}-players`);
 
-    await page.getByTestId("roster-player-row").first().click();
+    await page
+      .getByTestId("roster-player-row")
+      .first()
+      .getByRole("button", { name: /^選手詳細 / })
+      .click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-player-detail`);
     if (viewport.width === 414) {
       await expectAboveNavigation(

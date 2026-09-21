@@ -65,7 +65,7 @@ for (const width of widths) {
     await expect(batchSave).toBeVisible();
     await expectPlayerHubNoHorizontalOverflow(page);
     await batchSave.click();
-    await expect(page.getByRole("status")).toHaveText("保存済み ✓");
+    await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
     await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 
