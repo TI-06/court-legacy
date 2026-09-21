@@ -1376,7 +1376,6 @@
   border-radius: 8px;
 }
 
-
 /* Phase26-4: coach proposals reuse the existing staged batch-save flow. */
 .player-hub__controls {
   grid-template-columns: repeat(3, minmax(0, 1fr));
