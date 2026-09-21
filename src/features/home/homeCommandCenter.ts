@@ -41,7 +41,11 @@ export type HomeCommandPriority =
 
 export type HomeCommandAction =
   | { target: "team" }
-  | { target: "player"; playerId: PlayerId }
+  | {
+      target: "player";
+      playerId: PlayerId;
+      detail?: "ability" | "growth" | "personality";
+    }
   | { target: "school"; view: "facilities" | "staff" | "records" }
   | { target: "scouting" }
   | { target: "practice" }
