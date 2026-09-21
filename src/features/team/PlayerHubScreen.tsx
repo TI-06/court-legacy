@@ -991,7 +991,9 @@ export function PlayerHubScreen({
         >
           <span>COACH</span>
           <strong>練習提案</strong>
-          <small>{coachRecommendationQualityLabel(recommendationQuality)}</small>
+          <small>
+            {coachRecommendationQualityLabel(recommendationQuality)}
+          </small>
         </button>
       </section>
 
