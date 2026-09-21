@@ -625,6 +625,7 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "人物" }));
     expect(screen.getByText(/出場機会/)).toBeVisible();
   });
+
   it("sets and clears a next-rank development goal from the growth tab", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
@@ -683,5 +684,4 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "目標を解除" }));
     expect(onSetPlayerDevelopmentGoal).toHaveBeenLastCalledWith(playerId, null);
   });
-
 });
