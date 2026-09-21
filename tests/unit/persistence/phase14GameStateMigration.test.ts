@@ -20,6 +20,7 @@ describe("Phase 14 game-state migration", () => {
       history: { playerDevelopmentWeeks: unknown[] };
       teamPlanning: {
         developmentPriorityPlayerIds: unknown[];
+        developmentGoalsByPlayerId: Record<string, unknown>;
         savedLineups: unknown[];
       };
     };
@@ -28,6 +29,7 @@ describe("Phase 14 game-state migration", () => {
     expect(migrated.history.playerDevelopmentWeeks).toEqual([]);
     expect(migrated.teamPlanning).toEqual({
       developmentPriorityPlayerIds: [],
+      developmentGoalsByPlayerId: {},
       savedLineups: [],
     });
   });
@@ -69,6 +71,7 @@ describe("Phase 14 game-state migration", () => {
     expect(migrated.history.playerDevelopmentWeeks).toEqual([]);
     expect(migrated.teamPlanning).toEqual({
       developmentPriorityPlayerIds: [],
+      developmentGoalsByPlayerId: {},
       savedLineups: [],
     });
   });

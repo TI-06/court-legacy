@@ -54,7 +54,10 @@ import type {
   MatchTacticPlan,
   PublicTacticSummary,
 } from "../domain/team/matchTactics";
-import type { SavedLineupSlot } from "../domain/team/teamPlanningTypes";
+import type {
+  PlayerDevelopmentGoal,
+  SavedLineupSlot,
+} from "../domain/team/teamPlanningTypes";
 import type {
   IndividualTrainingAssignment,
   WeeklyPlan,
@@ -446,6 +449,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-development-priorities", playerIds },
       "重点育成を保存しています…",
+    );
+  };
+
+  const savePlayerDevelopmentGoal = async (
+    playerId: PlayerId,
+    goal: PlayerDevelopmentGoal | null,
+  ) => {
+    await cloudSession.runAction(
+      { type: "set-player-development-goal", playerId, goal },
+      goal ? "育成目標を保存しています…" : "育成目標を解除しています…",
     );
   };
 
@@ -1169,6 +1182,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onDeleteLineupPreset={deleteLineupPreset}
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
+        onSetPlayerDevelopmentGoal={savePlayerDevelopmentGoal}
         onSetTeamDefenseBias={saveTeamDefenseBias}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}

@@ -6,6 +6,7 @@ import {
   deleteLineupPreset,
   saveLineupPreset,
   setDevelopmentPriorities,
+  setPlayerDevelopmentGoal,
   TeamPlanningValidationError,
 } from "../../../../src/domain/team/teamPlanning";
 
@@ -13,6 +14,7 @@ describe("teamPlanning", () => {
   it("starts empty", () => {
     expect(createDefaultTeamPlanning()).toEqual({
       developmentPriorityPlayerIds: [],
+      developmentGoalsByPlayerId: {},
       savedLineups: [],
     });
   });
@@ -98,6 +100,40 @@ describe("teamPlanning", () => {
     invalid.rotation[1]!.playerId = invalid.rotation[0]!.playerId;
     expect(() =>
       saveLineupPreset(state, { slot: 1, name: "invalid", selection: invalid }),
+    ).toThrowError(TeamPlanningValidationError);
+  });
+
+  it("stores and clears a development goal only for a current roster player", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+
+    const updated = setPlayerDevelopmentGoal(state, playerId, {
+      area: "defense",
+      targetGrade: "B",
+    });
+
+    expect(updated.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual(
+      {
+        area: "defense",
+        targetGrade: "B",
+      },
+    );
+    expect(
+      state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
+
+    const cleared = setPlayerDevelopmentGoal(updated, playerId, null);
+    expect(
+      cleared.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
+
+    expect(() =>
+      setPlayerDevelopmentGoal(
+        state,
+        "player-not-on-roster" as typeof playerId,
+        { area: "attack", targetGrade: "A" },
+      ),
     ).toThrowError(TeamPlanningValidationError);
   });
 });

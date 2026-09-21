@@ -367,4 +367,38 @@ describe("applyGameAction", () => {
 
     expect(result.state.pendingEvent).toBeNull();
   });
+
+  it("persists a player development goal through the canonical game action", () => {
+    const snapshot = createSnapshot();
+    const playerId =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds[0]!;
+
+    const saved = applyGameAction(snapshot, {
+      type: "set-player-development-goal",
+      playerId,
+      goal: { area: "attack", targetGrade: "B" },
+    });
+
+    expect(
+      saved.state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toEqual({
+      area: "attack",
+      targetGrade: "B",
+    });
+    expect(
+      snapshot.state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
+
+    const cleared = applyGameAction(
+      { ...snapshot, state: saved.state, teamSelection: saved.teamSelection },
+      {
+        type: "set-player-development-goal",
+        playerId,
+        goal: null,
+      },
+    );
+    expect(
+      cleared.state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
+  });
 });
