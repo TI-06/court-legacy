@@ -102,6 +102,7 @@ describe("teamPlanning", () => {
       saveLineupPreset(state, { slot: 1, name: "invalid", selection: invalid }),
     ).toThrowError(TeamPlanningValidationError);
   });
+
   it("stores and clears a development goal only for a current roster player", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
@@ -116,10 +117,14 @@ describe("teamPlanning", () => {
       area: "defense",
       targetGrade: "B",
     });
-    expect(state.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toBeUndefined();
+    expect(
+      state.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
 
     const cleared = setPlayerDevelopmentGoal(updated, playerId, null);
-    expect(cleared.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toBeUndefined();
+    expect(
+      cleared.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toBeUndefined();
 
     expect(() =>
       setPlayerDevelopmentGoal(
@@ -129,5 +134,4 @@ describe("teamPlanning", () => {
       ),
     ).toThrowError(TeamPlanningValidationError);
   });
-
 });
