@@ -86,10 +86,7 @@ function setFlowChip(
   return null;
 }
 
-function statSpotlight(
-  state: GameState,
-  match: MatchState,
-): string {
+function statSpotlight(state: GameState, match: MatchState): string {
   const summary = buildMatchStatSummary(state, match);
   const userIsHome = match.homeSchoolId === state.userSchoolId;
   const user = userIsHome ? summary.home : summary.away;
@@ -110,7 +107,9 @@ function statSpotlight(
     },
   ].sort((left, right) => right.margin - left.margin);
 
-  return candidates[0]?.label ?? `総得点 ${user.totalPoints}-${opponent.totalPoints}`;
+  return (
+    candidates[0]?.label ?? `総得点 ${user.totalPoints}-${opponent.totalPoints}`
+  );
 }
 
 export function buildMatchResultStory(
@@ -159,9 +158,7 @@ export function buildMatchResultStory(
   if (revengeAchieved) chips.push("雪辱達成");
   if (streak.count >= 2) {
     chips.push(
-      streak.result === "win"
-        ? `${streak.count}連勝`
-        : `${streak.count}連敗`,
+      streak.result === "win" ? `${streak.count}連勝` : `${streak.count}連敗`,
     );
   }
   if (prior.totalMeetings === 0) chips.push("初対戦");
