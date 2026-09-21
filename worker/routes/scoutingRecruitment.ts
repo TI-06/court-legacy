@@ -242,11 +242,9 @@ export function createScoutingRecruitmentHandler(
       user.id,
       cycleKey,
     );
-    const report = buildServerScoutReports(
-      snapshot.state,
-      pool,
-      insights,
-    ).find((candidateReport) => candidateReport.candidateId === candidate.player.id);
+    const report = buildServerScoutReports(snapshot.state, pool, insights).find(
+      (candidateReport) => candidateReport.candidateId === candidate.player.id,
+    );
     if (!report?.recruitment?.canCommit) {
       return candidateNotReady();
     }
