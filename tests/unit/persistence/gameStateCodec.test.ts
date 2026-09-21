@@ -251,5 +251,4 @@ describe("game state codec", () => {
       legacy.recruiting,
     );
   });
-
 });
