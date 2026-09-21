@@ -17,9 +17,19 @@ import {
   deriveMatchTacticPlan,
   type MatchTacticPlan,
 } from "../../domain/team/matchTactics";
-import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
+import type {
+  DevelopmentGoalArea,
+  PlayerDevelopmentGoal,
+  SavedLineupSlot,
+} from "../../domain/team/teamPlanningTypes";
 import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
+import {
+  developmentGoalAreaLabels,
+  getPlayerDevelopmentGoalProgress,
+  nextDevelopmentTargetGrade,
+  playerDevelopmentAreaValue,
+} from "../../domain/player/playerDevelopmentGoals";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
 import {
@@ -61,6 +71,10 @@ interface PlayerHubScreenProps {
     assignments: IndividualTrainingAssignment[],
   ) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
+  onSetPlayerDevelopmentGoal?: (
+    playerId: PlayerId,
+    goal: PlayerDevelopmentGoal | null,
+  ) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -212,6 +226,7 @@ export function PlayerHubScreen({
   tacticsPending = false,
   onSaveTrainingAssignments,
   onSetDevelopmentPriorities,
+  onSetPlayerDevelopmentGoal,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -449,6 +464,14 @@ export function PlayerHubScreen({
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
     );
     const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
+    const selectedGoal =
+      state.teamPlanning.developmentGoalsByPlayerId?.[selectedPlayer.id] ?? null;
+    const selectedGoalProgress = selectedGoal
+      ? getPlayerDevelopmentGoalProgress(selectedPlayer, selectedGoal)
+      : null;
+    const developmentGoalAreas = Object.keys(
+      developmentGoalAreaLabels,
+    ) as DevelopmentGoalArea[];
 
     return (
       <main className="app-content player-hub player-detail">
@@ -556,6 +579,92 @@ export function PlayerHubScreen({
             className="player-detail__tab-panel"
             data-testid="player-detail-growth"
           >
+            <section
+              className="player-development-goal"
+              aria-label="育成目標"
+            >
+              <div className="player-development-goal__heading">
+                <div>
+                  <span>育成目標</span>
+                  <strong>
+                    {selectedGoalProgress
+                      ? `${selectedGoalProgress.areaLabel} ${selectedGoalProgress.currentGrade} → ${selectedGoalProgress.targetGrade}`
+                      : "未設定"}
+                  </strong>
+                </div>
+                {selectedGoalProgress ? (
+                  <span
+                    className={
+                      selectedGoalProgress.achieved
+                        ? "player-development-goal__status player-development-goal__status--done"
+                        : "player-development-goal__status"
+                    }
+                  >
+                    {selectedGoalProgress.achieved ? "達成" : "育成中"}
+                  </span>
+                ) : null}
+              </div>
+              <div
+                className="player-development-goal__choices"
+                aria-label="伸ばす能力を選択"
+              >
+                {developmentGoalAreas.map((area) => {
+                  const currentValue = playerDevelopmentAreaValue(
+                    selectedPlayer,
+                    area,
+                  );
+                  const currentGrade = ratingToGrade(currentValue);
+                  const targetGrade = nextDevelopmentTargetGrade(
+                    selectedPlayer,
+                    area,
+                  );
+                  const selected = selectedGoal?.area === area;
+                  const maxed = currentGrade === "A";
+
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={
+                        selected
+                          ? "player-development-goal__choice player-development-goal__choice--selected"
+                          : "player-development-goal__choice"
+                      }
+                      disabled={planningPending || maxed}
+                      key={area}
+                      onClick={() =>
+                        void onSetPlayerDevelopmentGoal?.(selectedPlayer.id, {
+                          area,
+                          targetGrade,
+                        })
+                      }
+                      type="button"
+                    >
+                      <span>{developmentGoalAreaLabels[area]}</span>
+                      <strong>
+                        {maxed
+                          ? "A・最高"
+                          : `${currentGrade} → ${targetGrade}`}
+                      </strong>
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedGoal ? (
+                <button
+                  className="player-development-goal__clear"
+                  disabled={planningPending}
+                  onClick={() =>
+                    void onSetPlayerDevelopmentGoal?.(selectedPlayer.id, null)
+                  }
+                  type="button"
+                >
+                  目標を解除
+                </button>
+              ) : (
+                <p>次に伸ばしたい能力を選ぶと、次ランクを目標に設定します。</p>
+              )}
+            </section>
+
             <section
               className="player-detail__development"
               aria-label="成長タイプと才能"
@@ -825,6 +934,13 @@ export function PlayerHubScreen({
                       {isPriority ? (
                         <span className="player-roster__status-badge player-roster__status-badge--priority">
                           重点
+                        </span>
+                      ) : null}
+                      {state.teamPlanning.developmentGoalsByPlayerId?.[
+                        player.id
+                      ] ? (
+                        <span className="player-roster__status-badge">
+                          目標
                         </span>
                       ) : null}
                     </span>
