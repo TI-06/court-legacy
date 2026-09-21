@@ -294,6 +294,12 @@ export function PlayerHubScreen({
     )?.name ?? "全体";
 
   const trainingDraftCount = Object.keys(trainingDrafts).length;
+  const coachRecommendationChangeCount = coachRecommendations.filter(
+    (recommendation) =>
+      trainingDrafts[recommendation.playerId] === undefined &&
+      recommendation.instructionId !==
+        persistedInstructionId(recommendation.playerId),
+  ).length;
 
   const stageTrainingAssignment = (
     playerId: PlayerId,
@@ -308,6 +314,26 @@ export function PlayerHubScreen({
       }
       return next;
     });
+  };
+
+  const stageCoachRecommendations = () => {
+    if (trainingPending || trainingDone) return;
+
+    setTrainingDrafts((current) => {
+      const next = { ...current };
+      for (const recommendation of coachRecommendations) {
+        if (current[recommendation.playerId] !== undefined) continue;
+        if (
+          recommendation.instructionId ===
+          persistedInstructionId(recommendation.playerId)
+        ) {
+          continue;
+        }
+        next[recommendation.playerId] = recommendation.instructionId;
+      }
+      return next;
+    });
+    setCoachRecommendationsOpen(false);
   };
 
   const saveTrainingDrafts = async () => {
