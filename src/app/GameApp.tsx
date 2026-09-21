@@ -33,6 +33,7 @@ import type {
   PvpPublishedTeamSummary,
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
+import type { RecruitmentAction } from "../domain/scouting/recruitmentEngagement";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
 import type {
@@ -168,8 +169,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [scoutingError, setScoutingError] = useState<string | null>(null);
   const [recruitingCandidateId, setRecruitingCandidateId] =
     useState<PlayerId | null>(null);
-  const [retryRecruitCandidateId, setRetryRecruitCandidateId] =
-    useState<PlayerId | null>(null);
+  const [recruitingAction, setRecruitingAction] =
+    useState<RecruitmentAction | null>(null);
+  const [retryRecruitRequest, setRetryRecruitRequest] = useState<{
+    candidateId: PlayerId;
+    action: RecruitmentAction;
+  } | null>(null);
   const [, setLatestMatchResult] = useState<MatchStepResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<MatchStepResult | null>(null);
@@ -261,7 +266,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     if (tab !== "school") {
       setScoutingOpen(false);
       setScoutingError(null);
-      setRetryRecruitCandidateId(null);
+      setRetryRecruitRequest(null);
     }
     if (tab !== "match") {
       setMatchView("practice");
@@ -282,7 +287,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     setScoutingLoading(true);
     setScoutingError(null);
-    setRetryRecruitCandidateId(null);
+    setRetryRecruitRequest(null);
 
     try {
       const response = await api.getScoutingBoard(session.accessToken, {
@@ -334,7 +339,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const openScouting = () => {
     setScoutingOpen(true);
     setScoutingError(null);
-    setRetryRecruitCandidateId(null);
+    setRetryRecruitRequest(null);
     void loadShop();
     const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
     if (scoutingCycle !== currentCycle) {
@@ -344,7 +349,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
-  const recruitCandidate = async (candidateId: PlayerId) => {
+  const recruitCandidate = async (
+    candidateId: PlayerId,
+    action: RecruitmentAction = "commit",
+  ) => {
     if (!api.commitRecruit || recruitingCandidateId !== null) {
       if (!api.commitRecruit) {
         setScoutingError("スカウト獲得機能を利用できません");
@@ -353,21 +361,30 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
 
     setRecruitingCandidateId(candidateId);
+    setRecruitingAction(action);
     setScoutingError(null);
-    setRetryRecruitCandidateId(null);
+    setRetryRecruitRequest(null);
 
     try {
       const response = await api.commitRecruit(session.accessToken, {
         operationId: crypto.randomUUID(),
         revision: cloudSession.snapshot.revision,
         candidateId,
+        action,
       });
       await cloudSession.adoptServerSnapshot(
         response.game,
-        "獲得内容を保存しました",
+        action === "commit" ? "入学確約を保存しました" : "勧誘結果を保存しました",
       );
+      if (action !== "commit") {
+        await loadScoutingBoard(response.game.revision);
+      }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
         try {
           const latest = await api.bootstrap(session.accessToken);
           if (latest.status === "ready") {
@@ -391,16 +408,25 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }
       }
 
-      setScoutingError(scoutingErrorMessage(error, "獲得処理に失敗しました"));
-      setRetryRecruitCandidateId(candidateId);
+      setScoutingError(
+        scoutingErrorMessage(
+          error,
+          action === "commit" ? "入学確約に失敗しました" : "勧誘処理に失敗しました",
+        ),
+      );
+      setRetryRecruitRequest({ candidateId, action });
     } finally {
       setRecruitingCandidateId(null);
+      setRecruitingAction(null);
     }
   };
 
   const retryScouting = () => {
-    if (retryRecruitCandidateId) {
-      void recruitCandidate(retryRecruitCandidateId);
+    if (retryRecruitRequest) {
+      void recruitCandidate(
+        retryRecruitRequest.candidateId,
+        retryRecruitRequest.action,
+      );
       return;
     }
     void loadScoutingBoard();
@@ -1199,15 +1225,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onBack={() => {
           setScoutingOpen(false);
           setScoutingError(null);
-          setRetryRecruitCandidateId(null);
+          setRetryRecruitRequest(null);
         }}
-        onRecruit={(candidateId) => {
-          void recruitCandidate(candidateId);
+        onRecruit={(candidateId, action) => {
+          void recruitCandidate(candidateId, action);
         }}
         onRetry={retryScouting}
         onUseShopItem={(itemId, target) => {
           void consumeShopItemFromUi(itemId, target);
         }}
+        recruitingAction={recruitingAction}
         recruitingCandidateId={recruitingCandidateId}
         reports={scoutingReports}
         shopPendingCandidateId={
