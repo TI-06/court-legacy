@@ -3,7 +3,7 @@ import type { Player } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import {
   getPlayerDevelopmentGoalProgress,
-  type DevelopmentGoalProgress,
+  type PlayerDevelopmentGoalProgress,
 } from "../player/playerDevelopmentGoals";
 import { summarizePlayerAbilities } from "../selectors/playerPresentation";
 import { ratingToGrade } from "../selectors/ratingGrades";
@@ -35,7 +35,7 @@ const instructionNames: Record<string, string> = {
 };
 
 function goalInstruction(
-  goal: DevelopmentGoalProgress,
+  goal: PlayerDevelopmentGoalProgress,
 ): Pick<CoachTrainingRecommendation, "instructionId" | "instructionName"> {
   switch (goal.area) {
     case "attack":
