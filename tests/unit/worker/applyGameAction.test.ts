@@ -203,9 +203,9 @@ describe("applyGameAction", () => {
       plan,
     });
 
-    expect(result.state.players[playerId]!.abilities.jump).toBeGreaterThanOrEqual(
-      50,
-    );
+    expect(
+      result.state.players[playerId]!.abilities.jump,
+    ).toBeGreaterThanOrEqual(50);
     expect(
       result.state.notifications.items.find(
         (item) => item.type === "development-goal-achieved",
