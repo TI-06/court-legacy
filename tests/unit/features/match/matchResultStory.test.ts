@@ -92,9 +92,7 @@ function addHistoricalMatch(
     date: input.date,
     homeSchoolId: state.userSchoolId,
     awaySchoolId: input.opponentSchoolId,
-    winnerSchoolId: input.userWon
-      ? state.userSchoolId
-      : input.opponentSchoolId,
+    winnerSchoolId: input.userWon ? state.userSchoolId : input.opponentSchoolId,
     homeSetsWon: userSetsWon,
     awaySetsWon: opponentSetsWon,
     tournamentId: null,
