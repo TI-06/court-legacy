@@ -311,7 +311,9 @@ export class SupabaseGameStore implements GameStore {
       };
     }
     if (result.response == null) {
-      throw new GameStoreDataError("replayed game operation response is missing");
+      throw new GameStoreDataError(
+        "replayed game operation response is missing",
+      );
     }
     return {
       response: mapOperationResponse(result.response),
