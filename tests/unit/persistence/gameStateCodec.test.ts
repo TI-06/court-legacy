@@ -207,7 +207,9 @@ describe("game state codec", () => {
     };
 
     const decoded = decodeGameState(encodeGameState(state));
-    expect(decoded.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual({
+    expect(
+      decoded.teamPlanning.developmentGoalsByPlayerId?.[playerId],
+    ).toEqual({
       area: "mental",
       targetGrade: "B",
     });
