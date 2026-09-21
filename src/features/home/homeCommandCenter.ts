@@ -685,13 +685,22 @@ function buildNews(state: GameState): HomeCommandNews[] {
   }
 
   if (notification) {
+    const rankUps = notification.payload.players.flatMap((player) =>
+      (player.rankUps ?? []).map((rankUp) => ({
+        displayName: player.displayName,
+        ...rankUp,
+      })),
+    );
+    const firstRankUp = rankUps[0];
     candidates.push({
       order: notification.readAtGameDate === null ? 0 : 40,
       news: {
         id: `news:training:${notification.id}`,
         kind: "training-result",
-        title: "今週の練習",
-        detail: `${notification.payload.teamTrainingMenuName}・成長 ${signed(notification.payload.totalAbilityGrowth)}・怪我 ${notification.payload.injuredCount}人`,
+        title: rankUps.length > 0 ? "能力ランクアップ！" : "今週の練習",
+        detail: firstRankUp
+          ? `${firstRankUp.displayName}・${firstRankUp.areaLabel} ${firstRankUp.fromGrade}→${firstRankUp.toGrade}${rankUps.length > 1 ? `・ほか${rankUps.length - 1}件` : ""}`
+          : `${notification.payload.teamTrainingMenuName}・成長 ${signed(notification.payload.totalAbilityGrowth)}・怪我 ${notification.payload.injuredCount}人`,
         notification,
       },
     });
