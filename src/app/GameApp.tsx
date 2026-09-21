@@ -82,7 +82,10 @@ import { SchoolScreen } from "../features/school/SchoolScreen";
 import { ScoutingScreen } from "../features/scouting/ScoutingScreen";
 import { ShopScreen } from "../features/shop/ShopScreen";
 import type { ShopUsePresentation } from "../features/shop/shopUsePresentation";
-import { PlayerHubScreen } from "../features/team/PlayerHubScreen";
+import {
+  PlayerHubScreen,
+  type PlayerDetailMode,
+} from "../features/team/PlayerHubScreen";
 import { TournamentScreen } from "../features/tournament/TournamentScreen";
 import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
@@ -186,6 +189,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const [preMatch, setPreMatch] = useState<PreMatchContext | null>(null);
   const [teamInitialPlayerId, setTeamInitialPlayerId] =
     useState<PlayerId | null>(null);
+  const [teamInitialDetailMode, setTeamInitialDetailMode] =
+    useState<PlayerDetailMode>("ability");
   const [pvpPublishedTeam, setPvpPublishedTeam] =
     useState<PvpPublishedTeamSummary | null>(null);
   const [pvpSeasonId, setPvpSeasonId] = useState<string | null>(null);
@@ -261,7 +266,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   );
 
   const changeTab = (tab: AppTab) => {
-    if (tab === "team") setTeamInitialPlayerId(null);
+    if (tab === "team") {
+      setTeamInitialPlayerId(null);
+      setTeamInitialDetailMode("ability");
+    }
     if (tab !== "more") setMoreView("menu");
     if (tab !== "school") {
       setScoutingOpen(false);
@@ -1116,10 +1124,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     switch (action.target) {
       case "team":
         setTeamInitialPlayerId(null);
+        setTeamInitialDetailMode("ability");
         setActiveTab("team");
         return;
       case "player":
         setTeamInitialPlayerId(action.playerId);
+        setTeamInitialDetailMode(action.detail ?? "ability");
         setActiveTab("team");
         return;
       case "school":
@@ -1204,6 +1214,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     ) : activeTab === "team" ? (
       <PlayerHubScreen
         data={gameData}
+        initialDetailMode={teamInitialDetailMode}
         initialPlayerId={teamInitialPlayerId}
         leadershipPending={cloudSession.operation.status === "submitting"}
         onAssignLeadership={saveTeamLeadership}
