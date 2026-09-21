@@ -15,6 +15,13 @@ interface RenderOptions {
     assignments: Array<{ playerId: string; instructionId: string }>,
   ) => void;
   onSetDevelopmentPriorities?: (playerIds: string[]) => void;
+  onSetPlayerDevelopmentGoal?: (
+    playerId: string,
+    goal: {
+      area: "attack" | "defense" | "jump" | "stamina" | "mental";
+      targetGrade: "A" | "B" | "C" | "D" | "E" | "F" | "G";
+    } | null,
+  ) => void;
   planningPending?: boolean;
   trainingPending?: boolean;
 }
@@ -37,6 +44,7 @@ function renderPlayerHub(
       onChange={vi.fn()}
       onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
+      onSetPlayerDevelopmentGoal={options.onSetPlayerDevelopmentGoal}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
@@ -617,4 +625,63 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "人物" }));
     expect(screen.getByText(/出場機会/)).toBeVisible();
   });
+  it("sets and clears a next-rank development goal from the growth tab", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const onSetPlayerDevelopmentGoal = vi.fn();
+
+    const { view } = renderPlayerHub(state, vi.fn(), {
+      onSetPlayerDevelopmentGoal,
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const goalRegion = screen.getByRole("region", { name: "育成目標" });
+    expect(within(goalRegion).getByText("未設定")).toBeVisible();
+
+    const availableGoal = within(goalRegion)
+      .getAllByRole("button")
+      .find((button) => !button.hasAttribute("disabled"));
+    expect(availableGoal).toBeDefined();
+    fireEvent.click(availableGoal!);
+
+    expect(onSetPlayerDevelopmentGoal).toHaveBeenCalledTimes(1);
+    expect(onSetPlayerDevelopmentGoal).toHaveBeenCalledWith(
+      playerId,
+      expect.objectContaining({
+        area: expect.stringMatching(/^(attack|defense|jump|stamina|mental)$/),
+        targetGrade: expect.stringMatching(/^[A-G]$/),
+      }),
+    );
+
+    const savedGoal = onSetPlayerDevelopmentGoal.mock.calls[0]![1];
+    view.rerender(
+      <PlayerHubScreen
+        data={gameData}
+        onAssignLeadership={vi.fn()}
+        onChange={vi.fn()}
+        onSetPlayerDevelopmentGoal={onSetPlayerDevelopmentGoal}
+        selection={autoSelectTeam({ state, schoolId: state.userSchoolId })}
+        state={{
+          ...state,
+          teamPlanning: {
+            ...state.teamPlanning,
+            developmentGoalsByPlayerId: {
+              [playerId]: savedGoal,
+            },
+          },
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "目標を解除" }));
+    expect(onSetPlayerDevelopmentGoal).toHaveBeenLastCalledWith(playerId, null);
+  });
+
 });
