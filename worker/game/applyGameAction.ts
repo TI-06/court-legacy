@@ -73,6 +73,7 @@ import {
   deleteLineupPreset,
   saveLineupPreset,
   setDevelopmentPriorities,
+  setPlayerDevelopmentGoal,
   TeamPlanningValidationError,
 } from "../../src/domain/team/teamPlanning";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
@@ -491,6 +492,7 @@ function applyTeamPlanning(
     {
       type:
         | "set-development-priorities"
+        | "set-player-development-goal"
         | "save-lineup-preset"
         | "delete-lineup-preset";
     }
@@ -500,9 +502,11 @@ function applyTeamPlanning(
     const nextState =
       action.type === "set-development-priorities"
         ? setDevelopmentPriorities(state, action.playerIds)
-        : action.type === "save-lineup-preset"
-          ? saveLineupPreset(state, action)
-          : deleteLineupPreset(state, action.slot);
+        : action.type === "set-player-development-goal"
+          ? setPlayerDevelopmentGoal(state, action.playerId, action.goal)
+          : action.type === "save-lineup-preset"
+            ? saveLineupPreset(state, action)
+            : deleteLineupPreset(state, action.slot);
     return {
       state: nextState,
       teamSelection,
@@ -1444,6 +1448,7 @@ function applyActionByType(
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":
+    case "set-player-development-goal":
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
