@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Phase26-3 formatting diagnostic
-        run: |
-          npx prettier src/app/GameApp.tsx src/domain/model/GameState.ts src/domain/scouting/recruitmentEngagement.ts src/domain/scouting/scoutReport.ts src/features/scouting/ScoutingScreen.tsx src/features/scouting/scouting.css src/persistence/gameStateCodec.ts src/services/api/GameApiClient.ts worker/routes/scoutingRecruitment.ts worker/scouting/serverScoutingBoard.ts tests/unit/app/GameApp.scouting.test.tsx tests/unit/domain/scouting/recruitmentEngagement.test.ts tests/unit/features/scouting/ScoutingScreen.test.tsx tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/scoutingRecruitment.test.ts --write
-          git diff -- src/app/GameApp.tsx src/domain/model/GameState.ts src/domain/scouting/recruitmentEngagement.ts src/domain/scouting/scoutReport.ts src/features/scouting/ScoutingScreen.tsx src/features/scouting/scouting.css src/persistence/gameStateCodec.ts src/services/api/GameApiClient.ts worker/routes/scoutingRecruitment.ts worker/scouting/serverScoutingBoard.ts tests/unit/app/GameApp.scouting.test.tsx tests/unit/domain/scouting/recruitmentEngagement.test.ts tests/unit/features/scouting/ScoutingScreen.test.tsx tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/scoutingRecruitment.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
