@@ -1111,3 +1111,126 @@
       background 140ms ease;
   }
 }
+
+
+/* Phase25-4: compare ability grades while staging individual training. */
+.player-roster__abilities {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-width: 0;
+  padding: 0 7px 5px;
+  gap: 4px;
+}
+
+.player-roster__abilities > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 28px;
+  padding: 3px 2px;
+  gap: 3px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 7px;
+}
+
+.player-roster__abilities small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-roster__abilities strong {
+  color: #eef9ff;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.player-roster__abilities [data-grade="A"] strong,
+.player-roster__abilities [data-grade="B"] strong {
+  color: #ffd99a;
+}
+
+.player-roster__training-action:has(small:last-child) {
+  position: relative;
+}
+
+.player-training-save-bar {
+  position: sticky;
+  bottom: calc(var(--bottom-navigation-height) + 8px);
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  gap: 8px;
+  background: rgb(6 18 31 / 96%);
+  border: 1px solid rgb(244 122 24 / 52%);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 32%);
+  backdrop-filter: blur(10px);
+}
+
+.player-training-save-bar > div {
+  display: grid;
+  min-width: 72px;
+  gap: 1px;
+}
+
+.player-training-save-bar span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-training-save-bar strong {
+  color: #ffd99a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.player-training-save-bar button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f47a18, #d9570d);
+  border: 0;
+  border-radius: 9px;
+}
+
+.player-training-save-bar button:disabled {
+  opacity: 0.5;
+}
+
+.player-training-options .player-training-option--selected {
+  border-color: rgb(244 122 24 / 70%);
+  box-shadow: inset 0 0 0 1px rgb(244 122 24 / 35%);
+}
+
+@media (max-width: 350px) {
+  .player-roster__abilities {
+    padding-inline: 5px;
+    gap: 3px;
+  }
+
+  .player-roster__abilities > span {
+    gap: 2px;
+  }
+
+  .player-training-save-bar {
+    grid-template-columns: 70px minmax(0, 1fr);
+    padding: 7px;
+    gap: 6px;
+  }
+
+  .player-training-save-bar button {
+    padding-inline: 7px;
+    font-size: 11px;
+  }
+}

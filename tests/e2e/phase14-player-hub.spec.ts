@@ -52,12 +52,20 @@ for (const width of widths) {
     await expect(
       firstPlayer.getByRole("button", { name: /重点育成/ }),
     ).toBeVisible();
+    await expect(firstPlayer.getByLabel(/能力ランク$/)).toBeVisible();
 
     await firstPlayer.getByRole("button", { name: /個人練習/ }).click();
-    const trainingSheet = page.getByRole("dialog");
+    const trainingSheet = page.getByRole("dialog", { name: /の個人練習$/ });
     await expect(trainingSheet).toBeVisible();
-    await expect(trainingSheet.getByRole("heading")).toContainText("個人練習");
-    await trainingSheet.getByRole("button", { name: "閉じる" }).click();
+    await trainingSheet.getByRole("button", { name: /^攻撃/ }).click();
+
+    const batchSave = page.getByRole("button", {
+      name: "まとめて保存（1人）",
+    });
+    await expect(batchSave).toBeVisible();
+    await expectPlayerHubNoHorizontalOverflow(page);
+    await batchSave.click();
+    await expect(page.getByRole("status")).toHaveText("保存済み ✓");
 
     await firstPlayer.getByRole("button", { name: /^選手詳細 / }).click();
 

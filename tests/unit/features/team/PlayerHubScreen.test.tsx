@@ -2,12 +2,18 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
-import { calculatePlayerDisplayPower } from "../../../../src/domain/selectors/playerPresentation";
+import {
+  calculatePlayerDisplayPower,
+  summarizePlayerAbilities,
+} from "../../../../src/domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../../../src/domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
 interface RenderOptions {
-  onChangeTraining?: (playerId: string, instructionId: string) => void;
+  onSaveTrainingAssignments?: (
+    assignments: Array<{ playerId: string; instructionId: string }>,
+  ) => void;
   onSetDevelopmentPriorities?: (playerIds: string[]) => void;
   planningPending?: boolean;
   trainingPending?: boolean;
@@ -29,7 +35,7 @@ function renderPlayerHub(
       data={gameData}
       onAssignLeadership={onAssignLeadership}
       onChange={vi.fn()}
-      onChangeTraining={options.onChangeTraining}
+      onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       planningPending={options.planningPending}
       selection={selection}
@@ -90,58 +96,100 @@ describe("PlayerHubScreen", () => {
     expect(within(firstRow).getByTitle(condition.label)).toBeVisible();
     expect(within(firstRow).getByText(condition.label)).toBeVisible();
     expect(within(firstRow).queryByText(/4週/)).toBeNull();
+
+    const abilities = summarizePlayerAbilities(player);
+    const abilityRanks = within(firstRow).getByLabelText(
+      `${player.lastName} ${player.firstName} 能力ランク`,
+    );
+    for (const [key, label] of [
+      ["attack", "攻撃"],
+      ["defense", "守備"],
+      ["jump", "跳躍"],
+      ["stamina", "スタミナ"],
+      ["mental", "メンタル"],
+    ] as const) {
+      expect(
+        within(abilityRanks).getByLabelText(
+          `${label} ${ratingToGrade(abilities[key])}`,
+        ),
+      ).toBeVisible();
+    }
   });
 
-  it("exposes training and priority controls directly in roster rows", () => {
+  it("stages multiple training changes and saves them together once", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
-    const playerId = school.playerIds[0]!;
-    const player = state.players[playerId]!;
-    const onChangeTraining = vi.fn();
+    const firstId = school.playerIds[0]!;
+    const secondId = school.playerIds[1]!;
+    const first = state.players[firstId]!;
+    const second = state.players[secondId]!;
+    const onSaveTrainingAssignments = vi.fn();
     const onSetDevelopmentPriorities = vi.fn();
-    state.teamDynamics.captainPlayerId = playerId;
-    state.teamPlanning.developmentPriorityPlayerIds = [playerId];
-    player.injury = {
+    state.teamDynamics.captainPlayerId = firstId;
+    state.teamPlanning.developmentPriorityPlayerIds = [firstId];
+    first.injury = {
       injuryId: "injury.phase24-1",
       severity: "minor",
       remainingWeeks: 1,
       recurrenceRisk: 0,
     };
     renderPlayerHub(state, vi.fn(), {
-      onChangeTraining,
+      onSaveTrainingAssignments,
       onSetDevelopmentPriorities,
     });
 
-    const detailButton = screen.getByRole("button", {
-      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    const firstDetailButton = screen.getByRole("button", {
+      name: `選手詳細 ${first.lastName} ${first.firstName}`,
     });
-    const row = detailButton.closest('[data-testid="roster-player-row"]');
-    expect(row).not.toBeNull();
-    const rosterRow = row as HTMLElement;
-    expect(within(rosterRow).getByText("主将")).toBeVisible();
-    expect(within(rosterRow).getByText("怪我")).toBeVisible();
-    expect(within(rosterRow).getByText("重点")).toBeVisible();
+    const firstRow = firstDetailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    expect(within(firstRow).getByText("主将")).toBeVisible();
+    expect(within(firstRow).getByText("怪我")).toBeVisible();
+    expect(within(firstRow).getByText("重点")).toBeVisible();
 
-    const priorityButton = within(rosterRow).getByRole("button", {
-      name: `重点育成から外す ${player.lastName} ${player.firstName}`,
-    });
-    fireEvent.click(priorityButton);
+    fireEvent.click(
+      within(firstRow).getByRole("button", {
+        name: `重点育成から外す ${first.lastName} ${first.firstName}`,
+      }),
+    );
     expect(onSetDevelopmentPriorities).toHaveBeenCalledWith([]);
 
-    const trainingButton = within(rosterRow).getByRole("button", {
-      name: `${player.lastName} ${player.firstName} 個人練習 全体`,
-    });
-    fireEvent.click(trainingButton);
-    expect(
-      screen.getByText(`${player.lastName} ${player.firstName}の個人練習`),
-    ).toBeVisible();
-
-    fireEvent.click(screen.getByRole("button", { name: /^攻撃/ }));
-    expect(onChangeTraining).toHaveBeenCalledWith(
-      playerId,
-      "instruction.attack",
+    fireEvent.click(
+      within(firstRow).getByRole("button", {
+        name: `${first.lastName} ${first.firstName} 個人練習 全体`,
+      }),
     );
-    expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /^攻撃/ }));
+
+    const secondDetailButton = screen.getByRole("button", {
+      name: `選手詳細 ${second.lastName} ${second.firstName}`,
+    });
+    const secondRow = secondDetailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    fireEvent.click(
+      within(secondRow).getByRole("button", {
+        name: `${second.lastName} ${second.firstName} 個人練習 全体`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^守備/ }));
+
+    expect(onSaveTrainingAssignments).not.toHaveBeenCalled();
+    expect(within(firstRow).getByText("未保存")).toBeVisible();
+    expect(within(secondRow).getByText("未保存")).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "まとめて保存（2人）" }),
+    );
+
+    expect(onSaveTrainingAssignments).toHaveBeenCalledTimes(1);
+    expect(onSaveTrainingAssignments).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        { playerId: firstId, instructionId: "instruction.attack" },
+        { playerId: secondId, instructionId: "instruction.defense" },
+      ]),
+    );
   });
 
   it("filters the roster and exposes all required sort options", () => {
