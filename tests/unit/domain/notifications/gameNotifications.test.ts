@@ -4,6 +4,7 @@ import type { GameDate } from "../../../../src/domain/model/identifiers";
 import type { TrainingResult } from "../../../../src/domain/training/resolveWeeklyTraining";
 import {
   appendNotification,
+  buildDevelopmentGoalAchievementNotification,
   buildTrainingResultNotification,
   markNotificationRead,
   selectHomeTrainingNotifications,
@@ -90,6 +91,65 @@ describe("game notifications", () => {
       injured: false,
       abilityChanges: { serve: 2, jump: 1 },
     });
+  });
+
+  it("emits one notification only when development goals cross their target grades", () => {
+    const before = createDemoGame();
+    const school = before.schools[before.userSchoolId]!;
+    const firstId = school.playerIds[0]!;
+    const secondId = school.playerIds[1]!;
+    before.teamPlanning.developmentGoalsByPlayerId = {
+      [firstId]: { area: "jump", targetGrade: "D" },
+      [secondId]: { area: "stamina", targetGrade: "E" },
+    };
+    before.players[firstId]!.abilities.jump = 49;
+    before.players[secondId]!.abilities.stamina = 39;
+
+    const after = structuredClone(before);
+    after.players[firstId]!.abilities.jump = 50;
+    after.players[secondId]!.abilities.stamina = 40;
+
+    const notification = buildDevelopmentGoalAchievementNotification({
+      stateBeforeTraining: before,
+      stateAfterTraining: after,
+    });
+
+    expect(notification?.type).toBe("development-goal-achieved");
+    expect(notification?.payload.items).toHaveLength(2);
+    expect(notification?.payload.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          playerId: firstId,
+          area: "jump",
+          targetGrade: "D",
+          achievedGrade: "D",
+        }),
+        expect.objectContaining({
+          playerId: secondId,
+          area: "stamina",
+          targetGrade: "E",
+          achievedGrade: "E",
+        }),
+      ]),
+    );
+
+    const alreadyAchieved = structuredClone(before);
+    alreadyAchieved.players[firstId]!.abilities.jump = 50;
+    const later = structuredClone(alreadyAchieved);
+    later.players[firstId]!.abilities.jump = 51;
+    alreadyAchieved.teamPlanning.developmentGoalsByPlayerId = {
+      [firstId]: { area: "jump", targetGrade: "D" },
+    };
+    later.teamPlanning.developmentGoalsByPlayerId = {
+      [firstId]: { area: "jump", targetGrade: "D" },
+    };
+
+    expect(
+      buildDevelopmentGoalAchievementNotification({
+        stateBeforeTraining: alreadyAchieved,
+        stateAfterTraining: later,
+      }),
+    ).toBeNull();
   });
 
   it("deduplicates the same deterministic training notification", () => {
