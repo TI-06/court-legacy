@@ -3,11 +3,7 @@ import type { PlayerId } from "../model/identifiers";
 
 export type SavedLineupSlot = 1 | 2 | 3;
 export type DevelopmentGoalArea =
-  | "attack"
-  | "defense"
-  | "jump"
-  | "stamina"
-  | "mental";
+  "attack" | "defense" | "jump" | "stamina" | "mental";
 export type DevelopmentGoalGrade = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 
 export interface PlayerDevelopmentGoal {
