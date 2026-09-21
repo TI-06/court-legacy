@@ -950,3 +950,111 @@
     padding-inline: 7px;
   }
 }
+
+/* Phase26-2: opponent analysis turns scouting into an actionable match plan. */
+.pre-match-lineup__analysis {
+  display: grid;
+  min-width: 0;
+  padding: 12px;
+  gap: 9px;
+  color: var(--game-text, #f4f7fb);
+  background:
+    radial-gradient(circle at 92% 8%, rgb(116 216 255 / 12%), transparent 30%),
+    var(--game-panel, #0b1a2d);
+  border: 1px solid rgb(116 216 255 / 18%);
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+}
+
+.pre-match-lineup__analysis-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.pre-match-lineup__analysis-heading h3 {
+  margin: 0;
+}
+
+.pre-match-lineup__analysis-heading > span {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  color: #d9edf8;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: rgb(46 139 216 / 16%);
+  border: 1px solid rgb(116 216 255 / 24%);
+  border-radius: 999px;
+}
+
+.pre-match-lineup__analysis-heading > span[data-tier="advanced"] {
+  color: #ffe1b6;
+  background: rgb(244 122 24 / 14%);
+  border-color: rgb(244 122 24 / 36%);
+}
+
+.pre-match-lineup__analysis-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pre-match-lineup__analysis-source span {
+  padding: 4px 7px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.64rem;
+  font-weight: 800;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 999px;
+}
+
+.pre-match-lineup__analysis-observations,
+.pre-match-lineup__analysis-reasons {
+  display: grid;
+  margin: 0;
+  padding-left: 18px;
+  gap: 5px;
+  color: #d8e7f3;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.pre-match-lineup__analysis-plan {
+  display: grid;
+  min-width: 0;
+  padding: 9px;
+  gap: 3px;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 24%);
+  border-radius: 10px;
+}
+
+.pre-match-lineup__analysis-plan span {
+  color: #ffc68f;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.pre-match-lineup__analysis-plan strong {
+  color: #fff;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.pre-match-lineup__analysis-apply {
+  min-height: 44px;
+  padding: 8px 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f47a18, #d9570d);
+  border: 0;
+  border-radius: 10px;
+}
+
+.pre-match-lineup__analysis-apply:disabled {
+  opacity: 0.5;
+}
