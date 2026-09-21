@@ -150,5 +150,8 @@ describe("Phase16 MatchScreen command presentation", () => {
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
 
     expect(screen.queryByRole("region", { name: "監督采配" })).toBeNull();
+    expect(
+      screen.getByRole("region", { name: "今回の試合の物語" }),
+    ).toBeVisible();
   });
 });

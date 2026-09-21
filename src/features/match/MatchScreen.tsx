@@ -10,6 +10,7 @@ import { MatchCommandPanel } from "./MatchCommandPanel";
 import { buildMatchCommandImpactRows } from "./matchCommandPresentation";
 import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
+import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
 
@@ -509,6 +510,8 @@ function MatchScreenContent({
             </div>
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
+
+          <MatchResultStoryPanel state={state} match={result.match} />
 
           <MatchResultStats
             state={state}

@@ -1,0 +1,41 @@
+import type { GameState } from "../../domain/model/GameState";
+import type { MatchState } from "../../domain/model/Match";
+import { buildMatchResultStory } from "./matchResultStory";
+import "./matchGameStats.css";
+
+export function MatchResultStoryPanel({
+  state,
+  match,
+}: {
+  state: GameState;
+  match: MatchState;
+}) {
+  const story = buildMatchResultStory(state, match);
+  if (!story) return null;
+
+  return (
+    <section className="match-story-card" aria-label="今回の試合の物語">
+      <div className="match-story-card__heading">
+        <div>
+          <p className="section-kicker">MATCH STORY</p>
+          <h2>{story.headline}</h2>
+        </div>
+        <strong>{story.recordLabel}</strong>
+      </div>
+
+      {story.chips.length > 0 ? (
+        <div className="match-story-card__chips" aria-label="試合の意味">
+          {story.chips.map((chip) => (
+            <span key={chip}>{chip}</span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="match-story-card__facts">
+        {story.facts.map((fact) => (
+          <span key={fact}>{fact}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
