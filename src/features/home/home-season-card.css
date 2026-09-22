@@ -155,7 +155,6 @@
   }
 }
 
-
 .home-featured-rival {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr) auto;
