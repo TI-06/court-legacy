@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Phase28-4 formatting diagnostic
-        run: |
-          npx prettier src/features/home/HomeCommandCenter.tsx src/features/home/homeCommandCenter.ts src/features/school/SchoolSeasonRanking.tsx src/features/school/school-season-ranking.css src/features/season/seasonProgressPresentation.ts tests/unit/features/home/homeCommandCenter.test.ts tests/unit/features/school/SchoolScreen.test.tsx tests/unit/features/season/seasonProgressPresentation.test.ts --write
-          git diff -- src/features/home/HomeCommandCenter.tsx src/features/home/homeCommandCenter.ts src/features/school/SchoolSeasonRanking.tsx src/features/school/school-season-ranking.css src/features/season/seasonProgressPresentation.ts tests/unit/features/home/homeCommandCenter.test.ts tests/unit/features/school/SchoolScreen.test.tsx tests/unit/features/season/seasonProgressPresentation.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
