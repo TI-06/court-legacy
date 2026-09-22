@@ -208,6 +208,23 @@ describe("game state codec", () => {
     ).toThrow("セーブデータの形式が正しくありません");
   });
 
+  it("repairs current-schema players that predate revealed hidden trait persistence", () => {
+    const state = structuredClone(createDemoGame());
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+
+    delete player.revealedHiddenTraitIds;
+    player.hiddenTraitAssignmentInitialized = true;
+
+    const decoded = decodeGameState(JSON.stringify(state));
+
+    expect(decoded.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
+    expect(decoded.players[playerId]!.revealedHiddenTraitIds).toEqual([]);
+    expect(decoded.players[playerId]!.hiddenTraitAssignmentInitialized).toBe(
+      true,
+    );
+  });
+
   it("rejects corrupted JSON instead of returning a partial state", () => {
     expect(() => decodeGameState('{"schemaVersion":1')).toThrow(
       "セーブデータを読み取れません",

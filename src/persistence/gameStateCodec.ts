@@ -862,7 +862,7 @@ const weeklyScheduleSchema = z
 const persistedPlayerSchema = z
   .object({
     hiddenTraitIds: z.array(z.string().min(1)),
-    revealedHiddenTraitIds: z.array(z.string().min(1)),
+    revealedHiddenTraitIds: z.array(z.string().min(1)).default([]),
     hiddenTraitAssignmentInitialized: z.boolean(),
   })
   .passthrough()
