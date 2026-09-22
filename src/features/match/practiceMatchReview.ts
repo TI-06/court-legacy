@@ -57,10 +57,7 @@ function alignmentLabel(
     : "方針より低負荷";
 }
 
-function headline(
-  tier: PracticeMatchCandidateTier,
-  won: boolean,
-): string {
+function headline(tier: PracticeMatchCandidateTier, won: boolean): string {
   if (tier === "same") {
     return won ? "安定した試合運びを確認" : "基礎完成度に課題";
   }
@@ -93,9 +90,7 @@ export function buildPracticeMatchReview(input: {
 }): PracticeMatchReviewPresentation {
   const userIsHome = input.match.homeSchoolId === input.state.userSchoolId;
   const userStrength = userIsHome ? input.homeStrength : input.awayStrength;
-  const opponentStrength = userIsHome
-    ? input.awayStrength
-    : input.homeStrength;
+  const opponentStrength = userIsHome ? input.awayStrength : input.homeStrength;
   const ambition = input.state.seasonGoals?.ambition ?? "challenge";
   const tier = classifyOpponentTier(userStrength, opponentStrength);
   const won =
