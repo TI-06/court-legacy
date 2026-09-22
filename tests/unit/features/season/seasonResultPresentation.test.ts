@@ -31,6 +31,8 @@ describe("season result presentation", () => {
     });
     expect(presentation.deltas).toEqual(summary.deltas);
     expect(presentation.goals).toHaveLength(3);
+    expect(presentation.earnedRewardFunds).toBeGreaterThanOrEqual(0);
+    expect(presentation.goals.every((goal) => goal.rewardFunds > 0)).toBe(true);
     expect(presentation.goals[0]?.label).toMatch(/^県内\d+位以内$/);
     expect(presentation.goals[0]?.progressLabel).toMatch(/^最終 \d+位$/);
     expect(presentation.goals[1]?.label).toMatch(/^公式戦\d+勝$/);
