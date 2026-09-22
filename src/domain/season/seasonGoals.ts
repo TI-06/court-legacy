@@ -262,6 +262,30 @@ export class SeasonAmbitionSelectionError extends Error {
   }
 }
 
+export function previewSeasonAmbition(
+  state: GameState,
+  ambition: SeasonAmbition,
+): SeasonGoalState {
+  const current = state.seasonGoals;
+  if (!current || current.yearIndex !== state.yearIndex) {
+    throw new SeasonAmbitionSelectionError("unavailable");
+  }
+  const school = state.schools[state.userSchoolId];
+  if (!school) throw new SeasonAmbitionSelectionError("unavailable");
+
+  return {
+    ...current,
+    ambition,
+    goals: buildGoals({
+      yearIndex: current.yearIndex,
+      startRegionalRank: current.startingRanks.regional,
+      regionalTotal: current.rankingTotals.regional,
+      reputationPoints: school.reputationPoints,
+      ambition,
+    }),
+  };
+}
+
 export function selectSeasonAmbition(
   state: GameState,
   ambition: SeasonAmbition,
@@ -279,22 +303,12 @@ export function selectSeasonAmbition(
   ) {
     throw new SeasonAmbitionSelectionError("locked");
   }
-  const school = state.schools[state.userSchoolId];
-  if (!school) throw new SeasonAmbitionSelectionError("unavailable");
 
   return {
     ...state,
     seasonGoals: {
-      ...current,
-      ambition,
+      ...previewSeasonAmbition(state, ambition),
       ambitionSelectionPending: false,
-      goals: buildGoals({
-        yearIndex: current.yearIndex,
-        startRegionalRank: current.startingRanks.regional,
-        regionalTotal: current.rankingTotals.regional,
-        reputationPoints: school.reputationPoints,
-        ambition,
-      }),
     },
   };
 }
