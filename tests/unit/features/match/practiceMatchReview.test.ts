@@ -36,9 +36,7 @@ function completedMatch() {
   return { state, match: result.match };
 }
 
-function teamStats(
-  overrides: Partial<TeamMatchStats> = {},
-): TeamMatchStats {
+function teamStats(overrides: Partial<TeamMatchStats> = {}): TeamMatchStats {
   return {
     schoolId: "school.test" as TeamMatchStats["schoolId"],
     totalPoints: 50,
