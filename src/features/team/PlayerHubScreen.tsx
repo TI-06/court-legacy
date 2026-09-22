@@ -431,7 +431,12 @@ export function PlayerHubScreen({
               const growth =
                 trainingPlayerGrowth.fourWeekAbilityGrowth?.[key] ?? null;
               return (
-                <span key={key}>
+                <span
+                  aria-label={`${abilityLabels[key]} ${ratingToGrade(
+                    trainingPlayerAbilities[key],
+                  )} 4週成長 ${growth === null ? "未計測" : `+${growth}`}`}
+                  key={key}
+                >
                   <small>{label}</small>
                   <strong>{ratingToGrade(trainingPlayerAbilities[key])}</strong>
                   <b>{growth === null ? "--" : `+${growth}`}</b>
