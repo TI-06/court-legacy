@@ -118,7 +118,13 @@ describe("GameApp Phase 13 Home commands", () => {
     renderApp(snapshot);
 
     fireEvent.click(
-      screen.getByRole("button", {
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const firstTaskSheet = screen.getByRole("dialog", {
+      name: "今週やること",
+    });
+    fireEvent.click(
+      within(firstTaskSheet).getByRole("button", {
         name: /強化可能な設備 \d+件 設備を見る/,
       }),
     );
