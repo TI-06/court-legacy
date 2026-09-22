@@ -288,6 +288,12 @@ export function PlayerHubScreen({
   const trainingPlayer = trainingPlayerId
     ? (state.players[trainingPlayerId] ?? null)
     : null;
+  const trainingPlayerAbilities = trainingPlayer
+    ? summarizePlayerAbilities(trainingPlayer)
+    : null;
+  const trainingPlayerGrowth = trainingPlayer
+    ? summarizePlayerGrowth(state, trainingPlayer.id)
+    : null;
   const trainingDone = isWeeklyActionCompleted(state, "training");
   const priorityIds = state.teamPlanning.developmentPriorityPlayerIds;
   const priorityCapReached = priorityIds.length >= 3;
@@ -404,6 +410,43 @@ export function PlayerHubScreen({
         trainingPlayer ? `${playerName(trainingPlayer)}の個人練習` : "個人練習"
       }
     >
+      {trainingPlayer && trainingPlayerAbilities && trainingPlayerGrowth ? (
+        <section
+          aria-label="個人練習の判断材料"
+          className="player-training-context"
+        >
+          <div className="player-training-context__summary">
+            <span>直近4週</span>
+            <strong>{compactGrowthLabel(trainingPlayerGrowth)}</strong>
+            <small>
+              現在 {assignmentName(trainingPlayer.id)}
+              {trainingDrafts[trainingPlayer.id] ? "・未保存" : ""}
+            </small>
+          </div>
+          <div
+            aria-label={`${playerName(trainingPlayer)} 能力と4週成長`}
+            className="player-training-context__abilities"
+          >
+            {rosterAbilityLabels.map(([key, label]) => {
+              const growth =
+                trainingPlayerGrowth.fourWeekAbilityGrowth?.[key] ?? null;
+              return (
+                <span
+                  aria-label={`${abilityLabels[key]} ${ratingToGrade(
+                    trainingPlayerAbilities[key],
+                  )} 4週成長 ${growth === null ? "未計測" : `+${growth}`}`}
+                  key={key}
+                >
+                  <small>{label}</small>
+                  <strong>{ratingToGrade(trainingPlayerAbilities[key])}</strong>
+                  <b>{growth === null ? "--" : `+${growth}`}</b>
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <div className="player-training-options">
         {individualTrainingInstructions.map((item) => {
           const selected =

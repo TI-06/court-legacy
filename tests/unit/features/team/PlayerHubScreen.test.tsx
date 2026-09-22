@@ -125,6 +125,100 @@ describe("PlayerHubScreen", () => {
     }
   });
 
+  it("shows current ability grades and grouped four-week growth before changing individual training", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.abilities = {
+      ...player.abilities,
+      spike: 52,
+      serve: 48,
+      receive: 52,
+      block: 48,
+      jump: 53,
+      stamina: 54,
+      decision: 52,
+      mental: 48,
+    };
+    state.history.playerDevelopmentWeeks = [
+      {
+        gameDate: "2026-05-01",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 1,
+        trainingMenuId: "training.balanced",
+        players: [
+          {
+            playerId,
+            totalAbilityGrowth: 9,
+            abilityChanges: {
+              spike: 2,
+              serve: 2,
+              receive: 2,
+              jump: 3,
+            },
+          },
+        ],
+      },
+      {
+        gameDate: "2026-05-08",
+        academicYearIndex: state.yearIndex,
+        weekOfYear: 2,
+        trainingMenuId: "training.balanced",
+        players: [
+          {
+            playerId,
+            totalAbilityGrowth: 8,
+            abilityChanges: {
+              stamina: 4,
+              decision: 2,
+              mental: 2,
+            },
+          },
+        ],
+      },
+    ];
+
+    renderPlayerHub(state);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `${player.lastName} ${player.firstName} 個人練習 全体`,
+      }),
+    );
+
+    const context = screen.getByRole("region", {
+      name: "個人練習の判断材料",
+    });
+    expect(within(context).getByText("+17・計測中")).toBeVisible();
+
+    const current = summarizePlayerAbilities(player);
+    expect(
+      within(context).getByLabelText(
+        `攻撃 ${ratingToGrade(current.attack)} 4週成長 +2`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(context).getByLabelText(
+        `守備 ${ratingToGrade(current.defense)} 4週成長 +1`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(context).getByLabelText(
+        `跳躍 ${ratingToGrade(current.jump)} 4週成長 +3`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(context).getByLabelText(
+        `スタミナ ${ratingToGrade(current.stamina)} 4週成長 +4`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(context).getByLabelText(
+        `メンタル ${ratingToGrade(current.mental)} 4週成長 +2`,
+      ),
+    ).toBeVisible();
+  });
+
   it("stages multiple training changes and saves them together once", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
