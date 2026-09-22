@@ -56,7 +56,7 @@ export function PracticeMatchReviewPanel({
 
       <p>{review.nextRecommendation}</p>
 
-      <div
+      <section
         aria-label="練習試合後の重点練習"
         className="practice-match-review__training"
       >
@@ -88,7 +88,7 @@ export function PracticeMatchReviewPanel({
                 ? "次週に設定"
                 : "この練習を設定"}
         </button>
-      </div>
+      </section>
     </section>
   );
 }
