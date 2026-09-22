@@ -66,11 +66,7 @@ export function PracticeMatchReviewPanel({
           <small>{review.trainingRecommendation.reason}</small>
         </div>
         <button
-          disabled={
-            pending ||
-            alreadySelected ||
-            !onApplyTrainingRecommendation
-          }
+          disabled={pending || alreadySelected || !onApplyTrainingRecommendation}
           onClick={() => {
             void onApplyTrainingRecommendation?.(
               review.trainingRecommendation.menuId,
