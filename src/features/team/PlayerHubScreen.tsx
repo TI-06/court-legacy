@@ -51,6 +51,7 @@ import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
 import { TeamTacticsPanel } from "./TeamTacticsPanel";
 import {
+  playerGrowthMomentumLabels,
   selectPlayerHubRoster,
   summarizePlayerGrowth,
   type PlayerHubFilter,
@@ -159,6 +160,12 @@ const playerOverall = (player: Player) =>
   Math.round(calculatePlayerDisplayPower(player) / 100);
 const growthLabel = (weeks: 4 | 12, value: number | null) =>
   `${weeks}週 ${value === null ? "--" : `+${value}`}`;
+const compactGrowthLabel = (
+  growth: ReturnType<typeof summarizePlayerGrowth>,
+) =>
+  growth.fourWeekGrowth === null
+    ? "計測前"
+    : `+${growth.fourWeekGrowth}・${playerGrowthMomentumLabels[growth.momentum]}`;
 
 function HubTabs({
   mode,
@@ -797,6 +804,18 @@ export function PlayerHubScreen({
                 <strong>{growthLabel(4, growth.fourWeekGrowth)}</strong>
                 <strong>{growthLabel(12, growth.twelveWeekGrowth)}</strong>
               </div>
+              <div
+                className="player-detail__growth-momentum"
+                data-momentum={growth.momentum}
+              >
+                <span>成長ペース</span>
+                <strong>{playerGrowthMomentumLabels[growth.momentum]}</strong>
+                <small>
+                  直近4週 {growth.fourWeekGrowth === null ? "--" : `+${growth.fourWeekGrowth}`}
+                  {" / "}
+                  前4週 {growth.previousFourWeekGrowth === null ? "--" : `+${growth.previousFourWeekGrowth}`}
+                </small>
+              </div>
               {growth.trend12.length === 0 ? (
                 <p className="player-detail__growth-empty">
                   成長履歴はまだありません
@@ -1103,12 +1122,18 @@ export function PlayerHubScreen({
                 >
                   <span>個人練習</span>
                   <strong>{assignmentName(player.id)}</strong>
-                  <small>
+                  <small
+                    data-momentum={
+                      trainingDone || trainingDrafts[player.id]
+                        ? undefined
+                        : item.growth.momentum
+                    }
+                  >
                     {trainingDone
                       ? "実施済"
                       : trainingDrafts[player.id]
                         ? "未保存"
-                        : "変更"}
+                        : compactGrowthLabel(item.growth)}
                   </small>
                 </button>
                 <button
