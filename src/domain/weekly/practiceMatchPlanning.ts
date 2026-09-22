@@ -1,3 +1,4 @@
+import { isWeeklyActionCompleted } from "../calendar/weekProgression";
 import type { GameState } from "../model/GameState";
 import type { GameDate, SchoolId } from "../model/identifiers";
 import type { School, SchoolReputation } from "../model/School";
@@ -154,6 +155,7 @@ export function selectPracticeRecommendation(
 ): PracticeRecommendation | null {
   const practice = state.weeklySchedule.practiceMatch;
   if (
+    isWeeklyActionCompleted(state, "practice-match") ||
     practice.scheduledOpponentId ||
     practice.incomingOffer ||
     practice.outgoingCandidates.length === 0
