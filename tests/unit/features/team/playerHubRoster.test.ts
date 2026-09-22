@@ -150,15 +150,15 @@ describe("Player Hub roster selectors", () => {
       ]),
     ];
 
-    expect(summarizePlayerGrowth(state, playerId).fourWeekAbilityGrowth).toEqual(
-      {
-        attack: 2,
-        defense: 1,
-        jump: 3,
-        stamina: 4,
-        mental: 2,
-      },
-    );
+    expect(
+      summarizePlayerGrowth(state, playerId).fourWeekAbilityGrowth,
+    ).toEqual({
+      attack: 2,
+      defense: 1,
+      jump: 3,
+      stamina: 4,
+      mental: 2,
+    });
   });
 
   it("classifies growth momentum from recent versus prior four-week averages", () => {
