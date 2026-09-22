@@ -372,6 +372,81 @@ describe("Phase16 match commands", () => {
     expect(match).toEqual(before);
   });
 
+  it("stores a player-specific attack focus without changing the persistent team", () => {
+    const context = createContext("attack-focus-world");
+    const match = findOpponentRunDecision(context);
+    const playerId = match.homeSelection.rotation[0]!.playerId;
+    const persistentTactics = structuredClone(
+      context.state.schools[context.homeSchoolId]!.tactics,
+    );
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "attack-focus", playerId },
+    });
+
+    expect(next.runtime?.homeAttackFocusPlayerId).toBe(playerId);
+    expect(next.runtime?.awayAttackFocusPlayerId ?? null).toBeNull();
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "attack-focus",
+      playerId,
+    });
+    expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
+      persistentTactics,
+    );
+  });
+
+  it("stores a serve target only when the opponent is currently active", () => {
+    const context = createContext("serve-target-world");
+    const match = findOpponentRunDecision(context);
+    const targetPlayerId = match.awaySelection.rotation[0]!.playerId;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "serve-target", targetPlayerId },
+    });
+
+    expect(next.runtime?.homeServeTargetPlayerId).toBe(targetPlayerId);
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "serve-target",
+      targetPlayerId,
+    });
+
+    const invalid = structuredClone(match);
+    const benchTarget = invalid.awaySelection.benchPlayerIds[0]!;
+    expectValidationCode(
+      () =>
+        applyMatchCommand({
+          state: context.state,
+          match: invalid,
+          schoolId: context.homeSchoolId,
+          command: { type: "serve-target", targetPlayerId: benchTarget },
+        }),
+      "serve_target_player_not_active",
+    );
+  });
+
+  it("rejects attack focus on a bench player", () => {
+    const context = createContext("attack-focus-invalid-world");
+    const match = findOpponentRunDecision(context);
+    const benchPlayerId = match.homeSelection.benchPlayerIds[0]!;
+
+    expectValidationCode(
+      () =>
+        applyMatchCommand({
+          state: context.state,
+          match,
+          schoolId: context.homeSchoolId,
+          command: { type: "attack-focus", playerId: benchPlayerId },
+        }),
+      "attack_focus_player_not_on_court",
+    );
+  });
+
   it("continue consumes the decision without changing lineup or tactics", () => {
     const context = createContext("continue-world");
     const match = findOpponentRunDecision(context);
