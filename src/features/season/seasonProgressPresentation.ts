@@ -5,10 +5,14 @@ import {
   type SchoolRankingRow,
 } from "../../domain/season/schoolRankings";
 import type {
+  SeasonAmbition,
   SeasonGoalResult,
   TournamentAchievementTarget,
 } from "../../domain/season/seasonGoalTypes";
-import { evaluateSeasonGoals } from "../../domain/season/seasonGoals";
+import {
+  evaluateSeasonGoals,
+  seasonAmbitionLabels,
+} from "../../domain/season/seasonGoals";
 import { seasonGoalFundReward } from "../../domain/season/seasonGoalRewards";
 import {
   selectNotableUserMatches,
@@ -24,6 +28,7 @@ export interface SeasonProgressGoalPresentation {
   id: string;
   label: string;
   progressLabel: string;
+  remainingLabel: string;
   achieved: boolean;
   rewardFunds: number;
 }
@@ -73,6 +78,9 @@ export interface SchoolLegacyPresentation {
 
 export interface SeasonProgressPresentation {
   academicYear: number;
+  ambition: SeasonAmbition;
+  ambitionLabel: string;
+  remainingRewardFunds: number;
   achievedCount: number;
   goalCount: number;
   goals: SeasonProgressGoalPresentation[];
@@ -108,6 +116,19 @@ function goalProgressLabel(goal: SeasonGoalResult): string {
     return `${goal.progress}/${goal.target}勝`;
   }
   return goal.achieved ? "達成" : "未達成";
+}
+
+function goalRemainingLabel(goal: SeasonGoalResult): string {
+  if (goal.achieved) return "達成済み";
+  if (goal.kind === "regional-rank") {
+    return `あと${Math.max(0, goal.progress - goal.target)}位`;
+  }
+  if (goal.kind === "official-wins") {
+    return `あと${Math.max(0, goal.target - goal.progress)}勝`;
+  }
+  if (goal.achievement === "national-title") return "全国優勝で達成";
+  if (goal.achievement === "national-appearance") return "全国出場で達成";
+  return "県優勝で達成";
 }
 
 function nearbyRows(
@@ -234,20 +255,27 @@ export function buildSeasonProgressPresentation(
     .reverse()
     .map(buildSeasonResultPresentation);
 
+  const ambition = seasonGoals.ambition ?? "challenge";
+  const goals = summary.goalResults.map((goal) => ({
+    id: goal.id,
+    label: goalLabel(goal),
+    progressLabel: goalProgressLabel(goal),
+    remainingLabel: goalRemainingLabel(goal),
+    achieved: goal.achieved,
+    rewardFunds: seasonGoalFundReward(goal, ambition),
+  }));
+
   return {
     academicYear: summary.academicYear,
+    ambition,
+    ambitionLabel: seasonAmbitionLabels[ambition],
+    remainingRewardFunds: goals.reduce(
+      (total, goal) => total + (goal.achieved ? 0 : goal.rewardFunds),
+      0,
+    ),
     achievedCount: summary.achievedCount,
     goalCount: summary.goalResults.length,
-    goals: summary.goalResults.map((goal) => ({
-      id: goal.id,
-      label: goalLabel(goal),
-      progressLabel: goalProgressLabel(goal),
-      achieved: goal.achieved,
-      rewardFunds: seasonGoalFundReward(
-        goal,
-        seasonGoals.ambition ?? "challenge",
-      ),
-    })),
+    goals,
     regional: rankingPresentation(
       regionalRankings,
       state.userSchoolId,
