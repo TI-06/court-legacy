@@ -173,8 +173,7 @@ function filterRosterItem(
   if (filter === "injured") return item.isInjured;
   if (filter === "growth-attention") {
     return (
-      item.growth.momentum === "slowing" ||
-      item.growth.momentum === "stalled"
+      item.growth.momentum === "slowing" || item.growth.momentum === "stalled"
     );
   }
 
