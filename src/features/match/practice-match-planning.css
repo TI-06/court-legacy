@@ -210,7 +210,6 @@
   border-radius: 999px;
 }
 
-
 .practice-planning__recommendation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
