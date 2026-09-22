@@ -598,6 +598,34 @@ const developmentGoalAchievementNotificationSchema = z
   })
   .strict();
 
+const seasonGoalAchievementNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("season-goal-achieved"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        items: z
+          .array(
+            z
+              .object({
+                goalId: z.string().min(1),
+                label: z.string().min(1),
+                rewardFunds: z.number().int().nonnegative(),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(3),
+        totalRewardFunds: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict();
+
 const characterTraitDiscoveredNotificationSchema = z
   .object({
     id: z.string().min(1),
@@ -624,6 +652,7 @@ const gameNotificationSchema = z.discriminatedUnion("type", [
   specialRelationshipNotificationSchema,
   characterTraitDiscoveredNotificationSchema,
   developmentGoalAchievementNotificationSchema,
+  seasonGoalAchievementNotificationSchema,
 ]);
 
 const notificationStateSchema = z
