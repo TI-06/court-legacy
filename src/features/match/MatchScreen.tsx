@@ -327,7 +327,7 @@ function MatchScreenContent({
           <section className="match-live-hero" aria-labelledby="live-heading">
             <div>
               <p className="section-kicker">試合速報</p>
-              <h2 id="live-heading">試合ダイジェスト</h2>
+              <h2 id="live-heading">試合進行中</h2>
             </div>
             <span data-testid="event-sequence">
               {revealedEventIndex + 1} / {eventCount}
@@ -355,6 +355,25 @@ function MatchScreenContent({
                 セット {revealedAwaySets} ・ 戦力 {awayStrength}
               </small>
             </article>
+          </section>
+
+          <section className="match-interaction-status" aria-label="試合進行状態">
+            <span>{decisionReady ? "DECISION" : "LIVE"}</span>
+            <div>
+              <strong>
+                {decisionReady
+                  ? result.match.runtime?.pendingDecisionReason ===
+                    "critical-score"
+                    ? "重要場面。ここからの指示で展開が変わります"
+                    : "監督判断のタイミングです"
+                  : "試合結果はまだ確定していません"}
+              </strong>
+              <small>
+                {decisionReady
+                  ? "戦術変更・選手交代・タイムアウトを選べます"
+                  : "重要場面では自動で止まり、監督指示を出せます"}
+              </small>
+            </div>
           </section>
 
           {currentTactics ? (
