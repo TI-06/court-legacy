@@ -84,7 +84,11 @@ export function PracticeMatchPlanning({
         <>
           {recommendation ? (
             <article
-              aria-label="方針おすすめの練習試合"
+              aria-label={
+                recommendation.source === "last-practice-result"
+                  ? "前回結果おすすめの練習試合"
+                  : "方針おすすめの練習試合"
+              }
               className="practice-planning__recommendation"
             >
               <div className="practice-planning__recommendation-copy">
