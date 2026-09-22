@@ -1376,3 +1376,106 @@
     width: 100%;
   }
 }
+
+
+/* Phase30: clearer interactive match state and critical-moment controls. */
+.match-interaction-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  gap: 9px;
+  color: #e9f6fb;
+  background:
+    linear-gradient(135deg, rgb(46 139 216 / 13%), rgb(244 122 24 / 8%)),
+    #0b1a2d;
+  border: 1px solid rgb(116 216 255 / 16%);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 14%);
+}
+
+.match-interaction-status > span {
+  display: inline-grid;
+  min-width: 54px;
+  min-height: 30px;
+  padding: 4px 7px;
+  color: #071321;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  background: #72d5df;
+  border-radius: 9px;
+  place-items: center;
+}
+
+.match-interaction-status > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-interaction-status strong {
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.match-interaction-status small {
+  color: #a9c0ce;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.match-command-quick {
+  display: grid;
+  gap: 7px;
+}
+
+.match-command-quick > span {
+  color: #ffd0a8;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+}
+
+.match-command-quick > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.match-command-quick button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 5px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 900;
+  background: rgb(244 122 24 / 12%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 10px;
+}
+
+.match-command-quick button:active {
+  background: rgb(244 122 24 / 22%);
+}
+
+.match-command-quick button:disabled {
+  opacity: 0.5;
+}
+
+@media (max-width: 350px) {
+  .match-interaction-status {
+    grid-template-columns: 1fr;
+  }
+
+  .match-interaction-status > span {
+    justify-self: start;
+  }
+
+  .match-command-quick > div {
+    grid-template-columns: 1fr;
+  }
+}
