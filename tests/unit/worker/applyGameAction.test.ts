@@ -244,6 +244,40 @@ describe("applyGameAction", () => {
     ).toThrowError(GameRuleConflictError);
   });
 
+  it("saves a pending season ambition once and rejects later changes", () => {
+    const snapshot = createSnapshot();
+    snapshot.state.calendar.weekOfYear = 1;
+    snapshot.state.calendar.completedActivityIds = [];
+    snapshot.state.seasonGoals = {
+      ...snapshot.state.seasonGoals!,
+      ambition: "challenge",
+      ambitionSelectionPending: true,
+    };
+
+    const selected = applyGameAction(snapshot, {
+      type: "set-season-ambition",
+      ambition: "bold",
+    });
+
+    expect(selected.state.seasonGoals).toMatchObject({
+      ambition: "bold",
+      ambitionSelectionPending: false,
+    });
+    expect(selected.outcome).toEqual({ ambition: "bold" });
+
+    const selectedSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: selected.state,
+      teamSelection: selected.teamSelection,
+    };
+    expect(() =>
+      applyGameAction(selectedSnapshot, {
+        type: "set-season-ambition",
+        ambition: "steady",
+      }),
+    ).toThrowError(GameRuleConflictError);
+  });
+
   it("accepts a valid team selection and rejects an invalid duplicate player", () => {
     const snapshot = createSnapshot();
     const valid = structuredClone(snapshot.teamSelection);
