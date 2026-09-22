@@ -81,9 +81,12 @@ export function YearTransitionDialog({
                 <span>SEASON RESULT</span>
                 <h3>{seasonResult.academicYear}年目 シーズン結果</h3>
               </div>
-              <strong>
-                {seasonResult.achievedCount}/{seasonResult.goalCount}目標達成
-              </strong>
+              <div className="year-transition-season__summary">
+                <strong>
+                  {seasonResult.achievedCount}/{seasonResult.goalCount}目標達成
+                </strong>
+                <b>目標報酬 +{seasonResult.earnedRewardFunds}</b>
+              </div>
             </div>
 
             <div className="year-transition-season__ranks">
@@ -123,7 +126,10 @@ export function YearTransitionDialog({
                 >
                   <div>
                     <strong>{goal.label}</strong>
-                    <small>{goal.progressLabel}</small>
+                    <small>
+                      {goal.progressLabel}
+                      {goal.achieved ? `・+${goal.rewardFunds}獲得` : ""}
+                    </small>
                   </div>
                   <b aria-label={goal.achieved ? "達成済み" : "未達成"}>
                     {goal.achieved ? "✓" : "—"}
