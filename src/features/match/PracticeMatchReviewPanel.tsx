@@ -21,10 +21,7 @@ export function PracticeMatchReviewPanel({
   });
 
   return (
-    <section
-      aria-label="練習試合レビュー"
-      className="practice-match-review"
-    >
+    <section aria-label="練習試合レビュー" className="practice-match-review">
       <div className="practice-match-review__heading">
         <div>
           <p className="section-kicker">PRACTICE REVIEW</p>
