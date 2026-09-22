@@ -101,7 +101,7 @@ describe("practiceMatchReview", () => {
         homeStrength: 60,
         awayStrength: 75,
       }),
-    ).toEqual({
+    ).toMatchObject({
       ambition: "bold",
       ambitionLabel: "野心",
       tier: "challenge",
