@@ -78,6 +78,7 @@ interface SideRuntime {
   side: MatchSide;
   school: School;
   selection: TeamSelection;
+  attackFocusPlayerId: PlayerId | null;
 }
 
 interface RallyRuntime {
@@ -385,6 +386,7 @@ function chooseAttacker(
     pool,
     (player) =>
       attackPositionWeight(runtime.school, player.preferredPosition) *
+      (player.id === runtime.attackFocusPlayerId ? 2.1 : 1) *
       (0.5 +
         effectiveAbility(player, "spike", abilityContext) / 140 +
         player.positionAptitudes[player.preferredPosition] / 260),
@@ -1005,6 +1007,10 @@ function createInitialMatchState(
       runLength: 0,
       opponentRunDecisionConsumed: false,
       criticalScoreDecisionConsumed: false,
+      homeAttackFocusPlayerId: null,
+      awayAttackFocusPlayerId: null,
+      homeServeTargetPlayerId: null,
+      awayServeTargetPlayerId: null,
       timeoutUsedSchoolIds: [],
       timeoutBoost: null,
       pendingDecisionReason: null,
@@ -1032,6 +1038,10 @@ function beginNextSet(match: MatchState): void {
   runtime.runLength = 0;
   runtime.opponentRunDecisionConsumed = false;
   runtime.criticalScoreDecisionConsumed = false;
+  runtime.homeAttackFocusPlayerId = null;
+  runtime.awayAttackFocusPlayerId = null;
+  runtime.homeServeTargetPlayerId = null;
+  runtime.awayServeTargetPlayerId = null;
   runtime.timeoutUsedSchoolIds = [];
   runtime.timeoutBoost = null;
   runtime.pendingDecisionReason = null;
@@ -1063,11 +1073,21 @@ function interactiveSimulationState(
       ...readinessState.schools,
       [homeSchool.id]: {
         ...homeSchool,
-        tactics: applyMatchTacticPlan(homeSchool.tactics, runtime.homeTactics),
+        tactics: {
+          ...applyMatchTacticPlan(homeSchool.tactics, runtime.homeTactics),
+          ...(runtime.homeServeTargetPlayerId !== undefined
+            ? { serveTargetPlayerId: runtime.homeServeTargetPlayerId }
+            : {}),
+        },
       },
       [awaySchool.id]: {
         ...awaySchool,
-        tactics: applyMatchTacticPlan(awaySchool.tactics, runtime.awayTactics),
+        tactics: {
+          ...applyMatchTacticPlan(awaySchool.tactics, runtime.awayTactics),
+          ...(runtime.awayServeTargetPlayerId !== undefined
+            ? { serveTargetPlayerId: runtime.awayServeTargetPlayerId }
+            : {}),
+        },
       },
     },
   };
@@ -1365,11 +1385,13 @@ function runUntilBoundary(
         side: "home",
         school: homeSchool,
         selection: match.homeSelection,
+        attackFocusPlayerId: runtime.homeAttackFocusPlayerId ?? null,
       },
       away: {
         side: "away",
         school: awaySchool,
         selection: match.awaySelection,
+        attackFocusPlayerId: runtime.awayAttackFocusPlayerId ?? null,
       },
     };
     const servingBeforeRally = rallyRuntime.servingSide;
