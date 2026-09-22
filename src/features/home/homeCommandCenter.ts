@@ -30,7 +30,10 @@ import {
   evaluateFacilityUpgrade,
 } from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
-import { selectFeaturedUserRival } from "../../domain/world/rivalryHistory";
+import {
+  selectFeaturedUserRival,
+  type RivalryLabel,
+} from "../../domain/world/rivalryHistory";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
 import type {
   TournamentCircuit,
@@ -296,19 +299,12 @@ function matchSchoolName(
   return persisted ?? state.schools[schoolId]?.shortName ?? "相手校";
 }
 
-function featuredRivalBadge(
-  labels: ReturnType<typeof selectFeaturedUserRival> extends infer T
-    ? T extends { labels: infer L }
-      ? L
-      : never
-    : never,
-): string {
-  const values = labels as readonly string[];
-  if (values.includes("destiny-rival")) return "宿敵";
-  if (values.includes("nemesis")) return "天敵";
-  if (values.includes("rivalry")) return "因縁";
-  if (values.includes("losing-streak")) return "連敗中";
-  if (values.includes("revenge")) return "雪辱";
+function featuredRivalBadge(labels: readonly RivalryLabel[]): string {
+  if (labels.includes("destiny-rival")) return "宿敵";
+  if (labels.includes("nemesis")) return "天敵";
+  if (labels.includes("rivalry")) return "因縁";
+  if (labels.includes("losing-streak")) return "連敗中";
+  if (labels.includes("revenge")) return "雪辱";
   return "連勝中";
 }
 
