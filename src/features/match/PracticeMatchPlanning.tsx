@@ -3,7 +3,10 @@ import type { SchoolId } from "../../domain/model/identifiers";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
-import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
+import {
+  selectPracticeRecommendation,
+  selectRecentPracticeResults,
+} from "../../domain/weekly/practiceMatchPlanning";
 import { seasonAmbitionLabels } from "../../domain/season/seasonGoals";
 import type {
   PracticeMatchCandidateTier,
@@ -29,6 +32,12 @@ function ratingDots(rating: PracticeRating): string {
   return "●".repeat(rating) + "○".repeat(5 - rating);
 }
 
+function shortPracticeDate(date: string): string {
+  const [, month, day] = date.split("-").map(Number);
+  if (!month || !day) return date;
+  return `${month}/${day}`;
+}
+
 function schoolStrength(state: GameState, schoolId: SchoolId): number {
   return calculateSelectionStrength(state, autoSelectTeam({ state, schoolId }));
 }
@@ -48,6 +57,8 @@ export function PracticeMatchPlanning({
     ? state.schools[schedule.incomingOffer.schoolId]
     : null;
   const recommendation = selectPracticeRecommendation(state);
+  const recentResults = selectRecentPracticeResults(state, 3);
+  const recentWins = recentResults.filter((result) => result.won).length;
 
   return (
     <section
@@ -63,6 +74,38 @@ export function PracticeMatchPlanning({
         </div>
         {scheduledSchool ? <strong>対戦決定</strong> : <span>未決定</span>}
       </div>
+
+      {recentResults.length > 0 ? (
+        <section
+          aria-label="直近の練習試合"
+          className="practice-planning__history"
+        >
+          <div className="practice-planning__history-heading">
+            <span>PRACTICE LOG</span>
+            <strong>
+              直近{recentResults.length}戦 {recentWins}勝
+              {recentResults.length - recentWins}敗
+            </strong>
+          </div>
+          <div className="practice-planning__history-list">
+            {recentResults.map((result) => {
+              const opponent = state.schools[result.opponentSchoolId];
+              return (
+                <article key={`${result.date}:${result.opponentSchoolId}`}>
+                  <time>{shortPracticeDate(result.date)}</time>
+                  <strong title={opponent?.name}>
+                    {opponent?.shortName ?? opponent?.name ?? "相手校"}
+                  </strong>
+                  <b className={result.won ? "is-win" : "is-loss"}>
+                    {result.won ? "○" : "●"} {result.userSetsWon}-
+                    {result.opponentSetsWon}
+                  </b>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       {scheduledSchool ? (
         <article className="practice-planning__scheduled">
