@@ -22,10 +22,7 @@ export type CoachCommand =
   | { type: "defense-bias"; bias: "cross" | "balanced" | "line" }
   | { type: "encourage"; playerId: PlayerId | null };
 
-export type CoachDecisionReason =
-  | "opponent-run"
-  | "critical-score"
-  | "set-break";
+export type CoachDecisionReason = "opponent-run" | "critical-score" | "set-break";
 
 export type MatchCommand =
   | { type: "timeout" }
