@@ -397,7 +397,8 @@ export function MatchCommandPanel({
             })}
           </div>
           <small className="match-command-player-directive__note">
-            攻撃集中：指定選手へのトス選択が増加 / 声かけ：判断・メンタルが一時上昇
+            攻撃集中：指定選手へのトス選択が増加 /
+            声かけ：判断・メンタルが一時上昇
           </small>
         </div>
       </BottomSheet>
