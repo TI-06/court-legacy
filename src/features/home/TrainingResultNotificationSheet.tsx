@@ -72,9 +72,7 @@ export function TrainingResultNotificationSheet({
               <div className="training-result-notification__rank-up-list">
                 {notification.payload.players.flatMap((player) =>
                   (player.rankUps ?? []).map((rankUp) => (
-                    <article
-                      key={`${player.playerId}:${rankUp.area}`}
-                    >
+                    <article key={`${player.playerId}:${rankUp.area}`}>
                       <span>{player.displayName}</span>
                       <strong>{rankUp.areaLabel}</strong>
                       <b>
