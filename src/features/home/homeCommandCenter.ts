@@ -12,11 +12,13 @@ import {
   selectHomeCharacterTraitNotifications,
   selectHomeConcernResolutionNotifications,
   selectHomeDevelopmentGoalAchievementNotifications,
+  selectHomeSeasonGoalAchievementNotifications,
   selectHomeSpecialRelationshipNotifications,
   selectHomeTrainingNotifications,
   type CharacterTraitDiscoveredNotification,
   type ConcernResolutionNotification,
   type DevelopmentGoalAchievementNotification,
+  type SeasonGoalAchievementNotification,
   type SpecialRelationshipNotification,
   type TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -165,6 +167,13 @@ export type HomeCommandNews =
       title: string;
       detail: string;
       notification: DevelopmentGoalAchievementNotification;
+    }
+  | {
+      id: string;
+      kind: "season-goal-achieved";
+      title: string;
+      detail: string;
+      notification: SeasonGoalAchievementNotification;
     }
   | {
       id: string;
@@ -628,6 +637,25 @@ function buildNews(state: GameState): HomeCommandNews[] {
   )[0];
   const developmentGoalAchievement =
     selectHomeDevelopmentGoalAchievementNotifications(state.notifications)[0];
+  const seasonGoalAchievement =
+    selectHomeSeasonGoalAchievementNotifications(state.notifications)[0];
+
+  if (seasonGoalAchievement) {
+    const items = seasonGoalAchievement.payload.items;
+    candidates.push({
+      order: seasonGoalAchievement.readAtGameDate === null ? -2 : 38,
+      news: {
+        id: `news:season-goal:${seasonGoalAchievement.id}`,
+        kind: "season-goal-achieved",
+        title: "シーズン目標達成！",
+        detail:
+          items.length === 1
+            ? `${items[0]!.label}・年度末 +${items[0]!.rewardFunds}`
+            : `${items.length}目標達成・年度末 +${seasonGoalAchievement.payload.totalRewardFunds}`,
+        notification: seasonGoalAchievement,
+      },
+    });
+  }
 
   if (developmentGoalAchievement) {
     const items = developmentGoalAchievement.payload.items;
