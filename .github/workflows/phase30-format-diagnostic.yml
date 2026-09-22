@@ -1,0 +1,25 @@
+name: Phase30 Format Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase30-interactive-match-ux-v2
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Show exact Prettier diff
+        shell: bash
+        run: |
+          npx prettier src/domain/model/Match.ts src/features/match/MatchScreen.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx --write
+          git diff -- src/domain/model/Match.ts src/features/match/MatchScreen.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx
