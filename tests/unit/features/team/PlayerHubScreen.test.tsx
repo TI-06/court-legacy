@@ -325,7 +325,8 @@ describe("PlayerHubScreen", () => {
     state.history.playerDevelopmentWeeks = Array.from(
       { length: 8 },
       (_, index) => ({
-        gameDate: `2026-05-${String(index + 1).padStart(2, "0")}` as GameState["date"],
+        gameDate:
+          `2026-05-${String(index + 1).padStart(2, "0")}` as GameState["date"],
         academicYearIndex: state.yearIndex,
         weekOfYear: index + 1,
         trainingMenuId: "training.balanced",
