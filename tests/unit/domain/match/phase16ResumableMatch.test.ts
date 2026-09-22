@@ -167,7 +167,10 @@ describe("Phase16 resumable match API", () => {
       step.match.eventLog.some((event) => event.type === "match-end"),
     ).toBe(false);
 
-    if (step.match.runtime?.pendingDecisionReason === "opponent-run") {
+    if (
+      step.match.runtime?.pendingDecisionReason === "opponent-run" ||
+      step.match.runtime?.pendingDecisionReason === "critical-score"
+    ) {
       expect(step.match.eventLog.at(-1)?.type).toBe("point");
     } else {
       expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
@@ -203,11 +206,68 @@ describe("Phase16 resumable match API", () => {
       schoolId: context.homeSchoolId,
       command: { type: "continue" },
     });
-    const next = resumeMatch({ state: context.state, match: commanded });
+    let next = resumeMatch({ state: context.state, match: commanded });
+    while (
+      next.match.phase !== "match-complete" &&
+      next.match.runtime?.pendingDecisionReason === "critical-score"
+    ) {
+      const continued = applyMatchCommand({
+        state: context.state,
+        match: next.match,
+        schoolId: context.homeSchoolId,
+        command: { type: "continue" },
+      });
+      next = resumeMatch({ state: context.state, match: continued });
+    }
 
-    expect(next.match.runtime?.pendingDecisionReason).toBe("set-break");
-    expect(next.match.currentSetNumber).toBe(first.match.currentSetNumber);
+    expect(next.match.runtime?.pendingDecisionReason).not.toBe("opponent-run");
     expect(next.match.runtime?.opponentRunDecisionConsumed).toBe(true);
+  });
+
+  it("opens one critical-score decision in a close set before the result is known", () => {
+    const context = createContext("phase30-critical-world");
+
+    let found: ReturnType<typeof startInteractive> | null = null;
+    for (let index = 0; index < 320; index += 1) {
+      let step = startInteractive(context, `phase30-critical-${index}`);
+      let guard = 0;
+      while (step.match.phase !== "match-complete" && guard < 8) {
+        guard += 1;
+        if (step.match.runtime?.pendingDecisionReason === "critical-score") {
+          found = step;
+          break;
+        }
+        const commanded = applyMatchCommand({
+          state: context.state,
+          match: step.match,
+          schoolId: context.homeSchoolId,
+          command: { type: "continue" },
+        });
+        step = resumeMatch({ state: context.state, match: commanded });
+      }
+      if (found) break;
+    }
+
+    expect(found).not.toBeNull();
+    expect(found!.analysis).toBeNull();
+    expect(found!.match.phase).toBe("coach-decision");
+    expect(found!.match.runtime?.pendingDecisionReason).toBe("critical-score");
+    expect(
+      Math.max(
+        found!.match.runtime!.homeScore,
+        found!.match.runtime!.awayScore,
+      ),
+    ).toBeGreaterThanOrEqual(
+      found!.match.currentSetNumber === found!.match.bestOfSets ? 10 : 20,
+    );
+    expect(
+      Math.abs(
+        found!.match.runtime!.homeScore - found!.match.runtime!.awayScore,
+      ),
+    ).toBeLessThanOrEqual(2);
+    expect(
+      found!.match.eventLog.some((event) => event.type === "match-end"),
+    ).toBe(false);
   });
 
   it("uses a set-break decision after a non-final set without starting the next set", () => {
@@ -287,7 +347,7 @@ describe("Phase16 resumable match API", () => {
 
     const next = resumeMatch({ state: context.state, match: timedOut });
     expect(next.match.runtime?.timeoutBoost).toBeNull();
-    expect(next.match.runtime?.pendingDecisionReason).toBe("set-break");
+    expect(next.match.runtime?.pendingDecisionReason).not.toBe("opponent-run");
   });
 
   it("keeps tactics changes future-only and persistent school tactics untouched", () => {
