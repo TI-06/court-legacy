@@ -1104,7 +1104,8 @@ function shouldOpenCriticalScoreDecision(match: MatchState): boolean {
   return (
     runtime.controlledSchoolId !== null &&
     !runtime.criticalScoreDecisionConsumed &&
-    Math.max(runtime.homeScore, runtime.awayScore) >= criticalScoreThreshold(match) &&
+    Math.max(runtime.homeScore, runtime.awayScore) >=
+      criticalScoreThreshold(match) &&
     Math.abs(runtime.homeScore - runtime.awayScore) <= 2
   );
 }
