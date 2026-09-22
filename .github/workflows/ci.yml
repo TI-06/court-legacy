@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase28-1 formatting diagnostic
+        run: |
+          npx prettier src/features/school/SchoolScreen.tsx src/features/school/school-screen.css tests/unit/features/school/Phase12SchoolCompact.test.tsx tests/unit/features/school/SchoolScreen.test.tsx tests/e2e/school-economy-flow.spec.ts --write
+          git diff -- src/features/school/SchoolScreen.tsx src/features/school/school-screen.css tests/unit/features/school/Phase12SchoolCompact.test.tsx tests/unit/features/school/SchoolScreen.test.tsx tests/e2e/school-economy-flow.spec.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
