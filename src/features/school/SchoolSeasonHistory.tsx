@@ -24,7 +24,7 @@ function SeasonHistoryCard({
         <div>
           <h5>{presentation.academicYear}年目</h5>
           <span>
-            {presentation.achievedCount}/{presentation.goalCount}目標達成
+            {presentation.achievedCount}/{presentation.goalCount}目標達成・報酬 +{presentation.earnedRewardFunds}
           </span>
         </div>
         <div className="school-season-history__final-ranks">
@@ -68,7 +68,10 @@ function SeasonHistoryCard({
             >
               <div>
                 <strong>{goal.label}</strong>
-                <small>{goal.progressLabel}</small>
+                <small>
+                  {goal.progressLabel}
+                  {goal.achieved ? `・+${goal.rewardFunds}獲得` : ""}
+                </small>
               </div>
               <b>{goal.achieved ? "達成" : "未達成"}</b>
             </article>
