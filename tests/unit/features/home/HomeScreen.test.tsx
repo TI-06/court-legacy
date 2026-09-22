@@ -131,6 +131,38 @@ describe("Phase 13 Home command center", () => {
     });
   });
 
+  it("opens school records from the compact featured-rival strip", () => {
+    const props = createProps();
+    const opponent = otherSchool(props.state);
+    props.state.world.destinyRivalSchoolId = opponent.id;
+    props.state.history.matches = [
+      {
+        matchId: "home-featured-rival" as never,
+        date: "2026-04-10" as never,
+        homeSchoolId: props.state.userSchoolId,
+        awaySchoolId: opponent.id,
+        winnerSchoolId: opponent.id,
+        homeSetsWon: 1,
+        awaySetsWon: 2,
+        tournamentId: null,
+      },
+    ];
+
+    render(<HomeScreen {...props} />);
+
+    const rival = screen.getByRole("button", {
+      name: `注目ライバル ${opponent.shortName} 0勝1敗`,
+    });
+    expect(rival).toHaveTextContent("宿敵");
+    expect(rival).toHaveTextContent("前回敗戦・次は雪辱");
+
+    fireEvent.click(rival);
+    expect(props.onCommand).toHaveBeenCalledWith({
+      target: "school",
+      view: "records",
+    });
+  });
+
   it("emits a team command when individual training is unconfigured", () => {
     const props = createProps();
     const school = props.state.schools[props.state.userSchoolId]!;
