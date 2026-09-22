@@ -93,7 +93,10 @@ function nextRecommendation(
 function recommendationSeverity(
   user: TeamMatchStats,
   opponent: TeamMatchStats,
-): Record<Exclude<PracticeTrainingRecommendation["focus"], "balanced">, number> {
+): Record<
+  Exclude<PracticeTrainingRecommendation["focus"], "balanced">,
+  number
+> {
   const userServeNet = user.serviceAces - user.serveErrors;
   const opponentServeNet = opponent.serviceAces - opponent.serveErrors;
   return {
@@ -127,8 +130,7 @@ export function recommendPracticeTrainingFromStats(
       number,
     ][]
   ).sort(
-    (left, right) =>
-      right[1] - left[1] || left[0].localeCompare(right[0]),
+    (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
   );
   const [focus, score] = ranked[0] ?? ["attack", 0];
 
