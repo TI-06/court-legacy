@@ -30,11 +30,17 @@ export interface PlayerGrowthTrendPoint {
   totalAbilityGrowth: number;
 }
 
+export type PlayerGrowthMomentum =
+  "measuring" | "accelerating" | "steady" | "slowing" | "stalled";
+
 export interface PlayerGrowthSummary {
   fourWeekGrowth: number | null;
+  previousFourWeekGrowth: number | null;
   twelveWeekGrowth: number | null;
   observedWeeks4: number;
+  previousObservedWeeks4: number;
   observedWeeks12: number;
+  momentum: PlayerGrowthMomentum;
   trend12: PlayerGrowthTrendPoint[];
 }
 
@@ -87,24 +93,52 @@ function summarizeWindow(
   };
 }
 
+export const playerGrowthMomentumLabels: Record<PlayerGrowthMomentum, string> =
+  {
+    measuring: "計測中",
+    accelerating: "加速",
+    steady: "安定",
+    slowing: "鈍化",
+    stalled: "停滞",
+  };
+
+function growthMomentum(
+  recent: { growth: number | null; observed: ObservedGrowth[] },
+  previous: { growth: number | null; observed: ObservedGrowth[] },
+): PlayerGrowthMomentum {
+  if (recent.observed.length < 2 || previous.observed.length < 2) {
+    return "measuring";
+  }
+
+  const recentAverage = (recent.growth ?? 0) / recent.observed.length;
+  const previousAverage = (previous.growth ?? 0) / previous.observed.length;
+
+  if (recentAverage === 0) return "stalled";
+  if (previousAverage === 0) return "accelerating";
+
+  const ratio = recentAverage / previousAverage;
+  if (ratio >= 1.25) return "accelerating";
+  if (ratio <= 0.75) return "slowing";
+  return "steady";
+}
+
 export function summarizePlayerGrowth(
   state: GameState,
   playerId: PlayerId,
 ): PlayerGrowthSummary {
-  const four = summarizeWindow(
-    state.history.playerDevelopmentWeeks.slice(-4),
-    playerId,
-  );
-  const twelve = summarizeWindow(
-    state.history.playerDevelopmentWeeks.slice(-12),
-    playerId,
-  );
+  const weeks = state.history.playerDevelopmentWeeks;
+  const four = summarizeWindow(weeks.slice(-4), playerId);
+  const previousFour = summarizeWindow(weeks.slice(-8, -4), playerId);
+  const twelve = summarizeWindow(weeks.slice(-12), playerId);
 
   return {
     fourWeekGrowth: four.growth,
+    previousFourWeekGrowth: previousFour.growth,
     twelveWeekGrowth: twelve.growth,
     observedWeeks4: four.observed.length,
+    previousObservedWeeks4: previousFour.observed.length,
     observedWeeks12: twelve.observed.length,
+    momentum: growthMomentum(four, previousFour),
     trend12: twelve.observed.map((item) => ({
       gameDate: item.gameDate,
       totalAbilityGrowth: item.growth,

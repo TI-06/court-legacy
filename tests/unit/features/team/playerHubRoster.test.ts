@@ -52,9 +52,12 @@ describe("Player Hub roster selectors", () => {
 
     expect(summarizePlayerGrowth(state, playerId)).toEqual({
       fourWeekGrowth: 3,
+      previousFourWeekGrowth: null,
       twelveWeekGrowth: 3,
       observedWeeks4: 2,
+      previousObservedWeeks4: 0,
       observedWeeks12: 2,
+      momentum: "measuring",
       trend12: [
         { gameDate: "2026-04-01", totalAbilityGrowth: 0 },
         { gameDate: "2026-04-08", totalAbilityGrowth: 3 },
@@ -62,9 +65,12 @@ describe("Player Hub roster selectors", () => {
     });
     expect(summarizePlayerGrowth(state, otherPlayerId)).toEqual({
       fourWeekGrowth: null,
+      previousFourWeekGrowth: null,
       twelveWeekGrowth: null,
       observedWeeks4: 0,
+      previousObservedWeeks4: 0,
       observedWeeks12: 0,
+      momentum: "measuring",
       trend12: [],
     });
   });
@@ -100,6 +106,67 @@ describe("Player Hub roster selectors", () => {
     expect(summary.observedWeeks12).toBe(12);
     expect(summary.trend12[0]?.totalAbilityGrowth).toBe(2);
     expect(summary.trend12.at(-1)?.totalAbilityGrowth).toBe(13);
+  });
+
+  it("classifies growth momentum from recent versus prior four-week averages", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const acceleratingId = school.playerIds[0]!;
+    const steadyId = school.playerIds[1]!;
+    const slowingId = school.playerIds[2]!;
+    const stalledId = school.playerIds[3]!;
+
+    state.history.playerDevelopmentWeeks = Array.from(
+      { length: 8 },
+      (_, index) =>
+        developmentWeek(
+          `2026-05-${String(index + 1).padStart(2, "0")}` as GameState["date"],
+          index + 1,
+          [
+            {
+              playerId: acceleratingId,
+              totalAbilityGrowth: index < 4 ? 1 : 3,
+              abilityChanges: {},
+            },
+            {
+              playerId: steadyId,
+              totalAbilityGrowth: 2,
+              abilityChanges: {},
+            },
+            {
+              playerId: slowingId,
+              totalAbilityGrowth: index < 4 ? 4 : 1,
+              abilityChanges: {},
+            },
+            {
+              playerId: stalledId,
+              totalAbilityGrowth: index < 4 ? 2 : 0,
+              abilityChanges: {},
+            },
+          ],
+        ),
+    );
+
+    expect(summarizePlayerGrowth(state, acceleratingId)).toMatchObject({
+      fourWeekGrowth: 12,
+      previousFourWeekGrowth: 4,
+      momentum: "accelerating",
+    });
+    expect(summarizePlayerGrowth(state, steadyId)).toMatchObject({
+      fourWeekGrowth: 8,
+      previousFourWeekGrowth: 8,
+      momentum: "steady",
+    });
+    expect(summarizePlayerGrowth(state, slowingId)).toMatchObject({
+      fourWeekGrowth: 4,
+      previousFourWeekGrowth: 16,
+      momentum: "slowing",
+    });
+    expect(summarizePlayerGrowth(state, stalledId)).toMatchObject({
+      fourWeekGrowth: 0,
+      previousFourWeekGrowth: 8,
+      momentum: "stalled",
+    });
   });
 
   it.each([
