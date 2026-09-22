@@ -36,6 +36,7 @@ import type {
   TournamentLevel,
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
+import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 
 export type HomeCommandPriority =
@@ -234,6 +235,12 @@ const cohesionTrendLabels: Record<CohesionTrend, string> = {
   stable: "横ばい",
   falling: "低下",
 };
+
+const practiceTierLabels = {
+  same: "同格",
+  stronger: "格上",
+  challenge: "強豪",
+} as const;
 
 function shortDate(value: string): string {
   const [, month, day] = value.split("-").map(Number);
@@ -494,6 +501,27 @@ function buildTasks(
         },
       },
     });
+  }
+
+  if (!practice.incomingOffer && !practice.scheduledOpponentId) {
+    const recommendation = selectPracticeRecommendation(state);
+    if (recommendation) {
+      const opponent = state.schools[recommendation.candidate.schoolId];
+      candidates.push({
+        order: 35,
+        task: {
+          id: `practice-recommendation:${recommendation.candidate.schoolId}`,
+          kind: "action",
+          priority: "normal",
+          category: "practice",
+          title: "今週の練習試合候補",
+          detail: `${state.seasonGoals?.ambition === "steady" ? "安定" : state.seasonGoals?.ambition === "bold" ? "野心" : "挑戦"}方針・${opponent?.shortName ?? opponent?.name ?? "相手校"}・${practiceTierLabels[recommendation.tier]}・成立 ${recommendation.candidate.acceptancePercent}%・成長 ${recommendation.candidate.growthRating}/5`,
+          action: { target: "practice" },
+          actionLabel: "候補を見る",
+          complete: false,
+        },
+      });
+    }
   }
 
   candidates.push(...playerConcernTasks(state));

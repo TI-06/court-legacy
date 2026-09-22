@@ -190,3 +190,22 @@
 .practice-planning__decline:not(:disabled):active {
   background: #fbe0d8;
 }
+
+.practice-planning__candidate-list article.is-recommended {
+  background: linear-gradient(145deg, #f0f8f8, #fff9ec);
+  border-color: #d9b35d;
+}
+
+.practice-planning__recommended-badge {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 5px;
+  color: #8a5b08;
+  font-size: 0.5rem;
+  font-style: normal;
+  font-weight: 950;
+  vertical-align: middle;
+  background: #fff0c7;
+  border: 1px solid #e8cb7c;
+  border-radius: 999px;
+}

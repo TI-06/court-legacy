@@ -118,7 +118,13 @@ describe("GameApp Phase 13 Home commands", () => {
     renderApp(snapshot);
 
     fireEvent.click(
-      screen.getByRole("button", {
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const firstTaskSheet = screen.getByRole("dialog", {
+      name: "今週やること",
+    });
+    fireEvent.click(
+      within(firstTaskSheet).getByRole("button", {
         name: /強化可能な設備 \d+件 設備を見る/,
       }),
     );
@@ -143,6 +149,27 @@ describe("GameApp Phase 13 Home commands", () => {
       "true",
     );
     expect(screen.getByRole("heading", { name: "スタッフ" })).toBeVisible();
+  });
+
+  it("opens practice planning from the season-ambition recommendation task", () => {
+    const snapshot = createSnapshot();
+    snapshot.state.seasonGoals = {
+      ...snapshot.state.seasonGoals!,
+      ambition: "bold",
+    };
+
+    renderApp(snapshot);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "今週の練習試合候補 候補を見る",
+      }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "練習試合の予定" }),
+    ).toBeVisible();
+    expect(screen.getByText("方針おすすめ")).toBeVisible();
   });
 
   it("does not send advance-week until an unanswered offer warning is confirmed", () => {

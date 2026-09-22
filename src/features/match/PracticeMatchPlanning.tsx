@@ -3,6 +3,7 @@ import type { SchoolId } from "../../domain/model/identifiers";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
+import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
 import type {
   PracticeMatchCandidateTier,
   PracticeRating,
@@ -45,6 +46,7 @@ export function PracticeMatchPlanning({
   const incomingSchool = schedule.incomingOffer
     ? state.schools[schedule.incomingOffer.schoolId]
     : null;
+  const recommendation = selectPracticeRecommendation(state);
 
   return (
     <section
@@ -128,10 +130,22 @@ export function PracticeMatchPlanning({
                   if (!school) return null;
                   const available = candidate.status === "available";
                   const strength = schoolStrength(state, school.id);
+                  const recommended =
+                    recommendation?.candidate.schoolId === candidate.schoolId;
                   return (
-                    <article key={candidate.schoolId}>
+                    <article
+                      className={recommended ? "is-recommended" : undefined}
+                      key={candidate.schoolId}
+                    >
                       <div className="practice-planning__school-copy">
-                        <strong>{school.name}</strong>
+                        <strong>
+                          {school.name}
+                          {recommended ? (
+                            <em className="practice-planning__recommended-badge">
+                              方針おすすめ
+                            </em>
+                          ) : null}
+                        </strong>
                         <span>
                           戦力 {strength}・評価{" "}
                           {schoolStrengthToGrade(strength)} ・{" "}
