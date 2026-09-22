@@ -153,7 +153,9 @@ function summarizeFourWeekAbilityGrowth(
   let observed = false;
 
   for (const week of weeks) {
-    const log = week.players.find((candidate) => candidate.playerId === player.id);
+    const log = week.players.find(
+      (candidate) => candidate.playerId === player.id,
+    );
     if (!log) continue;
     observed = true;
     for (const [ability, change] of Object.entries(log.abilityChanges)) {
