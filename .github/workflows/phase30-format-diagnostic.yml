@@ -1,4 +1,4 @@
-name: Phase30 Format Diagnostic
+name: Phase30 Verify
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  format-diff:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,8 +18,4 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Show exact Prettier diff
-        shell: bash
-        run: |
-          npx prettier src/domain/model/Match.ts src/features/match/MatchScreen.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx --write
-          git diff -- src/domain/model/Match.ts src/features/match/MatchScreen.tsx tests/unit/features/match/Phase16MatchCommandUx.test.tsx
+      - run: npm run verify
