@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { GameDate } from "../../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type GameDate,
+} from "../../../../src/domain/model/identifiers";
 import { calculateTournamentSchoolStrength } from "../../../../src/domain/tournament/createOfficialSeason";
 import {
   advanceOfficialTournamentsThroughWeek,
@@ -124,6 +127,63 @@ describe("Phase 8 practice-match planning", () => {
         Math.max(1, homeStrength);
       expect(candidate.growthRating).toBe(planningApi.practiceRating(ratio));
     }
+  });
+
+  it.each([
+    ["same", true, "stronger"],
+    ["same", false, "same"],
+    ["stronger", true, "challenge"],
+    ["stronger", false, "stronger"],
+    ["challenge", true, "challenge"],
+    ["challenge", false, "stronger"],
+  ] as const)(
+    "moves the next practice tier from %s and win=%s to %s",
+    (tier, won, expectedTier) => {
+      expect(practicePlanning.nextPracticeTierFromResult(tier, won)).toBe(
+        expectedTier,
+      );
+    },
+  );
+
+  it("prioritizes the last practice result over the season ambition", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    state.seasonGoals = {
+      ...state.seasonGoals!,
+      ambition: "bold",
+    };
+    const previous =
+      state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+    const previousDate = "2026-04-01" as GameDate;
+    state.weeklySchedule.recentPracticeMatches = [
+      {
+        opponentSchoolId: previous.schoolId,
+        date: previousDate,
+      },
+    ];
+    state.history.matches.push({
+      matchId: matchId("phase29-4-practice-loss"),
+      date: previousDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: previous.schoolId,
+      winnerSchoolId: previous.schoolId,
+      homeSetsWon: 0,
+      awaySetsWon: 2,
+      tournamentId: null,
+    });
+
+    const recommendation =
+      practicePlanning.selectPracticeRecommendation(state);
+
+    expect(recommendation?.source).toBe("last-practice-result");
+    expect(recommendation?.previousResult?.won).toBe(false);
+    expect(recommendation?.tier).toBe(
+      practicePlanning.nextPracticeTierFromResult(
+        recommendation!.previousResult!.tier,
+        false,
+      ),
+    );
   });
 
   it.each([
