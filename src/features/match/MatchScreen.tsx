@@ -357,12 +357,16 @@ function MatchScreenContent({
             </article>
           </section>
 
-          <section className="match-interaction-status" aria-label="試合進行状態">
+          <section
+            className="match-interaction-status"
+            aria-label="試合進行状態"
+          >
             <span>{decisionReady ? "DECISION" : "LIVE"}</span>
             <div>
               <strong>
                 {decisionReady
-                  ? result.match.runtime?.pendingDecisionReason === "critical-score"
+                  ? result.match.runtime?.pendingDecisionReason ===
+                    "critical-score"
                     ? "重要場面。ここからの指示で展開が変わります"
                     : "監督判断のタイミングです"
                   : "試合結果はまだ確定していません"}
