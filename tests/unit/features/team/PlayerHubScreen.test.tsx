@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import type { GameState } from "../../../../src/domain/model/GameState";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
 import {
@@ -312,7 +313,51 @@ describe("PlayerHubScreen", () => {
         `${state.players[growingId]!.lastName} ${state.players[growingId]!.firstName}`,
       ),
     ).toBeVisible();
-    expect(within(rows[0]!).queryByText(/4週/)).toBeNull();
+    expect(within(rows[0]!).getByText("+8・計測中")).toBeVisible();
+  });
+
+  it("shows recent growth momentum beside the training choice without adding another row", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+
+    state.history.playerDevelopmentWeeks = Array.from(
+      { length: 8 },
+      (_, index) => ({
+        gameDate: `2026-05-${String(index + 1).padStart(2, "0")}` as GameState["date"],
+        academicYearIndex: state.yearIndex,
+        weekOfYear: index + 1,
+        trainingMenuId: "training.balanced",
+        players: [
+          {
+            playerId,
+            totalAbilityGrowth: index < 4 ? 1 : 3,
+            abilityChanges: {},
+          },
+        ],
+      }),
+    );
+
+    renderPlayerHub(state);
+
+    const row = screen
+      .getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      })
+      .closest('[data-testid="roster-player-row"]') as HTMLElement;
+    expect(within(row).getByText("+12・加速")).toBeVisible();
+
+    fireEvent.click(
+      within(row).getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const growth = screen.getByRole("region", { name: "最近の成長" });
+    expect(within(growth).getByText("加速")).toBeVisible();
+    expect(within(growth).getByText("直近4週 +12 / 前4週 +4")).toBeVisible();
   });
 
   it("manages development priorities directly from the roster", () => {
