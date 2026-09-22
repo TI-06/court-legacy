@@ -108,6 +108,34 @@ describe("game state codec", () => {
     expect(decoded.notifications.items).toEqual(state.notifications.items);
   });
 
+  it("round-trips a season-goal achievement notification", () => {
+    const state = createDemoGame();
+    state.notifications.items = [
+      {
+        id: "season-goal-achieved:test",
+        type: "season-goal-achieved",
+        createdGameDate: state.date,
+        academicYearIndex: state.yearIndex,
+        weekOfYear: state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          items: [
+            {
+              goalId: "season:1:official-wins",
+              label: "公式戦2勝",
+              rewardFunds: 100,
+            },
+          ],
+          totalRewardFunds: 100,
+        },
+      },
+    ];
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.notifications.items).toEqual(state.notifications.items);
+  });
+
   it("rejects malformed notification payloads", () => {
     const state = createDemoGame();
 
