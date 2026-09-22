@@ -1439,13 +1439,6 @@ function runUntilBoundary(
       automaticCoach,
     );
 
-    if (shouldOpenOpponentRunDecision(match)) {
-      match.phase = "coach-decision";
-      match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
-      runtime.pendingDecisionReason = "opponent-run";
-      return { match, analysis: null };
-    }
-
     if (shouldOpenCriticalScoreDecision(match)) {
       maybeApplyAutomaticCoachDecision(
         simulationState,
@@ -1454,9 +1447,23 @@ function runUntilBoundary(
         "critical-score",
         automaticCoach,
       );
+      if (
+        runtime.runLength >= 4 &&
+        runtime.runWinnerSchoolId !== null &&
+        runtime.runWinnerSchoolId !== runtime.controlledSchoolId
+      ) {
+        runtime.opponentRunDecisionConsumed = true;
+      }
       match.phase = "coach-decision";
       match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
       runtime.pendingDecisionReason = "critical-score";
+      return { match, analysis: null };
+    }
+
+    if (shouldOpenOpponentRunDecision(match)) {
+      match.phase = "coach-decision";
+      match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
+      runtime.pendingDecisionReason = "opponent-run";
       return { match, analysis: null };
     }
   }
