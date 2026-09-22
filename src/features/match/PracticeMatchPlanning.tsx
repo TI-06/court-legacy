@@ -4,6 +4,7 @@ import { calculateSelectionStrength } from "../../domain/selectors/matchSelector
 import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
+import { seasonAmbitionLabels } from "../../domain/season/seasonGoals";
 import type {
   PracticeMatchCandidateTier,
   PracticeRating,
@@ -81,6 +82,37 @@ export function PracticeMatchPlanning({
         </article>
       ) : (
         <>
+          {recommendation ? (
+            <article
+              aria-label="方針おすすめの練習試合"
+              className="practice-planning__recommendation"
+            >
+              <div className="practice-planning__recommendation-copy">
+                <span>COACH RECOMMEND</span>
+                <strong>
+                  {seasonAmbitionLabels[recommendation.ambition]}方針なら
+                  {state.schools[recommendation.candidate.schoolId]?.name}
+                </strong>
+                <small>
+                  {tierLabels[recommendation.tier]}・成立しやすさ{" "}
+                  {recommendation.candidate.acceptancePercent}%・成長度{" "}
+                  {ratingDots(recommendation.candidate.growthRating)}
+                </small>
+              </div>
+              <button
+                aria-label={`${
+                  state.schools[recommendation.candidate.schoolId]?.name ??
+                  "おすすめ校"
+                }におすすめから申し込む`}
+                disabled={pending}
+                onClick={() => onRequest(recommendation.candidate.schoolId)}
+                type="button"
+              >
+                おすすめに申し込む
+              </button>
+            </article>
+          ) : null}
+
           <div className="practice-planning__offer">
             <h3>届いた申し込み</h3>
             {schedule.incomingOffer && incomingSchool ? (
