@@ -58,6 +58,35 @@ export function TrainingResultNotificationSheet({
             <span>チーム練習</span>
             <strong>{notification.payload.teamTrainingMenuName}</strong>
           </div>
+          {notification.payload.players.some(
+            (player) => (player.rankUps?.length ?? 0) > 0,
+          ) ? (
+            <section
+              className="training-result-notification__rank-ups"
+              aria-label="能力ランクアップ"
+            >
+              <div className="training-result-notification__rank-up-heading">
+                <span>RANK UP</span>
+                <strong>能力ランクアップ</strong>
+              </div>
+              <div className="training-result-notification__rank-up-list">
+                {notification.payload.players.flatMap((player) =>
+                  (player.rankUps ?? []).map((rankUp) => (
+                    <article key={`${player.playerId}:${rankUp.area}`}>
+                      <span>{player.displayName}</span>
+                      <strong>{rankUp.areaLabel}</strong>
+                      <b>
+                        {rankUp.fromGrade}
+                        <em aria-hidden="true">→</em>
+                        {rankUp.toGrade}
+                      </b>
+                    </article>
+                  )),
+                )}
+              </div>
+            </section>
+          ) : null}
+
           <div
             className="training-result-notification__summary"
             aria-label="練習結果サマリー"

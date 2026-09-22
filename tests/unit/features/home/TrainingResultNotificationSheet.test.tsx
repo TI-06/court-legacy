@@ -91,6 +91,33 @@ describe("TrainingResultNotificationSheet", () => {
   });
 });
 
+describe("Phase27-2 training rank-up presentation", () => {
+  it("celebrates rank-ups above the normal weekly result details", () => {
+    const notification = createNotification();
+    notification.payload.players[0]!.rankUps = [
+      {
+        area: "jump",
+        areaLabel: "跳躍",
+        fromGrade: "E",
+        toGrade: "D",
+      },
+    ];
+
+    render(
+      <TrainingResultNotificationSheet
+        notification={notification}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const rankUps = screen.getByRole("region", { name: "能力ランクアップ" });
+    expect(within(rankUps).getByText("RANK UP")).toBeVisible();
+    expect(within(rankUps).getByText("跳躍")).toBeVisible();
+    expect(within(rankUps).getByText(/E/)).toBeVisible();
+    expect(within(rankUps).getByText(/D/)).toBeVisible();
+  });
+});
+
 describe("Phase21 social growth presentation", () => {
   it("shows contributor chips and the capped applied value", () => {
     const notification = createNotification();
