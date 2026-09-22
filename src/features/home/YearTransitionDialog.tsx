@@ -198,55 +198,57 @@ export function YearTransitionDialog({
             aria-label="新シーズン目標方針"
             className="year-transition-ambition"
           >
-          <div className="year-transition-ambition__heading">
-            <div>
-              <span>NEW SEASON PLAN</span>
-              <h3>
-                {ambitionSelectionPending
-                  ? "今季の目標方針を選択"
-                  : `今季は「${seasonAmbitionLabels[currentAmbition]}」`}
-              </h3>
+            <div className="year-transition-ambition__heading">
+              <div>
+                <span>NEW SEASON PLAN</span>
+                <h3>
+                  {ambitionSelectionPending
+                    ? "今季の目標方針を選択"
+                    : `今季は「${seasonAmbitionLabels[currentAmbition]}」`}
+                </h3>
+              </div>
+              {ambitionSelectionPending ? <b>選択必須</b> : <b>確定済み</b>}
             </div>
-            {ambitionSelectionPending ? <b>選択必須</b> : <b>確定済み</b>}
-          </div>
 
-          <div className="year-transition-ambition__options">
-            {ambitionOptions.map((option) => {
-              const selected =
-                !ambitionSelectionPending &&
-                option.ambition === currentAmbition;
-              return (
-                <button
-                  aria-label={`${option.label}方針を選ぶ`}
-                  className={
-                    selected
-                      ? "year-transition-ambition__option is-selected"
-                      : "year-transition-ambition__option"
-                  }
-                  disabled={
-                    ambitionPending ||
-                    !ambitionSelectionPending ||
-                    !onSelectAmbition
-                  }
-                  key={option.ambition}
-                  onClick={() => onSelectAmbition?.(option.ambition)}
-                  type="button"
-                >
-                  <div>
-                    <strong>{option.label}</strong>
-                    {option.ambition === "challenge" ? <em>おすすめ</em> : null}
-                    <small>{option.description}</small>
-                  </div>
-                  <span>
-                    {option.goals.map((goal) => (
-                      <i key={goal.id}>{seasonGoalPreviewLabel(goal)}</i>
-                    ))}
-                  </span>
-                  <b>最大 +{option.totalReward}</b>
-                </button>
-              );
-            })}
-          </div>
+            <div className="year-transition-ambition__options">
+              {ambitionOptions.map((option) => {
+                const selected =
+                  !ambitionSelectionPending &&
+                  option.ambition === currentAmbition;
+                return (
+                  <button
+                    aria-label={`${option.label}方針を選ぶ`}
+                    className={
+                      selected
+                        ? "year-transition-ambition__option is-selected"
+                        : "year-transition-ambition__option"
+                    }
+                    disabled={
+                      ambitionPending ||
+                      !ambitionSelectionPending ||
+                      !onSelectAmbition
+                    }
+                    key={option.ambition}
+                    onClick={() => onSelectAmbition?.(option.ambition)}
+                    type="button"
+                  >
+                    <div>
+                      <strong>{option.label}</strong>
+                      {option.ambition === "challenge" ? (
+                        <em>おすすめ</em>
+                      ) : null}
+                      <small>{option.description}</small>
+                    </div>
+                    <span>
+                      {option.goals.map((goal) => (
+                        <i key={goal.id}>{seasonGoalPreviewLabel(goal)}</i>
+                      ))}
+                    </span>
+                    <b>最大 +{option.totalReward}</b>
+                  </button>
+                );
+              })}
+            </div>
             {ambitionSelectionPending ? (
               <p>方針を保存すると今シーズン中は変更できません。</p>
             ) : null}
