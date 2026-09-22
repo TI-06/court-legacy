@@ -325,13 +325,15 @@ describe("Player Hub roster selectors", () => {
       filter: "all",
       sort: "growth-attention",
     });
-    expect(allSorted.findIndex((item) => item.player.id === stalledId)).toBeLessThan(
+    expect(
+      allSorted.findIndex((item) => item.player.id === stalledId),
+    ).toBeLessThan(allSorted.findIndex((item) => item.player.id === slowingId));
+    expect(
       allSorted.findIndex((item) => item.player.id === slowingId),
-    );
-    expect(allSorted.findIndex((item) => item.player.id === slowingId)).toBeLessThan(
+    ).toBeLessThan(allSorted.findIndex((item) => item.player.id === steadyId));
+    expect(
       allSorted.findIndex((item) => item.player.id === steadyId),
-    );
-    expect(allSorted.findIndex((item) => item.player.id === steadyId)).toBeLessThan(
+    ).toBeLessThan(
       allSorted.findIndex((item) => item.player.id === acceleratingId),
     );
   });
