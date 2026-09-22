@@ -456,11 +456,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const applyPracticeTrainingRecommendation = async (
     teamTrainingMenuId: string,
   ) => {
-    if (trainingCompleted) return;
-    await saveTrainingPlan({
-      ...gameState.weeklySchedule.trainingPlan,
-      teamTrainingMenuId,
-    });
+    await cloudSession.runAction(
+      {
+        type: "set-training-plan",
+        plan: {
+          ...gameState.weeklySchedule.trainingPlan,
+          teamTrainingMenuId,
+        },
+      },
+      trainingCompleted
+        ? "次週の重点練習を保存しています…"
+        : "重点練習を保存しています…",
+    );
   };
 
   const savePlayerTrainingAssignments = async (
