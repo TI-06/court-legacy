@@ -305,6 +305,37 @@ describe("selectHomeCommandCenter", () => {
     );
   });
 
+  it("prioritizes an unread season goal achievement in Home news", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.notifications.items = [
+      {
+        id: "season-goal-achieved:model",
+        type: "season-goal-achieved",
+        createdGameDate: state.date,
+        academicYearIndex: state.yearIndex,
+        weekOfYear: state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          items: [
+            {
+              goalId: "season:1:official-wins",
+              label: "公式戦2勝",
+              rewardFunds: 100,
+            },
+          ],
+          totalRewardFunds: 100,
+        },
+      },
+    ];
+
+    expect(select(state).news[0]).toMatchObject({
+      kind: "season-goal-achieved",
+      title: "シーズン目標達成！",
+      detail: "公式戦2勝・年度末 +100",
+    });
+  });
+
   it("shows the newest training result and significant growth at the >=5 threshold", () => {
     const state = createDemoGame();
     state.weeklySchedule.practiceMatch.incomingOffer = null;

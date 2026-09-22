@@ -7,6 +7,7 @@ import type { School } from "../../domain/model/School";
 import type {
   CharacterTraitDiscoveredNotification,
   DevelopmentGoalAchievementNotification,
+  SeasonGoalAchievementNotification,
   SpecialRelationshipNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
@@ -97,6 +98,15 @@ export function HomeScreen({
     }
   };
 
+  const openSeasonGoalAchievement = (
+    notification: SeasonGoalAchievementNotification,
+  ) => {
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+    dispatchCommand({ target: "school", view: "records" });
+  };
+
   const acknowledgeRelationshipNotification = (
     notification: SpecialRelationshipNotification,
   ) => {
@@ -163,6 +173,7 @@ export function HomeScreen({
         onOpenTrainingNotification={openNotification}
         onOpenRelationshipNotification={acknowledgeRelationshipNotification}
         onOpenDevelopmentGoalAchievement={openDevelopmentGoalAchievement}
+        onOpenSeasonGoalAchievement={openSeasonGoalAchievement}
         onAcknowledgeCharacterTraitNotification={
           acknowledgeCharacterTraitNotification
         }

@@ -5,6 +5,7 @@ import type { GameState } from "../../../../src/domain/model/GameState";
 import {
   buildCharacterTraitDiscoveredNotification,
   type DevelopmentGoalAchievementNotification,
+  type SeasonGoalAchievementNotification,
   type TrainingResultNotification,
 } from "../../../../src/domain/notifications/gameNotifications";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
@@ -251,6 +252,46 @@ describe("Phase 13 Home command center", () => {
     expect(
       within(dialog).getByRole("region", { name: "能力ランクアップ" }),
     ).toBeVisible();
+  });
+
+  it("opens season goal achievement news, marks it read, and jumps to school records", () => {
+    const props = createProps();
+    const notification: SeasonGoalAchievementNotification = {
+      id: "season-goal-achieved:home",
+      type: "season-goal-achieved",
+      createdGameDate: props.state.date,
+      academicYearIndex: props.state.yearIndex,
+      weekOfYear: props.state.calendar.weekOfYear,
+      readAtGameDate: null,
+      payload: {
+        items: [
+          {
+            goalId: "season:1:official-wins",
+            label: "公式戦2勝",
+            rewardFunds: 100,
+          },
+        ],
+        totalRewardFunds: 100,
+      },
+    };
+    props.state.notifications.items = [notification];
+
+    render(<HomeScreen {...props} />);
+
+    expect(screen.getByText("NEW シーズン目標達成！")).toBeVisible();
+    expect(screen.getByText("公式戦2勝・年度末 +100")).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /シーズン目標達成！/,
+      }),
+    );
+
+    expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
+    expect(props.onCommand).toHaveBeenCalledWith({
+      target: "school",
+      view: "records",
+    });
   });
 
   it("opens development goal achievements and deep-links to the player's growth tab", () => {

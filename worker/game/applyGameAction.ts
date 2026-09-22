@@ -50,6 +50,7 @@ import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
   buildDevelopmentGoalAchievementNotification,
+  buildSeasonGoalAchievementNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
   markNotificationRead,
@@ -1547,9 +1548,25 @@ export function applyGameAction(
       : {}),
   };
 
-  return appendCharacterTraitDiscoveryNotifications(
+  const withCharacterTraits = appendCharacterTraitDiscoveryNotifications(
     finalizedApplied,
     characterTraitDiscoveries,
     gameData,
   );
+  const seasonGoalAchievement = buildSeasonGoalAchievementNotification({
+    stateBeforeAction: state,
+    stateAfterAction: withCharacterTraits.state,
+  });
+  if (!seasonGoalAchievement) return withCharacterTraits;
+
+  return {
+    ...withCharacterTraits,
+    state: {
+      ...withCharacterTraits.state,
+      notifications: appendNotification(
+        withCharacterTraits.state.notifications,
+        seasonGoalAchievement,
+      ),
+    },
+  };
 }
