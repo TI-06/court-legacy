@@ -515,7 +515,10 @@ function buildTasks(
           priority: "normal",
           category: "practice",
           title: "今週の練習試合候補",
-          detail: `${state.seasonGoals?.ambition === "steady" ? "安定" : state.seasonGoals?.ambition === "bold" ? "野心" : "挑戦"}方針・${opponent?.shortName ?? opponent?.name ?? "相手校"}・${practiceTierLabels[recommendation.tier]}・成立 ${recommendation.candidate.acceptancePercent}%・成長 ${recommendation.candidate.growthRating}/5`,
+          detail:
+            recommendation.source === "last-practice-result"
+              ? `前回${recommendation.previousResult?.won ? "勝利" : "敗戦"}から・${opponent?.shortName ?? opponent?.name ?? "相手校"}・${practiceTierLabels[recommendation.tier]}・成立 ${recommendation.candidate.acceptancePercent}%・成長 ${recommendation.candidate.growthRating}/5`
+              : `${state.seasonGoals?.ambition === "steady" ? "安定" : state.seasonGoals?.ambition === "bold" ? "野心" : "挑戦"}方針・${opponent?.shortName ?? opponent?.name ?? "相手校"}・${practiceTierLabels[recommendation.tier]}・成立 ${recommendation.candidate.acceptancePercent}%・成長 ${recommendation.candidate.growthRating}/5`,
           action: { target: "practice" },
           actionLabel: "候補を見る",
           complete: false,
