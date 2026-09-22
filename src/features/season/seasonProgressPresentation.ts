@@ -9,6 +9,7 @@ import type {
   TournamentAchievementTarget,
 } from "../../domain/season/seasonGoalTypes";
 import { evaluateSeasonGoals } from "../../domain/season/seasonGoals";
+import { seasonGoalFundReward } from "../../domain/season/seasonGoalRewards";
 import {
   selectNotableUserMatches,
   selectUserHeadToHeadTable,
@@ -24,6 +25,7 @@ export interface SeasonProgressGoalPresentation {
   label: string;
   progressLabel: string;
   achieved: boolean;
+  rewardFunds: number;
 }
 
 export interface SeasonNearbySchoolPresentation {
@@ -241,6 +243,7 @@ export function buildSeasonProgressPresentation(
       label: goalLabel(goal),
       progressLabel: goalProgressLabel(goal),
       achieved: goal.achieved,
+      rewardFunds: seasonGoalFundReward(goal),
     })),
     regional: rankingPresentation(
       regionalRankings,
