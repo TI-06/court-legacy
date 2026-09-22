@@ -79,6 +79,33 @@ function SubstitutionPlayerButton({
   );
 }
 
+function MatchPlayerInstructionButton({
+  player,
+  pending,
+  detail,
+  onSelect,
+}: {
+  player: Player;
+  pending: boolean;
+  detail: string;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      className="match-command-player-choice"
+      disabled={pending}
+      onClick={onSelect}
+      type="button"
+    >
+      <span>
+        <strong>{playerName(player)}</strong>
+        <small>{player.preferredPosition}</small>
+      </span>
+      <b>{detail}</b>
+    </button>
+  );
+}
+
 function TacticChoiceGroup<Value extends string>({
   label,
   value,
@@ -142,7 +169,17 @@ export function MatchCommandPanel({
     match.homeSchoolId === state.userSchoolId
       ? match.homeSelection
       : match.awaySelection;
+  const opponentSchoolId =
+    match.homeSchoolId === state.userSchoolId
+      ? match.awaySchoolId
+      : match.homeSchoolId;
+  const opponentSelection =
+    match.homeSchoolId === state.userSchoolId
+      ? match.awaySelection
+      : match.homeSelection;
   const [tacticsOpen, setTacticsOpen] = useState(false);
+  const [attackFocusOpen, setAttackFocusOpen] = useState(false);
+  const [serveTargetOpen, setServeTargetOpen] = useState(false);
   const [draftPlan, setDraftPlan] = useState<MatchTacticPlan | null>(null);
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
   const [outgoingPlayerId, setOutgoingPlayerId] = useState<PlayerId | null>(
@@ -201,6 +238,31 @@ export function MatchCommandPanel({
   const benchPlayers = userSelection.benchPlayerIds
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player));
+  const opponentPlayerIds = [
+    ...opponentSelection.rotation.map((assignment) => assignment.playerId),
+    ...(opponentSelection.liberoPlayerId
+      ? [opponentSelection.liberoPlayerId]
+      : []),
+  ];
+  const opponentPlayers = [...new Set(opponentPlayerIds)]
+    .map((playerId) => state.players[playerId])
+    .filter((player): player is Player => Boolean(player));
+  const playerInstructionsAvailable =
+    Boolean(state.schools[opponentSchoolId]) && opponentPlayers.length > 0;
+  const attackFocusPlayerId =
+    match.homeSchoolId === state.userSchoolId
+      ? (runtime.homeAttackFocusPlayerId ?? null)
+      : (runtime.awayAttackFocusPlayerId ?? null);
+  const serveTargetPlayerId =
+    match.homeSchoolId === state.userSchoolId
+      ? (runtime.homeServeTargetPlayerId ?? null)
+      : (runtime.awayServeTargetPlayerId ?? null);
+  const attackFocusPlayer = attackFocusPlayerId
+    ? (state.players[attackFocusPlayerId] ?? null)
+    : null;
+  const serveTargetPlayer = serveTargetPlayerId
+    ? (state.players[serveTargetPlayerId] ?? null)
+    : null;
   const outgoingPlayer = outgoingPlayerId
     ? (state.players[outgoingPlayerId] ?? null)
     : null;
@@ -290,6 +352,36 @@ export function MatchCommandPanel({
           </div>
         ) : null}
 
+        {playerInstructionsAvailable && reason !== "set-break" ? (
+          <div
+            className="match-command-player-actions"
+            aria-label="選手への個別指示"
+          >
+            <button
+              disabled={pending}
+              onClick={() => setAttackFocusOpen(true)}
+              type="button"
+            >
+              <span>攻撃を集める</span>
+              <strong>
+                {attackFocusPlayer
+                  ? playerName(attackFocusPlayer)
+                  : "選手を選ぶ"}
+              </strong>
+            </button>
+            <button
+              disabled={pending}
+              onClick={() => setServeTargetOpen(true)}
+              type="button"
+            >
+              <span>サーブで狙う</span>
+              <strong>
+                {serveTargetPlayer ? playerName(serveTargetPlayer) : "相手を選ぶ"}
+              </strong>
+            </button>
+          </div>
+        ) : null}
+
         <div className="match-command-actions">
           {timeoutAvailable ? (
             <button
@@ -316,6 +408,79 @@ export function MatchCommandPanel({
           </button>
         </div>
       </section>
+
+      <BottomSheet
+        description="選んだ選手へのトス配分を増やします。能力が低い選手に集めれば逆効果になることもあります。"
+        onClose={() => setAttackFocusOpen(false)}
+        open={attackFocusOpen}
+        title="攻撃を集める"
+      >
+        <div className="match-command-player-list">
+          {attackFocusPlayer ? (
+            <button
+              className="match-command-player-clear"
+              disabled={pending}
+              onClick={() => {
+                void onCommand({ type: "attack-focus", playerId: null });
+                setAttackFocusOpen(false);
+              }}
+              type="button"
+            >
+              攻撃集中を解除
+            </button>
+          ) : null}
+          {courtPlayers.map((player) => (
+            <MatchPlayerInstructionButton
+              detail="この選手に集める"
+              key={player.id}
+              onSelect={() => {
+                void onCommand({ type: "attack-focus", playerId: player.id });
+                setAttackFocusOpen(false);
+              }}
+              pending={pending}
+              player={player}
+            />
+          ))}
+        </div>
+      </BottomSheet>
+
+      <BottomSheet
+        description="相手の出場選手からサーブの狙いを指定します。相手の能力値そのものは表示しません。"
+        onClose={() => setServeTargetOpen(false)}
+        open={serveTargetOpen}
+        title="サーブで狙う"
+      >
+        <div className="match-command-player-list">
+          {serveTargetPlayer ? (
+            <button
+              className="match-command-player-clear"
+              disabled={pending}
+              onClick={() => {
+                void onCommand({ type: "serve-target", targetPlayerId: null });
+                setServeTargetOpen(false);
+              }}
+              type="button"
+            >
+              サーブ狙いを解除
+            </button>
+          ) : null}
+          {opponentPlayers.map((player) => (
+            <MatchPlayerInstructionButton
+              detail="この選手を狙う"
+              key={player.id}
+              onSelect={() => {
+                void onCommand({
+                  type: "serve-target",
+                  targetPlayerId: player.id,
+                });
+                setServeTargetOpen(false);
+              }}
+              pending={pending}
+              player={player}
+            />
+          ))}
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description="この試合だけの戦術を3項目まとめて変更します。"
