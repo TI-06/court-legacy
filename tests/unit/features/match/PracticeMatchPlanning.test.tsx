@@ -111,21 +111,11 @@ describe("PracticeMatchPlanning", () => {
     );
 
     const shortcut = screen.getByRole("article", {
-      name: "方針おすすめの練習試合",
+      name: "前回結果おすすめの練習試合",
     });
     expect(within(shortcut).getByText("LAST MATCH ADVICE")).toBeVisible();
     expect(within(shortcut).getByText(/前回敗戦を踏まえ/)).toBeVisible();
-
-    const recommendedSchoolName =
-      state.schools[
-        state.weeklySchedule.practiceMatch.outgoingCandidates.find(
-          (candidate) =>
-            screen.queryByLabelText(
-              `${state.schools[candidate.schoolId]?.name}におすすめから申し込む`,
-            ),
-        )?.schoolId ?? previous.schoolId
-      ]?.name;
-    expect(recommendedSchoolName).toBeTruthy();
+    expect(within(shortcut).getByText("前回結果")).toBeVisible();
   });
 
   it("moves the shortcut to the next available recommendation after rejection", () => {
