@@ -25,6 +25,10 @@ function commandLabel(state: GameState, record: MatchCommandRecord): string {
       return "タイムアウト";
     case "set-match-tactics":
       return "戦術変更";
+    case "focus-attacker":
+      return `${playerDisplayName(state, record.command.playerId)}に攻撃集中`;
+    case "encourage-player":
+      return `${playerDisplayName(state, record.command.playerId)}に声かけ`;
     case "substitute":
       return `${playerDisplayName(state, record.command.outgoingPlayerId)} → ${playerDisplayName(state, record.command.incomingPlayerId)}`;
     case "continue":
@@ -43,7 +47,9 @@ function observedPointSplit(
 > {
   if (
     record.command.type !== "timeout" &&
-    record.command.type !== "set-match-tactics"
+    record.command.type !== "set-match-tactics" &&
+    record.command.type !== "focus-attacker" &&
+    record.command.type !== "encourage-player"
   ) {
     return { observedRallies: 0, schoolPoints: 0, opponentPoints: 0 };
   }
