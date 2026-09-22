@@ -237,9 +237,7 @@ describe("Phase20 rivalry history", () => {
         userWon: false,
       });
     }
-    state.world.rivalryScores[
-      rivalryKey(state.userSchoolId, nemesisId!)
-    ] = 90;
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, nemesisId!)] = 90;
 
     addMatch(state, {
       id: "featured-destiny",
@@ -248,9 +246,7 @@ describe("Phase20 rivalry history", () => {
       userWon: true,
     });
     state.world.destinyRivalSchoolId = destinyId;
-    state.world.rivalryScores[
-      rivalryKey(state.userSchoolId, destinyId!)
-    ] = 10;
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, destinyId!)] = 10;
 
     expect(selectFeaturedUserRival(state)?.opponentSchoolId).toBe(destinyId);
 
