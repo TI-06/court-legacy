@@ -76,6 +76,15 @@ export interface PracticeRecommendation {
   };
 }
 
+export interface RecentPracticeResult {
+  opponentSchoolId: SchoolId;
+  date: GameDate;
+  won: boolean;
+  userSetsWon: number;
+  opponentSetsWon: number;
+}
+
+
 const ambitionTierPriority: Record<
   SeasonAmbition,
   readonly PracticeMatchCandidateTier[]
@@ -116,22 +125,70 @@ function resultAwareTierPriority(
   return ["challenge", "stronger", "same"];
 }
 
-function latestPracticeResult(
+function matchingPracticeHistoryMatch(
   state: GameState,
-): { won: boolean; tier: PracticeMatchCandidateTier } | null {
-  const latest = state.weeklySchedule.recentPracticeMatches.at(-1);
-  if (!latest) return null;
-
-  const historicalMatch = [...state.history.matches].reverse().find((match) => {
-    if (match.tournamentId !== null || match.date !== latest.date) return false;
+  opponentSchoolId: SchoolId,
+  date: GameDate,
+) {
+  return [...state.history.matches].reverse().find((match) => {
+    if (match.tournamentId !== null || match.date !== date) return false;
     const opponentId =
       match.homeSchoolId === state.userSchoolId
         ? match.awaySchoolId
         : match.awaySchoolId === state.userSchoolId
           ? match.homeSchoolId
           : null;
-    return opponentId === latest.opponentSchoolId;
+    return opponentId === opponentSchoolId;
   });
+}
+
+export function selectRecentPracticeResults(
+  state: GameState,
+  limit = 3,
+): RecentPracticeResult[] {
+  const boundedLimit = Math.max(0, Math.min(8, Math.trunc(limit)));
+  if (boundedLimit === 0) return [];
+
+  return [...state.weeklySchedule.recentPracticeMatches]
+    .reverse()
+    .flatMap((entry) => {
+      const match = matchingPracticeHistoryMatch(
+        state,
+        entry.opponentSchoolId,
+        entry.date,
+      );
+      if (!match) return [];
+
+      const userIsHome = match.homeSchoolId === state.userSchoolId;
+      const userSetsWon = userIsHome ? match.homeSetsWon : match.awaySetsWon;
+      const opponentSetsWon = userIsHome
+        ? match.awaySetsWon
+        : match.homeSetsWon;
+
+      return [
+        {
+          opponentSchoolId: entry.opponentSchoolId,
+          date: entry.date,
+          won: match.winnerSchoolId === state.userSchoolId,
+          userSetsWon,
+          opponentSetsWon,
+        } satisfies RecentPracticeResult,
+      ];
+    })
+    .slice(0, boundedLimit);
+}
+
+function latestPracticeResult(
+  state: GameState,
+): { won: boolean; tier: PracticeMatchCandidateTier } | null {
+  const latest = state.weeklySchedule.recentPracticeMatches.at(-1);
+  if (!latest) return null;
+
+  const historicalMatch = matchingPracticeHistoryMatch(
+    state,
+    latest.opponentSchoolId,
+    latest.date,
+  );
   if (!historicalMatch) return null;
 
   const home = state.schools[state.userSchoolId];
