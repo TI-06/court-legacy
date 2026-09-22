@@ -11,6 +11,9 @@ import {
 } from "../player/playerDevelopmentGoals";
 import { summarizePlayerAbilities } from "../selectors/playerPresentation";
 import { ratingToGrade } from "../selectors/ratingGrades";
+import { evaluateSeasonGoals } from "../season/seasonGoals";
+import { seasonGoalFundReward } from "../season/seasonGoalRewards";
+import type { SeasonGoalResult } from "../season/seasonGoalTypes";
 import type {
   DevelopmentGoalArea,
   DevelopmentGoalGrade,
@@ -135,12 +138,32 @@ export interface DevelopmentGoalAchievementNotification {
   };
 }
 
+export interface SeasonGoalAchievementNotificationItem {
+  goalId: string;
+  label: string;
+  rewardFunds: number;
+}
+
+export interface SeasonGoalAchievementNotification {
+  id: string;
+  type: "season-goal-achieved";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    items: SeasonGoalAchievementNotificationItem[];
+    totalRewardFunds: number;
+  };
+}
+
 export type GameNotification =
   | TrainingResultNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
   | CharacterTraitDiscoveredNotification
-  | DevelopmentGoalAchievementNotification;
+  | DevelopmentGoalAchievementNotification
+  | SeasonGoalAchievementNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -333,6 +356,66 @@ export function buildDevelopmentGoalAchievementNotification(input: {
   };
 }
 
+function seasonGoalNotificationLabel(goal: SeasonGoalResult): string {
+  if (goal.kind === "regional-rank") return `県内${goal.target}位以内`;
+  if (goal.kind === "official-wins") return `公式戦${goal.target}勝`;
+  if (goal.achievement === "national-title") return "全国大会優勝";
+  if (goal.achievement === "national-appearance") return "全国大会出場";
+  return "県大会優勝";
+}
+
+export function buildSeasonGoalAchievementNotification(input: {
+  stateBeforeAction: GameState;
+  stateAfterAction: GameState;
+}): SeasonGoalAchievementNotification | null {
+  const beforeGoals = input.stateBeforeAction.seasonGoals;
+  const afterGoals = input.stateAfterAction.seasonGoals;
+  if (
+    !beforeGoals ||
+    !afterGoals ||
+    beforeGoals.yearIndex !== afterGoals.yearIndex ||
+    beforeGoals.yearIndex !== input.stateAfterAction.yearIndex
+  ) {
+    return null;
+  }
+
+  const before = evaluateSeasonGoals(input.stateBeforeAction, beforeGoals);
+  const after = evaluateSeasonGoals(input.stateAfterAction, afterGoals);
+  const achievedBefore = new Map(
+    before.goalResults.map((goal) => [goal.id, goal.achieved]),
+  );
+  const ambition = afterGoals.ambition ?? "challenge";
+  const items = after.goalResults.flatMap((goal) => {
+    if (achievedBefore.get(goal.id) === true || !goal.achieved) return [];
+    return [
+      {
+        goalId: goal.id,
+        label: seasonGoalNotificationLabel(goal),
+        rewardFunds: seasonGoalFundReward(goal, ambition),
+      } satisfies SeasonGoalAchievementNotificationItem,
+    ];
+  });
+
+  if (items.length === 0) return null;
+  items.sort((left, right) => left.goalId.localeCompare(right.goalId));
+
+  return {
+    id: `season-goal-achieved:${input.stateAfterAction.userSchoolId}:${input.stateAfterAction.yearIndex}:${input.stateAfterAction.date}:${items.map((item) => item.goalId).join(",")}`,
+    type: "season-goal-achieved",
+    createdGameDate: input.stateAfterAction.date,
+    academicYearIndex: input.stateAfterAction.yearIndex,
+    weekOfYear: input.stateAfterAction.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      items,
+      totalRewardFunds: items.reduce(
+        (total, item) => total + item.rewardFunds,
+        0,
+      ),
+    },
+  };
+}
+
 export function buildConcernResolutionNotification(input: {
   state: GameState;
   matchId: MatchId;
@@ -505,6 +588,17 @@ export function selectHomeDevelopmentGoalAchievementNotifications(
   const items = state.items.filter(
     (item): item is DevelopmentGoalAchievementNotification =>
       item.type === "development-goal-achieved",
+  );
+  const newest = items[items.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeSeasonGoalAchievementNotifications(
+  state: GameNotificationState,
+): SeasonGoalAchievementNotification[] {
+  const items = state.items.filter(
+    (item): item is SeasonGoalAchievementNotification =>
+      item.type === "season-goal-achieved",
   );
   const newest = items[items.length - 1];
   return newest ? [newest] : [];
