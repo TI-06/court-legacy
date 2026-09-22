@@ -1619,3 +1619,86 @@
     text-align: left;
   }
 }
+
+
+/* Phase27-5: training choice sheet shows current ranks and recent growth together. */
+.player-training-context {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  background: rgb(9 28 47 / 92%);
+  border: 1px solid rgb(116 216 255 / 16%);
+  border-radius: 11px;
+}
+
+.player-training-context__summary {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.player-training-context__summary span,
+.player-training-context__summary small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-training-context__summary strong {
+  color: #dff4ff;
+  font-size: 11px;
+}
+
+.player-training-context__summary small {
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-training-context__abilities {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.player-training-context__abilities > span {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  padding: 5px 2px;
+  gap: 2px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 8px;
+}
+
+.player-training-context__abilities small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.player-training-context__abilities strong {
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.player-training-context__abilities b {
+  color: #8ce9bb;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+@media (max-width: 340px) {
+  .player-training-context__summary {
+    grid-template-columns: auto auto;
+  }
+
+  .player-training-context__summary small {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
