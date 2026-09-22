@@ -3,6 +3,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   createSeasonGoals,
   evaluateSeasonGoals,
+  selectSeasonAmbition,
 } from "../../../../src/domain/season/seasonGoals";
 
 describe("Phase17 season goals", () => {
@@ -22,6 +23,47 @@ describe("Phase17 season goals", () => {
       "official-wins",
       "tournament-achievement",
     ]);
+  });
+
+  it("builds easier steady goals and harder bold goals from the same season start", () => {
+    const state = createDemoGame();
+    const steady = createSeasonGoals(state, { ambition: "steady" });
+    const challenge = createSeasonGoals(state, { ambition: "challenge" });
+    const bold = createSeasonGoals(state, { ambition: "bold" });
+
+    const rank = (goals: typeof steady) =>
+      goals.goals.find((goal) => goal.kind === "regional-rank")!.target;
+    const wins = (goals: typeof steady) =>
+      goals.goals.find((goal) => goal.kind === "official-wins")!.target;
+    const tournament = (goals: typeof steady) =>
+      goals.goals.find((goal) => goal.kind === "tournament-achievement")!;
+
+    expect(rank(steady)).toBeGreaterThanOrEqual(rank(challenge));
+    expect(rank(challenge)).toBeGreaterThanOrEqual(rank(bold));
+    expect(wins(steady)).toBeLessThan(wins(challenge));
+    expect(wins(challenge)).toBeLessThan(wins(bold));
+    expect(tournament(steady).achievement).toBe("prefectural-title");
+    expect(["national-appearance", "national-title"]).toContain(
+      tournament(bold).achievement,
+    );
+  });
+
+  it("allows one new-year ambition choice and locks it after saving", () => {
+    const state = createDemoGame();
+    state.calendar.weekOfYear = 1;
+    state.calendar.completedActivityIds = [];
+    state.seasonGoals = createSeasonGoals(state, {
+      ambition: "challenge",
+      ambitionSelectionPending: true,
+    });
+
+    const selected = selectSeasonAmbition(state, "bold");
+
+    expect(selected.seasonGoals?.ambition).toBe("bold");
+    expect(selected.seasonGoals?.ambitionSelectionPending).toBe(false);
+    expect(() => selectSeasonAmbition(selected, "steady")).toThrow(
+      "すでに確定",
+    );
   });
 
   it("uses season-start cumulative history as a baseline", () => {
