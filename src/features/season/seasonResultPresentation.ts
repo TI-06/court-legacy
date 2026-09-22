@@ -1,4 +1,7 @@
-import { seasonGoalEarnedFunds, seasonGoalFundReward } from "../../domain/season/seasonGoalRewards";
+import {
+  seasonGoalEarnedFunds,
+  seasonGoalFundReward,
+} from "../../domain/season/seasonGoalRewards";
 import type {
   SeasonGoalResult,
   SeasonGoalSeasonSummary,
