@@ -280,6 +280,28 @@ describe("game state codec", () => {
       legacyShape.teamPlanning,
     );
   });
+  it("round-trips optional season ambition while accepting the legacy season-goal shape", () => {
+    const state = createDemoGame();
+    state.seasonGoals = {
+      ...state.seasonGoals!,
+      ambition: "bold",
+      ambitionSelectionPending: true,
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+    expect(decoded.seasonGoals).toMatchObject({
+      ambition: "bold",
+      ambitionSelectionPending: true,
+    });
+
+    const legacy = structuredClone(state);
+    delete legacy.seasonGoals!.ambition;
+    delete legacy.seasonGoals!.ambitionSelectionPending;
+    expect(decodeGameState(JSON.stringify(legacy)).seasonGoals).toEqual(
+      legacy.seasonGoals,
+    );
+  });
+
   it("round-trips optional recruiting engagement while accepting the legacy recruiting shape", () => {
     const state = createDemoGame();
     const candidateId = state.schools[state.userSchoolId]!.playerIds[0]!;
