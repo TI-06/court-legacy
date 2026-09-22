@@ -206,7 +206,8 @@ export function MatchCommandPanel({
     ? (state.players[userSelection.liberoPlayerId] ?? null)
     : null;
   const directivePlayers =
-    liberoPlayer && !courtPlayers.some((player) => player.id === liberoPlayer.id)
+    liberoPlayer &&
+    !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
   const rotationPlayerIds = new Set(
