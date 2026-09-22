@@ -179,7 +179,9 @@ export function PracticeMatchPlanning({
                           {school.name}
                           {recommended ? (
                             <em className="practice-planning__recommended-badge">
-                              方針おすすめ
+                              {recommendation?.source === "last-practice-result"
+                                ? "前回結果"
+                                : "方針おすすめ"}
                             </em>
                           ) : null}
                         </strong>
