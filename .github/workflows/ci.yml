@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase28-5 formatting diagnostic
+        run: |
+          npx prettier src/domain/notifications/gameNotifications.ts src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/homeCommandCenter.ts src/persistence/gameStateCodec.ts tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/homeCommandCenter.test.ts tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/applyGameAction.test.ts worker/game/applyGameAction.ts --write
+          git diff -- src/domain/notifications/gameNotifications.ts src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/homeCommandCenter.ts src/persistence/gameStateCodec.ts tests/unit/domain/notifications/gameNotifications.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/homeCommandCenter.test.ts tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/applyGameAction.test.ts worker/game/applyGameAction.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
