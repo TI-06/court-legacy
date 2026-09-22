@@ -200,9 +200,7 @@ function buildTrainingRankUps(
 
   const beforeSummary = summarizePlayerAbilities(player);
   const afterSummary = summarizePlayerAbilities(afterPlayer);
-  const areas = Object.keys(
-    developmentGoalAreaLabels,
-  ) as DevelopmentGoalArea[];
+  const areas = Object.keys(developmentGoalAreaLabels) as DevelopmentGoalArea[];
 
   return areas.flatMap((area) => {
     const fromGrade = ratingToGrade(
