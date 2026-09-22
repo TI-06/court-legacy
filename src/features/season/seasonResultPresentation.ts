@@ -1,3 +1,4 @@
+import { seasonGoalEarnedFunds, seasonGoalFundReward } from "../../domain/season/seasonGoalRewards";
 import type {
   SeasonGoalResult,
   SeasonGoalSeasonSummary,
@@ -10,6 +11,7 @@ export interface SeasonResultGoalPresentation {
   label: string;
   progressLabel: string;
   achieved: boolean;
+  rewardFunds: number;
 }
 
 export interface SeasonResultRankPresentation {
@@ -26,6 +28,7 @@ export interface SeasonResultPresentation {
   regional: SeasonResultRankPresentation;
   national: SeasonResultRankPresentation;
   deltas: SeasonHistoryDelta;
+  earnedRewardFunds: number;
 }
 
 function tournamentGoalLabel(achievement: TournamentAchievementTarget): string {
@@ -71,6 +74,7 @@ export function buildSeasonResultPresentation(
       label: goalLabel(goal),
       progressLabel: goalProgressLabel(goal),
       achieved: goal.achieved,
+      rewardFunds: seasonGoalFundReward(goal),
     })),
     regional: rankPresentation(
       summary.startingRanks.regional,
@@ -81,5 +85,6 @@ export function buildSeasonResultPresentation(
       summary.finalRanks.national,
     ),
     deltas: summary.deltas,
+    earnedRewardFunds: seasonGoalEarnedFunds(summary.goalResults),
   };
 }
