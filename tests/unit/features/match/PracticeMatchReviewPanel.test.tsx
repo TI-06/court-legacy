@@ -64,8 +64,10 @@ describe("PracticeMatchReviewPanel", () => {
     );
   });
 
-  it("keeps the recommendation visible but disables overwriting completed training", () => {
+  it("saves the recommendation for next week when this week's training is already complete", () => {
     const fixtureValue = fixture();
+    fixtureValue.state.weeklySchedule.trainingPlan.teamTrainingMenuId =
+      "training.recovery";
     const state = markWeeklyActionCompleted(fixtureValue.state, "training");
     const onApplyTrainingRecommendation = vi.fn();
 
@@ -83,10 +85,10 @@ describe("PracticeMatchReviewPanel", () => {
       name: "練習試合後の重点練習",
     });
     const button = within(recommendation).getByRole("button", {
-      name: "今週の練習は実施済み",
+      name: "次週に設定",
     });
-    expect(button).toBeDisabled();
+    expect(button).toBeEnabled();
     fireEvent.click(button);
-    expect(onApplyTrainingRecommendation).not.toHaveBeenCalled();
+    expect(onApplyTrainingRecommendation).toHaveBeenCalledTimes(1);
   });
 });
