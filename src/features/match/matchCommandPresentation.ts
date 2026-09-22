@@ -27,6 +27,14 @@ function commandLabel(state: GameState, record: MatchCommandRecord): string {
       return "戦術変更";
     case "substitute":
       return `${playerDisplayName(state, record.command.outgoingPlayerId)} → ${playerDisplayName(state, record.command.incomingPlayerId)}`;
+    case "attack-focus":
+      return record.command.playerId
+        ? `${playerDisplayName(state, record.command.playerId)}に攻撃集中`
+        : "攻撃集中を解除";
+    case "serve-target":
+      return record.command.targetPlayerId
+        ? `${playerDisplayName(state, record.command.targetPlayerId)}をサーブで狙う`
+        : "サーブ狙いを解除";
     case "continue":
       return "このまま続ける";
     case "skip-to-result":
@@ -43,7 +51,9 @@ function observedPointSplit(
 > {
   if (
     record.command.type !== "timeout" &&
-    record.command.type !== "set-match-tactics"
+    record.command.type !== "set-match-tactics" &&
+    record.command.type !== "attack-focus" &&
+    record.command.type !== "serve-target"
   ) {
     return { observedRallies: 0, schoolPoints: 0, opponentPoints: 0 };
   }
