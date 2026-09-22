@@ -136,9 +136,12 @@ describe("year transition dialog", () => {
     const summary = result.academicYearTransition;
     if (!summary) throw new Error("transition missing");
 
-    render(
+    const onClose = vi.fn();
+    const onSelectAmbition = vi.fn();
+    const { rerender } = render(
       <YearTransitionDialog
-        onClose={vi.fn()}
+        onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
         state={result.state}
         summary={summary}
       />,
@@ -148,8 +151,24 @@ describe("year transition dialog", () => {
     expect(
       screen.queryByRole("region", { name: "シーズン振り返り" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "新年度を始める" }),
-    ).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "挑戦方針を選ぶ" }),
+    );
+    expect(onSelectAmbition).toHaveBeenCalledWith("challenge");
+
+    const selectedState = selectSeasonAmbition(result.state, "challenge");
+    rerender(
+      <YearTransitionDialog
+        onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
+        state={selectedState}
+        summary={summary}
+      />,
+    );
+
+    const startButton = screen.getByRole("button", { name: "新年度を始める" });
+    expect(startButton).toBeVisible();
+    expect(startButton).toBeEnabled();
   });
 });
