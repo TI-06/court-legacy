@@ -80,6 +80,7 @@ export interface HomeSummary {
       label: string;
       progressLabel: string;
       achieved: boolean;
+      rewardFunds: number;
     };
     regional: {
       rank: number;

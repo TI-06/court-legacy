@@ -32,6 +32,9 @@ describe("school archived season history", () => {
       `${presentation.achievedCount}/${presentation.goalCount}目標達成`,
     );
     expect(history).toHaveTextContent(
+      `報酬 +${presentation.earnedRewardFunds}`,
+    );
+    expect(history).toHaveTextContent(
       `県内 ${presentation.regional.finalRank}位`,
     );
     expect(history).toHaveTextContent(
@@ -43,7 +46,11 @@ describe("school archived season history", () => {
       );
       expect(within(goalRow).getByText(goal.label)).toBeVisible();
       expect(
-        within(goalRow).getByText(goal.progressLabel, { selector: "small" }),
+        within(goalRow).getByText(
+          (_content, element) =>
+            element?.tagName === "SMALL" &&
+            Boolean(element.textContent?.includes(goal.progressLabel)),
+        ),
       ).toBeVisible();
     }
   });

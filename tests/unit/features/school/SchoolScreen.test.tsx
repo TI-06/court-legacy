@@ -237,7 +237,14 @@ describe("school management screen", () => {
     expect(dashboard).toBeVisible();
     for (const goal of presentation.goals) {
       expect(within(dashboard).getByText(goal.label)).toBeVisible();
-      expect(within(dashboard).getByText(goal.progressLabel)).toBeVisible();
+      expect(
+        within(dashboard).getByText(
+          (_content, element) =>
+            element?.tagName === "SMALL" &&
+            Boolean(element.textContent?.includes(goal.progressLabel)),
+        ),
+      ).toBeVisible();
+      expect(dashboard).toHaveTextContent(`年度末 +${goal.rewardFunds}`);
     }
 
     const regional = within(dashboard).getByRole("region", {

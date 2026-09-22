@@ -4,6 +4,7 @@ export type FundsLedgerKind =
   | "initial-funds"
   | "annual-budget"
   | "tournament-reward"
+  | "season-goal-reward"
   | "event"
   | "shop-grant"
   | "facility-upgrade"
