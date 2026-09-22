@@ -33,6 +33,8 @@ export type MatchCommand =
       outgoingPlayerId: PlayerId;
       incomingPlayerId: PlayerId;
     }
+  | { type: "attack-focus"; playerId: PlayerId | null }
+  | { type: "serve-target"; targetPlayerId: PlayerId | null }
   | { type: "continue" }
   | { type: "skip-to-result" };
 
@@ -59,6 +61,10 @@ export interface MatchRuntimeState {
   runLength: number;
   opponentRunDecisionConsumed: boolean;
   criticalScoreDecisionConsumed: boolean;
+  homeAttackFocusPlayerId?: PlayerId | null;
+  awayAttackFocusPlayerId?: PlayerId | null;
+  homeServeTargetPlayerId?: PlayerId | null;
+  awayServeTargetPlayerId?: PlayerId | null;
   timeoutUsedSchoolIds: SchoolId[];
   timeoutBoost: {
     schoolId: SchoolId;
