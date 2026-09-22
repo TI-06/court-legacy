@@ -1198,10 +1198,6 @@
 }
 
 @media (max-width: 420px) {
-  .pre-match-lineup__hero p:last-child {
-    display: none;
-  }
-
   .pre-match-lineup__hero > button,
   .pre-match-lineup__section-heading > button {
     min-height: 34px;
