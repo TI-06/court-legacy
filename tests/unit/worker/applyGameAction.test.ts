@@ -278,6 +278,45 @@ describe("applyGameAction", () => {
     ).toThrowError(GameRuleConflictError);
   });
 
+  it("appends a season-goal notification when a canonical action newly satisfies a goal", () => {
+    const snapshot = createSnapshot();
+    const goals = snapshot.state.seasonGoals!;
+    const winGoal = goals.goals.find((goal) => goal.kind === "official-wins")!;
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    expect(winGoal.target).toBeGreaterThan(1);
+
+    snapshot.state.calendar.weekOfYear = 1;
+    snapshot.state.calendar.completedActivityIds = [];
+    snapshot.state.seasonGoals = {
+      ...goals,
+      ambition: "challenge",
+      ambitionSelectionPending: true,
+    };
+    school.history.officialWins =
+      goals.baseline.officialWins + winGoal.target - 1;
+
+    const result = applyGameAction(snapshot, {
+      type: "set-season-ambition",
+      ambition: "steady",
+    });
+
+    expect(
+      result.state.notifications.items.find(
+        (item) => item.type === "season-goal-achieved",
+      ),
+    ).toMatchObject({
+      type: "season-goal-achieved",
+      payload: {
+        items: [
+          expect.objectContaining({
+            goalId: winGoal.id,
+            label: expect.stringMatching(/^公式戦\d+勝$/),
+          }),
+        ],
+      },
+    });
+  });
+
   it("accepts a valid team selection and rejects an invalid duplicate player", () => {
     const snapshot = createSnapshot();
     const valid = structuredClone(snapshot.teamSelection);
