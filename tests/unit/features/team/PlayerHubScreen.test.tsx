@@ -224,6 +224,7 @@ describe("PlayerHubScreen", () => {
       "控え",
       "重点育成",
       "怪我中",
+      "成長要見直し",
     ]) {
       expect(
         within(filterDialog).getByRole("button", { name: label }),
@@ -238,6 +239,7 @@ describe("PlayerHubScreen", () => {
       "将来性順",
       "調子順",
       "直近4週の成長順",
+      "育成見直し順",
       "学年順",
     ]) {
       expect(
@@ -255,6 +257,53 @@ describe("PlayerHubScreen", () => {
         `表示 ${expectedGradeOne} / 全 ${school.playerIds.length}人`,
       ),
     ).toBeVisible();
+  });
+
+  it("filters to players whose recent growth is slowing or stalled", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const stalledId = school.playerIds[0]!;
+    const steadyId = school.playerIds[1]!;
+    const stalled = state.players[stalledId]!;
+
+    state.history.playerDevelopmentWeeks = Array.from(
+      { length: 8 },
+      (_, index) => ({
+        gameDate:
+          `2026-07-${String(index + 1).padStart(2, "0")}` as GameState["date"],
+        academicYearIndex: state.yearIndex,
+        weekOfYear: index + 1,
+        trainingMenuId: "training.balanced",
+        players: [
+          {
+            playerId: stalledId,
+            totalAbilityGrowth: index < 4 ? 2 : 0,
+            abilityChanges: {},
+          },
+          {
+            playerId: steadyId,
+            totalAbilityGrowth: 2,
+            abilityChanges: {},
+          },
+        ],
+      }),
+    );
+
+    renderPlayerHub(state);
+    fireEvent.click(screen.getByLabelText("選手絞り込み"));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "表示する選手" })).getByRole(
+        "button",
+        { name: "成長要見直し" },
+      ),
+    );
+
+    const rows = screen.getAllByTestId("roster-player-row");
+    expect(rows).toHaveLength(1);
+    expect(
+      within(rows[0]!).getByText(`${stalled.lastName} ${stalled.firstName}`),
+    ).toBeVisible();
+    expect(within(rows[0]!).getByText("+0・停滞")).toBeVisible();
   });
 
   it("shows the empty filtered state without changing the full roster count", () => {

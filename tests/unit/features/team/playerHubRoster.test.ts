@@ -268,6 +268,76 @@ describe("Player Hub roster selectors", () => {
     ).toContain(injuredId);
   });
 
+  it("filters growth-review players and sorts stalled or slowing players first", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const stalledId = school.playerIds[0]!;
+    const slowingId = school.playerIds[1]!;
+    const steadyId = school.playerIds[2]!;
+    const acceleratingId = school.playerIds[3]!;
+
+    state.history.playerDevelopmentWeeks = Array.from(
+      { length: 8 },
+      (_, index) =>
+        developmentWeek(
+          `2026-07-${String(index + 1).padStart(2, "0")}` as GameState["date"],
+          index + 1,
+          [
+            {
+              playerId: stalledId,
+              totalAbilityGrowth: index < 4 ? 2 : 0,
+              abilityChanges: {},
+            },
+            {
+              playerId: slowingId,
+              totalAbilityGrowth: index < 4 ? 4 : 1,
+              abilityChanges: {},
+            },
+            {
+              playerId: steadyId,
+              totalAbilityGrowth: 2,
+              abilityChanges: {},
+            },
+            {
+              playerId: acceleratingId,
+              totalAbilityGrowth: index < 4 ? 1 : 3,
+              abilityChanges: {},
+            },
+          ],
+        ),
+    );
+    const selection = autoSelectTeam({ state, schoolId: state.userSchoolId });
+
+    const attention = selectPlayerHubRoster({
+      state,
+      selection,
+      filter: "growth-attention",
+      sort: "growth-attention",
+    });
+    expect(attention.map((item) => item.player.id)).toEqual([
+      stalledId,
+      slowingId,
+    ]);
+
+    const allSorted = selectPlayerHubRoster({
+      state,
+      selection,
+      filter: "all",
+      sort: "growth-attention",
+    });
+    expect(
+      allSorted.findIndex((item) => item.player.id === stalledId),
+    ).toBeLessThan(allSorted.findIndex((item) => item.player.id === slowingId));
+    expect(
+      allSorted.findIndex((item) => item.player.id === slowingId),
+    ).toBeLessThan(allSorted.findIndex((item) => item.player.id === steadyId));
+    expect(
+      allSorted.findIndex((item) => item.player.id === steadyId),
+    ).toBeLessThan(
+      allSorted.findIndex((item) => item.player.id === acceleratingId),
+    );
+  });
+
   it("sorts 4-week growth as positive then real zero then no history", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;

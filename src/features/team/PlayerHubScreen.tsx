@@ -145,6 +145,7 @@ const filterOptions: ReadonlyArray<{
   { value: "bench", label: "控え" },
   { value: "priority", label: "重点育成" },
   { value: "injured", label: "怪我中" },
+  { value: "growth-attention", label: "成長要見直し" },
 ];
 
 const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
@@ -152,6 +153,7 @@ const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "potential", label: "将来性順" },
   { value: "condition", label: "調子順" },
   { value: "growth-4w", label: "直近4週の成長順" },
+  { value: "growth-attention", label: "育成見直し順" },
   { value: "grade", label: "学年順" },
 ];
 
