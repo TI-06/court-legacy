@@ -63,8 +63,7 @@ export interface PracticePlanningResult {
 }
 
 export type PracticeRecommendationSource =
-  | "season-ambition"
-  | "last-practice-result";
+  "season-ambition" | "last-practice-result";
 
 export interface PracticeRecommendation {
   ambition: SeasonAmbition;
@@ -123,18 +122,16 @@ function latestPracticeResult(
   const latest = state.weeklySchedule.recentPracticeMatches.at(-1);
   if (!latest) return null;
 
-  const historicalMatch = [...state.history.matches]
-    .reverse()
-    .find((match) => {
-      if (match.tournamentId !== null || match.date !== latest.date) return false;
-      const opponentId =
-        match.homeSchoolId === state.userSchoolId
-          ? match.awaySchoolId
-          : match.awaySchoolId === state.userSchoolId
-            ? match.homeSchoolId
-            : null;
-      return opponentId === latest.opponentSchoolId;
-    });
+  const historicalMatch = [...state.history.matches].reverse().find((match) => {
+    if (match.tournamentId !== null || match.date !== latest.date) return false;
+    const opponentId =
+      match.homeSchoolId === state.userSchoolId
+        ? match.awaySchoolId
+        : match.awaySchoolId === state.userSchoolId
+          ? match.homeSchoolId
+          : null;
+    return opponentId === latest.opponentSchoolId;
+  });
   if (!historicalMatch) return null;
 
   const home = state.schools[state.userSchoolId];
