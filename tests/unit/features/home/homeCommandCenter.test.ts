@@ -160,6 +160,35 @@ describe("selectHomeCommandCenter", () => {
     });
   });
 
+  it("recommends an unscheduled practice match that matches the season ambition", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    state.seasonGoals = {
+      ...state.seasonGoals!,
+      ambition: "bold",
+    };
+
+    const recommendation = state.weeklySchedule.practiceMatch.outgoingCandidates.find(
+      (candidate) => candidate.tier === "challenge",
+    )!;
+    const opponent = state.schools[recommendation.schoolId]!;
+    const practice = select(state).tasks.find(
+      (task) => task.id === `practice-recommendation:${opponent.id}`,
+    );
+
+    expect(practice).toMatchObject({
+      kind: "action",
+      priority: "normal",
+      category: "practice",
+      action: { target: "practice" },
+      actionLabel: "候補を見る",
+    });
+    expect(practice?.detail).toContain("野心方針");
+    expect(practice?.detail).toContain(opponent.shortName);
+    expect(practice?.detail).toContain("強豪");
+  });
+
   it("creates a practice task for a scheduled practice match", () => {
     const state = createDemoGame();
     const opponent = otherSchool(state);
