@@ -198,8 +198,7 @@ describe("selectHomeCommandCenter", () => {
     const state = createDemoGame();
     state.weeklySchedule.practiceMatch.incomingOffer = null;
     state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
-    const previous =
-      state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+    const previous = state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
     const previousDate = "2026-04-01" as GameDate;
     state.weeklySchedule.recentPracticeMatches = [
       { opponentSchoolId: previous.schoolId, date: previousDate },
@@ -215,8 +214,8 @@ describe("selectHomeCommandCenter", () => {
       tournamentId: null,
     });
 
-    const practice = select(state).tasks.find(
-      (task) => task.id.startsWith("practice-recommendation:"),
+    const practice = select(state).tasks.find((task) =>
+      task.id.startsWith("practice-recommendation:"),
     );
 
     expect(practice).toBeDefined();
