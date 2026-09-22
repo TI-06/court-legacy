@@ -29,9 +29,12 @@ describe("school and calendar app integration", () => {
     const trainingFacilityTile = screen.getByRole("button", {
       name: "トレーニング設備の詳細",
     });
+    expect(within(trainingFacilityTile).getByText("Lv.1")).toBeInTheDocument();
     expect(
-      within(trainingFacilityTile).getByText("Lv.1 / 50"),
-    ).toBeInTheDocument();
+      within(trainingFacilityTile).getByRole("progressbar", {
+        name: "トレーニング設備 レベル進捗",
+      }),
+    ).toHaveAttribute("max", "50");
   });
 
   it("opens the calendar from the header and returns focus when closed", async () => {
