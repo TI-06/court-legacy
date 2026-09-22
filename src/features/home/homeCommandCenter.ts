@@ -637,8 +637,9 @@ function buildNews(state: GameState): HomeCommandNews[] {
   )[0];
   const developmentGoalAchievement =
     selectHomeDevelopmentGoalAchievementNotifications(state.notifications)[0];
-  const seasonGoalAchievement =
-    selectHomeSeasonGoalAchievementNotifications(state.notifications)[0];
+  const seasonGoalAchievement = selectHomeSeasonGoalAchievementNotifications(
+    state.notifications,
+  )[0];
 
   if (seasonGoalAchievement) {
     const items = seasonGoalAchievement.payload.items;
