@@ -811,9 +811,15 @@ export function PlayerHubScreen({
                 <span>成長ペース</span>
                 <strong>{playerGrowthMomentumLabels[growth.momentum]}</strong>
                 <small>
-                  直近4週 {growth.fourWeekGrowth === null ? "--" : `+${growth.fourWeekGrowth}`}
+                  直近4週{" "}
+                  {growth.fourWeekGrowth === null
+                    ? "--"
+                    : `+${growth.fourWeekGrowth}`}
                   {" / "}
-                  前4週 {growth.previousFourWeekGrowth === null ? "--" : `+${growth.previousFourWeekGrowth}`}
+                  前4週{" "}
+                  {growth.previousFourWeekGrowth === null
+                    ? "--"
+                    : `+${growth.previousFourWeekGrowth}`}
                 </small>
               </div>
               {growth.trend12.length === 0 ? (
