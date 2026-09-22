@@ -50,7 +50,7 @@ describe("Player Hub roster selectors", () => {
       ]),
     ];
 
-    expect(summarizePlayerGrowth(state, playerId)).toEqual({
+    expect(summarizePlayerGrowth(state, playerId)).toMatchObject({
       fourWeekGrowth: 3,
       previousFourWeekGrowth: null,
       twelveWeekGrowth: 3,
@@ -64,6 +64,7 @@ describe("Player Hub roster selectors", () => {
       ],
     });
     expect(summarizePlayerGrowth(state, otherPlayerId)).toEqual({
+      fourWeekAbilityGrowth: null,
       fourWeekGrowth: null,
       previousFourWeekGrowth: null,
       twelveWeekGrowth: null,
@@ -106,6 +107,58 @@ describe("Player Hub roster selectors", () => {
     expect(summary.observedWeeks12).toBe(12);
     expect(summary.trend12[0]?.totalAbilityGrowth).toBe(2);
     expect(summary.trend12.at(-1)?.totalAbilityGrowth).toBe(13);
+  });
+
+  it("reconstructs grouped four-week ability growth from persisted training deltas", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.abilities = {
+      ...player.abilities,
+      spike: 52,
+      serve: 48,
+      receive: 52,
+      block: 48,
+      jump: 53,
+      stamina: 54,
+      decision: 52,
+      mental: 48,
+    };
+    state.history.playerDevelopmentWeeks = [
+      developmentWeek("2026-05-01", 1, [
+        {
+          playerId,
+          totalAbilityGrowth: 9,
+          abilityChanges: {
+            spike: 2,
+            serve: 2,
+            receive: 2,
+            jump: 3,
+          },
+        },
+      ]),
+      developmentWeek("2026-05-08", 2, [
+        {
+          playerId,
+          totalAbilityGrowth: 8,
+          abilityChanges: {
+            stamina: 4,
+            decision: 2,
+            mental: 2,
+          },
+        },
+      ]),
+    ];
+
+    expect(summarizePlayerGrowth(state, playerId).fourWeekAbilityGrowth).toEqual(
+      {
+        attack: 2,
+        defense: 1,
+        jump: 3,
+        stamina: 4,
+        mental: 2,
+      },
+    );
   });
 
   it("classifies growth momentum from recent versus prior four-week averages", () => {
