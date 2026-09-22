@@ -142,9 +142,7 @@ describe("selectHomeCommandCenter", () => {
     state.history.matches[0]!.awaySetsWon = 1;
     expect(select(state).summary.featuredRival).toBeNull();
 
-    state.world.rivalryScores[
-      rivalryKey(state.userSchoolId, opponent.id)
-    ] = 40;
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, opponent.id)] = 40;
     expect(select(state).summary.featuredRival).toMatchObject({
       badge: "因縁",
       displayName: opponent.shortName,
