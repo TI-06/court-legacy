@@ -5,6 +5,7 @@ import type { TrainingResult } from "../../../../src/domain/training/resolveWeek
 import {
   appendNotification,
   buildDevelopmentGoalAchievementNotification,
+  buildSeasonGoalAchievementNotification,
   buildTrainingResultNotification,
   markNotificationRead,
   selectHomeTrainingNotifications,
@@ -199,6 +200,59 @@ describe("game notifications", () => {
       buildDevelopmentGoalAchievementNotification({
         stateBeforeTraining: alreadyAchieved,
         stateAfterTraining: later,
+      }),
+    ).toBeNull();
+  });
+
+  it("notifies only when season goals cross from unmet to achieved", () => {
+    const before = createDemoGame();
+    const goals = before.seasonGoals!;
+    const school = before.schools[before.userSchoolId]!;
+    const winGoal = goals.goals.find((goal) => goal.kind === "official-wins")!;
+    const tournamentGoal = goals.goals.find(
+      (goal) => goal.kind === "tournament-achievement",
+    )!;
+    tournamentGoal.achievement = "prefectural-title";
+
+    school.history.officialWins =
+      goals.baseline.officialWins + Math.max(0, winGoal.target - 1);
+    school.history.prefecturalTitles = goals.baseline.prefecturalTitles;
+
+    const after = structuredClone(before);
+    after.schools[after.userSchoolId]!.history.officialWins =
+      goals.baseline.officialWins + winGoal.target;
+    after.schools[after.userSchoolId]!.history.prefecturalTitles =
+      goals.baseline.prefecturalTitles + 1;
+
+    const notification = buildSeasonGoalAchievementNotification({
+      stateBeforeAction: before,
+      stateAfterAction: after,
+    });
+
+    expect(notification?.type).toBe("season-goal-achieved");
+    expect(notification?.payload.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          goalId: winGoal.id,
+          label: `公式戦${winGoal.target}勝`,
+        }),
+        expect.objectContaining({
+          goalId: tournamentGoal.id,
+          label: "県大会優勝",
+        }),
+      ]),
+    );
+    expect(notification?.payload.totalRewardFunds).toBe(
+      notification?.payload.items.reduce(
+        (total, item) => total + item.rewardFunds,
+        0,
+      ),
+    );
+
+    expect(
+      buildSeasonGoalAchievementNotification({
+        stateBeforeAction: after,
+        stateAfterAction: structuredClone(after),
       }),
     ).toBeNull();
   });
