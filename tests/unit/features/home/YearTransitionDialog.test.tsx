@@ -152,9 +152,7 @@ describe("year transition dialog", () => {
       screen.queryByRole("region", { name: "シーズン振り返り" }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "挑戦方針を選ぶ" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "挑戦方針を選ぶ" }));
     expect(onSelectAmbition).toHaveBeenCalledWith("challenge");
 
     const selectedState = selectSeasonAmbition(result.state, "challenge");
