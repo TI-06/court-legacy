@@ -74,6 +74,8 @@ export interface HomeSummary {
   };
   season: null | {
     academicYear: number;
+    ambitionLabel: string;
+    remainingRewardFunds: number;
     achievedCount: number;
     goalCount: number;
     primaryGoal: null | {
@@ -333,6 +335,8 @@ function buildSummary(
     season: seasonProgress
       ? {
           academicYear: seasonProgress.academicYear,
+          ambitionLabel: seasonProgress.ambitionLabel,
+          remainingRewardFunds: seasonProgress.remainingRewardFunds,
           achievedCount: seasonProgress.achievedCount,
           goalCount: seasonProgress.goalCount,
           primaryGoal,
