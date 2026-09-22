@@ -12,6 +12,19 @@ describe("year transition dialog", () => {
     state.calendar.currentDate = state.date;
     state.calendar.weekOfYear = 52;
     state.world.nextGenerationalTalentYear = 2;
+    const school = state.schools[state.userSchoolId]!;
+    const goals = state.seasonGoals!;
+    const regional = goals.goals.find((goal) => goal.kind === "regional-rank")!;
+    const wins = goals.goals.find((goal) => goal.kind === "official-wins")!;
+    const tournament = goals.goals.find(
+      (goal) => goal.kind === "tournament-achievement",
+    )!;
+    regional.target = goals.rankingTotals.regional;
+    wins.target = 1;
+    tournament.achievement = "prefectural-title";
+    school.history.officialWins = goals.baseline.officialWins + 1;
+    school.history.prefecturalTitles = goals.baseline.prefecturalTitles + 1;
+
     const result = advanceGameWeek(state, gameData);
     const summary = result.academicYearTransition;
     const seasonSummary = result.state.history.seasonGoalSeasons?.at(-1);
@@ -41,6 +54,10 @@ describe("year transition dialog", () => {
     expect(seasonReview).toHaveTextContent(
       `${season.achievedCount}/${season.goalCount}目標達成`,
     );
+    expect(season.earnedRewardFunds).toBeGreaterThan(0);
+    expect(seasonReview).toHaveTextContent(
+      `目標報酬 +${season.earnedRewardFunds}`,
+    );
     expect(seasonReview).toHaveTextContent(
       `県内 ${season.regional.startingRank}位 → ${season.regional.finalRank}位`,
     );
@@ -49,7 +66,16 @@ describe("year transition dialog", () => {
     );
     for (const goal of season.goals) {
       expect(within(seasonReview).getByText(goal.label)).toBeVisible();
-      expect(within(seasonReview).getByText(goal.progressLabel)).toBeVisible();
+      expect(
+        within(seasonReview).getByText(
+          (_content, element) =>
+            element?.tagName === "SMALL" &&
+            Boolean(element.textContent?.includes(goal.progressLabel)),
+        ),
+      ).toBeVisible();
+      if (goal.achieved) {
+        expect(seasonReview).toHaveTextContent(`+${goal.rewardFunds}獲得`);
+      }
     }
 
     const graduationMetric = screen
