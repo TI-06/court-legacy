@@ -1341,10 +1341,7 @@ function applySeasonAmbition(
     };
   } catch (error) {
     if (error instanceof SeasonAmbitionSelectionError) {
-      return conflict(
-        `season_ambition_${error.reason}`,
-        error.message,
-      );
+      return conflict(`season_ambition_${error.reason}`, error.message);
     }
     throw error;
   }
