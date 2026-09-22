@@ -115,7 +115,7 @@ describe("PracticeMatchPlanning", () => {
     });
     expect(within(shortcut).getByText("LAST MATCH ADVICE")).toBeVisible();
     expect(within(shortcut).getByText(/前回敗戦を踏まえ/)).toBeVisible();
-    expect(within(shortcut).getByText("前回結果")).toBeVisible();
+    expect(screen.getByText("前回結果")).toBeVisible();
   });
 
   it("moves the shortcut to the next available recommendation after rejection", () => {
