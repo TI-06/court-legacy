@@ -1,6 +1,10 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { markWeeklyActionCompleted } from "../../../../src/domain/calendar/weekProgression";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import {
+  matchId,
+  type GameDate,
+} from "../../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
 import { advanceOfficialTournamentsThroughWeek } from "../../../../src/domain/tournament/progressOfficialTournaments";
 import { selectHomeCommandCenter } from "../../../../src/features/home/homeCommandCenter";
@@ -188,6 +192,35 @@ describe("selectHomeCommandCenter", () => {
     expect(practice?.detail).toContain("野心方針");
     expect(practice?.detail).toContain(opponent.shortName);
     expect(practice?.detail).toContain("強豪");
+  });
+
+  it("uses the last practice result in the Home recommendation detail", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    const previous = state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+    const previousDate = "2026-04-01" as GameDate;
+    state.weeklySchedule.recentPracticeMatches = [
+      { opponentSchoolId: previous.schoolId, date: previousDate },
+    ];
+    state.history.matches.push({
+      matchId: matchId("phase29-4-home-loss"),
+      date: previousDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: previous.schoolId,
+      winnerSchoolId: previous.schoolId,
+      homeSetsWon: 0,
+      awaySetsWon: 2,
+      tournamentId: null,
+    });
+
+    const practice = select(state).tasks.find((task) =>
+      task.id.startsWith("practice-recommendation:"),
+    );
+
+    expect(practice).toBeDefined();
+    expect(practice?.detail).toContain("前回敗戦から");
+    expect(practice?.detail).not.toContain("方針・");
   });
 
   it("creates a practice task for a scheduled practice match", () => {

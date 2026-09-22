@@ -2,6 +2,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchState } from "../../domain/model/Match";
 import { seasonAmbitionLabels } from "../../domain/season/seasonGoals";
 import type { SeasonAmbition } from "../../domain/season/seasonGoalTypes";
+import { classifyPracticeOpponentTier } from "../../domain/weekly/practiceMatchPlanning";
 import type { PracticeMatchCandidateTier } from "../../domain/weekly/weeklyScheduleTypes";
 
 export interface PracticeMatchReviewPresentation {
@@ -35,16 +36,6 @@ const preferredTierByAmbition: Record<
   challenge: "stronger",
   bold: "challenge",
 };
-
-function classifyOpponentTier(
-  userStrength: number,
-  opponentStrength: number,
-): PracticeMatchCandidateTier {
-  const ratio = opponentStrength / Math.max(1, userStrength);
-  if (ratio <= 1) return "same";
-  if (ratio <= 1.15) return "stronger";
-  return "challenge";
-}
 
 function alignmentLabel(
   ambition: SeasonAmbition,
@@ -92,7 +83,7 @@ export function buildPracticeMatchReview(input: {
   const userStrength = userIsHome ? input.homeStrength : input.awayStrength;
   const opponentStrength = userIsHome ? input.awayStrength : input.homeStrength;
   const ambition = input.state.seasonGoals?.ambition ?? "challenge";
-  const tier = classifyOpponentTier(userStrength, opponentStrength);
+  const tier = classifyPracticeOpponentTier(userStrength, opponentStrength);
   const won =
     (userIsHome ? input.match.homeSetsWon : input.match.awaySetsWon) >
     (userIsHome ? input.match.awaySetsWon : input.match.homeSetsWon);

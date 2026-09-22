@@ -84,14 +84,23 @@ export function PracticeMatchPlanning({
         <>
           {recommendation ? (
             <article
-              aria-label="方針おすすめの練習試合"
+              aria-label={
+                recommendation.source === "last-practice-result"
+                  ? "前回結果おすすめの練習試合"
+                  : "方針おすすめの練習試合"
+              }
               className="practice-planning__recommendation"
             >
               <div className="practice-planning__recommendation-copy">
-                <span>COACH RECOMMEND</span>
+                <span>
+                  {recommendation.source === "last-practice-result"
+                    ? "LAST MATCH ADVICE"
+                    : "COACH RECOMMEND"}
+                </span>
                 <strong>
-                  {seasonAmbitionLabels[recommendation.ambition]}方針なら
-                  {state.schools[recommendation.candidate.schoolId]?.name}
+                  {recommendation.source === "last-practice-result"
+                    ? `前回${recommendation.previousResult?.won ? "勝利" : "敗戦"}を踏まえ、次は${tierLabels[recommendation.tier]}`
+                    : `${seasonAmbitionLabels[recommendation.ambition]}方針なら${state.schools[recommendation.candidate.schoolId]?.name}`}
                 </strong>
                 <small>
                   {tierLabels[recommendation.tier]}・成立しやすさ{" "}
@@ -174,7 +183,9 @@ export function PracticeMatchPlanning({
                           {school.name}
                           {recommended ? (
                             <em className="practice-planning__recommended-badge">
-                              方針おすすめ
+                              {recommendation?.source === "last-practice-result"
+                                ? "前回結果"
+                                : "方針おすすめ"}
                             </em>
                           ) : null}
                         </strong>

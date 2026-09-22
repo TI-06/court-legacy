@@ -1,3 +1,4 @@
+import { isWeeklyActionCompleted } from "../calendar/weekProgression";
 import type { GameState } from "../model/GameState";
 import type { GameDate, SchoolId } from "../model/identifiers";
 import type { School, SchoolReputation } from "../model/School";
@@ -61,10 +62,18 @@ export interface PracticePlanningResult {
   incomingPracticeOfferHistory: IncomingPracticeOfferHistoryEntry[];
 }
 
+export type PracticeRecommendationSource =
+  "season-ambition" | "last-practice-result";
+
 export interface PracticeRecommendation {
   ambition: SeasonAmbition;
   tier: PracticeMatchCandidateTier;
   candidate: PracticeMatchCandidate;
+  source: PracticeRecommendationSource;
+  previousResult?: {
+    won: boolean;
+    tier: PracticeMatchCandidateTier;
+  };
 }
 
 const ambitionTierPriority: Record<
@@ -76,11 +85,74 @@ const ambitionTierPriority: Record<
   bold: ["challenge", "stronger", "same"],
 };
 
+export function classifyPracticeOpponentTier(
+  userStrength: number,
+  opponentStrength: number,
+): PracticeMatchCandidateTier {
+  const ratio = opponentStrength / Math.max(1, userStrength);
+  if (ratio <= 1) return "same";
+  if (ratio <= 1.15) return "stronger";
+  return "challenge";
+}
+
+export function nextPracticeTierFromResult(
+  tier: PracticeMatchCandidateTier,
+  won: boolean,
+): PracticeMatchCandidateTier {
+  if (won) {
+    if (tier === "same") return "stronger";
+    if (tier === "stronger") return "challenge";
+    return "challenge";
+  }
+  if (tier === "challenge") return "stronger";
+  return tier;
+}
+
+function resultAwareTierPriority(
+  target: PracticeMatchCandidateTier,
+): readonly PracticeMatchCandidateTier[] {
+  if (target === "same") return ["same", "stronger", "challenge"];
+  if (target === "stronger") return ["stronger", "same", "challenge"];
+  return ["challenge", "stronger", "same"];
+}
+
+function latestPracticeResult(
+  state: GameState,
+): { won: boolean; tier: PracticeMatchCandidateTier } | null {
+  const latest = state.weeklySchedule.recentPracticeMatches.at(-1);
+  if (!latest) return null;
+
+  const historicalMatch = [...state.history.matches].reverse().find((match) => {
+    if (match.tournamentId !== null || match.date !== latest.date) return false;
+    const opponentId =
+      match.homeSchoolId === state.userSchoolId
+        ? match.awaySchoolId
+        : match.awaySchoolId === state.userSchoolId
+          ? match.homeSchoolId
+          : null;
+    return opponentId === latest.opponentSchoolId;
+  });
+  if (!historicalMatch) return null;
+
+  const home = state.schools[state.userSchoolId];
+  const opponent = state.schools[latest.opponentSchoolId];
+  if (!home || !opponent) return null;
+
+  return {
+    won: historicalMatch.winnerSchoolId === state.userSchoolId,
+    tier: classifyPracticeOpponentTier(
+      calculateTournamentSchoolStrength(state, home),
+      calculateTournamentSchoolStrength(state, opponent),
+    ),
+  };
+}
+
 export function selectPracticeRecommendation(
-  state: Pick<GameState, "seasonGoals" | "weeklySchedule">,
+  state: GameState,
 ): PracticeRecommendation | null {
   const practice = state.weeklySchedule.practiceMatch;
   if (
+    isWeeklyActionCompleted(state, "practice-match") ||
     practice.scheduledOpponentId ||
     practice.incomingOffer ||
     practice.outgoingCandidates.length === 0
@@ -94,10 +166,35 @@ export function selectPracticeRecommendation(
   );
   if (available.length === 0) return null;
 
+  const previousResult = latestPracticeResult(state);
+  if (previousResult) {
+    const target = nextPracticeTierFromResult(
+      previousResult.tier,
+      previousResult.won,
+    );
+    for (const tier of resultAwareTierPriority(target)) {
+      const candidate = available.find((item) => item.tier === tier);
+      if (candidate) {
+        return {
+          ambition,
+          tier,
+          candidate,
+          source: "last-practice-result",
+          previousResult,
+        };
+      }
+    }
+  }
+
   for (const tier of ambitionTierPriority[ambition]) {
     const candidate = available.find((item) => item.tier === tier);
     if (candidate) {
-      return { ambition, tier, candidate };
+      return {
+        ambition,
+        tier,
+        candidate,
+        source: "season-ambition",
+      };
     }
   }
 
