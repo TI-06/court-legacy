@@ -1151,3 +1151,127 @@
   padding-top: 0;
   border-top: 0;
 }
+
+
+/* Phase28-1: one-screen facility command grid. */
+.school-panel--management {
+  padding-top: 10px;
+}
+
+.school-panel--management .school-management-tabs {
+  margin-top: 0;
+}
+
+.school-panel--management .school-management-section {
+  margin-top: 8px;
+}
+
+.school-facility-command-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-facility-command-heading > div {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-facility-command-heading h3,
+.school-facility-command-heading small {
+  margin: 0;
+}
+
+.school-facility-command-heading h3 {
+  font-size: 0.86rem;
+}
+
+.school-facility-command-heading small,
+.school-facility-command-heading > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.6rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.school-facility-command-heading > span {
+  padding: 3px 6px;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 22%);
+  border-radius: 999px;
+}
+
+.school-panel--management .facility-grid {
+  margin-top: 7px;
+  gap: 5px;
+}
+
+.school-panel--management .facility-tile {
+  min-height: 54px;
+  padding: 6px 7px;
+  gap: 3px;
+  border-radius: 9px;
+}
+
+.school-panel--management .facility-tile--available {
+  border-color: rgb(244 122 24 / 24%);
+  background:
+    linear-gradient(145deg, rgb(244 122 24 / 6%), transparent 75%),
+    rgb(255 255 255 / 5%);
+}
+
+.school-panel--management .facility-tile__top {
+  gap: 4px;
+}
+
+.school-panel--management .facility-tile__top strong {
+  overflow: hidden;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .facility-tile__top b {
+  padding: 1px 4px;
+  font-size: 0.55rem;
+}
+
+.school-panel--management .facility-tile__progress {
+  height: 3px;
+}
+
+.school-panel--management .facility-tile small {
+  overflow: hidden;
+  font-size: 0.56rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 350px) {
+  .school-panel--management {
+    padding: 9px;
+  }
+
+  .school-panel--management .facility-grid {
+    gap: 4px;
+  }
+
+  .school-panel--management .facility-tile {
+    min-height: 50px;
+    padding: 5px 6px;
+  }
+
+  .school-facility-command-heading > div {
+    gap: 5px;
+  }
+
+  .school-facility-command-heading small {
+    font-size: 0.56rem;
+  }
+}
