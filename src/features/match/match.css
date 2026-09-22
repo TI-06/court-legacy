@@ -1478,3 +1478,90 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase30: player-specific coaching directives */
+.match-command-player-directive {
+  display: grid;
+  gap: 10px;
+}
+
+.match-command-player-directive > p {
+  margin: 0;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.match-command-player-directive > div {
+  display: grid;
+  gap: 7px;
+}
+
+.match-command-player-directive article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 9px;
+  gap: 7px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 12px;
+}
+
+.match-command-player-directive article > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.match-command-player-directive article > div:first-child strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-player-directive article > div:first-child small,
+.match-command-player-directive article > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.match-command-player-directive article > span b {
+  color: #ffd0a8;
+}
+
+.match-command-player-directive article > div:last-child {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.match-command-player-directive button {
+  min-height: 40px;
+  padding: 6px;
+  color: #e8f4fa;
+  font: inherit;
+  font-size: 0.65rem;
+  font-weight: 900;
+  background: rgb(114 213 223 / 9%);
+  border: 1px solid rgb(114 213 223 / 18%);
+  border-radius: 10px;
+}
+
+.match-command-player-directive button:disabled {
+  color: #71818c;
+  background: rgb(255 255 255 / 3%);
+  border-color: rgb(255 255 255 / 6%);
+}
+
+.match-command-player-directive__note {
+  color: #9bb2c1;
+  font-size: 0.58rem;
+  line-height: 1.45;
+}
