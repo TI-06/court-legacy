@@ -7,11 +7,13 @@ describe("Phase 12 compact school management", () => {
     render(<App />);
     fireEvent.click(await screen.findByRole("button", { name: "学校" }));
 
-    expect(screen.getByRole("heading", { name: "運営" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "設備" })).toBeVisible();
     const primaryTabs = screen.getByRole("tablist", {
       name: "学校運営メニュー",
     });
+    expect(
+      within(primaryTabs).getByRole("tab", { name: "運営" }),
+    ).toHaveAttribute("aria-selected", "true");
     expect(within(primaryTabs).getAllByRole("tab")).toHaveLength(3);
     expect(
       within(primaryTabs).getByRole("tab", { name: "スカウト" }),
