@@ -327,7 +327,7 @@ function MatchScreenContent({
           <section className="match-live-hero" aria-labelledby="live-heading">
             <div>
               <p className="section-kicker">試合速報</p>
-              <h2 id="live-heading">試合進行中</h2>
+              <h2 id="live-heading">試合ダイジェスト</h2>
             </div>
             <span data-testid="event-sequence">
               {revealedEventIndex + 1} / {eventCount}
