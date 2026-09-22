@@ -5,7 +5,11 @@ import type {
 import type { Player } from "../../domain/model/Player";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
-import { calculatePlayerDisplayPower } from "../../domain/selectors/playerPresentation";
+import {
+  calculatePlayerDisplayPower,
+  summarizePlayerAbilities,
+  type PlayerAbilitySummary,
+} from "../../domain/selectors/playerPresentation";
 
 export type PlayerHubFilter =
   | "all"
@@ -40,6 +44,7 @@ export type PlayerGrowthMomentum =
   "measuring" | "accelerating" | "steady" | "slowing" | "stalled";
 
 export interface PlayerGrowthSummary {
+  fourWeekAbilityGrowth: PlayerAbilitySummary | null;
   fourWeekGrowth: number | null;
   previousFourWeekGrowth: number | null;
   twelveWeekGrowth: number | null;
@@ -128,6 +133,60 @@ function growthMomentum(
   return "steady";
 }
 
+function summarizeFourWeekAbilityGrowth(
+  state: GameState,
+  player: Player,
+): PlayerAbilitySummary | null {
+  const weeks = state.history.playerDevelopmentWeeks.slice(-4);
+  const rawChanges = {
+    spike: 0,
+    receive: 0,
+    serve: 0,
+    block: 0,
+    jump: 0,
+    speed: 0,
+    stamina: 0,
+    decision: 0,
+    mental: 0,
+    set: 0,
+  };
+  let observed = false;
+
+  for (const week of weeks) {
+    const log = week.players.find((candidate) => candidate.playerId === player.id);
+    if (!log) continue;
+    observed = true;
+    for (const [ability, change] of Object.entries(log.abilityChanges)) {
+      if (typeof change !== "number") continue;
+      rawChanges[ability as keyof typeof rawChanges] += change;
+    }
+  }
+
+  if (!observed) return null;
+
+  const fourWeeksAgo: Player = {
+    ...player,
+    abilities: { ...player.abilities },
+  };
+  for (const [ability, change] of Object.entries(rawChanges)) {
+    const key = ability as keyof typeof fourWeeksAgo.abilities;
+    fourWeeksAgo.abilities[key] = Math.max(
+      0,
+      Math.min(100, fourWeeksAgo.abilities[key] - change),
+    );
+  }
+
+  const before = summarizePlayerAbilities(fourWeeksAgo);
+  const current = summarizePlayerAbilities(player);
+  return {
+    attack: current.attack - before.attack,
+    defense: current.defense - before.defense,
+    jump: current.jump - before.jump,
+    stamina: current.stamina - before.stamina,
+    mental: current.mental - before.mental,
+  };
+}
+
 export function summarizePlayerGrowth(
   state: GameState,
   playerId: PlayerId,
@@ -137,7 +196,12 @@ export function summarizePlayerGrowth(
   const previousFour = summarizeWindow(weeks.slice(-8, -4), playerId);
   const twelve = summarizeWindow(weeks.slice(-12), playerId);
 
+  const player = state.players[playerId];
+
   return {
+    fourWeekAbilityGrowth: player
+      ? summarizeFourWeekAbilityGrowth(state, player)
+      : null,
     fourWeekGrowth: four.growth,
     previousFourWeekGrowth: previousFour.growth,
     twelveWeekGrowth: twelve.growth,
