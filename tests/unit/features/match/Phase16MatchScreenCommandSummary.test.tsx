@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import type { PendingMatchPresentation } from "../../../../src/domain/calendar/advanceWeekOutcome";
 import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
@@ -82,6 +83,7 @@ function completeInteractiveMatch(): ReturnType<
 function renderMatch(
   base: ReturnType<typeof fixture>,
   result: MatchStepResult,
+  presentation?: PendingMatchPresentation,
 ) {
   return render(
     <MatchScreen
@@ -92,6 +94,7 @@ function renderMatch(
       homeStrength={calculateSelectionStrength(base.state, base.homeSelection)}
       awayStrength={calculateSelectionStrength(base.state, base.awaySelection)}
       result={result}
+      presentation={presentation}
       reducedMotion={false}
       onStart={vi.fn()}
       onReturnHome={vi.fn()}
@@ -131,6 +134,50 @@ describe("Phase16 MatchScreen command presentation", () => {
     expect(commandImpact).toHaveTextContent("観測");
     expect(commandImpact).not.toHaveTextContent("効果で");
     expect(commandImpact).not.toHaveTextContent("成功させた");
+  });
+
+  it("shows practice review for practice results and keeps it out of official results", () => {
+    const base = fixture();
+    const result = simulateMatch({
+      state: base.state,
+      id: matchId("phase29-3-practice-review"),
+      homeSchoolId: base.state.userSchoolId,
+      awaySchoolId: base.opponent.id,
+      homeSelection: base.homeSelection,
+      awaySelection: base.awaySelection,
+      bestOfSets: 3,
+      random: new SeededRandom("phase29-3-practice-review"),
+    });
+    const presentation: PendingMatchPresentation = {
+      kind: "practice",
+      simulation: result,
+      homeTeam: {
+        schoolId: base.state.userSchoolId,
+        displayName: base.state.schools[base.state.userSchoolId]!.name,
+        shortName: base.state.schools[base.state.userSchoolId]!.shortName,
+      },
+      awayTeam: {
+        schoolId: base.opponent.id,
+        displayName: base.opponent.name,
+        shortName: base.opponent.shortName,
+      },
+    };
+
+    const rendered = renderMatch(base, result, presentation);
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+
+    expect(
+      screen.getByRole("region", { name: "練習試合レビュー" }),
+    ).toBeVisible();
+    expect(screen.getByText("PRACTICE REVIEW")).toBeVisible();
+
+    rendered.unmount();
+    renderMatch(base, result, { ...presentation, kind: "official" });
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+
+    expect(
+      screen.queryByRole("region", { name: "練習試合レビュー" }),
+    ).toBeNull();
   });
 
   it("omits coach-command history for a completed one-shot match with no commands", () => {
