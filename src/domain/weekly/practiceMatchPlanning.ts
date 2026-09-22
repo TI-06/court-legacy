@@ -95,7 +95,7 @@ export function classifyPracticeOpponentTier(
   return "challenge";
 }
 
-function resultAwareTargetTier(
+export function nextPracticeTierFromResult(
   tier: PracticeMatchCandidateTier,
   won: boolean,
 ): PracticeMatchCandidateTier {
@@ -169,7 +169,7 @@ export function selectPracticeRecommendation(
 
   const previousResult = latestPracticeResult(state);
   if (previousResult) {
-    const target = resultAwareTargetTier(
+    const target = nextPracticeTierFromResult(
       previousResult.tier,
       previousResult.won,
     );
