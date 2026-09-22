@@ -154,8 +154,7 @@ describe("Phase 8 practice-match planning", () => {
       ...state.seasonGoals!,
       ambition: "bold",
     };
-    const previous =
-      state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+    const previous = state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
     const previousDate = "2026-04-01" as GameDate;
     state.weeklySchedule.recentPracticeMatches = [
       {
@@ -174,8 +173,7 @@ describe("Phase 8 practice-match planning", () => {
       tournamentId: null,
     });
 
-    const recommendation =
-      practicePlanning.selectPracticeRecommendation(state);
+    const recommendation = practicePlanning.selectPracticeRecommendation(state);
 
     expect(recommendation?.source).toBe("last-practice-result");
     expect(recommendation?.previousResult?.won).toBe(false);
