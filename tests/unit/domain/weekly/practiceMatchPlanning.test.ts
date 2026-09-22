@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { markWeeklyActionCompleted } from "../../../../src/domain/calendar/weekProgression";
 import {
   matchId,
   type GameDate,
@@ -229,6 +230,16 @@ describe("Phase 8 practice-match planning", () => {
     expect(practicePlanning.selectPracticeRecommendation(state)?.tier).toBe(
       "stronger",
     );
+  });
+
+  it("does not recommend another opponent after this week's practice match is complete", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+
+    const completed = markWeeklyActionCompleted(state, "practice-match");
+
+    expect(practicePlanning.selectPracticeRecommendation(completed)).toBeNull();
   });
 
   it("suppresses every practice-match planning option when an official match is due", () => {
