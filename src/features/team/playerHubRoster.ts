@@ -20,10 +20,16 @@ export type PlayerHubFilter =
   | "starter"
   | "bench"
   | "priority"
-  | "injured";
+  | "injured"
+  | "growth-attention";
 
 export type PlayerHubSort =
-  "power" | "potential" | "condition" | "growth-4w" | "grade";
+  | "power"
+  | "potential"
+  | "condition"
+  | "growth-4w"
+  | "growth-attention"
+  | "grade";
 
 export interface PlayerGrowthTrendPoint {
   gameDate: GameState["date"];
@@ -165,6 +171,12 @@ function filterRosterItem(
   if (filter === "bench") return item.isBench;
   if (filter === "priority") return item.isPriority;
   if (filter === "injured") return item.isInjured;
+  if (filter === "growth-attention") {
+    return (
+      item.growth.momentum === "slowing" ||
+      item.growth.momentum === "stalled"
+    );
+  }
 
   if (filter.startsWith("grade-")) {
     return item.player.grade === Number(filter.slice("grade-".length));
@@ -194,6 +206,19 @@ function primarySort(
         left.growth.fourWeekGrowth,
         right.growth.fourWeekGrowth,
       );
+    case "growth-attention": {
+      const attentionRank: Record<PlayerGrowthMomentum, number> = {
+        stalled: 0,
+        slowing: 1,
+        measuring: 2,
+        steady: 3,
+        accelerating: 4,
+      };
+      return (
+        attentionRank[left.growth.momentum] -
+        attentionRank[right.growth.momentum]
+      );
+    }
     case "grade":
       return right.player.grade - left.player.grade;
   }
