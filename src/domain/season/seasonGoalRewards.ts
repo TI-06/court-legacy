@@ -1,12 +1,19 @@
 import type { GameState } from "../model/GameState";
 import { applySchoolFundsChange } from "../school/schoolEconomy";
 import type {
+  SeasonAmbition,
   SeasonGoalDefinition,
   SeasonGoalResult,
   SeasonGoalSeasonSummary,
 } from "./seasonGoalTypes";
 
-export function seasonGoalFundReward(goal: SeasonGoalDefinition): number {
+export const seasonAmbitionRewardMultiplier: Record<SeasonAmbition, number> = {
+  steady: 0.8,
+  challenge: 1,
+  bold: 1.4,
+};
+
+function baseSeasonGoalFundReward(goal: SeasonGoalDefinition): number {
   if (goal.kind === "regional-rank") return 120;
   if (goal.kind === "official-wins") {
     return Math.max(100, Math.min(245, goal.target * 35));
@@ -14,6 +21,14 @@ export function seasonGoalFundReward(goal: SeasonGoalDefinition): number {
   if (goal.achievement === "national-title") return 500;
   if (goal.achievement === "national-appearance") return 300;
   return 200;
+}
+
+export function seasonGoalFundReward(
+  goal: SeasonGoalDefinition,
+  ambition: SeasonAmbition = "challenge",
+): number {
+  const raw = baseSeasonGoalFundReward(goal) * seasonAmbitionRewardMultiplier[ambition];
+  return Math.max(5, Math.round(raw / 5) * 5);
 }
 
 export function seasonGoalRewardLabel(goal: SeasonGoalDefinition): string {
@@ -30,9 +45,11 @@ function rewardEntryId(goal: SeasonGoalDefinition): string {
 
 export function seasonGoalEarnedFunds(
   goals: readonly SeasonGoalResult[],
+  ambition: SeasonAmbition = "challenge",
 ): number {
   return goals.reduce(
-    (total, goal) => total + (goal.achieved ? seasonGoalFundReward(goal) : 0),
+    (total, goal) =>
+      total + (goal.achieved ? seasonGoalFundReward(goal, ambition) : 0),
     0,
   );
 }
@@ -52,7 +69,10 @@ export function grantCompletedSeasonGoalRewards(
     next = applySchoolFundsChange(next, {
       id,
       kind: "season-goal-reward",
-      amount: seasonGoalFundReward(goal),
+      amount: seasonGoalFundReward(
+        goal,
+        summary.ambition ?? "challenge",
+      ),
       label: seasonGoalRewardLabel(goal),
       relatedId: goal.id,
     }).state;
