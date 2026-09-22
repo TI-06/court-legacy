@@ -126,6 +126,51 @@ describe("Phase 8 practice-match planning", () => {
     }
   });
 
+  it.each([
+    ["steady", "same"],
+    ["challenge", "stronger"],
+    ["bold", "challenge"],
+  ] as const)(
+    "recommends the %s season ambition against the %s practice tier",
+    (ambition, expectedTier) => {
+      const state = createDemoGame();
+      state.weeklySchedule.practiceMatch.incomingOffer = null;
+      state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+      state.seasonGoals = {
+        ...state.seasonGoals!,
+        ambition,
+      };
+
+      const recommendation =
+        practicePlanning.selectPracticeRecommendation(state);
+
+      expect(recommendation).not.toBeNull();
+      expect(recommendation?.ambition).toBe(ambition);
+      expect(recommendation?.tier).toBe(expectedTier);
+      expect(recommendation?.candidate.status).toBe("available");
+    },
+  );
+
+  it("falls back to the next ambition tier when the preferred candidate is unavailable", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    state.seasonGoals = {
+      ...state.seasonGoals!,
+      ambition: "bold",
+    };
+    state.weeklySchedule.practiceMatch.outgoingCandidates =
+      state.weeklySchedule.practiceMatch.outgoingCandidates.map((candidate) =>
+        candidate.tier === "challenge"
+          ? { ...candidate, status: "rejected" as const }
+          : candidate,
+      );
+
+    expect(practicePlanning.selectPracticeRecommendation(state)?.tier).toBe(
+      "stronger",
+    );
+  });
+
   it("suppresses every practice-match planning option when an official match is due", () => {
     let state = createDemoGame();
     state = {
