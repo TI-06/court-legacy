@@ -27,7 +27,8 @@ export function seasonGoalFundReward(
   goal: SeasonGoalDefinition,
   ambition: SeasonAmbition = "challenge",
 ): number {
-  const raw = baseSeasonGoalFundReward(goal) * seasonAmbitionRewardMultiplier[ambition];
+  const raw =
+    baseSeasonGoalFundReward(goal) * seasonAmbitionRewardMultiplier[ambition];
   return Math.max(5, Math.round(raw / 5) * 5);
 }
 
@@ -69,10 +70,7 @@ export function grantCompletedSeasonGoalRewards(
     next = applySchoolFundsChange(next, {
       id,
       kind: "season-goal-reward",
-      amount: seasonGoalFundReward(
-        goal,
-        summary.ambition ?? "challenge",
-      ),
+      amount: seasonGoalFundReward(goal, summary.ambition ?? "challenge"),
       label: seasonGoalRewardLabel(goal),
       relatedId: goal.id,
     }).state;
