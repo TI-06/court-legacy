@@ -70,6 +70,28 @@ function selectionForSchool(
   );
 }
 
+function opponentSelectionForSchool(
+  match: MatchState,
+  schoolId: SchoolId,
+): TeamSelection {
+  if (schoolId === match.homeSchoolId) return match.awaySelection;
+  if (schoolId === match.awaySchoolId) return match.homeSelection;
+  return fail(
+    "command_school_not_in_match",
+    "この学校は試合に参加していません",
+  );
+}
+
+function isCourtPlayer(selection: TeamSelection, playerId: PlayerId): boolean {
+  return selection.rotation.some((item) => item.playerId === playerId);
+}
+
+function isActivePlayer(selection: TeamSelection, playerId: PlayerId): boolean {
+  return (
+    isCourtPlayer(selection, playerId) || selection.liberoPlayerId === playerId
+  );
+}
+
 function baseSelectionForSchool(
   match: MatchState,
   runtime: MatchRuntimeState,
@@ -115,6 +137,40 @@ function setTacticsForSchool(
   }
   if (schoolId === match.awaySchoolId) {
     runtime.awayTactics = structuredClone(plan);
+    return;
+  }
+  fail("command_school_not_in_match", "この学校は試合に参加していません");
+}
+
+function setAttackFocusForSchool(
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId | null,
+): void {
+  const runtime = runtimeOrFail(match);
+  if (schoolId === match.homeSchoolId) {
+    runtime.homeAttackFocusPlayerId = playerId;
+    return;
+  }
+  if (schoolId === match.awaySchoolId) {
+    runtime.awayAttackFocusPlayerId = playerId;
+    return;
+  }
+  fail("command_school_not_in_match", "この学校は試合に参加していません");
+}
+
+function setServeTargetForSchool(
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId | null,
+): void {
+  const runtime = runtimeOrFail(match);
+  if (schoolId === match.homeSchoolId) {
+    runtime.homeServeTargetPlayerId = playerId;
+    return;
+  }
+  if (schoolId === match.awaySchoolId) {
+    runtime.awayServeTargetPlayerId = playerId;
     return;
   }
   fail("command_school_not_in_match", "この学校は試合に参加していません");
@@ -331,6 +387,30 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
           "substitution.coach-command",
         ),
       );
+      break;
+    }
+    case "attack-focus": {
+      const current = selectionForSchool(match, input.schoolId);
+      const playerId = input.command.playerId;
+      if (playerId !== null && !isCourtPlayer(current, playerId)) {
+        return fail(
+          "attack_focus_player_not_on_court",
+          "攻撃を集める選手は現在コートにいる選手から選んでください",
+        );
+      }
+      setAttackFocusForSchool(match, input.schoolId, playerId);
+      break;
+    }
+    case "serve-target": {
+      const opponent = opponentSelectionForSchool(match, input.schoolId);
+      const playerId = input.command.targetPlayerId;
+      if (playerId !== null && !isActivePlayer(opponent, playerId)) {
+        return fail(
+          "serve_target_player_not_active",
+          "サーブで狙う選手は相手の現在出場中の選手から選んでください",
+        );
+      }
+      setServeTargetForSchool(match, input.schoolId, playerId);
       break;
     }
     case "continue":
