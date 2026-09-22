@@ -97,6 +97,7 @@ describe("selectHomeCommandCenter", () => {
         label: expect.any(String),
         progressLabel: expect.any(String),
         achieved: expect.any(Boolean),
+        rewardFunds: expect.any(Number),
       },
       regional: {
         rank: expect.any(Number),
