@@ -86,21 +86,21 @@ export function YearTransitionDialog({
   const ambitionSelectionPending =
     state.seasonGoals?.ambitionSelectionPending === true;
   const currentAmbition = state.seasonGoals?.ambition ?? "challenge";
-  const ambitionOptions = (
-    ["steady", "challenge", "bold"] as const
-  ).map((ambition) => {
-    const preview = previewSeasonAmbition(state, ambition);
-    return {
-      ambition,
-      label: seasonAmbitionLabels[ambition],
-      description: seasonAmbitionDescriptions[ambition],
-      goals: preview.goals,
-      totalReward: preview.goals.reduce(
-        (total, goal) => total + seasonGoalFundReward(goal, ambition),
-        0,
-      ),
-    };
-  });
+  const ambitionOptions = state.seasonGoals
+    ? (["steady", "challenge", "bold"] as const).map((ambition) => {
+        const preview = previewSeasonAmbition(state, ambition);
+        return {
+          ambition,
+          label: seasonAmbitionLabels[ambition],
+          description: seasonAmbitionDescriptions[ambition],
+          goals: preview.goals,
+          totalReward: preview.goals.reduce(
+            (total, goal) => total + seasonGoalFundReward(goal, ambition),
+            0,
+          ),
+        };
+      })
+    : [];
 
   return (
     <BottomSheet
@@ -193,10 +193,11 @@ export function YearTransitionDialog({
           </section>
         ) : null}
 
-        <section
-          aria-label="新シーズン目標方針"
-          className="year-transition-ambition"
-        >
+        {ambitionOptions.length > 0 ? (
+          <section
+            aria-label="新シーズン目標方針"
+            className="year-transition-ambition"
+          >
           <div className="year-transition-ambition__heading">
             <div>
               <span>NEW SEASON PLAN</span>
@@ -246,10 +247,11 @@ export function YearTransitionDialog({
               );
             })}
           </div>
-          {ambitionSelectionPending ? (
-            <p>方針を保存すると今シーズン中は変更できません。</p>
-          ) : null}
-        </section>
+            {ambitionSelectionPending ? (
+              <p>方針を保存すると今シーズン中は変更できません。</p>
+            ) : null}
+          </section>
+        ) : null}
 
         <div className="year-transition-metrics">
           <div>
