@@ -103,7 +103,9 @@ export function SchoolSeasonRanking({
           >
             <div>
               <strong>{goal.label}</strong>
-              <small>{goal.progressLabel}</small>
+              <small>
+                {goal.progressLabel}・年度末 +{goal.rewardFunds}
+              </small>
             </div>
             <b aria-label={goal.achieved ? "達成済み" : "挑戦中"}>
               {goal.achieved ? "✓" : "進行中"}
