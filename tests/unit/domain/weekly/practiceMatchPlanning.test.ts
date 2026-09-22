@@ -130,6 +130,88 @@ describe("Phase 8 practice-match planning", () => {
     }
   });
 
+  it("reconstructs the newest three practice results without mixing official matches", () => {
+    const state = createDemoGame();
+    const candidates =
+      state.weeklySchedule.practiceMatch.outgoingCandidates.slice(0, 3);
+    const dates = [
+      "2026-04-01",
+      "2026-04-08",
+      "2026-04-15",
+    ] as const;
+
+    state.weeklySchedule.recentPracticeMatches = candidates.map(
+      (candidate, index) => ({
+        opponentSchoolId: candidate.schoolId,
+        date: dates[index] as GameDate,
+      }),
+    );
+
+    candidates.forEach((candidate, index) => {
+      const won = index !== 1;
+      state.history.matches.push({
+        matchId: matchId(`practice-history-${index}`),
+        date: dates[index] as GameDate,
+        homeSchoolId: state.userSchoolId,
+        awaySchoolId: candidate.schoolId,
+        winnerSchoolId: won ? state.userSchoolId : candidate.schoolId,
+        homeSetsWon: won ? 2 : 1,
+        awaySetsWon: won ? 0 : 2,
+        tournamentId: null,
+      });
+    });
+
+    state.history.matches.push({
+      matchId: matchId("official-same-date"),
+      date: dates[2] as GameDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: candidates[2]!.schoolId,
+      winnerSchoolId: candidates[2]!.schoolId,
+      homeSetsWon: 0,
+      awaySetsWon: 2,
+      tournamentId: "official-phase29-5",
+    });
+
+    expect(practicePlanning.selectRecentPracticeResults(state, 3)).toEqual([
+      {
+        opponentSchoolId: candidates[2]!.schoolId,
+        date: dates[2],
+        won: true,
+        userSetsWon: 2,
+        opponentSetsWon: 0,
+      },
+      {
+        opponentSchoolId: candidates[1]!.schoolId,
+        date: dates[1],
+        won: false,
+        userSetsWon: 1,
+        opponentSetsWon: 2,
+      },
+      {
+        opponentSchoolId: candidates[0]!.schoolId,
+        date: dates[0],
+        won: true,
+        userSetsWon: 2,
+        opponentSetsWon: 0,
+      },
+    ]);
+  });
+
+  it("skips recent practice entries whose historical match is no longer available", () => {
+    const state = createDemoGame();
+    const opponent =
+      state.weeklySchedule.practiceMatch.outgoingCandidates[0]!.schoolId;
+    state.weeklySchedule.recentPracticeMatches = [
+      {
+        opponentSchoolId: opponent,
+        date: "2026-04-01" as GameDate,
+      },
+    ];
+
+    expect(practicePlanning.selectRecentPracticeResults(state)).toEqual([]);
+    expect(practicePlanning.selectRecentPracticeResults(state, 0)).toEqual([]);
+  });
+
   it.each([
     ["same", true, "stronger"],
     ["same", false, "same"],
