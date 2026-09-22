@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase29-1 formatting diagnostic
+        run: |
+          npx prettier src/domain/world/rivalryHistory.ts src/features/home/HomeCommandCenter.tsx src/features/home/home-season-card.css src/features/home/homeCommandCenter.ts tests/unit/domain/world/rivalryHistory.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/homeCommandCenter.test.ts --write
+          git diff -- src/domain/world/rivalryHistory.ts src/features/home/HomeCommandCenter.tsx src/features/home/home-season-card.css src/features/home/homeCommandCenter.ts tests/unit/domain/world/rivalryHistory.test.ts tests/unit/features/home/HomeScreen.test.tsx tests/unit/features/home/homeCommandCenter.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
