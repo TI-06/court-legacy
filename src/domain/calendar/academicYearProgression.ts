@@ -536,7 +536,10 @@ export function advanceAcademicYear(
   };
   nextState = {
     ...nextState,
-    seasonGoals: createSeasonGoals(nextState),
+    seasonGoals: createSeasonGoals(nextState, {
+      ambition: "challenge",
+      ambitionSelectionPending: true,
+    }),
   };
 
   return {
