@@ -470,13 +470,7 @@ const notificationPlayerSchema = z
       .array(
         z
           .object({
-            area: z.enum([
-              "attack",
-              "defense",
-              "jump",
-              "stamina",
-              "mental",
-            ]),
+            area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
             areaLabel: z.string().min(1),
             fromGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
             toGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
