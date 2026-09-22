@@ -453,6 +453,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const applyPracticeTrainingRecommendation = async (
+    teamTrainingMenuId: string,
+  ) => {
+    if (trainingCompleted) return;
+    await saveTrainingPlan({
+      ...gameState.weeklySchedule.trainingPlan,
+      teamTrainingMenuId,
+    });
+  };
+
   const savePlayerTrainingAssignments = async (
     individualAssignments: IndividualTrainingAssignment[],
   ) => {
@@ -1381,6 +1391,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             commandPending={cloudSession.operation.status === "submitting"}
             allowResultSkip
             onCommand={issueMatchCommand}
+            onApplyPracticeTrainingRecommendation={
+              applyPracticeTrainingRecommendation
+            }
+            trainingPlanPending={
+              cloudSession.operation.status === "submitting"
+            }
             onReturnHome={() => {
               if (activeMatchPresentation) void executeAdvanceWeek();
               else changeTab("home");
