@@ -107,7 +107,9 @@ describe("Phase16 match command decision panel", () => {
       screen.getByText("終盤の接戦です。次の数点をどう取りにいくか選べます"),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "タイムアウト" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "サーブで攻める" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "サーブで攻める" }),
+    ).toBeVisible();
     expect(screen.getByRole("button", { name: "速攻で崩す" })).toBeVisible();
     expect(screen.getByRole("button", { name: "サイドで押す" })).toBeVisible();
 
