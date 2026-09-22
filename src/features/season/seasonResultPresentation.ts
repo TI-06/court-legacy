@@ -77,7 +77,10 @@ export function buildSeasonResultPresentation(
       label: goalLabel(goal),
       progressLabel: goalProgressLabel(goal),
       achieved: goal.achieved,
-      rewardFunds: seasonGoalFundReward(goal),
+      rewardFunds: seasonGoalFundReward(
+        goal,
+        summary.ambition ?? "challenge",
+      ),
     })),
     regional: rankPresentation(
       summary.startingRanks.regional,
@@ -88,6 +91,9 @@ export function buildSeasonResultPresentation(
       summary.finalRanks.national,
     ),
     deltas: summary.deltas,
-    earnedRewardFunds: seasonGoalEarnedFunds(summary.goalResults),
+    earnedRewardFunds: seasonGoalEarnedFunds(
+      summary.goalResults,
+      summary.ambition ?? "challenge",
+    ),
   };
 }
