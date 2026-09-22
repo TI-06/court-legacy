@@ -18,6 +18,7 @@ import {
   resolveSeasonReputation,
 } from "../school/reputation";
 import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
+import { grantCompletedSeasonGoalRewards } from "../season/seasonGoalRewards";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";
@@ -293,7 +294,7 @@ export function advanceAcademicYear(
     nextAcademicYear >= state.world.nextGenerationalTalentYear;
   const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
   const players = { ...state.players };
-  const schools = Object.fromEntries(
+  let schools = Object.fromEntries(
     Object.values(state.schools).map((school) => {
       const resolved = resolveAnnualSchoolReputation(school);
       return [resolved.id, resolved];
@@ -302,6 +303,14 @@ export function advanceAcademicYear(
   const completedSeasonGoalSummary = state.seasonGoals
     ? evaluateSeasonGoals({ ...state, schools }, state.seasonGoals)
     : null;
+  let seasonRewardState: GameState = { ...state, schools };
+  if (completedSeasonGoalSummary) {
+    seasonRewardState = grantCompletedSeasonGoalRewards(
+      seasonRewardState,
+      completedSeasonGoalSummary,
+    );
+    schools = seasonRewardState.schools;
+  }
   const graduatedPlayerIds: PlayerId[] = [];
   const intakePlayerIds: PlayerId[] = [];
   const graduatedPlayerIdsBySchool = {} as Record<SchoolId, PlayerId[]>;
@@ -432,7 +441,7 @@ export function advanceAcademicYear(
     recruiting: undefined,
     shopEffects: undefined,
     schoolManagement: {
-      ...state.schoolManagement,
+      ...seasonRewardState.schoolManagement,
       assistantCoach: null,
     },
     history: {
