@@ -250,7 +250,6 @@ export function evaluateSeasonGoals(
   };
 }
 
-
 export class SeasonAmbitionSelectionError extends Error {
   constructor(public readonly reason: "unavailable" | "locked") {
     super(
