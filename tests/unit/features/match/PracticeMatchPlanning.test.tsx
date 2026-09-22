@@ -1,6 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import {
+  matchId,
+  type GameDate,
+} from "../../../../src/domain/model/identifiers";
 import { PracticeMatchPlanning } from "../../../../src/features/match/PracticeMatchPlanning";
 
 describe("PracticeMatchPlanning", () => {
@@ -73,6 +77,55 @@ describe("PracticeMatchPlanning", () => {
 
     expect(onRequest).toHaveBeenCalledTimes(1);
     expect(onRequest).toHaveBeenCalledWith(recommended.schoolId);
+  });
+
+  it("labels the shortcut as last-match advice when a recent practice result exists", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    const previous =
+      state.weeklySchedule.practiceMatch.outgoingCandidates[0]!;
+    const previousDate = "2026-04-01" as GameDate;
+    state.weeklySchedule.recentPracticeMatches = [
+      { opponentSchoolId: previous.schoolId, date: previousDate },
+    ];
+    state.history.matches.push({
+      matchId: matchId("phase29-4-ui-loss"),
+      date: previousDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: previous.schoolId,
+      winnerSchoolId: previous.schoolId,
+      homeSetsWon: 0,
+      awaySetsWon: 2,
+      tournamentId: null,
+    });
+
+    render(
+      <PracticeMatchPlanning
+        onAcceptOffer={vi.fn()}
+        onDeclineOffer={vi.fn()}
+        onRequest={vi.fn()}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const shortcut = screen.getByRole("article", {
+      name: "方針おすすめの練習試合",
+    });
+    expect(within(shortcut).getByText("LAST MATCH ADVICE")).toBeVisible();
+    expect(within(shortcut).getByText(/前回敗戦を踏まえ/)).toBeVisible();
+
+    const recommendedSchoolName =
+      state.schools[
+        state.weeklySchedule.practiceMatch.outgoingCandidates.find(
+          (candidate) =>
+            screen.queryByLabelText(
+              `${state.schools[candidate.schoolId]?.name}におすすめから申し込む`,
+            ),
+        )?.schoolId ?? previous.schoolId
+      ]?.name;
+    expect(recommendedSchoolName).toBeTruthy();
   });
 
   it("moves the shortcut to the next available recommendation after rejection", () => {
