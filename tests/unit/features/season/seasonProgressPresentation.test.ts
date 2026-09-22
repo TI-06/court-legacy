@@ -19,10 +19,21 @@ describe("Phase17 season progress presentation", () => {
 
     expect(presentation).not.toBeNull();
     expect(presentation!.academicYear).toBe(state.calendar.academicYear);
+    expect(presentation!.ambition).toBe("challenge");
+    expect(presentation!.ambitionLabel).toBe("挑戦");
     expect(presentation!.goalCount).toBe(3);
     expect(presentation!.goals).toHaveLength(3);
     expect(presentation!.goals.every((goal) => goal.rewardFunds > 0)).toBe(
       true,
+    );
+    expect(
+      presentation!.goals.every((goal) => goal.remainingLabel.length > 0),
+    ).toBe(true);
+    expect(presentation!.remainingRewardFunds).toBe(
+      presentation!.goals.reduce(
+        (total, goal) => total + (goal.achieved ? 0 : goal.rewardFunds),
+        0,
+      ),
     );
 
     const regionalGoal = seasonGoals.goals.find(
@@ -56,6 +67,30 @@ describe("Phase17 season progress presentation", () => {
     );
     expect(presentation!.regional.nearby.length).toBeLessThanOrEqual(5);
     expect(presentation!.national.nearby.length).toBeLessThanOrEqual(5);
+  });
+
+  it("describes exactly what remains for rank and win goals", () => {
+    const state = createDemoGame();
+    const regional = state.seasonGoals!.goals.find(
+      (goal) => goal.kind === "regional-rank",
+    )!;
+    const wins = state.seasonGoals!.goals.find(
+      (goal) => goal.kind === "official-wins",
+    )!;
+    const user = state.schools[state.userSchoolId]!;
+    user.history.officialWins =
+      state.seasonGoals!.baseline.officialWins + Math.max(0, wins.target - 1);
+
+    const presentation = buildSeasonProgressPresentation(state)!;
+    const regionalPresentation = presentation.goals.find(
+      (goal) => goal.id === regional.id,
+    )!;
+    const winsPresentation = presentation.goals.find(
+      (goal) => goal.id === wins.id,
+    )!;
+
+    expect(regionalPresentation.remainingLabel).toMatch(/達成済み|あと\d+位/);
+    expect(winsPresentation.remainingLabel).toBe("あと1勝");
   });
 
   it("calculates rank movement from the persisted season-start ranks", () => {

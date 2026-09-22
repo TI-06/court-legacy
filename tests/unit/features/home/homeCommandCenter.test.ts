@@ -91,6 +91,8 @@ describe("selectHomeCommandCenter", () => {
     expect(model.summary.season).not.toBeNull();
     expect(model.summary.season).toMatchObject({
       academicYear: 1,
+      ambitionLabel: "挑戦",
+      remainingRewardFunds: expect.any(Number),
       achievedCount: expect.any(Number),
       goalCount: 3,
       primaryGoal: {

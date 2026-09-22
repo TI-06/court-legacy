@@ -235,6 +235,10 @@ describe("school management screen", () => {
 
     const dashboard = screen.getByRole("region", { name: "今季ランキング" });
     expect(dashboard).toBeVisible();
+    expect(dashboard).toHaveTextContent(presentation.ambitionLabel);
+    expect(dashboard).toHaveTextContent(
+      `残り報酬 +${presentation.remainingRewardFunds}`,
+    );
     for (const goal of presentation.goals) {
       expect(within(dashboard).getByText(goal.label)).toBeVisible();
       expect(
@@ -244,6 +248,7 @@ describe("school management screen", () => {
             Boolean(element.textContent?.includes(goal.progressLabel)),
         ),
       ).toBeVisible();
+      expect(dashboard).toHaveTextContent(goal.remainingLabel);
       expect(dashboard).toHaveTextContent(`年度末 +${goal.rewardFunds}`);
     }
 

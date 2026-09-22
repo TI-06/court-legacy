@@ -90,9 +90,13 @@ export function SchoolSeasonRanking({
           <span>SEASON</span>
           <h4>今季ランキング</h4>
         </div>
-        <strong>
-          {presentation.achievedCount}/{presentation.goalCount} 目標達成
-        </strong>
+        <div className="school-season-ranking__status">
+          <b>{presentation.ambitionLabel}</b>
+          <strong>
+            {presentation.achievedCount}/{presentation.goalCount} 目標達成
+          </strong>
+          <small>残り報酬 +{presentation.remainingRewardFunds}</small>
+        </div>
       </div>
 
       <div className="school-season-ranking__goals">
@@ -104,7 +108,8 @@ export function SchoolSeasonRanking({
             <div>
               <strong>{goal.label}</strong>
               <small>
-                {goal.progressLabel}・年度末 +{goal.rewardFunds}
+                {goal.progressLabel}・{goal.remainingLabel}・年度末 +
+                {goal.rewardFunds}
               </small>
             </div>
             <b aria-label={goal.achieved ? "達成済み" : "挑戦中"}>
