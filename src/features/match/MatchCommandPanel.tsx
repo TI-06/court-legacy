@@ -157,10 +157,31 @@ export function MatchCommandPanel({
   }
 
   const timeoutAvailable =
-    reason === "opponent-run" &&
+    reason !== "set-break" &&
     !runtime.timeoutUsedSchoolIds.includes(state.userSchoolId);
   const continueLabel =
-    reason === "set-break" ? "このまま次セットへ" : "このまま続ける";
+    reason === "set-break"
+      ? "このまま次セットへ"
+      : reason === "critical-score"
+        ? "このまま勝負する"
+        : "このまま続ける";
+  const quickCriticalPlans =
+    reason === "critical-score"
+      ? [
+          {
+            label: "サーブで攻める",
+            plan: { ...currentPlan, serve: "aggressive" as const },
+          },
+          {
+            label: "速攻で崩す",
+            plan: { ...currentPlan, attack: "quick" as const },
+          },
+          {
+            label: "サイドで押す",
+            plan: { ...currentPlan, attack: "side" as const },
+          },
+        ]
+      : [];
   const tacticsDraft = draftPlan ?? currentPlan;
   const courtPlayers = substitutionCourtOrder
     .map((slot) =>
@@ -240,9 +261,34 @@ export function MatchCommandPanel({
           <p>
             {reason === "opponent-run"
               ? "相手に4連続ポイントを許しています"
-              : "セット間の監督指示"}
+              : reason === "critical-score"
+                ? "終盤の接戦です。次の数点をどう取りにいくか選べます"
+                : "セット間の監督指示"}
           </p>
         </div>
+
+        {quickCriticalPlans.length > 0 ? (
+          <div className="match-command-quick" aria-label="重要場面の一手">
+            <span>この場面の一手</span>
+            <div>
+              {quickCriticalPlans.map((item) => (
+                <button
+                  disabled={pending}
+                  key={item.label}
+                  onClick={() =>
+                    void onCommand({
+                      type: "set-match-tactics",
+                      plan: { ...item.plan },
+                    })
+                  }
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="match-command-actions">
           {timeoutAvailable ? (
