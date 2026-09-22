@@ -1058,3 +1058,200 @@
 .pre-match-lineup__analysis-apply:disabled {
   opacity: 0.5;
 }
+
+
+/* Phase30: compact mobile pre-match layout and safe fixed start action. */
+.pre-match-lineup {
+  gap: 9px;
+  padding-bottom: calc(
+    92px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+}
+
+.pre-match-lineup__hero,
+.pre-match-lineup__tactics,
+.pre-match-lineup__presets,
+.pre-match-lineup__lineup,
+.pre-match-lineup__bench {
+  padding: 11px;
+}
+
+.pre-match-lineup__hero {
+  align-items: center;
+  padding: 11px 12px;
+}
+
+.pre-match-lineup__hero h2 {
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.pre-match-lineup__hero p:last-child {
+  color: #d8e6ef;
+  font-size: 0.7rem;
+}
+
+.pre-match-lineup__section-heading {
+  margin-bottom: 8px;
+}
+
+.pre-match-lineup__section-heading h3,
+.pre-match-lineup__bench h3,
+.pre-match-lineup__saved-heading strong {
+  color: #fff;
+}
+
+.pre-match-lineup__versus {
+  padding: 8px;
+}
+
+.pre-match-lineup__versus article {
+  padding: 9px 7px;
+}
+
+.pre-match-lineup__opponent-tactics {
+  margin-bottom: 7px;
+  padding: 8px;
+}
+
+.pre-match-lineup__tactic-axis {
+  gap: 5px;
+  padding: 7px 0;
+}
+
+.pre-match-lineup__tactic-options button {
+  min-height: 48px;
+  padding: 6px 5px;
+}
+
+.pre-match-lineup__preset-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.pre-match-lineup__preset-grid button {
+  min-height: 38px;
+  padding: 5px 3px;
+  font-size: 0.66rem;
+}
+
+.pre-match-lineup__saved-heading {
+  margin: 9px 0 6px;
+}
+
+.pre-match-lineup__saved-presets button {
+  min-height: 52px;
+  padding: 6px;
+}
+
+.pre-match-lineup__court {
+  padding: 8px;
+  gap: 6px;
+}
+
+.pre-match-lineup__court-player {
+  min-height: 82px;
+}
+
+.pre-match-lineup__libero-card {
+  min-height: 58px;
+  margin-top: 7px;
+}
+
+.pre-match-lineup__bench-rail {
+  margin-top: 7px;
+}
+
+.pre-match-lineup .match-comparison-panel {
+  padding: 10px;
+}
+
+.pre-match-lineup .match-radar {
+  margin-top: 6px;
+  padding-block: 4px;
+}
+
+.pre-match-lineup .match-radar__chart {
+  width: min(100%, 196px);
+}
+
+.pre-match-lineup .match-profile-table,
+.pre-match-lineup .match-scout-grid {
+  display: none;
+}
+
+.pre-match-lineup__start {
+  position: fixed;
+  z-index: 29;
+  right: auto;
+  bottom: calc(
+    var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) + 8px
+  );
+  left: 50%;
+  width: min(calc(100% - 24px), 456px);
+  min-height: 56px;
+  margin: 0;
+  transform: translateX(-50%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 34%);
+}
+
+@media (max-width: 420px) {
+  .pre-match-lineup__hero p:last-child {
+    display: none;
+  }
+
+  .pre-match-lineup__hero > button,
+  .pre-match-lineup__section-heading > button {
+    min-height: 34px;
+    padding-inline: 9px;
+    font-size: 0.66rem;
+  }
+
+  .pre-match-lineup__tactic-axis-heading {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pre-match-lineup__tactic-axis-heading span {
+    display: none;
+  }
+
+  .pre-match-lineup__tactic-options button {
+    min-height: 44px;
+  }
+
+  .pre-match-lineup__analysis {
+    padding: 9px 10px;
+    gap: 6px;
+  }
+
+  .pre-match-lineup__analysis-source,
+  .pre-match-lineup__analysis-observations,
+  .pre-match-lineup__analysis-reasons {
+    display: none;
+  }
+
+  .pre-match-lineup__analysis-plan {
+    padding: 7px 8px;
+  }
+
+  .pre-match-lineup__analysis-apply {
+    min-height: 38px;
+  }
+
+  .pre-match-lineup__preset-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .pre-match-lineup__saved-presets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pre-match-lineup__saved-presets button > small {
+    display: none;
+  }
+}
