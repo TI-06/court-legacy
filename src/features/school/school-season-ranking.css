@@ -281,3 +281,52 @@
   background: rgb(244 122 24 / 13%);
   outline-color: rgb(244 122 24 / 34%);
 }
+
+
+.school-season-ranking__status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.school-season-ranking__status > b,
+.school-season-ranking__status > strong,
+.school-season-ranking__status > small {
+  padding: 4px 6px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  white-space: nowrap;
+  border-radius: 999px;
+}
+
+.school-season-ranking__status > b {
+  color: #ffd596;
+  background: rgb(244 122 24 / 14%);
+}
+
+.school-season-ranking__status > strong {
+  color: #8fe0ad;
+  background: rgb(51 181 121 / 12%);
+}
+
+.school-season-ranking__status > small {
+  color: #b8d5e8;
+  background: rgb(46 139 216 / 12%);
+}
+
+@media (max-width: 350px) {
+  .school-season-ranking__heading {
+    align-items: flex-start;
+  }
+
+  .school-season-ranking__status {
+    justify-content: flex-start;
+  }
+
+  .school-season-ranking__status > small {
+    display: none;
+  }
+}
