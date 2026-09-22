@@ -324,6 +324,24 @@ export function HomeCommandCenter({
             </div>
           ) : null}
 
+          {summary.featuredRival ? (
+            <button
+              aria-label={`注目ライバル ${summary.featuredRival.displayName} ${summary.featuredRival.recordLabel}`}
+              className="home-featured-rival"
+              disabled={operationPending}
+              onClick={() => onCommand({ target: "school", view: "records" })}
+              type="button"
+            >
+              <span>{summary.featuredRival.badge}</span>
+              <strong>{summary.featuredRival.displayName}</strong>
+              <small>
+                {summary.featuredRival.recordLabel}・
+                {summary.featuredRival.contextLabel}
+              </small>
+              <b aria-hidden="true">›</b>
+            </button>
+          ) : null}
+
           {summary.season ? (
             <section className="home-season-card" aria-label="今季目標">
               <div className="home-season-card__goal">
