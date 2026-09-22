@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Phase29-3 formatting diagnostic
+        run: |
+          npx prettier src/features/match/MatchScreen.tsx src/features/match/PracticeMatchReviewPanel.tsx src/features/match/match.css src/features/match/practiceMatchReview.ts tests/unit/features/match/Phase16MatchScreenCommandSummary.test.tsx tests/unit/features/match/practiceMatchReview.test.ts --write
+          git diff -- src/features/match/MatchScreen.tsx src/features/match/PracticeMatchReviewPanel.tsx src/features/match/match.css src/features/match/practiceMatchReview.ts tests/unit/features/match/Phase16MatchScreenCommandSummary.test.tsx tests/unit/features/match/practiceMatchReview.test.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
