@@ -266,3 +266,95 @@
     width: 100%;
   }
 }
+
+
+/* Phase29-5: recent practice log stays compact at mobile widths. */
+.practice-planning__history {
+  display: grid;
+  min-width: 0;
+  padding: 8px 9px;
+  gap: 6px;
+  background: #f7fafb;
+  border: 1px solid #dce6ea;
+  border-radius: 11px;
+}
+
+.practice-planning__history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.practice-planning__history-heading span {
+  color: #68818a;
+  font-size: 0.5rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.practice-planning__history-heading strong {
+  color: #344f59;
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+.practice-planning__history-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+  gap: 5px;
+}
+
+.practice-planning__history-list article {
+  display: grid;
+  min-width: 0;
+  padding: 5px 6px;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #e3eaed;
+  border-radius: 8px;
+}
+
+.practice-planning__history-list time {
+  color: #829198;
+  font-size: 0.5rem;
+  font-weight: 800;
+}
+
+.practice-planning__history-list strong {
+  overflow: hidden;
+  color: #2d4751;
+  font-size: 0.61rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-planning__history-list b {
+  font-size: 0.64rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.practice-planning__history-list b.is-win {
+  color: #237249;
+}
+
+.practice-planning__history-list b.is-loss {
+  color: #a54d40;
+}
+
+@media (max-width: 340px) {
+  .practice-planning__history {
+    padding-inline: 7px;
+  }
+
+  .practice-planning__history-list {
+    gap: 3px;
+  }
+
+  .practice-planning__history-list article {
+    padding-inline: 4px;
+  }
+}
