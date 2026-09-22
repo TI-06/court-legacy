@@ -1,3 +1,4 @@
+import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchState } from "../../domain/model/Match";
 import { buildPracticeMatchReview } from "./practiceMatchReview";
@@ -7,11 +8,15 @@ export function PracticeMatchReviewPanel({
   match,
   homeStrength,
   awayStrength,
+  onApplyTrainingRecommendation,
+  pending = false,
 }: {
   state: GameState;
   match: MatchState;
   homeStrength: number;
   awayStrength: number;
+  onApplyTrainingRecommendation?: (menuId: string) => void | Promise<void>;
+  pending?: boolean;
 }) {
   const review = buildPracticeMatchReview({
     state,
@@ -19,6 +24,10 @@ export function PracticeMatchReviewPanel({
     homeStrength,
     awayStrength,
   });
+  const trainingCompleted = isWeeklyActionCompleted(state, "training");
+  const alreadySelected =
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId ===
+    review.trainingRecommendation.menuId;
 
   return (
     <section aria-label="練習試合レビュー" className="practice-match-review">
@@ -46,6 +55,38 @@ export function PracticeMatchReviewPanel({
       </div>
 
       <p>{review.nextRecommendation}</p>
+
+      <section
+        aria-label="練習試合後の重点練習"
+        className="practice-match-review__training"
+      >
+        <div>
+          <span>NEXT TRAINING</span>
+          <strong>{review.trainingRecommendation.menuName}</strong>
+          <small>{review.trainingRecommendation.reason}</small>
+        </div>
+        <button
+          disabled={
+            pending || alreadySelected || !onApplyTrainingRecommendation
+          }
+          onClick={() => {
+            void onApplyTrainingRecommendation?.(
+              review.trainingRecommendation.menuId,
+            );
+          }}
+          type="button"
+        >
+          {pending
+            ? "保存中…"
+            : alreadySelected
+              ? trainingCompleted
+                ? "次週に設定済み"
+                : "設定済み"
+              : trainingCompleted
+                ? "次週に設定"
+                : "この練習を設定"}
+        </button>
+      </section>
     </section>
   );
 }

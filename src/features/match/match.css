@@ -1305,3 +1305,74 @@
     justify-self: start;
   }
 }
+
+.practice-match-review__training {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  gap: 8px;
+  background: rgb(255 217 154 / 7%);
+  border: 1px solid rgb(255 217 154 / 14%);
+  border-radius: 10px;
+}
+
+.practice-match-review__training > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.practice-match-review__training span {
+  color: #ffd99a;
+  font-size: 0.5rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.practice-match-review__training strong {
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.practice-match-review__training small {
+  overflow: hidden;
+  color: #a9c2cb;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-match-review__training button {
+  min-height: 36px;
+  padding: 7px 9px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #f47a18, #d9570d);
+  border: 0;
+  border-radius: 9px;
+  white-space: nowrap;
+}
+
+.practice-match-review__training button:disabled {
+  color: #8798a3;
+  background: #263847;
+}
+
+@media (max-width: 350px) {
+  .practice-match-review__training {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-match-review__training small {
+    white-space: normal;
+  }
+
+  .practice-match-review__training button {
+    width: 100%;
+  }
+}

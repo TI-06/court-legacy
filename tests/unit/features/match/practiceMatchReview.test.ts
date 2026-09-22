@@ -5,7 +5,11 @@ import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
-import { buildPracticeMatchReview } from "../../../../src/features/match/practiceMatchReview";
+import {
+  buildPracticeMatchReview,
+  recommendPracticeTrainingFromStats,
+} from "../../../../src/features/match/practiceMatchReview";
+import type { TeamMatchStats } from "../../../../src/features/match/matchPresentation";
 
 function completedMatch() {
   const state = createDemoGame();
@@ -32,7 +36,53 @@ function completedMatch() {
   return { state, match: result.match };
 }
 
+function teamStats(overrides: Partial<TeamMatchStats> = {}): TeamMatchStats {
+  return {
+    schoolId: "school.test" as TeamMatchStats["schoolId"],
+    totalPoints: 50,
+    attackPoints: 20,
+    blockPoints: 4,
+    serviceAces: 3,
+    rallyPoints: 5,
+    opponentErrorPoints: 5,
+    serveErrors: 2,
+    attackAttempts: 40,
+    receiveAttempts: 30,
+    perfectReceives: 15,
+    attackSuccessRate: 50,
+    perfectReceiveRate: 50,
+    ...overrides,
+  };
+}
+
 describe("practiceMatchReview", () => {
+  it("recommends receive training when first-touch performance trails clearly", () => {
+    const recommendation = recommendPracticeTrainingFromStats(
+      teamStats({ perfectReceiveRate: 24 }),
+      teamStats({ perfectReceiveRate: 52 }),
+    );
+
+    expect(recommendation).toEqual({
+      focus: "receive",
+      menuId: "training.receive",
+      menuName: "サーブレシーブ",
+      reason: "好返球率 24% / 相手 52%",
+    });
+  });
+
+  it("recommends scrimmage when no stat area shows a meaningful weakness", () => {
+    const recommendation = recommendPracticeTrainingFromStats(
+      teamStats(),
+      teamStats(),
+    );
+
+    expect(recommendation).toMatchObject({
+      focus: "balanced",
+      menuId: "training.scrimmage",
+      menuName: "実戦形式",
+    });
+  });
+
   it("treats a bold win over a clearly stronger opponent as aligned challenge progress", () => {
     const { state, match } = completedMatch();
     state.seasonGoals = {
@@ -49,7 +99,7 @@ describe("practiceMatchReview", () => {
         homeStrength: 60,
         awayStrength: 75,
       }),
-    ).toEqual({
+    ).toMatchObject({
       ambition: "bold",
       ambitionLabel: "野心",
       tier: "challenge",
