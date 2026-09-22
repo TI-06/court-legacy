@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
+import { selectSeasonAmbition } from "../../../../src/domain/season/seasonGoals";
 import { YearTransitionDialog } from "../../../../src/features/home/YearTransitionDialog";
 import { buildSeasonResultPresentation } from "../../../../src/features/season/seasonResultPresentation";
 
@@ -33,10 +34,12 @@ describe("year transition dialog", () => {
     }
     const season = buildSeasonResultPresentation(seasonSummary);
     const onClose = vi.fn();
+    const onSelectAmbition = vi.fn();
 
-    render(
+    const { rerender } = render(
       <YearTransitionDialog
         onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
         state={result.state}
         summary={summary}
       />,
@@ -91,7 +94,33 @@ describe("year transition dialog", () => {
     expect(screen.getByText("新主将")).toBeVisible();
     expect(screen.getByText("世代級選手が入学")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "新年度を始める" }));
+    const ambition = screen.getByRole("region", {
+      name: "新シーズン目標方針",
+    });
+    expect(within(ambition).getByText("選択必須")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "目標方針を選んでください" }),
+    ).toBeDisabled();
+
+    fireEvent.click(
+      within(ambition).getByRole("button", { name: "野心方針を選ぶ" }),
+    );
+    expect(onSelectAmbition).toHaveBeenCalledWith("bold");
+
+    const selectedState = selectSeasonAmbition(result.state, "bold");
+    rerender(
+      <YearTransitionDialog
+        onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
+        state={selectedState}
+        summary={summary}
+      />,
+    );
+
+    expect(screen.getByText("今季は「野心」")).toBeVisible();
+    const startButton = screen.getByRole("button", { name: "新年度を始める" });
+    expect(startButton).toBeEnabled();
+    fireEvent.click(startButton);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -107,9 +136,12 @@ describe("year transition dialog", () => {
     const summary = result.academicYearTransition;
     if (!summary) throw new Error("transition missing");
 
-    render(
+    const onClose = vi.fn();
+    const onSelectAmbition = vi.fn();
+    const { rerender } = render(
       <YearTransitionDialog
-        onClose={vi.fn()}
+        onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
         state={result.state}
         summary={summary}
       />,
@@ -119,8 +151,22 @@ describe("year transition dialog", () => {
     expect(
       screen.queryByRole("region", { name: "シーズン振り返り" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "新年度を始める" }),
-    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "挑戦方針を選ぶ" }));
+    expect(onSelectAmbition).toHaveBeenCalledWith("challenge");
+
+    const selectedState = selectSeasonAmbition(result.state, "challenge");
+    rerender(
+      <YearTransitionDialog
+        onClose={onClose}
+        onSelectAmbition={onSelectAmbition}
+        state={selectedState}
+        summary={summary}
+      />,
+    );
+
+    const startButton = screen.getByRole("button", { name: "新年度を始める" });
+    expect(startButton).toBeVisible();
+    expect(startButton).toBeEnabled();
   });
 });

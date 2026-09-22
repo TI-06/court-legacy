@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { MatchCommand } from "../../src/domain/model/Match";
+import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
   AssistantCoachRank,
@@ -138,6 +139,12 @@ const matchCommandSchema = z.discriminatedUnion("type", [
 const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("training"), plan: weeklyPlanSchema }).strict(),
   z
+    .object({
+      type: z.literal("set-season-ambition"),
+      ambition: z.enum(["steady", "challenge", "bold"]),
+    })
+    .strict(),
+  z
     .object({ type: z.literal("set-training-plan"), plan: weeklyPlanSchema })
     .strict(),
   z
@@ -250,6 +257,7 @@ export const gameActionRequestSchema = z
 
 export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
+  | { type: "set-season-ambition"; ambition: SeasonAmbition }
   | { type: "set-training-plan"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
   | { type: "set-team-tactics"; plan: MatchTacticPlan }

@@ -68,6 +68,10 @@ import {
   evaluateFacilityUpgrade,
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
+import {
+  SeasonAmbitionSelectionError,
+  selectSeasonAmbition,
+} from "../../src/domain/season/seasonGoals";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import {
@@ -1324,6 +1328,25 @@ function applyAdvanceWeek(
   }
 }
 
+function applySeasonAmbition(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-season-ambition" }>,
+): AppliedGameAction {
+  try {
+    return {
+      state: selectSeasonAmbition(state, action.ambition),
+      teamSelection,
+      outcome: { ambition: action.ambition },
+    };
+  } catch (error) {
+    if (error instanceof SeasonAmbitionSelectionError) {
+      return conflict(`season_ambition_${error.reason}`, error.message);
+    }
+    throw error;
+  }
+}
+
 function applyMarkNotificationRead(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1451,6 +1474,8 @@ function applyActionByType(
   switch (action.type) {
     case "training":
       return applyTraining(state, teamSelection, action);
+    case "set-season-ambition":
+      return applySeasonAmbition(state, teamSelection, action);
     case "set-training-plan":
       return applyTrainingPlan(state, teamSelection, action);
     case "team-selection":

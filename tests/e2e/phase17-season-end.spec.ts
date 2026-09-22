@@ -72,6 +72,10 @@ test("@critical year rollover shows season review and archives it in School reco
   await expect(
     transition.getByRole("region", { name: "シーズン振り返り" }),
   ).toBeVisible();
+  await expect(
+    transition.getByRole("button", { name: "目標方針を選んでください" }),
+  ).toBeDisabled();
+  await transition.getByRole("button", { name: "挑戦方針を選ぶ" }).click();
   await transition.getByRole("button", { name: "新年度を始める" }).click();
 
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
@@ -114,6 +118,10 @@ test("legacy v8 year rollover keeps the new-year dialog usable without an archiv
   await expect(
     transition.getByRole("region", { name: "シーズン振り返り" }),
   ).toHaveCount(0);
+  await expect(
+    transition.getByRole("button", { name: "目標方針を選んでください" }),
+  ).toBeDisabled();
+  await transition.getByRole("button", { name: "挑戦方針を選ぶ" }).click();
   await expect(
     transition.getByRole("button", { name: "新年度を始める" }),
   ).toBeVisible();

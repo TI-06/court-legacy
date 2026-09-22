@@ -22,6 +22,9 @@ describe("Phase17 season goal rollover", () => {
     expect(archived?.academicYear).toBe(completedGoals.academicYear);
     expect(nextGoals?.yearIndex).toBe(2);
     expect(nextGoals?.academicYear).toBe(2);
+    expect(archived?.ambition).toBe("challenge");
+    expect(nextGoals?.ambition).toBe("challenge");
+    expect(nextGoals?.ambitionSelectionPending).toBe(true);
     expect(nextGoals?.baseline).toMatchObject({
       officialWins: nextUserSchool.history.officialWins,
       prefecturalTitles: nextUserSchool.history.prefecturalTitles,
@@ -61,7 +64,12 @@ describe("Phase17 season goal rollover", () => {
     expect(rewardEntries).toHaveLength(3);
     expect(
       rewardEntries.reduce((total, entry) => total + entry.amount, 0),
-    ).toBe(seasonGoalEarnedFunds(archived.goalResults));
+    ).toBe(
+      seasonGoalEarnedFunds(
+        archived.goalResults,
+        archived.ambition ?? "challenge",
+      ),
+    );
 
     const annualBudgetIndex =
       result.state.schoolManagement.fundsHistory.findIndex(

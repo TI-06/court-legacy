@@ -165,6 +165,37 @@ describe("game action route", () => {
     expect(body.operationId).toBe("operation-001");
   });
 
+  it("accepts a valid season ambition action through the HTTP contract", async () => {
+    const snapshot = createSnapshot();
+    snapshot.state.calendar.weekOfYear = 1;
+    snapshot.state.calendar.completedActivityIds = [];
+    snapshot.state.seasonGoals = {
+      ...snapshot.state.seasonGoals!,
+      ambition: "challenge",
+      ambitionSelectionPending: true,
+    };
+    const store = createStore(snapshot);
+    const handler = createGameActionHandler(store);
+
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "set-season-ambition",
+          ambition: "bold",
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(persisted.state.seasonGoals).toMatchObject({
+      ambition: "bold",
+      ambitionSelectionPending: false,
+    });
+  });
+
   it("returns revision_conflict before applying a stale action", async () => {
     const store = createStore(createSnapshot(5));
     const handler = createGameActionHandler(store);

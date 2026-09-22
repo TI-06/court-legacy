@@ -2,6 +2,7 @@ import type { GameState } from "../model/GameState";
 import type { School } from "../model/School";
 import { schoolRankingSnapshot } from "./schoolRankings";
 import type {
+  SeasonAmbition,
   SeasonGoalDefinition,
   SeasonGoalSeasonSummary,
   SeasonGoalState,
@@ -24,6 +25,18 @@ function historyBaseline(school: School): SeasonHistoryBaseline {
   };
 }
 
+export const seasonAmbitionLabels: Record<SeasonAmbition, string> = {
+  steady: "安定",
+  challenge: "挑戦",
+  bold: "野心",
+};
+
+export const seasonAmbitionDescriptions: Record<SeasonAmbition, string> = {
+  steady: "達成しやすい目標で着実に資金を積み上げる",
+  challenge: "現在の学校評価に合った標準的な目標",
+  bold: "一段上の目標へ挑み、より大きな報酬を狙う",
+};
+
 function officialWinTarget(reputationPoints: number): number {
   if (reputationPoints >= 1000) return 7;
   if (reputationPoints >= 800) return 6;
@@ -41,39 +54,98 @@ function tournamentTarget(
   return "prefectural-title";
 }
 
-function regionalRankTarget(startRank: number, total: number): number {
-  const improvement = Math.max(1, Math.ceil(total * 0.15));
+function ambitionWinTarget(
+  baseTarget: number,
+  ambition: SeasonAmbition,
+): number {
+  if (ambition === "steady") return Math.max(1, baseTarget - 1);
+  if (ambition === "bold") return Math.min(8, baseTarget + 1);
+  return baseTarget;
+}
+
+function ambitionTournamentTarget(
+  baseTarget: TournamentAchievementTarget,
+  ambition: SeasonAmbition,
+): TournamentAchievementTarget {
+  if (ambition === "steady") {
+    if (baseTarget === "national-title") return "national-appearance";
+    return "prefectural-title";
+  }
+  if (ambition === "bold") {
+    if (baseTarget === "prefectural-title") return "national-appearance";
+    return "national-title";
+  }
+  return baseTarget;
+}
+
+function regionalRankTarget(
+  startRank: number,
+  total: number,
+  ambition: SeasonAmbition,
+): number {
+  const rate = ambition === "steady" ? 0.1 : ambition === "bold" ? 0.2 : 0.15;
+  const improvement = Math.max(1, Math.ceil(total * rate));
   return Math.max(1, startRank - improvement);
 }
 
-export function createSeasonGoals(state: SeasonGoalSource): SeasonGoalState {
+function buildGoals(input: {
+  yearIndex: number;
+  startRegionalRank: number;
+  regionalTotal: number;
+  reputationPoints: number;
+  ambition: SeasonAmbition;
+}): SeasonGoalDefinition[] {
+  const baseWins = officialWinTarget(input.reputationPoints);
+  const baseTournament = tournamentTarget(input.reputationPoints);
+  return [
+    {
+      id: `season:${input.yearIndex}:regional-rank`,
+      kind: "regional-rank",
+      target: regionalRankTarget(
+        input.startRegionalRank,
+        input.regionalTotal,
+        input.ambition,
+      ),
+    },
+    {
+      id: `season:${input.yearIndex}:official-wins`,
+      kind: "official-wins",
+      target: ambitionWinTarget(baseWins, input.ambition),
+    },
+    {
+      id: `season:${input.yearIndex}:tournament-achievement`,
+      kind: "tournament-achievement",
+      target: 1,
+      achievement: ambitionTournamentTarget(baseTournament, input.ambition),
+    },
+  ];
+}
+
+export function createSeasonGoals(
+  state: SeasonGoalSource,
+  options: {
+    ambition?: SeasonAmbition;
+    ambitionSelectionPending?: boolean;
+  } = {},
+): SeasonGoalState {
   const school = state.schools[state.userSchoolId];
   if (!school) {
     throw new Error("user school is missing while creating season goals");
   }
   const ranking = schoolRankingSnapshot(state, school.id);
-  const achievement = tournamentTarget(school.reputationPoints);
-  const goals: SeasonGoalDefinition[] = [
-    {
-      id: `season:${state.yearIndex}:regional-rank`,
-      kind: "regional-rank",
-      target: regionalRankTarget(ranking.regional.rank, ranking.regional.total),
-    },
-    {
-      id: `season:${state.yearIndex}:official-wins`,
-      kind: "official-wins",
-      target: officialWinTarget(school.reputationPoints),
-    },
-    {
-      id: `season:${state.yearIndex}:tournament-achievement`,
-      kind: "tournament-achievement",
-      target: 1,
-      achievement,
-    },
-  ];
+  const ambition = options.ambition ?? "challenge";
+  const goals = buildGoals({
+    yearIndex: state.yearIndex,
+    startRegionalRank: ranking.regional.rank,
+    regionalTotal: ranking.regional.total,
+    reputationPoints: school.reputationPoints,
+    ambition,
+  });
 
   return {
     yearIndex: state.yearIndex,
+    ambition,
+    ambitionSelectionPending: options.ambitionSelectionPending ?? false,
     academicYear: state.calendar.academicYear,
     startingRanks: {
       regional: ranking.regional.rank,
@@ -158,6 +230,7 @@ export function evaluateSeasonGoals(
 
   return {
     yearIndex: seasonGoals.yearIndex,
+    ambition: seasonGoals.ambition ?? "challenge",
     academicYear: seasonGoals.academicYear,
     startingRanks: {
       regional: regionalBaselineComparable
@@ -174,5 +247,67 @@ export function evaluateSeasonGoals(
     deltas,
     goalResults,
     achievedCount: goalResults.filter((goal) => goal.achieved).length,
+  };
+}
+
+export class SeasonAmbitionSelectionError extends Error {
+  constructor(public readonly reason: "unavailable" | "locked") {
+    super(
+      reason === "locked"
+        ? "今シーズンの目標方針はすでに確定しています"
+        : "シーズン目標を変更できません",
+    );
+    this.name = "SeasonAmbitionSelectionError";
+  }
+}
+
+export function previewSeasonAmbition(
+  state: GameState,
+  ambition: SeasonAmbition,
+): SeasonGoalState {
+  const current = state.seasonGoals;
+  if (!current || current.yearIndex !== state.yearIndex) {
+    throw new SeasonAmbitionSelectionError("unavailable");
+  }
+  const school = state.schools[state.userSchoolId];
+  if (!school) throw new SeasonAmbitionSelectionError("unavailable");
+
+  return {
+    ...current,
+    ambition,
+    goals: buildGoals({
+      yearIndex: current.yearIndex,
+      startRegionalRank: current.startingRanks.regional,
+      regionalTotal: current.rankingTotals.regional,
+      reputationPoints: school.reputationPoints,
+      ambition,
+    }),
+  };
+}
+
+export function selectSeasonAmbition(
+  state: GameState,
+  ambition: SeasonAmbition,
+): GameState {
+  const current = state.seasonGoals;
+  if (!current || current.yearIndex !== state.yearIndex) {
+    throw new SeasonAmbitionSelectionError("unavailable");
+  }
+  if (
+    current.ambitionSelectionPending !== true ||
+    state.calendar.weekOfYear !== 1 ||
+    state.calendar.completedActivityIds.some((id) =>
+      id.startsWith(`week:${state.date}:`),
+    )
+  ) {
+    throw new SeasonAmbitionSelectionError("locked");
+  }
+
+  return {
+    ...state,
+    seasonGoals: {
+      ...previewSeasonAmbition(state, ambition),
+      ambitionSelectionPending: false,
+    },
   };
 }

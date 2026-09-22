@@ -1,3 +1,5 @@
+export type SeasonAmbition = "steady" | "challenge" | "bold";
+
 export type SeasonGoalKind =
   "regional-rank" | "official-wins" | "tournament-achievement";
 
@@ -37,6 +39,8 @@ interface SeasonRanks {
 
 export interface SeasonGoalState {
   yearIndex: number;
+  ambition?: SeasonAmbition;
+  ambitionSelectionPending?: boolean;
   academicYear: number;
   startingRanks: SeasonRanks;
   rankingTotals: SeasonRanks;
@@ -58,6 +62,7 @@ export interface SeasonHistoryDelta {
 
 export interface SeasonGoalSeasonSummary {
   yearIndex: number;
+  ambition?: SeasonAmbition;
   academicYear: number;
   startingRanks: SeasonRanks;
   finalRanks: SeasonRanks;

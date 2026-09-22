@@ -2,6 +2,16 @@ import type { AcademicYearTransitionSummary } from "../../domain/calendar/academ
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
+import {
+  previewSeasonAmbition,
+  seasonAmbitionDescriptions,
+  seasonAmbitionLabels,
+} from "../../domain/season/seasonGoals";
+import { seasonGoalFundReward } from "../../domain/season/seasonGoalRewards";
+import type {
+  SeasonAmbition,
+  SeasonGoalDefinition,
+} from "../../domain/season/seasonGoalTypes";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import { buildSeasonResultPresentation } from "../season/seasonResultPresentation";
@@ -11,6 +21,8 @@ interface YearTransitionDialogProps {
   state: GameState;
   summary: AcademicYearTransitionSummary;
   onClose: () => void;
+  onSelectAmbition?: (ambition: SeasonAmbition) => void;
+  ambitionPending?: boolean;
 }
 
 function playerName(state: GameState, playerId: PlayerId | null): string {
@@ -28,6 +40,14 @@ function playerNames(
     .map((player) => `${player.lastName} ${player.firstName}`);
 }
 
+function seasonGoalPreviewLabel(goal: SeasonGoalDefinition): string {
+  if (goal.kind === "regional-rank") return `県内${goal.target}位`;
+  if (goal.kind === "official-wins") return `公式${goal.target}勝`;
+  if (goal.achievement === "national-title") return "全国優勝";
+  if (goal.achievement === "national-appearance") return "全国出場";
+  return "県優勝";
+}
+
 function rankMovementLabel(movement: number): string {
   if (movement > 0) return `▲${movement}`;
   if (movement < 0) return `▼${Math.abs(movement)}`;
@@ -38,6 +58,8 @@ export function YearTransitionDialog({
   state,
   summary,
   onClose,
+  onSelectAmbition,
+  ambitionPending = false,
 }: YearTransitionDialogProps) {
   const userSchool = state.schools[state.userSchoolId];
   if (!userSchool) {
@@ -61,6 +83,24 @@ export function YearTransitionDialog({
   const seasonResult = archivedSeason
     ? buildSeasonResultPresentation(archivedSeason)
     : null;
+  const ambitionSelectionPending =
+    state.seasonGoals?.ambitionSelectionPending === true;
+  const currentAmbition = state.seasonGoals?.ambition ?? "challenge";
+  const ambitionOptions = state.seasonGoals
+    ? (["steady", "challenge", "bold"] as const).map((ambition) => {
+        const preview = previewSeasonAmbition(state, ambition);
+        return {
+          ambition,
+          label: seasonAmbitionLabels[ambition],
+          description: seasonAmbitionDescriptions[ambition],
+          goals: preview.goals,
+          totalReward: preview.goals.reduce(
+            (total, goal) => total + seasonGoalFundReward(goal, ambition),
+            0,
+          ),
+        };
+      })
+    : [];
 
   return (
     <BottomSheet
@@ -153,6 +193,68 @@ export function YearTransitionDialog({
           </section>
         ) : null}
 
+        {ambitionOptions.length > 0 ? (
+          <section
+            aria-label="新シーズン目標方針"
+            className="year-transition-ambition"
+          >
+            <div className="year-transition-ambition__heading">
+              <div>
+                <span>NEW SEASON PLAN</span>
+                <h3>
+                  {ambitionSelectionPending
+                    ? "今季の目標方針を選択"
+                    : `今季は「${seasonAmbitionLabels[currentAmbition]}」`}
+                </h3>
+              </div>
+              {ambitionSelectionPending ? <b>選択必須</b> : <b>確定済み</b>}
+            </div>
+
+            <div className="year-transition-ambition__options">
+              {ambitionOptions.map((option) => {
+                const selected =
+                  !ambitionSelectionPending &&
+                  option.ambition === currentAmbition;
+                return (
+                  <button
+                    aria-label={`${option.label}方針を選ぶ`}
+                    className={
+                      selected
+                        ? "year-transition-ambition__option is-selected"
+                        : "year-transition-ambition__option"
+                    }
+                    disabled={
+                      ambitionPending ||
+                      !ambitionSelectionPending ||
+                      !onSelectAmbition
+                    }
+                    key={option.ambition}
+                    onClick={() => onSelectAmbition?.(option.ambition)}
+                    type="button"
+                  >
+                    <div>
+                      <strong>{option.label}</strong>
+                      {option.ambition === "challenge" ? (
+                        <em>おすすめ</em>
+                      ) : null}
+                      <small>{option.description}</small>
+                    </div>
+                    <span>
+                      {option.goals.map((goal) => (
+                        <i key={goal.id}>{seasonGoalPreviewLabel(goal)}</i>
+                      ))}
+                    </span>
+                    <b>最大 +{option.totalReward}</b>
+                  </button>
+                );
+              })}
+            </div>
+            {ambitionSelectionPending ? (
+              <p>方針を保存すると今シーズン中は変更できません。</p>
+            ) : null}
+          </section>
+        ) : null}
+
         <div className="year-transition-metrics">
           <div>
             <span>卒業</span>
@@ -209,10 +311,15 @@ export function YearTransitionDialog({
 
         <button
           className="year-transition-start"
+          disabled={ambitionSelectionPending || ambitionPending}
           onClick={onClose}
           type="button"
         >
-          新年度を始める
+          {ambitionPending
+            ? "方針を保存中…"
+            : ambitionSelectionPending
+              ? "目標方針を選んでください"
+              : "新年度を始める"}
         </button>
       </div>
     </BottomSheet>

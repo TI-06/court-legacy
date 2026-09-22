@@ -122,6 +122,7 @@ const playerDevelopmentWeekSchema = z
   })
   .strict();
 
+const seasonAmbitionSchema = z.enum(["steady", "challenge", "bold"]);
 const tournamentAchievementTargetSchema = z.enum([
   "prefectural-title",
   "national-appearance",
@@ -168,6 +169,8 @@ const seasonGoalDefinitionSchema = z.discriminatedUnion("kind", [
 const seasonGoalStateSchema = z
   .object({
     yearIndex: z.number().int().positive(),
+    ambition: seasonAmbitionSchema.optional(),
+    ambitionSelectionPending: z.boolean().optional(),
     academicYear: z.number().int().positive(),
     startingRanks: seasonRanksSchema,
     rankingTotals: seasonRanksSchema,
@@ -208,6 +211,7 @@ const seasonGoalResultSchema = z.discriminatedUnion("kind", [
 const seasonGoalSeasonSummarySchema = z
   .object({
     yearIndex: z.number().int().positive(),
+    ambition: seasonAmbitionSchema.optional(),
     academicYear: z.number().int().positive(),
     startingRanks: seasonRanksSchema,
     finalRanks: seasonRanksSchema,

@@ -243,7 +243,10 @@ export function buildSeasonProgressPresentation(
       label: goalLabel(goal),
       progressLabel: goalProgressLabel(goal),
       achieved: goal.achieved,
-      rewardFunds: seasonGoalFundReward(goal),
+      rewardFunds: seasonGoalFundReward(
+        goal,
+        seasonGoals.ambition ?? "challenge",
+      ),
     })),
     regional: rankingPresentation(
       regionalRankings,

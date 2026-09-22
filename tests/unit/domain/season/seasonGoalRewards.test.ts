@@ -68,6 +68,18 @@ describe("season goal rewards", () => {
     ).toBe(500);
   });
 
+  it("scales the same goal reward by steady, challenge, and bold ambition", () => {
+    const goal = {
+      id: "ambition-reward",
+      kind: "regional-rank" as const,
+      target: 4,
+    };
+
+    expect(seasonGoalFundReward(goal, "steady")).toBe(95);
+    expect(seasonGoalFundReward(goal, "challenge")).toBe(120);
+    expect(seasonGoalFundReward(goal, "bold")).toBe(170);
+  });
+
   it("grants only achieved goals and never grants the same goal twice", () => {
     const state = createDemoGame();
     const beforeFunds = state.schools[state.userSchoolId]!.funds;
