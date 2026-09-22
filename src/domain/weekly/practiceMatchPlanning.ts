@@ -66,6 +66,97 @@ export interface PracticeRecommendation {
   tier: PracticeMatchCandidateTier;
   candidate: PracticeMatchCandidate;
 }
+export type PracticeReadinessLevel = "good" | "watch" | "rest";
+
+export interface PracticeTeamReadiness {
+  level: PracticeReadinessLevel;
+  label: string;
+  averageCondition: number;
+  averageFatigue: number;
+  injuredCount: number;
+  reason: string;
+}
+
+export function practiceTeamReadiness(
+  state: Pick<GameState, "userSchoolId" | "schools" | "players">,
+): PracticeTeamReadiness {
+  const school = state.schools[state.userSchoolId];
+  if (!school || school.playerIds.length === 0) {
+    return {
+      level: "rest",
+      label: "休養優先",
+      averageCondition: 0,
+      averageFatigue: 0,
+      injuredCount: 0,
+      reason: "出場できる選手を確認してください",
+    };
+  }
+
+  const players = school.playerIds
+    .map((playerId) => state.players[playerId])
+    .filter((player): player is NonNullable<typeof player> => Boolean(player));
+  if (players.length === 0) {
+    return {
+      level: "rest",
+      label: "休養優先",
+      averageCondition: 0,
+      averageFatigue: 0,
+      injuredCount: 0,
+      reason: "出場できる選手を確認してください",
+    };
+  }
+
+  const averageCondition = Math.round(
+    players.reduce((total, player) => total + player.condition, 0) /
+      players.length,
+  );
+  const averageFatigue = Math.round(
+    players.reduce((total, player) => total + player.fatigue, 0) /
+      players.length,
+  );
+  const injuredCount = players.filter((player) => player.injury !== null).length;
+
+  if (injuredCount >= 2 || averageCondition < 45 || averageFatigue >= 70) {
+    return {
+      level: "rest",
+      label: "休養優先",
+      averageCondition,
+      averageFatigue,
+      injuredCount,
+      reason:
+        injuredCount >= 2
+          ? `怪我人${injuredCount}名・今週は負荷に注意`
+          : averageFatigue >= 70
+            ? "平均疲労が高く、今週は負荷に注意"
+            : "平均調子が低く、今週は負荷に注意",
+    };
+  }
+
+  if (injuredCount >= 1 || averageCondition < 60 || averageFatigue >= 50) {
+    return {
+      level: "watch",
+      label: "注意",
+      averageCondition,
+      averageFatigue,
+      injuredCount,
+      reason:
+        injuredCount >= 1
+          ? `怪我人${injuredCount}名・控え起用も検討`
+          : averageFatigue >= 50
+            ? "疲労が溜まり始めています"
+            : "調子がやや低めです",
+    };
+  }
+
+  return {
+    level: "good",
+    label: "良好",
+    averageCondition,
+    averageFatigue,
+    injuredCount,
+    reason: "練習試合を組みやすい状態です",
+  };
+}
 
 const ambitionTierPriority: Record<
   SeasonAmbition,
