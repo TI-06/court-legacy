@@ -1,6 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { GameDate, SchoolId } from "../model/identifiers";
 import type { School, SchoolReputation } from "../model/School";
+import type { SeasonAmbition } from "../season/seasonGoalTypes";
 import { SeededRandom } from "../random/SeededRandom";
 import { calculateTournamentSchoolStrength } from "../tournament/createOfficialSeason";
 import { rivalryKey } from "../world/rivalWorldProgression";
@@ -58,6 +59,49 @@ export interface PracticePlanningResult {
   incomingOffer: PracticeMatchOffer | null;
   outgoingCandidates: PracticeMatchCandidate[];
   incomingPracticeOfferHistory: IncomingPracticeOfferHistoryEntry[];
+}
+
+export interface PracticeRecommendation {
+  ambition: SeasonAmbition;
+  tier: PracticeMatchCandidateTier;
+  candidate: PracticeMatchCandidate;
+}
+
+const ambitionTierPriority: Record<
+  SeasonAmbition,
+  readonly PracticeMatchCandidateTier[]
+> = {
+  steady: ["same", "stronger", "challenge"],
+  challenge: ["stronger", "same", "challenge"],
+  bold: ["challenge", "stronger", "same"],
+};
+
+export function selectPracticeRecommendation(
+  state: Pick<GameState, "seasonGoals" | "weeklySchedule">,
+): PracticeRecommendation | null {
+  const practice = state.weeklySchedule.practiceMatch;
+  if (
+    practice.scheduledOpponentId ||
+    practice.incomingOffer ||
+    practice.outgoingCandidates.length === 0
+  ) {
+    return null;
+  }
+
+  const ambition = state.seasonGoals?.ambition ?? "challenge";
+  const available = practice.outgoingCandidates.filter(
+    (candidate) => candidate.status === "available",
+  );
+  if (available.length === 0) return null;
+
+  for (const tier of ambitionTierPriority[ambition]) {
+    const candidate = available.find((item) => item.tier === tier);
+    if (candidate) {
+      return { ambition, tier, candidate };
+    }
+  }
+
+  return null;
 }
 
 interface RankedOpponent {
