@@ -120,6 +120,62 @@ describe("Phase16 match command decision panel", () => {
     });
   });
 
+  it("lets the coach choose real players for attack focus and serve targeting", () => {
+    const fixture = findDecision("opponent-run");
+    const onCommand = vi.fn();
+    const userSelection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.homeSelection
+        : fixture.match.awaySelection;
+    const opponentSelection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.awaySelection
+        : fixture.match.homeSelection;
+    const attackerId = userSelection.rotation[0]!.playerId;
+    const targetId = opponentSelection.rotation[0]!.playerId;
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    expect(
+      screen.getByRole("group", { name: "選手への個別指示" }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /攻撃を集める/ }),
+    );
+    const attackDialog = screen.getByRole("dialog", { name: "攻撃を集める" });
+    fireEvent.click(
+      within(attackDialog).getByRole("button", {
+        name: new RegExp(playerName(fixture.state, attackerId)),
+      }),
+    );
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "attack-focus",
+      playerId: attackerId,
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /サーブで狙う/ }),
+    );
+    const serveDialog = screen.getByRole("dialog", { name: "サーブで狙う" });
+    fireEvent.click(
+      within(serveDialog).getByRole("button", {
+        name: new RegExp(playerName(fixture.state, targetId)),
+      }),
+    );
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "serve-target",
+      targetPlayerId: targetId,
+    });
+  });
+
   it("uses set-break copy, hides timeout, and continues to the next set", () => {
     const fixture = findDecision("set-break");
     const onCommand = vi.fn();
