@@ -34,6 +34,7 @@ import type {
   PvpRankingEntry,
 } from "../domain/pvp/pvpContracts";
 import type { RecruitmentAction } from "../domain/scouting/recruitmentEngagement";
+import type { SeasonAmbition } from "../domain/season/seasonGoalTypes";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
 import type {
@@ -1153,6 +1154,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     }
   };
 
+  const selectSeasonAmbitionFromUi = async (ambition: SeasonAmbition) => {
+    await cloudSession.runAction(
+      { type: "set-season-ambition", ambition },
+      "シーズン目標方針を保存しています…",
+    );
+  };
+
   const chooseEvent = async (choiceId: string) => {
     await cloudSession.runAction(
       { type: "event-choice", choiceId },
@@ -1443,7 +1451,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
       {latestYearTransition ? (
         <YearTransitionDialog
+          ambitionPending={cloudSession.operation.status === "submitting"}
           onClose={() => setLatestYearTransition(null)}
+          onSelectAmbition={(ambition) => {
+            void selectSeasonAmbitionFromUi(ambition);
+          }}
           state={gameState}
           summary={latestYearTransition}
         />
