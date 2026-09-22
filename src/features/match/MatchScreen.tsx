@@ -28,7 +28,11 @@ interface MatchScreenProps {
   onStart: () => void;
   onReturnHome: () => void;
   onCommand?: (command: MatchCommand) => void | Promise<void>;
+  onApplyPracticeTrainingRecommendation?: (
+    menuId: string,
+  ) => void | Promise<void>;
   commandPending?: boolean;
+  trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
 }
@@ -62,7 +66,9 @@ function MatchScreenContent({
   onStart,
   onReturnHome,
   onCommand,
+  onApplyPracticeTrainingRecommendation,
   commandPending = false,
+  trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
 }: MatchScreenProps) {
@@ -517,6 +523,10 @@ function MatchScreenContent({
               awayStrength={awayStrength}
               homeStrength={homeStrength}
               match={result.match}
+              onApplyTrainingRecommendation={
+                onApplyPracticeTrainingRecommendation
+              }
+              pending={trainingPlanPending}
               state={state}
             />
           ) : null}
