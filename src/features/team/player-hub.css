@@ -1539,7 +1539,6 @@
   }
 }
 
-
 /* Phase27-3: growth momentum stays attached to the training decision. */
 .player-roster__training-action small[data-momentum="accelerating"] {
   color: #8ce9bb;
