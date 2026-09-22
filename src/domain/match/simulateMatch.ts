@@ -1004,6 +1004,7 @@ function createInitialMatchState(
       runWinnerSchoolId: null,
       runLength: 0,
       opponentRunDecisionConsumed: false,
+      criticalScoreDecisionConsumed: false,
       timeoutUsedSchoolIds: [],
       timeoutBoost: null,
       pendingDecisionReason: null,
@@ -1030,6 +1031,7 @@ function beginNextSet(match: MatchState): void {
   runtime.runWinnerSchoolId = null;
   runtime.runLength = 0;
   runtime.opponentRunDecisionConsumed = false;
+  runtime.criticalScoreDecisionConsumed = false;
   runtime.timeoutUsedSchoolIds = [];
   runtime.timeoutBoost = null;
   runtime.pendingDecisionReason = null;
@@ -1089,6 +1091,21 @@ function shouldOpenOpponentRunDecision(match: MatchState): boolean {
     runtime.runLength >= 4 &&
     runtime.runWinnerSchoolId !== null &&
     runtime.runWinnerSchoolId !== runtime.controlledSchoolId
+  );
+}
+
+function criticalScoreThreshold(match: MatchState): number {
+  const decidingSet = match.currentSetNumber === match.bestOfSets;
+  return decidingSet ? 10 : 20;
+}
+
+function shouldOpenCriticalScoreDecision(match: MatchState): boolean {
+  const runtime = runtimeOrThrow(match);
+  return (
+    runtime.controlledSchoolId !== null &&
+    !runtime.criticalScoreDecisionConsumed &&
+    Math.max(runtime.homeScore, runtime.awayScore) >= criticalScoreThreshold(match) &&
+    Math.abs(runtime.homeScore - runtime.awayScore) <= 2
   );
 }
 
@@ -1425,6 +1442,20 @@ function runUntilBoundary(
       match.phase = "coach-decision";
       match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
       runtime.pendingDecisionReason = "opponent-run";
+      return { match, analysis: null };
+    }
+
+    if (shouldOpenCriticalScoreDecision(match)) {
+      maybeApplyAutomaticCoachDecision(
+        simulationState,
+        match,
+        automaticCoachSchoolId,
+        "critical-score",
+        automaticCoach,
+      );
+      match.phase = "coach-decision";
+      match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
+      runtime.pendingDecisionReason = "critical-score";
       return { match, analysis: null };
     }
   }
