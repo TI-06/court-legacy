@@ -21,6 +21,9 @@ describe("Phase17 season progress presentation", () => {
     expect(presentation!.academicYear).toBe(state.calendar.academicYear);
     expect(presentation!.goalCount).toBe(3);
     expect(presentation!.goals).toHaveLength(3);
+    expect(
+      presentation!.goals.every((goal) => goal.rewardFunds > 0),
+    ).toBe(true);
 
     const regionalGoal = seasonGoals.goals.find(
       (goal) => goal.kind === "regional-rank",
