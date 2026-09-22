@@ -25,6 +25,9 @@ export function PracticeMatchReviewPanel({
     awayStrength,
   });
   const trainingCompleted = isWeeklyActionCompleted(state, "training");
+  const alreadySelected =
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId ===
+    review.trainingRecommendation.menuId;
 
   return (
     <section aria-label="練習試合レビュー" className="practice-match-review">
@@ -65,7 +68,7 @@ export function PracticeMatchReviewPanel({
         <button
           disabled={
             pending ||
-            trainingCompleted ||
+            alreadySelected ||
             !onApplyTrainingRecommendation
           }
           onClick={() => {
@@ -75,11 +78,15 @@ export function PracticeMatchReviewPanel({
           }}
           type="button"
         >
-          {trainingCompleted
-            ? "今週の練習は実施済み"
-            : pending
-              ? "保存中…"
-              : "この練習を設定"}
+          {pending
+            ? "保存中…"
+            : alreadySelected
+              ? trainingCompleted
+                ? "次週に設定済み"
+                : "設定済み"
+              : trainingCompleted
+                ? "次週に設定"
+                : "この練習を設定"}
         </button>
       </div>
     </section>
