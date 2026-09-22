@@ -87,10 +87,9 @@ describe("PracticeMatchPlanning", () => {
       state.weeklySchedule.practiceMatch.outgoingCandidates.find(
         (item) => item.tier === "challenge",
       )!;
-    const stronger =
-      state.weeklySchedule.practiceMatch.outgoingCandidates.find(
-        (item) => item.tier === "stronger",
-      )!;
+    const stronger = state.weeklySchedule.practiceMatch.outgoingCandidates.find(
+      (item) => item.tier === "stronger",
+    )!;
     const challengeSchool = state.schools[challenge.schoolId]!;
     const strongerSchool = state.schools[stronger.schoolId]!;
 
@@ -135,5 +134,4 @@ describe("PracticeMatchPlanning", () => {
     expect(shortcut).not.toHaveTextContent(challengeSchool.name);
     expect(within(shortcut).getByText(/格上/)).toBeVisible();
   });
-
 });
