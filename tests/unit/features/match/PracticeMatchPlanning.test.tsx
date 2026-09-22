@@ -12,9 +12,10 @@ describe("PracticeMatchPlanning", () => {
       ...state.seasonGoals!,
       ambition: "bold",
     };
-    const candidate = state.weeklySchedule.practiceMatch.outgoingCandidates.find(
-      (item) => item.tier === "challenge",
-    )!;
+    const candidate =
+      state.weeklySchedule.practiceMatch.outgoingCandidates.find(
+        (item) => item.tier === "challenge",
+      )!;
     const school = state.schools[candidate.schoolId]!;
 
     render(
