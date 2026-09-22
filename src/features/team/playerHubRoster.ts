@@ -31,11 +31,7 @@ export interface PlayerGrowthTrendPoint {
 }
 
 export type PlayerGrowthMomentum =
-  | "measuring"
-  | "accelerating"
-  | "steady"
-  | "slowing"
-  | "stalled";
+  "measuring" | "accelerating" | "steady" | "slowing" | "stalled";
 
 export interface PlayerGrowthSummary {
   fourWeekGrowth: number | null;
@@ -97,16 +93,14 @@ function summarizeWindow(
   };
 }
 
-export const playerGrowthMomentumLabels: Record<
-  PlayerGrowthMomentum,
-  string
-> = {
-  measuring: "計測中",
-  accelerating: "加速",
-  steady: "安定",
-  slowing: "鈍化",
-  stalled: "停滞",
-};
+export const playerGrowthMomentumLabels: Record<PlayerGrowthMomentum, string> =
+  {
+    measuring: "計測中",
+    accelerating: "加速",
+    steady: "安定",
+    slowing: "鈍化",
+    stalled: "停滞",
+  };
 
 function growthMomentum(
   recent: { growth: number | null; observed: ObservedGrowth[] },
