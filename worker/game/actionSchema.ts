@@ -127,6 +127,18 @@ const matchCommandSchema = z.discriminatedUnion("type", [
     .strict(),
   z
     .object({
+      type: z.literal("focus-attacker"),
+      playerId: playerIdSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("encourage-player"),
+      playerId: playerIdSchema,
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("substitute"),
       outgoingPlayerId: playerIdSchema,
       incomingPlayerId: playerIdSchema,
