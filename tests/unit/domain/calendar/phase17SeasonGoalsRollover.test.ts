@@ -63,9 +63,10 @@ describe("Phase17 season goal rollover", () => {
       rewardEntries.reduce((total, entry) => total + entry.amount, 0),
     ).toBe(seasonGoalEarnedFunds(archived.goalResults));
 
-    const annualBudgetIndex = result.state.schoolManagement.fundsHistory.findIndex(
-      (entry) => entry.id === "annual-budget:year-2",
-    );
+    const annualBudgetIndex =
+      result.state.schoolManagement.fundsHistory.findIndex(
+        (entry) => entry.id === "annual-budget:year-2",
+      );
     const lastRewardIndex = result.state.schoolManagement.fundsHistory.reduce(
       (latest, entry, index) =>
         entry.kind === "season-goal-reward" ? index : latest,
