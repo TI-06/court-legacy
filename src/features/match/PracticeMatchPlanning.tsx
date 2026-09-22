@@ -3,7 +3,10 @@ import type { SchoolId } from "../../domain/model/identifiers";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { schoolStrengthToGrade } from "../../domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
-import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
+import {
+  practiceTeamReadiness,
+  selectPracticeRecommendation,
+} from "../../domain/weekly/practiceMatchPlanning";
 import type {
   PracticeMatchCandidateTier,
   PracticeRating,
@@ -47,6 +50,7 @@ export function PracticeMatchPlanning({
     ? state.schools[schedule.incomingOffer.schoolId]
     : null;
   const recommendation = selectPracticeRecommendation(state);
+  const readiness = practiceTeamReadiness(state);
 
   return (
     <section
@@ -62,6 +66,29 @@ export function PracticeMatchPlanning({
         </div>
         {scheduledSchool ? <strong>対戦決定</strong> : <span>未決定</span>}
       </div>
+
+      <section
+        aria-label="今週の練習試合コンディション"
+        className="practice-planning__readiness"
+        data-level={readiness.level}
+      >
+        <div>
+          <span>TEAM READINESS</span>
+          <strong>{readiness.label}</strong>
+          <small>{readiness.reason}</small>
+        </div>
+        <div className="practice-planning__readiness-metrics">
+          <span>
+            調子 <b>{readiness.averageCondition}</b>
+          </span>
+          <span>
+            疲労 <b>{readiness.averageFatigue}</b>
+          </span>
+          <span>
+            怪我 <b>{readiness.injuredCount}人</b>
+          </span>
+        </div>
+      </section>
 
       {scheduledSchool ? (
         <article className="practice-planning__scheduled">
