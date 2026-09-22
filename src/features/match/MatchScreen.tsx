@@ -362,8 +362,7 @@ function MatchScreenContent({
             <div>
               <strong>
                 {decisionReady
-                  ? result.match.runtime?.pendingDecisionReason ===
-                    "critical-score"
+                  ? result.match.runtime?.pendingDecisionReason === "critical-score"
                     ? "重要場面。ここからの指示で展開が変わります"
                     : "監督判断のタイミングです"
                   : "試合結果はまだ確定していません"}
