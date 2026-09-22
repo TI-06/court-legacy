@@ -1401,9 +1401,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             onApplyPracticeTrainingRecommendation={
               applyPracticeTrainingRecommendation
             }
-            trainingPlanPending={
-              cloudSession.operation.status === "submitting"
-            }
+            trainingPlanPending={cloudSession.operation.status === "submitting"}
             onReturnHome={() => {
               if (activeMatchPresentation) void executeAdvanceWeek();
               else changeTab("home");
