@@ -303,7 +303,10 @@ export function HomeCommandCenter({
           {summary.season ? (
             <section className="home-season-card" aria-label="今季目標">
               <div className="home-season-card__goal">
-                <span>今季目標</span>
+                <span>
+                  今季目標・{summary.season.ambitionLabel}・残り報酬 +
+                  {summary.season.remainingRewardFunds}
+                </span>
                 <strong>
                   {summary.season.primaryGoal?.label ?? "目標達成"}
                 </strong>
