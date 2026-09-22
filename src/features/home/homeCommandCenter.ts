@@ -315,8 +315,7 @@ function buildFeaturedRival(state: GameState): HomeSummary["featuredRival"] {
   if (!school) return null;
 
   const contextLabel =
-    summary.currentStreak?.result === "loss" &&
-    summary.currentStreak.count >= 2
+    summary.currentStreak?.result === "loss" && summary.currentStreak.count >= 2
       ? `${summary.currentStreak.count}連敗中・次は雪辱`
       : summary.lastMeeting?.result === "loss"
         ? "前回敗戦・次は雪辱"
