@@ -169,9 +169,10 @@ describe("selectHomeCommandCenter", () => {
       ambition: "bold",
     };
 
-    const recommendation = state.weeklySchedule.practiceMatch.outgoingCandidates.find(
-      (candidate) => candidate.tier === "challenge",
-    )!;
+    const recommendation =
+      state.weeklySchedule.practiceMatch.outgoingCandidates.find(
+        (candidate) => candidate.tier === "challenge",
+      )!;
     const opponent = state.schools[recommendation.schoolId]!;
     const practice = select(state).tasks.find(
       (task) => task.id === `practice-recommendation:${opponent.id}`,
