@@ -93,6 +93,7 @@ function runtimeFromSegment(
     runWinnerSchoolId: null,
     runLength: 0,
     opponentRunDecisionConsumed: false,
+    criticalScoreDecisionConsumed: false,
     timeoutUsedSchoolIds: segment.timeoutAvailable ? [] : [homeSchoolId],
     timeoutBoost: null,
     pendingDecisionReason: segment.pendingDecisionReason,

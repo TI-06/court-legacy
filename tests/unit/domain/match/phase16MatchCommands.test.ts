@@ -223,6 +223,30 @@ describe("Phase16 match commands", () => {
     expect(duplicate).toEqual(duplicateBefore);
   });
 
+  it("resumes the current set after a critical-score command and consumes that window", () => {
+    const context = createContext("critical-command-world");
+    const match = findOpponentRunDecision(context);
+    match.runtime!.pendingDecisionReason = "critical-score";
+    match.runtime!.criticalScoreDecisionConsumed = false;
+    match.runtime!.homeScore = 22;
+    match.runtime!.awayScore = 22;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "continue" },
+    });
+
+    expect(next.phase).toBe("set-in-progress");
+    expect(next.pendingCoachCommandForSchoolId).toBeNull();
+    expect(next.runtime?.pendingDecisionReason).toBeNull();
+    expect(next.runtime?.criticalScoreDecisionConsumed).toBe(true);
+    expect(next.runtime?.commandHistory.at(-1)?.decisionReason).toBe(
+      "critical-score",
+    );
+  });
+
   it("rejects timeout during a set break", () => {
     const context = makeHomeDominant(createContext("timeout-break-world"));
     const match = findSetBreakDecision(context);

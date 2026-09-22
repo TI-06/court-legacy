@@ -51,9 +51,13 @@ function officialWeekSnapshot(): CloudGameSnapshot {
 }
 
 function nextContinueLabel(
-  reason: "opponent-run" | "set-break" | null,
+  reason: "opponent-run" | "critical-score" | "set-break" | null,
 ): "continue" {
-  if (reason !== "opponent-run" && reason !== "set-break") {
+  if (
+    reason !== "opponent-run" &&
+    reason !== "critical-score" &&
+    reason !== "set-break"
+  ) {
     throw new Error(`unexpected official decision reason: ${String(reason)}`);
   }
   return "continue";

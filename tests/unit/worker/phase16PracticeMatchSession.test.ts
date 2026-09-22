@@ -134,7 +134,7 @@ describe("Phase16 resumable practice match session", () => {
       result.state.userSchoolId,
     );
     expect(result.state.activeMatch?.runtime?.pendingDecisionReason).toMatch(
-      /^(opponent-run|set-break)$/,
+      /^(opponent-run|critical-score|set-break)$/,
     );
     expect(result.state.activeMatch?.eventLog.at(-1)?.type).not.toBe(
       "match-end",

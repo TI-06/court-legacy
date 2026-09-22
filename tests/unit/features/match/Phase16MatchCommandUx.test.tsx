@@ -81,6 +81,45 @@ describe("Phase16 match command decision panel", () => {
     expect(onCommand).toHaveBeenLastCalledWith({ type: "continue" });
   });
 
+  it("offers direct tactical choices and timeout in a critical-score decision", () => {
+    const fixture = findDecision("opponent-run");
+    const match = structuredClone(fixture.match);
+    if (!match.runtime) throw new Error("runtime fixture missing");
+    match.runtime.pendingDecisionReason = "critical-score";
+    match.runtime.homeScore = 22;
+    match.runtime.awayScore = 22;
+    const onCommand = vi.fn();
+    const currentPlan =
+      match.homeSchoolId === fixture.state.userSchoolId
+        ? match.runtime.homeTactics
+        : match.runtime.awayTactics;
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    expect(
+      screen.getByText("終盤の接戦です。次の数点をどう取りにいくか選べます"),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "タイムアウト" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "サーブで攻める" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "速攻で崩す" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "サイドで押す" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "サーブで攻める" }));
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "set-match-tactics",
+      plan: { ...currentPlan, serve: "aggressive" },
+    });
+  });
+
   it("uses set-break copy, hides timeout, and continues to the next set", () => {
     const fixture = findDecision("set-break");
     const onCommand = vi.fn();
