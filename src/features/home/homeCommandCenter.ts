@@ -31,6 +31,10 @@ import {
 } from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import { selectNextOfficialEvent } from "../../domain/tournament/tournamentSelectors";
+import {
+  selectFeaturedUserRival,
+  type RivalryLabel,
+} from "../../domain/world/rivalryHistory";
 import type {
   TournamentCircuit,
   TournamentLevel,
@@ -74,6 +78,13 @@ export interface HomeSummary {
     detailTitle: string | null;
     timingLabel: string;
     due: boolean;
+  };
+  featuredRival: null | {
+    schoolId: SchoolId;
+    displayName: string;
+    badge: string;
+    recordLabel: string;
+    contextLabel: string;
   };
   season: null | {
     academicYear: number;
@@ -295,6 +306,43 @@ function matchSchoolName(
   return persisted ?? state.schools[schoolId]?.shortName ?? "相手校";
 }
 
+function featuredRivalBadge(labels: readonly RivalryLabel[]): string {
+  if (labels.includes("destiny-rival")) return "宿敵";
+  if (labels.includes("nemesis")) return "天敵";
+  if (labels.includes("rivalry")) return "因縁";
+  if (labels.includes("losing-streak")) return "連敗中";
+  if (labels.includes("revenge")) return "雪辱";
+  return "連勝中";
+}
+
+function buildFeaturedRival(state: GameState): HomeSummary["featuredRival"] {
+  const summary = selectFeaturedUserRival(state);
+  if (!summary) return null;
+
+  const school = state.schools[summary.opponentSchoolId];
+  if (!school) return null;
+
+  const contextLabel =
+    summary.currentStreak?.result === "loss" && summary.currentStreak.count >= 2
+      ? `${summary.currentStreak.count}連敗中・次は雪辱`
+      : summary.lastMeeting?.result === "loss"
+        ? "前回敗戦・次は雪辱"
+        : summary.currentStreak?.result === "win" &&
+            summary.currentStreak.count >= 2
+          ? `${summary.currentStreak.count}連勝中`
+          : summary.rivalryScore > 0
+            ? `因縁度 ${summary.rivalryScore}`
+            : "再戦に注目";
+
+  return {
+    schoolId: summary.opponentSchoolId,
+    displayName: school.shortName || school.name,
+    badge: featuredRivalBadge(summary.labels),
+    recordLabel: `${summary.wins}勝${summary.losses}敗`,
+    contextLabel,
+  };
+}
+
 function buildSummary(
   state: GameState,
   homeStrength: number,
@@ -348,6 +396,7 @@ function buildSummary(
     cohesion: state.teamDynamics.cohesion,
     cohesionTrend: state.teamDynamics.cohesionTrend,
     official,
+    featuredRival: buildFeaturedRival(state),
     season: seasonProgress
       ? {
           academicYear: seasonProgress.academicYear,
