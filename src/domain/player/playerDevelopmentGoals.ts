@@ -26,6 +26,7 @@ const gradeOrder: readonly DevelopmentGoalGrade[] = [
   "C",
   "B",
   "A",
+  "S",
 ];
 
 function gradeIndex(grade: DevelopmentGoalGrade): number {
