@@ -261,7 +261,10 @@ export function PreMatchLineupScreen({
         </article>
       </section>
 
-      <section className="pre-match-lineup__game-nav" aria-label="試合前メニュー">
+      <section
+        className="pre-match-lineup__game-nav"
+        aria-label="試合前メニュー"
+      >
         <button
           aria-pressed={prepTab === "lineup"}
           disabled={pending}
@@ -667,7 +670,8 @@ export function PreMatchLineupScreen({
                     0}
                 </span>
                 <span>
-                  観察力 {state.schools[state.userSchoolId]?.coach.observation ?? 0}
+                  観察力{" "}
+                  {state.schools[state.userSchoolId]?.coach.observation ?? 0}
                 </span>
               </div>
               <ul className="pre-match-lineup__analysis-observations">
@@ -706,9 +710,7 @@ export function PreMatchLineupScreen({
                 className="pre-match-lineup__analysis-apply"
                 disabled={pending}
                 onClick={() => {
-                  setTactics(
-                    cloneTactics(opponentAnalysis.recommendedPlan),
-                  );
+                  setTactics(cloneTactics(opponentAnalysis.recommendedPlan));
                   setAnalysisOpen(false);
                   setPrepTab("tactics");
                 }}
