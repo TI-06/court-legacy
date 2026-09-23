@@ -104,14 +104,33 @@ function startInteractive(
   });
 }
 
-function findOpponentRunDecision(context: ReturnType<typeof createContext>) {
+function findDecision(
+  context: ReturnType<typeof createContext>,
+  reason: CoachDecisionReason,
+  seedPrefix: string,
+) {
   for (let index = 0; index < 240; index += 1) {
-    const step = startInteractive(context, `phase16-run-${index}`);
-    if (step.match.runtime?.pendingDecisionReason === "opponent-run") {
-      return step;
+    let step = startInteractive(context, `${seedPrefix}-${index}`);
+    let guard = 0;
+    while (step.match.phase !== "match-complete" && guard < 16) {
+      if (step.match.runtime?.pendingDecisionReason === reason) {
+        return step;
+      }
+      guard += 1;
+      const commanded = applyMatchCommand({
+        state: context.state,
+        match: step.match,
+        schoolId: context.homeSchoolId,
+        command: { type: "continue" },
+      });
+      step = resumeMatch({ state: context.state, match: commanded });
     }
   }
-  throw new Error("test fixture could not find an opponent-run decision");
+  throw new Error(`test fixture could not find a ${reason} decision`);
+}
+
+function findOpponentRunDecision(context: ReturnType<typeof createContext>) {
+  return findDecision(context, "opponent-run", "phase16-run");
 }
 
 function playToCompletionWithContinue(
@@ -169,6 +188,7 @@ describe("Phase16 resumable match API", () => {
 
     if (
       step.match.runtime?.pendingDecisionReason === "opponent-run" ||
+      step.match.runtime?.pendingDecisionReason === "mid-set" ||
       step.match.runtime?.pendingDecisionReason === "critical-score"
     ) {
       expect(step.match.eventLog.at(-1)?.type).toBe("point");
@@ -176,6 +196,23 @@ describe("Phase16 resumable match API", () => {
       expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
       expect(step.match.eventLog.at(-1)?.type).toBe("set-end");
     }
+  });
+
+  it("opens one mid-set decision in every interactive set", () => {
+    const context = createContext("phase30-midset-world");
+    const found = findDecision(context, "mid-set", "phase30-midset");
+
+    expect(found.match.phase).toBe("coach-decision");
+    expect(found.match.runtime?.pendingDecisionReason).toBe("mid-set");
+    expect(
+      Math.max(
+        found.match.runtime!.homeScore,
+        found.match.runtime!.awayScore,
+      ),
+    ).toBeGreaterThanOrEqual(
+      found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
+    );
+    expect(found.match.runtime?.midSetDecisionConsumed).not.toBe(true);
   });
 
   it("opens an opponent-run decision exactly when the opponent reaches four straight points", () => {
@@ -272,7 +309,7 @@ describe("Phase16 resumable match API", () => {
 
   it("uses a set-break decision after a non-final set without starting the next set", () => {
     const context = makeHomeDominant(createContext("phase16-break-world"));
-    const step = startInteractive(context, "phase16-break-random");
+    const step = findDecision(context, "set-break", "phase16-break-random");
 
     expect(step.match.phase).toBe("coach-decision");
     expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
@@ -287,7 +324,11 @@ describe("Phase16 resumable match API", () => {
 
   it("starts the next set only after a set-break command is accepted", () => {
     const context = makeHomeDominant(createContext("phase16-next-set-world"));
-    const first = startInteractive(context, "phase16-next-set-random");
+    const first = findDecision(
+      context,
+      "set-break",
+      "phase16-next-set-random",
+    );
     expect(first.match.runtime?.pendingDecisionReason).toBe("set-break");
 
     const commanded = applyMatchCommand({
