@@ -151,6 +151,16 @@ describe("Phase 5 targeted shop UX", () => {
       }),
     ).not.toBeInTheDocument();
 
+    const availableTarget = screen.getByRole("button", {
+      name: `${players[0]!.lastName} ${players[0]!.firstName}を選択`,
+    });
+    expect(availableTarget).toHaveClass("shop-target-card");
+    expect(availableTarget).toHaveTextContent(
+      `${players[0]!.grade}年・${players[0]!.preferredPosition}`,
+    );
+    expect(availableTarget).toHaveTextContent(`疲労 ${players[0]!.fatigue}`);
+    expect(availableTarget).toHaveTextContent(`状態 ${players[0]!.condition}`);
+
     fireEvent.click(
       screen.getByRole("button", {
         name: `${players[0]!.lastName} ${players[0]!.firstName}を選択`,
