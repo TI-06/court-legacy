@@ -321,11 +321,7 @@ describe("Phase16 resumable match API", () => {
 
   it("starts the next set only after a set-break command is accepted", () => {
     const context = makeHomeDominant(createContext("phase16-next-set-world"));
-    const first = findDecision(
-      context,
-      "set-break",
-      "phase16-next-set-random",
-    );
+    const first = findDecision(context, "set-break", "phase16-next-set-random");
     expect(first.match.runtime?.pendingDecisionReason).toBe("set-break");
 
     const commanded = applyMatchCommand({
