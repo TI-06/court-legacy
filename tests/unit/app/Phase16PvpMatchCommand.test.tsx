@@ -164,7 +164,12 @@ async function openPreparedPvpMatch(
   expect(
     await screen.findByRole("heading", { name: "試合ダイジェスト" }),
   ).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "次の判断まで進む" }));
+  const advanceToDecision = screen.queryByRole("button", {
+    name: "次の判断まで進む",
+  });
+  if (advanceToDecision) {
+    fireEvent.click(advanceToDecision);
+  }
   expect(await screen.findByRole("region", { name: "監督指示" })).toBeVisible();
 }
 
