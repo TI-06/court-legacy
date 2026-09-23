@@ -200,6 +200,7 @@ const developmentGradeOrder: readonly DevelopmentGoalGrade[] = [
   "C",
   "B",
   "A",
+  "S",
 ];
 
 function buildTrainingRankUps(
