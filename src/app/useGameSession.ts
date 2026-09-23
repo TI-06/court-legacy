@@ -25,7 +25,7 @@ interface UseGameSessionInput {
   accessToken: string;
   initialSnapshot: CloudGameSnapshot;
   api: GameApiClient;
-  getAccessToken?: () => Promise<string>;
+  refreshAccessToken?: () => Promise<string>;
   recoveryCache?: RecoveryCachePort;
   createOperationId?: () => string;
 }
@@ -59,7 +59,7 @@ export function useGameSession({
   accessToken,
   initialSnapshot,
   api,
-  getAccessToken,
+  refreshAccessToken,
   recoveryCache = browserRecoveryCache,
   createOperationId = () => crypto.randomUUID(),
 }: UseGameSessionInput): GameSessionController {
@@ -69,8 +69,6 @@ export function useGameSession({
   const [operation, setOperation] = useState<OperationState>({
     status: "idle",
   });
-  const resolveAccessToken =
-    getAccessToken ?? (() => Promise.resolve(accessToken));
 
   function replaceSnapshot(next: CloudGameSnapshot): void {
     snapshotRef.current = next;
@@ -106,6 +104,8 @@ export function useGameSession({
     request: GameActionRequest,
     label: string,
     ambiguousRetryCount = 0,
+    authRetryCount = 0,
+    requestAccessToken = accessToken,
   ): Promise<GameActionResponse | null> {
     setOperation({
       status: "submitting",
@@ -115,7 +115,6 @@ export function useGameSession({
     });
 
     try {
-      const requestAccessToken = await resolveAccessToken();
       const response = await api.applyAction(requestAccessToken, request);
       replaceSnapshot(response.game);
       await writeRecovery(response.game, null);
@@ -124,11 +123,31 @@ export function useGameSession({
     } catch (error) {
       if (
         error instanceof ApiError &&
+        error.status === 401 &&
+        refreshAccessToken &&
+        authRetryCount < 1
+      ) {
+        try {
+          const refreshedToken = await refreshAccessToken();
+          return submitRequest(
+            request,
+            label,
+            ambiguousRetryCount,
+            authRetryCount + 1,
+            refreshedToken,
+          );
+        } catch {
+          // Keep the original authentication error visible if refresh fails.
+        }
+      }
+
+      if (
+        error instanceof ApiError &&
         error.status === 409 &&
         error.code === "revision_conflict"
       ) {
         try {
-          const latest = await api.bootstrap(await resolveAccessToken());
+          const latest = await api.bootstrap(requestAccessToken);
           if (latest.status === "ready") {
             replaceSnapshot(latest.game);
             await writeRecovery(latest.game, null);
@@ -156,7 +175,13 @@ export function useGameSession({
 
       if (isNetworkAmbiguous(error) || isServerAmbiguous(error)) {
         if (ambiguousRetryCount < 1) {
-          return submitRequest(request, label, ambiguousRetryCount + 1);
+          return submitRequest(
+            request,
+            label,
+            ambiguousRetryCount + 1,
+            authRetryCount,
+            requestAccessToken,
+          );
         }
 
         // The mutation may already have committed even when its HTTP response
@@ -164,7 +189,7 @@ export function useGameSession({
         // stuck on the stale revision. This is the same recovery a full reload
         // used to provide, but keeps the player in the current session.
         try {
-          const latest = await api.bootstrap(await resolveAccessToken());
+          const latest = await api.bootstrap(requestAccessToken);
           if (
             latest.status === "ready" &&
             latest.game.revision > request.revision
