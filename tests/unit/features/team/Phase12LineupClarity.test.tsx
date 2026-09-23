@@ -35,7 +35,10 @@ describe("Phase 12 lineup clarity", () => {
     expect(candidates.length).toBeLessThan(12);
     expect(within(candidates[0]!).getByText("おすすめ")).toBeVisible();
     expect(candidates[0]).toHaveTextContent(/適性 \d+/);
-    expect(candidates[0]).toHaveTextContent(/総合 \d+/);
+    expect(within(candidates[0]!).getByText("総合")).toBeVisible();
+    expect(
+      candidates[0]!.querySelector(".team-picker-card__score strong"),
+    ).toHaveTextContent(/\d+/);
     expect(candidates[0]).toHaveTextContent(/攻 \d+/);
     expect(candidates[0]).toHaveTextContent(/守 \d+/);
     expect(candidates[0]).toHaveTextContent(/跳 \d+/);
