@@ -835,7 +835,6 @@
   transform: translateX(18px);
 }
 
-
 /* Lineup picker: compare only available replacements in a compact mobile grid. */
 .team-picker-summary {
   display: flex;
