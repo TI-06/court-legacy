@@ -20,7 +20,7 @@ interface RenderOptions {
     playerId: string,
     goal: {
       area: "attack" | "defense" | "jump" | "stamina" | "mental";
-      targetGrade: "A" | "B" | "C" | "D" | "E" | "F" | "G";
+      targetGrade: "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
     } | null,
   ) => void;
   planningPending?: boolean;
@@ -122,6 +122,29 @@ describe("PlayerHubScreen", () => {
           `${label} ${ratingToGrade(abilities[key])}`,
         ),
       ).toBeVisible();
+    }
+
+    expect(abilityRanks.children).toHaveLength(6);
+    expect(
+      within(abilityRanks).getByRole("button", {
+        name: new RegExp(
+          `^${player.lastName} ${player.firstName} 個人練習 `,
+        ),
+      }),
+    ).toBeVisible();
+    expect(firstRow.querySelector(".player-roster__quick-actions")).toBeNull();
+    expect(within(firstRow).queryByText("実施済")).toBeNull();
+
+    if (typeof player.potential === "number") {
+      expect(
+        within(firstRow).getByText(
+          `将来性${ratingToGrade(player.potential)}`,
+        ),
+      ).toBeVisible();
+    }
+    const growthType = gameData.growthTypes.get(player.growthTypeId);
+    if (growthType) {
+      expect(within(firstRow).getByText(growthType.name)).toBeVisible();
     }
   });
 
@@ -279,8 +302,22 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: /^守備/ }));
 
     expect(onSaveTrainingAssignments).not.toHaveBeenCalled();
-    expect(within(firstRow).getByText("未保存")).toBeVisible();
-    expect(within(secondRow).getByText("未保存")).toBeVisible();
+    expect(
+      within(firstRow).getByRole("button", {
+        name: new RegExp(
+          `^${first.lastName} ${first.firstName} 個人練習 `,
+        ),
+      }),
+    ).toHaveAttribute("data-draft", "true");
+    expect(
+      within(secondRow).getByRole("button", {
+        name: new RegExp(
+          `^${second.lastName} ${second.firstName} 個人練習 `,
+        ),
+      }),
+    ).toHaveAttribute("data-draft", "true");
+    expect(within(firstRow).queryByText("未保存")).toBeNull();
+    expect(within(secondRow).queryByText("未保存")).toBeNull();
 
     fireEvent.click(
       screen.getByRole("button", { name: "まとめて保存（2人）" }),
@@ -846,7 +883,7 @@ describe("PlayerHubScreen", () => {
       playerId,
       expect.objectContaining({
         area: expect.stringMatching(/^(attack|defense|jump|stamina|mental)$/),
-        targetGrade: expect.stringMatching(/^[A-G]$/),
+        targetGrade: expect.stringMatching(/^[A-GS]$/),
       }),
     );
 
