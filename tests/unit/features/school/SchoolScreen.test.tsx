@@ -48,6 +48,25 @@ describe("school management screen", () => {
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 1);
   });
 
+  it("shows all facilities in a compact command grid with upgrade availability", () => {
+    const state = createState();
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    expect(screen.getByText("強化可能 8/8")).toBeVisible();
+    expect(screen.getByText("資金 750")).toBeVisible();
+    expect(screen.getAllByTestId("facility-tile")).toHaveLength(8);
+    expect(screen.getByText("トレーニング")).toBeVisible();
+    expect(screen.getByText("回復")).toBeVisible();
+    expect(screen.getByText("学習")).toBeVisible();
+
+    const training = screen.getByRole("button", {
+      name: "トレーニング設備の詳細",
+    });
+    expect(training).toHaveClass("facility-tile--available");
+    expect(within(training).getByText("Lv.0 / 50")).toBeVisible();
+  });
+
   it("switches School management between facilities and coaches", () => {
     const state = createState();
 
