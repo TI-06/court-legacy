@@ -1701,3 +1701,154 @@
     text-align: left;
   }
 }
+
+
+/* Phase28-1: compress roster cards to identity + six decision tiles. */
+.player-roster__main {
+  min-height: 60px;
+  padding-block: 7px 6px;
+}
+
+.player-roster__detail-link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.player-roster__detail-link:focus-visible {
+  outline: 2px solid rgb(116 216 255 / 60%);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.player-roster__meta {
+  flex-wrap: wrap;
+  row-gap: 2px;
+  white-space: normal;
+}
+
+.player-roster__info-badge {
+  flex: 0 0 auto;
+  padding: 1px 4px;
+  color: #bfe7ff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.45;
+  white-space: nowrap;
+  background: rgb(31 120 171 / 16%);
+  border: 1px solid rgb(116 216 255 / 20%);
+  border-radius: 999px;
+}
+
+.player-roster__meta .player-roster__priority-action {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 1px 5px;
+  gap: 2px;
+  border-radius: 999px;
+}
+
+.player-roster__meta .player-roster__priority-action span {
+  font-size: 10px;
+}
+
+.player-roster__meta .player-roster__priority-action strong {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.player-roster__abilities {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  padding-bottom: 6px;
+}
+
+.player-roster__abilities > span,
+.player-roster__abilities > .player-roster__training-action {
+  min-height: 30px;
+}
+
+.player-roster__abilities [data-grade="S"] strong {
+  color: #ffb35f;
+  text-shadow: 0 0 10px rgb(244 122 24 / 28%);
+}
+
+.player-roster__training-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 30px;
+  padding: 3px 2px;
+  gap: 3px;
+  text-align: center;
+  background: rgb(31 120 171 / 12%);
+  border: 1px solid rgb(116 216 255 / 18%);
+  border-radius: 7px;
+}
+
+.player-roster__training-action small {
+  overflow: hidden;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 8px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-roster__training-action strong {
+  overflow: hidden;
+  min-width: 0;
+  color: #dff4ff;
+  font-size: 10px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-roster__training-action[data-draft="true"] {
+  background: rgb(244 122 24 / 16%);
+  border-color: rgb(244 122 24 / 68%);
+  box-shadow: inset 0 0 0 1px rgb(255 217 154 / 12%);
+}
+
+.player-roster__training-action:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+@media (max-width: 350px) {
+  .player-roster__main {
+    min-height: 58px;
+  }
+
+  .player-roster__info-badge {
+    font-size: 7px;
+  }
+
+  .player-roster__abilities {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .player-roster__abilities > span,
+  .player-roster__abilities > .player-roster__training-action {
+    min-height: 28px;
+    gap: 1px;
+  }
+
+  .player-roster__abilities small,
+  .player-roster__training-action small {
+    font-size: 7px;
+  }
+
+  .player-roster__abilities strong,
+  .player-roster__training-action strong {
+    font-size: 10px;
+  }
+}
