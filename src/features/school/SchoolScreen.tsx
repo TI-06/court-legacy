@@ -84,6 +84,13 @@ function formatFundsAmount(amount: number): string {
   return amount >= 0 ? `+${absolute}` : `-${absolute}`;
 }
 
+function compactFacilityName(name: string): string {
+  if (name === "トレーニング設備") return "トレーニング";
+  if (name === "回復設備") return "回復";
+  if (name === "学習設備") return "学習";
+  return name;
+}
+
 function facilityActionLabel(
   name: string,
   reason: ReturnType<typeof evaluateFacilityUpgrade>["reason"],
@@ -169,6 +176,13 @@ export function SchoolScreen({
       )
     : null;
   const seasonProgress = buildSeasonProgressPresentation(state);
+  const facilityOverview = FACILITY_DEFINITIONS.map((definition) => ({
+    definition,
+    evaluation: evaluateFacilityUpgrade(state, school.id, definition.key),
+  }));
+  const availableFacilityCount = facilityOverview.filter(
+    ({ evaluation }) => evaluation.allowed,
+  ).length;
 
   const confirmUpgrade = async () => {
     if (
@@ -252,7 +266,10 @@ export function SchoolScreen({
       <SchoolNavigationTabs activeView={view} onSelect={selectView} />
 
       {view === "management" ? (
-        <section className="school-panel" aria-labelledby="management-heading">
+        <section
+          className="school-panel school-panel--management"
+          aria-labelledby="management-heading"
+        >
           <div className="school-section-heading">
             <div>
               <p className="section-kicker">学校運営</p>
@@ -299,20 +316,18 @@ export function SchoolScreen({
             className="school-management-section"
             hidden={managementView !== "facilities"}
           >
-            <div className="school-subsection-heading">
+            <div className="school-facility-command-heading">
               <div>
                 <h4 id="facility-heading">設備</h4>
-                <small>学校の育成環境を強化</small>
+                <small>
+                  強化可能 {availableFacilityCount}/
+                  {FACILITY_DEFINITIONS.length}
+                </small>
               </div>
-              <span>最大 Lv.50</span>
+              <span>資金 {school.funds}</span>
             </div>
             <div className="facility-grid">
-              {FACILITY_DEFINITIONS.map((definition) => {
-                const evaluation = evaluateFacilityUpgrade(
-                  state,
-                  school.id,
-                  definition.key,
-                );
+              {facilityOverview.map(({ definition, evaluation }) => {
                 const missingFunds = Math.max(
                   0,
                   evaluation.cost - school.funds,
@@ -328,7 +343,11 @@ export function SchoolScreen({
                 return (
                   <button
                     aria-label={`${definition.name}の詳細`}
-                    className="facility-tile"
+                    className={
+                      evaluation.allowed
+                        ? "facility-tile facility-tile--available"
+                        : "facility-tile"
+                    }
                     data-testid="facility-tile"
                     key={definition.key}
                     onClick={() => {
@@ -338,7 +357,7 @@ export function SchoolScreen({
                     type="button"
                   >
                     <span className="facility-tile__top">
-                      <strong>{definition.name}</strong>
+                      <strong>{compactFacilityName(definition.name)}</strong>
                       <b>Lv.{evaluation.currentLevel} / 50</b>
                     </span>
                     <progress

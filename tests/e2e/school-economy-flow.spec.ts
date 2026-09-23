@@ -70,6 +70,19 @@ async function expectSchoolNoHorizontalOverflow(page: Page) {
   expect(layout.schoolScroll).toBeLessThanOrEqual(layout.schoolClient + 1);
 }
 
+async function expectFacilityGridAboveNavigation(page: Page) {
+  const grid = page.locator(".facility-grid");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const gridBox = await grid.boundingBox();
+  const navigationBox = await navigation.boundingBox();
+
+  expect(gridBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect((gridBox?.y ?? 0) + (gridBox?.height ?? 0)).toBeLessThanOrEqual(
+    navigationBox?.y ?? 0,
+  );
+}
+
 for (const width of [320, 360, 390, 414, 480] as const) {
   test(`${width}px school management navigation fits`, async ({ page }) => {
     await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
@@ -80,7 +93,12 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(primary.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
+    await expect(page.getByTestId("facility-tile")).toHaveCount(8);
+    await expect(page.getByText("強化可能 8/8")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
+    if (width <= 360) {
+      await expectFacilityGridAboveNavigation(page);
+    }
 
     const management = page.getByRole("tablist", {
       name: "運営メニュー",

@@ -1151,3 +1151,139 @@
   padding-top: 0;
   border-top: 0;
 }
+
+/* Phase31-3: one-screen facility command grid. */
+.school-panel--management {
+  padding-top: 10px;
+}
+
+.school-panel--management .school-section-heading {
+  margin-bottom: 4px;
+}
+
+.school-panel--management .school-management-tabs {
+  margin-top: 0;
+}
+
+.school-panel--management .school-management-section {
+  margin-top: 7px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.school-facility-command-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-facility-command-heading > div {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-facility-command-heading h4,
+.school-facility-command-heading small {
+  margin: 0;
+}
+
+.school-facility-command-heading h4 {
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.82rem;
+}
+
+.school-facility-command-heading small,
+.school-facility-command-heading > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.school-facility-command-heading > span {
+  padding: 3px 6px;
+  color: #ffc08a;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 22%);
+  border-radius: 999px;
+}
+
+.school-panel--management .facility-grid {
+  margin-top: 6px;
+  gap: 5px;
+}
+
+.school-panel--management .facility-tile {
+  min-height: 54px;
+  padding: 6px 7px;
+  gap: 3px;
+  border-radius: 9px;
+}
+
+.school-panel--management .facility-tile--available {
+  background:
+    linear-gradient(145deg, rgb(244 122 24 / 6%), transparent 75%),
+    rgb(255 255 255 / 5%);
+  border-color: rgb(244 122 24 / 24%);
+}
+
+.school-panel--management .facility-tile__top {
+  gap: 4px;
+}
+
+.school-panel--management .facility-tile__top strong {
+  overflow: hidden;
+  font-size: 0.66rem;
+  line-height: 1.15;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .facility-tile__top b {
+  padding: 1px 4px;
+  font-size: 0.53rem;
+}
+
+.school-panel--management .facility-tile__progress {
+  height: 3px;
+}
+
+.school-panel--management .facility-tile small {
+  overflow: hidden;
+  font-size: 0.54rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .facility-tile__detail {
+  display: none;
+}
+
+@media (max-width: 350px) {
+  .school-panel--management {
+    padding: 9px;
+  }
+
+  .school-panel--management .facility-grid {
+    gap: 4px;
+  }
+
+  .school-panel--management .facility-tile {
+    min-height: 50px;
+    padding: 5px 6px;
+  }
+
+  .school-facility-command-heading > div {
+    gap: 5px;
+  }
+
+  .school-facility-command-heading small {
+    font-size: 0.54rem;
+  }
+}
