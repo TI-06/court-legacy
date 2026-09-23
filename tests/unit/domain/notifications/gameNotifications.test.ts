@@ -145,6 +145,48 @@ describe("game notifications", () => {
     ]);
   });
 
+  it("reports an A-to-S training rank up", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.abilities.jump = 89;
+
+    const result = {
+      teamTrainingMenuId: "training.balanced",
+      playerLogs: [
+        {
+          playerId,
+          totalAbilityGrowth: 1,
+          abilityChanges: { jump: 1 },
+          fatigueChange: 0,
+          conditionChange: 0,
+          trustChange: 0,
+          injury: null,
+          socialGrowth: {
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
+          },
+        },
+      ],
+      injuredPlayerIds: [],
+    };
+
+    const notification = buildTrainingResultNotification({
+      stateBeforeTraining: state,
+      result,
+      data: gameData,
+    });
+
+    expect(notification.payload.players[0]?.rankUps).toContainEqual({
+      area: "jump",
+      areaLabel: "跳躍",
+      fromGrade: "A",
+      toGrade: "S",
+    });
+  });
+
   it("emits one notification only when development goals cross their target grades", () => {
     const before = createDemoGame();
     const school = before.schools[before.userSchoolId]!;
