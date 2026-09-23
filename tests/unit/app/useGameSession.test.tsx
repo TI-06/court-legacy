@@ -233,51 +233,46 @@ describe("useGameSession", () => {
     );
   });
 
-  it("resolves the current access token before every authoritative mutation", async () => {
-    let currentToken = "token-1";
-    let operationIndex = 0;
-    const getAccessToken = vi.fn(async () => currentToken);
+  it("refreshes an expired save token once and retries the exact same mutation", async () => {
+    const nextSnapshot = createSnapshot(2);
+    const refreshAccessToken = vi.fn().mockResolvedValue("fresh-token");
     const applyAction = vi
       .fn()
+      .mockRejectedValueOnce(
+        new ApiError(401, "unauthorized", "認証の有効期限が切れています"),
+      )
       .mockResolvedValueOnce({
-        game: createSnapshot(2),
-        operationId: "op-fresh-1",
-      })
-      .mockResolvedValueOnce({
-        game: createSnapshot(3),
-        operationId: "op-fresh-2",
+        game: nextSnapshot,
+        operationId: "op-auth-refresh",
       });
 
     const { result } = renderHook(() =>
       useGameSession({
-        accessToken: "bootstrap-token",
-        getAccessToken,
+        accessToken: "stale-token",
+        refreshAccessToken,
         initialSnapshot: createSnapshot(1),
         api: api({ applyAction }),
         recoveryCache: cache(),
-        createOperationId: () => `op-fresh-${++operationIndex}`,
+        createOperationId: () => "op-auth-refresh",
       }),
     );
 
     await act(async () => {
-      await result.current.runAction(
-        { type: "facility-upgrade", facility: "trainingRoom" },
-        "設備を保存",
-      );
+      await result.current.runAction({ type: "advance-week" }, "週進行を保存");
     });
 
-    currentToken = "token-2";
-    await act(async () => {
-      await result.current.runAction(
-        { type: "facility-upgrade", facility: "gym" },
-        "設備を保存",
-      );
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1);
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[0]?.[0]).toBe("stale-token");
+    expect(applyAction.mock.calls[1]?.[0]).toBe("fresh-token");
+    expect(applyAction.mock.calls[0]?.[1]).toEqual(
+      applyAction.mock.calls[1]?.[1],
+    );
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "週進行を保存",
     });
-
-    expect(applyAction.mock.calls[0]?.[0]).toBe("token-1");
-    expect(applyAction.mock.calls[1]?.[0]).toBe("token-2");
-    expect(getAccessToken).toHaveBeenCalledTimes(2);
-    expect(result.current.snapshot.revision).toBe(3);
   });
 
   it("resyncs the authoritative snapshot after repeated ambiguous save failures", async () => {
@@ -292,12 +287,10 @@ describe("useGameSession", () => {
       status: "ready",
       game: latestSnapshot,
     });
-    const getAccessToken = vi.fn().mockResolvedValue("fresh-token");
 
     const { result } = renderHook(() =>
       useGameSession({
-        accessToken: "stale-token",
-        getAccessToken,
+        accessToken: "token",
         initialSnapshot: createSnapshot(1),
         api: api({ applyAction, bootstrap }),
         recoveryCache: recovery,
@@ -313,7 +306,7 @@ describe("useGameSession", () => {
     expect(applyAction.mock.calls[0]?.[1]).toEqual(
       applyAction.mock.calls[1]?.[1],
     );
-    expect(bootstrap).toHaveBeenCalledWith("fresh-token");
+    expect(bootstrap).toHaveBeenCalledWith("token");
     expect(result.current.snapshot.revision).toBe(2);
     expect(result.current.operation).toEqual({
       status: "success",
