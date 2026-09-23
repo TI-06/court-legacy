@@ -299,13 +299,11 @@ for (const viewport of mobileViewports) {
       `${viewport.width}-home`,
     );
     await expectNavigationFixed(page, `${viewport.width}-home`);
-    if ([360, 390, 414].includes(viewport.width)) {
-      await expectAboveNavigation(
-        page,
-        ".home-command-advance",
-        `${viewport.width}-home-advance`,
-      );
-    }
+    await expectAboveNavigation(
+      page,
+      ".home-command-advance",
+      `${viewport.width}-home-advance`,
+    );
 
     const bracketButton = page.getByRole("button", { name: "大会表を見る" });
     if (await bracketButton.isVisible().catch(() => false)) {
@@ -381,10 +379,20 @@ for (const viewport of mobileViewports) {
       testInfo,
       `${viewport.width}-training-options`,
     );
-    await page
-      .getByRole("dialog", { name: /の個人練習$/ })
-      .getByRole("button", { name: "閉じる" })
+    const trainingDialog = page.getByRole("dialog", { name: /の個人練習$/ });
+    await trainingDialog
+      .locator('.player-training-options button[aria-pressed="false"]')
+      .first()
       .click();
+    await expect(
+      page.getByRole("complementary", { name: "個人練習の未保存変更" }),
+    ).toBeVisible();
+    await page.locator(".player-training-save-bar").scrollIntoViewIfNeeded();
+    await expectAboveNavigation(
+      page,
+      ".player-training-save-bar",
+      `${viewport.width}-player-training-save`,
+    );
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-planning`);
