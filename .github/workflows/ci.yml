@@ -53,6 +53,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Show Prettier diff for current formatting failures
+        run: |
+          npx prettier src/features/home/training-camp-result.css src/features/team/TeamScreen.tsx worker/game/applyGameAction.ts --write
+          git diff -- src/features/home/training-camp-result.css src/features/team/TeamScreen.tsx worker/game/applyGameAction.ts
+          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
