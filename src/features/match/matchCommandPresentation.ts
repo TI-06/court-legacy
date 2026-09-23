@@ -1,5 +1,6 @@
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommandRecord, MatchState } from "../../domain/model/Match";
+import type { SchoolId } from "../../domain/model/identifiers";
 
 export interface MatchCommandImpactRow {
   sequence: number;
@@ -10,6 +11,13 @@ export interface MatchCommandImpactRow {
   observedRallies: number;
   schoolPoints: number;
   opponentPoints: number;
+}
+
+export interface MatchLiveCoachEffectRow {
+  sequence: number;
+  kind: "timeout" | "focus-attacker" | "encourage-player";
+  label: string;
+  ralliesRemaining: number;
 }
 
 function playerDisplayName(state: GameState, playerId: string): string {
@@ -91,4 +99,93 @@ export function buildMatchCommandImpactRows(
     commandLabel: commandLabel(state, record),
     ...observedPointSplit(match, record),
   }));
+}
+
+function temporaryEffectLabel(
+  state: GameState,
+  record: MatchCommandRecord,
+): MatchLiveCoachEffectRow["label"] | null {
+  switch (record.command.type) {
+    case "timeout":
+      return "タイムアウト効果";
+    case "focus-attacker":
+      return `${playerDisplayName(state, record.command.playerId)}に攻撃集中`;
+    case "encourage-player":
+      return `${playerDisplayName(state, record.command.playerId)}に声かけ`;
+    default:
+      return null;
+  }
+}
+
+export function buildLiveCoachEffectRows(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+  visibleEventSequence: number,
+): MatchLiveCoachEffectRow[] {
+  if (!match.runtime || visibleEventSequence < 1) {
+    return [];
+  }
+
+  const visibleEvent = [...match.eventLog]
+    .reverse()
+    .find((event) => event.sequence <= visibleEventSequence);
+  if (!visibleEvent) {
+    return [];
+  }
+
+  const seenKinds = new Set<MatchLiveCoachEffectRow["kind"]>();
+  const rows: MatchLiveCoachEffectRow[] = [];
+
+  for (const record of [...match.runtime.commandHistory].reverse()) {
+    if (
+      record.schoolId !== schoolId ||
+      record.eventSequence > visibleEventSequence
+    ) {
+      continue;
+    }
+
+    const label = temporaryEffectLabel(state, record);
+    if (!label) {
+      continue;
+    }
+
+    const kind = record.command.type as MatchLiveCoachEffectRow["kind"];
+    if (seenKinds.has(kind) || record.setNumber !== visibleEvent.setNumber) {
+      continue;
+    }
+
+    const setEnded = match.eventLog.some(
+      (event) =>
+        event.sequence > record.eventSequence &&
+        event.sequence <= visibleEventSequence &&
+        event.type === "set-end" &&
+        event.setNumber === record.setNumber,
+    );
+    if (setEnded) {
+      continue;
+    }
+
+    const observedRallies = match.eventLog.filter(
+      (event) =>
+        event.sequence > record.eventSequence &&
+        event.sequence <= visibleEventSequence &&
+        event.type === "point" &&
+        event.setNumber === record.setNumber,
+    ).length;
+    const ralliesRemaining = Math.max(0, 5 - observedRallies);
+    if (ralliesRemaining === 0) {
+      continue;
+    }
+
+    seenKinds.add(kind);
+    rows.push({
+      sequence: record.sequence,
+      kind,
+      label,
+      ralliesRemaining,
+    });
+  }
+
+  return rows.sort((first, second) => first.sequence - second.sequence);
 }

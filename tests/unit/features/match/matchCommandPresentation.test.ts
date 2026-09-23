@@ -12,7 +12,10 @@ import type {
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
-import { buildMatchCommandImpactRows } from "../../../../src/features/match/matchCommandPresentation";
+import {
+  buildLiveCoachEffectRows,
+  buildMatchCommandImpactRows,
+} from "../../../../src/features/match/matchCommandPresentation";
 
 function playerName(
   state: ReturnType<typeof createDemoGame>,
@@ -160,6 +163,45 @@ describe("Phase16 match command presentation", () => {
     });
     expect(rows[2]).toMatchObject({ observedRallies: 0 });
     expect(rows[3]).toMatchObject({ observedRallies: 0 });
+  });
+
+  it("shows only temporary coach effects that are still active at the visible rally", () => {
+    const { state, match, outgoingPlayerId } = fixture();
+    const runtime = match.runtime;
+    if (!runtime) throw new Error("runtime fixture missing");
+    const boundary = runtime.commandHistory[0]!.eventSequence;
+
+    runtime.commandHistory.push({
+      sequence: 5,
+      schoolId: state.userSchoolId,
+      setNumber: 1,
+      homeScore: 10,
+      awayScore: 12,
+      decisionReason: "mid-set",
+      command: { type: "focus-attacker", playerId: outgoingPlayerId },
+      eventSequence: boundary + 2,
+    });
+
+    expect(
+      buildLiveCoachEffectRows(state, match, state.userSchoolId, boundary + 4),
+    ).toEqual([
+      {
+        sequence: 1,
+        kind: "timeout",
+        label: "タイムアウト効果",
+        ralliesRemaining: 1,
+      },
+      {
+        sequence: 5,
+        kind: "focus-attacker",
+        label: `${playerName(state, outgoingPlayerId)}に攻撃集中`,
+        ralliesRemaining: 3,
+      },
+    ]);
+
+    expect(
+      buildLiveCoachEffectRows(state, match, state.userSchoolId, boundary + 7),
+    ).toEqual([]);
   });
 
   it("never invents causal wording for observed post-command results", () => {
