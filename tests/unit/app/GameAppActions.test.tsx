@@ -382,16 +382,17 @@ describe("GameApp cloud actions", () => {
     const refreshed = createSnapshot();
     refreshed.revision = 7;
     refreshed.state.schools[refreshed.state.userSchoolId]!.funds = 777;
+    const applyAction = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(409, "revision_conflict", "データが更新されています"),
+      );
     const api: GameApiClient = {
       bootstrap: vi
         .fn()
         .mockResolvedValue({ status: "ready", game: refreshed }),
       onboard: vi.fn(),
-      applyAction: vi
-        .fn()
-        .mockRejectedValue(
-          new ApiError(409, "revision_conflict", "データが更新されています"),
-        ),
+      applyAction,
     };
 
     render(
@@ -419,8 +420,8 @@ describe("GameApp cloud actions", () => {
         name: "資金 777・履歴を表示",
       }),
     ).toBeVisible();
-    expect(api.applyAction).toHaveBeenCalledTimes(2);
-    expect(api.applyAction.mock.calls[1]?.[1]).toMatchObject({
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[1]?.[1]).toMatchObject({
       revision: 7,
       action: { type: "facility-upgrade", facility: "trainingRoom" },
     });
