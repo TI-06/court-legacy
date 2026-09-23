@@ -183,12 +183,7 @@ describe("Phase16 match command presentation", () => {
     });
 
     expect(
-      buildLiveCoachEffectRows(
-        state,
-        match,
-        state.userSchoolId,
-        boundary + 4,
-      ),
+      buildLiveCoachEffectRows(state, match, state.userSchoolId, boundary + 4),
     ).toEqual([
       {
         sequence: 1,
@@ -205,12 +200,7 @@ describe("Phase16 match command presentation", () => {
     ]);
 
     expect(
-      buildLiveCoachEffectRows(
-        state,
-        match,
-        state.userSchoolId,
-        boundary + 7,
-      ),
+      buildLiveCoachEffectRows(state, match, state.userSchoolId, boundary + 7),
     ).toEqual([]);
   });
 
