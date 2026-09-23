@@ -273,9 +273,11 @@ export function MatchCommandPanel({
           <p>
             {reason === "opponent-run"
               ? "相手に4連続ポイントを許しています"
-              : reason === "critical-score"
-                ? "終盤の接戦です。次の数点をどう取りにいくか選べます"
-                : "セット間の監督指示"}
+              : reason === "mid-set"
+                ? "セット中盤です。ここで流れを作る指示を選べます"
+                : reason === "critical-score"
+                  ? "終盤の接戦です。次の数点をどう取りにいくか選べます"
+                  : "セット間の監督指示"}
           </p>
         </div>
 
