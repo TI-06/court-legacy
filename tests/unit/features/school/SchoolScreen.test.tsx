@@ -53,9 +53,10 @@ describe("school management screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    expect(screen.getByText("強化可能 8/8")).toBeVisible();
-    expect(screen.getByText("資金 750")).toBeVisible();
-    expect(screen.getAllByTestId("facility-tile")).toHaveLength(8);
+    const facilities = screen.getByRole("region", { name: "設備" });
+    expect(within(facilities).getByText("強化可能 8/8")).toBeVisible();
+    expect(within(facilities).getByText("資金 750")).toBeVisible();
+    expect(within(facilities).getAllByTestId("facility-tile")).toHaveLength(8);
     expect(screen.getByText("トレーニング")).toBeVisible();
     expect(screen.getByText("回復")).toBeVisible();
     expect(screen.getByText("学習")).toBeVisible();
@@ -85,15 +86,15 @@ describe("school management screen", () => {
     const staff = screen.getByRole("region", { name: "スタッフ" });
     expect(within(staff).getByText("4候補")).toBeVisible();
     expect(within(staff).getByText("資金 750")).toBeVisible();
-    expect(within(staff).getByText("現在契約中のコーチはいません")).toBeVisible();
+    expect(
+      within(staff).getByText("現在契約中のコーチはいません"),
+    ).toBeVisible();
     expect(screen.getByTestId("assistant-coach-beginner")).toBeVisible();
     expect(screen.getByTestId("assistant-coach-intermediate")).toBeVisible();
     expect(screen.getByTestId("assistant-coach-advanced")).toBeVisible();
     expect(screen.getByTestId("assistant-coach-master")).toBeVisible();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "中級コーチの詳細" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "中級コーチの詳細" }));
     const dialog = screen.getByRole("dialog", { name: "中級コーチ" });
     const specialty = within(dialog).getByRole("group", {
       name: "中級コーチの専門",

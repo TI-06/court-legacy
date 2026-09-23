@@ -177,7 +177,9 @@ export function SchoolScreen({
       )
     : null;
   const selectedCoachOption = selectedCoachRank
-    ? ASSISTANT_COACH_OPTIONS.find((option) => option.rank === selectedCoachRank)
+    ? ASSISTANT_COACH_OPTIONS.find(
+        (option) => option.rank === selectedCoachRank,
+      )
     : null;
   const selectedCoachSpecialty =
     selectedCoachRank && selectedCoachRank !== "beginner"
@@ -714,9 +716,7 @@ export function SchoolScreen({
             >
               <span>全体 +{selectedCoachOption.generalPercent - 100}%</span>
               {selectedCoachOption.specialtyPercent ? (
-                <span>
-                  専門 +{selectedCoachOption.specialtyPercent - 100}%
-                </span>
+                <span>専門 +{selectedCoachOption.specialtyPercent - 100}%</span>
               ) : (
                 <span>総合指導</span>
               )}

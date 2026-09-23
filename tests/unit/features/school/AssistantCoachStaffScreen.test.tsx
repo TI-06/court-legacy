@@ -53,15 +53,14 @@ describe("school staff screen", () => {
     );
     openCoachTab();
 
-    const advancedCard = screen.getByTestId("assistant-coach-advanced");
-    fireEvent.click(within(advancedCard).getByLabelText("上級コーチの専門"));
+    fireEvent.click(screen.getByRole("button", { name: "上級コーチの詳細" }));
+    const dialog = screen.getByRole("dialog", { name: "上級コーチ" });
+    const specialty = within(dialog).getByRole("group", {
+      name: "上級コーチの専門",
+    });
+    fireEvent.click(within(specialty).getByRole("button", { name: "攻撃" }));
     fireEvent.click(
-      within(
-        screen.getByRole("dialog", { name: "上級コーチの専門を選ぶ" }),
-      ).getByRole("button", { name: "攻撃" }),
-    );
-    fireEvent.click(
-      within(advancedCard).getByRole("button", {
+      within(dialog).getByRole("button", {
         name: "上級コーチと年間契約",
       }),
     );
