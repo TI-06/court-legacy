@@ -1,7 +1,11 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { startMatch } from "../../../../src/domain/match/simulateMatch";
+import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
+import {
+  resumeMatch,
+  startMatch,
+} from "../../../../src/domain/match/simulateMatch";
 import type { CoachDecisionReason } from "../../../../src/domain/model/Match";
 import {
   matchId,
@@ -23,7 +27,7 @@ function findDecision(reason: CoachDecisionReason) {
   const awaySelection = autoSelectTeam({ state, schoolId: opponent.id });
 
   for (let index = 0; index < 240; index += 1) {
-    const step = startMatch({
+    let step = startMatch({
       state,
       id: matchId(`phase16-command-panel-${reason}-${index}`),
       homeSchoolId: state.userSchoolId,
@@ -34,8 +38,19 @@ function findDecision(reason: CoachDecisionReason) {
       random: new SeededRandom(`phase16-command-panel-${reason}-${index}`),
       controlledSchoolId: state.userSchoolId,
     });
-    if (step.match.runtime?.pendingDecisionReason === reason) {
-      return { state, match: step.match };
+    let guard = 0;
+    while (step.match.phase !== "match-complete" && guard < 16) {
+      if (step.match.runtime?.pendingDecisionReason === reason) {
+        return { state, match: step.match };
+      }
+      guard += 1;
+      const commanded = applyMatchCommand({
+        state,
+        match: step.match,
+        schoolId: state.userSchoolId,
+        command: { type: "continue" },
+      });
+      step = resumeMatch({ state, match: commanded });
     }
   }
 
@@ -79,6 +94,26 @@ describe("Phase16 match command decision panel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "このまま続ける" }));
     expect(onCommand).toHaveBeenLastCalledWith({ type: "continue" });
+  });
+
+  it("shows player choices at the guaranteed mid-set decision", () => {
+    const fixture = findDecision("mid-set");
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText("セット中盤です。ここで流れを作る指示を選べます"),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "選手指示" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "選手交代" })).toBeVisible();
   });
 
   it("offers direct tactical choices and timeout in a critical-score decision", () => {
