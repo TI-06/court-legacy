@@ -106,6 +106,8 @@ export function PreMatchLineupScreen({
   const [pickerTarget, setPickerTarget] = useState<LineupPickerTarget | null>(
     null,
   );
+  const [prepTab, setPrepTab] = useState<"lineup" | "tactics">("lineup");
+  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   const strength = useMemo(
     () => calculateSelectionStrength(state, selection),
@@ -221,7 +223,9 @@ export function PreMatchLineupScreen({
   };
 
   return (
-    <main className="app-content pre-match-lineup">
+    <main
+      className={`app-content pre-match-lineup pre-match-lineup--${prepTab}`}
+    >
       <section className="pre-match-lineup__hero">
         <div>
           <p className="section-kicker">
@@ -257,83 +261,41 @@ export function PreMatchLineupScreen({
         </article>
       </section>
 
-      {opponentSelection && opponentStrength !== undefined ? (
-        <PreMatchComparison
-          awaySelection={opponentSelection}
-          awayStrength={opponentStrength}
-          homeSelection={selection}
-          homeStrength={strength}
-          state={state}
-        />
-      ) : mode === "pvp" ? (
+      <section
+        className="pre-match-lineup__game-nav"
+        aria-label="試合前メニュー"
+      >
+        <button
+          aria-pressed={prepTab === "lineup"}
+          disabled={pending}
+          onClick={() => setPrepTab("lineup")}
+          type="button"
+        >
+          編成
+        </button>
+        <button
+          aria-pressed={prepTab === "tactics"}
+          disabled={pending}
+          onClick={() => setPrepTab("tactics")}
+          type="button"
+        >
+          戦術
+        </button>
+        {opponentSelection && opponentStrength !== undefined ? (
+          <button
+            disabled={pending}
+            onClick={() => setAnalysisOpen(true)}
+            type="button"
+          >
+            対戦分析
+          </button>
+        ) : null}
+      </section>
+
+      {mode === "pvp" && !opponentSelection ? (
         <p className="pre-match-lineup__privacy-note">
           対人戦では相手選手の詳細能力は非公開です。公開戦力と戦術傾向を見て編成を決めます。
         </p>
-      ) : null}
-
-      {opponentAnalysis ? (
-        <section className="pre-match-lineup__analysis" aria-label="相手分析">
-          <div className="pre-match-lineup__analysis-heading">
-            <div>
-              <p className="section-kicker">SCOUT REPORT</p>
-              <h3>相手分析</h3>
-            </div>
-            <span data-tier={opponentAnalysis.tier}>
-              {opponentAnalysis.tierLabel}・{opponentAnalysis.score}
-            </span>
-          </div>
-          <div className="pre-match-lineup__analysis-source">
-            <span>
-              分析室 Lv.
-              {state.schools[state.userSchoolId]?.facilities.analysisRoom ?? 0}
-            </span>
-            <span>
-              観察力 {state.schools[state.userSchoolId]?.coach.observation ?? 0}
-            </span>
-          </div>
-          <ul className="pre-match-lineup__analysis-observations">
-            {opponentAnalysis.observations.map((observation) => (
-              <li key={observation}>{observation}</li>
-            ))}
-          </ul>
-          <div className="pre-match-lineup__analysis-plan">
-            <span>推奨プラン</span>
-            <strong>
-              攻撃{" "}
-              {tacticOptionLabel(
-                "attack",
-                opponentAnalysis.recommendedPlan.attack,
-              )}
-              {" / "}
-              ブロック{" "}
-              {tacticOptionLabel(
-                "block",
-                opponentAnalysis.recommendedPlan.block,
-              )}
-              {" / "}
-              サーブ{" "}
-              {tacticOptionLabel(
-                "serve",
-                opponentAnalysis.recommendedPlan.serve,
-              )}
-            </strong>
-          </div>
-          <ul className="pre-match-lineup__analysis-reasons">
-            {opponentAnalysis.recommendedReasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-          <button
-            className="pre-match-lineup__analysis-apply"
-            disabled={pending}
-            onClick={() =>
-              setTactics(cloneTactics(opponentAnalysis.recommendedPlan))
-            }
-            type="button"
-          >
-            分析結果を戦術へ反映
-          </button>
-        </section>
       ) : null}
 
       <section
@@ -669,6 +631,97 @@ export function PreMatchLineupScreen({
           })}
         </div>
       </section>
+
+      <BottomSheet
+        description="戦力差・5項目比較・スカウト情報を確認できます。"
+        onClose={() => setAnalysisOpen(false)}
+        open={analysisOpen}
+        title="対戦分析"
+      >
+        <div className="pre-match-lineup__analysis-sheet">
+          {opponentSelection && opponentStrength !== undefined ? (
+            <PreMatchComparison
+              awaySelection={opponentSelection}
+              awayStrength={opponentStrength}
+              homeSelection={selection}
+              homeStrength={strength}
+              state={state}
+            />
+          ) : null}
+
+          {opponentAnalysis ? (
+            <section
+              className="pre-match-lineup__analysis"
+              aria-label="相手分析"
+            >
+              <div className="pre-match-lineup__analysis-heading">
+                <div>
+                  <p className="section-kicker">SCOUT REPORT</p>
+                  <h3>相手分析</h3>
+                </div>
+                <span data-tier={opponentAnalysis.tier}>
+                  {opponentAnalysis.tierLabel}・{opponentAnalysis.score}
+                </span>
+              </div>
+              <div className="pre-match-lineup__analysis-source">
+                <span>
+                  分析室 Lv.
+                  {state.schools[state.userSchoolId]?.facilities.analysisRoom ??
+                    0}
+                </span>
+                <span>
+                  観察力{" "}
+                  {state.schools[state.userSchoolId]?.coach.observation ?? 0}
+                </span>
+              </div>
+              <ul className="pre-match-lineup__analysis-observations">
+                {opponentAnalysis.observations.map((observation) => (
+                  <li key={observation}>{observation}</li>
+                ))}
+              </ul>
+              <div className="pre-match-lineup__analysis-plan">
+                <span>推奨プラン</span>
+                <strong>
+                  攻撃{" "}
+                  {tacticOptionLabel(
+                    "attack",
+                    opponentAnalysis.recommendedPlan.attack,
+                  )}
+                  {" / "}
+                  ブロック{" "}
+                  {tacticOptionLabel(
+                    "block",
+                    opponentAnalysis.recommendedPlan.block,
+                  )}
+                  {" / "}
+                  サーブ{" "}
+                  {tacticOptionLabel(
+                    "serve",
+                    opponentAnalysis.recommendedPlan.serve,
+                  )}
+                </strong>
+              </div>
+              <ul className="pre-match-lineup__analysis-reasons">
+                {opponentAnalysis.recommendedReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+              <button
+                className="pre-match-lineup__analysis-apply"
+                disabled={pending}
+                onClick={() => {
+                  setTactics(cloneTactics(opponentAnalysis.recommendedPlan));
+                  setAnalysisOpen(false);
+                  setPrepTab("tactics");
+                }}
+                type="button"
+              >
+                分析結果を戦術へ反映
+              </button>
+            </section>
+          ) : null}
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description={

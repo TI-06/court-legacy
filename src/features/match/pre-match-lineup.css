@@ -1250,3 +1250,196 @@
     display: none;
   }
 }
+
+/* Phase30: tabbed pre-match command center. */
+.pre-match-lineup__game-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  padding: 5px;
+  gap: 5px;
+  background: #10243a;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 13px;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
+}
+
+.pre-match-lineup__game-nav button {
+  min-height: 40px;
+  padding: 6px 8px;
+  color: #dce8ef;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+
+.pre-match-lineup__game-nav button[aria-pressed="true"] {
+  color: #071321;
+  background: #72d5df;
+  border-color: #72d5df;
+  box-shadow: 0 6px 14px rgb(114 213 223 / 18%);
+}
+
+.pre-match-lineup__game-nav button:last-child:not([aria-pressed]) {
+  color: #ffd4ad;
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 22%);
+}
+
+.pre-match-lineup--lineup .pre-match-lineup__tactics {
+  display: none;
+}
+
+.pre-match-lineup--tactics .pre-match-lineup__presets,
+.pre-match-lineup--tactics .pre-match-lineup__lineup,
+.pre-match-lineup--tactics .pre-match-lineup__bench {
+  display: none;
+}
+
+.pre-match-lineup {
+  --game-text-muted: #c6d4dd;
+  gap: 8px;
+  padding-bottom: calc(
+    108px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+}
+
+.pre-match-lineup__hero .section-kicker,
+.pre-match-lineup__section-heading .section-kicker,
+.pre-match-lineup__bench-heading .section-kicker {
+  color: #8ed9e5;
+}
+
+.pre-match-lineup__hero p:last-child {
+  color: #e3edf3;
+}
+
+.pre-match-lineup__tactics,
+.pre-match-lineup__presets,
+.pre-match-lineup__lineup,
+.pre-match-lineup__bench,
+.pre-match-lineup__versus {
+  background:
+    linear-gradient(145deg, rgb(60 146 211 / 7%), transparent 62%), #102238;
+}
+
+.pre-match-lineup__versus article span,
+.pre-match-lineup__section-heading > span,
+.pre-match-lineup__tactic-axis-heading span,
+.pre-match-lineup__saved-heading span,
+.pre-match-lineup__opponent-tactics > div > span,
+.pre-match-lineup__opponent-tactics > div > strong,
+.pre-match-lineup__tactic-options small,
+.pre-match-lineup__saved-presets button > span,
+.pre-match-lineup__saved-presets button > small,
+.pre-match-lineup__court-player-top small,
+.pre-match-lineup__court-player > small,
+.pre-match-lineup__libero-card > span small,
+.pre-match-lineup__libero-card > span em,
+.pre-match-lineup__bench-player span,
+.pre-match-lineup__bench-player small {
+  color: #c6d4dd;
+}
+
+.pre-match-lineup__versus {
+  gap: 6px;
+  padding: 7px;
+}
+
+.pre-match-lineup__versus article {
+  min-height: 64px;
+  padding: 7px 6px;
+  gap: 2px;
+}
+
+.pre-match-lineup__versus article span {
+  font-size: 0.62rem;
+}
+
+.pre-match-lineup__versus article strong {
+  font-size: 0.78rem;
+}
+
+.pre-match-lineup__versus article b {
+  font-size: 0.7rem;
+}
+
+.pre-match-lineup__analysis-sheet {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.pre-match-lineup__analysis-sheet .match-comparison-panel {
+  padding: 10px;
+  box-shadow: none;
+}
+
+.pre-match-lineup__analysis-sheet .match-radar__chart {
+  width: min(100%, 210px);
+}
+
+.pre-match-lineup__analysis-sheet .match-scout-grid {
+  grid-template-columns: 1fr;
+}
+
+.pre-match-lineup__start {
+  bottom: calc(
+    var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) + 14px
+  );
+  width: min(calc(100% - 20px), 456px);
+  min-height: 54px;
+  border-radius: 14px;
+  box-shadow:
+    0 14px 34px rgb(0 0 0 / 40%),
+    0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+@media (max-width: 420px) {
+  .pre-match-lineup__hero {
+    padding: 9px 10px;
+  }
+
+  .pre-match-lineup__hero .section-kicker {
+    display: none;
+  }
+
+  .pre-match-lineup__hero h2 {
+    font-size: 0.95rem;
+  }
+
+  .pre-match-lineup__hero p:last-child {
+    margin-top: 3px;
+    font-size: 0.64rem;
+  }
+
+  .pre-match-lineup__game-nav {
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .pre-match-lineup__game-nav button {
+    min-height: 38px;
+    font-size: 0.68rem;
+  }
+
+  .pre-match-lineup__presets,
+  .pre-match-lineup__lineup,
+  .pre-match-lineup__bench,
+  .pre-match-lineup__tactics {
+    padding: 9px 10px;
+  }
+
+  .pre-match-lineup__bench {
+    padding-bottom: 10px;
+  }
+
+  .pre-match-lineup__analysis-sheet .match-profile-table,
+  .pre-match-lineup__analysis-sheet .match-scout-grid {
+    display: grid;
+  }
+}

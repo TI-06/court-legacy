@@ -266,6 +266,8 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "戦術" }));
+
     expect(screen.getByRole("heading", { name: "今回の戦術" })).toBeVisible();
     expect(screen.getByText("サーブ 強気")).toBeVisible();
     expect(screen.getByText("攻撃 高速")).toBeVisible();
@@ -326,6 +328,7 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "戦術" }));
     expect(screen.getByText("戦術傾向 非公開")).toBeVisible();
   });
   it("applies the opponent analysis recommendation to the match-only tactics", () => {
@@ -362,7 +365,11 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
-    const analysis = screen.getByRole("region", { name: "相手分析" });
+    fireEvent.click(screen.getByRole("button", { name: "対戦分析" }));
+    const analysisDialog = screen.getByRole("dialog", { name: "対戦分析" });
+    const analysis = within(analysisDialog).getByRole("region", {
+      name: "相手分析",
+    });
     expect(within(analysis).getByText(/詳細分析/)).toBeVisible();
     expect(
       within(analysis).getByRole("button", { name: "分析結果を戦術へ反映" }),
@@ -405,7 +412,9 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
+    expect(screen.queryByRole("button", { name: "対戦分析" })).toBeNull();
     expect(screen.queryByRole("region", { name: "相手分析" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "戦術" }));
     expect(screen.getByText("攻撃 高速")).toBeVisible();
   });
 });

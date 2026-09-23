@@ -81,6 +81,7 @@ for (const width of widths) {
     await page.getByRole("button", { name: "今週を進める" }).click();
 
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+    await page.getByRole("button", { name: "戦術", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "今回の戦術" }),
     ).toBeVisible();
