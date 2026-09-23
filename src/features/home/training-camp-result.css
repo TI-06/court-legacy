@@ -190,11 +190,9 @@
 }
 
 .training-camp-event__actions {
-  padding:
-    10px 16px
+  padding: 10px 16px
     calc(
-      10px + var(--bottom-navigation-height, 70px) +
-        env(safe-area-inset-bottom)
+      10px + var(--bottom-navigation-height, 70px) + env(safe-area-inset-bottom)
     );
   background: rgb(5 16 29 / 96%);
   border-top: 1px solid rgb(255 255 255 / 8%);
