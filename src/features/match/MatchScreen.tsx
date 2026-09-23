@@ -544,7 +544,7 @@ function MatchScreenContent({
                 </p>
               ) : null}
             </section>
-          ) : null}
+          )}
 
           <section
             className="match-timeline"
