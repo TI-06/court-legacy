@@ -233,6 +233,100 @@ describe("useGameSession", () => {
     );
   });
 
+  it("resolves the current access token before every authoritative mutation", async () => {
+    let currentToken = "token-1";
+    let operationIndex = 0;
+    const getAccessToken = vi.fn(async () => currentToken);
+    const applyAction = vi
+      .fn()
+      .mockResolvedValueOnce({
+        game: createSnapshot(2),
+        operationId: "op-fresh-1",
+      })
+      .mockResolvedValueOnce({
+        game: createSnapshot(3),
+        operationId: "op-fresh-2",
+      });
+
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "bootstrap-token",
+        getAccessToken,
+        initialSnapshot: createSnapshot(1),
+        api: api({ applyAction }),
+        recoveryCache: cache(),
+        createOperationId: () => `op-fresh-${++operationIndex}`,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.runAction(
+        { type: "facility-upgrade", facility: "trainingRoom" },
+        "設備を保存",
+      );
+    });
+
+    currentToken = "token-2";
+    await act(async () => {
+      await result.current.runAction(
+        { type: "facility-upgrade", facility: "gym" },
+        "設備を保存",
+      );
+    });
+
+    expect(applyAction.mock.calls[0]?.[0]).toBe("token-1");
+    expect(applyAction.mock.calls[1]?.[0]).toBe("token-2");
+    expect(getAccessToken).toHaveBeenCalledTimes(2);
+    expect(result.current.snapshot.revision).toBe(3);
+  });
+
+  it("resyncs the authoritative snapshot after repeated ambiguous save failures", async () => {
+    const recovery = cache();
+    const latestSnapshot = createSnapshot(2);
+    const applyAction = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(500, "server_error", "サーバー処理に失敗しました"),
+      );
+    const bootstrap = vi.fn().mockResolvedValue({
+      status: "ready",
+      game: latestSnapshot,
+    });
+    const getAccessToken = vi.fn().mockResolvedValue("fresh-token");
+
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "stale-token",
+        getAccessToken,
+        initialSnapshot: createSnapshot(1),
+        api: api({ applyAction, bootstrap }),
+        recoveryCache: recovery,
+        createOperationId: () => "op-recover",
+      }),
+    );
+
+    await act(async () => {
+      await result.current.runAction({ type: "advance-week" }, "週進行を保存");
+    });
+
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[0]?.[1]).toEqual(
+      applyAction.mock.calls[1]?.[1],
+    );
+    expect(bootstrap).toHaveBeenCalledWith("fresh-token");
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "最新の保存状態へ復旧しました",
+    });
+    expect(recovery.write).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        snapshot: latestSnapshot,
+        pendingOperation: null,
+      }),
+    );
+  });
+
   it("reloads the authoritative cloud snapshot after a revision conflict", async () => {
     const latestSnapshot = createSnapshot(4);
     const gameApi = api({
