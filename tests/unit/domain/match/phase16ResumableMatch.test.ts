@@ -205,10 +205,7 @@ describe("Phase16 resumable match API", () => {
     expect(found.match.phase).toBe("coach-decision");
     expect(found.match.runtime?.pendingDecisionReason).toBe("mid-set");
     expect(
-      Math.max(
-        found.match.runtime!.homeScore,
-        found.match.runtime!.awayScore,
-      ),
+      Math.max(found.match.runtime!.homeScore, found.match.runtime!.awayScore),
     ).toBeGreaterThanOrEqual(
       found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
     );
