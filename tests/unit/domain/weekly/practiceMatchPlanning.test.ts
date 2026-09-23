@@ -146,6 +146,67 @@ describe("Phase 8 practice-match planning", () => {
     },
   );
 
+  it("keeps the featured rival in the weekly candidates and recommends the rematch first", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    const rival = Object.values(state.schools).find(
+      (school) =>
+        school.id !== state.userSchoolId &&
+        !state.weeklySchedule.practiceMatch.outgoingCandidates.some(
+          (candidate) => candidate.schoolId === school.id,
+        ),
+    );
+    expect(rival).toBeDefined();
+
+    state.world.destinyRivalSchoolId = rival!.id;
+    state.history.matches.push({
+      matchId: matchId("phase31-rival-rematch"),
+      date: "2026-03-20" as GameDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: rival!.id,
+      winnerSchoolId: rival!.id,
+      homeSetsWon: 1,
+      awaySetsWon: 2,
+      tournamentId: null,
+    });
+
+    let planning: ReturnType<
+      typeof practicePlanning.buildPracticePlanning
+    > | null = null;
+    for (let day = 1; day <= 28; day += 1) {
+      const candidateState = {
+        ...state,
+        date: `2026-04-${String(day).padStart(2, "0")}` as GameDate,
+      };
+      const candidatePlanning =
+        practicePlanning.buildPracticePlanning(candidateState);
+      if (!candidatePlanning.incomingOffer) {
+        state.date = candidateState.date;
+        planning = candidatePlanning;
+        break;
+      }
+    }
+
+    expect(planning).not.toBeNull();
+    expect(planning!.outgoingCandidates).toHaveLength(3);
+    expect(
+      planning!.outgoingCandidates.some(
+        (candidate) => candidate.schoolId === rival!.id,
+      ),
+    ).toBe(true);
+
+    state.weeklySchedule.practiceMatch = {
+      ...state.weeklySchedule.practiceMatch,
+      incomingOffer: null,
+      scheduledOpponentId: null,
+      outgoingCandidates: planning!.outgoingCandidates,
+    };
+    const recommendation = practicePlanning.selectPracticeRecommendation(state);
+    expect(recommendation?.source).toBe("featured-rival");
+    expect(recommendation?.candidate.schoolId).toBe(rival!.id);
+  });
+
   it("prioritizes the last practice result over the season ambition", () => {
     const state = createDemoGame();
     state.weeklySchedule.practiceMatch.incomingOffer = null;
