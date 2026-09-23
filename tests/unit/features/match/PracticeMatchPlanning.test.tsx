@@ -79,6 +79,46 @@ describe("PracticeMatchPlanning", () => {
     expect(onRequest).toHaveBeenCalledWith(recommended.schoolId);
   });
 
+  it("labels and highlights a featured rival rematch before other coaching advice", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    state.weeklySchedule.practiceMatch.scheduledOpponentId = null;
+    const rival = state.weeklySchedule.practiceMatch.outgoingCandidates[1]!;
+    const school = state.schools[rival.schoolId]!;
+    state.world.destinyRivalSchoolId = school.id;
+    state.history.matches.push({
+      matchId: matchId("phase31-rival-rematch-ui"),
+      date: "2026-03-20" as GameDate,
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: school.id,
+      winnerSchoolId: school.id,
+      homeSetsWon: 1,
+      awaySetsWon: 2,
+      tournamentId: null,
+    });
+
+    render(
+      <PracticeMatchPlanning
+        onAcceptOffer={vi.fn()}
+        onDeclineOffer={vi.fn()}
+        onRequest={vi.fn()}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const shortcut = screen.getByRole("article", {
+      name: "ライバル再戦おすすめの練習試合",
+    });
+    expect(shortcut).toHaveClass("is-rival-rematch");
+    expect(within(shortcut).getByText("RIVAL REMATCH")).toBeVisible();
+    expect(within(shortcut).getByText(/注目ライバル/)).toBeVisible();
+
+    const card = screen.getByText(school.name).closest("article") as HTMLElement;
+    expect(card).toHaveClass("is-rival-rematch");
+    expect(within(card).getByText("ライバル再戦")).toBeVisible();
+  });
+
   it("labels the shortcut as last-match advice when a recent practice result exists", () => {
     const state = createDemoGame();
     state.weeklySchedule.practiceMatch.incomingOffer = null;
