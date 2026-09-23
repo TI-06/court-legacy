@@ -288,8 +288,10 @@ function consumeNextTrainingGrowthBoost(state: GameState): GameState {
     return state;
   }
 
-  const { nextTrainingGrowthBoost: _nextTrainingGrowthBoost, ...remainingEffects } =
-    state.shopEffects;
+  const {
+    nextTrainingGrowthBoost: _nextTrainingGrowthBoost,
+    ...remainingEffects
+  } = state.shopEffects;
   return {
     ...state,
     shopEffects:
