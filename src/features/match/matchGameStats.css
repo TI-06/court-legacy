@@ -664,6 +664,54 @@
   border-radius: 999px;
 }
 
+.match-story-card__rivalry-progress {
+  display: grid;
+  grid-template-columns: auto minmax(72px, 1fr) auto auto;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 8px;
+  gap: 7px;
+  background: rgb(244 122 24 / 8%);
+  border: 1px solid rgb(244 122 24 / 16%);
+  border-radius: 9px;
+}
+
+.match-story-card__rivalry-progress > span,
+.match-story-card__rivalry-progress > small {
+  color: #ffd99a;
+  font-size: 0.58rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.match-story-card__rivalry-progress > div {
+  height: 5px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 999px;
+}
+
+.match-story-card__rivalry-progress > div > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f47a18, #ffd27b);
+  border-radius: inherit;
+}
+
+.match-story-card__rivalry-progress > strong {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+.match-story-card__rivalry-progress > strong > b {
+  color: #94acb5;
+  font-size: 0.56rem;
+}
+
 .match-story-card__facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -698,6 +746,15 @@
 
   .match-story-card__heading > strong {
     justify-self: start;
+  }
+
+  .match-story-card__rivalry-progress {
+    grid-template-columns: auto minmax(52px, 1fr) auto;
+    gap: 5px;
+  }
+
+  .match-story-card__rivalry-progress > small {
+    grid-column: 1 / -1;
   }
 
   .match-story-card__facts {
