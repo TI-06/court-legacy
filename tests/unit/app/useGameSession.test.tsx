@@ -194,20 +194,33 @@ describe("useGameSession", () => {
     );
   });
 
-  it("shows a retry action only after the automatic server-error retry also fails", async () => {
+  it("creates one fresh operation after repeated server failures when the cloud revision did not advance", async () => {
     const recovery = cache();
+    const nextSnapshot = createSnapshot(2);
+    const operationIds = ["op-stuck", "op-fresh"];
     const applyAction = vi
       .fn()
-      .mockRejectedValue(
+      .mockRejectedValueOnce(
         new ApiError(500, "server_error", "サーバー処理に失敗しました"),
-      );
+      )
+      .mockRejectedValueOnce(
+        new ApiError(500, "server_error", "サーバー処理に失敗しました"),
+      )
+      .mockResolvedValueOnce({
+        game: nextSnapshot,
+        operationId: "op-fresh",
+      });
+    const bootstrap = vi.fn().mockResolvedValue({
+      status: "ready",
+      game: createSnapshot(1),
+    });
     const { result } = renderHook(() =>
       useGameSession({
         accessToken: "token",
         initialSnapshot: createSnapshot(1),
-        api: api({ applyAction }),
+        api: api({ applyAction, bootstrap }),
         recoveryCache: recovery,
-        createOperationId: () => "op-server-error",
+        createOperationId: () => operationIds.shift() ?? "op-unused",
       }),
     );
 
@@ -215,22 +228,20 @@ describe("useGameSession", () => {
       await result.current.runAction({ type: "advance-week" }, "週進行を保存");
     });
 
-    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction).toHaveBeenCalledTimes(3);
     expect(applyAction.mock.calls[0]?.[1]).toEqual(
       applyAction.mock.calls[1]?.[1],
     );
-    expect(result.current.operation).toMatchObject({
-      status: "error",
-      label: "保存に失敗しました",
+    expect(applyAction.mock.calls[2]?.[1]).toMatchObject({
+      operationId: "op-fresh",
+      revision: 1,
+      action: { type: "advance-week" },
     });
-    expect(recovery.write).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        pendingOperation: expect.objectContaining({
-          operationId: "op-server-error",
-          revision: 1,
-        }),
-      }),
-    );
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "週進行を保存",
+    });
   });
 
   it("refreshes an expired save token once and retries the exact same mutation", async () => {
@@ -320,14 +331,21 @@ describe("useGameSession", () => {
     );
   });
 
-  it("reloads the authoritative cloud snapshot after a revision conflict", async () => {
+  it("retries a revision conflict once against the refreshed cloud revision", async () => {
     const latestSnapshot = createSnapshot(4);
+    const savedSnapshot = createSnapshot(5);
+    const operationIds = ["op-conflict", "op-retry"];
+    const applyAction = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new ApiError(409, "revision_conflict", "他の端末で更新されています"),
+      )
+      .mockResolvedValueOnce({
+        game: savedSnapshot,
+        operationId: "op-retry",
+      });
     const gameApi = api({
-      applyAction: vi
-        .fn()
-        .mockRejectedValue(
-          new ApiError(409, "revision_conflict", "他の端末で更新されています"),
-        ),
+      applyAction,
       bootstrap: vi
         .fn()
         .mockResolvedValue({ status: "ready", game: latestSnapshot }),
@@ -339,7 +357,7 @@ describe("useGameSession", () => {
         initialSnapshot: createSnapshot(3),
         api: gameApi,
         recoveryCache: recovery,
-        createOperationId: () => "op-conflict",
+        createOperationId: () => operationIds.shift() ?? "op-unused",
       }),
     );
 
@@ -351,11 +369,20 @@ describe("useGameSession", () => {
     });
 
     expect(gameApi.bootstrap).toHaveBeenCalledWith("token");
-    expect(result.current.snapshot.revision).toBe(4);
-    expect(result.current.operation.status).toBe("error");
+    expect(applyAction).toHaveBeenCalledTimes(2);
+    expect(applyAction.mock.calls[1]?.[1]).toMatchObject({
+      operationId: "op-retry",
+      revision: 4,
+      action: { type: "facility-upgrade", facility: "gym" },
+    });
+    expect(result.current.snapshot.revision).toBe(5);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "設備を保存",
+    });
     expect(recovery.write).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        snapshot: latestSnapshot,
+        snapshot: savedSnapshot,
         pendingOperation: null,
       }),
     );
