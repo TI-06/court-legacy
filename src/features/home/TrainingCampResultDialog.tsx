@@ -50,7 +50,11 @@ export function TrainingCampResultDialog({
               <span>平均疲労</span>
               <strong>{signed(result.averageFatigueChange)}</strong>
             </div>
-            <div data-tone={result.injuredPlayerIds.length > 0 ? "danger" : "normal"}>
+            <div
+              data-tone={
+                result.injuredPlayerIds.length > 0 ? "danger" : "normal"
+              }
+            >
               <span>怪我</span>
               <strong>{result.injuredPlayerIds.length}人</strong>
             </div>
