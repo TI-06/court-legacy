@@ -150,7 +150,14 @@ body {
 }
 
 .game-page-frame .app-content {
-  padding-bottom: calc(24px + var(--bottom-navigation-height));
+  padding-bottom: calc(
+    24px + var(--bottom-navigation-height) +
+      var(--page-bottom-action-clearance, 0px)
+  );
+  scroll-padding-bottom: calc(
+    24px + var(--bottom-navigation-height) +
+      var(--page-bottom-action-clearance, 0px)
+  );
 }
 
 .game-page-frame .ui-sticky-action-bar {
