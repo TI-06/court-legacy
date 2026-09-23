@@ -68,10 +68,17 @@ describe("school management screen", () => {
     expect(within(training).getByText("Lv.0 / 50")).toBeVisible();
   });
 
-  it("shows four coach choices in a compact command grid with funds and touch specialty selection", () => {
+  it("shows four coach choices in a compact command grid and contracts from a focused detail sheet", () => {
     const state = createState();
+    const onContractAssistantCoach = vi.fn();
 
-    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    render(
+      <SchoolScreen
+        onContractAssistantCoach={onContractAssistantCoach}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "コーチ" }));
 
@@ -85,14 +92,24 @@ describe("school management screen", () => {
     expect(screen.getByTestId("assistant-coach-master")).toBeVisible();
 
     fireEvent.click(
-      within(screen.getByTestId("assistant-coach-intermediate")).getByRole(
-        "button",
-        { name: "中級コーチの専門" },
-      ),
+      screen.getByRole("button", { name: "中級コーチの詳細" }),
     );
+    const dialog = screen.getByRole("dialog", { name: "中級コーチ" });
+    const specialty = within(dialog).getByRole("group", {
+      name: "中級コーチの専門",
+    });
+    fireEvent.click(within(specialty).getByRole("button", { name: "攻撃" }));
     expect(
-      screen.getByRole("dialog", { name: "中級コーチの専門を選ぶ" }),
-    ).toBeVisible();
+      within(specialty).getByRole("button", { name: "攻撃" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "中級コーチと年間契約" }),
+    );
+    expect(onContractAssistantCoach).toHaveBeenCalledWith(
+      "intermediate",
+      "attack",
+    );
   });
 
   it("switches School management between facilities and coaches", () => {
