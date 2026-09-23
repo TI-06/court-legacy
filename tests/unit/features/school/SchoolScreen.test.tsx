@@ -59,6 +59,7 @@ describe("school management screen", () => {
     expect(screen.getByText("トレーニング")).toBeVisible();
     expect(screen.getByText("回復")).toBeVisible();
     expect(screen.getByText("学習")).toBeVisible();
+    expect(screen.queryByText("トレーニング設備")).toBeNull();
 
     const training = screen.getByRole("button", {
       name: "トレーニング設備の詳細",
