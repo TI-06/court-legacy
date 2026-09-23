@@ -101,7 +101,7 @@ const savedLineupSlotSchema = z.union([
 const developmentGoalSchema = z
   .object({
     area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
-    targetGrade: z.enum(["A", "B", "C", "D", "E", "F", "G"]),
+    targetGrade: z.enum(["S", "A", "B", "C", "D", "E", "F", "G"]),
   })
   .strict();
 const savedLineupNameSchema = z

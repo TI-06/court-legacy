@@ -308,14 +308,14 @@ describe("game state codec", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     state.teamPlanning.developmentGoalsByPlayerId = {
-      [playerId]: { area: "mental", targetGrade: "B" },
+      [playerId]: { area: "mental", targetGrade: "S" },
     };
 
     const decoded = decodeGameState(encodeGameState(state));
     expect(decoded.teamPlanning.developmentGoalsByPlayerId?.[playerId]).toEqual(
       {
         area: "mental",
-        targetGrade: "B",
+        targetGrade: "S",
       },
     );
 

@@ -204,6 +204,49 @@ describe("AppBootstrap", () => {
     expect(api.bootstrap).not.toHaveBeenCalled();
   });
 
+  it("updates a refreshed token in place without reloading the ready game", async () => {
+    let listener: ((value: AuthSession | null) => void) | undefined;
+    const bootstrap = vi
+      .fn()
+      .mockResolvedValue({ status: "ready", game: snapshot() });
+    const auth = authClient(
+      () => Promise.resolve(session),
+      (next) => {
+        listener = next;
+        return () => undefined;
+      },
+    );
+
+    render(
+      <AppBootstrap
+        api={apiClient({ bootstrap })}
+        auth={auth}
+        renderGame={({ game, session: readySession }) => (
+          <div>
+            GAME READY revision {game.revision} token {readySession.accessToken}
+          </div>
+        )}
+      />,
+    );
+
+    expect(
+      await screen.findByText("GAME READY revision 1 token access-token"),
+    ).toBeVisible();
+    expect(bootstrap).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      listener?.({ ...session, accessToken: "replacement-token" });
+    });
+
+    expect(
+      await screen.findByText("GAME READY revision 1 token replacement-token"),
+    ).toBeVisible();
+    expect(bootstrap).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText("学校データを読み込んでいます…"),
+    ).not.toBeInTheDocument();
+  });
+
   it("aborts an obsolete cloud bootstrap when the auth session changes", async () => {
     let listener: ((value: AuthSession | null) => void) | undefined;
     const signals: AbortSignal[] = [];

@@ -65,7 +65,7 @@ const teamPlanningSchema = z
         z
           .object({
             area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
-            targetGrade: z.enum(["A", "B", "C", "D", "E", "F", "G"]),
+            targetGrade: z.enum(["S", "A", "B", "C", "D", "E", "F", "G"]),
           })
           .strict(),
       )
@@ -477,8 +477,8 @@ const notificationPlayerSchema = z
           .object({
             area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
             areaLabel: z.string().min(1),
-            fromGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
-            toGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
+            fromGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+            toGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
           })
           .strict(),
       )
@@ -586,8 +586,8 @@ const developmentGoalAchievementNotificationSchema = z
                   "mental",
                 ]),
                 areaLabel: z.string().min(1),
-                targetGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
-                achievedGrade: z.enum(["G", "F", "E", "D", "C", "B", "A"]),
+                targetGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+                achievedGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
               })
               .strict(),
           )

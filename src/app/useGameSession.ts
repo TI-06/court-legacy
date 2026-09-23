@@ -106,6 +106,8 @@ export function useGameSession({
     ambiguousRetryCount = 0,
     authRetryCount = 0,
     requestAccessToken = accessToken,
+    resyncRetryCount = 0,
+    conflictRetryCount = 0,
   ): Promise<GameActionResponse | null> {
     setOperation({
       status: "submitting",
@@ -135,6 +137,8 @@ export function useGameSession({
             ambiguousRetryCount,
             authRetryCount + 1,
             refreshedToken,
+            resyncRetryCount,
+            conflictRetryCount,
           );
         } catch {
           // Keep the original authentication error visible if refresh fails.
@@ -151,13 +155,29 @@ export function useGameSession({
           if (latest.status === "ready") {
             replaceSnapshot(latest.game);
             await writeRecovery(latest.game, null);
+
+            if (conflictRetryCount < 1) {
+              return submitRequest(
+                {
+                  operationId: createOperationId(),
+                  revision: latest.game.revision,
+                  action: request.action,
+                },
+                label,
+                0,
+                authRetryCount,
+                requestAccessToken,
+                resyncRetryCount,
+                conflictRetryCount + 1,
+              );
+            }
           }
         } catch {
           // The conflict itself remains visible even if the refresh also fails.
         }
         setOperation({
           status: "error",
-          label: "他の端末の更新を読み込みました。もう一度実行してください",
+          label: "最新データへ同期しました。もう一度実行してください",
           retry: () => {
             const current = snapshotRef.current;
             void submitRequest(
@@ -181,6 +201,8 @@ export function useGameSession({
             ambiguousRetryCount + 1,
             authRetryCount,
             requestAccessToken,
+            resyncRetryCount,
+            conflictRetryCount,
           );
         }
 
@@ -190,24 +212,54 @@ export function useGameSession({
         // used to provide, but keeps the player in the current session.
         try {
           const latest = await api.bootstrap(requestAccessToken);
-          if (
-            latest.status === "ready" &&
-            latest.game.revision > request.revision
-          ) {
-            replaceSnapshot(latest.game);
-            await writeRecovery(latest.game, null);
-            setOperation({
-              status: "success",
-              label: "最新の保存状態へ復旧しました",
-            });
-            return null;
+          if (latest.status === "ready") {
+            if (latest.game.revision > request.revision) {
+              replaceSnapshot(latest.game);
+              await writeRecovery(latest.game, null);
+              setOperation({
+                status: "success",
+                label: "最新の保存状態へ復旧しました",
+              });
+              return null;
+            }
+
+            if (
+              latest.game.revision === request.revision &&
+              resyncRetryCount < 1
+            ) {
+              replaceSnapshot(latest.game);
+              await writeRecovery(latest.game, null);
+              return submitRequest(
+                {
+                  operationId: createOperationId(),
+                  revision: latest.game.revision,
+                  action: request.action,
+                },
+                label,
+                0,
+                authRetryCount,
+                requestAccessToken,
+                resyncRetryCount + 1,
+                conflictRetryCount,
+              );
+            }
           }
         } catch {
           // Preserve the original ambiguous-save error below if resync fails.
         }
 
         await writeRecovery(snapshotRef.current, request);
-        const retry = () => void submitRequest(request, label);
+        const retry = () => {
+          const current = snapshotRef.current;
+          void submitRequest(
+            {
+              operationId: createOperationId(),
+              revision: current.revision,
+              action: request.action,
+            },
+            label,
+          );
+        };
         setOperation(
           isNetworkAmbiguous(error)
             ? { status: "offline", label, retry }

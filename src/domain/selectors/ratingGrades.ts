@@ -1,8 +1,9 @@
-export type AbilityRatingGrade = "A" | "B" | "C" | "D" | "E" | "F" | "G";
+export type AbilityRatingGrade = "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
 export type SchoolStrengthGrade = "A" | "B" | "C" | "D" | "E" | "F";
 
 export function ratingToGrade(value: number): AbilityRatingGrade {
   const rating = Math.max(0, Math.min(100, Math.round(value)));
+  if (rating >= 90) return "S";
   if (rating >= 80) return "A";
   if (rating >= 70) return "B";
   if (rating >= 60) return "C";

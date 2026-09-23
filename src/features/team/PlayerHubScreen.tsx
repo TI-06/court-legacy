@@ -1080,6 +1080,10 @@ export function PlayerHubScreen({
           const abilities = summarizePlayerAbilities(player);
           const isPriority = item.isPriority;
           const isCaptain = state.teamDynamics.captainPlayerId === player.id;
+          const potentialGrade =
+            item.potential === null ? null : ratingToGrade(item.potential);
+          const growthType = data.growthTypes.get(player.growthTypeId);
+          const trainingDraft = Boolean(trainingDrafts[player.id]);
 
           return (
             <article
@@ -1087,22 +1091,34 @@ export function PlayerHubScreen({
               data-testid="roster-player-row"
               key={player.id}
             >
-              <button
-                aria-label={`選手詳細 ${playerName(player)}`}
-                className="player-roster__main"
-                onClick={() => {
-                  setDetailMode("ability");
-                  setSelectedPlayerId(player.id);
-                }}
-                type="button"
-              >
+              <div className="player-roster__main">
                 <span className="player-roster__number">{index + 1}</span>
                 <span className="player-roster__name">
-                  <strong>{playerName(player)}</strong>
+                  <button
+                    aria-label={`選手詳細 ${playerName(player)}`}
+                    className="player-roster__detail-link"
+                    onClick={() => {
+                      setDetailMode("ability");
+                      setSelectedPlayerId(player.id);
+                    }}
+                    type="button"
+                  >
+                    <strong>{playerName(player)}</strong>
+                  </button>
                   <span className="player-roster__meta">
                     <small>
                       {player.grade}年・{player.preferredPosition}
                     </small>
+                    {potentialGrade ? (
+                      <span className="player-roster__info-badge">
+                        将来性{potentialGrade}
+                      </span>
+                    ) : null}
+                    {growthType ? (
+                      <span className="player-roster__info-badge">
+                        {growthType.name}
+                      </span>
+                    ) : null}
                     <span className="player-roster__status-badges">
                       {isCaptain ? (
                         <span className="player-roster__status-badge">
@@ -1114,11 +1130,6 @@ export function PlayerHubScreen({
                           怪我
                         </span>
                       ) : null}
-                      {isPriority ? (
-                        <span className="player-roster__status-badge player-roster__status-badge--priority">
-                          重点
-                        </span>
-                      ) : null}
                       {state.teamPlanning.developmentGoalsByPlayerId?.[
                         player.id
                       ] ? (
@@ -1127,6 +1138,31 @@ export function PlayerHubScreen({
                         </span>
                       ) : null}
                     </span>
+                    <button
+                      aria-label={
+                        isPriority
+                          ? `重点育成から外す ${playerName(player)}`
+                          : `重点育成に追加 ${playerName(player)}`
+                      }
+                      className={`player-roster__priority-action${
+                        isPriority
+                          ? " player-roster__priority-action--active"
+                          : ""
+                      }`}
+                      disabled={
+                        planningPending || (!isPriority && priorityCapReached)
+                      }
+                      onClick={() => togglePriority(player.id)}
+                      title={
+                        !isPriority && priorityCapReached
+                          ? "重点育成は3名まで"
+                          : undefined
+                      }
+                      type="button"
+                    >
+                      <span aria-hidden="true">{isPriority ? "★" : "☆"}</span>
+                      <strong>重点</strong>
+                    </button>
                   </span>
                 </span>
                 <span
@@ -1140,7 +1176,7 @@ export function PlayerHubScreen({
                   <small>総合</small>
                   <strong>{playerOverall(player)}</strong>
                 </span>
-              </button>
+              </div>
               <div
                 aria-label={`${playerName(player)} 能力ランク`}
                 className="player-roster__abilities"
@@ -1158,57 +1194,22 @@ export function PlayerHubScreen({
                     </span>
                   );
                 })}
-              </div>
-              <div
-                aria-label={`${playerName(player)} 育成設定`}
-                className="player-roster__quick-actions"
-                role="group"
-              >
                 <button
                   aria-label={`${playerName(player)} 個人練習 ${assignmentName(player.id)}`}
                   className="player-roster__training-action"
+                  data-draft={trainingDraft ? "true" : undefined}
+                  data-momentum={
+                    trainingDone || trainingDraft
+                      ? undefined
+                      : item.growth.momentum
+                  }
                   disabled={trainingPending || trainingDone}
                   onClick={() => setTrainingPlayerId(player.id)}
+                  title={compactGrowthLabel(item.growth)}
                   type="button"
                 >
-                  <span>個人練習</span>
+                  <small>練習</small>
                   <strong>{assignmentName(player.id)}</strong>
-                  <small
-                    data-momentum={
-                      trainingDone || trainingDrafts[player.id]
-                        ? undefined
-                        : item.growth.momentum
-                    }
-                  >
-                    {trainingDone
-                      ? "実施済"
-                      : trainingDrafts[player.id]
-                        ? "未保存"
-                        : compactGrowthLabel(item.growth)}
-                  </small>
-                </button>
-                <button
-                  aria-label={
-                    isPriority
-                      ? `重点育成から外す ${playerName(player)}`
-                      : `重点育成に追加 ${playerName(player)}`
-                  }
-                  className={`player-roster__priority-action${
-                    isPriority ? " player-roster__priority-action--active" : ""
-                  }`}
-                  disabled={
-                    planningPending || (!isPriority && priorityCapReached)
-                  }
-                  onClick={() => togglePriority(player.id)}
-                  title={
-                    !isPriority && priorityCapReached
-                      ? "重点育成は3名まで"
-                      : undefined
-                  }
-                  type="button"
-                >
-                  <span aria-hidden="true">{isPriority ? "★" : "☆"}</span>
-                  <strong>重点育成</strong>
                 </button>
               </div>
             </article>

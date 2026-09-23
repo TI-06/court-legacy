@@ -4,12 +4,23 @@ import {
   calculateSelectionStrength,
   selectPracticeOpponent,
 } from "../../../src/domain/selectors/matchSelectors";
-import { schoolStrengthToGrade } from "../../../src/domain/selectors/ratingGrades";
+import {
+  ratingToGrade,
+  schoolStrengthToGrade,
+} from "../../../src/domain/selectors/ratingGrades";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import { PreMatchComparison } from "../../../src/features/match/MatchStatPanels";
 import { PlayerHubScreen } from "../../../src/features/team/PlayerHubScreen";
 
 describe("ability and school strength grades", () => {
+  it("reserves S for elite player parameters above A", () => {
+    expect(ratingToGrade(100)).toBe("S");
+    expect(ratingToGrade(90)).toBe("S");
+    expect(ratingToGrade(89)).toBe("A");
+    expect(ratingToGrade(80)).toBe("A");
+    expect(ratingToGrade(79)).toBe("B");
+  });
+
   it("maps school strength to six A-F tiers", () => {
     expect(schoolStrengthToGrade(90)).toBe("A");
     expect(schoolStrengthToGrade(80)).toBe("B");
@@ -19,7 +30,7 @@ describe("ability and school strength grades", () => {
     expect(schoolStrengthToGrade(49)).toBe("F");
   });
 
-  it("shows each player ability summary as an A-G grade", () => {
+  it("shows each player ability summary as an S-G grade", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
@@ -48,7 +59,7 @@ describe("ability and school strength grades", () => {
     for (const bar of abilityBars) {
       const row = bar.closest(".game-stat-bar");
       expect(row).not.toBeNull();
-      expect(within(row as HTMLElement).getByText(/^[A-G]$/)).toBeVisible();
+      expect(within(row as HTMLElement).getByText(/^[A-GS]$/)).toBeVisible();
     }
   });
 
