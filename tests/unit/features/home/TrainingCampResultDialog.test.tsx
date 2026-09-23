@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { TrainingCampResult } from "../../../../src/domain/shop/shopEffects";
@@ -39,10 +39,15 @@ describe("TrainingCampResultDialog", () => {
     expect(
       screen.getByRole("dialog", { name: "強化合宿の結果" }),
     ).toBeVisible();
-    expect(screen.getByText("参加 15人")).toBeVisible();
-    expect(screen.getByText("能力成長 +41")).toBeVisible();
-    expect(screen.getByText("平均疲労 +11.2")).toBeVisible();
-    expect(screen.getByText("怪我 0人")).toBeVisible();
+    const summary = screen.getByLabelText("強化合宿サマリー");
+    expect(within(summary).getByText("参加")).toBeVisible();
+    expect(within(summary).getByText("15人")).toBeVisible();
+    expect(within(summary).getByText("能力成長")).toBeVisible();
+    expect(within(summary).getByText("+41")).toBeVisible();
+    expect(within(summary).getByText("平均疲労")).toBeVisible();
+    expect(within(summary).getByText("+11.2")).toBeVisible();
+    expect(within(summary).getByText("怪我")).toBeVisible();
+    expect(within(summary).getByText("0人")).toBeVisible();
     expect(
       screen.getByText(`${player.lastName} ${player.firstName}`),
     ).toBeVisible();
