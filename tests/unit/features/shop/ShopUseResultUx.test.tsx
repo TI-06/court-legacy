@@ -114,25 +114,23 @@ describe("Phase 5 shop use result UX", () => {
     expect(screen.getByText("状態 70 → 80")).toBeVisible();
   });
 
-  it("shows a compact training-camp summary with growth, fatigue, and injuries", () => {
+  it("shows training camp as a scheduled event instead of revealing results immediately", () => {
     renderResultShop({
       itemId: "training-camp",
       result: {
-        participantCount: 12,
-        grewPlayerCount: 10,
-        totalAbilityGrowth: 36,
-        averageFatigueChange: 11.5,
-        injuredPlayerIds: ["player-z"],
+        pending: true,
+        scheduledDate: "2026-04-01",
       },
     });
 
     expect(
-      screen.getByRole("heading", { name: "強化合宿の結果" }),
+      screen.getByRole("heading", { name: "強化合宿を予約しました" }),
     ).toBeVisible();
-    expect(screen.getByText("参加 12人")).toBeVisible();
-    expect(screen.getByText("能力成長 +36")).toBeVisible();
-    expect(screen.getByText("平均疲労 +11.5")).toBeVisible();
-    expect(screen.getByText("怪我 1人")).toBeVisible();
+    expect(
+      screen.getByText("今週を進めると、次の週に合宿結果が発表されます。"),
+    ).toBeVisible();
+    expect(screen.queryByText(/能力成長/)).toBeNull();
+    expect(screen.queryByText(/平均疲労/)).toBeNull();
   });
 
   it("shows special-coach growth details for the selected player", () => {
