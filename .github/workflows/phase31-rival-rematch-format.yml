@@ -1,0 +1,25 @@
+name: Phase31 Rival Rematch Format Diagnostic
+
+on:
+  push:
+    branches:
+      - diag/phase31-rival-rematch-format
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Show exact Prettier diff
+        shell: bash
+        run: |
+          npx prettier src/domain/weekly/practiceMatchPlanning.ts src/features/home/homeCommandCenter.ts src/features/match/PracticeMatchPlanning.tsx src/features/match/practice-match-planning.css tests/unit/domain/weekly/practiceMatchPlanning.test.ts tests/unit/features/match/PracticeMatchPlanning.test.tsx --write
+          git diff -- src/domain/weekly/practiceMatchPlanning.ts src/features/home/homeCommandCenter.ts src/features/match/PracticeMatchPlanning.tsx src/features/match/practice-match-planning.css tests/unit/domain/weekly/practiceMatchPlanning.test.ts tests/unit/features/match/PracticeMatchPlanning.test.tsx
