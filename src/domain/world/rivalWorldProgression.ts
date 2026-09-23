@@ -21,7 +21,7 @@ export const MAX_GRADUATE_HISTORY = 640;
 export const MAX_ALUMNI_PER_SCHOOL = 40;
 export const MAX_GENERATIONAL_TALENTS = 64;
 
-const DESTINY_RIVAL_THRESHOLD = 60;
+export const DESTINY_RIVAL_THRESHOLD = 60;
 const RIVALRY_SCORE_LIMIT = 100;
 const SEASON_RATING_WINDOW = 3;
 const RIVAL_FACILITY_MAX_LEVEL = 50;
@@ -69,7 +69,7 @@ function priorMeetingCount(
   ).length;
 }
 
-function rivalryGain(
+export function calculateRivalryGain(
   state: GameState,
   summary: HistoricalMatchSummary,
 ): number {
@@ -153,7 +153,7 @@ function updateOfficialRecords(
   };
 }
 
-function destinyRivalSchoolId(
+export function selectDestinyRivalSchoolId(
   state: GameState,
   rivalryScores: Readonly<Record<string, number>>,
 ): SchoolId | null {
@@ -209,7 +209,7 @@ function applyRivalryChange(
     ...nextState,
     world: {
       ...nextState.world,
-      destinyRivalSchoolId: destinyRivalSchoolId(nextState, rivalryScores),
+      destinyRivalSchoolId: selectDestinyRivalSchoolId(nextState, rivalryScores),
     },
   };
 }
@@ -243,7 +243,7 @@ export function recordMatchOutcome(
     state,
     summary.homeSchoolId,
     summary.awaySchoolId,
-    rivalryGain(state, summary),
+    calculateRivalryGain(state, summary),
   );
   const matches = [...rivalryState.history.matches, summary].slice(
     -MAX_MATCH_HISTORY,
