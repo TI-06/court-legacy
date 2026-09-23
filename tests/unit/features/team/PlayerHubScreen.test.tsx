@@ -426,7 +426,13 @@ describe("PlayerHubScreen", () => {
     expect(
       within(rows[0]!).getByText(`${stalled.lastName} ${stalled.firstName}`),
     ).toBeVisible();
-    expect(within(rows[0]!).getByText("+0・停滞")).toBeVisible();
+    const stalledTraining = within(rows[0]!).getByRole("button", {
+      name: new RegExp(
+        `^${stalled.lastName} ${stalled.firstName} 個人練習 `,
+      ),
+    });
+    expect(stalledTraining).toHaveAttribute("title", "+0・停滞");
+    expect(stalledTraining).toHaveAttribute("data-momentum", "stalled");
   });
 
   it("shows the empty filtered state without changing the full roster count", () => {
@@ -485,7 +491,14 @@ describe("PlayerHubScreen", () => {
         `${state.players[growingId]!.lastName} ${state.players[growingId]!.firstName}`,
       ),
     ).toBeVisible();
-    expect(within(rows[0]!).getByText("+8・計測中")).toBeVisible();
+    const growing = state.players[growingId]!;
+    const growingTraining = within(rows[0]!).getByRole("button", {
+      name: new RegExp(
+        `^${growing.lastName} ${growing.firstName} 個人練習 `,
+      ),
+    });
+    expect(growingTraining).toHaveAttribute("title", "+8・計測中");
+    expect(growingTraining).toHaveAttribute("data-momentum", "measuring");
   });
 
   it("shows recent growth momentum beside the training choice without adding another row", () => {
@@ -519,7 +532,13 @@ describe("PlayerHubScreen", () => {
         name: `選手詳細 ${player.lastName} ${player.firstName}`,
       })
       .closest('[data-testid="roster-player-row"]') as HTMLElement;
-    expect(within(row).getByText("+12・加速")).toBeVisible();
+    const training = within(row).getByRole("button", {
+      name: new RegExp(
+        `^${player.lastName} ${player.firstName} 個人練習 `,
+      ),
+    });
+    expect(training).toHaveAttribute("title", "+12・加速");
+    expect(training).toHaveAttribute("data-momentum", "accelerating");
 
     fireEvent.click(
       within(row).getByRole("button", {
