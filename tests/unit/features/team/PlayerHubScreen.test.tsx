@@ -427,9 +427,7 @@ describe("PlayerHubScreen", () => {
       within(rows[0]!).getByText(`${stalled.lastName} ${stalled.firstName}`),
     ).toBeVisible();
     const stalledTraining = within(rows[0]!).getByRole("button", {
-      name: new RegExp(
-        `^${stalled.lastName} ${stalled.firstName} 個人練習 `,
-      ),
+      name: new RegExp(`^${stalled.lastName} ${stalled.firstName} 個人練習 `),
     });
     expect(stalledTraining).toHaveAttribute("title", "+0・停滞");
     expect(stalledTraining).toHaveAttribute("data-momentum", "stalled");
@@ -493,9 +491,7 @@ describe("PlayerHubScreen", () => {
     ).toBeVisible();
     const growing = state.players[growingId]!;
     const growingTraining = within(rows[0]!).getByRole("button", {
-      name: new RegExp(
-        `^${growing.lastName} ${growing.firstName} 個人練習 `,
-      ),
+      name: new RegExp(`^${growing.lastName} ${growing.firstName} 個人練習 `),
     });
     expect(growingTraining).toHaveAttribute("title", "+8・計測中");
     expect(growingTraining).toHaveAttribute("data-momentum", "measuring");
@@ -533,9 +529,7 @@ describe("PlayerHubScreen", () => {
       })
       .closest('[data-testid="roster-player-row"]') as HTMLElement;
     const training = within(row).getByRole("button", {
-      name: new RegExp(
-        `^${player.lastName} ${player.firstName} 個人練習 `,
-      ),
+      name: new RegExp(`^${player.lastName} ${player.firstName} 個人練習 `),
     });
     expect(training).toHaveAttribute("title", "+12・加速");
     expect(training).toHaveAttribute("data-momentum", "accelerating");
