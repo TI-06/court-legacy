@@ -71,22 +71,60 @@ const tacticPolicy: AutomaticCoachPolicy = ({ reason }) =>
     ? { type: "set-match-tactics", plan: adjustedPlan }
     : { type: "continue" };
 
-describe("Phase19-4 automatic CPU coach commands", () => {
-  it("applies one authoritative CPU tactic change at a set break", () => {
-    const fixture = context("phase19-auto-cpu");
-    const step = startMatch({
+function startToSetBreak(
+  fixture: ReturnType<typeof context>,
+  matchName: string,
+  randomSeed: string,
+) {
+  let step = startMatch({
+    state: fixture.state,
+    id: matchId(matchName),
+    homeSchoolId: fixture.homeSchoolId,
+    awaySchoolId: fixture.awaySchoolId,
+    homeSelection: fixture.homeSelection,
+    awaySelection: fixture.awaySelection,
+    bestOfSets: 3,
+    random: new SeededRandom(randomSeed),
+    controlledSchoolId: fixture.homeSchoolId,
+    automaticCoachSchoolId: fixture.awaySchoolId,
+    automaticCoach: tacticPolicy,
+  });
+
+  let guard = 0;
+  while (
+    step.match.phase !== "match-complete" &&
+    step.match.runtime?.pendingDecisionReason !== "set-break" &&
+    guard < 16
+  ) {
+    guard += 1;
+    const commanded = applyMatchCommand({
       state: fixture.state,
-      id: matchId("phase19-auto-cpu-match"),
-      homeSchoolId: fixture.homeSchoolId,
-      awaySchoolId: fixture.awaySchoolId,
-      homeSelection: fixture.homeSelection,
-      awaySelection: fixture.awaySelection,
-      bestOfSets: 3,
-      random: new SeededRandom("phase19-auto-cpu-random"),
-      controlledSchoolId: fixture.homeSchoolId,
+      match: step.match,
+      schoolId: fixture.homeSchoolId,
+      command: { type: "continue" },
+    });
+    step = resumeMatch({
+      state: fixture.state,
+      match: commanded,
       automaticCoachSchoolId: fixture.awaySchoolId,
       automaticCoach: tacticPolicy,
     });
+  }
+
+  if (step.match.runtime?.pendingDecisionReason !== "set-break") {
+    throw new Error("automatic CPU fixture did not reach a set break");
+  }
+  return step;
+}
+
+describe("Phase19-4 automatic CPU coach commands", () => {
+  it("applies one authoritative CPU tactic change at a set break", () => {
+    const fixture = context("phase19-auto-cpu");
+    const step = startToSetBreak(
+      fixture,
+      "phase19-auto-cpu-match",
+      "phase19-auto-cpu-random",
+    );
 
     expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
     expect(step.match.runtime?.awayTactics).toEqual(adjustedPlan);
@@ -109,19 +147,11 @@ describe("Phase19-4 automatic CPU coach commands", () => {
 
   it("does not duplicate the same automatic set-break decision after resume", () => {
     const fixture = context("phase19-auto-cpu-resume");
-    const first = startMatch({
-      state: fixture.state,
-      id: matchId("phase19-auto-cpu-resume-match"),
-      homeSchoolId: fixture.homeSchoolId,
-      awaySchoolId: fixture.awaySchoolId,
-      homeSelection: fixture.homeSelection,
-      awaySelection: fixture.awaySelection,
-      bestOfSets: 3,
-      random: new SeededRandom("phase19-auto-cpu-resume-random"),
-      controlledSchoolId: fixture.homeSchoolId,
-      automaticCoachSchoolId: fixture.awaySchoolId,
-      automaticCoach: tacticPolicy,
-    });
+    const first = startToSetBreak(
+      fixture,
+      "phase19-auto-cpu-resume-match",
+      "phase19-auto-cpu-resume-random",
+    );
     const commanded = applyMatchCommand({
       state: fixture.state,
       match: first.match,
