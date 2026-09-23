@@ -320,7 +320,8 @@ export function SchoolScreen({
               <div>
                 <h4 id="facility-heading">設備</h4>
                 <small>
-                  強化可能 {availableFacilityCount}/{FACILITY_DEFINITIONS.length}
+                  強化可能 {availableFacilityCount}/
+                  {FACILITY_DEFINITIONS.length}
                 </small>
               </div>
               <span>資金 {school.funds}</span>
