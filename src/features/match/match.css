@@ -607,14 +607,12 @@
 .match-screen--result {
   --page-bottom-action-clearance: 128px;
   padding-bottom: calc(
-    24px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px) +
-      var(--page-bottom-action-clearance)
+    152px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
   );
   scroll-padding-bottom: calc(
-    24px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px) +
-      var(--page-bottom-action-clearance)
+    152px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
   );
 }
 
@@ -1639,14 +1637,12 @@
 .match-screen--live:not(.match-screen--decision) {
   --page-bottom-action-clearance: 168px;
   padding-bottom: calc(
-    24px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px) +
-      var(--page-bottom-action-clearance)
+    192px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
   );
   scroll-padding-bottom: calc(
-    24px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px) +
-      var(--page-bottom-action-clearance)
+    192px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
   );
 }
 
