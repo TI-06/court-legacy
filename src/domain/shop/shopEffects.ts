@@ -1,4 +1,5 @@
 import type { Player } from "../model/Player";
+import type { GameDate, PlayerId } from "../model/identifiers";
 
 export interface NextTrainingGrowthBoost {
   percent: 20;
@@ -6,8 +7,32 @@ export interface NextTrainingGrowthBoost {
   sourceItemId: "training-efficiency-boost";
 }
 
+export interface PendingTrainingCamp {
+  sourceItemId: "training-camp";
+  scheduledDate: GameDate;
+}
+
+export interface TrainingCampTopGrowth {
+  playerId: PlayerId;
+  totalAbilityGrowth: number;
+  abilityChanges: Partial<Record<keyof Player["abilities"], number>>;
+}
+
+export interface TrainingCampResult {
+  sourceItemId: "training-camp";
+  scheduledDate: GameDate;
+  participantCount: number;
+  grewPlayerCount: number;
+  totalAbilityGrowth: number;
+  topGrowth: TrainingCampTopGrowth[];
+  averageFatigueChange: number;
+  injuredPlayerIds: PlayerId[];
+}
+
 export interface ShopGameEffects {
   nextTrainingGrowthBoost?: NextTrainingGrowthBoost;
+  pendingTrainingCamp?: PendingTrainingCamp;
+  trainingCampResult?: TrainingCampResult;
 }
 
 export const SPECIAL_COACH_FOCUS_ABILITIES = {
