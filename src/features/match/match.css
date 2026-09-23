@@ -1715,7 +1715,7 @@
   }
 
   .match-screen--live .match-scoreboard {
-    grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
     gap: 5px;
   }
 
