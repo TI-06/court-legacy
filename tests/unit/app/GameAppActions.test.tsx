@@ -377,7 +377,7 @@ describe("GameApp cloud actions", () => {
     expect(await screen.findByText("保存済み ✓")).toBeVisible();
   });
 
-  it("renders the refreshed cloud snapshot after a revision conflict", async () => {
+  it("renders the refreshed cloud snapshot and retries once after a revision conflict", async () => {
     const snapshot = createSnapshot();
     const refreshed = createSnapshot();
     refreshed.revision = 7;
@@ -419,8 +419,13 @@ describe("GameApp cloud actions", () => {
         name: "資金 777・履歴を表示",
       }),
     ).toBeVisible();
+    expect(api.applyAction).toHaveBeenCalledTimes(2);
+    expect(api.applyAction.mock.calls[1]?.[1]).toMatchObject({
+      revision: 7,
+      action: { type: "facility-upgrade", facility: "trainingRoom" },
+    });
     expect(screen.getByRole("status")).toHaveTextContent(
-      "他の端末の更新を読み込みました。もう一度実行してください",
+      "最新データへ同期しました。もう一度実行してください",
     );
   });
 });
