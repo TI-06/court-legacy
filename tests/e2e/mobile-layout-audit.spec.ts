@@ -135,6 +135,67 @@ async function expectAboveNavigation(
   ).toBeLessThanOrEqual(navigationBox?.y ?? 0);
 }
 
+async function expectBottomActionClearance(
+  page: Page,
+  containerSelector: string,
+  actionSelector: string,
+  stateName: string,
+) {
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight),
+  );
+  await page.waitForTimeout(50);
+
+  const layout = await page.evaluate(
+    ({ containerSelector, actionSelector }) => {
+      const container = document.querySelector<HTMLElement>(containerSelector);
+      const action = document.querySelector<HTMLElement>(actionSelector);
+      const navigation = document.querySelector<HTMLElement>(
+        'nav[aria-label="主要メニュー"]',
+      );
+      if (!container || !action || !navigation) {
+        return null;
+      }
+
+      const actionRect = action.getBoundingClientRect();
+      const navigationRect = navigation.getBoundingClientRect();
+      const contentBottom = Array.from(container.children)
+        .filter((child): child is HTMLElement => child instanceof HTMLElement)
+        .filter((child) => child !== action)
+        .filter((child) => {
+          const style = window.getComputedStyle(child);
+          return (
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            style.position !== "fixed"
+          );
+        })
+        .reduce((bottom, child) => {
+          const rect = child.getBoundingClientRect();
+          return Math.max(bottom, rect.bottom);
+        }, Number.NEGATIVE_INFINITY);
+
+      return {
+        actionTop: actionRect.top,
+        actionBottom: actionRect.bottom,
+        navigationTop: navigationRect.top,
+        contentBottom,
+      };
+    },
+    { containerSelector, actionSelector },
+  );
+
+  expect(layout, `${stateName}: layout targets`).not.toBeNull();
+  expect(
+    layout?.actionBottom ?? Number.POSITIVE_INFINITY,
+    `${stateName}: fixed action must stay above bottom navigation`,
+  ).toBeLessThanOrEqual((layout?.navigationTop ?? 0) + 1);
+  expect(
+    layout?.contentBottom ?? Number.POSITIVE_INFINITY,
+    `${stateName}: final content must scroll fully above fixed action`,
+  ).toBeLessThanOrEqual((layout?.actionTop ?? 0) + 1);
+}
+
 async function expectNoHorizontalScroll(
   page: Page,
   locatorSelector: string,
@@ -238,13 +299,11 @@ for (const viewport of mobileViewports) {
       `${viewport.width}-home`,
     );
     await expectNavigationFixed(page, `${viewport.width}-home`);
-    if ([360, 390, 414].includes(viewport.width)) {
-      await expectAboveNavigation(
-        page,
-        ".home-command-advance",
-        `${viewport.width}-home-advance`,
-      );
-    }
+    await expectAboveNavigation(
+      page,
+      ".home-command-advance",
+      `${viewport.width}-home-advance`,
+    );
 
     const bracketButton = page.getByRole("button", { name: "大会表を見る" });
     if (await bracketButton.isVisible().catch(() => false)) {
@@ -320,10 +379,20 @@ for (const viewport of mobileViewports) {
       testInfo,
       `${viewport.width}-training-options`,
     );
-    await page
-      .getByRole("dialog", { name: /の個人練習$/ })
-      .getByRole("button", { name: "閉じる" })
+    const trainingDialog = page.getByRole("dialog", { name: /の個人練習$/ });
+    await trainingDialog
+      .locator('.player-training-options button[aria-pressed="false"]')
+      .first()
       .click();
+    await expect(
+      page.getByRole("complementary", { name: "個人練習の未保存変更" }),
+    ).toBeVisible();
+    await page.locator(".player-training-save-bar").scrollIntoViewIfNeeded();
+    await expectAboveNavigation(
+      page,
+      ".player-training-save-bar",
+      `${viewport.width}-player-training-save`,
+    );
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-planning`);
@@ -348,6 +417,12 @@ for (const viewport of mobileViewports) {
     await page.getByRole("button", { name: "今週を進める" }).click();
     await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-pre-match`);
+    await expectBottomActionClearance(
+      page,
+      ".pre-match-lineup",
+      ".pre-match-lineup__start",
+      `${viewport.width}-pre-match-start-clearance`,
+    );
     await page
       .getByRole("button", { name: "この編成・戦術で試合開始" })
       .click();
@@ -355,8 +430,20 @@ for (const viewport of mobileViewports) {
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-live`);
+    await expectBottomActionClearance(
+      page,
+      ".match-screen--live",
+      ".match-controls",
+      `${viewport.width}-match-live-controls-clearance`,
+    );
     await finishInteractiveMatch(page);
     await expectLayoutFits(page, testInfo, `${viewport.width}-match-result`);
+    await expectBottomActionClearance(
+      page,
+      ".match-screen--result",
+      ".match-result-actions--fixed",
+      `${viewport.width}-match-result-actions-clearance`,
+    );
     await page.getByRole("button", { name: "結果を確認して次へ" }).click();
     await expect(page.getByTestId("home-screen")).toBeVisible();
     await expectLayoutFits(

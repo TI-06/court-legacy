@@ -605,8 +605,13 @@
 
 /* Phase 13 result clarity and no-scroll continuation */
 .match-screen--result {
+  --page-bottom-action-clearance: 128px;
   padding-bottom: calc(
-    112px + var(--bottom-navigation-height, 70px) +
+    152px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+  scroll-padding-bottom: calc(
+    152px + var(--bottom-navigation-height, 70px) +
       var(--bottom-navigation-offset, 0px)
   );
 }
@@ -1630,8 +1635,13 @@
 }
 
 .match-screen--live:not(.match-screen--decision) {
+  --page-bottom-action-clearance: 168px;
   padding-bottom: calc(
-    138px + var(--bottom-navigation-height, 70px) +
+    192px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+  scroll-padding-bottom: calc(
+    192px + var(--bottom-navigation-height, 70px) +
       var(--bottom-navigation-offset, 0px)
   );
 }

@@ -1300,9 +1300,14 @@
 
 .pre-match-lineup {
   --game-text-muted: #c6d4dd;
+  --page-bottom-action-clearance: 124px;
   gap: 8px;
   padding-bottom: calc(
-    108px + var(--bottom-navigation-height, 70px) +
+    148px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+  scroll-padding-bottom: calc(
+    148px + var(--bottom-navigation-height, 70px) +
       var(--bottom-navigation-offset, 0px)
   );
 }
