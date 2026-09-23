@@ -288,10 +288,8 @@ function consumeNextTrainingGrowthBoost(state: GameState): GameState {
     return state;
   }
 
-  const {
-    nextTrainingGrowthBoost: _nextTrainingGrowthBoost,
-    ...remainingEffects
-  } = state.shopEffects;
+  const remainingEffects = { ...state.shopEffects };
+  delete remainingEffects.nextTrainingGrowthBoost;
   return {
     ...state,
     shopEffects:
@@ -1451,8 +1449,8 @@ function applyAcknowledgeTrainingCampResult(
     return { state, teamSelection };
   }
 
-  const { trainingCampResult: _trainingCampResult, ...remainingEffects } =
-    state.shopEffects;
+  const remainingEffects = { ...state.shopEffects };
+  delete remainingEffects.trainingCampResult;
 
   return {
     state: {
