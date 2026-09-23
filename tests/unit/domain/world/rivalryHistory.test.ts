@@ -9,6 +9,7 @@ import {
   type SchoolId,
 } from "../../../../src/domain/model/identifiers";
 import {
+  selectFeaturedUserRival,
   selectNotableUserMatches,
   selectUserHeadToHead,
   selectUserHeadToHeadTable,
@@ -212,6 +213,60 @@ describe("Phase20 rivalry history", () => {
       second,
       third,
     ]);
+  });
+
+  it("selects one featured rival by destiny, nemesis, rivalry, then revenge context", () => {
+    const state = createDemoGame();
+    const [destinyId, nemesisId, neutralId] = opponents(state);
+    expect(destinyId).toBeDefined();
+    expect(nemesisId).toBeDefined();
+    expect(neutralId).toBeDefined();
+
+    addMatch(state, {
+      id: "featured-neutral",
+      date: "2026-04-01",
+      opponentSchoolId: neutralId!,
+      userWon: true,
+    });
+
+    for (let index = 0; index < 4; index += 1) {
+      addMatch(state, {
+        id: `featured-nemesis-${index}`,
+        date: `2026-0${index + 4}-02` as GameDate,
+        opponentSchoolId: nemesisId!,
+        userWon: false,
+      });
+    }
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, nemesisId!)] = 90;
+
+    addMatch(state, {
+      id: "featured-destiny",
+      date: "2026-08-03",
+      opponentSchoolId: destinyId!,
+      userWon: true,
+    });
+    state.world.destinyRivalSchoolId = destinyId;
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, destinyId!)] = 10;
+
+    expect(selectFeaturedUserRival(state)?.opponentSchoolId).toBe(destinyId);
+
+    state.world.destinyRivalSchoolId = null;
+    expect(selectFeaturedUserRival(state)?.opponentSchoolId).toBe(nemesisId);
+  });
+
+  it("does not feature a neutral one-off opponent", () => {
+    const state = createDemoGame();
+    const [opponentId] = opponents(state);
+    expect(opponentId).toBeDefined();
+
+    addMatch(state, {
+      id: "featured-neutral-only",
+      date: "2026-04-01",
+      opponentSchoolId: opponentId!,
+      userWon: true,
+    });
+
+    expect(selectFeaturedUserRival(state)).toBeNull();
   });
 
   it("ranks notable matches only from persisted match facts and rivalry context", () => {
