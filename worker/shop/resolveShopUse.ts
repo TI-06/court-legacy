@@ -426,8 +426,8 @@ export function resolveScheduledTrainingCamp(
     scheduledDate: pending.scheduledDate,
     ...trainingCampSummary(logs),
   };
-  const { pendingTrainingCamp: _pendingTrainingCamp, ...remainingEffects } =
-    nextState.shopEffects ?? {};
+  const remainingEffects = { ...(nextState.shopEffects ?? {}) };
+  delete remainingEffects.pendingTrainingCamp;
   nextState.shopEffects = {
     ...remainingEffects,
     trainingCampResult: result,
