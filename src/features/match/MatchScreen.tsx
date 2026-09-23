@@ -7,7 +7,10 @@ import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { MatchCommandPanel } from "./MatchCommandPanel";
-import { buildMatchCommandImpactRows } from "./matchCommandPresentation";
+import {
+  buildLiveCoachEffectRows,
+  buildMatchCommandImpactRows,
+} from "./matchCommandPresentation";
 import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
@@ -297,6 +300,16 @@ function MatchScreenContent({
       ? result.match.runtime.homeTactics
       : result.match.runtime.awayTactics
     : null;
+  const visibleEventSequence =
+    result.match.eventLog[revealedEventIndex]?.sequence ?? 0;
+  const liveCoachEffects = matchComplete
+    ? []
+    : buildLiveCoachEffectRows(
+        state,
+        result.match,
+        state.userSchoolId,
+        visibleEventSequence,
+      );
   const commandImpactRows = matchComplete
     ? buildMatchCommandImpactRows(state, result.match)
     : [];
@@ -390,6 +403,20 @@ function MatchScreenContent({
               <span>
                 ブロック {tacticOptionLabel("block", currentTactics.block)}
               </span>
+            </section>
+          ) : null}
+
+          {liveCoachEffects.length > 0 ? (
+            <section
+              className="match-live-coach-effects"
+              aria-label="発動中の監督指示"
+            >
+              {liveCoachEffects.map((effect) => (
+                <span key={`${effect.kind}-${effect.sequence}`}>
+                  <strong>{effect.label}</strong>
+                  <small>残り{effect.ralliesRemaining}ラリー</small>
+                </span>
+              ))}
             </section>
           ) : null}
 
