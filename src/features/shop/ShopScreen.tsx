@@ -129,30 +129,15 @@ function ShopUseResultPanel({
   }
 
   if (presentation.itemId === "training-camp") {
-    const participantCount = asNumber(result.participantCount);
-    const totalAbilityGrowth = asNumber(result.totalAbilityGrowth);
-    const averageFatigueChange = asNumber(result.averageFatigueChange);
-    const injuredPlayerIds = Array.isArray(result.injuredPlayerIds)
-      ? result.injuredPlayerIds
-      : null;
-    if (
-      participantCount === null ||
-      totalAbilityGrowth === null ||
-      averageFatigueChange === null ||
-      injuredPlayerIds === null
-    ) {
-      return null;
-    }
+    if (result.pending !== true) return null;
 
     return (
-      <section className="shop-use-result" aria-live="polite">
-        <h3>強化合宿の結果</h3>
-        <div className="shop-use-result__metrics">
-          <span>参加 {participantCount}人</span>
-          <span>能力成長 {signed(totalAbilityGrowth)}</span>
-          <span>平均疲労 {signed(averageFatigueChange)}</span>
-          <span>怪我 {injuredPlayerIds.length}人</span>
-        </div>
+      <section
+        className="shop-use-result shop-use-result--scheduled"
+        aria-live="polite"
+      >
+        <h3>強化合宿を予約しました</h3>
+        <p>今週を進めると、次の週に合宿結果が発表されます。</p>
       </section>
     );
   }
@@ -538,6 +523,7 @@ export function ShopScreen({
               {fatigueRecoveryTargets.map((player) => (
                 <button
                   aria-label={`${player.lastName} ${player.firstName} 疲労 ${player.fatigue}`}
+                  className="shop-target-card"
                   key={player.id}
                   onClick={() => selectFatigueTarget(player.id)}
                   type="button"
@@ -546,9 +532,11 @@ export function ShopScreen({
                     {player.lastName} {player.firstName}
                   </strong>
                   <span>
-                    {player.grade}年・{player.preferredPosition} / 疲労{" "}
-                    {player.fatigue} / 状態 {player.condition}
+                    {player.grade}年・{player.preferredPosition}
                   </span>
+                  <small>
+                    疲労 {player.fatigue}・状態 {player.condition}
+                  </small>
                 </button>
               ))}
             </div>
@@ -588,6 +576,7 @@ export function ShopScreen({
               {specialCoachTargets.map((player) => (
                 <button
                   aria-label={`${player.lastName} ${player.firstName}を選択`}
+                  className="shop-target-card"
                   key={player.id}
                   onClick={() => setSpecialCoachPlayerId(player.id)}
                   type="button"
@@ -596,9 +585,11 @@ export function ShopScreen({
                     {player.lastName} {player.firstName}
                   </strong>
                   <span>
-                    {player.grade}年・{player.preferredPosition} / 疲労{" "}
-                    {player.fatigue}
+                    {player.grade}年・{player.preferredPosition}
                   </span>
+                  <small>
+                    疲労 {player.fatigue}・状態 {player.condition}
+                  </small>
                 </button>
               ))}
             </div>

@@ -210,10 +210,10 @@ describe("resolveShopUse", () => {
     expect(resolved.publicResult).toEqual(resolved.scoutingInsight);
   });
 
-  it("runs training camp through normal player-training mechanics", async () => {
+  it("schedules training camp without applying player growth until week advance", async () => {
     const snapshot = createSnapshot();
-    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-    const before = structuredClone(snapshot.state.players);
+    const beforePlayers = structuredClone(snapshot.state.players);
+    const beforeCursor = snapshot.state.randomCursor;
 
     const resolved = await resolveShopUse({
       snapshot,
@@ -221,15 +221,16 @@ describe("resolveShopUse", () => {
     });
 
     expect(resolved.targetType).toBe("team");
-    expect(resolved.publicResult.participantCount).toBe(
-      school.playerIds.length,
-    );
-    expect(resolved.publicResult).toHaveProperty("totalAbilityGrowth");
-    expect(resolved.publicResult).toHaveProperty("averageFatigueChange");
-    expect(resolved.state.randomCursor).toBeGreaterThanOrEqual(
-      snapshot.state.randomCursor,
-    );
-    expect(resolved.state.players).not.toEqual(before);
+    expect(resolved.publicResult).toEqual({
+      pending: true,
+      scheduledDate: snapshot.state.date,
+    });
+    expect(resolved.state.shopEffects?.pendingTrainingCamp).toEqual({
+      sourceItemId: "training-camp",
+      scheduledDate: snapshot.state.date,
+    });
+    expect(resolved.state.players).toEqual(beforePlayers);
+    expect(resolved.state.randomCursor).toBe(beforeCursor);
   });
 
   it("runs special coach for one player and leaves others unchanged", async () => {

@@ -28,9 +28,20 @@ describe("Phase 12 lineup clarity", () => {
     expect(within(dialog).getByText("変更する枠")).toBeVisible();
     expect(within(dialog).getByText("ローテーション1")).toBeVisible();
     expect(within(dialog).getByText(/現在：/)).toBeVisible();
-    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
-      12,
-    );
+    expect(within(dialog).getByText(/候補 \d+人・適性順/)).toBeVisible();
+
+    const candidates = within(dialog).getAllByTestId("player-picker-option");
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.length).toBeLessThan(12);
+    expect(within(candidates[0]!).getByText("おすすめ")).toBeVisible();
+    expect(candidates[0]).toHaveTextContent(/適性 \d+/);
+    expect(within(candidates[0]!).getByText("総合")).toBeVisible();
+    expect(
+      candidates[0]!.querySelector(".team-picker-card__score strong"),
+    ).toHaveTextContent(/\d+/);
+    expect(candidates[0]).toHaveTextContent(/攻 \d+/);
+    expect(candidates[0]).toHaveTextContent(/守 \d+/);
+    expect(candidates[0]).toHaveTextContent(/跳 \d+/);
   });
 
   it("uses game-style policy switches without native checkbox controls", async () => {

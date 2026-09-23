@@ -96,7 +96,7 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     name: "ローテーション1を入れ替え",
   });
   await expect(picker).toBeVisible();
-  await expect(picker.getByTestId("player-picker-option")).toHaveCount(12);
+  await expect(picker.getByTestId("player-picker-option")).toHaveCount(5);
   await picker.getByRole("button", { name: "閉じる" }).click();
 
   await page.getByRole("button", { name: "自動編成" }).click();

@@ -470,6 +470,34 @@ class StaticGameApiClient implements GameApiClient {
       };
     }
 
+    if (request.itemId === "training-camp") {
+      if (snapshot.state.shopEffects?.pendingTrainingCamp) {
+        throw new ApiError(
+          409,
+          "effect_already_pending",
+          "強化合宿はすでに予約されています",
+        );
+      }
+      this.replaceSnapshot({
+        ...snapshot,
+        revision,
+        state: {
+          ...snapshot.state,
+          shopEffects: {
+            ...snapshot.state.shopEffects,
+            pendingTrainingCamp: {
+              sourceItemId: "training-camp",
+              scheduledDate: snapshot.state.date,
+            },
+          },
+        },
+      });
+      return {
+        pending: true,
+        scheduledDate: snapshot.state.date,
+      };
+    }
+
     if (request.itemId === "training-efficiency-boost") {
       if (snapshot.state.shopEffects?.nextTrainingGrowthBoost) {
         throw new ApiError(

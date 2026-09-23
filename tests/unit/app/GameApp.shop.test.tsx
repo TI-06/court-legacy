@@ -127,6 +127,12 @@ describe("GameApp shop flow", () => {
     const initialSnapshot = createSnapshot(1);
     const purchasedSnapshot = createSnapshot(2);
     const usedSnapshot = createSnapshot(3);
+    usedSnapshot.state.shopEffects = {
+      pendingTrainingCamp: {
+        sourceItemId: "training-camp",
+        scheduledDate: usedSnapshot.state.date,
+      },
+    };
     const initialStatus = createShopStatus(1);
     const purchasedStatus = updateShopItem(
       createShopStatus(2),
@@ -177,7 +183,10 @@ describe("GameApp shop flow", () => {
         quantityOwned: 0,
         purchasedCount: 1,
         usedCount: 1,
-        result: { participantCount: 12 },
+        result: {
+          pending: true,
+          scheduledDate: usedSnapshot.state.date,
+        },
       }),
     );
     const bootstrap = vi
@@ -233,7 +242,7 @@ describe("GameApp shop flow", () => {
     );
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(4));
-    expect(await screen.findByText("使用しました ✓")).toBeVisible();
+    expect(await screen.findByText("合宿を予約しました ✓")).toBeVisible();
     expect(await screen.findByText("所持アイテムはありません。")).toBeVisible();
   });
 

@@ -383,6 +383,64 @@ describe("applyGameAction", () => {
     });
   });
 
+  it("resolves a scheduled training camp only when the week advances and keeps the result pending for display", () => {
+    const snapshot = createSnapshot();
+    const beforePlayers = structuredClone(snapshot.state.players);
+    snapshot.state.shopEffects = {
+      pendingTrainingCamp: {
+        sourceItemId: "training-camp",
+        scheduledDate: snapshot.state.date,
+      },
+    };
+
+    const advanced = applyGameAction(snapshot, { type: "advance-week" });
+
+    expect(advanced.state.date).not.toBe(snapshot.state.date);
+    expect(advanced.state.shopEffects?.pendingTrainingCamp).toBeUndefined();
+    expect(advanced.state.shopEffects?.trainingCampResult).toMatchObject({
+      sourceItemId: "training-camp",
+      scheduledDate: snapshot.state.date,
+      participantCount: expect.any(Number),
+      totalAbilityGrowth: expect.any(Number),
+      averageFatigueChange: expect.any(Number),
+      injuredPlayerIds: expect.any(Array),
+      topGrowth: expect.any(Array),
+    });
+    expect(advanced.state.players).not.toEqual(beforePlayers);
+  });
+
+  it("acknowledges a displayed training camp result without clearing unrelated shop effects", () => {
+    const snapshot = createSnapshot();
+    snapshot.state.shopEffects = {
+      nextTrainingGrowthBoost: {
+        percent: 20,
+        remainingUses: 1,
+        sourceItemId: "training-efficiency-boost",
+      },
+      trainingCampResult: {
+        sourceItemId: "training-camp",
+        scheduledDate: snapshot.state.date,
+        participantCount: 12,
+        grewPlayerCount: 10,
+        totalAbilityGrowth: 36,
+        topGrowth: [],
+        averageFatigueChange: 11.5,
+        injuredPlayerIds: [],
+      },
+    };
+
+    const acknowledged = applyGameAction(snapshot, {
+      type: "acknowledge-training-camp-result",
+    });
+
+    expect(acknowledged.state.shopEffects?.trainingCampResult).toBeUndefined();
+    expect(acknowledged.state.shopEffects?.nextTrainingGrowthBoost).toEqual({
+      percent: 20,
+      remainingUses: 1,
+      sourceItemId: "training-efficiency-boost",
+    });
+  });
+
   it("deduplicates a pre-seeded notification when the same week training resolves", () => {
     const snapshot = createSnapshot();
     const existing = trainingNotification(snapshot);

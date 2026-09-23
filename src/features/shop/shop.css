@@ -32,10 +32,14 @@
 }
 
 .shop-screen__topbar span {
+  min-width: 0;
   color: var(--game-accent, #f47a18);
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-align: right;
+  letter-spacing: 0.05em;
+  overflow-wrap: anywhere;
 }
 
 .shop-screen__heading {
@@ -197,5 +201,124 @@
 @media (min-width: 720px) {
   .shop-screen__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Target selection uses the same dark game UI as the inventory cards. */
+.shop-target-panel {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 12px;
+  background: rgb(255 255 255 / 3%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 16px;
+}
+
+.shop-target-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 10px;
+}
+
+.shop-target-panel__heading h3 {
+  min-width: 0;
+  margin: 0;
+  color: var(--game-text, #f4f7fb);
+  font-size: 15px;
+}
+
+.shop-target-panel__heading button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 12px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+}
+
+.shop-target-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  gap: 7px;
+}
+
+.shop-target-card {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  min-height: 66px;
+  padding: 9px 10px;
+  gap: 2px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(16 42 67 / 82%);
+  border: 1px solid rgb(116 216 255 / 16%);
+  border-radius: 12px;
+}
+
+.shop-target-card strong,
+.shop-target-card span,
+.shop-target-card small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-target-card strong {
+  font-size: 12px;
+}
+
+.shop-target-card span,
+.shop-target-card small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+}
+
+.shop-target-card:focus-visible {
+  outline: 2px solid rgb(244 122 24 / 72%);
+  outline-offset: 2px;
+}
+
+.shop-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  gap: 7px;
+}
+
+.shop-focus-grid button {
+  min-width: 0;
+  min-height: 46px;
+  padding: 8px;
+  color: #ffd6b4;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  background: rgb(244 122 24 / 12%);
+  border: 1px solid rgb(244 122 24 / 34%);
+  border-radius: 11px;
+}
+
+.shop-use-result--scheduled p {
+  margin: 0;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+@media (max-width: 340px) {
+  .shop-target-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

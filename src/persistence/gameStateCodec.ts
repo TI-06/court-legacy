@@ -384,6 +384,37 @@ const shopGameEffectsSchema = z
       })
       .strict()
       .optional(),
+    pendingTrainingCamp: z
+      .object({
+        sourceItemId: z.literal("training-camp"),
+        scheduledDate: gameDateSchema,
+      })
+      .strict()
+      .optional(),
+    trainingCampResult: z
+      .object({
+        sourceItemId: z.literal("training-camp"),
+        scheduledDate: gameDateSchema,
+        participantCount: z.number().int().nonnegative(),
+        grewPlayerCount: z.number().int().nonnegative(),
+        totalAbilityGrowth: z.number().nonnegative(),
+        topGrowth: z.array(
+          z
+            .object({
+              playerId: playerIdSchema,
+              totalAbilityGrowth: z.number().int().nonnegative(),
+              abilityChanges: z.partialRecord(
+                abilityKeySchema,
+                z.number().int(),
+              ),
+            })
+            .strict(),
+        ),
+        averageFatigueChange: z.number(),
+        injuredPlayerIds: z.array(playerIdSchema),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 

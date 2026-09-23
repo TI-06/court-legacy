@@ -13,6 +13,7 @@ import {
   SPECIAL_COACH_FOCUS_ABILITIES,
   TRAINING_CAMP_ACTIVITY,
   TRAINING_CAMP_POSITION_ABILITIES,
+  type TrainingCampResult,
 } from "../../src/domain/shop/shopEffects";
 import {
   resolvePlayerTrainingActivity,
@@ -352,16 +353,55 @@ function trainingCampSummary(logs: readonly PlayerGrowthLog[]) {
 
 function resolveTrainingCamp(input: ResolveShopUseInput): ResolvedShopUse {
   const base = cloneBase(input.snapshot);
-  const school = base.state.schools[base.state.userSchoolId];
+  if (base.state.shopEffects?.pendingTrainingCamp) {
+    throw new ShopUseResolutionError("effect_already_pending");
+  }
+
+  base.state.shopEffects = {
+    ...base.state.shopEffects,
+    pendingTrainingCamp: {
+      sourceItemId: "training-camp",
+      scheduledDate: base.state.date,
+    },
+  };
+
+  return {
+    ...base,
+    targetType: "team",
+    targetId: null,
+    safeRequest: {},
+    publicResult: {
+      pending: true,
+      scheduledDate: base.state.date,
+    },
+  };
+}
+
+export interface ScheduledTrainingCampResolution {
+  state: GameState;
+  result: TrainingCampResult;
+}
+
+export function resolveScheduledTrainingCamp(
+  state: GameState,
+): ScheduledTrainingCampResolution | null {
+  const pending = state.shopEffects?.pendingTrainingCamp;
+  if (!pending) return null;
+
+  const nextState = structuredClone(state);
+  const school = nextState.schools[nextState.userSchoolId];
   if (!school) {
     throw new ShopUseResolutionError("target_not_found");
   }
-  const random = shopRandom(base.state, input.request);
+  const random = new SeededRandom(
+    `${nextState.seed}:training-camp:${pending.scheduledDate}`,
+    nextState.randomCursor,
+  );
   const initialCursor = random.cursor;
   const logs: PlayerGrowthLog[] = [];
 
   for (const id of school.playerIds) {
-    const player = base.state.players[id];
+    const player = nextState.players[id];
     if (!player) {
       throw new ShopUseResolutionError("target_not_found");
     }
@@ -376,18 +416,24 @@ function resolveTrainingCamp(input: ResolveShopUseInput): ResolvedShopUse {
         ...TRAINING_CAMP_ACTIVITY,
       },
     });
-    base.state.players[id] = resolved.player;
+    nextState.players[id] = resolved.player;
     logs.push(resolved.log);
   }
-  updateRandomCursor(base.state, random, initialCursor);
+  updateRandomCursor(nextState, random, initialCursor);
 
-  return {
-    ...base,
-    targetType: "team",
-    targetId: null,
-    safeRequest: {},
-    publicResult: trainingCampSummary(logs),
+  const result: TrainingCampResult = {
+    sourceItemId: "training-camp",
+    scheduledDate: pending.scheduledDate,
+    ...trainingCampSummary(logs),
   };
+  const remainingEffects = { ...(nextState.shopEffects ?? {}) };
+  delete remainingEffects.pendingTrainingCamp;
+  nextState.shopEffects = {
+    ...remainingEffects,
+    trainingCampResult: result,
+  };
+
+  return { state: nextState, result };
 }
 
 function resolveSpecialCoach(input: ResolveShopUseInput): ResolvedShopUse {

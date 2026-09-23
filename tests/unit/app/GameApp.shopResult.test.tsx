@@ -70,6 +70,12 @@ describe("GameApp shop result presentation", () => {
   it("keeps the server use result visible after adopting the authoritative snapshot", async () => {
     const initial = snapshot(1);
     const updated = snapshot(2);
+    updated.state.shopEffects = {
+      pendingTrainingCamp: {
+        sourceItemId: "training-camp",
+        scheduledDate: updated.state.date,
+      },
+    };
     const getShop = vi
       .fn<NonNullable<GameApiClient["getShop"]>>()
       .mockResolvedValueOnce(status(1, true))
@@ -85,11 +91,8 @@ describe("GameApp shop result presentation", () => {
         purchasedCount: 1,
         usedCount: 1,
         result: {
-          participantCount: 12,
-          grewPlayerCount: 10,
-          totalAbilityGrowth: 36,
-          averageFatigueChange: 11.5,
-          injuredPlayerIds: ["player-z"],
+          pending: true,
+          scheduledDate: updated.state.date,
         },
       }),
     );
@@ -122,8 +125,11 @@ describe("GameApp shop result presentation", () => {
 
     await waitFor(() => expect(useShopItem).toHaveBeenCalledTimes(1));
     expect(
-      await screen.findByRole("heading", { name: "強化合宿の結果" }),
+      await screen.findByRole("heading", { name: "強化合宿を予約しました" }),
     ).toBeVisible();
-    expect(screen.getByText("能力成長 +36")).toBeVisible();
+    expect(
+      screen.getByText("今週を進めると、次の週に合宿結果が発表されます。"),
+    ).toBeVisible();
+    expect(screen.queryByText(/能力成長/)).toBeNull();
   });
 });

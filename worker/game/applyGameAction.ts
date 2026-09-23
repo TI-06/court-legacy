@@ -104,6 +104,7 @@ import {
 } from "../../src/domain/weekly/practiceMatchScheduling";
 import { recordMatchOutcome } from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
+import { resolveScheduledTrainingCamp } from "../shop/resolveShopUse";
 import type { GameAction } from "./actionSchema";
 
 if (!gameDataBootstrap.ok) {
@@ -287,9 +288,12 @@ function consumeNextTrainingGrowthBoost(state: GameState): GameState {
     return state;
   }
 
+  const remainingEffects = { ...state.shopEffects };
+  delete remainingEffects.nextTrainingGrowthBoost;
   return {
     ...state,
-    shopEffects: undefined,
+    shopEffects:
+      Object.keys(remainingEffects).length > 0 ? remainingEffects : undefined,
   };
 }
 
@@ -1298,6 +1302,11 @@ function applyAdvanceWeek(
     };
   }
   try {
+    const trainingCamp = resolveScheduledTrainingCamp(currentState);
+    if (trainingCamp) {
+      currentState = trainingCamp.state;
+    }
+
     const progression = advanceGameWeek(currentState, gameData, {
       userIntake: context.userIntake,
     });
@@ -1432,6 +1441,27 @@ function applyAssistantCoachContract(
   };
 }
 
+function applyAcknowledgeTrainingCampResult(
+  state: GameState,
+  teamSelection: TeamSelection,
+): AppliedGameAction {
+  if (!state.shopEffects?.trainingCampResult) {
+    return { state, teamSelection };
+  }
+
+  const remainingEffects = { ...state.shopEffects };
+  delete remainingEffects.trainingCampResult;
+
+  return {
+    state: {
+      ...state,
+      shopEffects:
+        Object.keys(remainingEffects).length > 0 ? remainingEffects : undefined,
+    },
+    teamSelection,
+  };
+}
+
 function applyEventChoice(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1512,6 +1542,8 @@ function applyActionByType(
       return applyAssistantCoachContract(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
+    case "acknowledge-training-camp-result":
+      return applyAcknowledgeTrainingCampResult(state, teamSelection);
   }
 }
 

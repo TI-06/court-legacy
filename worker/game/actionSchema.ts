@@ -317,7 +317,8 @@ export type GameAction =
       rank: AssistantCoachRank;
       specialty: AssistantCoachSpecialty | null;
     }
-  | { type: "event-choice"; choiceId: string };
+  | { type: "event-choice"; choiceId: string }
+  | { type: "acknowledge-training-camp-result" };
 
 export interface GameActionRequest {
   operationId: string;

@@ -68,6 +68,7 @@ import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import type { HomeCommandAction } from "../features/home/homeCommandCenter";
+import { TrainingCampResultDialog } from "../features/home/TrainingCampResultDialog";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
@@ -975,7 +976,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           ...(beforeScoutReport ? { beforeScoutReport } : {}),
           ...(afterScoutReport ? { afterScoutReport } : {}),
         });
-        setShopResultMessage("使用しました ✓");
+        setShopResultMessage(
+          request.itemId === "training-camp"
+            ? "合宿を予約しました ✓"
+            : "使用しました ✓",
+        );
       }
     } catch (error) {
       if (
@@ -1058,6 +1063,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "mark-notification-read", notificationId },
       "お知らせを更新しています…",
+    );
+  };
+
+  const acknowledgeTrainingCampResult = async () => {
+    await cloudSession.runAction(
+      { type: "acknowledge-training-camp-result" },
+      "合宿結果を確認しています…",
     );
   };
 
@@ -1471,8 +1483,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         state={gameState}
         trainingCompleted={trainingCompleted}
       />
-      <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
-      {latestYearTransition ? (
+      {gameState.shopEffects?.trainingCampResult ? (
+        <TrainingCampResultDialog
+          onAcknowledge={acknowledgeTrainingCampResult}
+          pending={cloudSession.operation.status === "submitting"}
+          result={gameState.shopEffects.trainingCampResult}
+          state={gameState}
+        />
+      ) : latestYearTransition ? (
         <YearTransitionDialog
           ambitionPending={cloudSession.operation.status === "submitting"}
           onClose={() => setLatestYearTransition(null)}
@@ -1482,7 +1500,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           state={gameState}
           summary={latestYearTransition}
         />
-      ) : null}
+      ) : (
+        <EventDialog data={gameData} onChoose={chooseEvent} state={gameState} />
+      )}
     </>
   );
 }

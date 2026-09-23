@@ -18,7 +18,10 @@ import type {
   SubstitutionPolicy,
   TeamSelection,
 } from "../../domain/model/TeamSelection";
-import { calculatePlayerDisplayPower } from "../../domain/selectors/playerPresentation";
+import {
+  calculatePlayerDisplayPower,
+  summarizePlayerAbilities,
+} from "../../domain/selectors/playerPresentation";
 import {
   autoSelectTeam,
   resolveLockedStarters,
@@ -32,7 +35,6 @@ import { selectSavedLineupSlots } from "../../domain/team/savedLineupSelectors";
 import type { SavedLineupSlot } from "../../domain/team/teamPlanningTypes";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { PlayerTile } from "../../ui/PlayerTile";
 import { LineupDragSurface } from "./LineupDragSurface";
 import "../../ui/ui.css";
 import "./team.css";
@@ -367,6 +369,32 @@ export function TeamScreen({
       : pickerTarget?.type === "libero"
         ? "L"
         : null;
+
+  const pickerCandidates = useMemo(() => {
+    if (!currentPickerRole) return [];
+    return players
+      .filter(
+        (player) =>
+          player.id !== currentPickerPlayerId && !activeIds.has(player.id),
+      )
+      .sort((left, right) => {
+        const aptitudeDifference =
+          right.positionAptitudes[currentPickerRole] -
+          left.positionAptitudes[currentPickerRole];
+        if (aptitudeDifference !== 0) return aptitudeDifference;
+
+        const overallDifference = playerOverall(right) - playerOverall(left);
+        if (overallDifference !== 0) return overallDifference;
+
+        const conditionDifference = right.condition - left.condition;
+        if (conditionDifference !== 0) return conditionDifference;
+
+        const fatigueDifference = left.fatigue - right.fatigue;
+        if (fatigueDifference !== 0) return fatigueDifference;
+
+        return left.id.localeCompare(right.id);
+      });
+  }, [activeIds, currentPickerPlayerId, currentPickerRole, players]);
 
   const choosePickerPlayer = (playerId: PlayerId) => {
     if (pickerTarget?.type === "rotation") {
@@ -860,29 +888,53 @@ export function TeamScreen({
               </strong>
             </button>
           ) : null}
-          <div className="ui-player-picker-list">
-            {players.map((player) => {
-              const isCurrent = player.id === currentPickerPlayerId;
-              const isActiveElsewhere = activeIds.has(player.id) && !isCurrent;
+          <div className="team-picker-summary">
+            <strong>入れ替え候補</strong>
+            <span>候補 {pickerCandidates.length}人・適性順</span>
+          </div>
+          <div className="team-picker-list">
+            {pickerCandidates.map((player, index) => {
+              const abilities = summarizePlayerAbilities(player);
+              const aptitude = currentPickerRole
+                ? player.positionAptitudes[currentPickerRole]
+                : 0;
               return (
-                <PlayerTile
-                  school={school}
-                  actionLabel={
-                    isCurrent
-                      ? "現在"
-                      : isActiveElsewhere
-                        ? "使用中"
-                        : currentPickerRole
-                          ? `${currentPickerRole}適性${player.positionAptitudes[currentPickerRole]}・入替`
-                          : "入替"
-                  }
-                  disabled={pending || isCurrent || isActiveElsewhere}
+                <button
+                  className="team-picker-card"
+                  data-testid="player-picker-option"
+                  disabled={pending}
                   key={player.id}
                   onClick={() => choosePickerPlayer(player.id)}
-                  player={player}
-                  selected={isCurrent}
-                  testId="player-picker-option"
-                />
+                  type="button"
+                >
+                  <span className="team-picker-card__identity">
+                    <span>
+                      {index === 0 ? <b>おすすめ</b> : null}
+                      <strong>{playerName(player)}</strong>
+                    </span>
+                    <small>
+                      {player.grade}年・{player.preferredPosition}・
+                      {player.heightCm}cm
+                    </small>
+                  </span>
+                  <span className="team-picker-card__score">
+                    <small>総合</small>
+                    <strong>{playerOverall(player)}</strong>
+                  </span>
+                  <span className="team-picker-card__aptitude">
+                    <small>{currentPickerRole}</small>
+                    <strong>適性 {aptitude}</strong>
+                  </span>
+                  <span className="team-picker-card__abilities">
+                    <small>攻 {Math.round(abilities.attack)}</small>
+                    <small>守 {Math.round(abilities.defense)}</small>
+                    <small>跳 {Math.round(abilities.jump)}</small>
+                  </span>
+                  <span className="team-picker-card__state">
+                    状態 {player.condition}・疲労 {player.fatigue}
+                  </span>
+                  <span className="team-picker-card__action">入替</span>
+                </button>
               );
             })}
           </div>
