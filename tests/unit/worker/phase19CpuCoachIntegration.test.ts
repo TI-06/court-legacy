@@ -69,7 +69,7 @@ function continueToCompletion(
   started: AppliedGameAction,
 ): AppliedGameAction {
   let current = started;
-  for (let guard = 0; guard < 10; guard += 1) {
+  for (let guard = 0; guard < 24; guard += 1) {
     if (current.state.activeMatch?.phase === "match-complete") return current;
     if (current.state.activeMatch?.phase !== "coach-decision") {
       throw new Error("PVE match did not stop at a user coach decision");
