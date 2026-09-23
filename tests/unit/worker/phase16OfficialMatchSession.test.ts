@@ -51,12 +51,7 @@ function officialWeekSnapshot(): CloudGameSnapshot {
 }
 
 function nextContinueLabel(
-  reason:
-    | "opponent-run"
-    | "mid-set"
-    | "critical-score"
-    | "set-break"
-    | null,
+  reason: "opponent-run" | "mid-set" | "critical-score" | "set-break" | null,
 ): "continue" {
   if (
     reason !== "opponent-run" &&
