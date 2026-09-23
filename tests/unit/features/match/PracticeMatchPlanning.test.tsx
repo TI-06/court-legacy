@@ -114,7 +114,9 @@ describe("PracticeMatchPlanning", () => {
     expect(within(shortcut).getByText("RIVAL REMATCH")).toBeVisible();
     expect(within(shortcut).getByText(/注目ライバル/)).toBeVisible();
 
-    const card = screen.getByText(school.name).closest("article") as HTMLElement;
+    const card = screen
+      .getByRole("button", { name: `${school.name}に申し込む` })
+      .closest("article") as HTMLElement;
     expect(card).toHaveClass("is-rival-rematch");
     expect(within(card).getByText("ライバル再戦")).toBeVisible();
   });
