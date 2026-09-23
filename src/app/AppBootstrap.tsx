@@ -57,6 +57,7 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
   useEffect(() => {
     let active = true;
     let authRevision = 0;
+    let readyUserId: string | null = null;
 
     const loadCloud = async (session: AuthSession) => {
       controllerRef.current?.abort();
@@ -70,6 +71,7 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
         );
         if (!active || controller.signal.aborted) return;
         if (response.status === "ready") {
+          readyUserId = session.userId;
           setView({ status: "ready", session, game: response.game });
           return;
         }
@@ -104,15 +106,35 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
     };
 
     const applySession = (session: AuthSession | null) => {
-      controllerRef.current?.abort();
       if (!session) {
+        readyUserId = null;
+        controllerRef.current?.abort();
         setView({ status: "signed-out" });
         return;
       }
       if (auth.isPasswordRecovery()) {
+        readyUserId = null;
+        controllerRef.current?.abort();
         setView({ status: "password-recovery", session });
         return;
       }
+
+      // Supabase emits auth-state changes when it refreshes an access token.
+      // Once the same user already has an authoritative game loaded, keep the
+      // game mounted and only replace the session. Re-bootstrapping here can
+      // race an in-flight save and leaves long-running play sessions needlessly
+      // dependent on a page reload.
+      if (readyUserId === session.userId) {
+        setView((current) =>
+          current.status === "ready" &&
+          current.session.userId === session.userId
+            ? { ...current, session }
+            : current,
+        );
+        return;
+      }
+
+      controllerRef.current?.abort();
       void loadCloud(session);
     };
 
