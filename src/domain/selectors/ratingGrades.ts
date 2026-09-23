@@ -1,12 +1,4 @@
-export type AbilityRatingGrade =
-  | "S"
-  | "A"
-  | "B"
-  | "C"
-  | "D"
-  | "E"
-  | "F"
-  | "G";
+export type AbilityRatingGrade = "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
 export type SchoolStrengthGrade = "A" | "B" | "C" | "D" | "E" | "F";
 
 export function ratingToGrade(value: number): AbilityRatingGrade {
