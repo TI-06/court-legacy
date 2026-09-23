@@ -5,6 +5,7 @@ import type { School, SchoolReputation } from "../model/School";
 import type { SeasonAmbition } from "../season/seasonGoalTypes";
 import { SeededRandom } from "../random/SeededRandom";
 import { calculateTournamentSchoolStrength } from "../tournament/createOfficialSeason";
+import { selectFeaturedUserRival } from "../world/rivalryHistory";
 import { rivalryKey } from "../world/rivalWorldProgression";
 import type {
   IncomingPracticeOfferHistoryEntry,
@@ -63,7 +64,9 @@ export interface PracticePlanningResult {
 }
 
 export type PracticeRecommendationSource =
-  "season-ambition" | "last-practice-result";
+  | "featured-rival"
+  | "season-ambition"
+  | "last-practice-result";
 
 export interface PracticeRecommendation {
   ambition: SeasonAmbition;
@@ -165,6 +168,21 @@ export function selectPracticeRecommendation(
     (candidate) => candidate.status === "available",
   );
   if (available.length === 0) return null;
+
+  const featuredRival = selectFeaturedUserRival(state);
+  if (featuredRival) {
+    const candidate = available.find(
+      (item) => item.schoolId === featuredRival.opponentSchoolId,
+    );
+    if (candidate) {
+      return {
+        ambition,
+        tier: candidate.tier,
+        candidate,
+        source: "featured-rival",
+      };
+    }
+  }
 
   const previousResult = latestPracticeResult(state);
   if (previousResult) {
@@ -334,6 +352,66 @@ function buildOutgoingCandidates(
   }
 
   return candidates;
+}
+
+function injectFeaturedRivalCandidate(
+  state: GameState,
+  planning: PracticePlanningResult,
+): PracticePlanningResult {
+  if (planning.outgoingCandidates.length === 0) return planning;
+
+  const featuredRival = selectFeaturedUserRival(state);
+  if (!featuredRival) return planning;
+  if (planning.incomingOffer?.schoolId === featuredRival.opponentSchoolId) {
+    return planning;
+  }
+  if (
+    planning.outgoingCandidates.some(
+      (candidate) => candidate.schoolId === featuredRival.opponentSchoolId,
+    )
+  ) {
+    return planning;
+  }
+
+  const home = state.schools[state.userSchoolId];
+  const opponent = state.schools[featuredRival.opponentSchoolId];
+  if (!home || !opponent) return planning;
+
+  const homeStrength = calculateTournamentSchoolStrength(state, home);
+  const opponentStrength = calculateTournamentSchoolStrength(state, opponent);
+  const tier = classifyPracticeOpponentTier(homeStrength, opponentStrength);
+  const recentMeetingCount = state.weeklySchedule.recentPracticeMatches.filter(
+    (entry) => entry.opponentSchoolId === opponent.id,
+  ).length;
+  const rivalCandidate: PracticeMatchCandidate = {
+    schoolId: opponent.id,
+    tier,
+    acceptancePercent: practiceAcceptancePercent(
+      home.reputationPoints,
+      opponent.reputationPoints,
+      homeStrength,
+      opponentStrength,
+      recentMeetingCount,
+    ),
+    growthRating: practiceRating(
+      opponentStrength / Math.max(1, homeStrength),
+    ),
+    status: "available",
+  };
+
+  const outgoingCandidates = [...planning.outgoingCandidates];
+  const tierIndex = outgoingCandidates.findIndex(
+    (candidate) => candidate.tier === tier,
+  );
+  if (tierIndex >= 0) {
+    outgoingCandidates[tierIndex] = rivalCandidate;
+  } else if (outgoingCandidates.length < 3) {
+    outgoingCandidates.push(rivalCandidate);
+  } else {
+    outgoingCandidates[outgoingCandidates.length - 1] = rivalCandidate;
+  }
+
+  return { ...planning, outgoingCandidates };
 }
 
 function hasDueOfficialMatch(state: PracticePlanningSource): boolean {
@@ -590,9 +668,10 @@ export function buildInitialPracticePlanning(
 export function buildPracticePlanning(
   state: GameState,
 ): PracticePlanningResult {
-  return buildPracticePlanningFromSource(
+  const planning = buildPracticePlanningFromSource(
     state,
     state.weeklySchedule.recentPracticeMatches,
     state.weeklySchedule.incomingPracticeOfferHistory ?? [],
   );
+  return injectFeaturedRivalCandidate(state, planning);
 }
