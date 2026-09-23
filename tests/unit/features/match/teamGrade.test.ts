@@ -3,7 +3,9 @@ import { ratingToGrade } from "../../../../src/features/match/teamRatingGrade";
 
 describe("ratingToGrade", () => {
   it.each([
-    [100, "A"],
+    [100, "S"],
+    [90, "S"],
+    [89, "A"],
     [80, "A"],
     [79, "B"],
     [70, "B"],
