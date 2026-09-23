@@ -502,7 +502,9 @@ function MatchScreenContent({
                 {allowResultSkip ? (
                   <button
                     className="match-playback-row__skip"
-                    disabled={commandPending || (!result.analysis && !onCommand)}
+                    disabled={
+                      commandPending || (!result.analysis && !onCommand)
+                    }
                     onClick={() => {
                       setPlaying(false);
                       if (result.analysis) {
