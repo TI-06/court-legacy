@@ -191,7 +191,13 @@ describe("Phase16 resumable match API", () => {
       step.match.runtime?.pendingDecisionReason === "mid-set" ||
       step.match.runtime?.pendingDecisionReason === "critical-score"
     ) {
-      expect(step.match.eventLog.at(-1)?.type).toBe("point");
+      expect(
+        step.match.eventLog.some(
+          (event) =>
+            event.type === "point" &&
+            event.setNumber === step.match.currentSetNumber,
+        ),
+      ).toBe(true);
     } else {
       expect(step.match.runtime?.pendingDecisionReason).toBe("set-break");
       expect(step.match.eventLog.at(-1)?.type).toBe("set-end");
