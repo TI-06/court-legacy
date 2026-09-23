@@ -85,22 +85,32 @@ export function PracticeMatchPlanning({
           {recommendation ? (
             <article
               aria-label={
-                recommendation.source === "last-practice-result"
-                  ? "前回結果おすすめの練習試合"
-                  : "方針おすすめの練習試合"
+                recommendation.source === "featured-rival"
+                  ? "ライバル再戦おすすめの練習試合"
+                  : recommendation.source === "last-practice-result"
+                    ? "前回結果おすすめの練習試合"
+                    : "方針おすすめの練習試合"
               }
-              className="practice-planning__recommendation"
+              className={
+                recommendation.source === "featured-rival"
+                  ? "practice-planning__recommendation is-rival-rematch"
+                  : "practice-planning__recommendation"
+              }
             >
               <div className="practice-planning__recommendation-copy">
                 <span>
-                  {recommendation.source === "last-practice-result"
-                    ? "LAST MATCH ADVICE"
-                    : "COACH RECOMMEND"}
+                  {recommendation.source === "featured-rival"
+                    ? "RIVAL REMATCH"
+                    : recommendation.source === "last-practice-result"
+                      ? "LAST MATCH ADVICE"
+                      : "COACH RECOMMEND"}
                 </span>
                 <strong>
-                  {recommendation.source === "last-practice-result"
-                    ? `前回${recommendation.previousResult?.won ? "勝利" : "敗戦"}を踏まえ、次は${tierLabels[recommendation.tier]}`
-                    : `${seasonAmbitionLabels[recommendation.ambition]}方針なら${state.schools[recommendation.candidate.schoolId]?.name}`}
+                  {recommendation.source === "featured-rival"
+                    ? `注目ライバル ${state.schools[recommendation.candidate.schoolId]?.name ?? "相手校"}との再戦`
+                    : recommendation.source === "last-practice-result"
+                      ? `前回${recommendation.previousResult?.won ? "勝利" : "敗戦"}を踏まえ、次は${tierLabels[recommendation.tier]}`
+                      : `${seasonAmbitionLabels[recommendation.ambition]}方針なら${state.schools[recommendation.candidate.schoolId]?.name}`}
                 </strong>
                 <small>
                   {tierLabels[recommendation.tier]}・成立しやすさ{" "}
@@ -175,7 +185,13 @@ export function PracticeMatchPlanning({
                     recommendation?.candidate.schoolId === candidate.schoolId;
                   return (
                     <article
-                      className={recommended ? "is-recommended" : undefined}
+                      className={
+                        recommended
+                          ? recommendation?.source === "featured-rival"
+                            ? "is-recommended is-rival-rematch"
+                            : "is-recommended"
+                          : undefined
+                      }
                       key={candidate.schoolId}
                     >
                       <div className="practice-planning__school-copy">
@@ -183,9 +199,12 @@ export function PracticeMatchPlanning({
                           {school.name}
                           {recommended ? (
                             <em className="practice-planning__recommended-badge">
-                              {recommendation?.source === "last-practice-result"
-                                ? "前回結果"
-                                : "方針おすすめ"}
+                              {recommendation?.source === "featured-rival"
+                                ? "ライバル再戦"
+                                : recommendation?.source ===
+                                    "last-practice-result"
+                                  ? "前回結果"
+                                  : "方針おすすめ"}
                             </em>
                           ) : null}
                         </strong>
