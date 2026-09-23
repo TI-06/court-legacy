@@ -323,6 +323,30 @@ function MatchScreenContent({
     ? result.match.awaySetsWon
     : result.match.homeSetsWon;
   const recentEvents = presentedEvents.slice(-4).reverse();
+  const decisionReason = result.match.runtime?.pendingDecisionReason ?? null;
+  const decisionHeadline =
+    decisionReason === "opponent-run"
+      ? "4連続失点。ここで流れを切る"
+      : decisionReason === "mid-set"
+        ? "セット中盤。次の狙いを決める"
+        : decisionReason === "critical-score"
+          ? "終盤接戦。ここからが勝負"
+          : decisionReason === "set-break"
+            ? "セット間。次セットを組み立てる"
+            : "監督判断のタイミング";
+  const decisionDetail =
+    decisionReason === "set-break"
+      ? "戦術変更・選手交代で次セットを整えられます"
+      : "戦術変更・選手交代・タイムアウト・選手指示を選べます";
+
+  const submitCoachCommand = async (command: MatchCommand) => {
+    if (!onCommand) return;
+    setPlaying(false);
+    await onCommand(command);
+    if (command.type !== "skip-to-result" && !reducedMotion) {
+      setPlaying(true);
+    }
+  };
 
   if (!currentEvent) {
     throw new Error("match is missing presentation data");
@@ -333,7 +357,9 @@ function MatchScreenContent({
 
   return (
     <main
-      className={`app-content match-screen${matchComplete ? " match-screen--result" : ""}`}
+      className={`app-content match-screen${
+        matchComplete ? " match-screen--result" : " match-screen--live"
+      }${decisionReady ? " match-screen--decision" : ""}`}
     >
       {!matchComplete ? (
         <>
@@ -371,23 +397,22 @@ function MatchScreenContent({
           </section>
 
           <section
-            className="match-interaction-status"
+            className={`match-interaction-status${
+              decisionReady ? " match-interaction-status--decision" : ""
+            }`}
             aria-label="試合進行状態"
           >
             <span>{decisionReady ? "DECISION" : "LIVE"}</span>
             <div>
               <strong>
                 {decisionReady
-                  ? result.match.runtime?.pendingDecisionReason ===
-                    "critical-score"
-                    ? "重要場面。ここからの指示で展開が変わります"
-                    : "監督判断のタイミングです"
+                  ? decisionHeadline
                   : "試合結果はまだ確定していません"}
               </strong>
               <small>
                 {decisionReady
-                  ? "戦術変更・選手交代・タイムアウトを選べます"
-                  : "重要場面では自動で止まり、監督指示を出せます"}
+                  ? decisionDetail
+                  : "判断ポイントでは自動で止まり、監督指示を出せます"}
               </small>
             </div>
           </section>
@@ -433,84 +458,89 @@ function MatchScreenContent({
             </div>
           </section>
 
-          <section className="match-controls" aria-label="再生操作">
-            <div className="match-playback-row">
-              <button
-                disabled={reducedMotion || decisionReady}
-                onClick={() => setPlaying((current) => !current)}
-                type="button"
-              >
-                {playing ? "一時停止" : "再生"}
-              </button>
-              <button
-                disabled={revealedEventIndex >= lastEventIndex}
-                onClick={() => {
-                  setPlaying(false);
-                  setVisibleEventIndex((current) =>
-                    Math.min(lastEventIndex, current + 1),
-                  );
-                }}
-                type="button"
-              >
-                次のプレー
-              </button>
-              <button
-                disabled={decisionReady}
-                onClick={() => {
-                  setPlaying(false);
-                  setVisibleEventIndex(lastEventIndex);
-                }}
-                type="button"
-              >
-                {result.analysis ? "結果まで進む" : "次の判断まで進む"}
-              </button>
-              {allowResultSkip ? (
-                <button
-                  disabled={commandPending || (!result.analysis && !onCommand)}
-                  onClick={() => {
-                    setPlaying(false);
-                    if (result.analysis) {
-                      setVisibleEventIndex(lastEventIndex);
-                      return;
-                    }
-                    if (!onCommand) return;
-                    setSkipTargetMatchId(String(result.match.id));
-                    void Promise.resolve(
-                      onCommand({ type: "skip-to-result" }),
-                    ).catch(() => setSkipTargetMatchId(null));
-                  }}
-                  type="button"
-                >
-                  結果までスキップ
-                </button>
-              ) : null}
-            </div>
-            <div className="match-speed-row" role="group" aria-label="再生速度">
-              {([1, 2, 4] as const).map((value) => (
-                <button
-                  aria-pressed={speed === value}
-                  key={value}
-                  onClick={() => setSpeed(value)}
-                  type="button"
-                >
-                  {value}倍
-                </button>
-              ))}
-            </div>
-            {reducedMotion ? (
-              <p className="match-reduced-motion-note">
-                動きを減らす設定中のため、自動再生は無効です。
-              </p>
-            ) : null}
-          </section>
-
           {decisionReady && onCommand ? (
             <MatchCommandPanel
               match={result.match}
-              onCommand={onCommand}
+              onCommand={submitCoachCommand}
               pending={commandPending}
               state={state}
             />
+          ) : (
+            <section className="match-controls" aria-label="再生操作">
+              <div className="match-playback-row">
+                <button
+                  disabled={reducedMotion}
+                  onClick={() => setPlaying((current) => !current)}
+                  type="button"
+                >
+                  {playing ? "一時停止" : "再生"}
+                </button>
+                <button
+                  disabled={revealedEventIndex >= lastEventIndex}
+                  onClick={() => {
+                    setPlaying(false);
+                    setVisibleEventIndex((current) =>
+                      Math.min(lastEventIndex, current + 1),
+                    );
+                  }}
+                  type="button"
+                >
+                  次のプレー
+                </button>
+                <button
+                  onClick={() => {
+                    setPlaying(false);
+                    setVisibleEventIndex(lastEventIndex);
+                  }}
+                  type="button"
+                >
+                  {result.analysis ? "結果まで進む" : "次の判断まで進む"}
+                </button>
+                {allowResultSkip ? (
+                  <button
+                    className="match-playback-row__skip"
+                    disabled={commandPending || (!result.analysis && !onCommand)}
+                    onClick={() => {
+                      setPlaying(false);
+                      if (result.analysis) {
+                        setVisibleEventIndex(lastEventIndex);
+                        return;
+                      }
+                      if (!onCommand) return;
+                      setSkipTargetMatchId(String(result.match.id));
+                      void Promise.resolve(
+                        onCommand({ type: "skip-to-result" }),
+                      ).catch(() => setSkipTargetMatchId(null));
+                    }}
+                    type="button"
+                  >
+                    結果までスキップ
+                  </button>
+                ) : null}
+              </div>
+              <div
+                className="match-speed-row"
+                role="group"
+                aria-label="再生速度"
+              >
+                <span>速度</span>
+                {([1, 2, 4] as const).map((value) => (
+                  <button
+                    aria-pressed={speed === value}
+                    key={value}
+                    onClick={() => setSpeed(value)}
+                    type="button"
+                  >
+                    {value}倍
+                  </button>
+                ))}
+              </div>
+              {reducedMotion ? (
+                <p className="match-reduced-motion-note">
+                  動きを減らす設定中のため、自動再生は無効です。
+                </p>
+              ) : null}
+            </section>
           ) : null}
 
           <section
