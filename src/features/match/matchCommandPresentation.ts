@@ -139,7 +139,10 @@ export function buildLiveCoachEffectRows(
   const rows: MatchLiveCoachEffectRow[] = [];
 
   for (const record of [...match.runtime.commandHistory].reverse()) {
-    if (record.schoolId !== schoolId || record.eventSequence > visibleEventSequence) {
+    if (
+      record.schoolId !== schoolId ||
+      record.eventSequence > visibleEventSequence
+    ) {
       continue;
     }
 
