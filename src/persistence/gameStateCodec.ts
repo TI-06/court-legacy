@@ -402,8 +402,11 @@ const shopGameEffectsSchema = z
           z
             .object({
               playerId: playerIdSchema,
-              totalAbilityGrowth: z.number().nonnegative(),
-              abilityChanges: z.record(abilityKeySchema, z.number()),
+              totalAbilityGrowth: z.number().int().nonnegative(),
+              abilityChanges: z.partialRecord(
+                abilityKeySchema,
+                z.number().int(),
+              ),
             })
             .strict(),
         ),
