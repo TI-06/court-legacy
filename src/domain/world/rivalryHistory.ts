@@ -211,6 +211,38 @@ export function selectUserHeadToHead(
   return { ...base, labels: labelsForSummary(base) };
 }
 
+function featuredRivalPriority(summary: HeadToHeadSummary): number {
+  if (summary.labels.includes("destiny-rival")) return 600;
+  if (summary.labels.includes("nemesis")) return 500;
+  if (summary.labels.includes("rivalry")) return 400;
+  if (summary.labels.includes("losing-streak")) return 300;
+  if (summary.labels.includes("revenge")) return 200;
+  if (summary.labels.includes("winning-streak")) return 100;
+  return 0;
+}
+
+export function selectFeaturedUserRival(
+  state: GameState,
+): HeadToHeadSummary | null {
+  const candidates = selectUserHeadToHeadTable(state)
+    .map((summary) => ({
+      summary,
+      priority: featuredRivalPriority(summary),
+    }))
+    .filter((entry) => entry.priority > 0)
+    .sort(
+      (left, right) =>
+        right.priority - left.priority ||
+        right.summary.rivalryScore - left.summary.rivalryScore ||
+        right.summary.totalMeetings - left.summary.totalMeetings ||
+        String(left.summary.opponentSchoolId).localeCompare(
+          String(right.summary.opponentSchoolId),
+        ),
+    );
+
+  return candidates[0]?.summary ?? null;
+}
+
 export function selectUserHeadToHeadTable(
   state: GameState,
 ): HeadToHeadSummary[] {

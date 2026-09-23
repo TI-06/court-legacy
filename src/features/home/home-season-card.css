@@ -154,3 +154,76 @@
     display: none;
   }
 }
+
+/* Phase31: compact long-term rival cue without turning Home back into a dashboard. */
+.home-featured-rival {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 5px 8px;
+  gap: 6px;
+  color: var(--game-text);
+  font: inherit;
+  text-align: left;
+  background: linear-gradient(
+    135deg,
+    rgb(244 122 24 / 10%),
+    rgb(255 255 255 / 3%)
+  );
+  border: 1px solid rgb(244 122 24 / 22%);
+  border-radius: 9px;
+}
+
+.home-featured-rival > span {
+  padding: 2px 5px;
+  color: #ffd29d;
+  font-size: 9px;
+  font-weight: 950;
+  background: rgb(244 122 24 / 14%);
+  border-radius: 999px;
+}
+
+.home-featured-rival > strong,
+.home-featured-rival > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-featured-rival > strong {
+  font-size: 11px;
+}
+
+.home-featured-rival > small {
+  color: var(--game-text-muted);
+  font-size: 9px;
+}
+
+.home-featured-rival > b {
+  color: #ffc08a;
+  font-size: 14px;
+}
+
+.home-featured-rival:disabled {
+  opacity: 0.45;
+}
+
+@media (max-width: 340px) {
+  .home-featured-rival {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .home-featured-rival > small {
+    display: none;
+  }
+}
+
+@media (max-height: 820px) {
+  .home-featured-rival {
+    min-height: 28px;
+    padding-block: 4px;
+  }
+}

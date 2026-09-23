@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import { matchId } from "../../../../src/domain/model/identifiers";
 import {
   buildCharacterTraitDiscoveredNotification,
   type DevelopmentGoalAchievementNotification,
@@ -125,6 +126,38 @@ describe("Phase 13 Home command center", () => {
     fireEvent.click(
       within(season).getByRole("button", { name: "今季の記録を見る" }),
     );
+    expect(props.onCommand).toHaveBeenCalledWith({
+      target: "school",
+      view: "records",
+    });
+  });
+
+  it("opens school records from the compact featured-rival strip", () => {
+    const props = createProps();
+    const opponent = otherSchool(props.state);
+    props.state.world.destinyRivalSchoolId = opponent.id;
+    props.state.history.matches = [
+      {
+        matchId: matchId("home-featured-rival"),
+        date: "2026-04-10" as never,
+        homeSchoolId: props.state.userSchoolId,
+        awaySchoolId: opponent.id,
+        winnerSchoolId: opponent.id,
+        homeSetsWon: 1,
+        awaySetsWon: 2,
+        tournamentId: null,
+      },
+    ];
+
+    render(<HomeScreen {...props} />);
+
+    const rival = screen.getByRole("button", {
+      name: `注目ライバル ${opponent.shortName} 0勝1敗`,
+    });
+    expect(rival).toHaveTextContent("宿敵");
+    expect(rival).toHaveTextContent("前回敗戦・次は雪辱");
+
+    fireEvent.click(rival);
     expect(props.onCommand).toHaveBeenCalledWith({
       target: "school",
       view: "records",
