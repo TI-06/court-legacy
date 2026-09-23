@@ -383,8 +383,7 @@ export function TeamScreen({
           left.positionAptitudes[currentPickerRole];
         if (aptitudeDifference !== 0) return aptitudeDifference;
 
-        const overallDifference =
-          playerOverall(right) - playerOverall(left);
+        const overallDifference = playerOverall(right) - playerOverall(left);
         if (overallDifference !== 0) return overallDifference;
 
         const conditionDifference = right.condition - left.condition;
