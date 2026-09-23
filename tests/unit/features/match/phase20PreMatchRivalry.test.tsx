@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { matchId } from "../../../../src/domain/model/identifiers";
@@ -47,6 +47,9 @@ describe("Phase20 pre-match rivalry boundary", () => {
         state={state}
       />,
     );
+
+    fireEvent.click(screen.getByRole("button", { name: "対戦分析" }));
+    expect(screen.getByRole("dialog", { name: "対戦分析" })).toBeVisible();
 
     const context = screen.getByRole("region", { name: "対戦相手との因縁" });
     expect(context).toHaveTextContent("通算 0勝1敗");
