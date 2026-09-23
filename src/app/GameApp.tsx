@@ -160,7 +160,7 @@ function shopErrorMessage(error: unknown, fallback: string): string {
 export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const cloudSession = useGameSession({
     accessToken: session.accessToken,
-    getAccessToken: async () =>
+    refreshAccessToken: async () =>
       (await auth.getSession())?.accessToken ?? session.accessToken,
     initialSnapshot: snapshot,
     api,
