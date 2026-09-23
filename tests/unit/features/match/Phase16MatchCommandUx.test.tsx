@@ -120,6 +120,41 @@ describe("Phase16 match command decision panel", () => {
     });
   });
 
+  it("lets the coach choose a specific player for a direct instruction", () => {
+    const fixture = findDecision("opponent-run");
+    const onCommand = vi.fn();
+    const selection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.homeSelection
+        : fixture.match.awaySelection;
+    const playerId = selection.rotation.find(
+      (assignment) =>
+        fixture.state.players[assignment.playerId]?.preferredPosition !== "L",
+    )!.playerId;
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手指示" }));
+    const dialog = screen.getByRole("dialog", { name: "選手指示" });
+
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `攻撃を集める ${playerName(fixture.state, playerId)}`,
+      }),
+    );
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "focus-attacker",
+      playerId,
+    });
+  });
+
   it("uses set-break copy, hides timeout, and continues to the next set", () => {
     const fixture = findDecision("set-break");
     const onCommand = vi.fn();

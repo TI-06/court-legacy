@@ -145,6 +145,7 @@ export function MatchCommandPanel({
   const [tacticsOpen, setTacticsOpen] = useState(false);
   const [draftPlan, setDraftPlan] = useState<MatchTacticPlan | null>(null);
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
+  const [playerDirectiveOpen, setPlayerDirectiveOpen] = useState(false);
   const [outgoingPlayerId, setOutgoingPlayerId] = useState<PlayerId | null>(
     null,
   );
@@ -201,6 +202,17 @@ export function MatchCommandPanel({
   const benchPlayers = userSelection.benchPlayerIds
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player));
+  const liberoPlayer = userSelection.liberoPlayerId
+    ? (state.players[userSelection.liberoPlayerId] ?? null)
+    : null;
+  const directivePlayers =
+    liberoPlayer &&
+    !courtPlayers.some((player) => player.id === liberoPlayer.id)
+      ? [...courtPlayers, liberoPlayer]
+      : courtPlayers;
+  const rotationPlayerIds = new Set(
+    userSelection.rotation.map((assignment) => assignment.playerId),
+  );
   const outgoingPlayer = outgoingPlayerId
     ? (state.players[outgoingPlayerId] ?? null)
     : null;
@@ -306,6 +318,15 @@ export function MatchCommandPanel({
           <button disabled={pending} onClick={openSubstitution} type="button">
             選手交代
           </button>
+          {reason !== "set-break" ? (
+            <button
+              disabled={pending}
+              onClick={() => setPlayerDirectiveOpen(true)}
+              type="button"
+            >
+              選手指示
+            </button>
+          ) : null}
           <button
             className="match-command-actions__continue"
             disabled={pending}
@@ -316,6 +337,71 @@ export function MatchCommandPanel({
           </button>
         </div>
       </section>
+
+      <BottomSheet
+        description="5ラリーだけ、攻撃を集める選手か声をかける選手を指定します。"
+        onClose={() => setPlayerDirectiveOpen(false)}
+        open={playerDirectiveOpen}
+        title="選手指示"
+      >
+        <div className="match-command-player-directive">
+          <p>
+            育てた選手に勝負を託す場面です。指示後のラリーから実際の判定に反映されます。
+          </p>
+          <div aria-label="選手への個別指示" role="group">
+            {directivePlayers.map((player) => {
+              const canFocusAttack =
+                rotationPlayerIds.has(player.id) &&
+                player.preferredPosition !== "L";
+              return (
+                <article key={player.id}>
+                  <div>
+                    <strong>{playerName(player)}</strong>
+                    <small>{player.preferredPosition}</small>
+                  </div>
+                  <span>
+                    総合 <b>{playerOverallGrade(player)}</b>
+                  </span>
+                  <div>
+                    <button
+                      aria-label={`攻撃を集める ${playerName(player)}`}
+                      disabled={pending || !canFocusAttack}
+                      onClick={() => {
+                        setPlayerDirectiveOpen(false);
+                        void onCommand({
+                          type: "focus-attacker",
+                          playerId: player.id,
+                        });
+                      }}
+                      type="button"
+                    >
+                      攻撃を集める
+                    </button>
+                    <button
+                      aria-label={`声をかける ${playerName(player)}`}
+                      disabled={pending}
+                      onClick={() => {
+                        setPlayerDirectiveOpen(false);
+                        void onCommand({
+                          type: "encourage-player",
+                          playerId: player.id,
+                        });
+                      }}
+                      type="button"
+                    >
+                      声をかける
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <small className="match-command-player-directive__note">
+            攻撃集中：指定選手へのトス選択が増加 /
+            声かけ：判断・メンタルが一時上昇
+          </small>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description="この試合だけの戦術を3項目まとめて変更します。"

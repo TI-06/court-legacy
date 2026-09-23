@@ -132,11 +132,64 @@ function ensureCommandAllowed(
   reason: CoachDecisionReason,
   command: MatchCommand,
 ): void {
-  if (reason === "set-break" && command.type === "timeout") {
+  if (
+    reason === "set-break" &&
+    (command.type === "timeout" ||
+      command.type === "focus-attacker" ||
+      command.type === "encourage-player")
+  ) {
     fail(
       "command_not_allowed_for_decision",
-      "セット間ではタイムアウトを使用できません",
+      "セット間ではこの監督指示を使用できません",
     );
+  }
+}
+
+function activePlayerIds(selection: TeamSelection): PlayerId[] {
+  return [
+    ...selection.rotation.map((assignment) => assignment.playerId),
+    ...(selection.liberoPlayerId ? [selection.liberoPlayerId] : []),
+  ];
+}
+
+function validateFocusAttacker(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId,
+): void {
+  const selection = selectionForSchool(match, schoolId);
+  if (!selection.rotation.some((item) => item.playerId === playerId)) {
+    fail(
+      "focus_attacker_not_on_court",
+      "攻撃を集める選手は現在コート上の選手から選んでください",
+    );
+  }
+  const player = state.players[playerId];
+  if (!player || player.career.schoolId !== schoolId) {
+    fail("focus_attacker_invalid", "攻撃を集める選手を確認できません");
+  }
+  if (player.preferredPosition === "L") {
+    fail("focus_attacker_libero", "リベロには攻撃を集められません");
+  }
+}
+
+function validateEncouragementTarget(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId,
+): void {
+  const selection = selectionForSchool(match, schoolId);
+  if (!activePlayerIds(selection).includes(playerId)) {
+    fail(
+      "encourage_player_not_on_court",
+      "声をかける選手は現在コートにいる選手から選んでください",
+    );
+  }
+  const player = state.players[playerId];
+  if (!player || player.career.schoolId !== schoolId) {
+    fail("encourage_player_invalid", "声をかける選手を確認できません");
   }
 }
 
@@ -302,6 +355,34 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
         return fail("invalid_match_tactics", "試合中戦術の指定が不正です");
       }
       setTacticsForSchool(match, input.schoolId, input.command.plan);
+      break;
+    }
+    case "focus-attacker": {
+      validateFocusAttacker(
+        input.state,
+        match,
+        input.schoolId,
+        input.command.playerId,
+      );
+      runtime.attackerFocus = {
+        schoolId: input.schoolId,
+        playerId: input.command.playerId,
+        ralliesRemaining: 5,
+      };
+      break;
+    }
+    case "encourage-player": {
+      validateEncouragementTarget(
+        input.state,
+        match,
+        input.schoolId,
+        input.command.playerId,
+      );
+      runtime.encouragementBoost = {
+        schoolId: input.schoolId,
+        playerId: input.command.playerId,
+        ralliesRemaining: 5,
+      };
       break;
     }
     case "substitute": {

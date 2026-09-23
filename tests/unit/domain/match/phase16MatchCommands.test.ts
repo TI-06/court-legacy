@@ -296,6 +296,55 @@ describe("Phase16 match commands", () => {
     });
   });
 
+  it("applies a five-rally attacker focus to a selected on-court attacker", () => {
+    const context = createContext("player-focus-world");
+    const match = findOpponentRunDecision(context);
+    const playerId = match.homeSelection.rotation.find(
+      (assignment) =>
+        context.state.players[assignment.playerId]?.preferredPosition !== "L",
+    )!.playerId;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "focus-attacker", playerId },
+    });
+
+    expect(next.runtime?.attackerFocus).toEqual({
+      schoolId: context.homeSchoolId,
+      playerId,
+      ralliesRemaining: 5,
+    });
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "focus-attacker",
+      playerId,
+    });
+  });
+
+  it("applies a five-rally encouragement boost to an active player", () => {
+    const context = createContext("player-encourage-world");
+    const match = findOpponentRunDecision(context);
+    const playerId = match.homeSelection.rotation[0]!.playerId;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "encourage-player", playerId },
+    });
+
+    expect(next.runtime?.encouragementBoost).toEqual({
+      schoolId: context.homeSchoolId,
+      playerId,
+      ralliesRemaining: 5,
+    });
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "encourage-player",
+      playerId,
+    });
+  });
+
   it("substitutes one court player with one bench player only inside the match", () => {
     const context = createContext("substitution-world");
     const match = findOpponentRunDecision(context);

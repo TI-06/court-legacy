@@ -28,6 +28,8 @@ export type CoachDecisionReason =
 export type MatchCommand =
   | { type: "timeout" }
   | { type: "set-match-tactics"; plan: MatchTacticPlan }
+  | { type: "focus-attacker"; playerId: PlayerId }
+  | { type: "encourage-player"; playerId: PlayerId }
   | {
       type: "substitute";
       outgoingPlayerId: PlayerId;
@@ -62,6 +64,16 @@ export interface MatchRuntimeState {
   timeoutUsedSchoolIds: SchoolId[];
   timeoutBoost: {
     schoolId: SchoolId;
+    ralliesRemaining: number;
+  } | null;
+  attackerFocus?: {
+    schoolId: SchoolId;
+    playerId: PlayerId;
+    ralliesRemaining: number;
+  } | null;
+  encouragementBoost?: {
+    schoolId: SchoolId;
+    playerId: PlayerId;
     ralliesRemaining: number;
   } | null;
   pendingDecisionReason: CoachDecisionReason | null;

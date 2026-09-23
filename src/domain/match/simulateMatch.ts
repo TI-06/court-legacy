@@ -113,6 +113,8 @@ interface TeamMatchMetrics {
 
 interface AbilityContext {
   timeoutBoost: MatchRuntimeState["timeoutBoost"];
+  attackerFocus?: MatchRuntimeState["attackerFocus"];
+  encouragementBoost?: MatchRuntimeState["encouragementBoost"];
 }
 
 const ATTACK_POSITIONS: readonly Position[] = ["OH", "MB", "OP", "S"];
@@ -247,13 +249,34 @@ function timeoutAbilityMultiplier(
   return 1;
 }
 
+function encouragementAbilityMultiplier(
+  player: Player,
+  ability: keyof PlayerAbilities,
+  context: AbilityContext | undefined,
+): number {
+  const boost = context?.encouragementBoost;
+  if (
+    !boost ||
+    boost.ralliesRemaining <= 0 ||
+    boost.playerId !== player.id ||
+    boost.schoolId !== player.career.schoolId
+  ) {
+    return 1;
+  }
+  if (ability === "mental") return 1.08;
+  if (ability === "decision") return 1.06;
+  return 1;
+}
+
 function effectiveAbility(
   player: Player,
   ability: keyof PlayerAbilities,
   context?: AbilityContext,
 ): number {
   const base = player.abilities[ability] * readiness(player);
-  const multiplier = timeoutAbilityMultiplier(player, ability, context);
+  const multiplier =
+    timeoutAbilityMultiplier(player, ability, context) *
+    encouragementAbilityMultiplier(player, ability, context);
   return multiplier === 1 ? base : clamp(base * multiplier, 0, 100);
 }
 
@@ -383,11 +406,21 @@ function chooseAttacker(
 
   return weightedPick(
     pool,
-    (player) =>
-      attackPositionWeight(runtime.school, player.preferredPosition) *
-      (0.5 +
-        effectiveAbility(player, "spike", abilityContext) / 140 +
-        player.positionAptitudes[player.preferredPosition] / 260),
+    (player) => {
+      const focusMultiplier =
+        abilityContext?.attackerFocus?.schoolId === runtime.school.id &&
+        abilityContext.attackerFocus.playerId === player.id &&
+        abilityContext.attackerFocus.ralliesRemaining > 0
+          ? 4.5
+          : 1;
+      return (
+        attackPositionWeight(runtime.school, player.preferredPosition) *
+        (0.5 +
+          effectiveAbility(player, "spike", abilityContext) / 140 +
+          player.positionAptitudes[player.preferredPosition] / 260) *
+        focusMultiplier
+      );
+    },
     random,
   );
 }
@@ -1007,6 +1040,8 @@ function createInitialMatchState(
       criticalScoreDecisionConsumed: false,
       timeoutUsedSchoolIds: [],
       timeoutBoost: null,
+      attackerFocus: null,
+      encouragementBoost: null,
       pendingDecisionReason: null,
       commandHistory: [],
       ralliesInCurrentSet: 0,
@@ -1034,6 +1069,8 @@ function beginNextSet(match: MatchState): void {
   runtime.criticalScoreDecisionConsumed = false;
   runtime.timeoutUsedSchoolIds = [];
   runtime.timeoutBoost = null;
+  runtime.attackerFocus = null;
+  runtime.encouragementBoost = null;
   runtime.pendingDecisionReason = null;
   runtime.ralliesInCurrentSet = 0;
 }
@@ -1110,14 +1147,25 @@ function shouldOpenCriticalScoreDecision(match: MatchState): boolean {
   );
 }
 
-function decrementTimeoutBoost(match: MatchState): void {
+function decrementTemporaryCoachEffects(match: MatchState): void {
   const runtime = runtimeOrThrow(match);
-  if (!runtime.timeoutBoost) {
-    return;
+  if (runtime.timeoutBoost) {
+    runtime.timeoutBoost.ralliesRemaining -= 1;
+    if (runtime.timeoutBoost.ralliesRemaining <= 0) {
+      runtime.timeoutBoost = null;
+    }
   }
-  runtime.timeoutBoost.ralliesRemaining -= 1;
-  if (runtime.timeoutBoost.ralliesRemaining <= 0) {
-    runtime.timeoutBoost = null;
+  if (runtime.attackerFocus) {
+    runtime.attackerFocus.ralliesRemaining -= 1;
+    if (runtime.attackerFocus.ralliesRemaining <= 0) {
+      runtime.attackerFocus = null;
+    }
+  }
+  if (runtime.encouragementBoost) {
+    runtime.encouragementBoost.ralliesRemaining -= 1;
+    if (runtime.encouragementBoost.ralliesRemaining <= 0) {
+      runtime.encouragementBoost = null;
+    }
   }
 }
 
@@ -1378,7 +1426,11 @@ function runUntilBoundary(
       rallyRuntime,
       random,
       writer,
-      { timeoutBoost: runtime.timeoutBoost },
+      {
+        timeoutBoost: runtime.timeoutBoost,
+        attackerFocus: runtime.attackerFocus,
+        encouragementBoost: runtime.encouragementBoost,
+      },
     );
 
     if (winner !== servingBeforeRally) {
@@ -1404,7 +1456,7 @@ function runUntilBoundary(
       rallyRuntime.servingSide,
     );
     match.randomCursor = random.cursor;
-    decrementTimeoutBoost(match);
+    decrementTemporaryCoachEffects(match);
 
     const winnerSchoolId = schoolIdForSide(rallyRuntime, winner);
     updateScoringRun(match, winnerSchoolId);
