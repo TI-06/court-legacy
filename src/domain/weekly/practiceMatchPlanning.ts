@@ -148,6 +148,19 @@ function latestPracticeResult(
   };
 }
 
+function selectPracticeRematchRival(state: GameState) {
+  const rival = selectFeaturedUserRival(state);
+  if (!rival) return null;
+
+  const rematchLabels = new Set([
+    "destiny-rival",
+    "nemesis",
+    "rivalry",
+    "losing-streak",
+  ]);
+  return rival.labels.some((label) => rematchLabels.has(label)) ? rival : null;
+}
+
 export function selectPracticeRecommendation(
   state: GameState,
 ): PracticeRecommendation | null {
@@ -167,7 +180,7 @@ export function selectPracticeRecommendation(
   );
   if (available.length === 0) return null;
 
-  const featuredRival = selectFeaturedUserRival(state);
+  const featuredRival = selectPracticeRematchRival(state);
   if (featuredRival) {
     const candidate = available.find(
       (item) => item.schoolId === featuredRival.opponentSchoolId,
@@ -358,7 +371,7 @@ function injectFeaturedRivalCandidate(
 ): PracticePlanningResult {
   if (planning.outgoingCandidates.length === 0) return planning;
 
-  const featuredRival = selectFeaturedUserRival(state);
+  const featuredRival = selectPracticeRematchRival(state);
   if (!featuredRival) return planning;
   if (planning.incomingOffer?.schoolId === featuredRival.opponentSchoolId) {
     return planning;
