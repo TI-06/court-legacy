@@ -189,6 +189,36 @@ describe("game state codec", () => {
     });
   });
 
+  it("round-trips scheduled and completed training camp shop effects", () => {
+    const state = createDemoGame();
+    state.shopEffects = {
+      pendingTrainingCamp: {
+        sourceItemId: "training-camp",
+        scheduledDate: state.date,
+      },
+      trainingCampResult: {
+        sourceItemId: "training-camp",
+        scheduledDate: state.date,
+        participantCount: 15,
+        grewPlayerCount: 13,
+        totalAbilityGrowth: 41,
+        topGrowth: [
+          {
+            playerId: state.schools[state.userSchoolId]!.playerIds[0]!,
+            totalAbilityGrowth: 5,
+            abilityChanges: { spike: 3, jump: 2 },
+          },
+        ],
+        averageFatigueChange: 11.2,
+        injuredPlayerIds: [],
+      },
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.shopEffects).toEqual(state.shopEffects);
+  });
+
   it("rejects malformed pending shop effects instead of accepting arbitrary values", () => {
     const state = createDemoGame();
 
