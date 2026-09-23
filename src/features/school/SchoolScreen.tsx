@@ -18,7 +18,6 @@ import {
 } from "../../domain/school/facilityUpgrade";
 import { reputationGrade } from "../../domain/school/reputation";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 import {
@@ -122,6 +121,8 @@ export function SchoolScreen({
   const [coachSpecialties, setCoachSpecialties] = useState<
     Partial<Record<AssistantCoachRank, AssistantCoachSpecialty>>
   >({});
+  const [selectedCoachRank, setSelectedCoachRank] =
+    useState<AssistantCoachRank | null>(null);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -173,6 +174,20 @@ export function SchoolScreen({
   const assistantCoachContractOption = assistantCoachContract
     ? ASSISTANT_COACH_OPTIONS.find(
         (option) => option.rank === assistantCoachContract.rank,
+      )
+    : null;
+  const selectedCoachOption = selectedCoachRank
+    ? ASSISTANT_COACH_OPTIONS.find((option) => option.rank === selectedCoachRank)
+    : null;
+  const selectedCoachSpecialty =
+    selectedCoachRank && selectedCoachRank !== "beginner"
+      ? (coachSpecialties[selectedCoachRank] ?? null)
+      : null;
+  const selectedCoachEvaluation = selectedCoachOption
+    ? evaluateAssistantCoachContract(
+        state,
+        selectedCoachOption.rank,
+        selectedCoachSpecialty,
       )
     : null;
   const seasonProgress = buildSeasonProgressPresentation(state);
@@ -389,12 +404,12 @@ export function SchoolScreen({
             className="school-management-section"
             hidden={managementView !== "staff"}
           >
-            <div className="school-subsection-heading">
+            <div className="school-staff-command-heading">
               <div>
                 <h4 id="staff-heading">スタッフ</h4>
-                <small>年間コーチ契約</small>
+                <small>{ASSISTANT_COACH_OPTIONS.length}候補</small>
               </div>
-              <span>年度更新で終了</span>
+              <span>資金 {school.funds}</span>
             </div>
 
             {assistantCoachContract && assistantCoachContractOption ? (
@@ -422,30 +437,32 @@ export function SchoolScreen({
 
             <div className="assistant-coach-grid">
               {ASSISTANT_COACH_OPTIONS.map((option) => {
-                const specialty =
-                  option.rank === "beginner"
-                    ? null
-                    : (coachSpecialties[option.rank] ?? null);
-                const evaluation = evaluateAssistantCoachContract(
-                  state,
-                  option.rank,
-                  specialty,
-                );
-                const missingFunds = Math.max(
-                  0,
-                  option.annualCost - school.funds,
-                );
+                const contractedThisYear =
+                  assistantCoachContract?.contractYearIndex === state.yearIndex;
+                const affordable = option.annualCost <= school.funds;
+                const status = contractedThisYear
+                  ? "今年度契約済み"
+                  : affordable
+                    ? "詳細で契約"
+                    : `あと${option.annualCost - school.funds}必要`;
                 return (
-                  <article
-                    className="assistant-coach-card"
+                  <button
+                    aria-label={`${option.name}の詳細`}
+                    className={
+                      !contractedThisYear && affordable
+                        ? "assistant-coach-card assistant-coach-card--available"
+                        : "assistant-coach-card"
+                    }
                     data-testid={`assistant-coach-${option.rank}`}
                     key={option.rank}
+                    onClick={() => setSelectedCoachRank(option.rank)}
+                    type="button"
                   >
-                    <div className="assistant-coach-card__heading">
+                    <span className="assistant-coach-card__heading">
                       <strong>{option.name}</strong>
                       <span>年間 {option.annualCost}</span>
-                    </div>
-                    <div className="assistant-coach-effects">
+                    </span>
+                    <span className="assistant-coach-effects">
                       <span>全体 +{option.generalPercent - 100}%</span>
                       {option.specialtyPercent ? (
                         <span>専門 +{option.specialtyPercent - 100}%</span>
@@ -458,62 +475,12 @@ export function SchoolScreen({
                       {option.firstYearPercent ? (
                         <span>1年生 +{option.firstYearPercent - 100}%</span>
                       ) : null}
-                    </div>
-                    {option.rank !== "beginner" ? (
-                      <MobileChoiceSheet
-                        ariaLabel={`${option.name}の専門`}
-                        className="assistant-coach-specialty"
-                        label="専門"
-                        layout="grid"
-                        onChange={(value) =>
-                          setCoachSpecialties((current) => {
-                            const next = { ...current };
-                            if (value) {
-                              next[option.rank] =
-                                value as AssistantCoachSpecialty;
-                            } else {
-                              delete next[option.rank];
-                            }
-                            return next;
-                          })
-                        }
-                        options={[
-                          { value: "", label: "未選択" },
-                          { value: "attack", label: "攻撃" },
-                          { value: "defense", label: "守備" },
-                          { value: "physical", label: "フィジカル" },
-                        ]}
-                        title={`${option.name}の専門を選ぶ`}
-                        value={specialty ?? ""}
-                      />
-                    ) : null}
-                    <div className="assistant-coach-card__footer">
-                      <small>
-                        {evaluation.reason === "insufficient-funds"
-                          ? `あと${missingFunds}必要`
-                          : evaluation.reason === "specialty-required"
-                            ? "専門を選択してください"
-                            : evaluation.reason ===
-                                "already-contracted-this-year"
-                              ? "今年度は契約済み"
-                              : evaluation.reason === "specialty-not-allowed"
-                                ? "専門指定なしで契約してください"
-                                : `契約後 ${evaluation.fundsAfter}`}
-                      </small>
-                      <button
-                        aria-label={`${option.name}と年間契約`}
-                        disabled={
-                          !onContractAssistantCoach || !evaluation.allowed
-                        }
-                        onClick={() =>
-                          onContractAssistantCoach?.(option.rank, specialty)
-                        }
-                        type="button"
-                      >
-                        契約する
-                      </button>
-                    </div>
-                  </article>
+                    </span>
+                    <span className="assistant-coach-card__summary">
+                      <small>{status}</small>
+                      <b aria-hidden="true">詳細 ›</b>
+                    </span>
+                  </button>
                 );
               })}
             </div>
@@ -729,6 +696,117 @@ export function SchoolScreen({
             ))}
           </div>
         )}
+      </BottomSheet>
+
+      <BottomSheet
+        description="年間契約です。専門コーチは得意分野を選んでから契約します。"
+        onClose={() => setSelectedCoachRank(null)}
+        open={Boolean(selectedCoachOption && selectedCoachEvaluation)}
+        title={selectedCoachOption?.name ?? "コーチ契約"}
+      >
+        {selectedCoachOption && selectedCoachEvaluation ? (
+          <div className="assistant-coach-contract-sheet">
+            <div
+              aria-label="コーチ効果"
+              className="assistant-coach-contract-sheet__effects"
+              role="group"
+            >
+              <span>全体 +{selectedCoachOption.generalPercent - 100}%</span>
+              {selectedCoachOption.specialtyPercent ? (
+                <span>
+                  専門 +{selectedCoachOption.specialtyPercent - 100}%
+                </span>
+              ) : (
+                <span>総合指導</span>
+              )}
+              {selectedCoachOption.conditionPercent ? (
+                <span>
+                  低調子 +{selectedCoachOption.conditionPercent - 100}%
+                </span>
+              ) : null}
+              {selectedCoachOption.firstYearPercent ? (
+                <span>
+                  1年生 +{selectedCoachOption.firstYearPercent - 100}%
+                </span>
+              ) : null}
+            </div>
+
+            {selectedCoachOption.rank !== "beginner" ? (
+              <div className="assistant-coach-contract-sheet__specialty">
+                <strong>専門</strong>
+                <div
+                  aria-label={`${selectedCoachOption.name}の専門`}
+                  className="assistant-coach-specialty-options"
+                  role="group"
+                >
+                  {(
+                    [
+                      ["attack", "攻撃"],
+                      ["defense", "守備"],
+                      ["physical", "フィジカル"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      aria-pressed={selectedCoachSpecialty === value}
+                      className={
+                        selectedCoachSpecialty === value
+                          ? "assistant-coach-specialty-option assistant-coach-specialty-option--selected"
+                          : "assistant-coach-specialty-option"
+                      }
+                      key={value}
+                      onClick={() =>
+                        setCoachSpecialties((current) => ({
+                          ...current,
+                          [selectedCoachOption.rank]: value,
+                        }))
+                      }
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="assistant-coach-contract-sheet__status">
+              <span>年間 {selectedCoachOption.annualCost}</span>
+              <small>
+                {selectedCoachEvaluation.reason === "insufficient-funds"
+                  ? `あと${Math.max(
+                      0,
+                      selectedCoachOption.annualCost - school.funds,
+                    )}必要`
+                  : selectedCoachEvaluation.reason === "specialty-required"
+                    ? "専門を選択してください"
+                    : selectedCoachEvaluation.reason ===
+                        "already-contracted-this-year"
+                      ? "今年度は契約済み"
+                      : selectedCoachEvaluation.reason ===
+                          "specialty-not-allowed"
+                        ? "専門指定なしで契約してください"
+                        : `契約後 ${selectedCoachEvaluation.fundsAfter}`}
+              </small>
+            </div>
+            <button
+              aria-label={`${selectedCoachOption.name}と年間契約`}
+              className="primary-action"
+              disabled={
+                !onContractAssistantCoach || !selectedCoachEvaluation.allowed
+              }
+              onClick={() => {
+                onContractAssistantCoach?.(
+                  selectedCoachOption.rank,
+                  selectedCoachSpecialty,
+                );
+                setSelectedCoachRank(null);
+              }}
+              type="button"
+            >
+              契約する
+            </button>
+          </div>
+        ) : null}
       </BottomSheet>
 
       <BottomSheet
