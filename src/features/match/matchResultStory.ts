@@ -1,7 +1,18 @@
-import type { GameState } from "../../domain/model/GameState";
+import type {
+  GameState,
+  HistoricalMatchSummary,
+} from "../../domain/model/GameState";
 import type { MatchState } from "../../domain/model/Match";
 import type { SchoolId } from "../../domain/model/identifiers";
-import { selectUserHeadToHead } from "../../domain/world/rivalryHistory";
+import {
+  RIVALRY_PRESENTATION_THRESHOLD,
+  selectUserHeadToHead,
+} from "../../domain/world/rivalryHistory";
+import {
+  calculateRivalryGain,
+  rivalryKey,
+  selectDestinyRivalSchoolId,
+} from "../../domain/world/rivalWorldProgression";
 import { buildMatchStatSummary } from "./matchPresentation";
 
 export interface MatchResultStoryPresentation {
@@ -9,6 +20,12 @@ export interface MatchResultStoryPresentation {
   recordLabel: string;
   chips: string[];
   facts: string[];
+  rivalryProgress: null | {
+    beforeScore: number;
+    afterScore: number;
+    delta: number;
+    becameDestinyRival: boolean;
+  };
 }
 
 function opponentSchoolId(
@@ -24,18 +41,96 @@ function opponentSchoolId(
   return null;
 }
 
-function priorStateWithoutCurrentMatch(
+function currentMatchSummary(
   state: GameState,
   match: MatchState,
-): GameState {
+): { summary: HistoricalMatchSummary; persisted: boolean } {
+  const persisted = state.history.matches.find(
+    (summary) => summary.matchId === match.id,
+  );
+  if (persisted) {
+    return { summary: persisted, persisted: true };
+  }
+
   return {
+    persisted: false,
+    summary: {
+      matchId: match.id,
+      date: state.date,
+      homeSchoolId: match.homeSchoolId,
+      awaySchoolId: match.awaySchoolId,
+      winnerSchoolId:
+        match.homeSetsWon > match.awaySetsWon
+          ? match.homeSchoolId
+          : match.awaySchoolId,
+      homeSetsWon: match.homeSetsWon,
+      awaySetsWon: match.awaySetsWon,
+      tournamentId: null,
+    },
+  };
+}
+
+function buildRivalryProgress(
+  state: GameState,
+  match: MatchState,
+  opponentId: SchoolId,
+): {
+  priorState: GameState;
+  beforeScore: number;
+  afterScore: number;
+  delta: number;
+  priorDestinyRivalSchoolId: SchoolId | null;
+  afterDestinyRivalSchoolId: SchoolId | null;
+} {
+  const current = currentMatchSummary(state, match);
+  const historyBefore = state.history.matches.filter(
+    (summary) => summary.matchId !== match.id,
+  );
+  const basePriorState: GameState = {
     ...state,
     history: {
       ...state.history,
-      matches: state.history.matches.filter(
-        (summary) => summary.matchId !== match.id,
-      ),
+      matches: historyBefore,
     },
+  };
+  const key = rivalryKey(state.userSchoolId, opponentId);
+  const observedScore = state.world.rivalryScores[key] ?? 0;
+  const gain = calculateRivalryGain(basePriorState, current.summary);
+  const beforeScore = current.persisted
+    ? Math.max(0, observedScore - gain)
+    : observedScore;
+  const afterScore = current.persisted
+    ? observedScore
+    : Math.min(100, observedScore + gain);
+  const beforeScores = {
+    ...state.world.rivalryScores,
+    [key]: beforeScore,
+  };
+  const afterScores = {
+    ...state.world.rivalryScores,
+    [key]: afterScore,
+  };
+  const priorDestinyRivalSchoolId = current.persisted
+    ? selectDestinyRivalSchoolId(basePriorState, beforeScores)
+    : state.world.destinyRivalSchoolId;
+  const afterDestinyRivalSchoolId = current.persisted
+    ? state.world.destinyRivalSchoolId
+    : selectDestinyRivalSchoolId(state, afterScores);
+
+  return {
+    priorState: {
+      ...basePriorState,
+      world: {
+        ...basePriorState.world,
+        rivalryScores: beforeScores,
+        destinyRivalSchoolId: priorDestinyRivalSchoolId,
+      },
+    },
+    beforeScore,
+    afterScore,
+    delta: Math.max(0, afterScore - beforeScore),
+    priorDestinyRivalSchoolId,
+    afterDestinyRivalSchoolId,
   };
 }
 
@@ -120,7 +215,8 @@ export function buildMatchResultStory(
   if (!opponentId || !state.schools[opponentId]) return null;
 
   const opponent = state.schools[opponentId]!;
-  const priorState = priorStateWithoutCurrentMatch(state, match);
+  const rivalryProgress = buildRivalryProgress(state, match, opponentId);
+  const priorState = rivalryProgress.priorState;
   const prior = selectUserHeadToHead(priorState, opponentId);
   const result = resultForUser(state, match);
   const postWins = prior.wins + (result.won ? 1 : 0);
@@ -128,11 +224,15 @@ export function buildMatchResultStory(
   const streak = postMatchStreak(prior.currentStreak, result.won);
   const priorWasNemesis = prior.labels.includes("nemesis");
   const destinyRival =
-    prior.destinyRival || state.world.destinyRivalSchoolId === opponentId;
+    prior.destinyRival ||
+    rivalryProgress.afterDestinyRivalSchoolId === opponentId;
+  const becameDestinyRival =
+    rivalryProgress.priorDestinyRivalSchoolId !== opponentId &&
+    rivalryProgress.afterDestinyRivalSchoolId === opponentId;
   const rivalry =
     destinyRival ||
     prior.labels.includes("rivalry") ||
-    selectUserHeadToHead(state, opponentId).labels.includes("rivalry");
+    rivalryProgress.afterScore >= RIVALRY_PRESENTATION_THRESHOLD;
   const revengeAchieved = result.won && prior.lastMeeting?.result === "loss";
 
   let headline = result.won
@@ -152,7 +252,8 @@ export function buildMatchResultStory(
   }
 
   const chips: string[] = [];
-  if (destinyRival) chips.push("宿敵");
+  if (becameDestinyRival) chips.push("宿敵昇格");
+  else if (destinyRival) chips.push("宿敵");
   else if (rivalry) chips.push("因縁");
   if (priorWasNemesis && result.won) chips.push("天敵撃破");
   if (revengeAchieved) chips.push("雪辱達成");
@@ -166,6 +267,12 @@ export function buildMatchResultStory(
   if (flow) chips.push(flow);
 
   const summary = buildMatchStatSummary(state, match);
+  const showRivalryProgress =
+    rivalryProgress.delta > 0 &&
+    (rivalryProgress.beforeScore >= RIVALRY_PRESENTATION_THRESHOLD ||
+      rivalryProgress.afterScore >= RIVALRY_PRESENTATION_THRESHOLD ||
+      destinyRival ||
+      priorWasNemesis);
   return {
     headline,
     recordLabel: `通算 ${postWins}勝${postLosses}敗`,
@@ -175,5 +282,13 @@ export function buildMatchResultStory(
       `MVP ${summary.mvp.name}・${summary.mvp.points}得点`,
       statSpotlight(state, match),
     ],
+    rivalryProgress: showRivalryProgress
+      ? {
+          beforeScore: rivalryProgress.beforeScore,
+          afterScore: rivalryProgress.afterScore,
+          delta: rivalryProgress.delta,
+          becameDestinyRival,
+        }
+      : null,
   };
 }
