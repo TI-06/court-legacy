@@ -230,9 +230,7 @@ describe("AppBootstrap", () => {
     );
 
     expect(
-      await screen.findByText(
-        "GAME READY revision 1 token access-token",
-      ),
+      await screen.findByText("GAME READY revision 1 token access-token"),
     ).toBeVisible();
     expect(bootstrap).toHaveBeenCalledTimes(1);
 
@@ -241,9 +239,7 @@ describe("AppBootstrap", () => {
     });
 
     expect(
-      await screen.findByText(
-        "GAME READY revision 1 token replacement-token",
-      ),
+      await screen.findByText("GAME READY revision 1 token replacement-token"),
     ).toBeVisible();
     expect(bootstrap).toHaveBeenCalledTimes(1);
     expect(
