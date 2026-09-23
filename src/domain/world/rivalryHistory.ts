@@ -2,7 +2,7 @@ import type { GameState, HistoricalMatchSummary } from "../model/GameState";
 import type { GameDate, MatchId, SchoolId } from "../model/identifiers";
 import { rivalryKey } from "./rivalWorldProgression";
 
-const RIVALRY_PRESENTATION_THRESHOLD = 40;
+export const RIVALRY_PRESENTATION_THRESHOLD = 40;
 const NEMESIS_MIN_MEETINGS = 4;
 const NEMESIS_MAX_WIN_RATE = 0.25;
 const VISIBLE_STREAK_MIN = 2;
