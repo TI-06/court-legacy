@@ -267,7 +267,6 @@
   }
 }
 
-
 .practice-planning__recommendation.is-rival-rematch,
 .practice-planning__candidate-list article.is-rival-rematch {
   background: linear-gradient(
@@ -281,12 +280,14 @@
 .practice-planning__recommendation.is-rival-rematch
   .practice-planning__recommendation-copy
   > span,
-.practice-planning__candidate-list article.is-rival-rematch
+.practice-planning__candidate-list
+  article.is-rival-rematch
   .practice-planning__recommended-badge {
   color: #9a4b12;
 }
 
-.practice-planning__candidate-list article.is-rival-rematch
+.practice-planning__candidate-list
+  article.is-rival-rematch
   .practice-planning__recommended-badge {
   background: #ffe0c5;
   border-color: #e9a064;
