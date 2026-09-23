@@ -281,13 +281,14 @@ test("training camp is scheduled now and reveals its result only after the next 
   const result = page.getByRole("dialog", { name: "強化合宿の結果" });
   await expect(result).toBeVisible({ timeout: 3_500 });
   const summary = result.getByLabel("強化合宿サマリー");
-  await expect(summary.getByText("参加")).toBeVisible();
-  await expect(summary.getByText(/\d+人/).first()).toBeVisible();
-  await expect(summary.getByText("能力成長")).toBeVisible();
-  await expect(summary.getByText(/^\+\d+$/)).toBeVisible();
-  await expect(summary.getByText("平均疲労")).toBeVisible();
-  await expect(summary.getByText(/^[+-]\d/)).toBeVisible();
-  await expect(summary.getByText("怪我")).toBeVisible();
+  const participants = summary.locator("div").filter({ hasText: "参加" });
+  const growth = summary.locator("div").filter({ hasText: "能力成長" });
+  const fatigue = summary.locator("div").filter({ hasText: "平均疲労" });
+  const injuries = summary.locator("div").filter({ hasText: "怪我" });
+  await expect(participants.getByText(/\d+人/)).toBeVisible();
+  await expect(growth.getByText(/^\+\d+$/)).toBeVisible();
+  await expect(fatigue.getByText(/^[+-]\d/)).toBeVisible();
+  await expect(injuries.getByText(/\d+人/)).toBeVisible();
 
   await result.getByRole("button", { name: "結果を確認した" }).click();
   await expect(result).toBeHidden({ timeout: 2_500 });
