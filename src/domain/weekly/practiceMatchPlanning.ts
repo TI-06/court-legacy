@@ -64,9 +64,7 @@ export interface PracticePlanningResult {
 }
 
 export type PracticeRecommendationSource =
-  | "featured-rival"
-  | "season-ambition"
-  | "last-practice-result";
+  "featured-rival" | "season-ambition" | "last-practice-result";
 
 export interface PracticeRecommendation {
   ambition: SeasonAmbition;
@@ -393,9 +391,7 @@ function injectFeaturedRivalCandidate(
       opponentStrength,
       recentMeetingCount,
     ),
-    growthRating: practiceRating(
-      opponentStrength / Math.max(1, homeStrength),
-    ),
+    growthRating: practiceRating(opponentStrength / Math.max(1, homeStrength)),
     status: "available",
   };
 
