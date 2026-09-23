@@ -605,9 +605,16 @@
 
 /* Phase 13 result clarity and no-scroll continuation */
 .match-screen--result {
+  --page-bottom-action-clearance: 128px;
   padding-bottom: calc(
-    112px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px)
+    24px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) +
+      var(--page-bottom-action-clearance)
+  );
+  scroll-padding-bottom: calc(
+    24px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) +
+      var(--page-bottom-action-clearance)
   );
 }
 
@@ -1630,9 +1637,16 @@
 }
 
 .match-screen--live:not(.match-screen--decision) {
+  --page-bottom-action-clearance: 168px;
   padding-bottom: calc(
-    138px + var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px)
+    24px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) +
+      var(--page-bottom-action-clearance)
+  );
+  scroll-padding-bottom: calc(
+    24px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) +
+      var(--page-bottom-action-clearance)
   );
 }
 
