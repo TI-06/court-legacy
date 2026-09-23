@@ -1251,7 +1251,6 @@
   }
 }
 
-
 /* Phase30: tabbed pre-match command center. */
 .pre-match-lineup__game-nav {
   display: grid;
@@ -1324,8 +1323,7 @@
 .pre-match-lineup__bench,
 .pre-match-lineup__versus {
   background:
-    linear-gradient(145deg, rgb(60 146 211 / 7%), transparent 62%),
-    #102238;
+    linear-gradient(145deg, rgb(60 146 211 / 7%), transparent 62%), #102238;
 }
 
 .pre-match-lineup__versus article span,
