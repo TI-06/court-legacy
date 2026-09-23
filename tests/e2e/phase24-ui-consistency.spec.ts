@@ -32,7 +32,7 @@ test("Phase24 management screens keep the dark game theme through editing", asyn
 
   await page.getByRole("button", { name: "ローテーション1を変更" }).click();
   await expectDarkSurface(page.locator(".ui-bottom-sheet"));
-  await expectDarkSurface(page.locator(".ui-player-tile").first());
+  await expectDarkSurface(page.locator(".team-picker-card").first());
   await page
     .getByRole("dialog", { name: "ローテーション1を入れ替え" })
     .getByRole("button", { name: "閉じる" })
