@@ -50,7 +50,7 @@ describe("team selection direct-touch UI", () => {
     expect(screen.getAllByTestId("bench-player")).toHaveLength(5);
   });
 
-  it("opens every school player and starter lock in the slot editor", async () => {
+  it("opens only available replacements and starter lock in the slot editor", async () => {
     render(<App />);
     await openLineupScreen();
     fireEvent.click(
@@ -61,7 +61,7 @@ describe("team selection direct-touch UI", () => {
       name: "ローテーション1を入れ替え",
     });
     expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
-      12,
+      5,
     );
     expect(
       within(dialog).getByRole("button", { name: /先発固定/ }),
