@@ -395,12 +395,7 @@ export function TeamScreen({
 
         return left.id.localeCompare(right.id);
       });
-  }, [
-    activeIds,
-    currentPickerPlayerId,
-    currentPickerRole,
-    players,
-  ]);
+  }, [activeIds, currentPickerPlayerId, currentPickerRole, players]);
 
   const choosePickerPlayer = (playerId: PlayerId) => {
     if (pickerTarget?.type === "rotation") {
