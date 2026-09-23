@@ -249,6 +249,67 @@ test("academic year rollover carries inventory and resets annual limits", async 
   await expect(shopCard(page, "強化合宿")).toContainText("×1");
 });
 
+test("training camp is scheduled now and reveals its result only after the next week begins", async ({
+  page,
+}) => {
+  await enableVisibleActionDelay(page, 300);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await openShop(page);
+
+  await purchaseItem(page, "強化合宿");
+  await openInventory(page);
+  const camp = shopCard(page, "強化合宿");
+  await camp
+    .getByRole("button", { name: "強化合宿を使用", exact: true })
+    .click();
+
+  await expect(
+    page.getByRole("heading", { name: "強化合宿を予約しました" }),
+  ).toBeVisible({ timeout: 2_500 });
+  await expect(
+    page.getByText("今週を進めると、次の週に合宿結果が発表されます。"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "強化合宿の結果" }),
+  ).toHaveCount(0);
+
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
+  await advanceWeekFromHome(page);
+
+  const result = page.getByRole("dialog", { name: "強化合宿の結果" });
+  await expect(result).toBeVisible({ timeout: 3_500 });
+  await expect(result.getByText(/参加 \d+人/)).toBeVisible();
+  await expect(result.getByText(/能力成長 \+\d+/)).toBeVisible();
+  await expect(result.getByText(/平均疲労 [+-]\d/)).toBeVisible();
+  await expect(result.getByText(/怪我 \d+人/)).toBeVisible();
+
+  await result.getByRole("button", { name: "結果を確認した" }).click();
+  await expect(result).toBeHidden({ timeout: 2_500 });
+
+  await expect
+    .poll(() =>
+      page.evaluate((snapshotKey) => {
+        const raw = sessionStorage.getItem(snapshotKey);
+        if (!raw) return "missing";
+        const snapshot = JSON.parse(raw) as {
+          state?: {
+            shopEffects?: {
+              pendingTrainingCamp?: unknown;
+              trainingCampResult?: unknown;
+            };
+          };
+        };
+        return {
+          pending: snapshot.state?.shopEffects?.pendingTrainingCamp ?? null,
+          result: snapshot.state?.shopEffects?.trainingCampResult ?? null,
+        };
+      }, SERVER_SNAPSHOT_KEY),
+    )
+    .toEqual({ pending: null, result: null });
+});
+
 test("scouting research and appraisal tighten only public report ranges", async ({
   page,
 }) => {
