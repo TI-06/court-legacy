@@ -469,6 +469,7 @@ function MatchScreenContent({
             <section className="match-controls" aria-label="再生操作">
               <div className="match-playback-row">
                 <button
+                  className="match-playback-row__play"
                   disabled={reducedMotion}
                   onClick={() => setPlaying((current) => !current)}
                   type="button"
@@ -476,6 +477,7 @@ function MatchScreenContent({
                   {playing ? "一時停止" : "再生"}
                 </button>
                 <button
+                  className="match-playback-row__step"
                   disabled={revealedEventIndex >= lastEventIndex}
                   onClick={() => {
                     setPlaying(false);
@@ -488,6 +490,7 @@ function MatchScreenContent({
                   次のプレー
                 </button>
                 <button
+                  className="match-playback-row__advance"
                   onClick={() => {
                     setPlaying(false);
                     setVisibleEventIndex(lastEventIndex);
