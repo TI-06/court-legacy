@@ -171,8 +171,9 @@ describe("Phase 8 practice-match planning", () => {
       tournamentId: null,
     });
 
-    let planning: ReturnType<typeof practicePlanning.buildPracticePlanning> | null =
-      null;
+    let planning: ReturnType<
+      typeof practicePlanning.buildPracticePlanning
+    > | null = null;
     for (let day = 1; day <= 28; day += 1) {
       const candidateState = {
         ...state,
