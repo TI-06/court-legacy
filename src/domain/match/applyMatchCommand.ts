@@ -433,6 +433,9 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
   if (reason === "opponent-run") {
     runtime.opponentRunDecisionConsumed = true;
     match.phase = "set-in-progress";
+  } else if (reason === "mid-set") {
+    runtime.midSetDecisionConsumed = true;
+    match.phase = "set-in-progress";
   } else if (reason === "critical-score") {
     runtime.criticalScoreDecisionConsumed = true;
     match.phase = "set-in-progress";

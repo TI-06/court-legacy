@@ -1037,6 +1037,7 @@ function createInitialMatchState(
       runWinnerSchoolId: null,
       runLength: 0,
       opponentRunDecisionConsumed: false,
+      midSetDecisionConsumed: false,
       criticalScoreDecisionConsumed: false,
       timeoutUsedSchoolIds: [],
       timeoutBoost: null,
@@ -1066,6 +1067,7 @@ function beginNextSet(match: MatchState): void {
   runtime.runWinnerSchoolId = null;
   runtime.runLength = 0;
   runtime.opponentRunDecisionConsumed = false;
+  runtime.midSetDecisionConsumed = false;
   runtime.criticalScoreDecisionConsumed = false;
   runtime.timeoutUsedSchoolIds = [];
   runtime.timeoutBoost = null;
@@ -1128,6 +1130,28 @@ function shouldOpenOpponentRunDecision(match: MatchState): boolean {
     runtime.runLength >= 4 &&
     runtime.runWinnerSchoolId !== null &&
     runtime.runWinnerSchoolId !== runtime.controlledSchoolId
+  );
+}
+
+function midSetScoreThreshold(match: MatchState): number {
+  const decidingSet = match.currentSetNumber === match.bestOfSets;
+  return decidingSet ? 8 : 12;
+}
+
+function hasReachedMidSet(match: MatchState): boolean {
+  const runtime = runtimeOrThrow(match);
+  return (
+    Math.max(runtime.homeScore, runtime.awayScore) >=
+    midSetScoreThreshold(match)
+  );
+}
+
+function shouldOpenMidSetDecision(match: MatchState): boolean {
+  const runtime = runtimeOrThrow(match);
+  return (
+    runtime.controlledSchoolId !== null &&
+    runtime.midSetDecisionConsumed !== true &&
+    hasReachedMidSet(match)
   );
 }
 
@@ -1506,6 +1530,7 @@ function runUntilBoundary(
       ) {
         runtime.opponentRunDecisionConsumed = true;
       }
+      runtime.midSetDecisionConsumed = true;
       match.phase = "coach-decision";
       match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
       runtime.pendingDecisionReason = "critical-score";
@@ -1513,9 +1538,26 @@ function runUntilBoundary(
     }
 
     if (shouldOpenOpponentRunDecision(match)) {
+      if (hasReachedMidSet(match)) {
+        runtime.midSetDecisionConsumed = true;
+      }
       match.phase = "coach-decision";
       match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
       runtime.pendingDecisionReason = "opponent-run";
+      return { match, analysis: null };
+    }
+
+    if (shouldOpenMidSetDecision(match)) {
+      maybeApplyAutomaticCoachDecision(
+        simulationState,
+        match,
+        automaticCoachSchoolId,
+        "mid-set",
+        automaticCoach,
+      );
+      match.phase = "coach-decision";
+      match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
+      runtime.pendingDecisionReason = "mid-set";
       return { match, analysis: null };
     }
   }

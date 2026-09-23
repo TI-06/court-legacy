@@ -5,7 +5,10 @@ import {
   applyMatchCommand,
   MatchCommandValidationError,
 } from "../../../../src/domain/match/applyMatchCommand";
-import { startMatch } from "../../../../src/domain/match/simulateMatch";
+import {
+  resumeMatch,
+  startMatch,
+} from "../../../../src/domain/match/simulateMatch";
 import type { MatchState } from "../../../../src/domain/model/Match";
 import { createAbilities } from "../../../../src/domain/model/Player";
 import { matchId } from "../../../../src/domain/model/identifiers";
@@ -63,24 +66,40 @@ function startInteractive(
   }).match;
 }
 
-function findOpponentRunDecision(context: ReturnType<typeof createContext>) {
+function findDecision(
+  context: ReturnType<typeof createContext>,
+  reason: "opponent-run" | "set-break",
+  seedPrefix: string,
+) {
   for (let index = 0; index < 240; index += 1) {
-    const match = startInteractive(context, `run-${index}`);
-    if (match.runtime?.pendingDecisionReason === "opponent-run") {
-      return match;
+    let match = startInteractive(context, `${seedPrefix}-${index}`);
+    let guard = 0;
+    while (match.phase !== "match-complete" && guard < 16) {
+      if (match.runtime?.pendingDecisionReason === reason) {
+        return match;
+      }
+      guard += 1;
+      const commanded = applyMatchCommand({
+        state: context.state,
+        match,
+        schoolId: context.homeSchoolId,
+        command: { type: "continue" },
+      });
+      match = resumeMatch({
+        state: context.state,
+        match: commanded,
+      }).match;
     }
   }
-  throw new Error("test fixture could not find an opponent-run decision");
+  throw new Error(`test fixture could not find a ${reason} decision`);
+}
+
+function findOpponentRunDecision(context: ReturnType<typeof createContext>) {
+  return findDecision(context, "opponent-run", "run");
 }
 
 function findSetBreakDecision(context: ReturnType<typeof createContext>) {
-  for (let index = 0; index < 240; index += 1) {
-    const match = startInteractive(context, `break-${index}`);
-    if (match.runtime?.pendingDecisionReason === "set-break") {
-      return match;
-    }
-  }
-  throw new Error("test fixture could not find a set-break decision");
+  return findDecision(context, "set-break", "break");
 }
 
 function makeHomeDominant(context: ReturnType<typeof createContext>) {
