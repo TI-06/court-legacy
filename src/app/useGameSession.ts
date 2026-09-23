@@ -25,6 +25,7 @@ interface UseGameSessionInput {
   accessToken: string;
   initialSnapshot: CloudGameSnapshot;
   api: GameApiClient;
+  getAccessToken?: () => Promise<string>;
   recoveryCache?: RecoveryCachePort;
   createOperationId?: () => string;
 }
@@ -58,6 +59,7 @@ export function useGameSession({
   accessToken,
   initialSnapshot,
   api,
+  getAccessToken,
   recoveryCache = browserRecoveryCache,
   createOperationId = () => crypto.randomUUID(),
 }: UseGameSessionInput): GameSessionController {
@@ -67,6 +69,8 @@ export function useGameSession({
   const [operation, setOperation] = useState<OperationState>({
     status: "idle",
   });
+  const resolveAccessToken =
+    getAccessToken ?? (() => Promise.resolve(accessToken));
 
   function replaceSnapshot(next: CloudGameSnapshot): void {
     snapshotRef.current = next;
@@ -111,7 +115,8 @@ export function useGameSession({
     });
 
     try {
-      const response = await api.applyAction(accessToken, request);
+      const requestAccessToken = await resolveAccessToken();
+      const response = await api.applyAction(requestAccessToken, request);
       replaceSnapshot(response.game);
       await writeRecovery(response.game, null);
       setOperation({ status: "success", label });
@@ -123,7 +128,7 @@ export function useGameSession({
         error.code === "revision_conflict"
       ) {
         try {
-          const latest = await api.bootstrap(accessToken);
+          const latest = await api.bootstrap(await resolveAccessToken());
           if (latest.status === "ready") {
             replaceSnapshot(latest.game);
             await writeRecovery(latest.game, null);
@@ -153,6 +158,29 @@ export function useGameSession({
         if (ambiguousRetryCount < 1) {
           return submitRequest(request, label, ambiguousRetryCount + 1);
         }
+
+        // The mutation may already have committed even when its HTTP response
+        // was lost. Re-read the authoritative save before leaving the browser
+        // stuck on the stale revision. This is the same recovery a full reload
+        // used to provide, but keeps the player in the current session.
+        try {
+          const latest = await api.bootstrap(await resolveAccessToken());
+          if (
+            latest.status === "ready" &&
+            latest.game.revision > request.revision
+          ) {
+            replaceSnapshot(latest.game);
+            await writeRecovery(latest.game, null);
+            setOperation({
+              status: "success",
+              label: "最新の保存状態へ復旧しました",
+            });
+            return null;
+          }
+        } catch {
+          // Preserve the original ambiguous-save error below if resync fails.
+        }
+
         await writeRecovery(snapshotRef.current, request);
         const retry = () => void submitRequest(request, label);
         setOperation(
