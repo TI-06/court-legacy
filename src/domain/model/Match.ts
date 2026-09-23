@@ -23,7 +23,7 @@ export type CoachCommand =
   | { type: "encourage"; playerId: PlayerId | null };
 
 export type CoachDecisionReason =
-  "opponent-run" | "critical-score" | "set-break";
+  "opponent-run" | "mid-set" | "critical-score" | "set-break";
 
 export type MatchCommand =
   | { type: "timeout" }
@@ -60,6 +60,7 @@ export interface MatchRuntimeState {
   runWinnerSchoolId: SchoolId | null;
   runLength: number;
   opponentRunDecisionConsumed: boolean;
+  midSetDecisionConsumed?: boolean;
   criticalScoreDecisionConsumed: boolean;
   timeoutUsedSchoolIds: SchoolId[];
   timeoutBoost: {
