@@ -1604,7 +1604,6 @@
   }
 }
 
-
 /* Phase30: mobile-first live match flow */
 .match-interaction-status--decision {
   background:
@@ -1843,8 +1842,7 @@
     gap: 5px;
   }
 
-  .match-screen--live:not(.match-screen--decision)
-    .match-playback-row__skip {
+  .match-screen--live:not(.match-screen--decision) .match-playback-row__skip {
     grid-column: 1 / -1;
     min-height: 30px;
     color: #9fb0ba;
