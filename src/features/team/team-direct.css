@@ -834,3 +834,184 @@
   background: var(--game-accent, #f47a18);
   transform: translateX(18px);
 }
+
+
+/* Lineup picker: compare only available replacements in a compact mobile grid. */
+.team-picker-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.team-picker-summary strong {
+  color: var(--game-text, #f4f7fb);
+  font-size: 13px;
+}
+
+.team-picker-summary span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.team-picker-list {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.team-picker-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px 70px auto;
+  grid-template-areas:
+    "identity score aptitude action"
+    "abilities abilities state state";
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+  padding: 9px 10px;
+  gap: 5px 8px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+}
+
+.team-picker-card:first-child {
+  background:
+    linear-gradient(90deg, rgb(244 122 24 / 11%), transparent 52%),
+    rgb(255 255 255 / 5%);
+  border-color: rgb(244 122 24 / 42%);
+}
+
+.team-picker-card:disabled {
+  opacity: 0.5;
+}
+
+.team-picker-card__identity {
+  grid-area: identity;
+  min-width: 0;
+}
+
+.team-picker-card__identity > span {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.team-picker-card__identity b {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  color: #ffd7ae;
+  font-size: 8px;
+  line-height: 1.35;
+  background: rgb(244 122 24 / 22%);
+  border-radius: 999px;
+}
+
+.team-picker-card__identity strong,
+.team-picker-card__identity small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-picker-card__identity strong {
+  min-width: 0;
+  font-size: 13px;
+}
+
+.team-picker-card__identity small {
+  margin-top: 2px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+}
+
+.team-picker-card__score,
+.team-picker-card__aptitude {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+}
+
+.team-picker-card__score {
+  grid-area: score;
+}
+
+.team-picker-card__aptitude {
+  grid-area: aptitude;
+}
+
+.team-picker-card__score small,
+.team-picker-card__aptitude small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.team-picker-card__score strong {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.team-picker-card__aptitude strong {
+  color: #ffd39a;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.team-picker-card__abilities {
+  grid-area: abilities;
+  display: flex;
+  min-width: 0;
+  gap: 7px;
+}
+
+.team-picker-card__abilities small,
+.team-picker-card__state {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.team-picker-card__state {
+  grid-area: state;
+  justify-self: end;
+}
+
+.team-picker-card__action {
+  grid-area: action;
+  padding: 5px 7px;
+  color: #ffd7ae;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgb(244 122 24 / 18%);
+  border: 1px solid rgb(244 122 24 / 34%);
+  border-radius: 8px;
+}
+
+@media (max-width: 350px) {
+  .team-picker-card {
+    grid-template-columns: minmax(0, 1fr) 38px 61px;
+    grid-template-areas:
+      "identity score aptitude"
+      "abilities abilities action"
+      "state state state";
+    padding-inline: 8px;
+    gap: 4px 6px;
+  }
+
+  .team-picker-card__state {
+    justify-self: start;
+  }
+}
