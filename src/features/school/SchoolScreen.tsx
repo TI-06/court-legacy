@@ -699,6 +699,7 @@ export function SchoolScreen({
       </BottomSheet>
 
       <BottomSheet
+        className="ui-bottom-sheet--game-choice"
         description="年間契約です。専門コーチは得意分野を選んでから契約します。"
         onClose={() => setSelectedCoachRank(null)}
         open={Boolean(selectedCoachOption && selectedCoachEvaluation)}
