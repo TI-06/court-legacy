@@ -1603,3 +1603,295 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase30: mobile-first live match flow */
+.match-interaction-status--decision {
+  background:
+    linear-gradient(135deg, rgb(244 122 24 / 18%), rgb(46 139 216 / 10%)),
+    #111b2b;
+  border-color: rgb(244 122 24 / 32%);
+}
+
+.match-interaction-status--decision > span {
+  color: #fff7ed;
+  background: #d85f12;
+}
+
+.match-speed-row {
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  align-items: center;
+}
+
+.match-speed-row > span {
+  color: #72848d;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.match-screen--live:not(.match-screen--decision) {
+  padding-bottom: calc(
+    138px + var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px)
+  );
+}
+
+.match-screen--live:not(.match-screen--decision) .match-controls {
+  position: fixed;
+  z-index: 28;
+  right: auto;
+  bottom: calc(
+    var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) + 8px
+  );
+  left: 50%;
+  width: min(calc(100% - 20px), 456px);
+  padding: 8px;
+  transform: translateX(-50%);
+  color: #eef7fb;
+  background: rgb(8 22 37 / 96%);
+  border-color: rgb(255 255 255 / 10%);
+  border-radius: 16px;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(16px);
+}
+
+.match-screen--live:not(.match-screen--decision) .match-controls button {
+  color: #dceaf1;
+  background: rgb(255 255 255 / 7%);
+  border-color: rgb(255 255 255 / 10%);
+}
+
+.match-screen--live:not(.match-screen--decision)
+  .match-controls
+  button:disabled {
+  color: #71808a;
+  background: rgb(255 255 255 / 3%);
+}
+
+.match-screen--live:not(.match-screen--decision)
+  .match-speed-row
+  button[aria-pressed="true"] {
+  color: #071321;
+  background: #72d5df;
+  border-color: #72d5df;
+}
+
+.match-screen--decision .match-command-panel {
+  border-color: rgb(244 122 24 / 36%);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 26%);
+}
+
+@media (max-width: 600px) {
+  .match-screen--live {
+    gap: 7px;
+  }
+
+  .match-screen--live .match-live-hero,
+  .match-screen--live .match-scoreboard,
+  .match-screen--live .match-current-event,
+  .match-screen--live .match-timeline {
+    padding: 9px 10px;
+    border-radius: 13px;
+  }
+
+  .match-screen--live .match-live-hero {
+    align-items: center;
+  }
+
+  .match-screen--live .match-live-hero .section-kicker {
+    display: none;
+  }
+
+  .match-screen--live .match-live-hero h2 {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+
+  .match-screen--live .match-live-hero > span {
+    min-height: 23px;
+    padding: 3px 7px;
+    font-size: 0.58rem;
+  }
+
+  .match-screen--live .match-scoreboard {
+    grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .match-screen--live .match-scoreboard article,
+  .match-screen--live .match-scoreboard > div {
+    min-height: 64px;
+    padding: 6px 4px;
+    gap: 2px;
+    border-radius: 10px;
+  }
+
+  .match-screen--live .match-scoreboard strong {
+    font-size: 1.34rem;
+  }
+
+  .match-screen--live .match-scoreboard span,
+  .match-screen--live .match-scoreboard small {
+    font-size: 0.54rem;
+  }
+
+  .match-screen--live .match-interaction-status {
+    padding: 7px 9px;
+    gap: 7px;
+    border-radius: 11px;
+  }
+
+  .match-screen--live .match-interaction-status > span {
+    min-width: 48px;
+    min-height: 26px;
+    font-size: 0.52rem;
+    border-radius: 8px;
+  }
+
+  .match-screen--live .match-interaction-status strong {
+    font-size: 0.67rem;
+  }
+
+  .match-screen--live .match-interaction-status small {
+    font-size: 0.54rem;
+  }
+
+  .match-screen--live .match-tactic-summary {
+    padding: 6px;
+    gap: 5px;
+    border-radius: 11px;
+  }
+
+  .match-screen--live .match-tactic-summary span {
+    padding: 5px 3px;
+    font-size: 0.58rem;
+    border-radius: 8px;
+  }
+
+  .match-screen--live .match-live-coach-effects {
+    gap: 5px;
+  }
+
+  .match-screen--live .match-live-coach-effects > span {
+    min-height: 34px;
+    padding: 5px 7px;
+    border-radius: 9px;
+  }
+
+  .match-screen--live .match-current-event {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    border-left-width: 4px;
+  }
+
+  .match-screen--live .match-current-event__number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.62rem;
+    border-radius: 8px;
+  }
+
+  .match-screen--live .match-current-event strong {
+    font-size: 0.76rem;
+  }
+
+  .match-screen--live .match-current-event p {
+    margin-top: 3px;
+    font-size: 0.64rem;
+    line-height: 1.4;
+  }
+
+  .match-screen--live .match-timeline .section-kicker {
+    display: none;
+  }
+
+  .match-screen--live .match-timeline h2 {
+    margin: 0;
+    font-size: 0.84rem;
+  }
+
+  .match-screen--live .match-timeline__list {
+    margin-top: 7px;
+    gap: 5px;
+  }
+
+  .match-screen--live .match-timeline__list article {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 7px;
+    gap: 7px;
+    border-radius: 9px;
+  }
+
+  .match-screen--live .match-timeline__list article:nth-child(n + 3) {
+    display: none;
+  }
+
+  .match-screen--live .match-timeline__list strong {
+    font-size: 0.67rem;
+  }
+
+  .match-screen--live .match-timeline__list p {
+    margin-top: 2px;
+    font-size: 0.59rem;
+    line-height: 1.35;
+  }
+
+  .match-screen--live:not(.match-screen--decision) .match-playback-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .match-screen--live:not(.match-screen--decision)
+    .match-playback-row__skip {
+    grid-column: 1 / -1;
+    min-height: 30px;
+    color: #9fb0ba;
+    font-size: 0.58rem;
+    background: transparent;
+    border-color: rgb(255 255 255 / 8%);
+  }
+
+  .match-screen--live:not(.match-screen--decision) .match-controls button {
+    min-height: 37px;
+    padding: 5px 4px;
+    font-size: 0.61rem;
+    border-radius: 9px;
+  }
+
+  .match-screen--live:not(.match-screen--decision) .match-speed-row {
+    gap: 5px;
+  }
+
+  .match-screen--live:not(.match-screen--decision) .match-speed-row button {
+    min-height: 28px;
+    font-size: 0.56rem;
+  }
+
+  .match-screen--decision .match-command-panel {
+    padding: 11px;
+    gap: 9px;
+    border-radius: 14px;
+  }
+
+  .match-screen--decision .match-command-panel__heading h2 {
+    margin-top: 5px;
+    font-size: 0.9rem;
+  }
+
+  .match-screen--decision .match-command-panel__heading p {
+    margin-top: 3px;
+    font-size: 0.65rem;
+    line-height: 1.4;
+  }
+
+  .match-screen--decision .match-command-actions {
+    gap: 6px;
+  }
+
+  .match-screen--decision .match-command-actions button {
+    min-height: 40px;
+    font-size: 0.66rem;
+  }
+}
