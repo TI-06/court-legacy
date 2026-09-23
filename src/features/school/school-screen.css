@@ -1271,10 +1271,6 @@
     padding: 9px;
   }
 
-  .school-panel--management .school-section-heading {
-    display: none;
-  }
-
   .school-panel--management .facility-grid {
     gap: 4px;
   }
