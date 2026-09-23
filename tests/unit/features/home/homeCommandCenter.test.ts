@@ -7,6 +7,7 @@ import {
 } from "../../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../../src/domain/notifications/gameNotifications";
 import { advanceOfficialTournamentsThroughWeek } from "../../../../src/domain/tournament/progressOfficialTournaments";
+import { rivalryKey } from "../../../../src/domain/world/rivalWorldProgression";
 import { selectHomeCommandCenter } from "../../../../src/features/home/homeCommandCenter";
 
 function select(state = createDemoGame(), homeStrength = 8120) {
@@ -113,6 +114,42 @@ describe("selectHomeCommandCenter", () => {
         rank: expect.any(Number),
         movement: expect.any(Number),
       },
+    });
+  });
+
+  it("surfaces a meaningful featured rival but ignores neutral one-off opponents", () => {
+    const state = createDemoGame();
+    const opponent = otherSchool(state);
+    state.history.matches = [
+      {
+        matchId: matchId("featured-home"),
+        date: "2026-04-10" as GameDate,
+        homeSchoolId: state.userSchoolId,
+        awaySchoolId: opponent.id,
+        winnerSchoolId: opponent.id,
+        homeSetsWon: 1,
+        awaySetsWon: 2,
+        tournamentId: null,
+      },
+    ];
+
+    expect(select(state).summary.featuredRival).toMatchObject({
+      schoolId: opponent.id,
+      displayName: opponent.shortName,
+      badge: "雪辱",
+      recordLabel: "0勝1敗",
+      contextLabel: "前回敗戦・次は雪辱",
+    });
+
+    state.history.matches[0]!.winnerSchoolId = state.userSchoolId;
+    state.history.matches[0]!.homeSetsWon = 2;
+    state.history.matches[0]!.awaySetsWon = 1;
+    expect(select(state).summary.featuredRival).toBeNull();
+
+    state.world.rivalryScores[rivalryKey(state.userSchoolId, opponent.id)] = 40;
+    expect(select(state).summary.featuredRival).toMatchObject({
+      badge: "因縁",
+      displayName: opponent.shortName,
     });
   });
 
