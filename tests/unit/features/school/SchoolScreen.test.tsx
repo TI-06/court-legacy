@@ -68,6 +68,33 @@ describe("school management screen", () => {
     expect(within(training).getByText("Lv.0 / 50")).toBeVisible();
   });
 
+  it("shows four coach choices in a compact command grid with funds and touch specialty selection", () => {
+    const state = createState();
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "コーチ" }));
+
+    const staff = screen.getByRole("region", { name: "スタッフ" });
+    expect(within(staff).getByText("4候補")).toBeVisible();
+    expect(within(staff).getByText("資金 750")).toBeVisible();
+    expect(within(staff).getByText("現在契約中のコーチはいません")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-beginner")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-intermediate")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-advanced")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-master")).toBeVisible();
+
+    fireEvent.click(
+      within(screen.getByTestId("assistant-coach-intermediate")).getByRole(
+        "button",
+        { name: "中級コーチの専門" },
+      ),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "中級コーチの専門を選ぶ" }),
+    ).toBeVisible();
+  });
+
   it("switches School management between facilities and coaches", () => {
     const state = createState();
 
