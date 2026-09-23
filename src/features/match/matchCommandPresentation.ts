@@ -101,7 +101,6 @@ export function buildMatchCommandImpactRows(
   }));
 }
 
-
 function temporaryEffectLabel(
   state: GameState,
   record: MatchCommandRecord,
