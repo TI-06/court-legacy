@@ -151,17 +151,24 @@ describe("game notifications", () => {
     const player = state.players[playerId]!;
     player.abilities.jump = 89;
 
-    const result = {
-      teamTrainingMenuId: "training.balanced",
+    const result: TrainingResult = {
+      schoolId: state.userSchoolId,
+      teamTrainingMenuId: state.weeklySchedule.trainingPlan.teamTrainingMenuId,
+      individualAssignments:
+        state.weeklySchedule.trainingPlan.individualAssignments,
       playerLogs: [
         {
           playerId,
-          totalAbilityGrowth: 1,
           abilityChanges: { jump: 1 },
+          totalAbilityGrowth: 1,
           fatigueChange: 0,
           conditionChange: 0,
           trustChange: 0,
+          academicRestricted: false,
+          injuryRisk: 0,
           injury: null,
+          skippedReason: null,
+          modifiers: [],
           socialGrowth: {
             contributions: [],
             rawPercentPoints: 0,
@@ -171,6 +178,7 @@ describe("game notifications", () => {
         },
       ],
       injuredPlayerIds: [],
+      randomCursor: state.randomCursor,
     };
 
     const notification = buildTrainingResultNotification({
