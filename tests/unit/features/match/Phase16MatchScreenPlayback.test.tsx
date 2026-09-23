@@ -1,7 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { startMatch } from "../../../../src/domain/match/simulateMatch";
+import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
+import {
+  resumeMatch,
+  startMatch,
+} from "../../../../src/domain/match/simulateMatch";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import {
@@ -79,6 +83,85 @@ describe("Phase16 MatchScreen authoritative playback", () => {
       `${eventCount} / ${eventCount}`,
     );
     expect(screen.getByRole("region", { name: "監督指示" })).toBeVisible();
+    expect(screen.queryByRole("region", { name: "再生操作" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
+  });
+
+  it("automatically resumes playback after a coach command succeeds", async () => {
+    const fixture = findIncompleteDecisionMatch();
+    const onCommand = vi.fn().mockResolvedValue(undefined);
+    const rendered = render(
+      <MatchScreen
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={fixture.result}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "次の判断まで進む" }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name:
+          fixture.result.match.runtime?.pendingDecisionReason === "set-break"
+            ? "このまま次セットへ"
+            : fixture.result.match.runtime?.pendingDecisionReason ===
+                "critical-score"
+              ? "このまま勝負する"
+              : "このまま続ける",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(onCommand).toHaveBeenCalledWith({ type: "continue" }),
+    );
+
+    const commanded = applyMatchCommand({
+      state: fixture.state,
+      match: fixture.result.match,
+      schoolId: fixture.state.userSchoolId,
+      command: { type: "continue" },
+    });
+    const resumed = resumeMatch({
+      state: fixture.state,
+      match: commanded,
+    });
+
+    rendered.rerender(
+      <MatchScreen
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={resumed}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+        onCommand={onCommand}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "一時停止" })).toBeVisible();
   });
 });
