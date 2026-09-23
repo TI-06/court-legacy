@@ -1287,3 +1287,275 @@
     font-size: 0.54rem;
   }
 }
+
+
+/* Phase31-4: compact coach command grid with focused contract sheet. */
+.school-staff-command-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-staff-command-heading > div {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-staff-command-heading h4,
+.school-staff-command-heading small {
+  margin: 0;
+}
+
+.school-staff-command-heading h4 {
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.82rem;
+}
+
+.school-staff-command-heading small,
+.school-staff-command-heading > span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.school-staff-command-heading > span {
+  padding: 3px 6px;
+  color: #ffc08a;
+  background: rgb(244 122 24 / 10%);
+  border: 1px solid rgb(244 122 24 / 22%);
+  border-radius: 999px;
+}
+
+.school-panel--management .assistant-coach-current {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  margin-top: 5px;
+  padding: 6px 8px;
+  gap: 1px 7px;
+  border-radius: 9px;
+}
+
+.school-panel--management .assistant-coach-current > span {
+  grid-row: 1 / span 2;
+}
+
+.school-panel--management .assistant-coach-current > strong {
+  overflow: hidden;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .assistant-coach-current > small {
+  overflow: hidden;
+  font-size: 0.54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .assistant-coach-none {
+  margin: 5px 0 0;
+  padding: 6px 8px;
+  font-size: 0.56rem;
+  line-height: 1.2;
+  border-radius: 9px;
+}
+
+.school-panel--management .assistant-coach-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 6px;
+  gap: 5px;
+}
+
+.school-panel--management .assistant-coach-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 78px;
+  padding: 7px;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.school-panel--management .assistant-coach-card--available {
+  background:
+    linear-gradient(145deg, rgb(244 122 24 / 6%), transparent 75%),
+    rgb(255 255 255 / 5%);
+  border-color: rgb(244 122 24 / 24%);
+}
+
+.school-panel--management .assistant-coach-card__heading {
+  gap: 4px;
+}
+
+.school-panel--management .assistant-coach-card__heading strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.66rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-panel--management .assistant-coach-card__heading > span {
+  flex: 0 0 auto;
+  font-size: 0.54rem;
+  white-space: nowrap;
+}
+
+.school-panel--management .assistant-coach-effects {
+  gap: 3px;
+}
+
+.school-panel--management .assistant-coach-effects > span {
+  padding: 2px 4px;
+  font-size: 0.5rem;
+  line-height: 1.1;
+}
+
+.assistant-coach-card__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  margin-top: auto;
+  gap: 5px;
+}
+
+.assistant-coach-card__summary small {
+  overflow: hidden;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.52rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-coach-card__summary b {
+  flex: 0 0 auto;
+  color: #ffc08a;
+  font-size: 0.54rem;
+}
+
+.assistant-coach-contract-sheet {
+  display: grid;
+  gap: 12px;
+}
+
+.assistant-coach-contract-sheet__effects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.assistant-coach-contract-sheet__effects span {
+  padding: 8px;
+  color: #d4e4f1;
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-align: center;
+  background: rgb(46 139 216 / 11%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.assistant-coach-contract-sheet__specialty {
+  display: grid;
+  gap: 6px;
+}
+
+.assistant-coach-contract-sheet__specialty > strong {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.64rem;
+}
+
+.assistant-coach-specialty-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.assistant-coach-specialty-option {
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 10px;
+}
+
+.assistant-coach-specialty-option--selected {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+  border-color: var(--game-accent, #f47a18);
+}
+
+.assistant-coach-contract-sheet__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 8px 10px;
+  gap: 8px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 10px;
+}
+
+.assistant-coach-contract-sheet__status span {
+  color: #ffc08a;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.assistant-coach-contract-sheet__status small {
+  overflow: hidden;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 350px) {
+  .school-staff-command-heading > div {
+    gap: 5px;
+  }
+
+  .school-staff-command-heading small {
+    font-size: 0.54rem;
+  }
+
+  .school-panel--management .assistant-coach-grid {
+    gap: 4px;
+  }
+
+  .school-panel--management .assistant-coach-card {
+    min-height: 74px;
+    padding: 6px;
+  }
+
+  .school-panel--management .assistant-coach-effects > span {
+    padding-inline: 3px;
+    font-size: 0.48rem;
+  }
+
+  .assistant-coach-card__summary small {
+    font-size: 0.49rem;
+  }
+}
