@@ -127,9 +127,7 @@ describe("PlayerHubScreen", () => {
     expect(abilityRanks.children).toHaveLength(6);
     expect(
       within(abilityRanks).getByRole("button", {
-        name: new RegExp(
-          `^${player.lastName} ${player.firstName} 個人練習 `,
-        ),
+        name: new RegExp(`^${player.lastName} ${player.firstName} 個人練習 `),
       }),
     ).toBeVisible();
     expect(firstRow.querySelector(".player-roster__quick-actions")).toBeNull();
@@ -137,9 +135,7 @@ describe("PlayerHubScreen", () => {
 
     if (typeof player.potential === "number") {
       expect(
-        within(firstRow).getByText(
-          `将来性${ratingToGrade(player.potential)}`,
-        ),
+        within(firstRow).getByText(`将来性${ratingToGrade(player.potential)}`),
       ).toBeVisible();
     }
     const growthType = gameData.growthTypes.get(player.growthTypeId);
@@ -304,16 +300,12 @@ describe("PlayerHubScreen", () => {
     expect(onSaveTrainingAssignments).not.toHaveBeenCalled();
     expect(
       within(firstRow).getByRole("button", {
-        name: new RegExp(
-          `^${first.lastName} ${first.firstName} 個人練習 `,
-        ),
+        name: new RegExp(`^${first.lastName} ${first.firstName} 個人練習 `),
       }),
     ).toHaveAttribute("data-draft", "true");
     expect(
       within(secondRow).getByRole("button", {
-        name: new RegExp(
-          `^${second.lastName} ${second.firstName} 個人練習 `,
-        ),
+        name: new RegExp(`^${second.lastName} ${second.firstName} 個人練習 `),
       }),
     ).toHaveAttribute("data-draft", "true");
     expect(within(firstRow).queryByText("未保存")).toBeNull();
