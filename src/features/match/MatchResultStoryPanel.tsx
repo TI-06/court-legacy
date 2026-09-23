@@ -31,6 +31,31 @@ export function MatchResultStoryPanel({
         </div>
       ) : null}
 
+      {story.rivalryProgress ? (
+        <div
+          aria-label={`因縁度 ${story.rivalryProgress.beforeScore}から${story.rivalryProgress.afterScore}`}
+          className="match-story-card__rivalry-progress"
+        >
+          <span>因縁度</span>
+          <div aria-hidden="true">
+            <i
+              style={{
+                width: `${story.rivalryProgress.afterScore}%`,
+              }}
+            />
+          </div>
+          <strong>
+            {story.rivalryProgress.beforeScore}
+            <b aria-hidden="true">→</b>
+            {story.rivalryProgress.afterScore}
+          </strong>
+          <small>
+            +{story.rivalryProgress.delta}
+            {story.rivalryProgress.becameDestinyRival ? "・宿敵へ" : ""}
+          </small>
+        </div>
+      ) : null}
+
       <div className="match-story-card__facts">
         {story.facts.map((fact) => (
           <span key={fact}>{fact}</span>
