@@ -53,6 +53,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Show Phase31-12 Prettier diff
+        run: |
+          npx prettier src/features/team/team-direct.css tests/e2e/app-shell.spec.ts --write
+          git diff -- src/features/team/team-direct.css tests/e2e/app-shell.spec.ts
+          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
