@@ -678,6 +678,54 @@
   white-space: nowrap;
 }
 
+.pre-match-lineup__court-specials {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__court-specials > span {
+  flex: 0 1 auto;
+  overflow: hidden;
+  max-width: 64px;
+  padding: 1px 4px;
+  font-size: 0.46rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+}
+
+.pre-match-lineup__court-specials > span[data-kind="positive"] {
+  color: #bfeeff;
+  background: rgb(34 128 165 / 30%);
+}
+
+.pre-match-lineup__court-specials > span[data-kind="negative"] {
+  color: #ffd0d0;
+  background: rgb(172 54 61 / 34%);
+}
+
+.pre-match-lineup__court-specials > span[data-kind="elite"] {
+  color: #ead9ff;
+  background: rgb(111 70 170 / 36%);
+}
+
+.pre-match-lineup__court-specials > span[data-kind="gold"] {
+  color: #ffe7a3;
+  background: rgb(171 119 16 / 38%);
+}
+
+.pre-match-lineup__court-specials > small {
+  flex: 0 0 auto;
+  color: #dce8ef;
+  font-size: 0.48rem;
+  font-weight: 900;
+}
+
 .pre-match-lineup__condition {
   overflow: hidden;
   color: #dce8ef;
