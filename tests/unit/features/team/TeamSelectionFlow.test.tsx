@@ -24,7 +24,15 @@ describe("team selection direct-touch UI", () => {
     expect(screen.getByText("先発6人")).toBeVisible();
     expect(screen.getByText("守備専門")).toBeVisible();
     expect(screen.getByText("控え選手")).toBeVisible();
-    expect(screen.getByText("交代ルール")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "保存編成を開く" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "交代方針を開く" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("switch", { name: "怪我時はベンチを許可" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryAllByRole("combobox")).toHaveLength(0);
     expect(screen.getAllByTestId("court-player")).toHaveLength(6);
     expect(
@@ -123,13 +131,24 @@ describe("team selection direct-touch UI", () => {
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
 
+    fireEvent.click(screen.getByRole("button", { name: "交代方針を開く" }));
+    let policyDialog = screen.getByRole("dialog", { name: "交代方針" });
     fireEvent.click(
-      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+      within(policyDialog).getByRole("switch", {
+        name: "怪我時はベンチを許可",
+      }),
     );
     await waitFor(() =>
       expect(
-        screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+        within(screen.getByRole("dialog", { name: "交代方針" })).getByRole(
+          "switch",
+          { name: "怪我時はベンチを許可" },
+        ),
       ).toHaveAttribute("aria-checked", "false"),
+    );
+    policyDialog = screen.getByRole("dialog", { name: "交代方針" });
+    fireEvent.click(
+      within(policyDialog).getByRole("button", { name: "閉じる" }),
     );
 
     fireEvent.click(screen.getByRole("button", { name: "ホーム" }));
@@ -152,8 +171,12 @@ describe("team selection direct-touch UI", () => {
         }),
       ).getByRole("button", { name: "閉じる" }),
     );
+    fireEvent.click(screen.getByRole("button", { name: "交代方針を開く" }));
+    policyDialog = screen.getByRole("dialog", { name: "交代方針" });
     expect(
-      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+      within(policyDialog).getByRole("switch", {
+        name: "怪我時はベンチを許可",
+      }),
     ).toHaveAttribute("aria-checked", "false");
   });
 
@@ -163,7 +186,13 @@ describe("team selection direct-touch UI", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "自動編成" }));
     await screen.findByText("保存済み ✓");
-    fireEvent.click(screen.getByRole("button", { name: "安全調整" }));
+    fireEvent.click(screen.getByRole("button", { name: "交代方針を開く" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "交代方針" })).getByRole(
+        "button",
+        { name: "安全調整" },
+      ),
+    );
 
     await waitFor(() =>
       expect(screen.getByText("編成は有効です")).toBeInTheDocument(),

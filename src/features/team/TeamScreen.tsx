@@ -58,6 +58,8 @@ interface TeamScreenProps {
 type PickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
+type LineupSettingsView = "saved" | "policy" | null;
+
 const ROTATION_ROLES: Record<RotationSlot, Position> = {
   1: "S",
   2: "MB",
@@ -132,6 +134,8 @@ export function TeamScreen({
     Partial<Record<SavedLineupSlot, string>>
   >({});
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
+  const [lineupSettingsView, setLineupSettingsView] =
+    useState<LineupSettingsView>(null);
   const [activePlacement, setActivePlacement] = useState<TeamPlacement | null>(
     null,
   );
@@ -167,6 +171,14 @@ export function TeamScreen({
     [state],
   );
   const currentLineupValid = issues.length === 0;
+  const savedLineupCount = savedLineupSlots.filter(
+    (slotView) => slotView.status !== "empty",
+  ).length;
+  const enabledPolicyCount = [
+    selection.substitutionPolicy.allowInjuryBenching,
+    selection.substitutionPolicy.automaticSubstitutions,
+    selection.substitutionPolicy.automaticSetChanges,
+  ].filter(Boolean).length;
   const lockedIds = new Set(selection.substitutionPolicy.starterLockPlayerIds);
   const captain = state.teamDynamics.captainPlayerId
     ? playerById[state.teamDynamics.captainPlayerId]
@@ -600,17 +612,78 @@ export function TeamScreen({
           </div>
         </section>
 
-        <section
-          className="team-panel saved-lineup-panel"
-          aria-labelledby="saved-lineup-heading"
+        <section className="team-lineup-tools" aria-label="編成設定">
+          <button
+            aria-label="保存編成を開く"
+            className="team-lineup-tool"
+            onClick={() => setLineupSettingsView("saved")}
+            type="button"
+          >
+            <span>
+              <small>編成スロット</small>
+              <strong>保存編成</strong>
+            </span>
+            <b>{savedLineupCount}/3</b>
+            <i aria-hidden="true">›</i>
+          </button>
+          <button
+            aria-label="交代方針を開く"
+            className="team-lineup-tool"
+            onClick={() => setLineupSettingsView("policy")}
+            type="button"
+          >
+            <span>
+              <small>試合中の自動設定</small>
+              <strong>交代方針</strong>
+            </span>
+            <b>{enabledPolicyCount}/3 ON</b>
+            <i aria-hidden="true">›</i>
+          </button>
+        </section>
+
+        {issues.length > 0 ? (
+          <section
+            className="selection-feedback selection-feedback--error"
+            role="alert"
+          >
+            <strong>編成を確認してください</strong>
+            {issues.map((issue, index) => (
+              <p key={`${issue.code}-${issue.playerId ?? index}`}>
+                {issue.message}
+              </p>
+            ))}
+          </section>
+        ) : null}
+
+        {actionError ? (
+          <section
+            className="selection-feedback selection-feedback--error"
+            role="alert"
+          >
+            <strong>処理できませんでした</strong>
+            <p>{actionError}</p>
+          </section>
+        ) : null}
+
+        {replacements.length > 0 ? (
+          <section className="selection-feedback" aria-live="polite">
+            <strong>安全調整を適用しました</strong>
+            {replacements.map((replacement) => (
+              <p key={replacement.playerId}>
+                {replacementText(replacement, playerById)}
+              </p>
+            ))}
+          </section>
+        ) : null}
+
+        <BottomSheet
+          className="ui-bottom-sheet--game-choice"
+          description="現在の編成を3つまで登録し、試合前にすぐ呼び出せます。"
+          onClose={() => setLineupSettingsView(null)}
+          open={lineupSettingsView === "saved"}
+          title="保存編成"
         >
-          <div className="team-section-heading team-section-heading--compact">
-            <div>
-              <p className="section-kicker">3つまで登録</p>
-              <h3 id="saved-lineup-heading">保存編成</h3>
-            </div>
-          </div>
-          <div className="saved-lineup-grid">
+          <div className="saved-lineup-grid saved-lineup-grid--sheet">
             {savedLineupSlots.map((slotView) => {
               const name = savedLineupName(
                 slotView.slot,
@@ -641,12 +714,13 @@ export function TeamScreen({
                     aria-label={`保存編成名 スロット${slotView.slot}`}
                     disabled={planningPending}
                     maxLength={24}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const nextName = event.currentTarget.value;
                       setSavedLineupNames((current) => ({
                         ...current,
-                        [slotView.slot]: event.currentTarget.value,
-                      }))
-                    }
+                        [slotView.slot]: nextName,
+                      }));
+                    }}
                     placeholder={`スロット${slotView.slot}の名前`}
                     type="text"
                     value={name}
@@ -723,127 +797,93 @@ export function TeamScreen({
               );
             })}
           </div>
-        </section>
+        </BottomSheet>
 
-        <section
-          className="team-panel team-policy-panel"
-          aria-labelledby="policy-heading"
+        <BottomSheet
+          className="ui-bottom-sheet--game-choice"
+          description="怪我や状態に応じた自動交代とセット間調整を設定します。"
+          onClose={() => setLineupSettingsView(null)}
+          open={lineupSettingsView === "policy"}
+          title="交代方針"
         >
-          <div className="team-section-heading team-section-heading--compact">
-            <div>
-              <p className="section-kicker">交代ルール</p>
-              <h3 id="policy-heading">交代方針</h3>
+          <div className="team-policy-sheet">
+            <div className="policy-list">
+              <button
+                aria-checked={selection.substitutionPolicy.allowInjuryBenching}
+                aria-label="怪我時はベンチを許可"
+                disabled={pending}
+                onClick={() =>
+                  updatePolicy(
+                    "allowInjuryBenching",
+                    !selection.substitutionPolicy.allowInjuryBenching,
+                  )
+                }
+                role="switch"
+                type="button"
+              >
+                <span>
+                  <strong>怪我時はベンチを許可</strong>
+                  <small>先発固定より安全を優先します。</small>
+                </span>
+                <span className="team-policy-switch" aria-hidden="true">
+                  <i />
+                </span>
+              </button>
+              <button
+                aria-checked={
+                  selection.substitutionPolicy.automaticSubstitutions
+                }
+                aria-label="試合中の自動交代"
+                disabled={pending}
+                onClick={() =>
+                  updatePolicy(
+                    "automaticSubstitutions",
+                    !selection.substitutionPolicy.automaticSubstitutions,
+                  )
+                }
+                role="switch"
+                type="button"
+              >
+                <span>
+                  <strong>試合中の自動交代</strong>
+                  <small>試合中に状態を見て安全交代します。</small>
+                </span>
+                <span className="team-policy-switch" aria-hidden="true">
+                  <i />
+                </span>
+              </button>
+              <button
+                aria-checked={selection.substitutionPolicy.automaticSetChanges}
+                aria-label="セット間の自動変更"
+                disabled={pending}
+                onClick={() =>
+                  updatePolicy(
+                    "automaticSetChanges",
+                    !selection.substitutionPolicy.automaticSetChanges,
+                  )
+                }
+                role="switch"
+                type="button"
+              >
+                <span>
+                  <strong>セット間の自動変更</strong>
+                  <small>セット終了時に編成を見直します。</small>
+                </span>
+                <span className="team-policy-switch" aria-hidden="true">
+                  <i />
+                </span>
+              </button>
             </div>
-          </div>
-          <div className="policy-list">
             <button
-              aria-checked={selection.substitutionPolicy.allowInjuryBenching}
-              aria-label="怪我時はベンチを許可"
+              className="team-primary-action"
               disabled={pending}
-              onClick={() =>
-                updatePolicy(
-                  "allowInjuryBenching",
-                  !selection.substitutionPolicy.allowInjuryBenching,
-                )
-              }
-              role="switch"
+              onClick={applySafetyAdjustment}
               type="button"
             >
-              <span>
-                <strong>怪我時はベンチを許可</strong>
-                <small>先発固定より安全を優先します。</small>
-              </span>
-              <span className="team-policy-switch" aria-hidden="true">
-                <i />
-              </span>
-            </button>
-            <button
-              aria-checked={selection.substitutionPolicy.automaticSubstitutions}
-              aria-label="試合中の自動交代"
-              disabled={pending}
-              onClick={() =>
-                updatePolicy(
-                  "automaticSubstitutions",
-                  !selection.substitutionPolicy.automaticSubstitutions,
-                )
-              }
-              role="switch"
-              type="button"
-            >
-              <span>
-                <strong>試合中の自動交代</strong>
-                <small>試合中に状態を見て安全交代します。</small>
-              </span>
-              <span className="team-policy-switch" aria-hidden="true">
-                <i />
-              </span>
-            </button>
-            <button
-              aria-checked={selection.substitutionPolicy.automaticSetChanges}
-              aria-label="セット間の自動変更"
-              disabled={pending}
-              onClick={() =>
-                updatePolicy(
-                  "automaticSetChanges",
-                  !selection.substitutionPolicy.automaticSetChanges,
-                )
-              }
-              role="switch"
-              type="button"
-            >
-              <span>
-                <strong>セット間の自動変更</strong>
-                <small>セット終了時に編成を見直します。</small>
-              </span>
-              <span className="team-policy-switch" aria-hidden="true">
-                <i />
-              </span>
+              安全調整
             </button>
           </div>
-          <button
-            className="team-primary-action"
-            disabled={pending}
-            onClick={applySafetyAdjustment}
-            type="button"
-          >
-            安全調整
-          </button>
-        </section>
-
-        {issues.length > 0 ? (
-          <section
-            className="selection-feedback selection-feedback--error"
-            role="alert"
-          >
-            <strong>編成を確認してください</strong>
-            {issues.map((issue, index) => (
-              <p key={`${issue.code}-${issue.playerId ?? index}`}>
-                {issue.message}
-              </p>
-            ))}
-          </section>
-        ) : null}
-
-        {actionError ? (
-          <section
-            className="selection-feedback selection-feedback--error"
-            role="alert"
-          >
-            <strong>処理できませんでした</strong>
-            <p>{actionError}</p>
-          </section>
-        ) : null}
-
-        {replacements.length > 0 ? (
-          <section className="selection-feedback" aria-live="polite">
-            <strong>安全調整を適用しました</strong>
-            {replacements.map((replacement) => (
-              <p key={replacement.playerId}>
-                {replacementText(replacement, playerById)}
-              </p>
-            ))}
-          </section>
-        ) : null}
+        </BottomSheet>
 
         <BottomSheet
           description="コートで使用中の選手は重複選択できません。"

@@ -39,6 +39,9 @@ function renderSavedLineups(options: {
     />,
   );
 
+  fireEvent.click(screen.getByRole("button", { name: "保存編成を開く" }));
+  expect(screen.getByRole("dialog", { name: "保存編成" })).toBeVisible();
+
   return {
     state,
     selection,

@@ -49,15 +49,17 @@ describe("Phase 12 lineup clarity", () => {
     await openLineup();
 
     expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "交代方針を開く" }));
+    const dialog = screen.getByRole("dialog", { name: "交代方針" });
     expect(
-      screen.getByRole("switch", { name: "怪我時はベンチを許可" }),
+      within(dialog).getByRole("switch", { name: "怪我時はベンチを許可" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("switch", { name: "試合中の自動交代" }),
+      within(dialog).getByRole("switch", { name: "試合中の自動交代" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("switch", { name: "セット間の自動変更" }),
+      within(dialog).getByRole("switch", { name: "セット間の自動変更" }),
     ).toBeVisible();
-    expect(screen.queryByText(/疲労85以上/)).toBeNull();
+    expect(within(dialog).queryByText(/疲労85以上/)).toBeNull();
   });
 });
