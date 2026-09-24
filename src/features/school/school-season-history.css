@@ -301,3 +301,36 @@
   color: #8fe0ad;
   background: rgb(51 181 121 / 13%);
 }
+
+
+/* Phase31-6: bound long-run season history on the main mobile surface. */
+.school-season-history__all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 6px 8px;
+  color: #cfe0ec;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 900;
+  background: rgb(46 139 216 / 8%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.school-season-history__all b {
+  color: #ffc08a;
+  font-size: 0.82rem;
+}
+
+.school-season-history__archive-list {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-season-history__archive-list .school-season-history__card {
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
