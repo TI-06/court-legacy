@@ -892,12 +892,25 @@ const weeklyScheduleSchema = z
 
 const persistedPlayerSchema = z
   .object({
+    specialAbilityIds: z.array(z.string().min(1)).max(16).default([]),
+    specialAbilityTipLevels: z
+      .record(
+        z.string().min(1),
+        z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
+      )
+      .default({}),
     hiddenTraitIds: z.array(z.string().min(1)),
     revealedHiddenTraitIds: z.array(z.string().min(1)).default([]),
     hiddenTraitAssignmentInitialized: z.boolean(),
   })
   .passthrough()
   .superRefine((player, context) => {
+    if (new Set(player.specialAbilityIds).size !== player.specialAbilityIds.length) {
+      context.addIssue({
+        code: "custom",
+        message: "special ability IDs must be unique",
+      });
+    }
     const hidden = new Set(player.hiddenTraitIds);
     if (player.revealedHiddenTraitIds.some((traitId) => !hidden.has(traitId))) {
       context.addIssue({
