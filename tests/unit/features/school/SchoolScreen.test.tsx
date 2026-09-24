@@ -297,7 +297,9 @@ describe("school management screen", () => {
       screen.getByRole("button", { name: "直近5試合をすべて見る" }),
     );
     const dialog = screen.getByRole("dialog", { name: "直近の試合一覧" });
-    expect(within(dialog).getAllByTestId("school-match-record")).toHaveLength(5);
+    expect(
+      within(dialog).getAllByTestId("school-match-record"),
+    ).toHaveLength(5);
   });
 
   it("shows current season goals and regional/national ranking progression in records", () => {
