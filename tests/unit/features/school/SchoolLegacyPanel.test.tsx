@@ -4,9 +4,12 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { HistoricalMatchSummary } from "../../../../src/domain/model/GameState";
 import {
   matchId,
+  schoolId,
   type GameDate,
 } from "../../../../src/domain/model/identifiers";
 import { rivalryKey } from "../../../../src/domain/world/rivalWorldProgression";
+import type { SchoolLegacyPresentation } from "../../../../src/features/season/seasonProgressPresentation";
+import { SchoolLegacyPanel } from "../../../../src/features/school/SchoolLegacyPanel";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 
 function appendResult(
@@ -56,6 +59,51 @@ describe("SchoolLegacyPanel", () => {
     expect(within(legacy).getByText("天敵")).toBeVisible();
     expect(within(legacy).getByText("雪辱戦")).toBeVisible();
     expect(within(legacy).getByText("記憶に残る試合")).toBeVisible();
+  });
+
+  it("keeps long rivalry history compact and opens the full archive on demand", () => {
+    const presentation: SchoolLegacyPresentation = {
+      opponents: Array.from({ length: 5 }, (_, index) => ({
+        schoolId: schoolId(`rival-${index}`),
+        displayName: `ライバル${index + 1}高校`,
+        recordLabel: `通算 ${index + 1}勝${index}敗`,
+        meetingLabel: `${index + 2}戦・公式1 / 練習${index + 1}`,
+        streakLabel: index === 0 ? "3連勝中" : null,
+        rivalryScore: 90 - index * 10,
+        labels: index === 0 ? ["destiny-rival"] : [],
+      })),
+      notableMatches: Array.from({ length: 5 }, (_, index) => ({
+        matchId: `match-${index}`,
+        date: `2026-0${index + 4}-01`,
+        opponentName: `ライバル${index + 1}高校`,
+        resultLabel: index % 2 === 0 ? "勝利 2-1" : "敗戦 1-2",
+        reasons: ["公式戦"],
+      })),
+    };
+
+    render(<SchoolLegacyPanel presentation={presentation} />);
+
+    const legacy = screen.getByRole("region", { name: "対戦史" });
+    expect(
+      within(legacy).getAllByTestId("school-legacy-opponent"),
+    ).toHaveLength(2);
+    expect(
+      within(legacy).getAllByTestId("school-legacy-notable-match"),
+    ).toHaveLength(2);
+    expect(
+      within(legacy).getByRole("button", { name: "対戦史をすべて見る" }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(legacy).getByRole("button", { name: "対戦史をすべて見る" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "対戦史一覧" });
+    expect(
+      within(dialog).getAllByTestId("school-legacy-opponent"),
+    ).toHaveLength(5);
+    expect(
+      within(dialog).getAllByTestId("school-legacy-notable-match"),
+    ).toHaveLength(5);
   });
 
   it("keeps only three primary school navigation tabs", () => {

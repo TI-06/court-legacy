@@ -150,3 +150,146 @@
 .school-legacy__notable b {
   color: #ffc08a;
 }
+
+/* Phase31-8: keep rivalry history compact on the main records surface. */
+.school-legacy {
+  margin-top: 10px;
+  gap: 7px;
+}
+
+.school-legacy__heading {
+  gap: 7px;
+}
+
+.school-legacy__heading span {
+  font-size: 0.62rem;
+}
+
+.school-legacy__heading h4 {
+  font-size: 0.82rem;
+}
+
+.school-legacy__heading small {
+  font-size: 0.58rem;
+  white-space: nowrap;
+}
+
+.school-legacy__opponents,
+.school-legacy__notable {
+  gap: 5px;
+}
+
+.school-legacy__opponent {
+  padding: 7px 9px;
+  gap: 5px;
+  border-radius: 9px;
+}
+
+.school-legacy__opponent-main {
+  gap: 6px;
+}
+
+.school-legacy__opponent-main strong {
+  font-size: 0.7rem;
+}
+
+.school-legacy__opponent-main small,
+.school-legacy__opponent-meta small {
+  font-size: 0.55rem;
+}
+
+.school-legacy__opponent-main b {
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.school-legacy__opponent-meta {
+  gap: 4px;
+}
+
+.school-legacy__chips {
+  gap: 3px;
+}
+
+.school-legacy__chips span,
+.school-legacy__opponent-meta > span {
+  padding: 2px 5px;
+  font-size: 0.53rem;
+}
+
+.school-legacy__notable h5 {
+  font-size: 0.68rem;
+}
+
+.school-legacy__notable article {
+  min-height: 34px;
+  padding: 6px 8px;
+  gap: 6px;
+  border-radius: 9px;
+}
+
+.school-legacy__notable time,
+.school-legacy__notable small {
+  font-size: 0.54rem;
+}
+
+.school-legacy__notable strong {
+  font-size: 0.66rem;
+}
+
+.school-legacy__notable b {
+  font-size: 0.61rem;
+  white-space: nowrap;
+}
+
+.school-legacy__all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  padding: 5px 8px;
+  color: #cfe0ec;
+  font: inherit;
+  font-size: 0.56rem;
+  font-weight: 900;
+  background: rgb(46 139 216 / 8%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 8px;
+}
+
+.school-legacy__all b {
+  color: #ffc08a;
+  font-size: 0.82rem;
+}
+
+.school-legacy__archive {
+  --line-subtle: rgb(255 255 255 / 9%);
+  --surface-raised: rgb(255 255 255 / 5%);
+  --surface-muted: rgb(46 139 216 / 11%);
+
+  display: grid;
+  min-width: 0;
+  gap: 9px;
+  color: var(--game-text, #f4f7fb);
+}
+
+.school-legacy__archive .school-legacy__opponent {
+  padding: 9px 10px;
+}
+
+.school-legacy__archive .school-legacy__notable article {
+  min-height: 40px;
+  padding: 8px 9px;
+}
+
+@media (max-width: 350px) {
+  .school-legacy__heading small {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .school-legacy__notable article {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+}
