@@ -15,6 +15,38 @@ function fixture() {
 }
 
 describe("PreMatchLineupScreen", () => {
+  it("shows compact special ability badges on starter cards", () => {
+    const { state, selection } = fixture();
+    const starterId = selection.rotation[0]!.playerId;
+    const starter = state.players[starterId]!;
+    state.players[starterId] = {
+      ...starter,
+      specialAbilityIds: [
+        "serve_stable",
+        "serve_unstable",
+        "gold_serve_king",
+      ],
+    };
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName="ライバル高校"
+        opponentStrength={78}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const abilities = screen.getByLabelText(`${starter.lastName}の特殊能力`);
+    expect(within(abilities).getByText("サーブ王")).toBeVisible();
+    expect(within(abilities).getByText("サーブ不安定")).toBeVisible();
+    expect(within(abilities).getByText("+1")).toBeVisible();
+  });
+
   it("keeps match-only presets and manual starter swaps local until start", () => {
     const { state, selection } = fixture();
     const onStart = vi.fn();
