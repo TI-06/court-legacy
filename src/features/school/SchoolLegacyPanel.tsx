@@ -66,11 +66,7 @@ function OpponentCard({
   );
 }
 
-function NotableMatchRow({
-  match,
-}: {
-  match: SchoolLegacyMatchPresentation;
-}) {
+function NotableMatchRow({ match }: { match: SchoolLegacyMatchPresentation }) {
   return (
     <article data-testid="school-legacy-notable-match">
       <time>{formatDate(match.date)}</time>
