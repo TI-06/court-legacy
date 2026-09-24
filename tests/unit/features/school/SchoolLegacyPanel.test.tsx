@@ -4,6 +4,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { HistoricalMatchSummary } from "../../../../src/domain/model/GameState";
 import {
   matchId,
+  schoolId,
   type GameDate,
 } from "../../../../src/domain/model/identifiers";
 import { rivalryKey } from "../../../../src/domain/world/rivalWorldProgression";
@@ -63,7 +64,7 @@ describe("SchoolLegacyPanel", () => {
   it("keeps long rivalry history compact and opens the full archive on demand", () => {
     const presentation: SchoolLegacyPresentation = {
       opponents: Array.from({ length: 5 }, (_, index) => ({
-        schoolId: `rival-${index}` as never,
+        schoolId: schoolId(`rival-${index}`),
         displayName: `ライバル${index + 1}高校`,
         recordLabel: `通算 ${index + 1}勝${index}敗`,
         meetingLabel: `${index + 2}戦・公式1 / 練習${index + 1}`,
