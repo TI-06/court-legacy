@@ -107,13 +107,18 @@ function PlayerReadiness({
         compact ? "player-readiness player-readiness--compact" : "player-readiness"
       }
     >
-      <small data-tone={readinessTone("condition", player.condition)}>
-        調子 {Math.round(player.condition)}
+      <small
+        data-tone={
+          player.injury
+            ? "danger"
+            : readinessTone("condition", player.condition)
+        }
+      >
+        {player.injury ? "怪我" : `調子 ${Math.round(player.condition)}`}
       </small>
       <small data-tone={readinessTone("fatigue", player.fatigue)}>
         疲労 {Math.round(player.fatigue)}
       </small>
-      {player.injury ? <small data-tone="danger">怪我</small> : null}
     </span>
   );
 }
