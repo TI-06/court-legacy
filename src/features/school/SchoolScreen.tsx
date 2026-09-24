@@ -625,9 +625,7 @@ export function SchoolScreen({
                           </div>
                           <span
                             className={
-                              won
-                                ? "school-result--win"
-                                : "school-result--loss"
+                              won ? "school-result--win" : "school-result--loss"
                             }
                           >
                             {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
@@ -720,9 +718,7 @@ export function SchoolScreen({
         <div className="school-match-list school-match-list--sheet">
           {recentMatches.map((match) => {
             const home = match.homeSchoolId === school.id;
-            const opponentId = home
-              ? match.awaySchoolId
-              : match.homeSchoolId;
+            const opponentId = home ? match.awaySchoolId : match.homeSchoolId;
             const opponent = state.schools[opponentId]!;
             const userSets = home ? match.homeSetsWon : match.awaySetsWon;
             const opponentSets = home ? match.awaySetsWon : match.homeSetsWon;
@@ -738,9 +734,7 @@ export function SchoolScreen({
                   <strong>{opponent.name}</strong>
                 </div>
                 <span
-                  className={
-                    won ? "school-result--win" : "school-result--loss"
-                  }
+                  className={won ? "school-result--win" : "school-result--loss"}
                 >
                   {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
                 </span>
