@@ -33,6 +33,8 @@ describe("special ability catalog", () => {
       kind: "gold",
       category: "attack",
     });
-    expect(getSpecialAbilityDefinition("missing-special-ability")).toBeUndefined();
+    expect(
+      getSpecialAbilityDefinition("missing-special-ability"),
+    ).toBeUndefined();
   });
 });
