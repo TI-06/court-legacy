@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../../src/data/gameData";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
+import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { RecruitTier } from "../../src/domain/scouting/recruitmentTierProbability";
 import { getShopItemDefinition } from "../../src/domain/shop/shopCatalog";
@@ -14,6 +15,7 @@ import {
   TRAINING_CAMP_ACTIVITY,
   TRAINING_CAMP_POSITION_ABILITIES,
   type TrainingCampResult,
+  type TrainingCampSpecialAbilityChange,
 } from "../../src/domain/shop/shopEffects";
 import {
   resolvePlayerTrainingActivity,
@@ -399,6 +401,7 @@ export function resolveScheduledTrainingCamp(
   );
   const initialCursor = random.cursor;
   const logs: PlayerGrowthLog[] = [];
+  const specialAbilityChanges: TrainingCampSpecialAbilityChange[] = [];
 
   for (const id of school.playerIds) {
     const player = nextState.players[id];
@@ -416,7 +419,16 @@ export function resolveScheduledTrainingCamp(
         ...TRAINING_CAMP_ACTIVITY,
       },
     });
-    nextState.players[id] = resolved.player;
+    let updatedPlayer = resolved.player;
+    if (resolved.log.skippedReason === null) {
+      const progression = resolveTrainingCampSpecialAbilityProgress(
+        updatedPlayer,
+        random,
+      );
+      updatedPlayer = progression.player;
+      specialAbilityChanges.push(...progression.changes);
+    }
+    nextState.players[id] = updatedPlayer;
     logs.push(resolved.log);
   }
   updateRandomCursor(nextState, random, initialCursor);
@@ -425,6 +437,7 @@ export function resolveScheduledTrainingCamp(
     sourceItemId: "training-camp",
     scheduledDate: pending.scheduledDate,
     ...trainingCampSummary(logs),
+    specialAbilityChanges,
   };
   const remainingEffects = { ...(nextState.shopEffects ?? {}) };
   delete remainingEffects.pendingTrainingCamp;
