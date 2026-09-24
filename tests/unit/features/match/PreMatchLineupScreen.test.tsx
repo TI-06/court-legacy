@@ -21,11 +21,7 @@ describe("PreMatchLineupScreen", () => {
     const starter = state.players[starterId]!;
     state.players[starterId] = {
       ...starter,
-      specialAbilityIds: [
-        "serve_stable",
-        "serve_unstable",
-        "gold_serve_king",
-      ],
+      specialAbilityIds: ["serve_stable", "serve_unstable", "gold_serve_king"],
     };
 
     render(
