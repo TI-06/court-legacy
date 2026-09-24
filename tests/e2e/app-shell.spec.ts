@@ -90,6 +90,18 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     page.getByRole("button", { name: "ローテーション1を変更" }),
   ).toBeVisible();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
+  const firstBenchPlayer = page.getByTestId("bench-player").first();
+  await expect(
+    firstBenchPlayer.getByRole("button", { name: /を起用$/ }),
+  ).toBeVisible();
+  await firstBenchPlayer.getByRole("button", { name: /を起用$/ }).click();
+  const benchTargetDialog = page.getByRole("dialog", { name: /の起用先$/ });
+  await expect(benchTargetDialog).toBeVisible();
+  await expect(
+    benchTargetDialog.getByRole("button", { name: "ローテーション1へ起用" }),
+  ).toBeVisible();
+  await benchTargetDialog.getByRole("button", { name: "閉じる" }).click();
+
   await expect(
     page.getByRole("button", { name: "保存編成を開く" }),
   ).toBeVisible();
