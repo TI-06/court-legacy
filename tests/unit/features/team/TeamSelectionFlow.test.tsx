@@ -140,9 +140,10 @@ describe("team selection direct-touch UI", () => {
     );
     await waitFor(() =>
       expect(
-        within(
-          screen.getByRole("dialog", { name: "交代方針" }),
-        ).getByRole("switch", { name: "怪我時はベンチを許可" }),
+        within(screen.getByRole("dialog", { name: "交代方針" })).getByRole(
+          "switch",
+          { name: "怪我時はベンチを許可" },
+        ),
       ).toHaveAttribute("aria-checked", "false"),
     );
     policyDialog = screen.getByRole("dialog", { name: "交代方針" });
