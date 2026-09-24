@@ -57,6 +57,25 @@ describe("initial special ability selection", () => {
     ).toBe(true);
   });
 
+  it("keeps starting red abilities relevant to the player's position", () => {
+    for (let index = 0; index < 80; index += 1) {
+      const ids = selectInitialSpecialAbilityIds({
+        playerId: playerId(`player-special-red-${index}`),
+        position: "S",
+        tier: "normal",
+      });
+      const negativeAbilities = ids
+        .map((id) => getSpecialAbilityDefinition(id))
+        .filter((ability) => ability?.kind === "negative");
+
+      expect(
+        negativeAbilities.every((ability) =>
+          ["set", "mental", "physical", "team"].includes(ability!.category),
+        ),
+      ).toBe(true);
+    }
+  });
+
   it("never grants elite or gold abilities at initial generation", () => {
     const ids = selectInitialSpecialAbilityIds({
       playerId: playerId("player-special-monster"),
