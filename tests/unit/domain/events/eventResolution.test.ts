@@ -211,6 +211,67 @@ describe("event resolution", () => {
     expect(result.occurrence.visibleResultCodes).toContain("怪我しやすい 克服");
   });
 
+  it("evolves lower abilities into an elite ability through awakening", () => {
+    const state = createDemoGame();
+    const player = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[player]!.specialAbilityIds = ["serve_stable", "serve_aim"];
+    state.pendingEvent = {
+      eventId: eventId("event.awaken-serve-craftsman"),
+      actorPlayerIds: [player],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["awaken", "steady"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "awaken",
+      gameData,
+      new SeededRandom(state.seed, state.randomCursor),
+    );
+    const abilities = result.state.players[player]!.specialAbilityIds;
+
+    expect(abilities).toContain("elite_serve_craftsman");
+    expect(abilities).not.toContain("serve_stable");
+    expect(abilities).not.toContain("serve_aim");
+    expect(result.occurrence.visibleResultCodes).toContain(
+      "サーブ職人 習得",
+    );
+  });
+
+  it("evolves elite abilities into a gold ability through awakening", () => {
+    const state = createDemoGame();
+    const player = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[player]!.specialAbilityIds = [
+      "elite_game_maker",
+      "elite_deception_set",
+    ];
+    state.pendingEvent = {
+      eventId: eventId("event.gold-commander"),
+      actorPlayerIds: [player],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["awaken", "steady"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "awaken",
+      gameData,
+      new SeededRandom(state.seed, state.randomCursor),
+    );
+    const abilities = result.state.players[player]!.specialAbilityIds;
+
+    expect(abilities).toContain("gold_commander");
+    expect(abilities).not.toContain("elite_game_maker");
+    expect(abilities).not.toContain("elite_deception_set");
+    expect(result.occurrence.visibleResultCodes).toContain("司令塔 習得");
+  });
+
   it("floors an oversized event debit at zero and records only the applied debit", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
