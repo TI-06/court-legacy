@@ -14,10 +14,7 @@ export function surfaceWeeklyEvent(
   data: GameDataRegistry,
 ): GameState {
   const normalEventCadence = state.calendar.weekOfYear % 3 === 0;
-  if (
-    state.pendingEvent ||
-    (!normalEventCadence && !hasDueFollowUp(state))
-  ) {
+  if (state.pendingEvent || (!normalEventCadence && !hasDueFollowUp(state))) {
     return state;
   }
   const random = new SeededRandom(state.seed, state.randomCursor);
