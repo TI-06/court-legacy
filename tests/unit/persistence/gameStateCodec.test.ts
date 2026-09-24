@@ -238,6 +238,32 @@ describe("game state codec", () => {
     ).toThrow("セーブデータの形式が正しくありません");
   });
 
+  it("round-trips compact special abilities and repairs saves that predate them", () => {
+    const state = structuredClone(createDemoGame());
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.specialAbilityIds = ["serve_stable", "mental_clutch"];
+    player.specialAbilityTipLevels = { attack_course: 2 };
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.players[playerId]!.specialAbilityIds).toEqual([
+      "serve_stable",
+      "mental_clutch",
+    ]);
+    expect(decoded.players[playerId]!.specialAbilityTipLevels).toEqual({
+      attack_course: 2,
+    });
+
+    const legacyShape = structuredClone(state);
+    delete legacyShape.players[playerId]!.specialAbilityIds;
+    delete legacyShape.players[playerId]!.specialAbilityTipLevels;
+    const repaired = decodeGameState(JSON.stringify(legacyShape));
+
+    expect(repaired.players[playerId]!.specialAbilityIds).toEqual([]);
+    expect(repaired.players[playerId]!.specialAbilityTipLevels).toEqual({});
+  });
+
   it("repairs current-schema players that predate revealed hidden trait persistence", () => {
     const state = structuredClone(createDemoGame());
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;

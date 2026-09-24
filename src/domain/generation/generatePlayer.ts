@@ -13,6 +13,7 @@ import { playerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { weightedChoice } from "../random/weightedChoice";
 import { selectPlayerTraitIds } from "./selectPlayerTraits";
+import { selectInitialSpecialAbilityIds } from "./selectSpecialAbilities";
 
 const POSITION_WEIGHTS: ReadonlyArray<{ value: Position; weight: number }> = [
   { value: "OH", weight: 30 },
@@ -323,6 +324,12 @@ export function generatePlayer(input: GeneratePlayerInput): Player {
     personalityId: personality.id,
     growthTypeId: growthType.id,
     traitIds,
+    specialAbilityIds: selectInitialSpecialAbilityIds({
+      playerId: input.id,
+      position,
+      tier: input.tier,
+    }),
+    specialAbilityTipLevels: {},
     hiddenTraitIds: [],
     revealedHiddenTraitIds: [],
     hiddenTraitAssignmentInitialized: false,

@@ -37,6 +37,7 @@ import {
 } from "../../domain/player/playerDevelopmentGoals";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
@@ -58,6 +59,7 @@ import {
   type PlayerHubSort,
 } from "./playerHubRoster";
 import "./player-hub.css";
+import "./player-special-abilities.css";
 
 interface PlayerHubScreenProps {
   state: GameState;
@@ -615,6 +617,9 @@ export function PlayerHubScreen({
     )
       .map((traitId) => data.characterTraits.get(traitId))
       .filter((trait) => trait !== undefined);
+    const specialAbilities = (selectedPlayer.specialAbilityIds ?? [])
+      .map((abilityId) => getSpecialAbilityDefinition(abilityId))
+      .filter((ability) => ability !== undefined);
     const maxTrendGrowth = Math.max(
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
@@ -727,6 +732,34 @@ export function PlayerHubScreen({
                   valueLabel={ratingToGrade(value)}
                 />
               ))}
+            </section>
+
+            <section
+              className="player-detail__special-abilities"
+              aria-label="特殊能力"
+            >
+              <div className="player-detail__special-abilities-heading">
+                <h3>特殊能力</h3>
+                <span>{specialAbilities.length}個</span>
+              </div>
+              {specialAbilities.length > 0 ? (
+                <div className="player-detail__special-ability-list">
+                  {specialAbilities.map((ability) => (
+                    <article
+                      className="player-special-ability"
+                      data-kind={ability.kind}
+                      key={ability.id}
+                    >
+                      <strong>{ability.name}</strong>
+                      <small>{ability.description}</small>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="player-detail__special-ability-empty">
+                  まだ特殊能力はありません
+                </p>
+              )}
             </section>
           </div>
         ) : null}
