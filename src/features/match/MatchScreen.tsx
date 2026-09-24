@@ -16,6 +16,7 @@ import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
+import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -284,6 +285,10 @@ function MatchScreenContent({
       event.winnerSchoolId === result.match.awaySchoolId,
   ).length;
   const currentEvent = presentedEvents.at(-1);
+  const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
+  const currentEventSpecialAbilities = currentRawEvent
+    ? presentEventSpecialAbilities(state, currentRawEvent)
+    : [];
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
@@ -300,8 +305,7 @@ function MatchScreenContent({
       ? result.match.runtime.homeTactics
       : result.match.runtime.awayTactics
     : null;
-  const visibleEventSequence =
-    result.match.eventLog[revealedEventIndex]?.sequence ?? 0;
+  const visibleEventSequence = currentRawEvent?.sequence ?? 0;
   const liveCoachEffects = matchComplete
     ? []
     : buildLiveCoachEffectRows(
@@ -455,6 +459,18 @@ function MatchScreenContent({
             <div>
               <strong>{currentEvent.title}</strong>
               <p>{currentEvent.detail}</p>
+              {currentEventSpecialAbilities.length > 0 ? (
+                <div
+                  aria-label="このプレーの特殊能力"
+                  className="match-current-event__specials"
+                >
+                  {currentEventSpecialAbilities.map((ability) => (
+                    <span data-kind={ability.kind} key={ability.id}>
+                      {ability.name}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </section>
 
