@@ -134,8 +134,7 @@ const STATIC_ABILITY_DELTAS: Readonly<Record<string, AbilityDeltaMap>> = {
 };
 
 function isCriticalScore(situation: MatchSpecialAbilitySituation): boolean {
-  const decidingTarget =
-    situation.setNumber === situation.bestOfSets ? 15 : 25;
+  const decidingTarget = situation.setNumber === situation.bestOfSets ? 15 : 25;
   return (
     Math.max(situation.ownScore, situation.opponentScore) >=
       decidingTarget - 5 &&
