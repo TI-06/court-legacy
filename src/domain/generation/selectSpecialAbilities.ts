@@ -70,12 +70,9 @@ function scoreAbility(
     categoryIndex === -1
       ? 0
       : (preferredCategories[position].length - categoryIndex) * 100_000;
+  const identity = [playerId, position, tier, ability.id].join(":");
 
-  return (
-    categoryBonus +
-    (hashString(\`\${playerId}:\${position}:\${tier}:\${ability.id}\`) %
-      100_000)
-  );
+  return categoryBonus + (hashString(identity) % 100_000);
 }
 
 function rankCandidates(
@@ -94,9 +91,9 @@ export function selectInitialSpecialAbilityIds(
   input: InitialSpecialAbilityInput,
 ): string[] {
   const positiveRoll =
-    hashString(\`\${input.playerId}:special-positive\`) % 100;
+    hashString([input.playerId, "special-positive"].join(":")) % 100;
   const negativeRoll =
-    hashString(\`\${input.playerId}:special-negative\`) % 100;
+    hashString([input.playerId, "special-negative"].join(":")) % 100;
   const positiveCount =
     positiveRoll < positiveChanceByTier[input.tier]
       ? Math.max(1, positiveCountByTier[input.tier])
