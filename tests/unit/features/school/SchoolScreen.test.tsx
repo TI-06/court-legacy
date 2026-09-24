@@ -348,6 +348,42 @@ describe("school management screen", () => {
     ).toBeVisible();
   });
 
+  it("keeps long-run graduate history compact and opens the full list on demand", () => {
+    const state = createState();
+    const playerIds = state.schools[state.userSchoolId]!.playerIds.slice(0, 7);
+    state.history.graduates = playerIds.map((playerId, index) => {
+      const player = state.players[playerId]!;
+      return {
+        playerId,
+        schoolId: state.userSchoolId,
+        graduationYear: 2032 - index,
+        displayName: `${player.lastName} ${player.firstName}`,
+        position: player.preferredPosition,
+        appearances: 10 + index,
+        points: 100 + index,
+        blocks: 20 + index,
+        serviceAces: 5 + index,
+        awardIds: [],
+      };
+    });
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    fireEvent.click(screen.getByRole("tab", { name: "記録" }));
+    fireEvent.click(screen.getByRole("tab", { name: "歴史" }));
+
+    const alumni = screen.getByRole("region", { name: "卒業生記録" });
+    expect(within(alumni).getAllByTestId("school-alumni-row")).toHaveLength(3);
+    expect(
+      within(alumni).getByRole("button", { name: "卒業生7人をすべて見る" }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(alumni).getByRole("button", { name: "卒業生7人をすべて見る" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "卒業生一覧" });
+    expect(within(dialog).getAllByTestId("school-alumni-row")).toHaveLength(7);
+  });
+
   it("shows graduate history inside records", () => {
     const state = createState();
     const player =
