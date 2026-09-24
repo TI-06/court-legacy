@@ -90,6 +90,18 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     page.getByRole("button", { name: "ローテーション1を変更" }),
   ).toBeVisible();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
+  await expect(page.getByTestId("court-player").first()).toContainText(
+    /調子 \d+/,
+  );
+  await expect(page.getByTestId("court-player").first()).toContainText(
+    /疲労 \d+/,
+  );
+  await expect(page.getByTestId("bench-player").first()).toContainText(
+    /調子 \d+/,
+  );
+  await expect(page.getByTestId("bench-player").first()).toContainText(
+    /疲労 \d+/,
+  );
   const firstBenchPlayer = page.getByTestId("bench-player").first();
   await expect(
     firstBenchPlayer.getByRole("button", { name: /を起用$/ }),

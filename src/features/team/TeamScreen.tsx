@@ -77,6 +77,54 @@ function playerOverall(player: Player): number {
   return Math.round(calculatePlayerDisplayPower(player) / 100);
 }
 
+function readinessTone(
+  metric: "condition" | "fatigue",
+  value: number,
+): "good" | "neutral" | "warn" | "danger" {
+  if (metric === "condition") {
+    if (value >= 70) return "good";
+    if (value >= 50) return "neutral";
+    if (value >= 30) return "warn";
+    return "danger";
+  }
+
+  if (value <= 25) return "good";
+  if (value <= 45) return "neutral";
+  if (value <= 65) return "warn";
+  return "danger";
+}
+
+function PlayerReadiness({
+  player,
+  compact = false,
+}: {
+  player: Player;
+  compact?: boolean;
+}) {
+  return (
+    <span
+      className={
+        compact
+          ? "player-readiness player-readiness--compact"
+          : "player-readiness"
+      }
+    >
+      <small
+        data-tone={
+          player.injury
+            ? "danger"
+            : readinessTone("condition", player.condition)
+        }
+      >
+        {player.injury ? "怪我" : `調子 ${Math.round(player.condition)}`}
+      </small>
+      <small data-tone={readinessTone("fatigue", player.fatigue)}>
+        疲労 {Math.round(player.fatigue)}
+      </small>
+    </span>
+  );
+}
+
 function cloneSelection(selection: TeamSelection): TeamSelection {
   return {
     rotation: selection.rotation.map((assignment) => ({ ...assignment })),
@@ -543,15 +591,16 @@ export function TeamScreen({
                         {locked ? <small>固定</small> : null}
                       </span>
                       <strong>{player.lastName}</strong>
-                      <span>
-                        本{player.preferredPosition} 適
+                      <span className="court-player-button__meta">
+                        本{player.preferredPosition}・適
                         {
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
                           ]
-                        }{" "}
-                        総{playerOverall(player)}
+                        }
+                        ・総{playerOverall(player)}
                       </span>
+                      <PlayerReadiness compact player={player} />
                     </button>
                   </LineupDragSurface>
                 );
@@ -591,6 +640,7 @@ export function TeamScreen({
                         {player.grade}年・{player.preferredPosition}・総合
                         {playerOverall(player)}
                       </small>
+                      <PlayerReadiness compact player={player} />
                     </span>
                     <span aria-hidden="true">›</span>
                   </button>
@@ -629,9 +679,10 @@ export function TeamScreen({
                   >
                     <strong>{player.lastName}</strong>
                     <span>
-                      {player.preferredPosition}・{player.grade}年
+                      {player.preferredPosition}・{player.grade}年・総
+                      {playerOverall(player)}
                     </span>
-                    <small>総合 {playerOverall(player)}</small>
+                    <PlayerReadiness compact player={player} />
                     <button
                       aria-label={`${playerName(player)}を起用`}
                       className="bench-player-card__deploy"
@@ -732,7 +783,9 @@ export function TeamScreen({
               <div className="bench-deployment-sheet__player">
                 <span>
                   {benchDeployPlayer.grade}年・
-                  {benchDeployPlayer.preferredPosition}
+                  {benchDeployPlayer.preferredPosition}・調子
+                  {Math.round(benchDeployPlayer.condition)}・疲労
+                  {Math.round(benchDeployPlayer.fatigue)}
                 </span>
                 <strong>{playerName(benchDeployPlayer)}</strong>
                 <small>総合 {playerOverall(benchDeployPlayer)}</small>
@@ -1106,7 +1159,8 @@ export function TeamScreen({
                     <small>跳 {Math.round(abilities.jump)}</small>
                   </span>
                   <span className="team-picker-card__state">
-                    状態 {player.condition}・疲労 {player.fatigue}
+                    調子 {Math.round(player.condition)}・疲労{" "}
+                    {Math.round(player.fatigue)}
                   </span>
                   <span className="team-picker-card__action">入替</span>
                 </button>

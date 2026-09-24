@@ -1311,3 +1311,94 @@
     grid-area: action;
   }
 }
+
+/* Phase31-11: show lineup readiness without opening player detail. */
+.court-player-button__meta {
+  overflow: hidden;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-readiness {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 3px;
+}
+
+.player-readiness--compact {
+  gap: 2px;
+}
+
+.player-readiness small {
+  flex: 0 0 auto;
+  padding: 1px 3px;
+  color: #c4d2dc;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1.25;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.player-readiness small[data-tone="good"] {
+  color: #96e1b2;
+  background: rgb(51 181 121 / 11%);
+  border-color: rgb(51 181 121 / 24%);
+}
+
+.player-readiness small[data-tone="warn"] {
+  color: #ffd08e;
+  background: rgb(227 165 58 / 11%);
+  border-color: rgb(227 165 58 / 25%);
+}
+
+.player-readiness small[data-tone="danger"] {
+  color: #ff9f99;
+  background: rgb(227 72 72 / 12%);
+  border-color: rgb(227 72 72 / 27%);
+}
+
+.court-player-button > .player-readiness {
+  justify-content: center;
+  overflow: visible;
+  color: inherit;
+  font-size: inherit;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.libero-player-button__main .player-readiness {
+  justify-content: flex-start;
+  margin-top: 3px;
+}
+
+.bench-player-card > .player-readiness {
+  grid-area: overall;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+.team-picker-card__state {
+  color: #c7d5df;
+}
+
+@media (max-width: 350px) {
+  .court-player-button {
+    padding-inline: 2px;
+  }
+
+  .court-player-button__meta {
+    font-size: 8px;
+  }
+
+  .player-readiness small {
+    padding-inline: 2px;
+    font-size: 6px;
+  }
+}

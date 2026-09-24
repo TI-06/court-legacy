@@ -55,8 +55,19 @@ describe("team selection direct-touch UI", () => {
     expect(
       screen.getByRole("button", { name: "リベロを変更" }),
     ).toBeInTheDocument();
+    const courtPlayers = screen.getAllByTestId("court-player");
+    expect(courtPlayers).toHaveLength(6);
+    for (const courtPlayer of courtPlayers) {
+      expect(courtPlayer).toHaveTextContent(/調子 \d+/);
+      expect(courtPlayer).toHaveTextContent(/疲労 \d+/);
+    }
+
     const benchPlayers = screen.getAllByTestId("bench-player");
     expect(benchPlayers).toHaveLength(5);
+    for (const benchPlayer of benchPlayers) {
+      expect(benchPlayer).toHaveTextContent(/調子 \d+/);
+      expect(benchPlayer).toHaveTextContent(/疲労 \d+/);
+    }
     for (const benchPlayer of benchPlayers) {
       expect(
         within(benchPlayer).getByRole("button", { name: /を起用$/ }),
@@ -107,6 +118,12 @@ describe("team selection direct-touch UI", () => {
     expect(
       within(dialog).getByRole("button", { name: /先発固定/ }),
     ).toBeVisible();
+    for (const candidate of within(dialog).getAllByTestId(
+      "player-picker-option",
+    )) {
+      expect(candidate).toHaveTextContent(/調子 \d+/);
+      expect(candidate).toHaveTextContent(/疲労 \d+/);
+    }
   });
 
   it("manually replaces a court player without duplicate active players", async () => {
