@@ -13,12 +13,12 @@ export function surfaceWeeklyEvent(
   state: GameState,
   data: GameDataRegistry,
 ): GameState {
-  if (
-    state.pendingEvent ||
-    (state.calendar.weekOfYear % 3 !== 0 && !hasDueFollowUp(state))
-  ) {
+  const normalEventCadence = state.calendar.weekOfYear % 3 === 0;
+  if (state.pendingEvent || (!normalEventCadence && !hasDueFollowUp(state))) {
     return state;
   }
   const random = new SeededRandom(state.seed, state.randomCursor);
-  return selectNextEvent(state, data, random).state;
+  return selectNextEvent(state, data, random, {
+    allowNormalEvent: normalEventCadence,
+  }).state;
 }
