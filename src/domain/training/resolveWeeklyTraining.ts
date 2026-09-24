@@ -7,6 +7,11 @@ import type { GameState } from "../model/GameState";
 import { ABILITY_KEYS, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
+import {
+  adjustSpecialAbilityInjuryRisk,
+  getSpecialAbilityRecoveryValues,
+  getSpecialAbilityTrainingGrowthPercent,
+} from "../player/specialAbilityDevelopmentModifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
 import type {
@@ -192,13 +197,25 @@ function applyActivity(
 
   const growthType = data.growthTypes.get(player.growthTypeId)!;
   const personality = data.personalities.get(player.personalityId)!;
+  const specialAbilityGrowthPercent =
+    getSpecialAbilityTrainingGrowthPercent(player);
   const growth = calculateGrowth({
     baseGrowth: activity.baseGrowth,
     player,
     school,
     growthType,
     personality,
-    additionalModifiers: extra,
+    additionalModifiers:
+      specialAbilityGrowthPercent === 100
+        ? extra
+        : [
+            ...extra,
+            {
+              code: "special-ability-growth",
+              label: "特殊能力",
+              percent: specialAbilityGrowthPercent,
+            },
+          ],
   });
   const targets = balanced ? ABILITY_KEYS : activity.targetAbilities;
   const amount = balanced
@@ -209,12 +226,15 @@ function applyActivity(
   const ability = applyGrowth(player, targets, amount);
   const conditionChange = getWeeklyConditionDrift(random);
   const trust = trustChange(activity.trustGrowth, personality);
-  const risk = calculatePhase12InjuryRisk({
-    baseRisk: activity.injuryRisk,
-    condition: player.condition,
-    injuryResistance: player.injuryResistance ?? 50,
-    recoveryRoomLevel: school.facilities.recoveryRoom,
-  });
+  const risk = adjustSpecialAbilityInjuryRisk(
+    player,
+    calculatePhase12InjuryRisk({
+      baseRisk: activity.injuryRisk,
+      condition: player.condition,
+      injuryResistance: player.injuryResistance ?? 50,
+      recoveryRoomLevel: school.facilities.recoveryRoom,
+    }),
+  );
   const injury =
     risk > 0 && random.int(1, 100) <= risk ? createInjury(risk, random) : null;
 
@@ -381,7 +401,10 @@ export function resolveWeeklyTraining(
 
     if (instruction.id === "instruction.rest") {
       const drift = getWeeklyConditionDrift(input.random);
-      const nextCondition = clampState(original.condition + 25 + drift);
+      const recovery = getSpecialAbilityRecoveryValues(original);
+      const nextCondition = clampState(
+        original.condition + 25 + recovery.restConditionBonus + drift,
+      );
       log.conditionChange = nextCondition - original.condition;
       players[id] = { ...original, condition: nextCondition };
       logs.push(log);
