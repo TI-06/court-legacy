@@ -6,10 +6,7 @@ import {
   type SpecialAbilityCategory,
 } from "./specialAbilities";
 
-export type SpecialAbilityProgressKind =
-  | "tip"
-  | "learned"
-  | "negative-removed";
+export type SpecialAbilityProgressKind = "tip" | "learned" | "negative-removed";
 
 export interface SpecialAbilityProgress {
   playerId: PlayerId;
