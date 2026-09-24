@@ -142,6 +142,7 @@ export function SchoolScreen({
     useState<FacilityUpgradeLevels>(1);
   const [facilityUpgradePending, setFacilityUpgradePending] = useState(false);
   const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
+  const [recentMatchesOpen, setRecentMatchesOpen] = useState(false);
   const [alumniHistoryOpen, setAlumniHistoryOpen] = useState(false);
   const [coachSpecialties, setCoachSpecialties] = useState<
     Partial<Record<AssistantCoachRank, AssistantCoachSpecialty>>
@@ -178,6 +179,7 @@ export function SchoolScreen({
     );
   }
 
+  const recentMatchPreview = recentMatches.slice(0, 3);
   const graduates = state.history.graduates
     .filter((graduate) => graduate.schoolId === school.id)
     .sort(
@@ -596,41 +598,54 @@ export function SchoolScreen({
               {recentMatches.length === 0 ? (
                 <p className="school-empty-state">試合記録はまだありません</p>
               ) : (
-                <div className="school-match-list">
-                  {recentMatches.map((match) => {
-                    const home = match.homeSchoolId === school.id;
-                    const opponentId = home
-                      ? match.awaySchoolId
-                      : match.homeSchoolId;
-                    const opponent = state.schools[opponentId]!;
-                    const userSets = home
-                      ? match.homeSetsWon
-                      : match.awaySetsWon;
-                    const opponentSets = home
-                      ? match.awaySetsWon
-                      : match.homeSetsWon;
-                    const won = match.winnerSchoolId === school.id;
-                    return (
-                      <article
-                        className="school-match-record"
-                        data-testid="school-match-record"
-                        key={match.matchId}
-                      >
-                        <div>
-                          <time>{formatDate(match.date)}</time>
-                          <strong>{opponent.name}</strong>
-                        </div>
-                        <span
-                          className={
-                            won ? "school-result--win" : "school-result--loss"
-                          }
+                <>
+                  <div className="school-match-list">
+                    {recentMatchPreview.map((match) => {
+                      const home = match.homeSchoolId === school.id;
+                      const opponentId = home
+                        ? match.awaySchoolId
+                        : match.homeSchoolId;
+                      const opponent = state.schools[opponentId]!;
+                      const userSets = home
+                        ? match.homeSetsWon
+                        : match.awaySetsWon;
+                      const opponentSets = home
+                        ? match.awaySetsWon
+                        : match.homeSetsWon;
+                      const won = match.winnerSchoolId === school.id;
+                      return (
+                        <article
+                          className="school-match-record"
+                          data-testid="school-match-record"
+                          key={match.matchId}
                         >
-                          {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
-                        </span>
-                      </article>
-                    );
-                  })}
-                </div>
+                          <div>
+                            <time>{formatDate(match.date)}</time>
+                            <strong>{opponent.name}</strong>
+                          </div>
+                          <span
+                            className={
+                              won ? "school-result--win" : "school-result--loss"
+                            }
+                          >
+                            {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
+                          </span>
+                        </article>
+                      );
+                    })}
+                  </div>
+                  {recentMatches.length > recentMatchPreview.length ? (
+                    <button
+                      aria-label={`直近${recentMatches.length}試合をすべて見る`}
+                      className="school-match-list__all"
+                      onClick={() => setRecentMatchesOpen(true)}
+                      type="button"
+                    >
+                      <span>すべての試合</span>
+                      <b aria-hidden="true">›</b>
+                    </button>
+                  ) : null}
+                </>
               )}
             </div>
           ) : null}
@@ -692,6 +707,42 @@ export function SchoolScreen({
           ) : null}
         </section>
       ) : null}
+
+      <BottomSheet
+        className="ui-bottom-sheet--game-choice"
+        description={`直近${recentMatches.length}試合の結果です。`}
+        onClose={() => setRecentMatchesOpen(false)}
+        open={recentMatchesOpen}
+        title="直近の試合一覧"
+      >
+        <div className="school-match-list school-match-list--sheet">
+          {recentMatches.map((match) => {
+            const home = match.homeSchoolId === school.id;
+            const opponentId = home ? match.awaySchoolId : match.homeSchoolId;
+            const opponent = state.schools[opponentId]!;
+            const userSets = home ? match.homeSetsWon : match.awaySetsWon;
+            const opponentSets = home ? match.awaySetsWon : match.homeSetsWon;
+            const won = match.winnerSchoolId === school.id;
+            return (
+              <article
+                className="school-match-record"
+                data-testid="school-match-record"
+                key={`all-${match.matchId}`}
+              >
+                <div>
+                  <time>{formatDate(match.date)}</time>
+                  <strong>{opponent.name}</strong>
+                </div>
+                <span
+                  className={won ? "school-result--win" : "school-result--loss"}
+                >
+                  {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
+                </span>
+              </article>
+            );
+          })}
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         className="ui-bottom-sheet--game-choice"

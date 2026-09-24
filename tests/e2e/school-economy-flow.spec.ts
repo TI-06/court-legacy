@@ -164,6 +164,24 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await recordTabs.getByRole("tab", { name: "戦績" }).click();
     await expect(page.getByTestId("school-record-results")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
+    if (width <= 360) {
+      expect(
+        await page.getByTestId("school-match-record").count(),
+      ).toBeLessThanOrEqual(3);
+      const allMatches = page.getByRole("button", {
+        name: /直近\d+試合をすべて見る/,
+      });
+      if (await allMatches.isVisible()) {
+        await allMatches.click();
+        await expect(
+          page.getByRole("dialog", { name: "直近の試合一覧" }),
+        ).toBeVisible();
+        await page
+          .getByRole("dialog", { name: "直近の試合一覧" })
+          .getByRole("button", { name: "閉じる" })
+          .click();
+      }
+    }
 
     await recordTabs.getByRole("tab", { name: "歴史" }).click();
     await expect(
