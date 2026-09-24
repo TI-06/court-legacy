@@ -24,7 +24,7 @@ const preferredCategories: Record<
 };
 
 const positiveCountByTier: Record<PlayerTier, number> = {
-  normal: 0,
+  normal: 1,
   promising: 1,
   prospect: 1,
   elite: 2,
@@ -49,6 +49,23 @@ const negativeChanceByTier: Record<PlayerTier, number> = {
   generational: 6,
   monster: 4,
 };
+
+const positiveCandidatesByPosition = Object.fromEntries(
+  (["OH", "MB", "OP", "S", "L"] as const).map((position) => {
+    const preferred = new Set(preferredCategories[position]);
+    return [
+      position,
+      SPECIAL_ABILITIES.filter(
+        (ability) =>
+          ability.kind === "positive" && preferred.has(ability.category),
+      ),
+    ];
+  }),
+) as Record<Position, readonly SpecialAbilityDefinition[]>;
+
+const negativeCandidates = SPECIAL_ABILITIES.filter(
+  (ability) => ability.kind === "negative",
+);
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -75,16 +92,66 @@ function scoreAbility(
   return categoryBonus + (hashString(identity) % 100_000);
 }
 
-function rankCandidates(
+function selectTopPositiveIds(
   input: InitialSpecialAbilityInput,
-  kind: "positive" | "negative",
-): SpecialAbilityDefinition[] {
-  return SPECIAL_ABILITIES.filter((ability) => ability.kind === kind).sort(
-    (left, right) =>
-      scoreAbility(input.playerId, input.position, input.tier, right) -
-        scoreAbility(input.playerId, input.position, input.tier, left) ||
-      left.id.localeCompare(right.id),
-  );
+  count: number,
+): string[] {
+  if (count <= 0) return [];
+
+  const selected: Array<{
+    id: string;
+    score: number;
+  }> = [];
+
+  for (const ability of positiveCandidatesByPosition[input.position]) {
+    const score = scoreAbility(
+      input.playerId,
+      input.position,
+      input.tier,
+      ability,
+    );
+    let insertAt = selected.findIndex(
+      (candidate) =>
+        score > candidate.score ||
+        (score === candidate.score && ability.id < candidate.id),
+    );
+    if (insertAt === -1) insertAt = selected.length;
+    if (insertAt >= count) continue;
+
+    selected.splice(insertAt, 0, { id: ability.id, score });
+    if (selected.length > count) {
+      selected.pop();
+    }
+  }
+
+  return selected.map((candidate) => candidate.id);
+}
+
+function selectNegativeId(
+  input: InitialSpecialAbilityInput,
+): string | undefined {
+  let selected: SpecialAbilityDefinition | undefined;
+  let selectedScore = Number.NEGATIVE_INFINITY;
+
+  for (const ability of negativeCandidates) {
+    const score = scoreAbility(
+      input.playerId,
+      input.position,
+      input.tier,
+      ability,
+    );
+    if (
+      score > selectedScore ||
+      (score === selectedScore &&
+        selected !== undefined &&
+        ability.id < selected.id)
+    ) {
+      selected = ability;
+      selectedScore = score;
+    }
+  }
+
+  return selected?.id;
 }
 
 export function selectInitialSpecialAbilityIds(
@@ -94,20 +161,16 @@ export function selectInitialSpecialAbilityIds(
     hashString([input.playerId, "special-positive"].join(":")) % 100;
   const negativeRoll =
     hashString([input.playerId, "special-negative"].join(":")) % 100;
+
   const positiveCount =
     positiveRoll < positiveChanceByTier[input.tier]
-      ? Math.max(1, positiveCountByTier[input.tier])
+      ? positiveCountByTier[input.tier]
       : 0;
-
-  const selected = rankCandidates(input, "positive")
-    .slice(0, positiveCount)
-    .map((ability) => ability.id);
+  const selected = selectTopPositiveIds(input, positiveCount);
 
   if (negativeRoll < negativeChanceByTier[input.tier]) {
-    const negative = rankCandidates(input, "negative")[0];
-    if (negative) {
-      selected.push(negative.id);
-    }
+    const negativeId = selectNegativeId(input);
+    if (negativeId) selected.push(negativeId);
   }
 
   return selected;
