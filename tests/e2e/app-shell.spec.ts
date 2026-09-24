@@ -90,10 +90,12 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     page.getByRole("button", { name: "ローテーション1を変更" }),
   ).toBeVisible();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
-  const benchRailSize = await page.locator(".bench-rail").evaluate((element) => ({
-    clientWidth: element.clientWidth,
-    scrollWidth: element.scrollWidth,
-  }));
+  const benchRailSize = await page
+    .locator(".bench-rail")
+    .evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
   expect(benchRailSize.scrollWidth).toBeLessThanOrEqual(
     benchRailSize.clientWidth + 1,
   );
