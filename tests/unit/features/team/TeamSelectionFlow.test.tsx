@@ -55,7 +55,40 @@ describe("team selection direct-touch UI", () => {
     expect(
       screen.getByRole("button", { name: "リベロを変更" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByTestId("bench-player")).toHaveLength(5);
+    const benchPlayers = screen.getAllByTestId("bench-player");
+    expect(benchPlayers).toHaveLength(5);
+    for (const benchPlayer of benchPlayers) {
+      expect(
+        within(benchPlayer).getByRole("button", { name: /を起用$/ }),
+      ).toBeVisible();
+    }
+  });
+
+  it("taps a bench player and chooses the court slot to swap into", async () => {
+    render(<App />);
+    await openLineupScreen();
+
+    const benchPlayer = screen.getAllByTestId("bench-player")[0]!;
+    fireEvent.click(
+      within(benchPlayer).getByRole("button", { name: /を起用$/ }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: /の起用先$/ });
+    expect(
+      within(dialog).getByRole("button", { name: "ローテーション1へ起用" }),
+    ).toBeVisible();
+    expect(
+      within(dialog).getByRole("button", { name: "リベロへ起用" }),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "ローテーション1へ起用" }),
+    );
+
+    expect(screen.queryByRole("dialog", { name: /の起用先$/ })).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByText("編成は有効です")).toBeInTheDocument(),
+    );
   });
 
   it("opens only available replacements and starter lock in the slot editor", async () => {
