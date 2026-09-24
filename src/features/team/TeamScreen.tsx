@@ -134,6 +134,8 @@ export function TeamScreen({
     Partial<Record<SavedLineupSlot, string>>
   >({});
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
+  const [benchDeployPlayerId, setBenchDeployPlayerId] =
+    useState<PlayerId | null>(null);
   const [lineupSettingsView, setLineupSettingsView] =
     useState<LineupSettingsView>(null);
   const [activePlacement, setActivePlacement] = useState<TeamPlacement | null>(
@@ -186,6 +188,17 @@ export function TeamScreen({
   const activeDragPlayerId = placementPlayerId(selection, activePlacement);
   const activeDragPlayer = activeDragPlayerId
     ? playerById[activeDragPlayerId]
+    : null;
+  const benchDeployPlayer = benchDeployPlayerId
+    ? playerById[benchDeployPlayerId]
+    : null;
+  const benchDeployBestAptitude = benchDeployPlayer
+    ? Math.max(
+        ...Object.values(ROTATION_ROLES).map(
+          (role) => benchDeployPlayer.positionAptitudes[role],
+        ),
+        benchDeployPlayer.positionAptitudes.L,
+      )
     : null;
 
   const savedLineupName = (
@@ -272,6 +285,20 @@ export function TeamScreen({
       );
     emitSelection(next);
     setPickerTarget(null);
+  };
+
+  const deployBenchPlayer = (
+    target: { type: "rotation"; slot: RotationSlot } | { type: "libero" },
+  ) => {
+    if (pending || !benchDeployPlayerId) return;
+    const next = repositionTeamSelection({
+      selection,
+      source: { type: "bench", playerId: benchDeployPlayerId },
+      target,
+    });
+    if (!next) return;
+    emitSelection(next);
+    setBenchDeployPlayerId(null);
   };
 
   const toggleStarterLock = (playerId: PlayerId) => {
@@ -605,6 +632,19 @@ export function TeamScreen({
                       {player.preferredPosition}・{player.grade}年
                     </span>
                     <small>総合 {playerOverall(player)}</small>
+                    <button
+                      aria-label={`${playerName(player)}を起用`}
+                      className="bench-player-card__deploy"
+                      disabled={pending}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setBenchDeployPlayerId(player.id);
+                      }}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      type="button"
+                    >
+                      起用
+                    </button>
                   </article>
                 </LineupDragSurface>
               );
@@ -675,6 +715,99 @@ export function TeamScreen({
             ))}
           </section>
         ) : null}
+
+        <BottomSheet
+          className="ui-bottom-sheet--game-choice"
+          description="起用するコート枠を選ぶと、現在の選手とその場で入れ替わります。"
+          onClose={() => setBenchDeployPlayerId(null)}
+          open={Boolean(benchDeployPlayer)}
+          title={
+            benchDeployPlayer
+              ? `${playerName(benchDeployPlayer)}の起用先`
+              : "起用先"
+          }
+        >
+          {benchDeployPlayer ? (
+            <div className="bench-deployment-sheet">
+              <div className="bench-deployment-sheet__player">
+                <span>
+                  {benchDeployPlayer.grade}年・
+                  {benchDeployPlayer.preferredPosition}
+                </span>
+                <strong>{playerName(benchDeployPlayer)}</strong>
+                <small>総合 {playerOverall(benchDeployPlayer)}</small>
+              </div>
+              <div className="bench-deployment-sheet__targets">
+                {selection.rotation.map((assignment) => {
+                  const role = ROTATION_ROLES[assignment.slot];
+                  const current = playerById[assignment.playerId];
+                  const aptitude = benchDeployPlayer.positionAptitudes[role];
+                  return (
+                    <button
+                      aria-label={`ローテーション${assignment.slot}へ起用`}
+                      className="bench-deployment-target"
+                      key={assignment.slot}
+                      onClick={() =>
+                        deployBenchPlayer({
+                          type: "rotation",
+                          slot: assignment.slot,
+                        })
+                      }
+                      type="button"
+                    >
+                      <span className="bench-deployment-target__slot">
+                        <small>ローテーション{assignment.slot}</small>
+                        <strong>{role}</strong>
+                      </span>
+                      <span className="bench-deployment-target__current">
+                        <small>現在</small>
+                        <strong>{current ? playerName(current) : "未設定"}</strong>
+                      </span>
+                      <span className="bench-deployment-target__aptitude">
+                        {aptitude === benchDeployBestAptitude ? (
+                          <b>おすすめ</b>
+                        ) : null}
+                        <strong>適性 {aptitude}</strong>
+                      </span>
+                      <i aria-hidden="true">入替 ›</i>
+                    </button>
+                  );
+                })}
+                {selection.liberoPlayerId ? (
+                  <button
+                    aria-label="リベロへ起用"
+                    className="bench-deployment-target"
+                    onClick={() => deployBenchPlayer({ type: "libero" })}
+                    type="button"
+                  >
+                    <span className="bench-deployment-target__slot">
+                      <small>守備専門</small>
+                      <strong>L</strong>
+                    </span>
+                    <span className="bench-deployment-target__current">
+                      <small>現在</small>
+                      <strong>
+                        {playerById[selection.liberoPlayerId]
+                          ? playerName(playerById[selection.liberoPlayerId]!)
+                          : "未設定"}
+                      </strong>
+                    </span>
+                    <span className="bench-deployment-target__aptitude">
+                      {benchDeployPlayer.positionAptitudes.L ===
+                      benchDeployBestAptitude ? (
+                        <b>おすすめ</b>
+                      ) : null}
+                      <strong>
+                        適性 {benchDeployPlayer.positionAptitudes.L}
+                      </strong>
+                    </span>
+                    <i aria-hidden="true">入替 ›</i>
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </BottomSheet>
 
         <BottomSheet
           className="ui-bottom-sheet--game-choice"
