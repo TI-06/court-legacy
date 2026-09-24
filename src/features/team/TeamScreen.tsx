@@ -761,7 +761,9 @@ export function TeamScreen({
                       </span>
                       <span className="bench-deployment-target__current">
                         <small>現在</small>
-                        <strong>{current ? playerName(current) : "未設定"}</strong>
+                        <strong>
+                          {current ? playerName(current) : "未設定"}
+                        </strong>
                       </span>
                       <span className="bench-deployment-target__aptitude">
                         {aptitude === benchDeployBestAptitude ? (
