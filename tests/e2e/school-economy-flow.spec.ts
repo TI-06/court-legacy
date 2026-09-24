@@ -165,9 +165,9 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(page.getByTestId("school-record-results")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
-      expect(await page.getByTestId("school-match-record").count()).toBeLessThanOrEqual(
-        3,
-      );
+      expect(
+        await page.getByTestId("school-match-record").count(),
+      ).toBeLessThanOrEqual(3);
       const allMatches = page.getByRole("button", {
         name: /直近\d+試合をすべて見る/,
       });
