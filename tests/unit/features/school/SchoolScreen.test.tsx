@@ -53,9 +53,10 @@ describe("school management screen", () => {
 
     render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
 
-    expect(screen.getByText("強化可能 8/8")).toBeVisible();
-    expect(screen.getByText("資金 750")).toBeVisible();
-    expect(screen.getAllByTestId("facility-tile")).toHaveLength(8);
+    const facilities = screen.getByRole("region", { name: "設備" });
+    expect(within(facilities).getByText("強化可能 8/8")).toBeVisible();
+    expect(within(facilities).getByText("資金 750")).toBeVisible();
+    expect(within(facilities).getAllByTestId("facility-tile")).toHaveLength(8);
     expect(screen.getByText("トレーニング")).toBeVisible();
     expect(screen.getByText("回復")).toBeVisible();
     expect(screen.getByText("学習")).toBeVisible();
@@ -66,6 +67,50 @@ describe("school management screen", () => {
     });
     expect(training).toHaveClass("facility-tile--available");
     expect(within(training).getByText("Lv.0 / 50")).toBeVisible();
+  });
+
+  it("shows four coach choices in a compact command grid and contracts from a focused detail sheet", () => {
+    const state = createState();
+    const onContractAssistantCoach = vi.fn();
+
+    render(
+      <SchoolScreen
+        onContractAssistantCoach={onContractAssistantCoach}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "コーチ" }));
+
+    const staff = screen.getByRole("region", { name: "スタッフ" });
+    expect(within(staff).getByText("4候補")).toBeVisible();
+    expect(within(staff).getByText("資金 750")).toBeVisible();
+    expect(
+      within(staff).getByText("現在契約中のコーチはいません"),
+    ).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-beginner")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-intermediate")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-advanced")).toBeVisible();
+    expect(screen.getByTestId("assistant-coach-master")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "中級コーチの詳細" }));
+    const dialog = screen.getByRole("dialog", { name: "中級コーチ" });
+    const specialty = within(dialog).getByRole("group", {
+      name: "中級コーチの専門",
+    });
+    fireEvent.click(within(specialty).getByRole("button", { name: "攻撃" }));
+    expect(
+      within(specialty).getByRole("button", { name: "攻撃" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "中級コーチと年間契約" }),
+    );
+    expect(onContractAssistantCoach).toHaveBeenCalledWith(
+      "intermediate",
+      "attack",
+    );
   });
 
   it("switches School management between facilities and coaches", () => {

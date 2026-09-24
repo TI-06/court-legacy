@@ -83,6 +83,19 @@ async function expectFacilityGridAboveNavigation(page: Page) {
   );
 }
 
+async function expectCoachGridAboveNavigation(page: Page) {
+  const grid = page.locator(".assistant-coach-grid");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const gridBox = await grid.boundingBox();
+  const navigationBox = await navigation.boundingBox();
+
+  expect(gridBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect((gridBox?.y ?? 0) + (gridBox?.height ?? 0)).toBeLessThanOrEqual(
+    navigationBox?.y ?? 0,
+  );
+}
+
 for (const width of [320, 360, 390, 414, 480] as const) {
   test(`${width}px school management navigation fits`, async ({ page }) => {
     await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
@@ -107,7 +120,12 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(management.getByRole("tab")).toHaveCount(2);
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
+    await expect(page.getByText("4候補")).toBeVisible();
+    await expect(page.locator(".assistant-coach-card")).toHaveCount(4);
     await expectSchoolNoHorizontalOverflow(page);
+    if (width <= 360) {
+      await expectCoachGridAboveNavigation(page);
+    }
 
     await primary.getByRole("tab", { name: "記録" }).click();
     const recordTabs = page.getByRole("tablist", { name: "学校記録メニュー" });
