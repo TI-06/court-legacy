@@ -51,20 +51,25 @@ for (const width of [320, 360, 390, 414, 480]) {
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
     await page.getByRole("button", { name: "編成", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "保存編成" })).toBeVisible();
+    await page.getByRole("button", { name: "保存編成を開く" }).click();
+    const savedLineupDialog = page.getByRole("dialog", { name: "保存編成" });
+    await expect(savedLineupDialog).toBeVisible();
 
     for (const slot of [1, 2, 3]) {
-      await expect(page.getByTestId(`saved-lineup-slot-${slot}`)).toBeVisible();
+      await expect(
+        savedLineupDialog.getByTestId(`saved-lineup-slot-${slot}`),
+      ).toBeVisible();
     }
     await expectNoHorizontalOverflow(page);
 
-    const slot1 = page.getByTestId("saved-lineup-slot-1");
+    const slot1 = savedLineupDialog.getByTestId("saved-lineup-slot-1");
     await slot1.getByLabel("保存編成名 スロット1").fill("E2E編成");
     await slot1.getByRole("button", { name: "現在の編成を保存" }).click();
 
     await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
     await expect(slot1.getByText("使用可能", { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
+    await savedLineupDialog.getByRole("button", { name: "閉じる" }).click();
 
     await navigation.getByRole("button", { name: "試合", exact: true }).click();
     await expect(
