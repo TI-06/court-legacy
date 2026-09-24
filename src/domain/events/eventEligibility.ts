@@ -69,6 +69,20 @@ function playerMatchesTrigger(player: Player, trigger: EventTrigger): boolean {
   ) {
     return false;
   }
+  if (
+    trigger.requiredSpecialAbilityIds?.some(
+      (abilityId) => !(player.specialAbilityIds ?? []).includes(abilityId),
+    )
+  ) {
+    return false;
+  }
+  if (
+    trigger.excludedSpecialAbilityIds?.some((abilityId) =>
+      (player.specialAbilityIds ?? []).includes(abilityId),
+    )
+  ) {
+    return false;
+  }
   if (trigger.injuryState === "healthy" && player.injury) {
     return false;
   }
