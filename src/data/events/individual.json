@@ -134,6 +134,10 @@
             "amount": 3
           },
           {
+            "type": "special-ability-add",
+            "abilityId": "serve_unstable"
+          },
+          {
             "type": "morale-change",
             "amount": -3
           },
@@ -157,6 +161,15 @@
             "type": "ability-change",
             "ability": "serve",
             "amount": 1
+          },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
+          },
+          {
+            "type": "special-ability-remove",
+            "abilityId": "serve_unstable"
           },
           {
             "type": "trust-change",
@@ -313,6 +326,11 @@
             "type": "ability-change",
             "ability": "mental",
             "amount": 3
+          },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_clutch",
+            "amount": 1
           },
           {
             "type": "trust-change",
