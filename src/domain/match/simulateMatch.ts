@@ -14,6 +14,11 @@ import type { School, TeamTactics } from "../model/School";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { MatchId, PlayerId, SchoolId } from "../model/identifiers";
 import { getConditionMatchMultiplier } from "../player/playerCondition";
+import {
+  getServeSpecialAbilityAdjustment,
+  getSpecialAbilityAbilityDelta,
+  type MatchSpecialAbilitySituation,
+} from "../player/specialAbilityMatchModifiers";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import {
   applyMatchTacticPlan,
@@ -82,6 +87,7 @@ interface SideRuntime {
 
 interface RallyRuntime {
   setNumber: number;
+  bestOfSets: 3 | 5;
   homeScore: number;
   awayScore: number;
   servingSide: MatchSide;
@@ -115,6 +121,7 @@ interface AbilityContext {
   timeoutBoost: MatchRuntimeState["timeoutBoost"];
   attackerFocus?: MatchRuntimeState["attackerFocus"];
   encouragementBoost?: MatchRuntimeState["encouragementBoost"];
+  rallyRuntime?: RallyRuntime;
 }
 
 const ATTACK_POSITIONS: readonly Position[] = ["OH", "MB", "OP", "S"];
@@ -268,12 +275,63 @@ function encouragementAbilityMultiplier(
   return 1;
 }
 
+function matchSituationForPlayer(
+  player: Player,
+  context: AbilityContext | undefined,
+): MatchSpecialAbilitySituation | null {
+  const runtime = context?.rallyRuntime;
+  if (!runtime) return null;
+
+  if (player.career.schoolId === runtime.home.school.id) {
+    return {
+      ownScore: runtime.homeScore,
+      opponentScore: runtime.awayScore,
+      setNumber: runtime.setNumber,
+      bestOfSets: runtime.bestOfSets,
+    };
+  }
+  if (player.career.schoolId === runtime.away.school.id) {
+    return {
+      ownScore: runtime.awayScore,
+      opponentScore: runtime.homeScore,
+      setNumber: runtime.setNumber,
+      bestOfSets: runtime.bestOfSets,
+    };
+  }
+  return null;
+}
+
+function matchSituationForSide(
+  runtime: RallyRuntime,
+  side: MatchSide,
+): MatchSpecialAbilitySituation {
+  return side === "home"
+    ? {
+        ownScore: runtime.homeScore,
+        opponentScore: runtime.awayScore,
+        setNumber: runtime.setNumber,
+        bestOfSets: runtime.bestOfSets,
+      }
+    : {
+        ownScore: runtime.awayScore,
+        opponentScore: runtime.homeScore,
+        setNumber: runtime.setNumber,
+        bestOfSets: runtime.bestOfSets,
+      };
+}
+
 function effectiveAbility(
   player: Player,
   ability: keyof PlayerAbilities,
   context?: AbilityContext,
 ): number {
-  const base = player.abilities[ability] * readiness(player);
+  const situation = matchSituationForPlayer(player, context);
+  const specialAbilityDelta = situation
+    ? getSpecialAbilityAbilityDelta(player, ability, situation)
+    : 0;
+  const base =
+    clamp(player.abilities[ability] + specialAbilityDelta, 0, 100) *
+    readiness(player);
   const multiplier =
     timeoutAbilityMultiplier(player, ability, context) *
     encouragementAbilityMultiplier(player, ability, context);
@@ -604,10 +662,18 @@ function simulateRally(
   );
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
+  const serveSpecial = getServeSpecialAbilityAdjustment(
+    server,
+    matchSituationForSide(runtime, runtime.servingSide),
+  );
   const serveErrorChance = clamp(
-    0.024 + 50 * 0.00105 - serverStrength * 0.00024 + serveProfile.errorChance,
-    0.012,
-    0.17,
+    0.024 +
+      50 * 0.00105 -
+      serverStrength * 0.00024 +
+      serveProfile.errorChance +
+      serveSpecial.errorChanceDelta,
+    0.006,
+    0.2,
   );
 
   writer.push("serve", runtime, server.id, receiver.id, null, "serve.in-play");
@@ -630,9 +696,10 @@ function simulateRally(
     0.024 +
       (serverStrength - receiverStrength) * 0.00205 +
       50 * 0.00065 +
-      serveProfile.aceChance,
-    0.01,
-    0.25,
+      serveProfile.aceChance +
+      serveSpecial.aceChanceDelta,
+    0.006,
+    0.32,
   );
   if (random.next() < aceChance) {
     writer.events.at(-1)!.detailCode = "serve.ace";
@@ -650,7 +717,10 @@ function simulateRally(
 
   const receiveVariation = (random.next() - 0.5) * 18;
   const receiveQuality =
-    receiverStrength + serveProfile.receiveQuality + receiveVariation;
+    receiverStrength +
+    serveProfile.receiveQuality +
+    serveSpecial.receiveQualityDelta +
+    receiveVariation;
   writer.push(
     "receive",
     runtime,
@@ -1430,6 +1500,7 @@ function runUntilBoundary(
 
     const rallyRuntime: RallyRuntime = {
       setNumber: match.currentSetNumber,
+      bestOfSets: match.bestOfSets,
       homeScore: runtime.homeScore,
       awayScore: runtime.awayScore,
       servingSide: currentServingSide(match),
@@ -1454,6 +1525,7 @@ function runUntilBoundary(
         timeoutBoost: runtime.timeoutBoost,
         attackerFocus: runtime.attackerFocus,
         encouragementBoost: runtime.encouragementBoost,
+        rallyRuntime,
       },
     );
 
