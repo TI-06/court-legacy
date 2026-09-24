@@ -196,6 +196,36 @@ describe("game action route", () => {
     });
   });
 
+  it("accepts training camp result acknowledgement through the HTTP contract", async () => {
+    const snapshot = createSnapshot();
+    snapshot.state.shopEffects = {
+      trainingCampResult: {
+        sourceItemId: "training-camp",
+        scheduledDate: snapshot.state.date,
+        participantCount: 12,
+        grewPlayerCount: 10,
+        totalAbilityGrowth: 36,
+        topGrowth: [],
+        averageFatigueChange: 11.5,
+        injuredPlayerIds: [],
+      },
+    };
+    const store = createStore(snapshot);
+    const handler = createGameActionHandler(store);
+
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: { type: "acknowledge-training-camp-result" },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(persisted.state.shopEffects?.trainingCampResult).toBeUndefined();
+  });
+
   it("returns revision_conflict before applying a stale action", async () => {
     const store = createStore(createSnapshot(5));
     const handler = createGameActionHandler(store);

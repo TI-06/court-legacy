@@ -254,6 +254,7 @@ const gameActionSchema = z.discriminatedUnion("type", [
   z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
+  z.object({ type: z.literal("acknowledge-training-camp-result") }).strict(),
 ]);
 
 export const gameActionRequestSchema = z
