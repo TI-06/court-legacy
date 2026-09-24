@@ -144,7 +144,7 @@ describe("event resolution", () => {
     expect(result.state.eventMemory.occurredCareerKeys).toHaveLength(1);
   });
 
-  it("applies special ability tips and negative abilities through random events", () => {
+  it("applies special ability event effects", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const player = school.playerIds[0];
@@ -170,12 +170,11 @@ describe("event resolution", () => {
       new SeededRandom(state.seed, state.randomCursor),
     );
 
-    expect(result.state.players[player]!.specialAbilityTipLevels).toMatchObject({
+    const updatedPlayer = result.state.players[player]!;
+    expect(updatedPlayer.specialAbilityTipLevels).toMatchObject({
       attack_course: 2,
     });
-    expect(result.state.players[player]!.specialAbilityIds).toContain(
-      "serve_unstable",
-    );
+    expect(updatedPlayer.specialAbilityIds).toContain("serve_unstable");
     expect(result.occurrence.visibleResultCodes).toEqual(
       expect.arrayContaining(["コース打ち○ コツ +2", "サーブ不安定 習得"]),
     );
