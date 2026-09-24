@@ -50,6 +50,10 @@ const effectEvent: EventDefinition = {
           weeks: 2,
           recurrenceRisk: 10,
         },
+        {
+          type: "special-ability-remove",
+          abilityId: "physical_injury_prone",
+        },
       ],
     },
     {
@@ -57,6 +61,22 @@ const effectEvent: EventDefinition = {
       label: "全額支出",
       detail: "所持資金を超える支出を確認する。",
       effects: [{ type: "funds-change", amount: -99999 }],
+    },
+    {
+      id: "special",
+      label: "特殊能力",
+      detail: "特殊能力のコツと赤特付与を確認する。",
+      effects: [
+        {
+          type: "special-ability-tip",
+          abilityId: "attack_course",
+          amount: 2,
+        },
+        {
+          type: "special-ability-add",
+          abilityId: "serve_unstable",
+        },
+      ],
     },
   ],
 };
@@ -122,6 +142,76 @@ describe("event resolution", () => {
     expect(result.occurrence.visibleResultCodes).toContain("連携 +8");
     expect(result.state.eventMemory.scheduledFollowUps).toHaveLength(1);
     expect(result.state.eventMemory.occurredCareerKeys).toHaveLength(1);
+  });
+
+  it("applies special ability tips and negative abilities through random events", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const player = school.playerIds[0];
+    if (!player) {
+      throw new Error("player missing");
+    }
+    state.players[player]!.specialAbilityIds = [];
+    state.players[player]!.specialAbilityTipLevels = {};
+    state.pendingEvent = {
+      eventId: eventId(effectEvent.id),
+      actorPlayerIds: [player],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["special"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "special",
+      registryWithFixture(),
+      new SeededRandom(state.seed, state.randomCursor),
+    );
+
+    expect(result.state.players[player]!.specialAbilityTipLevels).toMatchObject({
+      attack_course: 2,
+    });
+    expect(result.state.players[player]!.specialAbilityIds).toContain(
+      "serve_unstable",
+    );
+    expect(result.occurrence.visibleResultCodes).toEqual(
+      expect.arrayContaining(["コース打ち○ コツ +2", "サーブ不安定 習得"]),
+    );
+  });
+
+  it("can remove a negative special ability through an event choice", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const player = school.playerIds[0];
+    if (!player) {
+      throw new Error("player missing");
+    }
+    state.players[player]!.specialAbilityIds = ["physical_injury_prone"];
+    state.pendingEvent = {
+      eventId: eventId(effectEvent.id),
+      actorPlayerIds: [player],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["injury"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "injury",
+      registryWithFixture(),
+      new SeededRandom(state.seed, state.randomCursor),
+    );
+
+    expect(result.state.players[player]!.specialAbilityIds).not.toContain(
+      "physical_injury_prone",
+    );
+    expect(result.occurrence.visibleResultCodes).toContain(
+      "怪我しやすい 克服",
+    );
   });
 
   it("floors an oversized event debit at zero and records only the applied debit", () => {
