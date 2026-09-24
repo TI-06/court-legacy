@@ -211,6 +211,7 @@ describe("game state codec", () => {
         ],
         averageFatigueChange: 11.2,
         injuredPlayerIds: [],
+        specialAbilityChanges: [],
       },
     };
 
