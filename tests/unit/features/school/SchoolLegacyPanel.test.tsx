@@ -84,9 +84,9 @@ describe("SchoolLegacyPanel", () => {
     render(<SchoolLegacyPanel presentation={presentation} />);
 
     const legacy = screen.getByRole("region", { name: "対戦史" });
-    expect(within(legacy).getAllByTestId("school-legacy-opponent")).toHaveLength(
-      2,
-    );
+    expect(
+      within(legacy).getAllByTestId("school-legacy-opponent"),
+    ).toHaveLength(2);
     expect(
       within(legacy).getAllByTestId("school-legacy-notable-match"),
     ).toHaveLength(2);
@@ -98,9 +98,9 @@ describe("SchoolLegacyPanel", () => {
       within(legacy).getByRole("button", { name: "対戦史をすべて見る" }),
     );
     const dialog = screen.getByRole("dialog", { name: "対戦史一覧" });
-    expect(within(dialog).getAllByTestId("school-legacy-opponent")).toHaveLength(
-      5,
-    );
+    expect(
+      within(dialog).getAllByTestId("school-legacy-opponent"),
+    ).toHaveLength(5);
     expect(
       within(dialog).getAllByTestId("school-legacy-notable-match"),
     ).toHaveLength(5);
