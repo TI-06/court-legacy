@@ -1586,3 +1586,37 @@
   margin-top: 0;
   gap: 7px;
 }
+
+/* Phase31-9: compact recent match results with full-list drilldown. */
+.school-match-list__all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  margin-top: 7px;
+  padding: 6px 8px;
+  color: #cfe0ec;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 900;
+  background: rgb(46 139 216 / 8%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.school-match-list__all b {
+  color: #ffc08a;
+  font-size: 0.82rem;
+}
+
+.school-match-list--sheet {
+  margin-top: 0;
+  gap: 7px;
+}
+
+.school-match-list--sheet .school-match-record {
+  min-height: 42px;
+  padding: 8px 9px;
+}
+
