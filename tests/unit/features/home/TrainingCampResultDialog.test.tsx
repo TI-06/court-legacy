@@ -24,6 +24,14 @@ describe("TrainingCampResultDialog", () => {
       ],
       averageFatigueChange: 11.2,
       injuredPlayerIds: [],
+      specialAbilityChanges: [
+        {
+          playerId,
+          abilityId: "attack_course",
+          kind: "tip",
+          tipLevel: 2,
+        },
+      ],
     };
     const onAcknowledge = vi.fn();
 
@@ -52,6 +60,9 @@ describe("TrainingCampResultDialog", () => {
       screen.getByText(`${player.lastName} ${player.firstName}`),
     ).toBeVisible();
     expect(screen.getByText("+6")).toBeVisible();
+    expect(screen.getByText("特殊能力の変化")).toBeVisible();
+    expect(screen.getByText("コース打ち○")).toBeVisible();
+    expect(screen.getByText("コツ Lv.2")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "結果を確認した" }));
     expect(onAcknowledge).toHaveBeenCalledTimes(1);
