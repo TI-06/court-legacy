@@ -97,14 +97,14 @@ function effectDirection(effect: { type: string; amount?: number }): number {
 }
 
 describe("event catalog", () => {
-  it("contains 140 standalone events and 40 chain stages", () => {
+  it("contains 165 standalone events and 40 chain stages", () => {
     const events = completeRawGameData.events;
     const chainIds = new Set<string>(CHAIN_EVENT_IDS);
 
-    expect(events).toHaveLength(180);
+    expect(events).toHaveLength(205);
     expect(events.filter((event) => chainIds.has(event.id))).toHaveLength(40);
-    expect(events.filter((event) => !chainIds.has(event.id))).toHaveLength(140);
-    expect(new Set(events.map((event) => event.id)).size).toBe(180);
+    expect(events.filter((event) => !chainIds.has(event.id))).toHaveLength(165);
+    expect(new Set(events.map((event) => event.id)).size).toBe(205);
   });
 
   it("contains ten complete event chains", () => {
