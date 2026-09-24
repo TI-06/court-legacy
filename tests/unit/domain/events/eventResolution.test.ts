@@ -208,9 +208,7 @@ describe("event resolution", () => {
     expect(result.state.players[player]!.specialAbilityIds).not.toContain(
       "physical_injury_prone",
     );
-    expect(result.occurrence.visibleResultCodes).toContain(
-      "怪我しやすい 克服",
-    );
+    expect(result.occurrence.visibleResultCodes).toContain("怪我しやすい 克服");
   });
 
   it("floors an oversized event debit at zero and records only the applied debit", () => {
