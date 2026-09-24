@@ -53,6 +53,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Show Phase31-8 Prettier diff
+        run: |
+          npx prettier src/features/school/school-legacy.css src/features/school/SchoolLegacyPanel.tsx tests/unit/features/school/SchoolLegacyPanel.test.tsx --write
+          git diff -- src/features/school/school-legacy.css src/features/school/SchoolLegacyPanel.tsx tests/unit/features/school/SchoolLegacyPanel.test.tsx
+          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
