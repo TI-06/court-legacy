@@ -285,10 +285,19 @@ describe("school management screen", () => {
     expect(screen.getByTestId("school-record-results")).toBeVisible();
     expect(screen.queryByText("SCHOOL RECORDS")).toBeNull();
     const rows = screen.getAllByTestId("school-match-record");
-    expect(rows).toHaveLength(5);
+    expect(rows).toHaveLength(3);
     expect(rows[0]).toHaveTextContent("2026年4月6日");
     expect(rows[0]).toHaveTextContent(rivals[5]!.name);
+    expect(
+      screen.getByRole("button", { name: "直近5試合をすべて見る" }),
+    ).toBeVisible();
     expect(screen.queryByText(rivals[0]!.name)).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "直近5試合をすべて見る" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "直近の試合一覧" });
+    expect(within(dialog).getAllByTestId("school-match-record")).toHaveLength(5);
   });
 
   it("shows current season goals and regional/national ranking progression in records", () => {
