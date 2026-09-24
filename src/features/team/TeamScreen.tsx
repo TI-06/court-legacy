@@ -714,12 +714,13 @@ export function TeamScreen({
                     aria-label={`保存編成名 スロット${slotView.slot}`}
                     disabled={planningPending}
                     maxLength={24}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const nextName = event.currentTarget.value;
                       setSavedLineupNames((current) => ({
                         ...current,
-                        [slotView.slot]: event.currentTarget.value,
-                      }))
-                    }
+                        [slotView.slot]: nextName,
+                      }));
+                    }}
                     placeholder={`スロット${slotView.slot}の名前`}
                     type="text"
                     value={name}
