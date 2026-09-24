@@ -20,16 +20,14 @@ export interface SpecialAbilityProgressResult {
   changes: SpecialAbilityProgress[];
 }
 
-const POSITION_CATEGORIES: Record<
-  Position,
-  readonly SpecialAbilityCategory[]
-> = {
-  OH: ["attack", "serve", "receive", "mental", "physical"],
-  MB: ["block", "attack", "physical", "mental"],
-  OP: ["attack", "serve", "mental", "physical"],
-  S: ["set", "mental", "team", "physical"],
-  L: ["receive", "mental", "physical", "team"],
-};
+const POSITION_CATEGORIES: Record<Position, readonly SpecialAbilityCategory[]> =
+  {
+    OH: ["attack", "serve", "receive", "mental", "physical"],
+    MB: ["block", "attack", "physical", "mental"],
+    OP: ["attack", "serve", "mental", "physical"],
+    S: ["set", "mental", "team", "physical"],
+    L: ["receive", "mental", "physical", "team"],
+  };
 
 const MAX_SPECIAL_ABILITIES = 24;
 const MAX_SPECIAL_ABILITY_TIPS = 16;
