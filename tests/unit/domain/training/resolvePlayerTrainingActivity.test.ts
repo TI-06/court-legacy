@@ -36,6 +36,38 @@ describe("resolvePlayerTrainingActivity", () => {
     expect(r.log.fatigueChange).toBe(0);
     expect(player).toEqual(before);
   });
+  it("adds special ability growth and injury modifiers to training", () => {
+    const state = createDemoGame(),
+      school = state.schools[state.userSchoolId]!,
+      id = school.playerIds[0]!,
+      player = {
+        ...structuredClone(state.players[id]!),
+        condition: 60,
+        injuryResistance: 50,
+        specialAbilityIds: ["growth_motivation", "physical_injury_resist"],
+      };
+    const r = resolvePlayerTrainingActivity({
+      player,
+      school,
+      data,
+      random: new SeededRandom("development-special-abilities"),
+      activity: {
+        targetAbilities: ["spike", "jump"],
+        baseGrowth: 16,
+        fatigue: 0,
+        injuryRisk: 40,
+        trustGrowth: 0,
+      },
+    });
+
+    expect(r.log.modifiers).toContainEqual({
+      code: "special-ability-growth",
+      label: "特殊能力",
+      percent: 108,
+    });
+    expect(r.log.injuryRisk).toBeLessThan(40);
+  });
+
   it("skips injured players", () => {
     const state = createDemoGame(),
       school = state.schools[state.userSchoolId]!,
