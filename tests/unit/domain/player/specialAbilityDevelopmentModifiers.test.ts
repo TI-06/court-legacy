@@ -45,9 +45,7 @@ describe("special ability development modifiers", () => {
       progressPercent: 38,
       doubleTipPercent: 12,
     });
-    expect(
-      getSpecialAbilityTipChances(playerWith("growth_practice")),
-    ).toEqual({
+    expect(getSpecialAbilityTipChances(playerWith("growth_practice"))).toEqual({
       progressPercent: 50,
       doubleTipPercent: 20,
     });
