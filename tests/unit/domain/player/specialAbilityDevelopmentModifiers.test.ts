@@ -33,16 +33,10 @@ describe("special ability development modifiers", () => {
 
   it("moves training injury risk in the expected direction", () => {
     expect(
-      adjustSpecialAbilityInjuryRisk(
-        playerWith("physical_injury_resist"),
-        50,
-      ),
+      adjustSpecialAbilityInjuryRisk(playerWith("physical_injury_resist"), 50),
     ).toBe(35);
     expect(
-      adjustSpecialAbilityInjuryRisk(
-        playerWith("physical_injury_prone"),
-        50,
-      ),
+      adjustSpecialAbilityInjuryRisk(playerWith("physical_injury_prone"), 50),
     ).toBe(68);
   });
 
