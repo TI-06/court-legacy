@@ -98,9 +98,9 @@ describe("school archived season history", () => {
     render(<SchoolSeasonHistory presentations={presentations} />);
 
     const history = screen.getByRole("region", { name: "過去シーズン" });
-    expect(within(history).getAllByTestId("school-season-history-card")).toHaveLength(
-      3,
-    );
+    expect(
+      within(history).getAllByTestId("school-season-history-card"),
+    ).toHaveLength(3);
     expect(
       within(history).getByRole("button", { name: "過去7年分をすべて見る" }),
     ).toBeVisible();
