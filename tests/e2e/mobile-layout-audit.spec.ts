@@ -362,11 +362,7 @@ for (const viewport of mobileViewports) {
         .getByRole("button", { name: "閉じる" })
         .click();
       await page.getByRole("button", { name: "交代方針を開く" }).click();
-      await expectLayoutFits(
-        page,
-        testInfo,
-        `${viewport.width}-team-policy`,
-      );
+      await expectLayoutFits(page, testInfo, `${viewport.width}-team-policy`);
       await page
         .getByRole("dialog", { name: "交代方針" })
         .getByRole("button", { name: "閉じる" })
