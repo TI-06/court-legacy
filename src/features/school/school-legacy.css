@@ -263,9 +263,14 @@
 }
 
 .school-legacy__archive {
+  --line-subtle: rgb(255 255 255 / 9%);
+  --surface-raised: rgb(255 255 255 / 5%);
+  --surface-muted: rgb(46 139 216 / 11%);
+
   display: grid;
   min-width: 0;
   gap: 9px;
+  color: var(--game-text, #f4f7fb);
 }
 
 .school-legacy__archive .school-legacy__opponent {
