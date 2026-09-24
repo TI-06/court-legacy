@@ -1,5 +1,6 @@
 import type { Player } from "../model/Player";
 import type { GameDate, PlayerId } from "../model/identifiers";
+import { getSpecialAbilityRecoveryValues } from "../player/specialAbilityDevelopmentModifiers";
 
 export interface NextTrainingGrowthBoost {
   percent: 20;
@@ -97,8 +98,12 @@ export function applyFatigueRecovery(player: Player): FatigueRecoveryResult {
     throw new Error("fatigue recovery would be a no-op");
   }
 
-  const fatigue = Math.max(0, player.fatigue - 40);
-  const condition = Math.min(100, player.condition + 10);
+  const recovery = getSpecialAbilityRecoveryValues(player);
+  const fatigue = Math.max(0, player.fatigue - recovery.fatigueRecovery);
+  const condition = Math.min(
+    100,
+    player.condition + recovery.conditionRecovery,
+  );
 
   return {
     player: {
