@@ -18,6 +18,13 @@ export interface TrainingCampTopGrowth {
   abilityChanges: Partial<Record<keyof Player["abilities"], number>>;
 }
 
+export interface TrainingCampSpecialAbilityChange {
+  playerId: PlayerId;
+  abilityId: string;
+  kind: "tip" | "learned" | "negative-removed";
+  tipLevel?: 1 | 2;
+}
+
 export interface TrainingCampResult {
   sourceItemId: "training-camp";
   scheduledDate: GameDate;
@@ -27,6 +34,7 @@ export interface TrainingCampResult {
   topGrowth: TrainingCampTopGrowth[];
   averageFatigueChange: number;
   injuredPlayerIds: PlayerId[];
+  specialAbilityChanges?: TrainingCampSpecialAbilityChange[];
 }
 
 export interface ShopGameEffects {
