@@ -367,6 +367,21 @@ for (const viewport of mobileViewports) {
         .getByRole("dialog", { name: "交代方針" })
         .getByRole("button", { name: "閉じる" })
         .click();
+
+      await page
+        .getByTestId("bench-player")
+        .first()
+        .getByRole("button", { name: /を起用$/ })
+        .click();
+      await expectLayoutFits(
+        page,
+        testInfo,
+        `${viewport.width}-team-bench-deployment`,
+      );
+      await page
+        .getByRole("dialog", { name: /の起用先$/ })
+        .getByRole("button", { name: "閉じる" })
+        .click();
     }
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
