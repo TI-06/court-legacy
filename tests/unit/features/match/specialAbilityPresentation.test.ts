@@ -5,9 +5,7 @@ import {
   presentPlayerSpecialAbilities,
 } from "../../../../src/features/match/specialAbilityPresentation";
 
-function matchEvent(
-  overrides: Partial<MatchEvent> = {},
-): MatchEvent {
+function matchEvent(overrides: Partial<MatchEvent> = {}): MatchEvent {
   return {
     sequence: 1,
     type: "serve",
@@ -38,11 +36,7 @@ describe("special ability match presentation", () => {
 
     expect(
       presentPlayerSpecialAbilities(player, 3).map((ability) => ability.id),
-    ).toEqual([
-      "gold_serve_king",
-      "elite_serve_craftsman",
-      "serve_unstable",
-    ]);
+    ).toEqual(["gold_serve_king", "elite_serve_craftsman", "serve_unstable"]);
   });
 
   it("shows only own-player abilities relevant to the current volleyball action", () => {
