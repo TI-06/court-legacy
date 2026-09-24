@@ -152,10 +152,13 @@ for (const width of [320, 360, 390, 414, 480] as const) {
       await page
         .getByRole("button", { name: "県内周辺校を見る", exact: true })
         .click();
-      await expect(
-        page.getByRole("dialog", { name: "県内ランキング" }),
-      ).toBeVisible();
-      await page.getByRole("button", { name: "閉じる", exact: true }).click();
+      const rankingDialog = page.getByRole("dialog", {
+        name: "県内ランキング",
+      });
+      await expect(rankingDialog).toBeVisible();
+      await rankingDialog
+        .getByRole("button", { name: "閉じる", exact: true })
+        .click();
     }
 
     await recordTabs.getByRole("tab", { name: "戦績" }).click();
