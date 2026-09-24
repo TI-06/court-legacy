@@ -49,25 +49,31 @@ const negativeChanceByTier: Record<PlayerTier, number> = {
   monster: 4,
 };
 
-function positiveIdsFor(position: Position): string[] {
+function abilityIdsFor(
+  position: Position,
+  kind: "positive" | "negative",
+): string[] {
   const preferred = new Set(preferredCategories[position]);
   return SPECIAL_ABILITIES.filter(
-    (ability) =>
-      ability.kind === "positive" && preferred.has(ability.category),
+    (ability) => ability.kind === kind && preferred.has(ability.category),
   ).map((ability) => ability.id);
 }
 
 const positiveIdsByPosition: Record<Position, readonly string[]> = {
-  OH: positiveIdsFor("OH"),
-  MB: positiveIdsFor("MB"),
-  OP: positiveIdsFor("OP"),
-  S: positiveIdsFor("S"),
-  L: positiveIdsFor("L"),
+  OH: abilityIdsFor("OH", "positive"),
+  MB: abilityIdsFor("MB", "positive"),
+  OP: abilityIdsFor("OP", "positive"),
+  S: abilityIdsFor("S", "positive"),
+  L: abilityIdsFor("L", "positive"),
 };
 
-const negativeIds = SPECIAL_ABILITIES.filter(
-  (ability) => ability.kind === "negative",
-).map((ability) => ability.id);
+const negativeIdsByPosition: Record<Position, readonly string[]> = {
+  OH: abilityIdsFor("OH", "negative"),
+  MB: abilityIdsFor("MB", "negative"),
+  OP: abilityIdsFor("OP", "negative"),
+  S: abilityIdsFor("S", "negative"),
+  L: abilityIdsFor("L", "negative"),
+};
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -114,12 +120,13 @@ function selectPositiveIds(
 function selectNegativeId(
   input: InitialSpecialAbilityInput,
 ): string | undefined {
-  if (negativeIds.length === 0) return undefined;
+  const candidates = negativeIdsByPosition[input.position];
+  if (candidates.length === 0) return undefined;
   const index =
     hashString(
       [input.playerId, input.position, input.tier, "negative"].join(":"),
-    ) % negativeIds.length;
-  return negativeIds[index];
+    ) % candidates.length;
+  return candidates[index];
 }
 
 export function selectInitialSpecialAbilityIds(
