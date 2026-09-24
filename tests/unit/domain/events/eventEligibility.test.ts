@@ -85,20 +85,12 @@ describe("event eligibility", () => {
 
     expect(isEventEligibleForActors(state, event, [left, right])).toBe(false);
     expect(
-      isEventEligibleForActors(
-        state,
-        { ...event, actorCount: 1 },
-        [left],
-      ),
+      isEventEligibleForActors(state, { ...event, actorCount: 1 }, [left]),
     ).toBe(true);
 
     state.players[left]!.specialAbilityIds.push("elite_serve_craftsman");
     expect(
-      isEventEligibleForActors(
-        state,
-        { ...event, actorCount: 1 },
-        [left],
-      ),
+      isEventEligibleForActors(state, { ...event, actorCount: 1 }, [left]),
     ).toBe(false);
   });
 
