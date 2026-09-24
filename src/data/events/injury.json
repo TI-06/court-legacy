@@ -27,6 +27,15 @@
             "amount": -8
           },
           {
+            "type": "special-ability-tip",
+            "abilityId": "physical_injury_resist",
+            "amount": 1
+          },
+          {
+            "type": "special-ability-remove",
+            "abilityId": "physical_injury_prone"
+          },
+          {
             "type": "morale-change",
             "amount": -2
           },
@@ -55,6 +64,10 @@
             "severity": "minor",
             "weeks": 1,
             "recurrenceRisk": 25
+          },
+          {
+            "type": "special-ability-add",
+            "abilityId": "physical_injury_prone"
           }
         ]
       }
