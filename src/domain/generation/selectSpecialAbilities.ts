@@ -49,18 +49,21 @@ const negativeChanceByTier: Record<PlayerTier, number> = {
   monster: 4,
 };
 
-const positiveIdsByPosition = Object.fromEntries(
-  (["OH", "MB", "OP", "S", "L"] as const).map((position) => {
-    const preferred = new Set(preferredCategories[position]);
-    return [
-      position,
-      SPECIAL_ABILITIES.filter(
-        (ability) =>
-          ability.kind === "positive" && preferred.has(ability.category),
-      ).map((ability) => ability.id),
-    ];
-  }),
-) as Record<Position, readonly string[]>;
+function positiveIdsFor(position: Position): string[] {
+  const preferred = new Set(preferredCategories[position]);
+  return SPECIAL_ABILITIES.filter(
+    (ability) =>
+      ability.kind === "positive" && preferred.has(ability.category),
+  ).map((ability) => ability.id);
+}
+
+const positiveIdsByPosition: Record<Position, readonly string[]> = {
+  OH: positiveIdsFor("OH"),
+  MB: positiveIdsFor("MB"),
+  OP: positiveIdsFor("OP"),
+  S: positiveIdsFor("S"),
+  L: positiveIdsFor("L"),
+};
 
 const negativeIds = SPECIAL_ABILITIES.filter(
   (ability) => ability.kind === "negative",
