@@ -96,6 +96,19 @@ async function expectCoachGridAboveNavigation(page: Page) {
   );
 }
 
+async function expectSeasonRankingAboveNavigation(page: Page) {
+  const ranking = page.locator(".school-season-ranking");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const rankingBox = await ranking.boundingBox();
+  const navigationBox = await navigation.boundingBox();
+
+  expect(rankingBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect((rankingBox?.y ?? 0) + (rankingBox?.height ?? 0)).toBeLessThanOrEqual(
+    navigationBox?.y ?? 0,
+  );
+}
+
 for (const width of [320, 360, 390, 414, 480] as const) {
   test(`${width}px school management navigation fits`, async ({ page }) => {
     await page.setViewportSize({ width, height: width <= 360 ? 800 : 900 });
@@ -134,6 +147,19 @@ for (const width of [320, 360, 390, 414, 480] as const) {
       page.getByRole("region", { name: "今季ランキング" }),
     ).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
+    if (width <= 360) {
+      await expectSeasonRankingAboveNavigation(page);
+      await page
+        .getByRole("button", { name: "県内周辺校を見る", exact: true })
+        .click();
+      const rankingDialog = page.getByRole("dialog", {
+        name: "県内ランキング",
+      });
+      await expect(rankingDialog).toBeVisible();
+      await rankingDialog
+        .getByRole("button", { name: "閉じる", exact: true })
+        .click();
+    }
 
     await recordTabs.getByRole("tab", { name: "戦績" }).click();
     await expect(page.getByTestId("school-record-results")).toBeVisible();

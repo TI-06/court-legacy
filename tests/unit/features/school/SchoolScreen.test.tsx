@@ -337,16 +337,15 @@ describe("school management screen", () => {
       `開始時 ${presentation.national.startingRank}位`,
     );
 
-    const userRows = within(dashboard).getAllByTestId(
-      "school-ranking-user-row",
-    );
-    expect(userRows).toHaveLength(2);
-    expect(userRows[0]).toHaveTextContent(
-      state.schools[state.userSchoolId]!.shortName,
-    );
-    expect(userRows[1]).toHaveTextContent(
-      state.schools[state.userSchoolId]!.shortName,
-    );
+    expect(
+      within(dashboard).queryByTestId("school-ranking-user-row"),
+    ).toBeNull();
+    expect(
+      within(dashboard).getByRole("button", { name: "県内周辺校を見る" }),
+    ).toBeVisible();
+    expect(
+      within(dashboard).getByRole("button", { name: "全国周辺校を見る" }),
+    ).toBeVisible();
   });
 
   it("shows graduate history inside records", () => {

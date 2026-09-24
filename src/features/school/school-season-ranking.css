@@ -329,3 +329,145 @@
     display: none;
   }
 }
+
+/* Phase31-5: compact ranking summaries with nearby-school drilldown. */
+.school-season-ranking {
+  margin-top: 8px;
+  padding: 9px;
+  gap: 7px;
+}
+
+.school-season-ranking__heading {
+  gap: 6px;
+}
+
+.school-season-ranking__heading h4 {
+  font-size: 0.82rem;
+}
+
+.school-season-ranking__status {
+  gap: 3px;
+}
+
+.school-season-ranking__status > b,
+.school-season-ranking__status > strong,
+.school-season-ranking__status > small {
+  padding: 3px 5px;
+  font-size: 0.54rem;
+}
+
+.school-season-ranking__goals {
+  gap: 4px;
+}
+
+.school-season-ranking__goals article {
+  min-height: 34px;
+  padding: 5px 7px;
+  gap: 6px;
+  border-radius: 9px;
+}
+
+.school-season-ranking__goals article > div {
+  gap: 1px;
+}
+
+.school-season-ranking__goals strong {
+  font-size: 0.66rem;
+}
+
+.school-season-ranking__goals small {
+  font-size: 0.55rem;
+}
+
+.school-season-ranking__goals article > b {
+  padding: 3px 5px;
+  font-size: 0.54rem;
+}
+
+.school-season-ranking__scopes {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.school-season-ranking__scope {
+  padding: 7px;
+  gap: 4px;
+  border-radius: 10px;
+}
+
+.school-season-ranking__scope-heading {
+  gap: 4px;
+}
+
+.school-season-ranking__scope-heading > div {
+  gap: 1px;
+}
+
+.school-season-ranking__scope-heading span,
+.school-season-ranking__scope > small {
+  overflow: hidden;
+  font-size: 0.54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-season-ranking__scope-heading strong {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.school-season-ranking__scope-heading > b {
+  font-size: 0.6rem;
+}
+
+.school-season-ranking__scope-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  padding: 4px 6px;
+  color: #d6e5f2;
+  font: inherit;
+  font-size: 0.56rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 8px;
+}
+
+.school-season-ranking__scope-action b {
+  color: #ffc08a;
+  font-size: 0.82rem;
+}
+
+.school-season-ranking__nearby--sheet {
+  gap: 6px;
+}
+
+.school-season-ranking__nearby--sheet .school-season-ranking__row {
+  min-height: 42px;
+  padding: 8px 9px;
+}
+
+@media (max-width: 350px) {
+  .school-season-ranking {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .school-season-ranking__status > small {
+    display: none;
+  }
+
+  .school-season-ranking__scope {
+    padding: 6px;
+  }
+
+  .school-season-ranking__scope-heading strong {
+    font-size: 0.7rem;
+  }
+
+  .school-season-ranking__scope > small {
+    font-size: 0.5rem;
+  }
+}
