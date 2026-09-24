@@ -1558,3 +1558,32 @@
     font-size: 0.49rem;
   }
 }
+
+
+/* Phase31-6: bound long-run graduate history on the main mobile surface. */
+.school-alumni-section__all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 34px;
+  margin-top: 7px;
+  padding: 6px 8px;
+  color: #cfe0ec;
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 900;
+  background: rgb(46 139 216 / 8%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.school-alumni-section__all b {
+  color: #ffc08a;
+  font-size: 0.82rem;
+}
+
+.alumni-list--sheet {
+  margin-top: 0;
+  gap: 7px;
+}
