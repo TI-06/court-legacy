@@ -114,7 +114,7 @@ describe("special ability progression", () => {
     ]);
   });
 
-  it("replaces the opposite red ability when a positive ability is learned", () => {
+  it("replaces the opposite red ability on learn", () => {
     const base = createPlayer();
     base.specialAbilityIds = ["serve_unstable"];
     base.specialAbilityTipLevels = { serve_stable: 2 };
@@ -123,10 +123,11 @@ describe("special ability progression", () => {
 
     expect(resolved.player.specialAbilityIds).toContain("serve_stable");
     expect(resolved.player.specialAbilityIds).not.toContain("serve_unstable");
-    expect(resolved.player.specialAbilityTipLevels?.serve_stable).toBeUndefined();
+    const tipLevels = resolved.player.specialAbilityTipLevels;
+    expect(tipLevels?.serve_stable).toBeUndefined();
   });
 
-  it("removes a negative special ability without touching positive abilities", () => {
+  it("removes only the selected negative ability", () => {
     const base = createPlayer();
     base.specialAbilityIds = ["serve_stable", "serve_unstable"];
 
