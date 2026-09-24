@@ -725,9 +725,7 @@ export function SchoolScreen({
               : match.homeSchoolId;
             const opponent = state.schools[opponentId]!;
             const userSets = home ? match.homeSetsWon : match.awaySetsWon;
-            const opponentSets = home
-              ? match.awaySetsWon
-              : match.homeSetsWon;
+            const opponentSets = home ? match.awaySetsWon : match.homeSetsWon;
             const won = match.winnerSchoolId === school.id;
             return (
               <article
