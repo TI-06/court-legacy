@@ -344,6 +344,34 @@ for (const viewport of mobileViewports) {
     await page.getByRole("button", { name: "編成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team`);
     await expectNavigationFixed(page, `${viewport.width}-team`);
+    if (viewport.width <= 360) {
+      await page.locator(".team-lineup-tools").scrollIntoViewIfNeeded();
+      await expectAboveNavigation(
+        page,
+        ".team-lineup-tools",
+        `${viewport.width}-team-settings-clearance`,
+      );
+      await page.getByRole("button", { name: "保存編成を開く" }).click();
+      await expectLayoutFits(
+        page,
+        testInfo,
+        `${viewport.width}-team-saved-lineups`,
+      );
+      await page
+        .getByRole("dialog", { name: "保存編成" })
+        .getByRole("button", { name: "閉じる" })
+        .click();
+      await page.getByRole("button", { name: "交代方針を開く" }).click();
+      await expectLayoutFits(
+        page,
+        testInfo,
+        `${viewport.width}-team-policy`,
+      );
+      await page
+        .getByRole("dialog", { name: "交代方針" })
+        .getByRole("button", { name: "閉じる" })
+        .click();
+    }
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
     await page
