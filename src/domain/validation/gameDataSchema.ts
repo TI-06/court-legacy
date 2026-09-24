@@ -230,9 +230,7 @@ const facilityKeySchema = z.enum([
 ]);
 
 const specialRelationshipKindSchema = z.enum(["rival", "mentor", "partner"]);
-const specialAbilityIdSchema = z
-  .string()
-  .regex(/^[a-z][a-z0-9_]*$/);
+const specialAbilityIdSchema = z.string().regex(/^[a-z][a-z0-9_]*$/);
 
 export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
