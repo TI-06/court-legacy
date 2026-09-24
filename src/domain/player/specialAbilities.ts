@@ -728,7 +728,7 @@ export const SPECIAL_ABILITIES = [
   },
 ] as const satisfies readonly SpecialAbilityDefinition[];
 
-const specialAbilityById = new Map(
+const specialAbilityById = new Map<string, SpecialAbilityDefinition>(
   SPECIAL_ABILITIES.map((ability) => [ability.id, ability]),
 );
 
