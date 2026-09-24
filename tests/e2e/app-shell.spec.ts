@@ -90,6 +90,12 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     page.getByRole("button", { name: "ローテーション1を変更" }),
   ).toBeVisible();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
+  await expect(
+    page.getByRole("button", { name: "保存編成を開く" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "交代方針を開く" }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "ローテーション1を変更" }).click();
   const picker = page.getByRole("dialog", {
@@ -101,7 +107,9 @@ test("@critical mobile team selection uses a court picker without overflow", asy
 
   await page.getByRole("button", { name: "自動編成" }).click();
   await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "安全調整" }).click();
+  await page.getByRole("button", { name: "交代方針を開く" }).click();
+  const policyDialog = page.getByRole("dialog", { name: "交代方針" });
+  await policyDialog.getByRole("button", { name: "安全調整" }).click();
   await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
