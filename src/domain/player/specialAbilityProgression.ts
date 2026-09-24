@@ -134,10 +134,7 @@ export function learnSpecialAbility(
   abilityId: string,
 ): SpecialAbilityProgressResult {
   const owned = player.specialAbilityIds ?? [];
-  if (
-    owned.includes(abilityId) ||
-    owned.length >= MAX_SPECIAL_ABILITIES
-  ) {
+  if (owned.includes(abilityId) || owned.length >= MAX_SPECIAL_ABILITIES) {
     return { player, changes: [] };
   }
 
