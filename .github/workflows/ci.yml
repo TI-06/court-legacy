@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Format Phase31-7 files for verification
+        run: |
+          npx prettier src/features/team/team-direct.css tests/e2e/mobile-layout-audit.spec.ts tests/unit/features/team/TeamSelectionFlow.test.tsx --write
+          git diff -- src/features/team/team-direct.css tests/e2e/mobile-layout-audit.spec.ts tests/unit/features/team/TeamSelectionFlow.test.tsx
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
