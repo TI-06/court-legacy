@@ -19,6 +19,10 @@ export interface EventSelectionResult {
   pendingEvent: PendingEvent | null;
 }
 
+export interface EventSelectionOptions {
+  allowNormalEvent?: boolean;
+}
+
 export function eventActorPairKey(
   actorPlayerIds: readonly PlayerId[],
 ): string | null {
@@ -198,6 +202,7 @@ export function selectNextEvent(
   state: GameState,
   data: GameDataRegistry,
   random: RandomSource,
+  options: EventSelectionOptions = {},
 ): EventSelectionResult {
   if (state.pendingEvent) {
     return { state, pendingEvent: state.pendingEvent };
@@ -225,6 +230,20 @@ export function selectNextEvent(
       },
     };
     return { state: nextState, pendingEvent };
+  }
+
+  if (options.allowNormalEvent === false) {
+    return {
+      state: {
+        ...state,
+        randomCursor: random.cursor,
+        eventMemory: {
+          ...state.eventMemory,
+          scheduledFollowUps: prunedFollowUps,
+        },
+      },
+      pendingEvent: null,
+    };
   }
 
   const followUpOnlyIds = collectFollowUpOnlyEventIds(data);
