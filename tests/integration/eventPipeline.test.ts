@@ -1,6 +1,7 @@
 import { createDemoGame, gameData } from "../../src/app/createDemoGame";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
+import { eventId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 
 describe("event pipeline", () => {
@@ -31,5 +32,25 @@ describe("event pipeline", () => {
     state.calendar.weekOfYear = 2;
 
     expect(surfaceWeeklyEvent(state, gameData).pendingEvent).toBeNull();
+  });
+
+  it("does not fall back to a normal event when an off-cadence follow-up is invalid", () => {
+    const state = createDemoGame();
+    state.calendar.weekOfYear = 2;
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.eventMemory.scheduledFollowUps = [
+      {
+        eventId: eventId("event.invalid-follow-up"),
+        eligibleDate: state.date,
+        actorPlayerIds: [playerId],
+        chainId: "test-chain",
+        chainStage: 2,
+      },
+    ];
+
+    const surfaced = surfaceWeeklyEvent(state, gameData);
+
+    expect(surfaced.pendingEvent).toBeNull();
+    expect(surfaced.eventMemory.scheduledFollowUps).toEqual([]);
   });
 });
