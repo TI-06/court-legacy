@@ -60,6 +60,8 @@ export interface Player {
   personalityId: string;
   growthTypeId: string;
   traitIds: string[];
+  specialAbilityIds?: string[];
+  specialAbilityTipLevels?: Record<string, 0 | 1 | 2 | 3>;
   hiddenTraitIds: string[];
   revealedHiddenTraitIds?: string[];
   hiddenTraitAssignmentInitialized?: boolean;
