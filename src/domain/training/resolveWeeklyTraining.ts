@@ -7,6 +7,10 @@ import type { GameState } from "../model/GameState";
 import { ABILITY_KEYS, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
+import {
+  restConditionRecoveryBonus,
+  specialAbilityTrainingModifiers,
+} from "../player/specialAbilityTrainingModifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
 import type {
@@ -381,7 +385,10 @@ export function resolveWeeklyTraining(
 
     if (instruction.id === "instruction.rest") {
       const drift = getWeeklyConditionDrift(input.random);
-      const nextCondition = clampState(original.condition + 25 + drift);
+      const recoveryBonus = restConditionRecoveryBonus(original);
+      const nextCondition = clampState(
+        original.condition + 25 + recoveryBonus + drift,
+      );
       log.conditionChange = nextCondition - original.condition;
       players[id] = { ...original, condition: nextCondition };
       logs.push(log);
@@ -398,9 +405,12 @@ export function resolveWeeklyTraining(
             },
           ]
         : [];
+    const abilityTrainingModifiers =
+      specialAbilityTrainingModifiers(original);
     const extraModifiers = includeDynamics
       ? [
           ...(input.additionalGrowthModifiers ?? []),
+          ...abilityTrainingModifiers,
           ...calculateDynamicsTrainingModifiers(original),
           ...assistantCoachTrainingModifiers(
             input.state,
@@ -409,7 +419,11 @@ export function resolveWeeklyTraining(
           ),
           ...socialModifiers,
         ]
-      : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
+      : [
+          ...(input.additionalGrowthModifiers ?? []),
+          ...abilityTrainingModifiers,
+          ...socialModifiers,
+        ];
     const updated = applyActivity(
       original,
       activityFromInstruction(instruction),
