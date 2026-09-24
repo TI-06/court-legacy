@@ -3,7 +3,6 @@ import type { PlayerTier, Position } from "../model/Player";
 import {
   SPECIAL_ABILITIES,
   type SpecialAbilityCategory,
-  type SpecialAbilityDefinition,
 } from "../player/specialAbilities";
 
 interface InitialSpecialAbilityInput {
@@ -50,7 +49,7 @@ const negativeChanceByTier: Record<PlayerTier, number> = {
   monster: 4,
 };
 
-const positiveCandidatesByPosition = Object.fromEntries(
+const positiveIdsByPosition = Object.fromEntries(
   (["OH", "MB", "OP", "S", "L"] as const).map((position) => {
     const preferred = new Set(preferredCategories[position]);
     return [
@@ -58,14 +57,14 @@ const positiveCandidatesByPosition = Object.fromEntries(
       SPECIAL_ABILITIES.filter(
         (ability) =>
           ability.kind === "positive" && preferred.has(ability.category),
-      ),
+      ).map((ability) => ability.id),
     ];
   }),
-) as Record<Position, readonly SpecialAbilityDefinition[]>;
+) as Record<Position, readonly string[]>;
 
-const negativeCandidates = SPECIAL_ABILITIES.filter(
+const negativeIds = SPECIAL_ABILITIES.filter(
   (ability) => ability.kind === "negative",
-);
+).map((ability) => ability.id);
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -76,82 +75,48 @@ function hashString(value: string): number {
   return hash >>> 0;
 }
 
-function scoreAbility(
-  playerId: PlayerId,
-  position: Position,
-  tier: PlayerTier,
-  ability: SpecialAbilityDefinition,
-): number {
-  const categoryIndex = preferredCategories[position].indexOf(ability.category);
-  const categoryBonus =
-    categoryIndex === -1
-      ? 0
-      : (preferredCategories[position].length - categoryIndex) * 100_000;
-  const identity = [playerId, position, tier, ability.id].join(":");
-
-  return categoryBonus + (hashString(identity) % 100_000);
-}
-
-function selectTopPositiveIds(
+function selectPositiveIds(
   input: InitialSpecialAbilityInput,
   count: number,
 ): string[] {
-  if (count <= 0) return [];
+  const candidates = positiveIdsByPosition[input.position];
+  if (count <= 0 || candidates.length === 0) return [];
 
-  const selected: Array<{
-    id: string;
-    score: number;
-  }> = [];
+  const selected: string[] = [];
+  const used = new Set<number>();
 
-  for (const ability of positiveCandidatesByPosition[input.position]) {
-    const score = scoreAbility(
-      input.playerId,
-      input.position,
-      input.tier,
-      ability,
-    );
-    let insertAt = selected.findIndex(
-      (candidate) =>
-        score > candidate.score ||
-        (score === candidate.score && ability.id < candidate.id),
-    );
-    if (insertAt === -1) insertAt = selected.length;
-    if (insertAt >= count) continue;
+  for (let slot = 0; slot < count; slot += 1) {
+    let index =
+      hashString(
+        [
+          input.playerId,
+          input.position,
+          input.tier,
+          "positive",
+          String(slot),
+        ].join(":"),
+      ) % candidates.length;
 
-    selected.splice(insertAt, 0, { id: ability.id, score });
-    if (selected.length > count) {
-      selected.pop();
+    while (used.has(index)) {
+      index = (index + 1) % candidates.length;
     }
+
+    used.add(index);
+    selected.push(candidates[index]!);
   }
 
-  return selected.map((candidate) => candidate.id);
+  return selected;
 }
 
 function selectNegativeId(
   input: InitialSpecialAbilityInput,
 ): string | undefined {
-  let selected: SpecialAbilityDefinition | undefined;
-  let selectedScore = Number.NEGATIVE_INFINITY;
-
-  for (const ability of negativeCandidates) {
-    const score = scoreAbility(
-      input.playerId,
-      input.position,
-      input.tier,
-      ability,
-    );
-    if (
-      score > selectedScore ||
-      (score === selectedScore &&
-        selected !== undefined &&
-        ability.id < selected.id)
-    ) {
-      selected = ability;
-      selectedScore = score;
-    }
-  }
-
-  return selected?.id;
+  if (negativeIds.length === 0) return undefined;
+  const index =
+    hashString(
+      [input.playerId, input.position, input.tier, "negative"].join(":"),
+    ) % negativeIds.length;
+  return negativeIds[index];
 }
 
 export function selectInitialSpecialAbilityIds(
@@ -161,12 +126,11 @@ export function selectInitialSpecialAbilityIds(
     hashString([input.playerId, "special-positive"].join(":")) % 100;
   const negativeRoll =
     hashString([input.playerId, "special-negative"].join(":")) % 100;
-
   const positiveCount =
     positiveRoll < positiveChanceByTier[input.tier]
       ? positiveCountByTier[input.tier]
       : 0;
-  const selected = selectTopPositiveIds(input, positiveCount);
+  const selected = selectPositiveIds(input, positiveCount);
 
   if (negativeRoll < negativeChanceByTier[input.tier]) {
     const negativeId = selectNegativeId(input);
