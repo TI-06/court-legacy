@@ -93,6 +93,7 @@ function createPlayer(): Player {
   };
 }
 
+// Camp progression uses deterministic random sources so save/retry stays reproducible.
 describe("special ability progression", () => {
   it("turns three tip levels into a learned ability", () => {
     const base = createPlayer();
