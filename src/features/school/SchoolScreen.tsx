@@ -83,6 +83,30 @@ function formatFundsAmount(amount: number): string {
   return amount >= 0 ? `+${absolute}` : `-${absolute}`;
 }
 
+type GraduateRecord = GameState["history"]["graduates"][number];
+
+function AlumniRow({ graduate }: { graduate: GraduateRecord }) {
+  return (
+    <article
+      data-testid="school-alumni-row"
+      key={`${graduate.playerId}-${graduate.graduationYear}`}
+    >
+      <div>
+        <strong>{graduate.displayName}</strong>
+        <span>
+          {graduate.graduationYear}年卒・{graduate.position}
+        </span>
+      </div>
+      <div className="alumni-metrics">
+        <span>出場 {graduate.appearances}</span>
+        <span>得点 {graduate.points}</span>
+        <span>ブロック {graduate.blocks}</span>
+        <span>サービスエース {graduate.serviceAces}</span>
+      </div>
+    </article>
+  );
+}
+
 function compactFacilityName(name: string): string {
   if (name === "トレーニング設備") return "トレーニング";
   if (name === "回復設備") return "回復";
@@ -118,6 +142,7 @@ export function SchoolScreen({
     useState<FacilityUpgradeLevels>(1);
   const [facilityUpgradePending, setFacilityUpgradePending] = useState(false);
   const [fundsHistoryOpen, setFundsHistoryOpen] = useState(false);
+  const [alumniHistoryOpen, setAlumniHistoryOpen] = useState(false);
   const [coachSpecialties, setCoachSpecialties] = useState<
     Partial<Record<AssistantCoachRank, AssistantCoachSpecialty>>
   >({});
@@ -153,9 +178,14 @@ export function SchoolScreen({
     );
   }
 
-  const graduates = state.history.graduates.filter(
-    (graduate) => graduate.schoolId === school.id,
-  );
+  const graduates = state.history.graduates
+    .filter((graduate) => graduate.schoolId === school.id)
+    .sort(
+      (left, right) =>
+        right.graduationYear - left.graduationYear ||
+        left.displayName.localeCompare(right.displayName, "ja"),
+    );
+  const recentGraduates = graduates.slice(0, 3);
   const selectedDefinition = selectedFacility
     ? FACILITY_DEFINITIONS.find(
         (definition) => definition.key === selectedFacility,
@@ -635,32 +665,50 @@ export function SchoolScreen({
                     卒業生の記録はまだありません
                   </p>
                 ) : (
-                  <div className="alumni-list">
-                    {graduates.map((graduate) => (
-                      <article
-                        key={`${graduate.playerId}-${graduate.graduationYear}`}
+                  <>
+                    <div className="alumni-list">
+                      {recentGraduates.map((graduate) => (
+                        <AlumniRow
+                          graduate={graduate}
+                          key={`${graduate.playerId}-${graduate.graduationYear}`}
+                        />
+                      ))}
+                    </div>
+                    {graduates.length > recentGraduates.length ? (
+                      <button
+                        aria-label={`卒業生${graduates.length}人をすべて見る`}
+                        className="school-alumni-section__all"
+                        onClick={() => setAlumniHistoryOpen(true)}
+                        type="button"
                       >
-                        <div>
-                          <strong>{graduate.displayName}</strong>
-                          <span>
-                            {graduate.graduationYear}年卒・{graduate.position}
-                          </span>
-                        </div>
-                        <div className="alumni-metrics">
-                          <span>出場 {graduate.appearances}</span>
-                          <span>得点 {graduate.points}</span>
-                          <span>ブロック {graduate.blocks}</span>
-                          <span>サービスエース {graduate.serviceAces}</span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
+                        <span>すべての卒業生</span>
+                        <b aria-hidden="true">›</b>
+                      </button>
+                    ) : null}
+                  </>
                 )}
               </section>
             </div>
           ) : null}
         </section>
       ) : null}
+
+      <BottomSheet
+        className="ui-bottom-sheet--game-choice"
+        description={`自校を卒業した${graduates.length}人の記録です。`}
+        onClose={() => setAlumniHistoryOpen(false)}
+        open={alumniHistoryOpen}
+        title="卒業生一覧"
+      >
+        <div className="alumni-list alumni-list--sheet">
+          {graduates.map((graduate) => (
+            <AlumniRow
+              graduate={graduate}
+              key={`all-${graduate.playerId}-${graduate.graduationYear}`}
+            />
+          ))}
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description="学校運営資金の入出金履歴です。"
