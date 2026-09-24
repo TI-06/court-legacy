@@ -104,7 +104,9 @@ function PlayerReadiness({
   return (
     <span
       className={
-        compact ? "player-readiness player-readiness--compact" : "player-readiness"
+        compact
+          ? "player-readiness player-readiness--compact"
+          : "player-readiness"
       }
     >
       <small
