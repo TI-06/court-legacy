@@ -69,6 +69,39 @@ describe("event eligibility", () => {
     expect(isEventEligibleForActors(state, event, [left, right])).toBe(true);
   });
 
+  it("matches required and excluded special abilities", () => {
+    const state = createDemoGame();
+    const [left, right] = state.schools[state.userSchoolId]!.playerIds;
+    if (!left || !right) {
+      throw new Error("players missing");
+    }
+    state.players[left]!.specialAbilityIds = ["serve_stable", "serve_aim"];
+    state.players[right]!.specialAbilityIds = ["serve_stable"];
+
+    const event = eventWithTrigger({
+      requiredSpecialAbilityIds: ["serve_stable", "serve_aim"],
+      excludedSpecialAbilityIds: ["elite_serve_craftsman"],
+    });
+
+    expect(isEventEligibleForActors(state, event, [left, right])).toBe(false);
+    expect(
+      isEventEligibleForActors(
+        state,
+        { ...event, actorCount: 1 },
+        [left],
+      ),
+    ).toBe(true);
+
+    state.players[left]!.specialAbilityIds.push("elite_serve_craftsman");
+    expect(
+      isEventEligibleForActors(
+        state,
+        { ...event, actorCount: 1 },
+        [left],
+      ),
+    ).toBe(false);
+  });
+
   it("rejects actors when the pair relationship is outside the range", () => {
     const state = createDemoGame();
     const [left, right] = state.schools[state.userSchoolId]!.playerIds;
