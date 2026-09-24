@@ -1,5 +1,5 @@
 import type { GameState } from "../../domain/model/GameState";
-import type { MatchEvent, MatchState } from "../../domain/model/Match";
+import type { MatchEvent } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
 import {
   getSpecialAbilityDefinition,
@@ -59,7 +59,6 @@ export function presentPlayerSpecialAbilities(
 
 export function presentEventSpecialAbilities(
   state: GameState,
-  match: MatchState,
   event: MatchEvent,
   limit = 3,
 ): MatchSpecialAbilityBadge[] {
