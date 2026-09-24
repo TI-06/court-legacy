@@ -236,9 +236,7 @@ describe("event resolution", () => {
     expect(abilities).toContain("elite_serve_craftsman");
     expect(abilities).not.toContain("serve_stable");
     expect(abilities).not.toContain("serve_aim");
-    expect(result.occurrence.visibleResultCodes).toContain(
-      "サーブ職人 習得",
-    );
+    expect(result.occurrence.visibleResultCodes).toContain("サーブ職人 習得");
   });
 
   it("evolves elite abilities into a gold ability through awakening", () => {
