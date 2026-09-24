@@ -13,6 +13,12 @@ import { eventCareerKey } from "./eventEligibility";
 import { eventActorPairKey } from "./selectEvent";
 import { relationshipKey, type GameState } from "../model/GameState";
 import { clampAbility, type Player } from "../model/Player";
+import {
+  addSpecialAbilityTip,
+  learnSpecialAbility,
+  removeSpecialAbility,
+} from "../player/specialAbilityProgression";
+import { getSpecialAbilityDefinition } from "../player/specialAbilities";
 import type { SchoolFacilities } from "../model/School";
 import type { PlayerId } from "../model/identifiers";
 import { eventId } from "../model/identifiers";
@@ -320,6 +326,53 @@ function applyEffect(
         })),
         visibleResult: "選手の特徴に変化",
       };
+    case "special-ability-tip": {
+      const ability = getSpecialAbilityDefinition(effect.abilityId);
+      if (!ability) {
+        throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);
+      }
+      return {
+        state: updateActors(
+          state,
+          actorPlayerIds,
+          (player) =>
+            addSpecialAbilityTip(player, effect.abilityId, effect.amount)
+              .player,
+        ),
+        visibleResult: `${ability.name} コツ +${effect.amount}`,
+      };
+    }
+    case "special-ability-add": {
+      const ability = getSpecialAbilityDefinition(effect.abilityId);
+      if (!ability) {
+        throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);
+      }
+      return {
+        state: updateActors(
+          state,
+          actorPlayerIds,
+          (player) => learnSpecialAbility(player, effect.abilityId).player,
+        ),
+        visibleResult: `${ability.name} 習得`,
+      };
+    }
+    case "special-ability-remove": {
+      const ability = getSpecialAbilityDefinition(effect.abilityId);
+      if (!ability) {
+        throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);
+      }
+      return {
+        state: updateActors(
+          state,
+          actorPlayerIds,
+          (player) => removeSpecialAbility(player, effect.abilityId).player,
+        ),
+        visibleResult:
+          ability.kind === "negative"
+            ? `${ability.name} 克服`
+            : `${ability.name} 消失`,
+      };
+    }
     case "schedule-event": {
       const scheduled = random.int(1, 100) <= effect.probability;
       return {

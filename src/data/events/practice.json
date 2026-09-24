@@ -23,6 +23,11 @@
             "amount": 2
           },
           {
+            "type": "special-ability-tip",
+            "abilityId": "receive_cover",
+            "amount": 1
+          },
+          {
             "type": "fatigue-change",
             "amount": 3
           }
@@ -131,6 +136,11 @@
             "amount": 1
           },
           {
+            "type": "special-ability-tip",
+            "abilityId": "block_read",
+            "amount": 1
+          },
+          {
             "type": "fatigue-change",
             "amount": 3
           }
@@ -145,6 +155,11 @@
             "type": "ability-change",
             "ability": "block",
             "amount": 3
+          },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "block_commit",
+            "amount": 1
           },
           {
             "type": "ability-change",
@@ -183,6 +198,11 @@
           {
             "type": "ability-change",
             "ability": "decision",
+            "amount": 1
+          },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_aim",
             "amount": 1
           },
           {
@@ -451,6 +471,11 @@
             "type": "ability-change",
             "ability": "serve",
             "amount": 2
+          },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
           },
           {
             "type": "trust-change",

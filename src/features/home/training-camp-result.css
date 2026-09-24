@@ -183,6 +183,65 @@
   font-size: 17px;
 }
 
+.training-camp-event__special-abilities {
+  display: grid;
+  gap: 8px;
+}
+
+.training-camp-event__special-ability-list {
+  display: grid;
+  gap: 6px;
+}
+
+.training-camp-event__special-ability-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 9px 10px;
+  gap: 8px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 11px;
+}
+
+.training-camp-event__special-ability-list article > div {
+  min-width: 0;
+}
+
+.training-camp-event__special-ability-list strong,
+.training-camp-event__special-ability-list small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-camp-event__special-ability-list strong {
+  font-size: 12px;
+}
+
+.training-camp-event__special-ability-list small {
+  margin-top: 2px;
+  color: #9ed0ff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.training-camp-event__special-ability-list b {
+  color: #ffd36a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.training-camp-event__special-ability-list [data-kind="negative-removed"] small,
+.training-camp-event__special-ability-list [data-kind="negative-removed"] b {
+  color: #8ce9bb;
+}
+
+.training-camp-event__special-ability-list [data-kind="learned"] small {
+  color: #f2cc66;
+}
+
 .training-camp-event__note {
   color: var(--game-text-muted, #a9b8ca);
   font-size: 10px;

@@ -1,4 +1,5 @@
 import type { GameState } from "../../domain/model/GameState";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import type { TrainingCampResult } from "../../domain/shop/shopEffects";
 import "./training-camp-result.css";
 
@@ -19,6 +20,8 @@ export function TrainingCampResultDialog({
   pending,
   onAcknowledge,
 }: TrainingCampResultDialogProps) {
+  const specialAbilityChanges = result.specialAbilityChanges ?? [];
+
   return (
     <div className="training-camp-event-layer">
       <section
@@ -94,8 +97,48 @@ export function TrainingCampResultDialog({
             </section>
           ) : null}
 
+          {specialAbilityChanges.length > 0 ? (
+            <section
+              aria-label="合宿で変化した特殊能力"
+              className="training-camp-event__special-abilities"
+            >
+              <div className="training-camp-event__section-heading">
+                <span>SKILL</span>
+                <h3>特殊能力の変化</h3>
+              </div>
+              <div className="training-camp-event__special-ability-list">
+                {specialAbilityChanges.map((change, index) => {
+                  const player = state.players[change.playerId];
+                  const ability = getSpecialAbilityDefinition(change.abilityId);
+                  if (!player || !ability) return null;
+                  const resultLabel =
+                    change.kind === "learned"
+                      ? "習得"
+                      : change.kind === "negative-removed"
+                        ? "克服"
+                        : `コツ Lv.${change.tipLevel ?? 1}`;
+
+                  return (
+                    <article
+                      data-kind={change.kind}
+                      key={`${change.playerId}:${change.abilityId}:${index}`}
+                    >
+                      <div>
+                        <strong>
+                          {player.lastName} {player.firstName}
+                        </strong>
+                        <small>{ability.name}</small>
+                      </div>
+                      <b>{resultLabel}</b>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
           <p className="training-camp-event__note">
-            合宿の成長・疲労・怪我は次週開始時点の選手状態へ反映されています。
+            合宿の成長・疲労・怪我・特殊能力の変化は次週開始時点の選手状態へ反映されています。
           </p>
         </main>
 

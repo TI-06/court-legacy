@@ -412,6 +412,19 @@ const shopGameEffectsSchema = z
         ),
         averageFatigueChange: z.number(),
         injuredPlayerIds: z.array(playerIdSchema),
+        specialAbilityChanges: z
+          .array(
+            z
+              .object({
+                playerId: playerIdSchema,
+                abilityId: z.string().min(1),
+                kind: z.enum(["tip", "learned", "negative-removed"]),
+                tipLevel: z.union([z.literal(1), z.literal(2)]).optional(),
+              })
+              .strict(),
+          )
+          .max(64)
+          .default([]),
       })
       .strict()
       .optional(),
@@ -892,7 +905,7 @@ const weeklyScheduleSchema = z
 
 const persistedPlayerSchema = z
   .object({
-    specialAbilityIds: z.array(z.string().min(1)).max(16).default([]),
+    specialAbilityIds: z.array(z.string().min(1)).max(24).default([]),
     specialAbilityTipLevels: z
       .record(
         z.string().min(1),
@@ -911,6 +924,12 @@ const persistedPlayerSchema = z
       context.addIssue({
         code: "custom",
         message: "special ability IDs must be unique",
+      });
+    }
+    if (Object.keys(player.specialAbilityTipLevels).length > 16) {
+      context.addIssue({
+        code: "custom",
+        message: "special ability tip state must stay compact",
       });
     }
     const hidden = new Set(player.hiddenTraitIds);
