@@ -29,6 +29,22 @@ describe("Phase 5 shop training effects", () => {
     expect(player).toEqual(before);
   });
 
+  it("makes fatigue recovery stronger for a player with recovery talent", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = {
+      ...structuredClone(state.players[playerId]!),
+      fatigue: 70,
+      condition: 70,
+      specialAbilityIds: ["physical_recovery"],
+    };
+
+    const result = applyFatigueRecovery(player);
+
+    expect(result.after).toEqual({ fatigue: 15, condition: 85 });
+    expect(result.player.specialAbilityIds).toEqual(["physical_recovery"]);
+  });
+
   it("marks a fully recovered player as ineligible to prevent no-op consumption", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
