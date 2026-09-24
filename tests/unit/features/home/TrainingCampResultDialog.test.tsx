@@ -62,9 +62,8 @@ describe("TrainingCampResultDialog", () => {
     ).toBeVisible();
     expect(within(growthSection).getByText("+6")).toBeVisible();
 
-    const specialAbilitySection = screen.getByLabelText(
-      "合宿で変化した特殊能力",
-    );
+    const specialAbilitySection =
+      screen.getByLabelText("合宿で変化した特殊能力");
     expect(
       within(specialAbilitySection).getByText(
         `${player.lastName} ${player.firstName}`,
@@ -73,9 +72,7 @@ describe("TrainingCampResultDialog", () => {
     expect(
       within(specialAbilitySection).getByText("コース打ち○"),
     ).toBeVisible();
-    expect(
-      within(specialAbilitySection).getByText("コツ Lv.2"),
-    ).toBeVisible();
+    expect(within(specialAbilitySection).getByText("コツ Lv.2")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "結果を確認した" }));
     expect(onAcknowledge).toHaveBeenCalledTimes(1);
