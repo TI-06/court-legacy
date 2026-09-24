@@ -62,9 +62,7 @@ describe("TrainingCampResultDialog", () => {
     ).toBeVisible();
     expect(within(growthSection).getByText("+6")).toBeVisible();
 
-    const specialAbilitySection = screen.getByLabelText(
-      "合宿で変化した特殊能力",
-    );
+    const specialAbilitySection = screen.getByLabelText("合宿で変化した特殊能力");
     expect(
       within(specialAbilitySection).getByText(
         `${player.lastName} ${player.firstName}`,
