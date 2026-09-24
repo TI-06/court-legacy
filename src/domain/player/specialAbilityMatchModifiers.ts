@@ -138,8 +138,8 @@ function isCriticalScore(situation: MatchSpecialAbilitySituation): boolean {
     situation.setNumber === situation.bestOfSets ? 15 : 25;
   return (
     Math.max(situation.ownScore, situation.opponentScore) >=
-      decidingTarget - 5 ||
-    Math.abs(situation.ownScore - situation.opponentScore) <= 2
+      decidingTarget - 5 &&
+    Math.abs(situation.ownScore - situation.opponentScore) <= 3
   );
 }
 
