@@ -5,6 +5,7 @@ import {
   SPECIAL_ABILITIES,
   type SpecialAbilityCategory,
 } from "./specialAbilities";
+import { getSpecialAbilityTipChances } from "./specialAbilityDevelopmentModifiers";
 
 export type SpecialAbilityProgressKind = "tip" | "learned" | "negative-removed";
 
@@ -202,10 +203,12 @@ export function resolveTrainingCampSpecialAbilityProgress(
     changes.push(...removed.changes);
   }
 
-  if (random.int(1, 100) <= 38) {
+  const tipChances = getSpecialAbilityTipChances(current);
+  if (random.int(1, 100) <= tipChances.progressPercent) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
-      const tipAmount = random.int(1, 100) <= 12 ? 2 : 1;
+      const tipAmount =
+        random.int(1, 100) <= tipChances.doubleTipPercent ? 2 : 1;
       const progressed = addSpecialAbilityTip(
         current,
         random.pick(candidates),
