@@ -230,6 +230,9 @@ const facilityKeySchema = z.enum([
 ]);
 
 const specialRelationshipKindSchema = z.enum(["rival", "mentor", "partner"]);
+const specialAbilityIdSchema = z
+  .string()
+  .regex(/^[a-z][a-z0-9_]*$/);
 
 export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
@@ -289,6 +292,19 @@ export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("remove-trait"),
     traitId: dataIdSchema,
+  }),
+  z.object({
+    type: z.literal("special-ability-tip"),
+    abilityId: specialAbilityIdSchema,
+    amount: z.union([z.literal(1), z.literal(2)]),
+  }),
+  z.object({
+    type: z.literal("special-ability-add"),
+    abilityId: specialAbilityIdSchema,
+  }),
+  z.object({
+    type: z.literal("special-ability-remove"),
+    abilityId: specialAbilityIdSchema,
   }),
   z.object({
     type: z.literal("schedule-event"),
