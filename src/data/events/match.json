@@ -52,6 +52,11 @@
         "detail": "勝負強さを鍛えるが、精神的な負荷が高い。",
         "effects": [
           { "type": "ability-change", "ability": "mental", "amount": 3 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_clutch",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 },
           { "type": "morale-change", "amount": -2 }
         ]
@@ -62,6 +67,11 @@
         "detail": "気持ちを切り替える代わりに、原因分析は浅くなる。",
         "effects": [
           { "type": "morale-change", "amount": 4 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_reset",
+            "amount": 1
+          },
           { "type": "ability-change", "ability": "decision", "amount": -1 }
         ]
       }
