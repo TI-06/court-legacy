@@ -905,7 +905,9 @@ const persistedPlayerSchema = z
   })
   .passthrough()
   .superRefine((player, context) => {
-    if (new Set(player.specialAbilityIds).size !== player.specialAbilityIds.length) {
+    if (
+      new Set(player.specialAbilityIds).size !== player.specialAbilityIds.length
+    ) {
       context.addIssue({
         code: "custom",
         message: "special ability IDs must be unique",
