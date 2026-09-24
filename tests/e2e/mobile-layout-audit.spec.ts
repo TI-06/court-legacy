@@ -344,6 +344,11 @@ for (const viewport of mobileViewports) {
     await page.getByRole("button", { name: "編成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team`);
     await expectNavigationFixed(page, `${viewport.width}-team`);
+    await expectNoHorizontalScroll(
+      page,
+      ".bench-rail",
+      `${viewport.width}-team-bench-overview`,
+    );
     if (viewport.width <= 360) {
       await page.locator(".team-lineup-tools").scrollIntoViewIfNeeded();
       await expectAboveNavigation(
