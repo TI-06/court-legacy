@@ -190,12 +190,16 @@ const numericRangeSchema = z.object({
   max: z.number().int().min(0).max(100).optional(),
 });
 
+const specialAbilityIdSchema = z.string().regex(/^[a-z][a-z0-9_]*$/);
+
 export const eventTriggerSchema = z.object({
   months: z.array(z.number().int().min(1).max(12)).max(12).optional(),
   minGrade: z.number().int().min(1).max(3).optional(),
   maxGrade: z.number().int().min(1).max(3).optional(),
   requiredTraitIds: z.array(dataIdSchema).max(6).optional(),
   excludedTraitIds: z.array(dataIdSchema).max(6).optional(),
+  requiredSpecialAbilityIds: z.array(specialAbilityIdSchema).max(6).optional(),
+  excludedSpecialAbilityIds: z.array(specialAbilityIdSchema).max(6).optional(),
   abilityRanges: z
     .partialRecord(abilityKeySchema, numericRangeSchema)
     .optional(),
@@ -230,7 +234,6 @@ const facilityKeySchema = z.enum([
 ]);
 
 const specialRelationshipKindSchema = z.enum(["rival", "mentor", "partner"]);
-const specialAbilityIdSchema = z.string().regex(/^[a-z][a-z0-9_]*$/);
 
 export const eventEffectSchema = z.discriminatedUnion("type", [
   z.object({
