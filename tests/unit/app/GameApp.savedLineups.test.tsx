@@ -95,6 +95,8 @@ function renderGame(snapshot: CloudGameSnapshot) {
 
   fireEvent.click(screen.getByRole("button", { name: "選手" }));
   fireEvent.click(screen.getByRole("button", { name: "編成" }));
+  fireEvent.click(screen.getByRole("button", { name: "保存編成を開く" }));
+  expect(screen.getByRole("dialog", { name: "保存編成" })).toBeVisible();
 
   return { applyAction, getServerSnapshot: () => serverSnapshot };
 }
