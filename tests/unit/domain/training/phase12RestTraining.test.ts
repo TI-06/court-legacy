@@ -39,6 +39,39 @@ class MiddleRandom implements RandomSource {
   }
 }
 describe("Phase 12 rest training", () => {
+  it("adds five more condition recovery for recovery talent", () => {
+    const state = generateWorld({
+      seed: "phase12-rest-special",
+      userSchool,
+      data,
+    });
+    const school = state.schools[state.userSchoolId]!;
+    const id = school.playerIds[0]!;
+    state.players[id] = {
+      ...state.players[id]!,
+      condition: 50,
+      fatigue: 88,
+      specialAbilityIds: ["physical_recovery"],
+    };
+
+    const result = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan: {
+        teamTrainingMenuId: "training.spike",
+        individualAssignments: [
+          { playerId: id, instructionId: "instruction.rest" },
+        ],
+      },
+      data,
+      random: new MiddleRandom(),
+    });
+
+    const after = result.state.players[id]!;
+    expect(after.condition).toBe(80);
+    expect(after.fatigue).toBe(88);
+  });
+
   it("raises condition by 25, leaves fatigue unchanged and adds no ability growth", () => {
     const state = generateWorld({ seed: "phase12-rest", userSchool, data });
     const school = state.schools[state.userSchoolId]!;
