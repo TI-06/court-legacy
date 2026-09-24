@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { SeasonResultPresentation } from "../season/seasonResultPresentation";
+import { BottomSheet } from "../../ui/BottomSheet";
 import "./school-season-history.css";
 
 interface SchoolSeasonHistoryProps {
@@ -19,7 +21,11 @@ function SeasonHistoryCard({
   expanded: boolean;
 }) {
   return (
-    <details className="school-season-history__card" open={expanded}>
+    <details
+      className="school-season-history__card"
+      data-testid="school-season-history-card"
+      open={expanded}
+    >
       <summary>
         <div>
           <h5>{presentation.academicYear}年目</h5>
@@ -101,29 +107,65 @@ function SeasonHistoryCard({
 export function SchoolSeasonHistory({
   presentations,
 }: SchoolSeasonHistoryProps) {
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
   if (presentations.length === 0) {
     return null;
   }
 
-  return (
-    <section aria-label="過去シーズン" className="school-season-history">
-      <div className="school-season-history__heading">
-        <div>
-          <span>シーズン履歴</span>
-          <h4>過去シーズン</h4>
-        </div>
-        <strong>{presentations.length}年分</strong>
-      </div>
+  const preview = presentations.slice(0, 3);
 
-      <div className="school-season-history__list">
-        {presentations.map((presentation, index) => (
-          <SeasonHistoryCard
-            expanded={index === 0}
-            key={`${presentation.academicYear}-${index}`}
-            presentation={presentation}
-          />
-        ))}
-      </div>
-    </section>
+  return (
+    <>
+      <section aria-label="過去シーズン" className="school-season-history">
+        <div className="school-season-history__heading">
+          <div>
+            <span>シーズン履歴</span>
+            <h4>過去シーズン</h4>
+          </div>
+          <strong>{presentations.length}年分</strong>
+        </div>
+
+        <div className="school-season-history__list">
+          {preview.map((presentation, index) => (
+            <SeasonHistoryCard
+              expanded={index === 0}
+              key={`${presentation.academicYear}-${index}`}
+              presentation={presentation}
+            />
+          ))}
+        </div>
+
+        {presentations.length > preview.length ? (
+          <button
+            aria-label={`過去${presentations.length}年分をすべて見る`}
+            className="school-season-history__all"
+            onClick={() => setArchiveOpen(true)}
+            type="button"
+          >
+            <span>すべてのシーズン</span>
+            <b aria-hidden="true">›</b>
+          </button>
+        ) : null}
+      </section>
+
+      <BottomSheet
+        className="ui-bottom-sheet--game-choice"
+        description={`保存されている過去${presentations.length}年分のシーズン結果です。`}
+        onClose={() => setArchiveOpen(false)}
+        open={archiveOpen}
+        title="過去シーズン一覧"
+      >
+        <div className="school-season-history__archive-list">
+          {presentations.map((presentation, index) => (
+            <SeasonHistoryCard
+              expanded={false}
+              key={`archive-${presentation.academicYear}-${index}`}
+              presentation={presentation}
+            />
+          ))}
+        </div>
+      </BottomSheet>
+    </>
   );
 }
