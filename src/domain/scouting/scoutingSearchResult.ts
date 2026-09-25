@@ -30,7 +30,10 @@ export function scoutingSearchResultPresentation(
       message: "世代屈指の才能かもしれない選手の情報を掴んだ。",
     };
   }
-  if (maxStars >= 5 || reports.filter((report) => report.evaluationStars >= 4).length >= 2) {
+  if (
+    maxStars >= 5 ||
+    reports.filter((report) => report.evaluationStars >= 4).length >= 2
+  ) {
     return {
       tone: "standout",
       title: "逸材発見",
