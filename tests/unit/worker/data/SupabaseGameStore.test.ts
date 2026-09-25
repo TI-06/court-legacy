@@ -48,7 +48,7 @@ describe("SupabaseGameStore save stability", () => {
       }),
     ).resolves.toEqual({ response, replayed: false });
 
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v2", {
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
@@ -72,7 +72,16 @@ describe("SupabaseGameStore save stability", () => {
       outcome: { marker: "original-response" },
     };
     const client = createClient({
-      data: [{ response, replayed: true }],
+      data: [
+        {
+          response: {
+            operationId,
+            resultingRevision: snapshot.revision + 1,
+            outcome: response.outcome,
+          },
+          replayed: true,
+        },
+      ],
       error: null,
     });
     const store = new SupabaseGameStore(client);
