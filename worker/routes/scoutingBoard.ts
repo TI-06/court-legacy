@@ -111,17 +111,20 @@ export function createScoutingBoardHandler(
         }
       }
 
-      if (!pool) {
-        pool = await deps.scoutingStore.createCandidatePool({
+      const searchSequence = (snapshot.state.recruiting?.scoutingSearchesUsed ?? 0) + 1;
+      const nextPoolInput = {
           userId: user.id,
           cycleKey,
           creationOperationId: parsed.data.operationId,
-          candidates: generateServerScoutingCandidates(
-            snapshot.state,
-            parsed.data.search,
-          ),
-        });
-      }
+        candidates: generateServerScoutingCandidates(
+          snapshot.state,
+          parsed.data.search,
+          searchSequence,
+        ),
+      };
+      pool = pool
+        ? await deps.scoutingStore.replaceCandidatePool(nextPoolInput)
+        : await deps.scoutingStore.createCandidatePool(nextPoolInput);
 
       const response: PersistedOperationResponse = {
         game: {
@@ -147,13 +150,6 @@ export function createScoutingBoardHandler(
         if (error instanceof RevisionConflictError) return revisionConflict();
         throw error;
       }
-    } else if (!pool) {
-      pool = await deps.scoutingStore.createCandidatePool({
-        userId: user.id,
-        cycleKey,
-        creationOperationId: parsed.data.operationId,
-        candidates: generateServerScoutingCandidates(snapshot.state),
-      });
     }
 
     return json({
@@ -161,7 +157,7 @@ export function createScoutingBoardHandler(
       revision: activeRevision,
       cycleKey,
       scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
-      reports: buildServerScoutReports(activeState, pool),
+      reports: pool ? buildServerScoutReports(activeState, pool) : [],
     });
   };
 }
