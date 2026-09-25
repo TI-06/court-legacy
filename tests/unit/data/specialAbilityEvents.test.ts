@@ -37,6 +37,28 @@ describe("special ability event data", () => {
     }
   });
 
+  it("defines twelve camp events with a special ability outcome on every choice", () => {
+    const campEvents = [...gameData.events.values()].filter((event) =>
+      event.tags.includes("camp-event"),
+    );
+
+    expect(campEvents).toHaveLength(12);
+    for (const event of campEvents) {
+      expect(event.trigger.tournamentStages).toContain("camp");
+      for (const choice of event.choices) {
+        expect(
+          choice.effects.some(
+            (effect) =>
+              effect.type === "special-ability-tip" ||
+              effect.type === "special-ability-add" ||
+              effect.type === "special-ability-remove",
+          ),
+          `${event.id}/${choice.id} must change special ability progression`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it("provides awakening routes for every elite and gold ability", () => {
     const awakeningEvents = [...gameData.events.values()].filter((event) =>
       event.tags.some(
