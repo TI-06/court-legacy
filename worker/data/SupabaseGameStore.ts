@@ -67,6 +67,7 @@ const createGameRpcSchema = z
 
 const storedOperationSchema = z.object({
   response: z.unknown(),
+  resulting_revision: z.number().int().positive(),
 });
 
 const applyOperationRpcSchema = z
@@ -214,7 +215,7 @@ export class SupabaseGameStore implements GameStore {
   ): Promise<PersistedOperationResponse | null> {
     const { data, error } = await this.client
       .from("game_operations")
-      .select("response")
+      .select("response, resulting_revision")
       .eq("user_id", userId)
       .eq("operation_id", operationId)
       .maybeSingle();
@@ -234,7 +235,39 @@ export class SupabaseGameStore implements GameStore {
         cause: row.error,
       });
     }
-    return mapOperationResponse(row.data.response);
+
+    // Legacy rows contain the complete response and remain readable during
+    // rolling deployment. V3 rows are intentionally compact.
+    const legacy = z.object({ game: z.unknown() }).safeParse(row.data.response);
+    if (legacy.success) {
+      return mapOperationResponse(row.data.response);
+    }
+
+    const compact = z
+      .object({
+        operationId: z.string().min(1),
+        resultingRevision: z.number().int().positive(),
+        outcome: z.unknown().optional(),
+      })
+      .safeParse(row.data.response);
+    if (!compact.success) {
+      throw new GameStoreDataError("stored compact operation is invalid", {
+        cause: compact.error,
+      });
+    }
+
+    const snapshot = await this.getSnapshot(userId);
+    if (!snapshot || snapshot.revision !== row.data.resulting_revision) {
+      return null;
+    }
+    const response: PersistedOperationResponse = {
+      operationId: compact.data.operationId,
+      game: snapshot,
+    };
+    if (compact.data.outcome !== undefined) {
+      response.outcome = compact.data.outcome;
+    }
+    return response;
   }
 
   async createGame(input: CreateCloudGameInput): Promise<CloudGameSnapshot> {
@@ -278,7 +311,7 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const { data, error } = await this.client.rpc("apply_game_operation_v2", {
+    const { data, error } = await this.client.rpc("apply_game_operation_v3", {
       p_user_id: input.userId,
       p_operation_id: input.operationId,
       p_expected_revision: input.expectedRevision,
@@ -315,8 +348,27 @@ export class SupabaseGameStore implements GameStore {
         "replayed game operation response is missing",
       );
     }
+    const compact = z
+      .object({
+        operationId: z.string().min(1),
+        resultingRevision: z.number().int().positive(),
+        outcome: z.unknown().optional(),
+      })
+      .safeParse(result.response);
+    if (!compact.success) {
+      return {
+        response: mapOperationResponse(result.response),
+        replayed: true,
+      };
+    }
+    if (
+      compact.data.operationId !== input.operationId ||
+      compact.data.resultingRevision !== input.expectedRevision + 1
+    ) {
+      throw new RevisionConflictError();
+    }
     return {
-      response: mapOperationResponse(result.response),
+      response: input.response,
       replayed: true,
     };
   }
