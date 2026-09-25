@@ -1193,7 +1193,10 @@
     "bodyTemplate": "勝負所で託された{{player}}が、強いブロックを前にしても迷わず決め切った。チームの誰もが次の一本も託そうとしている。",
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": ["elite_court_hitter", "elite_block_crusher"],
+      "requiredSpecialAbilityIds": [
+        "elite_court_hitter",
+        "elite_block_crusher"
+      ],
       "excludedSpecialAbilityIds": ["gold_absolute_ace"],
       "abilityRanges": {
         "spike": {
@@ -1844,7 +1847,10 @@
     "bodyTemplate": "{{player}}が配球と相手前衛の動きを同時に読み、プレーが始まる前から次の展開を作り始めた。",
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": ["elite_game_maker", "elite_block_commander"],
+      "requiredSpecialAbilityIds": [
+        "elite_game_maker",
+        "elite_block_commander"
+      ],
       "excludedSpecialAbilityIds": ["gold_court_brain"],
       "abilityRanges": {
         "decision": {
