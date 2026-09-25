@@ -1,0 +1,435 @@
+[
+  {
+    "id": "event.skill-serve-streak",
+    "version": 1,
+    "category": "practice",
+    "title": "連続サーブの感覚",
+    "bodyTemplate": "{{player}}がサーブ練習で同じリズムを崩さず打ち続け、調子の波を小さくする感覚をつかみかけている。",
+    "tags": ["special-ability", "random-skill", "serve"],
+    "trigger": {},
+    "weight": 72,
+    "cooldownWeeks": 26,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "rhythm",
+        "label": "同じリズムを徹底する",
+        "detail": "連続して良いサーブを打つ感覚を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "serve_streak", "amount": 1 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "bold",
+        "label": "強気に狙わせる",
+        "detail": "劣勢でも攻めるサーブの感覚を伸ばす。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "serve_bold", "amount": 1 },
+          { "type": "morale-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-line-or-cross",
+    "version": 1,
+    "category": "individual",
+    "title": "一本の打ち分け",
+    "bodyTemplate": "{{player}}がスパイク練習でラインとクロスの打ち分けに手応えを感じている。",
+    "tags": ["special-ability", "random-skill", "attack"],
+    "trigger": {},
+    "weight": 78,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "line",
+        "label": "ラインを磨く",
+        "detail": "狭いコースを打ち抜く精度を上げる。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "attack_line", "amount": 1 },
+          { "type": "ability-change", "ability": "spike", "amount": 1 }
+        ]
+      },
+      {
+        "id": "cross",
+        "label": "クロスを磨く",
+        "detail": "角度をつけた強打の精度を上げる。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "attack_cross", "amount": 1 },
+          { "type": "ability-change", "ability": "spike", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-finish-variation",
+    "version": 1,
+    "category": "practice",
+    "title": "強打だけでは決まらない",
+    "bodyTemplate": "ブロック練習の中で{{player}}が、強打以外の得点方法を試し始めた。",
+    "tags": ["special-ability", "random-skill", "attack"],
+    "trigger": {},
+    "weight": 70,
+    "cooldownWeeks": 28,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "tip",
+        "label": "軟打を混ぜる",
+        "detail": "相手の守備位置を見て落とす技術を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "attack_tip", "amount": 1 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      },
+      {
+        "id": "high",
+        "label": "高い打点を徹底する",
+        "detail": "高さでブロックを上回る打ち方を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "attack_high_contact", "amount": 1 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-setter-links",
+    "version": 1,
+    "category": "practice",
+    "title": "誰と合わせるか",
+    "bodyTemplate": "{{player}}がコンビ練習で、速攻とサイド攻撃のどちらを優先して磨くか考えている。",
+    "tags": ["special-ability", "random-skill", "set"],
+    "trigger": {},
+    "weight": 68,
+    "cooldownWeeks": 28,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "quick",
+        "label": "速攻の呼吸を合わせる",
+        "detail": "中央との速いコンビを磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "set_quick_link", "amount": 1 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "side",
+        "label": "サイドとの呼吸を合わせる",
+        "detail": "両サイドへ安定して供給する感覚を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "set_side_link", "amount": 1 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-second-ball",
+    "version": 1,
+    "category": "individual",
+    "title": "崩れた二本目",
+    "bodyTemplate": "乱れたレシーブからの二本目を見て、{{player}}が普段とは違うトス役に挑戦している。",
+    "tags": ["special-ability", "random-skill", "set"],
+    "trigger": {},
+    "weight": 62,
+    "cooldownWeeks": 32,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "second",
+        "label": "二本目処理を磨く",
+        "detail": "セッター以外でも攻撃につなぐ技術を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "set_second_ball", "amount": 1 },
+          { "type": "ability-change", "ability": "set", "amount": 1 }
+        ]
+      },
+      {
+        "id": "emergency",
+        "label": "苦しい体勢を想定する",
+        "detail": "崩れた状況でもトスを上げる判断を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "set_emergency", "amount": 1 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-receive-connect",
+    "version": 1,
+    "category": "practice",
+    "title": "拾った後までが守備",
+    "bodyTemplate": "{{player}}がレシーブを上げるだけでなく、その後の攻撃まで意識し始めた。",
+    "tags": ["special-ability", "random-skill", "receive"],
+    "trigger": {},
+    "weight": 74,
+    "cooldownWeeks": 26,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "touch",
+        "label": "ワンタッチへの反応を磨く",
+        "detail": "ブロックに触れた球への反応を高める。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "receive_touch", "amount": 1 },
+          { "type": "ability-change", "ability": "receive", "amount": 1 }
+        ]
+      },
+      {
+        "id": "connect",
+        "label": "攻撃につながる返球を磨く",
+        "detail": "次のプレーをしやすい場所へ返す技術を伸ばす。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "receive_connect", "amount": 1 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-block-footwork",
+    "version": 1,
+    "category": "practice",
+    "title": "最後の半歩",
+    "bodyTemplate": "{{player}}がブロックの横移動で、最後の半歩を詰める感覚をつかみ始めた。",
+    "tags": ["special-ability", "random-skill", "block"],
+    "trigger": {},
+    "weight": 72,
+    "cooldownWeeks": 26,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "close",
+        "label": "隙間を閉じる",
+        "detail": "隣のブロッカーとの間を閉じる技術を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "block_close", "amount": 1 },
+          { "type": "ability-change", "ability": "block", "amount": 1 }
+        ]
+      },
+      {
+        "id": "side",
+        "label": "横移動を速くする",
+        "detail": "サイドへの移動速度を優先して磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "block_side", "amount": 1 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-reset-routine",
+    "version": 1,
+    "category": "individual",
+    "title": "ミスの次の一本",
+    "bodyTemplate": "ミスを引きずった{{player}}が、自分なりの切り替え方法を探している。",
+    "tags": ["special-ability", "random-skill", "mental"],
+    "trigger": {},
+    "weight": 76,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "reset",
+        "label": "切り替えの合図を作る",
+        "detail": "ミス後すぐ次の一本へ集中する習慣を作る。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "mental_reset", "amount": 1 },
+          { "type": "morale-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "calm",
+        "label": "呼吸を整える",
+        "detail": "焦った場面でも落ち着きを取り戻す習慣を作る。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "mental_calm", "amount": 1 },
+          { "type": "fatigue-change", "amount": -2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-tournament-mind",
+    "version": 1,
+    "category": "match",
+    "title": "大会の空気を覚える",
+    "bodyTemplate": "{{player}}が公式戦の緊張感を振り返り、自分の集中の入り方を整理している。",
+    "tags": ["special-ability", "random-skill", "mental", "match"],
+    "trigger": {},
+    "weight": 58,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "tournament",
+        "label": "大会の感覚を身体に残す",
+        "detail": "大舞台でも普段通り動く準備をする。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "mental_tournament", "amount": 1 },
+          { "type": "morale-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "focus",
+        "label": "集中ルーティンを固める",
+        "detail": "試合前から集中状態へ入る手順を磨く。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "mental_focus", "amount": 1 },
+          { "type": "trust-change", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-training-habits",
+    "version": 1,
+    "category": "individual",
+    "title": "伸びる選手の習慣",
+    "bodyTemplate": "{{player}}が練習後の自主練と身体のケアを、自分から続けるようになってきた。",
+    "tags": ["special-ability", "random-skill", "growth"],
+    "trigger": {},
+    "weight": 54,
+    "cooldownWeeks": 40,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "motivation",
+        "label": "自主練を続けさせる",
+        "detail": "成長への意欲をさらに高める。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "growth_motivation", "amount": 1 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "recovery",
+        "label": "ケアを習慣にする",
+        "detail": "練習後の回復まで含めた習慣を身につける。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "physical_recovery", "amount": 1 },
+          { "type": "fatigue-change", "amount": -3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-practice-sense",
+    "version": 1,
+    "category": "practice",
+    "title": "教わったことをすぐ試す",
+    "bodyTemplate": "{{player}}が新しい練習メニューの意図を理解し、すぐ自分の動きへ取り込もうとしている。",
+    "tags": ["special-ability", "random-skill", "growth"],
+    "trigger": {},
+    "weight": 48,
+    "cooldownWeeks": 44,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "practice",
+        "label": "自分で考えさせる",
+        "detail": "練習からコツを拾う感覚を伸ばす。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "growth_practice", "amount": 1 },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "stamina",
+        "label": "反復量を増やす",
+        "detail": "量をこなしながら体力面も伸ばす。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "physical_stamina", "amount": 1 },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-break-pattern",
+    "version": 1,
+    "category": "practice",
+    "title": "読まれている攻撃",
+    "bodyTemplate": "{{player}}の攻撃パターンが相手に読まれやすいことを映像で確認し、修正練習に入った。",
+    "tags": ["special-ability", "random-skill", "negative-recovery", "attack"],
+    "trigger": {
+      "requiredSpecialAbilityIds": ["attack_predictable"]
+    },
+    "weight": 96,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "break",
+        "label": "パターンを一度崩す",
+        "detail": "負荷をかけて攻撃の癖を根本から修正する。",
+        "effects": [
+          { "type": "special-ability-remove", "abilityId": "attack_predictable" },
+          { "type": "fatigue-change", "amount": 6 }
+        ]
+      },
+      {
+        "id": "course",
+        "label": "打ち分けを増やす",
+        "detail": "まずはコース選択を増やして読まれにくくする。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "attack_course", "amount": 1 },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.skill-cover-rebuild",
+    "version": 1,
+    "category": "practice",
+    "title": "カバーの一歩が遅い",
+    "bodyTemplate": "{{player}}がカバーへ入る一歩の遅れを自覚し、ポジショニングから見直し始めた。",
+    "tags": ["special-ability", "random-skill", "negative-recovery", "receive"],
+    "trigger": {
+      "requiredSpecialAbilityIds": ["receive_cover_slow"]
+    },
+    "weight": 92,
+    "cooldownWeeks": 36,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "rebuild",
+        "label": "立ち位置から修正する",
+        "detail": "カバーの遅れを根本から克服する。",
+        "effects": [
+          { "type": "special-ability-remove", "abilityId": "receive_cover_slow" },
+          { "type": "fatigue-change", "amount": 5 }
+        ]
+      },
+      {
+        "id": "cover",
+        "label": "カバー回数を増やす",
+        "detail": "反復でカバーリングの感覚を身につける。",
+        "effects": [
+          { "type": "special-ability-tip", "abilityId": "receive_cover", "amount": 1 },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  }
+]
