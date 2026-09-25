@@ -567,6 +567,63 @@
   white-space: nowrap;
 }
 
+.scouting-special-abilities {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-top: 6px;
+  gap: 5px;
+}
+
+.scouting-special-abilities__label {
+  flex: 0 0 auto;
+  color: #5e7079;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.scouting-special-abilities__list {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 3px;
+}
+
+.scouting-special-abilities__list > span {
+  padding: 2px 5px;
+  color: #236573;
+  font-size: 0.56rem;
+  font-weight: 900;
+  line-height: 1.25;
+  background: #e9f4f6;
+  border: 1px solid #c6dfe4;
+  border-radius: 999px;
+}
+
+.scouting-special-abilities__list > span[data-kind="negative"] {
+  color: #9b3b35;
+  background: #f8e9e7;
+  border-color: #edc6c2;
+}
+
+.scouting-special-abilities__list > span[data-kind="elite"] {
+  color: #7045a0;
+  background: #f0eafa;
+  border-color: #d8c9ec;
+}
+
+.scouting-special-abilities__list > span[data-kind="gold"] {
+  color: #80600d;
+  background: #fbf2d7;
+  border-color: #ead79c;
+}
+
+.scouting-special-abilities__list > span[data-kind="none"] {
+  color: #6b7b83;
+  background: #f1f4f5;
+  border-color: #d8e0e3;
+}
+
 @media (max-width: 600px) {
   .scouting-screen {
     gap: 7px;
@@ -715,6 +772,20 @@
 
   .scouting-ability-estimates strong {
     font-size: 0.56rem;
+  }
+
+  .scouting-special-abilities {
+    margin-top: 4px;
+    gap: 4px;
+  }
+
+  .scouting-special-abilities__label,
+  .scouting-special-abilities__list > span {
+    font-size: 0.5rem;
+  }
+
+  .scouting-special-abilities__list > span {
+    padding: 1px 4px;
   }
 
   .scouting-comments {

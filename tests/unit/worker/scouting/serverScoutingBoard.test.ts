@@ -172,6 +172,10 @@ describe("server scouting board Phase 5 integration", () => {
 
     expect(improved).toEqual(repeated);
     expect(improved[0]!.confidence).toBe("high");
+    expect(improved[0]!.specialAbilityCoverage).toBe("complete");
+    expect(improved[0]!.observedSpecialAbilityIds).toEqual(
+      candidates[0]!.player.specialAbilityIds,
+    );
     expect(
       improved[0]!.estimatedPotential.max - improved[0]!.estimatedPotential.min,
     ).toBeLessThanOrEqual(4);
