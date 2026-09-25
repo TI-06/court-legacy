@@ -1,5 +1,9 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { MatchEvent } from "../../../../src/domain/model/Match";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
+import type {
+  MatchEvent,
+  MatchState,
+} from "../../../../src/domain/model/Match";
 import {
   presentEventSpecialAbilities,
   presentPlayerSpecialAbilities,
@@ -16,6 +20,40 @@ function matchEvent(overrides: Partial<MatchEvent> = {}): MatchEvent {
     targetPlayerId: null,
     winnerSchoolId: null,
     detailCode: "serve.in-play",
+    ...overrides,
+  };
+}
+
+function matchState(
+  state: ReturnType<typeof createDemoGame>,
+  overrides: Partial<MatchState> = {},
+): MatchState {
+  const opponent = Object.values(state.schools).find(
+    (school) => school.id !== state.userSchoolId,
+  )!;
+  return {
+    id: "match-special-ability-test" as MatchState["id"],
+    homeSchoolId: state.userSchoolId,
+    awaySchoolId: opponent.id,
+    homeSelection: autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    }),
+    awaySelection: autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    }),
+    bestOfSets: 3,
+    phase: "set-in-progress",
+    currentSetNumber: 1,
+    homeSetsWon: 0,
+    awaySetsWon: 0,
+    sets: [],
+    servingSchoolId: state.userSchoolId,
+    pendingCoachCommandForSchoolId: null,
+    eventLog: [],
+    randomSeed: "special-ability-presentation",
+    randomCursor: 0,
     ...overrides,
   };
 }
@@ -39,6 +77,88 @@ describe("special ability match presentation", () => {
     ).toEqual(["gold_serve_king", "elite_serve_craftsman", "serve_unstable"]);
   });
 
+  it("shows conditional abilities only when their real match condition is active", () => {
+    const state = createDemoGame();
+    const ownPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[ownPlayerId] = {
+      ...state.players[ownPlayerId]!,
+      specialAbilityIds: ["serve_stable", "serve_late_game", "mental_clutch"],
+    };
+    const match = matchState(state);
+
+    const earlyServe = presentEventSpecialAbilities(
+      state,
+      match,
+      matchEvent({
+        actorPlayerId: ownPlayerId,
+        homeScore: 4,
+        awayScore: 3,
+      }),
+    );
+    const clutchServe = presentEventSpecialAbilities(
+      state,
+      match,
+      matchEvent({
+        actorPlayerId: ownPlayerId,
+        homeScore: 23,
+        awayScore: 22,
+      }),
+    );
+
+    expect(earlyServe.map((ability) => ability.id)).toContain("serve_stable");
+    expect(earlyServe.map((ability) => ability.id)).not.toContain(
+      "serve_late_game",
+    );
+    expect(earlyServe.map((ability) => ability.id)).not.toContain(
+      "mental_clutch",
+    );
+
+    const clutchIds = clutchServe.map((ability) => ability.id);
+    expect(clutchIds).toContain("serve_stable");
+    expect(clutchIds).toContain("serve_late_game");
+    expect(clutchIds).toContain("mental_clutch");
+  });
+
+  it("uses the player's actual home or away score when evaluating activation", () => {
+    const state = createDemoGame();
+    const ownPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const opponent = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    state.players[ownPlayerId] = {
+      ...state.players[ownPlayerId]!,
+      specialAbilityIds: ["mental_comeback"],
+    };
+    const base = matchState(state);
+    const awayMatch: MatchState = {
+      ...base,
+      homeSchoolId: opponent.id,
+      awaySchoolId: state.userSchoolId,
+      homeSelection: autoSelectTeam({
+        state,
+        schoolId: opponent.id,
+      }),
+      awaySelection: autoSelectTeam({
+        state,
+        schoolId: state.userSchoolId,
+      }),
+      servingSchoolId: opponent.id,
+    };
+
+    const active = presentEventSpecialAbilities(
+      state,
+      awayMatch,
+      matchEvent({
+        type: "receive",
+        actorPlayerId: ownPlayerId,
+        homeScore: 12,
+        awayScore: 8,
+      }),
+    );
+
+    expect(active.map((ability) => ability.id)).toContain("mental_comeback");
+  });
+
   it("shows only own-player abilities relevant to the current volleyball action", () => {
     const state = createDemoGame();
     const ownPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
@@ -60,16 +180,20 @@ describe("special ability match presentation", () => {
       specialAbilityIds: ["gold_serve_king"],
     };
 
+    const match = matchState(state);
     const ownServe = presentEventSpecialAbilities(
       state,
+      match,
       matchEvent({ actorPlayerId: ownPlayerId }),
     );
     const opponentServe = presentEventSpecialAbilities(
       state,
+      match,
       matchEvent({ actorPlayerId: opponentPlayerId }),
     );
     const ownPoint = presentEventSpecialAbilities(
       state,
+      match,
       matchEvent({ actorPlayerId: ownPlayerId, type: "point" }),
     );
 

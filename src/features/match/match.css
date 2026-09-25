@@ -337,6 +337,13 @@
   border-radius: 999px;
 }
 
+.match-current-event__specials b {
+  margin-right: 4px;
+  font-size: 0.48rem;
+  letter-spacing: 0.04em;
+  opacity: 0.72;
+}
+
 .match-current-event__specials span[data-kind="positive"] {
   color: #16617b;
   background: #e6f7ff;
