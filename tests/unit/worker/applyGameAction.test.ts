@@ -498,6 +498,49 @@ describe("applyGameAction", () => {
     expect(unknown.state.notifications).toEqual(read.state.notifications);
   });
 
+  it("clears a completed training camp result and allows the next week to advance", () => {
+    const snapshot = createSnapshot();
+    snapshot.state.shopEffects = {
+      trainingCampResult: {
+        sourceItemId: "training-camp",
+        scheduledDate: snapshot.state.date,
+        participantCount: 12,
+        grewPlayerCount: 10,
+        totalAbilityGrowth: 36,
+        topGrowth: [],
+        averageFatigueChange: 11.5,
+        injuredPlayerIds: [],
+      },
+    };
+    const weekBefore = snapshot.state.calendar.weekOfYear;
+    const dateBefore = snapshot.state.date;
+
+    const acknowledged = applyGameAction(snapshot, {
+      type: "acknowledge-training-camp-result",
+    });
+
+    expect(acknowledged.state.shopEffects?.trainingCampResult).toBeUndefined();
+
+    const advanced = applyGameAction(
+      {
+        ...snapshot,
+        state: acknowledged.state,
+        teamSelection: acknowledged.teamSelection,
+      },
+      { type: "advance-week" },
+    );
+    const outcome = advanced.outcome as {
+      weekAdvanced: boolean;
+      pendingMatchPresentation: unknown;
+    };
+
+    expect(outcome.weekAdvanced).toBe(true);
+    expect(outcome.pendingMatchPresentation).toBeNull();
+    expect(advanced.state.calendar.weekOfYear).toBe(weekBefore + 1);
+    expect(advanced.state.date).not.toBe(dateBefore);
+    expect(advanced.state.shopEffects?.trainingCampResult).toBeUndefined();
+  });
+
   it("upgrades a legal facility on the authoritative state", () => {
     const snapshot = createSnapshot();
     const schoolBefore = snapshot.state.schools[snapshot.state.userSchoolId]!;
