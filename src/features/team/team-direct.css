@@ -930,7 +930,6 @@
   opacity: 0.5;
 }
 
-
 .team-picker-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 44px 70px auto;
