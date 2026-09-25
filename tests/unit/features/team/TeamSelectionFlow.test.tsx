@@ -115,7 +115,9 @@ describe("team selection direct-touch UI", () => {
     expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
       10,
     );
-    expect(within(dialog).getByText(/候補 10人・適性順・先発含む/)).toBeVisible();
+    expect(
+      within(dialog).getByText(/候補 10人・適性順・先発含む/),
+    ).toBeVisible();
     expect(
       within(dialog)
         .getAllByTestId("player-picker-option")
