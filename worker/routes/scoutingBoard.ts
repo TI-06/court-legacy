@@ -1,7 +1,10 @@
 import { z } from "zod";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
-import { consumeBaseScoutingSearch } from "../../src/domain/scouting/scoutingSearchBudget";
+import {
+  consumeBaseScoutingSearch,
+  consumeExtraScoutingSearchCredit,
+} from "../../src/domain/scouting/scoutingSearchBudget";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import type { ShopStore } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
@@ -19,7 +22,6 @@ const requestSchema = z
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
-    useExtraTicket: z.boolean().optional(),
     search: z
       .object({
         region: z.enum(["prefecture", "regional", "national"]),
@@ -93,32 +95,19 @@ export function createScoutingBoardHandler(
     let activeRevision = snapshot.revision;
 
     if (parsed.data.search) {
-      const searchedState = consumeBaseScoutingSearch(snapshot.state);
+      const searchedState =
+        consumeBaseScoutingSearch(snapshot.state) ??
+        consumeExtraScoutingSearchCredit(snapshot.state);
       if (!searchedState) {
-        if (parsed.data.useExtraTicket) {
-          activeState = snapshot.state;
-        } else {
-          const shopItems = deps.shopStore
-          ? await deps.shopStore.getStatus(user.id, snapshot.state.yearIndex)
-          : [];
-          const ticket = shopItems.find((item) => item.itemId === "extra-scout-trip");
-          if (!ticket || ticket.quantityOwned <= 0) {
-            return jsonError(
-              409,
-              "scouting_search_limit",
-              "通常スカウト3回を使い切りました。追加スカウト権が必要です",
-            );
-          }
-          return jsonError(
-            409,
-            "extra_scout_ticket_required",
-            "追加スカウト権を使用してから探索してください",
-          );
-        }
+        return jsonError(
+          409,
+          "scouting_search_limit",
+          "通常スカウト3回を使い切りました。追加スカウト権が必要です",
+        );
       }
 
       const searchSequence =
-        (snapshot.state.recruiting?.scoutingSearchesUsed ?? 0) + 1;
+        searchedState.recruiting?.scoutingSearchesUsed ?? 1;
       const nextPoolInput = {
         userId: user.id,
         cycleKey,
