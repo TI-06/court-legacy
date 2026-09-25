@@ -249,7 +249,8 @@
         "detail": "プレッシャーの中で決める経験を積ませる。",
         "effects": [
           { "type": "special-ability-tip", "abilityId": "mental_clutch", "amount": 1 },
-          { "type": "morale-change", "amount": 3 }
+          { "type": "morale-change", "amount": 3 },
+          { "type": "fatigue-change", "amount": 3 }
         ]
       },
       {
@@ -387,7 +388,8 @@
         "detail": "成功と失敗を重ね、勝負弱さの克服を狙う。",
         "effects": [
           { "type": "special-ability-remove", "abilityId": "mental_choke" },
-          { "type": "morale-change", "amount": 4 }
+          { "type": "morale-change", "amount": 4 },
+          { "type": "fatigue-change", "amount": 3 }
         ]
       },
       {
