@@ -24,6 +24,7 @@ import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOff
 import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
 import { buildPracticePlanning } from "../weekly/practiceMatchPlanning";
+import { createAnnualTrainingCampActivities } from "./trainingCampCalendar";
 import { advanceOneWeek, type WeekProgressionResult } from "./weekProgression";
 
 export interface AcademicYearTransitionSummary {
@@ -459,6 +460,10 @@ export function advanceAcademicYear(
       academicYear: nextAcademicYear,
       weekOfYear: 1,
       currentDate: state.date,
+      activities: createAnnualTrainingCampActivities(
+        nextAcademicYear,
+        state.date,
+      ),
       completedActivityIds: state.calendar.completedActivityIds.filter(
         (id) => !id.startsWith("week:"),
       ),
