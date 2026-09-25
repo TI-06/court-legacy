@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSearchBudget";
 import {
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
@@ -225,6 +226,11 @@ export function ScoutingScreen({
     null;
   const visitsRemaining = recruitmentVisitsRemaining(state);
   const recommendationAvailable = recruitmentRecommendationAvailable(state);
+  const baseSearchesRemaining = scoutingBaseSearchesRemaining(state);
+  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
+  const [searchRegion, setSearchRegion] = useState<"prefecture" | "regional" | "national">("prefecture");
+  const [searchPosition, setSearchPosition] = useState<"any" | "OH" | "MB" | "S" | "OP" | "L">("any");
+  const [searchPriority, setSearchPriority] = useState<"ability" | "potential" | "physical" | "immediate" | "hidden">("ability");
 
   const selectSchoolView = (view: SchoolView) => {
     if (view === "scouting") return;
@@ -269,6 +275,10 @@ export function ScoutingScreen({
         </div>
         <div className="scouting-summary" aria-label="スカウト状況">
           <div>
+            <span>今年の探索</span>
+            <strong>{3 - baseSearchesRemaining}/3</strong>
+          </div>
+          <div>
             <span>スカウト網</span>
             <strong>Lv.{school.facilities.scoutingNetwork}</strong>
           </div>
@@ -288,6 +298,16 @@ export function ScoutingScreen({
       </section>
 
       <SchoolNavigationTabs activeView="scouting" onSelect={selectSchoolView} />
+
+      <section className="scouting-search-launch" aria-label="選手探索">
+        <div>
+          <span>通常スカウト</span>
+          <strong>残り {baseSearchesRemaining}/3回</strong>
+        </div>
+        <button onClick={() => setSearchSheetOpen(true)} type="button">
+          スカウトに行く
+        </button>
+      </section>
 
       {loading ? (
         <section className="scouting-state" role="status">
@@ -563,6 +583,43 @@ export function ScoutingScreen({
       {!loading && reports.length > 0 && activeReports.length === 0 ? (
         <p className="scouting-empty-active">表示中の候補はいません</p>
       ) : null}
+
+      <BottomSheet
+        description="地域・ポジション・探したいタイプを選択"
+        onClose={() => setSearchSheetOpen(false)}
+        open={searchSheetOpen}
+        title="探索条件"
+      >
+        <div className="scouting-search-sheet">
+          <fieldset>
+            <legend>地域</legend>
+            <div className="scouting-search-chips">
+              {([["prefecture", "県内"], ["regional", "地方"], ["national", "全国"]] as const).map(([value, label]) => (
+                <button aria-pressed={searchRegion === value} key={value} onClick={() => setSearchRegion(value)} type="button">{label}</button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>ポジション</legend>
+            <div className="scouting-search-chips scouting-search-chips--positions">
+              {(["any", "OH", "MB", "S", "OP", "L"] as const).map((value) => (
+                <button aria-pressed={searchPosition === value} key={value} onClick={() => setSearchPosition(value)} type="button">{value === "any" ? "指定なし" : value}</button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>重視するタイプ</legend>
+            <div className="scouting-search-chips scouting-search-chips--priority">
+              {([["ability", "現在能力"], ["potential", "将来性"], ["physical", "身長・身体能力"], ["immediate", "即戦力"], ["hidden", "隠れた逸材"]] as const).map(([value, label]) => (
+                <button aria-pressed={searchPriority === value} key={value} onClick={() => setSearchPriority(value)} type="button">{label}</button>
+              ))}
+            </div>
+          </fieldset>
+          <button className="scouting-search-confirm" disabled={baseSearchesRemaining <= 0} type="button">
+            {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : "通常探索を使い切りました"}
+          </button>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description={
