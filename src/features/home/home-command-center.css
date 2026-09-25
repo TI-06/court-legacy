@@ -62,6 +62,20 @@
   line-height: 1.2;
 }
 
+.home-command-summary__camp {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 6px;
+  color: #9ee6bc;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.35;
+  vertical-align: 2px;
+  background: rgb(43 140 91 / 14%);
+  border: 1px solid rgb(88 200 139 / 28%);
+  border-radius: 999px;
+}
+
 .home-command-summary__top > strong {
   overflow: hidden;
   max-width: 42%;
@@ -85,15 +99,6 @@
 .home-command-objective.is-due {
   background: rgb(244 122 24 / 10%);
   border-color: rgb(244 122 24 / 35%);
-}
-
-.home-camp-card {
-  background: rgb(43 140 91 / 12%);
-  border-color: rgb(88 200 139 / 30%);
-}
-
-.home-camp-card .home-command-objective__action b {
-  color: #9ee6bc;
 }
 
 .home-command-objective > div:first-child {
