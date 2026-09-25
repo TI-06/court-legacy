@@ -43,6 +43,7 @@ interface ScoutingScreenProps {
   onBack: () => void;
   onRetry: () => void;
   onSearch?: (criteria: ScoutingSearchCriteria) => void;
+  onExtraSearch?: (criteria: ScoutingSearchCriteria) => void;
   onRecruit: (candidateId: PlayerId, action?: RecruitmentAction) => void;
   onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
 }
@@ -184,6 +185,7 @@ export function ScoutingScreen({
   onBack,
   onRetry,
   onSearch = () => undefined,
+  onExtraSearch = () => undefined,
   onRecruit,
   onUseShopItem = () => undefined,
 }: ScoutingScreenProps) {
@@ -620,7 +622,7 @@ export function ScoutingScreen({
             </div>
           </fieldset>
           <button className="scouting-search-confirm" disabled={(baseSearchesRemaining <= 0 && extraScoutTickets <= 0) || loading} onClick={() => {
-            onSearch({ region: searchRegion, position: searchPosition, priority: searchPriority });
+            (baseSearchesRemaining > 0 ? onSearch : onExtraSearch)({ region: searchRegion, position: searchPosition, priority: searchPriority });
             setSearchSheetOpen(false);
           }} type="button">
             {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : extraScoutTickets > 0 ? `追加券を使って探索・×${extraScoutTickets}` : "追加スカウト権が必要です"}
