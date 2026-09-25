@@ -5,6 +5,7 @@ import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { RecruitTier } from "../../src/domain/scouting/recruitmentTierProbability";
+import { addExtraScoutingSearchCredit } from "../../src/domain/scouting/scoutingSearchBudget";
 import { getShopItemDefinition } from "../../src/domain/shop/shopCatalog";
 import type { ShopUseRequest } from "../../src/domain/shop/shopContracts";
 import {
@@ -529,6 +530,7 @@ export async function resolveShopUse(
   switch (input.request.itemId) {
     case "extra-scout-trip": {
       const base = cloneBase(input.snapshot);
+      base.state = addExtraScoutingSearchCredit(base.state);
       return {
         ...base,
         targetType: "none",
