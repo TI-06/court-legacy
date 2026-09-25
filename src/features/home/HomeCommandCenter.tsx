@@ -300,6 +300,22 @@ export function HomeCommandCenter({
         </div>
 
         <div className="home-command-summary__briefing">
+          {summary.camp ? (
+            <div
+              aria-label="強化合宿期間"
+              className="home-command-objective home-camp-card"
+            >
+              <div>
+                <span>強化合宿</span>
+                <strong>{summary.camp.title}</strong>
+                <small>{summary.camp.detail}</small>
+              </div>
+              <div className="home-command-objective__action">
+                <b>SKILL EVENT</b>
+              </div>
+            </div>
+          ) : null}
+
           {summary.official ? (
             <div
               className={`home-command-objective home-official-card${summary.official.due ? " is-due" : ""}`}
