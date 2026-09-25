@@ -17,7 +17,11 @@
         "label": "コースを最後まで狙わせる",
         "detail": "狙いの精度を優先し、サーブのコツをつかませる。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "serve_aim", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_aim",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 }
         ]
       },
@@ -26,7 +30,11 @@
         "label": "同じフォームを反復する",
         "detail": "再現性を優先し、安定したサーブフォームを固める。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "serve_stable", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 2 }
         ]
       }
@@ -50,7 +58,11 @@
         "label": "ジャンプサーブを磨く",
         "detail": "威力と打点を追求する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "jump_serve_mastery", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "jump_serve_mastery",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 5 }
         ]
       },
@@ -59,7 +71,11 @@
         "label": "フローターを磨く",
         "detail": "変化とコントロールを追求する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "float_mastery", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "float_mastery",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 3 }
         ]
       }
@@ -83,7 +99,11 @@
         "label": "空いたコースを狙う",
         "detail": "守備位置を見て打ち分ける感覚を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "attack_course", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_course",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 }
         ]
       },
@@ -92,7 +112,11 @@
         "label": "ブロックの指先を狙う",
         "detail": "高い壁を利用する技術を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "attack_blockout", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_blockout",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 }
         ]
       }
@@ -116,7 +140,11 @@
         "label": "切り返しの速さを磨く",
         "detail": "守備直後から攻撃へ移る技術を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "attack_transition", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_transition",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 }
         ]
       },
@@ -125,7 +153,11 @@
         "label": "最短助走を磨く",
         "detail": "速いテンポに入る技術を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "attack_quick", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_quick",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 4 }
         ]
       }
@@ -149,7 +181,11 @@
         "label": "配球パターンを増やす",
         "detail": "相手ブロックを散らす判断を磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "set_distribution", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "set_distribution",
+            "amount": 1
+          },
           { "type": "ability-change", "ability": "decision", "amount": 1 }
         ]
       },
@@ -158,7 +194,11 @@
         "label": "バックセットを反復する",
         "detail": "攻撃方向を最後まで隠すトスを磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "set_back", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "set_back",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 2 }
         ]
       }
@@ -182,7 +222,11 @@
         "label": "強打への反応を磨く",
         "detail": "ディグの初動と面づくりを優先する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "receive_dig", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_dig",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 3 }
         ]
       },
@@ -191,7 +235,11 @@
         "label": "一歩目の範囲を広げる",
         "detail": "守備範囲と追いつく速さを優先する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "receive_range", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_range",
+            "amount": 1
+          },
           { "type": "ability-change", "ability": "speed", "amount": 1 }
         ]
       }
@@ -215,7 +263,11 @@
         "label": "トスから攻撃先を読む",
         "detail": "相手の選択を見てから動く読みを磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "block_read", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "block_read",
+            "amount": 1
+          },
           { "type": "ability-change", "ability": "decision", "amount": 1 }
         ]
       },
@@ -224,7 +276,11 @@
         "label": "ワンタッチを狙う",
         "detail": "止め切れない球も守備へ残す手の出し方を磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "block_touch", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "block_touch",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 2 }
         ]
       }
@@ -248,7 +304,11 @@
         "label": "勝負を託す",
         "detail": "プレッシャーの中で決める経験を積ませる。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "mental_clutch", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_clutch",
+            "amount": 1
+          },
           { "type": "morale-change", "amount": 3 },
           { "type": "fatigue-change", "amount": 3 }
         ]
@@ -258,7 +318,11 @@
         "label": "一本だけに集中させる",
         "detail": "結果よりルーティンと集中を優先する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "mental_focus", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_focus",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": -2 }
         ]
       }
@@ -282,7 +346,11 @@
         "label": "最後まで動き切る",
         "detail": "長いラリーと連戦に耐える体力を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "physical_stamina", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "physical_stamina",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 5 }
         ]
       },
@@ -291,7 +359,11 @@
         "label": "回復まで含めて管理する",
         "detail": "睡眠とケアを徹底して回復力を伸ばす。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "physical_recovery", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "physical_recovery",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": -5 }
         ]
       }
@@ -315,7 +387,11 @@
         "label": "攻撃後のカバーを徹底する",
         "detail": "ブロックされた後の二本目を残す動きを磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "receive_cover", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_cover",
+            "amount": 1
+          },
           { "type": "trust-change", "amount": 2 }
         ]
       },
@@ -324,7 +400,11 @@
         "label": "二段トスから打ち切る",
         "detail": "崩れた状況でも攻撃を成立させる判断を磨く。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "attack_out_of_system", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_out_of_system",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 3 }
         ]
       }
@@ -360,7 +440,11 @@
         "label": "修正点を一つに絞る",
         "detail": "克服は急がず、安定サーブの感覚を積み上げる。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "serve_stable", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
+          },
           { "type": "fatigue-change", "amount": 2 }
         ]
       }
@@ -397,7 +481,11 @@
         "label": "ルーティンから作る",
         "detail": "まずは集中の入り方を固め、段階的に改善する。",
         "effects": [
-          { "type": "special-ability-tip", "abilityId": "mental_focus", "amount": 1 },
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_focus",
+            "amount": 1
+          },
           { "type": "trust-change", "amount": 2 }
         ]
       }
