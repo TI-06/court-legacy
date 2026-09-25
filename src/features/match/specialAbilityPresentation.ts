@@ -1,5 +1,5 @@
 import type { GameState } from "../../domain/model/GameState";
-import type { MatchEvent } from "../../domain/model/Match";
+import type { MatchEvent, MatchState } from "../../domain/model/Match";
 import type { Player, PlayerAbilities } from "../../domain/model/Player";
 import {
   getServeSpecialAbilityAdjustment,
@@ -74,32 +74,28 @@ export function presentPlayerSpecialAbilities(
 }
 
 function eventSituation(
-  state: GameState,
+  match: MatchState,
   event: MatchEvent,
   player: Player,
-  bestOfSets: 3 | 5,
 ): MatchSpecialAbilitySituation | null {
   const schoolId = player.career.schoolId;
-  const homeSchoolId = event.winnerSchoolId
-    ? state.schools[event.winnerSchoolId]?.id
-    : null;
-  void homeSchoolId;
-
-  const ownSchool = state.schools[schoolId];
-  if (!ownSchool) return null;
-
-  const isUserPlayer = schoolId === state.userSchoolId;
-  if (!isUserPlayer) return null;
-
-  const userIsHome = event.homeScore >= 0 && event.awayScore >= 0;
-  void userIsHome;
-
-  return {
-    ownScore: event.homeScore,
-    opponentScore: event.awayScore,
-    setNumber: event.setNumber,
-    bestOfSets,
-  };
+  if (schoolId === match.homeSchoolId) {
+    return {
+      ownScore: event.homeScore,
+      opponentScore: event.awayScore,
+      setNumber: event.setNumber,
+      bestOfSets: match.bestOfSets,
+    };
+  }
+  if (schoolId === match.awaySchoolId) {
+    return {
+      ownScore: event.awayScore,
+      opponentScore: event.homeScore,
+      setNumber: event.setNumber,
+      bestOfSets: match.bestOfSets,
+    };
+  }
+  return null;
 }
 
 function hasActiveMatchEffect(
@@ -133,8 +129,8 @@ function hasActiveMatchEffect(
 
 export function presentEventSpecialAbilities(
   state: GameState,
+  match: MatchState,
   event: MatchEvent,
-  bestOfSets: 3 | 5 = 3,
   limit = 3,
 ): MatchSpecialAbilityBadge[] {
   const actorPlayerId = event.actorPlayerId;
@@ -149,7 +145,7 @@ export function presentEventSpecialAbilities(
   if (!eventCategories || eventCategories.length === 0) {
     return [];
   }
-  const situation = eventSituation(state, event, player, bestOfSets);
+  const situation = eventSituation(match, event, player);
   if (!situation) return [];
 
   const allowedCategories = new Set(eventCategories);
