@@ -1,6 +1,5 @@
 export const SHOP_ITEM_IDS = [
   "extra-scout-candidate",
-  "extra-scout-trip",
   "generational-scout-candidate",
   "scout-research",
   "potential-appraisal",
@@ -46,17 +45,6 @@ export const PHASE5_SHOP_ITEMS = [
     inventoryLimit: null,
     targetKind: "none",
     sortOrder: 10,
-  },
-  {
-    itemId: "extra-scout-trip",
-    displayName: "追加スカウト権",
-    description: "年間3回の通常スカウトを使い切った後に、追加で1回探索できます。",
-    priceYen: 0,
-    annualPurchaseLimit: 2_000_000_000,
-    annualUseLimit: 2_000_000_000,
-    inventoryLimit: null,
-    targetKind: "none",
-    sortOrder: 12,
   },
   {
     itemId: "generational-scout-candidate",
