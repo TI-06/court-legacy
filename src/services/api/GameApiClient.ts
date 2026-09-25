@@ -17,6 +17,7 @@ import type {
 } from "../../domain/pvp/pvpContracts";
 import type { RecruitmentAction } from "../../domain/scouting/recruitmentEngagement";
 import type { ScoutReport } from "../../domain/scouting/scoutReport";
+import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
 import type {
   ShopPurchaseRequest,
   ShopPurchaseResponse,
@@ -50,6 +51,7 @@ export interface OnboardingInput {
 export interface ScoutingBoardRequest {
   operationId: string;
   revision: number;
+  search?: ScoutingSearchCriteria;
 }
 
 export interface ScoutingBoardResponse {
