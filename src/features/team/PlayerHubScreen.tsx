@@ -642,9 +642,7 @@ export function PlayerHubScreen({
     )
       .flatMap(([abilityId, level]) => {
         const ability = getSpecialAbilityDefinition(abilityId);
-        return ability && level > 0 && level < 3
-          ? [{ ability, level }]
-          : [];
+        return ability && level > 0 && level < 3 ? [{ ability, level }] : [];
       })
       .sort(
         (left, right) =>
@@ -1179,9 +1177,9 @@ export function PlayerHubScreen({
             item.potential === null ? null : ratingToGrade(item.potential);
           const growthType = data.growthTypes.get(player.growthTypeId);
           const trainingDraft = Boolean(trainingDrafts[player.id]);
-          const specialAbilityCounts = (
-            player.specialAbilityIds ?? []
-          ).reduce<Record<SpecialAbilityKind, number>>(
+          const specialAbilityCounts = (player.specialAbilityIds ?? []).reduce<
+            Record<SpecialAbilityKind, number>
+          >(
             (counts, abilityId) => {
               const ability = getSpecialAbilityDefinition(abilityId);
               if (ability) counts[ability.kind] += 1;
