@@ -1,6 +1,7 @@
 import type { EventDefinition } from "../../domain/validation/gameDataSchema";
 import academic from "./academic.json" with { type: "json" };
 import captaincy from "./captaincy.json" with { type: "json" };
+import camp from "./camp.json" with { type: "json" };
 import chainAceComeback from "./chain-ace-comeback.json" with { type: "json" };
 import chainAlumniFacility from "./chain-alumni-facility.json" with { type: "json" };
 import chainCaptain from "./chain-captain.json" with { type: "json" };
@@ -36,6 +37,7 @@ const rawEventCatalog: unknown[] = [
   ...academic,
   ...matchEvents,
   ...captaincy,
+  ...camp,
   ...scouting,
   ...rivalry,
   ...seasonal,
