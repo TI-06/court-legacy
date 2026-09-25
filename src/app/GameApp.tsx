@@ -293,7 +293,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
     search?: ScoutingSearchCriteria,
-    useExtraTicket = false,
   ): Promise<ScoutReport[] | null> => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
@@ -309,7 +308,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         operationId: crypto.randomUUID(),
         revision,
         ...(search ? { search } : {}),
-        ...(useExtraTicket ? { useExtraTicket: true } : {}),
       });
       if (search) {
         const latest = await api.bootstrap(session.accessToken);
@@ -335,7 +333,6 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
               operationId: crypto.randomUUID(),
               revision: latest.game.revision,
               ...(search ? { search } : {}),
-              ...(useExtraTicket ? { useExtraTicket: true } : {}),
             });
             setScoutingReports(refreshed.reports);
             setScoutingCycle(refreshed.cycleKey);
@@ -1315,7 +1312,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
               });
               if (await refreshShopAfterMutation(response.revision)) {
                 setScoutingReports([]);
-                await loadScoutingBoard(response.revision, criteria, true);
+                await loadScoutingBoard(response.revision, criteria);
               }
             } catch (error) {
               setScoutingError(shopErrorMessage(error, "追加スカウト権を使用できませんでした"));
