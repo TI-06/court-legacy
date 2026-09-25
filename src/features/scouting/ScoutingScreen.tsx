@@ -230,6 +230,7 @@ export function ScoutingScreen({
   const visitsRemaining = recruitmentVisitsRemaining(state);
   const recommendationAvailable = recruitmentRecommendationAvailable(state);
   const baseSearchesRemaining = scoutingBaseSearchesRemaining(state);
+  const extraScoutTickets = shopItems.find((item) => item.itemId === "extra-scout-trip")?.quantityOwned ?? 0;
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [searchRegion, setSearchRegion] = useState<"prefecture" | "regional" | "national">("prefecture");
   const [searchPosition, setSearchPosition] = useState<"any" | "OH" | "MB" | "S" | "OP" | "L">("any");
@@ -305,7 +306,7 @@ export function ScoutingScreen({
       <section className="scouting-search-launch" aria-label="選手探索">
         <div>
           <span>通常スカウト</span>
-          <strong>残り {baseSearchesRemaining}/3回</strong>
+          <strong>{baseSearchesRemaining > 0 ? `残り ${baseSearchesRemaining}/3回` : `追加券 ×${extraScoutTickets}`}</strong>
         </div>
         <button onClick={() => setSearchSheetOpen(true)} type="button">
           スカウトに行く
@@ -618,11 +619,11 @@ export function ScoutingScreen({
               ))}
             </div>
           </fieldset>
-          <button className="scouting-search-confirm" disabled={baseSearchesRemaining <= 0 || loading} onClick={() => {
+          <button className="scouting-search-confirm" disabled={(baseSearchesRemaining <= 0 && extraScoutTickets <= 0) || loading} onClick={() => {
             onSearch({ region: searchRegion, position: searchPosition, priority: searchPriority });
             setSearchSheetOpen(false);
           }} type="button">
-            {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : "通常探索を使い切りました"}
+            {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : extraScoutTickets > 0 ? `追加券を使って探索・×${extraScoutTickets}` : "追加スカウト権が必要です"}
           </button>
         </div>
       </BottomSheet>
