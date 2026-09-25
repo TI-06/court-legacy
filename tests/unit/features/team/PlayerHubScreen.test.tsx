@@ -179,18 +179,18 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(detailButton);
 
     const abilities = screen.getByRole("region", { name: "特殊能力" });
-    const positive = within(abilities).getByText("コース打ち○").closest(
-      "article",
-    )!;
-    const negative = within(abilities).getByText("サーブ不安定").closest(
-      "article",
-    )!;
-    const elite = within(abilities).getByText("ゲームメイカー").closest(
-      "article",
-    )!;
-    const gold = within(abilities).getByText("コートの頭脳").closest(
-      "article",
-    )!;
+    const positive = within(abilities)
+      .getByText("コース打ち○")
+      .closest("article")!;
+    const negative = within(abilities)
+      .getByText("サーブ不安定")
+      .closest("article")!;
+    const elite = within(abilities)
+      .getByText("ゲームメイカー")
+      .closest("article")!;
+    const gold = within(abilities)
+      .getByText("コートの頭脳")
+      .closest("article")!;
     expect(within(positive).getByText("青特")).toBeVisible();
     expect(within(negative).getByText("赤特")).toBeVisible();
     expect(within(elite).getByText("上位特能")).toBeVisible();
