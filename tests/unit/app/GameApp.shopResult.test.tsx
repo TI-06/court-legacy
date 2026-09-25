@@ -67,6 +67,67 @@ function status(revision: number, owned: boolean): ShopStatusResponse {
 }
 
 describe("GameApp shop result presentation", () => {
+  it("acknowledges the completed training camp result and closes the dialog", async () => {
+    const initial = snapshot(2);
+    initial.state.shopEffects = {
+      trainingCampResult: {
+        sourceItemId: "training-camp",
+        scheduledDate: initial.state.date,
+        participantCount: 12,
+        grewPlayerCount: 10,
+        totalAbilityGrowth: 36,
+        topGrowth: [],
+        averageFatigueChange: 11.5,
+        injuredPlayerIds: [],
+      },
+    };
+    const cleared = structuredClone(initial);
+    cleared.revision = 3;
+    cleared.state.shopEffects = undefined;
+
+    const applyAction = vi.fn<NonNullable<GameApiClient["applyAction"]>>(
+      async (_accessToken, request) => ({
+        operationId: request.operationId,
+        game: cleared,
+      }),
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn().mockResolvedValue({ status: "ready", game: cleared }),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={initial}
+      />,
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "強化合宿の結果" }),
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "結果を確認した" }));
+
+    await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(1));
+    expect(applyAction).toHaveBeenCalledWith(
+      session.accessToken,
+      expect.objectContaining({
+        revision: 2,
+        operationId: expect.any(String),
+        action: { type: "acknowledge-training-camp-result" },
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "強化合宿の結果" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
   it("keeps the server use result visible after adopting the authoritative snapshot", async () => {
     const initial = snapshot(1);
     const updated = snapshot(2);
