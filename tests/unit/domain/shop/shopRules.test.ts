@@ -6,7 +6,7 @@ import {
 } from "../../../../src/domain/shop/shopRules";
 
 describe("shop annual and carry-over rules", () => {
-  it("blocks purchase independently while allowing owned inventory use", () => {
+  it("keeps purchase available at former annual cap counts", () => {
     const definition = getShopItemDefinition("fatigue-recovery");
 
     expect(
@@ -23,7 +23,7 @@ describe("shop annual and carry-over rules", () => {
     });
   });
 
-  it("blocks use when the annual use limit is reached", () => {
+  it("keeps use available at former annual cap counts", () => {
     const definition = getShopItemDefinition("fatigue-recovery");
 
     expect(
