@@ -52,7 +52,6 @@ export interface ScoutingBoardRequest {
   operationId: string;
   revision: number;
   search?: ScoutingSearchCriteria;
-  useExtraTicket?: boolean;
 }
 
 export interface ScoutingBoardResponse {
