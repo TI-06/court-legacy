@@ -204,7 +204,8 @@ function observeSpecialAbilities(
 
   if (quality >= 50) {
     const positiveAbilityId = abilityIds.find(
-      (abilityId) => getSpecialAbilityDefinition(abilityId)?.kind === "positive",
+      (abilityId) =>
+        getSpecialAbilityDefinition(abilityId)?.kind === "positive",
     );
     if (positiveAbilityId) {
       return {
