@@ -24,7 +24,13 @@ const requestSchema = z
       .object({
         region: z.enum(["prefecture", "regional", "national"]),
         position: z.enum(["any", "OH", "MB", "S", "OP", "L"]),
-        priority: z.enum(["ability", "potential", "physical", "immediate", "hidden"]),
+        priority: z.enum([
+          "ability",
+          "potential",
+          "physical",
+          "immediate",
+          "hidden",
+        ]),
       })
       .strict()
       .optional(),
@@ -92,30 +98,31 @@ export function createScoutingBoardHandler(
         if (parsed.data.useExtraTicket) {
           activeState = snapshot.state;
         } else {
-        const shopItems = deps.shopStore
+          const shopItems = deps.shopStore
           ? await deps.shopStore.getStatus(user.id, snapshot.state.yearIndex)
           : [];
-        const ticket = shopItems.find((item) => item.itemId === "extra-scout-trip");
-        if (!ticket || ticket.quantityOwned <= 0) {
+          const ticket = shopItems.find((item) => item.itemId === "extra-scout-trip");
+          if (!ticket || ticket.quantityOwned <= 0) {
+            return jsonError(
+              409,
+              "scouting_search_limit",
+              "通常スカウト3回を使い切りました。追加スカウト権が必要です",
+            );
+          }
           return jsonError(
             409,
-            "scouting_search_limit",
-            "通常スカウト3回を使い切りました。追加スカウト権が必要です",
+            "extra_scout_ticket_required",
+            "追加スカウト権を使用してから探索してください",
           );
-        }
-        return jsonError(
-          409,
-          "extra_scout_ticket_required",
-          "追加スカウト権を使用してから探索してください",
-        );
         }
       }
 
-      const searchSequence = (snapshot.state.recruiting?.scoutingSearchesUsed ?? 0) + 1;
+      const searchSequence =
+        (snapshot.state.recruiting?.scoutingSearchesUsed ?? 0) + 1;
       const nextPoolInput = {
-          userId: user.id,
-          cycleKey,
-          creationOperationId: parsed.data.operationId,
+        userId: user.id,
+        cycleKey,
+        creationOperationId: parsed.data.operationId,
         candidates: generateServerScoutingCandidates(
           snapshot.state,
           parsed.data.search,
@@ -133,7 +140,11 @@ export function createScoutingBoardHandler(
           state: searchedState,
         },
         operationId: parsed.data.operationId,
-        outcome: { cycleKey, scoutingSearchesUsed: searchedState.recruiting?.scoutingSearchesUsed ?? 0 },
+        outcome: {
+          cycleKey,
+          scoutingSearchesUsed:
+            searchedState.recruiting?.scoutingSearchesUsed ?? 0,
+        },
       };
       try {
         const persisted = await deps.gameStore.applyOperation({
@@ -156,7 +167,8 @@ export function createScoutingBoardHandler(
       operationId: parsed.data.operationId,
       revision: activeRevision,
       cycleKey,
-      scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
+      scoutingSearchesUsed:
+        activeState.recruiting?.scoutingSearchesUsed ?? 0,
       reports: pool ? buildServerScoutReports(activeState, pool) : [],
     });
   };
