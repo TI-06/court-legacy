@@ -1,5 +1,7 @@
 import { z } from "zod";
-import type { GameStore } from "../data/GameStore";
+import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
+import { RevisionConflictError } from "../data/GameStore";
+import { consumeBaseScoutingSearch } from "../../src/domain/scouting/scoutingSearchBudget";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
@@ -78,24 +80,70 @@ export function createScoutingBoardHandler(
 
     const cycleKey = scoutingCycleKey(snapshot.state);
     let pool = await deps.scoutingStore.getCandidatePool(user.id, cycleKey);
+    let activeState = snapshot.state;
+    let activeRevision = snapshot.revision;
 
-    if (!pool) {
+    if (parsed.data.search) {
+      const searchedState = consumeBaseScoutingSearch(snapshot.state);
+      if (!searchedState) {
+        return jsonError(
+          409,
+          "scouting_search_limit",
+          "今年度の通常スカウト3回を使い切りました",
+        );
+      }
+
+      if (!pool) {
+        pool = await deps.scoutingStore.createCandidatePool({
+          userId: user.id,
+          cycleKey,
+          creationOperationId: parsed.data.operationId,
+          candidates: generateServerScoutingCandidates(
+            snapshot.state,
+            parsed.data.search,
+          ),
+        });
+      }
+
+      const response: PersistedOperationResponse = {
+        game: {
+          ...snapshot,
+          revision: snapshot.revision + 1,
+          state: searchedState,
+        },
+        operationId: parsed.data.operationId,
+        outcome: { cycleKey, scoutingSearchesUsed: searchedState.recruiting?.scoutingSearchesUsed ?? 0 },
+      };
+      try {
+        const persisted = await deps.gameStore.applyOperation({
+          userId: user.id,
+          operationId: parsed.data.operationId,
+          expectedRevision: snapshot.revision,
+          state: searchedState,
+          teamSelection: snapshot.teamSelection,
+          response,
+        });
+        activeState = persisted.response.game.state;
+        activeRevision = persisted.response.game.revision;
+      } catch (error) {
+        if (error instanceof RevisionConflictError) return revisionConflict();
+        throw error;
+      }
+    } else if (!pool) {
       pool = await deps.scoutingStore.createCandidatePool({
         userId: user.id,
         cycleKey,
         creationOperationId: parsed.data.operationId,
-        candidates: generateServerScoutingCandidates(
-          snapshot.state,
-          parsed.data.search,
-        ),
+        candidates: generateServerScoutingCandidates(snapshot.state),
       });
     }
 
     return json({
       operationId: parsed.data.operationId,
-      revision: snapshot.revision,
+      revision: activeRevision,
       cycleKey,
-      reports: buildServerScoutReports(snapshot.state, pool),
+      scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
+      reports: buildServerScoutReports(activeState, pool),
     });
   };
 }
