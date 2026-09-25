@@ -76,12 +76,13 @@ function defaultExcludedFullNames(state: GameState): Set<string> {
 function scoutingGenerationRandom(
   state: GameState,
   criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
 ): SeededRandom {
   const criteriaKey = criteria
     ? `${criteria.region}:${criteria.position}:${criteria.priority}`
     : "legacy";
   return new SeededRandom(
-    `${state.seed}:scouting:${scoutingCycleKey(state)}:${criteriaKey}`,
+    `${state.seed}:scouting:${scoutingCycleKey(state)}:search-${searchSequence}:${criteriaKey}`,
   );
 }
 
@@ -110,12 +111,13 @@ export function generateServerScoutingCandidateAtIndex(
   excludedFullNames: ReadonlySet<string> = defaultExcludedFullNames(state),
   tierOverrides: ReadonlyMap<number, RecruitTier> = new Map(),
   criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
 ): ScoutingCandidateTruth {
   if (!Number.isSafeInteger(index) || index < 1) {
     throw new Error("scouting candidate index must be a positive integer");
   }
 
-  const random = scoutingGenerationRandom(state, criteria);
+  const random = scoutingGenerationRandom(state, criteria, searchSequence);
   const probabilities = scoutingTierProbabilities(state);
   const exclusions = new Set(excludedFullNames);
   let candidate: ScoutingCandidateTruth | null = null;
@@ -127,7 +129,7 @@ export function generateServerScoutingCandidateAtIndex(
     const tier = tierOverrides.get(currentIndex) ?? rolledTier;
     const player = generatePlayer({
       id: playerId(
-        `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
+        `scout-${state.userSchoolId}-${state.yearIndex}-${searchSequence}-${currentIndex}`,
       ),
       schoolId: state.userSchoolId,
       grade: 1,
@@ -153,6 +155,7 @@ export function generateServerScoutingCandidateAtIndex(
 export function generateServerScoutingCandidates(
   state: GameState,
   criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
 ): ScoutingCandidateTruth[] {
   const excludedFullNames = defaultExcludedFullNames(state);
   const generated = Array.from({ length: CANDIDATE_COUNT + 6 }, (_, index) =>
@@ -162,6 +165,7 @@ export function generateServerScoutingCandidates(
       excludedFullNames,
       new Map(),
       criteria,
+      searchSequence,
     ),
   );
 
