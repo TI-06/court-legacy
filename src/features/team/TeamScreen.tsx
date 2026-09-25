@@ -1151,10 +1151,7 @@ export function TeamScreen({
             </button>
           ) : null}
           {starterSwapCandidates.length > 0 ? (
-            <section
-              aria-label="コート内交換"
-              className="team-starter-swap"
-            >
+            <section aria-label="コート内交換" className="team-starter-swap">
               <div className="team-picker-summary">
                 <strong>コート内交換</strong>
                 <span>タップで位置交換</span>
