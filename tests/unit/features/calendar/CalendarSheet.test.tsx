@@ -121,7 +121,7 @@ describe("weekly calendar sheet", () => {
     expect(screen.queryByText("過去の練習")).not.toBeInTheDocument();
   });
 
-  it("shows four weekly guide dates and an empty official schedule", () => {
+  it("shows four weekly guide dates and annual training camps", () => {
     const state = createState();
 
     render(
@@ -135,7 +135,14 @@ describe("weekly calendar sheet", () => {
       />,
     );
 
-    expect(screen.getByText("登録された公式予定はありません")).toBeVisible();
+    const activities = screen.getAllByTestId("calendar-activity");
+    expect(activities).toHaveLength(4);
+    expect(activities[0]).toHaveTextContent("2026年8月12日");
+    expect(activities[0]).toHaveTextContent("夏季強化合宿・1週目");
+    expect(activities[0]).toHaveTextContent("合宿");
+    expect(activities[1]).toHaveTextContent("夏季強化合宿・2週目");
+    expect(activities[2]).toHaveTextContent("冬季強化合宿・1週目");
+    expect(activities[3]).toHaveTextContent("冬季強化合宿・2週目");
     expect(
       screen.getByText("2026年4月1日", { selector: "time" }),
     ).toBeVisible();

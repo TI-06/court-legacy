@@ -294,6 +294,15 @@ export function HomeCommandCenter({
             <span>今週</span>
             <h2 id="home-week-heading">
               {summary.dateLabel}・{summary.weekLabel}
+              {summary.camp ? (
+                <span
+                  aria-label={`強化合宿期間 ${summary.camp.title}`}
+                  className="home-command-summary__camp"
+                  title="合宿限定の特殊能力イベントが発生します"
+                >
+                  {summary.camp.label}
+                </span>
+              ) : null}
             </h2>
           </div>
           <strong title={summary.schoolName}>{summary.schoolName}</strong>

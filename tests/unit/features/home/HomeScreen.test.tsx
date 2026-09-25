@@ -100,6 +100,28 @@ describe("Phase 13 Home command center", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
+  it("shows a compact camp banner during annual camp weeks", () => {
+    const props = createProps();
+    const camp = props.state.calendar.activities.find(
+      (activity) => activity.type === "camp",
+    );
+    if (!camp) {
+      throw new Error("camp fixture missing");
+    }
+    props.state.date = camp.date;
+    props.state.calendar.currentDate = camp.date;
+    props.state.calendar.weekOfYear = Number(camp.metadata.weekOfYear);
+
+    render(<HomeScreen {...props} />);
+
+    const badge = screen.getByLabelText(`強化合宿期間 ${camp.title}`);
+    expect(badge).toHaveTextContent("夏合宿 1/2");
+    expect(badge).toHaveAttribute(
+      "title",
+      "合宿限定の特殊能力イベントが発生します",
+    );
+  });
+
   it("keeps the official objective compact and emits the tournament command", () => {
     const props = createProps();
     render(<HomeScreen {...props} />);

@@ -1,0 +1,494 @@
+[
+  {
+    "id": "event.camp-serve-targeting",
+    "version": 1,
+    "category": "practice",
+    "title": "狙い続ける100本サーブ",
+    "bodyTemplate": "{{player}}が合宿のサーブ練習で、狙った場所へ打ち続ける反復に入った。",
+    "tags": ["camp-event", "camp", "serve"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 100,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "target",
+        "label": "コースを最後まで狙わせる",
+        "detail": "狙いの精度を優先し、サーブのコツをつかませる。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_aim",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      },
+      {
+        "id": "repeat",
+        "label": "同じフォームを反復する",
+        "detail": "再現性を優先し、安定したサーブフォームを固める。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-serve-variation",
+    "version": 1,
+    "category": "practice",
+    "title": "二種類の勝負サーブ",
+    "bodyTemplate": "{{player}}が合宿終盤、ジャンプサーブとフローターのどちらを磨くか迷っている。",
+    "tags": ["camp-event", "camp", "serve"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 82,
+    "cooldownWeeks": 30,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "jump",
+        "label": "ジャンプサーブを磨く",
+        "detail": "威力と打点を追求する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "jump_serve_mastery",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 5 }
+        ]
+      },
+      {
+        "id": "float",
+        "label": "フローターを磨く",
+        "detail": "変化とコントロールを追求する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "float_mastery",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-attack-finishing",
+    "version": 1,
+    "category": "practice",
+    "title": "決め切るための打ち分け",
+    "bodyTemplate": "{{player}}が連続スパイクの中で、空いたコースとブロックの指先を使い分け始めた。",
+    "tags": ["camp-event", "camp", "attack"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 105,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "course",
+        "label": "空いたコースを狙う",
+        "detail": "守備位置を見て打ち分ける感覚を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_course",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      },
+      {
+        "id": "blockout",
+        "label": "ブロックの指先を狙う",
+        "detail": "高い壁を利用する技術を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_blockout",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-transition-attack",
+    "version": 1,
+    "category": "practice",
+    "title": "切り返しから一気に攻める",
+    "bodyTemplate": "{{player}}が守備から攻撃への切り替えを何度も反復し、助走の入り方が鋭くなっている。",
+    "tags": ["camp-event", "camp", "attack"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 92,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "transition",
+        "label": "切り返しの速さを磨く",
+        "detail": "守備直後から攻撃へ移る技術を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_transition",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      },
+      {
+        "id": "quick",
+        "label": "最短助走を磨く",
+        "detail": "速いテンポに入る技術を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_quick",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 4 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-setter-lab",
+    "version": 1,
+    "category": "practice",
+    "title": "夜のセッター研究会",
+    "bodyTemplate": "{{player}}が練習後も映像を見返し、配球とバックセットの使い分けを整理している。",
+    "tags": ["camp-event", "camp", "set"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 88,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "distribution",
+        "label": "配球パターンを増やす",
+        "detail": "相手ブロックを散らす判断を磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "set_distribution",
+            "amount": 1
+          },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      },
+      {
+        "id": "back",
+        "label": "バックセットを反復する",
+        "detail": "攻撃方向を最後まで隠すトスを磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "set_back",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-defense-floor",
+    "version": 1,
+    "category": "practice",
+    "title": "床に落とさない守備練習",
+    "bodyTemplate": "{{player}}が強打と乱れたボールを拾い続け、守備範囲の限界を広げている。",
+    "tags": ["camp-event", "camp", "receive"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 105,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "dig",
+        "label": "強打への反応を磨く",
+        "detail": "ディグの初動と面づくりを優先する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_dig",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "range",
+        "label": "一歩目の範囲を広げる",
+        "detail": "守備範囲と追いつく速さを優先する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_range",
+            "amount": 1
+          },
+          { "type": "ability-change", "ability": "speed", "amount": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-block-film",
+    "version": 1,
+    "category": "practice",
+    "title": "ブロック映像を読み切る",
+    "bodyTemplate": "{{player}}が相手セッターの癖を映像で確認し、ブロック練習ですぐに試し始めた。",
+    "tags": ["camp-event", "camp", "block"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 94,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "read",
+        "label": "トスから攻撃先を読む",
+        "detail": "相手の選択を見てから動く読みを磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "block_read",
+            "amount": 1
+          },
+          { "type": "ability-change", "ability": "decision", "amount": 1 }
+        ]
+      },
+      {
+        "id": "touch",
+        "label": "ワンタッチを狙う",
+        "detail": "止め切れない球も守備へ残す手の出し方を磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "block_touch",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-last-point",
+    "version": 1,
+    "category": "practice",
+    "title": "最後の一本だけを繰り返す",
+    "bodyTemplate": "合宿の締めに、{{player}}が接戦の最後の一本だけを想定した勝負練習へ入った。",
+    "tags": ["camp-event", "camp", "mental"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 96,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "clutch",
+        "label": "勝負を託す",
+        "detail": "プレッシャーの中で決める経験を積ませる。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_clutch",
+            "amount": 1
+          },
+          { "type": "morale-change", "amount": 3 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "focus",
+        "label": "一本だけに集中させる",
+        "detail": "結果よりルーティンと集中を優先する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_focus",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": -2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-physical-base",
+    "version": 1,
+    "category": "practice",
+    "title": "合宿の土台づくり",
+    "bodyTemplate": "{{player}}が長い練習を最後まで動き切り、翌日に疲労を残さない身体づくりへ取り組んでいる。",
+    "tags": ["camp-event", "camp", "physical"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 90,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "stamina",
+        "label": "最後まで動き切る",
+        "detail": "長いラリーと連戦に耐える体力を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "physical_stamina",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 5 }
+        ]
+      },
+      {
+        "id": "recovery",
+        "label": "回復まで含めて管理する",
+        "detail": "睡眠とケアを徹底して回復力を伸ばす。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "physical_recovery",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": -5 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-cover-system",
+    "version": 1,
+    "category": "practice",
+    "title": "崩れた一本をつなぐ",
+    "bodyTemplate": "{{player}}が乱れたボールの後を追い続け、攻撃が崩れてもラリーを終わらせない動きを覚え始めた。",
+    "tags": ["camp-event", "camp", "team"],
+    "trigger": { "tournamentStages": ["camp"] },
+    "weight": 86,
+    "cooldownWeeks": 24,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "cover",
+        "label": "攻撃後のカバーを徹底する",
+        "detail": "ブロックされた後の二本目を残す動きを磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "receive_cover",
+            "amount": 1
+          },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      },
+      {
+        "id": "out-of-system",
+        "label": "二段トスから打ち切る",
+        "detail": "崩れた状況でも攻撃を成立させる判断を磨く。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "attack_out_of_system",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-serve-rebuild",
+    "version": 1,
+    "category": "practice",
+    "title": "サーブフォームを一から組み直す",
+    "bodyTemplate": "不安定だった{{player}}のサーブを、合宿中にフォームから見直すことになった。",
+    "tags": ["camp-event", "camp", "negative-recovery", "serve"],
+    "trigger": {
+      "tournamentStages": ["camp"],
+      "requiredSpecialAbilityIds": ["serve_unstable"]
+    },
+    "weight": 115,
+    "cooldownWeeks": 40,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "rebuild",
+        "label": "フォームを完全に作り直す",
+        "detail": "一時的に負荷は高いが、サーブ不安定の克服を狙う。",
+        "effects": [
+          { "type": "special-ability-remove", "abilityId": "serve_unstable" },
+          { "type": "fatigue-change", "amount": 7 }
+        ]
+      },
+      {
+        "id": "small",
+        "label": "修正点を一つに絞る",
+        "detail": "克服は急がず、安定サーブの感覚を積み上げる。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "serve_stable",
+            "amount": 1
+          },
+          { "type": "fatigue-change", "amount": 2 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.camp-mental-rebuild",
+    "version": 1,
+    "category": "practice",
+    "title": "勝負所の怖さと向き合う",
+    "bodyTemplate": "{{player}}が合宿のゲーム練習で、接戦になると動きが硬くなる原因を自分から話し始めた。",
+    "tags": ["camp-event", "camp", "negative-recovery", "mental"],
+    "trigger": {
+      "tournamentStages": ["camp"],
+      "requiredSpecialAbilityIds": ["mental_choke"]
+    },
+    "weight": 112,
+    "cooldownWeeks": 40,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "face",
+        "label": "何度も勝負所を任せる",
+        "detail": "成功と失敗を重ね、勝負弱さの克服を狙う。",
+        "effects": [
+          { "type": "special-ability-remove", "abilityId": "mental_choke" },
+          { "type": "morale-change", "amount": 4 },
+          { "type": "fatigue-change", "amount": 3 }
+        ]
+      },
+      {
+        "id": "routine",
+        "label": "ルーティンから作る",
+        "detail": "まずは集中の入り方を固め、段階的に改善する。",
+        "effects": [
+          {
+            "type": "special-ability-tip",
+            "abilityId": "mental_focus",
+            "amount": 1
+          },
+          { "type": "trust-change", "amount": 2 }
+        ]
+      }
+    ]
+  }
+]

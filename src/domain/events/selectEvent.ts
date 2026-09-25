@@ -21,6 +21,7 @@ export interface EventSelectionResult {
 
 export interface EventSelectionOptions {
   allowNormalEvent?: boolean;
+  requiredTag?: string;
 }
 
 export function eventActorPairKey(
@@ -167,6 +168,7 @@ function normalCandidates(
   data: GameDataRegistry,
   avoidRecentActors: boolean,
   followUpOnlyIds: ReadonlySet<string>,
+  requiredTag?: string,
 ): EventCandidate[] {
   const school = state.schools[state.userSchoolId];
   if (!school) {
@@ -178,6 +180,9 @@ function normalCandidates(
 
   for (const event of data.events.values()) {
     if (followUpOnlyIds.has(event.id)) {
+      continue;
+    }
+    if (requiredTag && !event.tags.includes(requiredTag)) {
       continue;
     }
     for (const actorPlayerIds of combinations(playerIds, event.actorCount)) {
@@ -247,9 +252,21 @@ export function selectNextEvent(
   }
 
   const followUpOnlyIds = collectFollowUpOnlyEventIds(data);
-  let candidates = normalCandidates(state, data, true, followUpOnlyIds);
+  let candidates = normalCandidates(
+    state,
+    data,
+    true,
+    followUpOnlyIds,
+    options.requiredTag,
+  );
   if (candidates.length === 0) {
-    candidates = normalCandidates(state, data, false, followUpOnlyIds);
+    candidates = normalCandidates(
+      state,
+      data,
+      false,
+      followUpOnlyIds,
+      options.requiredTag,
+    );
   }
   if (candidates.length === 0) {
     return {

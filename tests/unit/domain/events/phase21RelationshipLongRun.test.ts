@@ -1,4 +1,5 @@
 import { gameData } from "../../../../src/app/createDemoGame";
+import { findCurrentTrainingCampActivity } from "../../../../src/domain/calendar/trainingCampCalendar";
 import type { AdvanceWeekOutcome } from "../../../../src/domain/calendar/advanceWeekOutcome";
 import { eventActorPairKey } from "../../../../src/domain/events/selectEvent";
 import type { GameState } from "../../../../src/domain/model/GameState";
@@ -20,7 +21,7 @@ interface Phase21LongRunMetrics {
   discoveredTraitCount: number;
   maxObservedSocialBonus: number;
   invalidBondReferences: number;
-  normalCadenceSlots: number;
+  rootEventSlots: number;
 }
 
 interface AppliedAction {
@@ -155,7 +156,7 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
   let normalEvents = 0;
   let followUpEvents = 0;
   let relationshipEvents = 0;
-  let normalCadenceSlots = 0;
+  let rootEventSlots = 0;
   let maxObservedSocialBonus = 0;
   let invalidBondReferences = 0;
   const relationshipPairCounts = new Map<string, number>();
@@ -230,9 +231,10 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
         simulatedWeeks += 1;
         if (
           applied.outcome.academicYearTransition === null &&
-          snapshot.state.calendar.weekOfYear % 3 === 0
+          (snapshot.state.calendar.weekOfYear % 3 === 0 ||
+            findCurrentTrainingCampActivity(snapshot.state))
         ) {
-          normalCadenceSlots += 1;
+          rootEventSlots += 1;
         }
       }
     }
@@ -266,7 +268,7 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
     discoveredTraitCount: discoveredTraits.size,
     maxObservedSocialBonus,
     invalidBondReferences,
-    normalCadenceSlots,
+    rootEventSlots,
   };
 
   expect(
@@ -280,10 +282,9 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
   expect(metrics.invalidBondReferences, `${seed}: invalidBondReferences`).toBe(
     0,
   );
-  expect(
-    metrics.normalEvents,
-    `${seed}: normal event cadence`,
-  ).toBeLessThanOrEqual(metrics.normalCadenceSlots);
+  expect(metrics.normalEvents, `${seed}: root event slots`).toBeLessThanOrEqual(
+    metrics.rootEventSlots,
+  );
   if (metrics.relationshipEvents >= 8) {
     expect(
       metrics.uniqueActorPairs,
@@ -297,7 +298,7 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
   }
 
   console.info(
-    `[phase21-long-run] seed=${metrics.seed} weeks=${metrics.simulatedWeeks} normal=${metrics.normalEvents}/${metrics.normalCadenceSlots} followUp=${metrics.followUpEvents} relationship=${metrics.relationshipEvents} pairs=${metrics.uniqueActorPairs} maxPairShare=${metrics.maxPairShare.toFixed(3)} bonds=${metrics.activeBondCount} legacy=${metrics.legacyBondCount} traits=${metrics.discoveredTraitCount} socialMax=${metrics.maxObservedSocialBonus}`,
+    `[phase21-long-run] seed=${metrics.seed} weeks=${metrics.simulatedWeeks} normal=${metrics.normalEvents}/${metrics.rootEventSlots} followUp=${metrics.followUpEvents} relationship=${metrics.relationshipEvents} pairs=${metrics.uniqueActorPairs} maxPairShare=${metrics.maxPairShare.toFixed(3)} bonds=${metrics.activeBondCount} legacy=${metrics.legacyBondCount} traits=${metrics.discoveredTraitCount} socialMax=${metrics.maxObservedSocialBonus}`,
   );
 
   return metrics;

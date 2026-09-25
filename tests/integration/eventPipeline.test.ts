@@ -27,6 +27,27 @@ describe("event pipeline", () => {
     expect(resolved.eventMemory.history).toHaveLength(1);
   });
 
+  it("forces a camp-only event on an off-cadence camp week", () => {
+    const state = createDemoGame();
+    const camp = state.calendar.activities.find(
+      (activity) => activity.type === "camp",
+    );
+    if (!camp) {
+      throw new Error("camp fixture missing");
+    }
+    state.date = camp.date;
+    state.calendar.currentDate = camp.date;
+    state.calendar.weekOfYear = Number(camp.metadata.weekOfYear);
+
+    expect(state.calendar.weekOfYear % 3).not.toBe(0);
+
+    const surfaced = surfaceWeeklyEvent(state, gameData);
+    expect(surfaced.pendingEvent).not.toBeNull();
+    const definition = gameData.events.get(surfaced.pendingEvent!.eventId);
+    expect(definition?.tags).toContain("camp-event");
+    expect(definition?.trigger.tournamentStages).toContain("camp");
+  });
+
   it("does not force a normal event every week", () => {
     const state = createDemoGame();
     state.calendar.weekOfYear = 2;
