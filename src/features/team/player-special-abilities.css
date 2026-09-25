@@ -75,12 +75,24 @@
   border-color: color-mix(in srgb, var(--accent) 35%, var(--line-soft));
 }
 
+.player-special-ability[data-kind="positive"]
+  .player-special-ability__heading
+  span {
+  color: var(--accent);
+}
+
 .player-special-ability[data-kind="negative"] {
   background: rgb(169 42 42 / 8%);
   border-color: rgb(169 42 42 / 35%);
 }
 
 .player-special-ability[data-kind="negative"] strong {
+  color: #a92a2a;
+}
+
+.player-special-ability[data-kind="negative"]
+  .player-special-ability__heading
+  span {
   color: #a92a2a;
 }
 
@@ -93,12 +105,24 @@
   color: #6d40aa;
 }
 
+.player-special-ability[data-kind="elite"]
+  .player-special-ability__heading
+  span {
+  color: #6d40aa;
+}
+
 .player-special-ability[data-kind="gold"] {
   background: rgb(183 132 18 / 12%);
   border-color: rgb(183 132 18 / 45%);
 }
 
 .player-special-ability[data-kind="gold"] strong {
+  color: #8a6410;
+}
+
+.player-special-ability[data-kind="gold"]
+  .player-special-ability__heading
+  span {
   color: #8a6410;
 }
 
