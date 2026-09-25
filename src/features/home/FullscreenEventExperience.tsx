@@ -56,10 +56,7 @@ const focusableSelector = [
 ].join(",");
 
 type EventResultKind =
-  | "general"
-  | "special-tip"
-  | "special-acquired"
-  | "special-overcome";
+  "general" | "special-tip" | "special-acquired" | "special-overcome";
 
 interface EventResultPresentation {
   kind: EventResultKind;
