@@ -282,10 +282,9 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
   expect(metrics.invalidBondReferences, `${seed}: invalidBondReferences`).toBe(
     0,
   );
-  expect(
-    metrics.normalEvents,
-    `${seed}: root event slots`,
-  ).toBeLessThanOrEqual(metrics.rootEventSlots);
+  expect(metrics.normalEvents, `${seed}: root event slots`).toBeLessThanOrEqual(
+    metrics.rootEventSlots,
+  );
   if (metrics.relationshipEvents >= 8) {
     expect(
       metrics.uniqueActorPairs,
