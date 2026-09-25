@@ -519,9 +519,7 @@ describe("applyGameAction", () => {
       type: "acknowledge-training-camp-result",
     });
 
-    expect(
-      acknowledged.state.shopEffects?.trainingCampResult,
-    ).toBeUndefined();
+    expect(acknowledged.state.shopEffects?.trainingCampResult).toBeUndefined();
 
     const advanced = applyGameAction(
       {
@@ -540,9 +538,7 @@ describe("applyGameAction", () => {
     expect(outcome.pendingMatchPresentation).toBeNull();
     expect(advanced.state.calendar.weekOfYear).toBe(weekBefore + 1);
     expect(advanced.state.date).not.toBe(dateBefore);
-    expect(
-      advanced.state.shopEffects?.trainingCampResult,
-    ).toBeUndefined();
+    expect(advanced.state.shopEffects?.trainingCampResult).toBeUndefined();
   });
 
   it("upgrades a legal facility on the authoritative state", () => {
