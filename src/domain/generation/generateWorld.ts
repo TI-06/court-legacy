@@ -25,6 +25,7 @@ import {
 import { createDefaultTeamPlanning } from "../team/teamPlanning";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { createInitialWeeklySchedule } from "../weekly/createWeeklySchedule";
+import { createAnnualTrainingCampActivities } from "../calendar/trainingCampCalendar";
 import { generateInitialSquad, generatePlayer } from "./generatePlayer";
 import { generateSchool } from "./generateSchool";
 
@@ -331,7 +332,7 @@ export function generateWorld(input: GenerateWorldInput): GameState {
       academicYear: 1,
       weekOfYear: 1,
       monthPolicyId: null,
-      activities: [],
+      activities: createAnnualTrainingCampActivities(1, initialDate),
       completedActivityIds: [],
     },
     activeMatch: null,
