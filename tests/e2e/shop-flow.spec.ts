@@ -90,7 +90,7 @@ function readRange(text: string, label: "総合" | "将来") {
   return { min: Number(match[1]), max: Number(match[2]) };
 }
 
-test("mobile shop purchases and uses fatigue recovery with visible progress and annual limits", async ({
+test("mobile shop repeatedly purchases and uses fatigue recovery without annual caps", async ({
   page,
 }) => {
   await enableVisibleActionDelay(page);
@@ -140,12 +140,12 @@ test("mobile shop purchases and uses fatigue recovery with visible progress and 
 
   await openShopFromInventory(page);
   const exhausted = shopCard(page, "疲労回復");
-  await expect(exhausted).toContainText("購入 3 / 3");
-  await expect(exhausted).toContainText("使用 3 / 3");
+  await expect(exhausted).toContainText("購入 3");
+  await expect(exhausted).toContainText("使用 3");
   await expect(exhausted).toContainText("所持 0");
   await expect(
     exhausted.getByRole("button", { name: "疲労回復を購入", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
 
   expect(
     await page.locator("body").evaluate((body) => body.scrollWidth),
@@ -176,7 +176,7 @@ test("lost purchase response retries the same operation once and stale revision 
   await expect(page.getByText("購入しました ✓")).toBeVisible({
     timeout: 2_500,
   });
-  await expect(shopCard(page, "疲労回復")).toContainText("購入 1 / 3");
+  await expect(shopCard(page, "疲労回復")).toContainText("購入 1");
   await expect(shopCard(page, "疲労回復")).toContainText("所持 1");
 
   await openInventory(page);
@@ -197,10 +197,10 @@ test("lost purchase response retries the same operation once and stale revision 
     page.getByText("最新のゲーム状態を読み込みました。もう一度お試しください"),
   ).toBeVisible({ timeout: 2_500 });
   await expect(shopCard(page, "疲労回復")).toContainText("×1");
-  await expect(shopCard(page, "疲労回復")).toContainText("使用 0 / 3");
+  await expect(shopCard(page, "疲労回復")).toContainText("使用 0");
 });
 
-test("academic year rollover carries inventory and resets annual limits", async ({
+test("academic year rollover carries inventory while unlimited counters reset", async ({
   page,
 }) => {
   await enableVisibleActionDelay(page, 250);
@@ -209,7 +209,7 @@ test("academic year rollover carries inventory and resets annual limits", async 
   await openShop(page);
 
   await purchaseItem(page, "強化合宿");
-  await expect(shopCard(page, "強化合宿")).toContainText("購入 1 / 1");
+  await expect(shopCard(page, "強化合宿")).toContainText("購入 1");
   await expect(shopCard(page, "強化合宿")).toContainText("所持 1");
 
   const nextYearIndex = await page.evaluate((snapshotKey) => {
@@ -230,11 +230,11 @@ test("academic year rollover carries inventory and resets annual limits", async 
   await page.getByRole("button", { name: "ショップ", exact: true }).click();
   await expect(page.getByRole("heading", { name: "ショップ" })).toBeVisible();
   await expect(
-    page.getByText(`年度 ${nextYearIndex} ・ 購入/使用上限は年度ごとに更新`),
+    page.getByText(`年度 ${nextYearIndex} ・ 購入・使用回数の制限なし`),
   ).toBeVisible();
   const fresh = shopCard(page, "強化合宿");
-  await expect(fresh).toContainText("購入 0 / 1");
-  await expect(fresh).toContainText("使用 0 / 1");
+  await expect(fresh).toContainText("購入 0");
+  await expect(fresh).toContainText("使用 0");
   await expect(fresh).toContainText("所持 1");
   await expect(
     fresh.getByRole("button", { name: "強化合宿を購入", exact: true }),
