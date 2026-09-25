@@ -112,17 +112,19 @@ describe("team selection direct-touch UI", () => {
     const dialog = screen.getByRole("dialog", {
       name: "ローテーション1を入れ替え",
     });
-    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
-      10,
+    expect(within(dialog).getAllByTestId("starter-swap-option")).toHaveLength(
+      5,
     );
+    expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
+      5,
+    );
+    expect(within(dialog).getByText("コート内交換")).toBeVisible();
+    expect(within(dialog).getByText("タップで位置交換")).toBeVisible();
+    expect(within(dialog).getByText("ベンチから起用")).toBeVisible();
+    expect(within(dialog).getByText(/候補 5人・適性順/)).toBeVisible();
     expect(
-      within(dialog).getByText(/候補 10人・適性順・先発含む/),
+      within(dialog).getByRole("button", { name: /R2 .*と交換/ }),
     ).toBeVisible();
-    expect(
-      within(dialog)
-        .getAllByTestId("player-picker-option")
-        .some((candidate) => candidate.textContent?.includes("先発 R2")),
-    ).toBe(true);
     expect(
       within(dialog).getByRole("button", { name: /先発固定/ }),
     ).toBeVisible();
@@ -150,12 +152,11 @@ describe("team selection direct-touch UI", () => {
     const dialog = screen.getByRole("dialog", {
       name: "ローテーション1を入れ替え",
     });
-    const starterTwo = within(dialog)
-      .getAllByTestId("player-picker-option")
-      .find((candidate) => candidate.textContent?.includes("先発 R2"));
-    expect(starterTwo).toBeDefined();
+    const starterTwo = within(dialog).getByRole("button", {
+      name: /R2 .*と交換/,
+    });
 
-    fireEvent.click(starterTwo!);
+    fireEvent.click(starterTwo);
 
     await waitFor(() => {
       const after = screen.getAllByTestId("court-player");

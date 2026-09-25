@@ -457,19 +457,24 @@ export function TeamScreen({
         ? "L"
         : null;
 
+  const starterSwapCandidates = useMemo(() => {
+    if (pickerTarget?.type !== "rotation") return [];
+    return [...selection.rotation]
+      .filter((assignment) => assignment.slot !== pickerTarget.slot)
+      .sort((left, right) => left.slot - right.slot)
+      .flatMap((assignment) => {
+        const player = playerById[assignment.playerId];
+        return player ? [{ assignment, player }] : [];
+      });
+  }, [pickerTarget, playerById, selection.rotation]);
+
   const pickerCandidates = useMemo(() => {
     if (!currentPickerRole) return [];
     return players
-      .filter((player) => {
-        if (player.id === currentPickerPlayerId) return false;
-        if (pickerTarget?.type === "libero") {
-          return !activeIds.has(player.id);
-        }
-        if (pickerTarget?.type === "rotation") {
-          return player.id !== selection.liberoPlayerId;
-        }
-        return false;
-      })
+      .filter(
+        (player) =>
+          player.id !== currentPickerPlayerId && !activeIds.has(player.id),
+      )
       .sort((left, right) => {
         const aptitudeDifference =
           right.positionAptitudes[currentPickerRole] -
@@ -487,14 +492,7 @@ export function TeamScreen({
 
         return left.id.localeCompare(right.id);
       });
-  }, [
-    activeIds,
-    currentPickerPlayerId,
-    currentPickerRole,
-    pickerTarget?.type,
-    players,
-    selection.liberoPlayerId,
-  ]);
+  }, [activeIds, currentPickerPlayerId, currentPickerRole, players]);
 
   const choosePickerPlayer = (playerId: PlayerId) => {
     if (pickerTarget?.type === "rotation") {
@@ -1152,12 +1150,49 @@ export function TeamScreen({
               </strong>
             </button>
           ) : null}
+          {starterSwapCandidates.length > 0 ? (
+            <section aria-label="コート内交換" className="team-starter-swap">
+              <div className="team-picker-summary">
+                <strong>コート内交換</strong>
+                <span>タップで位置交換</span>
+              </div>
+              <div className="team-starter-swap__grid">
+                {starterSwapCandidates.map(({ assignment, player }) => {
+                  const aptitude = currentPickerRole
+                    ? player.positionAptitudes[currentPickerRole]
+                    : 0;
+                  return (
+                    <button
+                      aria-label={`R${assignment.slot} ${playerName(player)}と交換`}
+                      className="team-starter-swap__option"
+                      data-testid="starter-swap-option"
+                      disabled={pending}
+                      key={player.id}
+                      onClick={() => choosePickerPlayer(player.id)}
+                      type="button"
+                    >
+                      <span>
+                        <b>{ROTATION_ROLES[assignment.slot]}</b>
+                        <small>R{assignment.slot}</small>
+                      </span>
+                      <strong>{player.lastName}</strong>
+                      <small>
+                        総{playerOverall(player)}・適{aptitude}
+                      </small>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
           <div className="team-picker-summary">
-            <strong>入れ替え候補</strong>
-            <span>
-              候補 {pickerCandidates.length}人・適性順
-              {pickerTarget?.type === "rotation" ? "・先発含む" : ""}
-            </span>
+            <strong>
+              {pickerTarget?.type === "rotation"
+                ? "ベンチから起用"
+                : "入れ替え候補"}
+            </strong>
+            <span>候補 {pickerCandidates.length}人・適性順</span>
           </div>
           <div className="team-picker-list">
             {pickerCandidates.map((player, index) => {
@@ -1165,9 +1200,6 @@ export function TeamScreen({
               const aptitude = currentPickerRole
                 ? player.positionAptitudes[currentPickerRole]
                 : 0;
-              const activeAssignment = selection.rotation.find(
-                (assignment) => assignment.playerId === player.id,
-              );
               return (
                 <button
                   className="team-picker-card"
@@ -1184,10 +1216,7 @@ export function TeamScreen({
                     </span>
                     <small>
                       {player.grade}年・{player.preferredPosition}・
-                      {player.heightCm}cm・
-                      {activeAssignment
-                        ? `先発 R${activeAssignment.slot}`
-                        : "ベンチ"}
+                      {player.heightCm}cm・ベンチ
                     </small>
                   </span>
                   <span className="team-picker-card__score">
@@ -1207,9 +1236,7 @@ export function TeamScreen({
                     調子 {Math.round(player.condition)}・疲労{" "}
                     {Math.round(player.fatigue)}
                   </span>
-                  <span className="team-picker-card__action">
-                    {activeAssignment ? "交換" : "起用"}
-                  </span>
+                  <span className="team-picker-card__action">起用</span>
                 </button>
               );
             })}
