@@ -16,6 +16,14 @@ const requestSchema = z
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
+    search: z
+      .object({
+        region: z.enum(["prefecture", "regional", "national"]),
+        position: z.enum(["any", "OH", "MB", "S", "OP", "L"]),
+        priority: z.enum(["ability", "potential", "physical", "immediate", "hidden"]),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -76,7 +84,10 @@ export function createScoutingBoardHandler(
         userId: user.id,
         cycleKey,
         creationOperationId: parsed.data.operationId,
-        candidates: generateServerScoutingCandidates(snapshot.state),
+        candidates: generateServerScoutingCandidates(
+          snapshot.state,
+          parsed.data.search,
+        ),
       });
     }
 
