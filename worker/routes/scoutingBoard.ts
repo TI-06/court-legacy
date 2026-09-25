@@ -3,6 +3,7 @@ import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import { consumeBaseScoutingSearch } from "../../src/domain/scouting/scoutingSearchBudget";
 import type { ScoutingStore } from "../data/ScoutingStore";
+import type { ShopStore } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -32,6 +33,7 @@ const requestSchema = z
 export interface ScoutingBoardHandlerDependencies {
   gameStore: GameStore;
   scoutingStore: ScoutingStore;
+  shopStore?: ShopStore;
 }
 
 function invalidRequest(): Response {
@@ -86,10 +88,21 @@ export function createScoutingBoardHandler(
     if (parsed.data.search) {
       const searchedState = consumeBaseScoutingSearch(snapshot.state);
       if (!searchedState) {
+        const shopItems = deps.shopStore
+          ? await deps.shopStore.getStatus(user.id, snapshot.state.yearIndex)
+          : [];
+        const ticket = shopItems.find((item) => item.itemId === "extra-scout-trip");
+        if (!ticket || ticket.quantityOwned <= 0) {
+          return jsonError(
+            409,
+            "scouting_search_limit",
+            "通常スカウト3回を使い切りました。追加スカウト権が必要です",
+          );
+        }
         return jsonError(
           409,
-          "scouting_search_limit",
-          "今年度の通常スカウト3回を使い切りました",
+          "extra_scout_ticket_required",
+          "追加スカウト権を使用してから探索してください",
         );
       }
 
