@@ -120,7 +120,6 @@ describe("GameApp shop result presentation", () => {
         operationId: expect.any(String),
         action: { type: "acknowledge-training-camp-result" },
       }),
-      expect.anything(),
     );
     await waitFor(() =>
       expect(
