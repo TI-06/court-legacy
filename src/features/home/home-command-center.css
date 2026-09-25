@@ -87,6 +87,15 @@
   border-color: rgb(244 122 24 / 35%);
 }
 
+.home-camp-card {
+  background: rgb(43 140 91 / 12%);
+  border-color: rgb(88 200 139 / 30%);
+}
+
+.home-camp-card .home-command-objective__action b {
+  color: #9ee6bc;
+}
+
 .home-command-objective > div:first-child {
   display: grid;
   min-width: 0;
