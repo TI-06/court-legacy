@@ -460,10 +460,16 @@ export function TeamScreen({
   const pickerCandidates = useMemo(() => {
     if (!currentPickerRole) return [];
     return players
-      .filter(
-        (player) =>
-          player.id !== currentPickerPlayerId && !activeIds.has(player.id),
-      )
+      .filter((player) => {
+        if (player.id === currentPickerPlayerId) return false;
+        if (pickerTarget?.type === "libero") {
+          return !activeIds.has(player.id);
+        }
+        if (pickerTarget?.type === "rotation") {
+          return player.id !== selection.liberoPlayerId;
+        }
+        return false;
+      })
       .sort((left, right) => {
         const aptitudeDifference =
           right.positionAptitudes[currentPickerRole] -
@@ -481,10 +487,40 @@ export function TeamScreen({
 
         return left.id.localeCompare(right.id);
       });
-  }, [activeIds, currentPickerPlayerId, currentPickerRole, players]);
+  }, [
+    activeIds,
+    currentPickerPlayerId,
+    currentPickerRole,
+    pickerTarget?.type,
+    players,
+    selection.liberoPlayerId,
+  ]);
 
   const choosePickerPlayer = (playerId: PlayerId) => {
     if (pickerTarget?.type === "rotation") {
+      const activeAssignment = selection.rotation.find(
+        (assignment) => assignment.playerId === playerId,
+      );
+      if (activeAssignment) {
+        const next = repositionTeamSelection({
+          selection,
+          source: { type: "rotation", slot: activeAssignment.slot },
+          target: { type: "rotation", slot: pickerTarget.slot },
+        });
+        if (!next) return;
+        const nextIssues = validateTeamSelection({
+          state,
+          schoolId: state.userSchoolId,
+          selection: next,
+        });
+        if (nextIssues.length > 0) {
+          setActionError(nextIssues[0]!.message);
+          return;
+        }
+        emitSelection(next);
+        setPickerTarget(null);
+        return;
+      }
       replaceRotationPlayer(pickerTarget.slot, playerId);
     } else if (pickerTarget?.type === "libero") {
       replaceLibero(playerId);
@@ -1118,7 +1154,10 @@ export function TeamScreen({
           ) : null}
           <div className="team-picker-summary">
             <strong>入れ替え候補</strong>
-            <span>候補 {pickerCandidates.length}人・適性順</span>
+            <span>
+              候補 {pickerCandidates.length}人・適性順
+              {pickerTarget?.type === "rotation" ? "・先発含む" : ""}
+            </span>
           </div>
           <div className="team-picker-list">
             {pickerCandidates.map((player, index) => {
@@ -1126,6 +1165,9 @@ export function TeamScreen({
               const aptitude = currentPickerRole
                 ? player.positionAptitudes[currentPickerRole]
                 : 0;
+              const activeAssignment = selection.rotation.find(
+                (assignment) => assignment.playerId === player.id,
+              );
               return (
                 <button
                   className="team-picker-card"
@@ -1142,7 +1184,10 @@ export function TeamScreen({
                     </span>
                     <small>
                       {player.grade}年・{player.preferredPosition}・
-                      {player.heightCm}cm
+                      {player.heightCm}cm・
+                      {activeAssignment
+                        ? `先発 R${activeAssignment.slot}`
+                        : "ベンチ"}
                     </small>
                   </span>
                   <span className="team-picker-card__score">
@@ -1162,7 +1207,9 @@ export function TeamScreen({
                     調子 {Math.round(player.condition)}・疲労{" "}
                     {Math.round(player.fatigue)}
                   </span>
-                  <span className="team-picker-card__action">入替</span>
+                  <span className="team-picker-card__action">
+                    {activeAssignment ? "交換" : "起用"}
+                  </span>
                 </button>
               );
             })}
