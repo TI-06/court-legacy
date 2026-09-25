@@ -1004,3 +1004,30 @@
   .scouting-summary > div { padding-inline: 2px; }
   .scouting-search-launch { position: sticky; bottom: calc(58px + env(safe-area-inset-bottom)); z-index: 4; }
 }
+
+.scouting-search-result {
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #172c42, #203f58);
+  border: 1px solid rgb(117 185 213 / 25%);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgb(11 28 43 / 18%);
+}
+.scouting-search-result::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  right: -30px;
+  top: -40px;
+  border: 18px solid rgb(255 255 255 / 5%);
+  border-radius: 50%;
+}
+.scouting-search-result span { color: #91b9ca; font-size: .52rem; font-weight: 900; letter-spacing: .12em; }
+.scouting-search-result strong { display: block; margin-top: 2px; color: #fff; font-size: 1.02rem; font-weight: 950; }
+.scouting-search-result p { margin: 3px 0 0; color: #d4e1e8; font-size: .66rem; font-weight: 700; }
+.scouting-search-result--standout { background: linear-gradient(135deg, #473517, #7b5518); border-color: rgb(245 188 75 / 55%); }
+.scouting-search-result--genius-rumor { background: linear-gradient(135deg, #4a1f45, #783769); border-color: rgb(238 145 221 / 60%); }
+.scouting-search-result--poor { opacity: .88; }
