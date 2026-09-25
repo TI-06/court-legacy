@@ -37,7 +37,12 @@ describe("PreMatchLineupScreen", () => {
       />,
     );
 
-    const abilities = screen.getByLabelText(`${starter.lastName}の特殊能力`);
+    const starterCard = screen.getByRole("button", {
+      name: `ローテーション${selection.rotation[0]!.slot}を変更`,
+    });
+    const abilities = within(starterCard).getByLabelText(
+      `${starter.lastName}の特殊能力`,
+    );
     expect(within(abilities).getByText("サーブ王")).toBeVisible();
     expect(within(abilities).getByText("サーブ不安定")).toBeVisible();
     expect(within(abilities).getByText("+1")).toBeVisible();
