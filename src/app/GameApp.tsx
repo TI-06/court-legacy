@@ -36,6 +36,7 @@ import type {
 import type { RecruitmentAction } from "../domain/scouting/recruitmentEngagement";
 import type { SeasonAmbition } from "../domain/season/seasonGoalTypes";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import type { ScoutingSearchCriteria } from "../domain/scouting/scoutingSearchCriteria";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
 import type {
   ShopPurchaseRequest,
@@ -291,6 +292,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
+    search?: ScoutingSearchCriteria,
   ): Promise<ScoutReport[] | null> => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
@@ -305,6 +307,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       const response = await api.getScoutingBoard(session.accessToken, {
         operationId: crypto.randomUUID(),
         revision,
+        ...(search ? { search } : {}),
       });
       setScoutingReports(response.reports);
       setScoutingCycle(response.cycleKey);
@@ -1285,6 +1288,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           void recruitCandidate(candidateId, action);
         }}
         onRetry={retryScouting}
+        onSearch={(criteria) => {
+          setScoutingReports([]);
+          void loadScoutingBoard(cloudSession.snapshot.revision, criteria);
+        }}
         onUseShopItem={(itemId, target) => {
           void consumeShopItemFromUi(itemId, target);
         }}
