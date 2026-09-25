@@ -316,7 +316,7 @@
         "detail": "ブロックされた後の二本目を残す動きを磨く。",
         "effects": [
           { "type": "special-ability-tip", "abilityId": "receive_cover", "amount": 1 },
-          { "type": "relationship-change", "amount": 2 }
+          { "type": "trust-change", "amount": 2 }
         ]
       },
       {
