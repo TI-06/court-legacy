@@ -113,8 +113,16 @@ describe("team selection direct-touch UI", () => {
       name: "ローテーション1を入れ替え",
     });
     expect(within(dialog).getAllByTestId("player-picker-option")).toHaveLength(
-      5,
+      10,
     );
+    expect(
+      within(dialog).getByText(/候補 10人・適性順・先発含む/),
+    ).toBeVisible();
+    expect(
+      within(dialog)
+        .getAllByTestId("player-picker-option")
+        .some((candidate) => candidate.textContent?.includes("先発 R2")),
+    ).toBe(true);
     expect(
       within(dialog).getByRole("button", { name: /先発固定/ }),
     ).toBeVisible();
@@ -124,6 +132,41 @@ describe("team selection direct-touch UI", () => {
       expect(candidate).toHaveTextContent(/調子 \d+/);
       expect(candidate).toHaveTextContent(/疲労 \d+/);
     }
+  });
+
+  it("swaps two starters by tap without requiring drag", async () => {
+    render(<App />);
+    await openLineupScreen();
+
+    const before = screen.getAllByTestId("court-player");
+    const firstName = before[0]!.querySelector("strong")?.textContent;
+    const secondName = before[1]!.querySelector("strong")?.textContent;
+    expect(firstName).toBeTruthy();
+    expect(secondName).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "ローテーション1を変更" }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "ローテーション1を入れ替え",
+    });
+    const starterTwo = within(dialog)
+      .getAllByTestId("player-picker-option")
+      .find((candidate) => candidate.textContent?.includes("先発 R2"));
+    expect(starterTwo).toBeDefined();
+
+    fireEvent.click(starterTwo!);
+
+    await waitFor(() => {
+      const after = screen.getAllByTestId("court-player");
+      expect(after[0]!.querySelector("strong")?.textContent).toBe(secondName);
+      expect(after[1]!.querySelector("strong")?.textContent).toBe(firstName);
+    });
+    expect(
+      screen.queryByRole("dialog", {
+        name: "ローテーション1を入れ替え",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("manually replaces a court player without duplicate active players", async () => {
