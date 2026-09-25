@@ -37,7 +37,10 @@ import {
 } from "../../domain/player/playerDevelopmentGoals";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
-import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
+import {
+  getSpecialAbilityDefinition,
+  type SpecialAbilityKind,
+} from "../../domain/player/specialAbilities";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
@@ -128,6 +131,20 @@ const concernLabels: Record<PlayerConcernCode, string> = {
   "role-mismatch": "役割への不満",
   "injury-overuse": "怪我・起用負荷",
   "team-slump": "チーム不調",
+};
+
+const specialAbilityKindLabels: Record<SpecialAbilityKind, string> = {
+  positive: "青特",
+  negative: "赤特",
+  elite: "上位特能",
+  gold: "金特",
+};
+
+const specialAbilityKindShortLabels: Record<SpecialAbilityKind, string> = {
+  positive: "青",
+  negative: "赤",
+  elite: "上",
+  gold: "金",
 };
 
 const filterOptions: ReadonlyArray<{
@@ -620,6 +637,20 @@ export function PlayerHubScreen({
     const specialAbilities = (selectedPlayer.specialAbilityIds ?? [])
       .map((abilityId) => getSpecialAbilityDefinition(abilityId))
       .filter((ability) => ability !== undefined);
+    const specialAbilityTips = Object.entries(
+      selectedPlayer.specialAbilityTipLevels ?? {},
+    )
+      .flatMap(([abilityId, level]) => {
+        const ability = getSpecialAbilityDefinition(abilityId);
+        return ability && level > 0 && level < 3
+          ? [{ ability, level }]
+          : [];
+      })
+      .sort(
+        (left, right) =>
+          right.level - left.level ||
+          left.ability.name.localeCompare(right.ability.name, "ja"),
+      );
     const maxTrendGrowth = Math.max(
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
@@ -740,7 +771,12 @@ export function PlayerHubScreen({
             >
               <div className="player-detail__special-abilities-heading">
                 <h3>特殊能力</h3>
-                <span>{specialAbilities.length}個</span>
+                <span>
+                  {specialAbilities.length}個
+                  {specialAbilityTips.length > 0
+                    ? `・コツ${specialAbilityTips.length}`
+                    : ""}
+                </span>
               </div>
               {specialAbilities.length > 0 ? (
                 <div className="player-detail__special-ability-list">
@@ -750,7 +786,10 @@ export function PlayerHubScreen({
                       data-kind={ability.kind}
                       key={ability.id}
                     >
-                      <strong>{ability.name}</strong>
+                      <div className="player-special-ability__heading">
+                        <strong>{ability.name}</strong>
+                        <span>{specialAbilityKindLabels[ability.kind]}</span>
+                      </div>
                       <small>{ability.description}</small>
                     </article>
                   ))}
@@ -761,6 +800,29 @@ export function PlayerHubScreen({
                 </p>
               )}
             </section>
+
+            {specialAbilityTips.length > 0 ? (
+              <section
+                className="player-detail__special-tips"
+                aria-label="特殊能力のコツ"
+              >
+                <div className="player-detail__special-abilities-heading">
+                  <h3>習得コツ</h3>
+                  <span>Lv.3で習得</span>
+                </div>
+                <div className="player-detail__special-tip-list">
+                  {specialAbilityTips.map(({ ability, level }) => (
+                    <article key={ability.id}>
+                      <div>
+                        <strong>{ability.name}</strong>
+                        <small>{ability.description}</small>
+                      </div>
+                      <b>Lv.{level}/3</b>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : null}
 
@@ -1117,6 +1179,22 @@ export function PlayerHubScreen({
             item.potential === null ? null : ratingToGrade(item.potential);
           const growthType = data.growthTypes.get(player.growthTypeId);
           const trainingDraft = Boolean(trainingDrafts[player.id]);
+          const specialAbilityCounts = (
+            player.specialAbilityIds ?? []
+          ).reduce<Record<SpecialAbilityKind, number>>(
+            (counts, abilityId) => {
+              const ability = getSpecialAbilityDefinition(abilityId);
+              if (ability) counts[ability.kind] += 1;
+              return counts;
+            },
+            { positive: 0, negative: 0, elite: 0, gold: 0 },
+          );
+          const specialAbilityTipCount = Object.values(
+            player.specialAbilityTipLevels ?? {},
+          ).filter((level) => level > 0 && level < 3).length;
+          const hasSpecialAbilitySummary =
+            Object.values(specialAbilityCounts).some((count) => count > 0) ||
+            specialAbilityTipCount > 0;
 
           return (
             <article
@@ -1150,6 +1228,26 @@ export function PlayerHubScreen({
                     {growthType ? (
                       <span className="player-roster__info-badge">
                         {growthType.name}
+                      </span>
+                    ) : null}
+                    {hasSpecialAbilitySummary ? (
+                      <span
+                        aria-label={`${playerName(player)} 特殊能力サマリー`}
+                        className="player-roster__special-summary"
+                      >
+                        {(
+                          ["positive", "negative", "elite", "gold"] as const
+                        ).map((kind) =>
+                          specialAbilityCounts[kind] > 0 ? (
+                            <b data-kind={kind} key={kind}>
+                              {specialAbilityKindShortLabels[kind]}
+                              {specialAbilityCounts[kind]}
+                            </b>
+                          ) : null,
+                        )}
+                        {specialAbilityTipCount > 0 ? (
+                          <b data-kind="tip">コツ{specialAbilityTipCount}</b>
+                        ) : null}
                       </span>
                     ) : null}
                     <span className="player-roster__status-badges">
