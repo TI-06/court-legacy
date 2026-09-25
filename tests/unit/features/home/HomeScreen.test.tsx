@@ -100,6 +100,29 @@ describe("Phase 13 Home command center", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
+  it("shows a compact camp banner during annual camp weeks", () => {
+    const props = createProps();
+    const camp = props.state.calendar.activities.find(
+      (activity) => activity.type === "camp",
+    );
+    if (!camp) {
+      throw new Error("camp fixture missing");
+    }
+    props.state.date = camp.date;
+    props.state.calendar.currentDate = camp.date;
+    props.state.calendar.weekOfYear = Number(camp.metadata.weekOfYear);
+
+    render(<HomeScreen {...props} />);
+
+    const banner = screen.getByRole("region", { name: "強化合宿期間" });
+    expect(within(banner).getByText("強化合宿")).toBeVisible();
+    expect(within(banner).getByText(camp.title)).toBeVisible();
+    expect(
+      within(banner).getByText("合宿限定の特殊能力イベントが発生します"),
+    ).toBeVisible();
+    expect(within(banner).getByText("SKILL EVENT")).toBeVisible();
+  });
+
   it("keeps the official objective compact and emits the tournament command", () => {
     const props = createProps();
     render(<HomeScreen {...props} />);
