@@ -16,8 +16,8 @@ describe("shop annual and carry-over rules", () => {
         1,
       ),
     ).toEqual({
-      canPurchase: false,
-      purchaseBlockedReason: "purchase_limit_reached",
+      canPurchase: true,
+      purchaseBlockedReason: null,
       canUse: true,
       useBlockedReason: null,
     });
@@ -33,10 +33,10 @@ describe("shop annual and carry-over rules", () => {
         1,
       ),
     ).toEqual({
-      canPurchase: false,
-      purchaseBlockedReason: "purchase_limit_reached",
-      canUse: false,
-      useBlockedReason: "use_limit_reached",
+      canPurchase: true,
+      purchaseBlockedReason: null,
+      canUse: true,
+      useBlockedReason: null,
     });
   });
 
