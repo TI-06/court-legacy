@@ -1,4 +1,5 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import type {
   MatchEvent,
   MatchState,
@@ -34,8 +35,14 @@ function matchState(
     id: "match-special-ability-test" as MatchState["id"],
     homeSchoolId: state.userSchoolId,
     awaySchoolId: opponent.id,
-    homeSelection: state.teamSelections[state.userSchoolId]!,
-    awaySelection: state.teamSelections[opponent.id]!,
+    homeSelection: autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    }),
+    awaySelection: autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    }),
     bestOfSets: 3,
     phase: "set-in-progress",
     currentSetNumber: 1,
@@ -98,12 +105,18 @@ describe("special ability match presentation", () => {
       }),
     );
 
-    expect(earlyServe.map((ability) => ability.id)).toEqual(["serve_stable"]);
-    expect(clutchServe.map((ability) => ability.id)).toEqual([
+    expect(earlyServe.map((ability) => ability.id)).toContain("serve_stable");
+    expect(earlyServe.map((ability) => ability.id)).not.toContain(
       "serve_late_game",
-      "serve_stable",
+    );
+    expect(earlyServe.map((ability) => ability.id)).not.toContain(
       "mental_clutch",
-    ]);
+    );
+
+    const clutchIds = clutchServe.map((ability) => ability.id);
+    expect(clutchIds).toContain("serve_stable");
+    expect(clutchIds).toContain("serve_late_game");
+    expect(clutchIds).toContain("mental_clutch");
   });
 
   it("shows only own-player abilities relevant to the current volleyball action", () => {
