@@ -1,6 +1,7 @@
 import type { Player, Position } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
+import { getSpecialAbilityDefinition } from "../player/specialAbilities";
 import {
   summarizePlayerAbilities,
   type PlayerAbilitySummary,
@@ -14,6 +15,7 @@ export type MiddleSchoolAchievement =
   | "national-event";
 
 export type ScoutConfidence = "low" | "medium" | "high";
+export type ScoutSpecialAbilityCoverage = "unknown" | "partial" | "complete";
 export type OverallScoutPrecision = "normal" | "researched";
 export type PotentialScoutPrecision = "normal" | "researched" | "appraised";
 
@@ -45,6 +47,8 @@ export interface ScoutReport {
   estimatedPotential: EstimatedRange;
   estimatedAbilities?: ScoutAbilityEstimates;
   confidence: ScoutConfidence;
+  specialAbilityCoverage?: ScoutSpecialAbilityCoverage;
+  observedSpecialAbilityIds?: string[];
   comments: string[];
   recruitment?: RecruitmentCompetitionProfile;
 }
@@ -182,6 +186,40 @@ function appraisedPotentialRange(
   return estimatedRange(truth, 100, 2, 2, random);
 }
 
+function observeSpecialAbilities(
+  player: Player,
+  quality: number,
+): {
+  coverage: ScoutSpecialAbilityCoverage;
+  abilityIds: string[];
+} {
+  const abilityIds = player.specialAbilityIds ?? [];
+
+  if (quality >= 80) {
+    return {
+      coverage: "complete",
+      abilityIds: [...abilityIds],
+    };
+  }
+
+  if (quality >= 50) {
+    const positiveAbilityId = abilityIds.find(
+      (abilityId) => getSpecialAbilityDefinition(abilityId)?.kind === "positive",
+    );
+    if (positiveAbilityId) {
+      return {
+        coverage: "partial",
+        abilityIds: [positiveAbilityId],
+      };
+    }
+  }
+
+  return {
+    coverage: "unknown",
+    abilityIds: [],
+  };
+}
+
 function rangeMidpoint(range: EstimatedRange): number {
   return (range.min + range.max) / 2;
 }
@@ -298,6 +336,10 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
     overallQuality,
     input.random,
   );
+  const specialAbilityObservation = observeSpecialAbilities(
+    input.player,
+    overallQuality,
+  );
 
   return {
     candidateId: input.player.id,
@@ -315,6 +357,8 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
     estimatedPotential,
     estimatedAbilities,
     confidence: confidenceFromQuality(overallQuality),
+    specialAbilityCoverage: specialAbilityObservation.coverage,
+    observedSpecialAbilityIds: specialAbilityObservation.abilityIds,
     comments: [
       strongestAbilityComment(input.player),
       physicalComment(input.player),
