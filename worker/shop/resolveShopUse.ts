@@ -527,6 +527,16 @@ export async function resolveShopUse(
   assertTargetMatchesDefinition(input.request);
 
   switch (input.request.itemId) {
+    case "extra-scout-trip": {
+      const base = cloneBase(input.snapshot);
+      return {
+        ...base,
+        targetType: "none",
+        targetId: null,
+        safeRequest: {},
+        publicResult: { scoutingSearchCredit: 1 },
+      };
+    }
     case "extra-scout-candidate":
       return resolveExtraCandidate(input);
     case "generational-scout-candidate":
