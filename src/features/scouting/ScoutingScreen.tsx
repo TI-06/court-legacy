@@ -12,6 +12,7 @@ import type {
   ScoutConfidence,
   ScoutReport,
 } from "../../domain/scouting/scoutReport";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import type { ShopItemId } from "../../domain/shop/shopCatalog";
 import type {
   ShopStatusResponse,
@@ -342,6 +343,11 @@ export function ScoutingScreen({
               Boolean(appraisalStatus?.canUse) &&
               (appraisalStatus?.quantityOwned ?? 0) > 0;
             const abilityEstimates = estimatedAbilities(report);
+            const observedSpecialAbilities = (
+              report.observedSpecialAbilityIds ?? []
+            )
+              .map((abilityId) => getSpecialAbilityDefinition(abilityId))
+              .filter((ability) => ability !== undefined);
 
             return (
               <article
@@ -424,6 +430,31 @@ export function ScoutingScreen({
                     );
                   })}
                 </div>
+
+                {report.specialAbilityCoverage &&
+                report.specialAbilityCoverage !== "unknown" ? (
+                  <div
+                    aria-label={`${report.displayName} 確認特殊能力`}
+                    className="scouting-special-abilities"
+                  >
+                    <span className="scouting-special-abilities__label">
+                      {report.specialAbilityCoverage === "complete"
+                        ? "特能 確認済"
+                        : "特能 一部判明"}
+                    </span>
+                    <div className="scouting-special-abilities__list">
+                      {observedSpecialAbilities.length > 0 ? (
+                        observedSpecialAbilities.map((ability) => (
+                          <span data-kind={ability.kind} key={ability.id}>
+                            {ability.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span data-kind="none">特殊能力なし</span>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
 
                 <ul className="scouting-comments">
                   {report.comments.map((comment) => (
