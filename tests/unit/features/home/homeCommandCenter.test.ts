@@ -117,6 +117,24 @@ describe("selectHomeCommandCenter", () => {
     });
   });
 
+  it("shows the active annual camp in the weekly summary", () => {
+    const state = createDemoGame();
+    const camp = state.calendar.activities.find(
+      (activity) => activity.type === "camp",
+    );
+    if (!camp) {
+      throw new Error("camp fixture missing");
+    }
+    state.date = camp.date;
+    state.calendar.currentDate = camp.date;
+    state.calendar.weekOfYear = Number(camp.metadata.weekOfYear);
+
+    expect(select(state).summary.camp).toEqual({
+      title: camp.title,
+      detail: "合宿限定の特殊能力イベントが発生します",
+    });
+  });
+
   it("surfaces a meaningful featured rival but ignores neutral one-off opponents", () => {
     const state = createDemoGame();
     const opponent = otherSchool(state);
