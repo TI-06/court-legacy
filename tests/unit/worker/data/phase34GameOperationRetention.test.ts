@@ -31,7 +31,9 @@ describe("Phase34 game operation retention", () => {
 
   it("does not prune or weaken the authoritative save", () => {
     expect(migration).not.toContain("delete from public.game_saves");
-    expect(migration).toContain("return query select v_existing_response, true");
+    expect(migration).toContain(
+      "return query select v_existing_response, true",
+    );
     expect(migration).toContain("return query select null::jsonb, false");
   });
 });
