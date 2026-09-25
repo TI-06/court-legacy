@@ -1299,6 +1299,29 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setScoutingReports([]);
           void loadScoutingBoard(cloudSession.snapshot.revision, criteria);
         }}
+        onExtraSearch={(criteria) => {
+          void (async () => {
+            if (!api.useShopItem || shopPendingAction !== null) return;
+            setShopPendingAction("use");
+            setShopPendingItemId("extra-scout-trip");
+            try {
+              const response = await api.useShopItem(session.accessToken, {
+                operationId: crypto.randomUUID(),
+                revision: cloudSession.snapshot.revision,
+                itemId: "extra-scout-trip",
+              });
+              if (await refreshShopAfterMutation(response.revision)) {
+                setScoutingReports([]);
+                await loadScoutingBoard(response.revision, criteria);
+              }
+            } catch (error) {
+              setScoutingError(shopErrorMessage(error, "追加スカウト権を使用できませんでした"));
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          })();
+        }}
         onUseShopItem={(itemId, target) => {
           void consumeShopItemFromUi(itemId, target);
         }}
