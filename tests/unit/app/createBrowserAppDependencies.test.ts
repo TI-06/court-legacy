@@ -186,4 +186,5 @@ describe("createBrowserAppDependencies E2E harness", () => {
 
     expect(second.quantityOwned).toBe(2);
     expect(second.purchasedCount).toBe(2);
-  });\n});\n
+  });
+});
