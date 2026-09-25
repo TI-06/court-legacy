@@ -131,7 +131,7 @@ describe("selectHomeCommandCenter", () => {
 
     expect(select(state).summary.camp).toEqual({
       title: camp.title,
-      detail: "合宿限定の特殊能力イベントが発生します",
+      label: "夏合宿 1/2",
     });
   });
 
