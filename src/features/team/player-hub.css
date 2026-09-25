@@ -1745,6 +1745,50 @@
   border-radius: 999px;
 }
 
+.player-roster__special-summary {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.player-roster__special-summary b {
+  padding: 1px 3px;
+  color: #bfe7ff;
+  font-size: 7px;
+  font-weight: 900;
+  line-height: 1.45;
+  white-space: nowrap;
+  background: rgb(31 120 171 / 12%);
+  border: 1px solid rgb(116 216 255 / 18%);
+  border-radius: 999px;
+}
+
+.player-roster__special-summary [data-kind="negative"] {
+  color: #ffaaa3;
+  background: rgb(201 62 55 / 14%);
+  border-color: rgb(255 114 104 / 24%);
+}
+
+.player-roster__special-summary [data-kind="elite"] {
+  color: #cfb8ff;
+  background: rgb(109 64 170 / 16%);
+  border-color: rgb(180 143 236 / 26%);
+}
+
+.player-roster__special-summary [data-kind="gold"] {
+  color: #ffe39a;
+  background: rgb(183 132 18 / 18%);
+  border-color: rgb(240 191 73 / 30%);
+}
+
+.player-roster__special-summary [data-kind="tip"] {
+  color: #9ee6bc;
+  background: rgb(43 140 91 / 14%);
+  border-color: rgb(88 200 139 / 24%);
+}
+
 .player-roster__meta .player-roster__priority-action {
   flex: 0 0 auto;
   min-height: 0;
@@ -1826,7 +1870,8 @@
     min-height: 58px;
   }
 
-  .player-roster__info-badge {
+  .player-roster__info-badge,
+  .player-roster__special-summary b {
     font-size: 7px;
   }
 
