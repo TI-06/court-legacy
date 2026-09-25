@@ -58,6 +58,13 @@ describe("academic year progression", () => {
     ).toHaveLength(15);
     expect(result.state.officialSeason.interhigh.national).toBeNull();
     expect(result.state.officialSeason.springHigh.national).toBeNull();
+    expect(result.state.calendar.activities).toHaveLength(4);
+    expect(
+      result.state.calendar.activities.every(
+        (activity) =>
+          activity.type === "camp" && activity.id.startsWith("camp:2:"),
+      ),
+    ).toBe(true);
     expect(transition.graduatedPlayerIds).toHaveLength(
       originalThirdYears.length,
     );
