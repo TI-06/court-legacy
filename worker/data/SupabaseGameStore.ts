@@ -238,9 +238,7 @@ export class SupabaseGameStore implements GameStore {
 
     // Legacy rows contain the complete response and remain readable during
     // rolling deployment. V3 rows are intentionally compact.
-    const legacy = z
-      .object({ game: z.unknown() })
-      .safeParse(row.data.response);
+    const legacy = z.object({ game: z.unknown() }).safeParse(row.data.response);
     if (legacy.success) {
       return mapOperationResponse(row.data.response);
     }
