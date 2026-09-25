@@ -32,6 +32,7 @@ import {
 import { BottomSheet } from "../../ui/BottomSheet";
 import { PreMatchComparison } from "./MatchStatPanels";
 import { buildOpponentAnalysis } from "./opponentAnalysis";
+import { presentPlayerSpecialAbilities } from "./specialAbilityPresentation";
 import { ratingToGrade as ratingToTeamGrade } from "./teamRatingGrade";
 import "./pre-match-lineup.css";
 
@@ -536,6 +537,11 @@ export function PreMatchLineupScreen({
               const condition = getPlayerConditionPresentation(
                 player.condition,
               );
+              const specialAbilityBadges = presentPlayerSpecialAbilities(
+                player,
+                2,
+              );
+              const specialAbilityCount = player.specialAbilityIds?.length ?? 0;
               return (
                 <button
                   aria-label={`ローテーション${slot}を変更`}
@@ -550,6 +556,23 @@ export function PreMatchLineupScreen({
                     <small>{player.preferredPosition}</small>
                   </span>
                   <strong>{player.lastName}</strong>
+                  {specialAbilityBadges.length > 0 ? (
+                    <span
+                      aria-label={`${player.lastName}の特殊能力`}
+                      className="pre-match-lineup__court-specials"
+                    >
+                      {specialAbilityBadges.map((ability) => (
+                        <span data-kind={ability.kind} key={ability.id}>
+                          {ability.name}
+                        </span>
+                      ))}
+                      {specialAbilityCount > specialAbilityBadges.length ? (
+                        <small>
+                          +{specialAbilityCount - specialAbilityBadges.length}
+                        </small>
+                      ) : null}
+                    </span>
+                  ) : null}
                   <span
                     className={`pre-match-lineup__condition player-condition--${condition.colorToken}`}
                   >
