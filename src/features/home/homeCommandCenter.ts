@@ -75,7 +75,7 @@ export interface HomeSummary {
   cohesionTrend: CohesionTrend;
   camp: null | {
     title: string;
-    detail: string;
+    label: string;
   };
   official: null | {
     competitionLabel: string;
@@ -404,7 +404,11 @@ function buildSummary(
     camp: campActivity
       ? {
           title: campActivity.title,
-          detail: "合宿限定の特殊能力イベントが発生します",
+          label: `${
+            campActivity.metadata.campSeason === "winter" ? "冬" : "夏"
+          }合宿 ${Number(campActivity.metadata.campPhase)}/${Number(
+            campActivity.metadata.campDurationWeeks,
+          )}`,
         }
       : null,
     official,
