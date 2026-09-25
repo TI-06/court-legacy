@@ -3,6 +3,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSearchBudget";
 import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
+import { scoutingSearchResultPresentation } from "../../domain/scouting/scoutingSearchResult";
 import {
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
@@ -236,6 +237,7 @@ export function ScoutingScreen({
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [searchRegion, setSearchRegion] = useState<"prefecture" | "regional" | "national">("prefecture");
   const [searchPosition, setSearchPosition] = useState<"any" | "OH" | "MB" | "S" | "OP" | "L">("any");
+  const searchResult = reports.length > 0 ? scoutingSearchResultPresentation(reports) : null;
   const [searchPriority, setSearchPriority] = useState<"ability" | "potential" | "physical" | "immediate" | "hidden">("ability");
 
   const selectSchoolView = (view: SchoolView) => {
@@ -304,6 +306,14 @@ export function ScoutingScreen({
       </section>
 
       <SchoolNavigationTabs activeView="scouting" onSelect={selectSchoolView} />
+
+      {searchResult && (
+        <section className={`scouting-search-result scouting-search-result--${searchResult.tone}`} aria-live="polite">
+          <span>SCOUT REPORT</span>
+          <strong>{searchResult.title}</strong>
+          <p>{searchResult.message}</p>
+        </section>
+      )}
 
       <section className="scouting-search-launch" aria-label="選手探索">
         <div>
