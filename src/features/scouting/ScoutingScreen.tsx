@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSearchBudget";
+import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
 import {
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
@@ -41,6 +42,7 @@ interface ScoutingScreenProps {
   latestShopUseResult?: ShopUsePresentation | null;
   onBack: () => void;
   onRetry: () => void;
+  onSearch?: (criteria: ScoutingSearchCriteria) => void;
   onRecruit: (candidateId: PlayerId, action?: RecruitmentAction) => void;
   onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
 }
@@ -181,6 +183,7 @@ export function ScoutingScreen({
   latestShopUseResult = null,
   onBack,
   onRetry,
+  onSearch = () => undefined,
   onRecruit,
   onUseShopItem = () => undefined,
 }: ScoutingScreenProps) {
@@ -615,7 +618,10 @@ export function ScoutingScreen({
               ))}
             </div>
           </fieldset>
-          <button className="scouting-search-confirm" disabled={baseSearchesRemaining <= 0} type="button">
+          <button className="scouting-search-confirm" disabled={baseSearchesRemaining <= 0 || loading} onClick={() => {
+            onSearch({ region: searchRegion, position: searchPosition, priority: searchPriority });
+            setSearchSheetOpen(false);
+          }} type="button">
             {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : "通常探索を使い切りました"}
           </button>
         </div>
