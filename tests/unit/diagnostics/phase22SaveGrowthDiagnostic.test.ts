@@ -45,7 +45,7 @@ function topLevelStateBytes(state: GameState): Record<string, number> {
 }
 
 describe("Phase22 save growth diagnostic", () => {
-  it("captures 156 weeks of snapshot growth and preserves codec round-tripping", () => {
+  it("captures 520 weeks of snapshot growth and keeps replay retention bounded", () => {
     let snapshot = createSoakSnapshot("phase22-save-growth");
     let totalActions = 0;
     let cumulativeEstimatedOperationBytes = 0;
@@ -81,11 +81,11 @@ describe("Phase22 save growth diagnostic", () => {
     };
 
     capture(0, 0);
-    for (let week = 1; week <= 156; week += 1) {
+    for (let week = 1; week <= 520; week += 1) {
       const advanced = advanceSoakUntilWeekChanges(snapshot);
       snapshot = advanced.snapshot;
       totalActions += advanced.actionCount;
-      if (week % 13 === 0 || week === 1 || week === 156) {
+      if (week % 26 === 0 || week === 1 || week === 520) {
         capture(week, advanced.actionCount);
       } else {
         cumulativeEstimatedOperationBytes +=
@@ -104,9 +104,12 @@ describe("Phase22 save growth diagnostic", () => {
       "utf8",
     );
 
-    expect(points.at(-1)?.week).toBe(156);
+    expect(points.at(-1)?.week).toBe(520);
+    const finalSnapshotBytes = points.at(-1)?.snapshotBytes ?? 0;
+    const estimatedRetainedReplayBytes = finalSnapshotBytes * 16;
+    expect(estimatedRetainedReplayBytes).toBeLessThan(32 * 1024 * 1024);
     expect(decoded.date).toBe(snapshot.state.date);
     expect(decoded.yearIndex).toBe(snapshot.state.yearIndex);
     expect(reencoded).toBe(encoded);
-  }, 20_000);
+  }, 60_000);
 });
