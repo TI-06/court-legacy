@@ -19,6 +19,7 @@ const requestSchema = z
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
+    useExtraTicket: z.boolean().optional(),
     search: z
       .object({
         region: z.enum(["prefecture", "regional", "national"]),
@@ -88,6 +89,9 @@ export function createScoutingBoardHandler(
     if (parsed.data.search) {
       const searchedState = consumeBaseScoutingSearch(snapshot.state);
       if (!searchedState) {
+        if (parsed.data.useExtraTicket) {
+          activeState = snapshot.state;
+        } else {
         const shopItems = deps.shopStore
           ? await deps.shopStore.getStatus(user.id, snapshot.state.yearIndex)
           : [];
@@ -104,6 +108,7 @@ export function createScoutingBoardHandler(
           "extra_scout_ticket_required",
           "追加スカウト権を使用してから探索してください",
         );
+        }
       }
 
       if (!pool) {
