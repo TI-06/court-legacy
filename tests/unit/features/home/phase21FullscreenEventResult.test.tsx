@@ -89,6 +89,59 @@ describe("Phase21 fullscreen event result experience", () => {
     expect(document.body.style.overflow).toBe("");
   });
 
+  it("highlights special ability tips, acquisition, and recovery in event results", async () => {
+    const state = eventState();
+    const pending = state.pendingEvent!;
+    const resolved = structuredClone(state);
+    resolved.pendingEvent = null;
+    resolved.eventMemory.history = [
+      {
+        eventId: pending.eventId,
+        date: state.date,
+        actorPlayerIds: [...pending.actorPlayerIds],
+        choiceId: "try",
+        visibleResultCodes: [
+          "コース打ち○ コツ +1",
+          "サーブ職人 習得",
+          "サーブ不安定 克服",
+          "mental +2",
+        ],
+      },
+    ];
+
+    const rerenderView: {
+      current: ReturnType<typeof render>["rerender"] | null;
+    } = { current: null };
+    const onChoose = vi.fn(async () => {
+      rerenderView.current?.(
+        <EventDialog data={gameData} onChoose={onChoose} state={resolved} />,
+      );
+    });
+    const view = render(
+      <EventDialog data={gameData} onChoose={onChoose} state={state} />,
+    );
+    rerenderView.current = view.rerender;
+
+    fireEvent.click(
+      within(screen.getByLabelText("対応を選択")).getAllByRole("button")[0]!,
+    );
+
+    const changes = await screen.findByRole("region", {
+      name: "対応による変化",
+    });
+    const tip = within(changes).getByText("コツ").closest("li")!;
+    const acquired = within(changes).getByText("習得").closest("li")!;
+    const overcome = within(changes).getByText("克服").closest("li")!;
+
+    expect(tip).toHaveAttribute("data-result-kind", "special-tip");
+    expect(tip).toHaveTextContent("コース打ち○ +1");
+    expect(acquired).toHaveAttribute("data-result-kind", "special-acquired");
+    expect(acquired).toHaveTextContent("サーブ職人");
+    expect(overcome).toHaveAttribute("data-result-kind", "special-overcome");
+    expect(overcome).toHaveTextContent("サーブ不安定");
+    expect(within(changes).getByText("メンタル +2")).toBeVisible();
+  });
+
   it("does not present an unrelated occurrence as the selected result", async () => {
     const state = eventState();
     const initialPending = state.pendingEvent!;

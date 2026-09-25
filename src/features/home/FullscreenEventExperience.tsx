@@ -55,10 +55,50 @@ const focusableSelector = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
-function formatVisibleResult(code: string): string {
+type EventResultKind =
+  "general" | "special-tip" | "special-acquired" | "special-overcome";
+
+interface EventResultPresentation {
+  kind: EventResultKind;
+  badge: string | null;
+  text: string;
+}
+
+function presentVisibleResult(code: string): EventResultPresentation {
+  const specialTip = code.match(/^(.*) コツ (\+\d+)$/);
+  if (specialTip) {
+    return {
+      kind: "special-tip",
+      badge: "コツ",
+      text: `${specialTip[1]} ${specialTip[2]}`,
+    };
+  }
+
+  const specialAcquired = code.match(/^(.*) 習得$/);
+  if (specialAcquired) {
+    return {
+      kind: "special-acquired",
+      badge: "習得",
+      text: specialAcquired[1]!,
+    };
+  }
+
+  const specialOvercome = code.match(/^(.*) 克服$/);
+  if (specialOvercome) {
+    return {
+      kind: "special-overcome",
+      badge: "克服",
+      text: specialOvercome[1]!,
+    };
+  }
+
   const [head, ...rest] = code.split(" ");
   const label = abilityResultLabels[head ?? ""];
-  return label ? `${label} ${rest.join(" ")}` : code;
+  return {
+    kind: "general",
+    badge: null,
+    text: label ? `${label} ${rest.join(" ")}` : code,
+  };
 }
 
 export function FullscreenEventExperience({
@@ -204,11 +244,18 @@ export function FullscreenEventExperience({
                 0 ? (
                   <ul>
                     {resolvedPresentation.occurrence.visibleResultCodes.map(
-                      (code, index) => (
-                        <li key={`${code}:${index}`}>
-                          {formatVisibleResult(code)}
-                        </li>
-                      ),
+                      (code, index) => {
+                        const result = presentVisibleResult(code);
+                        return (
+                          <li
+                            data-result-kind={result.kind}
+                            key={`${code}:${index}`}
+                          >
+                            {result.badge ? <b>{result.badge}</b> : null}
+                            <span>{result.text}</span>
+                          </li>
+                        );
+                      },
                     )}
                   </ul>
                 ) : (
