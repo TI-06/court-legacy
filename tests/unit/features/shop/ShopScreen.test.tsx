@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { PHASE5_SHOP_ITEMS } from "../../../../src/domain/shop/shopCatalog";
+import { PHASE5_SHOP_ITEMS, getShopItemDefinition } from "../../../../src/domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 import { ShopScreen } from "../../../../src/features/shop/ShopScreen";
 
@@ -30,8 +30,8 @@ function createStatus(): ShopStatusResponse {
               : 0,
         usedCount: isFatigue ? 1 : 0,
         quantityOwned: isFatigue ? 2 : 0,
-        canPurchase: !isExtra,
-        purchaseBlockedReason: isExtra ? "purchase_limit_reached" : null,
+        canPurchase: true,
+        purchaseBlockedReason: null,
         canUse: isFatigue,
         useBlockedReason: isFatigue ? null : "inventory_empty",
       };
@@ -74,7 +74,7 @@ describe("ShopScreen", () => {
     );
   });
 
-  it("renders the shop as purchase-only with annual limits", () => {
+  it("renders the shop without annual purchase or use caps", () => {
     renderShop();
 
     expect(screen.queryByRole("button", { name: "商品" })).toBeNull();
@@ -83,16 +83,16 @@ describe("ShopScreen", () => {
       expect(screen.getByText(item.displayName)).toBeVisible();
     }
     expect(screen.getAllByText("¥0")).toHaveLength(PHASE5_SHOP_ITEMS.length);
-    expect(screen.getByText("今年度の上限に達しました")).toBeVisible();
-    expect(screen.getByText("購入 5 / 5")).toBeVisible();
+    expect(screen.queryByText("今年度の上限に達しました")).toBeNull();
+    expect(screen.getByText(`購入 ${getShopItemDefinition("extra-scout-candidate").annualPurchaseLimit}`)).toBeVisible();
     expect(screen.getByText("所持 2")).toBeVisible();
-    expect(screen.getByText(/購入\/使用上限は年度ごとに更新/)).toBeVisible();
+    expect(screen.getByText(/購入・使用回数の制限なし/)).toBeVisible();
   });
 
   it("renders fund grants as immediate claims", () => {
     const props = renderShop();
 
-    expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
+    expect(screen.getByText("受取回数 1")).toBeVisible();
     const button = screen.getByRole("button", {
       name: "資金 +300を受け取る",
     });
