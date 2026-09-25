@@ -114,13 +114,12 @@ describe("Phase 13 Home command center", () => {
 
     render(<HomeScreen {...props} />);
 
-    const banner = screen.getByRole("region", { name: "強化合宿期間" });
-    expect(within(banner).getByText("強化合宿")).toBeVisible();
-    expect(within(banner).getByText(camp.title)).toBeVisible();
-    expect(
-      within(banner).getByText("合宿限定の特殊能力イベントが発生します"),
-    ).toBeVisible();
-    expect(within(banner).getByText("SKILL EVENT")).toBeVisible();
+    const badge = screen.getByLabelText(`強化合宿期間 ${camp.title}`);
+    expect(badge).toHaveTextContent("夏合宿 1/2");
+    expect(badge).toHaveAttribute(
+      "title",
+      "合宿限定の特殊能力イベントが発生します",
+    );
   });
 
   it("keeps the official objective compact and emits the tournament command", () => {
