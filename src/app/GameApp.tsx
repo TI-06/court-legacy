@@ -309,6 +309,12 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         revision,
         ...(search ? { search } : {}),
       });
+      if (search) {
+        const latest = await api.bootstrap(session.accessToken);
+        if (latest.status === "ready") {
+          await cloudSession.adoptServerSnapshot(latest.game, "スカウト探索を実行しました");
+        }
+      }
       setScoutingReports(response.reports);
       setScoutingCycle(response.cycleKey);
       return response.reports;
@@ -326,6 +332,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             const refreshed = await api.getScoutingBoard(session.accessToken, {
               operationId: crypto.randomUUID(),
               revision: latest.game.revision,
+              ...(search ? { search } : {}),
             });
             setScoutingReports(refreshed.reports);
             setScoutingCycle(refreshed.cycleKey);
