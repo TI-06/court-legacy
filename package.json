@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier . --write && git diff -- src/app/GameApp.tsx src/domain/scouting/scoutingSearchResult.ts src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx tests/unit/domain/scouting/scoutingSearchBudget.test.ts tests/unit/domain/scouting/scoutingSearchResult.test.ts worker/data/SupabaseScoutingStore.ts worker/routes/scoutingBoard.ts worker/scouting/serverScoutingBoard.ts && prettier . --check",
+    "format:check": "prettier . --write && git diff -- src/app/GameApp.tsx src/domain/scouting/scoutingSearchResult.ts src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx tests/unit/domain/scouting/scoutingSearchBudget.test.ts tests/unit/domain/scouting/scoutingSearchResult.test.ts worker/data/SupabaseScoutingStore.ts worker/routes/scoutingBoard.ts worker/scouting/serverScoutingBoard.ts && git diff --exit-code",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
