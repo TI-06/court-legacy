@@ -16,7 +16,7 @@ import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
-import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
+import { presentActivatedEventSpecialAbilities } from "./specialAbilityPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -287,7 +287,15 @@ function MatchScreenContent({
   const currentEvent = presentedEvents.at(-1);
   const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
   const currentEventSpecialAbilities = currentRawEvent
-    ? presentEventSpecialAbilities(state, currentRawEvent)
+    ? presentActivatedEventSpecialAbilities(
+        state,
+        {
+          homeSchoolId: result.match.homeSchoolId,
+          awaySchoolId: result.match.awaySchoolId,
+          bestOfSets: result.match.bestOfSets,
+        },
+        currentRawEvent,
+      )
     : [];
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
@@ -461,9 +469,10 @@ function MatchScreenContent({
               <p>{currentEvent.detail}</p>
               {currentEventSpecialAbilities.length > 0 ? (
                 <div
-                  aria-label="このプレーの特殊能力"
+                  aria-label="このプレーで発動した特殊能力"
                   className="match-current-event__specials"
                 >
+                  <b>特能発動</b>
                   {currentEventSpecialAbilities.map((ability) => (
                     <span data-kind={ability.kind} key={ability.id}>
                       {ability.name}
