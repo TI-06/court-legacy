@@ -287,7 +287,7 @@ function MatchScreenContent({
   const currentEvent = presentedEvents.at(-1);
   const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
   const currentEventSpecialAbilities = currentRawEvent
-    ? presentEventSpecialAbilities(state, currentRawEvent)
+    ? presentEventSpecialAbilities(state, result.match, currentRawEvent)
     : [];
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
@@ -466,6 +466,7 @@ function MatchScreenContent({
                 >
                   {currentEventSpecialAbilities.map((ability) => (
                     <span data-kind={ability.kind} key={ability.id}>
+                      <b>発動</b>
                       {ability.name}
                     </span>
                   ))}
