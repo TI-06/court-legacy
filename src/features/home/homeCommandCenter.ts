@@ -1,4 +1,5 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
+import { findCurrentTrainingCampActivity } from "../../domain/calendar/trainingCampCalendar";
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";
 import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
@@ -72,6 +73,10 @@ export interface HomeSummary {
   };
   cohesion: number;
   cohesionTrend: CohesionTrend;
+  camp: null | {
+    title: string;
+    detail: string;
+  };
   official: null | {
     competitionLabel: string;
     detailLabel: string;
@@ -354,6 +359,7 @@ function buildSummary(
   const condition = getPlayerConditionPresentation(
     average(players.map((player) => player.condition)),
   );
+  const campActivity = findCurrentTrainingCampActivity(state);
   const nextOfficial = selectNextOfficialEvent(state);
   const official = nextOfficial
     ? nextOfficial.kind === "match"
@@ -395,6 +401,12 @@ function buildSummary(
     },
     cohesion: state.teamDynamics.cohesion,
     cohesionTrend: state.teamDynamics.cohesionTrend,
+    camp: campActivity
+      ? {
+          title: campActivity.title,
+          detail: "合宿限定の特殊能力イベントが発生します",
+        }
+      : null,
     official,
     featuredRival: buildFeaturedRival(state),
     season: seasonProgress
