@@ -144,6 +144,66 @@ describe("PlayerHubScreen", () => {
     }
   });
 
+  it("shows special ability kinds and tip progress without adding a roster row", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.specialAbilityIds = [
+      "attack_course",
+      "serve_unstable",
+      "elite_game_maker",
+      "gold_court_brain",
+    ];
+    player.specialAbilityTipLevels = {
+      receive_dig: 1,
+      block_read: 2,
+    };
+
+    renderPlayerHub(state);
+
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    const summary = within(row).getByLabelText(
+      `${player.lastName} ${player.firstName} 特殊能力サマリー`,
+    );
+    expect(within(summary).getByText("青1")).toBeVisible();
+    expect(within(summary).getByText("赤1")).toBeVisible();
+    expect(within(summary).getByText("上1")).toBeVisible();
+    expect(within(summary).getByText("金1")).toBeVisible();
+    expect(within(summary).getByText("コツ2")).toBeVisible();
+
+    fireEvent.click(detailButton);
+
+    const abilities = screen.getByRole("region", { name: "特殊能力" });
+    const positive = within(abilities).getByText("コース打ち○").closest(
+      "article",
+    )!;
+    const negative = within(abilities).getByText("サーブ不安定").closest(
+      "article",
+    )!;
+    const elite = within(abilities).getByText("ゲームメイカー").closest(
+      "article",
+    )!;
+    const gold = within(abilities).getByText("コートの頭脳").closest(
+      "article",
+    )!;
+    expect(within(positive).getByText("青特")).toBeVisible();
+    expect(within(negative).getByText("赤特")).toBeVisible();
+    expect(within(elite).getByText("上位特能")).toBeVisible();
+    expect(within(gold).getByText("金特")).toBeVisible();
+
+    const tips = screen.getByRole("region", { name: "特殊能力のコツ" });
+    expect(within(tips).getByText("読みブロック○")).toBeVisible();
+    expect(within(tips).getByText("Lv.2/3")).toBeVisible();
+    expect(within(tips).getByText("ディグ○")).toBeVisible();
+    expect(within(tips).getByText("Lv.1/3")).toBeVisible();
+    expect(within(tips).getByText("Lv.3で習得")).toBeVisible();
+  });
+
   it("shows current ability grades and grouped four-week growth before changing individual training", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
