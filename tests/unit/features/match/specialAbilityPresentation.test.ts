@@ -119,6 +119,46 @@ describe("special ability match presentation", () => {
     expect(clutchIds).toContain("mental_clutch");
   });
 
+  it("uses the player's actual home or away score when evaluating activation", () => {
+    const state = createDemoGame();
+    const ownPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const opponent = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    state.players[ownPlayerId] = {
+      ...state.players[ownPlayerId]!,
+      specialAbilityIds: ["mental_comeback"],
+    };
+    const base = matchState(state);
+    const awayMatch: MatchState = {
+      ...base,
+      homeSchoolId: opponent.id,
+      awaySchoolId: state.userSchoolId,
+      homeSelection: autoSelectTeam({
+        state,
+        schoolId: opponent.id,
+      }),
+      awaySelection: autoSelectTeam({
+        state,
+        schoolId: state.userSchoolId,
+      }),
+      servingSchoolId: opponent.id,
+    };
+
+    const active = presentEventSpecialAbilities(
+      state,
+      awayMatch,
+      matchEvent({
+        type: "receive",
+        actorPlayerId: ownPlayerId,
+        homeScore: 12,
+        awayScore: 8,
+      }),
+    );
+
+    expect(active.map((ability) => ability.id)).toContain("mental_comeback");
+  });
+
   it("shows only own-player abilities relevant to the current volleyball action", () => {
     const state = createDemoGame();
     const ownPlayerId = state.schools[state.userSchoolId]!.playerIds[0]!;
