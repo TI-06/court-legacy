@@ -255,19 +255,11 @@ function ProductCard({
 
       <div className="shop-card__status">
         {isGrant ? (
-          <span>
-            年度残り{" "}
-            {Math.max(0, item.annualPurchaseLimit - item.purchasedCount)} /{" "}
-            {item.annualPurchaseLimit}
-          </span>
+          <span>受取回数 {item.purchasedCount}</span>
         ) : (
           <>
-            <span>
-              購入 {item.purchasedCount} / {item.annualPurchaseLimit}
-            </span>
-            <span>
-              使用 {item.usedCount} / {item.annualUseLimit}
-            </span>
+            <span>購入 {item.purchasedCount}</span>
+            <span>使用 {item.usedCount}</span>
             <span>所持 {item.quantityOwned}</span>
           </>
         )}
@@ -326,9 +318,7 @@ function InventoryCard({
 
       <div className="shop-card__status">
         <span>翌年度以降も持ち越し可</span>
-        <span>
-          使用 {item.usedCount} / {item.annualUseLimit}
-        </span>
+        <span>使用 {item.usedCount}</span>
       </div>
 
       {scoutingTargetRequired ? (
@@ -599,7 +589,7 @@ export function ShopScreen({
         <>
           <p className="shop-screen__year">
             {view === "products"
-              ? `年度 ${status.academicYearIndex} ・ 購入/使用上限は年度ごとに更新`
+              ? `年度 ${status.academicYearIndex} ・ 購入・使用回数の制限なし`
               : `年度 ${status.academicYearIndex} ・ 未使用アイテムは翌年度以降も持ち越し可`}
           </p>
 

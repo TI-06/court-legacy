@@ -5,7 +5,6 @@ import {
   E2E_SERVER_SNAPSHOT_KEY,
 } from "../../../src/app/createBrowserAppDependencies";
 import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
-import { ApiError } from "../../../src/services/api/GameApiClient";
 
 describe("createBrowserAppDependencies E2E harness", () => {
   beforeEach(() => {
@@ -167,34 +166,24 @@ describe("createBrowserAppDependencies E2E harness", () => {
     expect(item).toMatchObject({ quantityOwned: 1, purchasedCount: 1 });
   });
 
-  it("enforces the annual purchase limit without mutating shop state", async () => {
+  it("allows repeat purchases beyond the former annual limit", async () => {
     const { api } = createBrowserAppDependencies({ MODE: "test" });
     expect(api.getShop).toBeDefined();
     expect(api.purchaseShopItem).toBeDefined();
 
     const initial = await api.getShop!("e2e-access-token");
     const first = await api.purchaseShopItem!("e2e-access-token", {
-      operationId: "shop-harness-limit-001",
+      operationId: "shop-harness-unlimited-001",
       revision: initial.revision,
       itemId: "training-camp",
     });
-
-    const error = await api.purchaseShopItem!("e2e-access-token", {
-      operationId: "shop-harness-limit-002",
+    const second = await api.purchaseShopItem!("e2e-access-token", {
+      operationId: "shop-harness-unlimited-002",
       revision: first.revision,
       itemId: "training-camp",
-    }).catch((reason: unknown) => reason);
-
-    expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({
-      status: 409,
-      code: "purchase_limit_reached",
     });
 
-    const status = await api.getShop!("e2e-access-token");
-    const item = status.items.find(
-      (candidate) => candidate.itemId === "training-camp",
-    );
-    expect(item).toMatchObject({ quantityOwned: 1, purchasedCount: 1 });
+    expect(second.quantityOwned).toBe(2);
+    expect(second.purchasedCount).toBe(2);
   });
 });

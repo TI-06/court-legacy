@@ -28,32 +28,32 @@ describe("Phase 5 shop catalog", () => {
     ).toBe(true);
   });
 
-  it("allows five normal extra candidates but only one guaranteed genius candidate", () => {
+  it("keeps scout items repeatable without practical purchase, use, or inventory caps", () => {
     expect(getShopItemDefinition("extra-scout-candidate")).toMatchObject({
       displayName: "新入生候補追加",
-      annualPurchaseLimit: 5,
-      annualUseLimit: 5,
-      inventoryLimit: 5,
+      annualPurchaseLimit: 2_000_000_000,
+      annualUseLimit: 2_000_000_000,
+      inventoryLimit: null,
       targetKind: "none",
     });
     expect(getShopItemDefinition("generational-scout-candidate")).toMatchObject(
       {
         displayName: "天才候補生追加",
-        annualPurchaseLimit: 1,
-        annualUseLimit: 1,
-        inventoryLimit: 1,
+        annualPurchaseLimit: 2_000_000_000,
+        annualUseLimit: 2_000_000_000,
+        inventoryLimit: null,
         targetKind: "none",
       },
     );
   });
 
-  it("defines fatigue recovery as a player item with a three-use annual limit", () => {
+  it("defines fatigue recovery as an unlimited player item", () => {
     expect(getShopItemDefinition("fatigue-recovery")).toMatchObject({
       itemId: "fatigue-recovery",
       displayName: "疲労回復",
       targetKind: "player",
-      annualPurchaseLimit: 3,
-      annualUseLimit: 3,
+      annualPurchaseLimit: 2_000_000_000,
+      annualUseLimit: 2_000_000_000,
       priceYen: 0,
     });
   });
@@ -62,7 +62,7 @@ describe("Phase 5 shop catalog", () => {
     expect(getShopItemDefinition("funds-grant-300")).toMatchObject({
       displayName: "資金 +300",
       priceYen: 0,
-      annualPurchaseLimit: 3,
+      annualPurchaseLimit: 2_000_000_000,
       targetKind: "none",
     });
     expect(shopFundsGrantAmount("funds-grant-300")).toBe(300);

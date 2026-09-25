@@ -22,7 +22,7 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   await openShop(page);
 
   const grant = shopCard(page, "資金 +300");
-  await expect(grant).toContainText("年度残り 3 / 3");
+  await expect(grant).toContainText("受取回数 0");
   await grant
     .getByRole("button", { name: "資金 +300を受け取る", exact: true })
     .click();
@@ -30,7 +30,7 @@ test("free fund grant updates the authoritative balance, survives reload, and ap
   await expect(page.getByText("資金 +300 / 残高 1,050")).toBeVisible({
     timeout: 2_500,
   });
-  await expect(grant).toContainText("年度残り 2 / 3");
+  await expect(grant).toContainText("受取回数 1");
 
   await page.getByRole("button", { name: "その他へ戻る", exact: true }).click();
   await page.getByRole("button", { name: "所持品", exact: true }).click();

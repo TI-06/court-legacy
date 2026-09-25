@@ -125,6 +125,6 @@ describe("GameApp school economy shop flow", () => {
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("資金 +300 / 残高 1,000")).toBeVisible();
-    expect(screen.getByText("年度残り 2 / 3")).toBeVisible();
+    expect(screen.getByText("受取回数 1")).toBeVisible();
   });
 });
