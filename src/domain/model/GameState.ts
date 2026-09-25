@@ -114,6 +114,7 @@ export interface RecruitingState {
   visitActionsUsed?: number;
   recommendationUsed?: boolean;
   scoutingSearchesUsed?: number;
+  extraScoutingSearchCredits?: number;
   candidateEngagements?: Partial<
     Record<PlayerId, RecruitingCandidateEngagement>
   >;
