@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { PHASE5_SHOP_ITEMS, getShopItemDefinition } from "../../../../src/domain/shop/shopCatalog";
+import {
+  PHASE5_SHOP_ITEMS,
+  getShopItemDefinition,
+} from "../../../../src/domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 import { ShopScreen } from "../../../../src/features/shop/ShopScreen";
 
@@ -84,7 +87,11 @@ describe("ShopScreen", () => {
     }
     expect(screen.getAllByText("¥0")).toHaveLength(PHASE5_SHOP_ITEMS.length);
     expect(screen.queryByText("今年度の上限に達しました")).toBeNull();
-    expect(screen.getByText(`購入 ${getShopItemDefinition("extra-scout-candidate").annualPurchaseLimit}`)).toBeVisible();
+    expect(
+      screen.getByText(
+        `購入 ${getShopItemDefinition("extra-scout-candidate").annualPurchaseLimit}`,
+      ),
+    ).toBeVisible();
     expect(screen.getByText("所持 2")).toBeVisible();
     expect(screen.getByText(/購入・使用回数の制限なし/)).toBeVisible();
   });
