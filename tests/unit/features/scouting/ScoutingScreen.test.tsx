@@ -119,6 +119,42 @@ describe("ScoutingScreen", () => {
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
   });
 
+  it("shows discovered blue and red special abilities without exposing unknown ones", () => {
+    const specialReports: ScoutReport[] = [
+      {
+        ...reports[0]!,
+        specialAbilityCoverage: "complete",
+        observedSpecialAbilityIds: ["attack_course", "serve_unstable"],
+      },
+      {
+        ...reports[1]!,
+        specialAbilityCoverage: "complete",
+        observedSpecialAbilityIds: [],
+      },
+    ];
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={specialReports}
+        state={stateWithCommitted()}
+      />,
+    );
+
+    const aoki = screen.getByLabelText("青木 蓮 確認特殊能力");
+    expect(within(aoki).getByText("特能 確認済")).toBeVisible();
+    expect(within(aoki).getByText("コース打ち○")).toBeVisible();
+    expect(within(aoki).getByText("サーブ不安定")).toBeVisible();
+
+    const sato = screen.getByLabelText("佐藤 湊 確認特殊能力");
+    expect(within(sato).getByText("特殊能力なし")).toBeVisible();
+  });
+
   it("keeps the school tabs visible and returns directly to the selected school view", () => {
     const state = stateWithCommitted();
     const onBack = vi.fn();
