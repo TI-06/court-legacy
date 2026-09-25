@@ -206,6 +206,40 @@
   background: rgb(19 48 79 / 82%);
 }
 
+.fullscreen-event .event-result li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.fullscreen-event .event-result li > span {
+  min-width: 0;
+}
+
+.fullscreen-event .event-result li > b {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+}
+
+.fullscreen-event .event-result li[data-result-kind="special-tip"] {
+  color: #b9f1d0;
+  background: rgb(28 91 61 / 72%);
+}
+
+.fullscreen-event .event-result li[data-result-kind="special-acquired"] {
+  color: #ffe6a7;
+  background: rgb(108 76 16 / 72%);
+}
+
+.fullscreen-event .event-result li[data-result-kind="special-overcome"] {
+  color: #bfe8ff;
+  background: rgb(22 75 105 / 72%);
+}
+
 .fullscreen-event__confirm {
   min-height: 52px;
   color: #071321;
