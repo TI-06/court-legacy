@@ -156,6 +156,30 @@ export class SupabaseScoutingStore implements ScoutingStore {
     return mapPool(parsed.data[0]);
   }
 
+  async replaceCandidatePool(
+    input: CreateScoutingCandidatePoolInput,
+  ): Promise<ScoutingCandidatePool> {
+    const { data, error } = await this.client
+      .from("scouting_candidate_pools")
+      .update({
+        creation_operation_id: input.creationOperationId,
+        candidates: input.candidates,
+        created_at: new Date().toISOString(),
+      })
+      .eq("user_id", input.userId)
+      .eq("cycle_key", input.cycleKey)
+      .select("user_id, cycle_key, creation_operation_id, candidates")
+      .single();
+
+    if (error) {
+      throw new ScoutingStoreDataError("scouting candidate pool replacement failed", {
+        cause: error,
+      });
+    }
+
+    return mapPool(data);
+  }
+
   async listCandidateInsights(
     userId: string,
     cycleKey: string,
