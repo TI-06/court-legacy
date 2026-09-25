@@ -58,6 +58,7 @@ export interface ScoutingBoardResponse {
   operationId: string;
   revision: number;
   cycleKey: string;
+  scoutingSearchesUsed?: number;
   reports: ScoutReport[];
 }
 
