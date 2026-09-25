@@ -102,6 +102,63 @@ describe("scoutReport", () => {
     expect(low.confidence).toBe("low");
   });
 
+  it("reveals special abilities progressively with scouting precision", () => {
+    const player = candidate(20, "elite");
+    player.specialAbilityIds = [
+      "attack_course",
+      "receive_dig",
+      "serve_unstable",
+    ];
+
+    const create = (
+      observation: number,
+      scoutingNetworkLevel: number,
+      overallPrecision: "normal" | "researched" = "normal",
+    ) =>
+      createScoutReport({
+        player,
+        middleSchoolAchievement: "prefectural-selection",
+        observation,
+        scoutingNetworkLevel,
+        overallPrecision,
+        random: new SeededRandom("special-ability-scout-report"),
+      });
+
+    const low = create(20, 0);
+    expect(low.specialAbilityCoverage).toBe("unknown");
+    expect(low.observedSpecialAbilityIds).toEqual([]);
+
+    const medium = create(60, 2);
+    expect(medium.specialAbilityCoverage).toBe("partial");
+    expect(medium.observedSpecialAbilityIds).toEqual(["attack_course"]);
+
+    const high = create(95, 5);
+    expect(high.specialAbilityCoverage).toBe("complete");
+    expect(high.observedSpecialAbilityIds).toEqual(player.specialAbilityIds);
+
+    const researched = create(20, 0, "researched");
+    expect(researched.specialAbilityCoverage).toBe("complete");
+    expect(researched.observedSpecialAbilityIds).toEqual(
+      player.specialAbilityIds,
+    );
+  });
+
+  it("can confirm that a high-precision prospect has no special abilities", () => {
+    const player = candidate(21, "normal");
+    player.specialAbilityIds = [];
+
+    const report = createScoutReport({
+      player,
+      middleSchoolAchievement: "regional-starter",
+      observation: 95,
+      scoutingNetworkLevel: 5,
+      random: new SeededRandom("no-special-ability-report"),
+    });
+
+    expect(report.specialAbilityCoverage).toBe("complete");
+    expect(report.observedSpecialAbilityIds).toEqual([]);
+  });
+
   it("is deterministic for the same candidate, information quality, and seed", () => {
     const player = candidate(3, "elite");
     const input = {
