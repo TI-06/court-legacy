@@ -84,19 +84,39 @@ export function createScoutingBoardHandler(
       );
       if (replayed) {
         const replayCycleKey = scoutingCycleKey(replayed.game.state);
-        const replayPool = await deps.scoutingStore.getCandidatePool(
+        let replayPool = await deps.scoutingStore.getCandidatePool(
           user.id,
           replayCycleKey,
         );
+        if (
+          !replayPool ||
+          replayPool.creationOperationId !== parsed.data.operationId
+        ) {
+          const searchSequence = Math.max(
+            1,
+            replayed.game.state.recruiting?.scoutingSearchesUsed ?? 1,
+          );
+          const replayPoolInput = {
+            userId: user.id,
+            cycleKey: replayCycleKey,
+            creationOperationId: parsed.data.operationId,
+            candidates: generateServerScoutingCandidates(
+              replayed.game.state,
+              parsed.data.search,
+              searchSequence,
+            ),
+          };
+          replayPool = replayPool
+            ? await deps.scoutingStore.replaceCandidatePool(replayPoolInput)
+            : await deps.scoutingStore.createCandidatePool(replayPoolInput);
+        }
         return json({
           operationId: parsed.data.operationId,
           revision: replayed.game.revision,
           cycleKey: replayCycleKey,
           scoutingSearchesUsed:
             replayed.game.state.recruiting?.scoutingSearchesUsed ?? 0,
-          reports: replayPool
-            ? buildServerScoutReports(replayed.game.state, replayPool)
-            : [],
+          reports: buildServerScoutReports(replayed.game.state, replayPool),
         });
       }
     }
@@ -142,10 +162,6 @@ export function createScoutingBoardHandler(
           searchSequence,
         ),
       };
-      pool = pool
-        ? await deps.scoutingStore.replaceCandidatePool(nextPoolInput)
-        : await deps.scoutingStore.createCandidatePool(nextPoolInput);
-
       const response: PersistedOperationResponse = {
         game: {
           ...snapshot,
@@ -174,6 +190,10 @@ export function createScoutingBoardHandler(
         if (error instanceof RevisionConflictError) return revisionConflict();
         throw error;
       }
+
+      pool = pool
+        ? await deps.scoutingStore.replaceCandidatePool(nextPoolInput)
+        : await deps.scoutingStore.createCandidatePool(nextPoolInput);
     }
 
     return json({

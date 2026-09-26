@@ -182,68 +182,68 @@ describe("GameApp scouting flow", () => {
   });
 
   it("retries a failed scouting search idempotently", async () => {
-      const snapshot = createSnapshot();
-      const latestState = structuredClone(snapshot.state);
-      latestState.recruiting = {
-        cycleKey: `${latestState.userSchoolId}:year-${latestState.yearIndex}`,
-        committedCandidateIds: [],
-        scoutingSearchesUsed: 1,
-      };
-      const latestSnapshot: CloudGameSnapshot = {
-        ...snapshot,
-        revision: 2,
-        state: latestState,
-      };
-      const getScoutingBoard = vi
-        .fn<NonNullable<GameApiClient["getScoutingBoard"]>>()
-        .mockResolvedValueOnce({
-          operationId: "board-initial",
-          revision: snapshot.revision,
-          cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
-          reports: [],
-        })
-        .mockRejectedValueOnce(
-          new ApiError(503, "scouting_unavailable", "探索に失敗しました"),
-        )
-        .mockImplementationOnce(async (_accessToken, request) => ({
-          operationId: request.operationId,
-          revision: latestSnapshot.revision,
-          cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
-          reports: [report],
-        }));
-      const bootstrap = vi.fn<GameApiClient["bootstrap"]>(async () => ({
-        status: "ready",
-        game: latestSnapshot,
+    const snapshot = createSnapshot();
+    const latestState = structuredClone(snapshot.state);
+    latestState.recruiting = {
+      cycleKey: `${latestState.userSchoolId}:year-${latestState.yearIndex}`,
+      committedCandidateIds: [],
+      scoutingSearchesUsed: 1,
+    };
+    const latestSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      revision: 2,
+      state: latestState,
+    };
+    const getScoutingBoard = vi
+      .fn<NonNullable<GameApiClient["getScoutingBoard"]>>()
+      .mockResolvedValueOnce({
+        operationId: "board-initial",
+        revision: snapshot.revision,
+        cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+        reports: [],
+      })
+      .mockRejectedValueOnce(
+        new ApiError(503, "scouting_unavailable", "探索に失敗しました"),
+      )
+      .mockImplementationOnce(async (_accessToken, request) => ({
+        operationId: request.operationId,
+        revision: latestSnapshot.revision,
+        cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+        reports: [report],
       }));
-      const api: GameApiClient = {
-        bootstrap,
-        onboard: vi.fn(),
-        applyAction: vi.fn(),
-        getScoutingBoard,
-        commitRecruit: vi.fn(),
-      };
+    const bootstrap = vi.fn<GameApiClient["bootstrap"]>(async () => ({
+      status: "ready",
+      game: latestSnapshot,
+    }));
+    const api: GameApiClient = {
+      bootstrap,
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getScoutingBoard,
+      commitRecruit: vi.fn(),
+    };
 
-      renderApp(api, snapshot);
-      openScouting();
-      await waitFor(() => expect(getScoutingBoard).toHaveBeenCalledTimes(1));
+    renderApp(api, snapshot);
+    openScouting();
+    await waitFor(() => expect(getScoutingBoard).toHaveBeenCalledTimes(1));
 
-      fireEvent.click(screen.getByRole("button", { name: "スカウトに行く" }));
-      fireEvent.click(
-        screen.getByRole("button", { name: /この条件で探索する/ }),
-      );
+    fireEvent.click(screen.getByRole("button", { name: "スカウトに行く" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /この条件で探索する/ }),
+    );
 
-      expect(await screen.findByRole("alert")).toHaveTextContent(
-        "探索に失敗しました",
-      );
-      const failedRequest = getScoutingBoard.mock.calls[1]![1];
-      fireEvent.click(screen.getByRole("button", { name: "再試行" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "探索に失敗しました",
+    );
+    const failedRequest = getScoutingBoard.mock.calls[1]![1];
+    fireEvent.click(screen.getByRole("button", { name: "再試行" }));
 
-      expect(await screen.findByText("青木 蓮")).toBeVisible();
-      expect(getScoutingBoard).toHaveBeenCalledTimes(3);
-      const retriedRequest = getScoutingBoard.mock.calls[2]![1];
-      expect(retriedRequest.operationId).toBe(failedRequest.operationId);
-      expect(retriedRequest.search).toEqual(failedRequest.search);
-      expect(bootstrap).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("青木 蓮")).toBeVisible();
+    expect(getScoutingBoard).toHaveBeenCalledTimes(3);
+    const retriedRequest = getScoutingBoard.mock.calls[2]![1];
+    expect(retriedRequest.operationId).toBe(failedRequest.operationId);
+    expect(retriedRequest.search).toEqual(failedRequest.search);
+    expect(bootstrap).toHaveBeenCalledTimes(1);
   });
 
   it("shows recruitment API errors and retries the same candidate", async () => {
