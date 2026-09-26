@@ -10,9 +10,7 @@ import {
   scoutingSearchesUsed,
 } from "../../../../src/domain/scouting/scoutingSearchBudget";
 
-function stateWithRecruiting(
-  recruiting?: GameState["recruiting"],
-): GameState {
+function stateWithRecruiting(recruiting?: GameState["recruiting"]): GameState {
   return {
     userSchoolId: "school-user",
     yearIndex: 4,

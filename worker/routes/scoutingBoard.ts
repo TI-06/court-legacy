@@ -156,8 +156,7 @@ export function createScoutingBoardHandler(
       operationId: parsed.data.operationId,
       revision: activeRevision,
       cycleKey,
-      scoutingSearchesUsed:
-        activeState.recruiting?.scoutingSearchesUsed ?? 0,
+      scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
       reports: pool ? buildServerScoutReports(activeState, pool) : [],
     });
   };

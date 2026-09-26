@@ -28,7 +28,12 @@ function createScoutingStore(): ScoutingStore {
   return {
     getCandidatePool: vi.fn(async () => null),
     createCandidatePool: vi.fn(async (input) => ({
-    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),
+      replaceCandidatePool: vi.fn(async (input) => ({
+        userId: input.userId,
+        cycleKey: input.cycleKey,
+        creationOperationId: input.creationOperationId,
+        candidates: input.candidates,
+      })),
       userId: input.userId,
       cycleKey: input.cycleKey,
       creationOperationId: input.creationOperationId,

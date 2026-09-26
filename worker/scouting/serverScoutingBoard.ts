@@ -171,7 +171,10 @@ export function generateServerScoutingCandidates(
 
   const positionFiltered =
     criteria && criteria.position !== "any"
-      ? generated.filter((candidate) => candidate.player.preferredPosition === criteria.position)
+      ? generated.filter(
+          (candidate) =>
+            candidate.player.preferredPosition === criteria.position,
+        )
       : generated;
   const preferred = positionFiltered.length >= 3 ? positionFiltered : generated;
 
@@ -181,7 +184,8 @@ export function generateServerScoutingCandidates(
       (value): value is number => typeof value === "number",
     );
     const average =
-      abilities.reduce((sum, value) => sum + value, 0) / Math.max(1, abilities.length);
+      abilities.reduce((sum, value) => sum + value, 0) /
+      Math.max(1, abilities.length);
     const potential = player.potential ?? 50;
     if (!criteria) return average;
     switch (criteria.priority) {
@@ -199,7 +203,9 @@ export function generateServerScoutingCandidates(
     }
   };
 
-  const ranked = [...preferred].sort((left, right) => score(right) - score(left));
+  const ranked = [...preferred].sort(
+    (left, right) => score(right) - score(left),
+  );
   const regionCount =
     criteria?.region === "prefecture"
       ? 4

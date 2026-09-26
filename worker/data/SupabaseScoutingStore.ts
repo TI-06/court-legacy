@@ -172,9 +172,12 @@ export class SupabaseScoutingStore implements ScoutingStore {
       .single();
 
     if (error) {
-      throw new ScoutingStoreDataError("scouting candidate pool replacement failed", {
-        cause: error,
-      });
+      throw new ScoutingStoreDataError(
+        "scouting candidate pool replacement failed",
+        {
+          cause: error,
+        },
+      );
     }
 
     return mapPool(data);

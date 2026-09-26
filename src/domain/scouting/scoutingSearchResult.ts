@@ -1,10 +1,7 @@
 import type { ScoutReport } from "./scoutReport";
 
 export type ScoutingSearchResultTone =
-  | "poor"
-  | "promising"
-  | "standout"
-  | "genius-rumor";
+  "poor" | "promising" | "standout" | "genius-rumor";
 
 export interface ScoutingSearchResultPresentation {
   tone: ScoutingSearchResultTone;

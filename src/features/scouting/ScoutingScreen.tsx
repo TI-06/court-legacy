@@ -237,10 +237,17 @@ export function ScoutingScreen({
     shopStatus?.items.find((item) => item.itemId === "extra-scout-trip")
       ?.quantityOwned ?? 0;
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
-  const [searchRegion, setSearchRegion] = useState<"prefecture" | "regional" | "national">("prefecture");
-  const [searchPosition, setSearchPosition] = useState<"any" | "OH" | "MB" | "S" | "OP" | "L">("any");
-  const searchResult = reports.length > 0 ? scoutingSearchResultPresentation(reports) : null;
-  const [searchPriority, setSearchPriority] = useState<"ability" | "potential" | "physical" | "immediate" | "hidden">("ability");
+  const [searchRegion, setSearchRegion] = useState<
+    "prefecture" | "regional" | "national"
+  >("prefecture");
+  const [searchPosition, setSearchPosition] = useState<
+    "any" | "OH" | "MB" | "S" | "OP" | "L"
+  >("any");
+  const searchResult =
+    reports.length > 0 ? scoutingSearchResultPresentation(reports) : null;
+  const [searchPriority, setSearchPriority] = useState<
+    "ability" | "potential" | "physical" | "immediate" | "hidden"
+  >("ability");
 
   const selectSchoolView = (view: SchoolView) => {
     if (view === "scouting") return;
@@ -310,7 +317,10 @@ export function ScoutingScreen({
       <SchoolNavigationTabs activeView="scouting" onSelect={selectSchoolView} />
 
       {searchResult && (
-        <section className={`scouting-search-result scouting-search-result--${searchResult.tone}`} aria-live="polite">
+        <section
+          className={`scouting-search-result scouting-search-result--${searchResult.tone}`}
+          aria-live="polite"
+        >
           <span>SCOUT REPORT</span>
           <strong>{searchResult.title}</strong>
           <p>{searchResult.message}</p>
@@ -320,7 +330,11 @@ export function ScoutingScreen({
       <section className="scouting-search-launch" aria-label="選手探索">
         <div>
           <span>通常スカウト</span>
-          <strong>{baseSearchesRemaining > 0 ? `残り ${baseSearchesRemaining}/3回` : `追加券 ×${extraScoutTickets}`}</strong>
+          <strong>
+            {baseSearchesRemaining > 0
+              ? `残り ${baseSearchesRemaining}/3回`
+              : `追加券 ×${extraScoutTickets}`}
+          </strong>
         </div>
         <button onClick={() => setSearchSheetOpen(true)} type="button">
           スカウトに行く
@@ -612,8 +626,21 @@ export function ScoutingScreen({
           <fieldset>
             <legend>地域</legend>
             <div className="scouting-search-chips">
-              {([["prefecture", "県内"], ["regional", "地方"], ["national", "全国"]] as const).map(([value, label]) => (
-                <button aria-pressed={searchRegion === value} key={value} onClick={() => setSearchRegion(value)} type="button">{label}</button>
+              {(
+                [
+                  ["prefecture", "県内"],
+                  ["regional", "地方"],
+                  ["national", "全国"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  aria-pressed={searchRegion === value}
+                  key={value}
+                  onClick={() => setSearchRegion(value)}
+                  type="button"
+                >
+                  {label}
+                </button>
               ))}
             </div>
           </fieldset>
@@ -621,23 +648,60 @@ export function ScoutingScreen({
             <legend>ポジション</legend>
             <div className="scouting-search-chips scouting-search-chips--positions">
               {(["any", "OH", "MB", "S", "OP", "L"] as const).map((value) => (
-                <button aria-pressed={searchPosition === value} key={value} onClick={() => setSearchPosition(value)} type="button">{value === "any" ? "指定なし" : value}</button>
+                <button
+                  aria-pressed={searchPosition === value}
+                  key={value}
+                  onClick={() => setSearchPosition(value)}
+                  type="button"
+                >
+                  {value === "any" ? "指定なし" : value}
+                </button>
               ))}
             </div>
           </fieldset>
           <fieldset>
             <legend>重視するタイプ</legend>
             <div className="scouting-search-chips scouting-search-chips--priority">
-              {([["ability", "現在能力"], ["potential", "将来性"], ["physical", "身長・身体能力"], ["immediate", "即戦力"], ["hidden", "隠れた逸材"]] as const).map(([value, label]) => (
-                <button aria-pressed={searchPriority === value} key={value} onClick={() => setSearchPriority(value)} type="button">{label}</button>
+              {(
+                [
+                  ["ability", "現在能力"],
+                  ["potential", "将来性"],
+                  ["physical", "身長・身体能力"],
+                  ["immediate", "即戦力"],
+                  ["hidden", "隠れた逸材"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  aria-pressed={searchPriority === value}
+                  key={value}
+                  onClick={() => setSearchPriority(value)}
+                  type="button"
+                >
+                  {label}
+                </button>
               ))}
             </div>
           </fieldset>
-          <button className="scouting-search-confirm" disabled={(baseSearchesRemaining <= 0 && extraScoutTickets <= 0) || loading} onClick={() => {
-            (baseSearchesRemaining > 0 ? onSearch : onExtraSearch)({ region: searchRegion, position: searchPosition, priority: searchPriority });
-            setSearchSheetOpen(false);
-          }} type="button">
-            {baseSearchesRemaining > 0 ? `この条件で探索する・残${baseSearchesRemaining}回` : extraScoutTickets > 0 ? `追加券を使って探索・×${extraScoutTickets}` : "追加スカウト権が必要です"}
+          <button
+            className="scouting-search-confirm"
+            disabled={
+              (baseSearchesRemaining <= 0 && extraScoutTickets <= 0) || loading
+            }
+            onClick={() => {
+              (baseSearchesRemaining > 0 ? onSearch : onExtraSearch)({
+                region: searchRegion,
+                position: searchPosition,
+                priority: searchPriority,
+              });
+              setSearchSheetOpen(false);
+            }}
+            type="button"
+          >
+            {baseSearchesRemaining > 0
+              ? `この条件で探索する・残${baseSearchesRemaining}回`
+              : extraScoutTickets > 0
+                ? `追加券を使って探索・×${extraScoutTickets}`
+                : "追加スカウト権が必要です"}
           </button>
         </div>
       </BottomSheet>
