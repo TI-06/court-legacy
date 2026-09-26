@@ -236,6 +236,10 @@ export function ScoutingScreen({
   const extraScoutTickets =
     shopStatus?.items.find((item) => item.itemId === "extra-scout-trip")
       ?.quantityOwned ?? 0;
+  const pendingExtraSearchCredits =
+    state.recruiting?.cycleKey === cycleKey
+      ? Math.max(0, state.recruiting.extraScoutingSearchCredits ?? 0)
+      : 0;
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [searchRegion, setSearchRegion] = useState<
     "prefecture" | "regional" | "national"
@@ -333,7 +337,9 @@ export function ScoutingScreen({
           <strong>
             {baseSearchesRemaining > 0
               ? `残り ${baseSearchesRemaining}/3回`
-              : `追加券 ×${extraScoutTickets}`}
+              : pendingExtraSearchCredits > 0
+                ? `追加探索 残り${pendingExtraSearchCredits}回`
+                : `追加券 ×${extraScoutTickets}`}
           </strong>
         </div>
         <button onClick={() => setSearchSheetOpen(true)} type="button">

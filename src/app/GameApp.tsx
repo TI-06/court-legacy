@@ -1305,6 +1305,18 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onExtraSearch={(criteria) => {
           void (async () => {
             if (!api.useShopItem || shopPendingAction !== null) return;
+            const cycleKey = recruitingCycleKey(cloudSession.snapshot.state);
+            const recruiting = cloudSession.snapshot.state.recruiting;
+            const pendingCredits =
+              recruiting?.cycleKey === cycleKey
+                ? Math.max(0, recruiting.extraScoutingSearchCredits ?? 0)
+                : 0;
+            if (pendingCredits > 0) {
+              setScoutingReports([]);
+              await loadScoutingBoard(cloudSession.snapshot.revision, criteria);
+              return;
+            }
+
             setShopPendingAction("use");
             setShopPendingItemId("extra-scout-trip");
             try {
