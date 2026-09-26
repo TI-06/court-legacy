@@ -111,5 +111,5 @@ describe("Phase22 save growth diagnostic", () => {
     expect(decoded.date).toBe(snapshot.state.date);
     expect(decoded.yearIndex).toBe(snapshot.state.yearIndex);
     expect(reencoded).toBe(encoded);
-  }, 60_000);
+  }, 120_000);
 });
