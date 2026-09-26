@@ -10,7 +10,7 @@ function report(stars: number, potentialMax: number): ScoutReport {
     position: "OH",
     handedness: "right",
     middleSchoolAchievement: "unknown",
-    evaluationStars: stars,
+    evaluationStars: stars as 1 | 2 | 3 | 4 | 5,
     estimatedOverall: { min: 40, max: 60 },
     estimatedPotential: { min: 50, max: potentialMax },
     confidence: "low",

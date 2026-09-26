@@ -171,7 +171,7 @@ export function generateServerScoutingCandidates(
 
   const positionFiltered =
     criteria && criteria.position !== "any"
-      ? generated.filter((candidate) => candidate.player.position === criteria.position)
+      ? generated.filter((candidate) => candidate.player.preferredPosition === criteria.position)
       : generated;
   const preferred = positionFiltered.length >= 3 ? positionFiltered : generated;
 
@@ -182,7 +182,7 @@ export function generateServerScoutingCandidates(
     );
     const average =
       abilities.reduce((sum, value) => sum + value, 0) / Math.max(1, abilities.length);
-    const potential = player.growthPotential;
+    const potential = player.potential ?? 50;
     if (!criteria) return average;
     switch (criteria.priority) {
       case "potential":

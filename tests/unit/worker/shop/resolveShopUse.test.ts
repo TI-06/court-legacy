@@ -54,7 +54,7 @@ function createScoutingContext(
   const store: ScoutingStore = {
     getCandidatePool: vi.fn(async () => pool),
     createCandidatePool: vi.fn(async () => pool),
-    listCandidateInsights: vi.fn(async () => insights),
+    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),\n    listCandidateInsights: vi.fn(async () => insights),
   };
   return { pool, store };
 }

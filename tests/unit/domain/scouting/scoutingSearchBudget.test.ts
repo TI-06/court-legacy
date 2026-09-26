@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { GameState } from "../../../../src/domain/model/GameState";
+import type { GameState } from "../../../../src/domain/model/GameState";\nimport { playerId } from "../../../../src/domain/model/identifiers";
 import {
   ANNUAL_BASE_SCOUT_SEARCHES,
   addExtraScoutingSearchCredit,
@@ -45,7 +45,7 @@ describe("scouting annual search budget", () => {
   it("resets automatically when the academic-year cycle changes", () => {
     const state = stateWithRecruiting({
       cycleKey: "school-user:year-3",
-      committedCandidateIds: ["candidate-a"],
+      committedCandidateIds: [playerId("candidate-a")],
       scoutingSearchesUsed: 3,
     });
 
@@ -56,7 +56,7 @@ describe("scouting annual search budget", () => {
   it("does not retain prior-cycle recruiting payload when a new search begins", () => {
     const state = stateWithRecruiting({
       cycleKey: "school-user:year-3",
-      committedCandidateIds: ["candidate-a"],
+      committedCandidateIds: [playerId("candidate-a")],
       visitActionsUsed: 4,
       recommendationUsed: true,
       scoutingSearchesUsed: 3,

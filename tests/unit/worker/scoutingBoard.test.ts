@@ -76,7 +76,7 @@ function createScoutingStore(): ScoutingStore & {
       };
       return store.savedPool!;
     }),
-    listCandidateInsights: vi.fn(async () => []),
+    replaceCandidatePool: vi.fn(async (input) => {\n      store.savedPool = { userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates };\n      return store.savedPool;\n    }),\n    listCandidateInsights: vi.fn(async () => []),
   };
   return store;
 }
