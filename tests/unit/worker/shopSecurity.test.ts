@@ -66,7 +66,8 @@ function scoutingStore(snapshot: CloudGameSnapshot): {
     store: {
       getCandidatePool: vi.fn(async () => pool),
       createCandidatePool: vi.fn(async () => pool),
-    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),\n      listCandidateInsights: vi.fn(async () => []),
+    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),
+      listCandidateInsights: vi.fn(async () => []),
     },
   };
 }
@@ -102,7 +103,8 @@ describe("Phase 5 shop security boundaries", () => {
 
     const publicCatalogText = PHASE5_SHOP_ITEMS.map(
       (item) => `${item.itemId} ${item.displayName} ${item.description}`,
-    ).join("\n");
+    ).join("
+");
     expect(publicCatalogText).not.toMatch(
       /pvp[-_ ]?win|rating|レート上昇|勝利確定|能力\s*\+20/i,
     );

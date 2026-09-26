@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { GameState } from "../../../../src/domain/model/GameState";\nimport { playerId } from "../../../../src/domain/model/identifiers";
+import type { GameState } from "../../../../src/domain/model/GameState";
+import { playerId } from "../../../../src/domain/model/identifiers";
 import {
   ANNUAL_BASE_SCOUT_SEARCHES,
   addExtraScoutingSearchCredit,

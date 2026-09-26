@@ -233,7 +233,9 @@ export function ScoutingScreen({
   const visitsRemaining = recruitmentVisitsRemaining(state);
   const recommendationAvailable = recruitmentRecommendationAvailable(state);
   const baseSearchesRemaining = scoutingBaseSearchesRemaining(state);
-  const extraScoutTickets =\n    shopStatus?.items.find((item) => item.itemId === "extra-scout-trip")\n      ?.quantityOwned ?? 0;
+  const extraScoutTickets =
+    shopStatus?.items.find((item) => item.itemId === "extra-scout-trip")
+      ?.quantityOwned ?? 0;
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [searchRegion, setSearchRegion] = useState<"prefecture" | "regional" | "national">("prefecture");
   const [searchPosition, setSearchPosition] = useState<"any" | "OH" | "MB" | "S" | "OP" | "L">("any");

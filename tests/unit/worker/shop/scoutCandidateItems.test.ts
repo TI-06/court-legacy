@@ -38,7 +38,8 @@ function createScoutingContext(snapshot: CloudGameSnapshot): {
     store: {
       getCandidatePool: vi.fn(async () => pool),
       createCandidatePool: vi.fn(async () => pool),
-    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),\n      listCandidateInsights: vi.fn(async () => []),
+    replaceCandidatePool: vi.fn(async (input) => ({ userId: input.userId, cycleKey: input.cycleKey, creationOperationId: input.creationOperationId, candidates: input.candidates })),
+      listCandidateInsights: vi.fn(async () => []),
     },
   };
 }
