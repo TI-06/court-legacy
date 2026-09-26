@@ -184,6 +184,8 @@ async function resolveExtraCandidate(
     nextIndex,
     undefined,
     tierOverrides,
+    undefined,
+    input.snapshot.state.recruiting?.scoutingSearchesUsed ?? 0,
   );
   if (
     pool.candidates.some(
