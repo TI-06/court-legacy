@@ -299,7 +299,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
     search?: ScoutingSearchCriteria,
-    operationId = crypto.randomUUID(),
+    operationId: string = crypto.randomUUID(),
   ): Promise<ScoutReport[] | null> => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
