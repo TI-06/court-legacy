@@ -43,9 +43,19 @@ function createGameStore(snapshot: CloudGameSnapshot): GameStore {
     createGame: vi.fn(async () => {
       throw new Error("not used");
     }),
-    applyOperation: vi.fn(async () => {
-      throw new Error("not used");
-    }),
+    applyOperation: vi.fn(async (input) => ({
+      response: {
+        game: {
+          ...snapshot,
+          revision: input.expectedRevision + 1,
+          state: input.state,
+          teamSelection: input.teamSelection,
+        },
+        operationId: input.operationId,
+        outcome: {},
+      },
+      replayed: false,
+    })),
   };
 }
 
@@ -101,39 +111,35 @@ function scoutingRequest(body: unknown): Request {
 const requestBody = {
   operationId: "scouting-board-001",
   revision: 7,
+  search: { region: "national", position: "any", priority: "ability" },
 };
 
 describe("scouting board route", () => {
-  it("stores candidate truth server-side and returns only incomplete scout reports", async () => {
+  it("creates candidate truth only when a search is executed and returns public reports", async () => {
     const snapshot = createSnapshot();
     const gameStore = createGameStore(snapshot);
     const scoutingStore = createScoutingStore();
     const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
 
-    const response = await handler(scoutingRequest(requestBody), {
-      id: "user-123",
-    });
+    const readOnly = await handler(
+      scoutingRequest({ operationId: "scouting-board-read", revision: 7 }),
+      { id: "user-123" },
+    );
+    expect(readOnly.status).toBe(200);
+    expect((await readOnly.json()).reports).toEqual([]);
+    expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
 
+    const response = await handler(scoutingRequest(requestBody), { id: "user-123" });
     expect(response.status).toBe(200);
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(6);
-    expect(scoutingStore.savedPool?.candidates[0]?.player.tier).toBeTruthy();
-    expect(
-      scoutingStore.savedPool?.candidates[0]?.player.abilities,
-    ).toBeTruthy();
+    expect(gameStore.applyOperation).toHaveBeenCalledTimes(1);
 
     const body = await response.json();
     expect(body.operationId).toBe("scouting-board-001");
-    expect(body.revision).toBe(7);
+    expect(body.revision).toBe(8);
+    expect(body.scoutingSearchesUsed).toBe(1);
     expect(body.reports).toHaveLength(6);
-    expect(
-      new Set(
-        body.reports.map(
-          (report: { candidateId: string }) => report.candidateId,
-        ),
-      ).size,
-    ).toBe(6);
-
     const serialized = JSON.stringify(body);
     expect(serialized).not.toContain('"tier"');
     expect(serialized).not.toContain('"abilities"');
@@ -142,27 +148,31 @@ describe("scouting board route", () => {
     expect(serialized).not.toContain('"hiddenTraitIds"');
   });
 
-  it("reuses the same server-side pool within the same scouting cycle", async () => {
+  it("replaces the active pool on a later search instead of accumulating yearly pools", async () => {
     const snapshot = createSnapshot();
     const gameStore = createGameStore(snapshot);
     const scoutingStore = createScoutingStore();
     const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
 
-    const first = await handler(scoutingRequest(requestBody), {
-      id: "user-123",
-    });
+    const first = await handler(scoutingRequest(requestBody), { id: "user-123" });
     expect(first.status).toBe(200);
-    const firstBody = await first.json();
+    const firstIds = scoutingStore.savedPool?.candidates.map((candidate) => candidate.player.id) ?? [];
 
+    snapshot.revision = 8;
+    snapshot.state = structuredClone(snapshot.state);
+    snapshot.state.recruiting = {
+      ...(snapshot.state.recruiting ?? { cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`, committedCandidateIds: [], visitActionsUsed: 0, recommendationUsed: false, candidateEngagements: {} }),
+      scoutingSearchesUsed: 1,
+    };
     const second = await handler(
-      scoutingRequest({ ...requestBody, operationId: "scouting-board-002" }),
+      scoutingRequest({ ...requestBody, operationId: "scouting-board-002", revision: 8 }),
       { id: "user-123" },
     );
     expect(second.status).toBe(200);
-    const secondBody = await second.json();
-
-    expect(secondBody.reports).toEqual(firstBody.reports);
-    expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
+    expect(scoutingStore.replaceCandidatePool).toHaveBeenCalledTimes(1);
+    const secondIds = scoutingStore.savedPool?.candidates.map((candidate) => candidate.player.id) ?? [];
+    expect(secondIds).not.toEqual(firstIds);
+    expect(secondIds.every((id) => id.includes("-2-"))).toBe(true);
   });
 
   it("rejects a stale revision before reading or creating a candidate pool", async () => {
