@@ -163,11 +163,32 @@ function recruitTierFromCandidate(
     : candidate.player.tier;
 }
 
+function scoutingCandidateIdParts(candidateId: string): {
+  searchSequence: number;
+  generationIndex: number;
+} | null {
+  const match = candidateId.match(/-(\d+)-(\d+)$/);
+  return match
+    ? { searchSequence: Number(match[1]), generationIndex: Number(match[2]) }
+    : null;
+}
+
 function scoutingPoolSearchSequence(pool: ScoutingCandidatePool): number {
   const firstId = pool.candidates[0]?.player.id;
   if (!firstId) return 0;
-  const match = firstId.match(/-(\\d+)-1$/);
-  return match ? Number(match[1]) : 0;
+  return scoutingCandidateIdParts(firstId)?.searchSequence ?? 0;
+}
+
+function nextScoutingCandidateIndex(pool: ScoutingCandidatePool): number {
+  return (
+    Math.max(
+      0,
+      ...pool.candidates.map(
+        (candidate) =>
+          scoutingCandidateIdParts(candidate.player.id)?.generationIndex ?? 0,
+      ),
+    ) + 1
+  );
 }
 
 async function resolveExtraCandidate(
@@ -175,7 +196,7 @@ async function resolveExtraCandidate(
   forcedTier?: RecruitTier,
 ): Promise<ResolvedShopUse> {
   const pool = await currentScoutingPool(input.snapshot, input.scoutingStore);
-  const nextIndex = pool.candidates.length + 1;
+  const nextIndex = nextScoutingCandidateIndex(pool);
   const tierOverrides = new Map<number, RecruitTier>(
     pool.candidates.map((candidate, index) => [
       index + 1,
