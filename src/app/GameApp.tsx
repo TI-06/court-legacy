@@ -312,7 +312,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       if (search) {
         const latest = await api.bootstrap(session.accessToken);
         if (latest.status === "ready") {
-          await cloudSession.adoptServerSnapshot(latest.game, "スカウト探索を実行しました");
+          await cloudSession.adoptServerSnapshot(\n            latest.game,\n            "スカウト探索を実行しました",\n          );
         }
       }
       setScoutingReports(response.reports);
@@ -1315,7 +1315,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
                 await loadScoutingBoard(response.revision, criteria);
               }
             } catch (error) {
-              setScoutingError(shopErrorMessage(error, "追加スカウト権を使用できませんでした"));
+              setScoutingError(\n                shopErrorMessage(error, "追加スカウト権を使用できませんでした"),\n              );
             } finally {
               setShopPendingAction(null);
               setShopPendingItemId(null);
