@@ -148,7 +148,13 @@ describe("resolveShopUse", () => {
     expect(resolved.scoutingCycleKey).toBe(pool.cycleKey);
     expect(resolved.scoutingCandidates).toHaveLength(7);
     expect(resolved.scoutingCandidates?.slice(0, 6)).toEqual(pool.candidates);
-    expect(resolved.scoutingCandidates?.[6]?.player.id).toMatch(/-0-\d+$/);\n    expect(\n      pool.candidates.some(\n        (candidate) =>\n          candidate.player.id === resolved.scoutingCandidates?.[6]?.player.id,\n      ),\n    ).toBe(false);
+    expect(resolved.scoutingCandidates?.[6]?.player.id).toMatch(/-0-\d+$/);
+    expect(
+      pool.candidates.some(
+        (candidate) =>
+          candidate.player.id === resolved.scoutingCandidates?.[6]?.player.id,
+      ),
+    ).toBe(false);
     expect(resolved.publicResult).toEqual({
       candidateCount: 7,
       addedCandidateId: resolved.scoutingCandidates?.[6]?.player.id,
