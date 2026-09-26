@@ -181,7 +181,9 @@ describe("GameApp scouting flow", () => {
     expect(getScoutingBoard).toHaveBeenCalledTimes(2);
   });
 
-  it("retries a failed scouting search with the same operation id and criteria", async () => {
+  it(
+    "retries a failed scouting search with the same operation id and criteria",
+    async () => {
     const snapshot = createSnapshot();
     const latestState = structuredClone(snapshot.state);
     latestState.recruiting = {
@@ -244,7 +246,8 @@ describe("GameApp scouting flow", () => {
     expect(retriedRequest.operationId).toBe(failedRequest.operationId);
     expect(retriedRequest.search).toEqual(failedRequest.search);
     expect(bootstrap).toHaveBeenCalledTimes(1);
-  });
+    },
+  );
 
   it("shows recruitment API errors and retries the same candidate", async () => {
     const snapshot = createSnapshot();
