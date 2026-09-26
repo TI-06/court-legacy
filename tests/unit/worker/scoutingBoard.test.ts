@@ -167,7 +167,7 @@ describe("scouting board route", () => {
       userId: snapshot.userId,
       cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
       creationOperationId: requestBody.operationId,
-      candidates: generateServerScoutingCandidates(snapshot.state, requestBody.search, 1),
+      candidates: generateServerScoutingCandidates(\n        snapshot.state,\n        requestBody.search,\n        1,\n      ),
     };
     vi.mocked(gameStore.getOperationResponse).mockResolvedValue({
       game: snapshot,
