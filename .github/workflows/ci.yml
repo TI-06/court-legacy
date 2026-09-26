@@ -11,15 +11,13 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   dependency-audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
@@ -55,27 +53,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Checkout current PR branch for recovery
-        run: |
-          git fetch origin "${{ github.head_ref }}"
-          git checkout -B "${{ github.head_ref }}" "origin/${{ github.head_ref }}"
-      - name: Format Phase35 files for recovery
-        run: npx prettier --write src/domain/scouting/scoutingSearchResult.ts src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx tests/unit/domain/scouting/scoutingSearchBudget.test.ts tests/unit/domain/scouting/scoutingSearchResult.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/worker/router.test.ts tests/unit/worker/scoutingBoard.test.ts tests/unit/worker/scoutingRecruitment.test.ts tests/unit/worker/scoutingRecruitmentCapacity.test.ts tests/unit/worker/shop/resolveShopUse.test.ts tests/unit/worker/shop/scoutCandidateItems.test.ts tests/unit/worker/shopSecurity.test.ts worker/data/SupabaseScoutingStore.ts worker/routes/scoutingBoard.ts worker/scouting/serverScoutingBoard.ts
-      - name: Commit formatted Phase35 files
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/domain/scouting/scoutingSearchResult.ts src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx tests/unit/domain/scouting/scoutingSearchBudget.test.ts tests/unit/domain/scouting/scoutingSearchResult.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/worker/router.test.ts tests/unit/worker/scoutingBoard.test.ts tests/unit/worker/scoutingRecruitment.test.ts tests/unit/worker/scoutingRecruitmentCapacity.test.ts tests/unit/worker/shop/resolveShopUse.test.ts tests/unit/worker/shop/scoutCandidateItems.test.ts tests/unit/worker/shopSecurity.test.ts worker/data/SupabaseScoutingStore.ts worker/routes/scoutingBoard.ts worker/scouting/serverScoutingBoard.ts
-          git commit -m "style: format phase35 scouting changes"
-          git push origin HEAD:${{ github.head_ref }}
-      - name: Package formatted Phase35 files
-        run: zip -q phase35-formatted.zip src/domain/scouting/scoutingSearchResult.ts src/features/scouting/scouting.css src/features/scouting/ScoutingScreen.tsx tests/unit/domain/scouting/scoutingSearchBudget.test.ts tests/unit/domain/scouting/scoutingSearchResult.test.ts tests/unit/worker/academicYearRecruitment.test.ts tests/unit/worker/router.test.ts tests/unit/worker/scoutingBoard.test.ts tests/unit/worker/scoutingRecruitment.test.ts tests/unit/worker/scoutingRecruitmentCapacity.test.ts tests/unit/worker/shop/resolveShopUse.test.ts tests/unit/worker/shop/scoutCandidateItems.test.ts tests/unit/worker/shopSecurity.test.ts worker/data/SupabaseScoutingStore.ts worker/routes/scoutingBoard.ts worker/scouting/serverScoutingBoard.ts
-      - name: Upload formatted Phase35 files
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase35-formatted
-          path: phase35-formatted.zip
-          retention-days: 1
+      - name: Verify formatting, lint, types, tests, and build
+        run: npm run verify
       - name: Verify release metadata and evidence
         run: npm run release:check
       - name: Run Phase18 soak smoke preset
