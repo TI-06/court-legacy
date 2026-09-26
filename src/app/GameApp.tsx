@@ -90,7 +90,11 @@ import {
   type PlayerDetailMode,
 } from "../features/team/PlayerHubScreen";
 import { TournamentScreen } from "../features/tournament/TournamentScreen";
-import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
+import {
+  ApiError,
+  type GameApiClient,
+  type ScoutingBoardResponse,
+} from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
@@ -296,6 +300,35 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setActiveTab(tab);
   };
 
+  const adoptScoutingSearchResponse = async (
+    response: ScoutingBoardResponse,
+    baseSnapshot: CloudGameSnapshot = cloudSession.snapshot,
+  ): Promise<void> => {
+    if (response.recruiting) {
+      await cloudSession.adoptServerSnapshot(
+        {
+          ...baseSnapshot,
+          revision: response.revision,
+          state: {
+            ...baseSnapshot.state,
+            recruiting: response.recruiting,
+          },
+        },
+        "スカウト探索を実行しました",
+      );
+      return;
+    }
+
+    // Rolling-deploy fallback for an older Worker response.
+    const latest = await api.bootstrap(session.accessToken);
+    if (latest.status === "ready") {
+      await cloudSession.adoptServerSnapshot(
+        latest.game,
+        "スカウト探索を実行しました",
+      );
+    }
+  };
+
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
     search?: ScoutingSearchCriteria,
@@ -318,13 +351,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         ...(search ? { search } : {}),
       });
       if (search) {
-        const latest = await api.bootstrap(session.accessToken);
-        if (latest.status === "ready") {
-          await cloudSession.adoptServerSnapshot(
-            latest.game,
-            "スカウト探索を実行しました",
-          );
-        }
+        await adoptScoutingSearchResponse(response);
       }
       setScoutingReports(response.reports);
       setScoutingCycle(response.cycleKey);
@@ -350,6 +377,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
               revision: latest.game.revision,
               ...(search ? { search } : {}),
             });
+            if (search) {
+              await adoptScoutingSearchResponse(refreshed, latest.game);
+            }
             setScoutingReports(refreshed.reports);
             setScoutingCycle(refreshed.cycleKey);
             if (search) setRetryScoutingSearchRequest(null);
