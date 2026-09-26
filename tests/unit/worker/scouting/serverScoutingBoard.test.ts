@@ -1,5 +1,4 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { gameDataBootstrap } from "../../../../src/data/gameData";
 import type { GameState } from "../../../../src/domain/model/GameState";
 import type {
   ScoutingCandidateInsight,
@@ -12,12 +11,6 @@ import {
   generateServerScoutingCandidates,
   scoutingCycleKey,
 } from "../../../../worker/scouting/serverScoutingBoard";
-
-if (!gameDataBootstrap.ok) {
-  throw new Error(gameDataBootstrap.message);
-}
-
-const gameData = gameDataBootstrap.data;
 
 function stateExcludedNames(state: GameState): Set<string> {
   return new Set(
