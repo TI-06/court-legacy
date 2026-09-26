@@ -360,4 +360,73 @@ describe("GameApp scouting flow", () => {
     expect(await screen.findByText("志望度 60")).toBeVisible();
     expect(getScoutingBoard).toHaveBeenCalledTimes(2);
   });
+  it("syncs the successful scouting search revision without a full bootstrap", async () => {
+    const snapshot = createSnapshot();
+    const cycleKey = `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`;
+    const recruiting = {
+      cycleKey,
+      committedCandidateIds: [],
+      visitActionsUsed: 0,
+      recommendationUsed: false,
+      candidateEngagements: {},
+      scoutingSearchesUsed: 1,
+    };
+    const getScoutingBoard = vi
+      .fn<NonNullable<GameApiClient["getScoutingBoard"]>>()
+      .mockResolvedValueOnce({
+        operationId: "board-before-search",
+        revision: snapshot.revision,
+        cycleKey,
+        reports: [],
+      })
+      .mockResolvedValueOnce({
+        operationId: "board-search-1",
+        revision: snapshot.revision + 1,
+        cycleKey,
+        scoutingSearchesUsed: 1,
+        recruiting,
+        reports: [report],
+      });
+    const bootstrap = vi.fn<GameApiClient["bootstrap"]>(async () => {
+      throw new Error("successful scouting search must not bootstrap");
+    });
+    const searchSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      revision: snapshot.revision + 1,
+      state: {
+        ...snapshot.state,
+        recruiting,
+      },
+    };
+    const commitRecruit = vi.fn<NonNullable<GameApiClient["commitRecruit"]>>(
+      async () => recruitedResponse(searchSnapshot),
+    );
+    const api: GameApiClient = {
+      bootstrap,
+      onboard: vi.fn(),
+      applyAction: vi.fn(),
+      getScoutingBoard,
+      commitRecruit,
+    };
+
+    renderApp(api, snapshot);
+    openScouting();
+
+    await waitFor(() => expect(getScoutingBoard).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "スカウトに行く" }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "この条件で探索する・残3回",
+      }),
+    );
+
+    expect(await screen.findByText("青木 蓮")).toBeVisible();
+    expect(bootstrap).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
+    );
+    await waitFor(() => expect(commitRecruit).toHaveBeenCalledTimes(1));
+    expect(commitRecruit.mock.calls[0]![1]).toMatchObject({ revision: 2 });
+  });
 });

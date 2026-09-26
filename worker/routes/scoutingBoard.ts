@@ -125,6 +125,7 @@ export function createScoutingBoardHandler(
           cycleKey: replayCycleKey,
           scoutingSearchesUsed:
             replayed.game.state.recruiting?.scoutingSearchesUsed ?? 0,
+          recruiting: replayed.game.state.recruiting ?? null,
           reports: buildServerScoutReports(replayed.game.state, replayPool),
         });
       }
@@ -211,6 +212,7 @@ export function createScoutingBoardHandler(
       revision: activeRevision,
       cycleKey,
       scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
+      recruiting: activeState.recruiting ?? null,
       reports: pool ? buildServerScoutReports(activeState, pool) : [],
     });
   };

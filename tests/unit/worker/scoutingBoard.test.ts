@@ -143,6 +143,10 @@ describe("scouting board route", () => {
     expect(body.operationId).toBe("scouting-board-001");
     expect(body.revision).toBe(8);
     expect(body.scoutingSearchesUsed).toBe(1);
+    expect(body.recruiting).toMatchObject({
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      scoutingSearchesUsed: 1,
+    });
     expect(body.reports).toHaveLength(6);
     const serialized = JSON.stringify(body);
     expect(serialized).not.toContain('"tier"');
@@ -187,7 +191,9 @@ describe("scouting board route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect((await response.json()).scoutingSearchesUsed).toBe(1);
+    const body = await response.json();
+    expect(body.scoutingSearchesUsed).toBe(1);
+    expect(body.recruiting).toMatchObject({ scoutingSearchesUsed: 1 });
     expect(gameStore.applyOperation).not.toHaveBeenCalled();
     expect(scoutingStore.replaceCandidatePool).not.toHaveBeenCalled();
     expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
