@@ -247,8 +247,15 @@ export function ScoutingScreen({
   const [searchPosition, setSearchPosition] = useState<
     "any" | "OH" | "MB" | "S" | "OP" | "L"
   >("any");
+  const [searchStartSignature, setSearchStartSignature] =
+    useState<string | null>(null);
+  const reportSignature = reports.map((report) => report.candidateId).join("|");
   const searchResult =
-    reports.length > 0 ? scoutingSearchResultPresentation(reports) : null;
+    searchStartSignature !== null &&
+    reports.length > 0 &&
+    reportSignature !== searchStartSignature
+      ? scoutingSearchResultPresentation(reports)
+      : null;
   const [searchPriority, setSearchPriority] = useState<
     "ability" | "potential" | "physical" | "immediate" | "hidden"
   >("ability");
@@ -697,6 +704,7 @@ export function ScoutingScreen({
               loading
             }
             onClick={() => {
+              setSearchStartSignature(reportSignature);
               (baseSearchesRemaining > 0 ? onSearch : onExtraSearch)({
                 region: searchRegion,
                 position: searchPosition,

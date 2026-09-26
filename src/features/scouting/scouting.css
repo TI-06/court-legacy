@@ -1049,6 +1049,23 @@
     position: sticky;
     bottom: calc(58px + env(safe-area-inset-bottom));
     z-index: 4;
+    margin-top: 4px;
+    padding: 4px 6px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+  .scouting-search-launch span {
+    display: none;
+  }
+  .scouting-search-launch strong {
+    margin-top: 0;
+    font-size: 0.67rem;
+  }
+  .scouting-search-launch button {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.64rem;
+    border-radius: 8px;
   }
 }
 
