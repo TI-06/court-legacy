@@ -101,7 +101,10 @@ describe("Phase 5 shop security boundaries", () => {
       "funds-grant-3000",
     ]);
 
-    const publicCatalogText = PHASE5_SHOP_ITEMS.map(\n      (item) => `${item.itemId} ${item.displayName} ${item.description}`,\n    ).join(String.fromCharCode(10));\n    expect(publicCatalogText).not.toMatch(
+    const publicCatalogText = PHASE5_SHOP_ITEMS.map(
+      (item) => `${item.itemId} ${item.displayName} ${item.description}`,
+    ).join(String.fromCharCode(10));
+    expect(publicCatalogText).not.toMatch(
       /pvp[-_ ]?win|rating|レート上昇|勝利確定|能力\s*\+20/i,
     );
   });
