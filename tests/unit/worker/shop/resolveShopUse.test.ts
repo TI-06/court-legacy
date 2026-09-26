@@ -54,6 +54,12 @@ function createScoutingContext(
   const store: ScoutingStore = {
     getCandidatePool: vi.fn(async () => pool),
     createCandidatePool: vi.fn(async () => pool),
+    replaceCandidatePool: vi.fn(async (input) => ({
+      userId: input.userId,
+      cycleKey: input.cycleKey,
+      creationOperationId: input.creationOperationId,
+      candidates: input.candidates,
+    })),
     listCandidateInsights: vi.fn(async () => insights),
   };
   return { pool, store };
@@ -129,7 +135,7 @@ describe("resolveShopUse", () => {
     );
   });
 
-  it("adds candidate seven without rerolling six or exposing truth", async () => {
+  it("appends a candidate after the generated search pool without rerolling or exposing truth", async () => {
     const snapshot = createSnapshot();
     const { pool, store } = createScoutingContext(snapshot);
 
@@ -142,7 +148,13 @@ describe("resolveShopUse", () => {
     expect(resolved.scoutingCycleKey).toBe(pool.cycleKey);
     expect(resolved.scoutingCandidates).toHaveLength(7);
     expect(resolved.scoutingCandidates?.slice(0, 6)).toEqual(pool.candidates);
-    expect(resolved.scoutingCandidates?.[6]?.player.id).toContain("-7");
+    expect(resolved.scoutingCandidates?.[6]?.player.id).toMatch(/-0-\d+$/);
+    expect(
+      pool.candidates.some(
+        (candidate) =>
+          candidate.player.id === resolved.scoutingCandidates?.[6]?.player.id,
+      ),
+    ).toBe(false);
     expect(resolved.publicResult).toEqual({
       candidateCount: 7,
       addedCandidateId: resolved.scoutingCandidates?.[6]?.player.id,

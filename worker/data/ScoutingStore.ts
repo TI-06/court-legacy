@@ -39,6 +39,9 @@ export interface ScoutingStore {
   createCandidatePool(
     input: CreateScoutingCandidatePoolInput,
   ): Promise<ScoutingCandidatePool>;
+  replaceCandidatePool(
+    input: CreateScoutingCandidatePoolInput,
+  ): Promise<ScoutingCandidatePool>;
   listCandidateInsights(
     userId: string,
     cycleKey: string,

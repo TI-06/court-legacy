@@ -36,6 +36,7 @@ import type {
 import type { RecruitmentAction } from "../domain/scouting/recruitmentEngagement";
 import type { SeasonAmbition } from "../domain/season/seasonGoalTypes";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
+import type { ScoutingSearchCriteria } from "../domain/scouting/scoutingSearchCriteria";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
 import type {
   ShopPurchaseRequest,
@@ -182,6 +183,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     candidateId: PlayerId;
     action: RecruitmentAction;
   } | null>(null);
+  const [retryScoutingSearchRequest, setRetryScoutingSearchRequest] = useState<{
+    revision: number;
+    search: ScoutingSearchCriteria;
+    operationId: string;
+  } | null>(null);
   const [, setLatestMatchResult] = useState<MatchStepResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
     useState<MatchStepResult | null>(null);
@@ -279,6 +285,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       setScoutingOpen(false);
       setScoutingError(null);
       setRetryRecruitRequest(null);
+      setRetryScoutingSearchRequest(null);
     }
     if (tab !== "match") {
       setMatchView("practice");
@@ -291,6 +298,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const loadScoutingBoard = async (
     revision = cloudSession.snapshot.revision,
+    search?: ScoutingSearchCriteria,
+    operationId: string = crypto.randomUUID(),
   ): Promise<ScoutReport[] | null> => {
     if (!api.getScoutingBoard) {
       setScoutingError("スカウト機能を利用できません");
@@ -300,17 +309,33 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setScoutingLoading(true);
     setScoutingError(null);
     setRetryRecruitRequest(null);
+    if (search) setRetryScoutingSearchRequest(null);
 
     try {
       const response = await api.getScoutingBoard(session.accessToken, {
-        operationId: crypto.randomUUID(),
+        operationId,
         revision,
+        ...(search ? { search } : {}),
       });
+      if (search) {
+        const latest = await api.bootstrap(session.accessToken);
+        if (latest.status === "ready") {
+          await cloudSession.adoptServerSnapshot(
+            latest.game,
+            "スカウト探索を実行しました",
+          );
+        }
+      }
       setScoutingReports(response.reports);
       setScoutingCycle(response.cycleKey);
+      if (search) setRetryScoutingSearchRequest(null);
       return response.reports;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        error.code === "revision_conflict"
+      ) {
         try {
           const latest = await api.bootstrap(session.accessToken);
           if (latest.status === "ready") {
@@ -321,14 +346,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             setScoutingReports([]);
             setScoutingCycle(null);
             const refreshed = await api.getScoutingBoard(session.accessToken, {
-              operationId: crypto.randomUUID(),
+              operationId,
               revision: latest.game.revision,
+              ...(search ? { search } : {}),
             });
             setScoutingReports(refreshed.reports);
             setScoutingCycle(refreshed.cycleKey);
+            if (search) setRetryScoutingSearchRequest(null);
             return refreshed.reports;
           }
         } catch (refreshError) {
+          if (search) {
+            setRetryScoutingSearchRequest({ revision, search, operationId });
+          }
           setScoutingError(
             scoutingErrorMessage(
               refreshError,
@@ -339,6 +369,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }
       }
 
+      if (search) {
+        setRetryScoutingSearchRequest({ revision, search, operationId });
+      }
       setScoutingError(
         scoutingErrorMessage(error, "候補を読み込めませんでした"),
       );
@@ -352,6 +385,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setScoutingOpen(true);
     setScoutingError(null);
     setRetryRecruitRequest(null);
+    setRetryScoutingSearchRequest(null);
     void loadShop();
     const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
     if (scoutingCycle !== currentCycle) {
@@ -442,6 +476,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       void recruitCandidate(
         retryRecruitRequest.candidateId,
         retryRecruitRequest.action,
+      );
+      return;
+    }
+    if (retryScoutingSearchRequest) {
+      void loadScoutingBoard(
+        retryScoutingSearchRequest.revision,
+        retryScoutingSearchRequest.search,
+        retryScoutingSearchRequest.operationId,
       );
       return;
     }
@@ -1280,11 +1322,53 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setScoutingOpen(false);
           setScoutingError(null);
           setRetryRecruitRequest(null);
+          setRetryScoutingSearchRequest(null);
         }}
         onRecruit={(candidateId, action) => {
           void recruitCandidate(candidateId, action);
         }}
         onRetry={retryScouting}
+        onSearch={(criteria) => {
+          setScoutingReports([]);
+          void loadScoutingBoard(cloudSession.snapshot.revision, criteria);
+        }}
+        onExtraSearch={(criteria) => {
+          void (async () => {
+            if (!api.useShopItem || shopPendingAction !== null) return;
+            const cycleKey = recruitingCycleKey(cloudSession.snapshot.state);
+            const recruiting = cloudSession.snapshot.state.recruiting;
+            const pendingCredits =
+              recruiting?.cycleKey === cycleKey
+                ? Math.max(0, recruiting.extraScoutingSearchCredits ?? 0)
+                : 0;
+            if (pendingCredits > 0) {
+              setScoutingReports([]);
+              await loadScoutingBoard(cloudSession.snapshot.revision, criteria);
+              return;
+            }
+
+            setShopPendingAction("use");
+            setShopPendingItemId("extra-scout-trip");
+            try {
+              const response = await api.useShopItem(session.accessToken, {
+                operationId: crypto.randomUUID(),
+                revision: cloudSession.snapshot.revision,
+                itemId: "extra-scout-trip",
+              });
+              if (await refreshShopAfterMutation(response.revision)) {
+                setScoutingReports([]);
+                await loadScoutingBoard(response.revision, criteria);
+              }
+            } catch (error) {
+              setScoutingError(
+                shopErrorMessage(error, "追加スカウト権を使用できませんでした"),
+              );
+            } finally {
+              setShopPendingAction(null);
+              setShopPendingItemId(null);
+            }
+          })();
+        }}
         onUseShopItem={(itemId, target) => {
           void consumeShopItemFromUi(itemId, target);
         }}

@@ -66,6 +66,12 @@ function scoutingStore(snapshot: CloudGameSnapshot): {
     store: {
       getCandidatePool: vi.fn(async () => pool),
       createCandidatePool: vi.fn(async () => pool),
+      replaceCandidatePool: vi.fn(async (input) => ({
+        userId: input.userId,
+        cycleKey: input.cycleKey,
+        creationOperationId: input.creationOperationId,
+        candidates: input.candidates,
+      })),
       listCandidateInsights: vi.fn(async () => []),
     },
   };
@@ -87,6 +93,7 @@ async function expectResolutionError(
 describe("Phase 5 shop security boundaries", () => {
   it("does not define direct PvP win, rating, or instant ability manipulation items", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.itemId)).toEqual([
+      "extra-scout-trip",
       "extra-scout-candidate",
       "generational-scout-candidate",
       "scout-research",
@@ -102,7 +109,7 @@ describe("Phase 5 shop security boundaries", () => {
 
     const publicCatalogText = PHASE5_SHOP_ITEMS.map(
       (item) => `${item.itemId} ${item.displayName} ${item.description}`,
-    ).join("\n");
+    ).join(String.fromCharCode(10));
     expect(publicCatalogText).not.toMatch(
       /pvp[-_ ]?win|rating|レート上昇|勝利確定|能力\s*\+20/i,
     );

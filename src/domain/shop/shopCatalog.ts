@@ -1,4 +1,5 @@
 export const SHOP_ITEM_IDS = [
+  "extra-scout-trip",
   "extra-scout-candidate",
   "generational-scout-candidate",
   "scout-research",
@@ -35,6 +36,17 @@ export interface ShopItemDefinition {
 }
 
 export const PHASE5_SHOP_ITEMS = [
+  {
+    itemId: "extra-scout-trip",
+    displayName: "追加スカウト権",
+    description: "通常3回を使い切った後、追加で1回スカウト探索できます。",
+    priceYen: 0,
+    annualPurchaseLimit: 2_000_000_000,
+    annualUseLimit: 2_000_000_000,
+    inventoryLimit: null,
+    targetKind: "none",
+    sortOrder: 5,
+  },
   {
     itemId: "extra-scout-candidate",
     displayName: "新入生候補追加",

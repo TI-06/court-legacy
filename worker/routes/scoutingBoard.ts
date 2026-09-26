@@ -1,6 +1,12 @@
 import { z } from "zod";
-import type { GameStore } from "../data/GameStore";
+import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
+import { RevisionConflictError } from "../data/GameStore";
+import {
+  consumeBaseScoutingSearch,
+  consumeExtraScoutingSearchCredit,
+} from "../../src/domain/scouting/scoutingSearchBudget";
 import type { ScoutingStore } from "../data/ScoutingStore";
+import type { ShopStore } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -9,6 +15,20 @@ import {
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
+const searchCriteriaSchema = z
+  .object({
+    region: z.enum(["prefecture", "regional", "national"]),
+    position: z.enum(["any", "OH", "MB", "S", "OP", "L"]),
+    priority: z.enum([
+      "ability",
+      "potential",
+      "physical",
+      "immediate",
+      "hidden",
+    ]),
+  })
+  .strict();
+
 const requestSchema = z
   .object({
     operationId: z
@@ -16,12 +36,14 @@ const requestSchema = z
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
+    search: searchCriteriaSchema.optional(),
   })
   .strict();
 
 export interface ScoutingBoardHandlerDependencies {
   gameStore: GameStore;
   scoutingStore: ScoutingStore;
+  shopStore?: ShopStore;
 }
 
 function invalidRequest(): Response {
@@ -56,6 +78,58 @@ export function createScoutingBoardHandler(
       return invalidRequest();
     }
 
+    if (parsed.data.search) {
+      const replayed = await deps.gameStore.getOperationResponse(
+        user.id,
+        parsed.data.operationId,
+      );
+      if (replayed) {
+        const replayCycleKey = scoutingCycleKey(replayed.game.state);
+        let replayPool = await deps.scoutingStore.getCandidatePool(
+          user.id,
+          replayCycleKey,
+        );
+        if (
+          !replayPool ||
+          replayPool.creationOperationId !== parsed.data.operationId
+        ) {
+          const searchSequence = Math.max(
+            1,
+            replayed.game.state.recruiting?.scoutingSearchesUsed ?? 1,
+          );
+          const replayOutcome = z
+            .object({ search: searchCriteriaSchema.optional() })
+            .passthrough()
+            .safeParse(replayed.outcome);
+          const replaySearch =
+            replayOutcome.success && replayOutcome.data.search
+              ? replayOutcome.data.search
+              : parsed.data.search;
+          const replayPoolInput = {
+            userId: user.id,
+            cycleKey: replayCycleKey,
+            creationOperationId: parsed.data.operationId,
+            candidates: generateServerScoutingCandidates(
+              replayed.game.state,
+              replaySearch,
+              searchSequence,
+            ),
+          };
+          replayPool = replayPool
+            ? await deps.scoutingStore.replaceCandidatePool(replayPoolInput)
+            : await deps.scoutingStore.createCandidatePool(replayPoolInput);
+        }
+        return json({
+          operationId: parsed.data.operationId,
+          revision: replayed.game.revision,
+          cycleKey: replayCycleKey,
+          scoutingSearchesUsed:
+            replayed.game.state.recruiting?.scoutingSearchesUsed ?? 0,
+          reports: buildServerScoutReports(replayed.game.state, replayPool),
+        });
+      }
+    }
+
     const snapshot = await deps.gameStore.getSnapshot(user.id);
     if (!snapshot) {
       return jsonError(
@@ -70,21 +144,74 @@ export function createScoutingBoardHandler(
 
     const cycleKey = scoutingCycleKey(snapshot.state);
     let pool = await deps.scoutingStore.getCandidatePool(user.id, cycleKey);
+    let activeState = snapshot.state;
+    let activeRevision = snapshot.revision;
 
-    if (!pool) {
-      pool = await deps.scoutingStore.createCandidatePool({
+    if (parsed.data.search) {
+      const searchedState =
+        consumeBaseScoutingSearch(snapshot.state) ??
+        consumeExtraScoutingSearchCredit(snapshot.state);
+      if (!searchedState) {
+        return jsonError(
+          409,
+          "scouting_search_limit",
+          "通常スカウト3回を使い切りました。追加スカウト権が必要です",
+        );
+      }
+
+      const searchSequence =
+        searchedState.recruiting?.scoutingSearchesUsed ?? 1;
+      const nextPoolInput = {
         userId: user.id,
         cycleKey,
         creationOperationId: parsed.data.operationId,
-        candidates: generateServerScoutingCandidates(snapshot.state),
-      });
+        candidates: generateServerScoutingCandidates(
+          snapshot.state,
+          parsed.data.search,
+          searchSequence,
+        ),
+      };
+      const response: PersistedOperationResponse = {
+        game: {
+          ...snapshot,
+          revision: snapshot.revision + 1,
+          state: searchedState,
+        },
+        operationId: parsed.data.operationId,
+        outcome: {
+          cycleKey,
+          scoutingSearchesUsed:
+            searchedState.recruiting?.scoutingSearchesUsed ?? 0,
+          search: parsed.data.search,
+        },
+      };
+      try {
+        const persisted = await deps.gameStore.applyOperation({
+          userId: user.id,
+          operationId: parsed.data.operationId,
+          expectedRevision: snapshot.revision,
+          state: searchedState,
+          teamSelection: snapshot.teamSelection,
+          response,
+        });
+        activeState = persisted.response.game.state;
+        activeRevision = persisted.response.game.revision;
+      } catch (error) {
+        if (error instanceof RevisionConflictError) return revisionConflict();
+        throw error;
+      }
+
+      pool = pool
+        ? await deps.scoutingStore.replaceCandidatePool(nextPoolInput)
+        : await deps.scoutingStore.createCandidatePool(nextPoolInput);
     }
 
     return json({
       operationId: parsed.data.operationId,
-      revision: snapshot.revision,
+      revision: activeRevision,
       cycleKey,
-      reports: buildServerScoutReports(snapshot.state, pool),
+      scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
+      reports: pool ? buildServerScoutReports(activeState, pool) : [],
     });
   };
 }

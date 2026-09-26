@@ -1,6 +1,7 @@
 import { gameDataBootstrap } from "../../src/data/gameData";
 import { generatePlayer } from "../../src/domain/generation/generatePlayer";
 import type { GameState } from "../../src/domain/model/GameState";
+import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingSearchCriteria";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
@@ -72,8 +73,17 @@ function defaultExcludedFullNames(state: GameState): Set<string> {
   );
 }
 
-function scoutingGenerationRandom(state: GameState): SeededRandom {
-  return new SeededRandom(`${state.seed}:scouting:${scoutingCycleKey(state)}`);
+function scoutingGenerationRandom(
+  state: GameState,
+  criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
+): SeededRandom {
+  const criteriaKey = criteria
+    ? `${criteria.region}:${criteria.position}:${criteria.priority}`
+    : "legacy";
+  return new SeededRandom(
+    `${state.seed}:scouting:${scoutingCycleKey(state)}:search-${searchSequence}:${criteriaKey}`,
+  );
 }
 
 function scoutingTierProbabilities(state: GameState) {
@@ -100,12 +110,14 @@ export function generateServerScoutingCandidateAtIndex(
   index: number,
   excludedFullNames: ReadonlySet<string> = defaultExcludedFullNames(state),
   tierOverrides: ReadonlyMap<number, RecruitTier> = new Map(),
+  criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
 ): ScoutingCandidateTruth {
   if (!Number.isSafeInteger(index) || index < 1) {
     throw new Error("scouting candidate index must be a positive integer");
   }
 
-  const random = scoutingGenerationRandom(state);
+  const random = scoutingGenerationRandom(state, criteria, searchSequence);
   const probabilities = scoutingTierProbabilities(state);
   const exclusions = new Set(excludedFullNames);
   let candidate: ScoutingCandidateTruth | null = null;
@@ -117,7 +129,7 @@ export function generateServerScoutingCandidateAtIndex(
     const tier = tierOverrides.get(currentIndex) ?? rolledTier;
     const player = generatePlayer({
       id: playerId(
-        `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
+        `scout-${state.userSchoolId}-${state.yearIndex}-${searchSequence}-${currentIndex}`,
       ),
       schoolId: state.userSchoolId,
       grade: 1,
@@ -142,11 +154,65 @@ export function generateServerScoutingCandidateAtIndex(
 
 export function generateServerScoutingCandidates(
   state: GameState,
+  criteria?: ScoutingSearchCriteria,
+  searchSequence = 0,
 ): ScoutingCandidateTruth[] {
   const excludedFullNames = defaultExcludedFullNames(state);
-  return Array.from({ length: CANDIDATE_COUNT }, (_, index) =>
-    generateServerScoutingCandidateAtIndex(state, index + 1, excludedFullNames),
+  const generated = Array.from({ length: CANDIDATE_COUNT + 6 }, (_, index) =>
+    generateServerScoutingCandidateAtIndex(
+      state,
+      index + 1,
+      excludedFullNames,
+      new Map(),
+      criteria,
+      searchSequence,
+    ),
   );
+
+  const positionFiltered =
+    criteria && criteria.position !== "any"
+      ? generated.filter(
+          (candidate) =>
+            candidate.player.preferredPosition === criteria.position,
+        )
+      : generated;
+  const preferred = positionFiltered.length >= 3 ? positionFiltered : generated;
+
+  const score = (candidate: ScoutingCandidateTruth): number => {
+    const player = candidate.player;
+    const abilities = Object.values(player.abilities).filter(
+      (value): value is number => typeof value === "number",
+    );
+    const average =
+      abilities.reduce((sum, value) => sum + value, 0) /
+      Math.max(1, abilities.length);
+    const potential = player.potential ?? 50;
+    if (!criteria) return average;
+    switch (criteria.priority) {
+      case "potential":
+        return potential * 1.25 + average * 0.35;
+      case "physical":
+        return player.heightCm * 0.28 + player.abilities.jump * 0.8;
+      case "immediate":
+        return average * 1.15 + player.abilities.mental * 0.35;
+      case "hidden":
+        return potential * 1.15 - average * 0.2;
+      case "ability":
+      default:
+        return average;
+    }
+  };
+
+  const ranked = [...preferred].sort(
+    (left, right) => score(right) - score(left),
+  );
+  const regionCount =
+    criteria?.region === "prefecture"
+      ? 4
+      : criteria?.region === "regional"
+        ? 5
+        : CANDIDATE_COUNT;
+  return ranked.slice(0, regionCount);
 }
 
 function competitorCount(

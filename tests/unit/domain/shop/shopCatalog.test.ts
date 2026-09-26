@@ -8,6 +8,7 @@ import {
 describe("Phase 5 shop catalog", () => {
   it("contains the approved zero-yen items including the guaranteed genius scout item", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.itemId)).toEqual([
+      "extra-scout-trip",
       "extra-scout-candidate",
       "generational-scout-candidate",
       "scout-research",
@@ -73,7 +74,7 @@ describe("Phase 5 shop catalog", () => {
 
   it("keeps item display order stable", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.sortOrder)).toEqual([
-      10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100,
     ]);
   });
 });

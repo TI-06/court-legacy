@@ -5,6 +5,7 @@ import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { RecruitTier } from "../../src/domain/scouting/recruitmentTierProbability";
+import { addExtraScoutingSearchCredit } from "../../src/domain/scouting/scoutingSearchBudget";
 import { getShopItemDefinition } from "../../src/domain/shop/shopCatalog";
 import type { ShopUseRequest } from "../../src/domain/shop/shopContracts";
 import {
@@ -162,12 +163,40 @@ function recruitTierFromCandidate(
     : candidate.player.tier;
 }
 
+function scoutingCandidateIdParts(candidateId: string): {
+  searchSequence: number;
+  generationIndex: number;
+} | null {
+  const match = candidateId.match(/-(\d+)-(\d+)$/);
+  return match
+    ? { searchSequence: Number(match[1]), generationIndex: Number(match[2]) }
+    : null;
+}
+
+function scoutingPoolSearchSequence(pool: ScoutingCandidatePool): number {
+  const firstId = pool.candidates[0]?.player.id;
+  if (!firstId) return 0;
+  return scoutingCandidateIdParts(firstId)?.searchSequence ?? 0;
+}
+
+function nextScoutingCandidateIndex(pool: ScoutingCandidatePool): number {
+  return (
+    Math.max(
+      0,
+      ...pool.candidates.map(
+        (candidate) =>
+          scoutingCandidateIdParts(candidate.player.id)?.generationIndex ?? 0,
+      ),
+    ) + 1
+  );
+}
+
 async function resolveExtraCandidate(
   input: ResolveShopUseInput,
   forcedTier?: RecruitTier,
 ): Promise<ResolvedShopUse> {
   const pool = await currentScoutingPool(input.snapshot, input.scoutingStore);
-  const nextIndex = pool.candidates.length + 1;
+  const nextIndex = nextScoutingCandidateIndex(pool);
   const tierOverrides = new Map<number, RecruitTier>(
     pool.candidates.map((candidate, index) => [
       index + 1,
@@ -183,6 +212,8 @@ async function resolveExtraCandidate(
     nextIndex,
     undefined,
     tierOverrides,
+    undefined,
+    scoutingPoolSearchSequence(pool),
   );
   if (
     pool.candidates.some(
@@ -527,6 +558,17 @@ export async function resolveShopUse(
   assertTargetMatchesDefinition(input.request);
 
   switch (input.request.itemId) {
+    case "extra-scout-trip": {
+      const base = cloneBase(input.snapshot);
+      base.state = addExtraScoutingSearchCredit(base.state);
+      return {
+        ...base,
+        targetType: "none",
+        targetId: null,
+        safeRequest: {},
+        publicResult: { scoutingSearchCredit: 1 },
+      };
+    }
     case "extra-scout-candidate":
       return resolveExtraCandidate(input);
     case "generational-scout-candidate":

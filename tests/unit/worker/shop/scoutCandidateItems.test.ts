@@ -38,6 +38,12 @@ function createScoutingContext(snapshot: CloudGameSnapshot): {
     store: {
       getCandidatePool: vi.fn(async () => pool),
       createCandidatePool: vi.fn(async () => pool),
+      replaceCandidatePool: vi.fn(async (input) => ({
+        userId: input.userId,
+        cycleKey: input.cycleKey,
+        creationOperationId: input.creationOperationId,
+        candidates: input.candidates,
+      })),
       listCandidateInsights: vi.fn(async () => []),
     },
   };
@@ -59,9 +65,12 @@ describe("scout candidate shop items", () => {
         scoutingStore: store,
       });
       expect(resolved.scoutingCandidates).toHaveLength(6 + useIndex);
-      expect(resolved.scoutingCandidates?.at(-1)?.player.id).toContain(
-        `-${6 + useIndex}`,
-      );
+      const addedId = resolved.scoutingCandidates?.at(-1)?.player.id;
+      expect(addedId?.startsWith("scout-school-user-1-0-")).toBe(true);
+      expect(Number.isInteger(Number(addedId?.split("-").at(-1)))).toBe(true);
+      expect(
+        pool.candidates.some((candidate) => candidate.player.id === addedId),
+      ).toBe(false);
       pool.candidates.splice(
         0,
         pool.candidates.length,
@@ -90,7 +99,12 @@ describe("scout candidate shop items", () => {
 
     expect(resolved.scoutingCandidates).toHaveLength(7);
     const added = resolved.scoutingCandidates?.at(-1);
-    expect(added?.player.id).toContain("-7");
+    expect(added?.player.id).toMatch(/-0-\d+$/);
+    expect(
+      pool.candidates.some(
+        (candidate) => candidate.player.id === added?.player.id,
+      ),
+    ).toBe(false);
     expect(added?.player.tier).toBe("generational");
     expect(resolved.publicResult).toEqual({
       candidateCount: 7,

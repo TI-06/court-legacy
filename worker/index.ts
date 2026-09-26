@@ -58,6 +58,7 @@ function createLazyScoutingStore(env: Env): ScoutingStore {
     getCandidatePool: (userId, cycleKey) =>
       store().getCandidatePool(userId, cycleKey),
     createCandidatePool: (input) => store().createCandidatePool(input),
+    replaceCandidatePool: (input) => store().replaceCandidatePool(input),
     listCandidateInsights: (userId, cycleKey) =>
       store().listCandidateInsights(userId, cycleKey),
   };

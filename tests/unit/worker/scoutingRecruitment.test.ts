@@ -76,6 +76,12 @@ function createScoutingStore(snapshot: CloudGameSnapshot): {
       userId === pool.userId && cycleKey === pool.cycleKey ? pool : null,
     ),
     createCandidatePool: vi.fn(async () => pool),
+    replaceCandidatePool: vi.fn(async (input) => ({
+      userId: input.userId,
+      cycleKey: input.cycleKey,
+      creationOperationId: input.creationOperationId,
+      candidates: input.candidates,
+    })),
     listCandidateInsights: vi.fn(async () => []),
   };
   return { store, pool };

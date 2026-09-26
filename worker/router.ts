@@ -103,6 +103,7 @@ export function createRouter(
     ? createScoutingBoardHandler({
         gameStore: deps.store,
         scoutingStore: deps.scoutingStore,
+        shopStore: deps.shopStore,
       })
     : null;
   const scoutingRecruitment = deps.scoutingStore
