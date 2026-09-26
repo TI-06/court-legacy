@@ -429,5 +429,4 @@ describe("GameApp scouting flow", () => {
     await waitFor(() => expect(commitRecruit).toHaveBeenCalledTimes(1));
     expect(commitRecruit.mock.calls[0]![1]).toMatchObject({ revision: 2 });
   });
-
 });
