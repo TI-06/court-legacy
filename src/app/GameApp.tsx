@@ -385,6 +385,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     setScoutingOpen(true);
     setScoutingError(null);
     setRetryRecruitRequest(null);
+    setRetryScoutingSearchRequest(null);
     void loadShop();
     const currentCycle = recruitingCycleKey(cloudSession.snapshot.state);
     if (scoutingCycle !== currentCycle) {
@@ -1321,6 +1322,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setScoutingOpen(false);
           setScoutingError(null);
           setRetryRecruitRequest(null);
+          setRetryScoutingSearchRequest(null);
         }}
         onRecruit={(candidateId, action) => {
           void recruitCandidate(candidateId, action);
