@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import type {
-  CloudGameSnapshot,
-  GameStore,
+import {
+  RevisionConflictError,
+  type CloudGameSnapshot,
+  type GameStore,
 } from "../../../worker/data/GameStore";
 import type {
   ScoutingCandidatePool,
@@ -190,6 +191,62 @@ describe("scouting board route", () => {
     expect(gameStore.applyOperation).not.toHaveBeenCalled();
     expect(scoutingStore.replaceCandidatePool).not.toHaveBeenCalled();
     expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
+  });
+
+  it("repairs a missing pool from a completed search replay", async () => {
+    const snapshot = createSnapshot(8);
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      committedCandidateIds: [],
+      scoutingSearchesUsed: 1,
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    vi.mocked(gameStore.getOperationResponse).mockResolvedValue({
+      game: snapshot,
+      operationId: requestBody.operationId,
+      outcome: { scoutingSearchesUsed: 1 },
+    });
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(
+      scoutingRequest({ ...requestBody, revision: 7 }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    expect(gameStore.applyOperation).not.toHaveBeenCalled();
+    expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
+    expect(scoutingStore.savedPool?.creationOperationId).toBe(
+      requestBody.operationId,
+    );
+    expect((await response.json()).reports).toHaveLength(6);
+  });
+
+  it("keeps the previous pool when saving the search conflicts", async () => {
+    const snapshot = createSnapshot();
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    scoutingStore.savedPool = {
+      userId: snapshot.userId,
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      creationOperationId: "older-search",
+      candidates: generateServerScoutingCandidates(snapshot.state),
+    };
+    vi.mocked(gameStore.applyOperation).mockRejectedValueOnce(
+      new RevisionConflictError(),
+    );
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("revision_conflict");
+    expect(scoutingStore.replaceCandidatePool).not.toHaveBeenCalled();
+    expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
+    expect(scoutingStore.savedPool.creationOperationId).toBe("older-search");
   });
 
   it("replaces the active pool on a later search instead of accumulating yearly pools", async () => {
