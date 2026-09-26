@@ -96,7 +96,7 @@ describe("scout candidate shop items", () => {
 
     expect(resolved.scoutingCandidates).toHaveLength(7);
     const added = resolved.scoutingCandidates?.at(-1);
-    expect(added?.player.id).toContain("-7");
+    expect(added?.player.id).toMatch(/-0-\d+$/);\n    expect(\n      pool.candidates.some((candidate) => candidate.player.id === added?.player.id),\n    ).toBe(false);
     expect(added?.player.tier).toBe("generational");
     expect(resolved.publicResult).toEqual({
       candidateCount: 7,
