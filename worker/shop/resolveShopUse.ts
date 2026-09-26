@@ -163,6 +163,13 @@ function recruitTierFromCandidate(
     : candidate.player.tier;
 }
 
+function scoutingPoolSearchSequence(pool: ScoutingCandidatePool): number {
+  const firstId = pool.candidates[0]?.player.id;
+  if (!firstId) return 0;
+  const match = firstId.match(/-(\\d+)-1$/);
+  return match ? Number(match[1]) : 0;
+}
+
 async function resolveExtraCandidate(
   input: ResolveShopUseInput,
   forcedTier?: RecruitTier,
@@ -185,7 +192,7 @@ async function resolveExtraCandidate(
     undefined,
     tierOverrides,
     undefined,
-    input.snapshot.state.recruiting?.scoutingSearchesUsed ?? 0,
+    scoutingPoolSearchSequence(pool),
   );
   if (
     pool.candidates.some(
