@@ -359,6 +359,8 @@ const recruitingStateSchema = z
     committedCandidateIds: z.array(z.string().min(1)),
     visitActionsUsed: z.number().int().min(0).max(4).optional(),
     recommendationUsed: z.boolean().optional(),
+    scoutingSearchesUsed: z.number().int().nonnegative().optional(),
+    extraScoutingSearchCredits: z.number().int().nonnegative().optional(),
     candidateEngagements: z
       .record(
         z.string().min(1),
