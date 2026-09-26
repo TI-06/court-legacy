@@ -10,6 +10,7 @@ import type {
   ScoutingStore,
 } from "../../../worker/data/ScoutingStore";
 import { createScoutingBoardHandler } from "../../../worker/routes/scoutingBoard";
+import { generateServerScoutingCandidates } from "../../../worker/scouting/serverScoutingBoard";
 
 function createSnapshot(revision = 7): CloudGameSnapshot {
   const state = createInitialGame({
@@ -148,6 +149,43 @@ describe("scouting board route", () => {
     expect(serialized).not.toContain('"growthPeakGrade"');
     expect(serialized).not.toContain('"injuryResistance"');
     expect(serialized).not.toContain('"hiddenTraitIds"');
+  });
+
+  it("replays a completed search without consuming another search or replacing the pool", async () => {
+    const snapshot = createSnapshot(8);
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      committedCandidateIds: [],
+      visitActionsUsed: 0,
+      recommendationUsed: false,
+      candidateEngagements: {},
+      scoutingSearchesUsed: 1,
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    scoutingStore.savedPool = {
+      userId: snapshot.userId,
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      creationOperationId: requestBody.operationId,
+      candidates: generateServerScoutingCandidates(snapshot.state, requestBody.search, 1),
+    };
+    vi.mocked(gameStore.getOperationResponse).mockResolvedValue({
+      game: snapshot,
+      operationId: requestBody.operationId,
+      outcome: { scoutingSearchesUsed: 1 },
+    });
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(
+      scoutingRequest({ ...requestBody, revision: 7 }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).scoutingSearchesUsed).toBe(1);
+    expect(gameStore.applyOperation).not.toHaveBeenCalled();
+    expect(scoutingStore.replaceCandidatePool).not.toHaveBeenCalled();
+    expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
   });
 
   it("replaces the active pool on a later search instead of accumulating yearly pools", async () => {
