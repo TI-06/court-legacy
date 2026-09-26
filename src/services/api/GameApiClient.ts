@@ -3,6 +3,7 @@ import type {
   GameActionRequest,
   GameActionResponse,
 } from "../../../worker/game/actionSchema";
+import type { RecruitingState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   PvpChallengeCommandRequest,
@@ -59,6 +60,7 @@ export interface ScoutingBoardResponse {
   revision: number;
   cycleKey: string;
   scoutingSearchesUsed?: number;
+  recruiting?: RecruitingState | null;
   reports: ScoutReport[];
 }
 
