@@ -129,7 +129,9 @@ describe("scouting board route", () => {
     expect((await readOnly.json()).reports).toEqual([]);
     expect(scoutingStore.createCandidatePool).not.toHaveBeenCalled();
 
-    const response = await handler(scoutingRequest(requestBody), { id: "user-123" });
+    const response = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
     expect(response.status).toBe(200);
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(6);
@@ -154,23 +156,41 @@ describe("scouting board route", () => {
     const scoutingStore = createScoutingStore();
     const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
 
-    const first = await handler(scoutingRequest(requestBody), { id: "user-123" });
+    const first = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
     expect(first.status).toBe(200);
-    const firstIds = scoutingStore.savedPool?.candidates.map((candidate) => candidate.player.id) ?? [];
+    const firstIds =
+      scoutingStore.savedPool?.candidates.map(
+        (candidate) => candidate.player.id,
+      ) ?? [];
 
     snapshot.revision = 8;
     snapshot.state = structuredClone(snapshot.state);
     snapshot.state.recruiting = {
-      ...(snapshot.state.recruiting ?? { cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`, committedCandidateIds: [], visitActionsUsed: 0, recommendationUsed: false, candidateEngagements: {} }),
+      ...(snapshot.state.recruiting ?? {
+        cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+        committedCandidateIds: [],
+        visitActionsUsed: 0,
+        recommendationUsed: false,
+        candidateEngagements: {},
+      }),
       scoutingSearchesUsed: 1,
     };
     const second = await handler(
-      scoutingRequest({ ...requestBody, operationId: "scouting-board-002", revision: 8 }),
+      scoutingRequest({
+        ...requestBody,
+        operationId: "scouting-board-002",
+        revision: 8,
+      }),
       { id: "user-123" },
     );
     expect(second.status).toBe(200);
     expect(scoutingStore.replaceCandidatePool).toHaveBeenCalledTimes(1);
-    const secondIds = scoutingStore.savedPool?.candidates.map((candidate) => candidate.player.id) ?? [];
+    const secondIds =
+      scoutingStore.savedPool?.candidates.map(
+        (candidate) => candidate.player.id,
+      ) ?? [];
     expect(secondIds).not.toEqual(firstIds);
     expect(secondIds.every((id) => id.includes("-2-"))).toBe(true);
   });
