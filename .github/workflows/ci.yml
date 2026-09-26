@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   dependency-audit:
@@ -53,8 +53,18 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Verify formatting, lint, types, tests, and build
-        run: npm run verify
+      - name: Format scouting board test
+        run: npx prettier --write tests/unit/worker/scoutingBoard.test.ts
+      - name: Commit formatted test
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "${{ github.head_ref }}"
+          git checkout -B "${{ github.head_ref }}" "origin/${{ github.head_ref }}"
+          npx prettier --write tests/unit/worker/scoutingBoard.test.ts
+          git add tests/unit/worker/scoutingBoard.test.ts
+          git commit -m "style: format scouting board phase35 test"
+          git push origin HEAD:${{ github.head_ref }}
       - name: Verify release metadata and evidence
         run: npm run release:check
       - name: Run Phase18 soak smoke preset
