@@ -65,9 +65,11 @@ describe("scout candidate shop items", () => {
         scoutingStore: store,
       });
       expect(resolved.scoutingCandidates).toHaveLength(6 + useIndex);
-      expect(resolved.scoutingCandidates?.at(-1)?.player.id).toContain(
-        `-${6 + useIndex}`,
-      );
+      const addedId = resolved.scoutingCandidates?.at(-1)?.player.id;
+      expect(addedId).toMatch(/-0-\\d+$/);
+      expect(
+        pool.candidates.some((candidate) => candidate.player.id === addedId),
+      ).toBe(false);
       pool.candidates.splice(
         0,
         pool.candidates.length,
