@@ -187,6 +187,42 @@ describe("ScoutingScreen", () => {
     expect(screen.getByRole("heading", { name: "学校記録" })).toBeVisible();
   });
 
+  it("allows a persisted extra search credit even when no ticket remains", () => {
+    const state = stateWithCommitted();
+    state.recruiting = {
+      ...state.recruiting!,
+      scoutingSearchesUsed: 3,
+      extraScoutingSearchCredits: 1,
+    };
+    const onExtraSearch = vi.fn();
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onExtraSearch={onExtraSearch}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={[]}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "スカウトに行く" }));
+    const searchButton = screen.getByRole("button", {
+      name: "追加探索を実行・残1回",
+    });
+    expect(searchButton).toBeEnabled();
+    fireEvent.click(searchButton);
+    expect(onExtraSearch).toHaveBeenCalledWith({
+      region: "prefecture",
+      position: "any",
+      priority: "ability",
+    });
+  });
+
   it("shows explicit loading and recruiting progress without blanking the screen", () => {
     const state = stateWithCommitted();
     const { rerender } = render(
