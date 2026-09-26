@@ -68,7 +68,9 @@ describe("scout candidate shop items", () => {
       const addedId = resolved.scoutingCandidates?.at(-1)?.player.id;
       expect(addedId).toMatch(/-0-\\d+$/);
       expect(
-        pool.candidates.some((candidate) => candidate.player.id === addedId),
+        pool.candidates.some(
+          (candidate) => candidate.player.id === addedId,
+        ),
       ).toBe(false);
       pool.candidates.splice(
         0,
