@@ -15,6 +15,20 @@ import {
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
+const searchCriteriaSchema = z
+  .object({
+    region: z.enum(["prefecture", "regional", "national"]),
+    position: z.enum(["any", "OH", "MB", "S", "OP", "L"]),
+    priority: z.enum([
+      "ability",
+      "potential",
+      "physical",
+      "immediate",
+      "hidden",
+    ]),
+  })
+  .strict();
+
 const requestSchema = z
   .object({
     operationId: z
@@ -22,20 +36,7 @@ const requestSchema = z
       .transform((value) => value.trim())
       .pipe(z.string().min(1).max(120)),
     revision: z.number().int().positive(),
-    search: z
-      .object({
-        region: z.enum(["prefecture", "regional", "national"]),
-        position: z.enum(["any", "OH", "MB", "S", "OP", "L"]),
-        priority: z.enum([
-          "ability",
-          "potential",
-          "physical",
-          "immediate",
-          "hidden",
-        ]),
-      })
-      .strict()
-      .optional(),
+    search: searchCriteriaSchema.optional(),
   })
   .strict();
 
@@ -96,13 +97,21 @@ export function createScoutingBoardHandler(
             1,
             replayed.game.state.recruiting?.scoutingSearchesUsed ?? 1,
           );
+          const replayOutcome = z
+            .object({ search: searchCriteriaSchema.optional() })
+            .passthrough()
+            .safeParse(replayed.outcome);
+          const replaySearch =
+            replayOutcome.success && replayOutcome.data.search
+              ? replayOutcome.data.search
+              : parsed.data.search;
           const replayPoolInput = {
             userId: user.id,
             cycleKey: replayCycleKey,
             creationOperationId: parsed.data.operationId,
             candidates: generateServerScoutingCandidates(
               replayed.game.state,
-              parsed.data.search,
+              replaySearch,
               searchSequence,
             ),
           };
@@ -173,6 +182,7 @@ export function createScoutingBoardHandler(
           cycleKey,
           scoutingSearchesUsed:
             searchedState.recruiting?.scoutingSearchesUsed ?? 0,
+          search: parsed.data.search,
         },
       };
       try {

@@ -205,12 +205,19 @@ describe("scouting board route", () => {
     vi.mocked(gameStore.getOperationResponse).mockResolvedValue({
       game: snapshot,
       operationId: requestBody.operationId,
-      outcome: { scoutingSearchesUsed: 1 },
+      outcome: {
+        scoutingSearchesUsed: 1,
+        search: { region: "national", position: "any", priority: "ability" },
+      },
     });
     const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
 
     const response = await handler(
-      scoutingRequest({ ...requestBody, revision: 7 }),
+      scoutingRequest({
+        ...requestBody,
+        revision: 7,
+        search: { region: "prefecture", position: "S", priority: "hidden" },
+      }),
       { id: "user-123" },
     );
 
@@ -219,6 +226,13 @@ describe("scouting board route", () => {
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.creationOperationId).toBe(
       requestBody.operationId,
+    );
+    expect(scoutingStore.savedPool?.candidates).toEqual(
+      generateServerScoutingCandidates(
+        snapshot.state,
+        { region: "national", position: "any", priority: "ability" },
+        1,
+      ),
     );
     expect((await response.json()).reports).toHaveLength(6);
   });
