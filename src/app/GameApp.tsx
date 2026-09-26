@@ -184,9 +184,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     action: RecruitmentAction;
   } | null>(null);
   const [retryScoutingSearchRequest, setRetryScoutingSearchRequest] = useState<{
-      revision: number;
-      search: ScoutingSearchCriteria;
-      operationId: string;
+    revision: number;
+    search: ScoutingSearchCriteria;
+    operationId: string;
   } | null>(null);
   const [, setLatestMatchResult] = useState<MatchStepResult | null>(null);
   const [activeMatchResult, setActiveMatchResult] =
