@@ -66,7 +66,8 @@ describe("scout candidate shop items", () => {
       });
       expect(resolved.scoutingCandidates).toHaveLength(6 + useIndex);
       const addedId = resolved.scoutingCandidates?.at(-1)?.player.id;
-      expect(addedId).toMatch(/-0-\\d+$/);
+      expect(addedId?.startsWith("scout-school-user-1-0-")).toBe(true);
+      expect(Number.isInteger(Number(addedId?.split("-").at(-1)))).toBe(true);
       expect(
         pool.candidates.some((candidate) => candidate.player.id === addedId),
       ).toBe(false);
