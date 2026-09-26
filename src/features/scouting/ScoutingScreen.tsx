@@ -691,7 +691,10 @@ export function ScoutingScreen({
           <button
             className="scouting-search-confirm"
             disabled={
-              (baseSearchesRemaining <= 0 && extraScoutTickets <= 0) || loading
+              (baseSearchesRemaining <= 0 &&
+                pendingExtraSearchCredits <= 0 &&
+                extraScoutTickets <= 0) ||
+              loading
             }
             onClick={() => {
               (baseSearchesRemaining > 0 ? onSearch : onExtraSearch)({
@@ -705,9 +708,11 @@ export function ScoutingScreen({
           >
             {baseSearchesRemaining > 0
               ? `この条件で探索する・残${baseSearchesRemaining}回`
-              : extraScoutTickets > 0
-                ? `追加券を使って探索・×${extraScoutTickets}`
-                : "追加スカウト権が必要です"}
+              : pendingExtraSearchCredits > 0
+                ? `追加探索を実行・残${pendingExtraSearchCredits}回`
+                : extraScoutTickets > 0
+                  ? `追加券を使って探索・×${extraScoutTickets}`
+                  : "追加スカウト権が必要です"}
           </button>
         </div>
       </BottomSheet>
