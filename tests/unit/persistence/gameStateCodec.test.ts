@@ -404,6 +404,24 @@ describe("game state codec", () => {
     );
   });
 
+  it("round-trips scouting search counters in recruiting state", () => {
+    const state = createDemoGame();
+    const cycleKey = `${state.userSchoolId}:year-${state.yearIndex}`;
+    state.recruiting = {
+      cycleKey,
+      committedCandidateIds: [],
+      visitActionsUsed: 0,
+      recommendationUsed: false,
+      scoutingSearchesUsed: 3,
+      extraScoutingSearchCredits: 2,
+      candidateEngagements: {},
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.recruiting).toEqual(state.recruiting);
+  });
+
   it("round-trips optional recruiting engagement while accepting the legacy recruiting shape", () => {
     const state = createDemoGame();
     const candidateId = state.schools[state.userSchoolId]!.playerIds[0]!;
