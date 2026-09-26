@@ -77,6 +77,30 @@ export function createScoutingBoardHandler(
       return invalidRequest();
     }
 
+    if (parsed.data.search) {
+      const replayed = await deps.gameStore.getOperationResponse(
+        user.id,
+        parsed.data.operationId,
+      );
+      if (replayed) {
+        const replayCycleKey = scoutingCycleKey(replayed.game.state);
+        const replayPool = await deps.scoutingStore.getCandidatePool(
+          user.id,
+          replayCycleKey,
+        );
+        return json({
+          operationId: parsed.data.operationId,
+          revision: replayed.game.revision,
+          cycleKey: replayCycleKey,
+          scoutingSearchesUsed:
+            replayed.game.state.recruiting?.scoutingSearchesUsed ?? 0,
+          reports: replayPool
+            ? buildServerScoutReports(replayed.game.state, replayPool)
+            : [],
+        });
+      }
+    }
+
     const snapshot = await deps.gameStore.getSnapshot(user.id);
     if (!snapshot) {
       return jsonError(
