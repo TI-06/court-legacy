@@ -1119,3 +1119,150 @@
 .scouting-search-result--poor {
   opacity: 0.88;
 }
+
+
+/* Phase39: keep signed recruits visible independently from the active search pool. */
+.scouting-committed {
+  margin-top: 8px;
+  padding: 11px;
+  background: linear-gradient(135deg, #f4fbf7, #edf7f1);
+  border: 1px solid #bdd9c7;
+  border-radius: 15px;
+}
+
+.scouting-committed__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scouting-committed__heading span {
+  color: #4b8060;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.scouting-committed__heading h2 {
+  margin: 1px 0 0;
+  color: #244c35;
+  font-size: 0.88rem;
+}
+
+.scouting-committed__heading > strong {
+  color: #2f6f4f;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.scouting-committed__heading small {
+  color: #6e8e79;
+  font-size: 0.56rem;
+}
+
+.scouting-committed__list {
+  display: grid;
+  margin-top: 8px;
+  gap: 6px;
+}
+
+.scouting-committed-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid #d2e6d9;
+  border-radius: 11px;
+}
+
+.scouting-committed-card .scouting-position {
+  width: 34px;
+  height: 34px;
+  background: #397d56;
+  border-radius: 9px;
+}
+
+.scouting-committed-card__identity {
+  min-width: 0;
+}
+
+.scouting-committed-card__identity strong,
+.scouting-committed-card__identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scouting-committed-card__identity strong {
+  color: #274735;
+  font-size: 0.76rem;
+}
+
+.scouting-committed-card__identity span {
+  margin-top: 2px;
+  color: #708177;
+  font-size: 0.58rem;
+}
+
+.scouting-committed-card__ability {
+  display: grid;
+  gap: 2px;
+  color: #4f6f5c;
+  font-size: 0.58rem;
+  white-space: nowrap;
+}
+
+.scouting-committed-card__status {
+  padding: 4px 6px;
+  color: #2f6f4f;
+  font-size: 0.58rem;
+  font-weight: 900;
+  white-space: nowrap;
+  background: #e5f4ea;
+  border-radius: 999px;
+}
+
+.scouting-committed__recovering {
+  margin: 7px 0 0;
+  color: #6d8073;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 600px) {
+  .scouting-committed {
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .scouting-committed__heading h2 {
+    font-size: 0.78rem;
+  }
+
+  .scouting-committed-card {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .scouting-committed-card .scouting-position {
+    width: 30px;
+    height: 30px;
+    font-size: 0.58rem;
+  }
+
+  .scouting-committed-card__ability {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 8px;
+  }
+
+  .scouting-committed-card__status {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
