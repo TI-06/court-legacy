@@ -101,6 +101,8 @@ describe("createBrowserAppDependencies E2E harness", () => {
       action: { type: "facility-upgrade", facility: "trainingRoom" },
     });
 
+    expect("game" in response).toBe(true);
+    if (!("game" in response)) return;
     expect(response.game.revision).toBe(2);
     expect(
       response.game.state.schools[response.game.state.userSchoolId]!.funds,
