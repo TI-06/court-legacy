@@ -191,6 +191,7 @@ export function createScoutingBoardHandler(
           userId: user.id,
           operationId: parsed.data.operationId,
           expectedRevision: snapshot.revision,
+          previousState: snapshot.state,
           state: searchedState,
           teamSelection: snapshot.teamSelection,
           response,
