@@ -108,9 +108,9 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
-  it("keeps a large mid-match patch on delta persistence when requested", async () => {
-    const snapshot = createSoakSnapshot("phase38-match-delta");
-    const operationId = "phase38-match-op-001";
+  it("never lets preferDelta bypass the hard patch-operation safety limit", async () => {
+    const snapshot = createSoakSnapshot("phase40-match-delta-hard-limit");
+    const operationId = "phase40-match-op-hard-limit";
     const response = {
       operationId,
       game: {
@@ -123,7 +123,7 @@ describe("SupabaseGameStore save stability", () => {
       error: null,
     });
     const store = new SupabaseGameStore(client);
-    const statePatch = Array.from({ length: 80 }, (_, index) => ({
+    const statePatch = Array.from({ length: 17 }, (_, index) => ({
       op: "set" as const,
       path: ["activeMatch", "eventLog", String(index)],
       value: { sequence: index + 1 },
@@ -141,6 +141,52 @@ describe("SupabaseGameStore save stability", () => {
       response,
     });
 
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state: response.game.state,
+      p_team_selection: response.game.teamSelection,
+      p_outcome: null,
+    });
+  });
+
+  it("keeps a single large mid-match root replacement on delta persistence", async () => {
+    const snapshot = createSoakSnapshot("phase40-match-delta-large-root");
+    const operationId = "phase40-match-op-large-root";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+      },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+    const statePatch = [
+      {
+        op: "set" as const,
+        path: ["activeMatch"],
+        value: { eventLog: "x".repeat(40_000) },
+      },
+    ];
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: response.game.state,
+      statePatch,
+      preferDelta: true,
+      teamSelection: response.game.teamSelection,
+      response,
+    });
+
+    expect(JSON.stringify(statePatch).length).toBeGreaterThan(32_768);
     expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
