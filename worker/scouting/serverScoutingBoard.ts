@@ -173,6 +173,44 @@ export function recoverCommittedCandidateTruth(
   return null;
 }
 
+export function resolveCommittedCandidateTruths(
+  state: GameState,
+  pool: ScoutingCandidatePool | null,
+): {
+  candidates: ScoutingCandidateTruth[];
+  missingCandidateIds: string[];
+} {
+  const recruiting = state.recruiting;
+  if (!recruiting || recruiting.cycleKey !== scoutingCycleKey(state)) {
+    return { candidates: [], missingCandidateIds: [] };
+  }
+
+  const byId = new Map<string, ScoutingCandidateTruth>();
+  for (const candidate of recruiting.committedCandidates ?? []) {
+    byId.set(candidate.player.id, candidate);
+  }
+  for (const candidate of pool?.candidates ?? []) {
+    if (!byId.has(candidate.player.id)) {
+      byId.set(candidate.player.id, candidate);
+    }
+  }
+
+  const candidates: ScoutingCandidateTruth[] = [];
+  const missingCandidateIds: string[] = [];
+  for (const candidateId of recruiting.committedCandidateIds.slice(0, 7)) {
+    const candidate =
+      byId.get(candidateId) ??
+      recoverCommittedCandidateTruth(state, candidateId);
+    if (!candidate) {
+      missingCandidateIds.push(candidateId);
+      continue;
+    }
+    candidates.push(candidate);
+  }
+
+  return { candidates, missingCandidateIds };
+}
+
 export function generateServerScoutingCandidateAtIndex(
   state: GameState,
   index: number,
