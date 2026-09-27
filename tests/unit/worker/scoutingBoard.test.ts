@@ -156,6 +156,40 @@ describe("scouting board route", () => {
     expect(serialized).not.toContain('"hiddenTraitIds"');
   });
 
+  it("returns committed recruits even when the active scouting pool no longer contains them", async () => {
+    const snapshot = createSnapshot();
+    snapshot.state.yearIndex = 7;
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-7`,
+      committedCandidateIds: [
+        "scout-school-user-7-1",
+        "scout-school-user-7-3-10",
+        "legacy-imported-recruit",
+      ],
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(
+      scoutingRequest({
+        operationId: "scouting-board-committed-recovery",
+        revision: 7,
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    const reportIds = body.reports.map(
+      (report: { candidateId: string }) => report.candidateId,
+    );
+    expect(reportIds).toEqual(
+      expect.arrayContaining(snapshot.state.recruiting.committedCandidateIds),
+    );
+    expect(body.reports).toHaveLength(3);
+  });
+
   it("replays a completed search without consuming another search or replacing the pool", async () => {
     const snapshot = createSnapshot(8);
     snapshot.state.recruiting = {
