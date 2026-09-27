@@ -129,6 +129,22 @@ describe("applyGameAction", () => {
     ).toBeLessThanOrEqual(1);
   });
 
+  it("preserves untouched state roots so save diff cost does not scale with the full snapshot", () => {
+    const snapshot = createSnapshot();
+    const historyBefore = snapshot.state.history;
+    const playersBefore = snapshot.state.players;
+    const schoolsBefore = snapshot.state.schools;
+
+    const result = applyGameAction(snapshot, {
+      type: "set-training-plan",
+      plan: createTrainingPlan(snapshot),
+    });
+
+    expect(result.state.history).toBe(historyBefore);
+    expect(result.state.players).toBe(playersBefore);
+    expect(result.state.schools).toBe(schoolsBefore);
+  });
+
   it("applies training server-side, marks the weekly action, and does not mutate the snapshot", () => {
     const snapshot = createSnapshot();
     const before = structuredClone(snapshot);
