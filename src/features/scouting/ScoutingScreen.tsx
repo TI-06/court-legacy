@@ -5,8 +5,10 @@ import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSea
 import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
 import { scoutingSearchResultPresentation } from "../../domain/scouting/scoutingSearchResult";
 import {
+  recruitmentCommitCapacity,
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
+  RECRUITMENT_COMMIT_LIMIT,
   type RecruitmentAction,
 } from "../../domain/scouting/recruitmentEngagement";
 import { reputationGrade } from "../../domain/school/reputation";
@@ -217,15 +219,27 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
+  const availableReports = useMemo(
+    () => reports.filter((report) => !committed.has(report.candidateId)),
+    [committedCandidateIds.join("|"), reports],
+  );
+  const committedReports = useMemo(
+    () => reports.filter((report) => committed.has(report.candidateId)),
+    [committedCandidateIds.join("|"), reports],
+  );
   const activeReports = useMemo(
     () =>
-      reports.filter((report) => !excludedCandidateIds.has(report.candidateId)),
-    [excludedCandidateIds, reports],
+      availableReports.filter(
+        (report) => !excludedCandidateIds.has(report.candidateId),
+      ),
+    [availableReports, excludedCandidateIds],
   );
   const excludedReports = useMemo(
     () =>
-      reports.filter((report) => excludedCandidateIds.has(report.candidateId)),
-    [excludedCandidateIds, reports],
+      availableReports.filter((report) =>
+        excludedCandidateIds.has(report.candidateId),
+      ),
+    [availableReports, excludedCandidateIds],
   );
   const negotiatingReport =
     reports.find((report) => report.candidateId === negotiatingCandidateId) ??
@@ -248,11 +262,16 @@ export function ScoutingScreen({
     "any" | "OH" | "MB" | "S" | "OP" | "L"
   >("any");
   const [searchFrom, setSearchFrom] = useState<string | null>(null);
-  const reportIds = reports.map((report) => report.candidateId).join("|");
+  const reportIds = availableReports
+    .map((report) => report.candidateId)
+    .join("|");
   const searchResult =
-    searchFrom !== null && reports.length > 0 && reportIds !== searchFrom
-      ? scoutingSearchResultPresentation(reports)
+    searchFrom !== null &&
+    availableReports.length > 0 &&
+    reportIds !== searchFrom
+      ? scoutingSearchResultPresentation(availableReports)
       : null;
+  const commitmentCapacity = recruitmentCommitCapacity(state);
   const [searchPriority, setSearchPriority] = useState<
     "ability" | "potential" | "physical" | "immediate" | "hidden"
   >("ability");
@@ -308,8 +327,10 @@ export function ScoutingScreen({
             <strong>Lv.{school.facilities.scoutingNetwork}</strong>
           </div>
           <div>
-            <span>獲得人数</span>
-            <strong>{committedCandidateIds.length}人</strong>
+            <span>獲得決定</span>
+            <strong>
+              {committedCandidateIds.length}/{commitmentCapacity}人
+            </strong>
           </div>
           <div>
             <span>学校訪問</span>
@@ -372,6 +393,53 @@ export function ScoutingScreen({
 
       {latestShopUseResult ? (
         <ScoutingShopUseResult presentation={latestShopUseResult} />
+      ) : null}
+
+      {!loading && committedCandidateIds.length > 0 ? (
+        <section
+          className="scouting-committed"
+          aria-label="獲得決定済み選手"
+        >
+          <div className="scouting-committed__heading">
+            <div>
+              <span>COMMITTED</span>
+              <h2>獲得決定済み</h2>
+            </div>
+            <strong>
+              {committedCandidateIds.length}/{commitmentCapacity}人
+              <small> 最大{RECRUITMENT_COMMIT_LIMIT}人</small>
+            </strong>
+          </div>
+          <div className="scouting-committed__list">
+            {committedReports.map((report) => (
+              <article
+                className="scouting-committed-card"
+                key={report.candidateId}
+              >
+                <span className="scouting-position">{report.position}</span>
+                <div className="scouting-committed-card__identity">
+                  <strong>{report.displayName}</strong>
+                  <span>
+                    {report.heightCm}cm・
+                    {achievementLabels[report.middleSchoolAchievement]}
+                  </span>
+                </div>
+                <div className="scouting-committed-card__ability">
+                  <span>総合 {report.estimatedOverall.min}〜{report.estimatedOverall.max}</span>
+                  <span>将来 {report.estimatedPotential.min}〜{report.estimatedPotential.max}</span>
+                </div>
+                <span className="scouting-committed-card__status">
+                  入学確定
+                </span>
+              </article>
+            ))}
+          </div>
+          {committedReports.length < committedCandidateIds.length ? (
+            <p className="scouting-committed__recovering">
+              獲得済み選手の情報を復旧しています
+            </p>
+          ) : null}
+        </section>
       ) : null}
 
       {!loading && activeReports.length > 0 ? (
@@ -622,7 +690,7 @@ export function ScoutingScreen({
         </section>
       ) : null}
 
-      {!loading && reports.length > 0 && activeReports.length === 0 ? (
+      {!loading && availableReports.length > 0 && activeReports.length === 0 ? (
         <p className="scouting-empty-active">表示中の候補はいません</p>
       ) : null}
 
