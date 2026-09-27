@@ -130,34 +130,32 @@ export function calculateCohesionBreakdown(
 ): CohesionBreakdown {
   const players = rosterPlayers(state);
   const rosterIds = players.map((player) => player.id);
-  const morale = clamp100(average(players.map((player) => player.morale)));
-  const trust = clamp100(average(players.map((player) => player.trust)));
+  const rawMorale = average(players.map((player) => player.morale));
+  const rawTrust = average(players.map((player) => player.trust));
   const relationships = calculateRelationshipSignal(state, rosterIds);
   const captain = leadershipScoreFor(players, dynamics.captainPlayerId);
   const viceCaptain = leadershipScoreFor(players, dynamics.viceCaptainPlayerId);
-  const adaptation = clamp100(
-    average(
-      players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
-    ),
+  const rawAdaptation = average(
+    players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
   );
   const lineupContinuity = clamp100(dynamics.lineupContinuity);
   const cohesion = clamp100(
-    morale * 0.25 +
-      trust * 0.2 +
+    rawMorale * 0.25 +
+      rawTrust * 0.2 +
       relationships * 0.2 +
       captain * 0.15 +
       viceCaptain * 0.05 +
-      adaptation * 0.1 +
+      rawAdaptation * 0.1 +
       lineupContinuity * 0.05,
   );
 
   return {
-    morale,
-    trust,
+    morale: clamp100(rawMorale),
+    trust: clamp100(rawTrust),
     relationships,
     captain,
     viceCaptain,
-    adaptation,
+    adaptation: clamp100(rawAdaptation),
     lineupContinuity,
     cohesion,
   };
