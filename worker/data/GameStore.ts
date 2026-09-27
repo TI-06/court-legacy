@@ -34,6 +34,7 @@ export interface PersistOperationInput {
   previousState: GameState;
   state: GameState;
   statePatch?: JsonStatePatchOperation[];
+  preferDelta?: boolean;
   teamSelection: TeamSelection;
   response: PersistedOperationResponse;
 }
