@@ -15,7 +15,7 @@ import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
   generateServerScoutingCandidates,
-  recoverCommittedCandidateTruth,
+  resolveCommittedCandidateTruths,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -77,21 +77,12 @@ function poolWithCommittedCandidates(
 
   const candidates = [...(pool?.candidates ?? [])];
   const knownIds = new Set(candidates.map((candidate) => candidate.player.id));
-  const persistedById = new Map(
-    (recruiting.committedCandidates ?? []).map((candidate) => [
-      candidate.player.id,
-      candidate,
-    ]),
-  );
+  const resolved = resolveCommittedCandidateTruths(state, pool);
 
-  for (const candidateId of recruiting.committedCandidateIds.slice(0, 7)) {
-    if (knownIds.has(candidateId)) continue;
-    const candidate =
-      persistedById.get(candidateId) ??
-      recoverCommittedCandidateTruth(state, candidateId);
-    if (!candidate) continue;
+  for (const candidate of resolved.candidates) {
+    if (knownIds.has(candidate.player.id)) continue;
     candidates.push(candidate);
-    knownIds.add(candidateId);
+    knownIds.add(candidate.player.id);
   }
 
   if (candidates.length === 0) return null;
