@@ -13,6 +13,28 @@ export const RECRUITMENT_VISIT_LIMIT = 4;
 export const RECRUITMENT_RECOMMENDATION_LIMIT = 1;
 export const RECRUITMENT_VISIT_BONUS = 12;
 export const RECRUITMENT_RECOMMENDATION_BONUS = 24;
+export const RECRUITMENT_COMMIT_LIMIT = 7;
+
+
+export function recruitmentCommitCapacity(state: GameState): number {
+  const school = state.schools[state.userSchoolId];
+  if (!school) return 0;
+
+  const returningPlayers = school.playerIds.filter((playerId) => {
+    const player = state.players[playerId];
+    return Boolean(player && player.grade !== 3);
+  }).length;
+  const nextAcademicYear = state.calendar.academicYear + 1;
+  const generationalTalentDue =
+    nextAcademicYear >= state.world.nextGenerationalTalentYear;
+  const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
+  const availableRosterSlots = Math.max(
+    0,
+    maximumBaseRosterSize - returningPlayers,
+  );
+
+  return Math.min(RECRUITMENT_COMMIT_LIMIT, availableRosterSlots);
+}
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
