@@ -53,7 +53,7 @@ describe("SupabaseGameStore save stability", () => {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
-      p_state_operations: [],
+      p_state_patch: [],
       p_team_selection: response.game.teamSelection,
       p_outcome: outcome,
     });
