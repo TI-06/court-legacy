@@ -153,6 +153,17 @@ describe("Phase21 character trait discovery", () => {
     );
   });
 
+  it("returns the original state and player map when nothing is discovered", () => {
+    const state = createState();
+    const playersBefore = state.players;
+
+    const result = discoverEligibleCharacterTraits(state, data);
+
+    expect(result.discoveries).toEqual([]);
+    expect(result.state).toBe(state);
+    expect(result.state.players).toBe(playersBefore);
+  });
+
   it("orders simultaneous discoveries by player id then trait id", () => {
     const state = createState();
     const ids = userPlayerIds(state).slice(0, 2).sort();
