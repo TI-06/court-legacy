@@ -155,7 +155,10 @@ describe("useGameSession", () => {
     let completed = false;
     await act(async () => {
       await result.current
-        .runAction({ type: "mark-notification-read", notificationId: "n-1" }, "保存")
+        .runAction(
+          { type: "mark-notification-read", notificationId: "n-1" },
+          "保存",
+        )
         .then(() => {
           completed = true;
         });
