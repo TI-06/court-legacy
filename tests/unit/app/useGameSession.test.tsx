@@ -178,6 +178,55 @@ describe("useGameSession", () => {
     recoveryWrite.resolve();
   });
 
+  it("recovers from an invalid client delta by adopting the authoritative snapshot", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const latestSnapshot = createSnapshot(2);
+    const applyAction = vi.fn().mockResolvedValue({
+      operationId: "op-delta-drift",
+      gameDelta: {
+        userId: initialSnapshot.userId,
+        schoolDbId: initialSnapshot.schoolDbId,
+        revision: 2,
+        statePatch: [
+          {
+            op: "set",
+            path: ["missing-parent", "child"],
+            value: 1,
+          },
+        ],
+        teamSelection: initialSnapshot.teamSelection,
+      },
+      outcome: { recovered: true },
+    });
+    const bootstrap = vi.fn().mockResolvedValue({
+      status: "ready",
+      game: latestSnapshot,
+    });
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot,
+        api: api({ applyAction, bootstrap }),
+        recoveryCache: cache(),
+        createOperationId: () => "op-delta-drift",
+      }),
+    );
+
+    await act(async () => {
+      await result.current.runAction(
+        { type: "mark-notification-read", notificationId: "n-1" },
+        "保存",
+      );
+    });
+
+    expect(bootstrap).toHaveBeenCalledWith("token");
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "保存",
+    });
+  });
+
   it("does not send a second mutation while another authoritative mutation is pending", async () => {
     const response =
       deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();

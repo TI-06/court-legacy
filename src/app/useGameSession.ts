@@ -143,10 +143,25 @@ export function useGameSession({
 
     try {
       const response = await api.applyAction(requestAccessToken, request);
-      const materialized = materializeActionResponse(
-        snapshotRef.current,
-        response,
-      );
+      let materialized: PersistedOperationResponse;
+      try {
+        materialized = materializeActionResponse(snapshotRef.current, response);
+      } catch (materializeError) {
+        const latest = await api.bootstrap(requestAccessToken);
+        if (
+          latest.status !== "ready" ||
+          latest.game.revision < request.revision + 1
+        ) {
+          throw materializeError;
+        }
+        materialized = {
+          operationId: response.operationId,
+          game: latest.game,
+          ...("outcome" in response && response.outcome !== undefined
+            ? { outcome: response.outcome }
+            : {}),
+        };
+      }
       replaceSnapshot(materialized.game);
       setOperation({ status: "success", label });
       void writeRecovery(materialized.game, null);

@@ -170,6 +170,42 @@ describe("game action route", () => {
     );
   });
 
+  it("builds the response delta from the persisted pre-compaction state", async () => {
+    const snapshot = createSnapshot();
+    const first = trainingNotification(snapshot);
+    const second = {
+      ...trainingNotification(snapshot),
+      id: "training-result:newest",
+      weekOfYear: first.weekOfYear + 1,
+    };
+    snapshot.state.notifications.items = [first, second];
+    const store = createStore(snapshot);
+    const handler = createGameActionHandler(store);
+
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "team-selection",
+          selection: snapshot.teamSelection,
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    const notificationPatch = body.gameDelta.statePatch.filter(
+      (entry: { path: string[] }) =>
+        entry.path[0] === "notifications" && entry.path[1] === "items",
+    );
+    expect(notificationPatch.length).toBeGreaterThan(0);
+
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(persisted.previousState.notifications.items).toHaveLength(2);
+    expect(persisted.state.notifications.items).toHaveLength(1);
+  });
+
   it("accepts a valid season ambition action through the HTTP contract", async () => {
     const snapshot = createSnapshot();
     snapshot.state.calendar.weekOfYear = 1;
