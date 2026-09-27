@@ -71,25 +71,11 @@ function progressInjury(injury: PlayerInjury | null): PlayerInjury | null {
   return remainingWeeks <= 0 ? null : { ...injury, remainingWeeks };
 }
 
-function recoverPlayer(player: Player): {
-  player: Player;
-  recovered: boolean;
-  healed: boolean;
-} {
-  const previousInjury = player.injury;
-  const injury = progressInjury(previousInjury);
-  return {
-    player: { ...player, injury },
-    recovered: false,
-    healed: Boolean(previousInjury && !injury),
-  };
-}
-
 export function advanceOneWeek(
   state: GameState,
   options: AdvanceOneWeekOptions = {},
 ): WeekProgressionResult {
-  const players = { ...state.players };
+  let players = state.players;
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
   // Kept in the public signature for save/action compatibility; Phase 12 no longer
@@ -99,12 +85,16 @@ export function advanceOneWeek(
   for (const [playerId, player] of Object.entries(state.players) as Array<
     [PlayerId, Player]
   >) {
-    const result = recoverPlayer(player);
-    players[playerId] = result.player;
-    if (result.recovered) {
-      recoveredPlayerIds.push(playerId);
+    if (!player.injury) {
+      continue;
     }
-    if (result.healed) {
+
+    const injury = progressInjury(player.injury);
+    if (players === state.players) {
+      players = { ...state.players };
+    }
+    players[playerId] = { ...player, injury };
+    if (!injury) {
       healedPlayerIds.push(playerId);
     }
   }
