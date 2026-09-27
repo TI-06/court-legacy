@@ -5,13 +5,17 @@ import {
   consumeBaseScoutingSearch,
   consumeExtraScoutingSearchCredit,
 } from "../../src/domain/scouting/scoutingSearchBudget";
-import type { ScoutingStore } from "../data/ScoutingStore";
+import type {
+  ScoutingCandidatePool,
+  ScoutingStore,
+} from "../data/ScoutingStore";
 import type { ShopStore } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
   generateServerScoutingCandidates,
+  recoverCommittedCandidateTruth,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -60,6 +64,43 @@ function revisionConflict(): Response {
     "revision_conflict",
     "別の端末または操作でデータが更新されています",
   );
+}
+
+function poolWithCommittedCandidates(
+  state: NonNullable<Awaited<ReturnType<GameStore["getSnapshot"]>>>["state"],
+  pool: ScoutingCandidatePool | null,
+): ScoutingCandidatePool | null {
+  const recruiting = state.recruiting;
+  if (!recruiting || recruiting.committedCandidateIds.length === 0) {
+    return pool;
+  }
+
+  const candidates = [...(pool?.candidates ?? [])];
+  const knownIds = new Set(candidates.map((candidate) => candidate.player.id));
+  const persistedById = new Map(
+    (recruiting.committedCandidates ?? []).map((candidate) => [
+      candidate.player.id,
+      candidate,
+    ]),
+  );
+
+  for (const candidateId of recruiting.committedCandidateIds.slice(0, 7)) {
+    if (knownIds.has(candidateId)) continue;
+    const candidate =
+      persistedById.get(candidateId) ??
+      recoverCommittedCandidateTruth(state, candidateId);
+    if (!candidate) continue;
+    candidates.push(candidate);
+    knownIds.add(candidateId);
+  }
+
+  if (candidates.length === 0) return null;
+  return {
+    userId: pool?.userId ?? "",
+    cycleKey: scoutingCycleKey(state),
+    creationOperationId: pool?.creationOperationId ?? "committed-recovery",
+    candidates,
+  };
 }
 
 export function createScoutingBoardHandler(
@@ -126,7 +167,10 @@ export function createScoutingBoardHandler(
           scoutingSearchesUsed:
             replayed.game.state.recruiting?.scoutingSearchesUsed ?? 0,
           recruiting: replayed.game.state.recruiting ?? null,
-          reports: buildServerScoutReports(replayed.game.state, replayPool),
+          reports: buildServerScoutReports(
+            replayed.game.state,
+            poolWithCommittedCandidates(replayed.game.state, replayPool)!,
+          ),
         });
       }
     }
@@ -214,7 +258,12 @@ export function createScoutingBoardHandler(
       cycleKey,
       scoutingSearchesUsed: activeState.recruiting?.scoutingSearchesUsed ?? 0,
       recruiting: activeState.recruiting ?? null,
-      reports: pool ? buildServerScoutReports(activeState, pool) : [],
+      reports: poolWithCommittedCandidates(activeState, pool)
+        ? buildServerScoutReports(
+            activeState,
+            poolWithCommittedCandidates(activeState, pool)!,
+          )
+        : [],
     });
   };
 }
