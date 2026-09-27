@@ -178,49 +178,49 @@ describe("game action route", () => {
   it(
     "returns a compact match presentation instead of duplicating the full match outcome",
     async () => {
-    const base = createSnapshot();
-    const opponent = Object.values(base.state.schools).find(
-      (school) => school.id !== base.state.userSchoolId,
-    );
-    if (!opponent) {
-      throw new Error("practice opponent fixture missing");
-    }
-    base.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
-    base.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+      const base = createSnapshot();
+      const opponent = Object.values(base.state.schools).find(
+        (school) => school.id !== base.state.userSchoolId,
+      );
+      if (!opponent) {
+        throw new Error("practice opponent fixture missing");
+      }
+      base.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+      base.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
 
-    const started = applyGameAction(base, { type: "advance-week" });
-    const snapshot: CloudGameSnapshot = {
-      ...base,
-      state: started.state,
-      teamSelection: started.teamSelection,
-    };
-    expect(snapshot.state.activeMatch?.phase).toBe("coach-decision");
+      const started = applyGameAction(base, { type: "advance-week" });
+      const snapshot: CloudGameSnapshot = {
+        ...base,
+        state: started.state,
+        teamSelection: started.teamSelection,
+      };
+      expect(snapshot.state.activeMatch?.phase).toBe("coach-decision");
 
-    const store = createStore(snapshot);
-    const handler = createGameActionHandler(store);
-    const response = await handler(
-      actionRequest({
-        ...operation,
-        action: {
-          type: "match-command",
-          command: { type: "continue" },
-        },
-      }),
-      { id: "user-123" },
-    );
+      const store = createStore(snapshot);
+      const handler = createGameActionHandler(store);
+      const response = await handler(
+        actionRequest({
+          ...operation,
+          action: {
+            type: "match-command",
+            command: { type: "continue" },
+          },
+        }),
+        { id: "user-123" },
+      );
 
-    expect(response.status).toBe(200);
-    const body = await response.json();
-    expect(body).not.toHaveProperty("game");
-    expect(body).not.toHaveProperty("outcome");
-    expect(body.matchPresentation).toMatchObject({
-      kind: "practice",
-    });
-    expect(body.matchPresentation).toHaveProperty("analysis");
-    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
-    expect(
-      applyJsonStatePatch(snapshot.state, body.statePatch),
-    ).toEqual(persisted.state);
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).not.toHaveProperty("game");
+      expect(body).not.toHaveProperty("outcome");
+      expect(body.matchPresentation).toMatchObject({
+        kind: "practice",
+      });
+      expect(body.matchPresentation).toHaveProperty("analysis");
+      const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+      expect(applyJsonStatePatch(snapshot.state, body.statePatch)).toEqual(
+        persisted.state,
+      );
       expect(JSON.stringify(body).length).toBeLessThan(
         JSON.stringify(persisted.response).length,
       );
