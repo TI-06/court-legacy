@@ -314,6 +314,49 @@ describe("scouting board route", () => {
     expect(secondIds.every((id) => id.includes("-2-"))).toBe(true);
   });
 
+  it("keeps a committed recruit visible when a later search replaces the active candidates", async () => {
+    const snapshot = createSnapshot();
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const first = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
+    expect(first.status).toBe(200);
+    const committedId = scoutingStore.savedPool!.candidates[0]!.player.id;
+
+    snapshot.revision = 8;
+    snapshot.state = structuredClone(snapshot.state);
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      committedCandidateIds: [committedId],
+      scoutingSearchesUsed: 1,
+    };
+
+    const second = await handler(
+      scoutingRequest({
+        ...requestBody,
+        operationId: "scouting-board-keep-committed",
+        revision: 8,
+      }),
+      { id: "user-123" },
+    );
+
+    expect(second.status).toBe(200);
+    const ids = scoutingStore.savedPool!.candidates.map(
+      (candidate) => candidate.player.id,
+    );
+    expect(ids).toContain(committedId);
+    expect(ids.filter((id) => id.includes("-2-"))).toHaveLength(6);
+    const body = await second.json();
+    expect(
+      body.reports.some(
+        (report: { candidateId: string }) => report.candidateId === committedId,
+      ),
+    ).toBe(true);
+  });
+
   it("rejects a stale revision before reading or creating a candidate pool", async () => {
     const gameStore = createGameStore(createSnapshot(8));
     const scoutingStore = createScoutingStore();
