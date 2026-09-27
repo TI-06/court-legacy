@@ -148,7 +148,7 @@ export function collapseJsonStatePatchRoot(
   const affected = operations.filter(
     (operation) => operation.path[0] === rootKey,
   );
-  if (affected.length <= 1) {
+  if (affected.length === 0) {
     return [...operations];
   }
 
