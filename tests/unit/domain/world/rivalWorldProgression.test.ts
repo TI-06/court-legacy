@@ -2,11 +2,14 @@ import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { HistoricalMatchSummary } from "../../../../src/domain/model/GameState";
 import type { Player } from "../../../../src/domain/model/Player";
 import type { GameDate } from "../../../../src/domain/model/identifiers";
-import { matchId } from "../../../../src/domain/model/identifiers";
+import { matchId, playerId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import {
+  MAX_ALUMNI_PER_SCHOOL,
   MAX_MATCH_HISTORY,
+  MAX_RIVAL_ALUMNI_PER_SCHOOL,
   advanceRivalWorld,
+  compactLongTermArchives,
   recordMatchOutcome,
   recordScoutingConflict,
   rivalryKey,
@@ -162,6 +165,57 @@ describe("rival world progression", () => {
     expect(facilities.analysisRoom).toBeLessThanOrEqual(50);
     expect(facilities.recoveryRoom).toBeLessThanOrEqual(50);
     expect(facilities.scoutingNetwork).toBeLessThanOrEqual(50);
+  });
+
+  it("keeps detailed alumni for the user school while compacting rival full-player archives", () => {
+    const state = createDemoGame();
+    const user = state.schools[state.userSchoolId]!;
+    const rival = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!;
+    const userTemplate = state.players[user.playerIds[0]!]!;
+    const rivalTemplate = state.players[rival.playerIds[0]!]!;
+    const userAlumni = Array.from({ length: 50 }, (_, index) =>
+      playerId(`user-alumni-${index}`),
+    );
+    const rivalAlumni = Array.from({ length: 50 }, (_, index) =>
+      playerId(`rival-alumni-${index}`),
+    );
+
+    for (const id of userAlumni) {
+      state.players[id] = {
+        ...structuredClone(userTemplate),
+        id,
+        career: { ...userTemplate.career, schoolId: user.id },
+      };
+    }
+    for (const id of rivalAlumni) {
+      state.players[id] = {
+        ...structuredClone(rivalTemplate),
+        id,
+        career: { ...rivalTemplate.career, schoolId: rival.id },
+      };
+    }
+    state.schools[user.id] = { ...user, alumniPlayerIds: userAlumni };
+    state.schools[rival.id] = { ...rival, alumniPlayerIds: rivalAlumni };
+
+    const compacted = compactLongTermArchives(state);
+
+    expect(compacted.schools[user.id]!.alumniPlayerIds).toEqual(
+      userAlumni.slice(-MAX_ALUMNI_PER_SCHOOL),
+    );
+    expect(compacted.schools[rival.id]!.alumniPlayerIds).toEqual(
+      rivalAlumni.slice(-MAX_RIVAL_ALUMNI_PER_SCHOOL),
+    );
+    for (const id of userAlumni.slice(-MAX_ALUMNI_PER_SCHOOL)) {
+      expect(compacted.players[id]).toBeDefined();
+    }
+    for (const id of rivalAlumni.slice(0, -MAX_RIVAL_ALUMNI_PER_SCHOOL)) {
+      expect(compacted.players[id]).toBeUndefined();
+    }
+    for (const id of rival.playerIds) {
+      expect(compacted.players[id]).toBeDefined();
+    }
   });
 
   it("raises rivalry for close repeated upsets and names a destiny rival", () => {

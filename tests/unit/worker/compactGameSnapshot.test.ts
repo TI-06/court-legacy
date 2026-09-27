@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../src/app/createDemoGame";
-import type { GameDate } from "../../../src/domain/model/identifiers";
+import { playerId, type GameDate } from "../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+import { MAX_RIVAL_ALUMNI_PER_SCHOOL } from "../../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import { compactGameSnapshot } from "../../../worker/game/compactGameSnapshot";
 
@@ -56,6 +57,67 @@ describe("compactGameSnapshot", () => {
       "training-new",
     ]);
     expect(snapshot.state.notifications.items).toHaveLength(2);
+  });
+
+  it("self-heals an existing save with oversized rival full-player alumni", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const rival = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    )!;
+    const template = snapshot.state.players[rival.playerIds[0]!]!;
+    const alumniIds = Array.from(
+      { length: MAX_RIVAL_ALUMNI_PER_SCHOOL + 5 },
+      (_, index) => playerId(`legacy-rival-alumni-${index}`),
+    );
+
+    for (const id of alumniIds) {
+      snapshot.state.players[id] = {
+        ...structuredClone(template),
+        id,
+        career: { ...template.career, schoolId: rival.id },
+      };
+    }
+    snapshot.state.schools[rival.id] = {
+      ...rival,
+      alumniPlayerIds: alumniIds,
+    };
+
+    const compacted = compactGameSnapshot(snapshot);
+
+    expect(compacted.state.schools[rival.id]!.alumniPlayerIds).toEqual(
+      alumniIds.slice(-MAX_RIVAL_ALUMNI_PER_SCHOOL),
+    );
+    for (const id of alumniIds.slice(0, -MAX_RIVAL_ALUMNI_PER_SCHOOL)) {
+      expect(compacted.state.players[id]).toBeUndefined();
+    }
+    for (const id of rival.playerIds) {
+      expect(compacted.state.players[id]).toBeDefined();
+    }
+  });
+
+  it("removes stale orphaned retired players even when alumni ids are already bounded", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const rival = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    )!;
+    const template = snapshot.state.players[rival.playerIds[0]!]!;
+    const orphanId = playerId("legacy-orphaned-rival-alumni");
+
+    snapshot.state.players[orphanId] = {
+      ...structuredClone(template),
+      id: orphanId,
+      career: { ...template.career, schoolId: rival.id },
+    };
+    expect(rival.alumniPlayerIds).not.toContain(orphanId);
+
+    const compacted = compactGameSnapshot(snapshot);
+
+    expect(compacted.state.players[orphanId]).toBeUndefined();
+    for (const id of rival.playerIds) {
+      expect(compacted.state.players[id]).toBeDefined();
+    }
   });
 
   it("returns the original snapshot when it is already compact", () => {
