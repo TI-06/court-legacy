@@ -18,7 +18,7 @@ import {
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
-  recoverCommittedCandidateTruth,
+  resolveCommittedCandidateTruths,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -79,31 +79,14 @@ async function resolveCommittedIntake(
   }
 
   const pool = await scoutingStore.getCandidatePool(userId, cycleKey);
-  const persistedById = new Map(
-    (recruiting.committedCandidates ?? []).map((candidate) => [
-      candidate.player.id,
-      candidate.player,
-    ]),
-  );
-  const poolById = new Map(
-    (pool?.candidates ?? []).map((candidate) => [
-      candidate.player.id,
-      candidate.player,
-    ]),
-  );
-  const userIntake: Player[] = [];
-  for (const candidateId of recruiting.committedCandidateIds) {
-    const candidate =
-      persistedById.get(candidateId) ??
-      poolById.get(candidateId) ??
-      recoverCommittedCandidateTruth(snapshot.state, candidateId)?.player;
-    if (!candidate) {
-      return { error: recruitmentDataUnavailable() };
-    }
-    userIntake.push(candidate);
+  const resolved = resolveCommittedCandidateTruths(snapshot.state, pool);
+  if (resolved.missingCandidateIds.length > 0) {
+    return { error: recruitmentDataUnavailable() };
   }
 
-  return { userIntake };
+  return {
+    userIntake: resolved.candidates.map((candidate) => candidate.player),
+  };
 }
 
 export function createGameActionHandler(
