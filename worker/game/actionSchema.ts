@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-  MatchAnalysis,
-  MatchCommand,
-} from "../../src/domain/model/Match";
+import type { MatchAnalysis, MatchCommand } from "../../src/domain/model/Match";
 import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
@@ -20,9 +17,8 @@ import type {
   SavedLineupSlot,
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
-import type { PersistedOperationResponse } from "../data/GameStore";
-import type { JsonStatePatchOperation } from "../data/statePatch";
 import type { PendingMatchPresentation } from "../../src/domain/calendar/advanceWeekOutcome";
+import type { PersistedOperationResponse } from "../data/GameStore";
 import type { JsonStatePatchOperation } from "../data/statePatch";
 
 const playerIdSchema = z.string().min(1);
