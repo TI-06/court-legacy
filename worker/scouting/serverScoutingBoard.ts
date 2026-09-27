@@ -173,6 +173,33 @@ export function recoverCommittedCandidateTruth(
   return null;
 }
 
+
+export function recoverCommittedCandidateTruthWithFallback(
+  state: GameState,
+  candidateId: string,
+): ScoutingCandidateTruth {
+  const recovered = recoverCommittedCandidateTruth(state, candidateId);
+  if (recovered) return recovered;
+
+  const random = new SeededRandom(
+    `${state.seed}:committed-recruit-recovery:${candidateId}`,
+  );
+  const player = generatePlayer({
+    id: playerId(candidateId),
+    schoolId: state.userSchoolId,
+    grade: 1,
+    enrolledYear: state.yearIndex + 1,
+    tier: "normal",
+    data: gameData,
+    random,
+    excludedFullNames: defaultExcludedFullNames(state),
+  });
+  return {
+    player,
+    middleSchoolAchievement: achievementForTier("normal", random),
+  };
+}
+
 export function generateServerScoutingCandidateAtIndex(
   state: GameState,
   index: number,
