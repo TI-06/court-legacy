@@ -167,7 +167,6 @@ describe("rival world progression", () => {
     expect(facilities.scoutingNetwork).toBeLessThanOrEqual(50);
   });
 
-
   it("keeps detailed alumni for the user school while compacting rival full-player archives", () => {
     const state = createDemoGame();
     const user = state.schools[state.userSchoolId]!;
