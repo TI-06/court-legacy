@@ -110,26 +110,38 @@ function leadershipScoreFor(
   return player ? calculateLeadershipSuitability(player) : 0;
 }
 
-export function calculateCohesionTarget(
+export interface CohesionBreakdown {
+  morale: number;
+  trust: number;
+  relationships: number;
+  captain: number;
+  viceCaptain: number;
+  adaptation: number;
+  lineupContinuity: number;
+  cohesion: number;
+}
+
+export function calculateCohesionBreakdown(
   state: TeamDynamicsStateSource,
   dynamics: Pick<
     TeamDynamicsState,
     "captainPlayerId" | "viceCaptainPlayerId" | "lineupContinuity"
   >,
-): number {
+): CohesionBreakdown {
   const players = rosterPlayers(state);
   const rosterIds = players.map((player) => player.id);
-  const morale = average(players.map((player) => player.morale));
-  const trust = average(players.map((player) => player.trust));
+  const morale = clamp100(average(players.map((player) => player.morale)));
+  const trust = clamp100(average(players.map((player) => player.trust)));
   const relationships = calculateRelationshipSignal(state, rosterIds);
   const captain = leadershipScoreFor(players, dynamics.captainPlayerId);
   const viceCaptain = leadershipScoreFor(players, dynamics.viceCaptainPlayerId);
-  const adaptation = average(
-    players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
+  const adaptation = clamp100(
+    average(
+      players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
+    ),
   );
   const lineupContinuity = clamp100(dynamics.lineupContinuity);
-
-  return clamp100(
+  const cohesion = clamp100(
     morale * 0.25 +
       trust * 0.2 +
       relationships * 0.2 +
@@ -138,4 +150,25 @@ export function calculateCohesionTarget(
       adaptation * 0.1 +
       lineupContinuity * 0.05,
   );
+
+  return {
+    morale,
+    trust,
+    relationships,
+    captain,
+    viceCaptain,
+    adaptation,
+    lineupContinuity,
+    cohesion,
+  };
+}
+
+export function calculateCohesionTarget(
+  state: TeamDynamicsStateSource,
+  dynamics: Pick<
+    TeamDynamicsState,
+    "captainPlayerId" | "viceCaptainPlayerId" | "lineupContinuity"
+  >,
+): number {
+  return calculateCohesionBreakdown(state, dynamics).cohesion;
 }
