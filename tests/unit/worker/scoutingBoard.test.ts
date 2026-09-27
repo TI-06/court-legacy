@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import { playerId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import {
   RevisionConflictError,
@@ -159,13 +160,14 @@ describe("scouting board route", () => {
   it("returns committed recruits even when the active scouting pool no longer contains them", async () => {
     const snapshot = createSnapshot();
     snapshot.state.yearIndex = 7;
+    const committedCandidateIds = [
+      playerId("scout-school-user-7-1"),
+      playerId("scout-school-user-7-3-10"),
+      playerId("legacy-imported-recruit"),
+    ];
     snapshot.state.recruiting = {
       cycleKey: `${snapshot.state.userSchoolId}:year-7`,
-      committedCandidateIds: [
-        "scout-school-user-7-1",
-        "scout-school-user-7-3-10",
-        "legacy-imported-recruit",
-      ],
+      committedCandidateIds,
     };
     const gameStore = createGameStore(snapshot);
     const scoutingStore = createScoutingStore();
@@ -185,7 +187,7 @@ describe("scouting board route", () => {
       (report: { candidateId: string }) => report.candidateId,
     );
     expect(reportIds).toEqual(
-      expect.arrayContaining(snapshot.state.recruiting.committedCandidateIds),
+      expect.arrayContaining(committedCandidateIds),
     );
     expect(body.reports).toHaveLength(3);
   });
