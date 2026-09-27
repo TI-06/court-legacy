@@ -42,22 +42,24 @@ describe("SupabaseGameStore save stability", () => {
         userId: snapshot.userId,
         operationId,
         expectedRevision: snapshot.revision,
+        previousState: snapshot.state,
         state: response.game.state,
         teamSelection: response.game.teamSelection,
         response,
       }),
     ).resolves.toEqual({ response, replayed: false });
 
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
-      p_state: response.game.state,
+      p_state_operations: [],
       p_team_selection: response.game.teamSelection,
       p_outcome: outcome,
     });
     const rpcPayload = vi.mocked(client.rpc).mock.calls[0]?.[1];
     expect(rpcPayload).not.toHaveProperty("p_response");
+    expect(rpcPayload).not.toHaveProperty("p_state");
   });
 
   it("returns an exact replay response from the operation RPC", async () => {
@@ -91,6 +93,7 @@ describe("SupabaseGameStore save stability", () => {
         userId: snapshot.userId,
         operationId,
         expectedRevision: snapshot.revision,
+        previousState: snapshot.state,
         state: response.game.state,
         teamSelection: response.game.teamSelection,
         response,
