@@ -152,9 +152,6 @@ export function collapseJsonStatePatchRoot(
     return [...operations];
   }
 
-  const remaining = operations.filter(
-    (operation) => operation.path[0] !== rootKey,
-  );
   const afterHas =
     Object.prototype.hasOwnProperty.call(after, rootKey) &&
     after[rootKey] !== undefined;
