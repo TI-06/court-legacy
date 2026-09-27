@@ -95,8 +95,7 @@ describe("server scouting board Phase 5 integration", () => {
 
   it("recovers legacy committed candidate ids that were lost by pool replacement", () => {
     const state = createDemoGame();
-    const legacyId =
-      `scout-${state.userSchoolId}-${state.yearIndex}-1`;
+    const legacyId = `scout-${state.userSchoolId}-${state.yearIndex}-1`;
     state.recruiting = {
       cycleKey: scoutingCycleKey(state),
       committedCandidateIds: [legacyId as never],
