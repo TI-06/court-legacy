@@ -145,10 +145,7 @@ export function useGameSession({
       const response = await api.applyAction(requestAccessToken, request);
       let materialized: PersistedOperationResponse;
       try {
-        materialized = materializeActionResponse(
-          snapshotRef.current,
-          response,
-        );
+        materialized = materializeActionResponse(snapshotRef.current, response);
       } catch (materializeError) {
         const latest = await api.bootstrap(requestAccessToken);
         if (
