@@ -77,11 +77,19 @@ function recoverPlayer(player: Player): {
   healed: boolean;
 } {
   const previousInjury = player.injury;
+  if (!previousInjury) {
+    return {
+      player,
+      recovered: false,
+      healed: false,
+    };
+  }
+
   const injury = progressInjury(previousInjury);
   return {
     player: { ...player, injury },
     recovered: false,
-    healed: Boolean(previousInjury && !injury),
+    healed: !injury,
   };
 }
 
