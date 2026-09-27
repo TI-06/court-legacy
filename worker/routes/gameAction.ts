@@ -1,11 +1,15 @@
 import { crossesAcademicYear } from "../../src/domain/calendar/academicYearProgression";
+import type { PendingMatchPresentation } from "../../src/domain/calendar/advanceWeekOutcome";
 import { advanceOneWeek } from "../../src/domain/calendar/weekProgression";
 import type { Player } from "../../src/domain/model/Player";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
+import { buildJsonStatePatch } from "../data/statePatch";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import {
   gameActionRequestSchema,
+  type CompactMatchPresentation,
+  type DeltaGameActionResponse,
   type GameActionRequest,
 } from "../game/actionSchema";
 import { GameRuleConflictError } from "../game/applyGameAction";
@@ -37,6 +41,33 @@ function recruitmentDataUnavailable(): Response {
     "recruitment_data_unavailable",
     "獲得済み候補の情報を確認できません",
   );
+}
+
+function compactMatchPresentation(
+  actionRequest: GameActionRequest,
+  outcome: unknown,
+  hasActiveMatch: boolean,
+): CompactMatchPresentation | undefined {
+  if (
+    actionRequest.action.type !== "match-command" ||
+    !hasActiveMatch ||
+    !outcome
+  ) {
+    return undefined;
+  }
+
+  const presentation = outcome as PendingMatchPresentation;
+  if (!presentation.simulation?.match) {
+    return undefined;
+  }
+
+  return {
+    kind: presentation.kind,
+    homeTeam: presentation.homeTeam,
+    awayTeam: presentation.awayTeam,
+    ...(presentation.official ? { official: presentation.official } : {}),
+    analysis: presentation.simulation.analysis,
+  };
 }
 
 function willCrossAcademicYear(
@@ -172,7 +203,27 @@ export function createGameActionHandler(
         teamSelection: applied.teamSelection,
         response,
       });
-      return json(persisted.response);
+      if (persisted.replayed) {
+        return json(persisted.response);
+      }
+
+      const matchPresentation = compactMatchPresentation(
+        actionRequest,
+        applied.outcome,
+        applied.state.activeMatch !== null,
+      );
+      const deltaResponse: DeltaGameActionResponse = {
+        operationId: actionRequest.operationId,
+        revision: snapshot.revision + 1,
+        statePatch: buildJsonStatePatch(snapshot.state, applied.state),
+        teamSelection: applied.teamSelection,
+        ...(matchPresentation
+          ? { matchPresentation }
+          : applied.outcome !== undefined
+            ? { outcome: applied.outcome }
+            : {}),
+      };
+      return json(deltaResponse);
     } catch (error) {
       if (error instanceof RevisionConflictError) {
         return revisionConflict();
