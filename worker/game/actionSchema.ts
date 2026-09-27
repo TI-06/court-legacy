@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { MatchCommand } from "../../src/domain/model/Match";
+import type {
+  MatchAnalysis,
+  MatchCommand,
+} from "../../src/domain/model/Match";
 import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
@@ -18,6 +21,8 @@ import type {
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
+import type { JsonStatePatchOperation } from "../data/statePatch";
+import type { PendingMatchPresentation } from "../../src/domain/calendar/advanceWeekOutcome";
 import type { JsonStatePatchOperation } from "../data/statePatch";
 
 const playerIdSchema = z.string().min(1);
@@ -328,12 +333,21 @@ export interface GameActionRequest {
   action: GameAction;
 }
 
+export interface CompactMatchPresentation {
+  kind: PendingMatchPresentation["kind"];
+  homeTeam: PendingMatchPresentation["homeTeam"];
+  awayTeam: PendingMatchPresentation["awayTeam"];
+  official?: PendingMatchPresentation["official"];
+  analysis: MatchAnalysis | null;
+}
+
 export interface DeltaGameActionResponse {
   operationId: string;
   revision: number;
   statePatch: JsonStatePatchOperation[];
   teamSelection: TeamSelection;
   outcome?: unknown;
+  matchPresentation?: CompactMatchPresentation;
 }
 
 export type GameActionResponse =
