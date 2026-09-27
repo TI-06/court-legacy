@@ -11,6 +11,7 @@ import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
+  recoverCommittedCandidateTruth,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -262,10 +263,21 @@ export function createScoutingRecruitmentHandler(
       snapshot.state.recruiting?.cycleKey === cycleKey
         ? snapshot.state.recruiting
         : { cycleKey, committedCandidateIds: [] };
-    const committedCandidates = [
-      ...(activeRecruiting.committedCandidates ?? []),
-      candidate,
-    ].slice(0, 7);
+    const committedTruthById = new Map(
+      [
+        ...(activeRecruiting.committedCandidates ?? []),
+        ...pool.candidates,
+        candidate,
+      ].map((entry) => [entry.player.id, entry] as const),
+    );
+    const committedCandidates = committedCandidateIds
+      .map(
+        (candidateId) =>
+          committedTruthById.get(candidateId) ??
+          recoverCommittedCandidateTruth(snapshot.state, candidateId),
+      )
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+      .slice(0, 7);
     const nextState = {
       ...snapshot.state,
       recruiting: {
