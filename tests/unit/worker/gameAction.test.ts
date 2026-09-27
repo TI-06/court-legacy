@@ -161,8 +161,13 @@ describe("game action route", () => {
     expect(persisted.response.game.revision).toBe(5);
 
     const body = await response.json();
-    expect(body.game.revision).toBe(5);
     expect(body.operationId).toBe("operation-001");
+    expect(body.game).toBeUndefined();
+    expect(body.gameDelta.revision).toBe(5);
+    expect(body.gameDelta.statePatch).toEqual(expect.any(Array));
+    expect(JSON.stringify(body).length).toBeLessThan(
+      JSON.stringify(persisted.response).length,
+    );
   });
 
   it("accepts a valid season ambition action through the HTTP contract", async () => {
