@@ -136,7 +136,10 @@ export function createJsonStatePatch(
   return operations;
 }
 
-function resolveParent(root: unknown, path: readonly string[]): {
+function resolveParent(
+  root: unknown,
+  path: readonly string[],
+): {
   parent: Record<string, unknown> | unknown[];
   key: string;
 } {
