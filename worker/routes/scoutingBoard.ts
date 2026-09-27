@@ -12,6 +12,7 @@ import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
   generateServerScoutingCandidates,
+  preserveCommittedScoutingCandidates,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -105,14 +106,19 @@ export function createScoutingBoardHandler(
             replayOutcome.success && replayOutcome.data.search
               ? replayOutcome.data.search
               : parsed.data.search;
+          const generatedCandidates = generateServerScoutingCandidates(
+            replayed.game.state,
+            replaySearch,
+            searchSequence,
+          );
           const replayPoolInput = {
             userId: user.id,
             cycleKey: replayCycleKey,
             creationOperationId: parsed.data.operationId,
-            candidates: generateServerScoutingCandidates(
+            candidates: preserveCommittedScoutingCandidates(
               replayed.game.state,
-              replaySearch,
-              searchSequence,
+              replayPool?.candidates ?? [],
+              generatedCandidates,
             ),
           };
           replayPool = replayPool
@@ -145,6 +151,21 @@ export function createScoutingBoardHandler(
 
     const cycleKey = scoutingCycleKey(snapshot.state);
     let pool = await deps.scoutingStore.getCandidatePool(user.id, cycleKey);
+    if (pool) {
+      const repairedCandidates = preserveCommittedScoutingCandidates(
+        snapshot.state,
+        pool.candidates,
+        pool.candidates,
+      );
+      if (repairedCandidates.length !== pool.candidates.length) {
+        pool = await deps.scoutingStore.replaceCandidatePool({
+          userId: user.id,
+          cycleKey,
+          creationOperationId: pool.creationOperationId,
+          candidates: repairedCandidates,
+        });
+      }
+    }
     let activeState = snapshot.state;
     let activeRevision = snapshot.revision;
 
@@ -162,14 +183,19 @@ export function createScoutingBoardHandler(
 
       const searchSequence =
         searchedState.recruiting?.scoutingSearchesUsed ?? 1;
+      const generatedCandidates = generateServerScoutingCandidates(
+        snapshot.state,
+        parsed.data.search,
+        searchSequence,
+      );
       const nextPoolInput = {
         userId: user.id,
         cycleKey,
         creationOperationId: parsed.data.operationId,
-        candidates: generateServerScoutingCandidates(
+        candidates: preserveCommittedScoutingCandidates(
           snapshot.state,
-          parsed.data.search,
-          searchSequence,
+          pool?.candidates ?? [],
+          generatedCandidates,
         ),
       };
       const response: PersistedOperationResponse = {
