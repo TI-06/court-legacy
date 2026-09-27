@@ -18,7 +18,7 @@ import {
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
-  recoverCommittedCandidateTruth,
+  recoverCommittedCandidateTruthWithFallback,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -69,16 +69,14 @@ async function resolveCommittedIntake(
   ) {
     return {};
   }
-  if (!scoutingStore) {
-    return { error: recruitmentDataUnavailable() };
-  }
-
   const cycleKey = scoutingCycleKey(snapshot.state);
   if (recruiting.cycleKey !== cycleKey) {
     return { error: recruitmentDataUnavailable() };
   }
 
-  const pool = await scoutingStore.getCandidatePool(userId, cycleKey);
+  const pool = scoutingStore
+    ? await scoutingStore.getCandidatePool(userId, cycleKey)
+    : null;
   const persistedById = new Map(
     (recruiting.committedCandidates ?? []).map((candidate) => [
       candidate.player.id,
@@ -91,17 +89,17 @@ async function resolveCommittedIntake(
       candidate.player,
     ]),
   );
-  const userIntake: Player[] = [];
-  for (const candidateId of recruiting.committedCandidateIds) {
-    const candidate =
-      persistedById.get(candidateId) ??
-      poolById.get(candidateId) ??
-      recoverCommittedCandidateTruth(snapshot.state, candidateId)?.player;
-    if (!candidate) {
-      return { error: recruitmentDataUnavailable() };
-    }
-    userIntake.push(candidate);
-  }
+  const userIntake: Player[] = recruiting.committedCandidateIds
+    .slice(0, 7)
+    .map(
+      (candidateId) =>
+        persistedById.get(candidateId) ??
+        poolById.get(candidateId) ??
+        recoverCommittedCandidateTruthWithFallback(
+          snapshot.state,
+          candidateId,
+        ).player,
+    );
 
   return { userIntake };
 }
