@@ -1,64 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import {
+  applyJsonStatePatch,
   buildJsonStatePatch,
-  type JsonStatePatchOperation,
 } from "../../../../worker/data/statePatch";
-
-function childAt(
-  current: Record<string, unknown> | unknown[],
-  segment: string,
-): Record<string, unknown> | unknown[] {
-  const value = Array.isArray(current)
-    ? current[Number(segment)]
-    : current[segment];
-  return value as Record<string, unknown> | unknown[];
-}
-
-function applyPatch(
-  input: unknown,
-  operations: JsonStatePatchOperation[],
-): unknown {
-  const root = structuredClone(input);
-
-  const setAtPath = (target: unknown, path: string[], value: unknown) => {
-    if (path.length === 0) return structuredClone(value);
-    let current = target as Record<string, unknown> | unknown[];
-    for (let index = 0; index < path.length - 1; index += 1) {
-      current = childAt(current, path[index]!);
-    }
-    const key = path[path.length - 1]!;
-    if (Array.isArray(current)) {
-      current[Number(key)] = structuredClone(value);
-    } else {
-      current[key] = structuredClone(value);
-    }
-    return target;
-  };
-
-  const removeAtPath = (target: unknown, path: string[]) => {
-    let current = target as Record<string, unknown> | unknown[];
-    for (let index = 0; index < path.length - 1; index += 1) {
-      current = childAt(current, path[index]!);
-    }
-    const key = path[path.length - 1]!;
-    if (Array.isArray(current)) {
-      current.splice(Number(key), 1);
-    } else {
-      delete current[key];
-    }
-    return target;
-  };
-
-  let result = root;
-  for (const operation of operations) {
-    result =
-      operation.op === "set"
-        ? setAtPath(result, operation.path, operation.value)
-        : removeAtPath(result, operation.path);
-  }
-  return result;
-}
 
 describe("buildJsonStatePatch", () => {
   it("reconstructs nested object and array changes exactly", () => {
@@ -81,7 +26,7 @@ describe("buildJsonStatePatch", () => {
 
     const patch = buildJsonStatePatch(before, after);
 
-    expect(applyPatch(before, patch)).toEqual(after);
+    expect(applyJsonStatePatch(before, patch)).toEqual(after);
     expect(patch).toContainEqual({
       op: "set",
       path: ["players", "a", "morale"],
@@ -104,7 +49,7 @@ describe("buildJsonStatePatch", () => {
 
     const patch = buildJsonStatePatch(before, after);
 
-    expect(applyPatch(before, patch)).toEqual(after);
+    expect(applyJsonStatePatch(before, patch)).toEqual(after);
     expect(JSON.stringify(patch).length).toBeLessThan(
       JSON.stringify(after).length / 20,
     );
