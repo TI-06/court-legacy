@@ -78,28 +78,23 @@ describe("jsonStatePatch", () => {
     const patchBytes = JSON.stringify(patch).length;
 
     expect(applyJsonStatePatch(previous, patch)).toEqual(next);
-    expect(patch).toEqual([
-      { op: "set", path: ["revisionMarker"], value: 2 },
-    ]);
+    expect(patch).toEqual([{ op: "set", path: ["revisionMarker"], value: 2 }]);
     expect(patchBytes).toBeLessThan(fullBytes * 0.01);
   });
 
-  it(
-    "replaces a reordered array instead of producing unsafe index removals",
-    () => {
-      const previous = { values: ["a", "b", "c"] };
-      const next = { values: ["b", "c", "d"] };
+  it("replaces a reordered array instead of producing unsafe index removals", () => {
+    const previous = { values: ["a", "b", "c"] };
+    const next = { values: ["b", "c", "d"] };
 
-      const patch = createJsonStatePatch(previous, next);
+    const patch = createJsonStatePatch(previous, next);
 
-      expect(applyJsonStatePatch(previous, patch)).toEqual(next);
-      expect(patch).toEqual([
-        { op: "set", path: ["values", "0"], value: "b" },
-        { op: "set", path: ["values", "1"], value: "c" },
-        { op: "set", path: ["values", "2"], value: "d" },
-      ]);
-    },
-  );
+    expect(applyJsonStatePatch(previous, patch)).toEqual(next);
+    expect(patch).toEqual([
+      { op: "set", path: ["values", "0"], value: "b" },
+      { op: "set", path: ["values", "1"], value: "c" },
+      { op: "set", path: ["values", "2"], value: "d" },
+    ]);
+  });
 
   it("removes truncated array entries from the end", () => {
     const previous = { values: ["a", "b", "c", "d"] };
