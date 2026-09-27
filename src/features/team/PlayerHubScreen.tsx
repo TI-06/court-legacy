@@ -82,9 +82,7 @@ interface PlayerHubScreenProps {
   onSaveTrainingAssignments?: (
     assignments: IndividualTrainingAssignment[],
   ) => void | Promise<void>;
-  onSetTeamTrainingMenu?: (
-    teamTrainingMenuId: string,
-  ) => void | Promise<void>;
+  onSetTeamTrainingMenu?: (teamTrainingMenuId: string) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
   onSetPlayerDevelopmentGoal?: (
     playerId: PlayerId,
