@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { GameState } from "../../src/domain/model/GameState";
 import {
   applyRecruitmentAction,
   recruitmentCommitCapacity,
