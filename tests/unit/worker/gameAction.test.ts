@@ -167,9 +167,9 @@ describe("game action route", () => {
     expect(body.operationId).toBe("operation-001");
     expect(body).not.toHaveProperty("game");
     expect(body.statePatch).toEqual(expect.any(Array));
-    expect(applyJsonStatePatch(snapshot.state, body.statePatch)).toEqual(
-      persisted.state,
-    );
+    expect(
+      applyJsonStatePatch(snapshot.state, body.statePatch),
+    ).toEqual(persisted.state);
     expect(JSON.stringify(body).length).toBeLessThan(
       JSON.stringify(persisted.response).length,
     );
@@ -185,7 +185,8 @@ describe("game action route", () => {
       if (!opponent) {
         throw new Error("practice opponent fixture missing");
       }
-      base.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+      base.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+        opponent.id;
       base.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
 
       const started = applyGameAction(base, { type: "advance-week" });
@@ -218,9 +219,9 @@ describe("game action route", () => {
       });
       expect(body.matchPresentation).toHaveProperty("analysis");
       const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
-      expect(applyJsonStatePatch(snapshot.state, body.statePatch)).toEqual(
-        persisted.state,
-      );
+      expect(
+        applyJsonStatePatch(snapshot.state, body.statePatch),
+      ).toEqual(persisted.state);
       expect(JSON.stringify(body).length).toBeLessThan(
         JSON.stringify(persisted.response).length,
       );
