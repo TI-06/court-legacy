@@ -1,13 +1,32 @@
-import { compactLongTermArchives } from "../../src/domain/world/rivalWorldProgression";
+import {
+  compactLongTermArchives,
+  MAX_ALUMNI_PER_SCHOOL,
+  MAX_RIVAL_ALUMNI_PER_SCHOOL,
+} from "../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../data/GameStore";
+
+function needsLongTermArchiveCompaction(snapshot: CloudGameSnapshot): boolean {
+  return Object.values(snapshot.state.schools).some((school) => {
+    const limit =
+      school.id === snapshot.state.userSchoolId
+        ? MAX_ALUMNI_PER_SCHOOL
+        : MAX_RIVAL_ALUMNI_PER_SCHOOL;
+    return new Set(school.alumniPlayerIds).size > limit;
+  });
+}
 
 export function compactGameSnapshot(
   snapshot: CloudGameSnapshot,
 ): CloudGameSnapshot {
-  const compactedState = compactLongTermArchives(snapshot.state);
+  const compactedState = needsLongTermArchiveCompaction(snapshot)
+    ? compactLongTermArchives(snapshot.state)
+    : snapshot.state;
   const items = compactedState.notifications.items;
-  const newest = items[items.length - 1];
+  if (items.length <= 1 && compactedState === snapshot.state) {
+    return snapshot;
+  }
 
+  const newest = items[items.length - 1];
   return {
     ...snapshot,
     state: {
