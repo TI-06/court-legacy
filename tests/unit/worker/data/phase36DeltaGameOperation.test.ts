@@ -27,9 +27,7 @@ describe("Phase36 delta game operation", () => {
   });
 
   it("keeps v4 service-role only", () => {
-    expect(migration).toContain(
-      "from public, anon, authenticated",
-    );
+    expect(migration).toContain("from public, anon, authenticated");
     expect(migration).toContain("to service_role");
   });
 });
