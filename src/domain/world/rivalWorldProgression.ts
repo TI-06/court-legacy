@@ -19,6 +19,7 @@ import { rivalSchoolBalanceProfile } from "./rivalSchoolBalance";
 export const MAX_MATCH_HISTORY = 500;
 export const MAX_GRADUATE_HISTORY = 640;
 export const MAX_ALUMNI_PER_SCHOOL = 40;
+export const MAX_RIVAL_ALUMNI_PER_SCHOOL = 12;
 export const MAX_GENERATIONAL_TALENTS = 64;
 
 const DESTINY_RIVAL_THRESHOLD = 60;
@@ -502,13 +503,22 @@ function evolveSchool(
   };
 }
 
-function retainBoundedArchives(state: GameState): GameState {
+export function compactLongTermArchives(state: GameState): GameState {
   const schools = { ...state.schools };
   const retainedPlayerIds = new Set<PlayerId>();
 
   for (const school of Object.values(schools)) {
+    // The user's alumni can still be inspected in detail, so keep the existing
+    // full-player window. Rival alumni are not rendered from full Player
+    // objects; historical screens use GameHistory.graduates summaries instead.
+    // Keeping only a small recent rival window prevents long saves from being
+    // dominated by hundreds of retired full-player records.
+    const alumniLimit =
+      school.id === state.userSchoolId
+        ? MAX_ALUMNI_PER_SCHOOL
+        : MAX_RIVAL_ALUMNI_PER_SCHOOL;
     const alumniPlayerIds = [...new Set(school.alumniPlayerIds)].slice(
-      -MAX_ALUMNI_PER_SCHOOL,
+      -alumniLimit,
     );
     schools[school.id] = { ...school, alumniPlayerIds };
     for (const playerId of [...school.playerIds, ...alumniPlayerIds]) {
@@ -582,7 +592,7 @@ export function advanceRivalWorld(
     schools[school.id] = evolveSchool(school, players, random);
   }
 
-  return retainBoundedArchives({
+  return compactLongTermArchives({
     ...state,
     players,
     schools,
