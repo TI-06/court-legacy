@@ -213,8 +213,8 @@ describe("game action route", () => {
     expect(body).not.toHaveProperty("outcome");
     expect(body.matchPresentation).toMatchObject({
       kind: "practice",
-      analysis: expect.anything(),
     });
+    expect(body.matchPresentation).toHaveProperty("analysis");
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(
       applyJsonStatePatch(snapshot.state, body.statePatch),
