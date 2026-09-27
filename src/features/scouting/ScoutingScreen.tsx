@@ -217,10 +217,18 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
+  const committedReports = useMemo(
+    () => reports.filter((report) => committed.has(report.candidateId)),
+    [committed, reports],
+  );
   const activeReports = useMemo(
     () =>
-      reports.filter((report) => !excludedCandidateIds.has(report.candidateId)),
-    [excludedCandidateIds, reports],
+      reports.filter(
+        (report) =>
+          !committed.has(report.candidateId) &&
+          !excludedCandidateIds.has(report.candidateId),
+      ),
+    [committed, excludedCandidateIds, reports],
   );
   const excludedReports = useMemo(
     () =>
@@ -372,6 +380,41 @@ export function ScoutingScreen({
 
       {latestShopUseResult ? (
         <ScoutingShopUseResult presentation={latestShopUseResult} />
+      ) : null}
+
+      {!loading && committedReports.length > 0 ? (
+        <section
+          className="scouting-committed"
+          aria-label="獲得決定済み選手"
+        >
+          <div className="scouting-committed__header">
+            <div>
+              <span>来年度入学予定</span>
+              <strong>獲得決定済み {committedReports.length}/7人</strong>
+            </div>
+          </div>
+          <div className="scouting-committed__list">
+            {committedReports.map((report) => (
+              <article
+                className="scouting-committed__card"
+                key={report.candidateId}
+              >
+                <span className="scouting-position">{report.position}</span>
+                <div className="scouting-committed__identity">
+                  <strong>{report.displayName}</strong>
+                  <span>
+                    {report.heightCm}cm・{stars(report.evaluationStars)}
+                  </span>
+                </div>
+                <div className="scouting-committed__ability">
+                  <span>総合 {report.estimatedOverall.min}〜{report.estimatedOverall.max}</span>
+                  <span>将来 {report.estimatedPotential.min}〜{report.estimatedPotential.max}</span>
+                </div>
+                <span className="scouting-committed__status">獲得済み</span>
+              </article>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {!loading && activeReports.length > 0 ? (
