@@ -1,5 +1,6 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
+import { relationshipKey } from "../../../../src/domain/model/GameState";
 import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import type {
   RandomSnapshot,
@@ -116,6 +117,51 @@ describe("resolveWeeklyTraining", () => {
         ?.modifiers.length,
     ).toBeGreaterThan(0);
     expect(state.players[untouchedId]).toEqual(before);
+  });
+
+  it("trades some individual growth for relationship and cohesion gains", () => {
+    const state = createTrainingState();
+    const baselineState = structuredClone(state);
+    const school = state.schools[state.userSchoolId]!;
+    const left = school.playerIds[0]!;
+    const right = school.playerIds[1]!;
+    const key = relationshipKey(left, right);
+    state.playerRelationships[key] = 50;
+    baselineState.playerRelationships[key] = 50;
+
+    const coordinationPlan = createPlan(school.playerIds);
+    coordinationPlan.teamTrainingMenuId = "training.coordination";
+    const baselinePlan = createPlan(school.playerIds);
+    baselinePlan.teamTrainingMenuId = "training.serve";
+
+    const coordination = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan: coordinationPlan,
+      data,
+      random: new FixedRandom(100),
+    });
+    const baseline = resolveWeeklyTraining({
+      state: baselineState,
+      schoolId: baselineState.userSchoolId,
+      plan: baselinePlan,
+      data,
+      random: new FixedRandom(100),
+    });
+
+    expect(coordination.state.playerRelationships[key]).toBe(58);
+    expect(baseline.state.playerRelationships[key]).toBe(50);
+    expect(coordination.state.teamDynamics.cohesion).toBeGreaterThan(
+      baseline.state.teamDynamics.cohesion,
+    );
+    expect(
+      coordination.result.playerLogs.some((log) =>
+        log.modifiers.some(
+          (modifier) =>
+            modifier.code === "team-coordination" && modifier.percent === 90,
+        ),
+      ),
+    ).toBe(true);
   });
 
   it("keeps all ability values as integers from zero to one hundred", () => {

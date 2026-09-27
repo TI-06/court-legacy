@@ -169,13 +169,27 @@ export function buildCoachTrainingRecommendation(
   }
 
   const quality = coachRecommendationQuality(state);
+  const { ranked, weakest } = weakestArea(player);
   if (quality === "basic") {
+    const strongestValue = ranked[ranked.length - 1]?.[1] ?? weakest[1];
+    const weaknessGap = strongestValue - weakest[1];
+    if (weaknessGap < 6) {
+      return {
+        playerId: player.id,
+        instructionId: "instruction.overall",
+        instructionName: "全体",
+        reason: "balanced",
+        reasonLabel: "能力差が小さいため基礎をバランス強化",
+      };
+    }
+
+    const [area, value] = weakest;
+    const instruction = areaInstruction(area);
     return {
       playerId: player.id,
-      instructionId: "instruction.overall",
-      instructionName: "全体",
-      reason: "balanced",
-      reasonLabel: "監督の基本方針で基礎をバランス強化",
+      ...instruction,
+      reason: "weakness",
+      reasonLabel: `目立つ弱点「${areaLabels[area]} ${ratingToGrade(value)}」を補強`,
     };
   }
 
@@ -192,7 +206,6 @@ export function buildCoachTrainingRecommendation(
     };
   }
 
-  const { weakest } = weakestArea(player);
   const [area, value] = weakest;
   const instruction = areaInstruction(area);
   return {

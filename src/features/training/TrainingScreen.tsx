@@ -173,7 +173,9 @@ export function TrainingScreen({
             <strong>{selectedMenu?.name ?? "未設定"}</strong>
             <small>
               {selectedMenu
-                ? `成長 ${signed(selectedMenu.baseGrowth)} / 疲労 ${signed(selectedMenu.fatigue)} / 怪我 ${selectedMenu.injuryRisk}%`
+                ? selectedMenu.id === "training.coordination"
+                  ? `個人成長 90% / 関係性 +${selectedMenu.relationshipGrowth}`
+                  : `成長 ${signed(selectedMenu.baseGrowth)} / 疲労 ${signed(selectedMenu.fatigue)} / 怪我 ${selectedMenu.injuryRisk}%`
                 : "練習メニューを選択"}
             </small>
           </span>
@@ -239,11 +241,19 @@ export function TrainingScreen({
               description={menu.description}
               key={menu.id}
               meta={
-                <>
-                  <span>成長 {menu.baseGrowth}</span>
-                  <span>疲労 {signed(menu.fatigue)}</span>
-                  <span>怪我 {menu.injuryRisk}%</span>
-                </>
+                menu.id === "training.coordination" ? (
+                  <>
+                    <span>個人成長 90%</span>
+                    <span>関係性 +{menu.relationshipGrowth}</span>
+                    <span>結束重視</span>
+                  </>
+                ) : (
+                  <>
+                    <span>成長 {menu.baseGrowth}</span>
+                    <span>疲労 {signed(menu.fatigue)}</span>
+                    <span>怪我 {menu.injuryRisk}%</span>
+                  </>
+                )
               }
               onClick={() => {
                 setTeamTrainingMenuId(menu.id);

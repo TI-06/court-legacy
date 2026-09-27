@@ -79,11 +79,13 @@ describe("coachTrainingRecommendations", () => {
     });
   });
 
-  it("uses balanced fundamentals for a basic coach and weakness training for a standard coach", () => {
+  it("lets a basic coach react to a clear weakness while keeping balanced players on fundamentals", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const player = state.players[school.playerIds[0]!]!;
     player.condition = 80;
+
+    school.coach.development = 40;
     player.abilities = {
       ...player.abilities,
       spike: 70,
@@ -95,14 +97,32 @@ describe("coachTrainingRecommendations", () => {
       decision: 70,
       mental: 70,
     };
+    expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
+      instructionId: "instruction.defense",
+      reason: "weakness",
+    });
 
-    school.coach.development = 40;
+    player.abilities = {
+      ...player.abilities,
+      spike: 60,
+      serve: 61,
+      receive: 59,
+      block: 60,
+      jump: 62,
+      stamina: 61,
+      decision: 60,
+      mental: 59,
+      set: 60,
+      speed: 61,
+    };
     expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
       instructionId: "instruction.overall",
       reason: "balanced",
     });
 
     school.coach.development = 60;
+    player.abilities.receive = 30;
+    player.abilities.block = 30;
     expect(buildCoachTrainingRecommendation(state, player)).toMatchObject({
       instructionId: "instruction.defense",
       reason: "weakness",

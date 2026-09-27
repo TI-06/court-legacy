@@ -82,6 +82,7 @@ interface PlayerHubScreenProps {
   onSaveTrainingAssignments?: (
     assignments: IndividualTrainingAssignment[],
   ) => void | Promise<void>;
+  onSetTeamTrainingMenu?: (teamTrainingMenuId: string) => void | Promise<void>;
   onSetDevelopmentPriorities?: (playerIds: PlayerId[]) => void | Promise<void>;
   onSetPlayerDevelopmentGoal?: (
     playerId: PlayerId,
@@ -260,6 +261,7 @@ export function PlayerHubScreen({
   planningPending = false,
   tacticsPending = false,
   onSaveTrainingAssignments,
+  onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
   onSetTeamTactics,
@@ -591,8 +593,10 @@ export function PlayerHubScreen({
         <HubTabs mode={mode} onChange={setMode} />
         <TeamDynamicsPanel
           onAssignLeadership={onAssignLeadership}
+          onSetTeamTrainingMenu={onSetTeamTrainingMenu}
           pending={leadershipPending}
           state={state}
+          trainingPending={trainingPending}
         />
       </main>
     );

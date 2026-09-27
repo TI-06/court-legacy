@@ -86,6 +86,13 @@ describe("Phase21 authoritative relationship notifications", () => {
     const bond = added.state.playerRelationshipBonds[key]!;
     snapshot.state = {
       ...added.state,
+      weeklySchedule: {
+        ...added.state.weeklySchedule,
+        trainingPlan: {
+          ...added.state.weeklySchedule.trainingPlan,
+          teamTrainingMenuId: "training.serve",
+        },
+      },
       playerRelationshipBonds: {
         ...added.state.playerRelationshipBonds,
         [key]: {

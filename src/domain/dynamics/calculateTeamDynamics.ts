@@ -110,6 +110,57 @@ function leadershipScoreFor(
   return player ? calculateLeadershipSuitability(player) : 0;
 }
 
+export interface CohesionBreakdown {
+  morale: number;
+  trust: number;
+  relationships: number;
+  captain: number;
+  viceCaptain: number;
+  adaptation: number;
+  lineupContinuity: number;
+  cohesion: number;
+}
+
+export function calculateCohesionBreakdown(
+  state: TeamDynamicsStateSource,
+  dynamics: Pick<
+    TeamDynamicsState,
+    "captainPlayerId" | "viceCaptainPlayerId" | "lineupContinuity"
+  >,
+): CohesionBreakdown {
+  const players = rosterPlayers(state);
+  const rosterIds = players.map((player) => player.id);
+  const rawMorale = average(players.map((player) => player.morale));
+  const rawTrust = average(players.map((player) => player.trust));
+  const relationships = calculateRelationshipSignal(state, rosterIds);
+  const captain = leadershipScoreFor(players, dynamics.captainPlayerId);
+  const viceCaptain = leadershipScoreFor(players, dynamics.viceCaptainPlayerId);
+  const rawAdaptation = average(
+    players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
+  );
+  const lineupContinuity = clamp100(dynamics.lineupContinuity);
+  const cohesion = clamp100(
+    rawMorale * 0.25 +
+      rawTrust * 0.2 +
+      relationships * 0.2 +
+      captain * 0.15 +
+      viceCaptain * 0.05 +
+      rawAdaptation * 0.1 +
+      lineupContinuity * 0.05,
+  );
+
+  return {
+    morale: clamp100(rawMorale),
+    trust: clamp100(rawTrust),
+    relationships,
+    captain,
+    viceCaptain,
+    adaptation: clamp100(rawAdaptation),
+    lineupContinuity,
+    cohesion,
+  };
+}
+
 export function calculateCohesionTarget(
   state: TeamDynamicsStateSource,
   dynamics: Pick<
@@ -117,25 +168,5 @@ export function calculateCohesionTarget(
     "captainPlayerId" | "viceCaptainPlayerId" | "lineupContinuity"
   >,
 ): number {
-  const players = rosterPlayers(state);
-  const rosterIds = players.map((player) => player.id);
-  const morale = average(players.map((player) => player.morale));
-  const trust = average(players.map((player) => player.trust));
-  const relationships = calculateRelationshipSignal(state, rosterIds);
-  const captain = leadershipScoreFor(players, dynamics.captainPlayerId);
-  const viceCaptain = leadershipScoreFor(players, dynamics.viceCaptainPlayerId);
-  const adaptation = average(
-    players.map((player) => optionalPlayerMetric(player.teamAdaptation)),
-  );
-  const lineupContinuity = clamp100(dynamics.lineupContinuity);
-
-  return clamp100(
-    morale * 0.25 +
-      trust * 0.2 +
-      relationships * 0.2 +
-      captain * 0.15 +
-      viceCaptain * 0.05 +
-      adaptation * 0.1 +
-      lineupContinuity * 0.05,
-  );
+  return calculateCohesionBreakdown(state, dynamics).cohesion;
 }

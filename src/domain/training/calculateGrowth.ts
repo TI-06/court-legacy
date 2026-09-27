@@ -21,6 +21,7 @@ export type GrowthModifierCode =
   | "assistant-coach-condition"
   | "assistant-coach-first-year"
   | "relationship-social"
+  | "team-coordination"
   | "special-ability-growth"
   | "academic";
 
@@ -40,6 +41,7 @@ export type AdditionalGrowthModifier = GrowthModifier & {
     | "assistant-coach-condition"
     | "assistant-coach-first-year"
     | "relationship-social"
+    | "team-coordination"
     | "special-ability-growth";
 };
 

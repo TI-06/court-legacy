@@ -1024,6 +1024,17 @@ const trainingMenus: TrainingMenuDefinition[] = [
     tags: ["team", "attack"],
   },
   {
+    id: "training.coordination",
+    name: "連携練習",
+    description: "声かけと連動を重ね、選手同士の関係性とチームの結束を高める。",
+    targetAbilities: ["decision", "mental"],
+    baseGrowth: 2,
+    fatigue: 6,
+    injuryRisk: 1,
+    relationshipGrowth: 8,
+    tags: ["team", "cohesion"],
+  },
+  {
     id: "training.physical",
     name: "フィジカル",
     description: "跳躍と出力を高める基礎トレーニング。",

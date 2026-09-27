@@ -3,7 +3,7 @@ import {
   calculateDynamicsTrainingModifiers,
   progressWeeklyDynamics,
 } from "../dynamics/progressWeeklyDynamics";
-import type { GameState } from "../model/GameState";
+import { relationshipKey, type GameState } from "../model/GameState";
 import { ABILITY_KEYS, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
 import { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
@@ -138,6 +138,31 @@ function emptyLog(playerId: PlayerId): PlayerGrowthLog {
 
 function trustChange(base: number, personality: PersonalityDefinition) {
   return Math.round(base * ((100 + personality.relationshipGrowth) / 100));
+}
+
+function applyTeamRelationshipGrowth(
+  state: GameState,
+  playerIds: readonly PlayerId[],
+  amount: number,
+): GameState {
+  if (amount === 0 || playerIds.length < 2) return state;
+
+  const relationships = { ...state.playerRelationships };
+  const sortedIds = [...playerIds].sort();
+  for (let leftIndex = 0; leftIndex < sortedIds.length; leftIndex += 1) {
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < sortedIds.length;
+      rightIndex += 1
+    ) {
+      const left = sortedIds[leftIndex]!;
+      const right = sortedIds[rightIndex]!;
+      const key = relationshipKey(left, right);
+      relationships[key] = clampState((relationships[key] ?? 50) + amount);
+    }
+  }
+
+  return { ...state, playerRelationships: relationships };
 }
 
 export { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
@@ -276,7 +301,8 @@ function validate(input: ResolveWeeklyTrainingInput) {
   if (!school) {
     throw new Error(`unknown training school: ${input.schoolId}`);
   }
-  if (!input.data.trainingMenus.has(input.plan.teamTrainingMenuId)) {
+  const teamMenu = input.data.trainingMenus.get(input.plan.teamTrainingMenuId);
+  if (!teamMenu) {
     throw new Error(
       `unknown team training menu: ${input.plan.teamTrainingMenuId}`,
     );
@@ -330,7 +356,13 @@ function validate(input: ResolveWeeklyTrainingInput) {
     throw new Error("missing instruction.overall");
   }
 
-  return { school, instructionByPlayerId, fallback, activeAssignments };
+  return {
+    school,
+    teamMenu,
+    instructionByPlayerId,
+    fallback,
+    activeAssignments,
+  };
 }
 
 export function resolvePlayerTrainingActivity(
@@ -359,6 +391,17 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const assignments: IndividualTrainingAssignment[] = [];
   const includeDynamics = input.schoolId === input.state.userSchoolId;
+  const teamMenuGrowthModifiers: AdditionalGrowthModifier[] =
+    validated.teamMenu.id === "training.coordination"
+      ? [
+          {
+            code: "team-coordination",
+            label: "連携練習",
+            percent: 90,
+          },
+        ]
+      : [];
+
   const activeTrainingPlayerIds = new Set<PlayerId>(
     validated.school.playerIds.filter((id) => {
       const player = input.state.players[id]!;
@@ -424,6 +467,7 @@ export function resolveWeeklyTraining(
     const extraModifiers = includeDynamics
       ? [
           ...(input.additionalGrowthModifiers ?? []),
+          ...teamMenuGrowthModifiers,
           ...calculateDynamicsTrainingModifiers(original),
           ...assistantCoachTrainingModifiers(
             input.state,
@@ -432,7 +476,11 @@ export function resolveWeeklyTraining(
           ),
           ...socialModifiers,
         ]
-      : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
+      : [
+          ...(input.additionalGrowthModifiers ?? []),
+          ...teamMenuGrowthModifiers,
+          ...socialModifiers,
+        ];
     const updated = applyActivity(
       original,
       activityFromInstruction(instruction),
@@ -467,9 +515,16 @@ export function resolveWeeklyTraining(
         }
       : input.state.weeklySchedule,
   };
-  const state = includeDynamics
-    ? progressWeeklyDynamics(trainedState)
+  const relationshipState = includeDynamics
+    ? applyTeamRelationshipGrowth(
+        trainedState,
+        [...activeTrainingPlayerIds],
+        validated.teamMenu.relationshipGrowth,
+      )
     : trainedState;
+  const state = includeDynamics
+    ? progressWeeklyDynamics(relationshipState)
+    : relationshipState;
 
   return {
     state,

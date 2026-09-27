@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import {
+  calculateCohesionBreakdown,
   calculateLeadershipSuitability,
-  calculateRelationshipSignal,
 } from "../../domain/dynamics/calculateTeamDynamics";
 import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";
 import type {
@@ -17,6 +18,8 @@ import "./team-dynamics.css";
 interface TeamDynamicsPanelProps {
   state: GameState;
   pending: boolean;
+  trainingPending?: boolean;
+  onSetTeamTrainingMenu?: (teamTrainingMenuId: string) => void | Promise<void>;
   onAssignLeadership: (
     captainPlayerId: PlayerId,
     viceCaptainPlayerId: PlayerId,
@@ -155,6 +158,8 @@ function LeadershipEditor({
 export function TeamDynamicsPanel({
   state,
   pending,
+  trainingPending = false,
+  onSetTeamTrainingMenu,
   onAssignLeadership,
 }: TeamDynamicsPanelProps) {
   const school = state.schools[state.userSchoolId]!;
@@ -186,10 +191,23 @@ export function TeamDynamicsPanel({
         ),
     [players],
   );
-  const relationshipSignal = calculateRelationshipSignal(
-    state,
-    school.playerIds,
-  );
+  const cohesionBreakdown = calculateCohesionBreakdown(state, dynamics);
+  const relationshipSignal = cohesionBreakdown.relationships;
+  const cohesionMatchEffect = ((dynamics.cohesion - 50) / 50) * 2;
+  const cohesionMatchEffectLabel = `${cohesionMatchEffect >= 0 ? "+" : ""}${cohesionMatchEffect.toFixed(1)}%`;
+  const cohesionFactors = [
+    { label: "士気", value: cohesionBreakdown.morale, weight: "25%" },
+    { label: "信頼", value: cohesionBreakdown.trust, weight: "20%" },
+    { label: "関係性", value: cohesionBreakdown.relationships, weight: "20%" },
+    { label: "主将", value: cohesionBreakdown.captain, weight: "15%" },
+    { label: "副主将", value: cohesionBreakdown.viceCaptain, weight: "5%" },
+    { label: "チーム適応", value: cohesionBreakdown.adaptation, weight: "10%" },
+    {
+      label: "スタメン継続",
+      value: cohesionBreakdown.lineupContinuity,
+      weight: "5%",
+    },
+  ];
   const concerns = players.flatMap((player) =>
     selectPlayerConcernGuidance(state, player.id).map((guidance) => ({
       player,
@@ -197,6 +215,10 @@ export function TeamDynamicsPanel({
     })),
   );
   const leadershipEditorKey = `${dynamics.captainPlayerId ?? "none"}:${dynamics.viceCaptainPlayerId ?? "none"}`;
+  const trainingDone = isWeeklyActionCompleted(state, "training");
+  const coordinationTrainingSelected =
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId ===
+    "training.coordination";
 
   return (
     <section className="team-dynamics" aria-labelledby="team-dynamics-heading">
@@ -233,6 +255,69 @@ export function TeamDynamicsPanel({
           <small>直近の起用・状態から判定</small>
         </article>
       </div>
+
+      <section
+        aria-labelledby="cohesion-guide-heading"
+        className="team-dynamics__cohesion-guide"
+      >
+        <div className="team-dynamics__section-heading">
+          <div>
+            <p className="section-kicker">結束のしくみ</p>
+            <h3 id="cohesion-guide-heading">結束の内訳</h3>
+          </div>
+          <span>高いほどチームが安定</span>
+        </div>
+        <div
+          aria-label="結束の内訳"
+          className="team-dynamics__cohesion-factors"
+        >
+          {cohesionFactors.map((factor) => (
+            <article key={factor.label}>
+              <span>{factor.label}</span>
+              <strong>{factor.value}</strong>
+              <small>影響 {factor.weight}</small>
+            </article>
+          ))}
+        </div>
+        <div className="team-dynamics__cohesion-effect">
+          <div>
+            <span>現在の試合効果</span>
+            <strong>連携補正 {cohesionMatchEffectLabel}</strong>
+          </div>
+          <small>
+            PvE試合の準備度に反映。結束だけの効果は最大 -2.0%〜+2.0%です。
+          </small>
+        </div>
+        <div className="team-dynamics__cohesion-tips">
+          <strong>結束を上げるには</strong>
+          <p>
+            「連携練習」やコンビ・ローテーション練習で関係性を上げる／
+            公式戦で勝って士気を上げる／選手の不満を解消する／
+            適性の高い主将・副主将を置く／スタメンをある程度継続する。
+          </p>
+        </div>
+        <button
+          className="team-dynamics__coordination-action"
+          disabled={
+            pending ||
+            trainingPending ||
+            trainingDone ||
+            coordinationTrainingSelected ||
+            !onSetTeamTrainingMenu
+          }
+          onClick={() => void onSetTeamTrainingMenu?.("training.coordination")}
+          type="button"
+        >
+          <span>
+            {coordinationTrainingSelected
+              ? "今週は連携練習を設定済み"
+              : trainingDone
+                ? "今週の練習は実施済み"
+                : "今週は連携練習にする"}
+          </span>
+          <small>個人成長効率90%・参加選手の関係性 +8</small>
+        </button>
+      </section>
 
       <LeadershipEditor
         key={leadershipEditorKey}

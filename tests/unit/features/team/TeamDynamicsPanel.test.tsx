@@ -74,6 +74,38 @@ describe("TeamDynamicsPanel", () => {
       screen.getByText(new RegExp(`${playerName(first)}.*出場機会`)),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "主将適性" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "結束の内訳" })).toBeVisible();
+    const cohesionBreakdown = screen.getByRole("region", {
+      name: "結束の内訳",
+    });
+    expect(cohesionBreakdown).toHaveTextContent("士気");
+    expect(cohesionBreakdown).toHaveTextContent("信頼");
+    expect(cohesionBreakdown).toHaveTextContent("関係性");
+    expect(screen.getByText("現在の試合効果")).toBeVisible();
+    expect(screen.getByText(/連携補正 \+0\.6%/)).toBeVisible();
+    expect(screen.getByText("結束を上げるには")).toBeVisible();
+    expect(screen.getByText(/「連携練習」/)).toBeVisible();
+  });
+
+  it("can set coordination training directly from the cohesion guide", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId = "training.spike";
+    const onSetTeamTrainingMenu = vi.fn();
+
+    render(
+      <TeamDynamicsPanel
+        onAssignLeadership={vi.fn()}
+        onSetTeamTrainingMenu={onSetTeamTrainingMenu}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /今週は連携練習にする/ }),
+    );
+
+    expect(onSetTeamTrainingMenu).toHaveBeenCalledWith("training.coordination");
   });
 
   it("submits only the selected captain and vice-captain ids", () => {
