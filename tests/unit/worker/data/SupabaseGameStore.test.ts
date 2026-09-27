@@ -23,11 +23,16 @@ describe("SupabaseGameStore save stability", () => {
     const snapshot = createSoakSnapshot("phase22-save-store");
     const operationId = "phase22-op-001";
     const outcome = { weekAdvanced: true, marker: "replay-contract" };
+    const nextState = {
+      ...snapshot.state,
+      date: "2026-04-08" as typeof snapshot.state.date,
+    };
     const response = {
       operationId,
       game: {
         ...snapshot,
         revision: snapshot.revision + 1,
+        state: nextState,
       },
       outcome,
     };
@@ -42,22 +47,33 @@ describe("SupabaseGameStore save stability", () => {
         userId: snapshot.userId,
         operationId,
         expectedRevision: snapshot.revision,
+        previousState: snapshot.state,
         state: response.game.state,
         teamSelection: response.game.teamSelection,
         response,
       }),
     ).resolves.toEqual({ response, replayed: false });
 
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
-      p_state: response.game.state,
+      p_state_patch: [
+        {
+          op: "set",
+          path: ["date"],
+          value: "2026-04-08",
+        },
+      ],
       p_team_selection: response.game.teamSelection,
       p_outcome: outcome,
     });
     const rpcPayload = vi.mocked(client.rpc).mock.calls[0]?.[1];
     expect(rpcPayload).not.toHaveProperty("p_response");
+    expect(rpcPayload).not.toHaveProperty("p_state");
+    expect(JSON.stringify(rpcPayload?.p_state_patch).length).toBeLessThan(
+      JSON.stringify(response.game.state).length * 0.01,
+    );
   });
 
   it("returns an exact replay response from the operation RPC", async () => {
@@ -91,6 +107,7 @@ describe("SupabaseGameStore save stability", () => {
         userId: snapshot.userId,
         operationId,
         expectedRevision: snapshot.revision,
+        previousState: snapshot.state,
         state: response.game.state,
         teamSelection: response.game.teamSelection,
         response,
