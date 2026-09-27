@@ -391,6 +391,17 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const assignments: IndividualTrainingAssignment[] = [];
   const includeDynamics = input.schoolId === input.state.userSchoolId;
+  const teamMenuGrowthModifiers: AdditionalGrowthModifier[] =
+    validated.teamMenu.id === "training.coordination"
+      ? [
+          {
+            code: "team-coordination",
+            label: "連携練習",
+            percent: 90,
+          },
+        ]
+      : [];
+
   const activeTrainingPlayerIds = new Set<PlayerId>(
     validated.school.playerIds.filter((id) => {
       const player = input.state.players[id]!;
@@ -456,6 +467,7 @@ export function resolveWeeklyTraining(
     const extraModifiers = includeDynamics
       ? [
           ...(input.additionalGrowthModifiers ?? []),
+          ...teamMenuGrowthModifiers,
           ...calculateDynamicsTrainingModifiers(original),
           ...assistantCoachTrainingModifiers(
             input.state,
@@ -464,7 +476,11 @@ export function resolveWeeklyTraining(
           ),
           ...socialModifiers,
         ]
-      : [...(input.additionalGrowthModifiers ?? []), ...socialModifiers];
+      : [
+          ...(input.additionalGrowthModifiers ?? []),
+          ...teamMenuGrowthModifiers,
+          ...socialModifiers,
+        ];
     const updated = applyActivity(
       original,
       activityFromInstruction(instruction),
