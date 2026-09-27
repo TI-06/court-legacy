@@ -125,6 +125,21 @@ export function createScoutingBoardHandler(
             ? await deps.scoutingStore.replaceCandidatePool(replayPoolInput)
             : await deps.scoutingStore.createCandidatePool(replayPoolInput);
         }
+        if (replayPool) {
+          const repairedCandidates = preserveCommittedScoutingCandidates(
+            replayed.game.state,
+            replayPool.candidates,
+            replayPool.candidates,
+          );
+          if (repairedCandidates.length !== replayPool.candidates.length) {
+            replayPool = await deps.scoutingStore.replaceCandidatePool({
+              userId: user.id,
+              cycleKey: replayCycleKey,
+              creationOperationId: replayPool.creationOperationId,
+              candidates: repairedCandidates,
+            });
+          }
+        }
         return json({
           operationId: parsed.data.operationId,
           revision: replayed.game.revision,
