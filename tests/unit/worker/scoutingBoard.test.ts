@@ -186,9 +186,7 @@ describe("scouting board route", () => {
     const reportIds = body.reports.map(
       (report: { candidateId: string }) => report.candidateId,
     );
-    expect(reportIds).toEqual(
-      expect.arrayContaining(committedCandidateIds),
-    );
+    expect(reportIds).toEqual(expect.arrayContaining(committedCandidateIds));
     expect(body.reports).toHaveLength(3);
   });
 
