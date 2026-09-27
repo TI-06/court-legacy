@@ -96,6 +96,30 @@ describe("compactGameSnapshot", () => {
     }
   });
 
+  it("removes stale orphaned retired players even when alumni ids are already bounded", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const rival = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    )!;
+    const template = snapshot.state.players[rival.playerIds[0]!]!;
+    const orphanId = playerId("legacy-orphaned-rival-alumni");
+
+    snapshot.state.players[orphanId] = {
+      ...structuredClone(template),
+      id: orphanId,
+      career: { ...template.career, schoolId: rival.id },
+    };
+    expect(rival.alumniPlayerIds).not.toContain(orphanId);
+
+    const compacted = compactGameSnapshot(snapshot);
+
+    expect(compacted.state.players[orphanId]).toBeUndefined();
+    for (const id of rival.playerIds) {
+      expect(compacted.state.players[id]).toBeDefined();
+    }
+  });
+
   it("returns the original snapshot when it is already compact", () => {
     const snapshot = snapshotWithNotifications();
     snapshot.state.notifications.items =
