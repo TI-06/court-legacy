@@ -30,6 +30,7 @@ export interface PersistOperationInput {
   userId: string;
   operationId: string;
   expectedRevision: number;
+  previousState: GameState;
   state: GameState;
   teamSelection: TeamSelection;
   response: PersistedOperationResponse;
