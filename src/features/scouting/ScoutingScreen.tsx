@@ -210,7 +210,10 @@ export function ScoutingScreen({
     state.recruiting?.cycleKey === cycleKey
       ? state.recruiting.committedCandidateIds
       : [];
-  const committed = new Set<PlayerId>(committedCandidateIds);
+  const committed = useMemo(
+    () => new Set<PlayerId>(committedCandidateIds),
+    [committedCandidateIds],
+  );
   const researchStatus = shopStatus?.items.find(
     (item) => item.itemId === "scout-research",
   );
