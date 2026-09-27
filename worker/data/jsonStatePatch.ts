@@ -16,9 +16,7 @@ function jsonEqual(left: unknown, right: unknown): boolean {
   }
 
   if (isRecord(left) && isRecord(right)) {
-    const leftKeys = Object.keys(left).filter(
-      (key) => left[key] !== undefined,
-    );
+    const leftKeys = Object.keys(left).filter((key) => left[key] !== undefined);
     const rightKeys = Object.keys(right).filter(
       (key) => right[key] !== undefined,
     );
