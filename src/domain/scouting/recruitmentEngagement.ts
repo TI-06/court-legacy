@@ -15,7 +15,6 @@ export const RECRUITMENT_VISIT_BONUS = 12;
 export const RECRUITMENT_RECOMMENDATION_BONUS = 24;
 export const RECRUITMENT_COMMIT_LIMIT = 7;
 
-
 export function recruitmentCommitCapacity(state: GameState): number {
   const school = state.schools[state.userSchoolId];
   if (!school) return 0;
