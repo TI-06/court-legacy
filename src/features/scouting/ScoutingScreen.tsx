@@ -212,18 +212,23 @@ export function ScoutingScreen({
     state.recruiting?.cycleKey === cycleKey
       ? state.recruiting.committedCandidateIds
       : [];
-  const committed = new Set<PlayerId>(committedCandidateIds);
+  const committed = useMemo(
+    () => new Set<PlayerId>(committedCandidateIds),
+    [committedCandidateIds],
+  );
   const researchStatus = shopStatus?.items.find(
     (item) => item.itemId === "scout-research",
   );
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
-  const availableReports = reports.filter(
-    (report) => !committed.has(report.candidateId),
+  const availableReports = useMemo(
+    () => reports.filter((report) => !committed.has(report.candidateId)),
+    [committed, reports],
   );
-  const committedReports = reports.filter((report) =>
-    committed.has(report.candidateId),
+  const committedReports = useMemo(
+    () => reports.filter((report) => committed.has(report.candidateId)),
+    [committed, reports],
   );
   const activeReports = useMemo(
     () =>
@@ -394,10 +399,7 @@ export function ScoutingScreen({
       ) : null}
 
       {!loading && committedCandidateIds.length > 0 ? (
-        <section
-          className="scouting-committed"
-          aria-label="獲得決定済み選手"
-        >
+        <section className="scouting-committed" aria-label="獲得決定済み選手">
           <div className="scouting-committed__heading">
             <div>
               <span>COMMITTED</span>
@@ -423,8 +425,14 @@ export function ScoutingScreen({
                   </span>
                 </div>
                 <div className="scouting-committed-card__ability">
-                  <span>総合 {report.estimatedOverall.min}〜{report.estimatedOverall.max}</span>
-                  <span>将来 {report.estimatedPotential.min}〜{report.estimatedPotential.max}</span>
+                  <span>
+                    総合 {report.estimatedOverall.min}〜
+                    {report.estimatedOverall.max}
+                  </span>
+                  <span>
+                    将来 {report.estimatedPotential.min}〜
+                    {report.estimatedPotential.max}
+                  </span>
                 </div>
                 <span className="scouting-committed-card__status">
                   入学確定
