@@ -9,6 +9,7 @@ import type {
   PersistOperationResult,
 } from "../../../worker/data/GameStore";
 import { RevisionConflictError } from "../../../worker/data/GameStore";
+import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { createGameActionHandler } from "../../../worker/routes/gameAction";
 
 function createSnapshot(revision = 4): CloudGameSnapshot {
@@ -204,6 +205,56 @@ describe("game action route", () => {
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.previousState.notifications.items).toHaveLength(2);
     expect(persisted.state.notifications.items).toHaveLength(1);
+  });
+
+  it("uses one compact active-match patch and omits duplicate mid-match outcome", async () => {
+    const snapshot = createSnapshot();
+    const opponent = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    );
+    if (!opponent) throw new Error("practice opponent fixture missing");
+    snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+      opponent.id;
+    snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+
+    const started = applyGameAction(snapshot, { type: "advance-week" });
+    const activeSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: started.state,
+      teamSelection: started.teamSelection,
+    };
+    expect(activeSnapshot.state.activeMatch?.runtime).toBeDefined();
+
+    const store = createStore(activeSnapshot);
+    const handler = createGameActionHandler(store);
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "match-command",
+          command: { type: "continue" },
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.outcome).toBeUndefined();
+    expect(
+      body.gameDelta.statePatch.filter(
+        (entry: { path: string[] }) => entry.path[0] === "activeMatch",
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        op: "set",
+        path: ["activeMatch"],
+      }),
+    ]);
+
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(persisted.preferDelta).toBe(true);
+    expect(persisted.response.outcome).toBeUndefined();
   });
 
   it("accepts a valid season ambition action through the HTTP contract", async () => {
