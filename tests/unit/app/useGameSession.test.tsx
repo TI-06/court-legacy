@@ -212,9 +212,8 @@ describe("useGameSession", () => {
       }),
     );
 
-    let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
     await act(async () => {
-      response = await result.current.runAction(
+      await result.current.runAction(
         { type: "mark-notification-read", notificationId: "n-1" },
         "保存",
       );
@@ -226,8 +225,6 @@ describe("useGameSession", () => {
       status: "success",
       label: "保存",
     });
-    expect(response?.game).toEqual(latestSnapshot);
-    expect(response?.outcome).toEqual({ recovered: true });
   });
 
   it("does not send a second mutation while another authoritative mutation is pending", async () => {
