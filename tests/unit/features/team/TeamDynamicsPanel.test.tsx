@@ -86,6 +86,29 @@ describe("TeamDynamicsPanel", () => {
     expect(screen.getByText(/「連携練習」/)).toBeVisible();
   });
 
+  it("can set coordination training directly from the cohesion guide", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId = "training.spike";
+    const onSetTeamTrainingMenu = vi.fn();
+
+    render(
+      <TeamDynamicsPanel
+        onAssignLeadership={vi.fn()}
+        onSetTeamTrainingMenu={onSetTeamTrainingMenu}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /今週は連携練習にする/ }),
+    );
+
+    expect(onSetTeamTrainingMenu).toHaveBeenCalledWith(
+      "training.coordination",
+    );
+  });
+
   it("submits only the selected captain and vice-captain ids", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
