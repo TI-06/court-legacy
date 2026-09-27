@@ -167,15 +167,17 @@ describe("game action route", () => {
     expect(body.operationId).toBe("operation-001");
     expect(body).not.toHaveProperty("game");
     expect(body.statePatch).toEqual(expect.any(Array));
-    expect(
-      applyJsonStatePatch(snapshot.state, body.statePatch),
-    ).toEqual(persisted.state);
+    expect(applyJsonStatePatch(snapshot.state, body.statePatch)).toEqual(
+      persisted.state,
+    );
     expect(JSON.stringify(body).length).toBeLessThan(
       JSON.stringify(persisted.response).length,
     );
   });
 
-  it("returns a compact match presentation instead of duplicating the full match outcome", async () => {
+  it(
+    "returns a compact match presentation instead of duplicating the full match outcome",
+    async () => {
     const base = createSnapshot();
     const opponent = Object.values(base.state.schools).find(
       (school) => school.id !== base.state.userSchoolId,
@@ -219,10 +221,11 @@ describe("game action route", () => {
     expect(
       applyJsonStatePatch(snapshot.state, body.statePatch),
     ).toEqual(persisted.state);
-    expect(JSON.stringify(body).length).toBeLessThan(
-      JSON.stringify(persisted.response).length,
-    );
-  });
+      expect(JSON.stringify(body).length).toBeLessThan(
+        JSON.stringify(persisted.response).length,
+      );
+    },
+  );
 
   it("accepts a valid season ambition action through the HTTP contract", async () => {
     const snapshot = createSnapshot();
