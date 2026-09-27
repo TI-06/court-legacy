@@ -11,7 +11,10 @@ import {
 import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
-import { buildJsonStatePatch } from "../data/statePatch";
+import {
+  buildJsonStatePatch,
+  collapseJsonStatePatchRoot,
+} from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
@@ -150,7 +153,20 @@ export function createGameActionHandler(
       throw error;
     }
 
-    const statePatch = buildJsonStatePatch(loadedSnapshot.state, applied.state);
+    const isMidMatchCommand =
+      actionRequest.action.type === "match-command" &&
+      applied.state.activeMatch?.phase !== "match-complete";
+    const rawStatePatch = buildJsonStatePatch(
+      loadedSnapshot.state,
+      applied.state,
+    );
+    const statePatch = isMidMatchCommand
+      ? collapseJsonStatePatchRoot(
+          applied.state as unknown as Record<string, unknown>,
+          rawStatePatch,
+          "activeMatch",
+        )
+      : rawStatePatch;
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
@@ -160,7 +176,7 @@ export function createGameActionHandler(
       },
       operationId: actionRequest.operationId,
     };
-    if (applied.outcome !== undefined) {
+    if (!isMidMatchCommand && applied.outcome !== undefined) {
       response.outcome = applied.outcome;
     }
 
@@ -172,6 +188,7 @@ export function createGameActionHandler(
         previousState: loadedSnapshot.state,
         state: applied.state,
         statePatch,
+        preferDelta: isMidMatchCommand,
         teamSelection: applied.teamSelection,
         response,
       });
@@ -187,7 +204,9 @@ export function createGameActionHandler(
           statePatch,
           teamSelection: applied.teamSelection,
         },
-        ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+        ...(!isMidMatchCommand && applied.outcome !== undefined
+          ? { outcome: applied.outcome }
+          : {}),
       });
     } catch (error) {
       if (error instanceof RevisionConflictError) {
