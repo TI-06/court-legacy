@@ -17,9 +17,7 @@ import type {
   SavedLineupSlot,
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
-import type {
-  PendingMatchPresentation,
-} from "../../src/domain/calendar/advanceWeekOutcome";
+import type { PendingMatchPresentation } from "../../src/domain/calendar/advanceWeekOutcome";
 import type { PersistedOperationResponse } from "../data/GameStore";
 import type { JsonStatePatchOperation } from "../data/statePatch";
 
@@ -349,5 +347,4 @@ export interface DeltaGameActionResponse {
 }
 
 export type GameActionResponse =
-  | PersistedOperationResponse
-  | DeltaGameActionResponse;
+  PersistedOperationResponse | DeltaGameActionResponse;
