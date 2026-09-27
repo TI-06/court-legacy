@@ -1,5 +1,6 @@
 import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { JsonStatePatchOperation } from "./statePatch";
 
 export interface CloudGameSnapshot {
   userId: string;
@@ -32,6 +33,7 @@ export interface PersistOperationInput {
   expectedRevision: number;
   previousState: GameState;
   state: GameState;
+  statePatch?: JsonStatePatchOperation[];
   teamSelection: TeamSelection;
   response: PersistedOperationResponse;
 }
