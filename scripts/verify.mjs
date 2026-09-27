@@ -1,16 +1,30 @@
 import { spawnSync } from "node:child_process";
 
-const files = [
-  "src/features/scouting/ScoutingScreen.tsx",
-  "src/features/scouting/scouting.css",
+const commands = [
+  ["Formatting", "npm", ["run", "format:check"]],
+  ["Lint", "npm", ["run", "lint"]],
+  ["Type check", "npm", ["run", "typecheck"]],
+  ["V2 structure", "node", ["scripts/verifyStructureCli.mjs"]],
+  ["Unit tests", "npm", ["run", "test"]],
+  ["Production build", "npm", ["run", "build"]],
 ];
-for (const file of files) {
-  const result = spawnSync("npx", ["prettier", file], {
+
+for (const [label, command, arguments_] of commands) {
+  const result = spawnSync(command, arguments_, {
     encoding: "utf8",
     shell: process.platform === "win32",
   });
-  console.log(`===PRETTIER:${file}:START===`);
-  console.log(result.stdout);
-  console.log(`===PRETTIER:${file}:END===`);
+
+  if (result.status !== 0) {
+    console.error(`\n[FAILED] ${label}`);
+    if (result.stdout) {
+      console.error(result.stdout.trim());
+    }
+    if (result.stderr) {
+      console.error(result.stderr.trim());
+    }
+    process.exit(result.status ?? 1);
+  }
+
+  console.log(`[OK] ${label}`);
 }
-process.exit(1);
