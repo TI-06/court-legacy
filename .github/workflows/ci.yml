@@ -53,6 +53,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Show Phase37 Prettier diff
+        run: |
+          npx prettier tests/unit/app/useGameSession.test.tsx tests/unit/worker/gameAction.test.ts worker/game/actionSchema.ts --write
+          git diff -- tests/unit/app/useGameSession.test.tsx tests/unit/worker/gameAction.test.ts worker/game/actionSchema.ts
+          git checkout -- tests/unit/app/useGameSession.test.tsx tests/unit/worker/gameAction.test.ts worker/game/actionSchema.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
