@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import {
   calculateCohesionBreakdown,
   calculateLeadershipSuitability,
@@ -17,6 +18,8 @@ import "./team-dynamics.css";
 interface TeamDynamicsPanelProps {
   state: GameState;
   pending: boolean;
+  trainingPending?: boolean;
+  onSetTeamTrainingMenu?: (teamTrainingMenuId: string) => void | Promise<void>;
   onAssignLeadership: (
     captainPlayerId: PlayerId,
     viceCaptainPlayerId: PlayerId,
@@ -155,6 +158,8 @@ function LeadershipEditor({
 export function TeamDynamicsPanel({
   state,
   pending,
+  trainingPending = false,
+  onSetTeamTrainingMenu,
   onAssignLeadership,
 }: TeamDynamicsPanelProps) {
   const school = state.schools[state.userSchoolId]!;
@@ -210,6 +215,10 @@ export function TeamDynamicsPanel({
     })),
   );
   const leadershipEditorKey = `${dynamics.captainPlayerId ?? "none"}:${dynamics.viceCaptainPlayerId ?? "none"}`;
+  const trainingDone = isWeeklyActionCompleted(state, "training");
+  const coordinationTrainingSelected =
+    state.weeklySchedule.trainingPlan.teamTrainingMenuId ===
+    "training.coordination";
 
   return (
     <section className="team-dynamics" aria-labelledby="team-dynamics-heading">
@@ -287,6 +296,27 @@ export function TeamDynamicsPanel({
             適性の高い主将・副主将を置く／スタメンをある程度継続する。
           </p>
         </div>
+        <button
+          className="team-dynamics__coordination-action"
+          disabled={
+            pending ||
+            trainingPending ||
+            trainingDone ||
+            coordinationTrainingSelected ||
+            !onSetTeamTrainingMenu
+          }
+          onClick={() => void onSetTeamTrainingMenu?.("training.coordination")}
+          type="button"
+        >
+          <span>
+            {coordinationTrainingSelected
+              ? "今週は連携練習を設定済み"
+              : trainingDone
+                ? "今週の練習は実施済み"
+                : "今週は連携練習にする"}
+          </span>
+          <small>個人成長効率90%・参加選手の関係性 +8</small>
+        </button>
       </section>
 
       <LeadershipEditor
