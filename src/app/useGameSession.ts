@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import type { PendingMatchPresentation } from "../domain/calendar/advanceWeekOutcome";
 import type {
   CloudGameSnapshot,
   PersistedOperationResponse,
@@ -206,7 +207,13 @@ export function useGameSession({
       const response = normalizeActionResponse(current, wireResponse);
       replaceSnapshot(response.game);
       setOperation({ status: "success", label });
-      if (request.action.type !== "match-command") {
+      const completedMatch =
+        request.action.type === "match-command" &&
+        Boolean(
+          (response.outcome as PendingMatchPresentation | undefined)?.simulation
+            .analysis,
+        );
+      if (request.action.type !== "match-command" || completedMatch) {
         queueRecovery(response.game, null);
       }
       return response;
