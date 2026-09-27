@@ -90,9 +90,7 @@ async function resolveCommittedIntake(
     snapshot.state,
     repairedCandidates,
   );
-  if (
-    committedCandidates.length !== recruiting.committedCandidateIds.length
-  ) {
+  if (committedCandidates.length !== recruiting.committedCandidateIds.length) {
     return { error: recruitmentDataUnavailable() };
   }
 
