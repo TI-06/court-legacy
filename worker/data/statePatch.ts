@@ -91,3 +91,57 @@ export function buildJsonStatePatch(
   pushDiff(before, after, [], operations);
   return operations;
 }
+
+
+export function applyJsonStatePatch<T>(
+  source: T,
+  operations: readonly JsonStatePatchOperation[],
+): T {
+  let result = structuredClone(source) as unknown;
+
+  for (const operation of operations) {
+    if (operation.path.length === 0) {
+      if (operation.op === "remove") {
+        throw new Error("cannot remove JSON root");
+      }
+      result = structuredClone(operation.value);
+      continue;
+    }
+
+    let current = result as Record<string, unknown> | unknown[];
+    for (let index = 0; index < operation.path.length - 1; index += 1) {
+      const segment = operation.path[index]!;
+      const next = Array.isArray(current)
+        ? current[Number(segment)]
+        : current[segment];
+      if (typeof next !== "object" || next === null) {
+        throw new Error("state patch path is missing");
+      }
+      current = next as Record<string, unknown> | unknown[];
+    }
+
+    const key = operation.path[operation.path.length - 1]!;
+    if (operation.op === "remove") {
+      if (Array.isArray(current)) {
+        current.splice(Number(key), 1);
+      } else {
+        delete current[key];
+      }
+      continue;
+    }
+
+    const value = structuredClone(operation.value);
+    if (Array.isArray(current)) {
+      const index = Number(key);
+      if (index === current.length) {
+        current.push(value);
+      } else {
+        current[index] = value;
+      }
+    } else {
+      current[key] = value;
+    }
+  }
+
+  return result as T;
+}
