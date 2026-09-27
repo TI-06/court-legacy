@@ -17,7 +17,11 @@ import {
 } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
-import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
+import {
+  committedScoutingCandidates,
+  preserveCommittedScoutingCandidates,
+  scoutingCycleKey,
+} from "../scouting/serverScoutingBoard";
 
 function invalidAction(): Response {
   return jsonError(400, "invalid_action", "操作内容を確認してください");
@@ -75,24 +79,42 @@ async function resolveCommittedIntake(
     return { error: recruitmentDataUnavailable() };
   }
 
-  const pool = await scoutingStore.getCandidatePool(userId, cycleKey);
-  if (!pool) {
+  let pool = await scoutingStore.getCandidatePool(userId, cycleKey);
+  const currentCandidates = pool?.candidates ?? [];
+  const repairedCandidates = preserveCommittedScoutingCandidates(
+    snapshot.state,
+    currentCandidates,
+    currentCandidates,
+  );
+  const committedCandidates = committedScoutingCandidates(
+    snapshot.state,
+    repairedCandidates,
+  );
+  if (
+    committedCandidates.length !== recruiting.committedCandidateIds.length
+  ) {
     return { error: recruitmentDataUnavailable() };
   }
 
-  const candidatesById = new Map(
-    pool.candidates.map((candidate) => [candidate.player.id, candidate.player]),
-  );
-  const userIntake: Player[] = [];
-  for (const candidateId of recruiting.committedCandidateIds) {
-    const candidate = candidatesById.get(candidateId);
-    if (!candidate) {
-      return { error: recruitmentDataUnavailable() };
-    }
-    userIntake.push(candidate);
+  if (!pool && repairedCandidates.length > 0) {
+    pool = await scoutingStore.createCandidatePool({
+      userId,
+      cycleKey,
+      creationOperationId: `committed-recovery:${cycleKey}`,
+      candidates: repairedCandidates,
+    });
+  } else if (pool && repairedCandidates.length !== pool.candidates.length) {
+    pool = await scoutingStore.replaceCandidatePool({
+      userId,
+      cycleKey,
+      creationOperationId: pool.creationOperationId,
+      candidates: repairedCandidates,
+    });
   }
 
-  return { userIntake };
+  return {
+    userIntake: committedCandidates.map((candidate) => candidate.player),
+  };
 }
 
 export function createGameActionHandler(
