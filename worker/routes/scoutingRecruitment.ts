@@ -276,7 +276,7 @@ export function createScoutingRecruitmentHandler(
           committedTruthById.get(candidateId) ??
           recoverCommittedCandidateTruth(snapshot.state, candidateId),
       )
-      .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+      .filter((entry) => entry !== null)
       .slice(0, 7);
     const nextState = {
       ...snapshot.state,
