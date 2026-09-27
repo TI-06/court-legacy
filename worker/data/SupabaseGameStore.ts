@@ -319,8 +319,9 @@ export class SupabaseGameStore implements GameStore {
       input.statePatch ?? buildJsonStatePatch(input.previousState, input.state);
     const patchBytes = JSON.stringify(statePatch).length;
     const useFullStateFallback =
-      statePatch.length > MAX_JSON_PATCH_OPERATIONS ||
-      patchBytes > MAX_JSON_PATCH_BYTES;
+      !input.preferDelta &&
+      (statePatch.length > MAX_JSON_PATCH_OPERATIONS ||
+        patchBytes > MAX_JSON_PATCH_BYTES);
     const { data, error } = useFullStateFallback
       ? await this.client.rpc("apply_game_operation_v3", {
           p_user_id: input.userId,

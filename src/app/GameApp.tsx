@@ -1212,11 +1212,27 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     const presentation = response.outcome as
       PendingMatchPresentation | undefined;
-    if (!presentation) return;
+    if (presentation) {
+      setActiveMatchPresentation(presentation);
+      setActiveMatchResult(presentation.simulation);
+      setLatestMatchResult(presentation.simulation);
+      return;
+    }
 
-    setActiveMatchPresentation(presentation);
-    setActiveMatchResult(presentation.simulation);
-    setLatestMatchResult(presentation.simulation);
+    const activeMatch = response.game.state.activeMatch;
+    if (!activeMatch || !activeMatchPresentation) return;
+
+    const simulation: MatchStepResult = {
+      match: activeMatch,
+      analysis: null,
+    };
+    const compactPresentation: PendingMatchPresentation = {
+      ...activeMatchPresentation,
+      simulation,
+    };
+    setActiveMatchPresentation(compactPresentation);
+    setActiveMatchResult(simulation);
+    setLatestMatchResult(simulation);
   };
 
   const advanceWeek = async () => {

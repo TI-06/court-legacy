@@ -14,6 +14,10 @@ import type {
 } from "../../../worker/data/GameStore";
 import type { GameActionRequest } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
+import {
+  buildJsonStatePatch,
+  collapseJsonStatePatchRoot,
+} from "../../../worker/data/statePatch";
 
 const session: AuthSession = {
   userId: "phase16-browser-user",
@@ -86,8 +90,29 @@ describe("Phase16 GameApp match command authority", () => {
     let serverSnapshot = createSnapshot();
     const applyAction = vi.fn<GameApiClient["applyAction"]>(
       async (_accessToken, request) => {
+        const before = serverSnapshot;
         const response = responseFor(serverSnapshot, request);
         serverSnapshot = response.game;
+        if (
+          request.action.type === "match-command" &&
+          response.game.state.activeMatch?.phase !== "match-complete"
+        ) {
+          const statePatch = collapseJsonStatePatchRoot(
+            response.game.state as unknown as Record<string, unknown>,
+            buildJsonStatePatch(before.state, response.game.state),
+            "activeMatch",
+          );
+          return {
+            operationId: request.operationId,
+            gameDelta: {
+              userId: response.game.userId,
+              schoolDbId: response.game.schoolDbId,
+              revision: response.game.revision,
+              statePatch,
+              teamSelection: response.game.teamSelection,
+            },
+          };
+        }
         return response;
       },
     );
