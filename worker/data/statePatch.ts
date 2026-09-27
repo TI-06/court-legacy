@@ -92,7 +92,6 @@ export function buildJsonStatePatch(
   return operations;
 }
 
-
 export function applyJsonStatePatch<T>(
   input: T,
   operations: readonly JsonStatePatchOperation[],
@@ -114,10 +113,7 @@ export function applyJsonStatePatch<T>(
       const next = Array.isArray(current)
         ? current[Number(segment)]
         : current[segment];
-      if (
-        typeof next !== "object" ||
-        next === null
-      ) {
+      if (typeof next !== "object" || next === null) {
         throw new Error("invalid JSON state patch path");
       }
       current = next as Record<string, unknown> | unknown[];
