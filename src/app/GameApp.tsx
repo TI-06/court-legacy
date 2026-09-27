@@ -555,6 +555,14 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     });
   };
 
+  const saveTeamTrainingMenu = async (teamTrainingMenuId: string) => {
+    const current = gameState.weeklySchedule.trainingPlan;
+    await saveTrainingPlan({
+      ...current,
+      teamTrainingMenuId,
+    });
+  };
+
   const saveTeamSelection = async (selection: TeamSelection) => {
     await cloudSession.runAction(
       { type: "team-selection", selection },
@@ -1331,6 +1339,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onAssignLeadership={saveTeamLeadership}
         onChange={saveTeamSelection}
         onSaveTrainingAssignments={savePlayerTrainingAssignments}
+        onSetTeamTrainingMenu={saveTeamTrainingMenu}
         onDeleteLineupPreset={deleteLineupPreset}
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
