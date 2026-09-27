@@ -17,7 +17,10 @@ import {
 } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
-import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
+import {
+  recoverCommittedCandidateTruth,
+  scoutingCycleKey,
+} from "../scouting/serverScoutingBoard";
 
 function invalidAction(): Response {
   return jsonError(400, "invalid_action", "操作内容を確認してください");
@@ -76,16 +79,24 @@ async function resolveCommittedIntake(
   }
 
   const pool = await scoutingStore.getCandidatePool(userId, cycleKey);
-  if (!pool) {
-    return { error: recruitmentDataUnavailable() };
-  }
-
-  const candidatesById = new Map(
-    pool.candidates.map((candidate) => [candidate.player.id, candidate.player]),
+  const persistedById = new Map(
+    (recruiting.committedCandidates ?? []).map((candidate) => [
+      candidate.player.id,
+      candidate.player,
+    ]),
+  );
+  const poolById = new Map(
+    (pool?.candidates ?? []).map((candidate) => [
+      candidate.player.id,
+      candidate.player,
+    ]),
   );
   const userIntake: Player[] = [];
   for (const candidateId of recruiting.committedCandidateIds) {
-    const candidate = candidatesById.get(candidateId);
+    const candidate =
+      persistedById.get(candidateId) ??
+      poolById.get(candidateId) ??
+      recoverCommittedCandidateTruth(snapshot.state, candidateId)?.player;
     if (!candidate) {
       return { error: recruitmentDataUnavailable() };
     }
