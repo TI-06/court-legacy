@@ -225,6 +225,7 @@ export function createScoutingRecruitmentHandler(
           userId: user.id,
           operationId: parsed.data.operationId,
           expectedRevision: snapshot.revision,
+          previousState: snapshot.state,
           state: applied.state,
           teamSelection: snapshot.teamSelection,
           response,
