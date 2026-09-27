@@ -139,7 +139,6 @@ export function applyJsonStatePatch<T>(
   return result as T;
 }
 
-
 export function collapseJsonStatePatchRoot(
   after: Record<string, unknown>,
   operations: readonly JsonStatePatchOperation[],
