@@ -169,7 +169,7 @@ export function buildCoachTrainingRecommendation(
   }
 
   const quality = coachRecommendationQuality(state);
-  const { summary, ranked, weakest } = weakestArea(player);
+  const { ranked, weakest } = weakestArea(player);
   if (quality === "basic") {
     const strongestValue = ranked.at(-1)?.[1] ?? weakest[1];
     const weaknessGap = strongestValue - weakest[1];
