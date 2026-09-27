@@ -138,3 +138,43 @@ export function applyJsonStatePatch<T>(
 
   return result as T;
 }
+
+
+export function collapseJsonStatePatchRoot(
+  after: Record<string, unknown>,
+  operations: readonly JsonStatePatchOperation[],
+  rootKey: string,
+): JsonStatePatchOperation[] {
+  const affected = operations.filter(
+    (operation) => operation.path[0] === rootKey,
+  );
+  if (affected.length <= 1) {
+    return [...operations];
+  }
+
+  const remaining = operations.filter(
+    (operation) => operation.path[0] !== rootKey,
+  );
+  const afterHas =
+    Object.prototype.hasOwnProperty.call(after, rootKey) &&
+    after[rootKey] !== undefined;
+
+  const replacement: JsonStatePatchOperation = afterHas
+    ? { op: "set", path: [rootKey], value: after[rootKey] }
+    : { op: "remove", path: [rootKey] };
+
+  const firstIndex = operations.findIndex(
+    (operation) => operation.path[0] === rootKey,
+  );
+  if (firstIndex < 0) {
+    return [...operations];
+  }
+
+  const before = operations.slice(0, firstIndex).filter(
+    (operation) => operation.path[0] !== rootKey,
+  );
+  const afterOperations = operations.slice(firstIndex).filter(
+    (operation) => operation.path[0] !== rootKey,
+  );
+  return [...before, replacement, ...afterOperations];
+}
