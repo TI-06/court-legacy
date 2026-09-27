@@ -9,6 +9,7 @@ import {
   buildServerScoutReports,
   generateServerScoutingCandidateAtIndex,
   generateServerScoutingCandidates,
+  preserveCommittedScoutingCandidates,
   scoutingCycleKey,
 } from "../../../../worker/scouting/serverScoutingBoard";
 
@@ -62,6 +63,49 @@ describe("server scouting board Phase 5 integration", () => {
       `${first.player.lastName} ${first.player.firstName}`,
     );
     expect(generateServerScoutingCandidates(state)).toEqual(originalSix);
+  });
+
+  it("preserves committed candidates when a later scouting search replaces the active pool", () => {
+    const state = createDemoGame();
+    const first = generateServerScoutingCandidates(
+      state,
+      { region: "national", position: "any", priority: "ability" },
+      1,
+    );
+    const committed = first[0]!;
+    state.recruiting = {
+      cycleKey: scoutingCycleKey(state),
+      committedCandidateIds: [committed.player.id],
+    };
+    const second = generateServerScoutingCandidates(
+      state,
+      { region: "national", position: "any", priority: "potential" },
+      2,
+    );
+
+    const merged = preserveCommittedScoutingCandidates(state, first, second);
+
+    expect(merged.map((candidate) => candidate.player.id)).toContain(
+      committed.player.id,
+    );
+    expect(
+      merged.filter((candidate) => candidate.player.id.includes("-2-")),
+    ).toHaveLength(second.length);
+  });
+
+  it("recovers legacy committed candidate ids that were lost by pool replacement", () => {
+    const state = createDemoGame();
+    const legacyId =
+      `scout-${state.userSchoolId}-${state.yearIndex}-1`;
+    state.recruiting = {
+      cycleKey: scoutingCycleKey(state),
+      committedCandidateIds: [legacyId as never],
+    };
+
+    const recovered = preserveCommittedScoutingCandidates(state, [], []);
+
+    expect(recovered).toHaveLength(1);
+    expect(recovered[0]!.player.id).toBe(legacyId);
   });
 
   it("applies candidate insights without rerolling unaffected public reports", () => {
