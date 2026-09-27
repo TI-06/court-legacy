@@ -166,6 +166,27 @@ describe("HttpGameApiClient", () => {
     );
   });
 
+  it("posts an authenticated request to completely reset game data", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ status: "reset" }));
+    const api = new HttpGameApiClient(fetchImpl);
+
+    await expect(api.resetGameData("access-token")).resolves.toEqual({
+      status: "reset",
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/api/game/reset",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          authorization: "Bearer access-token",
+        }),
+      }),
+    );
+  });
+
   it("posts only operation metadata when loading the scouting board", async () => {
     const response = {
       operationId: "scout-board-1",
