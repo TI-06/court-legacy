@@ -26,9 +26,7 @@ describe("MoreScreen", () => {
     expect(screen.getByRole("button", { name: "ショップ" })).toBeVisible();
     expect(screen.getByRole("button", { name: "所持品" })).toBeVisible();
     expect(screen.getByRole("button", { name: "ログアウト" })).toBeVisible();
-    expect(
-      screen.getByText("ゲームデータを完全初期化"),
-    ).toBeVisible();
+    expect(screen.getByText("ゲームデータを完全初期化")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "ショップ" }));
     fireEvent.click(screen.getByRole("button", { name: "所持品" }));
@@ -57,9 +55,7 @@ describe("MoreScreen", () => {
     ).toBeVisible();
     expect(onResetGameData).not.toHaveBeenCalled();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "完全に初期化する" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "完全に初期化する" }));
 
     expect(onResetGameData).toHaveBeenCalledTimes(1);
   });
