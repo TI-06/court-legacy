@@ -336,8 +336,8 @@ export function committedScoutingCandidates(
   );
   return committedIds
     .map((candidateId) => byId.get(candidateId))
-    .filter(
-      (candidate): candidate is ScoutingCandidateTruth => Boolean(candidate),
+    .filter((candidate): candidate is ScoutingCandidateTruth =>
+      Boolean(candidate),
     );
 }
 
