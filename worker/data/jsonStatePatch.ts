@@ -43,7 +43,12 @@ function pushArrayDiff(
 ): void {
   if (previous.length === next.length) {
     for (let index = 0; index < next.length; index += 1) {
-      pushDiff(previous[index], next[index], [...path, String(index)], operations);
+      pushDiff(
+        previous[index],
+        next[index],
+        [...path, String(index)],
+        operations,
+      );
     }
     return;
   }
@@ -187,7 +192,9 @@ export function applyJsonStatePatch(
     if (Array.isArray(parent)) {
       const index = Number(key);
       if (!Number.isInteger(index) || index < 0 || index > parent.length) {
-        throw new Error(`invalid array patch index: ${operation.path.join(".")}`);
+        throw new Error(
+          `invalid array patch index: ${operation.path.join(".")}`,
+        );
       }
 
       if (operation.op === "remove") {
