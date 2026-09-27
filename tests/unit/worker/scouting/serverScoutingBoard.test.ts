@@ -9,6 +9,7 @@ import {
   buildServerScoutReports,
   generateServerScoutingCandidateAtIndex,
   generateServerScoutingCandidates,
+  recoverCommittedCandidateTruthWithFallback,
   scoutingCycleKey,
 } from "../../../../worker/scouting/serverScoutingBoard";
 
@@ -62,6 +63,20 @@ describe("server scouting board Phase 5 integration", () => {
       `${first.player.lastName} ${first.player.firstName}`,
     );
     expect(generateServerScoutingCandidates(state)).toEqual(originalSix);
+  });
+
+  it("recovers any legacy committed candidate id deterministically", () => {
+    const state = createDemoGame();
+    state.yearIndex = 7;
+    const candidateId = "legacy-imported-recruit";
+
+    const first = recoverCommittedCandidateTruthWithFallback(state, candidateId);
+    const second = recoverCommittedCandidateTruthWithFallback(state, candidateId);
+
+    expect(second).toEqual(first);
+    expect(first.player.id).toBe(candidateId);
+    expect(first.player.career.schoolId).toBe(state.userSchoolId);
+    expect(first.player.career.enrolledYear).toBe(8);
   });
 
   it("applies candidate insights without rerolling unaffected public reports", () => {
