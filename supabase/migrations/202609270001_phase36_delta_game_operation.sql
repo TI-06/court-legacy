@@ -1,12 +1,93 @@
 -- Phase 36: persist only changed GameState paths instead of uploading the full
 -- ~1.2MB state on every operation. The existing v3 RPC remains available for
 -- rollback compatibility; v4 applies ordered JSON patch operations atomically.
+--
+-- Production already has an early v4 contract using p_state_patch and
+-- apply_jsonb_state_patch(). Keep that signature stable and extend the helper
+-- with append-only array support.
+
+create or replace function public.apply_jsonb_state_patch(
+  p_state jsonb,
+  p_patch jsonb
+)
+returns jsonb
+language plpgsql
+immutable
+set search_path = ''
+as $$
+declare
+  v_result jsonb := p_state;
+  v_operation jsonb;
+  v_op text;
+  v_path text[];
+  v_value jsonb;
+  v_current_value jsonb;
+begin
+  if jsonb_typeof(p_state) <> 'object'
+    or jsonb_typeof(p_patch) <> 'array' then
+    raise exception using errcode = '22023', message = 'invalid_state_patch';
+  end if;
+
+  for v_operation in
+    select value from jsonb_array_elements(p_patch)
+  loop
+    if jsonb_typeof(v_operation) <> 'object'
+      or jsonb_typeof(v_operation -> 'path') <> 'array' then
+      raise exception using errcode = '22023', message = 'invalid_state_patch_operation';
+    end if;
+
+    v_op := v_operation ->> 'op';
+
+    select coalesce(
+      array_agg(path_part.value order by path_part.ordinality),
+      array[]::text[]
+    )
+    into v_path
+    from jsonb_array_elements_text(v_operation -> 'path')
+      with ordinality as path_part(value, ordinality);
+
+    if cardinality(v_path) = 0 then
+      raise exception using errcode = '22023', message = 'invalid_state_patch_path';
+    end if;
+
+    if v_op = 'set' then
+      if not (v_operation ? 'value') then
+        raise exception using errcode = '22023', message = 'state_patch_value_required';
+      end if;
+      v_result := jsonb_set(v_result, v_path, v_operation -> 'value', true);
+    elsif v_op = 'remove' then
+      v_result := v_result #- v_path;
+    elsif v_op = 'append' then
+      v_value := v_operation -> 'value';
+      v_current_value := v_result #> v_path;
+      if jsonb_typeof(v_value) <> 'array'
+        or jsonb_typeof(v_current_value) <> 'array' then
+        raise exception using errcode = '22023', message = 'invalid_state_patch_append';
+      end if;
+      v_result := jsonb_set(
+        v_result,
+        v_path,
+        v_current_value || v_value,
+        false
+      );
+    else
+      raise exception using errcode = '22023', message = 'unknown_state_patch_operation';
+    end if;
+  end loop;
+
+  if jsonb_typeof(v_result) <> 'object' then
+    raise exception using errcode = '22023', message = 'patched_state_must_be_object';
+  end if;
+
+  return v_result;
+end;
+$$;
 
 create or replace function public.apply_game_operation_v4(
   p_user_id uuid,
   p_operation_id text,
   p_expected_revision bigint,
-  p_state_operations jsonb,
+  p_state_patch jsonb,
   p_team_selection jsonb,
   p_outcome jsonb
 )
@@ -20,13 +101,9 @@ declare
   v_school_id uuid;
   v_current_revision bigint;
   v_resulting_revision bigint;
+  v_current_state jsonb;
+  v_next_state jsonb;
   v_compact_response jsonb;
-  v_state jsonb;
-  v_operation jsonb;
-  v_operation_kind text;
-  v_path text[];
-  v_value jsonb;
-  v_current_value jsonb;
 begin
   if p_user_id is null
     or nullif(btrim(p_operation_id), '') is null
@@ -35,7 +112,7 @@ begin
     raise exception using errcode = '22023', message = 'invalid_operation';
   end if;
 
-  if jsonb_typeof(p_state_operations) <> 'array'
+  if jsonb_typeof(p_state_patch) <> 'array'
     or jsonb_typeof(p_team_selection) <> 'object' then
     raise exception using errcode = '22023', message = 'invalid_operation_payload';
   end if;
@@ -51,7 +128,7 @@ begin
   end if;
 
   select save.school_id, save.revision, save.state
-    into v_school_id, v_current_revision, v_state
+    into v_school_id, v_current_revision, v_current_state
   from public.game_saves as save
   where save.user_id = p_user_id
   for update;
@@ -74,48 +151,15 @@ begin
     raise exception using errcode = '40001', message = 'revision_conflict';
   end if;
 
-  for v_operation in
-    select patch.value
-    from jsonb_array_elements(p_state_operations) as patch(value)
-  loop
-    v_operation_kind := v_operation ->> 'op';
-    v_path := array(
-      select jsonb_array_elements_text(v_operation -> 'path')
-    );
-
-    if coalesce(cardinality(v_path), 0) = 0 then
-      raise exception using errcode = '22023', message = 'invalid_state_patch_path';
-    end if;
-
-    if v_operation_kind = 'set' then
-      if not (v_operation ? 'value') then
-        raise exception using errcode = '22023', message = 'invalid_state_patch_value';
-      end if;
-      v_state := jsonb_set(v_state, v_path, v_operation -> 'value', true);
-    elsif v_operation_kind = 'delete' then
-      v_state := v_state #- v_path;
-    elsif v_operation_kind = 'append' then
-      v_value := v_operation -> 'value';
-      v_current_value := v_state #> v_path;
-      if jsonb_typeof(v_value) <> 'array'
-        or jsonb_typeof(v_current_value) <> 'array' then
-        raise exception using errcode = '22023', message = 'invalid_state_patch_append';
-      end if;
-      v_state := jsonb_set(v_state, v_path, v_current_value || v_value, false);
-    else
-      raise exception using errcode = '22023', message = 'invalid_state_patch_operation';
-    end if;
-  end loop;
-
-  if jsonb_typeof(v_state) <> 'object' then
-    raise exception using errcode = '22023', message = 'invalid_resulting_state';
-  end if;
-
+  v_next_state := public.apply_jsonb_state_patch(
+    v_current_state,
+    p_state_patch
+  );
   v_resulting_revision := v_current_revision + 1;
 
   update public.game_saves
   set revision = v_resulting_revision,
-      state = v_state,
+      state = v_next_state,
       team_selection = p_team_selection,
       updated_at = now()
   where user_id = p_user_id;
@@ -125,22 +169,37 @@ begin
     'resultingRevision', v_resulting_revision
   );
   if p_outcome is not null then
-    v_compact_response := v_compact_response || jsonb_build_object('outcome', p_outcome);
+    v_compact_response := v_compact_response || jsonb_build_object(
+      'outcome',
+      p_outcome
+    );
   end if;
 
   insert into public.game_operations (
-    user_id, operation_id, school_id, expected_revision, resulting_revision, response
+    user_id,
+    operation_id,
+    school_id,
+    expected_revision,
+    resulting_revision,
+    response
   )
   values (
-    p_user_id, btrim(p_operation_id), v_school_id, p_expected_revision,
-    v_resulting_revision, v_compact_response
+    p_user_id,
+    btrim(p_operation_id),
+    v_school_id,
+    p_expected_revision,
+    v_resulting_revision,
+    v_compact_response
   );
 
   with stale_operations as (
     select retained.operation_id
     from public.game_operations as retained
     where retained.user_id = p_user_id
-    order by retained.resulting_revision desc, retained.created_at desc, retained.operation_id desc
+    order by
+      retained.resulting_revision desc,
+      retained.created_at desc,
+      retained.operation_id desc
     offset 16
   )
   delete from public.game_operations as operation
