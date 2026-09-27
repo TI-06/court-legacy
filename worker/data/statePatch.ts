@@ -28,7 +28,12 @@ function pushDiff(
   if (Array.isArray(before) && Array.isArray(after)) {
     const sharedLength = Math.min(before.length, after.length);
     for (let index = 0; index < sharedLength; index += 1) {
-      pushDiff(before[index], after[index], [...path, String(index)], operations);
+      pushDiff(
+        before[index],
+        after[index],
+        [...path, String(index)],
+        operations,
+      );
     }
 
     for (let index = before.length - 1; index >= after.length; index -= 1) {
