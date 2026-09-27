@@ -1,6 +1,6 @@
 export type JsonStatePatchOperation =
   | { op: "set"; path: string[]; value: unknown }
-  | { op: "delete"; path: string[] }
+  | { op: "remove"; path: string[] }
   | { op: "append"; path: string[]; value: unknown[] };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -67,7 +67,7 @@ function buildPatch(
         Object.prototype.hasOwnProperty.call(after, key) &&
         after[key] !== undefined;
       if (before[key] !== undefined && !afterHasKey) {
-        operations.push({ op: "delete", path: [...path, key] });
+        operations.push({ op: "remove", path: [...path, key] });
       }
     }
 
