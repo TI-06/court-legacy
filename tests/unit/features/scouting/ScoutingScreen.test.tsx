@@ -113,10 +113,45 @@ describe("ScoutingScreen", () => {
     expect(
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
     ).toBeEnabled();
+    const committedRegion = screen.getByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(within(committedRegion).getByText("佐藤 湊")).toBeVisible();
+    expect(within(committedRegion).getByText("入学確定")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "獲得済み 佐藤 湊" }),
-    ).toBeDisabled();
+      within(
+        screen.getByRole("region", { name: "スカウト候補一覧" }),
+      ).queryByText("佐藤 湊"),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /獲得済み 佐藤 湊/ })).toBeNull();
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
+  });
+
+  it("shows the committed count against the roster-aware maximum of seven", () => {
+    const state = stateWithCommitted([candidateA, candidateB]);
+    const school = state.schools[state.userSchoolId]!;
+    for (const playerId of school.playerIds) {
+      state.players[playerId] = { ...state.players[playerId]!, grade: 3 };
+    }
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={reports}
+        state={state}
+      />,
+    );
+
+    const committedRegion = screen.getByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(within(committedRegion).getByText("2/7人")).toBeVisible();
+    expect(within(committedRegion).getByText("最大7人")).toBeVisible();
   });
 
   it("shows discovered blue and red special abilities without exposing unknown ones", () => {
