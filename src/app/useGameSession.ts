@@ -1,10 +1,15 @@
 import { useRef, useState } from "react";
-import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import type {
+  CloudGameSnapshot,
+  PersistedOperationResponse,
+} from "../../worker/data/GameStore";
+import type {
+  DeltaGameActionResponse,
   GameAction,
   GameActionRequest,
   GameActionResponse,
 } from "../../worker/game/actionSchema";
+import { applyJsonStatePatch } from "../../worker/data/statePatch";
 import type { RecoveryCachePort } from "../persistence/RecoveryCache";
 import { browserRecoveryCache } from "../persistence/RecoveryCache";
 import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
@@ -36,7 +41,7 @@ export interface GameSessionController {
   runAction(
     action: GameAction,
     label: string,
-  ): Promise<GameActionResponse | null>;
+  ): Promise<PersistedOperationResponse | null>;
   adoptServerSnapshot(
     snapshot: CloudGameSnapshot,
     label?: string,
@@ -55,6 +60,67 @@ function isBlockingAction(action: GameAction): boolean {
   return action.type !== "facility-upgrade";
 }
 
+function isDeltaResponse(
+  response: GameActionResponse,
+): response is DeltaGameActionResponse {
+  return "statePatch" in response;
+}
+
+function normalizeActionResponse(
+  current: CloudGameSnapshot,
+  response: GameActionResponse,
+): PersistedOperationResponse {
+  if (!isDeltaResponse(response)) {
+    return response;
+  }
+
+  if (response.revision !== current.revision + 1) {
+    throw new ApiError(
+      null,
+      "invalid_delta_revision",
+      "サーバーの更新番号を確認できませんでした",
+    );
+  }
+
+  const nextState = applyJsonStatePatch(current.state, response.statePatch);
+  const nextSnapshot: CloudGameSnapshot = {
+    ...current,
+    revision: response.revision,
+    state: nextState,
+    teamSelection: response.teamSelection,
+  };
+
+  let outcome = response.outcome;
+  if (response.matchPresentation) {
+    const activeMatch = nextState.activeMatch;
+    if (!activeMatch) {
+      throw new ApiError(
+        null,
+        "invalid_match_delta",
+        "試合データを復元できませんでした",
+      );
+    }
+    outcome = {
+      kind: response.matchPresentation.kind,
+      homeTeam: response.matchPresentation.homeTeam,
+      awayTeam: response.matchPresentation.awayTeam,
+      ...(response.matchPresentation.official
+        ? { official: response.matchPresentation.official }
+        : {}),
+      simulation: {
+        match: activeMatch,
+        analysis: response.matchPresentation.analysis,
+      },
+    };
+  }
+
+  return {
+    operationId: response.operationId,
+    game: nextSnapshot,
+    ...(outcome !== undefined ? { outcome } : {}),
+  };
+}
+
 export function useGameSession({
   accessToken,
   initialSnapshot,
@@ -66,6 +132,7 @@ export function useGameSession({
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const snapshotRef = useRef(initialSnapshot);
   const actionPendingRef = useRef(false);
+  const recoveryWriteChainRef = useRef(Promise.resolve());
   const [operation, setOperation] = useState<OperationState>({
     status: "idle",
   });
@@ -91,13 +158,30 @@ export function useGameSession({
     }
   }
 
+  function queueRecovery(
+    nextSnapshot: CloudGameSnapshot,
+    pendingOperation: GameActionRequest | null,
+  ): void {
+    recoveryWriteChainRef.current = recoveryWriteChainRef.current.then(() =>
+      writeRecovery(nextSnapshot, pendingOperation),
+    );
+  }
+
+  async function flushRecovery(
+    nextSnapshot: CloudGameSnapshot,
+    pendingOperation: GameActionRequest | null,
+  ): Promise<void> {
+    queueRecovery(nextSnapshot, pendingOperation);
+    await recoveryWriteChainRef.current;
+  }
+
   async function adoptServerSnapshot(
     nextSnapshot: CloudGameSnapshot,
     label = "保存済み",
   ): Promise<void> {
     replaceSnapshot(nextSnapshot);
-    await writeRecovery(nextSnapshot, null);
     setOperation({ status: "success", label });
+    queueRecovery(nextSnapshot, null);
   }
 
   async function submitRequest(
@@ -108,7 +192,7 @@ export function useGameSession({
     requestAccessToken = accessToken,
     resyncRetryCount = 0,
     conflictRetryCount = 0,
-  ): Promise<GameActionResponse | null> {
+  ): Promise<PersistedOperationResponse | null> {
     setOperation({
       status: "submitting",
       label,
@@ -117,10 +201,14 @@ export function useGameSession({
     });
 
     try {
-      const response = await api.applyAction(requestAccessToken, request);
+      const wireResponse = await api.applyAction(requestAccessToken, request);
+      const current = snapshotRef.current;
+      const response = normalizeActionResponse(current, wireResponse);
       replaceSnapshot(response.game);
-      await writeRecovery(response.game, null);
       setOperation({ status: "success", label });
+      if (request.action.type !== "match-command") {
+        queueRecovery(response.game, null);
+      }
       return response;
     } catch (error) {
       if (
@@ -154,7 +242,7 @@ export function useGameSession({
           const latest = await api.bootstrap(requestAccessToken);
           if (latest.status === "ready") {
             replaceSnapshot(latest.game);
-            await writeRecovery(latest.game, null);
+            queueRecovery(latest.game, null);
 
             if (conflictRetryCount < 1) {
               return submitRequest(
@@ -215,7 +303,7 @@ export function useGameSession({
           if (latest.status === "ready") {
             if (latest.game.revision > request.revision) {
               replaceSnapshot(latest.game);
-              await writeRecovery(latest.game, null);
+              queueRecovery(latest.game, null);
               setOperation({
                 status: "success",
                 label: "最新の保存状態へ復旧しました",
@@ -228,7 +316,7 @@ export function useGameSession({
               resyncRetryCount < 1
             ) {
               replaceSnapshot(latest.game);
-              await writeRecovery(latest.game, null);
+              queueRecovery(latest.game, null);
               return submitRequest(
                 {
                   operationId: createOperationId(),
@@ -248,7 +336,7 @@ export function useGameSession({
           // Preserve the original ambiguous-save error below if resync fails.
         }
 
-        await writeRecovery(snapshotRef.current, request);
+        await flushRecovery(snapshotRef.current, request);
         const retry = () => {
           const current = snapshotRef.current;
           void submitRequest(
@@ -280,7 +368,7 @@ export function useGameSession({
   function runAction(
     action: GameAction,
     label: string,
-  ): Promise<GameActionResponse | null> {
+  ): Promise<PersistedOperationResponse | null> {
     if (actionPendingRef.current) {
       return Promise.resolve(null);
     }
