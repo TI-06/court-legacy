@@ -215,10 +215,7 @@ export function createGameActionHandler(
       const deltaResponse: DeltaGameActionResponse = {
         operationId: actionRequest.operationId,
         revision: snapshot.revision + 1,
-        statePatch: buildJsonStatePatch(
-          loadedSnapshot.state,
-          applied.state,
-        ),
+        statePatch: buildJsonStatePatch(loadedSnapshot.state, applied.state),
         teamSelection: applied.teamSelection,
         ...(matchPresentation
           ? { matchPresentation }
