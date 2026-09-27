@@ -215,6 +215,133 @@ export function generateServerScoutingCandidates(
   return ranked.slice(0, regionCount);
 }
 
+
+function generateLegacyServerScoutingCandidateAtIndex(
+  state: GameState,
+  index: number,
+): ScoutingCandidateTruth {
+  const random = new SeededRandom(
+    `${state.seed}:scouting:${scoutingCycleKey(state)}`,
+  );
+  const probabilities = scoutingTierProbabilities(state);
+  const exclusions = defaultExcludedFullNames(state);
+  let candidate: ScoutingCandidateTruth | null = null;
+
+  for (let currentIndex = 1; currentIndex <= index; currentIndex += 1) {
+    const tier = selectRecruitTier(probabilities, random);
+    const player = generatePlayer({
+      id: playerId(
+        `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
+      ),
+      schoolId: state.userSchoolId,
+      grade: 1,
+      enrolledYear: state.yearIndex + 1,
+      tier,
+      data: gameData,
+      random,
+      excludedFullNames: exclusions,
+    });
+    candidate = {
+      player,
+      middleSchoolAchievement: achievementForTier(tier, random),
+    };
+  }
+
+  if (!candidate) {
+    throw new Error("legacy scouting candidate recovery failed");
+  }
+  return candidate;
+}
+
+function recoverCandidateFromId(
+  state: GameState,
+  candidateId: string,
+): ScoutingCandidateTruth | null {
+  const prefix = `scout-${state.userSchoolId}-${state.yearIndex}-`;
+  if (!candidateId.startsWith(prefix)) return null;
+
+  const suffix = candidateId.slice(prefix.length);
+  const parts = suffix.split("-").map((value) => Number(value));
+  if (parts.some((value) => !Number.isSafeInteger(value) || value < 0)) {
+    return null;
+  }
+
+  if (parts.length === 1 && parts[0]! >= 1) {
+    return generateLegacyServerScoutingCandidateAtIndex(state, parts[0]!);
+  }
+
+  if (parts.length === 2 && parts[0]! >= 1 && parts[1]! >= 1) {
+    return generateServerScoutingCandidateAtIndex(
+      state,
+      parts[1]!,
+      defaultExcludedFullNames(state),
+      new Map(),
+      undefined,
+      parts[0]!,
+    );
+  }
+
+  return null;
+}
+
+export function preserveCommittedScoutingCandidates(
+  state: GameState,
+  currentCandidates: readonly ScoutingCandidateTruth[],
+  nextCandidates: readonly ScoutingCandidateTruth[],
+): ScoutingCandidateTruth[] {
+  const cycleKey = scoutingCycleKey(state);
+  const committedIds =
+    state.recruiting?.cycleKey === cycleKey
+      ? state.recruiting.committedCandidateIds
+      : [];
+  if (committedIds.length === 0) return [...nextCandidates];
+
+  const byId = new Map(
+    currentCandidates.map((candidate) => [candidate.player.id, candidate]),
+  );
+  for (const candidateId of committedIds) {
+    if (byId.has(candidateId)) continue;
+    const recovered = recoverCandidateFromId(state, candidateId);
+    if (recovered?.player.id === candidateId) {
+      byId.set(candidateId, recovered);
+    }
+  }
+
+  const merged = new Map<string, ScoutingCandidateTruth>();
+  for (const candidate of nextCandidates) {
+    merged.set(candidate.player.id, candidate);
+  }
+  for (const candidateId of committedIds) {
+    const candidate = byId.get(candidateId);
+    if (candidate) merged.set(candidateId, candidate);
+  }
+  return [...merged.values()];
+}
+
+export function committedScoutingCandidates(
+  state: GameState,
+  currentCandidates: readonly ScoutingCandidateTruth[],
+): ScoutingCandidateTruth[] {
+  const cycleKey = scoutingCycleKey(state);
+  const committedIds =
+    state.recruiting?.cycleKey === cycleKey
+      ? state.recruiting.committedCandidateIds
+      : [];
+  const recovered = preserveCommittedScoutingCandidates(
+    state,
+    currentCandidates,
+    [],
+  );
+  const byId = new Map(
+    recovered.map((candidate) => [candidate.player.id, candidate]),
+  );
+  return committedIds
+    .map((candidateId) => byId.get(candidateId))
+    .filter((candidate): candidate is ScoutingCandidateTruth =>
+      Boolean(candidate),
+    );
+}
+
 function competitorCount(
   evaluationStars: ScoutReport["evaluationStars"],
 ): number {
