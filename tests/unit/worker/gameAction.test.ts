@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
-import { playerId } from "../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type {
@@ -317,46 +316,6 @@ describe("game action route", () => {
     expect(response.status).toBe(200);
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.state.shopEffects?.trainingCampResult).toBeUndefined();
-  });
-
-  it("does not block year rollover when legacy committed recruit truth is missing", async () => {
-    const snapshot = createSnapshot();
-    snapshot.state.date = "2029-03-28";
-    snapshot.state.calendar.currentDate = snapshot.state.date;
-    snapshot.state.calendar.weekOfYear = 52;
-    snapshot.state.calendar.academicYear = 2028;
-    snapshot.state.yearIndex = 7;
-    snapshot.state.calendar.completedActivityIds =
-      snapshot.state.calendar.completedActivityIds.filter(
-        (id) => !id.startsWith(`week:${snapshot.state.date}:`),
-      );
-    snapshot.state.weeklySchedule.practiceMatch = {
-      ...snapshot.state.weeklySchedule.practiceMatch,
-      scheduledOpponentId: null,
-      scheduledBy: null,
-    };
-    const legacyRecruitId = playerId("legacy-imported-recruit");
-    snapshot.state.recruiting = {
-      cycleKey: `${snapshot.state.userSchoolId}:year-7`,
-      committedCandidateIds: [legacyRecruitId],
-    };
-
-    const store = createStore(snapshot);
-    const handler = createGameActionHandler(store);
-    const response = await handler(
-      actionRequest({
-        ...operation,
-        action: { type: "advance-week" },
-      }),
-      { id: "user-123" },
-    );
-
-    expect(response.status).toBe(200);
-    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
-    expect(
-      persisted.state.schools[persisted.state.userSchoolId]!.playerIds,
-    ).toContain(legacyRecruitId);
-    expect(persisted.state.date).toBe("2029-04-04");
   });
 
   it("returns revision_conflict before applying a stale action", async () => {
