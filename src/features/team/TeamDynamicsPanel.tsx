@@ -188,8 +188,7 @@ export function TeamDynamicsPanel({
   );
   const cohesionBreakdown = calculateCohesionBreakdown(state, dynamics);
   const relationshipSignal = cohesionBreakdown.relationships;
-  const cohesionMatchEffect =
-    ((cohesionBreakdown.cohesion - 50) / 50) * 2;
+  const cohesionMatchEffect = ((dynamics.cohesion - 50) / 50) * 2;
   const cohesionMatchEffectLabel = `${cohesionMatchEffect >= 0 ? "+" : ""}${cohesionMatchEffect.toFixed(1)}%`;
   const cohesionFactors = [
     { label: "士気", value: cohesionBreakdown.morale, weight: "25%" },
