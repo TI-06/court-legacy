@@ -150,10 +150,7 @@ export function createGameActionHandler(
       throw error;
     }
 
-    const statePatch = buildJsonStatePatch(
-      loadedSnapshot.state,
-      applied.state,
-    );
+    const statePatch = buildJsonStatePatch(loadedSnapshot.state, applied.state);
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
