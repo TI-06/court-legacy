@@ -168,80 +168,82 @@ describe("useGameSession", () => {
   it(
     "rebuilds compact match presentation from the patched active match and skips RecoveryCache",
     async () => {
-    const initialSnapshot = createSnapshot(1);
-    const schoolId = initialSnapshot.state.userSchoolId;
-    const opponent = Object.values(initialSnapshot.state.schools).find(
-      (school) => school.id !== schoolId,
-    )!;
-    const compactMatch = {
-      id: "match-fast-response",
-      homeSchoolId: schoolId,
-      awaySchoolId: opponent.id,
-      bestOfSets: 3,
-      phase: "coach-decision",
-      currentSetNumber: 1,
-      homeSetsWon: 0,
-      awaySetsWon: 0,
-      sets: [],
-      servingSchoolId: schoolId,
-      homeSelection: initialSnapshot.teamSelection,
-      awaySelection: initialSnapshot.teamSelection,
-      pendingCoachCommandForSchoolId: schoolId,
-      eventLog: [],
-      randomSeed: "fast",
-      randomCursor: 1,
-    };
-    const recovery = cache();
-    const gameApi = api({
-      applyAction: vi.fn().mockResolvedValue({
-        operationId: "op-match",
-        revision: 2,
-        statePatch: [{ op: "set", path: ["activeMatch"], value: compactMatch }],
-        teamSelection: initialSnapshot.teamSelection,
-        matchPresentation: {
-          kind: "practice",
-          homeTeam: {
-            schoolId,
-            displayName: "青葉高校",
-            shortName: "青葉",
+      const initialSnapshot = createSnapshot(1);
+      const schoolId = initialSnapshot.state.userSchoolId;
+      const opponent = Object.values(initialSnapshot.state.schools).find(
+        (school) => school.id !== schoolId,
+      )!;
+      const compactMatch = {
+        id: "match-fast-response",
+        homeSchoolId: schoolId,
+        awaySchoolId: opponent.id,
+        bestOfSets: 3,
+        phase: "coach-decision",
+        currentSetNumber: 1,
+        homeSetsWon: 0,
+        awaySetsWon: 0,
+        sets: [],
+        servingSchoolId: schoolId,
+        homeSelection: initialSnapshot.teamSelection,
+        awaySelection: initialSnapshot.teamSelection,
+        pendingCoachCommandForSchoolId: schoolId,
+        eventLog: [],
+        randomSeed: "fast",
+        randomCursor: 1,
+      };
+      const recovery = cache();
+      const gameApi = api({
+        applyAction: vi.fn().mockResolvedValue({
+          operationId: "op-match",
+          revision: 2,
+          statePatch: [
+            { op: "set", path: ["activeMatch"], value: compactMatch },
+          ],
+          teamSelection: initialSnapshot.teamSelection,
+          matchPresentation: {
+            kind: "practice",
+            homeTeam: {
+              schoolId,
+              displayName: "青葉高校",
+              shortName: "青葉",
+            },
+            awayTeam: {
+              schoolId: opponent.id,
+              displayName: opponent.name,
+              shortName: opponent.shortName,
+            },
+            analysis: null,
           },
-          awayTeam: {
-            schoolId: opponent.id,
-            displayName: opponent.name,
-            shortName: opponent.shortName,
-          },
+        }),
+      });
+      const { result } = renderHook(() =>
+        useGameSession({
+          accessToken: "token",
+          initialSnapshot,
+          api: gameApi,
+          recoveryCache: recovery,
+          createOperationId: () => "op-match",
+        }),
+      );
+
+      let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
+      await act(async () => {
+        response = await result.current.runAction(
+          { type: "match-command", command: { type: "continue" } },
+          "監督指示を反映",
+        );
+      });
+
+      expect(response?.outcome).toMatchObject({
+        kind: "practice",
+        simulation: {
+          match: { id: "match-fast-response" },
           analysis: null,
         },
-      }),
-    });
-    const { result } = renderHook(() =>
-      useGameSession({
-        accessToken: "token",
-        initialSnapshot,
-        api: gameApi,
-        recoveryCache: recovery,
-        createOperationId: () => "op-match",
-      }),
-    );
-
-    let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
-    await act(async () => {
-      response = await result.current.runAction(
-        { type: "match-command", command: { type: "continue" } },
-        "監督指示を反映",
-      );
-    });
-
-    expect(response?.outcome).toMatchObject({
-      kind: "practice",
-      simulation: {
-        match: { id: "match-fast-response" },
-        analysis: null,
-      },
-    });
-    expect(result.current.snapshot.state.activeMatch).toMatchObject({
-      id: "match-fast-response",
-    });
+      });
+      expect(result.current.snapshot.state.activeMatch).toMatchObject({
+        id: "match-fast-response",
+      });
       expect(recovery.write).not.toHaveBeenCalled();
     },
   );
