@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { GameState } from "../../src/domain/model/GameState";
 import {
   applyRecruitmentAction,
+  recruitmentCommitCapacity,
   type RecruitmentAction,
 } from "../../src/domain/scouting/recruitmentEngagement";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
@@ -104,24 +105,6 @@ function recommendationLimitReached(): Response {
     "recruitment_recommendation_limit",
     "今年度の推薦枠はすでに使用済みです",
   );
-}
-
-function projectedRecruitmentCapacity(state: GameState): number {
-  const school = state.schools[state.userSchoolId];
-  if (!school) {
-    return 0;
-  }
-
-  const returningPlayers = school.playerIds.filter((playerId) => {
-    const player = state.players[playerId];
-    return Boolean(player && player.grade !== 3);
-  }).length;
-  const nextAcademicYear = state.calendar.academicYear + 1;
-  const generationalTalentDue =
-    nextAcademicYear >= state.world.nextGenerationalTalentYear;
-  const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
-
-  return Math.max(0, maximumBaseRosterSize - returningPlayers);
 }
 
 export function createScoutingRecruitmentHandler(
@@ -250,7 +233,7 @@ export function createScoutingRecruitmentHandler(
       return candidateNotReady();
     }
     if (
-      currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)
+      currentCommitments.length >= recruitmentCommitCapacity(snapshot.state)
     ) {
       return recruitmentCapacityReached();
     }
