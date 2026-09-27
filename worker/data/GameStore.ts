@@ -51,6 +51,7 @@ export interface GameStore {
   ): Promise<PersistedOperationResponse | null>;
   createGame(input: CreateCloudGameInput): Promise<CloudGameSnapshot>;
   applyOperation(input: PersistOperationInput): Promise<PersistOperationResult>;
+  resetGameData?(userId: string): Promise<void>;
 }
 
 export class GameAlreadyExistsError extends Error {
