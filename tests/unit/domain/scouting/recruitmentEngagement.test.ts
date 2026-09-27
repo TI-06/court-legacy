@@ -4,12 +4,33 @@ import { playerId } from "../../../../src/domain/model/identifiers";
 import {
   applyRecruitmentAction,
   candidateEngagement,
+  recruitmentCommitCapacity,
   recruitmentInterestScore,
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
 } from "../../../../src/domain/scouting/recruitmentEngagement";
 
 describe("recruitmentEngagement", () => {
+  it("caps annual commitments at seven while respecting next-year roster slots", () => {
+    const roomy = createDemoGame();
+    const roomySchool = roomy.schools[roomy.userSchoolId]!;
+    for (const playerId of roomySchool.playerIds) {
+      roomy.players[playerId] = { ...roomy.players[playerId]!, grade: 3 };
+    }
+    expect(recruitmentCommitCapacity(roomy)).toBe(7);
+
+    const constrained = createDemoGame();
+    const constrainedSchool = constrained.schools[constrained.userSchoolId]!;
+    constrainedSchool.playerIds.forEach((playerId, index) => {
+      constrained.players[playerId] = {
+        ...constrained.players[playerId]!,
+        grade: index < 10 ? 2 : 3,
+      };
+    });
+    constrained.world.nextGenerationalTalentYear = 999;
+    expect(recruitmentCommitCapacity(constrained)).toBe(6);
+  });
+
   it("raises a candidate's interest deterministically through visits", () => {
     const state = createDemoGame();
     const candidateId = playerId("candidate-phase26-3");
