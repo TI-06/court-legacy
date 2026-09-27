@@ -13,6 +13,7 @@ import { createAccountProfileHandler } from "./routes/accountProfile";
 import { createAccountRegisterHandler } from "./routes/accountRegister";
 import { createBootstrapHandler } from "./routes/bootstrap";
 import { createGameActionHandler } from "./routes/gameAction";
+import { createGameResetHandler } from "./routes/gameReset";
 import { createOnboardingHandler } from "./routes/onboarding";
 import { createPvpChallengeHandler } from "./routes/pvpChallenge";
 import { createPvpChallengeCommandHandler } from "./routes/pvpChallengeCommand";
@@ -99,6 +100,7 @@ export function createRouter(
     createCreationNonce: deps.createCreationNonce,
   });
   const gameAction = createGameActionHandler(deps.store, deps.scoutingStore);
+  const gameReset = createGameResetHandler(deps.store);
   const scoutingBoard = deps.scoutingStore
     ? createScoutingBoardHandler({
         gameStore: deps.store,
@@ -224,6 +226,9 @@ export function createRouter(
       }
       if (url.pathname === "/api/game/action" && request.method === "POST") {
         return await gameAction(request, user);
+      }
+      if (url.pathname === "/api/game/reset" && request.method === "POST") {
+        return await gameReset(request, user);
       }
       if (
         url.pathname === "/api/shop" &&
