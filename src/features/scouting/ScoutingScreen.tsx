@@ -206,10 +206,13 @@ export function ScoutingScreen({
       ? excludedState.candidateIds
       : readExcludedCandidateIds(cycleKey);
 
-  const committedCandidateIds =
-    state.recruiting?.cycleKey === cycleKey
-      ? state.recruiting.committedCandidateIds
-      : [];
+  const committedCandidateIds = useMemo(
+    () =>
+      state.recruiting?.cycleKey === cycleKey
+        ? state.recruiting.committedCandidateIds
+        : [],
+    [cycleKey, state.recruiting],
+  );
   const committed = useMemo(
     () => new Set<PlayerId>(committedCandidateIds),
     [committedCandidateIds],
