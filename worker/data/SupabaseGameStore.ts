@@ -17,6 +17,7 @@ import {
   RevisionConflictError,
 } from "./GameStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
+import { buildJsonStatePatchOperations } from "./jsonStatePatch";
 
 const rotationSlotSchema = z.union([
   z.literal(1),
@@ -311,11 +312,15 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const { data, error } = await this.client.rpc("apply_game_operation_v3", {
+    const stateOperations = buildJsonStatePatchOperations(
+      input.previousState as unknown as Record<string, unknown>,
+      input.state as unknown as Record<string, unknown>,
+    );
+    const { data, error } = await this.client.rpc("apply_game_operation_v4", {
       p_user_id: input.userId,
       p_operation_id: input.operationId,
       p_expected_revision: input.expectedRevision,
-      p_state: input.state,
+      p_state_operations: stateOperations,
       p_team_selection: input.teamSelection,
       p_outcome: input.response.outcome ?? null,
     });
