@@ -9,6 +9,7 @@ import type {
   PersistOperationResult,
 } from "../../../worker/data/GameStore";
 import { RevisionConflictError } from "../../../worker/data/GameStore";
+import { applyJsonStatePatch } from "../../../worker/data/statePatch";
 import { createGameActionHandler } from "../../../worker/routes/gameAction";
 
 function createSnapshot(revision = 4): CloudGameSnapshot {
@@ -161,8 +162,16 @@ describe("game action route", () => {
     expect(persisted.response.game.revision).toBe(5);
 
     const body = await response.json();
-    expect(body.game.revision).toBe(5);
+    expect(body.revision).toBe(5);
     expect(body.operationId).toBe("operation-001");
+    expect(body).not.toHaveProperty("game");
+    expect(body.statePatch).toEqual(expect.any(Array));
+    expect(
+      applyJsonStatePatch(snapshot.state, body.statePatch),
+    ).toEqual(persisted.state);
+    expect(JSON.stringify(body).length).toBeLessThan(
+      JSON.stringify(persisted.response).length,
+    );
   });
 
   it("accepts a valid season ambition action through the HTTP contract", async () => {
