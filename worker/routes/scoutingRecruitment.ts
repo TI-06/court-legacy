@@ -249,9 +249,11 @@ export function createScoutingRecruitmentHandler(
     if (!report?.recruitment?.canCommit) {
       return candidateNotReady();
     }
-    if (
-      currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)
-    ) {
+    const recruitmentCapacity = Math.min(
+      7,
+      projectedRecruitmentCapacity(snapshot.state),
+    );
+    if (currentCommitments.length >= recruitmentCapacity) {
       return recruitmentCapacityReached();
     }
 
@@ -260,11 +262,16 @@ export function createScoutingRecruitmentHandler(
       snapshot.state.recruiting?.cycleKey === cycleKey
         ? snapshot.state.recruiting
         : { cycleKey, committedCandidateIds: [] };
+    const committedCandidates = [
+      ...(activeRecruiting.committedCandidates ?? []),
+      candidate,
+    ].slice(0, 7);
     const nextState = {
       ...snapshot.state,
       recruiting: {
         ...activeRecruiting,
         committedCandidateIds,
+        committedCandidates,
       },
     };
     const outcome = {
