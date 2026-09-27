@@ -182,8 +182,7 @@ describe("academic-year recruiting integration", () => {
 
   it("recovers a parseable legacy committed recruit when the active pool lost it", async () => {
     const snapshot = createRolloverSnapshot();
-    const legacyCandidateId =
-      `scout-${snapshot.state.userSchoolId}-${snapshot.state.yearIndex}-1`;
+    const legacyCandidateId = `scout-${snapshot.state.userSchoolId}-${snapshot.state.yearIndex}-1`;
     snapshot.state.recruiting = {
       cycleKey: scoutingCycleKey(snapshot.state),
       committedCandidateIds: [legacyCandidateId as never],
