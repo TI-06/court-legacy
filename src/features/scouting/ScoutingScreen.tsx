@@ -223,10 +223,15 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
-  const committedReports = useMemo(
-    () => reports.filter((report) => committed.has(report.candidateId)),
-    [committed, reports],
-  );
+  const committedReports = useMemo(() => {
+    const reportsById = new Map(
+      reports.map((report) => [report.candidateId, report] as const),
+    );
+    return committedCandidateIds
+      .slice(0, 7)
+      .map((candidateId) => reportsById.get(candidateId))
+      .filter((report): report is ScoutReport => report !== undefined);
+  }, [committedCandidateIds, reports]);
   const activeReports = useMemo(
     () =>
       reports.filter(
