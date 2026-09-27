@@ -202,6 +202,37 @@
   line-height: 1.5;
 }
 
+.team-dynamics__coordination-action {
+  display: grid;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  gap: 2px;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  background: linear-gradient(135deg, #1672a9, #0f4d78);
+  border: 1px solid rgb(116 216 255 / 34%);
+  border-radius: 10px;
+}
+
+.team-dynamics__coordination-action span {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.team-dynamics__coordination-action small {
+  color: #c8e9fa;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.team-dynamics__coordination-action:disabled {
+  cursor: default;
+  filter: saturate(0.55);
+  opacity: 0.55;
+}
+
 .team-dynamics__section-heading {
   display: flex;
   align-items: flex-start;
