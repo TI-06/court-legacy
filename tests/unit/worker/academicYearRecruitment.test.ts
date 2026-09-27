@@ -180,6 +180,39 @@ describe("academic-year recruiting integration", () => {
     expect(scoutingStore.getCandidatePool).not.toHaveBeenCalled();
   });
 
+  it("recovers a parseable legacy committed recruit when the active pool lost it", async () => {
+    const snapshot = createRolloverSnapshot();
+    const legacyCandidateId =
+      `scout-${snapshot.state.userSchoolId}-${snapshot.state.yearIndex}-1`;
+    snapshot.state.recruiting = {
+      cycleKey: scoutingCycleKey(snapshot.state),
+      committedCandidateIds: [legacyCandidateId as never],
+    };
+    const pool: ScoutingCandidatePool = {
+      userId: snapshot.userId,
+      cycleKey: scoutingCycleKey(snapshot.state),
+      creationOperationId: "board-op-lost-legacy",
+      candidates: generateServerScoutingCandidates(
+        snapshot.state,
+        { region: "national", position: "any", priority: "ability" },
+        3,
+      ),
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore(pool);
+    const handler = createGameActionHandler(gameStore, scoutingStore);
+
+    const response = await handler(advanceWeekRequest(), { id: "user-123" });
+
+    expect(response.status).toBe(200);
+    expect(scoutingStore.replaceCandidatePool).toHaveBeenCalled();
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(persisted.state.players[legacyCandidateId as never]).toMatchObject({
+      id: legacyCandidateId,
+      grade: 1,
+    });
+  });
+
   it("blocks rollover when a committed id is missing from canonical server truth", async () => {
     const snapshot = createRolloverSnapshot();
     const candidates = generateServerScoutingCandidates(snapshot.state);
