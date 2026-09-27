@@ -180,12 +180,13 @@ describe("academic-year recruiting integration", () => {
     expect(scoutingStore.getCandidatePool).not.toHaveBeenCalled();
   });
 
-  it("blocks rollover when a committed id is missing from canonical server truth", async () => {
+  it("recovers a legacy committed id missing from the active candidate pool and completes rollover", async () => {
     const snapshot = createRolloverSnapshot();
     const candidates = generateServerScoutingCandidates(snapshot.state);
+    const legacyCandidateId = playerId("missing-candidate");
     snapshot.state.recruiting = {
       cycleKey: scoutingCycleKey(snapshot.state),
-      committedCandidateIds: ["missing-candidate" as never],
+      committedCandidateIds: [legacyCandidateId],
     };
     const pool: ScoutingCandidatePool = {
       userId: snapshot.userId,
@@ -199,10 +200,12 @@ describe("academic-year recruiting integration", () => {
 
     const response = await handler(advanceWeekRequest(), { id: "user-123" });
 
-    expect(response.status).toBe(409);
-    expect((await response.json()).error.code).toBe(
-      "recruitment_data_unavailable",
-    );
-    expect(gameStore.applyOperation).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(gameStore.applyOperation).toHaveBeenCalledTimes(1);
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(
+      persisted.state.schools[persisted.state.userSchoolId]!.playerIds,
+    ).toContain(legacyCandidateId);
+    expect(persisted.state.recruiting).toBeUndefined();
   });
 });
