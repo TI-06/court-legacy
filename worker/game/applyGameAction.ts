@@ -1552,12 +1552,26 @@ export function applyGameAction(
   action: GameAction,
   context: ApplyGameActionContext = {},
 ): AppliedGameAction {
-  const state = ensureCharacterTraitAssignments(
-    structuredClone(snapshot.state) as GameState,
-    gameData,
-  );
+  // GameState grows beyond 1 MB in long careers. Deep-cloning the complete
+  // snapshot on every action makes Worker CPU cost scale with total save size
+  // even when an action touches only a tiny subtree (especially match commands).
+  // Domain transitions are immutable, so preserve structural sharing and let
+  // statePatch skip untouched roots by reference.
+  const state = ensureCharacterTraitAssignments(snapshot.state, gameData);
   const teamSelection = cloneTeamSelection(snapshot.teamSelection);
   const applied = applyActionByType(state, teamSelection, action, context);
+
+  // An in-progress match command only changes the live match/runtime state.
+  // Character-trait discovery and season-goal evaluation scan the whole roster
+  // and cannot become newly true until persistent player/team data changes.
+  // Skip those full-roster scans until the match completes.
+  if (
+    action.type === "match-command" &&
+    applied.state.activeMatch?.phase !== "match-complete"
+  ) {
+    return applied;
+  }
+
   const finalized = discoverEligibleCharacterTraits(applied.state, gameData, {
     captainPlayerId: applied.state.teamDynamics.captainPlayerId,
     viceCaptainPlayerId: applied.state.teamDynamics.viceCaptainPlayerId,
