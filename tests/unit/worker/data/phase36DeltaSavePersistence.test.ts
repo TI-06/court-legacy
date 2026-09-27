@@ -12,10 +12,15 @@ const migration = readFileSync(
 
 describe("Phase36 delta save persistence", () => {
   it("adds a V4 RPC that accepts a state patch instead of the full state", () => {
-    expect(migration).toContain("apply_game_operation_v4");
-    expect(migration).toContain("p_state_patch jsonb");
-    expect(migration).toContain("apply_jsonb_state_patch");
-    expect(migration).not.toContain("p_state jsonb");
+    const v4 = migration.slice(
+      migration.indexOf(
+        "create or replace function public.apply_game_operation_v4",
+      ),
+    );
+
+    expect(v4).toContain("p_state_patch jsonb");
+    expect(v4).toContain("apply_jsonb_state_patch");
+    expect(v4).not.toContain("p_state jsonb");
   });
 
   it("keeps game_saves.state as the authoritative complete JSONB snapshot", () => {
