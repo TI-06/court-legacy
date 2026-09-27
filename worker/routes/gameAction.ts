@@ -11,6 +11,7 @@ import {
 import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
+import { buildJsonStatePatch } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
@@ -149,6 +150,7 @@ export function createGameActionHandler(
       throw error;
     }
 
+    const statePatch = buildJsonStatePatch(snapshot.state, applied.state);
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
@@ -169,10 +171,24 @@ export function createGameActionHandler(
         expectedRevision: snapshot.revision,
         previousState: snapshot.state,
         state: applied.state,
+        statePatch,
         teamSelection: applied.teamSelection,
         response,
       });
-      return json(persisted.response);
+      if (persisted.replayed) {
+        return json(persisted.response);
+      }
+      return json({
+        operationId: actionRequest.operationId,
+        gameDelta: {
+          userId: snapshot.userId,
+          schoolDbId: snapshot.schoolDbId,
+          revision: snapshot.revision + 1,
+          statePatch,
+          teamSelection: applied.teamSelection,
+        },
+        ...(applied.outcome !== undefined ? { outcome: applied.outcome } : {}),
+      });
     } catch (error) {
       if (error instanceof RevisionConflictError) {
         return revisionConflict();

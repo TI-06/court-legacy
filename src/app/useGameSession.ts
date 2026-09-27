@@ -1,10 +1,14 @@
 import { useRef, useState } from "react";
-import type { CloudGameSnapshot } from "../../worker/data/GameStore";
+import type {
+  CloudGameSnapshot,
+  PersistedOperationResponse,
+} from "../../worker/data/GameStore";
 import type {
   GameAction,
   GameActionRequest,
   GameActionResponse,
 } from "../../worker/game/actionSchema";
+import { applyJsonStatePatch } from "../../worker/data/statePatch";
 import type { RecoveryCachePort } from "../persistence/RecoveryCache";
 import { browserRecoveryCache } from "../persistence/RecoveryCache";
 import { ApiError, type GameApiClient } from "../services/api/GameApiClient";
@@ -36,11 +40,32 @@ export interface GameSessionController {
   runAction(
     action: GameAction,
     label: string,
-  ): Promise<GameActionResponse | null>;
+  ): Promise<PersistedOperationResponse | null>;
   adoptServerSnapshot(
     snapshot: CloudGameSnapshot,
     label?: string,
   ): Promise<void>;
+}
+
+function materializeActionResponse(
+  current: CloudGameSnapshot,
+  response: GameActionResponse,
+): PersistedOperationResponse {
+  if ("game" in response) {
+    return response;
+  }
+
+  return {
+    operationId: response.operationId,
+    game: {
+      userId: response.gameDelta.userId,
+      schoolDbId: response.gameDelta.schoolDbId,
+      revision: response.gameDelta.revision,
+      state: applyJsonStatePatch(current.state, response.gameDelta.statePatch),
+      teamSelection: response.gameDelta.teamSelection,
+    },
+    ...(response.outcome !== undefined ? { outcome: response.outcome } : {}),
+  };
 }
 
 function isNetworkAmbiguous(error: unknown): boolean {
@@ -96,8 +121,8 @@ export function useGameSession({
     label = "保存済み",
   ): Promise<void> {
     replaceSnapshot(nextSnapshot);
-    await writeRecovery(nextSnapshot, null);
     setOperation({ status: "success", label });
+    void writeRecovery(nextSnapshot, null);
   }
 
   async function submitRequest(
@@ -108,7 +133,7 @@ export function useGameSession({
     requestAccessToken = accessToken,
     resyncRetryCount = 0,
     conflictRetryCount = 0,
-  ): Promise<GameActionResponse | null> {
+  ): Promise<PersistedOperationResponse | null> {
     setOperation({
       status: "submitting",
       label,
@@ -118,10 +143,14 @@ export function useGameSession({
 
     try {
       const response = await api.applyAction(requestAccessToken, request);
-      replaceSnapshot(response.game);
-      await writeRecovery(response.game, null);
+      const materialized = materializeActionResponse(
+        snapshotRef.current,
+        response,
+      );
+      replaceSnapshot(materialized.game);
       setOperation({ status: "success", label });
-      return response;
+      void writeRecovery(materialized.game, null);
+      return materialized;
     } catch (error) {
       if (
         error instanceof ApiError &&
@@ -280,7 +309,7 @@ export function useGameSession({
   function runAction(
     action: GameAction,
     label: string,
-  ): Promise<GameActionResponse | null> {
+  ): Promise<PersistedOperationResponse | null> {
     if (actionPendingRef.current) {
       return Promise.resolve(null);
     }

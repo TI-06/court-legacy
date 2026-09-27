@@ -312,7 +312,8 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const statePatch = buildJsonStatePatch(input.previousState, input.state);
+    const statePatch =
+      input.statePatch ?? buildJsonStatePatch(input.previousState, input.state);
     const { data, error } = await this.client.rpc("apply_game_operation_v4", {
       p_user_id: input.userId,
       p_operation_id: input.operationId,
