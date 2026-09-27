@@ -64,6 +64,56 @@ function responseFor(
 }
 
 describe("GameApp Player Hub planning", () => {
+  it("persists coordination training from the team-state cohesion guide", async () => {
+    let serverSnapshot = createSnapshot();
+    serverSnapshot.state.weeklySchedule.trainingPlan.teamTrainingMenuId =
+      "training.spike";
+    const applyAction = vi.fn(
+      async (_accessToken: string, request: GameActionRequest) => {
+        const response = responseFor(serverSnapshot, request);
+        serverSnapshot = response.game;
+        return response;
+      },
+    );
+    const api: GameApiClient = {
+      bootstrap: vi.fn(),
+      onboard: vi.fn(),
+      applyAction,
+    };
+
+    render(
+      <GameApp
+        api={api}
+        auth={authClient()}
+        session={session}
+        snapshot={serverSnapshot}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手" }));
+    fireEvent.click(await screen.findByRole("button", { name: "チーム" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /今週は連携練習にする/ }),
+    );
+
+    await waitFor(() => expect(applyAction).toHaveBeenCalledTimes(1));
+    expect(applyAction.mock.calls[0]![1]).toMatchObject({
+      revision: 1,
+      action: {
+        type: "set-training-plan",
+        plan: {
+          teamTrainingMenuId: "training.coordination",
+        },
+      },
+    });
+    expect(await screen.findByRole("status")).toHaveTextContent("保存済み ✓");
+    expect(
+      await screen.findByRole("button", {
+        name: /今週は連携練習を設定済み/,
+      }),
+    ).toBeDisabled();
+  });
+
   it("persists development priorities through the authoritative game action and adopts the returned snapshot", async () => {
     let serverSnapshot = createSnapshot();
     const school =
