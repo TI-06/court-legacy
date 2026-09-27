@@ -10,6 +10,7 @@ import type {
 } from "../../../worker/data/GameStore";
 import { RevisionConflictError } from "../../../worker/data/GameStore";
 import { applyJsonStatePatch } from "../../../worker/data/statePatch";
+import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { createGameActionHandler } from "../../../worker/routes/gameAction";
 
 function createSnapshot(revision = 4): CloudGameSnapshot {
@@ -166,6 +167,55 @@ describe("game action route", () => {
     expect(body.operationId).toBe("operation-001");
     expect(body).not.toHaveProperty("game");
     expect(body.statePatch).toEqual(expect.any(Array));
+    expect(
+      applyJsonStatePatch(snapshot.state, body.statePatch),
+    ).toEqual(persisted.state);
+    expect(JSON.stringify(body).length).toBeLessThan(
+      JSON.stringify(persisted.response).length,
+    );
+  });
+
+  it("returns a compact match presentation instead of duplicating the full match outcome", async () => {
+    const base = createSnapshot();
+    const opponent = Object.values(base.state.schools).find(
+      (school) => school.id !== base.state.userSchoolId,
+    );
+    if (!opponent) {
+      throw new Error("practice opponent fixture missing");
+    }
+    base.state.weeklySchedule.practiceMatch.scheduledOpponentId = opponent.id;
+    base.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+
+    const started = applyGameAction(base, { type: "advance-week" });
+    const snapshot: CloudGameSnapshot = {
+      ...base,
+      state: started.state,
+      teamSelection: started.teamSelection,
+    };
+    expect(snapshot.state.activeMatch?.phase).toBe("coach-decision");
+
+    const store = createStore(snapshot);
+    const handler = createGameActionHandler(store);
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "match-command",
+          command: { type: "continue" },
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).not.toHaveProperty("game");
+    expect(body).not.toHaveProperty("outcome");
+    expect(body.matchPresentation).toMatchObject({
+      kind: "practice",
+      analysis: expect.anything(),
+    });
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(
       applyJsonStatePatch(snapshot.state, body.statePatch),
     ).toEqual(persisted.state);
