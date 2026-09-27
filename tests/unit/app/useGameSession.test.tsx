@@ -115,6 +115,66 @@ describe("useGameSession", () => {
     );
   });
 
+  it("applies a delta response locally and does not block completion on recovery cache", async () => {
+    const recoveryWrite = deferred<void>();
+    const recovery = cache();
+    vi.mocked(recovery.write).mockImplementation(() => recoveryWrite.promise);
+    const initialSnapshot = createSnapshot(1);
+    const playerId =
+      initialSnapshot.state.schools[initialSnapshot.state.userSchoolId]!
+        .playerIds[0]!;
+    const beforeMorale = initialSnapshot.state.players[playerId]!.morale;
+    const gameApi = api({
+      applyAction: vi.fn().mockResolvedValue({
+        operationId: "op-delta",
+        gameDelta: {
+          userId: initialSnapshot.userId,
+          schoolDbId: initialSnapshot.schoolDbId,
+          revision: 2,
+          statePatch: [
+            {
+              op: "set",
+              path: ["players", playerId, "morale"],
+              value: Math.min(100, beforeMorale + 1),
+            },
+          ],
+          teamSelection: initialSnapshot.teamSelection,
+        },
+      }),
+    });
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot,
+        api: gameApi,
+        recoveryCache: recovery,
+        createOperationId: () => "op-delta",
+      }),
+    );
+
+    let completed = false;
+    await act(async () => {
+      await result.current
+        .runAction({ type: "mark-notification-read", notificationId: "n-1" }, "保存")
+        .then(() => {
+          completed = true;
+        });
+    });
+
+    expect(completed).toBe(true);
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.snapshot.state.players[playerId]!.morale).toBe(
+      Math.min(100, beforeMorale + 1),
+    );
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "保存",
+    });
+    expect(recovery.write).toHaveBeenCalledTimes(1);
+
+    recoveryWrite.resolve();
+  });
+
   it("does not send a second mutation while another authoritative mutation is pending", async () => {
     const response =
       deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();
