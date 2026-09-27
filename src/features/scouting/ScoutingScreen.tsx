@@ -219,13 +219,11 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
-  const availableReports = useMemo(
-    () => reports.filter((report) => !committed.has(report.candidateId)),
-    [committedCandidateIds.join("|"), reports],
+  const availableReports = reports.filter(
+    (report) => !committed.has(report.candidateId),
   );
-  const committedReports = useMemo(
-    () => reports.filter((report) => committed.has(report.candidateId)),
-    [committedCandidateIds.join("|"), reports],
+  const committedReports = reports.filter((report) =>
+    committed.has(report.candidateId),
   );
   const activeReports = useMemo(
     () =>
