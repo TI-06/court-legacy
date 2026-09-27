@@ -145,7 +145,8 @@ describe("useGameSession", () => {
       }),
     );
 
-    let saved: Awaited<ReturnType<typeof result.current.runAction>> = null;
+    let saved: Awaited<ReturnType<typeof result.current.runAction>> =
+      null;
     await act(async () => {
       saved = await result.current.runAction(
         { type: "facility-upgrade", facility: "gym" },
@@ -226,7 +227,8 @@ describe("useGameSession", () => {
         }),
       );
 
-      let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
+      let response: Awaited<ReturnType<typeof result.current.runAction>> =
+        null;
       await act(async () => {
         response = await result.current.runAction(
           { type: "match-command", command: { type: "continue" } },
