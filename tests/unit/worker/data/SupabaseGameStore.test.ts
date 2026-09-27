@@ -65,6 +65,49 @@ describe("SupabaseGameStore save stability", () => {
     );
   });
 
+  it("falls back to full-state persistence when a patch would timeout Postgres", async () => {
+    const snapshot = createSoakSnapshot("phase37-large-week-patch");
+    const operationId = "phase37-large-week-001";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+      },
+      outcome: { weekAdvanced: true },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+    const statePatch = Array.from({ length: 65 }, (_, index) => ({
+      op: "set" as const,
+      path: ["test", String(index)],
+      value: index,
+    }));
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: response.game.state,
+      statePatch,
+      teamSelection: response.game.teamSelection,
+      response,
+    });
+
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state: response.game.state,
+      p_team_selection: response.game.teamSelection,
+      p_outcome: response.outcome,
+    });
+  });
+
   it("returns an exact replay response from the operation RPC", async () => {
     const snapshot = createSoakSnapshot("phase22-save-replay");
     const operationId = "phase22-op-002";
