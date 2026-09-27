@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import { playerId } from "../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type {
@@ -334,9 +335,10 @@ describe("game action route", () => {
       scheduledOpponentId: null,
       scheduledBy: null,
     };
+    const legacyRecruitId = playerId("legacy-imported-recruit");
     snapshot.state.recruiting = {
       cycleKey: `${snapshot.state.userSchoolId}:year-7`,
-      committedCandidateIds: ["legacy-imported-recruit"],
+      committedCandidateIds: [legacyRecruitId],
     };
 
     const store = createStore(snapshot);
@@ -353,7 +355,7 @@ describe("game action route", () => {
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(
       persisted.state.schools[persisted.state.userSchoolId]!.playerIds,
-    ).toContain("legacy-imported-recruit");
+    ).toContain(legacyRecruitId);
     expect(persisted.state.date).toBe("2029-04-04");
   });
 
