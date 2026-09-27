@@ -17,7 +17,7 @@ describe("jsonStatePatch", () => {
 
     expect(buildJsonStatePatchOperations(before, after)).toEqual([
       { op: "set", path: ["date"], value: "2026-04-08" },
-      { op: "delete", path: ["nested", "remove"] },
+      { op: "remove", path: ["nested", "remove"] },
       { op: "set", path: ["nested", "change"], value: 3 },
       { op: "set", path: ["nested", "add"], value: "new" },
       { op: "append", path: ["history"], value: [{ id: 2 }] },
