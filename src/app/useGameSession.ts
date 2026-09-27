@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
-import type { CloudGameSnapshot } from "../../worker/data/GameStore";
+import type {
+  CloudGameSnapshot,
+  PersistedOperationResponse,
+} from "../../worker/data/GameStore";
 import type {
   GameAction,
   GameActionRequest,
   GameActionResponse,
 } from "../../worker/game/actionSchema";
-import type { PersistedOperationResponse } from "../../worker/data/GameStore";
 import { applyJsonStatePatch } from "../../worker/data/statePatch";
 import type { RecoveryCachePort } from "../persistence/RecoveryCache";
 import { browserRecoveryCache } from "../persistence/RecoveryCache";
@@ -141,7 +143,10 @@ export function useGameSession({
 
     try {
       const response = await api.applyAction(requestAccessToken, request);
-      const materialized = materializeActionResponse(snapshotRef.current, response);
+      const materialized = materializeActionResponse(
+        snapshotRef.current,
+        response,
+      );
       replaceSnapshot(materialized.game);
       setOperation({ status: "success", label });
       void writeRecovery(materialized.game, null);
@@ -304,7 +309,7 @@ export function useGameSession({
   function runAction(
     action: GameAction,
     label: string,
-  ): Promise<GameActionResponse | null> {
+  ): Promise<PersistedOperationResponse | null> {
     if (actionPendingRef.current) {
       return Promise.resolve(null);
     }
