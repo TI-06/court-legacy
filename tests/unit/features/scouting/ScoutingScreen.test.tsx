@@ -123,7 +123,9 @@ describe("ScoutingScreen", () => {
         screen.getByRole("region", { name: "スカウト候補一覧" }),
       ).queryByText("佐藤 湊"),
     ).toBeNull();
-    expect(screen.queryByRole("button", { name: /獲得済み 佐藤 湊/ })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /獲得済み 佐藤 湊/ }),
+    ).toBeNull();
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
   });
 
