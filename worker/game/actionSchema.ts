@@ -340,4 +340,6 @@ export interface DeltaGameActionResponse {
   outcome?: unknown;
 }
 
-export type GameActionResponse = PersistedOperationResponse | DeltaGameActionResponse;
+export type GameActionResponse =
+  | PersistedOperationResponse
+  | DeltaGameActionResponse;
