@@ -96,6 +96,28 @@ describe("jsonStatePatch", () => {
     ]);
   });
 
+  it("matches JSON serialization semantics for undefined values", () => {
+    const previous = {
+      optional: "saved",
+      unchanged: true,
+      values: [1, null],
+    };
+    const next = {
+      optional: undefined,
+      unchanged: true,
+      values: [1, undefined],
+    };
+
+    const patch = createJsonStatePatch(previous, next);
+    const expected = JSON.parse(JSON.stringify(next));
+
+    expect(applyJsonStatePatch(previous, patch)).toEqual(expected);
+    expect(patch).toContainEqual({
+      op: "remove",
+      path: ["optional"],
+    });
+  });
+
   it("removes truncated array entries from the end", () => {
     const previous = { values: ["a", "b", "c", "d"] };
     const next = { values: ["a", "b"] };
