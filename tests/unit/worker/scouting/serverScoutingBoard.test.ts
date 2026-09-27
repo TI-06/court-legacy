@@ -70,8 +70,14 @@ describe("server scouting board Phase 5 integration", () => {
     state.yearIndex = 7;
     const candidateId = "legacy-imported-recruit";
 
-    const first = recoverCommittedCandidateTruthWithFallback(state, candidateId);
-    const second = recoverCommittedCandidateTruthWithFallback(state, candidateId);
+    const first = recoverCommittedCandidateTruthWithFallback(
+      state,
+      candidateId,
+    );
+    const second = recoverCommittedCandidateTruthWithFallback(
+      state,
+      candidateId,
+    );
 
     expect(second).toEqual(first);
     expect(first.player.id).toBe(candidateId);
