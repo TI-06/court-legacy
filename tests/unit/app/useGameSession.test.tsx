@@ -145,9 +145,11 @@ describe("useGameSession", () => {
       }),
     );
 
-    let saved: Awaited<ReturnType<typeof result.current.runAction>> = null;
+    const saved = {
+      value: null as Awaited<ReturnType<typeof result.current.runAction>>,
+    };
     await act(async () => {
-      saved = await result.current.runAction(
+      saved.value = await result.current.runAction(
         { type: "facility-upgrade", facility: "gym" },
         "設備を保存",
       );
@@ -159,7 +161,7 @@ describe("useGameSession", () => {
       status: "success",
       label: "設備を保存",
     });
-    expect(saved?.game.state.schools[schoolId]!.funds).toBe(999);
+    expect(saved.value?.game.state.schools[schoolId]!.funds).toBe(999);
     expect(recovery.write).toHaveBeenCalledTimes(1);
 
     recoveryWrite.resolve();
@@ -222,15 +224,17 @@ describe("useGameSession", () => {
       }),
     );
 
-    let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
+    const response = {
+      value: null as Awaited<ReturnType<typeof result.current.runAction>>,
+    };
     await act(async () => {
-      response = await result.current.runAction(
+      response.value = await result.current.runAction(
         { type: "match-command", command: { type: "continue" } },
         "監督指示を反映",
       );
     });
 
-    expect(response?.outcome).toMatchObject({
+    expect(response.value?.outcome).toMatchObject({
       kind: "practice",
       simulation: {
         match: { id: "match-fast-response" },
