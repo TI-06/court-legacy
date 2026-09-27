@@ -165,7 +165,9 @@ describe("useGameSession", () => {
     recoveryWrite.resolve();
   });
 
-  it("rebuilds compact match presentation from the patched active match and skips RecoveryCache", async () => {
+  it(
+    "rebuilds compact match presentation from the patched active match and skips RecoveryCache",
+    async () => {
     const initialSnapshot = createSnapshot(1);
     const schoolId = initialSnapshot.state.userSchoolId;
     const opponent = Object.values(initialSnapshot.state.schools).find(
@@ -194,9 +196,7 @@ describe("useGameSession", () => {
       applyAction: vi.fn().mockResolvedValue({
         operationId: "op-match",
         revision: 2,
-        statePatch: [
-          { op: "set", path: ["activeMatch"], value: compactMatch },
-        ],
+        statePatch: [{ op: "set", path: ["activeMatch"], value: compactMatch }],
         teamSelection: initialSnapshot.teamSelection,
         matchPresentation: {
           kind: "practice",
@@ -242,8 +242,9 @@ describe("useGameSession", () => {
     expect(result.current.snapshot.state.activeMatch).toMatchObject({
       id: "match-fast-response",
     });
-    expect(recovery.write).not.toHaveBeenCalled();
-  });
+      expect(recovery.write).not.toHaveBeenCalled();
+    },
+  );
 
   it("does not send a second mutation while another authoritative mutation is pending", async () => {
     const response =
