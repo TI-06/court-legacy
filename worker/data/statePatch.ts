@@ -166,11 +166,11 @@ export function collapseJsonStatePatchRoot(
     return [...operations];
   }
 
-  const before = operations.slice(0, firstIndex).filter(
-    (operation) => operation.path[0] !== rootKey,
-  );
-  const afterOperations = operations.slice(firstIndex).filter(
-    (operation) => operation.path[0] !== rootKey,
-  );
+  const before = operations
+    .slice(0, firstIndex)
+    .filter((operation) => operation.path[0] !== rootKey);
+  const afterOperations = operations
+    .slice(firstIndex)
+    .filter((operation) => operation.path[0] !== rootKey);
   return [...before, replacement, ...afterOperations];
 }
