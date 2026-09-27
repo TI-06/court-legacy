@@ -1120,7 +1120,6 @@
   opacity: 0.88;
 }
 
-
 /* Phase39: committed recruits stay visible even after another scouting search. */
 .scouting-committed {
   display: grid;
