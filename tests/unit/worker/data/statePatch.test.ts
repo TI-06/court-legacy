@@ -13,11 +13,12 @@ function applyPatch(
 
   const setAtPath = (target: unknown, path: string[], value: unknown) => {
     if (path.length === 0) return structuredClone(value);
-    let current = target as Record<string, unknown> | unknown[];
+    let current: any = target;
     for (let index = 0; index < path.length - 1; index += 1) {
-      current = current[
-        Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
-      ] as Record<string, unknown> | unknown[];
+      current =
+        current[
+          Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
+        ];
     }
     const key = path[path.length - 1]!;
     if (Array.isArray(current)) {
@@ -29,11 +30,12 @@ function applyPatch(
   };
 
   const removeAtPath = (target: unknown, path: string[]) => {
-    let current = target as Record<string, unknown> | unknown[];
+    let current: any = target;
     for (let index = 0; index < path.length - 1; index += 1) {
-      current = current[
-        Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
-      ] as Record<string, unknown> | unknown[];
+      current =
+        current[
+          Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
+        ];
     }
     const key = path[path.length - 1]!;
     if (Array.isArray(current)) {
