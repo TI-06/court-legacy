@@ -59,9 +59,8 @@ export function discoverEligibleCharacterTraits(
   data: GameDataRegistry,
   context: CharacterTraitDiscoveryContext = {},
 ): { state: GameState; discoveries: CharacterTraitDiscovery[] } {
-  const players = { ...state.players };
+  let players: GameState["players"] | null = null;
   const discoveries: CharacterTraitDiscovery[] = [];
-  let changed = false;
 
   for (const playerId of Object.keys(state.players).sort()) {
     const player = state.players[playerId as PlayerId];
@@ -96,11 +95,11 @@ export function discoverEligibleCharacterTraits(
         (traitId, index) => traitId !== nextRevealed[index],
       );
     if (needsUpdate) {
+      players ??= { ...state.players };
       players[player.id] = {
         ...player,
         revealedHiddenTraitIds: nextRevealed,
       };
-      changed = true;
     }
   }
 
@@ -110,7 +109,7 @@ export function discoverEligibleCharacterTraits(
       left.traitId.localeCompare(right.traitId),
   );
   return {
-    state: changed ? { ...state, players } : state,
+    state: players ? { ...state, players } : state,
     discoveries,
   };
 }
