@@ -74,6 +74,16 @@ describe("TeamDynamicsPanel", () => {
       screen.getByText(new RegExp(`${playerName(first)}.*出場機会`)),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "主将適性" })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "結束の内訳" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("結束の内訳")).toHaveTextContent("士気");
+    expect(screen.getByLabelText("結束の内訳")).toHaveTextContent("信頼");
+    expect(screen.getByLabelText("結束の内訳")).toHaveTextContent("関係性");
+    expect(screen.getByText("現在の試合効果")).toBeVisible();
+    expect(screen.getByText(/連携補正 \+0\.6%/)).toBeVisible();
+    expect(screen.getByText("結束を上げるには")).toBeVisible();
+    expect(screen.getByText(/「連携練習」/)).toBeVisible();
   });
 
   it("submits only the selected captain and vice-captain ids", () => {
