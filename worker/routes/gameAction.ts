@@ -167,7 +167,7 @@ export function createGameActionHandler(
         userId: user.id,
         operationId: actionRequest.operationId,
         expectedRevision: snapshot.revision,
-        previousState: snapshot.state,
+        previousState: loadedSnapshot.state,
         state: applied.state,
         teamSelection: applied.teamSelection,
         response,
