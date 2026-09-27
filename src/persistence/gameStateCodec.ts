@@ -356,7 +356,24 @@ const gameSettingsSchema = z.object({
 const recruitingStateSchema = z
   .object({
     cycleKey: z.string().min(1),
-    committedCandidateIds: z.array(z.string().min(1)),
+    committedCandidateIds: z.array(z.string().min(1)).max(7),
+    committedCandidates: z
+      .array(
+        z
+          .object({
+            player: objectSchema,
+            middleSchoolAchievement: z.enum([
+              "unknown",
+              "regional-starter",
+              "prefectural-best-eight",
+              "prefectural-selection",
+              "national-event",
+            ]),
+          })
+          .strict(),
+      )
+      .max(7)
+      .optional(),
     visitActionsUsed: z.number().int().min(0).max(4).optional(),
     recommendationUsed: z.boolean().optional(),
     scoutingSearchesUsed: z.number().int().nonnegative().optional(),

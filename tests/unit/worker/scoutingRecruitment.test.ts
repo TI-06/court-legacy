@@ -126,7 +126,7 @@ function recruitmentRequest(body: unknown): Request {
 }
 
 describe("scouting recruitment route", () => {
-  it("commits only the selected candidate id into GameState and persists the next revision", async () => {
+  it("persists the selected committed candidate truth for year-end enrollment", async () => {
     const snapshot = createSnapshot();
     const gameStore = createGameStore(snapshot);
     const scouting = createScoutingStore(snapshot);
@@ -151,15 +151,17 @@ describe("scouting recruitment route", () => {
     const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
     expect(persisted.expectedRevision).toBe(7);
     expect(persisted.response.game.revision).toBe(8);
-    expect(persisted.state.recruiting).toEqual({
+    expect(persisted.state.recruiting).toMatchObject({
       cycleKey: scouting.pool.cycleKey,
       committedCandidateIds: [candidate.player.id],
+      committedCandidates: [
+        {
+          player: candidate.player,
+          middleSchoolAchievement: candidate.middleSchoolAchievement,
+        },
+      ],
     });
-
-    const serializedState = JSON.stringify(persisted.state.recruiting);
-    expect(serializedState).not.toContain('"tier"');
-    expect(serializedState).not.toContain('"abilities"');
-    expect(serializedState).not.toContain('"potential"');
+    expect(persisted.state.recruiting?.committedCandidates).toHaveLength(1);
 
     const body = await response.json();
     expect(body.outcome).toEqual({

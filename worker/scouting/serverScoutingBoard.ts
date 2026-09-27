@@ -105,6 +105,74 @@ export function scoutingCycleKey(state: GameState): string {
   return `${state.userSchoolId}:year-${state.yearIndex}`;
 }
 
+function legacyScoutingGenerationRandom(state: GameState): SeededRandom {
+  return new SeededRandom(`${state.seed}:scouting:${scoutingCycleKey(state)}`);
+}
+
+export function recoverCommittedCandidateTruth(
+  state: GameState,
+  candidateId: string,
+): ScoutingCandidateTruth | null {
+  const legacyPrefix = `scout-${state.userSchoolId}-${state.yearIndex}-`;
+  if (!candidateId.startsWith(legacyPrefix)) return null;
+
+  const suffix = candidateId.slice(legacyPrefix.length);
+  const parts = suffix.split("-").map((value) => Number(value));
+  if (parts.some((value) => !Number.isSafeInteger(value) || value < 0)) {
+    return null;
+  }
+
+  if (parts.length === 1 && parts[0]! >= 1) {
+    const index = parts[0]!;
+    const random = legacyScoutingGenerationRandom(state);
+    const probabilities = scoutingTierProbabilities(state);
+    const exclusions = defaultExcludedFullNames(state);
+    let recovered: ScoutingCandidateTruth | null = null;
+
+    for (let currentIndex = 1; currentIndex <= index; currentIndex += 1) {
+      const tier = selectRecruitTier(probabilities, random);
+      const player = generatePlayer({
+        id: playerId(
+          `scout-${state.userSchoolId}-${state.yearIndex}-${currentIndex}`,
+        ),
+        schoolId: state.userSchoolId,
+        grade: 1,
+        enrolledYear: state.yearIndex + 1,
+        tier,
+        data: gameData,
+        random,
+        excludedFullNames: exclusions,
+      });
+      recovered = {
+        player,
+        middleSchoolAchievement: achievementForTier(tier, random),
+      };
+    }
+    return recovered;
+  }
+
+  if (parts.length === 2 && parts[0]! >= 0 && parts[1]! >= 1) {
+    const [searchSequence, index] = parts as [number, number];
+    const recovered = generateServerScoutingCandidateAtIndex(
+      state,
+      index,
+      defaultExcludedFullNames(state),
+      new Map(),
+      undefined,
+      searchSequence,
+    );
+    return {
+      ...recovered,
+      player: {
+        ...recovered.player,
+        id: playerId(candidateId),
+      },
+    };
+  }
+
+  return null;
+}
+
 export function generateServerScoutingCandidateAtIndex(
   state: GameState,
   index: number,

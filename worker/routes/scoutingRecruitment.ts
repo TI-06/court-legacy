@@ -11,6 +11,7 @@ import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
+  recoverCommittedCandidateTruth,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -249,9 +250,11 @@ export function createScoutingRecruitmentHandler(
     if (!report?.recruitment?.canCommit) {
       return candidateNotReady();
     }
-    if (
-      currentCommitments.length >= projectedRecruitmentCapacity(snapshot.state)
-    ) {
+    const recruitmentCapacity = Math.min(
+      7,
+      projectedRecruitmentCapacity(snapshot.state),
+    );
+    if (currentCommitments.length >= recruitmentCapacity) {
       return recruitmentCapacityReached();
     }
 
@@ -260,11 +263,27 @@ export function createScoutingRecruitmentHandler(
       snapshot.state.recruiting?.cycleKey === cycleKey
         ? snapshot.state.recruiting
         : { cycleKey, committedCandidateIds: [] };
+    const committedTruthById = new Map(
+      [
+        ...(activeRecruiting.committedCandidates ?? []),
+        ...pool.candidates,
+        candidate,
+      ].map((entry) => [entry.player.id, entry] as const),
+    );
+    const committedCandidates = committedCandidateIds
+      .map(
+        (candidateId) =>
+          committedTruthById.get(candidateId) ??
+          recoverCommittedCandidateTruth(snapshot.state, candidateId),
+      )
+      .filter((entry) => entry !== null)
+      .slice(0, 7);
     const nextState = {
       ...snapshot.state,
       recruiting: {
         ...activeRecruiting,
         committedCandidateIds,
+        committedCandidates,
       },
     };
     const outcome = {

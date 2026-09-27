@@ -143,9 +143,11 @@ describe("GameApp scouting flow", () => {
       revision: 1,
       candidateId,
     });
-    expect(
-      await screen.findByRole("button", { name: "獲得済み 青木 蓮" }),
-    ).toBeDisabled();
+    const committed = await screen.findByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(committed).toHaveTextContent("獲得決定済み 1/7人");
+    expect(committed).toHaveTextContent("青木 蓮");
   });
 
   it("shows board API errors and retries the board request", async () => {
@@ -217,9 +219,11 @@ describe("GameApp scouting flow", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "再試行" }));
 
-    expect(
-      await screen.findByRole("button", { name: "獲得済み 青木 蓮" }),
-    ).toBeDisabled();
+    const committed = await screen.findByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(committed).toHaveTextContent("獲得決定済み 1/7人");
+    expect(committed).toHaveTextContent("青木 蓮");
     expect(commitRecruit).toHaveBeenCalledTimes(2);
     expect(commitRecruit.mock.calls[1]![1]).toMatchObject({ candidateId });
   });

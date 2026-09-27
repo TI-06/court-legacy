@@ -113,9 +113,12 @@ describe("ScoutingScreen", () => {
     expect(
       screen.getByRole("button", { name: "獲得候補にする 青木 蓮" }),
     ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: "獲得済み 佐藤 湊" }),
-    ).toBeDisabled();
+    const committed = screen.getByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(within(committed).getByText("獲得決定済み 1/7人")).toBeVisible();
+    expect(within(committed).getByText("佐藤 湊")).toBeVisible();
+    expect(within(committed).getByText("獲得済み")).toBeVisible();
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
   });
 

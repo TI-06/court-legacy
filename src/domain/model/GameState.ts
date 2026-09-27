@@ -25,6 +25,7 @@ import type { Player } from "./Player";
 import type { School } from "./School";
 import type { SchoolManagementState } from "./SchoolManagement";
 import type { WorldState } from "./World";
+import type { MiddleSchoolAchievement } from "../scouting/scoutReport";
 
 export interface GameSettings {
   matchDisplayMode: "normal" | "fast" | "text" | "instant";
@@ -108,9 +109,15 @@ export interface RecruitingCandidateEngagement {
   recommendationUsed: boolean;
 }
 
+export interface RecruitingCommittedCandidate {
+  player: Player;
+  middleSchoolAchievement: MiddleSchoolAchievement;
+}
+
 export interface RecruitingState {
   cycleKey: string;
   committedCandidateIds: PlayerId[];
+  committedCandidates?: RecruitingCommittedCandidate[];
   visitActionsUsed?: number;
   recommendationUsed?: boolean;
   scoutingSearchesUsed?: number;

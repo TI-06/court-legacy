@@ -35,9 +35,9 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
   const candidateName = recruitLabel!.replace("獲得候補にする ", "");
 
   await recruitButton.click();
-  await expect(
-    page.getByRole("button", { name: `獲得済み ${candidateName}` }),
-  ).toBeDisabled();
+  const committed = page.getByRole("region", { name: "獲得決定済み選手" });
+  await expect(committed).toContainText(candidateName);
+  await expect(committed).toContainText("獲得決定済み 1/7人");
 
   const bodyWidth = await page
     .locator("body")
@@ -48,9 +48,10 @@ test("mobile scouting acquires a candidate and preserves the result when reopene
   await expect(page.getByRole("heading", { name: "学校" })).toBeVisible();
   await page.getByRole("tab", { name: "スカウト", exact: true }).click();
 
-  await expect(
-    page.getByRole("button", { name: `獲得済み ${candidateName}` }),
-  ).toBeDisabled();
+  const reopenedCommitted = page.getByRole("region", {
+    name: "獲得決定済み選手",
+  });
+  await expect(reopenedCommitted).toContainText(candidateName);
   const reopenedBodyWidth = await page
     .locator("body")
     .evaluate((body) => body.scrollWidth);
