@@ -173,7 +173,6 @@ export function recoverCommittedCandidateTruth(
   return null;
 }
 
-
 export function recoverCommittedCandidateTruthWithFallback(
   state: GameState,
   candidateId: string,
