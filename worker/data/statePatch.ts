@@ -92,7 +92,6 @@ export function buildJsonStatePatch(
   return operations;
 }
 
-
 export function applyJsonStatePatch<T>(
   source: T,
   operations: readonly JsonStatePatchOperation[],
