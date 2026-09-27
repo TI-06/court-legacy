@@ -1,5 +1,6 @@
 import { gameDataBootstrap } from "../../../../src/data/gameData";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
+import { relationshipKey } from "../../../../src/domain/model/GameState";
 import type { PlayerId } from "../../../../src/domain/model/identifiers";
 import type {
   RandomSnapshot,
@@ -116,6 +117,31 @@ describe("resolveWeeklyTraining", () => {
         ?.modifiers.length,
     ).toBeGreaterThan(0);
     expect(state.players[untouchedId]).toEqual(before);
+  });
+
+  it("applies team-menu relationship growth and recalculates cohesion", () => {
+    const state = createTrainingState();
+    const school = state.schools[state.userSchoolId]!;
+    const left = school.playerIds[0]!;
+    const right = school.playerIds[1]!;
+    const key = relationshipKey(left, right);
+    state.playerRelationships[key] = 50;
+    const beforeCohesion = state.teamDynamics.cohesion;
+    const plan = createPlan(school.playerIds);
+    plan.teamTrainingMenuId = "training.coordination";
+
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+    });
+
+    expect(resolution.state.playerRelationships[key]).toBe(58);
+    expect(resolution.state.teamDynamics.cohesion).toBeGreaterThan(
+      beforeCohesion,
+    );
   });
 
   it("keeps all ability values as integers from zero to one hundred", () => {
