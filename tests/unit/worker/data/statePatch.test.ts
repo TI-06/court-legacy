@@ -5,6 +5,16 @@ import {
   type JsonStatePatchOperation,
 } from "../../../../worker/data/statePatch";
 
+function childAt(
+  current: Record<string, unknown> | unknown[],
+  segment: string,
+): Record<string, unknown> | unknown[] {
+  const value = Array.isArray(current)
+    ? current[Number(segment)]
+    : current[segment];
+  return value as Record<string, unknown> | unknown[];
+}
+
 function applyPatch(
   input: unknown,
   operations: JsonStatePatchOperation[],
@@ -13,12 +23,9 @@ function applyPatch(
 
   const setAtPath = (target: unknown, path: string[], value: unknown) => {
     if (path.length === 0) return structuredClone(value);
-    let current: any = target;
+    let current = target as Record<string, unknown> | unknown[];
     for (let index = 0; index < path.length - 1; index += 1) {
-      current =
-        current[
-          Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
-        ];
+      current = childAt(current, path[index]!);
     }
     const key = path[path.length - 1]!;
     if (Array.isArray(current)) {
@@ -30,12 +37,9 @@ function applyPatch(
   };
 
   const removeAtPath = (target: unknown, path: string[]) => {
-    let current: any = target;
+    let current = target as Record<string, unknown> | unknown[];
     for (let index = 0; index < path.length - 1; index += 1) {
-      current =
-        current[
-          Number.isNaN(Number(path[index])) ? path[index]! : Number(path[index])
-        ];
+      current = childAt(current, path[index]!);
     }
     const key = path[path.length - 1]!;
     if (Array.isArray(current)) {
