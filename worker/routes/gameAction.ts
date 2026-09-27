@@ -95,10 +95,8 @@ async function resolveCommittedIntake(
       (candidateId) =>
         persistedById.get(candidateId) ??
         poolById.get(candidateId) ??
-        recoverCommittedCandidateTruthWithFallback(
-          snapshot.state,
-          candidateId,
-        ).player,
+        recoverCommittedCandidateTruthWithFallback(snapshot.state, candidateId)
+          .player,
     );
 
   return { userIntake };
