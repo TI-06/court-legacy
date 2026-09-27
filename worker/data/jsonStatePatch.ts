@@ -43,9 +43,10 @@ function pushArrayDiff(
 ): void {
   if (previous.length === next.length) {
     for (let index = 0; index < next.length; index += 1) {
+      const nextValue = next[index] === undefined ? null : next[index];
       pushDiff(
         previous[index],
-        next[index],
+        nextValue,
         [...path, String(index)],
         operations,
       );
@@ -72,7 +73,7 @@ function pushArrayDiff(
       operations.push({
         op: "set",
         path: [...path, String(index)],
-        value: next[index],
+        value: next[index] === undefined ? null : next[index],
       });
     }
     return;
@@ -90,14 +91,22 @@ function pushObjectDiff(
   operations: JsonStatePatchOperation[],
 ): void {
   for (const key of Object.keys(previous)) {
-    if (!Object.prototype.hasOwnProperty.call(next, key)) {
+    if (
+      !Object.prototype.hasOwnProperty.call(next, key) ||
+      next[key] === undefined
+    ) {
       operations.push({ op: "remove", path: [...path, key] });
     }
   }
 
   for (const [key, value] of Object.entries(next)) {
+    if (value === undefined) continue;
+
     const nextPath = [...path, key];
-    if (!Object.prototype.hasOwnProperty.call(previous, key)) {
+    if (
+      !Object.prototype.hasOwnProperty.call(previous, key) ||
+      previous[key] === undefined
+    ) {
       operations.push({ op: "set", path: nextPath, value });
       continue;
     }
