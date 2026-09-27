@@ -15,7 +15,7 @@ import type { AuthenticatedRequestHandler } from "../router";
 import {
   buildServerScoutReports,
   generateServerScoutingCandidates,
-  recoverCommittedCandidateTruth,
+  recoverCommittedCandidateTruthWithFallback,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -88,8 +88,7 @@ function poolWithCommittedCandidates(
     if (knownIds.has(candidateId)) continue;
     const candidate =
       persistedById.get(candidateId) ??
-      recoverCommittedCandidateTruth(state, candidateId);
-    if (!candidate) continue;
+      recoverCommittedCandidateTruthWithFallback(state, candidateId);
     candidates.push(candidate);
     knownIds.add(candidateId);
   }
