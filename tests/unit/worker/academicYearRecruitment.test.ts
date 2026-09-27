@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
 import { markWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
+import { playerId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type {
   CloudGameSnapshot,
