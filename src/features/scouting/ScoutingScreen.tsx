@@ -383,10 +383,7 @@ export function ScoutingScreen({
       ) : null}
 
       {!loading && committedReports.length > 0 ? (
-        <section
-          className="scouting-committed"
-          aria-label="獲得決定済み選手"
-        >
+        <section className="scouting-committed" aria-label="獲得決定済み選手">
           <div className="scouting-committed__header">
             <div>
               <span>来年度入学予定</span>
@@ -407,8 +404,14 @@ export function ScoutingScreen({
                   </span>
                 </div>
                 <div className="scouting-committed__ability">
-                  <span>総合 {report.estimatedOverall.min}〜{report.estimatedOverall.max}</span>
-                  <span>将来 {report.estimatedPotential.min}〜{report.estimatedPotential.max}</span>
+                  <span>
+                    総合 {report.estimatedOverall.min}〜
+                    {report.estimatedOverall.max}
+                  </span>
+                  <span>
+                    将来 {report.estimatedPotential.min}〜
+                    {report.estimatedPotential.max}
+                  </span>
                 </div>
                 <span className="scouting-committed__status">獲得済み</span>
               </article>
