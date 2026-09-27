@@ -79,7 +79,7 @@ async function resolveCommittedIntake(
     return { error: recruitmentDataUnavailable() };
   }
 
-  let pool = await scoutingStore.getCandidatePool(userId, cycleKey);
+  const pool = await scoutingStore.getCandidatePool(userId, cycleKey);
   const currentCandidates = pool?.candidates ?? [];
   const repairedCandidates = preserveCommittedScoutingCandidates(
     snapshot.state,
@@ -95,14 +95,14 @@ async function resolveCommittedIntake(
   }
 
   if (!pool && repairedCandidates.length > 0) {
-    pool = await scoutingStore.createCandidatePool({
+    await scoutingStore.createCandidatePool({
       userId,
       cycleKey,
       creationOperationId: `committed-recovery:${cycleKey}`,
       candidates: repairedCandidates,
     });
   } else if (pool && repairedCandidates.length !== pool.candidates.length) {
-    pool = await scoutingStore.replaceCandidatePool({
+    await scoutingStore.replaceCandidatePool({
       userId,
       cycleKey,
       creationOperationId: pool.creationOperationId,
