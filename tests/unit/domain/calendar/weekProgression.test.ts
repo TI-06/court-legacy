@@ -52,6 +52,40 @@ describe("weekly progression", () => {
     expect(nextOpponent.id).not.toBe(currentOpponent.id);
   });
 
+  it("reuses the player map when no injuries need updating", () => {
+    const state = createState();
+    for (const player of Object.values(state.players)) {
+      player.injury = null;
+    }
+
+    const result = advanceOneWeek(state);
+
+    expect(result.state.players).toBe(state.players);
+  });
+
+  it("only replaces injured player records during weekly injury progression", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    const injuredId = school.playerIds[0]!;
+    const untouchedId = school.playerIds[1]!;
+    state.players[injuredId] = {
+      ...state.players[injuredId]!,
+      injury: {
+        injuryId: "injury.optimized",
+        severity: "minor",
+        remainingWeeks: 2,
+        recurrenceRisk: 10,
+      },
+    };
+    const untouched = state.players[untouchedId]!;
+
+    const result = advanceOneWeek(state);
+
+    expect(result.state.players).not.toBe(state.players);
+    expect(result.state.players[injuredId]).not.toBe(state.players[injuredId]);
+    expect(result.state.players[untouchedId]).toBe(untouched);
+  });
+
   it("reduces injuries and clears an injury after its final week", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
