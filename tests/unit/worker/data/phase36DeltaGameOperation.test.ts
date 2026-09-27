@@ -13,9 +13,10 @@ const migration = readFileSync(
 describe("Phase36 delta game operation", () => {
   it("updates the authoritative state from ordered patch operations", () => {
     expect(migration).toContain("apply_game_operation_v4");
-    expect(migration).toContain("jsonb_array_elements(p_state_operations)");
-    expect(migration).toContain("jsonb_set(v_state, v_path");
-    expect(migration).toContain("v_state #- v_path");
+    expect(migration).toContain("apply_jsonb_state_patch");
+    expect(migration).toContain("jsonb_array_elements(p_patch)");
+    expect(migration).toContain("jsonb_set(v_result, v_path");
+    expect(migration).toContain("v_result #- v_path");
     expect(migration).toContain("v_current_value || v_value");
   });
 
