@@ -20,7 +20,9 @@ describe("Phase36 delta save persistence", () => {
 
   it("keeps game_saves.state as the authoritative complete JSONB snapshot", () => {
     expect(migration).toContain("state = v_next_state");
-    expect(migration).toContain("select save.school_id, save.revision, save.state");
+    expect(migration).toContain(
+      "select save.school_id, save.revision, save.state",
+    );
   });
 
   it("keeps compact replay metadata and bounded operation retention", () => {
