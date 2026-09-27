@@ -18,6 +18,7 @@ import type {
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
+import type { JsonStatePatchOperation } from "../data/statePatch";
 
 const playerIdSchema = z.string().min(1);
 
@@ -327,4 +328,14 @@ export interface GameActionRequest {
   action: GameAction;
 }
 
-export type GameActionResponse = PersistedOperationResponse;
+export interface DeltaGameActionResponse {
+  operationId: string;
+  revision: number;
+  statePatch: JsonStatePatchOperation[];
+  teamSelection: TeamSelection;
+  outcome?: unknown;
+}
+
+export type GameActionResponse =
+  | PersistedOperationResponse
+  | DeltaGameActionResponse;
