@@ -115,6 +115,136 @@ describe("useGameSession", () => {
     );
   });
 
+  it("applies a delta response without waiting for RecoveryCache", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const schoolId = initialSnapshot.state.userSchoolId;
+    const recoveryWrite = deferred<void>();
+    const recovery = cache();
+    vi.mocked(recovery.write).mockImplementation(() => recoveryWrite.promise);
+    const gameApi = api({
+      applyAction: vi.fn().mockResolvedValue({
+        operationId: "op-delta",
+        revision: 2,
+        statePatch: [
+          {
+            op: "set",
+            path: ["schools", schoolId, "funds"],
+            value: 999,
+          },
+        ],
+        teamSelection: initialSnapshot.teamSelection,
+      }),
+    });
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot,
+        api: gameApi,
+        recoveryCache: recovery,
+        createOperationId: () => "op-delta",
+      }),
+    );
+
+    let saved: Awaited<ReturnType<typeof result.current.runAction>> = null;
+    await act(async () => {
+      saved = await result.current.runAction(
+        { type: "facility-upgrade", facility: "gym" },
+        "設備を保存",
+      );
+    });
+
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.snapshot.state.schools[schoolId]!.funds).toBe(999);
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "設備を保存",
+    });
+    expect(saved?.game.state.schools[schoolId]!.funds).toBe(999);
+    expect(recovery.write).toHaveBeenCalledTimes(1);
+
+    recoveryWrite.resolve();
+  });
+
+  it("rebuilds compact match presentation from the patched active match and skips RecoveryCache", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const schoolId = initialSnapshot.state.userSchoolId;
+    const opponent = Object.values(initialSnapshot.state.schools).find(
+      (school) => school.id !== schoolId,
+    )!;
+    const compactMatch = {
+      id: "match-fast-response",
+      homeSchoolId: schoolId,
+      awaySchoolId: opponent.id,
+      bestOfSets: 3,
+      phase: "coach-decision",
+      currentSetNumber: 1,
+      homeSetsWon: 0,
+      awaySetsWon: 0,
+      sets: [],
+      servingSchoolId: schoolId,
+      homeSelection: initialSnapshot.teamSelection,
+      awaySelection: initialSnapshot.teamSelection,
+      pendingCoachCommandForSchoolId: schoolId,
+      eventLog: [],
+      randomSeed: "fast",
+      randomCursor: 1,
+    };
+    const recovery = cache();
+    const gameApi = api({
+      applyAction: vi.fn().mockResolvedValue({
+        operationId: "op-match",
+        revision: 2,
+        statePatch: [
+          { op: "set", path: ["activeMatch"], value: compactMatch },
+        ],
+        teamSelection: initialSnapshot.teamSelection,
+        matchPresentation: {
+          kind: "practice",
+          homeTeam: {
+            schoolId,
+            displayName: "青葉高校",
+            shortName: "青葉",
+          },
+          awayTeam: {
+            schoolId: opponent.id,
+            displayName: opponent.name,
+            shortName: opponent.shortName,
+          },
+          analysis: null,
+        },
+      }),
+    });
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot,
+        api: gameApi,
+        recoveryCache: recovery,
+        createOperationId: () => "op-match",
+      }),
+    );
+
+    let response: Awaited<ReturnType<typeof result.current.runAction>> = null;
+    await act(async () => {
+      response = await result.current.runAction(
+        { type: "match-command", command: { type: "continue" } },
+        "監督指示を反映",
+      );
+    });
+
+    expect(response?.outcome).toMatchObject({
+      kind: "practice",
+      simulation: {
+        match: { id: "match-fast-response" },
+        analysis: null,
+      },
+    });
+    expect(result.current.snapshot.state.activeMatch).toMatchObject({
+      id: "match-fast-response",
+    });
+    expect(recovery.write).not.toHaveBeenCalled();
+  });
+
   it("does not send a second mutation while another authoritative mutation is pending", async () => {
     const response =
       deferred<Awaited<ReturnType<GameApiClient["applyAction"]>>>();
