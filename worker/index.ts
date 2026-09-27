@@ -44,6 +44,7 @@ function createLazyGameStore(env: Env): GameStore {
       store().getOperationResponse(userId, operationId),
     createGame: (input) => store().createGame(input),
     applyOperation: (input) => store().applyOperation(input),
+    resetGameData: (userId) => store().resetGameData(userId),
   };
 }
 

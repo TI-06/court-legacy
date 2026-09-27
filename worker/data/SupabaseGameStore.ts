@@ -71,6 +71,9 @@ const storedOperationSchema = z.object({
   resulting_revision: z.number().int().positive(),
 });
 
+const MAX_JSON_PATCH_BYTES = 32_768;
+const MAX_JSON_PATCH_OPERATIONS = 64;
+
 const applyOperationRpcSchema = z
   .array(
     z.object({
@@ -314,14 +317,27 @@ export class SupabaseGameStore implements GameStore {
   ): Promise<PersistOperationResult> {
     const statePatch =
       input.statePatch ?? buildJsonStatePatch(input.previousState, input.state);
-    const { data, error } = await this.client.rpc("apply_game_operation_v4", {
-      p_user_id: input.userId,
-      p_operation_id: input.operationId,
-      p_expected_revision: input.expectedRevision,
-      p_state_patch: statePatch,
-      p_team_selection: input.teamSelection,
-      p_outcome: input.response.outcome ?? null,
-    });
+    const patchBytes = JSON.stringify(statePatch).length;
+    const useFullStateFallback =
+      statePatch.length > MAX_JSON_PATCH_OPERATIONS ||
+      patchBytes > MAX_JSON_PATCH_BYTES;
+    const { data, error } = useFullStateFallback
+      ? await this.client.rpc("apply_game_operation_v3", {
+          p_user_id: input.userId,
+          p_operation_id: input.operationId,
+          p_expected_revision: input.expectedRevision,
+          p_state: input.state,
+          p_team_selection: input.teamSelection,
+          p_outcome: input.response.outcome ?? null,
+        })
+      : await this.client.rpc("apply_game_operation_v4", {
+          p_user_id: input.userId,
+          p_operation_id: input.operationId,
+          p_expected_revision: input.expectedRevision,
+          p_state_patch: statePatch,
+          p_team_selection: input.teamSelection,
+          p_outcome: input.response.outcome ?? null,
+        });
 
     if (error && isRevisionConflict(error)) {
       throw new RevisionConflictError();
@@ -374,5 +390,49 @@ export class SupabaseGameStore implements GameStore {
       response: input.response,
       replayed: true,
     };
+  }
+
+  async resetGameData(userId: string): Promise<void> {
+    const deleteUserRows = async (table: string) => {
+      const { error } = await this.client
+        .from(table)
+        .delete()
+        .eq("user_id", userId);
+      if (error) {
+        throw new GameStoreDataError(`game reset failed for ${table}`, {
+          cause: error,
+        });
+      }
+    };
+
+    const { error: pvpMatchError } = await this.client
+      .from("pvp_matches")
+      .delete()
+      .or(
+        `challenger_user_id.eq.${userId},defender_user_id.eq.${userId},winner_user_id.eq.${userId}`,
+      );
+    if (pvpMatchError) {
+      throw new GameStoreDataError("game reset failed for pvp_matches", {
+        cause: pvpMatchError,
+      });
+    }
+
+    for (const table of [
+      "shop_item_uses",
+      "shop_transactions",
+      "shop_operations",
+      "shop_inventory",
+      "shop_yearly_counters",
+      "scouting_candidate_insights",
+      "scouting_candidate_pools",
+      "pvp_operations",
+      "pvp_ratings",
+      "pvp_team_snapshots",
+      "game_operations",
+      "game_saves",
+      "schools",
+    ]) {
+      await deleteUserRows(table);
+    }
   }
 }

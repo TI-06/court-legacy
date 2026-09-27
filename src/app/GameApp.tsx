@@ -65,6 +65,7 @@ import type {
   IndividualTrainingAssignment,
   WeeklyPlan,
 } from "../domain/training/resolveWeeklyTraining";
+import { browserRecoveryCache } from "../persistence/RecoveryCache";
 import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
@@ -1119,6 +1120,19 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     void loadShop();
   };
 
+  const resetGameData = async () => {
+    if (!api.resetGameData) {
+      throw new Error("ゲームデータの初期化を利用できません");
+    }
+
+    await api.resetGameData(session.accessToken);
+    try {
+      await browserRecoveryCache.clear(session.userId);
+    } finally {
+      window.location.reload();
+    }
+  };
+
   const upgradeSchoolFacility = async (
     key: FacilityKey,
     levels: FacilityUpgradeLevels,
@@ -1581,6 +1595,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         accountLabel={session.email ?? "ログイン済みアカウント"}
         onOpenInventory={openInventory}
         onOpenShop={openShop}
+        onResetGameData={resetGameData}
         onSignOut={() => void auth.signOut()}
       />
     );

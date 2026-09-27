@@ -102,6 +102,10 @@ export interface GameApiClient {
     request: GameActionRequest,
     signal?: AbortSignal,
   ): Promise<GameActionResponse>;
+  resetGameData?(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<{ status: "reset" }>;
   getShop?(
     accessToken: string,
     signal?: AbortSignal,
@@ -493,6 +497,18 @@ export class HttpGameApiClient implements GameApiClient {
       "/api/game/action",
       accessToken,
       { method: "POST", body: JSON.stringify(request) },
+      signal,
+    );
+  }
+
+  resetGameData(
+    accessToken: string,
+    signal?: AbortSignal,
+  ): Promise<{ status: "reset" }> {
+    return this.request<{ status: "reset" }>(
+      "/api/game/reset",
+      accessToken,
+      { method: "POST" },
       signal,
     );
   }
