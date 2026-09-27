@@ -341,5 +341,4 @@ export interface DeltaGameActionResponse {
 }
 
 export type GameActionResponse =
-  | PersistedOperationResponse
-  | DeltaGameActionResponse;
+  PersistedOperationResponse | DeltaGameActionResponse;
