@@ -41,9 +41,9 @@ describe("position conversion", () => {
     state = progressPositionConversions(state).state;
     expect(state.players[playerId]!.preferredPosition).toBe(target);
     expect(state.players[playerId]!.positionConversion).toBeUndefined();
-    expect(state.players[playerId]!.positionAptitudes[target]).toBeGreaterThanOrEqual(
-      70,
-    );
+    expect(
+      state.players[playerId]!.positionAptitudes[target],
+    ).toBeGreaterThanOrEqual(70);
   });
 
   it("shortens conversion by one week for growth.conversion players", () => {
