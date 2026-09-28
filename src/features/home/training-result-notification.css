@@ -497,7 +497,6 @@
   }
 }
 
-
 /* Phase46: make growth results readable as current value -> new value. */
 .training-result-notification__abilities span {
   display: inline-flex;
