@@ -137,6 +137,57 @@ function matchGrowthTargets(player: Player): readonly AbilityKey[] {
   return ["decision", coreByPosition[player.preferredPosition]];
 }
 
+export interface MatchExperienceAbilityChange {
+  before: number;
+  after: number;
+  delta: number;
+}
+
+export interface MatchExperiencePlayerGrowth {
+  playerId: PlayerId;
+  displayName: string;
+  grade: Grade;
+  preferredPosition: Player["preferredPosition"];
+  abilityChanges: Partial<Record<AbilityKey, MatchExperienceAbilityChange>>;
+}
+
+export function buildMatchExperienceGrowth(
+  stateBefore: GameState,
+  stateAfter: GameState,
+  participantPlayerIds: readonly PlayerId[],
+): MatchExperiencePlayerGrowth[] {
+  return participantPlayerIds.flatMap((playerId) => {
+    const before = stateBefore.players[playerId];
+    const after = stateAfter.players[playerId];
+    if (!before || !after) return [];
+
+    const abilityChanges: Partial<
+      Record<AbilityKey, MatchExperienceAbilityChange>
+    > = {};
+    for (const ability of Object.keys(before.abilities) as AbilityKey[]) {
+      const beforeValue = before.abilities[ability];
+      const afterValue = after.abilities[ability];
+      if (beforeValue === afterValue) continue;
+      abilityChanges[ability] = {
+        before: beforeValue,
+        after: afterValue,
+        delta: afterValue - beforeValue,
+      };
+    }
+    if (Object.keys(abilityChanges).length === 0) return [];
+
+    return [
+      {
+        playerId,
+        displayName: `${after.lastName} ${after.firstName}`,
+        grade: after.grade,
+        preferredPosition: after.preferredPosition,
+        abilityChanges,
+      },
+    ];
+  });
+}
+
 export interface ApplyUserMatchExperienceInput {
   state: GameState;
   data: GameDataRegistry;
