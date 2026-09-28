@@ -573,6 +573,9 @@ export function PreMatchLineupScreen({
                       player.positionAptitudes[rotationRoles[slot]],
                     )}
                     ・{player.heightCm}cm
+                    {player.positionConversion
+                      ? `・→${player.positionConversion.targetPosition} 残${player.positionConversion.remainingWeeks}週`
+                      : ""}
                   </span>
                   {specialAbilityBadges.length > 0 ? (
                     <span
