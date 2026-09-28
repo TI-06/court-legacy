@@ -2024,3 +2024,39 @@
   background: rgb(112 167 181 / 14%);
   border-color: rgb(112 167 181 / 28%);
 }
+
+
+.position-conversion-complete {
+  display: grid;
+  gap: 7px;
+}
+
+.position-conversion-complete article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 10px;
+  gap: 8px;
+  color: #18303b;
+  background: #fff;
+  border: 1px solid #cfdae0;
+  border-radius: 10px;
+}
+
+.position-conversion-complete strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.position-conversion-complete span {
+  color: #426f7b;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.position-conversion-complete b {
+  padding-inline: 5px;
+  color: #78909a;
+}
