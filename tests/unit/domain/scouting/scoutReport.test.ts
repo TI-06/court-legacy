@@ -13,7 +13,10 @@ if (!gameDataBootstrap.ok) {
 
 const data = gameDataBootstrap.data;
 
-function candidate(index: number, tier: "normal" | "elite" | "monster") {
+function candidate(
+  index: number,
+  tier: "normal" | "elite" | "monster" | "generational",
+) {
   return generatePlayer({
     id: playerId(`scout-candidate-${index}`),
     schoolId: schoolId("school-candidate-pool"),
@@ -60,6 +63,20 @@ describe("scoutReport", () => {
     expect(serialized).not.toContain('"injuryResistance"');
     expect(serialized).not.toContain('"hiddenTraitIds"');
     expect(serialized).not.toContain(`"potential":${player.potential}`);
+  });
+
+  it("marks generational talent explicitly without exposing the internal tier field", () => {
+    const player = candidate(22, "generational");
+    const report = createScoutReport({
+      player,
+      middleSchoolAchievement: "national-event",
+      observation: 55,
+      scoutingNetworkLevel: 2,
+      random: new SeededRandom("report-generational-talent"),
+    });
+
+    expect(report.isGenerationalTalent).toBe(true);
+    expect(JSON.stringify(report)).not.toContain('"tier"');
   });
 
   it("narrows estimated ranges when observation and scouting facilities improve", () => {
