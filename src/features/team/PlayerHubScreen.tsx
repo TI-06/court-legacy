@@ -990,7 +990,7 @@ export function PlayerHubScreen({
               ) : (
                 <>
                   <p>
-                    現在の適性に応じて2〜8週。転向型の選手は1週短縮されます。
+                    現在の適性に応じて3〜8週。転向型の選手は1週短縮されます。
                   </p>
                   <div className="player-position-conversion__choices">
                     {positions
@@ -1015,7 +1015,7 @@ export function PlayerHubScreen({
                                     : 8;
                         const adjustedWeeks =
                           selectedPlayer.growthTypeId === "growth.conversion"
-                            ? Math.max(2, weeks - 1)
+                            ? Math.max(3, weeks - 1)
                             : weeks;
                         return (
                           <button
