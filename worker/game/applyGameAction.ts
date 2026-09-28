@@ -45,6 +45,10 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
+import {
+  buildMatchGrowthPresentation,
+  type MatchGrowthPresentation,
+} from "../../src/domain/player/abilityGrowthPresentation";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
@@ -807,6 +811,7 @@ function applyPracticeMatchCommand(
       resumedState,
       simulation.match,
     );
+    const growth = buildMatchGrowthPresentation(resumedState, experiencedState);
     const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
@@ -842,7 +847,7 @@ function applyPracticeMatchCommand(
     return {
       state: finalizedState,
       teamSelection,
-      outcome: buildPracticePresentation(finalizedState, simulation),
+      outcome: buildPracticePresentation(finalizedState, simulation, growth),
     };
   } catch (error) {
     if (error instanceof MatchCommandValidationError) {
@@ -895,6 +900,7 @@ function buildOfficialSimulationContext(
 function buildOfficialActionOutcome(
   due: DueUserOfficialMatch,
   simulation: MatchStepResult,
+  growth?: MatchGrowthPresentation,
 ) {
   return {
     officialMatch: {
@@ -910,6 +916,7 @@ function buildOfficialActionOutcome(
       },
     },
     simulation,
+    growth,
   };
 }
 
@@ -1080,7 +1087,7 @@ function applyOfficialMatchCommand(
         teamSelection,
         outcome: buildOfficialPresentation(
           resumedState,
-          buildOfficialActionOutcome(due, simulation),
+          buildOfficialActionOutcome(due, simulation, growth),
         ),
       };
     }
@@ -1090,6 +1097,7 @@ function applyOfficialMatchCommand(
       context.state,
       simulation.match,
     );
+    const growth = buildMatchGrowthPresentation(resumedState, experiencedState);
     const recorded = recordOfficialTournamentOutcome({
       state: experiencedState,
       circuit: due.circuit,
@@ -1169,12 +1177,14 @@ function teamPresentation(
 function buildPracticePresentation(
   state: GameState,
   simulation: MatchStepResult,
+  growth?: MatchGrowthPresentation,
 ): PendingMatchPresentation {
   return {
     kind: "practice",
     simulation,
     homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
     awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
+    growth,
   };
 }
 function practicePresentation(
@@ -1209,6 +1219,7 @@ function buildOfficialPresentation(
         ? undefined
         : fallback,
     ),
+    growth: outcome.growth,
     official: {
       tournamentId: outcome.officialMatch.tournamentId,
       circuit: outcome.officialMatch.circuit,
