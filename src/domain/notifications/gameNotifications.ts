@@ -33,6 +33,14 @@ export interface TrainingResultRankUp {
   toGrade: DevelopmentGoalGrade;
 }
 
+export interface TrainingAbilityResult {
+  before: number;
+  after: number;
+  beforeGrade: ReturnType<typeof ratingToGrade>;
+  afterGrade: ReturnType<typeof ratingToGrade>;
+  change: number;
+}
+
 export interface TrainingResultNotificationPlayer {
   playerId: PlayerId;
   displayName: string;
@@ -44,6 +52,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  abilityResults?: Partial<Record<AbilityKey, TrainingAbilityResult>>;
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -263,6 +272,27 @@ export function buildTrainingResultNotification(
       );
     }
 
+    const abilityResults = Object.fromEntries(
+      (Object.entries(log.abilityChanges) as [AbilityKey, number | undefined][])
+        .filter((entry): entry is [AbilityKey, number] =>
+          typeof entry[1] === "number" && entry[1] !== 0,
+        )
+        .map(([ability, change]) => {
+          const before = player.abilities[ability];
+          const after = Math.max(0, Math.min(100, before + change));
+          return [
+            ability,
+            {
+              before,
+              after,
+              beforeGrade: ratingToGrade(before),
+              afterGrade: ratingToGrade(after),
+              change,
+            } satisfies TrainingAbilityResult,
+          ];
+        }),
+    ) as Partial<Record<AbilityKey, TrainingAbilityResult>>;
+
     return {
       playerId: player.id,
       displayName: `${player.lastName} ${player.firstName}`,
@@ -274,6 +304,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      abilityResults,
       rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
