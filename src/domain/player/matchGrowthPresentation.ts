@@ -1,7 +1,10 @@
 import type { GameState } from "../model/GameState";
 import type { PlayerId } from "../model/identifiers";
 import type { AbilityKey } from "../validation/gameDataSchema";
-import { ratingToGrade, type AbilityRatingGrade } from "../selectors/ratingGrades";
+import {
+  ratingToGrade,
+  type AbilityRatingGrade,
+} from "../selectors/ratingGrades";
 
 export interface MatchAbilityGrowthRow {
   ability: AbilityKey;
