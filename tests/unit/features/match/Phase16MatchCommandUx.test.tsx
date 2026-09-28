@@ -111,7 +111,7 @@ describe("Phase16 match command decision panel", () => {
     expect(
       screen.getByText("セット中盤です。ここで流れを作る指示を選べます"),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "選手指示" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "個人指示・声かけ" })).toBeVisible();
     expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
     expect(screen.getByRole("button", { name: "選手交代" })).toBeVisible();
   });
@@ -176,7 +176,7 @@ describe("Phase16 match command decision panel", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "選手指示" }));
+    fireEvent.click(screen.getByRole("button", { name: "個人指示・声かけ" }));
     const dialog = screen.getByRole("dialog", { name: "選手指示" });
 
     fireEvent.click(
@@ -187,6 +187,42 @@ describe("Phase16 match command decision panel", () => {
     expect(onCommand).toHaveBeenLastCalledWith({
       type: "focus-attacker",
       playerId,
+    });
+  });
+
+  it("recommends who should receive attack focus and encouragement", () => {
+    const fixture = findDecision("opponent-run");
+    const onCommand = vi.fn();
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "個人指示・声かけ" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "選手指示" });
+    const recommendations = within(dialog).getByLabelText("おすすめ個人指示");
+
+    expect(within(recommendations).getByText("攻撃を託すなら")).toBeVisible();
+    expect(within(recommendations).getByText("声をかけるなら")).toBeVisible();
+
+    const encouragementButton = within(recommendations)
+      .getByText("声をかけるなら")
+      .closest("button");
+    if (!encouragementButton) {
+      throw new Error("encouragement recommendation button is missing");
+    }
+    fireEvent.click(encouragementButton);
+
+    expect(onCommand).toHaveBeenCalledOnce();
+    expect(onCommand.mock.calls[0]?.[0]).toMatchObject({
+      type: "encourage-player",
     });
   });
 
@@ -273,6 +309,12 @@ describe("Phase16 match command decision panel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "戦術変更" }));
     const dialog = screen.getByRole("dialog", { name: "戦術変更" });
+    const presets = within(dialog).getByRole("group", {
+      name: "戦術プリセット",
+    });
+    expect(within(presets).getByRole("button", { name: /安定/ })).toBeVisible();
+    expect(within(presets).getByRole("button", { name: /標準/ })).toBeVisible();
+    expect(within(presets).getByRole("button", { name: /攻め/ })).toBeVisible();
     const serveGroup = within(dialog).getByRole("group", {
       name: "サーブ方針",
     });
