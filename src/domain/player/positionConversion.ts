@@ -104,9 +104,18 @@ export function progressPositionConversions(state: GameState): {
   let changed = false;
   const completions: PositionConversionCompletion[] = [];
 
+  const school = state.schools[state.userSchoolId];
+  const activePlayerIds = new Set(school?.playerIds ?? []);
+
   for (const player of Object.values(state.players)) {
     const conversion = player.positionConversion;
-    if (!conversion || player.career.schoolId !== state.userSchoolId) continue;
+    if (
+      !conversion ||
+      player.career.schoolId !== state.userSchoolId ||
+      !activePlayerIds.has(player.id)
+    ) {
+      continue;
+    }
 
     const nextRemaining = Math.max(0, conversion.remainingWeeks - 1);
     const completed = nextRemaining === 0;
