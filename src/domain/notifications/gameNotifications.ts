@@ -6,6 +6,10 @@ import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
 import type { Position } from "../model/Player";
 import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
 import {
+  buildAbilityValueChanges,
+  type AbilityValueChange,
+} from "../player/abilityGrowthPresentation";
+import {
   developmentGoalAreaLabels,
   getPlayerDevelopmentGoalProgress,
 } from "../player/playerDevelopmentGoals";
@@ -44,6 +48,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  abilityResults?: AbilityValueChange[];
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -274,6 +279,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      abilityResults: buildAbilityValueChanges(player, log.abilityChanges),
       rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
