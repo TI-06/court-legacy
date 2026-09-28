@@ -147,7 +147,8 @@ function buildVolleyballRotation(
     const natural = [...available.values()]
       .filter((player) => player.preferredPosition === role)
       .sort((first, second) => {
-        const scoreDifference = roleScore(second, role) - roleScore(first, role);
+        const scoreDifference =
+          roleScore(second, role) - roleScore(first, role);
         return scoreDifference !== 0
           ? scoreDifference
           : first.id.localeCompare(second.id);
