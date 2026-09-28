@@ -6,6 +6,7 @@ import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
@@ -98,6 +99,7 @@ function MatchScreenContent({
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
+  const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
@@ -749,6 +751,52 @@ function MatchScreenContent({
               </div>
             </section>
           ) : null}
+
+          <BottomSheet
+            description="試合経験で変化した能力を確認できます。"
+            onClose={() => setMatchGrowthOpen(false)}
+            open={matchComplete && matchGrowthOpen}
+            title="試合後の成長"
+          >
+            <div className="match-growth-sheet">
+              {presentation?.growth?.players.length ? (
+                <div className="match-growth-sheet__players">
+                  {presentation.growth.players.map((player) => (
+                    <article key={player.playerId}>
+                      <header>
+                        <strong>{player.displayName}</strong>
+                        <span>{player.position}</span>
+                      </header>
+                      <div className="match-growth-sheet__abilities">
+                        {player.abilities.map((ability) => (
+                          <div key={ability.ability}>
+                            <span>{ability.label}</span>
+                            <b>
+                              {ability.before} {ability.fromGrade}
+                              <i aria-hidden="true">→</i>
+                              {ability.after} {ability.toGrade}
+                            </b>
+                            <strong>
+                              {ability.change > 0
+                                ? `+${ability.change}`
+                                : ability.change}
+                            </strong>
+                            {ability.fromGrade !== ability.toGrade ? (
+                              <em>RANK UP</em>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="match-growth-sheet__empty">
+                  この試合では能力の数値変化はありませんでした。
+                </p>
+              )}
+            </div>
+          </BottomSheet>
 
           <section
             className="match-result-actions match-result-actions--fixed"
