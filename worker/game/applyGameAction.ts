@@ -80,9 +80,11 @@ import {
   saveLineupPreset,
   setDevelopmentPriorities,
   setPlayerDevelopmentGoal,
+  setPlayerPositionConversion,
   TeamPlanningValidationError,
 } from "../../src/domain/team/teamPlanning";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
+import { progressPositionConversions } from "../../src/domain/team/positionConversion";
 import { materializeGuestOpponent } from "../../src/domain/tournament/materializeGuestOpponent";
 import {
   advanceOfficialTournamentsThroughWeek,
@@ -516,6 +518,8 @@ function applyTeamPlanning(
       type:
         | "set-development-priorities"
         | "set-player-development-goal"
+        | "start-position-conversion"
+        | "cancel-position-conversion"
         | "save-lineup-preset"
         | "delete-lineup-preset";
     }
@@ -527,7 +531,15 @@ function applyTeamPlanning(
         ? setDevelopmentPriorities(state, action.playerIds)
         : action.type === "set-player-development-goal"
           ? setPlayerDevelopmentGoal(state, action.playerId, action.goal)
-          : action.type === "save-lineup-preset"
+          : action.type === "start-position-conversion"
+            ? setPlayerPositionConversion(
+                state,
+                action.playerId,
+                action.targetPosition,
+              )
+            : action.type === "cancel-position-conversion"
+              ? setPlayerPositionConversion(state, action.playerId, null)
+              : action.type === "save-lineup-preset"
             ? saveLineupPreset(state, action)
             : deleteLineupPreset(state, action.slot);
     return {
@@ -1315,9 +1327,12 @@ function applyAdvanceWeek(
         progression.state,
         progression.specialRelationshipTransitions,
       );
+    const conversionProgress = progressPositionConversions(
+      stateWithRelationshipNotifications,
+    );
     const nextState = progression.academicYearTransition
-      ? stateWithRelationshipNotifications
-      : surfaceWeeklyEvent(stateWithRelationshipNotifications, gameData);
+      ? conversionProgress.state
+      : surfaceWeeklyEvent(conversionProgress.state, gameData);
     const nextSelection = progression.academicYearTransition
       ? autoSelectTeam({ state: nextState, schoolId: nextState.userSchoolId })
       : teamSelection;
@@ -1519,6 +1534,8 @@ function applyActionByType(
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":
     case "set-player-development-goal":
+    case "start-position-conversion":
+    case "cancel-position-conversion":
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
