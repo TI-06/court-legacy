@@ -7,6 +7,7 @@ import type {
   TournamentRound,
 } from "../tournament/tournamentTypes";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
+import type { MatchPlayerGrowthRow } from "../player/matchGrowthPresentation";
 export interface MatchTeamPresentation {
   schoolId: SchoolId;
   displayName: string;
@@ -17,6 +18,7 @@ export interface PendingMatchPresentation {
   simulation: MatchStepResult;
   homeTeam: MatchTeamPresentation;
   awayTeam: MatchTeamPresentation;
+  growth?: MatchPlayerGrowthRow[];
   official?: {
     tournamentId: string;
     circuit: TournamentCircuit;
