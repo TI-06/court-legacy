@@ -548,8 +548,8 @@ function applyTeamPlanning(
                 action.targetPosition,
               )
             : action.type === "save-lineup-preset"
-            ? saveLineupPreset(state, action)
-            : deleteLineupPreset(state, action.slot);
+              ? saveLineupPreset(state, action)
+              : deleteLineupPreset(state, action.slot);
     return {
       state: nextState,
       teamSelection,
