@@ -140,7 +140,25 @@ export function TrainingResultNotificationSheet({
                         </span>
                       </header>
 
-                      {abilityChanges.length > 0 ? (
+                      {(player.abilityResults?.length ?? 0) > 0 ? (
+                        <div className="training-result-notification__abilities">
+                          {player.abilityResults!.map((result) => (
+                            <span
+                              className="training-result-notification__ability-result"
+                              data-tone={growthTone(result.delta)}
+                              key={result.ability}
+                            >
+                              <strong>{abilityLabels[result.ability]}</strong>
+                              <small>
+                                {result.beforeGrade}
+                                {result.before} → {result.afterGrade}
+                                {result.after}
+                              </small>
+                              <b>{signed(result.delta)}</b>
+                            </span>
+                          ))}
+                        </div>
+                      ) : abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
                           {abilityChanges.map(([ability, value]) => (
                             <span data-tone={growthTone(value)} key={ability}>
