@@ -1745,6 +1745,13 @@
   border-radius: 999px;
 }
 
+.player-roster__info-badge--genius {
+  color: #ffe6a0;
+  background: rgb(183 132 18 / 20%);
+  border-color: rgb(240 191 73 / 36%);
+  box-shadow: inset 0 0 0 1px rgb(255 228 139 / 8%);
+}
+
 .player-roster__special-summary {
   display: inline-flex;
   flex: 0 0 auto;
