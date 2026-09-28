@@ -33,6 +33,13 @@ export interface TrainingResultRankUp {
   toGrade: DevelopmentGoalGrade;
 }
 
+export interface TrainingAbilityValueChange {
+  before: number;
+  after: number;
+  fromGrade: ReturnType<typeof ratingToGrade>;
+  toGrade: ReturnType<typeof ratingToGrade>;
+}
+
 export interface TrainingResultNotificationPlayer {
   playerId: PlayerId;
   displayName: string;
@@ -44,6 +51,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  abilityValues?: Partial<Record<AbilityKey, TrainingAbilityValueChange>>;
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -263,6 +271,24 @@ export function buildTrainingResultNotification(
       );
     }
 
+    const abilityValues = Object.fromEntries(
+      (Object.entries(log.abilityChanges) as [AbilityKey, number | undefined][])
+        .filter(([, change]) => typeof change === "number" && change !== 0)
+        .map(([ability, change]) => {
+          const before = Math.round(player.abilities[ability]);
+          const after = Math.max(0, Math.min(100, before + (change ?? 0)));
+          return [
+            ability,
+            {
+              before,
+              after,
+              fromGrade: ratingToGrade(before),
+              toGrade: ratingToGrade(after),
+            },
+          ];
+        }),
+    ) as Partial<Record<AbilityKey, TrainingAbilityValueChange>>;
+
     return {
       playerId: player.id,
       displayName: `${player.lastName} ${player.firstName}`,
@@ -274,6 +300,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      abilityValues,
       rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
