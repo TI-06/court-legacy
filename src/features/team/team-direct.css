@@ -1515,7 +1515,6 @@
   }
 }
 
-
 /* Phase46: subdued lineup palette. Information leads; accent color only marks actions. */
 .team-screen--direct {
   --lineup-panel: #132435;
@@ -1536,7 +1535,13 @@
 
 .team-screen--direct .volleyball-court {
   background:
-    linear-gradient(90deg, transparent 49.7%, rgb(222 235 242 / 18%) 49.7%, rgb(222 235 242 / 18%) 50.3%, transparent 50.3%),
+    linear-gradient(
+      90deg,
+      transparent 49.7%,
+      rgb(222 235 242 / 18%) 49.7%,
+      rgb(222 235 242 / 18%) 50.3%,
+      transparent 50.3%
+    ),
     #1b3346;
   border-color: rgb(153 184 201 / 22%);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 4%);
