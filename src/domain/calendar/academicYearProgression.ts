@@ -11,6 +11,7 @@ import type { Grade, Player } from "../model/Player";
 import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";
+import { progressPositionConversions } from "../player/positionConversion";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { grantAnnualSchoolBudget } from "../school/schoolEconomy";
 import {
@@ -587,7 +588,10 @@ export function advanceGameWeek(
   const weeklyBase = advanceOneWeek(state, {
     restingPlayerIds: options.restingPlayerIds,
   });
-  const weeklyState = advanceOfficialTournamentsThroughWeek(weeklyBase.state);
+  const conversionProgress = progressPositionConversions(weeklyBase.state);
+  const weeklyState = advanceOfficialTournamentsThroughWeek(
+    conversionProgress.state,
+  );
   if (!crossesAcademicYear(state.date, weeklyState.date)) {
     return {
       ...weeklyBase,
