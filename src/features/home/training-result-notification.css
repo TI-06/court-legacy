@@ -496,3 +496,49 @@
     display: none;
   }
 }
+
+/* Phase46: exact ability before/after values. */
+.training-result-notification__abilities span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.training-result-notification__abilities span > strong {
+  overflow: hidden;
+  min-width: 0;
+  font-size: var(--game-font-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-result-notification__abilities span > b {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.training-result-notification__abilities span > b em {
+  padding-inline: 3px;
+  color: #73858d;
+  font-style: normal;
+}
+
+.training-result-notification__abilities span > small {
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+@media (max-width: 359px) {
+  .training-result-notification__abilities span {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .training-result-notification__abilities span > small {
+    grid-column: 1 / -1;
+  }
+}
