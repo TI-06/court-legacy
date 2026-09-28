@@ -26,7 +26,7 @@ export function positionConversionWeeks(
   const aptitude = player.positionAptitudes[targetPosition];
   const weeks = baseWeeks(aptitude);
   return player.growthTypeId === "growth.conversion"
-    ? Math.max(2, weeks - 1)
+    ? Math.max(3, weeks - 1)
     : weeks;
 }
 
@@ -110,7 +110,9 @@ export function progressPositionConversions(state: GameState): {
           : player.preferredPosition,
         positionAptitudes: {
           ...player.positionAptitudes,
-          [plan.targetPosition]: completed ? Math.max(70, nextAptitude) : nextAptitude,
+          [plan.targetPosition]: completed
+            ? Math.max(70, nextAptitude)
+            : nextAptitude,
         },
         positionConversion: completed
           ? undefined
