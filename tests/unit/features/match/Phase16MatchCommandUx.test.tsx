@@ -178,9 +178,7 @@ describe("Phase16 match command decision panel", () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "個人指示・声かけ" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "個人指示・声かけ" }));
     const dialog = screen.getByRole("dialog", { name: "選手指示" });
 
     fireEvent.click(
@@ -207,9 +205,7 @@ describe("Phase16 match command decision panel", () => {
       />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "個人指示・声かけ" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "個人指示・声かけ" }));
     const dialog = screen.getByRole("dialog", { name: "選手指示" });
     const recommendations = within(dialog).getByLabelText("おすすめ個人指示");
 
