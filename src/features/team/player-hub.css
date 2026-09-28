@@ -1903,3 +1903,131 @@
     font-size: 10px;
   }
 }
+
+
+/* Phase46: position conversion is a calm planning control, not a warning. */
+.player-detail__quick-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.player-conversion-chip {
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 8px;
+  gap: 2px;
+  color: #dce8ef;
+  font: inherit;
+  text-align: left;
+  background: rgb(115 151 172 / 10%);
+  border: 1px solid rgb(145 179 197 / 18%);
+  border-radius: 10px;
+}
+
+.player-conversion-chip span {
+  color: #98adba;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.player-conversion-chip strong {
+  overflow: hidden;
+  color: #edf5f8;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-conversion-sheet,
+.player-conversion-options {
+  display: grid;
+  gap: 8px;
+}
+
+.player-conversion-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.player-conversion-options button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 58px;
+  padding: 9px 10px;
+  gap: 8px;
+  color: #18303b;
+  font: inherit;
+  text-align: left;
+  background: #f4f7f8;
+  border: 1px solid #d6e0e5;
+  border-radius: 11px;
+}
+
+.player-conversion-options button > span {
+  display: grid;
+  gap: 2px;
+}
+
+.player-conversion-options strong {
+  font-size: 14px;
+}
+
+.player-conversion-options small {
+  color: #61747e;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.player-conversion-options b {
+  color: #285e70;
+  font-size: 11px;
+}
+
+.player-conversion-current {
+  display: grid;
+  padding: 12px;
+  gap: 4px;
+  color: #18303b;
+  background: #f2f6f7;
+  border: 1px solid #d2dee2;
+  border-radius: 11px;
+}
+
+.player-conversion-current > span {
+  color: #5f7680;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.player-conversion-current > strong {
+  font-size: 18px;
+}
+
+.player-conversion-current em {
+  padding-inline: 8px;
+  color: #7a9099;
+  font-style: normal;
+}
+
+.player-conversion-current small {
+  color: #546b76;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.player-conversion-cancel {
+  min-height: 42px;
+  color: #7d443e;
+  font: inherit;
+  font-weight: 900;
+  background: #fff5f3;
+  border: 1px solid #e8cdc8;
+  border-radius: 10px;
+}
+
+@media (max-width: 360px) {
+  .player-detail__quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
