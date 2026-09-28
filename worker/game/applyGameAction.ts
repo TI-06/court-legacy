@@ -547,7 +547,10 @@ function applyPositionConversion(
     return { state: nextState, teamSelection };
   } catch (error) {
     if (error instanceof PositionConversionError) {
-      return conflict(`position_conversion_${error.code.replaceAll("-", "_")}`, error.message);
+      return conflict(
+        `position_conversion_${error.code.replaceAll("-", "_")}`,
+        error.message,
+      );
     }
     throw error;
   }
