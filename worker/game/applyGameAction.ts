@@ -45,6 +45,10 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
+import {
+  cancelPositionConversion,
+  startPositionConversion,
+} from "../../src/domain/player/positionConversion";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
@@ -539,6 +543,34 @@ function applyTeamPlanning(
       return conflict(error.code.replaceAll("-", "_"), error.message);
     }
     throw error;
+  }
+}
+
+function applyPositionConversion(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    { type: "start-position-conversion" | "cancel-position-conversion" }
+  >,
+): AppliedGameAction {
+  try {
+    const nextState =
+      action.type === "start-position-conversion"
+        ? startPositionConversion(
+            state,
+            action.playerId,
+            action.targetPosition,
+          )
+        : cancelPositionConversion(state, action.playerId);
+    return { state: nextState, teamSelection };
+  } catch (error) {
+    return conflict(
+      "position_conversion_unavailable",
+      error instanceof Error
+        ? error.message
+        : "ポジション転向を設定できません",
+    );
   }
 }
 
@@ -1522,6 +1554,9 @@ function applyActionByType(
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
+    case "start-position-conversion":
+    case "cancel-position-conversion":
+      return applyPositionConversion(state, teamSelection, action);
     case "practice-offer-accept":
     case "practice-offer-decline":
     case "practice-request":
