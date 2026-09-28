@@ -1169,8 +1169,8 @@ export function PlayerHubScreen({
                   {selectedConversion.targetPosition}
                 </strong>
                 <small>
-                  {selectedConversion.completedWeeks}/{selectedConversion.totalWeeks}週
-                  ・現在適性{" "}
+                  {selectedConversion.completedWeeks}/
+                  {selectedConversion.totalWeeks}週 ・現在適性{" "}
                   {Math.round(
                     selectedPlayer.positionAptitudes[
                       selectedConversion.targetPosition
