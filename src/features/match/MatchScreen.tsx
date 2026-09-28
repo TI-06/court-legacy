@@ -3,6 +3,10 @@ import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeek
 import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
+import { selectLatestMatchExperienceNotification } from "../../domain/notifications/gameNotifications";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
+import type { AbilityKey } from "../../domain/validation/gameDataSchema";
+import { BottomSheet } from "../../ui/BottomSheet";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
@@ -43,6 +47,19 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const matchGrowthAbilityLabels: Record<AbilityKey, string> = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+};
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -101,7 +118,19 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [dismissedGrowthNotificationId, setDismissedGrowthNotificationId] =
+    useState<string | null>(null);
   const result = presentation?.simulation ?? legacyResult;
+  const matchGrowthNotification = selectLatestMatchExperienceNotification(
+    state.notifications,
+  );
+  const visibleMatchGrowthNotification =
+    matchGrowthNotification &&
+    result &&
+    String(matchGrowthNotification.payload.matchId) === String(result.match.id) &&
+    dismissedGrowthNotificationId !== matchGrowthNotification.id
+      ? matchGrowthNotification
+      : null;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
     throw new Error(`user school not found: ${state.userSchoolId}`);
@@ -389,6 +418,52 @@ function MatchScreenContent({
   if (matchComplete && !winnerDisplayName) {
     throw new Error("completed match is missing winner presentation data");
   }
+
+  const matchGrowthSheet = (
+    <BottomSheet
+      description="出場経験による能力変化です"
+      onClose={() => {
+        if (visibleMatchGrowthNotification) {
+          setDismissedGrowthNotificationId(visibleMatchGrowthNotification.id);
+        }
+      }}
+      open={matchComplete && Boolean(visibleMatchGrowthNotification)}
+      title="試合後の成長"
+    >
+      {visibleMatchGrowthNotification ? (
+        <div className="match-growth-result">
+          {visibleMatchGrowthNotification.payload.players.map((player) => (
+            <article className="match-growth-result__player" key={player.playerId}>
+              <header>
+                <strong>{player.displayName}</strong>
+                <span>
+                  {player.grade}年・{player.preferredPosition}
+                </span>
+              </header>
+              <div className="match-growth-result__abilities">
+                {(
+                  Object.entries(player.abilityChanges) as [
+                    AbilityKey,
+                    { before: number; after: number; delta: number },
+                  ][]
+                ).map(([ability, change]) => (
+                  <div key={ability}>
+                    <span>{matchGrowthAbilityLabels[ability]}</span>
+                    <strong>
+                      {change.before} {ratingToGrade(change.before)}
+                      <em>→</em>
+                      {change.after} {ratingToGrade(change.after)}
+                    </strong>
+                    <b>+{change.delta}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </BottomSheet>
+  );
 
   return (
     <main
@@ -770,5 +845,6 @@ function MatchScreenContent({
         </>
       )}
     </main>
+      {matchGrowthSheet}
   );
 }
