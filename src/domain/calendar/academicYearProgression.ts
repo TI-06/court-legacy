@@ -20,6 +20,7 @@ import {
 import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
 import { grantCompletedSeasonGoalRewards } from "../season/seasonGoalRewards";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
+import { progressPositionConversions } from "../team/positionConversion";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
 import { rivalSchoolBalanceProfile } from "../world/rivalSchoolBalance";
 import { advanceRivalWorld } from "../world/rivalWorldProgression";
@@ -587,7 +588,9 @@ export function advanceGameWeek(
   const weeklyBase = advanceOneWeek(state, {
     restingPlayerIds: options.restingPlayerIds,
   });
-  const weeklyState = advanceOfficialTournamentsThroughWeek(weeklyBase.state);
+  const weeklyState = progressPositionConversions(
+    advanceOfficialTournamentsThroughWeek(weeklyBase.state),
+  );
   if (!crossesAcademicYear(state.date, weeklyState.date)) {
     return {
       ...weeklyBase,
