@@ -797,9 +797,15 @@ describe("PlayerHubScreen", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "成長" }));
 
-    const conversion = screen.getByRole("region", { name: "ポジション転向" });
+    const conversion = screen.getByRole("region", {
+      name: "ポジション転向",
+    });
     expect(within(conversion).getByText("未設定")).toBeVisible();
-    fireEvent.click(within(conversion).getByRole("button", { name: new RegExp(`^${target}`) }));
+    fireEvent.click(
+      within(conversion).getByRole("button", {
+        name: new RegExp(`^${target}`),
+      }),
+    );
     expect(onStartPositionConversion).toHaveBeenCalledWith(playerId, target);
 
     state.teamPlanning.positionConversionsByPlayerId = {
@@ -823,9 +829,15 @@ describe("PlayerHubScreen", () => {
       />,
     );
 
-    expect(within(conversion).getByText(`${player.preferredPosition} → ${target}`)).toBeVisible();
+    expect(
+      within(conversion).getByText(
+        `${player.preferredPosition} → ${target}`,
+      ),
+    ).toBeVisible();
     expect(within(conversion).getByText("2/6週")).toBeVisible();
-    fireEvent.click(within(conversion).getByRole("button", { name: "転向を中止" }));
+    fireEvent.click(
+      within(conversion).getByRole("button", { name: "転向を中止" }),
+    );
     expect(onCancelPositionConversion).toHaveBeenCalledWith(playerId);
   });
 
