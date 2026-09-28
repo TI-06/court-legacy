@@ -3,7 +3,6 @@ import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeek
 import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
-import { selectLatestMatchExperienceNotification } from "../../domain/notifications/gameNotifications";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import type { AbilityKey } from "../../domain/validation/gameDataSchema";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -118,19 +117,16 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
-  const [dismissedGrowthNotificationId, setDismissedGrowthNotificationId] =
-    useState<string | null>(null);
+  const [dismissedGrowthMatchId, setDismissedGrowthMatchId] = useState<
+    string | null
+  >(null);
   const result = presentation?.simulation ?? legacyResult;
-  const matchGrowthNotification = selectLatestMatchExperienceNotification(
-    state.notifications,
-  );
-  const visibleMatchGrowthNotification =
-    matchGrowthNotification &&
+  const matchGrowth = presentation?.matchGrowth ?? [];
+  const visibleMatchGrowth =
     result &&
-    String(matchGrowthNotification.payload.matchId) ===
-      String(result.match.id) &&
-    dismissedGrowthNotificationId !== matchGrowthNotification.id
-      ? matchGrowthNotification
+    matchGrowth.length > 0 &&
+    dismissedGrowthMatchId !== String(result.match.id)
+      ? matchGrowth
       : null;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -424,16 +420,16 @@ function MatchScreenContent({
     <BottomSheet
       description="出場経験による能力変化です"
       onClose={() => {
-        if (visibleMatchGrowthNotification) {
-          setDismissedGrowthNotificationId(visibleMatchGrowthNotification.id);
+        if (result) {
+          setDismissedGrowthMatchId(String(result.match.id));
         }
       }}
-      open={matchComplete && Boolean(visibleMatchGrowthNotification)}
+      open={matchComplete && Boolean(visibleMatchGrowth)}
       title="試合後の成長"
     >
-      {visibleMatchGrowthNotification ? (
+      {visibleMatchGrowth ? (
         <div className="match-growth-result">
-          {visibleMatchGrowthNotification.payload.players.map((player) => (
+          {visibleMatchGrowth.map((player) => (
             <article
               className="match-growth-result__player"
               key={player.playerId}
