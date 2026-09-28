@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -22,6 +22,7 @@ import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
 } from "../../domain/team/teamPlanningTypes";
+import { buildPositionConversion } from "../../domain/team/positionConversion";
 import {
   buildCoachTrainingRecommendations,
   coachRecommendationQuality,
@@ -88,6 +89,11 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position,
+  ) => void | Promise<void>;
+  onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -264,6 +270,8 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
+  onCancelPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -283,6 +291,7 @@ export function PlayerHubScreen({
   );
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
+  const [conversionOpen, setConversionOpen] = useState(false);
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
 
@@ -318,6 +327,8 @@ export function PlayerHubScreen({
   const trainingDone = isWeeklyActionCompleted(state, "training");
   const priorityIds = state.teamPlanning.developmentPriorityPlayerIds;
   const priorityCapReached = priorityIds.length >= 3;
+  const positionConversions =
+    state.teamPlanning.positionConversionsByPlayerId ?? {};
 
   const persistedInstructionId = (id: PlayerId) =>
     state.weeklySchedule.trainingPlan.individualAssignments.find(
@@ -661,6 +672,16 @@ export function PlayerHubScreen({
     const selectedGoal =
       state.teamPlanning.developmentGoalsByPlayerId?.[selectedPlayer.id] ??
       null;
+    const selectedConversion = positionConversions[selectedPlayer.id] ?? null;
+    const conversionTargets = (
+      ["OH", "MB", "OP", "S", "L"] as const satisfies readonly Position[]
+    )
+      .filter((position) => position !== selectedPlayer.preferredPosition)
+      .map((position) => ({
+        position,
+        plan: buildPositionConversion(state, selectedPlayer.id, position),
+        aptitude: Math.round(selectedPlayer.positionAptitudes[position]),
+      }));
     const selectedGoalProgress = selectedGoal
       ? getPlayerDevelopmentGoalProgress(selectedPlayer, selectedGoal)
       : null;
@@ -729,6 +750,20 @@ export function PlayerHubScreen({
               >
                 <span>個人練習</span>
                 <strong>{assignmentName(selectedPlayer.id)}</strong>
+              </button>
+              <button
+                aria-label={`${playerName(selectedPlayer)} ポジション転向`}
+                className="player-conversion-chip"
+                disabled={planningPending}
+                onClick={() => setConversionOpen(true)}
+                type="button"
+              >
+                <span>ポジション</span>
+                <strong>
+                  {selectedConversion
+                    ? `${selectedConversion.targetPosition}へ ${selectedConversion.completedWeeks}/${selectedConversion.totalWeeks}週`
+                    : "転向する"}
+                </strong>
               </button>
             </section>
 
@@ -1113,6 +1148,83 @@ export function PlayerHubScreen({
             ) : null}
           </div>
         ) : null}
+
+        <BottomSheet
+          description={
+            selectedConversion
+              ? `${selectedConversion.fromPosition}から${selectedConversion.targetPosition}へ転向中です。週を進めると適性が上がります。`
+              : "現在の適性が高いほど短期間で転向できます。転向型の選手は1週短縮されます。"
+          }
+          onClose={() => setConversionOpen(false)}
+          open={conversionOpen}
+          title="ポジション転向"
+        >
+          {selectedConversion ? (
+            <div className="player-conversion-sheet">
+              <div className="player-conversion-current">
+                <span>転向中</span>
+                <strong>
+                  {selectedConversion.fromPosition}
+                  <em aria-hidden="true">→</em>
+                  {selectedConversion.targetPosition}
+                </strong>
+                <small>
+                  {selectedConversion.completedWeeks}/{selectedConversion.totalWeeks}週
+                  ・現在適性{" "}
+                  {Math.round(
+                    selectedPlayer.positionAptitudes[
+                      selectedConversion.targetPosition
+                    ],
+                  )}{" "}
+                  {ratingToGrade(
+                    selectedPlayer.positionAptitudes[
+                      selectedConversion.targetPosition
+                    ],
+                  )}
+                </small>
+              </div>
+              <button
+                className="player-conversion-cancel"
+                disabled={planningPending}
+                onClick={() => {
+                  void onCancelPositionConversion?.(selectedPlayer.id);
+                  setConversionOpen(false);
+                }}
+                type="button"
+              >
+                コンバートを中止
+              </button>
+            </div>
+          ) : (
+            <div className="player-conversion-sheet">
+              <div className="player-conversion-options">
+                {conversionTargets.map(({ position, plan, aptitude }) => (
+                  <button
+                    aria-label={`${position}へコンバート ${plan.totalWeeks}週`}
+                    disabled={planningPending}
+                    key={position}
+                    onClick={() => {
+                      void onStartPositionConversion?.(
+                        selectedPlayer.id,
+                        position,
+                      );
+                      setConversionOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <span>
+                      <strong>{position}</strong>
+                      <small>
+                        適性 {aptitude} {ratingToGrade(aptitude)}
+                      </small>
+                    </span>
+                    <b>{plan.totalWeeks}週</b>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </BottomSheet>
 
         {trainingSaveBar}
         {trainingSheet}
