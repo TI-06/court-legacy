@@ -187,6 +187,72 @@ export function cancelPositionConversion(
   };
 }
 
+export function progressPositionConversionsWeekly(
+  state: GameState,
+): GameState {
+  const plans = state.teamPlanning.positionConversionsByPlayerId ?? {};
+  const activeEntries = Object.entries(plans) as Array<
+    [PlayerId, PositionConversionPlan]
+  >;
+  if (activeEntries.length === 0) return state;
+
+  let players = state.players;
+  let changedPlayers = false;
+  const nextPlans: Partial<Record<PlayerId, PositionConversionPlan>> = {
+    ...plans,
+  };
+
+  for (const [playerId, plan] of activeEntries) {
+    const player = state.players[playerId];
+    if (!player || player.career.schoolId !== state.userSchoolId) {
+      delete nextPlans[playerId];
+      continue;
+    }
+
+    const weeksCompleted = Math.min(
+      plan.weeksRequired,
+      plan.weeksCompleted + 1,
+    );
+    const progressRatio = weeksCompleted / Math.max(1, plan.weeksRequired);
+    const targetAptitude = Math.max(
+      player.positionAptitudes[plan.targetPosition],
+      Math.round(plan.startingAptitude + (75 - plan.startingAptitude) * progressRatio),
+    );
+    const completed = weeksCompleted >= plan.weeksRequired;
+
+    if (!changedPlayers) {
+      players = { ...state.players };
+      changedPlayers = true;
+    }
+    players[playerId] = {
+      ...player,
+      ...(completed ? { preferredPosition: plan.targetPosition } : {}),
+      positionAptitudes: {
+        ...player.positionAptitudes,
+        [plan.targetPosition]: Math.max(
+          completed ? 75 : targetAptitude,
+          targetAptitude,
+        ),
+      },
+    };
+
+    if (completed) {
+      delete nextPlans[playerId];
+    } else {
+      nextPlans[playerId] = { ...plan, weeksCompleted };
+    }
+  }
+
+  return {
+    ...state,
+    players,
+    teamPlanning: {
+      ...state.teamPlanning,
+      positionConversionsByPlayerId: nextPlans,
+    },
+  };
+}
+
 export interface SaveLineupPresetInput {
   slot: SavedLineupSlot;
   name: string;
