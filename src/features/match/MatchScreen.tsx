@@ -466,7 +466,8 @@ function MatchScreenContent({
   );
 
   return (
-    <main
+    <>
+      <main
       className={`app-content match-screen${
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
@@ -844,7 +845,8 @@ function MatchScreenContent({
           </section>
         </>
       )}
-    </main>
+      </main>
       {matchGrowthSheet}
+    </>
   );
 }
