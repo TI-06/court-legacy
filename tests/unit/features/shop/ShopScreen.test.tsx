@@ -146,7 +146,9 @@ describe("ShopScreen", () => {
     expect(screen.getByText("未使用アイテムは持ち越し可")).toBeVisible();
     expect(screen.getByText("疲労回復")).toBeVisible();
     expect(screen.getByText("×2")).toBeVisible();
-    expect(screen.getByText("翌年度以降も持ち越し可")).toBeVisible();
+    expect(
+      screen.getByText(/未使用アイテムは翌年度以降も持ち越し可/),
+    ).toBeVisible();
     expect(screen.queryByText("強化合宿")).not.toBeInTheDocument();
     expect(screen.queryByText("資金 +300")).not.toBeInTheDocument();
     expect(screen.queryByText("今年度のみ有効")).not.toBeInTheDocument();
