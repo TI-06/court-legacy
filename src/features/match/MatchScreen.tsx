@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
 import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
+import { selectMatchExperienceNotification } from "../../domain/notifications/gameNotifications";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { MatchCommandPanel } from "./MatchCommandPanel";
+import { MatchExperienceGrowthSheet } from "./MatchExperienceGrowthSheet";
 import {
   buildLiveCoachEffectRows,
   buildMatchCommandImpactRows,
@@ -31,6 +33,7 @@ interface MatchScreenProps {
   reducedMotion: boolean;
   onStart: () => void;
   onReturnHome: () => void;
+  onMarkNotificationRead?: (notificationId: string) => void | Promise<void>;
   onCommand?: (command: MatchCommand) => void | Promise<void>;
   onApplyPracticeTrainingRecommendation?: (
     menuId: string,
@@ -87,6 +90,7 @@ function MatchScreenContent({
   reducedMotion,
   onStart,
   onReturnHome,
+  onMarkNotificationRead,
   onCommand,
   onApplyPracticeTrainingRecommendation,
   commandPending = false,
@@ -101,6 +105,8 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [dismissedGrowthNotificationId, setDismissedGrowthNotificationId] =
+    useState<string | null>(null);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -132,6 +138,15 @@ function MatchScreenContent({
     : visibleEventIndex;
   const segmentRevealed = revealedEventIndex >= lastEventIndex;
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
+  const matchGrowthNotification = result
+    ? selectMatchExperienceNotification(state.notifications, result.match.id)
+    : null;
+  const visibleMatchGrowthNotification =
+    matchComplete &&
+    matchGrowthNotification &&
+    matchGrowthNotification.id !== dismissedGrowthNotificationId
+      ? matchGrowthNotification
+      : null;
   const decisionReady = Boolean(
     result &&
     segmentRevealed &&
@@ -769,6 +784,14 @@ function MatchScreenContent({
           </section>
         </>
       )}
+      <MatchExperienceGrowthSheet
+        notification={visibleMatchGrowthNotification}
+        onClose={() => {
+          if (!visibleMatchGrowthNotification) return;
+          setDismissedGrowthNotificationId(visibleMatchGrowthNotification.id);
+          void onMarkNotificationRead?.(visibleMatchGrowthNotification.id);
+        }}
+      />
     </main>
   );
 }
