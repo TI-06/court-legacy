@@ -118,7 +118,7 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
-  const [growthOpen, setGrowthOpen] = useState(false);
+  const [growthDismissed, setGrowthDismissed] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -157,12 +157,6 @@ function MatchScreenContent({
     result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
     onCommand,
   );
-
-  useEffect(() => {
-    if (matchComplete && matchGrowthSummary?.players.length) {
-      setGrowthOpen(true);
-    }
-  }, [matchComplete, matchGrowthSummary]);
 
   useEffect(() => {
     if (
@@ -775,10 +769,14 @@ function MatchScreenContent({
           ) : null}
 
           <BottomSheet
-            open={growthOpen && Boolean(matchGrowthSummary)}
+            open={
+              matchComplete &&
+              Boolean(matchGrowthSummary?.players.length) &&
+              !growthDismissed
+            }
             title="試合経験で成長"
             description="この試合で伸びた能力"
-            onClose={() => setGrowthOpen(false)}
+            onClose={() => setGrowthDismissed(true)}
           >
             {matchGrowthSummary ? (
               <div className="match-growth-sheet">
