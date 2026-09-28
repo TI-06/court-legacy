@@ -1514,3 +1514,106 @@
     min-height: 56px;
   }
 }
+
+
+/* Phase46-1: calmer lineup hierarchy. Reserve strong color for warnings/actions. */
+.volleyball-court {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(226 239 244 / 26%) 49.6%,
+      rgb(226 239 244 / 26%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(145deg, #365662, #263f49);
+  border-color: #607985;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 7%),
+    0 8px 18px rgb(0 0 0 / 16%);
+}
+
+.court-player-button {
+  background: rgb(13 31 44 / 94%);
+  border-color: rgb(185 207 217 / 16%);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 16%);
+}
+
+.court-player-button__top b {
+  color: #dce8ed;
+  background: #315766;
+  border: 1px solid rgb(186 214 224 / 18%);
+}
+
+.court-player-button__top small {
+  color: #a8bac3;
+  background: rgb(255 255 255 / 4%);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.court-player-button__meta {
+  color: #b9c8d0;
+}
+
+.libero-player-button {
+  background:
+    linear-gradient(135deg, rgb(99 137 151 / 8%), transparent 70%), #132938;
+  border-color: rgb(137 173 186 / 22%);
+}
+
+.libero-player-button__mark {
+  color: #edf4f6;
+  background: #526f7b;
+}
+
+.libero-player-button > strong,
+.libero-player-button__main > small {
+  color: #b9c9d1;
+}
+
+.team-lineup-tool > b,
+.team-lineup-tool > i,
+.bench-player-card__deploy,
+.team-picker-card__action {
+  color: #bcd2dc;
+}
+
+.team-lineup-tool > b,
+.bench-player-card__deploy,
+.team-picker-card__action {
+  background: rgb(78 126 145 / 12%);
+  border-color: rgb(126 166 181 / 22%);
+}
+
+.team-picker-card__aptitude strong,
+.bench-deployment-target__slot strong,
+.bench-deployment-target__aptitude strong,
+.bench-deployment-target > i,
+.bench-deployment-sheet__player > small {
+  color: #bcd2dc;
+}
+
+.bench-deployment-target__aptitude b,
+.team-picker-card__identity b {
+  color: #d8e5ea;
+  background: rgb(82 125 141 / 18%);
+  border-color: rgb(139 172 184 / 18%);
+}
+
+.team-valid {
+  color: #a6d3bd;
+  background: rgb(65 137 103 / 10%);
+  border-color: rgb(96 159 128 / 19%);
+}
+
+.player-readiness small[data-tone="good"] {
+  color: #a9d4bd;
+  background: rgb(67 134 103 / 8%);
+  border-color: rgb(94 155 126 / 16%);
+}
+
+.player-readiness small[data-tone="warn"] {
+  color: #d9c595;
+  background: rgb(171 137 62 / 8%);
+  border-color: rgb(186 151 77 / 18%);
+}
