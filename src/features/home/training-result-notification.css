@@ -496,3 +496,36 @@
     display: none;
   }
 }
+
+/* Phase46: exact ability values make growth readable without opening player detail. */
+.training-result-notification__abilities {
+  display: grid;
+  gap: 5px;
+}
+
+.training-result-notification__abilities > span {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 8px;
+  gap: 7px;
+}
+
+.training-result-notification__abilities > span b {
+  font-size: var(--game-font-label);
+}
+
+.training-result-notification__abilities > span em {
+  overflow: hidden;
+  color: #3e5661;
+  font-size: var(--game-font-label);
+  font-style: normal;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-result-notification__abilities > span strong {
+  font-size: var(--game-font-label);
+}
