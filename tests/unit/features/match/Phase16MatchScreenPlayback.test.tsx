@@ -118,9 +118,10 @@ describe("Phase16 MatchScreen authoritative playback", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "得点推移" }));
-    expect(
-      screen.getByRole("button", { name: "得点推移" }),
-    ).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "得点推移" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     expect(screen.getByRole("button", { name: "次のポイント" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "次のポイント" }));
@@ -128,9 +129,7 @@ describe("Phase16 MatchScreen authoritative playback", () => {
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
       `${nextPointIndex + 1} / ${eventCount}`,
     );
-    expect(
-      screen.getByRole("heading", { name: "直近の得点" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "直近の得点" })).toBeVisible();
   });
 
   it("automatically resumes playback after a coach command succeeds", async () => {
