@@ -34,7 +34,9 @@ export function positionConversionWeeks(
             : aptitude >= 30
               ? 7
               : 8;
-  return player.growthTypeId === "growth.conversion" ? Math.max(3, base - 1) : base;
+  return player.growthTypeId === "growth.conversion"
+    ? Math.max(3, base - 1)
+    : base;
 }
 
 export function startPositionConversion(
@@ -125,7 +127,10 @@ function nextConversionAptitude(
 
 export function progressPositionConversions(state: GameState): GameState {
   const current = state.teamPlanning.positionConversionsByPlayerId ?? {};
-  const entries = Object.entries(current) as [PlayerId, PositionConversionPlan][];
+  const entries = Object.entries(current) as [
+    PlayerId,
+    PositionConversionPlan,
+  ][];
   if (entries.length === 0) return state;
 
   const players = { ...state.players };
@@ -140,12 +145,17 @@ export function progressPositionConversions(state: GameState): GameState {
       continue;
     }
 
-    const weeksCompleted = Math.min(plan.weeksRequired, plan.weeksCompleted + 1);
+    const weeksCompleted = Math.min(
+      plan.weeksRequired,
+      plan.weeksCompleted + 1,
+    );
     const aptitude = nextConversionAptitude(plan, weeksCompleted);
     const completed = weeksCompleted >= plan.weeksRequired;
     players[playerId] = {
       ...player,
-      preferredPosition: completed ? plan.targetPosition : player.preferredPosition,
+      preferredPosition: completed
+        ? plan.targetPosition
+        : player.preferredPosition,
       positionAptitudes: {
         ...player.positionAptitudes,
         [plan.targetPosition]: Math.max(
