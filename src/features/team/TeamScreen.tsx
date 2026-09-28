@@ -22,6 +22,7 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import {
   autoSelectTeam,
   resolveLockedStarters,
@@ -627,12 +628,17 @@ export function TeamScreen({
                       <strong>{player.lastName}</strong>
                       <span className="court-player-button__meta">
                         本{player.preferredPosition}・適
+                        {ratingToGrade(
+                          player.positionAptitudes[
+                            ROTATION_ROLES[assignment.slot]
+                          ],
+                        )}
                         {
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
                           ]
                         }
-                        ・総{playerOverall(player)}
+                        ・{player.heightCm}cm・総{playerOverall(player)}
                       </span>
                       <PlayerReadiness compact player={player} />
                     </button>
@@ -671,8 +677,8 @@ export function TeamScreen({
                     <span className="libero-player-button__main">
                       <strong>{playerName(player)}</strong>
                       <small>
-                        {player.grade}年・{player.preferredPosition}・総合
-                        {playerOverall(player)}
+                        {player.grade}年・{player.preferredPosition}・
+                        {player.heightCm}cm・総合{playerOverall(player)}
                       </small>
                       <PlayerReadiness compact player={player} />
                     </span>
@@ -713,8 +719,8 @@ export function TeamScreen({
                   >
                     <strong>{player.lastName}</strong>
                     <span>
-                      {player.preferredPosition}・{player.grade}年・総
-                      {playerOverall(player)}
+                      {player.preferredPosition}・{player.grade}年・
+                      {player.heightCm}cm・総{playerOverall(player)}
                     </span>
                     <PlayerReadiness compact player={player} />
                     <button
