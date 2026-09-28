@@ -1525,8 +1525,20 @@
 
 .team-screen--direct .volleyball-court {
   background:
-    linear-gradient(90deg, transparent 49.6%, rgb(255 255 255 / 42%) 49.6%, rgb(255 255 255 / 42%) 50.4%, transparent 50.4%),
-    linear-gradient(180deg, transparent 49.6%, rgb(255 255 255 / 28%) 49.6%, rgb(255 255 255 / 28%) 50.4%, transparent 50.4%),
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(255 255 255 / 42%) 49.6%,
+      rgb(255 255 255 / 42%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 49.6%,
+      rgb(255 255 255 / 28%) 49.6%,
+      rgb(255 255 255 / 28%) 50.4%,
+      transparent 50.4%
+    ),
     linear-gradient(145deg, #546c78, #3e5562);
   border-color: #8ea0aa;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
