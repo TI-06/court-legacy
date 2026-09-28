@@ -2000,3 +2000,9 @@
 .player-position-conversion__choices button:disabled {
   opacity: 0.45;
 }
+
+.player-roster__info-badge--conversion {
+  color: #c7edf0;
+  background: rgb(72 151 160 / 14%);
+  border-color: rgb(102 190 199 / 26%);
+}
