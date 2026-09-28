@@ -865,7 +865,7 @@ export function TeamScreen({
                         {aptitude === benchDeployBestAptitude ? (
                           <b>おすすめ</b>
                         ) : null}
-                            <strong>
+                        <strong>
                           適性 {ratingToGrade(aptitude)}
                           {aptitude}
                         </strong>
