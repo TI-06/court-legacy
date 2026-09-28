@@ -1,6 +1,7 @@
 import type { AcademicYearTransitionSummary } from "./academicYearProgression";
 import type { MatchStepResult } from "../match/simulateMatch";
 import type { PlayerId, SchoolId } from "../model/identifiers";
+import type { MatchGrowthPresentation } from "../player/abilityGrowthPresentation";
 import type {
   TournamentCircuit,
   TournamentLevel,
@@ -17,6 +18,7 @@ export interface PendingMatchPresentation {
   simulation: MatchStepResult;
   homeTeam: MatchTeamPresentation;
   awayTeam: MatchTeamPresentation;
+  growth?: MatchGrowthPresentation;
   official?: {
     tournamentId: string;
     circuit: TournamentCircuit;
