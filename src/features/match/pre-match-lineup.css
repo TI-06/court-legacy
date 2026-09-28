@@ -1493,3 +1493,139 @@
     display: grid;
   }
 }
+
+
+/* Phase46: calmer pre-match lineup palette and clearer hierarchy. */
+.pre-match-lineup {
+  --lineup-panel: #122235;
+  --lineup-card: #182b3e;
+  --lineup-border: rgb(168 194 209 / 18%);
+  --lineup-muted: #afc0cb;
+}
+
+.pre-match-lineup__tactics,
+.pre-match-lineup__presets,
+.pre-match-lineup__lineup,
+.pre-match-lineup__bench,
+.pre-match-lineup__versus {
+  background: var(--lineup-panel);
+  border-color: var(--lineup-border);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 14%);
+}
+
+.pre-match-lineup__game-nav {
+  background: #13273a;
+  border-color: var(--lineup-border);
+  box-shadow: 0 5px 14px rgb(0 0 0 / 12%);
+}
+
+.pre-match-lineup__game-nav button {
+  color: #bdcbd4;
+  background: transparent;
+}
+
+.pre-match-lineup__game-nav button[aria-pressed="true"] {
+  color: #eaf4f6;
+  background: #426f7b;
+  border-color: #547f89;
+  box-shadow: none;
+}
+
+.pre-match-lineup__game-nav button:last-child:not([aria-pressed]) {
+  color: #d5e0e5;
+  background: rgb(255 255 255 / 4%);
+  border-color: var(--lineup-border);
+}
+
+.pre-match-lineup__court-shell {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(220 232 239 / 24%) 49.6%,
+      rgb(220 232 239 / 24%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(145deg, #31485d, #26394a);
+  border-color: #526b7c;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 7%);
+}
+
+.pre-match-lineup__net {
+  color: rgb(224 235 241 / 62%);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(224 235 241 / 24%) 0 1px,
+      transparent 1px 8px
+    ),
+    rgb(12 27 41 / 60%);
+  border-bottom-color: rgb(224 235 241 / 18%);
+}
+
+.pre-match-lineup__court-player,
+.pre-match-lineup__bench-player,
+.pre-match-lineup__picker-player {
+  background: var(--lineup-card);
+  border-color: var(--lineup-border);
+  box-shadow: 0 3px 9px rgb(0 0 0 / 12%);
+}
+
+.pre-match-lineup__court-player-top b {
+  color: #eef7f8;
+  background: #426f7b;
+}
+
+.pre-match-lineup__court-player-top small,
+.pre-match-lineup__court-player > small,
+.pre-match-lineup__condition,
+.pre-match-lineup__bench-player span,
+.pre-match-lineup__bench-player small {
+  color: var(--lineup-muted);
+}
+
+.pre-match-lineup__libero-card {
+  background: #1b2d40;
+  border-color: rgb(194 171 106 / 27%);
+}
+
+.pre-match-lineup__libero-card > b {
+  color: #f7edcf;
+  background: #7b6b3f;
+}
+
+.pre-match-lineup__libero-card > strong {
+  color: #d8c581;
+}
+
+.pre-match-lineup__preset-grid button,
+.pre-match-lineup__saved-presets button {
+  color: #dce7ec;
+  background: rgb(255 255 255 / 4%);
+  border-color: var(--lineup-border);
+}
+
+.pre-match-lineup__preset-grid button:active,
+.pre-match-lineup__saved-presets button:not(:disabled) {
+  color: #dce7ec;
+  background: rgb(112 167 181 / 9%);
+  border-color: rgb(112 167 181 / 24%);
+}
+
+.pre-match-lineup__tactic-options button[aria-pressed="true"] {
+  color: #eaf4f6;
+  background: #426f7b;
+  border-color: #547f89;
+  box-shadow: none;
+}
+
+.pre-match-lineup__tactic-options button[aria-pressed="true"] small {
+  color: #cfdae0;
+}
+
+.pre-match-lineup__start {
+  color: #09131c;
+  background: #e98b43;
+  border-color: rgb(255 255 255 / 12%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 24%);
+}
