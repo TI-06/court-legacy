@@ -1087,7 +1087,7 @@ function applyOfficialMatchCommand(
         teamSelection,
         outcome: buildOfficialPresentation(
           resumedState,
-          buildOfficialActionOutcome(due, simulation, growth),
+          buildOfficialActionOutcome(due, simulation),
         ),
       };
     }
@@ -1111,7 +1111,7 @@ function applyOfficialMatchCommand(
       teamSelection,
       outcome: buildOfficialPresentation(
         progressed,
-        buildOfficialActionOutcome(due, simulation),
+        buildOfficialActionOutcome(due, simulation, growth),
       ),
     };
   } catch (error) {
