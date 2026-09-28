@@ -46,9 +46,9 @@ describe("position conversion", () => {
     ]);
     expect(final.state.players[playerId]!.preferredPosition).toBe(target);
     expect(final.state.players[playerId]!.positionConversion).toBeUndefined();
-    expect(final.state.players[playerId]!.positionAptitudes[target]).toBeGreaterThanOrEqual(
-      70,
-    );
+    expect(
+      final.state.players[playerId]!.positionAptitudes[target],
+    ).toBeGreaterThanOrEqual(70);
   });
 
   it("shortens conversion-trained players by one week without going below three", () => {
