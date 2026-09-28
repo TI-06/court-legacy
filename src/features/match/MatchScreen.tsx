@@ -803,10 +803,15 @@ function MatchScreenContent({
         title="試合後の成長"
       >
         {matchGrowthNotification ? (
-          <section className="match-growth-result" aria-label="試合後の能力成長">
+          <section
+            className="match-growth-result"
+            aria-label="試合後の能力成長"
+          >
             <div className="match-growth-result__summary">
               <span>成長した選手</span>
-              <strong>{matchGrowthNotification.payload.players.length}人</strong>
+              <strong>
+                {matchGrowthNotification.payload.players.length}人
+              </strong>
             </div>
             <div className="match-growth-result__players">
               {matchGrowthNotification.payload.players.map((player) => (
