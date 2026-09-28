@@ -4,7 +4,10 @@ import type { MatchCommand, MatchState } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
-import { calculatePlayerDisplayPower } from "../../domain/selectors/playerPresentation";
+import {
+  calculatePlayerDisplayPower,
+  summarizePlayerAbilities,
+} from "../../domain/selectors/playerPresentation";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import type { MatchTacticPlan } from "../../domain/team/matchTactics";
 import {
@@ -31,6 +34,18 @@ function playerName(player: Player): string {
 function playerOverallGrade(player: Player): string {
   const overall = Math.round(calculatePlayerDisplayPower(player) / 100);
   return ratingToGrade(overall);
+}
+
+function playerAttackGrade(player: Player): string {
+  return ratingToGrade(summarizePlayerAbilities(player).attack);
+}
+
+function encouragementNeedScore(player: Player): number {
+  return (
+    Math.max(0, player.fatigue) * 0.45 +
+    Math.max(0, 100 - player.condition) * 0.3 +
+    Math.max(0, 100 - player.abilities.mental) * 0.25
+  );
 }
 
 function SubstitutionPlayerButton({
@@ -92,13 +107,18 @@ function TacticChoiceGroup<Value extends string>({
   pending: boolean;
   onChange: (value: Value) => void;
 }) {
+  const selected = options.find((option) => option.value === value);
+
   return (
     <section
       aria-label={label}
       className="match-command-tactics__axis"
       role="group"
     >
-      <strong>{label}</strong>
+      <div className="match-command-tactics__axis-heading">
+        <strong>{label}</strong>
+        <small>{selected?.description}</small>
+      </div>
       <div className="match-command-tactics__choices">
         {options.map((option) => (
           <button
@@ -109,8 +129,7 @@ function TacticChoiceGroup<Value extends string>({
             onClick={() => onChange(option.value)}
             type="button"
           >
-            <strong>{option.label}</strong>
-            <small>{option.description}</small>
+            {option.label}
           </button>
         ))}
       </div>
@@ -219,6 +238,20 @@ export function MatchCommandPanel({
   const incomingPlayer = incomingPlayerId
     ? (state.players[incomingPlayerId] ?? null)
     : null;
+  const attackRecommendation =
+    [...courtPlayers]
+      .filter((player) => player.preferredPosition !== "L")
+      .sort(
+        (left, right) =>
+          summarizePlayerAbilities(right).attack -
+            summarizePlayerAbilities(left).attack ||
+          right.condition - left.condition,
+      )[0] ?? null;
+  const encouragementRecommendation =
+    [...directivePlayers].sort(
+      (left, right) =>
+        encouragementNeedScore(right) - encouragementNeedScore(left),
+    )[0] ?? null;
 
   const openTactics = () => {
     setDraftPlan({ ...currentPlan });
@@ -231,6 +264,28 @@ export function MatchCommandPanel({
   ) => {
     setDraftPlan((current) => ({ ...(current ?? currentPlan), [axis]: value }));
   };
+
+  const tacticPresets: ReadonlyArray<{
+    label: string;
+    detail: string;
+    plan: MatchTacticPlan;
+  }> = [
+    {
+      label: "安定",
+      detail: "ミスを抑えて粘る",
+      plan: { serve: "safe", attack: "balanced", block: "read" },
+    },
+    {
+      label: "標準",
+      detail: "偏りなく戦う",
+      plan: { serve: "balanced", attack: "balanced", block: "mixed" },
+    },
+    {
+      label: "攻め",
+      detail: "リスクを取って押す",
+      plan: { serve: "aggressive", attack: "quick", block: "commit" },
+    },
+  ];
 
   const submitTactics = () => {
     void onCommand({ type: "set-match-tactics", plan: { ...tacticsDraft } });
@@ -326,7 +381,7 @@ export function MatchCommandPanel({
               onClick={() => setPlayerDirectiveOpen(true)}
               type="button"
             >
-              選手指示
+              個人指示・声かけ
             </button>
           ) : null}
           <button
@@ -348,8 +403,58 @@ export function MatchCommandPanel({
       >
         <div className="match-command-player-directive">
           <p>
-            育てた選手に勝負を託す場面です。指示後のラリーから実際の判定に反映されます。
+            攻撃を託す選手、声をかける選手を選びます。
+            推奨は能力・調子・疲労から自動で示します。
           </p>
+          <div
+            aria-label="おすすめ個人指示"
+            className="match-command-player-directive__recommendations"
+          >
+            {attackRecommendation ? (
+              <button
+                disabled={pending}
+                onClick={() => {
+                  setPlayerDirectiveOpen(false);
+                  void onCommand({
+                    type: "focus-attacker",
+                    playerId: attackRecommendation.id,
+                  });
+                }}
+                type="button"
+              >
+                <span>攻撃を託すなら</span>
+                <strong>{playerName(attackRecommendation)}</strong>
+                <small>
+                  攻撃{playerAttackGrade(attackRecommendation)}・総合
+                  {playerOverallGrade(attackRecommendation)}
+                </small>
+              </button>
+            ) : null}
+            {encouragementRecommendation ? (
+              <button
+                disabled={pending}
+                onClick={() => {
+                  setPlayerDirectiveOpen(false);
+                  void onCommand({
+                    type: "encourage-player",
+                    playerId: encouragementRecommendation.id,
+                  });
+                }}
+                type="button"
+              >
+                <span>声をかけるなら</span>
+                <strong>{playerName(encouragementRecommendation)}</strong>
+                <small>
+                  疲労{encouragementRecommendation.fatigue}・
+                  {
+                    getPlayerConditionPresentation(
+                      encouragementRecommendation.condition,
+                    ).label
+                  }
+                </small>
+              </button>
+            ) : null}
+          </div>
           <div aria-label="選手への個別指示" role="group">
             {directivePlayers.map((player) => {
               const canFocusAttack =
@@ -362,7 +467,8 @@ export function MatchCommandPanel({
                     <small>{player.preferredPosition}</small>
                   </div>
                   <span>
-                    総合 <b>{playerOverallGrade(player)}</b>
+                    総合 <b>{playerOverallGrade(player)}</b>・攻撃
+                    <b>{playerAttackGrade(player)}</b>・疲労{player.fatigue}
                   </span>
                   <div>
                     <button
@@ -412,6 +518,57 @@ export function MatchCommandPanel({
         title="戦術変更"
       >
         <div className="match-command-tactics">
+          <section
+            aria-label="戦術プリセット"
+            className="match-command-tactics__presets"
+          >
+            {tacticPresets.map((preset) => (
+              <button
+                disabled={pending}
+                key={preset.label}
+                onClick={() => setDraftPlan({ ...preset.plan })}
+                type="button"
+              >
+                <strong>{preset.label}</strong>
+                <small>{preset.detail}</small>
+              </button>
+            ))}
+          </section>
+          <div
+            className="match-command-tactics__current"
+            aria-label="変更後の戦術"
+          >
+            <span>
+              サーブ
+              <strong>
+                {
+                  serveTacticOptions.find(
+                    (option) => option.value === tacticsDraft.serve,
+                  )?.label
+                }
+              </strong>
+            </span>
+            <span>
+              攻撃
+              <strong>
+                {
+                  attackTacticOptions.find(
+                    (option) => option.value === tacticsDraft.attack,
+                  )?.label
+                }
+              </strong>
+            </span>
+            <span>
+              ブロック
+              <strong>
+                {
+                  blockTacticOptions.find(
+                    (option) => option.value === tacticsDraft.block,
+                  )?.label
+                }
+              </strong>
+            </span>
+          </div>
           <TacticChoiceGroup
             label="サーブ方針"
             onChange={(serve) => updateTactics("serve", serve)}
