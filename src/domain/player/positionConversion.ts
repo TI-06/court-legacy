@@ -1,14 +1,10 @@
 import type { GameState } from "../model/GameState";
-import type { Player, Position } from "../model/Player";
+import type {
+  Player,
+  Position,
+  PositionConversionPlan,
+} from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
-
-export interface PositionConversionPlan {
-  fromPosition: Position;
-  targetPosition: Position;
-  startingAptitude: number;
-  weeksTotal: number;
-  weeksRemaining: number;
-}
 
 export interface PositionConversionCompletion {
   playerId: PlayerId;
