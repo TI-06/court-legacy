@@ -414,8 +414,7 @@ function MatchScreenContent({
   }
 
   return (
-    <>
-      <main
+    <main
       className={`app-content match-screen${
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
@@ -793,7 +792,6 @@ function MatchScreenContent({
           </section>
         </>
       )}
-      </main>
       <BottomSheet
         description="出場経験による能力成長です"
         onClose={() => setMatchGrowthDismissed(true)}
@@ -837,6 +835,6 @@ function MatchScreenContent({
           </section>
         ) : null}
       </BottomSheet>
-    </>
+    </main>
   );
 }
