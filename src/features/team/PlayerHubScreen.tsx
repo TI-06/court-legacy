@@ -466,7 +466,10 @@ export function PlayerHubScreen({
                   key={key}
                 >
                   <small>{label}</small>
-                  <strong>{ratingToGrade(trainingPlayerAbilities[key])}</strong>
+                  <strong>
+                    {ratingToGrade(trainingPlayerAbilities[key])}{" "}
+                    {Math.round(trainingPlayerAbilities[key])}
+                  </strong>
                   <b>{growth === null ? "--" : `+${growth}`}</b>
                 </span>
               );
@@ -769,7 +772,7 @@ export function PlayerHubScreen({
                   label={abilityLabels[key as keyof typeof abilityLabels]}
                   tone="accent"
                   value={value}
-                  valueLabel={ratingToGrade(value)}
+                  valueLabel={`${ratingToGrade(value)} ${Math.round(value)}`}
                 />
               ))}
             </section>
