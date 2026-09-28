@@ -1904,7 +1904,6 @@
   }
 }
 
-
 /* Phase46: position conversion is a calm planning control, not a warning. */
 .player-detail__quick-actions {
   grid-template-columns: repeat(3, minmax(0, 1fr));
