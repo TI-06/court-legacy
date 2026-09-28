@@ -1903,3 +1903,116 @@
     font-size: 10px;
   }
 }
+
+/* Phase46: position conversion is a development plan, not an instant dropdown. */
+.player-position-conversion {
+  display: grid;
+  padding: 11px;
+  gap: 9px;
+  color: #18303b;
+  background: #f5f8fa;
+  border: 1px solid #d4e0e5;
+  border-radius: 12px;
+}
+
+.player-position-conversion__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-position-conversion__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.player-position-conversion__heading span,
+.player-position-conversion__progress span,
+.player-position-conversion__progress small {
+  color: #60757f;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.player-position-conversion__heading strong {
+  font-size: 14px;
+}
+
+.player-position-conversion__heading > b {
+  padding: 4px 7px;
+  color: #315e68;
+  font-size: 10px;
+  background: #e3eef0;
+  border-radius: 999px;
+}
+
+.player-position-conversion__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.player-position-conversion__choices button {
+  display: grid;
+  min-height: 58px;
+  padding: 7px 9px;
+  gap: 2px;
+  color: #173643;
+  font: inherit;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #d1dee3;
+  border-radius: 9px;
+}
+
+.player-position-conversion__choices button span {
+  color: #315e68;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.player-position-conversion__choices button strong {
+  font-size: 10px;
+}
+
+.player-position-conversion__choices button small {
+  color: #697d86;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-position-conversion__progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 9px;
+  gap: 2px 8px;
+  background: #fff;
+  border: 1px solid #d1dee3;
+  border-radius: 9px;
+}
+
+.player-position-conversion__progress strong {
+  grid-row: span 2;
+  color: #245965;
+  font-size: 14px;
+}
+
+.player-position-conversion__cancel {
+  min-height: 38px;
+  color: #7d3f39;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  background: #fff4f2;
+  border: 1px solid #e7c8c3;
+  border-radius: 9px;
+}
+
+.player-position-conversion > p {
+  margin: 0;
+  color: #687a83;
+  font-size: 9px;
+  line-height: 1.45;
+}
