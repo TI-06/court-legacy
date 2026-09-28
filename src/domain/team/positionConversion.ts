@@ -4,6 +4,7 @@ import type { PlayerId } from "../model/identifiers";
 import type { PlayerPositionConversion } from "./teamPlanningTypes";
 
 const MIN_CONVERSION_WEEKS = 4;
+const FAST_CONVERSION_WEEKS = 3;
 const MAX_CONVERSION_WEEKS = 10;
 const TARGET_APTITUDE = 70;
 
@@ -13,9 +14,13 @@ function clampWeeks(value: number): number {
 
 export function positionConversionRequiredWeeks(
   targetAptitude: number,
+  growthTypeId?: string,
 ): number {
   const gap = Math.max(0, TARGET_APTITUDE - Math.round(targetAptitude));
-  return clampWeeks(Math.ceil(gap / 6));
+  const baseWeeks = clampWeeks(Math.ceil(gap / 6));
+  return growthTypeId === "growth.conversion"
+    ? Math.max(FAST_CONVERSION_WEEKS, baseWeeks - 1)
+    : baseWeeks;
 }
 
 export function startPlayerPositionConversion(
@@ -42,6 +47,7 @@ export function startPlayerPositionConversion(
     completedWeeks: 0,
     requiredWeeks: positionConversionRequiredWeeks(
       player.positionAptitudes[targetPosition],
+      player.growthTypeId,
     ),
   };
 
