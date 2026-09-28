@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -13,6 +13,7 @@ import {
   selectPlayerRelationships,
   specialRelationshipKindLabel,
 } from "../../domain/relationships/relationshipPresentation";
+import { positionConversionRequiredWeeks } from "../../domain/team/positionConversion";
 import {
   deriveMatchTacticPlan,
   type MatchTacticPlan,
@@ -88,6 +89,10 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onSetPlayerPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position | null,
+  ) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -118,6 +123,8 @@ const rosterAbilityLabels = [
   ["stamina", "ス"],
   ["mental", "メ"],
 ] as const;
+
+const positionOptions: readonly Position[] = ["OH", "MB", "OP", "S", "L"];
 
 const roleLabels: Record<PlayerRole, string> = {
   ace: "エース",
@@ -264,6 +271,7 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onSetPlayerPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -658,6 +666,9 @@ export function PlayerHubScreen({
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
     );
     const selectedIsPriority = priorityIds.includes(selectedPlayer.id);
+    const selectedConversion =
+      state.teamPlanning.positionConversionsByPlayerId?.[selectedPlayer.id] ??
+      null;
     const selectedGoal =
       state.teamPlanning.developmentGoalsByPlayerId?.[selectedPlayer.id] ??
       null;
@@ -833,6 +844,126 @@ export function PlayerHubScreen({
             className="player-detail__tab-panel"
             data-testid="player-detail-growth"
           >
+            <section
+              className="player-position-conversion"
+              aria-label="ポジションコンバート"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション</span>
+                  <strong>
+                    {selectedConversion
+                      ? `${selectedConversion.fromPosition} → ${selectedConversion.targetPosition}`
+                      : selectedPlayer.preferredPosition}
+                  </strong>
+                </div>
+                {selectedConversion ? (
+                  <b>
+                    {selectedConversion.completedWeeks}/
+                    {selectedConversion.requiredWeeks}週
+                  </b>
+                ) : null}
+              </div>
+
+              {selectedConversion ? (
+                <>
+                  <div
+                    aria-label={`コンバート進捗 ${selectedConversion.completedWeeks} / ${selectedConversion.requiredWeeks}週`}
+                    aria-valuemax={selectedConversion.requiredWeeks}
+                    aria-valuemin={0}
+                    aria-valuenow={selectedConversion.completedWeeks}
+                    className="player-position-conversion__meter"
+                    role="progressbar"
+                  >
+                    <span
+                      style={{
+                        width: `${Math.round(
+                          (selectedConversion.completedWeeks /
+                            selectedConversion.requiredWeeks) *
+                            100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="player-position-conversion__status">
+                    <span>
+                      {selectedConversion.targetPosition}適性{" "}
+                      <strong>
+                        {ratingToGrade(
+                          selectedPlayer.positionAptitudes[
+                            selectedConversion.targetPosition
+                          ],
+                        )}
+                        {
+                          selectedPlayer.positionAptitudes[
+                            selectedConversion.targetPosition
+                          ]
+                        }
+                      </strong>
+                    </span>
+                    <small>
+                      残り{" "}
+                      {selectedConversion.requiredWeeks -
+                        selectedConversion.completedWeeks}
+                      週
+                    </small>
+                  </div>
+                  <button
+                    className="player-position-conversion__cancel"
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onSetPlayerPositionConversion?.(
+                        selectedPlayer.id,
+                        null,
+                      )
+                    }
+                    type="button"
+                  >
+                    コンバートを中止
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>
+                    練習を実施するたびに1週進行します。完了すると本職が変わり、元のポジション適性は残ります。
+                  </p>
+                  <div className="player-position-conversion__choices">
+                    {positionOptions
+                      .filter(
+                        (position) =>
+                          position !== selectedPlayer.preferredPosition,
+                      )
+                      .map((position) => {
+                        const aptitude =
+                          selectedPlayer.positionAptitudes[position];
+                        const requiredWeeks =
+                          positionConversionRequiredWeeks(aptitude);
+                        return (
+                          <button
+                            disabled={planningPending}
+                            key={position}
+                            onClick={() =>
+                              void onSetPlayerPositionConversion?.(
+                                selectedPlayer.id,
+                                position,
+                              )
+                            }
+                            type="button"
+                          >
+                            <span>{position}</span>
+                            <strong>
+                              適性 {ratingToGrade(aptitude)}
+                              {Math.round(aptitude)}
+                            </strong>
+                            <small>目安 {requiredWeeks}週</small>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
+            </section>
+
             <section className="player-development-goal" aria-label="育成目標">
               <div className="player-development-goal__heading">
                 <div>
