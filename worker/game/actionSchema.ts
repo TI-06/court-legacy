@@ -21,6 +21,7 @@ import type { PersistedOperationResponse } from "../data/GameStore";
 import type { JsonStatePatchOperation } from "../data/statePatch";
 
 const playerIdSchema = z.string().min(1);
+const positionSchema = z.enum(["OH", "MB", "OP", "S", "L"]);
 
 export const teamSelectionSchema = z
   .object({
@@ -200,6 +201,19 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .strict(),
   z
     .object({
+      type: z.literal("start-position-conversion"),
+      playerId: playerIdSchema,
+      targetPosition: positionSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("cancel-position-conversion"),
+      playerId: playerIdSchema,
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("save-lineup-preset"),
       slot: savedLineupSlotSchema,
       name: savedLineupNameSchema,
@@ -290,6 +304,12 @@ export type GameAction =
       playerId: PlayerId;
       goal: PlayerDevelopmentGoal | null;
     }
+  | {
+      type: "start-position-conversion";
+      playerId: PlayerId;
+      targetPosition: "OH" | "MB" | "OP" | "S" | "L";
+    }
+  | { type: "cancel-position-conversion"; playerId: PlayerId }
   | {
       type: "save-lineup-preset";
       slot: SavedLineupSlot;
