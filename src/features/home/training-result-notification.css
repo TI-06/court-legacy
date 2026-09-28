@@ -497,7 +497,6 @@
   }
 }
 
-
 /* Phase46: make growth outcomes readable as exact value + rank transitions. */
 .training-result-notification__abilities span b {
   margin-right: 3px;
