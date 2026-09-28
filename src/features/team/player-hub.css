@@ -1904,7 +1904,6 @@
   }
 }
 
-
 /* Phase46: multi-week position conversion. */
 .player-position-conversion {
   display: grid;
@@ -2018,13 +2017,11 @@
   line-height: 1.45;
 }
 
-
 .player-roster__info-badge--conversion {
   color: #cfe8ed;
   background: rgb(112 167 181 / 14%);
   border-color: rgb(112 167 181 / 28%);
 }
-
 
 .position-conversion-complete {
   display: grid;
