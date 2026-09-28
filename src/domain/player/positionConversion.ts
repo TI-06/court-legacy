@@ -151,14 +151,15 @@ export function progressPositionConversions(
     const remainingWeeks = Math.max(0, progress.remainingWeeks - 1);
 
     if (remainingWeeks === 0) {
+      const completedPlayer = { ...player };
+      delete completedPlayer.positionConversion;
       players[playerId] = {
-        ...player,
+        ...completedPlayer,
         preferredPosition: target,
         positionAptitudes: {
-          ...player.positionAptitudes,
+          ...completedPlayer.positionAptitudes,
           [target]: Math.max(70, nextAptitude),
         },
-        positionConversion: undefined,
       };
       completed.push({
         playerId,
