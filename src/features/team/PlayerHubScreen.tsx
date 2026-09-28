@@ -962,9 +962,11 @@ export function PlayerHubScreen({
                   </div>
                   <p>
                     {positionConversion.targetPosition}適性{" "}
-                    {selectedPlayer.positionAptitudes[
-                      positionConversion.targetPosition
-                    ]}
+                    {
+                      selectedPlayer.positionAptitudes[
+                        positionConversion.targetPosition
+                      ]
+                    }
                     ・あと
                     {Math.max(
                       0,
