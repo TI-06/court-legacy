@@ -3,6 +3,7 @@ import { gameDataBootstrap } from "../../src/data/gameData";
 import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";
 import type {
   AdvanceWeekOutcome,
+  MatchGrowthPresentation,
   PendingMatchPresentation,
 } from "../../src/domain/calendar/advanceWeekOutcome";
 import {
@@ -50,6 +51,7 @@ import {
   startPositionConversion,
 } from "../../src/domain/player/positionConversion";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import { ratingToGrade } from "../../src/domain/selectors/ratingGrades";
 import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
@@ -197,6 +199,64 @@ function applyCompletedSoloMatchExperience(
     selection: userSelection,
     strongerOpponent: opponentStrength > userStrength + 2,
   });
+}
+
+const matchGrowthAbilityLabels = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+} as const;
+
+function buildMatchGrowthPresentation(
+  before: GameState,
+  after: GameState,
+): MatchGrowthPresentation | undefined {
+  const school = after.schools[after.userSchoolId];
+  if (!school) return undefined;
+
+  const players = school.playerIds.flatMap((playerId) => {
+    const beforePlayer = before.players[playerId];
+    const afterPlayer = after.players[playerId];
+    if (!beforePlayer || !afterPlayer) return [];
+
+    const abilities = (
+      Object.keys(afterPlayer.abilities) as Array<keyof Player["abilities"]>
+    ).flatMap((ability) => {
+      const beforeValue = beforePlayer.abilities[ability];
+      const afterValue = afterPlayer.abilities[ability];
+      if (afterValue === beforeValue) return [];
+      return [
+        {
+          ability,
+          label: matchGrowthAbilityLabels[ability],
+          before: beforeValue,
+          after: afterValue,
+          change: afterValue - beforeValue,
+          fromGrade: ratingToGrade(beforeValue),
+          toGrade: ratingToGrade(afterValue),
+        },
+      ];
+    });
+
+    if (abilities.length === 0) return [];
+    return [
+      {
+        playerId,
+        displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
+        position: afterPlayer.preferredPosition,
+        abilities,
+      },
+    ];
+  });
+
+  return players.length > 0 ? { players } : undefined;
 }
 
 function cpuPublicStats(
