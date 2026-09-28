@@ -629,13 +629,14 @@ export function PreMatchLineupScreen({
               <small>LIBERO</small>
               <strong>{playerName(liberoPlayer)}</strong>
               <em>
-                本職 {liberoPlayer.preferredPosition}・
-                {liberoPlayer.heightCm}cm・{liberoCondition.icon}
+                本職 {liberoPlayer.preferredPosition}・{liberoPlayer.heightCm}
+                cm・{liberoCondition.icon}
                 {liberoCondition.label}
               </em>
             </span>
             <strong>
-              総合 {playerOverallGrade(liberoPlayer)} {playerOverall(liberoPlayer)}
+              総合 {playerOverallGrade(liberoPlayer)}{" "}
+              {playerOverall(liberoPlayer)}
             </strong>
           </button>
         ) : null}
