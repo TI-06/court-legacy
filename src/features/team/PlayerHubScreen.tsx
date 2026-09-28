@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -36,6 +36,7 @@ import {
   playerDevelopmentAreaValue,
 } from "../../domain/player/playerDevelopmentGoals";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
+import { positionConversionWeeks } from "../../domain/player/positionConversion";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
 import {
   getSpecialAbilityDefinition,
@@ -88,6 +89,11 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position,
+  ) => void | Promise<void>;
+  onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -177,6 +183,8 @@ const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "grade", label: "学年順" },
 ];
 
+const positionOptions: readonly Position[] = ["OH", "MB", "OP", "S", "L"];
+
 const playerName = (player: Player) => `${player.lastName} ${player.firstName}`;
 const playerOverall = (player: Player) =>
   Math.round(calculatePlayerDisplayPower(player) / 100);
@@ -264,6 +272,8 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
+  onCancelPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -912,6 +922,101 @@ export function PlayerHubScreen({
               ) : (
                 <p>次に伸ばしたい能力を選ぶと、次ランクを目標に設定します。</p>
               )}
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {selectedPlayer.positionConversion
+                      ? `${selectedPlayer.positionConversion.fromPosition} → ${selectedPlayer.positionConversion.targetPosition}`
+                      : `現在 ${selectedPlayer.preferredPosition}`}
+                  </strong>
+                </div>
+                {selectedPlayer.positionConversion ? (
+                  <b>
+                    残り{selectedPlayer.positionConversion.weeksRemaining}週
+                  </b>
+                ) : null}
+              </div>
+              {selectedPlayer.positionConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span>
+                      適性{" "}
+                      {ratingToGrade(
+                        selectedPlayer.positionAptitudes[
+                          selectedPlayer.positionConversion.targetPosition
+                        ],
+                      )}
+                      {
+                        selectedPlayer.positionAptitudes[
+                          selectedPlayer.positionConversion.targetPosition
+                        ]
+                      }
+                    </span>
+                    <strong>
+                      {selectedPlayer.positionConversion.weeksTotal -
+                        selectedPlayer.positionConversion.weeksRemaining}
+                      /{selectedPlayer.positionConversion.weeksTotal}週
+                    </strong>
+                  </div>
+                  <button
+                    className="player-position-conversion__cancel"
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onCancelPositionConversion?.(selectedPlayer.id)
+                    }
+                    type="button"
+                  >
+                    転向を中止
+                  </button>
+                </>
+              ) : (
+                <div
+                  className="player-position-conversion__choices"
+                  aria-label="転向先を選択"
+                >
+                  {positionOptions
+                    .filter(
+                      (position) =>
+                        position !== selectedPlayer.preferredPosition,
+                    )
+                    .map((position) => (
+                      <button
+                        disabled={planningPending}
+                        key={position}
+                        onClick={() =>
+                          void onStartPositionConversion?.(
+                            selectedPlayer.id,
+                            position,
+                          )
+                        }
+                        type="button"
+                      >
+                        <strong>{position}</strong>
+                        <span>
+                          適性{" "}
+                          {ratingToGrade(
+                            selectedPlayer.positionAptitudes[position],
+                          )}
+                          {selectedPlayer.positionAptitudes[position]}
+                        </span>
+                        <small>
+                          目安{" "}
+                          {positionConversionWeeks(selectedPlayer, position)}週
+                        </small>
+                      </button>
+                    ))}
+                </div>
+              )}
+              <p>
+                転向中は毎週そのポジション適性が上昇し、完了すると本職が切り替わります。
+              </p>
             </section>
 
             <section
