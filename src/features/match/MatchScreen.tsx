@@ -113,7 +113,7 @@ function MatchScreenContent({
   growthSummary = null,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
-  const [growthOpen, setGrowthOpen] = useState(true);
+  const [growthDismissed, setGrowthDismissed] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
@@ -152,9 +152,6 @@ function MatchScreenContent({
   const segmentRevealed = revealedEventIndex >= lastEventIndex;
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
 
-  useEffect(() => {
-    if (growthSummary) setGrowthOpen(true);
-  }, [growthSummary]);
   const decisionReady = Boolean(
     result &&
     segmentRevealed &&
@@ -795,8 +792,8 @@ function MatchScreenContent({
       {growthSummary && matchComplete ? (
         <BottomSheet
           description="出場経験による能力成長"
-          onClose={() => setGrowthOpen(false)}
-          open={growthOpen}
+          onClose={() => setGrowthDismissed(true)}
+          open={!growthDismissed}
           title="試合後の成長"
         >
           <div className="match-growth-sheet">
