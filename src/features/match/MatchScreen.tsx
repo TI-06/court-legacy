@@ -127,7 +127,8 @@ function MatchScreenContent({
   const visibleMatchGrowthNotification =
     matchGrowthNotification &&
     result &&
-    String(matchGrowthNotification.payload.matchId) === String(result.match.id) &&
+    String(matchGrowthNotification.payload.matchId) ===
+      String(result.match.id) &&
     dismissedGrowthNotificationId !== matchGrowthNotification.id
       ? matchGrowthNotification
       : null;
@@ -433,7 +434,10 @@ function MatchScreenContent({
       {visibleMatchGrowthNotification ? (
         <div className="match-growth-result">
           {visibleMatchGrowthNotification.payload.players.map((player) => (
-            <article className="match-growth-result__player" key={player.playerId}>
+            <article
+              className="match-growth-result__player"
+              key={player.playerId}
+            >
               <header>
                 <strong>{player.displayName}</strong>
                 <span>
@@ -466,8 +470,7 @@ function MatchScreenContent({
   );
 
   return (
-    <>
-      <main
+    <main
       className={`app-content match-screen${
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
@@ -845,8 +848,7 @@ function MatchScreenContent({
           </section>
         </>
       )}
-      </main>
       {matchGrowthSheet}
-    </>
+    </main>
   );
 }
