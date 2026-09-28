@@ -91,6 +91,20 @@ describe("game notifications", () => {
       trustChange: 1,
       injured: false,
       abilityChanges: { serve: 2, jump: 1 },
+      abilityResults: expect.arrayContaining([
+        expect.objectContaining({
+          ability: "serve",
+          before: player.abilities.serve,
+          after: player.abilities.serve + 2,
+          delta: 2,
+        }),
+        expect.objectContaining({
+          ability: "jump",
+          before: player.abilities.jump,
+          after: player.abilities.jump + 1,
+          delta: 1,
+        }),
+      ]),
     });
   });
 
