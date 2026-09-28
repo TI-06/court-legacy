@@ -36,6 +36,7 @@ import {
   playerDevelopmentAreaValue,
 } from "../../domain/player/playerDevelopmentGoals";
 import { getPlayerDevelopmentPresentation } from "../../domain/player/playerDevelopmentPresentation";
+import { positionConversionWeeks } from "../../domain/player/positionConversion";
 import { getPlayerPersonalityPresentation } from "../../domain/player/playerPersonalityPresentation";
 import {
   getSpecialAbilityDefinition,
@@ -88,6 +89,11 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Player["preferredPosition"],
+  ) => void | Promise<void>;
+  onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -110,6 +116,8 @@ const abilityLabels = {
   stamina: "スタミナ",
   mental: "メンタル",
 } as const;
+
+const positionOptions = ["OH", "MB", "OP", "S", "L"] as const;
 
 const rosterAbilityLabels = [
   ["attack", "攻"],
@@ -264,6 +272,8 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
+  onCancelPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -932,6 +942,109 @@ export function PlayerHubScreen({
                     : `将来性 ${development.potentialGrade}・${development.potential}`}
                 </small>
               </article>
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {selectedPlayer.positionConversion
+                      ? `${selectedPlayer.positionConversion.fromPosition} → ${selectedPlayer.positionConversion.targetPosition}`
+                      : `現在 ${selectedPlayer.preferredPosition}`}
+                  </strong>
+                </div>
+                {selectedPlayer.positionConversion ? (
+                  <b>
+                    残り{selectedPlayer.positionConversion.remainingWeeks}週
+                  </b>
+                ) : null}
+              </div>
+              {selectedPlayer.positionConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span>
+                      {selectedPlayer.positionConversion.targetPosition}適性
+                    </span>
+                    <strong>
+                      {ratingToGrade(
+                        selectedPlayer.positionAptitudes[
+                          selectedPlayer.positionConversion.targetPosition
+                        ],
+                      )}{" "}
+                      {
+                        selectedPlayer.positionAptitudes[
+                          selectedPlayer.positionConversion.targetPosition
+                        ]
+                      }
+                    </strong>
+                    <small>
+                      {selectedPlayer.positionConversion.totalWeeks -
+                        selectedPlayer.positionConversion.remainingWeeks}
+                      /{selectedPlayer.positionConversion.totalWeeks}週経過
+                    </small>
+                  </div>
+                  <button
+                    className="player-position-conversion__cancel"
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onCancelPositionConversion?.(selectedPlayer.id)
+                    }
+                    type="button"
+                  >
+                    転向を中止
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div
+                    className="player-position-conversion__choices"
+                    aria-label="転向先ポジション"
+                  >
+                    {positionOptions
+                      .filter(
+                        (position) =>
+                          position !== selectedPlayer.preferredPosition,
+                      )
+                      .map((position) => (
+                        <button
+                          disabled={planningPending}
+                          key={position}
+                          onClick={() =>
+                            void onStartPositionConversion?.(
+                              selectedPlayer.id,
+                              position,
+                            )
+                          }
+                          type="button"
+                        >
+                          <span>{position}</span>
+                          <strong>
+                            適性{" "}
+                            {ratingToGrade(
+                              selectedPlayer.positionAptitudes[position],
+                            )}{" "}
+                            {selectedPlayer.positionAptitudes[position]}
+                          </strong>
+                          <small>
+                            約
+                            {positionConversionWeeks(
+                              selectedPlayer,
+                              position,
+                            )}
+                            週
+                          </small>
+                        </button>
+                      ))}
+                  </div>
+                  <p>
+                    転向中は毎週そのポジション適性が上がり、完了時に本職が切り替わります。
+                  </p>
+                </>
+              )}
             </section>
 
             <section
