@@ -4,7 +4,7 @@ import {
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   RotationSlot,
@@ -53,6 +53,15 @@ const courtOrder = [
   4, 3, 2, 5, 6, 1,
 ] as const satisfies readonly RotationSlot[];
 
+const ROTATION_ROLES: Record<RotationSlot, Position> = {
+  1: "S",
+  2: "MB",
+  3: "MB",
+  4: "OH",
+  5: "OH",
+  6: "OP",
+};
+
 type LineupPickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
@@ -76,10 +85,17 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
-function playerOverallGrade(player: Player): string {
-  return ratingToPlayerGrade(
-    Math.round(calculatePlayerDisplayPower(player) / 100),
-  );
+function playerOverallScore(player: Player): number {
+  return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
+function playerRating(value: number): string {
+  const rounded = Math.round(value);
+  return `${ratingToPlayerGrade(rounded)}${rounded}`;
+}
+
+function playerOverallRating(player: Player): string {
+  return playerRating(playerOverallScore(player));
 }
 
 export function PreMatchLineupScreen({
@@ -552,8 +568,10 @@ export function PreMatchLineupScreen({
                   type="button"
                 >
                   <span className="pre-match-lineup__court-player-top">
-                    <b>R{slot}</b>
-                    <small>{player.preferredPosition}</small>
+                    <b>{ROTATION_ROLES[slot]}</b>
+                    <small>
+                      R{slot}・本{player.preferredPosition}
+                    </small>
                   </span>
                   <strong>{player.lastName}</strong>
                   {specialAbilityBadges.length > 0 ? (
@@ -579,7 +597,11 @@ export function PreMatchLineupScreen({
                     {condition.icon} {condition.label}
                   </span>
                   <small>
-                    {player.grade}年・総合 {playerOverallGrade(player)}
+                    適{" "}
+                    {playerRating(
+                      player.positionAptitudes[ROTATION_ROLES[slot]],
+                    )}
+                    ・総 {playerOverallRating(player)}・{player.grade}年
                   </small>
                 </button>
               );
@@ -612,7 +634,10 @@ export function PreMatchLineupScreen({
                 {liberoCondition.label}
               </em>
             </span>
-            <strong>総合 {playerOverallGrade(liberoPlayer)}</strong>
+            <strong>
+              適 {playerRating(liberoPlayer.positionAptitudes.L)}・総{" "}
+              {playerOverallRating(liberoPlayer)}
+            </strong>
           </button>
         ) : null}
       </section>
@@ -647,7 +672,7 @@ export function PreMatchLineupScreen({
                 </span>
                 <small>
                   {condition.icon}
-                  {condition.label}・総合 {playerOverallGrade(player)}
+                  {condition.label}・総合 {playerOverallRating(player)}
                 </small>
               </article>
             );
@@ -811,9 +836,21 @@ export function PreMatchLineupScreen({
                   </span>
                   <span className="pre-match-lineup__picker-grade">
                     <small>
-                      {isCurrent ? "現在" : isCourtPlayer ? "コート" : "ベンチ"}
+                      {isCurrent
+                        ? "現在・適性"
+                        : isCourtPlayer
+                          ? "コート・適性"
+                          : "ベンチ・適性"}
                     </small>
-                    <strong>{playerOverallGrade(player)}</strong>
+                    <strong>
+                      {pickerTarget?.type === "rotation"
+                        ? playerRating(
+                            player.positionAptitudes[
+                              ROTATION_ROLES[pickerTarget.slot]
+                            ],
+                          )
+                        : playerRating(player.positionAptitudes.L)}
+                    </strong>
                   </span>
                 </button>
               );
