@@ -76,10 +76,12 @@ import {
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import {
+  cancelPositionConversion,
   deleteLineupPreset,
   saveLineupPreset,
   setDevelopmentPriorities,
   setPlayerDevelopmentGoal,
+  startPositionConversion,
   TeamPlanningValidationError,
 } from "../../src/domain/team/teamPlanning";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
@@ -516,6 +518,8 @@ function applyTeamPlanning(
       type:
         | "set-development-priorities"
         | "set-player-development-goal"
+        | "start-position-conversion"
+        | "cancel-position-conversion"
         | "save-lineup-preset"
         | "delete-lineup-preset";
     }
@@ -527,7 +531,15 @@ function applyTeamPlanning(
         ? setDevelopmentPriorities(state, action.playerIds)
         : action.type === "set-player-development-goal"
           ? setPlayerDevelopmentGoal(state, action.playerId, action.goal)
-          : action.type === "save-lineup-preset"
+          : action.type === "start-position-conversion"
+            ? startPositionConversion(
+                state,
+                action.playerId,
+                action.targetPosition,
+              )
+            : action.type === "cancel-position-conversion"
+              ? cancelPositionConversion(state, action.playerId)
+              : action.type === "save-lineup-preset"
             ? saveLineupPreset(state, action)
             : deleteLineupPreset(state, action.slot);
     return {
@@ -1519,6 +1531,8 @@ function applyActionByType(
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":
     case "set-player-development-goal":
+    case "start-position-conversion":
+    case "cancel-position-conversion":
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
