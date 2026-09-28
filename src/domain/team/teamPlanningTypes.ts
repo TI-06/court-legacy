@@ -1,5 +1,6 @@
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
+import type { Position } from "../model/Player";
 
 export type SavedLineupSlot = 1 | 2 | 3;
 export type DevelopmentGoalArea =
@@ -18,8 +19,21 @@ export interface SavedLineupPreset {
   selection: TeamSelection;
 }
 
+export interface PlayerPositionConversion {
+  fromPosition: Position;
+  targetPosition: Position;
+  startedWeekOfYear: number;
+  startedAcademicYearIndex: number;
+  totalWeeks: number;
+  completedWeeks: number;
+  startingAptitude: number;
+}
+
 export interface TeamPlanningState {
   developmentPriorityPlayerIds: PlayerId[];
   developmentGoalsByPlayerId?: Partial<Record<PlayerId, PlayerDevelopmentGoal>>;
+  positionConversionsByPlayerId?: Partial<
+    Record<PlayerId, PlayerPositionConversion>
+  >;
   savedLineups: SavedLineupPreset[];
 }
