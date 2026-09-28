@@ -121,12 +121,7 @@ export function TrainingResultNotificationSheet({
               <h3>選手別</h3>
               <div className="training-result-notification__player-list">
                 {notification.payload.players.map((player) => {
-                  const abilityChanges = Object.entries(
-                    player.abilityChanges,
-                  ).filter(
-                    (entry): entry is [AbilityKey, number] =>
-                      typeof entry[1] === "number" && entry[1] !== 0,
-                  );
+                  const abilityChanges = player.abilityValueChanges;
 
                   return (
                     <article
@@ -142,9 +137,17 @@ export function TrainingResultNotificationSheet({
 
                       {abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
-                          {abilityChanges.map(([ability, value]) => (
-                            <span data-tone={growthTone(value)} key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
+                          {abilityChanges.map((change) => (
+                            <span
+                              data-tone={growthTone(change.delta)}
+                              key={change.ability}
+                            >
+                              <b>{abilityLabels[change.ability]}</b>
+                              <em>
+                                {change.before} {change.beforeGrade} →{" "}
+                                {change.after} {change.afterGrade}
+                              </em>
+                              <strong>{signed(change.delta)}</strong>
                             </span>
                           ))}
                         </div>
