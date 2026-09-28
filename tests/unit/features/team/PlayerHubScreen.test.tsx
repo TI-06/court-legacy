@@ -23,6 +23,11 @@ interface RenderOptions {
       targetGrade: "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
     } | null,
   ) => void;
+  onStartPositionConversion?: (
+    playerId: string,
+    targetPosition: "OH" | "MB" | "OP" | "S" | "L",
+  ) => void;
+  onCancelPositionConversion?: (playerId: string) => void;
   planningPending?: boolean;
   trainingPending?: boolean;
 }
@@ -46,6 +51,8 @@ function renderPlayerHub(
       onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       onSetPlayerDevelopmentGoal={options.onSetPlayerDevelopmentGoal}
+      onStartPositionConversion={options.onStartPositionConversion}
+      onCancelPositionConversion={options.onCancelPositionConversion}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
@@ -769,6 +776,57 @@ describe("PlayerHubScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+  });
+
+  it("starts and displays a multi-week position conversion from the growth tab", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const target = player.preferredPosition === "S" ? "OH" : "S";
+    const onStartPositionConversion = vi.fn();
+    const onCancelPositionConversion = vi.fn();
+    const { view, selection } = renderPlayerHub(state, vi.fn(), {
+      onStartPositionConversion,
+      onCancelPositionConversion,
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const conversion = screen.getByRole("region", { name: "ポジション転向" });
+    expect(within(conversion).getByText("未設定")).toBeVisible();
+    fireEvent.click(within(conversion).getByRole("button", { name: new RegExp(`^${target}`) }));
+    expect(onStartPositionConversion).toHaveBeenCalledWith(playerId, target);
+
+    state.teamPlanning.positionConversionsByPlayerId = {
+      [playerId]: {
+        fromPosition: player.preferredPosition,
+        targetPosition: target,
+        weeksRequired: 6,
+        weeksCompleted: 2,
+        startingAptitude: player.positionAptitudes[target],
+      },
+    };
+    view.rerender(
+      <PlayerHubScreen
+        data={gameData}
+        onAssignLeadership={vi.fn()}
+        onCancelPositionConversion={onCancelPositionConversion}
+        onChange={vi.fn()}
+        onStartPositionConversion={onStartPositionConversion}
+        selection={selection}
+        state={state}
+      />,
+    );
+
+    expect(within(conversion).getByText(`${player.preferredPosition} → ${target}`)).toBeVisible();
+    expect(within(conversion).getByText("2/6週")).toBeVisible();
+    fireEvent.click(within(conversion).getByRole("button", { name: "転向を中止" }));
+    expect(onCancelPositionConversion).toHaveBeenCalledWith(playerId);
   });
 
   it("shows only real player growth logs in the detail trend", () => {
