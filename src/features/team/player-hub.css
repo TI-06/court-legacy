@@ -1903,3 +1903,100 @@
     font-size: 10px;
   }
 }
+
+/* Phase46: position conversion progress in player development. */
+.player-position-conversion {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 8px;
+  background: #0d2237;
+  border: 1px solid rgb(116 216 255 / 16%);
+  border-radius: 12px;
+}
+
+.player-position-conversion__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-position-conversion__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.player-position-conversion__heading span,
+.player-position-conversion p {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-position-conversion__heading strong {
+  color: #f2f8fb;
+  font-size: 13px;
+}
+
+.player-position-conversion__heading b {
+  padding: 3px 7px;
+  color: #c8eef0;
+  font-size: 10px;
+  background: rgb(81 166 177 / 14%);
+  border: 1px solid rgb(81 166 177 / 28%);
+  border-radius: 999px;
+}
+
+.player-position-conversion p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.player-position-conversion__progress {
+  height: 6px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 7%);
+  border-radius: 999px;
+}
+
+.player-position-conversion__progress span {
+  display: block;
+  height: 100%;
+  background: #5aa7b0;
+  border-radius: inherit;
+}
+
+.player-position-conversion__choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.player-position-conversion__choices button {
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  padding: 6px 4px;
+  gap: 2px;
+  color: #edf7fa;
+  font: inherit;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.player-position-conversion__choices strong {
+  font-size: 12px;
+}
+
+.player-position-conversion__choices span,
+.player-position-conversion__choices small {
+  color: #b8cbd5;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.player-position-conversion__choices button:disabled {
+  opacity: 0.45;
+}
