@@ -22,6 +22,7 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import {
   autoSelectTeam,
   resolveLockedStarters,
@@ -626,13 +627,18 @@ export function TeamScreen({
                       </span>
                       <strong>{player.lastName}</strong>
                       <span className="court-player-button__meta">
-                        本{player.preferredPosition}・適
-                        {
+                        本職 {player.preferredPosition}・
+                        {ROTATION_ROLES[assignment.slot]}適性{" "}
+                        {ratingToGrade(
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
-                          ]
-                        }
-                        ・総{playerOverall(player)}
+                          ],
+                        )}
+                        {player.positionAptitudes[ROTATION_ROLES[assignment.slot]]}
+                      </span>
+                      <span className="court-player-button__meta">
+                        {player.heightCm}cm・総合{" "}
+                        {ratingToGrade(playerOverall(player))}{playerOverall(player)}
                       </span>
                       <PlayerReadiness compact player={player} />
                     </button>
@@ -671,7 +677,9 @@ export function TeamScreen({
                     <span className="libero-player-button__main">
                       <strong>{playerName(player)}</strong>
                       <small>
-                        {player.grade}年・{player.preferredPosition}・総合
+                        {player.grade}年・{player.heightCm}cm・本職
+                        {player.preferredPosition}・総合
+                        {ratingToGrade(playerOverall(player))}
                         {playerOverall(player)}
                       </small>
                       <PlayerReadiness compact player={player} />
@@ -713,7 +721,9 @@ export function TeamScreen({
                   >
                     <strong>{player.lastName}</strong>
                     <span>
-                      {player.preferredPosition}・{player.grade}年・総
+                      {player.preferredPosition}・{player.grade}年・
+                      {player.heightCm}cm・総
+                      {ratingToGrade(playerOverall(player))}
                       {playerOverall(player)}
                     </span>
                     <PlayerReadiness compact player={player} />
