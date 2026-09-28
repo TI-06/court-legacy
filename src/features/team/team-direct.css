@@ -1515,7 +1515,6 @@
   }
 }
 
-
 /* Phase46: calmer lineup palette and clearer hierarchy. */
 .team-screen--direct .team-panel,
 .team-screen--direct .team-dynamics-inline {
@@ -1583,8 +1582,7 @@
 
 .team-picker-card:first-child {
   background:
-    linear-gradient(90deg, rgb(114 213 223 / 8%), transparent 54%),
-    #15283a;
+    linear-gradient(90deg, rgb(114 213 223 / 8%), transparent 54%), #15283a;
   border-color: rgb(114 213 223 / 28%);
 }
 
