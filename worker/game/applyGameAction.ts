@@ -1220,7 +1220,7 @@ function practicePresentation(
 function buildOfficialPresentation(
   state: GameState,
   outcome: ReturnType<typeof buildOfficialActionOutcome>,
-  matchExperience: PendingMatchPresentation["matchExperience"] = [],
+  matchExperience: NonNullable<PendingMatchPresentation["matchExperience"]> = [],
 ): PendingMatchPresentation {
   const simulation = outcome.simulation;
   const fallback = {
