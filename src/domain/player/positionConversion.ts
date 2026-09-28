@@ -16,9 +16,7 @@ export interface PositionConversionProgressResult {
 export class PositionConversionError extends Error {
   constructor(
     public readonly code:
-      | "player-not-found"
-      | "same-position"
-      | "already-converting",
+      "player-not-found" | "same-position" | "already-converting",
     message: string,
   ) {
     super(message);
