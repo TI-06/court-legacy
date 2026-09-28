@@ -497,7 +497,6 @@
   }
 }
 
-
 /* Phase46: make exact ability before/after values readable at a glance. */
 .training-result-notification__abilities span {
   display: grid;
