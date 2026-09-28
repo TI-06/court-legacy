@@ -97,10 +97,9 @@ describe("PlayerHubScreen", () => {
       within(firstRow).queryByText(new RegExp(`${player.heightCm}cm`)),
     ).toBeNull();
     expect(within(firstRow).getByText("総合")).toBeVisible();
+    const overall = Math.round(calculatePlayerDisplayPower(player) / 100);
     expect(
-      within(firstRow).getByText(
-        String(Math.round(calculatePlayerDisplayPower(player) / 100)),
-      ),
+      within(firstRow).getByText(`${ratingToGrade(overall)}${overall}`),
     ).toBeVisible();
     expect(within(firstRow).getByTitle(condition.label)).toBeVisible();
     expect(within(firstRow).getByText(condition.label)).toBeVisible();
