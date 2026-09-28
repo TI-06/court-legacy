@@ -1,5 +1,6 @@
 import type { TrainingResultNotification } from "../../domain/notifications/gameNotifications";
 import type { AbilityKey } from "../../domain/validation/gameDataSchema";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "./training-result-notification.css";
 
@@ -142,11 +143,22 @@ export function TrainingResultNotificationSheet({
 
                       {abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
-                          {abilityChanges.map(([ability, value]) => (
-                            <span data-tone={growthTone(value)} key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
-                            </span>
-                          ))}
+                          {abilityChanges.map(([ability, value]) => {
+                            const detail = player.abilityValues?.[ability];
+                            return (
+                              <span data-tone={growthTone(value)} key={ability}>
+                                <small>{abilityLabels[ability]}</small>
+                                {detail ? (
+                                  <strong>
+                                    {detail.before} {ratingToGrade(detail.before)}
+                                    <em aria-hidden="true">→</em>
+                                    {detail.after} {ratingToGrade(detail.after)}
+                                  </strong>
+                                ) : null}
+                                <b>{signed(value)}</b>
+                              </span>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="training-result-notification__no-growth">
