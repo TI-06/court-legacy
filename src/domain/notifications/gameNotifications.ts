@@ -77,6 +77,27 @@ export interface TrainingResultNotification {
   payload: TrainingResultNotificationPayload;
 }
 
+export interface MatchExperienceNotificationPlayer {
+  playerId: PlayerId;
+  displayName: string;
+  grade: number;
+  preferredPosition: Position;
+  abilityProgress: AbilityProgressDetail[];
+}
+
+export interface MatchExperienceNotification {
+  id: string;
+  type: "match-experience";
+  matchId: MatchId;
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    players: MatchExperienceNotificationPlayer[];
+  };
+}
+
 export interface ConcernResolutionNotificationItem {
   playerId: PlayerId;
   displayName: string;
@@ -170,6 +191,7 @@ export interface SeasonGoalAchievementNotification {
 
 export type GameNotification =
   | TrainingResultNotification
+  | MatchExperienceNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
   | CharacterTraitDiscoveredNotification
@@ -342,6 +364,53 @@ export function buildTrainingResultNotification(
       injuredCount: input.result.injuredPlayerIds.length,
       players,
     },
+  };
+}
+
+export function buildMatchExperienceNotification(input: {
+  stateBeforeExperience: GameState;
+  stateAfterExperience: GameState;
+  matchId: MatchId;
+}): MatchExperienceNotification | null {
+  const school =
+    input.stateAfterExperience.schools[input.stateAfterExperience.userSchoolId];
+  if (!school) return null;
+
+  const players = school.playerIds.flatMap((playerId) => {
+    const before = input.stateBeforeExperience.players[playerId];
+    const after = input.stateAfterExperience.players[playerId];
+    if (!before || !after) return [];
+
+    const abilityChanges: Partial<Record<AbilityKey, number>> = {};
+    for (const ability of Object.keys(before.abilities) as AbilityKey[]) {
+      const change = after.abilities[ability] - before.abilities[ability];
+      if (change !== 0) abilityChanges[ability] = change;
+    }
+    const abilityProgress = buildAbilityProgress(before, abilityChanges);
+    if (abilityProgress.length === 0) return [];
+
+    return [
+      {
+        playerId,
+        displayName: `${after.lastName} ${after.firstName}`,
+        grade: after.grade,
+        preferredPosition: after.preferredPosition,
+        abilityProgress,
+      } satisfies MatchExperienceNotificationPlayer,
+    ];
+  });
+
+  if (players.length === 0) return null;
+
+  return {
+    id: `match-experience:${input.matchId}`,
+    type: "match-experience",
+    matchId: input.matchId,
+    createdGameDate: input.stateAfterExperience.date,
+    academicYearIndex: input.stateAfterExperience.yearIndex,
+    weekOfYear: input.stateAfterExperience.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: { players },
   };
 }
 
@@ -595,6 +664,21 @@ export function selectHomeTrainingNotifications(
   );
   const newest = trainingItems[trainingItems.length - 1];
   return newest ? [newest] : [];
+}
+
+export function selectMatchExperienceNotification(
+  state: GameNotificationState,
+  matchId: MatchId,
+): MatchExperienceNotification | null {
+  const item = [...state.items]
+    .reverse()
+    .find(
+      (candidate): candidate is MatchExperienceNotification =>
+        candidate.type === "match-experience" &&
+        candidate.matchId === matchId &&
+        candidate.readAtGameDate === null,
+    );
+  return item ?? null;
 }
 
 export function selectHomeConcernResolutionNotifications(
