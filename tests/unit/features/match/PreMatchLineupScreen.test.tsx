@@ -43,7 +43,7 @@ describe("PreMatchLineupScreen", () => {
     expect(starterCard).toHaveTextContent(
       /(?:S|MB|OH|OP).*R[1-6]・本(?:S|MB|OH|OP|L)/,
     );
-    expect(starterCard).toHaveTextContent(/適 [S-G]\d+・総 [S-G]\d+・[1-3]年/);
+    expect(starterCard).toHaveTextContent(/適 (?:S|A|B|C|D|E|F|G)\d+・総 (?:S|A|B|C|D|E|F|G)\d+・[1-3]年/);
     const abilities = within(starterCard).getByLabelText(
       `${starter.lastName}の特殊能力`,
     );
