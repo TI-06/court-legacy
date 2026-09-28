@@ -2155,3 +2155,58 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.match-growth-result {
+  display: grid;
+  gap: 8px;
+}
+
+.match-growth-result article {
+  display: grid;
+  padding: 10px;
+  gap: 7px;
+  color: #19313d;
+  background: #fff;
+  border: 1px solid #cedbe0;
+  border-radius: 11px;
+}
+
+.match-growth-result header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.match-growth-result header span {
+  color: #647984;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.match-growth-result article > div {
+  display: grid;
+  gap: 5px;
+}
+
+.match-growth-result p {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  margin: 0;
+  gap: 7px;
+  font-size: 11px;
+}
+
+.match-growth-result p > strong {
+  font-size: 12px;
+}
+
+.match-growth-result p > em {
+  font-style: normal;
+}
+
+.match-growth-result p > b {
+  color: #157247;
+  font-size: 12px;
+}
