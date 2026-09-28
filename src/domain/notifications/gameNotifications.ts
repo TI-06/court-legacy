@@ -44,9 +44,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
-  abilityValues: Partial<
-    Record<AbilityKey, { before: number; after: number }>
-  >;
+  abilityValues: Partial<Record<AbilityKey, { before: number; after: number }>>;
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -278,9 +276,15 @@ export function buildTrainingResultNotification(
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
       abilityValues: Object.fromEntries(
-        (Object.entries(log.abilityChanges) as [AbilityKey, number | undefined][])
-          .filter((entry): entry is [AbilityKey, number] =>
-            typeof entry[1] === "number" && entry[1] !== 0,
+        (
+          Object.entries(log.abilityChanges) as [
+            AbilityKey,
+            number | undefined,
+          ][]
+        )
+          .filter(
+            (entry): entry is [AbilityKey, number] =>
+              typeof entry[1] === "number" && entry[1] !== 0,
           )
           .map(([ability, change]) => [
             ability,
