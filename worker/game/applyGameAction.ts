@@ -50,6 +50,7 @@ import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
   buildDevelopmentGoalAchievementNotification,
+  buildMatchExperienceNotification,
   buildSeasonGoalAchievementNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
@@ -188,13 +189,26 @@ function applyCompletedSoloMatchExperience(
     strengthState,
     opponentSelection,
   );
-  return applyUserMatchExperience({
+  const experiencedState = applyUserMatchExperience({
     state,
     data: gameData,
     match,
     selection: userSelection,
     strongerOpponent: opponentStrength > userStrength + 2,
   });
+  const notification = buildMatchExperienceNotification({
+    stateBeforeExperience: state,
+    stateAfterExperience: experiencedState,
+    matchId: match.id,
+  });
+  if (!notification) return experiencedState;
+  return {
+    ...experiencedState,
+    notifications: appendNotification(
+      experiencedState.notifications,
+      notification,
+    ),
+  };
 }
 
 function cpuPublicStats(
