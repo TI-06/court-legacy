@@ -132,6 +132,27 @@ describe("Phase19 authoritative match experience", () => {
 
     expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(true);
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
+    const notification = result.state.notifications.items.find(
+      (item) =>
+        item.type === "match-experience" &&
+        item.matchId === result.state.activeMatch?.id,
+    );
+    expect(notification?.type).toBe("match-experience");
+    if (notification?.type === "match-experience") {
+      const playerGrowth = notification.payload.players.find(
+        (player) => player.playerId === starterId,
+      );
+      expect(playerGrowth?.abilityProgress).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            ability: "decision",
+            before: 50,
+            after: 52,
+            change: 2,
+          }),
+        ]),
+      );
+    }
     expect(result.state.players[nonParticipantId]!.abilities.decision).toBe(50);
 
     const completedSnapshot: CloudGameSnapshot = {
