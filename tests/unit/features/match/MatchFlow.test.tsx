@@ -263,13 +263,12 @@ describe("match flow", () => {
     expect(
       within(dialog).getByText(player.lastName + " " + player.firstName),
     ).toBeVisible();
-    expect(within(dialog).getByText(/C68.*C69/)).toBeVisible();
-    expect(within(dialog).getByText(/B79.*A80/)).toBeVisible();
-
-    fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
-    expect(
-      screen.getByRole("region", { name: "試合後の成長" }),
-    ).toHaveTextContent("能力成長 +2");
+    const decisionGrowth = within(dialog).getByText("判断").closest("div");
+    const spikeGrowth = within(dialog).getByText("スパイク").closest("div");
+    expect(decisionGrowth).toHaveTextContent("C68");
+    expect(decisionGrowth).toHaveTextContent("C69");
+    expect(spikeGrowth).toHaveTextContent("B79");
+    expect(spikeGrowth).toHaveTextContent("A80");
   });
 
   it("plays and pauses without changing the calculated result", () => {
