@@ -53,6 +53,15 @@ const courtOrder = [
   4, 3, 2, 5, 6, 1,
 ] as const satisfies readonly RotationSlot[];
 
+const slotRoles: Record<RotationSlot, Player["preferredPosition"]> = {
+  1: "S",
+  2: "MB",
+  3: "MB",
+  4: "OH",
+  5: "OH",
+  6: "OP",
+};
+
 type LineupPickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
@@ -76,10 +85,12 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
+function playerOverallValue(player: Player): number {
+  return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
 function playerOverallGrade(player: Player): string {
-  return ratingToPlayerGrade(
-    Math.round(calculatePlayerDisplayPower(player) / 100),
-  );
+  return ratingToPlayerGrade(playerOverallValue(player));
 }
 
 export function PreMatchLineupScreen({
@@ -552,8 +563,8 @@ export function PreMatchLineupScreen({
                   type="button"
                 >
                   <span className="pre-match-lineup__court-player-top">
-                    <b>R{slot}</b>
-                    <small>{player.preferredPosition}</small>
+                    <b>{slotRoles[slot]}</b>
+                    <small>R{slot}</small>
                   </span>
                   <strong>{player.lastName}</strong>
                   {specialAbilityBadges.length > 0 ? (
@@ -573,13 +584,21 @@ export function PreMatchLineupScreen({
                       ) : null}
                     </span>
                   ) : null}
+                  <span className="pre-match-lineup__court-context">
+                    本{player.preferredPosition}・{slotRoles[slot]}適
+                    {ratingToPlayerGrade(
+                      player.positionAptitudes[slotRoles[slot]],
+                    )}{" "}
+                    {player.positionAptitudes[slotRoles[slot]]}
+                  </span>
                   <span
                     className={`pre-match-lineup__condition player-condition--${condition.colorToken}`}
                   >
                     {condition.icon} {condition.label}
                   </span>
                   <small>
-                    {player.grade}年・総合 {playerOverallGrade(player)}
+                    {player.heightCm}cm・総合 {playerOverallGrade(player)}{" "}
+                    {playerOverallValue(player)}
                   </small>
                 </button>
               );
@@ -608,11 +627,14 @@ export function PreMatchLineupScreen({
               <strong>{playerName(liberoPlayer)}</strong>
               <em>
                 {liberoPlayer.preferredPosition}・{liberoPlayer.grade}年・
-                {liberoCondition.icon}
+                {liberoPlayer.heightCm}cm・{liberoCondition.icon}
                 {liberoCondition.label}
               </em>
             </span>
-            <strong>総合 {playerOverallGrade(liberoPlayer)}</strong>
+            <strong>
+              総合 {playerOverallGrade(liberoPlayer)}{" "}
+              {playerOverallValue(liberoPlayer)}
+            </strong>
           </button>
         ) : null}
       </section>
@@ -643,11 +665,13 @@ export function PreMatchLineupScreen({
               >
                 <strong>{player.lastName}</strong>
                 <span>
-                  {player.preferredPosition}・{player.grade}年
+                  {player.preferredPosition}・{player.grade}年・
+                  {player.heightCm}cm
                 </span>
                 <small>
                   {condition.icon}
-                  {condition.label}・総合 {playerOverallGrade(player)}
+                  {condition.label}・総合 {playerOverallGrade(player)}{" "}
+                  {playerOverallValue(player)}
                 </small>
               </article>
             );
