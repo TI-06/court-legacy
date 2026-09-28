@@ -1,12 +1,17 @@
 import type { GameState } from "../model/GameState";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
+import type { Position } from "../model/Player";
 import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
   TeamPlanningState,
 } from "./teamPlanningTypes";
 import { validateTeamSelection } from "./validateTeamSelection";
+import {
+  cancelPositionConversion,
+  startPositionConversion,
+} from "./positionConversion";
 
 export type TeamPlanningValidationCode =
   | "invalid-development-priorities"
@@ -28,6 +33,7 @@ export function createDefaultTeamPlanning(): TeamPlanningState {
   return {
     developmentPriorityPlayerIds: [],
     developmentGoalsByPlayerId: {},
+    positionConversionsByPlayerId: {},
     savedLineups: [],
   };
 }
@@ -178,4 +184,22 @@ export function deleteLineupPreset(
       ),
     },
   };
+}
+
+
+export function setPlayerPositionConversion(
+  state: GameState,
+  playerId: PlayerId,
+  targetPosition: Position | null,
+): GameState {
+  try {
+    return targetPosition
+      ? startPositionConversion(state, playerId, targetPosition)
+      : cancelPositionConversion(state, playerId);
+  } catch (error) {
+    throw new TeamPlanningValidationError(
+      "invalid-development-goal",
+      error instanceof Error ? error.message : "ポジション転向を設定できません",
+    );
+  }
 }
