@@ -20,8 +20,7 @@ describe("position conversion", () => {
       playerId,
       targetPosition,
     );
-    const plan =
-      current.teamPlanning.positionConversionsByPlayerId?.[playerId];
+    const plan = current.teamPlanning.positionConversionsByPlayerId?.[playerId];
     if (!plan) throw new Error("position conversion plan missing");
     expect(plan.requiredWeeks).toBeGreaterThanOrEqual(4);
     expect(plan.requiredWeeks).toBeLessThanOrEqual(10);
@@ -60,8 +59,7 @@ describe("position conversion", () => {
       playerId,
       targetPosition,
     );
-    const plan =
-      started.teamPlanning.positionConversionsByPlayerId?.[playerId];
+    const plan = started.teamPlanning.positionConversionsByPlayerId?.[playerId];
     if (!plan) throw new Error("position conversion plan missing");
 
     expect(plan.requiredWeeks).toBe(4);
