@@ -663,7 +663,8 @@ export function PreMatchLineupScreen({
               >
                 <strong>{player.lastName}</strong>
                 <span>
-                  {player.preferredPosition}・{player.grade}年・{player.heightCm}cm
+                  {player.preferredPosition}・{player.grade}年・
+                  {player.heightCm}cm
                 </span>
                 <small>
                   {condition.icon}
