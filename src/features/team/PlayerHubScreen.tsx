@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -88,6 +88,10 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onSetPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position | null,
+  ) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -118,6 +122,8 @@ const rosterAbilityLabels = [
   ["stamina", "ス"],
   ["mental", "メ"],
 ] as const;
+
+const positionOptions = ["OH", "MB", "OP", "S", "L"] as const satisfies readonly Position[];
 
 const roleLabels: Record<PlayerRole, string> = {
   ace: "エース",
@@ -264,6 +270,7 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onSetPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -667,6 +674,7 @@ export function PlayerHubScreen({
     const developmentGoalAreas = Object.keys(
       developmentGoalAreaLabels,
     ) as DevelopmentGoalArea[];
+    const positionConversion = selectedPlayer.positionConversion;
 
     return (
       <main className="app-content player-hub player-detail">
@@ -762,7 +770,7 @@ export function PlayerHubScreen({
                   label={abilityLabels[key as keyof typeof abilityLabels]}
                   tone="accent"
                   value={value}
-                  valueLabel={ratingToGrade(value)}
+                  valueLabel={`${ratingToGrade(value)}・${Math.round(value)}`}
                 />
               ))}
             </section>
@@ -932,6 +940,97 @@ export function PlayerHubScreen({
                     : `将来性 ${development.potentialGrade}・${development.potential}`}
                 </small>
               </article>
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {positionConversion
+                      ? `${selectedPlayer.preferredPosition} → ${positionConversion.targetPosition}`
+                      : "未設定"}
+                  </strong>
+                </div>
+                {positionConversion ? (
+                  <b>
+                    残り{positionConversion.remainingWeeks}/
+                    {positionConversion.totalWeeks}週
+                  </b>
+                ) : null}
+              </div>
+              {positionConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span>
+                      {positionConversion.targetPosition}適性{" "}
+                      <strong>
+                        {selectedPlayer.positionAptitudes[
+                          positionConversion.targetPosition
+                        ]}{" "}
+                        {ratingToGrade(
+                          selectedPlayer.positionAptitudes[
+                            positionConversion.targetPosition
+                          ],
+                        )}
+                      </strong>
+                    </span>
+                    <span>
+                      開始時 {positionConversion.startingAptitude}
+                    </span>
+                  </div>
+                  <button
+                    className="player-position-conversion__cancel"
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onSetPositionConversion?.(selectedPlayer.id, null)
+                    }
+                    type="button"
+                  >
+                    転向を取り消す
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>
+                    現在の適性が高いほど短期間で転向できます。転向型の選手は1週短縮されます。
+                  </p>
+                  <div
+                    className="player-position-conversion__choices"
+                    aria-label="転向先を選択"
+                  >
+                    {positionOptions
+                      .filter(
+                        (position) =>
+                          position !== selectedPlayer.preferredPosition,
+                      )
+                      .map((position) => (
+                        <button
+                          disabled={planningPending}
+                          key={position}
+                          onClick={() =>
+                            void onSetPositionConversion?.(
+                              selectedPlayer.id,
+                              position,
+                            )
+                          }
+                          type="button"
+                        >
+                          <strong>{position}</strong>
+                          <span>
+                            適性 {selectedPlayer.positionAptitudes[position]}{" "}
+                            {ratingToGrade(
+                              selectedPlayer.positionAptitudes[position],
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </>
+              )}
             </section>
 
             <section
@@ -1230,6 +1329,13 @@ export function PlayerHubScreen({
                     {potentialGrade ? (
                       <span className="player-roster__info-badge">
                         将来性{potentialGrade}
+                      </span>
+                    ) : null}
+                    {player.positionConversion ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--conversion">
+                        {player.preferredPosition}→
+                        {player.positionConversion.targetPosition} 残
+                        {player.positionConversion.remainingWeeks}週
                       </span>
                     ) : null}
                     {growthType ? (
