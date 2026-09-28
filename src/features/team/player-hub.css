@@ -1904,7 +1904,6 @@
   }
 }
 
-
 /* Phase46-3: multi-week position conversion. */
 .player-position-conversion {
   display: grid;
@@ -2026,4 +2025,11 @@
   .player-position-conversion__choices {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+
+.player-roster__info-badge--conversion {
+  color: #c5d9e2;
+  background: rgb(74 120 138 / 12%);
+  border-color: rgb(117 158 173 / 20%);
 }
