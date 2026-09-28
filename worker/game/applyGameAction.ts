@@ -1201,7 +1201,7 @@ function teamPresentation(
 function buildPracticePresentation(
   state: GameState,
   simulation: MatchStepResult,
-  matchExperience: PendingMatchPresentation["matchExperience"] = [],
+  matchExperience: NonNullable<PendingMatchPresentation["matchExperience"]> = [],
 ): PendingMatchPresentation {
   return {
     kind: "practice",
