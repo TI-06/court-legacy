@@ -1,4 +1,5 @@
 import type { GameState } from "../model/GameState";
+import type { Position } from "../model/Player";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
 import type {
@@ -6,11 +7,16 @@ import type {
   SavedLineupSlot,
   TeamPlanningState,
 } from "./teamPlanningTypes";
+import {
+  cancelPlayerPositionConversion,
+  startPlayerPositionConversion,
+} from "./positionConversion";
 import { validateTeamSelection } from "./validateTeamSelection";
 
 export type TeamPlanningValidationCode =
   | "invalid-development-priorities"
   | "invalid-development-goal"
+  | "invalid-position-conversion"
   | "invalid-saved-lineup-name"
   | "invalid-saved-lineup";
 
@@ -28,6 +34,7 @@ export function createDefaultTeamPlanning(): TeamPlanningState {
   return {
     developmentPriorityPlayerIds: [],
     developmentGoalsByPlayerId: {},
+    positionConversionsByPlayerId: {},
     savedLineups: [],
   };
 }
@@ -110,6 +117,23 @@ export function setPlayerDevelopmentGoal(
       developmentGoalsByPlayerId: current,
     },
   };
+}
+
+export function setPlayerPositionConversion(
+  state: GameState,
+  playerId: PlayerId,
+  targetPosition: Position | null,
+): GameState {
+  try {
+    return targetPosition
+      ? startPlayerPositionConversion(state, playerId, targetPosition)
+      : cancelPlayerPositionConversion(state, playerId);
+  } catch (error) {
+    throw new TeamPlanningValidationError(
+      "invalid-position-conversion",
+      error instanceof Error ? error.message : "コンバートを設定できません",
+    );
+  }
 }
 
 export interface SaveLineupPresetInput {
