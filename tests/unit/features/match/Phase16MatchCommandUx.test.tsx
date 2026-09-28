@@ -111,7 +111,9 @@ describe("Phase16 match command decision panel", () => {
     expect(
       screen.getByText("セット中盤です。ここで流れを作る指示を選べます"),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "個人指示・声かけ" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "個人指示・声かけ" }),
+    ).toBeVisible();
     expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
     expect(screen.getByRole("button", { name: "選手交代" })).toBeVisible();
   });
@@ -176,7 +178,9 @@ describe("Phase16 match command decision panel", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "個人指示・声かけ" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "個人指示・声かけ" }),
+    );
     const dialog = screen.getByRole("dialog", { name: "選手指示" });
 
     fireEvent.click(
