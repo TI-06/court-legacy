@@ -4,7 +4,7 @@ import {
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   RotationSlot,
@@ -53,6 +53,15 @@ const courtOrder = [
   4, 3, 2, 5, 6, 1,
 ] as const satisfies readonly RotationSlot[];
 
+const rotationRoles: Record<RotationSlot, Position> = {
+  1: "S",
+  2: "MB",
+  3: "MB",
+  4: "OH",
+  5: "OH",
+  6: "OP",
+};
+
 type LineupPickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
@@ -76,10 +85,12 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
+function playerOverallValue(player: Player): number {
+  return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
 function playerOverallGrade(player: Player): string {
-  return ratingToPlayerGrade(
-    Math.round(calculatePlayerDisplayPower(player) / 100),
-  );
+  return ratingToPlayerGrade(playerOverallValue(player));
 }
 
 export function PreMatchLineupScreen({
@@ -552,10 +563,17 @@ export function PreMatchLineupScreen({
                   type="button"
                 >
                   <span className="pre-match-lineup__court-player-top">
-                    <b>R{slot}</b>
-                    <small>{player.preferredPosition}</small>
+                    <b>{rotationRoles[slot]}</b>
+                    <small>R{slot}</small>
                   </span>
                   <strong>{player.lastName}</strong>
+                  <small>
+                    本{player.preferredPosition}・{player.heightCm}cm・適
+                    {ratingToPlayerGrade(
+                      player.positionAptitudes[rotationRoles[slot]],
+                    )}
+                    {player.positionAptitudes[rotationRoles[slot]]}
+                  </small>
                   {specialAbilityBadges.length > 0 ? (
                     <span
                       aria-label={`${player.lastName}の特殊能力`}
@@ -580,6 +598,7 @@ export function PreMatchLineupScreen({
                   </span>
                   <small>
                     {player.grade}年・総合 {playerOverallGrade(player)}
+                    {playerOverallValue(player)}
                   </small>
                 </button>
               );
@@ -607,12 +626,15 @@ export function PreMatchLineupScreen({
               <small>LIBERO</small>
               <strong>{playerName(liberoPlayer)}</strong>
               <em>
-                {liberoPlayer.preferredPosition}・{liberoPlayer.grade}年・
-                {liberoCondition.icon}
+                {liberoPlayer.preferredPosition}・{liberoPlayer.heightCm}cm・
+                {liberoPlayer.grade}年・{liberoCondition.icon}
                 {liberoCondition.label}
               </em>
             </span>
-            <strong>総合 {playerOverallGrade(liberoPlayer)}</strong>
+            <strong>
+              総合 {playerOverallGrade(liberoPlayer)}
+              {playerOverallValue(liberoPlayer)}
+            </strong>
           </button>
         ) : null}
       </section>
@@ -643,11 +665,13 @@ export function PreMatchLineupScreen({
               >
                 <strong>{player.lastName}</strong>
                 <span>
-                  {player.preferredPosition}・{player.grade}年
+                  {player.preferredPosition}・{player.heightCm}cm・
+                  {player.grade}年
                 </span>
                 <small>
                   {condition.icon}
                   {condition.label}・総合 {playerOverallGrade(player)}
+                  {playerOverallValue(player)}
                 </small>
               </article>
             );
@@ -802,7 +826,8 @@ export function PreMatchLineupScreen({
                   <span className="pre-match-lineup__picker-identity">
                     <strong>{playerName(player)}</strong>
                     <small>
-                      {player.preferredPosition}・{player.grade}年
+                      {player.preferredPosition}・{player.heightCm}cm・
+                      {player.grade}年
                     </small>
                   </span>
                   <span className="pre-match-lineup__picker-condition">
@@ -813,7 +838,10 @@ export function PreMatchLineupScreen({
                     <small>
                       {isCurrent ? "現在" : isCourtPlayer ? "コート" : "ベンチ"}
                     </small>
-                    <strong>{playerOverallGrade(player)}</strong>
+                    <strong>
+                      {playerOverallGrade(player)}
+                      {playerOverallValue(player)}
+                    </strong>
                   </span>
                 </button>
               );
