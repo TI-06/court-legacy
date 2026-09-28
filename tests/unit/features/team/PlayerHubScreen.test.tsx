@@ -187,8 +187,14 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "成長" }));
 
     const conversion = screen.getByRole("region", { name: "ポジション転向" });
-    expect(within(conversion).getByText(`現在 ${player.preferredPosition}`)).toBeVisible();
-    fireEvent.click(within(conversion).getByRole("button", { name: new RegExp(`^${target}`) }));
+    expect(
+      within(conversion).getByText(`現在 ${player.preferredPosition}`),
+    ).toBeVisible();
+    fireEvent.click(
+      within(conversion).getByRole("button", {
+        name: new RegExp(`^${target}`),
+      }),
+    );
 
     expect(onStartPositionConversion).toHaveBeenCalledWith(playerId, target);
   });
