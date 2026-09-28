@@ -29,6 +29,8 @@ export interface SavedLineupPreset {
 export interface TeamPlanningState {
   developmentPriorityPlayerIds: PlayerId[];
   developmentGoalsByPlayerId?: Partial<Record<PlayerId, PlayerDevelopmentGoal>>;
-  positionConversionsByPlayerId?: Partial<Record<PlayerId, PositionConversionPlan>>;
+  positionConversionsByPlayerId?: Partial<
+    Record<PlayerId, PositionConversionPlan>
+  >;
   savedLineups: SavedLineupPreset[];
 }
