@@ -403,7 +403,8 @@ export function MatchCommandPanel({
       >
         <div className="match-command-player-directive">
           <p>
-            攻撃を託す選手、声をかける選手を選びます。推奨は能力・調子・疲労から自動で示します。
+            攻撃を託す選手、声をかける選手を選びます。
+            推奨は能力・調子・疲労から自動で示します。
           </p>
           <div
             aria-label="おすすめ個人指示"
@@ -531,7 +532,10 @@ export function MatchCommandPanel({
               </button>
             ))}
           </section>
-          <div className="match-command-tactics__current" aria-label="変更後の戦術">
+          <div
+            className="match-command-tactics__current"
+            aria-label="変更後の戦術"
+          >
             <span>
               サーブ
               <strong>
