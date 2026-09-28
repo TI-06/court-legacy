@@ -42,6 +42,24 @@ interface MatchScreenProps {
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
+type PlaybackMode = "rally" | "points";
+
+function nextPlaybackEventIndex(
+  eventLog: readonly { type: string }[],
+  current: number,
+  lastEventIndex: number,
+  mode: PlaybackMode,
+): number {
+  if (current >= lastEventIndex) return lastEventIndex;
+  if (mode === "rally") return Math.min(lastEventIndex, current + 1);
+
+  for (let index = current + 1; index <= lastEventIndex; index += 1) {
+    if (eventLog[index]?.type === "point") {
+      return index;
+    }
+  }
+  return lastEventIndex;
+}
 
 export function MatchScreen(props: MatchScreenProps) {
   const scheduledOpponentId =
@@ -79,6 +97,7 @@ function MatchScreenContent({
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
@@ -139,7 +158,12 @@ function MatchScreenContent({
             setPlaying(false);
             return current;
           }
-          const next = current + 1;
+          const next = nextPlaybackEventIndex(
+            result.match.eventLog,
+            current,
+            lastEventIndex,
+            playbackMode,
+          );
           if (next >= lastEventIndex) {
             setPlaying(false);
           }
@@ -156,6 +180,7 @@ function MatchScreenContent({
     matchComplete,
     playing,
     reducedMotion,
+    playbackMode,
     result,
     speed,
   ]);
@@ -326,7 +351,15 @@ function MatchScreenContent({
   const opponentSetsWon = userIsHome
     ? result.match.awaySetsWon
     : result.match.homeSetsWon;
-  const recentEvents = presentedEvents.slice(-4).reverse();
+  const recentEvents =
+    playbackMode === "points"
+      ? presentedEvents
+          .filter(
+            (_event, index) => visibleRawEvents[index]?.type === "point",
+          )
+          .slice(-6)
+          .reverse()
+      : presentedEvents.slice(-4).reverse();
   const decisionReason = result.match.runtime?.pendingDecisionReason ?? null;
   const decisionHeadline =
     decisionReason === "opponent-run"
@@ -450,16 +483,29 @@ function MatchScreenContent({
           ) : null}
 
           <section
-            className={`match-current-event match-current-event--${currentEvent.tone}`}
+            className={`match-current-event match-current-event--${currentEvent.tone}${
+              playbackMode === "points"
+                ? " match-current-event--point-flow"
+                : ""
+            }`}
             aria-live="polite"
           >
             <span className="match-current-event__number">
-              {currentEvent.sequence}
+              {playbackMode === "points" ? "P" : currentEvent.sequence}
             </span>
             <div>
-              <strong>{currentEvent.title}</strong>
-              <p>{currentEvent.detail}</p>
-              {currentEventSpecialAbilities.length > 0 ? (
+              <strong>
+                {playbackMode === "points" && currentRawEvent?.type !== "point"
+                  ? "得点推移モード"
+                  : currentEvent.title}
+              </strong>
+              <p>
+                {playbackMode === "points" && currentRawEvent?.type !== "point"
+                  ? "ラリー演出を省略し、次に点が入る場面まで進みます。"
+                  : currentEvent.detail}
+              </p>
+              {playbackMode === "rally" &&
+              currentEventSpecialAbilities.length > 0 ? (
                 <div
                   aria-label="このプレーの特殊能力"
                   className="match-current-event__specials"
@@ -484,6 +530,32 @@ function MatchScreenContent({
             />
           ) : (
             <section className="match-controls" aria-label="再生操作">
+              <div
+                className="match-playback-mode"
+                role="group"
+                aria-label="再生モード"
+              >
+                <button
+                  aria-pressed={playbackMode === "rally"}
+                  onClick={() => {
+                    setPlaying(false);
+                    setPlaybackMode("rally");
+                  }}
+                  type="button"
+                >
+                  ラリー再生
+                </button>
+                <button
+                  aria-pressed={playbackMode === "points"}
+                  onClick={() => {
+                    setPlaying(false);
+                    setPlaybackMode("points");
+                  }}
+                  type="button"
+                >
+                  得点推移
+                </button>
+              </div>
               <div className="match-playback-row">
                 <button
                   className="match-playback-row__play"
@@ -499,12 +571,17 @@ function MatchScreenContent({
                   onClick={() => {
                     setPlaying(false);
                     setVisibleEventIndex((current) =>
-                      Math.min(lastEventIndex, current + 1),
+                      nextPlaybackEventIndex(
+                        result.match.eventLog,
+                        current,
+                        lastEventIndex,
+                        playbackMode,
+                      ),
                     );
                   }}
                   type="button"
                 >
-                  次のプレー
+                  {playbackMode === "points" ? "次のポイント" : "次のプレー"}
                 </button>
                 <button
                   className="match-playback-row__advance"
@@ -571,8 +648,12 @@ function MatchScreenContent({
           >
             <div className="section-heading">
               <div>
-                <p className="section-kicker">プレー履歴</p>
-                <h2 id="timeline-heading">直近のプレー</h2>
+                <p className="section-kicker">
+                  {playbackMode === "points" ? "SCORE FLOW" : "プレー履歴"}
+                </p>
+                <h2 id="timeline-heading">
+                  {playbackMode === "points" ? "直近の得点" : "直近のプレー"}
+                </h2>
               </div>
             </div>
             <div className="match-timeline__list">
