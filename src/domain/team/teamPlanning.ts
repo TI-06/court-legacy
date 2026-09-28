@@ -186,7 +186,6 @@ export function deleteLineupPreset(
   };
 }
 
-
 export function setPlayerPositionConversion(
   state: GameState,
   playerId: PlayerId,
