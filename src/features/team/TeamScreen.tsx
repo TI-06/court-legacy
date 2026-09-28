@@ -22,6 +22,7 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import {
   autoSelectTeam,
   resolveLockedStarters,
@@ -626,13 +627,16 @@ export function TeamScreen({
                       </span>
                       <strong>{player.lastName}</strong>
                       <span className="court-player-button__meta">
-                        本{player.preferredPosition}・適
-                        {
+                        本{player.preferredPosition}・
+                        {ROTATION_ROLES[assignment.slot]}適
+                        {ratingToGrade(
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
-                          ]
-                        }
-                        ・総{playerOverall(player)}
+                          ],
+                        )}
+                        {player.positionAptitudes[ROTATION_ROLES[assignment.slot]]}
+                        ・総{ratingToGrade(playerOverall(player))}
+                        {playerOverall(player)}・{player.heightCm}cm
                       </span>
                       <PlayerReadiness compact player={player} />
                     </button>
