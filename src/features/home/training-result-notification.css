@@ -497,7 +497,6 @@
   }
 }
 
-
 /* Phase46-2: make the reached ability value explicit, not only the delta. */
 .training-result-notification__abilities
   .training-result-notification__ability-result {
