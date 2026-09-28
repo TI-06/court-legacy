@@ -1539,6 +1539,7 @@ function applyActionByType(
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":
     case "set-player-development-goal":
+    case "set-player-position-conversion":
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
