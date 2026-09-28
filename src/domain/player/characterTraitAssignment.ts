@@ -45,14 +45,14 @@ export function ensureCharacterTraitAssignments(
   data: GameDataRegistry,
 ): GameState {
   const characterTraitIds = [...data.characterTraits.keys()];
-  let changed = false;
-  const players = { ...state.players };
+  let players: GameState["players"] | null = null;
 
   for (const player of Object.values(state.players)) {
     if (player.hiddenTraitAssignmentInitialized === true) {
       continue;
     }
 
+    players ??= { ...state.players };
     players[player.id] = {
       ...player,
       ...assignCharacterTraitDeterministically(
@@ -61,8 +61,7 @@ export function ensureCharacterTraitAssignments(
         characterTraitIds,
       ),
     };
-    changed = true;
   }
 
-  return changed ? { ...state, players } : state;
+  return players ? { ...state, players } : state;
 }

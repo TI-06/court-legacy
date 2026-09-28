@@ -68,6 +68,16 @@ describe("Phase21 character trait assignment", () => {
     ]);
   });
 
+  it("returns the original state and player map when no backfill is needed", () => {
+    const state = structuredClone(createDemoGame());
+    const playersBefore = state.players;
+
+    const next = ensureCharacterTraitAssignments(state, data);
+
+    expect(next).toBe(state);
+    expect(next.players).toBe(playersBefore);
+  });
+
   it("backfills uninitialized players without consuming the game random cursor", () => {
     const state = structuredClone(createDemoGame());
     for (const player of Object.values(state.players)) {

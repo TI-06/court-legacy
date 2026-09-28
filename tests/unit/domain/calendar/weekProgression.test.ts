@@ -83,6 +83,17 @@ describe("weekly progression", () => {
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
+  it("preserves unchanged player objects instead of cloning the full roster", () => {
+    const state = createState();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const playerBefore = state.players[playerId]!;
+    expect(playerBefore.injury).toBeNull();
+
+    const result = advanceOneWeek(state);
+
+    expect(result.state.players[playerId]).toBe(playerBefore);
+  });
+
   it("leaves legacy fatigue and condition unchanged during calendar advancement", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
