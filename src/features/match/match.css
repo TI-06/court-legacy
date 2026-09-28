@@ -2155,3 +2155,80 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Phase46: post-match development summary. */
+.match-growth-result {
+  display: grid;
+  gap: 9px;
+  color: #1b3440;
+}
+
+.match-growth-result__player {
+  display: grid;
+  padding: 10px;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid #d5e0e4;
+  border-radius: 12px;
+}
+
+.match-growth-result__player header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.match-growth-result__player header strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-growth-result__player header span {
+  flex: 0 0 auto;
+  color: #60747d;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.match-growth-result__abilities {
+  display: grid;
+  gap: 5px;
+}
+
+.match-growth-result__abilities > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  min-height: 38px;
+  padding: 6px 8px;
+  gap: 7px;
+  background: #edf5f6;
+  border-radius: 9px;
+}
+
+.match-growth-result__abilities span {
+  color: #4f6570;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.match-growth-result__abilities strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.match-growth-result__abilities em {
+  padding-inline: 5px;
+  color: #81929a;
+  font-style: normal;
+}
+
+.match-growth-result__abilities b {
+  color: #14704b;
+  font-size: 12px;
+}
