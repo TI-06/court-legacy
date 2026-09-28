@@ -496,3 +496,34 @@
     display: none;
   }
 }
+
+
+/* Phase46: make growth results readable as current value -> new value. */
+.training-result-notification__abilities span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.training-result-notification__abilities span > b {
+  color: inherit;
+  font-size: inherit;
+}
+
+.training-result-notification__abilities span > em {
+  color: #7b8d95;
+  font-style: normal;
+}
+
+.training-result-notification__abilities span > strong {
+  color: inherit;
+  font-size: inherit;
+  font-weight: 950;
+}
+
+.training-result-notification__abilities span > small {
+  padding-left: 2px;
+  color: inherit;
+  font-size: 0.92em;
+  font-weight: 950;
+}
