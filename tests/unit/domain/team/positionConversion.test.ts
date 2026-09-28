@@ -47,6 +47,25 @@ describe("position conversion", () => {
     ).toBeUndefined();
   });
 
+  it("shortens conversion for the dedicated conversion growth type", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const targetPosition = player.preferredPosition === "S" ? "OH" : "S";
+    player.growthTypeId = "growth.conversion";
+    player.positionAptitudes[targetPosition] = 40;
+
+    const started = startPlayerPositionConversion(
+      state,
+      playerId,
+      targetPosition,
+    );
+    const plan =
+      started.teamPlanning.positionConversionsByPlayerId?.[playerId]!;
+
+    expect(plan.requiredWeeks).toBe(4);
+  });
+
   it("does not progress on a week where the player did not train", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
