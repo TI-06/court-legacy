@@ -1,4 +1,5 @@
 import type { TrainingResultNotification } from "../../domain/notifications/gameNotifications";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import type { AbilityKey } from "../../domain/validation/gameDataSchema";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "./training-result-notification.css";
@@ -142,11 +143,34 @@ export function TrainingResultNotificationSheet({
 
                       {abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
-                          {abilityChanges.map(([ability, value]) => (
-                            <span data-tone={growthTone(value)} key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
-                            </span>
-                          ))}
+                          {abilityChanges.map(([ability, value]) => {
+                            const before =
+                              player.abilityBefore?.[ability] ?? null;
+                            const after =
+                              player.abilityAfter?.[ability] ??
+                              (before === null ? null : before + value);
+                            return (
+                              <span
+                                data-tone={growthTone(value)}
+                                key={ability}
+                              >
+                                <b>{abilityLabels[ability]}</b>
+                                {before === null || after === null ? (
+                                  <> {signed(value)}</>
+                                ) : (
+                                  <>
+                                    {" "}
+                                    {Math.round(before)}
+                                    {ratingToGrade(before)}
+                                    <em aria-hidden="true">→</em>
+                                    {Math.round(after)}
+                                    {ratingToGrade(after)}
+                                    <strong>{signed(value)}</strong>
+                                  </>
+                                )}
+                              </span>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="training-result-notification__no-growth">
