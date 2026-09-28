@@ -2,6 +2,7 @@ import type { GameState } from "../model/GameState";
 import type { Player, PlayerInjury } from "../model/Player";
 import type { GameDate, PlayerId } from "../model/identifiers";
 import { progressSpecialRelationshipsWeekly } from "../relationships/specialRelationships";
+import { progressPositionConversionsWeekly } from "../team/teamPlanning";
 import type { SpecialRelationshipTransition } from "../relationships/relationshipTypes";
 
 export type WeeklyAction = "training" | "practice-match";
@@ -122,15 +123,18 @@ export function advanceOneWeek(
     state,
     date,
   );
+  const conversionProgression = progressPositionConversionsWeekly(
+    relationshipProgression.state,
+  );
 
   return {
     state: {
-      ...relationshipProgression.state,
+      ...conversionProgression,
       date,
       players,
       activeMatch: null,
       calendar: {
-        ...relationshipProgression.state.calendar,
+        ...conversionProgression.calendar,
         currentDate: date,
         weekOfYear: state.calendar.weekOfYear + 1,
       },
