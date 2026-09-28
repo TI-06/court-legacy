@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGame } from "../../../src/app/createInitialGame";
+import { createInitialGame } from "../../../../src/app/createInitialGame";
 import {
   progressPositionConversionsWeekly,
   startPositionConversion,
-} from "../../../src/domain/team/teamPlanning";
+} from "../../../../src/domain/team/teamPlanning";
 
 function createState() {
   return createInitialGame({
