@@ -19,14 +19,14 @@ describe("Phase46 position conversion", () => {
     expect(positionConversionWeeks(player, "S")).toBe(3);
   });
 
-  it("shortens conversion types by one week without going below two weeks", () => {
+  it("shortens conversion types by one week without going below three weeks", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const player = state.players[playerId]!;
     player.growthTypeId = "growth.conversion";
     player.positionAptitudes.S = 72;
 
-    expect(positionConversionWeeks(player, "S")).toBe(2);
+    expect(positionConversionWeeks(player, "S")).toBe(3);
   });
 
   it("raises target aptitude weekly and switches preferred position only on completion", () => {
@@ -49,9 +49,9 @@ describe("Phase46 position conversion", () => {
 
     expect(state.players[playerId]!.positionConversion).toBeUndefined();
     expect(state.players[playerId]!.preferredPosition).toBe(target);
-    expect(state.players[playerId]!.positionAptitudes[target]).toBeGreaterThanOrEqual(
-      70,
-    );
+    expect(
+      state.players[playerId]!.positionAptitudes[target],
+    ).toBeGreaterThanOrEqual(70);
   });
 
   it("rejects converting to the current position", () => {
