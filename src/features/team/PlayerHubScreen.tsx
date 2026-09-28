@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -87,6 +87,10 @@ interface PlayerHubScreenProps {
   onSetPlayerDevelopmentGoal?: (
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
+  ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position,
   ) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
@@ -177,6 +181,8 @@ const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "grade", label: "学年順" },
 ];
 
+const positions: readonly Position[] = ["OH", "MB", "OP", "S", "L"];
+
 const playerName = (player: Player) => `${player.lastName} ${player.firstName}`;
 const playerOverall = (player: Player) =>
   Math.round(calculatePlayerDisplayPower(player) / 100);
@@ -264,6 +270,7 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -932,6 +939,104 @@ export function PlayerHubScreen({
                     : `将来性 ${development.potentialGrade}・${development.potential}`}
                 </small>
               </article>
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {selectedPlayer.positionConversion
+                      ? `${selectedPlayer.preferredPosition} → ${selectedPlayer.positionConversion.targetPosition}`
+                      : `現在 ${selectedPlayer.preferredPosition}`}
+                  </strong>
+                </div>
+                {selectedPlayer.positionConversion ? (
+                  <b>
+                    残り{selectedPlayer.positionConversion.remainingWeeks}週
+                  </b>
+                ) : null}
+              </div>
+              {selectedPlayer.positionConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span
+                      style={{
+                        width: `${Math.round(
+                          ((selectedPlayer.positionConversion.totalWeeks -
+                            selectedPlayer.positionConversion.remainingWeeks) /
+                            selectedPlayer.positionConversion.totalWeeks) *
+                            100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p>
+                    {selectedPlayer.positionConversion.targetPosition}適性{" "}
+                    {
+                      selectedPlayer.positionAptitudes[
+                        selectedPlayer.positionConversion.targetPosition
+                      ]
+                    }
+                    ・完了時に本職が切り替わります
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    現在の適性に応じて2〜8週。転向型の選手は1週短縮されます。
+                  </p>
+                  <div className="player-position-conversion__choices">
+                    {positions
+                      .filter(
+                        (position) =>
+                          position !== selectedPlayer.preferredPosition,
+                      )
+                      .map((position) => {
+                        const aptitude =
+                          selectedPlayer.positionAptitudes[position];
+                        const weeks =
+                          aptitude >= 70
+                            ? 3
+                            : aptitude >= 60
+                              ? 4
+                              : aptitude >= 50
+                                ? 5
+                                : aptitude >= 40
+                                  ? 6
+                                  : aptitude >= 30
+                                    ? 7
+                                    : 8;
+                        const adjustedWeeks =
+                          selectedPlayer.growthTypeId === "growth.conversion"
+                            ? Math.max(2, weeks - 1)
+                            : weeks;
+                        return (
+                          <button
+                            disabled={planningPending}
+                            key={position}
+                            onClick={() =>
+                              void onStartPositionConversion?.(
+                                selectedPlayer.id,
+                                position,
+                              )
+                            }
+                            type="button"
+                          >
+                            <strong>{position}</strong>
+                            <span>
+                              適性 {ratingToGrade(aptitude)}・{aptitude}
+                            </span>
+                            <small>{adjustedWeeks}週</small>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
             </section>
 
             <section
