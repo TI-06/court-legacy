@@ -15,6 +15,7 @@ describe("teamPlanning", () => {
     expect(createDefaultTeamPlanning()).toEqual({
       developmentPriorityPlayerIds: [],
       developmentGoalsByPlayerId: {},
+      positionConversionsByPlayerId: {},
       savedLineups: [],
     });
   });
