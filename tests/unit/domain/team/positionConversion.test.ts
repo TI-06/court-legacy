@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createDemoGame } from "../../../src/app/createDemoGame";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   buildPositionConversion,
   progressPositionConversions,
   startPositionConversion,
-} from "../../../src/domain/team/positionConversion";
+} from "../../../../src/domain/team/positionConversion";
 
 describe("Phase46 position conversion", () => {
   it("uses current aptitude to determine a multi-week conversion plan", () => {
