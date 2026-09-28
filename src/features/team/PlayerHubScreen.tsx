@@ -1031,10 +1031,7 @@ export function PlayerHubScreen({
                           </strong>
                           <small>
                             約
-                            {positionConversionWeeks(
-                              selectedPlayer,
-                              position,
-                            )}
+                            {positionConversionWeeks(selectedPlayer, position)}
                             週
                           </small>
                         </button>
