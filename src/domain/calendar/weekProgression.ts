@@ -123,15 +123,15 @@ export function advanceOneWeek(
     state,
     date,
   );
-  const conversionProgression = progressPositionConversionsWeekly(
-    relationshipProgression.state,
-  );
+  const conversionProgression = progressPositionConversionsWeekly({
+    ...relationshipProgression.state,
+    players,
+  });
 
   return {
     state: {
       ...conversionProgression,
       date,
-      players,
       activeMatch: null,
       calendar: {
         ...conversionProgression.calendar,
