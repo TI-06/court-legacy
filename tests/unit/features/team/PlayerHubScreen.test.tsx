@@ -830,9 +830,7 @@ describe("PlayerHubScreen", () => {
     );
 
     expect(
-      within(conversion).getByText(
-        `${player.preferredPosition} → ${target}`,
-      ),
+      within(conversion).getByText(`${player.preferredPosition} → ${target}`),
     ).toBeVisible();
     expect(within(conversion).getByText("2/6週")).toBeVisible();
     fireEvent.click(
