@@ -2133,8 +2133,7 @@
 
 .match-current-event--point-flow {
   background:
-    linear-gradient(135deg, rgb(114 213 223 / 8%), transparent 70%),
-    #fff;
+    linear-gradient(135deg, rgb(114 213 223 / 8%), transparent 70%), #fff;
   border-left-color: #2d8e9a;
 }
 
