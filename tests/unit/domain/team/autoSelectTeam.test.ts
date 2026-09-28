@@ -124,7 +124,9 @@ describe("autoSelectTeam", () => {
     expect(selection.liberoPlayerId).toBe(school.playerIds[6]);
   });
 
-  it("never puts a natural libero into the six-player rotation when standard-role players are available", () => {
+  it(
+    "never puts a natural libero into the six-player rotation when standard-role players are available",
+    () => {
     const { state, school } = prepareRoleRoster();
     const liberoIds = school.playerIds.filter(
       (playerId) => state.players[playerId]!.preferredPosition === "L",
@@ -165,10 +167,11 @@ describe("autoSelectTeam", () => {
     expect(
       rotationPlayers.filter((player) => player.preferredPosition === "L"),
     ).toHaveLength(0);
-    expect(
-      state.players[selection.liberoPlayerId!]!.preferredPosition,
-    ).toBe("L");
-  });
+      expect(state.players[selection.liberoPlayerId!]!.preferredPosition).toBe(
+        "L",
+      );
+    },
+  );
 
   it("prefers natural positions over a stronger out-of-position player", () => {
     const { state, school } = prepareRoleRoster();
