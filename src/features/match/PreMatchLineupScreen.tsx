@@ -827,7 +827,8 @@ export function PreMatchLineupScreen({
                   <span className="pre-match-lineup__picker-identity">
                     <strong>{playerName(player)}</strong>
                     <small>
-                      {player.preferredPosition}・{player.grade}年
+                      {player.preferredPosition}・{player.grade}年・総{" "}
+                      {playerOverallRating(player)}
                     </small>
                   </span>
                   <span className="pre-match-lineup__picker-condition">
