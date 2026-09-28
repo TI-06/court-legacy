@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier src/features/team/player-hub.css src/features/team/PlayerHubScreen.tsx tests/unit/domain/team/positionConversion.test.ts worker/game/applyGameAction.ts --write && git diff --exit-code -- src/features/team/player-hub.css src/features/team/PlayerHubScreen.tsx tests/unit/domain/team/positionConversion.test.ts worker/game/applyGameAction.ts",
+    "format:check": "prettier . --check",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
