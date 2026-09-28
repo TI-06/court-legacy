@@ -555,7 +555,10 @@ function applyTeamPlanning(
       return conflict(error.code.replaceAll("-", "_"), error.message);
     }
     if (error instanceof PositionConversionError) {
-      return conflict(`position_conversion_${error.code.replaceAll("-", "_")}`, error.message);
+      return conflict(
+        `position_conversion_${error.code.replaceAll("-", "_")}`,
+        error.message,
+      );
     }
     throw error;
   }
