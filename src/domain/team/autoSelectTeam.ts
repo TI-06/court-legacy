@@ -134,8 +134,9 @@ function buildVolleyballRotation(
       .filter((player) => player.id !== reservedLiberoId)
       .map((player) => [player.id, player]),
   );
-  const assignments: Array<RotationAssignment | null> =
-    ROTATION_ROLES.map(() => null);
+  const assignments: Array<RotationAssignment | null> = ROTATION_ROLES.map(
+    () => null,
+  );
 
   // First fill every role with natural-position players. This prevents a very
   // strong libero or flexible player from stealing a standard six-player slot.
@@ -146,8 +147,7 @@ function buildVolleyballRotation(
     const natural = [...available.values()]
       .filter((player) => player.preferredPosition === role)
       .sort((first, second) => {
-        const scoreDifference =
-          roleScore(second, role) - roleScore(first, role);
+        const scoreDifference = roleScore(second, role) - roleScore(first, role);
         return scoreDifference !== 0
           ? scoreDifference
           : first.id.localeCompare(second.id);
