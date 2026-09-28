@@ -87,6 +87,52 @@ describe("Phase16 MatchScreen authoritative playback", () => {
     expect(screen.queryByRole("heading", { name: "試合結果" })).toBeNull();
   });
 
+  it("can skip rally details and advance score point by point", () => {
+    const fixture = findIncompleteDecisionMatch();
+    const eventCount = fixture.result.match.eventLog.length;
+    const nextPointIndex = fixture.result.match.eventLog.findIndex(
+      (event, index) => index > 0 && event.type === "point",
+    );
+    expect(nextPointIndex).toBeGreaterThan(0);
+
+    render(
+      <MatchScreen
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={fixture.result}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "得点推移" }));
+    expect(
+      screen.getByRole("button", { name: "得点推移" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "次のポイント" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "次のポイント" }));
+
+    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
+      `${nextPointIndex + 1} / ${eventCount}`,
+    );
+    expect(
+      screen.getByRole("heading", { name: "直近の得点" }),
+    ).toBeVisible();
+  });
+
   it("automatically resumes playback after a coach command succeeds", async () => {
     const fixture = findIncompleteDecisionMatch();
     const onCommand = vi.fn().mockResolvedValue(undefined);
