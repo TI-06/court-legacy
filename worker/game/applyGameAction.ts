@@ -43,6 +43,7 @@ import {
 } from "../../src/domain/player/characterTraitDiscovery";
 import {
   applyUserMatchExperience,
+  buildMatchExperienceGrowth,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
@@ -50,7 +51,6 @@ import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
   buildDevelopmentGoalAchievementNotification,
-  buildMatchExperienceNotification,
   buildSeasonGoalAchievementNotification,
   buildSpecialRelationshipNotification,
   buildTrainingResultNotification,
@@ -179,7 +179,10 @@ function applyCompletedSoloMatchExperience(
   state: GameState,
   strengthState: GameState,
   match: SimulateMatchResult["match"],
-): GameState {
+): {
+  state: GameState;
+  matchGrowth: ReturnType<typeof buildMatchExperienceGrowth>;
+} {
   const userIsHome = match.homeSchoolId === state.userSchoolId;
   const userSelection = userIsHome ? match.homeSelection : match.awaySelection;
   const opponentSelection = userIsHome
@@ -202,19 +205,12 @@ function applyCompletedSoloMatchExperience(
   });
   const participantPlayerIds =
     state.schools[state.userSchoolId]?.playerIds ?? [];
-  const notification = buildMatchExperienceNotification({
-    stateBefore: state,
-    stateAfter: experiencedState,
-    matchId: match.id,
-    participantPlayerIds,
-  });
-  if (!notification) return experiencedState;
-
   return {
-    ...experiencedState,
-    notifications: appendNotification(
-      experiencedState.notifications,
-      notification,
+    state: experiencedState,
+    matchGrowth: buildMatchExperienceGrowth(
+      state,
+      experiencedState,
+      participantPlayerIds,
     ),
   };
 }
@@ -741,12 +737,12 @@ function applyPracticeMatch(
       randomCursor: simulation.match.randomCursor,
       activeMatch: simulation.match,
     };
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const experience = applyCompletedSoloMatchExperience(
       matchState,
       matchState,
       simulation.match,
     );
-    const recorded = recordMatchOutcome(experiencedState, {
+    const recorded = recordMatchOutcome(experience.state, {
       matchId: simulation.match.id,
       date: state.date,
       homeSchoolId: simulation.match.homeSchoolId,
@@ -851,12 +847,12 @@ function applyPracticeMatchCommand(
       };
     }
 
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const experience = applyCompletedSoloMatchExperience(
       resumedState,
       resumedState,
       simulation.match,
     );
-    const recorded = recordMatchOutcome(experiencedState, {
+    const recorded = recordMatchOutcome(experience.state, {
       matchId: simulation.match.id,
       date: state.date,
       homeSchoolId: simulation.match.homeSchoolId,
@@ -891,7 +887,11 @@ function applyPracticeMatchCommand(
     return {
       state: finalizedState,
       teamSelection,
-      outcome: buildPracticePresentation(finalizedState, simulation),
+      outcome: buildPracticePresentation(
+        finalizedState,
+        simulation,
+        experience.matchGrowth,
+      ),
     };
   } catch (error) {
     if (error instanceof MatchCommandValidationError) {
@@ -1134,13 +1134,13 @@ function applyOfficialMatchCommand(
       };
     }
 
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const experience = applyCompletedSoloMatchExperience(
       resumedState,
       context.state,
       simulation.match,
     );
     const recorded = recordOfficialTournamentOutcome({
-      state: experiencedState,
+      state: experience.state,
       circuit: due.circuit,
       level: due.level,
       bracketMatchId: due.match.id,
@@ -1153,6 +1153,7 @@ function applyOfficialMatchCommand(
       outcome: buildOfficialPresentation(
         progressed,
         buildOfficialActionOutcome(due, simulation),
+        experience.matchGrowth,
       ),
     };
   } catch (error) {
@@ -1218,10 +1219,12 @@ function teamPresentation(
 function buildPracticePresentation(
   state: GameState,
   simulation: MatchStepResult,
+  matchGrowth: PendingMatchPresentation["matchGrowth"] = [],
 ): PendingMatchPresentation {
   return {
     kind: "practice",
     simulation,
+    ...(matchGrowth.length > 0 ? { matchGrowth } : {}),
     homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
     awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
   };
@@ -1235,6 +1238,7 @@ function practicePresentation(
 function buildOfficialPresentation(
   state: GameState,
   outcome: ReturnType<typeof buildOfficialActionOutcome>,
+  matchGrowth: PendingMatchPresentation["matchGrowth"] = [],
 ): PendingMatchPresentation {
   const simulation = outcome.simulation;
   const fallback = {
@@ -1244,6 +1248,7 @@ function buildOfficialPresentation(
   return {
     kind: "official",
     simulation,
+    ...(matchGrowth.length > 0 ? { matchGrowth } : {}),
     homeTeam: teamPresentation(
       state,
       simulation.match.homeSchoolId,
