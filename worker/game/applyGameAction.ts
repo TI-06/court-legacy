@@ -80,8 +80,10 @@ import {
   saveLineupPreset,
   setDevelopmentPriorities,
   setPlayerDevelopmentGoal,
+  setPlayerPositionConversion,
   TeamPlanningValidationError,
 } from "../../src/domain/team/teamPlanning";
+import { progressPositionConversions } from "../../src/domain/team/positionConversion";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
 import { materializeGuestOpponent } from "../../src/domain/tournament/materializeGuestOpponent";
 import {
@@ -350,7 +352,18 @@ function applyTraining(
       random,
       additionalGrowthModifiers: trainingGrowthModifiers(state),
     });
-    const resolvedState = consumeNextTrainingGrowthBoost(resolution.state);
+    const trainedPlayerIds = new Set(
+      resolution.result.playerLogs
+        .filter((log) => log.skippedReason === null)
+        .map((log) => log.playerId),
+    );
+    const conversionProgress = progressPositionConversions(
+      resolution.state,
+      trainedPlayerIds,
+    );
+    const resolvedState = consumeNextTrainingGrowthBoost(
+      conversionProgress.state,
+    );
     const developmentWeek = buildPlayerDevelopmentWeek({
       stateBeforeTraining: state,
       result: resolution.result,
@@ -516,6 +529,7 @@ function applyTeamPlanning(
       type:
         | "set-development-priorities"
         | "set-player-development-goal"
+        | "set-player-position-conversion"
         | "save-lineup-preset"
         | "delete-lineup-preset";
     }
@@ -527,7 +541,13 @@ function applyTeamPlanning(
         ? setDevelopmentPriorities(state, action.playerIds)
         : action.type === "set-player-development-goal"
           ? setPlayerDevelopmentGoal(state, action.playerId, action.goal)
-          : action.type === "save-lineup-preset"
+          : action.type === "set-player-position-conversion"
+            ? setPlayerPositionConversion(
+                state,
+                action.playerId,
+                action.targetPosition,
+              )
+            : action.type === "save-lineup-preset"
             ? saveLineupPreset(state, action)
             : deleteLineupPreset(state, action.slot);
     return {
