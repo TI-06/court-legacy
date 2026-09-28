@@ -213,10 +213,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PendingMatchPresentation | null>(null);
   const [matchGrowthSummary, setMatchGrowthSummary] =
     useState<MatchGrowthSummary | null>(null);
-  const [
-    positionConversionCompletions,
-    setPositionConversionCompletions,
-  ] = useState<PositionConversionCompletionView[]>([]);
+  const [positionConversionCompletions, setPositionConversionCompletions] =
+    useState<PositionConversionCompletionView[]>([]);
   const [matchView, setMatchView] = useState<MatchView>("practice");
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
@@ -1220,30 +1218,30 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     if (!response) return;
 
     const conversionCompletions =
-      stateBeforeAdvance.schools[stateBeforeAdvance.userSchoolId]?.playerIds.flatMap(
-        (playerId) => {
-          const beforePlayer = stateBeforeAdvance.players[playerId];
-          const afterPlayer = response.game.state.players[playerId];
-          const plan = beforePlayer?.positionConversion;
-          if (
-            !beforePlayer ||
-            !afterPlayer ||
-            !plan ||
-            beforePlayer.preferredPosition === afterPlayer.preferredPosition ||
-            afterPlayer.preferredPosition !== plan.targetPosition
-          ) {
-            return [];
-          }
-          return [
-            {
-              playerId,
-              displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
-              fromPosition: beforePlayer.preferredPosition,
-              toPosition: afterPlayer.preferredPosition,
-            } satisfies PositionConversionCompletionView,
-          ];
-        },
-      ) ?? [];
+      stateBeforeAdvance.schools[
+        stateBeforeAdvance.userSchoolId
+      ]?.playerIds.flatMap((playerId) => {
+        const beforePlayer = stateBeforeAdvance.players[playerId];
+        const afterPlayer = response.game.state.players[playerId];
+        const plan = beforePlayer?.positionConversion;
+        if (
+          !beforePlayer ||
+          !afterPlayer ||
+          !plan ||
+          beforePlayer.preferredPosition === afterPlayer.preferredPosition ||
+          afterPlayer.preferredPosition !== plan.targetPosition
+        ) {
+          return [];
+        }
+        return [
+          {
+            playerId,
+            displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
+            fromPosition: beforePlayer.preferredPosition,
+            toPosition: afterPlayer.preferredPosition,
+          } satisfies PositionConversionCompletionView,
+        ];
+      }) ?? [];
     if (conversionCompletions.length > 0) {
       setPositionConversionCompletions(conversionCompletions);
     }
