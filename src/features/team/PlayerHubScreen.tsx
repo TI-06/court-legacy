@@ -773,7 +773,7 @@ export function PlayerHubScreen({
                   label={abilityLabels[key as keyof typeof abilityLabels]}
                   tone="accent"
                   value={value}
-                  valueLabel={ratingToGrade(value)}
+                  valueLabel={`${ratingToGrade(value)} ${Math.round(value)}`}
                 />
               ))}
             </section>
@@ -937,7 +937,10 @@ export function PlayerHubScreen({
                         const aptitude =
                           selectedPlayer.positionAptitudes[position];
                         const requiredWeeks =
-                          positionConversionRequiredWeeks(aptitude);
+                          positionConversionRequiredWeeks(
+                            aptitude,
+                            selectedPlayer.growthTypeId,
+                          );
                         return (
                           <button
                             disabled={planningPending}
@@ -1366,6 +1369,25 @@ export function PlayerHubScreen({
                     {growthType ? (
                       <span className="player-roster__info-badge">
                         {growthType.name}
+                      </span>
+                    ) : null}
+                    {state.teamPlanning.positionConversionsByPlayerId?.[
+                      player.id
+                    ] ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--conversion">
+                        {
+                          state.teamPlanning.positionConversionsByPlayerId[
+                            player.id
+                          ]!.targetPosition
+                        }
+                        転向 残
+                        {state.teamPlanning.positionConversionsByPlayerId[
+                          player.id
+                        ]!.requiredWeeks -
+                          state.teamPlanning.positionConversionsByPlayerId[
+                            player.id
+                          ]!.completedWeeks}
+                        週
                       </span>
                     ) : null}
                     {hasSpecialAbilitySummary ? (
