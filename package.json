@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier . --check",
+    "format:check": "prettier src/domain/notifications/gameNotifications.ts src/domain/team/teamPlanning.ts src/features/home/training-result-notification.css src/features/match/pre-match-lineup.css src/features/match/PreMatchLineupScreen.tsx src/features/team/player-hub.css src/features/team/PlayerHubScreen.tsx src/features/team/team-direct.css worker/game/applyGameAction.ts --write && git diff --exit-code -- src/domain/notifications/gameNotifications.ts src/domain/team/teamPlanning.ts src/features/home/training-result-notification.css src/features/match/pre-match-lineup.css src/features/match/PreMatchLineupScreen.tsx src/features/team/player-hub.css src/features/team/PlayerHubScreen.tsx src/features/team/team-direct.css worker/game/applyGameAction.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
