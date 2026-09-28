@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -88,6 +88,11 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position,
+  ) => void | Promise<void>;
+  onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -167,6 +172,8 @@ const filterOptions: ReadonlyArray<{
   { value: "injured", label: "怪我中" },
   { value: "growth-attention", label: "成長要見直し" },
 ];
+
+const positionOptions: readonly Position[] = ["OH", "MB", "OP", "S", "L"];
 
 const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "power", label: "総合力順" },
@@ -264,6 +271,8 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
+  onCancelPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -667,6 +676,9 @@ export function PlayerHubScreen({
     const developmentGoalAreas = Object.keys(
       developmentGoalAreaLabels,
     ) as DevelopmentGoalArea[];
+    const positionConversion =
+      state.teamPlanning.positionConversionsByPlayerId?.[selectedPlayer.id] ??
+      null;
 
     return (
       <main className="app-content player-hub player-detail">
@@ -911,6 +923,97 @@ export function PlayerHubScreen({
                 </button>
               ) : (
                 <p>次に伸ばしたい能力を選ぶと、次ランクを目標に設定します。</p>
+              )}
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {positionConversion
+                      ? `${selectedPlayer.preferredPosition} → ${positionConversion.targetPosition}`
+                      : "転向先を選択"}
+                  </strong>
+                </div>
+                {positionConversion ? (
+                  <span>
+                    {positionConversion.weeksCompleted}/
+                    {positionConversion.weeksRequired}週
+                  </span>
+                ) : null}
+              </div>
+
+              {positionConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span
+                      style={{
+                        width: `${Math.round(
+                          (positionConversion.weeksCompleted /
+                            positionConversion.weeksRequired) *
+                            100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p>
+                    {positionConversion.targetPosition}適性{" "}
+                    {selectedPlayer.positionAptitudes[
+                      positionConversion.targetPosition
+                    ]}
+                    ・あと
+                    {Math.max(
+                      0,
+                      positionConversion.weeksRequired -
+                        positionConversion.weeksCompleted,
+                    )}
+                    週
+                  </p>
+                  <button
+                    className="player-position-conversion__cancel"
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onCancelPositionConversion?.(selectedPlayer.id)
+                    }
+                    type="button"
+                  >
+                    転向を中止
+                  </button>
+                </>
+              ) : (
+                <div className="player-position-conversion__options">
+                  {positionOptions
+                    .filter(
+                      (position) =>
+                        position !== selectedPlayer.preferredPosition,
+                    )
+                    .map((position) => (
+                      <button
+                        disabled={planningPending}
+                        key={position}
+                        onClick={() =>
+                          void onStartPositionConversion?.(
+                            selectedPlayer.id,
+                            position,
+                          )
+                        }
+                        type="button"
+                      >
+                        <strong>{position}</strong>
+                        <small>
+                          適性{" "}
+                          {ratingToGrade(
+                            selectedPlayer.positionAptitudes[position],
+                          )}{" "}
+                          {selectedPlayer.positionAptitudes[position]}
+                        </small>
+                      </button>
+                    ))}
+                </div>
               )}
             </section>
 
@@ -1235,6 +1338,18 @@ export function PlayerHubScreen({
                     {growthType ? (
                       <span className="player-roster__info-badge">
                         {growthType.name}
+                      </span>
+                    ) : null}
+                    {state.teamPlanning.positionConversionsByPlayerId?.[
+                      player.id
+                    ] ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--conversion">
+                        {
+                          state.teamPlanning.positionConversionsByPlayerId[
+                            player.id
+                          ]!.targetPosition
+                        }
+                        転向中
                       </span>
                     ) : null}
                     {hasSpecialAbilitySummary ? (
