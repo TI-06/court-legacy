@@ -3,6 +3,7 @@ import type { ResolvedPlayerConcern } from "../dynamics/concernResolution";
 import type { PlayerConcernCode } from "../dynamics/teamDynamicsTypes";
 import type { GameState } from "../model/GameState";
 import type { GameDate, MatchId, PlayerId } from "../model/identifiers";
+import { clampAbility } from "../model/Player";
 import type { Position } from "../model/Player";
 import type { CharacterTraitDiscovery } from "../player/characterTraitDiscovery";
 import {
@@ -33,6 +34,15 @@ export interface TrainingResultRankUp {
   toGrade: DevelopmentGoalGrade;
 }
 
+export interface AbilityProgressDetail {
+  ability: AbilityKey;
+  before: number;
+  beforeGrade: DevelopmentGoalGrade;
+  after: number;
+  afterGrade: DevelopmentGoalGrade;
+  change: number;
+}
+
 export interface TrainingResultNotificationPlayer {
   playerId: PlayerId;
   displayName: string;
@@ -44,6 +54,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  abilityProgress?: AbilityProgressDetail[];
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -203,6 +214,30 @@ const developmentGradeOrder: readonly DevelopmentGoalGrade[] = [
   "S",
 ];
 
+function buildAbilityProgress(
+  player: GameState["players"][PlayerId],
+  abilityChanges: Partial<Record<AbilityKey, number>>,
+): AbilityProgressDetail[] {
+  return (Object.entries(abilityChanges) as [
+    AbilityKey,
+    number | undefined,
+  ][]).flatMap(([ability, change]) => {
+    if (typeof change !== "number" || change === 0) return [];
+    const before = Math.round(player.abilities[ability]);
+    const after = clampAbility(before + change);
+    return [
+      {
+        ability,
+        before,
+        beforeGrade: ratingToGrade(before) as DevelopmentGoalGrade,
+        after,
+        afterGrade: ratingToGrade(after) as DevelopmentGoalGrade,
+        change: after - before,
+      },
+    ];
+  });
+}
+
 function buildTrainingRankUps(
   player: GameState["players"][PlayerId],
   abilityChanges: Partial<Record<AbilityKey, number>>,
@@ -274,6 +309,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      abilityProgress: buildAbilityProgress(player, log.abilityChanges),
       rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
