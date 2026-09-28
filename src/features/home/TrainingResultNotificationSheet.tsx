@@ -142,11 +142,25 @@ export function TrainingResultNotificationSheet({
 
                       {abilityChanges.length > 0 ? (
                         <div className="training-result-notification__abilities">
-                          {abilityChanges.map(([ability, value]) => (
-                            <span data-tone={growthTone(value)} key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
-                            </span>
-                          ))}
+                          {abilityChanges.map(([ability, value]) => {
+                            const detail = player.abilityValues?.[ability];
+                            return (
+                              <span
+                                data-tone={growthTone(value)}
+                                key={ability}
+                              >
+                                <strong>{abilityLabels[ability]}</strong>
+                                {detail ? (
+                                  <b>
+                                    {detail.before} {detail.fromGrade}
+                                    <em aria-hidden="true">→</em>
+                                    {detail.after} {detail.toGrade}
+                                  </b>
+                                ) : null}
+                                <small>{signed(value)}</small>
+                              </span>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="training-result-notification__no-growth">
