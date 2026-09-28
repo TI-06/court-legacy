@@ -47,6 +47,12 @@ import {
 } from "../../src/domain/player/playerDevelopment";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
+  cancelPositionConversion,
+  PositionConversionError,
+  progressPositionConversions,
+  startPositionConversion,
+} from "../../src/domain/player/positionConversion";
+import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
   buildDevelopmentGoalAchievementNotification,
@@ -516,6 +522,28 @@ function applyTeamLeadership(
   } catch (error) {
     if (error instanceof TeamLeadershipValidationError) {
       return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
+function applyPositionConversion(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    { type: "start-position-conversion" | "cancel-position-conversion" }
+  >,
+): AppliedGameAction {
+  try {
+    const nextState =
+      action.type === "start-position-conversion"
+        ? startPositionConversion(state, action.playerId, action.targetPosition)
+        : cancelPositionConversion(state, action.playerId);
+    return { state: nextState, teamSelection };
+  } catch (error) {
+    if (error instanceof PositionConversionError) {
+      return conflict(`position_conversion_${error.code.replaceAll("-", "_")}`, error.message);
     }
     throw error;
   }
@@ -1324,9 +1352,10 @@ function applyAdvanceWeek(
     const progression = advanceGameWeek(currentState, gameData, {
       userIntake: context.userIntake,
     });
+    const conversionProgress = progressPositionConversions(progression.state);
     const stateWithRelationshipNotifications =
       appendSpecialRelationshipNotifications(
-        progression.state,
+        conversionProgress.state,
         progression.specialRelationshipTransitions,
       );
     const nextState = progression.academicYearTransition
@@ -1536,6 +1565,9 @@ function applyActionByType(
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
+    case "start-position-conversion":
+    case "cancel-position-conversion":
+      return applyPositionConversion(state, teamSelection, action);
     case "practice-offer-accept":
     case "practice-offer-decline":
     case "practice-request":
