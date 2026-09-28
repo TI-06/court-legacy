@@ -199,6 +199,74 @@ describe("match flow", () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
+  it("opens exact match ability growth after the result is revealed", () => {
+    const fixture = createMatchFixture();
+    const player = fixture.state.players[fixture.homeSelection.rotation[0]!.playerId]!;
+
+    render(
+      <MatchScreen
+        {...fixture}
+        onReturnHome={vi.fn()}
+        onStart={vi.fn()}
+        presentation={{
+          kind: "practice",
+          simulation: fixture.result,
+          homeTeam: {
+            schoolId: fixture.result.match.homeSchoolId,
+            displayName: "自校",
+            shortName: "自校",
+          },
+          awayTeam: {
+            schoolId: fixture.result.match.awaySchoolId,
+            displayName: fixture.opponent.name,
+            shortName: fixture.opponent.shortName,
+          },
+          growth: {
+            totalAbilityGrowth: 2,
+            players: [
+              {
+                playerId: player.id,
+                displayName: `${player.lastName} ${player.firstName}`,
+                grade: player.grade,
+                preferredPosition: player.preferredPosition,
+                totalAbilityGrowth: 2,
+                changes: [
+                  {
+                    ability: "decision",
+                    before: 68,
+                    after: 69,
+                    delta: 1,
+                    beforeGrade: "C",
+                    afterGrade: "C",
+                  },
+                  {
+                    ability: "spike",
+                    before: 79,
+                    after: 80,
+                    delta: 1,
+                    beforeGrade: "B",
+                    afterGrade: "A",
+                  },
+                ],
+              },
+            ],
+          },
+        }}
+        reducedMotion={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+
+    const dialog = screen.getByRole("dialog", { name: "試合後の成長" });
+    expect(within(dialog).getByText(player.lastName + " " + player.firstName)).toBeVisible();
+    expect(within(dialog).getByText(/C68.*C69/)).toBeVisible();
+    expect(within(dialog).getByText(/B79.*A80/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "試合後の成長" })).toHaveTextContent(
+      "能力成長 +2",
+    );
+  });
+
   it("plays and pauses without changing the calculated result", () => {
     vi.useFakeTimers();
     const fixture = createMatchFixture();
