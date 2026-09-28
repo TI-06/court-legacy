@@ -1949,3 +1949,211 @@
     font-size: 0.66rem;
   }
 }
+
+
+/* Phase44: compact in-match coaching and score-flow playback. */
+.match-command-tactics {
+  display: grid;
+  gap: 10px;
+}
+
+.match-command-tactics__presets,
+.match-command-tactics__current,
+.match-command-tactics__choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.match-command-tactics__presets button {
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 5px;
+  gap: 2px;
+  color: #eaf5fb;
+  font: inherit;
+  text-align: center;
+  background: rgb(244 122 24 / 9%);
+  border: 1px solid rgb(244 122 24 / 19%);
+  border-radius: 10px;
+}
+
+.match-command-tactics__presets strong {
+  font-size: 0.68rem;
+}
+
+.match-command-tactics__presets small {
+  color: #aebfca;
+  font-size: 0.52rem;
+  line-height: 1.2;
+}
+
+.match-command-tactics__current {
+  padding: 7px;
+  background: rgb(114 213 223 / 6%);
+  border: 1px solid rgb(114 213 223 / 12%);
+  border-radius: 11px;
+}
+
+.match-command-tactics__current span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: #94acba;
+  font-size: 0.51rem;
+  text-align: center;
+}
+
+.match-command-tactics__current strong {
+  overflow: hidden;
+  color: #eef9fc;
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-tactics__axis {
+  display: grid;
+  gap: 6px;
+}
+
+.match-command-tactics__axis-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.match-command-tactics__axis-heading strong {
+  color: #f4f7fb;
+  font-size: 0.67rem;
+}
+
+.match-command-tactics__axis-heading small {
+  overflow: hidden;
+  color: #91a7b5;
+  font-size: 0.54rem;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-tactics__choices button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 5px 3px;
+  color: #cadce6;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.match-command-tactics__choices button[aria-pressed="true"] {
+  color: #071321;
+  background: #72d5df;
+  border-color: #72d5df;
+  box-shadow: 0 4px 12px rgb(114 213 223 / 18%);
+}
+
+.match-command-tactics__submit {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  min-height: 48px;
+  color: #071321;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 950;
+  background: var(--game-accent, #f47a18);
+  border: 0;
+  border-radius: 11px;
+  box-shadow: 0 8px 20px rgb(244 122 24 / 24%);
+}
+
+.match-command-player-directive__recommendations {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px !important;
+}
+
+.match-command-player-directive__recommendations > button {
+  display: grid;
+  min-width: 0;
+  min-height: 72px;
+  padding: 8px;
+  gap: 2px;
+  text-align: left;
+  background:
+    linear-gradient(145deg, rgb(244 122 24 / 13%), rgb(114 213 223 / 6%)),
+    rgb(255 255 255 / 4%);
+  border-color: rgb(244 122 24 / 22%);
+}
+
+.match-command-player-directive__recommendations span {
+  color: #ffc08a;
+  font-size: 0.52rem;
+  font-weight: 950;
+}
+
+.match-command-player-directive__recommendations strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-player-directive__recommendations small {
+  overflow: hidden;
+  color: #a9bdc8;
+  font-size: 0.54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-playback-mode {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.match-playback-mode button {
+  min-height: 30px !important;
+  font-size: 0.58rem !important;
+}
+
+.match-playback-mode button[aria-pressed="true"] {
+  color: #071321 !important;
+  background: #72d5df !important;
+  border-color: #72d5df !important;
+}
+
+.match-current-event--point-flow {
+  background:
+    linear-gradient(135deg, rgb(114 213 223 / 8%), transparent 70%),
+    #fff;
+  border-left-color: #2d8e9a;
+}
+
+.match-current-event--point-flow .match-current-event__number {
+  background: #2d8e9a;
+}
+
+@media (max-width: 360px) {
+  .match-command-tactics__presets button {
+    min-height: 44px;
+    padding-inline: 3px;
+  }
+
+  .match-command-tactics__presets small {
+    font-size: 0.48rem;
+  }
+
+  .match-command-player-directive__recommendations {
+    grid-template-columns: 1fr;
+  }
+}
