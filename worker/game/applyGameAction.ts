@@ -61,6 +61,12 @@ import {
   appendPlayerDevelopmentWeek,
   buildPlayerDevelopmentWeek,
 } from "../../src/domain/player/playerDevelopmentHistory";
+import {
+  cancelPositionConversion,
+  PositionConversionError,
+  progressPositionConversions,
+  startPositionConversion,
+} from "../../src/domain/player/positionConversion";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
   contractAssistantCoach,
@@ -520,6 +526,28 @@ function applyTeamLeadership(
   } catch (error) {
     if (error instanceof TeamLeadershipValidationError) {
       return conflict(error.code, error.message);
+    }
+    throw error;
+  }
+}
+
+function applyPositionConversion(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    { type: "start-position-conversion" | "cancel-position-conversion" }
+  >,
+): AppliedGameAction {
+  try {
+    const nextState =
+      action.type === "start-position-conversion"
+        ? startPositionConversion(state, action.playerId, action.targetPosition)
+        : cancelPositionConversion(state, action.playerId);
+    return { state: nextState, teamSelection };
+  } catch (error) {
+    if (error instanceof PositionConversionError) {
+      return conflict(`position_conversion_${error.code.replaceAll("-", "_")}`, error.message);
     }
     throw error;
   }
@@ -1325,7 +1353,8 @@ function applyAdvanceWeek(
       currentState = trainingCamp.state;
     }
 
-    const progression = advanceGameWeek(currentState, gameData, {
+    const conversionProgress = progressPositionConversions(currentState);
+    const progression = advanceGameWeek(conversionProgress.state, gameData, {
       userIntake: context.userIntake,
     });
     const stateWithRelationshipNotifications =
@@ -1535,6 +1564,9 @@ function applyActionByType(
       return applyTeamDefenseBias(state, teamSelection, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
+    case "start-position-conversion":
+    case "cancel-position-conversion":
+      return applyPositionConversion(state, teamSelection, action);
     case "set-development-priorities":
     case "set-player-development-goal":
     case "save-lineup-preset":
