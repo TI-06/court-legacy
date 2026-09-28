@@ -145,10 +145,7 @@ export function TrainingResultNotificationSheet({
                           {abilityChanges.map(([ability, value]) => {
                             const detail = player.abilityValues?.[ability];
                             return (
-                              <span
-                                data-tone={growthTone(value)}
-                                key={ability}
-                              >
+                              <span data-tone={growthTone(value)} key={ability}>
                                 <strong>{abilityLabels[ability]}</strong>
                                 {detail ? (
                                   <b>
