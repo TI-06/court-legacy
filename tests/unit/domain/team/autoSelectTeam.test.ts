@@ -124,6 +124,97 @@ describe("autoSelectTeam", () => {
     expect(selection.liberoPlayerId).toBe(school.playerIds[6]);
   });
 
+  it("keeps natural liberos out of a valid six-player rotation", () => {
+    const { state, school } = prepareRoleRoster();
+    const liberoIds = school.playerIds.filter(
+      (playerId) => state.players[playerId]!.preferredPosition === "L",
+    );
+
+    for (const liberoId of liberoIds) {
+      const libero = state.players[liberoId]!;
+      state.players[liberoId] = {
+        ...libero,
+        positionAptitudes: {
+          OH: 100,
+          MB: 100,
+          OP: 100,
+          S: 100,
+          L: 100,
+        },
+        abilities: {
+          spike: 100,
+          jump: 100,
+          receive: 100,
+          serve: 100,
+          set: 100,
+          block: 100,
+          speed: 100,
+          stamina: 100,
+          decision: 100,
+          mental: 100,
+        },
+        condition: 100,
+      };
+    }
+
+    const selection = autoSelectTeam({ state, schoolId: school.id });
+    const rotationPlayers = selection.rotation.map(
+      (assignment) => state.players[assignment.playerId]!,
+    );
+
+    expect(
+      rotationPlayers.filter((player) => player.preferredPosition === "L"),
+    ).toHaveLength(0);
+    expect(state.players[selection.liberoPlayerId!]!.preferredPosition).toBe(
+      "L",
+    );
+  });
+
+  it("prefers a natural setter over a stronger converted player", () => {
+    const { state, school } = prepareRoleRoster();
+    const naturalSetterId = school.playerIds.find(
+      (playerId) => state.players[playerId]!.preferredPosition === "S",
+    )!;
+    const convertedCandidateId = school.playerIds.find(
+      (playerId) => state.players[playerId]!.preferredPosition === "OH",
+    )!;
+
+    state.players[naturalSetterId] = setRole(
+      state.players[naturalSetterId]!,
+      "S",
+      55,
+    );
+    state.players[convertedCandidateId] = {
+      ...setRole(state.players[convertedCandidateId]!, "OH", 100),
+      positionAptitudes: {
+        OH: 100,
+        MB: 100,
+        OP: 100,
+        S: 100,
+        L: 20,
+      },
+      abilities: {
+        ...state.players[convertedCandidateId]!.abilities,
+        spike: 100,
+        jump: 100,
+        receive: 100,
+        serve: 100,
+        set: 100,
+        block: 100,
+        speed: 100,
+        stamina: 100,
+        decision: 100,
+        mental: 100,
+      },
+    };
+
+    const selection = autoSelectTeam({ state, schoolId: school.id });
+    const setter = state.players[selection.rotation[0]!.playerId]!;
+
+    expect(setter.preferredPosition).toBe("S");
+    expect(setter.id).not.toBe(convertedCandidateId);
+  });
+
   it("is deterministic for the same state", () => {
     const { state, school } = prepareRoleRoster();
 

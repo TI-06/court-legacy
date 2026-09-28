@@ -106,6 +106,91 @@ function stableBest(players: readonly Player[], role: Position): Player {
   return selected;
 }
 
+function stableBestOrNull(
+  players: readonly Player[],
+  role: Position,
+): Player | null {
+  return players.length > 0 ? stableBest(players, role) : null;
+}
+
+function naturalPlayersForRole(
+  players: readonly Player[],
+  role: Position,
+): Player[] {
+  return players.filter((player) => player.preferredPosition === role);
+}
+
+function chooseLibero(eligible: readonly Player[]): Player | null {
+  const naturalLiberos = naturalPlayersForRole(eligible, "L");
+  return stableBestOrNull(naturalLiberos, "L");
+}
+
+function buildVolleyballRotation(
+  eligible: readonly Player[],
+  reservedLiberoId: PlayerId | null,
+): RotationAssignment[] {
+  const available = new Map(
+    eligible
+      .filter((player) => player.id !== reservedLiberoId)
+      .map((player) => [player.id, player]),
+  );
+  const assignments: Array<RotationAssignment | null> = ROTATION_ROLES.map(
+    () => null,
+  );
+
+  // First fill every role with natural-position players. This prevents a very
+  // strong libero or flexible player from stealing a standard six-player slot.
+  for (const role of ["S", "MB", "OH", "OP"] as const) {
+    const roleIndexes = ROTATION_ROLES.flatMap((requiredRole, index) =>
+      requiredRole === role ? [index] : [],
+    );
+    const natural = [...available.values()]
+      .filter((player) => player.preferredPosition === role)
+      .sort((first, second) => {
+        const scoreDifference =
+          roleScore(second, role) - roleScore(first, role);
+        return scoreDifference !== 0
+          ? scoreDifference
+          : first.id.localeCompare(second.id);
+      });
+
+    for (let index = 0; index < roleIndexes.length; index += 1) {
+      const selected = natural[index];
+      const assignmentIndex = roleIndexes[index];
+      if (!selected || assignmentIndex === undefined) continue;
+      assignments[assignmentIndex] = {
+        slot: (assignmentIndex + 1) as RotationSlot,
+        playerId: selected.id,
+      };
+      available.delete(selected.id);
+    }
+  }
+
+  // Fill only genuinely missing roles after natural positions are secured.
+  // Prefer non-libero players; a libero is used out of position only if injury
+  // or an unusually unbalanced roster leaves no other legal six-player option.
+  for (let index = 0; index < ROTATION_ROLES.length; index += 1) {
+    if (assignments[index]) continue;
+    const role = ROTATION_ROLES[index]!;
+    const nonLiberos = [...available.values()].filter(
+      (player) => player.preferredPosition !== "L",
+    );
+    const selected = stableBest(
+      nonLiberos.length > 0 ? nonLiberos : [...available.values()],
+      role,
+    );
+    assignments[index] = {
+      slot: (index + 1) as RotationSlot,
+      playerId: selected.id,
+    };
+    available.delete(selected.id);
+  }
+
+  return assignments.filter(
+    (assignment): assignment is RotationAssignment => assignment !== null,
+  );
+}
+
 function isNormallyEligible(player: Player): boolean {
   return !player.injury;
 }
@@ -132,18 +217,18 @@ export function autoSelectTeam(input: AutoSelectTeamInput): TeamSelection {
     throw new Error("team selection requires at least seven eligible players");
   }
 
-  const available = new Map(eligible.map((player) => [player.id, player]));
-  const rotation: RotationAssignment[] = ROTATION_ROLES.map((role, index) => {
-    const selected = stableBest([...available.values()], role);
-    available.delete(selected.id);
-
-    return {
-      slot: (index + 1) as RotationSlot,
-      playerId: selected.id,
-    };
-  });
-  const libero = stableBest([...available.values()], "L");
-  available.delete(libero.id);
+  const naturalLibero = chooseLibero(eligible);
+  const reservedLiberoId = naturalLibero?.id ?? null;
+  const rotation = buildVolleyballRotation(eligible, reservedLiberoId);
+  const rotationIds = new Set(
+    rotation.map((assignment) => assignment.playerId),
+  );
+  const libero =
+    naturalLibero ??
+    stableBest(
+      eligible.filter((player) => !rotationIds.has(player.id)),
+      "L",
+    );
   const activeIds = new Set(rotation.map((assignment) => assignment.playerId));
   activeIds.add(libero.id);
   const benchPlayerIds = players
