@@ -1514,3 +1514,65 @@
     min-height: 56px;
   }
 }
+
+
+/* Phase46: reduce lineup visual intensity and keep status colors semantic. */
+.team-screen--direct .volleyball-court {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.5%,
+      rgb(222 235 241 / 34%) 49.5%,
+      rgb(222 235 241 / 34%) 50.5%,
+      transparent 50.5%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 49.5%,
+      rgb(222 235 241 / 24%) 49.5%,
+      rgb(222 235 241 / 24%) 50.5%,
+      transparent 50.5%
+    ),
+    linear-gradient(145deg, #294253, #203442);
+  border-color: #536c7a;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 10%),
+    0 8px 18px rgb(0 0 0 / 16%);
+}
+
+.team-screen--direct .court-player-button {
+  background: #142638;
+  border-color: rgb(181 209 220 / 14%);
+  box-shadow: 0 3px 9px rgb(0 0 0 / 14%);
+}
+
+.team-screen--direct .court-player-button__top b {
+  color: #d7eef2;
+  background: #2f6670;
+}
+
+.team-screen--direct .court-player-button__top small {
+  color: #91a8b2;
+}
+
+.team-screen--direct .libero-player-button {
+  background: #172a39;
+  border-color: rgb(194 164 91 / 25%);
+}
+
+.team-screen--direct .libero-player-button__mark {
+  color: #f2e2b8;
+  background: #705d32;
+}
+
+.team-screen--direct .bench-player-card,
+.team-screen--direct .team-lineup-tool {
+  background: #122537;
+  border-color: rgb(181 209 220 / 10%);
+}
+
+.team-screen__header .team-secondary-action {
+  color: #d5edf0;
+  background: rgb(70 135 146 / 12%);
+  border-color: rgb(99 163 174 / 24%);
+}
