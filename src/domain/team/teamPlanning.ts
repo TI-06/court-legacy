@@ -1,8 +1,10 @@
 import type { GameState } from "../model/GameState";
+import type { Position } from "../model/Player";
 import type { TeamSelection } from "../model/TeamSelection";
 import type { PlayerId } from "../model/identifiers";
 import type {
   PlayerDevelopmentGoal,
+  PositionConversionPlan,
   SavedLineupSlot,
   TeamPlanningState,
 } from "./teamPlanningTypes";
@@ -11,6 +13,7 @@ import { validateTeamSelection } from "./validateTeamSelection";
 export type TeamPlanningValidationCode =
   | "invalid-development-priorities"
   | "invalid-development-goal"
+  | "invalid-position-conversion"
   | "invalid-saved-lineup-name"
   | "invalid-saved-lineup";
 
@@ -28,6 +31,7 @@ export function createDefaultTeamPlanning(): TeamPlanningState {
   return {
     developmentPriorityPlayerIds: [],
     developmentGoalsByPlayerId: {},
+    positionConversionsByPlayerId: {},
     savedLineups: [],
   };
 }
@@ -108,6 +112,77 @@ export function setPlayerDevelopmentGoal(
     teamPlanning: {
       ...state.teamPlanning,
       developmentGoalsByPlayerId: current,
+    },
+  };
+}
+
+function conversionWeeks(aptitude: number, growthTypeId: string): number {
+  const base =
+    aptitude >= 70
+      ? 3
+      : aptitude >= 60
+        ? 4
+        : aptitude >= 50
+          ? 5
+          : aptitude >= 40
+            ? 6
+            : aptitude >= 30
+              ? 7
+              : 8;
+  return Math.max(2, base - (growthTypeId === "growth.conversion" ? 2 : 0));
+}
+
+export function startPositionConversion(
+  state: GameState,
+  playerId: PlayerId,
+  targetPosition: Position,
+): GameState {
+  const school = state.schools[state.userSchoolId];
+  const player = state.players[playerId];
+  if (!school || !player || !school.playerIds.includes(playerId)) {
+    throw new TeamPlanningValidationError(
+      "invalid-position-conversion",
+      "所属している選手だけポジション転向できます",
+    );
+  }
+  if (player.preferredPosition === targetPosition) {
+    throw new TeamPlanningValidationError(
+      "invalid-position-conversion",
+      "現在と同じポジションには転向できません",
+    );
+  }
+
+  const startingAptitude = player.positionAptitudes[targetPosition];
+  const plan: PositionConversionPlan = {
+    targetPosition,
+    weeksCompleted: 0,
+    weeksRequired: conversionWeeks(startingAptitude, player.growthTypeId),
+    startingAptitude,
+  };
+  return {
+    ...state,
+    teamPlanning: {
+      ...state.teamPlanning,
+      positionConversionsByPlayerId: {
+        ...(state.teamPlanning.positionConversionsByPlayerId ?? {}),
+        [playerId]: plan,
+      },
+    },
+  };
+}
+
+export function cancelPositionConversion(
+  state: GameState,
+  playerId: PlayerId,
+): GameState {
+  const current = { ...(state.teamPlanning.positionConversionsByPlayerId ?? {}) };
+  if (!current[playerId]) return state;
+  delete current[playerId];
+  return {
+    ...state,
+    teamPlanning: {
+      ...state.teamPlanning,
+      positionConversionsByPlayerId: current,
     },
   };
 }
