@@ -240,10 +240,9 @@ function buildAbilityProgress(
   player: GameState["players"][PlayerId],
   abilityChanges: Partial<Record<AbilityKey, number>>,
 ): AbilityProgressDetail[] {
-  return (Object.entries(abilityChanges) as [
-    AbilityKey,
-    number | undefined,
-  ][]).flatMap(([ability, change]) => {
+  return (
+    Object.entries(abilityChanges) as [AbilityKey, number | undefined][]
+  ).flatMap(([ability, change]) => {
     if (typeof change !== "number" || change === 0) return [];
     const before = Math.round(player.abilities[ability]);
     const after = clampAbility(before + change);
