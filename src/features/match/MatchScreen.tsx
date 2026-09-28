@@ -6,6 +6,8 @@ import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
+import type { AbilityKey } from "../../domain/validation/gameDataSchema";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
@@ -17,6 +19,7 @@ import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
+import type { MatchGrowthSummary } from "./matchGrowthPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -39,10 +42,24 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
+  growthSummary?: MatchGrowthSummary | null;
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const growthAbilityLabels: Record<AbilityKey, string> = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+};
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -93,8 +110,10 @@ function MatchScreenContent({
   trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
+  growthSummary = null,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
+  const [growthOpen, setGrowthOpen] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<PlaybackSpeed>(1);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
@@ -132,6 +151,10 @@ function MatchScreenContent({
     : visibleEventIndex;
   const segmentRevealed = revealedEventIndex >= lastEventIndex;
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
+
+  useEffect(() => {
+    if (growthSummary) setGrowthOpen(true);
+  }, [growthSummary]);
   const decisionReady = Boolean(
     result &&
     segmentRevealed &&
@@ -769,6 +792,43 @@ function MatchScreenContent({
           </section>
         </>
       )}
+      {growthSummary && matchComplete ? (
+        <BottomSheet
+          description="出場経験による能力成長"
+          onClose={() => setGrowthOpen(false)}
+          open={growthOpen}
+          title="試合後の成長"
+        >
+          <div className="match-growth-sheet">
+            {growthSummary.players.map((player) => (
+              <article
+                className="match-growth-sheet__player"
+                key={player.playerId}
+              >
+                <header>
+                  <strong>{player.displayName}</strong>
+                  <span>{player.preferredPosition}</span>
+                </header>
+                <div className="match-growth-sheet__changes">
+                  {player.changes.map((change) => (
+                    <span key={change.ability}>
+                      <b>{growthAbilityLabels[change.ability]}</b>
+                      <small>
+                        {change.before}
+                        {change.fromGrade}
+                        <em aria-hidden="true">→</em>
+                        {change.after}
+                        {change.toGrade}
+                      </small>
+                      <strong>+{change.after - change.before}</strong>
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </BottomSheet>
+      ) : null}
     </main>
   );
 }
