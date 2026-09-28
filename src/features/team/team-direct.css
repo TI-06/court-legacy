@@ -1514,3 +1514,61 @@
     min-height: 56px;
   }
 }
+
+/* Phase46: calmer lineup hierarchy. Reserve strong accent colors for actions/status only. */
+.team-screen--direct .team-panel,
+.team-screen--direct .team-dynamics-inline {
+  background: #f5f8fa;
+  border-color: #d7e1e6;
+  box-shadow: none;
+}
+
+.team-screen--direct .volleyball-court {
+  background:
+    linear-gradient(90deg, transparent 49.6%, rgb(255 255 255 / 42%) 49.6%, rgb(255 255 255 / 42%) 50.4%, transparent 50.4%),
+    linear-gradient(180deg, transparent 49.6%, rgb(255 255 255 / 28%) 49.6%, rgb(255 255 255 / 28%) 50.4%, transparent 50.4%),
+    linear-gradient(145deg, #546c78, #3e5562);
+  border-color: #8ea0aa;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
+}
+
+.team-screen--direct .court-player-button {
+  color: #173342;
+  background: #fbfcfd;
+  border-color: #d7e1e6;
+  box-shadow: 0 2px 8px rgb(23 51 66 / 8%);
+}
+
+.team-screen--direct .court-player-button__top b {
+  color: #f7fbfc;
+  background: #426874;
+}
+
+.team-screen--direct .court-player-button__top small {
+  color: #70818a;
+}
+
+.team-screen--direct .court-player-button__meta {
+  color: #667a84;
+}
+
+.team-screen--direct .libero-player-button {
+  background: #f8fafb;
+  border-color: #d7e1e6;
+}
+
+.team-screen--direct .libero-player-button__mark {
+  color: #46535a;
+  background: #e8edf0;
+}
+
+.team-screen--direct .bench-player-card {
+  background: #f8fafb;
+  border-color: #dbe4e8;
+}
+
+.team-screen--direct .bench-player-card__deploy {
+  color: #2d6671;
+  background: #e8f2f3;
+  border-color: #bfd8dc;
+}
