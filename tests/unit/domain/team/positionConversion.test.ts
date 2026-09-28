@@ -36,9 +36,9 @@ describe("Phase46 position conversion", () => {
 
     state = progressPositionConversions(state);
     expect(state.players[playerId]!.preferredPosition).toBe(target);
-    expect(state.players[playerId]!.positionAptitudes[target]).toBeGreaterThanOrEqual(
-      70,
-    );
+    expect(
+      state.players[playerId]!.positionAptitudes[target],
+    ).toBeGreaterThanOrEqual(70);
     expect(
       state.teamPlanning.positionConversionsByPlayerId?.[playerId],
     ).toBeUndefined();
