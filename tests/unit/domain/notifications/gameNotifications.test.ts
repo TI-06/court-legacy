@@ -91,6 +91,22 @@ describe("game notifications", () => {
       trustChange: 1,
       injured: false,
       abilityChanges: { serve: 2, jump: 1 },
+      abilityResults: {
+        serve: {
+          before: player.abilities.serve,
+          after: Math.min(100, player.abilities.serve + 2),
+          beforeGrade: expect.any(String),
+          afterGrade: expect.any(String),
+          change: 2,
+        },
+        jump: {
+          before: player.abilities.jump,
+          after: Math.min(100, player.abilities.jump + 1),
+          beforeGrade: expect.any(String),
+          afterGrade: expect.any(String),
+          change: 1,
+        },
+      },
     });
   });
 
