@@ -73,27 +73,6 @@ export interface TrainingResultNotification {
   payload: TrainingResultNotificationPayload;
 }
 
-export interface MatchExperienceNotificationPlayer {
-  playerId: PlayerId;
-  displayName: string;
-  grade: number;
-  preferredPosition: Position;
-  abilityChanges: Partial<Record<AbilityKey, AbilityValueChange>>;
-}
-
-export interface MatchExperienceNotification {
-  id: string;
-  type: "match-experience";
-  createdGameDate: GameDate;
-  academicYearIndex: number;
-  weekOfYear: number;
-  readAtGameDate: GameDate | null;
-  payload: {
-    matchId: MatchId;
-    players: MatchExperienceNotificationPlayer[];
-  };
-}
-
 export interface ConcernResolutionNotificationItem {
   playerId: PlayerId;
   displayName: string;
@@ -187,7 +166,6 @@ export interface SeasonGoalAchievementNotification {
 
 export type GameNotification =
   | TrainingResultNotification
-  | MatchExperienceNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
   | CharacterTraitDiscoveredNotification
@@ -350,57 +328,6 @@ export function buildTrainingResultNotification(
         0,
       ),
       injuredCount: input.result.injuredPlayerIds.length,
-      players,
-    },
-  };
-}
-
-export function buildMatchExperienceNotification(input: {
-  stateBefore: GameState;
-  stateAfter: GameState;
-  matchId: MatchId;
-  participantPlayerIds: readonly PlayerId[];
-}): MatchExperienceNotification | null {
-  const players = input.participantPlayerIds.flatMap((playerId) => {
-    const before = input.stateBefore.players[playerId];
-    const after = input.stateAfter.players[playerId];
-    if (!before || !after) return [];
-
-    const abilityChanges: Partial<Record<AbilityKey, AbilityValueChange>> = {};
-    for (const ability of Object.keys(before.abilities) as AbilityKey[]) {
-      const beforeValue = before.abilities[ability];
-      const afterValue = after.abilities[ability];
-      if (beforeValue === afterValue) continue;
-      abilityChanges[ability] = {
-        before: beforeValue,
-        after: afterValue,
-        delta: afterValue - beforeValue,
-      };
-    }
-    if (Object.keys(abilityChanges).length === 0) return [];
-
-    return [
-      {
-        playerId,
-        displayName: `${after.lastName} ${after.firstName}`,
-        grade: after.grade,
-        preferredPosition: after.preferredPosition,
-        abilityChanges,
-      } satisfies MatchExperienceNotificationPlayer,
-    ];
-  });
-
-  if (players.length === 0) return null;
-
-  return {
-    id: `match-experience:${input.matchId}`,
-    type: "match-experience",
-    createdGameDate: input.stateAfter.date,
-    academicYearIndex: input.stateAfter.yearIndex,
-    weekOfYear: input.stateAfter.calendar.weekOfYear,
-    readAtGameDate: null,
-    payload: {
-      matchId: input.matchId,
       players,
     },
   };
@@ -645,16 +572,6 @@ export function markNotificationRead(
       itemIndex === index ? { ...item, readAtGameDate: readDate } : item,
     ),
   };
-}
-
-export function selectLatestMatchExperienceNotification(
-  state: GameNotificationState,
-): MatchExperienceNotification | null {
-  const items = state.items.filter(
-    (item): item is MatchExperienceNotification =>
-      item.type === "match-experience",
-  );
-  return items[items.length - 1] ?? null;
 }
 
 export function selectHomeTrainingNotifications(
