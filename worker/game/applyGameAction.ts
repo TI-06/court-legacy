@@ -554,8 +554,8 @@ function applyTeamPlanning(
             : action.type === "cancel-position-conversion"
               ? setPlayerPositionConversion(state, action.playerId, null)
               : action.type === "save-lineup-preset"
-            ? saveLineupPreset(state, action)
-            : deleteLineupPreset(state, action.slot);
+                ? saveLineupPreset(state, action)
+                : deleteLineupPreset(state, action.slot);
     return {
       state: nextState,
       teamSelection,
