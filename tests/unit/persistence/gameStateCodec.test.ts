@@ -48,6 +48,15 @@ describe("game state codec", () => {
                   trustChange: 1,
                   injured: false,
                   abilityChanges: { jump: 1 },
+                  abilityResults: {
+                    jump: {
+                      before: 49,
+                      after: 50,
+                      beforeGrade: "E",
+                      afterGrade: "D",
+                      change: 1,
+                    },
+                  },
                   rankUps: [
                     {
                       area: "jump" as const,
@@ -382,6 +391,33 @@ describe("game state codec", () => {
       legacyShape.teamPlanning,
     );
   });
+  it("round-trips position conversion plans while accepting older saves", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const targetPosition = player.preferredPosition === "S" ? "OH" : "S";
+    state.teamPlanning.positionConversionsByPlayerId = {
+      [playerId]: {
+        fromPosition: player.preferredPosition,
+        targetPosition,
+        weeksRequired: 6,
+        weeksCompleted: 2,
+        startingAptitude: player.positionAptitudes[targetPosition],
+      },
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+    expect(decoded.teamPlanning.positionConversionsByPlayerId).toEqual(
+      state.teamPlanning.positionConversionsByPlayerId,
+    );
+
+    const legacy = structuredClone(state);
+    delete legacy.teamPlanning.positionConversionsByPlayerId;
+    expect(decodeGameState(JSON.stringify(legacy)).teamPlanning).toEqual(
+      legacy.teamPlanning,
+    );
+  });
+
   it("round-trips optional season ambition while accepting the legacy season-goal shape", () => {
     const state = createDemoGame();
     state.seasonGoals = {
