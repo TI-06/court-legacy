@@ -40,6 +40,14 @@ export interface PlayerInjury {
   recurrenceRisk: number;
 }
 
+export interface PositionConversionPlan {
+  fromPosition: Position;
+  targetPosition: Position;
+  totalWeeks: number;
+  remainingWeeks: number;
+  startedDate: string;
+}
+
 export interface Player {
   id: PlayerId;
   firstName: string;
@@ -51,6 +59,7 @@ export interface Player {
   handedness: Handedness;
   preferredPosition: Position;
   positionAptitudes: Record<Position, number>;
+  positionConversion?: PositionConversionPlan;
   abilities: PlayerAbilities;
   condition: number;
   fatigue: number;
