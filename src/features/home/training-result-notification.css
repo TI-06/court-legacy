@@ -496,3 +496,24 @@
     display: none;
   }
 }
+
+
+.training-result-notification__abilities span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.training-result-notification__abilities span > strong {
+  font-size: inherit;
+}
+
+.training-result-notification__abilities span > em {
+  color: #6b7e87;
+  font-style: normal;
+}
+
+.training-result-notification__abilities span > b {
+  margin-left: 3px;
+  font-size: inherit;
+}
