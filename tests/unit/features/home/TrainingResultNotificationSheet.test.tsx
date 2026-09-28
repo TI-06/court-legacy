@@ -75,11 +75,18 @@ describe("TrainingResultNotificationSheet", () => {
       ),
     ).toBeVisible();
     expect(within(dialog).getByText("スパイク")).toBeVisible();
-    expect(within(dialog).getByText("68 C")).toBeVisible();
-    expect(within(dialog).getByText("70 B")).toBeVisible();
+    const spikeGrowth = within(dialog)
+      .getByText("スパイク")
+      .closest("span");
+    expect(spikeGrowth).not.toBeNull();
+    expect(spikeGrowth).toHaveTextContent(/68\s*C.*70\s*B/);
     expect(within(dialog).getByText("+2")).toBeVisible();
     expect(within(dialog).getByText("ジャンプ")).toBeVisible();
-    expect(within(dialog).getByText("69 C")).toBeVisible();
+    const jumpGrowth = within(dialog)
+      .getByText("ジャンプ")
+      .closest("span");
+    expect(jumpGrowth).not.toBeNull();
+    expect(jumpGrowth).toHaveTextContent(/69\s*C.*70\s*B/);
     expect(within(dialog).getByText("疲労 +5")).toBeVisible();
     expect(within(dialog).getByText("コンディション -1")).toBeVisible();
     expect(within(dialog).getByText("信頼 +2")).toBeVisible();
