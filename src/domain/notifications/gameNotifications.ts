@@ -33,6 +33,15 @@ export interface TrainingResultRankUp {
   toGrade: DevelopmentGoalGrade;
 }
 
+export interface AbilityValueChange {
+  ability: AbilityKey;
+  before: number;
+  after: number;
+  delta: number;
+  beforeGrade: ReturnType<typeof ratingToGrade>;
+  afterGrade: ReturnType<typeof ratingToGrade>;
+}
+
 export interface TrainingResultNotificationPlayer {
   playerId: PlayerId;
   displayName: string;
@@ -44,6 +53,7 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
+  abilityValueChanges: AbilityValueChange[];
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
@@ -64,6 +74,27 @@ export interface TrainingResultNotification {
   weekOfYear: number;
   readAtGameDate: GameDate | null;
   payload: TrainingResultNotificationPayload;
+}
+
+export interface MatchGrowthNotificationPlayer {
+  playerId: PlayerId;
+  displayName: string;
+  grade: number;
+  preferredPosition: Position;
+  changes: AbilityValueChange[];
+}
+
+export interface MatchGrowthNotification {
+  id: string;
+  type: "match-growth";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    matchId: MatchId;
+    players: MatchGrowthNotificationPlayer[];
+  };
 }
 
 export interface ConcernResolutionNotificationItem {
@@ -159,6 +190,7 @@ export interface SeasonGoalAchievementNotification {
 
 export type GameNotification =
   | TrainingResultNotification
+  | MatchGrowthNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
   | CharacterTraitDiscoveredNotification
@@ -249,6 +281,84 @@ function buildTrainingRankUps(
   });
 }
 
+function abilityValueChanges(
+  player: GameState["players"][PlayerId],
+  changes: Partial<Record<AbilityKey, number>>,
+): AbilityValueChange[] {
+  return (Object.entries(changes) as [AbilityKey, number | undefined][])
+    .flatMap(([ability, delta]) => {
+      if (typeof delta !== "number" || delta === 0) return [];
+      const before = Math.round(player.abilities[ability]);
+      const after = Math.max(0, Math.min(100, before + delta));
+      return [
+        {
+          ability,
+          before,
+          after,
+          delta: after - before,
+          beforeGrade: ratingToGrade(before),
+          afterGrade: ratingToGrade(after),
+        } satisfies AbilityValueChange,
+      ];
+    })
+    .filter((change) => change.delta !== 0);
+}
+
+export function buildMatchGrowthNotification(input: {
+  stateBefore: GameState;
+  stateAfter: GameState;
+  matchId: MatchId;
+}): MatchGrowthNotification | null {
+  const school = input.stateAfter.schools[input.stateAfter.userSchoolId];
+  if (!school) return null;
+
+  const players = school.playerIds.flatMap((playerId) => {
+    const before = input.stateBefore.players[playerId];
+    const after = input.stateAfter.players[playerId];
+    if (!before || !after) return [];
+
+    const changes = (Object.keys(after.abilities) as AbilityKey[]).flatMap(
+      (ability) => {
+        const beforeValue = Math.round(before.abilities[ability]);
+        const afterValue = Math.round(after.abilities[ability]);
+        if (beforeValue === afterValue) return [];
+        return [
+          {
+            ability,
+            before: beforeValue,
+            after: afterValue,
+            delta: afterValue - beforeValue,
+            beforeGrade: ratingToGrade(beforeValue),
+            afterGrade: ratingToGrade(afterValue),
+          } satisfies AbilityValueChange,
+        ];
+      },
+    );
+    if (changes.length === 0) return [];
+
+    return [
+      {
+        playerId,
+        displayName: `${after.lastName} ${after.firstName}`,
+        grade: after.grade,
+        preferredPosition: after.preferredPosition,
+        changes,
+      } satisfies MatchGrowthNotificationPlayer,
+    ];
+  });
+
+  if (players.length === 0) return null;
+  return {
+    id: `match-growth:${input.matchId}`,
+    type: "match-growth",
+    createdGameDate: input.stateAfter.date,
+    academicYearIndex: input.stateAfter.yearIndex,
+    weekOfYear: input.stateAfter.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: { matchId: input.matchId, players },
+  };
+}
+
 export function buildTrainingResultNotification(
   input: BuildTrainingResultNotificationInput,
 ): TrainingResultNotification {
@@ -274,6 +384,7 @@ export function buildTrainingResultNotification(
       trustChange: log.trustChange,
       injured: injuredPlayerIds.has(player.id) || log.injury !== null,
       abilityChanges: { ...log.abilityChanges },
+      abilityValueChanges: abilityValueChanges(player, log.abilityChanges),
       rankUps: buildTrainingRankUps(player, log.abilityChanges),
       socialGrowth: {
         contributions: log.socialGrowth.contributions.map((contribution) => ({
