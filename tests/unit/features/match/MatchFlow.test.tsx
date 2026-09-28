@@ -265,6 +265,8 @@ describe("match flow", () => {
     ).toBeVisible();
     expect(within(dialog).getByText(/C68.*C69/)).toBeVisible();
     expect(within(dialog).getByText(/B79.*A80/)).toBeVisible();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
     expect(
       screen.getByRole("region", { name: "試合後の成長" }),
     ).toHaveTextContent("能力成長 +2");
