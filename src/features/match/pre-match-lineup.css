@@ -1493,3 +1493,71 @@
     display: grid;
   }
 }
+
+/* Phase46: reduce competing accents in pre-match lineup. */
+.pre-match-lineup__tactics,
+.pre-match-lineup__presets,
+.pre-match-lineup__lineup,
+.pre-match-lineup__bench,
+.pre-match-lineup__versus {
+  background:
+    linear-gradient(145deg, rgb(88 122 143 / 6%), transparent 62%), #122236;
+}
+
+.pre-match-lineup__court-shell {
+  background:
+    linear-gradient(90deg, transparent 49.6%, rgb(255 255 255 / 32%) 49.6%, rgb(255 255 255 / 32%) 50.4%, transparent 50.4%),
+    linear-gradient(145deg, #445c6e, #2f4353);
+  border-color: #6e8595;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+.pre-match-lineup__court-player {
+  background: #13283d;
+  border-color: rgb(189 210 223 / 15%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 16%);
+}
+
+.pre-match-lineup__court-player-top b {
+  color: #e7f5f6;
+  background: #315e68;
+}
+
+.pre-match-lineup__court-player-top small {
+  color: #a9bcc8;
+}
+
+.pre-match-lineup__court-role {
+  overflow: hidden;
+  color: #a9bcc8;
+  font-size: 0.52rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__libero-card {
+  background: #13283d;
+  border-color: rgb(189 210 223 / 18%);
+}
+
+.pre-match-lineup__libero-card > b {
+  color: #e9eff2;
+  background: #526c78;
+}
+
+.pre-match-lineup__libero-card > strong {
+  color: #c7d8e0;
+}
+
+.pre-match-lineup__bench-player {
+  background: rgb(255 255 255 / 4%);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.pre-match-lineup__preset-grid button:active,
+.pre-match-lineup__saved-presets button:not(:disabled) {
+  color: #dceaf0;
+  background: rgb(104 177 186 / 10%);
+  border-color: rgb(104 177 186 / 25%);
+}
