@@ -16,6 +16,11 @@ interface RenderOptions {
     assignments: Array<{ playerId: string; instructionId: string }>,
   ) => void;
   onSetDevelopmentPriorities?: (playerIds: string[]) => void;
+  onStartPositionConversion?: (
+    playerId: string,
+    targetPosition: "OH" | "MB" | "OP" | "S" | "L",
+  ) => void;
+  onCancelPositionConversion?: (playerId: string) => void;
   onSetPlayerDevelopmentGoal?: (
     playerId: string,
     goal: {
@@ -46,6 +51,8 @@ function renderPlayerHub(
       onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       onSetPlayerDevelopmentGoal={options.onSetPlayerDevelopmentGoal}
+      onStartPositionConversion={options.onStartPositionConversion}
+      onCancelPositionConversion={options.onCancelPositionConversion}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
@@ -161,6 +168,29 @@ describe("PlayerHubScreen", () => {
     const badge = within(row).getByText("天才");
     expect(badge).toBeVisible();
     expect(badge).toHaveClass("player-roster__info-badge--genius");
+  });
+
+  it("starts a multi-week position conversion from the growth tab", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const target = player.preferredPosition === "S" ? "OH" : "S";
+    player.positionAptitudes[target] = 60;
+    const onStartPositionConversion = vi.fn();
+
+    renderPlayerHub(state, vi.fn(), { onStartPositionConversion });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const conversion = screen.getByRole("region", { name: "ポジション転向" });
+    expect(within(conversion).getByText(`現在 ${player.preferredPosition}`)).toBeVisible();
+    fireEvent.click(within(conversion).getByRole("button", { name: new RegExp(`^${target}`) }));
+
+    expect(onStartPositionConversion).toHaveBeenCalledWith(playerId, target);
   });
 
   it("shows special ability kinds and tip progress without adding a roster row", () => {
