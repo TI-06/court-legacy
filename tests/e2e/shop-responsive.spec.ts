@@ -36,6 +36,19 @@ test(
     });
     expect(productColumns).toBe(2);
 
+    const fatigueRecovery = page
+      .locator("article.shop-card")
+      .filter({
+        has: page.getByRole("heading", { name: "疲労回復", exact: true }),
+      })
+      .first();
+    await fatigueRecovery
+      .getByRole("button", { name: "疲労回復を購入", exact: true })
+      .click();
+    await expect(page.getByText("購入しました ✓")).toBeVisible({
+      timeout: 2_500,
+    });
+
     await page
       .getByRole("button", { name: "その他へ戻る", exact: true })
       .click();
