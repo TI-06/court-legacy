@@ -59,7 +59,12 @@ describe("ability and school strength grades", () => {
     for (const bar of abilityBars) {
       const row = bar.closest(".game-stat-bar");
       expect(row).not.toBeNull();
-      expect(within(row as HTMLElement).getByText(/^[A-GS]$/)).toBeVisible();
+      const value = Number(bar.getAttribute("aria-valuenow"));
+      expect(
+        within(row as HTMLElement).getByText(
+          `${ratingToGrade(value)} ${Math.round(value)}`,
+        ),
+      ).toBeVisible();
     }
   });
 
