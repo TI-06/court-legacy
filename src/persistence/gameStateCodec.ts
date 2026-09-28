@@ -70,6 +70,19 @@ const teamPlanningSchema = z
           .strict(),
       )
       .optional(),
+    positionConversionsByPlayerId: z
+      .record(
+        playerIdSchema,
+        z
+          .object({
+            fromPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+            targetPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+            completedWeeks: z.number().int().nonnegative(),
+            requiredWeeks: z.number().int().min(4).max(10),
+          })
+          .strict(),
+      )
+      .optional(),
     savedLineups: z
       .array(
         z
