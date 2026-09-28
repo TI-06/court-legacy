@@ -40,6 +40,14 @@ export interface PlayerInjury {
   recurrenceRisk: number;
 }
 
+export interface PositionConversionPlan {
+  fromPosition: Position;
+  targetPosition: Position;
+  startingAptitude: number;
+  weeksTotal: number;
+  weeksRemaining: number;
+}
+
 export interface Player {
   id: PlayerId;
   firstName: string;
@@ -75,6 +83,7 @@ export interface Player {
   teamAdaptation?: number;
   growthPeakGrade?: Grade;
   injury: PlayerInjury | null;
+  positionConversion?: PositionConversionPlan;
   career: PlayerCareer;
 }
 
