@@ -22,6 +22,7 @@ import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
 import {
   autoSelectTeam,
   resolveLockedStarters,
@@ -75,6 +76,11 @@ function playerName(player: Player): string {
 
 function playerOverall(player: Player): number {
   return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
+function playerRating(value: number): string {
+  const rounded = Math.round(value);
+  return `${ratingToGrade(rounded)}${rounded}`;
 }
 
 function readinessTone(
@@ -626,13 +632,13 @@ export function TeamScreen({
                       </span>
                       <strong>{player.lastName}</strong>
                       <span className="court-player-button__meta">
-                        本{player.preferredPosition}・適
-                        {
+                        本{player.preferredPosition}・適{" "}
+                        {playerRating(
                           player.positionAptitudes[
                             ROTATION_ROLES[assignment.slot]
-                          ]
-                        }
-                        ・総{playerOverall(player)}
+                          ],
+                        )}
+                        ・総 {playerRating(playerOverall(player))}
                       </span>
                       <PlayerReadiness compact player={player} />
                     </button>
@@ -671,8 +677,8 @@ export function TeamScreen({
                     <span className="libero-player-button__main">
                       <strong>{playerName(player)}</strong>
                       <small>
-                        {player.grade}年・{player.preferredPosition}・総合
-                        {playerOverall(player)}
+                        {player.grade}年・{player.preferredPosition}・総合{" "}
+                        {playerRating(playerOverall(player))}
                       </small>
                       <PlayerReadiness compact player={player} />
                     </span>
@@ -713,8 +719,8 @@ export function TeamScreen({
                   >
                     <strong>{player.lastName}</strong>
                     <span>
-                      {player.preferredPosition}・{player.grade}年・総
-                      {playerOverall(player)}
+                      {player.preferredPosition}・{player.grade}年・総{" "}
+                      {playerRating(playerOverall(player))}
                     </span>
                     <PlayerReadiness compact player={player} />
                     <button
@@ -856,7 +862,7 @@ export function TeamScreen({
                         {aptitude === benchDeployBestAptitude ? (
                           <b>おすすめ</b>
                         ) : null}
-                        <strong>適性 {aptitude}</strong>
+                        <strong>適性 {playerRating(aptitude)}</strong>
                       </span>
                       <i aria-hidden="true">入替 ›</i>
                     </button>
@@ -1221,7 +1227,7 @@ export function TeamScreen({
                   </span>
                   <span className="team-picker-card__score">
                     <small>総合</small>
-                    <strong>{playerOverall(player)}</strong>
+                    <strong>{playerRating(playerOverall(player))}</strong>
                   </span>
                   <span className="team-picker-card__aptitude">
                     <small>{currentPickerRole}</small>
@@ -1249,8 +1255,8 @@ export function TeamScreen({
           <div className="lineup-drag-overlay">
             <strong>{playerName(activeDragPlayer)}</strong>
             <span>
-              {activeDragPlayer.preferredPosition}・総合
-              {playerOverall(activeDragPlayer)}
+              {activeDragPlayer.preferredPosition}・総合{" "}
+              {playerRating(playerOverall(activeDragPlayer))}
             </span>
           </div>
         ) : null}
