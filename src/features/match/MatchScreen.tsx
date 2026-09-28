@@ -6,6 +6,7 @@ import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
@@ -17,6 +18,7 @@ import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
+import type { MatchGrowthSummary } from "./matchGrowthPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -39,10 +41,24 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
+  matchGrowthSummary?: MatchGrowthSummary | null;
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const growthAbilityLabels = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+} as const;
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -93,6 +109,7 @@ function MatchScreenContent({
   trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
+  matchGrowthSummary = null,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -101,6 +118,7 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [growthOpen, setGrowthOpen] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -139,6 +157,12 @@ function MatchScreenContent({
     result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
     onCommand,
   );
+
+  useEffect(() => {
+    if (matchComplete && matchGrowthSummary?.players.length) {
+      setGrowthOpen(true);
+    }
+  }, [matchComplete, matchGrowthSummary]);
 
   useEffect(() => {
     if (
@@ -749,6 +773,44 @@ function MatchScreenContent({
               </div>
             </section>
           ) : null}
+
+          <BottomSheet
+            open={growthOpen && Boolean(matchGrowthSummary)}
+            title="試合経験で成長"
+            description="この試合で伸びた能力"
+            onClose={() => setGrowthOpen(false)}
+          >
+            {matchGrowthSummary ? (
+              <div className="match-growth-sheet">
+                {matchGrowthSummary.players.map((player) => (
+                  <article
+                    className="match-growth-sheet__player"
+                    key={player.playerId}
+                  >
+                    <header>
+                      <strong>{player.displayName}</strong>
+                      <span>
+                        {player.grade}年・{player.preferredPosition}
+                      </span>
+                    </header>
+                    <div className="match-growth-sheet__abilities">
+                      {player.abilities.map((ability) => (
+                        <div key={ability.ability}>
+                          <span>{growthAbilityLabels[ability.ability]}</span>
+                          <strong>
+                            {ability.before} {ability.beforeGrade}
+                            <em>→</em>
+                            {ability.after} {ability.afterGrade}
+                          </strong>
+                          <b>+{ability.delta}</b>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </BottomSheet>
 
           <section
             className="match-result-actions match-result-actions--fixed"
