@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import type { Position } from "../../../../src/domain/model/Player";
 import { getPlayerConditionPresentation } from "../../../../src/domain/player/playerCondition";
 import { getPlayerDevelopmentPresentation } from "../../../../src/domain/player/playerDevelopmentPresentation";
 import {
@@ -22,6 +23,10 @@ interface RenderOptions {
       area: "attack" | "defense" | "jump" | "stamina" | "mental";
       targetGrade: "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
     } | null,
+  ) => void;
+  onSetPlayerPositionConversion?: (
+    playerId: string,
+    targetPosition: Position | null,
   ) => void;
   planningPending?: boolean;
   trainingPending?: boolean;
@@ -46,6 +51,7 @@ function renderPlayerHub(
       onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       onSetPlayerDevelopmentGoal={options.onSetPlayerDevelopmentGoal}
+      onSetPlayerPositionConversion={options.onSetPlayerPositionConversion}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
@@ -934,6 +940,84 @@ describe("PlayerHubScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "人物" }));
     expect(screen.getByText(/出場機会/)).toBeVisible();
+  });
+
+  it("shows and starts a multi-week position conversion from the growth tab", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const targetPosition: Position =
+      player.preferredPosition === "S" ? "OH" : "S";
+    player.positionAptitudes[targetPosition] = 52;
+    const onSetPlayerPositionConversion = vi.fn();
+
+    renderPlayerHub(state, vi.fn(), { onSetPlayerPositionConversion });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const conversion = screen.getByRole("region", {
+      name: "ポジションコンバート",
+    });
+    const targetButton = within(conversion).getByRole("button", {
+      name: new RegExp(`^${targetPosition}.*適性.*目安`),
+    });
+    expect(targetButton).toHaveTextContent(/適性 [SABCDEFG]\d+/);
+    expect(targetButton).toHaveTextContent(/目安 \d+週/);
+
+    fireEvent.click(targetButton);
+    expect(onSetPlayerPositionConversion).toHaveBeenCalledWith(
+      playerId,
+      targetPosition,
+    );
+  });
+
+  it("shows conversion progress on both roster and player growth detail", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const targetPosition: Position =
+      player.preferredPosition === "L" ? "OH" : "L";
+    state.teamPlanning.positionConversionsByPlayerId = {
+      [playerId]: {
+        fromPosition: player.preferredPosition,
+        targetPosition,
+        completedWeeks: 1,
+        requiredWeeks: 4,
+      },
+    };
+
+    renderPlayerHub(state);
+
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    expect(within(row).getByText(`${targetPosition}転向 残3週`)).toBeVisible();
+
+    fireEvent.click(detailButton);
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const conversion = screen.getByRole("region", {
+      name: "ポジションコンバート",
+    });
+    expect(
+      within(conversion).getByText(
+        `${player.preferredPosition} → ${targetPosition}`,
+      ),
+    ).toBeVisible();
+    expect(
+      within(conversion).getByRole("progressbar", {
+        name: "コンバート進捗 1 / 4週",
+      }),
+    ).toBeVisible();
+    expect(within(conversion).getByText("残り 3週")).toBeVisible();
   });
 
   it("sets and clears a next-rank development goal from the growth tab", () => {
