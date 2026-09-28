@@ -634,11 +634,16 @@ export function TeamScreen({
                             ROTATION_ROLES[assignment.slot]
                           ],
                         )}
-                        {player.positionAptitudes[ROTATION_ROLES[assignment.slot]]}
+                        {
+                          player.positionAptitudes[
+                            ROTATION_ROLES[assignment.slot]
+                          ]
+                        }
                       </span>
                       <span className="court-player-button__meta">
                         {player.heightCm}cm・総合{" "}
-                        {ratingToGrade(playerOverall(player))}{playerOverall(player)}
+                        {ratingToGrade(playerOverall(player))}
+                        {playerOverall(player)}
                       </span>
                       <PlayerReadiness compact player={player} />
                     </button>
