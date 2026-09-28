@@ -354,9 +354,7 @@ function MatchScreenContent({
   const recentEvents =
     playbackMode === "points"
       ? presentedEvents
-          .filter(
-            (_event, index) => visibleRawEvents[index]?.type === "point",
-          )
+          .filter((_event, index) => visibleRawEvents[index]?.type === "point")
           .slice(-6)
           .reverse()
       : presentedEvents.slice(-4).reverse();
