@@ -36,6 +36,24 @@ function createNotification(): TrainingResultNotification {
             spike: 2,
             jump: 1,
           },
+          abilityResults: [
+            {
+              ability: "spike",
+              before: 48,
+              after: 50,
+              delta: 2,
+              beforeGrade: "E",
+              afterGrade: "D",
+            },
+            {
+              ability: "jump",
+              before: 61,
+              after: 62,
+              delta: 1,
+              beforeGrade: "C",
+              afterGrade: "C",
+            },
+          ],
           socialGrowth: {
             contributions: [],
             rawPercentPoints: 0,
@@ -70,8 +88,12 @@ describe("TrainingResultNotificationSheet", () => {
         `${player.grade}年・${player.preferredPosition}`,
       ),
     ).toBeVisible();
-    expect(within(dialog).getByText("スパイク +2")).toBeVisible();
-    expect(within(dialog).getByText("ジャンプ +1")).toBeVisible();
+    expect(within(dialog).getByText("スパイク")).toBeVisible();
+    expect(within(dialog).getByText(/E48.*D50/)).toBeVisible();
+    expect(within(dialog).getByText("ジャンプ")).toBeVisible();
+    expect(within(dialog).getByText(/C61.*C62/)).toBeVisible();
+    expect(within(dialog).getAllByText("+2").length).toBeGreaterThan(0);
+    expect(within(dialog).getAllByText("+1").length).toBeGreaterThan(0);
     expect(within(dialog).getByText("疲労 +5")).toBeVisible();
     expect(within(dialog).getByText("コンディション -1")).toBeVisible();
     expect(within(dialog).getByText("信頼 +2")).toBeVisible();
