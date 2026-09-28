@@ -123,7 +123,13 @@ const rosterAbilityLabels = [
   ["mental", "メ"],
 ] as const;
 
-const positionOptions = ["OH", "MB", "OP", "S", "L"] as const satisfies readonly Position[];
+const positionOptions = [
+  "OH",
+  "MB",
+  "OP",
+  "S",
+  "L",
+] as const satisfies readonly Position[];
 
 const roleLabels: Record<PlayerRole, string> = {
   ace: "エース",
@@ -968,9 +974,11 @@ export function PlayerHubScreen({
                     <span>
                       {positionConversion.targetPosition}適性{" "}
                       <strong>
-                        {selectedPlayer.positionAptitudes[
-                          positionConversion.targetPosition
-                        ]}{" "}
+                        {
+                          selectedPlayer.positionAptitudes[
+                            positionConversion.targetPosition
+                          ]
+                        }{" "}
                         {ratingToGrade(
                           selectedPlayer.positionAptitudes[
                             positionConversion.targetPosition
@@ -978,9 +986,7 @@ export function PlayerHubScreen({
                         )}
                       </strong>
                     </span>
-                    <span>
-                      開始時 {positionConversion.startingAptitude}
-                    </span>
+                    <span>開始時 {positionConversion.startingAptitude}</span>
                   </div>
                   <button
                     className="player-position-conversion__cancel"
