@@ -13,6 +13,8 @@ import { createInitialWeeklySchedule } from "../domain/weekly/createWeeklySchedu
 const gameDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const objectSchema = z.object({}).passthrough();
 const playerIdSchema = z.string().min(1);
+const positionSchema = z.enum(["OH", "MB", "OP", "S", "L"]);
+const abilityGradeSchema = z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]);
 
 const rotationSlotSchema = z.union([
   z.literal(1),
@@ -66,6 +68,22 @@ const teamPlanningSchema = z
           .object({
             area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
             targetGrade: z.enum(["S", "A", "B", "C", "D", "E", "F", "G"]),
+          })
+          .strict(),
+      )
+      .optional(),
+    positionConversionsByPlayerId: z
+      .record(
+        playerIdSchema,
+        z
+          .object({
+            fromPosition: positionSchema,
+            targetPosition: positionSchema,
+            startedWeekOfYear: z.number().int().positive(),
+            startedAcademicYearIndex: z.number().int().positive(),
+            totalWeeks: z.number().int().min(2).max(8),
+            completedWeeks: z.number().int().min(0).max(7),
+            startingAptitude: z.number().int().min(0).max(100),
           })
           .strict(),
       )
@@ -522,6 +540,17 @@ const emptyRelationshipTrainingModifierSummary = {
   capped: false,
 };
 
+const abilityProgressSchema = z
+  .object({
+    ability: abilityKeySchema,
+    before: z.number().int().min(0).max(100),
+    beforeGrade: abilityGradeSchema,
+    after: z.number().int().min(0).max(100),
+    afterGrade: abilityGradeSchema,
+    change: z.number().int(),
+  })
+  .strict();
+
 const notificationPlayerSchema = z
   .object({
     playerId: z.string().min(1),
@@ -534,6 +563,7 @@ const notificationPlayerSchema = z
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    abilityProgress: z.array(abilityProgressSchema).max(10).optional(),
     rankUps: z
       .array(
         z
@@ -568,6 +598,36 @@ const trainingResultNotificationSchema = z
         totalFatigueChange: z.number().int(),
         injuredCount: z.number().int().nonnegative(),
         players: z.array(notificationPlayerSchema),
+      })
+      .strict(),
+  })
+  .strict();
+
+const matchExperienceNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("match-experience"),
+    matchId: z.string().min(1),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        players: z
+          .array(
+            z
+              .object({
+                playerId: playerIdSchema,
+                displayName: z.string().min(1),
+                grade: z.number().int().min(1).max(3),
+                preferredPosition: positionSchema,
+                abilityProgress: z.array(abilityProgressSchema).min(1).max(10),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(64),
       })
       .strict(),
   })
@@ -711,6 +771,7 @@ const characterTraitDiscoveredNotificationSchema = z
 
 const gameNotificationSchema = z.discriminatedUnion("type", [
   trainingResultNotificationSchema,
+  matchExperienceNotificationSchema,
   concernResolutionNotificationSchema,
   specialRelationshipNotificationSchema,
   characterTraitDiscoveredNotificationSchema,
