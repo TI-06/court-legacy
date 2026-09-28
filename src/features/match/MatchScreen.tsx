@@ -117,8 +117,8 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
-  const [growthSheetOpen, setGrowthSheetOpen] = useState(false);
-  const [growthSheetShown, setGrowthSheetShown] = useState(false);
+  const [growthSheetDismissed, setGrowthSheetDismissed] = useState(false);
+  const [growthSheetReopened, setGrowthSheetReopened] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -158,16 +158,11 @@ function MatchScreenContent({
     onCommand,
   );
 
-  useEffect(() => {
-    if (
-      matchComplete &&
-      !growthSheetShown &&
-      (presentation?.matchExperience?.length ?? 0) > 0
-    ) {
-      setGrowthSheetOpen(true);
-      setGrowthSheetShown(true);
-    }
-  }, [matchComplete, growthSheetShown, presentation?.matchExperience]);
+  const hasMatchGrowth = (presentation?.matchExperience?.length ?? 0) > 0;
+  const growthSheetOpen =
+    matchComplete &&
+    hasMatchGrowth &&
+    (!growthSheetDismissed || growthSheetReopened);
 
   useEffect(() => {
     if (
@@ -782,7 +777,7 @@ function MatchScreenContent({
           {presentation?.matchExperience?.length ? (
             <button
               className="match-growth-reopen"
-              onClick={() => setGrowthSheetOpen(true)}
+              onClick={() => setGrowthSheetReopened(true)}
               type="button"
             >
               試合での成長を見る
@@ -811,7 +806,10 @@ function MatchScreenContent({
 
       <BottomSheet
         description="出場経験による能力成長です"
-        onClose={() => setGrowthSheetOpen(false)}
+        onClose={() => {
+          setGrowthSheetDismissed(true);
+          setGrowthSheetReopened(false);
+        }}
         open={growthSheetOpen}
         title="試合での成長"
       >
