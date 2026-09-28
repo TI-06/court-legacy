@@ -716,21 +716,14 @@ function MatchScreenContent({
           <MatchResultStoryPanel state={state} match={result.match} />
 
           {presentation?.growth ? (
-            <section
-              className="match-growth-summary"
-              aria-label="試合後の成長"
-            >
+            <section className="match-growth-summary" aria-label="試合後の成長">
               <span>
                 <small>試合経験</small>
                 <strong>
-                  能力成長 +
-                  {presentation.growth.totalAbilityGrowth}
+                  能力成長 +{presentation.growth.totalAbilityGrowth}
                 </strong>
               </span>
-              <button
-                onClick={() => setGrowthResultOpen(true)}
-                type="button"
-              >
+              <button onClick={() => setGrowthResultOpen(true)} type="button">
                 詳細を見る
               </button>
             </section>
