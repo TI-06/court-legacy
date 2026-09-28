@@ -20,6 +20,50 @@ async function expectNoHorizontalOverflow(page: Page, viewportWidth: number) {
     .toBeLessThanOrEqual(viewportWidth);
 }
 
+// prettier-ignore
+test(
+  "shop uses a compact two-column card grid on mobile",
+  async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await openShop(page);
+
+    const products = page.locator('[aria-label="商品一覧"]');
+    await expect(products).toBeVisible();
+    const productColumns = await products.evaluate((element) => {
+      const columns = getComputedStyle(element).gridTemplateColumns;
+      return columns.split(" ").filter(Boolean).length;
+    });
+    expect(productColumns).toBe(2);
+
+    const fatigueRecovery = page
+      .locator("article.shop-card")
+      .filter({
+        has: page.getByRole("heading", { name: "疲労回復", exact: true }),
+      })
+      .first();
+    await fatigueRecovery
+      .getByRole("button", { name: "疲労回復を購入", exact: true })
+      .click();
+    await expect(page.getByText("購入しました ✓")).toBeVisible({
+      timeout: 2_500,
+    });
+
+    await page
+      .getByRole("button", { name: "その他へ戻る", exact: true })
+      .click();
+    await page.getByRole("button", { name: "所持品", exact: true }).click();
+
+    const inventory = page.locator('[aria-label="所持品一覧"]');
+    await expect(inventory).toBeVisible();
+    const inventoryColumns = await inventory.evaluate((element) => {
+      const columns = getComputedStyle(element).gridTemplateColumns;
+      return columns.split(" ").filter(Boolean).length;
+    });
+    expect(inventoryColumns).toBe(2);
+  },
+);
+
 for (const width of [320, 360, 390, 480]) {
   test(`shop has no horizontal overflow at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });

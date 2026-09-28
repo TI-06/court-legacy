@@ -317,7 +317,6 @@ function InventoryCard({
       </div>
 
       <div className="shop-card__status">
-        <span>翌年度以降も持ち越し可</span>
         <span>使用 {item.usedCount}</span>
       </div>
 
