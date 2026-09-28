@@ -44,8 +44,8 @@ export interface TrainingResultNotificationPlayer {
   trustChange: number;
   injured: boolean;
   abilityChanges: Partial<Record<AbilityKey, number>>;
-  abilityBefore: Partial<Record<AbilityKey, number>>;
-  abilityAfter: Partial<Record<AbilityKey, number>>;
+  abilityBefore?: Partial<Record<AbilityKey, number>>;
+  abilityAfter?: Partial<Record<AbilityKey, number>>;
   rankUps?: TrainingResultRankUp[];
   socialGrowth: RelationshipTrainingModifierSummary;
 }
