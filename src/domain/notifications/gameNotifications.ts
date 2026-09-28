@@ -274,8 +274,9 @@ export function buildTrainingResultNotification(
 
     const abilityResults = Object.fromEntries(
       (Object.entries(log.abilityChanges) as [AbilityKey, number | undefined][])
-        .filter((entry): entry is [AbilityKey, number] =>
-          typeof entry[1] === "number" && entry[1] !== 0,
+        .filter(
+          (entry): entry is [AbilityKey, number] =>
+            typeof entry[1] === "number" && entry[1] !== 0,
         )
         .map(([ability, change]) => {
           const before = player.abilities[ability];
