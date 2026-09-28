@@ -121,12 +121,21 @@ export function TrainingResultNotificationSheet({
               <h3>選手別</h3>
               <div className="training-result-notification__player-list">
                 {notification.payload.players.map((player) => {
-                  const abilityChanges = Object.entries(
-                    player.abilityChanges,
-                  ).filter(
-                    (entry): entry is [AbilityKey, number] =>
-                      typeof entry[1] === "number" && entry[1] !== 0,
-                  );
+                  const abilityProgress =
+                    player.abilityProgress ??
+                    Object.entries(player.abilityChanges)
+                      .filter(
+                        (entry): entry is [AbilityKey, number] =>
+                          typeof entry[1] === "number" && entry[1] !== 0,
+                      )
+                      .map(([ability, change]) => ({
+                        ability,
+                        before: 0,
+                        beforeGrade: "G" as const,
+                        after: 0,
+                        afterGrade: "G" as const,
+                        change,
+                      }));
 
                   return (
                     <article
@@ -140,11 +149,24 @@ export function TrainingResultNotificationSheet({
                         </span>
                       </header>
 
-                      {abilityChanges.length > 0 ? (
+                      {abilityProgress.length > 0 ? (
                         <div className="training-result-notification__abilities">
-                          {abilityChanges.map(([ability, value]) => (
-                            <span data-tone={growthTone(value)} key={ability}>
-                              {abilityLabels[ability]} {signed(value)}
+                          {abilityProgress.map((progress) => (
+                            <span
+                              data-tone={growthTone(progress.change)}
+                              key={progress.ability}
+                            >
+                              <b>{abilityLabels[progress.ability]}</b>
+                              {player.abilityProgress ? (
+                                <>
+                                  {progress.before} {progress.beforeGrade}
+                                  <em aria-hidden="true">→</em>
+                                  <strong>
+                                    {progress.after} {progress.afterGrade}
+                                  </strong>
+                                </>
+                              ) : null}
+                              <small>{signed(progress.change)}</small>
                             </span>
                           ))}
                         </div>
