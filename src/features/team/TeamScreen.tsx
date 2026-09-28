@@ -634,6 +634,9 @@ export function TeamScreen({
                           ],
                         )}
                         ・{player.heightCm}cm
+                        {player.positionConversion
+                          ? `・→${player.positionConversion.targetPosition} 残${player.positionConversion.remainingWeeks}週`
+                          : ""}
                       </span>
                       <span className="court-player-button__power">
                         総合 {ratingToGrade(playerOverall(player))}{" "}
