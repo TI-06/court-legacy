@@ -5,7 +5,7 @@ import type {
   PlayerRole,
 } from "../../domain/dynamics/teamDynamicsTypes";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -88,6 +88,11 @@ interface PlayerHubScreenProps {
     playerId: PlayerId,
     goal: PlayerDevelopmentGoal | null,
   ) => void | Promise<void>;
+  onStartPositionConversion?: (
+    playerId: PlayerId,
+    targetPosition: Position,
+  ) => void | Promise<void>;
+  onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
@@ -140,6 +145,8 @@ const specialAbilityKindLabels: Record<SpecialAbilityKind, string> = {
   elite: "上位特能",
   gold: "金特",
 };
+
+const positionOptions: readonly Position[] = ["OH", "MB", "OP", "S", "L"];
 
 const specialAbilityKindShortLabels: Record<SpecialAbilityKind, string> = {
   positive: "青",
@@ -264,6 +271,8 @@ export function PlayerHubScreen({
   onSetTeamTrainingMenu,
   onSetDevelopmentPriorities,
   onSetPlayerDevelopmentGoal,
+  onStartPositionConversion,
+  onCancelPositionConversion,
   onSetTeamTactics,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
@@ -664,6 +673,9 @@ export function PlayerHubScreen({
     const selectedGoalProgress = selectedGoal
       ? getPlayerDevelopmentGoalProgress(selectedPlayer, selectedGoal)
       : null;
+    const selectedConversion =
+      state.teamPlanning.positionConversionsByPlayerId?.[selectedPlayer.id] ??
+      null;
     const developmentGoalAreas = Object.keys(
       developmentGoalAreaLabels,
     ) as DevelopmentGoalArea[];
@@ -932,6 +944,105 @@ export function PlayerHubScreen({
                     : `将来性 ${development.potentialGrade}・${development.potential}`}
                 </small>
               </article>
+            </section>
+
+            <section
+              className="player-position-conversion"
+              aria-label="ポジション転向"
+            >
+              <div className="player-position-conversion__heading">
+                <div>
+                  <span>ポジション転向</span>
+                  <strong>
+                    {selectedConversion
+                      ? `${selectedConversion.fromPosition} → ${selectedConversion.targetPosition}`
+                      : "未設定"}
+                  </strong>
+                </div>
+                {selectedConversion ? (
+                  <b>
+                    {selectedConversion.weeksCompleted}/
+                    {selectedConversion.weeksRequired}週
+                  </b>
+                ) : null}
+              </div>
+              {selectedConversion ? (
+                <>
+                  <div className="player-position-conversion__progress">
+                    <span
+                      style={{
+                        width: `${Math.round(
+                          (selectedConversion.weeksCompleted /
+                            selectedConversion.weeksRequired) *
+                            100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p>
+                    {selectedConversion.targetPosition}適性{" "}
+                    {selectedPlayer.positionAptitudes[
+                      selectedConversion.targetPosition
+                    ]}{" "}
+                    {ratingToGrade(
+                      selectedPlayer.positionAptitudes[
+                        selectedConversion.targetPosition
+                      ],
+                    )}
+                    ・あと
+                    {Math.max(
+                      0,
+                      selectedConversion.weeksRequired -
+                        selectedConversion.weeksCompleted,
+                    )}
+                    週
+                  </p>
+                  <button
+                    disabled={planningPending}
+                    onClick={() =>
+                      void onCancelPositionConversion?.(selectedPlayer.id)
+                    }
+                    type="button"
+                  >
+                    転向を中止
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>
+                    数週間かけて適性を伸ばし、完了すると本職ポジションが変わります。
+                  </p>
+                  <div className="player-position-conversion__choices">
+                    {positionOptions
+                      .filter(
+                        (position) =>
+                          position !== selectedPlayer.preferredPosition,
+                      )
+                      .map((position) => (
+                        <button
+                          disabled={planningPending}
+                          key={position}
+                          onClick={() =>
+                            void onStartPositionConversion?.(
+                              selectedPlayer.id,
+                              position,
+                            )
+                          }
+                          type="button"
+                        >
+                          <strong>{position}</strong>
+                          <span>
+                            適性{" "}
+                            {ratingToGrade(
+                              selectedPlayer.positionAptitudes[position],
+                            )}
+                            ・{selectedPlayer.positionAptitudes[position]}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </>
+              )}
             </section>
 
             <section
