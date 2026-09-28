@@ -20,6 +20,7 @@ async function expectNoHorizontalOverflow(page: Page, viewportWidth: number) {
     .toBeLessThanOrEqual(viewportWidth);
 }
 
+// prettier-ignore
 test(
   "shop uses a compact two-column card grid on mobile",
   async ({ page }) => {
