@@ -75,6 +75,10 @@ import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
 import { MatchPvpEntry } from "../features/match/MatchPvpEntry";
 import { MatchScreen } from "../features/match/MatchScreen";
+import {
+  buildMatchGrowthSummary,
+  type MatchGrowthSummary,
+} from "../features/match/matchGrowthPresentation";
 import { buildPvpMatchScreenPresentation } from "../features/match/pvpMatchPresentation";
 import { PracticeMatchPlanning } from "../features/match/PracticeMatchPlanning";
 import { PreMatchLineupScreen } from "../features/match/PreMatchLineupScreen";
@@ -198,6 +202,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<MatchStepResult | null>(null);
   const [activeMatchPresentation, setActiveMatchPresentation] =
     useState<PendingMatchPresentation | null>(null);
+  const [matchGrowthSummary, setMatchGrowthSummary] =
+    useState<MatchGrowthSummary | null>(null);
   const [matchView, setMatchView] = useState<MatchView>("practice");
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
@@ -1171,6 +1177,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     matchSelection?: TeamSelection,
     matchTactics?: MatchTacticPlan,
   ) => {
+    setMatchGrowthSummary(null);
     const response = await cloudSession.runAction(
       {
         type: "advance-week",
@@ -1204,6 +1211,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   };
 
   const issueMatchCommand = async (command: MatchCommand) => {
+    const stateBeforeCommand = cloudSession.snapshot.state;
     const response = await cloudSession.runAction(
       { type: "match-command", command },
       "監督指示を反映しています…",
@@ -1212,6 +1220,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     const presentation = response.outcome as
       PendingMatchPresentation | undefined;
+    if (response.game.state.activeMatch?.phase === "match-complete") {
+      setMatchGrowthSummary(
+        buildMatchGrowthSummary(stateBeforeCommand, response.game.state),
+      );
+    }
     if (presentation) {
       setActiveMatchPresentation(presentation);
       setActiveMatchResult(presentation.simulation);
@@ -1576,6 +1589,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             onStart={() => undefined}
             opponent={opponent}
             presentation={activeMatchPresentation}
+            matchGrowthSummary={matchGrowthSummary}
             reducedMotion={gameState.settings.reducedMotion}
             result={activeMatchPresentation?.simulation ?? activeMatchResult}
             state={gameState}
