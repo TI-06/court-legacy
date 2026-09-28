@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
-import type { GameDate } from "../../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type GameDate,
+} from "../../../../src/domain/model/identifiers";
 import type { TrainingResult } from "../../../../src/domain/training/resolveWeeklyTraining";
 import {
   appendNotification,
   buildDevelopmentGoalAchievementNotification,
+  buildMatchGrowthNotification,
   buildSeasonGoalAchievementNotification,
   buildTrainingResultNotification,
   markNotificationRead,
@@ -91,6 +95,20 @@ describe("game notifications", () => {
       trustChange: 1,
       injured: false,
       abilityChanges: { serve: 2, jump: 1 },
+      abilityValueChanges: expect.arrayContaining([
+        expect.objectContaining({
+          ability: "serve",
+          before: player.abilities.serve,
+          after: player.abilities.serve + 2,
+          delta: 2,
+        }),
+        expect.objectContaining({
+          ability: "jump",
+          before: player.abilities.jump,
+          after: player.abilities.jump + 1,
+          delta: 1,
+        }),
+      ]),
     });
   });
 
@@ -192,6 +210,40 @@ describe("game notifications", () => {
       areaLabel: "跳躍",
       fromGrade: "A",
       toGrade: "S",
+    });
+  });
+
+  it("builds exact before/after values for match growth", () => {
+    const before = createDemoGame();
+    const school = before.schools[before.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = before.players[playerId]!;
+    player.abilities.decision = 69;
+
+    const after = structuredClone(before);
+    after.players[playerId]!.abilities.decision = 70;
+    after.players[playerId]!.abilities.spike =
+      before.players[playerId]!.abilities.spike + 1;
+
+    const notification = buildMatchGrowthNotification({
+      stateBefore: before,
+      stateAfter: after,
+      matchId: matchId("match-growth-test"),
+    });
+
+    expect(notification?.payload.players).toHaveLength(1);
+    expect(notification?.payload.players[0]).toMatchObject({
+      playerId,
+      changes: expect.arrayContaining([
+        {
+          ability: "decision",
+          before: 69,
+          after: 70,
+          delta: 1,
+          beforeGrade: "C",
+          afterGrade: "B",
+        },
+      ]),
     });
   });
 
