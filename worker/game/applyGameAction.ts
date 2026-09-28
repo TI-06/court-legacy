@@ -45,6 +45,10 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
+import {
+  progressPositionConversions,
+  startPositionConversion,
+} from "../../src/domain/player/positionConversion";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import {
   appendNotification,
@@ -539,6 +543,28 @@ function applyTeamPlanning(
       return conflict(error.code.replaceAll("-", "_"), error.message);
     }
     throw error;
+  }
+}
+
+function applyPositionConversion(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "start-position-conversion" }>,
+): AppliedGameAction {
+  try {
+    return {
+      state: startPositionConversion(
+        state,
+        action.playerId,
+        action.targetPosition,
+      ),
+      teamSelection,
+    };
+  } catch (error) {
+    return conflict(
+      "position_conversion_unavailable",
+      error instanceof Error ? error.message : "ポジション転向を開始できません",
+    );
   }
 }
 
@@ -1315,9 +1341,12 @@ function applyAdvanceWeek(
         progression.state,
         progression.specialRelationshipTransitions,
       );
+    const conversionProgress = progressPositionConversions(
+      stateWithRelationshipNotifications,
+    );
     const nextState = progression.academicYearTransition
-      ? stateWithRelationshipNotifications
-      : surfaceWeeklyEvent(stateWithRelationshipNotifications, gameData);
+      ? conversionProgress.state
+      : surfaceWeeklyEvent(conversionProgress.state, gameData);
     const nextSelection = progression.academicYearTransition
       ? autoSelectTeam({ state: nextState, schoolId: nextState.userSchoolId })
       : teamSelection;
@@ -1526,6 +1555,8 @@ function applyActionByType(
     case "practice-offer-decline":
     case "practice-request":
       return applyPracticeScheduling(state, teamSelection, action);
+    case "start-position-conversion":
+      return applyPositionConversion(state, teamSelection, action);
     case "practice-match":
       return applyPracticeMatch(state, teamSelection);
     case "match-command":
