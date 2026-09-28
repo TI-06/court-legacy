@@ -133,21 +133,6 @@ describe("Phase19 authoritative match experience", () => {
     expect(isWeeklyActionCompleted(result.state, "practice-match")).toBe(true);
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
     expect(result.state.players[nonParticipantId]!.abilities.decision).toBe(50);
-    const notification = result.state.notifications.items.find(
-      (item) => item.type === "match-experience",
-    );
-    expect(notification?.type).toBe("match-experience");
-    if (notification?.type === "match-experience") {
-      const growth = notification.payload.players.find(
-        (player) => player.playerId === starterId,
-      );
-      expect(growth?.abilityChanges.decision).toEqual({
-        before: 50,
-        after: 52,
-        delta: 2,
-      });
-    }
-
     const completedSnapshot: CloudGameSnapshot = {
       ...snapshot,
       state: result.state,
@@ -180,11 +165,22 @@ describe("Phase19 authoritative match experience", () => {
     expect(result.state.activeMatch?.phase).toBe("match-complete");
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
     expect(findDueUserOfficialMatch(result.state)).toBeNull();
-    expect(
-      result.state.notifications.items.some(
-        (item) => item.type === "match-experience",
-      ),
-    ).toBe(true);
+    const presentation = result.outcome as {
+      matchGrowth?: Array<{
+        playerId: string;
+        abilityChanges: {
+          decision?: { before: number; after: number; delta: number };
+        };
+      }>;
+    };
+    const growth = presentation.matchGrowth?.find(
+      (player) => player.playerId === starterId,
+    );
+    expect(growth?.abilityChanges.decision).toEqual({
+      before: 50,
+      after: 52,
+      delta: 2,
+    });
 
     const completedSnapshot: CloudGameSnapshot = {
       ...snapshot,
