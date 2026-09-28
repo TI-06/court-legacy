@@ -58,7 +58,7 @@ describe("team selection direct-touch UI", () => {
     const courtPlayers = screen.getAllByTestId("court-player");
     expect(courtPlayers).toHaveLength(6);
     for (const courtPlayer of courtPlayers) {
-      expect(courtPlayer).toHaveTextContent(/適 [S-G]\d+・総 [S-G]\d+/);
+      expect(courtPlayer).toHaveTextContent(/適 (?:S|A|B|C|D|E|F|G)\d+・総 (?:S|A|B|C|D|E|F|G)\d+/);
       expect(courtPlayer).toHaveTextContent(/調子 \d+/);
       expect(courtPlayer).toHaveTextContent(/疲労 \d+/);
     }
