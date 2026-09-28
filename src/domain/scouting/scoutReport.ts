@@ -43,6 +43,7 @@ export interface ScoutReport {
   handedness: Player["handedness"];
   middleSchoolAchievement: MiddleSchoolAchievement;
   evaluationStars: 1 | 2 | 3 | 4 | 5;
+  isGenerationalTalent?: boolean;
   estimatedOverall: EstimatedRange;
   estimatedPotential: EstimatedRange;
   estimatedAbilities?: ScoutAbilityEstimates;
@@ -354,6 +355,7 @@ export function createScoutReport(input: CreateScoutReportInput): ScoutReport {
       estimatedPotential,
       input.middleSchoolAchievement,
     ),
+    isGenerationalTalent: input.player.tier === "generational",
     estimatedOverall,
     estimatedPotential,
     estimatedAbilities,
