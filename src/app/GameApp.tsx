@@ -1585,6 +1585,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             commandPending={cloudSession.operation.status === "submitting"}
             allowResultSkip
             onCommand={issueMatchCommand}
+            onMarkNotificationRead={markNotificationRead}
             onApplyPracticeTrainingRecommendation={
               applyPracticeTrainingRecommendation
             }
