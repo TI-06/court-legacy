@@ -5,7 +5,9 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import type { AbilityKey } from "../../domain/validation/gameDataSchema";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
@@ -43,6 +45,19 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const growthAbilityLabels: Record<AbilityKey, string> = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+};
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -101,6 +116,7 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [growthOpen, setGrowthOpen] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -139,6 +155,12 @@ function MatchScreenContent({
     result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
     onCommand,
   );
+
+  useEffect(() => {
+    if (matchComplete && (presentation?.growth?.length ?? 0) > 0) {
+      setGrowthOpen(true);
+    }
+  }, [matchComplete, presentation?.growth]);
 
   useEffect(() => {
     if (
@@ -748,6 +770,39 @@ function MatchScreenContent({
                 ))}
               </div>
             </section>
+          ) : null}
+
+          {presentation?.growth && presentation.growth.length > 0 ? (
+            <BottomSheet
+              description="試合に出た選手の実戦成長です"
+              onClose={() => setGrowthOpen(false)}
+              open={growthOpen}
+              title="試合経験で成長"
+            >
+              <div className="match-growth-result">
+                {presentation.growth.map((player) => (
+                  <article key={player.playerId}>
+                    <header>
+                      <strong>{player.displayName}</strong>
+                      <span>{player.preferredPosition}</span>
+                    </header>
+                    <div>
+                      {player.changes.map((change) => (
+                        <p key={change.ability}>
+                          <span>{growthAbilityLabels[change.ability]}</span>
+                          <strong>
+                            {change.before} {change.beforeGrade}
+                            <em aria-hidden="true"> → </em>
+                            {change.after} {change.afterGrade}
+                          </strong>
+                          <b>+{change.change}</b>
+                        </p>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </BottomSheet>
           ) : null}
 
           <section
