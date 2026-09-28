@@ -564,7 +564,9 @@ export function PreMatchLineupScreen({
                 >
                   <span className="pre-match-lineup__court-player-top">
                     <b>{rotationRoles[slot]}</b>
-                    <small>R{slot}・本{player.preferredPosition}</small>
+                    <small>
+                      R{slot}・本{player.preferredPosition}
+                    </small>
                   </span>
                   <strong>{player.lastName}</strong>
                   {specialAbilityBadges.length > 0 ? (
