@@ -28,6 +28,7 @@ export function createDefaultTeamPlanning(): TeamPlanningState {
   return {
     developmentPriorityPlayerIds: [],
     developmentGoalsByPlayerId: {},
+    positionConversionsByPlayerId: {},
     savedLineups: [],
   };
 }
