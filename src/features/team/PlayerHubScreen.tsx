@@ -1332,6 +1332,12 @@ export function PlayerHubScreen({
                         天才
                       </span>
                     ) : null}
+                    {player.positionConversion ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--conversion">
+                        {player.positionConversion.targetPosition}転向 残
+                        {player.positionConversion.weeksRemaining}週
+                      </span>
+                    ) : null}
                     {potentialGrade ? (
                       <span className="player-roster__info-badge">
                         将来性{potentialGrade}
