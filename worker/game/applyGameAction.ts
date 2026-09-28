@@ -217,9 +217,9 @@ const matchGrowthAbilityLabels = {
 function buildMatchGrowthPresentation(
   before: GameState,
   after: GameState,
-): MatchGrowthPresentation | undefined {
+): MatchGrowthPresentation {
   const school = after.schools[after.userSchoolId];
-  if (!school) return undefined;
+  if (!school) return { players: [] };
 
   const players = school.playerIds.flatMap((playerId) => {
     const beforePlayer = before.players[playerId];
@@ -256,7 +256,7 @@ function buildMatchGrowthPresentation(
     ];
   });
 
-  return players.length > 0 ? { players } : undefined;
+  return { players };
 }
 
 function cpuPublicStats(
