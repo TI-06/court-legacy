@@ -121,7 +121,7 @@ export function TrainingResultNotificationSheet({
               <h3>選手別</h3>
               <div className="training-result-notification__player-list">
                 {notification.payload.players.map((player) => {
-                  const abilityChanges = player.abilityValueChanges;
+                  const abilityChanges = player.abilityValueChanges ?? [];
 
                   return (
                     <article
