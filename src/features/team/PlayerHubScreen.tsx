@@ -936,11 +936,10 @@ export function PlayerHubScreen({
                       .map((position) => {
                         const aptitude =
                           selectedPlayer.positionAptitudes[position];
-                        const requiredWeeks =
-                          positionConversionRequiredWeeks(
-                            aptitude,
-                            selectedPlayer.growthTypeId,
-                          );
+                        const requiredWeeks = positionConversionRequiredWeeks(
+                          aptitude,
+                          selectedPlayer.growthTypeId,
+                        );
                         return (
                           <button
                             disabled={planningPending}
