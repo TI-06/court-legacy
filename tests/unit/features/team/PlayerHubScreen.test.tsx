@@ -144,6 +144,25 @@ describe("PlayerHubScreen", () => {
     }
   });
 
+  it("keeps a visible genius badge after a generational recruit enrolls", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.tier = "generational";
+
+    renderPlayerHub(state);
+
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    const badge = within(row).getByText("天才");
+    expect(badge).toBeVisible();
+    expect(badge).toHaveClass("player-roster__info-badge--genius");
+  });
+
   it("shows special ability kinds and tip progress without adding a roster row", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;

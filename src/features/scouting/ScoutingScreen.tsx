@@ -5,6 +5,10 @@ import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSea
 import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
 import { scoutingSearchResultPresentation } from "../../domain/scouting/scoutingSearchResult";
 import {
+  RECRUITMENT_RECOMMENDATION_BONUS,
+  RECRUITMENT_RECOMMENDATION_LIMIT,
+  RECRUITMENT_VISIT_BONUS,
+  RECRUITMENT_VISIT_LIMIT,
   recruitmentRecommendationAvailable,
   recruitmentVisitsRemaining,
   type RecruitmentAction,
@@ -326,12 +330,18 @@ export function ScoutingScreen({
             <strong>{committedCandidateIds.length}人</strong>
           </div>
           <div>
-            <span>学校訪問</span>
-            <strong>残{visitsRemaining}回</strong>
+            <span>学校訪問 +{RECRUITMENT_VISIT_BONUS}</span>
+            <strong>
+              残{visitsRemaining}/{RECRUITMENT_VISIT_LIMIT}
+            </strong>
           </div>
           <div>
-            <span>推薦枠</span>
-            <strong>{recommendationAvailable ? "残1" : "使用済"}</strong>
+            <span>推薦 +{RECRUITMENT_RECOMMENDATION_BONUS}</span>
+            <strong>
+              {recommendationAvailable
+                ? `残1/${RECRUITMENT_RECOMMENDATION_LIMIT}`
+                : "使用済"}
+            </strong>
           </div>
         </div>
       </section>
@@ -399,12 +409,17 @@ export function ScoutingScreen({
           <div className="scouting-committed__list">
             {committedReports.map((report) => (
               <article
-                className="scouting-committed__card"
+                className={`scouting-committed__card${report.isGenerationalTalent ? " scouting-committed__card--genius" : ""}`}
                 key={report.candidateId}
               >
                 <span className="scouting-position">{report.position}</span>
                 <div className="scouting-committed__identity">
-                  <strong>{report.displayName}</strong>
+                  <strong>
+                    {report.displayName}
+                    {report.isGenerationalTalent ? (
+                      <span className="scouting-genius-badge">天才</span>
+                    ) : null}
+                  </strong>
                   <span>
                     {report.heightCm}cm・{stars(report.evaluationStars)}
                   </span>
@@ -465,7 +480,7 @@ export function ScoutingScreen({
 
             return (
               <article
-                className="scouting-card"
+                className={`scouting-card${report.isGenerationalTalent ? " scouting-card--genius" : ""}`}
                 data-testid="scouting-candidate-card"
                 key={report.candidateId}
               >
@@ -473,7 +488,12 @@ export function ScoutingScreen({
                   <div className="scouting-card__identity">
                     <span className="scouting-position">{report.position}</span>
                     <div>
-                      <h2>{report.displayName}</h2>
+                      <h2>
+                        {report.displayName}
+                        {report.isGenerationalTalent ? (
+                          <span className="scouting-genius-badge">天才</span>
+                        ) : null}
+                      </h2>
                       <p>
                         {report.heightCm}cm・
                         {handednessLabels[report.handedness]}
@@ -811,7 +831,9 @@ export function ScoutingScreen({
                 type="button"
               >
                 <strong>学校訪問</strong>
-                <small>志望度 +12・残{visitsRemaining}回</small>
+                <small>
+                  志望度 +{RECRUITMENT_VISIT_BONUS}・残{visitsRemaining}回
+                </small>
               </button>
               <button
                 disabled={
@@ -824,7 +846,10 @@ export function ScoutingScreen({
                 type="button"
               >
                 <strong>推薦枠を使う</strong>
-                <small>志望度 +24・年1回</small>
+                <small>
+                  志望度 +{RECRUITMENT_RECOMMENDATION_BONUS}・年
+                  {RECRUITMENT_RECOMMENDATION_LIMIT}回
+                </small>
               </button>
               <button
                 className="scouting-negotiation__commit"

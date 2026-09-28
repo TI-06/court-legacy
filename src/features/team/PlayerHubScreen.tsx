@@ -1222,6 +1222,11 @@ export function PlayerHubScreen({
                     <small>
                       {player.grade}年・{player.preferredPosition}
                     </small>
+                    {player.tier === "generational" ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--genius">
+                        天才
+                      </span>
+                    ) : null}
                     {potentialGrade ? (
                       <span className="player-roster__info-badge">
                         将来性{potentialGrade}
