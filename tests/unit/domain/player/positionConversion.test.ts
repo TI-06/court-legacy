@@ -65,9 +65,9 @@ describe("position conversion", () => {
     }
 
     expect(progressed.players[playerId]!.preferredPosition).toBe(target);
-    expect(progressed.players[playerId]!.positionAptitudes[target]).toBeGreaterThanOrEqual(
-      70,
-    );
+    expect(
+      progressed.players[playerId]!.positionAptitudes[target],
+    ).toBeGreaterThanOrEqual(70);
     expect(progressed.players[playerId]!.positionConversion).toBeUndefined();
   });
 
