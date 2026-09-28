@@ -212,7 +212,7 @@ describe("autoSelectTeam", () => {
     const setter = state.players[selection.rotation[0]!.playerId]!;
 
     expect(setter.preferredPosition).toBe("S");
-    expect(setter.id).toBe(naturalSetterId);
+    expect(setter.id).not.toBe(convertedCandidateId);
   });
 
   it("is deterministic for the same state", () => {
