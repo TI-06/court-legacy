@@ -137,6 +137,24 @@ function matchGrowthTargets(player: Player): readonly AbilityKey[] {
   return ["decision", coreByPosition[player.preferredPosition]];
 }
 
+export interface MatchExperienceAbilityChange {
+  ability: AbilityKey;
+  before: number;
+  after: number;
+}
+
+export interface MatchExperiencePlayerGrowth {
+  playerId: PlayerId;
+  displayName: string;
+  preferredPosition: Player["preferredPosition"];
+  changes: MatchExperienceAbilityChange[];
+}
+
+export interface MatchExperienceResult {
+  state: GameState;
+  players: MatchExperiencePlayerGrowth[];
+}
+
 export interface ApplyUserMatchExperienceInput {
   state: GameState;
   data: GameDataRegistry;
@@ -145,16 +163,19 @@ export interface ApplyUserMatchExperienceInput {
   strongerOpponent: boolean;
 }
 
-export function applyUserMatchExperience(
+export function applyUserMatchExperienceWithSummary(
   input: ApplyUserMatchExperienceInput,
-): GameState {
-  if (input.match.phase !== "match-complete") return input.state;
+): MatchExperienceResult {
+  if (input.match.phase !== "match-complete") {
+    return { state: input.state, players: [] };
+  }
 
   const lost =
     input.match.homeSchoolId === input.state.userSchoolId
       ? input.match.awaySetsWon > input.match.homeSetsWon
       : input.match.homeSetsWon > input.match.awaySetsWon;
   const players = { ...input.state.players };
+  const growthPlayers: MatchExperiencePlayerGrowth[] = [];
   let changed = false;
 
   for (const id of matchParticipants(input.match, input.selection)) {
@@ -173,17 +194,40 @@ export function applyUserMatchExperience(
     if (amount <= 0) continue;
 
     const abilities = { ...current.abilities };
+    const changes: MatchExperienceAbilityChange[] = [];
     for (const key of matchGrowthTargets(current)) {
-      abilities[key] = applyLongTermAbilityGrowth(
-        abilities[key],
+      const before = abilities[key];
+      const after = applyLongTermAbilityGrowth(
+        before,
         amount,
         current.potential,
         current.tier,
       );
+      abilities[key] = after;
+      if (after !== before) {
+        changes.push({ ability: key, before, after });
+      }
     }
+    if (changes.length === 0) continue;
+
     players[id] = { ...current, abilities };
+    growthPlayers.push({
+      playerId: current.id,
+      displayName: `${current.lastName} ${current.firstName}`,
+      preferredPosition: current.preferredPosition,
+      changes,
+    });
     changed = true;
   }
 
-  return changed ? { ...input.state, players } : input.state;
+  return {
+    state: changed ? { ...input.state, players } : input.state,
+    players: growthPlayers,
+  };
+}
+
+export function applyUserMatchExperience(
+  input: ApplyUserMatchExperienceInput,
+): GameState {
+  return applyUserMatchExperienceWithSummary(input).state;
 }
