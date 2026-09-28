@@ -199,7 +199,7 @@ describe("match flow", () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
-  it("opens exact match ability growth after the result is revealed", () => {
+  it("opens exact match ability growth after the result is revealed", async () => {
     const fixture = createMatchFixture();
     const player =
       fixture.state.players[fixture.homeSelection.rotation[0]!.playerId]!;
@@ -259,7 +259,7 @@ describe("match flow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
 
-    const dialog = screen.getByRole("dialog", { name: "試合後の成長" });
+    const dialog = await screen.findByRole("dialog", { name: "試合後の成長" });
     expect(
       within(dialog).getByText(player.lastName + " " + player.firstName),
     ).toBeVisible();
