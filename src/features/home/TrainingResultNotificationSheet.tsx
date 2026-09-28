@@ -150,10 +150,7 @@ export function TrainingResultNotificationSheet({
                               player.abilityAfter?.[ability] ??
                               (before === null ? null : before + value);
                             return (
-                              <span
-                                data-tone={growthTone(value)}
-                                key={ability}
-                              >
+                              <span data-tone={growthTone(value)} key={ability}>
                                 <b>{abilityLabels[ability]}</b>
                                 {before === null || after === null ? (
                                   <> {signed(value)}</>
