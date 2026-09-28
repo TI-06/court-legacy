@@ -1493,3 +1493,61 @@
     display: grid;
   }
 }
+
+
+/* Phase46: calmer pre-match lineup palette. Orange is reserved for the final action. */
+.pre-match-lineup__court-shell {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(220 235 242 / 28%) 49.6%,
+      rgb(220 235 242 / 28%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(145deg, #2b4658, #1d3342);
+  border-color: #526d7c;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 9%),
+    0 8px 18px rgb(0 0 0 / 16%);
+}
+
+.pre-match-lineup__court-player {
+  background: #132638;
+  border-color: rgb(190 216 225 / 13%);
+  box-shadow: 0 3px 9px rgb(0 0 0 / 15%);
+}
+
+.pre-match-lineup__court-player-top b {
+  color: #d9f1f3;
+  background: #306873;
+}
+
+.pre-match-lineup__court-player-top small,
+.pre-match-lineup__court-player > small {
+  color: #9bafb8;
+}
+
+.pre-match-lineup__libero-card {
+  background: #172a39;
+  border-color: rgb(194 164 91 / 24%);
+}
+
+.pre-match-lineup__libero-card > b {
+  color: #f0e1ba;
+  background: #705d32;
+}
+
+.pre-match-lineup__preset-grid button:active,
+.pre-match-lineup__saved-presets button:not(:disabled) {
+  color: #cce9ee;
+  background: rgb(67 139 151 / 10%);
+  border-color: rgb(93 163 174 / 24%);
+}
+
+.pre-match-lineup__game-nav button[aria-pressed="true"] {
+  color: #e9f7f8;
+  background: #2e6670;
+  border-color: #3f7d87;
+  box-shadow: none;
+}
