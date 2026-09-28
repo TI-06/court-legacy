@@ -102,6 +102,7 @@ import {
   type ScoutingBoardResponse,
 } from "../services/api/GameApiClient";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
+import { BottomSheet } from "../ui/BottomSheet";
 import { GamePageFrame } from "../ui/shell/GamePageFrame";
 import type { AppTab } from "../ui/shell/appNavigation";
 
@@ -133,6 +134,13 @@ type PreMatchContext =
       opponentStrength: number;
       opponentTactics?: PublicTacticSummary;
     };
+type PositionConversionCompletionView = {
+  playerId: PlayerId;
+  displayName: string;
+  fromPosition: Position;
+  toPosition: Position;
+};
+
 type ShopPendingAction = "purchase" | "use";
 type ShopRetryRequest =
   | { action: "purchase"; request: ShopPurchaseRequest }
@@ -205,6 +213,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<PendingMatchPresentation | null>(null);
   const [matchGrowthSummary, setMatchGrowthSummary] =
     useState<MatchGrowthSummary | null>(null);
+  const [
+    positionConversionCompletions,
+    setPositionConversionCompletions,
+  ] = useState<PositionConversionCompletionView[]>([]);
   const [matchView, setMatchView] = useState<MatchView>("practice");
   const [officialTournamentView, setOfficialTournamentView] =
     useState<OfficialTournamentView | null>(null);
@@ -1196,6 +1208,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     matchTactics?: MatchTacticPlan,
   ) => {
     setMatchGrowthSummary(null);
+    const stateBeforeAdvance = cloudSession.snapshot.state;
     const response = await cloudSession.runAction(
       {
         type: "advance-week",
@@ -1205,6 +1218,35 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       "練習を実施して次の週へ進めています…",
     );
     if (!response) return;
+
+    const conversionCompletions =
+      stateBeforeAdvance.schools[stateBeforeAdvance.userSchoolId]?.playerIds.flatMap(
+        (playerId) => {
+          const beforePlayer = stateBeforeAdvance.players[playerId];
+          const afterPlayer = response.game.state.players[playerId];
+          const plan = beforePlayer?.positionConversion;
+          if (
+            !beforePlayer ||
+            !afterPlayer ||
+            !plan ||
+            beforePlayer.preferredPosition === afterPlayer.preferredPosition ||
+            afterPlayer.preferredPosition !== plan.targetPosition
+          ) {
+            return [];
+          }
+          return [
+            {
+              playerId,
+              displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
+              fromPosition: beforePlayer.preferredPosition,
+              toPosition: afterPlayer.preferredPosition,
+            } satisfies PositionConversionCompletionView,
+          ];
+        },
+      ) ?? [];
+    if (conversionCompletions.length > 0) {
+      setPositionConversionCompletions(conversionCompletions);
+    }
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
@@ -1663,6 +1705,23 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       >
         {content}
       </GamePageFrame>
+      <BottomSheet
+        open={positionConversionCompletions.length > 0}
+        title="ポジション転向完了"
+        description="新しい役割を身につけました"
+        onClose={() => setPositionConversionCompletions([])}
+      >
+        <div className="position-conversion-complete">
+          {positionConversionCompletions.map((item) => (
+            <article key={item.playerId}>
+              <strong>{item.displayName}</strong>
+              <span>
+                {item.fromPosition} <b>→</b> {item.toPosition}
+              </span>
+            </article>
+          ))}
+        </div>
+      </BottomSheet>
       <CalendarSheet
         onAdvanceWeek={advanceWeek}
         onClose={() => setCalendarOpen(false)}
