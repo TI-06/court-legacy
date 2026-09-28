@@ -534,6 +534,21 @@ const notificationPlayerSchema = z
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    abilityResults: z
+      .array(
+        z
+          .object({
+            ability: abilityKeySchema,
+            before: z.number().int().min(0).max(100),
+            after: z.number().int().min(0).max(100),
+            delta: z.number().int(),
+            beforeGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+            afterGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+          })
+          .strict(),
+      )
+      .max(10)
+      .optional(),
     rankUps: z
       .array(
         z
