@@ -1903,3 +1903,106 @@
     font-size: 10px;
   }
 }
+
+
+/* Phase46: position conversion progress and calmer hierarchy. */
+.player-roster__info-badge--conversion {
+  color: #bfe7ee;
+  background: rgb(69 145 157 / 14%);
+  border-color: rgb(112 190 201 / 25%);
+}
+
+.player-position-conversion {
+  display: grid;
+  min-width: 0;
+  padding: 10px 11px;
+  gap: 8px;
+  background: #102238;
+  border: 1px solid rgb(130 168 184 / 18%);
+  border-radius: 12px;
+}
+
+.player-position-conversion__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.player-position-conversion__heading > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.player-position-conversion__heading span,
+.player-position-conversion p,
+.player-position-conversion__progress {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+}
+
+.player-position-conversion__heading strong {
+  color: #eef7fa;
+  font-size: 14px;
+}
+
+.player-position-conversion__heading > b {
+  color: #9bd4dc;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.player-position-conversion p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.player-position-conversion__progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-position-conversion__progress strong {
+  color: #dff6f8;
+}
+
+.player-position-conversion__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.player-position-conversion__choices button {
+  display: grid;
+  min-height: 48px;
+  padding: 7px 9px;
+  gap: 2px;
+  color: #eef7fa;
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.player-position-conversion__choices button strong {
+  font-size: 12px;
+}
+
+.player-position-conversion__choices button span {
+  font-size: 9px;
+}
+
+.player-position-conversion__cancel {
+  min-height: 38px;
+  color: #d6e6eb;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9px;
+}
