@@ -309,7 +309,7 @@ describe("Phase16 match command decision panel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "戦術変更" }));
     const dialog = screen.getByRole("dialog", { name: "戦術変更" });
-    const presets = within(dialog).getByRole("group", {
+    const presets = within(dialog).getByRole("region", {
       name: "戦術プリセット",
     });
     expect(within(presets).getByRole("button", { name: /安定/ })).toBeVisible();
