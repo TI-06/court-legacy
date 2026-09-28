@@ -175,7 +175,9 @@ export function cancelPositionConversion(
   state: GameState,
   playerId: PlayerId,
 ): GameState {
-  const current = { ...(state.teamPlanning.positionConversionsByPlayerId ?? {}) };
+  const current = {
+    ...(state.teamPlanning.positionConversionsByPlayerId ?? {}),
+  };
   if (!current[playerId]) return state;
   delete current[playerId];
   return {
@@ -187,9 +189,7 @@ export function cancelPositionConversion(
   };
 }
 
-export function progressPositionConversionsWeekly(
-  state: GameState,
-): GameState {
+export function progressPositionConversionsWeekly(state: GameState): GameState {
   const plans = state.teamPlanning.positionConversionsByPlayerId ?? {};
   const activeEntries = Object.entries(plans) as Array<
     [PlayerId, PositionConversionPlan]
@@ -216,7 +216,9 @@ export function progressPositionConversionsWeekly(
     const progressRatio = weeksCompleted / Math.max(1, plan.weeksRequired);
     const targetAptitude = Math.max(
       player.positionAptitudes[plan.targetPosition],
-      Math.round(plan.startingAptitude + (75 - plan.startingAptitude) * progressRatio),
+      Math.round(
+        plan.startingAptitude + (75 - plan.startingAptitude) * progressRatio,
+      ),
     );
     const completed = weeksCompleted >= plan.weeksRequired;
 
