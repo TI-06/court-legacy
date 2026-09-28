@@ -4,7 +4,7 @@ import {
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
 import type { GameState } from "../../domain/model/GameState";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   RotationSlot,
@@ -53,6 +53,15 @@ const courtOrder = [
   4, 3, 2, 5, 6, 1,
 ] as const satisfies readonly RotationSlot[];
 
+const rotationRoles: Record<RotationSlot, Position> = {
+  1: "S",
+  2: "MB",
+  3: "MB",
+  4: "OH",
+  5: "OH",
+  6: "OP",
+};
+
 type LineupPickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
@@ -76,10 +85,12 @@ function playerName(player: Player): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
+function playerOverallValue(player: Player): number {
+  return Math.round(calculatePlayerDisplayPower(player) / 100);
+}
+
 function playerOverallGrade(player: Player): string {
-  return ratingToPlayerGrade(
-    Math.round(calculatePlayerDisplayPower(player) / 100),
-  );
+  return ratingToPlayerGrade(playerOverallValue(player));
 }
 
 export function PreMatchLineupScreen({
@@ -552,8 +563,8 @@ export function PreMatchLineupScreen({
                   type="button"
                 >
                   <span className="pre-match-lineup__court-player-top">
-                    <b>R{slot}</b>
-                    <small>{player.preferredPosition}</small>
+                    <b>{rotationRoles[slot]}</b>
+                    <small>R{slot}</small>
                   </span>
                   <strong>{player.lastName}</strong>
                   {specialAbilityBadges.length > 0 ? (
@@ -579,7 +590,13 @@ export function PreMatchLineupScreen({
                     {condition.icon} {condition.label}
                   </span>
                   <small>
-                    {player.grade}年・総合 {playerOverallGrade(player)}
+                    本{player.preferredPosition}・適
+                    {ratingToPlayerGrade(
+                      player.positionAptitudes[rotationRoles[slot]],
+                    )}
+                    {player.positionAptitudes[rotationRoles[slot]]}・総
+                    {playerOverallGrade(player)}
+                    {playerOverallValue(player)}・{player.heightCm}cm
                   </small>
                 </button>
               );
@@ -612,7 +629,10 @@ export function PreMatchLineupScreen({
                 {liberoCondition.label}
               </em>
             </span>
-            <strong>総合 {playerOverallGrade(liberoPlayer)}</strong>
+            <strong>
+              総合 {playerOverallGrade(liberoPlayer)}
+              {playerOverallValue(liberoPlayer)}
+            </strong>
           </button>
         ) : null}
       </section>
@@ -648,6 +668,7 @@ export function PreMatchLineupScreen({
                 <small>
                   {condition.icon}
                   {condition.label}・総合 {playerOverallGrade(player)}
+                  {playerOverallValue(player)}
                 </small>
               </article>
             );
