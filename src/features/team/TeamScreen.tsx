@@ -634,7 +634,11 @@ export function TeamScreen({
                             ROTATION_ROLES[assignment.slot]
                           ],
                         )}
-                        {player.positionAptitudes[ROTATION_ROLES[assignment.slot]]}
+                        {
+                          player.positionAptitudes[
+                            ROTATION_ROLES[assignment.slot]
+                          ]
+                        }
                         ・総{ratingToGrade(playerOverall(player))}
                         {playerOverall(player)}・{player.heightCm}cm
                       </span>
