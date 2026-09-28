@@ -27,10 +27,10 @@ test("shop uses a compact two-column card grid on mobile", async ({ page }) => {
 
   const products = page.locator('[aria-label="商品一覧"]');
   await expect(products).toBeVisible();
-  const productColumns = await products.evaluate((element) =>
-    getComputedStyle(element).gridTemplateColumns
-      .split(" ")
-      .filter(Boolean).length,
+  const productColumns = await products.evaluate(
+    (element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean)
+        .length,
   );
   expect(productColumns).toBe(2);
 
@@ -41,10 +41,10 @@ test("shop uses a compact two-column card grid on mobile", async ({ page }) => {
 
   const inventory = page.locator('[aria-label="所持品一覧"]');
   await expect(inventory).toBeVisible();
-  const inventoryColumns = await inventory.evaluate((element) =>
-    getComputedStyle(element).gridTemplateColumns
-      .split(" ")
-      .filter(Boolean).length,
+  const inventoryColumns = await inventory.evaluate(
+    (element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean)
+        .length,
   );
   expect(inventoryColumns).toBe(2);
 });
