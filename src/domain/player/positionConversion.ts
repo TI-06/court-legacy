@@ -5,9 +5,7 @@ import type { PlayerId } from "../model/identifiers";
 export class PositionConversionError extends Error {
   constructor(
     public readonly code:
-      | "player-not-found"
-      | "same-position"
-      | "already-converting",
+      "player-not-found" | "same-position" | "already-converting",
     message: string,
   ) {
     super(message);
@@ -29,7 +27,10 @@ function conversionWeeks(player: Player, targetPosition: Position): number {
             : aptitude >= 30
               ? 7
               : 8;
-  return Math.max(2, base - (player.growthTypeId === "growth.conversion" ? 1 : 0));
+  return Math.max(
+    2,
+    base - (player.growthTypeId === "growth.conversion" ? 1 : 0),
+  );
 }
 
 export function startPositionConversion(
@@ -39,7 +40,10 @@ export function startPositionConversion(
 ): GameState {
   const player = state.players[playerId];
   if (!player) {
-    throw new PositionConversionError("player-not-found", "選手が見つかりません");
+    throw new PositionConversionError(
+      "player-not-found",
+      "選手が見つかりません",
+    );
   }
   if (player.preferredPosition === targetPosition) {
     throw new PositionConversionError(
