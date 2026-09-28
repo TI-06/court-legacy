@@ -217,7 +217,8 @@ export function autoSelectTeam(input: AutoSelectTeamInput): TeamSelection {
   }
 
   const naturalLibero = chooseLibero(eligible);
-  const rotation = buildVolleyballRotation(eligible, naturalLibero?.id ?? null);
+  const reservedLiberoId = naturalLibero?.id ?? null;
+  const rotation = buildVolleyballRotation(eligible, reservedLiberoId);
   const rotationIds = new Set(
     rotation.map((assignment) => assignment.playerId),
   );
