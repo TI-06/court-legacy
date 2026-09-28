@@ -48,6 +48,9 @@ describe("game state codec", () => {
                   trustChange: 1,
                   injured: false,
                   abilityChanges: { jump: 1 },
+                  abilityValues: {
+                    jump: { before: 49, after: 50, delta: 1 },
+                  },
                   rankUps: [
                     {
                       area: "jump" as const,
@@ -280,6 +283,33 @@ describe("game state codec", () => {
     expect(decoded.players[playerId]!.hiddenTraitAssignmentInitialized).toBe(
       true,
     );
+  });
+
+  it("round-trips an in-progress position conversion without changing older players", () => {
+    const state = structuredClone(createDemoGame());
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    const targetPosition = player.preferredPosition === "S" ? "OH" : "S";
+    player.positionConversion = {
+      targetPosition,
+      startedDate: state.date,
+      totalWeeks: 5,
+      remainingWeeks: 3,
+      startingAptitude: player.positionAptitudes[targetPosition],
+    };
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.players[playerId]!.positionConversion).toEqual(
+      player.positionConversion,
+    );
+
+    const legacyShape = structuredClone(state);
+    delete legacyShape.players[playerId]!.positionConversion;
+    expect(
+      decodeGameState(JSON.stringify(legacyShape)).players[playerId]!
+        .positionConversion,
+    ).toBeUndefined();
   });
 
   it("rejects corrupted JSON instead of returning a partial state", () => {
