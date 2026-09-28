@@ -91,6 +91,20 @@ describe("game notifications", () => {
       trustChange: 1,
       injured: false,
       abilityChanges: { serve: 2, jump: 1 },
+      abilityValues: {
+        serve: {
+          before: Math.round(player.abilities.serve),
+          after: Math.min(100, Math.round(player.abilities.serve) + 2),
+          fromGrade: expect.any(String),
+          toGrade: expect.any(String),
+        },
+        jump: {
+          before: Math.round(player.abilities.jump),
+          after: Math.min(100, Math.round(player.abilities.jump) + 1),
+          fromGrade: expect.any(String),
+          toGrade: expect.any(String),
+        },
+      },
     });
   });
 
@@ -135,6 +149,12 @@ describe("game notifications", () => {
       data: gameData,
     });
 
+    expect(notification.payload.players[0]?.abilityValues?.jump).toEqual({
+      before: 49,
+      after: 50,
+      fromGrade: "E",
+      toGrade: "D",
+    });
     expect(notification.payload.players[0]?.rankUps).toEqual([
       {
         area: "jump",
