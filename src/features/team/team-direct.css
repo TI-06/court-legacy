@@ -1551,7 +1551,11 @@
 }
 
 .court-player-button__meta {
+  overflow: visible;
   color: #b9c8d0;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .libero-player-button {
