@@ -78,7 +78,7 @@ const teamPlanningSchema = z
             fromPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
             targetPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
             completedWeeks: z.number().int().nonnegative(),
-            requiredWeeks: z.number().int().min(4).max(10),
+            requiredWeeks: z.number().int().min(3).max(10),
           })
           .strict(),
       )
