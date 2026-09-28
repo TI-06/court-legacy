@@ -5,6 +5,8 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import type { MatchGrowthNotification } from "../../domain/notifications/gameNotifications";
+import { BottomSheet } from "../../ui/BottomSheet";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
@@ -43,6 +45,19 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const matchGrowthAbilityLabels = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+} as const;
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -101,6 +116,7 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [matchGrowthDismissed, setMatchGrowthDismissed] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -132,6 +148,13 @@ function MatchScreenContent({
     : visibleEventIndex;
   const segmentRevealed = revealedEventIndex >= lastEventIndex;
   const matchComplete = Boolean(result?.analysis && segmentRevealed);
+  const matchGrowthNotification = result
+    ? (state.notifications.items.find(
+        (item): item is MatchGrowthNotification =>
+          item.type === "match-growth" &&
+          String(item.payload.matchId) === String(result.match.id),
+      ) ?? null)
+    : null;
   const decisionReady = Boolean(
     result &&
     segmentRevealed &&
@@ -391,7 +414,8 @@ function MatchScreenContent({
   }
 
   return (
-    <main
+    <>
+      <main
       className={`app-content match-screen${
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
@@ -769,6 +793,50 @@ function MatchScreenContent({
           </section>
         </>
       )}
-    </main>
+      </main>
+      <BottomSheet
+        description="出場経験による能力成長です"
+        onClose={() => setMatchGrowthDismissed(true)}
+        open={
+          matchComplete &&
+          matchGrowthNotification !== null &&
+          !matchGrowthDismissed
+        }
+        title="試合後の成長"
+      >
+        {matchGrowthNotification ? (
+          <section className="match-growth-result" aria-label="試合後の能力成長">
+            <div className="match-growth-result__summary">
+              <span>成長した選手</span>
+              <strong>{matchGrowthNotification.payload.players.length}人</strong>
+            </div>
+            <div className="match-growth-result__players">
+              {matchGrowthNotification.payload.players.map((player) => (
+                <article key={player.playerId}>
+                  <header>
+                    <strong>{player.displayName}</strong>
+                    <span>
+                      {player.grade}年・{player.preferredPosition}
+                    </span>
+                  </header>
+                  <div>
+                    {player.changes.map((change) => (
+                      <span key={change.ability}>
+                        <b>{matchGrowthAbilityLabels[change.ability]}</b>
+                        <em>
+                          {change.before} {change.beforeGrade} → {change.after}{" "}
+                          {change.afterGrade}
+                        </em>
+                        <strong>+{change.delta}</strong>
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+      </BottomSheet>
+    </>
   );
 }
