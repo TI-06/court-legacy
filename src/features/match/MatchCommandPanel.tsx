@@ -446,9 +446,11 @@ export function MatchCommandPanel({
                 <strong>{playerName(encouragementRecommendation)}</strong>
                 <small>
                   疲労{encouragementRecommendation.fatigue}・
-                  {getPlayerConditionPresentation(
-                    encouragementRecommendation.condition,
-                  ).label}
+                  {
+                    getPlayerConditionPresentation(
+                      encouragementRecommendation.condition,
+                    ).label
+                  }
                 </small>
               </button>
             ) : null}
@@ -539,25 +541,31 @@ export function MatchCommandPanel({
             <span>
               サーブ
               <strong>
-                {serveTacticOptions.find(
-                  (option) => option.value === tacticsDraft.serve,
-                )?.label}
+                {
+                  serveTacticOptions.find(
+                    (option) => option.value === tacticsDraft.serve,
+                  )?.label
+                }
               </strong>
             </span>
             <span>
               攻撃
               <strong>
-                {attackTacticOptions.find(
-                  (option) => option.value === tacticsDraft.attack,
-                )?.label}
+                {
+                  attackTacticOptions.find(
+                    (option) => option.value === tacticsDraft.attack,
+                  )?.label
+                }
               </strong>
             </span>
             <span>
               ブロック
               <strong>
-                {blockTacticOptions.find(
-                  (option) => option.value === tacticsDraft.block,
-                )?.label}
+                {
+                  blockTacticOptions.find(
+                    (option) => option.value === tacticsDraft.block,
+                  )?.label
+                }
               </strong>
             </span>
           </div>
