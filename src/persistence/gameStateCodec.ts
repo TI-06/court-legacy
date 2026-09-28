@@ -522,6 +522,17 @@ const emptyRelationshipTrainingModifierSummary = {
   capped: false,
 };
 
+const abilityValueChangeSchema = z
+  .object({
+    ability: abilityKeySchema,
+    before: z.number().int().min(0).max(100),
+    after: z.number().int().min(0).max(100),
+    delta: z.number().int(),
+    beforeGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+    afterGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+  })
+  .strict();
+
 const notificationPlayerSchema = z
   .object({
     playerId: z.string().min(1),
@@ -534,6 +545,7 @@ const notificationPlayerSchema = z
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    abilityValueChanges: z.array(abilityValueChangeSchema).max(10).default([]),
     rankUps: z
       .array(
         z
@@ -568,6 +580,36 @@ const trainingResultNotificationSchema = z
         totalFatigueChange: z.number().int(),
         injuredCount: z.number().int().nonnegative(),
         players: z.array(notificationPlayerSchema),
+      })
+      .strict(),
+  })
+  .strict();
+
+const matchGrowthNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("match-growth"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        matchId: z.string().min(1),
+        players: z
+          .array(
+            z
+              .object({
+                playerId: playerIdSchema,
+                displayName: z.string().min(1),
+                grade: z.number().int().min(1).max(3),
+                preferredPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+                changes: z.array(abilityValueChangeSchema).min(1).max(10),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(64),
       })
       .strict(),
   })
@@ -711,6 +753,7 @@ const characterTraitDiscoveredNotificationSchema = z
 
 const gameNotificationSchema = z.discriminatedUnion("type", [
   trainingResultNotificationSchema,
+  matchGrowthNotificationSchema,
   concernResolutionNotificationSchema,
   specialRelationshipNotificationSchema,
   characterTraitDiscoveredNotificationSchema,
