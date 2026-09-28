@@ -496,3 +496,43 @@
     display: none;
   }
 }
+
+
+/* Phase46: make exact ability before/after values readable at a glance. */
+.training-result-notification__abilities span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label delta"
+    "value delta";
+  align-items: center;
+  min-width: min(100%, 176px);
+  gap: 1px 7px;
+}
+
+.training-result-notification__abilities span > small {
+  grid-area: label;
+  color: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  opacity: 0.78;
+}
+
+.training-result-notification__abilities span > strong {
+  grid-area: value;
+  color: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.training-result-notification__abilities span > strong em {
+  padding-inline: 4px;
+  font-style: normal;
+  opacity: 0.55;
+}
+
+.training-result-notification__abilities span > b {
+  grid-area: delta;
+  font-size: 12px;
+  white-space: nowrap;
+}
