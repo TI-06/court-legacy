@@ -122,6 +122,40 @@ describe("ScoutingScreen", () => {
     expect(screen.queryByText(/monster|generational|potential 96/)).toBeNull();
   });
 
+  it("highlights genius candidates in both active and committed scouting lists", () => {
+    const geniusReports: ScoutReport[] = [
+      { ...reports[0]!, isGenerationalTalent: true },
+      { ...reports[1]!, isGenerationalTalent: true },
+    ];
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        recruitingCandidateId={null}
+        reports={geniusReports}
+        state={stateWithCommitted([candidateB])}
+      />,
+    );
+
+    const active = screen
+      .getByRole("region", { name: "スカウト候補一覧" })
+      .querySelector("article.scouting-card--genius");
+    expect(active).not.toBeNull();
+    expect(within(active as HTMLElement).getByText("天才")).toBeVisible();
+
+    const committed = screen.getByRole("region", {
+      name: "獲得決定済み選手",
+    });
+    expect(
+      committed.querySelector("article.scouting-committed__card--genius"),
+    ).not.toBeNull();
+    expect(within(committed).getByText("天才")).toBeVisible();
+  });
+
   it("shows discovered blue and red special abilities without exposing unknown ones", () => {
     const specialReports: ScoutReport[] = [
       {
@@ -438,7 +472,9 @@ describe("ScoutingScreen", () => {
     );
 
     const summary = screen.getByLabelText("スカウト状況");
-    expect(within(summary).getByText("残2回")).toBeVisible();
+    expect(within(summary).getByText("学校訪問 +12")).toBeVisible();
+    expect(within(summary).getByText("残2/4")).toBeVisible();
+    expect(within(summary).getByText("推薦 +24")).toBeVisible();
     expect(within(summary).getByText("使用済")).toBeVisible();
   });
 });
