@@ -1327,6 +1327,13 @@ export function PlayerHubScreen({
                     <small>
                       {player.grade}年・{player.preferredPosition}
                     </small>
+                    {player.positionConversion ? (
+                      <span className="player-roster__info-badge player-roster__info-badge--conversion">
+                        {player.preferredPosition}→
+                        {player.positionConversion.targetPosition} 残
+                        {player.positionConversion.remainingWeeks}週
+                      </span>
+                    ) : null}
                     {player.tier === "generational" ? (
                       <span className="player-roster__info-badge player-roster__info-badge--genius">
                         天才
@@ -1417,7 +1424,10 @@ export function PlayerHubScreen({
                 </span>
                 <span className="player-roster__overall">
                   <small>総合</small>
-                  <strong>{playerOverall(player)}</strong>
+                  <strong>
+                    {ratingToGrade(playerOverall(player))}
+                    {playerOverall(player)}
+                  </strong>
                 </span>
               </div>
               <div
