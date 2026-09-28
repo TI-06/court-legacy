@@ -12,6 +12,7 @@ import { isWeeklyActionCompleted } from "../domain/calendar/weekProgression";
 import type { MatchStepResult } from "../domain/match/simulateMatch";
 import type { GameState } from "../domain/model/GameState";
 import type { MatchCommand } from "../domain/model/Match";
+import type { Position } from "../domain/model/Player";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation, TeamTactics } from "../domain/model/School";
 import type {
@@ -599,6 +600,20 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-player-development-goal", playerId, goal },
       goal ? "育成目標を保存しています…" : "育成目標を解除しています…",
+    );
+  };
+
+  const startPlayerPositionConversion = async (
+    playerId: PlayerId,
+    targetPosition: Position,
+  ) => {
+    await cloudSession.runAction(
+      {
+        type: "start-position-conversion",
+        playerId,
+        targetPosition,
+      },
+      "ポジション転向を開始しています…",
     );
   };
 
@@ -1374,6 +1389,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
         onSetPlayerDevelopmentGoal={savePlayerDevelopmentGoal}
+        onStartPositionConversion={startPlayerPositionConversion}
         onSetTeamDefenseBias={saveTeamDefenseBias}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}
