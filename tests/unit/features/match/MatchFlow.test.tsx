@@ -201,7 +201,8 @@ describe("match flow", () => {
 
   it("opens exact match ability growth after the result is revealed", () => {
     const fixture = createMatchFixture();
-    const player = fixture.state.players[fixture.homeSelection.rotation[0]!.playerId]!;
+    const player =
+      fixture.state.players[fixture.homeSelection.rotation[0]!.playerId]!;
 
     render(
       <MatchScreen
@@ -259,12 +260,14 @@ describe("match flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
 
     const dialog = screen.getByRole("dialog", { name: "試合後の成長" });
-    expect(within(dialog).getByText(player.lastName + " " + player.firstName)).toBeVisible();
+    expect(
+      within(dialog).getByText(player.lastName + " " + player.firstName),
+    ).toBeVisible();
     expect(within(dialog).getByText(/C68.*C69/)).toBeVisible();
     expect(within(dialog).getByText(/B79.*A80/)).toBeVisible();
-    expect(screen.getByRole("region", { name: "試合後の成長" })).toHaveTextContent(
-      "能力成長 +2",
-    );
+    expect(
+      screen.getByRole("region", { name: "試合後の成長" }),
+    ).toHaveTextContent("能力成長 +2");
   });
 
   it("plays and pauses without changing the calculated result", () => {
