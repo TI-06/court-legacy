@@ -5,7 +5,10 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
+import type { AbilityKey } from "../../domain/validation/gameDataSchema";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
+import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
@@ -43,6 +46,19 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const matchGrowthAbilityLabels: Record<AbilityKey, string> = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+};
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -101,6 +117,8 @@ function MatchScreenContent({
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
+  const [growthSheetOpen, setGrowthSheetOpen] = useState(false);
+  const [growthSheetShown, setGrowthSheetShown] = useState(false);
   const result = presentation?.simulation ?? legacyResult;
   const homeSchool = state.schools[state.userSchoolId];
   if (!homeSchool) {
@@ -139,6 +157,17 @@ function MatchScreenContent({
     result.match.pendingCoachCommandForSchoolId === state.userSchoolId &&
     onCommand,
   );
+
+  useEffect(() => {
+    if (
+      matchComplete &&
+      !growthSheetShown &&
+      (presentation?.matchExperience?.length ?? 0) > 0
+    ) {
+      setGrowthSheetOpen(true);
+      setGrowthSheetShown(true);
+    }
+  }, [matchComplete, growthSheetShown, presentation?.matchExperience]);
 
   useEffect(() => {
     if (
@@ -750,6 +779,16 @@ function MatchScreenContent({
             </section>
           ) : null}
 
+          {presentation?.matchExperience?.length ? (
+            <button
+              className="match-growth-reopen"
+              onClick={() => setGrowthSheetOpen(true)}
+              type="button"
+            >
+              試合での成長を見る
+            </button>
+          ) : null}
+
           <section
             className="match-result-actions match-result-actions--fixed"
             data-testid="match-result-actions"
@@ -769,6 +808,44 @@ function MatchScreenContent({
           </section>
         </>
       )}
+
+      <BottomSheet
+        description="出場経験による能力成長です"
+        onClose={() => setGrowthSheetOpen(false)}
+        open={growthSheetOpen}
+        title="試合での成長"
+      >
+        <div className="match-growth-sheet">
+          {(presentation?.matchExperience ?? []).map((player) => (
+            <article
+              className="match-growth-sheet__player"
+              key={player.playerId}
+            >
+              <header>
+                <strong>{player.displayName}</strong>
+                <span>{player.preferredPosition}</span>
+              </header>
+              <div className="match-growth-sheet__changes">
+                {player.changes.map((change) => {
+                  const fromGrade = ratingToGrade(change.before);
+                  const toGrade = ratingToGrade(change.after);
+                  return (
+                    <div key={change.ability}>
+                      <span>{matchGrowthAbilityLabels[change.ability]}</span>
+                      <strong>
+                        {change.before} {fromGrade}
+                        <em aria-hidden="true">→</em>
+                        {change.after} {toGrade}
+                      </strong>
+                      <b>+{change.after - change.before}</b>
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+          ))}
+        </div>
+      </BottomSheet>
     </main>
   );
 }
