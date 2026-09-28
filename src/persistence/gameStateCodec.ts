@@ -56,6 +56,8 @@ const savedLineupSlotSchema = z.union([
   z.literal(3),
 ]);
 
+const playerPositionSchema = z.enum(["OH", "MB", "OP", "S", "L"]);
+
 const teamPlanningSchema = z
   .object({
     developmentPriorityPlayerIds: z.array(playerIdSchema).max(3),
@@ -66,6 +68,20 @@ const teamPlanningSchema = z
           .object({
             area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
             targetGrade: z.enum(["S", "A", "B", "C", "D", "E", "F", "G"]),
+          })
+          .strict(),
+      )
+      .optional(),
+    positionConversionsByPlayerId: z
+      .record(
+        playerIdSchema,
+        z
+          .object({
+            fromPosition: playerPositionSchema,
+            targetPosition: playerPositionSchema,
+            weeksRequired: z.number().int().min(3).max(8),
+            weeksCompleted: z.number().int().min(0).max(8),
+            startingAptitude: z.number().int().min(0).max(100),
           })
           .strict(),
       )
@@ -527,13 +543,27 @@ const notificationPlayerSchema = z
     playerId: z.string().min(1),
     displayName: z.string().min(1),
     grade: z.number().int().min(1).max(3),
-    preferredPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+    preferredPosition: playerPositionSchema,
     totalAbilityGrowth: z.number().int().nonnegative(),
     fatigueChange: z.number().int(),
     conditionChange: z.number().int(),
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    abilityResults: z
+      .partialRecord(
+        abilityKeySchema,
+        z
+          .object({
+            before: z.number().int().min(0).max(100),
+            after: z.number().int().min(0).max(100),
+            beforeGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+            afterGrade: z.enum(["G", "F", "E", "D", "C", "B", "A", "S"]),
+            change: z.number().int(),
+          })
+          .strict(),
+      )
+      .optional(),
     rankUps: z
       .array(
         z
