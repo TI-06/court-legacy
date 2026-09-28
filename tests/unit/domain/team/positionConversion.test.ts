@@ -44,18 +44,18 @@ describe("Phase46 position conversion", () => {
 
     state = progressPositionConversionsWeekly(state);
     expect(state.players[playerId]!.preferredPosition).toBe(originalPosition);
-    expect(state.players[playerId]!.positionAptitudes[targetPosition]).toBeGreaterThan(
-      50,
-    );
+    expect(
+      state.players[playerId]!.positionAptitudes[targetPosition],
+    ).toBeGreaterThan(50);
 
     for (let week = 1; week < 5; week += 1) {
       state = progressPositionConversionsWeekly(state);
     }
 
     expect(state.players[playerId]!.preferredPosition).toBe(targetPosition);
-    expect(state.players[playerId]!.positionAptitudes[targetPosition]).toBeGreaterThanOrEqual(
-      75,
-    );
+    expect(
+      state.players[playerId]!.positionAptitudes[targetPosition],
+    ).toBeGreaterThanOrEqual(75);
     expect(
       state.teamPlanning.positionConversionsByPlayerId?.[playerId],
     ).toBeUndefined();
@@ -78,7 +78,8 @@ describe("Phase46 position conversion", () => {
 
     state = startPositionConversion(state, playerId, targetPosition);
     expect(
-      state.teamPlanning.positionConversionsByPlayerId?.[playerId]?.weeksRequired,
+      state.teamPlanning.positionConversionsByPlayerId?.[playerId]
+        ?.weeksRequired,
     ).toBe(4);
   });
 });
