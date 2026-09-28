@@ -15,23 +15,22 @@ describe("position conversion", () => {
     const targetPosition = fromPosition === "S" ? "OH" : "S";
     const oldAptitude = player.positionAptitudes[fromPosition];
 
-    let current = startPlayerPositionConversion(state, playerId, targetPosition);
-    const plan = current.teamPlanning.positionConversionsByPlayerId?.[playerId]!;
+    let current = startPlayerPositionConversion(
+      state,
+      playerId,
+      targetPosition,
+    );
+    const plan =
+      current.teamPlanning.positionConversionsByPlayerId?.[playerId]!;
     expect(plan.requiredWeeks).toBeGreaterThanOrEqual(4);
     expect(plan.requiredWeeks).toBeLessThanOrEqual(10);
 
     for (let week = 0; week < plan.requiredWeeks - 1; week += 1) {
-      current = progressPositionConversions(
-        current,
-        new Set([playerId]),
-      ).state;
+      current = progressPositionConversions(current, new Set([playerId])).state;
       expect(current.players[playerId]!.preferredPosition).toBe(fromPosition);
     }
 
-    const completed = progressPositionConversions(
-      current,
-      new Set([playerId]),
-    );
+    const completed = progressPositionConversions(current, new Set([playerId]));
     expect(completed.completedPlayerIds).toEqual([playerId]);
     expect(completed.state.players[playerId]!.preferredPosition).toBe(
       targetPosition,
