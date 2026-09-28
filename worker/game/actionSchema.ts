@@ -212,6 +212,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
       slot: savedLineupSlotSchema,
     })
     .strict(),
+  z
+    .object({
+      type: z.literal("start-position-conversion"),
+      playerId: playerIdSchema,
+      targetPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+    })
+    .strict(),
   z.object({ type: z.literal("practice-match") }).strict(),
   z
     .object({ type: z.literal("match-command"), command: matchCommandSchema })
@@ -297,6 +304,11 @@ export type GameAction =
       selection: TeamSelection;
     }
   | { type: "delete-lineup-preset"; slot: SavedLineupSlot }
+  | {
+      type: "start-position-conversion";
+      playerId: PlayerId;
+      targetPosition: "OH" | "MB" | "OP" | "S" | "L";
+    }
   | { type: "practice-match" }
   | { type: "match-command"; command: MatchCommand }
   | { type: "practice-offer-accept" }
