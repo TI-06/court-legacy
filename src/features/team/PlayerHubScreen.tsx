@@ -301,6 +301,9 @@ export function PlayerHubScreen({
   );
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
+  const [coachTargetPlayerIds, setCoachTargetPlayerIds] = useState<PlayerId[]>(
+    [],
+  );
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
 
@@ -351,8 +354,13 @@ export function PlayerHubScreen({
     )?.name ?? "全体";
 
   const trainingDraftCount = Object.keys(trainingDrafts).length;
+  const coachTargetIdSet = useMemo(
+    () => new Set(coachTargetPlayerIds),
+    [coachTargetPlayerIds],
+  );
   const coachRecommendationChangeCount = coachRecommendations.filter(
     (recommendation) =>
+      coachTargetIdSet.has(recommendation.playerId) &&
       trainingDrafts[recommendation.playerId] === undefined &&
       recommendation.instructionId !==
         persistedInstructionId(recommendation.playerId),
@@ -373,17 +381,51 @@ export function PlayerHubScreen({
     });
   };
 
-  const stageCoachDirective = (directive: CoachDevelopmentDirective) => {
-    if (trainingPending || trainingDone) return;
+  const setCoachTargetGroup = (grade: 1 | 2 | 3 | "all" | "none") => {
+    if (grade === "none") {
+      setCoachTargetPlayerIds([]);
+      return;
+    }
+    setCoachTargetPlayerIds(
+      players
+        .filter((player) => grade === "all" || player.grade === grade)
+        .map((player) => player.id),
+    );
+  };
 
-    setTrainingDrafts(() => {
-      const next: Record<string, string> = {};
+  const toggleCoachTarget = (playerId: PlayerId) => {
+    setCoachTargetPlayerIds((current) =>
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId],
+    );
+  };
+
+  const openCoachRecommendations = () => {
+    setCoachTargetPlayerIds(players.map((player) => player.id));
+    setCoachRecommendationsOpen(true);
+  };
+
+  const stageCoachDirective = (directive: CoachDevelopmentDirective) => {
+    if (
+      trainingPending ||
+      trainingDone ||
+      coachTargetPlayerIds.length === 0
+    ) {
+      return;
+    }
+
+    setTrainingDrafts((current) => {
+      const next = { ...current };
       for (const player of players) {
+        if (!coachTargetIdSet.has(player.id)) continue;
         const instructionId =
           directive === "all-rounder"
             ? "instruction.overall"
             : positionSpecialistInstructionId[player.preferredPosition];
-        if (instructionId !== persistedInstructionId(player.id)) {
+        if (instructionId === persistedInstructionId(player.id)) {
+          delete next[player.id];
+        } else {
           next[player.id] = instructionId;
         }
       }
@@ -393,11 +435,18 @@ export function PlayerHubScreen({
   };
 
   const stageCoachRecommendations = () => {
-    if (trainingPending || trainingDone) return;
+    if (
+      trainingPending ||
+      trainingDone ||
+      coachTargetPlayerIds.length === 0
+    ) {
+      return;
+    }
 
     setTrainingDrafts((current) => {
       const next = { ...current };
       for (const recommendation of coachRecommendations) {
+        if (!coachTargetIdSet.has(recommendation.playerId)) continue;
         if (current[recommendation.playerId] !== undefined) continue;
         if (
           recommendation.instructionId ===
@@ -539,6 +588,7 @@ export function PlayerHubScreen({
 
   const coachRecommendationSheet = (
     <BottomSheet
+      className="player-coach-proposal-sheet"
       description={`監督育成力 ${school.coach.development}・${coachRecommendationQualityLabel(
         recommendationQuality,
       )}。育成目標、調子、年間コーチ、弱点の順に判断します。`}
@@ -553,7 +603,7 @@ export function PlayerHubScreen({
         >
           <div>
             <strong>育成方針を指示</strong>
-            <small>全選手の個人練習をまとめて設定</small>
+            <small>下で選んだ選手だけ個人練習をまとめて設定</small>
           </div>
           <div
             aria-label="コーチ育成方針を選択"
@@ -561,7 +611,11 @@ export function PlayerHubScreen({
             role="group"
           >
             <button
-              disabled={trainingPending || trainingDone}
+              disabled={
+                trainingPending ||
+                trainingDone ||
+                coachTargetPlayerIds.length === 0
+              }
               onClick={() => stageCoachDirective("position-specialist")}
               type="button"
             >
@@ -569,7 +623,11 @@ export function PlayerHubScreen({
               <small>役割に必要な能力を重点育成</small>
             </button>
             <button
-              disabled={trainingPending || trainingDone}
+              disabled={
+                trainingPending ||
+                trainingDone ||
+                coachTargetPlayerIds.length === 0
+              }
               onClick={() => stageCoachDirective("all-rounder")}
               type="button"
             >
@@ -578,6 +636,55 @@ export function PlayerHubScreen({
             </button>
           </div>
           <p>特化能力が上限に達した選手は、自動で全体育成へ切り替わります。</p>
+        </section>
+
+        <section
+          aria-label="提案を反映する選手"
+          className="player-coach-proposal__targets"
+        >
+          <div className="player-coach-proposal__targets-heading">
+            <strong>反映する選手</strong>
+            <span>{coachTargetPlayerIds.length}人選択中</span>
+          </div>
+          <div
+            aria-label="反映対象を学年で選択"
+            className="player-coach-proposal__target-groups"
+            role="group"
+          >
+            <button
+              aria-pressed={coachTargetPlayerIds.length === players.length}
+              onClick={() => setCoachTargetGroup("all")}
+              type="button"
+            >
+              全員
+            </button>
+            {([1, 2, 3] as const).map((grade) => {
+              const gradeIds = players
+                .filter((player) => player.grade === grade)
+                .map((player) => player.id);
+              const allSelected =
+                gradeIds.length > 0 &&
+                gradeIds.every((playerId) => coachTargetIdSet.has(playerId));
+              return (
+                <button
+                  aria-pressed={allSelected}
+                  key={grade}
+                  onClick={() => setCoachTargetGroup(grade)}
+                  type="button"
+                >
+                  {grade}年
+                </button>
+              );
+            })}
+            <button
+              aria-pressed={coachTargetPlayerIds.length === 0}
+              onClick={() => setCoachTargetGroup("none")}
+              type="button"
+            >
+              解除
+            </button>
+          </div>
+          <small>下の選手をタップすると1人ずつ追加・解除できます。</small>
         </section>
 
         <div className="player-coach-proposal__summary">
@@ -595,30 +702,41 @@ export function PlayerHubScreen({
             const changed =
               recommendation.instructionId !==
               effectiveInstructionId(recommendation.playerId);
+            const selected = coachTargetIdSet.has(recommendation.playerId);
             return (
-              <article
-                className={
-                  changed
-                    ? "player-coach-proposal__row player-coach-proposal__row--changed"
-                    : "player-coach-proposal__row"
-                }
+              <button
+                aria-label={`${playerName(player)}を反映対象${
+                  selected ? "から外す" : "に追加"
+                }`}
+                aria-pressed={selected}
+                className={`player-coach-proposal__row${
+                  changed ? " player-coach-proposal__row--changed" : ""
+                }${
+                  selected ? " player-coach-proposal__row--selected" : ""
+                }`}
                 key={recommendation.playerId}
+                onClick={() => toggleCoachTarget(recommendation.playerId)}
+                type="button"
               >
                 <div>
                   <strong>{playerName(player)}</strong>
-                  <small>{recommendation.reasonLabel}</small>
+                  <small>
+                    {player.grade}年・{player.preferredPosition}・
+                    {recommendation.reasonLabel}
+                  </small>
                 </div>
                 <span>
                   {currentInstruction}
                   {changed ? ` → ${recommendation.instructionName}` : " 維持"}
                 </span>
-              </article>
+              </button>
             );
           })}
         </div>
         <button
           className="player-coach-proposal__apply"
           disabled={
+            coachTargetPlayerIds.length === 0 ||
             coachRecommendationChangeCount === 0 ||
             trainingPending ||
             trainingDone
@@ -1332,7 +1450,7 @@ export function PlayerHubScreen({
           aria-label="コーチの個人練習提案"
           className="player-hub__coach-proposal"
           disabled={trainingPending || trainingDone}
-          onClick={() => setCoachRecommendationsOpen(true)}
+          onClick={openCoachRecommendations}
           type="button"
         >
           <span>COACH</span>
@@ -1379,6 +1497,18 @@ export function PlayerHubScreen({
               className="player-roster__row player-roster__row--compact"
               data-testid="roster-player-row"
               key={player.id}
+              onClick={(event) => {
+                const target = event.target as HTMLElement;
+                if (
+                  target.closest(
+                    "button, a, input, select, textarea, [role='button']",
+                  )
+                ) {
+                  return;
+                }
+                setDetailMode("ability");
+                setSelectedPlayerId(player.id);
+              }}
             >
               <div className="player-roster__main">
                 <span className="player-roster__number">{index + 1}</span>
