@@ -157,6 +157,26 @@ describe("ShopScreen", () => {
     expect(props.onUse).toHaveBeenCalledWith("fatigue-recovery");
   });
 
+  it("renders purchase and use feedback in an overlay so the item grid does not shift", () => {
+    const state = createDemoGame();
+    renderShop({
+      state,
+      resultMessage: "購入しました ✓",
+      latestUseResult: {
+        itemId: "training-efficiency-boost",
+        result: { pending: true, percent: 20 },
+      },
+    });
+
+    const feedback = screen.getByRole("status", {
+      name: "",
+    });
+    expect(feedback).toHaveClass("shop-screen__feedback-layer");
+    expect(feedback).toHaveTextContent("購入しました ✓");
+    expect(feedback).toHaveTextContent("次回練習の成長効率 +20%");
+    expect(screen.getByRole("region", { name: "商品一覧" })).toBeVisible();
+  });
+
   it("shows pending, success, and error states with retry controls", () => {
     const onRetry = vi.fn();
     renderShop({
