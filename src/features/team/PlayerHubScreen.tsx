@@ -477,7 +477,9 @@ export function PlayerHubScreen({
       ) : null}
 
       <div className="player-training-options">
-        {individualTrainingInstructions.map((item) => {
+        {individualTrainingInstructions
+          .filter((item) => !item.tags.includes("coach-only"))
+          .map((item) => {
           const selected =
             trainingPlayer !== null &&
             effectiveInstructionId(trainingPlayer.id) === item.id;
@@ -501,7 +503,7 @@ export function PlayerHubScreen({
               <small>{item.description}</small>
             </button>
           );
-        })}
+          })}
       </div>
     </BottomSheet>
   );
