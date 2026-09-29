@@ -45,7 +45,7 @@ function appendHistory(
           choiceId,
           visibleResultCodes: [],
         },
-      ].slice(-400),
+      ],
     },
   };
 }
