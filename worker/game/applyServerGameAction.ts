@@ -1,6 +1,4 @@
-import {
-  applyPlayerOpportunityResponses,
-} from "../../src/domain/dynamics/playerOpportunityPromises";
+import { applyPlayerOpportunityResponses } from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { Player } from "../../src/domain/model/Player";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { CloudGameSnapshot } from "../data/GameStore";
@@ -42,14 +40,14 @@ export function applyServerGameAction(
     teamSelection = validated.teamSelection;
   }
 
-  const stateWithOpportunityResponses =
-    action.playerOpportunityResponses?.length
-      ? applyPlayerOpportunityResponses(
-          snapshot.state,
-          teamSelection,
-          action.playerOpportunityResponses,
-        )
-      : snapshot.state;
+  const stateWithOpportunityResponses = action.playerOpportunityResponses
+    ?.length
+    ? applyPlayerOpportunityResponses(
+        snapshot.state,
+        teamSelection,
+        action.playerOpportunityResponses,
+      )
+    : snapshot.state;
 
   const state = action.matchTactics
     ? {
