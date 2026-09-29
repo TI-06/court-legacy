@@ -159,13 +159,21 @@ export function TrainingScreen({
   const secondInstruction =
     data.individualTrainingInstructions.get(secondInstructionId);
   const duplicatePlayers = firstPlayerId === secondPlayerId;
-  const canSave =
-    teamTrainingMenuId.length > 0 &&
+  const manualAssignmentsValid =
     Boolean(firstPlayer) &&
     Boolean(secondPlayer) &&
     firstInstructionId.length > 0 &&
     secondInstructionId.length > 0 &&
     !duplicatePlayers;
+  const coachAssignmentsValid =
+    Boolean(coachAssignments) &&
+    coachAssignments!.length === players.length &&
+    coachAssignments!.every((assignment) =>
+      players.some((player) => player.id === assignment.playerId),
+    );
+  const canSave =
+    teamTrainingMenuId.length > 0 &&
+    (coachAssignments ? coachAssignmentsValid : manualAssignmentsValid);
   const averageFatigue = Math.round(
     players.reduce((sum, player) => sum + player.fatigue, 0) /
       Math.max(1, players.length),
@@ -173,11 +181,10 @@ export function TrainingScreen({
 
   const plan: WeeklyPlan = {
     teamTrainingMenuId,
-    individualAssignments:
-      coachAssignments ?? [
-        { playerId: firstPlayerId, instructionId: firstInstructionId },
-        { playerId: secondPlayerId, instructionId: secondInstructionId },
-      ],
+    individualAssignments: coachAssignments ?? [
+      { playerId: firstPlayerId, instructionId: firstInstructionId },
+      { playerId: secondPlayerId, instructionId: secondInstructionId },
+    ],
   };
 
   const save = () => {
@@ -322,9 +329,13 @@ export function TrainingScreen({
         summary={
           completed
             ? "次の週へ進めます"
-            : selectedMenu && firstPlayer && secondPlayer
-              ? `${selectedMenu.name}｜${firstPlayer.lastName}・${secondPlayer.lastName}`
-              : "練習内容を設定してください"
+            : coachDirective === "position-specialist"
+              ? `${selectedMenu?.name ?? "チーム練習"}｜全選手・ポジション特化`
+              : coachDirective === "all-rounder"
+                ? `${selectedMenu?.name ?? "チーム練習"}｜全選手・オールラウンダー`
+                : selectedMenu && firstPlayer && secondPlayer
+                  ? `${selectedMenu.name}｜${firstPlayer.lastName}・${secondPlayer.lastName}`
+                  : "練習内容を設定してください"
         }
       />
 
@@ -528,18 +539,32 @@ export function TrainingScreen({
             <span>チーム練習</span>
             <strong>{selectedMenu?.name}</strong>
           </article>
-          <article>
-            <span>個人育成1</span>
-            <strong>
-              {firstPlayer?.lastName}・{firstInstruction?.name}
-            </strong>
-          </article>
-          <article>
-            <span>個人育成2</span>
-            <strong>
-              {secondPlayer?.lastName}・{secondInstruction?.name}
-            </strong>
-          </article>
+          {coachDirective ? (
+            <article>
+              <span>コーチ育成指示</span>
+              <strong>
+                全選手・
+                {coachDirective === "position-specialist"
+                  ? "ポジション特化"
+                  : "オールラウンダー"}
+              </strong>
+            </article>
+          ) : (
+            <>
+              <article>
+                <span>個人育成1</span>
+                <strong>
+                  {firstPlayer?.lastName}・{firstInstruction?.name}
+                </strong>
+              </article>
+              <article>
+                <span>個人育成2</span>
+                <strong>
+                  {secondPlayer?.lastName}・{secondInstruction?.name}
+                </strong>
+              </article>
+            </>
+          )}
           <button
             className="training-confirm-button"
             disabled={!canSave}
