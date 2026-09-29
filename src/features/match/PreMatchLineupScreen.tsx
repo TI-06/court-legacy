@@ -5,6 +5,10 @@ import {
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
 import { derivePlayerOpportunityRequests } from "../../domain/dynamics/playerOpportunityRequests";
+import type {
+  PlayerOpportunityResponse,
+  PlayerOpportunityResponseChoice,
+} from "../../domain/dynamics/playerOpportunityPromises";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -47,7 +51,11 @@ interface PreMatchLineupScreenProps {
   opponentSelection?: TeamSelection;
   opponentTactics?: PublicTacticSummary;
   pending: boolean;
-  onStart: (selection: TeamSelection, tactics: MatchTacticPlan) => void;
+  onStart: (
+    selection: TeamSelection,
+    tactics: MatchTacticPlan,
+    opportunityResponses: PlayerOpportunityResponse[],
+  ) => void;
   onCancel: () => void;
 }
 
@@ -122,6 +130,9 @@ export function PreMatchLineupScreen({
   );
   const [prepTab, setPrepTab] = useState<"lineup" | "tactics">("lineup");
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [opportunityResponses, setOpportunityResponses] = useState<
+    Partial<Record<PlayerId, PlayerOpportunityResponseChoice>>
+  >({});
 
   const strength = useMemo(
     () => calculateSelectionStrength(state, selection),
@@ -214,6 +225,20 @@ export function PreMatchLineupScreen({
       }),
     );
   };
+
+  const respondToOpportunityRequest = (
+    playerId: PlayerId,
+    choice: PlayerOpportunityResponseChoice,
+  ) => {
+    setOpportunityResponses((current) => ({
+      ...current,
+      [playerId]: choice,
+    }));
+    if (choice === "starter") {
+      prioritizeRequestedPlayer(playerId);
+    }
+  };
+
 
   const changeStarter = (slot: RotationSlot, nextPlayerId: PlayerId) => {
     const current = selection.rotation.find((item) => item.slot === slot);
@@ -505,23 +530,72 @@ export function PreMatchLineupScreen({
                     <b>{request.title}</b>
                     <small>{request.detail}</small>
                   </div>
-                  <button
-                    disabled={pending || Boolean(player.injury) || isActive}
-                    onClick={() => prioritizeRequestedPlayer(player.id)}
-                    type="button"
-                  >
-                    {player.injury
-                      ? "負傷中"
-                      : isActive
-                        ? "起用済み"
-                        : "優先起用"}
-                  </button>
+                  {request.kind === "promise" ? (
+                    <span className="pre-match-lineup__request-status">
+                      約束中
+                    </span>
+                  ) : (
+                    <div
+                      aria-label={`${playerName(player)}への返答`}
+                      className="pre-match-lineup__request-actions"
+                      role="group"
+                    >
+                      <button
+                        aria-pressed={
+                          opportunityResponses[player.id] === "starter"
+                        }
+                        disabled={pending || Boolean(player.injury)}
+                        onClick={() =>
+                          respondToOpportunityRequest(player.id, "starter")
+                        }
+                        type="button"
+                      >
+                        今回先発
+                      </button>
+                      <button
+                        aria-pressed={
+                          opportunityResponses[player.id] === "substitute"
+                        }
+                        disabled={pending || Boolean(player.injury)}
+                        onClick={() =>
+                          respondToOpportunityRequest(player.id, "substitute")
+                        }
+                        type="button"
+                      >
+                        途中出場
+                      </button>
+                      <button
+                        aria-pressed={
+                          opportunityResponses[player.id] === "next-match"
+                        }
+                        disabled={pending}
+                        onClick={() =>
+                          respondToOpportunityRequest(player.id, "next-match")
+                        }
+                        type="button"
+                      >
+                        次戦
+                      </button>
+                      <button
+                        aria-pressed={
+                          opportunityResponses[player.id] === "decline"
+                        }
+                        disabled={pending}
+                        onClick={() =>
+                          respondToOpportunityRequest(player.id, "decline")
+                        }
+                        type="button"
+                      >
+                        約束しない
+                      </button>
+                    </div>
+                  )}
                 </article>
               );
             })}
           </div>
           <p className="pre-match-lineup__request-note">
-            起用しない場合は現在の編成を維持できます。面談で役割継続を伝える選択肢もあります。
+            約束を守ると信頼・士気が上がり、破ると下がります。途中出場の約束は試合中の交代で判定されます。
           </p>
         </section>
       ) : null}
@@ -929,7 +1003,14 @@ export function PreMatchLineupScreen({
         className="pre-match-lineup__start"
         disabled={pending}
         onClick={() =>
-          onStart(cloneSelection(selection), cloneTactics(tactics))
+          onStart(
+            cloneSelection(selection),
+            cloneTactics(tactics),
+            Object.entries(opportunityResponses).map(([playerId, choice]) => ({
+              playerId: playerId as PlayerId,
+              choice,
+            })),
+          )
         }
         type="button"
       >
