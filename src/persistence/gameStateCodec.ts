@@ -378,6 +378,12 @@ const recruitingStateSchema = z
     recommendationUsed: z.boolean().optional(),
     scoutingSearchesUsed: z.number().int().nonnegative().optional(),
     extraScoutingSearchCredits: z.number().int().nonnegative().optional(),
+    pendingExtraScoutCandidates: z.number().int().nonnegative().optional(),
+    pendingGenerationalScoutCandidates: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional(),
     candidateEngagements: z
       .record(
         z.string().min(1),
