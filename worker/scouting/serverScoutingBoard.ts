@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../../src/data/gameData";
 import { generatePlayer } from "../../src/domain/generation/generatePlayer";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingSearchCriteria";
+import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
@@ -224,14 +225,43 @@ export function generateServerScoutingCandidates(
   state: GameState,
   criteria?: ScoutingSearchCriteria,
   searchSequence = 0,
+  bonuses: ScoutingSearchItemBonuses = {
+    extraCandidateCount: 0,
+    guaranteedGenerationalCount: 0,
+  },
 ): ScoutingCandidateTruth[] {
   const excludedFullNames = defaultExcludedFullNames(state);
-  const generated = Array.from({ length: CANDIDATE_COUNT + 6 }, (_, index) =>
+  const extraCandidateCount = Math.max(0, bonuses.extraCandidateCount);
+  const guaranteedGenerationalCount = Math.max(
+    0,
+    bonuses.guaranteedGenerationalCount,
+  );
+  const regionCount =
+    criteria?.region === "prefecture"
+      ? 4
+      : criteria?.region === "regional"
+        ? 5
+        : CANDIDATE_COUNT;
+  const resultCount = regionCount + extraCandidateCount;
+  const generationCount = Math.max(
+    CANDIDATE_COUNT + 6,
+    resultCount + guaranteedGenerationalCount + 6,
+  );
+  const forcedTierByIndex = new Map<number, RecruitTier>();
+  for (
+    let index = 1;
+    index <= Math.min(guaranteedGenerationalCount, generationCount);
+    index += 1
+  ) {
+    forcedTierByIndex.set(index, "generational");
+  }
+
+  const generated = Array.from({ length: generationCount }, (_, index) =>
     generateServerScoutingCandidateAtIndex(
       state,
       index + 1,
       excludedFullNames,
-      new Map(),
+      forcedTierByIndex,
       criteria,
       searchSequence,
     ),
@@ -274,13 +304,17 @@ export function generateServerScoutingCandidates(
   const ranked = [...preferred].sort(
     (left, right) => score(right) - score(left),
   );
-  const regionCount =
-    criteria?.region === "prefecture"
-      ? 4
-      : criteria?.region === "regional"
-        ? 5
-        : CANDIDATE_COUNT;
-  return ranked.slice(0, regionCount);
+  const guaranteed = generated.slice(
+    0,
+    Math.min(guaranteedGenerationalCount, resultCount),
+  );
+  const guaranteedIds = new Set(
+    guaranteed.map((candidate) => candidate.player.id),
+  );
+  return [
+    ...guaranteed,
+    ...ranked.filter((candidate) => !guaranteedIds.has(candidate.player.id)),
+  ].slice(0, resultCount);
 }
 
 function competitorCount(
