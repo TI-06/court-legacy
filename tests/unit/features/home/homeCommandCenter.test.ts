@@ -2,6 +2,7 @@ import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { markWeeklyActionCompleted } from "../../../../src/domain/calendar/weekProgression";
 import type { GameState } from "../../../../src/domain/model/GameState";
 import {
+  eventId,
   matchId,
   type GameDate,
 } from "../../../../src/domain/model/identifiers";
@@ -452,6 +453,32 @@ describe("selectHomeCommandCenter", () => {
       title: "シーズン目標達成！",
       detail: "公式戦2勝・年度末 +100",
     });
+  });
+
+  it("surfaces the latest player promise result in Home news", () => {
+    const state = createDemoGame();
+    state.weeklySchedule.practiceMatch.incomingOffer = null;
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    state.eventMemory.history.push({
+      eventId: eventId("event.reserve-promise-result"),
+      date: state.date,
+      actorPlayerIds: [playerId],
+      choiceId: "broken-starter",
+      visibleResultCodes: ["起用約束 未達成 信頼 -10 士気 -7"],
+    });
+
+    const news = select(state).news.find(
+      (item) => item.kind === "promise-result",
+    );
+
+    expect(news).toMatchObject({
+      kind: "promise-result",
+      title: "選手との約束を確認",
+    });
+    expect(news?.detail).toContain(`${player.lastName} ${player.firstName}`);
+    expect(news?.detail).toContain("信頼 -10");
+    expect(news?.detail).toContain("士気 -7");
   });
 
   it("shows the newest training result and significant growth at the >=5 threshold", () => {
