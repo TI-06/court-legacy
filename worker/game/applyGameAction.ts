@@ -15,6 +15,7 @@ import {
   TeamLeadershipValidationError,
 } from "../../src/domain/dynamics/setTeamLeadership";
 import { buildPveDynamicsReadinessByPlayerId } from "../../src/domain/dynamics/officialMatchDynamics";
+import { resolveCompletedMatchOpportunityPromises } from "../../src/domain/dynamics/playerOpportunityPromises";
 import { surfaceWeeklyEvent } from "../../src/domain/events/eventPipeline";
 import { resolveEventChoice } from "../../src/domain/events/resolveEventChoice";
 import {
@@ -1188,8 +1189,12 @@ function applyOfficialMatchCommand(
       resumedState,
       experiencedState,
     );
+    const promiseResolvedState = resolveCompletedMatchOpportunityPromises(
+      experiencedState,
+      simulation.match,
+    );
     const recorded = recordOfficialTournamentOutcome({
-      state: experiencedState,
+      state: promiseResolvedState,
       circuit: due.circuit,
       level: due.level,
       bracketMatchId: due.match.id,
