@@ -4,6 +4,7 @@ import "./app-shell.css";
 import { gameData } from "./createDemoGame";
 import { useGameSession } from "./useGameSession";
 import type { AcademicYearTransitionSummary } from "../domain/calendar/academicYearProgression";
+import type { PlayerOpportunityResponse } from "../domain/dynamics/playerOpportunityPromises";
 import type {
   AdvanceWeekOutcome,
   PendingMatchPresentation,
@@ -1187,12 +1188,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
   const executeAdvanceWeek = async (
     matchSelection?: TeamSelection,
     matchTactics?: MatchTacticPlan,
+    playerOpportunityResponses?: PlayerOpportunityResponse[],
   ) => {
     const response = await cloudSession.runAction(
       {
         type: "advance-week",
         ...(matchSelection ? { matchSelection } : {}),
         ...(matchTactics ? { matchTactics } : {}),
+        ...(playerOpportunityResponses?.length
+          ? { playerOpportunityResponses }
+          : {}),
       },
       "練習を実施して次の週へ進めています…",
     );
@@ -1341,7 +1346,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           setPreMatch(null);
           if (kind === "week") setActiveTab("home");
         }}
-        onStart={(selection, tactics) => {
+        onStart={(selection, tactics, opportunityResponses) => {
           if (preMatch.kind === "pvp") {
             const opponentSnapshotId = preMatch.opponentSnapshotId;
             void (async () => {
@@ -1350,7 +1355,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
             })();
             return;
           }
-          void executeAdvanceWeek(selection, tactics);
+          void executeAdvanceWeek(selection, tactics, opportunityResponses);
         }}
         opponentName={preMatch.opponentName}
         {...(preMatch.opponentStrength !== undefined
