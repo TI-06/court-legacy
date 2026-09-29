@@ -4,6 +4,7 @@ import type { MatchCommand, MatchState } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
+import { opportunityRequestByPlayerId } from "../../domain/dynamics/playerOpportunityRequests";
 import {
   calculatePlayerDisplayPower,
   summarizePlayerAbilities,
@@ -53,12 +54,14 @@ function SubstitutionPlayerButton({
   pending,
   selected,
   slot,
+  priorityLabel,
   onSelect,
 }: {
   player: Player;
   pending: boolean;
   selected: boolean;
   slot?: number;
+  priorityLabel?: string;
   onSelect: () => void;
 }) {
   const condition = getPlayerConditionPresentation(player.condition);
@@ -79,6 +82,11 @@ function SubstitutionPlayerButton({
         </span>
         <strong>{playerName(player)}</strong>
         <small>{player.preferredPosition}</small>
+        {priorityLabel ? (
+          <em className="match-command-substitution__request-badge">
+            {priorityLabel}
+          </em>
+        ) : null}
       </span>
       <span
         className={`match-command-substitution__condition player-condition--${condition.colorToken}`}
@@ -218,9 +226,25 @@ export function MatchCommandPanel({
       (assignment) => [assignment.playerId, assignment.slot] as const,
     ),
   );
+  const opportunityRequests = opportunityRequestByPlayerId(state);
   const benchPlayers = userSelection.benchPlayerIds
     .map((playerId) => state.players[playerId])
-    .filter((player): player is Player => Boolean(player));
+    .filter((player): player is Player => Boolean(player))
+    .sort((left, right) => {
+      const leftRequest = opportunityRequests[left.id];
+      const rightRequest = opportunityRequests[right.id];
+      const leftPriority = leftRequest
+        ? leftRequest.kind === "promise"
+          ? 100 + leftRequest.severity
+          : leftRequest.severity
+        : 0;
+      const rightPriority = rightRequest
+        ? rightRequest.kind === "promise"
+          ? 100 + rightRequest.severity
+          : rightRequest.severity
+        : 0;
+      return rightPriority - leftPriority;
+    });
   const liberoPlayer = userSelection.liberoPlayerId
     ? (state.players[userSelection.liberoPlayerId] ?? null)
     : null;
@@ -696,6 +720,13 @@ export function MatchCommandPanel({
                     onSelect={() => setIncomingPlayerId(player.id)}
                     pending={pending}
                     player={player}
+                    priorityLabel={
+                      opportunityRequests[player.id]
+                        ? opportunityRequests[player.id]!.kind === "promise"
+                          ? "出場約束"
+                          : "出場要望"
+                        : undefined
+                    }
                     selected={player.id === incomingPlayerId}
                   />
                 ))}
