@@ -411,11 +411,15 @@ describe("PreMatchLineupScreen", () => {
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
     );
 
-    expect(onStart).toHaveBeenCalledWith(selection, {
-      serve: "aggressive",
-      attack: "side",
-      block: "commit",
-    });
+    expect(onStart).toHaveBeenCalledWith(
+      selection,
+      {
+        serve: "aggressive",
+        attack: "side",
+        block: "commit",
+      },
+      [],
+    );
     expect(school.tactics.serveRisk).toBe(25);
   });
 
@@ -495,6 +499,7 @@ describe("PreMatchLineupScreen", () => {
         attack: "quick",
         block: "commit",
       }),
+      [],
     );
   });
 
