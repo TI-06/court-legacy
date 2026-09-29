@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import { eventId } from "../../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { repositionTeamSelection } from "../../../../src/domain/team/repositionTeamSelection";
 import { PreMatchLineupScreen } from "../../../../src/features/match/PreMatchLineupScreen";
@@ -148,6 +149,50 @@ describe("PreMatchLineupScreen", () => {
       ) || startedSelection.liberoPlayerId === requestedPlayerId,
     ).toBe(true);
     expect(selection.benchPlayerIds).toContain(requestedPlayerId);
+  });
+
+  it("uses promise-specific actions for starter and substitute commitments", () => {
+    const { state, selection } = fixture();
+    const [starterPromiseId, substitutePromiseId] = selection.benchPlayerIds;
+    expect(starterPromiseId).toBeDefined();
+    expect(substitutePromiseId).toBeDefined();
+    state.eventMemory.history.push(
+      {
+        eventId: eventId("event.reserve-role-review"),
+        date: state.date,
+        actorPlayerIds: [starterPromiseId!],
+        choiceId: "start-next",
+        visibleResultCodes: [],
+      },
+      {
+        eventId: eventId("event.reserve-role-review"),
+        date: state.date,
+        actorPlayerIds: [substitutePromiseId!],
+        choiceId: "sub-next",
+        visibleResultCodes: [],
+      },
+    );
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName="ライバル高校"
+        opponentStrength={78}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const requests = screen.getByRole("region", { name: "選手からの要望" });
+    expect(within(requests).getByText("先発起用を約束中")).toBeVisible();
+    expect(within(requests).getByText("途中出場を約束中")).toBeVisible();
+    expect(
+      within(requests).getByRole("button", { name: "先発に入れる" }),
+    ).toBeVisible();
+    expect(within(requests).getByText("試合中に優先")).toBeVisible();
   });
 
   it("can restore the saved lineup after applying a preset", () => {
