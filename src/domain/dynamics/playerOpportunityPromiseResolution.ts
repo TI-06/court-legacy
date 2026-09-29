@@ -127,7 +127,11 @@ function appendPromiseResultHistory(
 ): GameState {
   if (outcomes.length === 0) return state;
 
-  const resolvedIds = new Set(outcomes.map((outcome) => outcome.playerId));
+  const cancelledFollowUpIds = new Set(
+    outcomes
+      .filter((outcome) => outcome.status !== "kept")
+      .map((outcome) => outcome.playerId),
+  );
   const history = [...state.eventMemory.history];
 
   for (const outcome of outcomes) {
@@ -150,7 +154,7 @@ function appendPromiseResultHistory(
           !(
             followUp.eventId === "event.reserve-breakthrough" &&
             followUp.actorPlayerIds.some((playerId) =>
-              resolvedIds.has(playerId),
+              cancelledFollowUpIds.has(playerId),
             )
           ),
       ),
