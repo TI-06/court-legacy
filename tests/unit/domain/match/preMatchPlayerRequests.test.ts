@@ -69,7 +69,12 @@ describe("pre-match player requests", () => {
     const activePlayerId = selection.rotation[0]!.playerId;
     state.players[activePlayerId] = {
       ...state.players[activePlayerId]!,
-      injury: { type: "ankle", remainingWeeks: 2 },
+      injury: {
+        injuryId: "ankle-sprain",
+        severity: "moderate",
+        remainingWeeks: 2,
+        recurrenceRisk: 20,
+      },
     };
     state.teamDynamics.recentOfficialMatchesTracked = 4;
     state.teamDynamics.playerConcerns[activePlayerId] = [
