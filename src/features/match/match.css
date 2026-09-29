@@ -1054,7 +1054,6 @@
   box-shadow: inset 0 0 0 1px rgb(244 122 24 / 22%);
 }
 
-.match-command-substitution__identity,
 .match-command-substitution__request-badge {
   width: fit-content;
   max-width: 100%;
@@ -1073,6 +1072,7 @@
   border-radius: 999px;
 }
 
+.match-command-substitution__identity,
 .match-command-substitution__condition,
 .match-command-substitution__grade {
   display: grid;
