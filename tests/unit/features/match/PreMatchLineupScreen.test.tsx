@@ -135,9 +135,7 @@ describe("PreMatchLineupScreen", () => {
       ),
     ).toBeVisible();
 
-    fireEvent.click(
-      within(requests).getByRole("button", { name: "今回先発" }),
-    );
+    fireEvent.click(within(requests).getByRole("button", { name: "今回先発" }));
     fireEvent.click(
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
     );
