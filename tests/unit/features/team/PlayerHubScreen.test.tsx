@@ -1231,7 +1231,10 @@ describe("PlayerHubScreen", () => {
       instructionId: string;
     }>;
     const byPlayerId = new Map(
-      saved.map((assignment) => [assignment.playerId, assignment.instructionId]),
+      saved.map((assignment) => [
+        assignment.playerId,
+        assignment.instructionId,
+      ]),
     );
     const expectedInstructionByPosition = {
       OH: "instruction.oh-specialist",

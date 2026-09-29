@@ -703,9 +703,7 @@ export function PlayerHubScreen({
                 aria-pressed={selected}
                 className={`player-coach-proposal__row${
                   changed ? " player-coach-proposal__row--changed" : ""
-                }${
-                  selected ? " player-coach-proposal__row--selected" : ""
-                }`}
+                }${selected ? " player-coach-proposal__row--selected" : ""}`}
                 key={recommendation.playerId}
                 onClick={() => toggleCoachTarget(recommendation.playerId)}
                 type="button"

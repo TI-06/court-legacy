@@ -1426,12 +1426,10 @@
 
 .player-coach-proposal-sheet .ui-sheet-content {
   padding-bottom: calc(
-    var(--bottom-navigation-height, 70px) + 28px +
-      env(safe-area-inset-bottom)
+    var(--bottom-navigation-height, 70px) + 28px + env(safe-area-inset-bottom)
   );
   scroll-padding-bottom: calc(
-    var(--bottom-navigation-height, 70px) + 72px +
-      env(safe-area-inset-bottom)
+    var(--bottom-navigation-height, 70px) + 72px + env(safe-area-inset-bottom)
   );
 }
 
