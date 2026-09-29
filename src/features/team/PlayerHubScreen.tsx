@@ -26,6 +26,7 @@ import {
   buildCoachTrainingRecommendations,
   coachRecommendationQuality,
   coachRecommendationQualityLabel,
+  type CoachDevelopmentDirective,
 } from "../../domain/training/coachTrainingRecommendations";
 import type { IndividualTrainingAssignment } from "../../domain/training/resolveWeeklyTraining";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
@@ -174,6 +175,29 @@ const filterOptions: ReadonlyArray<{
   { value: "growth-attention", label: "成長要見直し" },
 ];
 
+const coachDevelopmentDirectiveOptions: ReadonlyArray<{
+  value: CoachDevelopmentDirective;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "position-specialist",
+    label: "ポジション特化",
+    description:
+      "OH・OPはスパイク、MBはブロック、Sはトス、Lはレシーブを優先",
+  },
+  {
+    value: "coach-choice",
+    label: "弱点補強",
+    description: "監督育成力と選手の弱点を見て、コーチに内容を任せる",
+  },
+  {
+    value: "all-rounder",
+    label: "オールラウンダー",
+    description: "全能力をバランスよく伸ばす",
+  },
+];
+
 const sortOptions: ReadonlyArray<{ value: PlayerHubSort; label: string }> = [
   { value: "power", label: "総合力順" },
   { value: "potential", label: "将来性順" },
@@ -291,6 +315,8 @@ export function PlayerHubScreen({
   );
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
+  const [coachDirective, setCoachDirective] =
+    useState<CoachDevelopmentDirective>("position-specialist");
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
 
@@ -307,8 +333,8 @@ export function PlayerHubScreen({
     [state, selection, filter, sort],
   );
   const coachRecommendations = useMemo(
-    () => buildCoachTrainingRecommendations(state),
-    [state],
+    () => buildCoachTrainingRecommendations(state, coachDirective),
+    [coachDirective, state],
   );
   const recommendationQuality = coachRecommendationQuality(state);
   const selectedPlayer = selectedPlayerId
@@ -510,12 +536,29 @@ export function PlayerHubScreen({
     <BottomSheet
       description={`監督育成力 ${school.coach.development}・${coachRecommendationQualityLabel(
         recommendationQuality,
-      )}。育成目標、調子、年間コーチ、弱点の順に判断します。`}
+      )}。育成目標と体調を優先し、そのうえで選んだ育成方針を反映します。`}
       onClose={() => setCoachRecommendationsOpen(false)}
       open={coachRecommendationsOpen}
       title="コーチの個人練習提案"
     >
       <div className="player-coach-proposal">
+        <div
+          aria-label="コーチへの育成指示"
+          className="player-coach-proposal__directives"
+          role="group"
+        >
+          {coachDevelopmentDirectiveOptions.map((option) => (
+            <button
+              aria-pressed={coachDirective === option.value}
+              key={option.value}
+              onClick={() => setCoachDirective(option.value)}
+              type="button"
+            >
+              <strong>{option.label}</strong>
+              <small>{option.description}</small>
+            </button>
+          ))}
+        </div>
         <div className="player-coach-proposal__summary">
           <strong>{coachRecommendationChangeCount}人を変更提案</strong>
           <span>手動で変更中の選手は上書きしません</span>
@@ -1272,7 +1315,7 @@ export function PlayerHubScreen({
           type="button"
         >
           <span>COACH</span>
-          <strong>練習提案</strong>
+          <strong>育成指示</strong>
           <small>
             {coachRecommendationQualityLabel(recommendationQuality)}
           </small>
