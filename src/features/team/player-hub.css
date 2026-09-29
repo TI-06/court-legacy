@@ -1425,8 +1425,14 @@
 }
 
 .player-coach-proposal-sheet .ui-sheet-content {
-  padding-bottom: calc(18px + env(safe-area-inset-bottom));
-  scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  padding-bottom: calc(
+    var(--bottom-navigation-height, 70px) + 28px +
+      env(safe-area-inset-bottom)
+  );
+  scroll-padding-bottom: calc(
+    var(--bottom-navigation-height, 70px) + 72px +
+      env(safe-area-inset-bottom)
+  );
 }
 
 .player-coach-proposal {
@@ -1647,7 +1653,10 @@
 
 .player-coach-proposal__apply {
   position: sticky;
-  bottom: max(6px, env(safe-area-inset-bottom));
+  bottom: calc(
+    var(--bottom-navigation-height, 70px) +
+      var(--bottom-navigation-offset, 0px) + 6px
+  );
   z-index: 3;
   min-height: 48px;
   color: #fff;
