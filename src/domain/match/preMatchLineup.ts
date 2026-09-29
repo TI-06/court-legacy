@@ -163,9 +163,7 @@ export function prioritizePlayerForPreMatch(input: {
 
   const activePlayerIds = new Set([
     ...input.selection.rotation.map((assignment) => assignment.playerId),
-    ...(input.selection.liberoPlayerId
-      ? [input.selection.liberoPlayerId]
-      : []),
+    ...(input.selection.liberoPlayerId ? [input.selection.liberoPlayerId] : []),
   ]);
   if (activePlayerIds.has(player.id)) {
     return cloneSelection(input.selection);
