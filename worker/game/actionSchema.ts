@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { MatchCommand } from "../../src/domain/model/Match";
 import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
+import type { PlayerOpportunityResponse } from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
   AssistantCoachRank,
@@ -110,6 +111,13 @@ const savedLineupNameSchema = z
   .string()
   .transform((value) => value.trim())
   .pipe(z.string().min(1).max(24));
+
+const playerOpportunityResponseSchema = z
+  .object({
+    playerId: playerIdSchema,
+    choice: z.enum(["starter", "substitute", "next-match", "decline"]),
+  })
+  .strict();
 
 export const matchTacticPlanSchema = z
   .object({
@@ -244,6 +252,10 @@ const gameActionSchema = z.discriminatedUnion("type", [
       type: z.literal("advance-week"),
       matchSelection: teamSelectionSchema.optional(),
       matchTactics: matchTacticPlanSchema.optional(),
+      playerOpportunityResponses: z
+        .array(playerOpportunityResponseSchema)
+        .max(3)
+        .optional(),
     })
     .strict(),
   z
@@ -327,6 +339,7 @@ export type GameAction =
       type: "advance-week";
       matchSelection?: TeamSelection;
       matchTactics?: MatchTacticPlan;
+      playerOpportunityResponses?: PlayerOpportunityResponse[];
     }
   | { type: "mark-notification-read"; notificationId: string }
   | {
