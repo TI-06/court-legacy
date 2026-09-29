@@ -43,6 +43,42 @@ function findIncompleteDecisionMatch() {
 }
 
 describe("Phase16 MatchScreen authoritative playback", () => {
+  it("starts live matches in score-flow at 4x autoplay", () => {
+    const fixture = findIncompleteDecisionMatch();
+
+    render(
+      <MatchScreen
+        state={fixture.state}
+        opponent={fixture.opponent}
+        homeSelection={fixture.homeSelection}
+        awaySelection={fixture.awaySelection}
+        homeStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.homeSelection,
+        )}
+        awayStrength={calculateSelectionStrength(
+          fixture.state,
+          fixture.awaySelection,
+        )}
+        result={fixture.result}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "得点推移" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "4倍" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "一時停止" })).toBeVisible();
+  });
+
   it("reveals only the current authoritative segment before showing the coach decision", () => {
     const fixture = findIncompleteDecisionMatch();
     const eventCount = fixture.result.match.eventLog.length;
