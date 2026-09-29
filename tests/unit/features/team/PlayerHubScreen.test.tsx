@@ -1202,9 +1202,7 @@ describe("PlayerHubScreen", () => {
     });
     fireEvent.click(within(gradeControls).getByRole("button", { name: "1年" }));
 
-    expect(
-      within(dialog).getByText(`${firstYears.length}人選択中`),
-    ).toBeVisible();
+    expect(within(dialog).getByText(`${firstYears.length}人選択中`)).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", {
@@ -1217,9 +1215,7 @@ describe("PlayerHubScreen", () => {
       }),
     );
 
-    expect(
-      within(dialog).getByText(`${firstYears.length}人選択中`),
-    ).toBeVisible();
+    expect(within(dialog).getByText(`${firstYears.length}人選択中`)).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", { name: /ポジション特化/ }),
