@@ -17,7 +17,6 @@ import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
-import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -313,9 +312,6 @@ function MatchScreenContent({
   ).length;
   const currentEvent = presentedEvents.at(-1);
   const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
-  const currentEventSpecialAbilities = currentRawEvent
-    ? presentEventSpecialAbilities(state, result.match, currentRawEvent)
-    : [];
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
