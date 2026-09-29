@@ -53,6 +53,17 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Print exact promise formatting diff
+        run: |
+          npx prettier --write \
+            src/domain/dynamics/playerOpportunityPromiseResolution.ts \
+            src/domain/dynamics/playerOpportunityRequests.ts \
+            tests/unit/domain/dynamics/playerOpportunityPromiseResolution.test.ts
+          git diff -- \
+            src/domain/dynamics/playerOpportunityPromiseResolution.ts \
+            src/domain/dynamics/playerOpportunityRequests.ts \
+            tests/unit/domain/dynamics/playerOpportunityPromiseResolution.test.ts
+          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
