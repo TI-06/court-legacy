@@ -124,11 +124,13 @@ describe("resolveWeeklyTraining", () => {
     const school = state.schools[state.userSchoolId]!;
     const playerId = school.playerIds[0]!;
     const player = state.players[playerId]!;
+    player.potential = 0;
+    player.tier = "normal";
     player.abilities = {
       ...player.abilities,
-      spike: 100,
-      jump: 100,
-      decision: 100,
+      spike: 81,
+      jump: 81,
+      decision: 81,
     };
 
     const plan = createPlan(school.playerIds);
@@ -149,7 +151,10 @@ describe("resolveWeeklyTraining", () => {
       resolution.result.individualAssignments.find(
         (assignment) => assignment.playerId === playerId,
       )?.instructionId,
-    ).toBe("instruction.overall");
+    ).toBe("instruction.spike");
+    expect(resolution.state.players[playerId]!.abilities.spike).toBe(82);
+    expect(resolution.state.players[playerId]!.abilities.jump).toBe(82);
+    expect(resolution.state.players[playerId]!.abilities.decision).toBe(82);
     expect(
       resolution.state.weeklySchedule.trainingPlan.individualAssignments.find(
         (assignment) => assignment.playerId === playerId,
