@@ -71,7 +71,7 @@
   },
   {
     "id": "event.reserve-role-review",
-    "version": 1,
+    "version": 2,
     "category": "relationship",
     "title": "控え選手との再面談",
     "bodyTemplate": "数週間が過ぎ、{{player}}から今後の起用について改めて相談を受けた。",
