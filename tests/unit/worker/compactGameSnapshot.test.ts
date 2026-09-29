@@ -136,23 +136,12 @@ describe("compactGameSnapshot", () => {
     const activeMatch = started.state.activeMatch;
     if (!activeMatch) throw new Error("practice match did not start");
 
+    if (activeMatch.eventLog.length === 0) {
+      throw new Error("practice match fixture has no event log");
+    }
     const completedMatch = {
       ...activeMatch,
       phase: "match-complete" as const,
-      eventLog:
-        activeMatch.eventLog.length > 0
-          ? activeMatch.eventLog
-          : [
-              {
-                sequence: 1,
-                type: "point" as const,
-                setNumber: 1,
-                homeScore: 1,
-                awayScore: 0,
-                winnerSchoolId: activeMatch.homeSchoolId,
-                detailCode: "test-point",
-              },
-            ],
     };
     const loaded: CloudGameSnapshot = {
       ...snapshot,
