@@ -23,6 +23,32 @@ describe("player opportunity requests", () => {
     );
   });
 
+  it("distinguishes starter, substitute, and next-match promises", () => {
+    const state = createDemoGame();
+    const playerIds = state.schools[state.userSchoolId]!.playerIds.slice(0, 3);
+    const choices = ["starter", "chance", "next-match"] as const;
+    const expectedModes = ["starter", "substitute", "next-match"] as const;
+
+    state.eventMemory.history = choices.map((choiceId, index) => ({
+      eventId: eventId("event.reserve-role-review"),
+      date: `2026-5-${index + 1}`,
+      actorPlayerIds: [playerIds[index]!],
+      choiceId,
+      visibleResultCodes: [],
+    }));
+
+    const requests = derivePlayerOpportunityRequests(state);
+    for (let index = 0; index < expectedModes.length; index += 1) {
+      expect(requests).toContainEqual(
+        expect.objectContaining({
+          playerId: playerIds[index],
+          kind: "promise",
+          promiseMode: expectedModes[index],
+        }),
+      );
+    }
+  });
+
   it("treats a promised appearance as the highest-priority request until the reserve chain resolves", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
@@ -32,7 +58,7 @@ describe("player opportunity requests", () => {
         eventId: eventId("event.reserve-role-review"),
         date: "2026-5-1",
         actorPlayerIds: [playerId],
-        choiceId: "chance",
+        choiceId: "starter",
         visibleResultCodes: [],
       },
     ];
@@ -42,7 +68,8 @@ describe("player opportunity requests", () => {
         playerId,
         kind: "promise",
         severity: 3,
-        title: "出場機会を約束中",
+        title: "先発起用を約束中",
+        promiseMode: "starter",
       }),
     );
 
