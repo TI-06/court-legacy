@@ -2,6 +2,7 @@ import type { GameDataRegistry } from "../../data/dataRegistry";
 import { findCurrentTrainingCampActivity } from "../../domain/calendar/trainingCampCalendar";
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import { selectPlayerConcernGuidance } from "../../domain/dynamics/playerConcernGuidance";
+import { latestPlayerOpportunityPromiseOutcomes } from "../../domain/dynamics/playerOpportunityPromiseResolution";
 import type { CohesionTrend } from "../../domain/dynamics/teamDynamicsTypes";
 import type {
   GameState,
@@ -200,6 +201,7 @@ export type HomeCommandNews =
       playerId: PlayerId;
     }
   | { id: string; kind: "match"; title: string; detail: string }
+  | { id: string; kind: "promise-result"; title: string; detail: string }
   | { id: string; kind: "cohesion"; title: string; detail: string };
 
 export interface HomeCommandCenterModel {
@@ -834,6 +836,43 @@ function buildNews(state: GameState): HomeCommandNews[] {
           ? `${firstRankUp.displayName}・${firstRankUp.areaLabel} ${firstRankUp.fromGrade}→${firstRankUp.toGrade}${rankUps.length > 1 ? `・ほか${rankUps.length - 1}件` : ""}`
           : `${notification.payload.teamTrainingMenuName}・成長 ${signed(notification.payload.totalAbilityGrowth)}・怪我 ${notification.payload.injuredCount}人`,
         notification,
+      },
+    });
+  }
+
+  const promiseOutcomes = latestPlayerOpportunityPromiseOutcomes(state);
+  if (promiseOutcomes.length > 0) {
+    const first = promiseOutcomes[0]!;
+    const player = state.players[first.playerId];
+    const keptCount = promiseOutcomes.filter(
+      (outcome) => outcome.status === "kept",
+    ).length;
+    const brokenCount = promiseOutcomes.filter(
+      (outcome) => outcome.status === "broken",
+    ).length;
+    const excusedCount = promiseOutcomes.filter(
+      (outcome) => outcome.status === "excused",
+    ).length;
+    const title =
+      brokenCount > 0
+        ? "選手との約束を確認"
+        : keptCount > 0
+          ? "選手との約束を達成"
+          : "選手との約束を見送り";
+    const detail =
+      promiseOutcomes.length === 1 && player
+        ? `${player.lastName} ${player.firstName}・${first.resultText}`
+        : `達成 ${keptCount}件・未達成 ${brokenCount}件・見送り ${excusedCount}件`;
+
+    candidates.push({
+      order: brokenCount > 0 ? 4 : 5,
+      news: {
+        id: `news:promise:${state.date}:${promiseOutcomes
+          .map((outcome) => outcome.playerId)
+          .join(",")}`,
+        kind: "promise-result",
+        title,
+        detail,
       },
     });
   }
