@@ -31,6 +31,10 @@ function addDays(value: GameDate, days: number): GameDate {
   return `${nextYear}-${nextMonth}-${nextDay}` as GameDate;
 }
 
+export function nextWeekDate(value: GameDate): GameDate {
+  return addDays(value, 7);
+}
+
 function actionId(date: GameDate, action: WeeklyAction): string {
   return `week:${date}:${action}`;
 }
@@ -120,7 +124,7 @@ export function advanceOneWeek(
     }
   }
 
-  const date = addDays(state.date, 7);
+  const date = nextWeekDate(state.date);
   const relationshipProgression = progressSpecialRelationshipsWeekly(
     state,
     date,
