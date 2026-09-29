@@ -151,9 +151,9 @@ describe("player opportunity promises", () => {
     );
     expect(after.trust).toBe(Math.min(100, before.trust + 6));
     expect(after.morale).toBe(Math.min(100, before.morale + 5));
-    expect(deriveActivePlayerOpportunityPromises(resolution.state)).toHaveLength(
-      0,
-    );
+    expect(
+      deriveActivePlayerOpportunityPromises(resolution.state),
+    ).toHaveLength(0);
     expect(latestPlayerOpportunityPromiseOutcomes(resolution.state)[0]).toEqual(
       expect.objectContaining({
         playerId: promisedId,
@@ -232,9 +232,9 @@ describe("player opportunity promises", () => {
     );
     expect(after.trust).toBe(Math.max(0, before.trust - 7));
     expect(after.morale).toBe(Math.max(0, before.morale - 5));
-    expect(deriveActivePlayerOpportunityPromises(resolution.state)).toHaveLength(
-      0,
-    );
+    expect(
+      deriveActivePlayerOpportunityPromises(resolution.state),
+    ).toHaveLength(0);
   });
 
   it("excuses an unfulfilled promise when the player is injured", () => {
