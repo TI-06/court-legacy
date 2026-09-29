@@ -34,11 +34,23 @@ function needsLongTermArchiveCompaction(snapshot: CloudGameSnapshot): boolean {
 export function compactGameSnapshot(
   snapshot: CloudGameSnapshot,
 ): CloudGameSnapshot {
-  const compactedState = needsLongTermArchiveCompaction(snapshot)
+  const archiveCompactedState = needsLongTermArchiveCompaction(snapshot)
     ? compactLongTermArchives(snapshot.state)
     : snapshot.state;
-  const items = compactedState.notifications.items;
-  if (items.length <= 1 && compactedState === snapshot.state) {
+  const completedMatch = archiveCompactedState.activeMatch;
+  const matchCompactedState =
+    completedMatch?.phase === "match-complete" &&
+    completedMatch.eventLog.length > 0
+      ? {
+          ...archiveCompactedState,
+          activeMatch: {
+            ...completedMatch,
+            eventLog: [],
+          },
+        }
+      : archiveCompactedState;
+  const items = matchCompactedState.notifications.items;
+  if (items.length <= 1 && matchCompactedState === snapshot.state) {
     return snapshot;
   }
 
@@ -46,7 +58,7 @@ export function compactGameSnapshot(
   return {
     ...snapshot,
     state: {
-      ...compactedState,
+      ...matchCompactedState,
       notifications: {
         items: newest ? [newest] : [],
       },
