@@ -72,6 +72,7 @@ const storedOperationSchema = z.object({
 });
 
 const MAX_JSON_PATCH_BYTES = 32_768;
+const MAX_PREFERRED_JSON_PATCH_BYTES = 262_144;
 // Each JSONB patch operation rewrites part of the canonical save inside
 // Postgres. Production saves above 1 MB have shown that allowing dozens of
 // operations can hit the API's statement timeout even when the request body is
@@ -326,8 +327,11 @@ export class SupabaseGameStore implements GameStore {
     const exceedsOperationSafetyLimit =
       statePatch.length > MAX_JSON_PATCH_OPERATIONS;
     const exceedsNormalDeltaBudget = patchBytes > MAX_JSON_PATCH_BYTES;
+    const exceedsPreferredDeltaBudget =
+      input.preferDelta && patchBytes > MAX_PREFERRED_JSON_PATCH_BYTES;
     const useFullStateFallback =
       exceedsOperationSafetyLimit ||
+      exceedsPreferredDeltaBudget ||
       (!input.preferDelta && exceedsNormalDeltaBudget);
     const { data, error } = useFullStateFallback
       ? await this.client.rpc("apply_game_operation_v3", {

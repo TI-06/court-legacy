@@ -13,7 +13,7 @@ import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
 import {
   buildJsonStatePatch,
-  collapseJsonStatePatchRoot,
+  buildJsonStatePatchWithCollapsedRoot,
 } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
@@ -167,22 +167,31 @@ export function createGameActionHandler(
     const isMidMatchCommand =
       actionRequest.action.type === "match-command" &&
       applied.state.activeMatch?.phase !== "match-complete";
-    const rawStatePatch = buildJsonStatePatch(
-      loadedSnapshot.state,
-      applied.state,
-    );
-    const statePatch = isMidMatchCommand
-      ? collapseJsonStatePatchRoot(
-          applied.state as unknown as Record<string, unknown>,
-          rawStatePatch,
+    const persistedState =
+      applied.state.activeMatch?.phase === "match-complete" &&
+      applied.state.activeMatch.eventLog.length > 0
+        ? {
+            ...applied.state,
+            activeMatch: {
+              ...applied.state.activeMatch,
+              eventLog: [],
+            },
+          }
+        : applied.state;
+    const activeMatchChanged =
+      loadedSnapshot.state.activeMatch !== persistedState.activeMatch;
+    const statePatch = activeMatchChanged
+      ? buildJsonStatePatchWithCollapsedRoot(
+          loadedSnapshot.state as unknown as Record<string, unknown>,
+          persistedState as unknown as Record<string, unknown>,
           "activeMatch",
         )
-      : rawStatePatch;
+      : buildJsonStatePatch(loadedSnapshot.state, persistedState);
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
         revision: snapshot.revision + 1,
-        state: applied.state,
+        state: persistedState,
         teamSelection: applied.teamSelection,
       },
       operationId: actionRequest.operationId,
@@ -197,7 +206,7 @@ export function createGameActionHandler(
         operationId: actionRequest.operationId,
         expectedRevision: snapshot.revision,
         previousState: loadedSnapshot.state,
-        state: applied.state,
+        state: persistedState,
         statePatch,
         preferDelta: isMidMatchCommand,
         teamSelection: applied.teamSelection,

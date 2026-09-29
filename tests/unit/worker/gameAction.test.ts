@@ -257,6 +257,66 @@ describe("game action route", () => {
     expect(persisted.response.outcome).toBeUndefined();
   });
 
+  it("self-heals a completed match event log on the next normal save", async () => {
+    const snapshot = createSnapshot();
+    const opponent = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    );
+    if (!opponent) throw new Error("practice opponent fixture missing");
+    snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+      opponent.id;
+    snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+
+    const started = applyGameAction(snapshot, { type: "advance-week" });
+    const activeMatch = started.state.activeMatch;
+    if (!activeMatch || activeMatch.eventLog.length === 0) {
+      throw new Error("practice match fixture did not produce events");
+    }
+    const loadedSnapshot: CloudGameSnapshot = {
+      ...snapshot,
+      state: {
+        ...started.state,
+        activeMatch: {
+          ...activeMatch,
+          phase: "match-complete",
+        },
+      },
+      teamSelection: started.teamSelection,
+    };
+    const store = createStore(loadedSnapshot);
+    const handler = createGameActionHandler(store);
+
+    const response = await handler(
+      actionRequest({
+        ...operation,
+        action: {
+          type: "team-selection",
+          selection: loadedSnapshot.teamSelection,
+        },
+      }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    const activeMatchPatch = body.gameDelta.statePatch.filter(
+      (entry: { path: string[] }) => entry.path[0] === "activeMatch",
+    );
+    expect(activeMatchPatch).toEqual([
+      expect.objectContaining({
+        op: "set",
+        path: ["activeMatch"],
+        value: expect.objectContaining({ eventLog: [] }),
+      }),
+    ]);
+
+    const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
+    expect(
+      persisted.previousState.activeMatch?.eventLog.length,
+    ).toBeGreaterThan(0);
+    expect(persisted.state.activeMatch?.eventLog).toEqual([]);
+  });
+
   it("accepts a valid season ambition action through the HTTP contract", async () => {
     const snapshot = createSnapshot();
     snapshot.state.calendar.weekOfYear = 1;

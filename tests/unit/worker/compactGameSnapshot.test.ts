@@ -5,6 +5,7 @@ import type { TrainingResultNotification } from "../../../src/domain/notificatio
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import { MAX_RIVAL_ALUMNI_PER_SCHOOL } from "../../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
+import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { compactGameSnapshot } from "../../../worker/game/compactGameSnapshot";
 
 function notification(
@@ -118,6 +119,44 @@ describe("compactGameSnapshot", () => {
     for (const id of rival.playerIds) {
       expect(compacted.state.players[id]).toBeDefined();
     }
+  });
+
+  it("self-heals a completed match by dropping its large live event log", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const opponent = Object.values(snapshot.state.schools).find(
+      (school) => school.id !== snapshot.state.userSchoolId,
+    );
+    if (!opponent) throw new Error("practice opponent fixture missing");
+
+    snapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+      opponent.id;
+    snapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+    const started = applyGameAction(snapshot, { type: "advance-week" });
+    const activeMatch = started.state.activeMatch;
+    if (!activeMatch) throw new Error("practice match did not start");
+
+    if (activeMatch.eventLog.length === 0) {
+      throw new Error("practice match fixture has no event log");
+    }
+    const completedMatch = {
+      ...activeMatch,
+      phase: "match-complete" as const,
+    };
+    const loaded: CloudGameSnapshot = {
+      ...snapshot,
+      state: {
+        ...started.state,
+        activeMatch: completedMatch,
+      },
+      teamSelection: started.teamSelection,
+    };
+
+    const compacted = compactGameSnapshot(loaded);
+
+    expect(loaded.state.activeMatch?.eventLog.length).toBeGreaterThan(0);
+    expect(compacted.state.activeMatch?.phase).toBe("match-complete");
+    expect(compacted.state.activeMatch?.eventLog).toEqual([]);
   });
 
   it("returns the original snapshot when it is already compact", () => {

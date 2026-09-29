@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import {
   buildJsonStatePatch,
+  buildJsonStatePatchWithCollapsedRoot,
   collapseJsonStatePatchRoot,
   type JsonStatePatchOperation,
 } from "../../../../worker/data/statePatch";
@@ -131,6 +132,50 @@ describe("buildJsonStatePatch", () => {
       },
     ]);
     expect(applyPatch(before, compact)).toEqual(after);
+  });
+
+  it("replaces a large active-match root without recursively diffing its event log", () => {
+    const before = {
+      activeMatch: {
+        eventLog: Array.from({ length: 800 }, (_, index) => ({
+          sequence: index + 1,
+          detail: `event-${index + 1}`,
+        })),
+        runtime: { homeScore: 18, awayScore: 17 },
+      },
+      randomCursor: 20,
+    };
+    const after = structuredClone(before);
+    after.activeMatch.eventLog.push(
+      ...Array.from({ length: 120 }, (_, index) => ({
+        sequence: index + 801,
+        detail: `event-${index + 801}`,
+      })),
+    );
+    after.activeMatch.runtime.homeScore = 25;
+    after.randomCursor = 42;
+
+    const patch = buildJsonStatePatchWithCollapsedRoot(
+      before as unknown as Record<string, unknown>,
+      after as unknown as Record<string, unknown>,
+      "activeMatch",
+    );
+
+    expect(
+      patch.filter((operation) => operation.path[0] === "activeMatch"),
+    ).toEqual([
+      {
+        op: "set",
+        path: ["activeMatch"],
+        value: after.activeMatch,
+      },
+    ]);
+    expect(patch).toContainEqual({
+      op: "set",
+      path: ["randomCursor"],
+      value: 42,
+    });
+    expect(applyPatch(before, patch)).toEqual(after);
   });
 
   it("keeps a realistic player update far smaller than the full save", () => {
