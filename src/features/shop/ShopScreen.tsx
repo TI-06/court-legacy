@@ -489,14 +489,21 @@ export function ShopScreen({
         </div>
       ) : null}
 
-      {displayedResultMessage ? (
-        <p className="shop-screen__notice shop-screen__notice--success">
-          {displayedResultMessage}
-        </p>
-      ) : null}
-
-      {latestUseResult ? (
-        <ShopUseResultPanel presentation={latestUseResult} state={state} />
+      {displayedResultMessage || latestUseResult ? (
+        <div
+          aria-live="polite"
+          className="shop-screen__feedback-layer"
+          role="status"
+        >
+          {displayedResultMessage ? (
+            <p className="shop-screen__notice shop-screen__notice--success">
+              {displayedResultMessage}
+            </p>
+          ) : null}
+          {latestUseResult ? (
+            <ShopUseResultPanel presentation={latestUseResult} state={state} />
+          ) : null}
+        </div>
       ) : null}
 
       {targetingItemId === "fatigue-recovery" ? (
