@@ -31,50 +31,56 @@ describe("player opportunity promises", () => {
     expect(selectActivePlayerOpportunityPromises(next)).toEqual([]);
   });
 
-  it("keeps a substitute promise active until the player enters the match", () => {
-    const state = createDemoGame();
-    const selection = autoSelectTeam({
-      state,
-      schoolId: state.userSchoolId,
-    });
-    const playerId = selection.benchPlayerIds[0]!;
-    const promised = applyPlayerOpportunityResponses(state, selection, [
-      { playerId, choice: "substitute" },
-    ]);
+  it(
+    "keeps a substitute promise active until the player enters the match",
+    () => {
+      const state = createDemoGame();
+      const selection = autoSelectTeam({
+        state,
+        schoolId: state.userSchoolId,
+      });
+      const playerId = selection.benchPlayerIds[0]!;
+      const promised = applyPlayerOpportunityResponses(state, selection, [
+        { playerId, choice: "substitute" },
+      ]);
 
-    expect(selectActivePlayerOpportunityPromises(promised)).toEqual([
-      { playerId, choice: "substitute" },
-    ]);
+      expect(selectActivePlayerOpportunityPromises(promised)).toEqual([
+        { playerId, choice: "substitute" },
+      ]);
 
-    const match = {
-      id: matchId("promise-test"),
-      homeSchoolId: state.userSchoolId,
-      awaySchoolId: Object.values(state.schools).find(
-        (school) => school.id !== state.userSchoolId,
-      )!.id,
-      homeSelection: selection,
-      awaySelection: selection,
-      eventLog: [
-        {
-          sequence: 1,
-          type: "substitution",
-          setNumber: 1,
-          homeScore: 10,
-          awayScore: 5,
-          actorPlayerId: playerId,
-          targetPlayerId: selection.rotation[0]!.playerId,
-          winnerSchoolId: state.userSchoolId,
-          detailCode: "substitution.coach-command",
-        },
-      ],
-    } as MatchState;
+      const match = {
+        id: matchId("promise-test"),
+        homeSchoolId: state.userSchoolId,
+        awaySchoolId: Object.values(state.schools).find(
+          (school) => school.id !== state.userSchoolId,
+        )!.id,
+        homeSelection: selection,
+        awaySelection: selection,
+        eventLog: [
+          {
+            sequence: 1,
+            type: "substitution",
+            setNumber: 1,
+            homeScore: 10,
+            awayScore: 5,
+            actorPlayerId: playerId,
+            targetPlayerId: selection.rotation[0]!.playerId,
+            winnerSchoolId: state.userSchoolId,
+            detailCode: "substitution.coach-command",
+          },
+        ],
+      } as MatchState;
 
-    const resolved = resolveCompletedMatchOpportunityPromises(promised, match);
-    expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([]);
-    expect(resolved.players[playerId]!.trust).toBe(
-      Math.min(100, state.players[playerId]!.trust + 3),
-    );
-  });
+      const resolved = resolveCompletedMatchOpportunityPromises(
+        promised,
+        match,
+      );
+      expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([]);
+      expect(resolved.players[playerId]!.trust).toBe(
+        Math.min(100, state.players[playerId]!.trust + 3),
+      );
+    },
+  );
 
   it(
     "promotes a next-match promise to a starter promise after the current match",
