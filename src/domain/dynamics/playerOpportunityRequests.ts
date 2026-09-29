@@ -1,8 +1,22 @@
 import type { GameState } from "../model/GameState";
-import type { PlayerId } from "../model/identifiers";
+import type { GameDate, PlayerId } from "../model/identifiers";
 
 export type PlayerOpportunityRequestKind =
-  "promise" | "playing-time" | "role-mismatch";
+  | "promise"
+  | "playing-time"
+  | "role-mismatch";
+
+export type PlayerOpportunityPromiseKind =
+  | "starter"
+  | "substitute"
+  | "appearance";
+
+export interface ActivePlayerOpportunityPromise {
+  playerId: PlayerId;
+  promiseKind: PlayerOpportunityPromiseKind;
+  promisedDate: GameDate;
+  choiceId: string;
+}
 
 export interface PlayerOpportunityRequest {
   playerId: PlayerId;
@@ -10,29 +24,64 @@ export interface PlayerOpportunityRequest {
   severity: 1 | 2 | 3;
   title: string;
   detail: string;
+  promiseKind?: PlayerOpportunityPromiseKind;
 }
 
-function activeAppearancePromisePlayerIds(state: GameState): Set<PlayerId> {
-  const active = new Set<PlayerId>();
+function promiseKindForChoice(
+  choiceId: string,
+): PlayerOpportunityPromiseKind | null {
+  if (choiceId === "start-next") return "starter";
+  if (choiceId === "sub-next") return "substitute";
+  if (choiceId === "appearance-next" || choiceId === "chance") {
+    return "appearance";
+  }
+  return null;
+}
+
+export function deriveActivePlayerOpportunityPromises(
+  state: GameState,
+): ActivePlayerOpportunityPromise[] {
+  const active = new Map<PlayerId, ActivePlayerOpportunityPromise>();
 
   for (const occurrence of state.eventMemory.history) {
     const actor = occurrence.actorPlayerIds[0];
     if (!actor) continue;
 
-    if (
-      occurrence.eventId === "event.reserve-role-review" &&
-      occurrence.choiceId === "chance"
-    ) {
-      active.add(actor);
+    if (occurrence.eventId === "event.reserve-role-review") {
+      const promiseKind = promiseKindForChoice(occurrence.choiceId);
+      if (promiseKind) {
+        active.set(actor, {
+          playerId: actor,
+          promiseKind,
+          promisedDate: occurrence.date,
+          choiceId: occurrence.choiceId,
+        });
+      } else {
+        active.delete(actor);
+      }
       continue;
     }
 
-    if (occurrence.eventId === "event.reserve-breakthrough") {
+    if (occurrence.eventId === "event.reserve-promise-result") {
+      active.delete(actor);
+      continue;
+    }
+
+    // Legacy saves used reserve-breakthrough as the end of the old "chance"
+    // promise. New promise choices are resolved by the next official match.
+    if (
+      occurrence.eventId === "event.reserve-breakthrough" &&
+      active.get(actor)?.choiceId === "chance"
+    ) {
       active.delete(actor);
     }
   }
 
-  return active;
+  return [...active.values()].sort(
+    (left, right) =>
+      left.promisedDate.localeCompare(right.promisedDate) ||
+      String(left.playerId).localeCompare(String(right.playerId)),
+  );
 }
 
 function concernRequest(
@@ -60,20 +109,43 @@ function concernRequest(
       };
 }
 
+function promisePresentation(
+  promise: ActivePlayerOpportunityPromise,
+): Pick<PlayerOpportunityRequest, "title" | "detail"> {
+  if (promise.promiseKind === "starter") {
+    return {
+      title: "先発起用を約束中",
+      detail: "次の公式戦では先発で使うと約束しています。",
+    };
+  }
+  if (promise.promiseKind === "substitute") {
+    return {
+      title: "途中出場を約束中",
+      detail: "次の公式戦で途中出場の機会を作ると約束しています。",
+    };
+  }
+  return {
+    title: "次戦起用を約束中",
+    detail: "次の公式戦で出場機会を作ると約束しています。",
+  };
+}
+
 export function derivePlayerOpportunityRequests(
   state: GameState,
 ): PlayerOpportunityRequest[] {
   const roster = new Set(state.schools[state.userSchoolId]?.playerIds ?? []);
   const requests = new Map<PlayerId, PlayerOpportunityRequest>();
 
-  for (const playerId of activeAppearancePromisePlayerIds(state)) {
-    if (!roster.has(playerId)) continue;
-    requests.set(playerId, {
-      playerId,
+  for (const promise of deriveActivePlayerOpportunityPromises(state)) {
+    if (!roster.has(promise.playerId)) continue;
+    const presentation = promisePresentation(promise);
+    requests.set(promise.playerId, {
+      playerId: promise.playerId,
       kind: "promise",
       severity: 3,
-      title: "出場機会を約束中",
-      detail: "面談で短時間でも試合に出すと約束しています。",
+      title: presentation.title,
+      detail: presentation.detail,
+      promiseKind: promise.promiseKind,
     });
   }
 
