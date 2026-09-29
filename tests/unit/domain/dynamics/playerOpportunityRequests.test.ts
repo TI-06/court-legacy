@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { derivePlayerOpportunityRequests } from "../../../../src/domain/dynamics/playerOpportunityRequests";
+import {
+  derivePlayerOpportunityRequests,
+} from "../../../../src/domain/dynamics/playerOpportunityRequests";
 import { eventId } from "../../../../src/domain/model/identifiers";
 
 describe("player opportunity requests", () => {
@@ -56,7 +58,8 @@ describe("player opportunity requests", () => {
 
     expect(
       derivePlayerOpportunityRequests(state).some(
-        (request) => request.playerId === playerId && request.kind === "promise",
+        (request) =>
+          request.playerId === playerId && request.kind === "promise",
       ),
     ).toBe(false);
   });
