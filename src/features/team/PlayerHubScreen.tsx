@@ -407,11 +407,7 @@ export function PlayerHubScreen({
   };
 
   const stageCoachDirective = (directive: CoachDevelopmentDirective) => {
-    if (
-      trainingPending ||
-      trainingDone ||
-      coachTargetPlayerIds.length === 0
-    ) {
+    if (trainingPending || trainingDone || coachTargetPlayerIds.length === 0) {
       return;
     }
 
@@ -435,11 +431,7 @@ export function PlayerHubScreen({
   };
 
   const stageCoachRecommendations = () => {
-    if (
-      trainingPending ||
-      trainingDone ||
-      coachTargetPlayerIds.length === 0
-    ) {
+    if (trainingPending || trainingDone || coachTargetPlayerIds.length === 0) {
       return;
     }
 
