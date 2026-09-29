@@ -577,9 +577,7 @@ export function PlayerHubScreen({
               <small>全能力をバランス育成</small>
             </button>
           </div>
-          <p>
-            特化能力が上限に達した選手は、自動で全体育成へ切り替わります。
-          </p>
+          <p>特化能力が上限に達した選手は、自動で全体育成へ切り替わります。</p>
         </section>
 
         <div className="player-coach-proposal__summary">
