@@ -1,6 +1,7 @@
 import type { GameState, HistoricalMatchSummary } from "../model/GameState";
 import { selectResolvedPlayerConcerns } from "../dynamics/concernResolution";
 import { applyOfficialMatchDynamicsFeedback } from "../dynamics/officialMatchDynamics";
+import { resolvePlayerOpportunityPromisesAfterOfficialMatch } from "../dynamics/playerOpportunityPromiseResolution";
 import type { MatchState } from "../model/Match";
 import {
   appendNotification,
@@ -193,6 +194,11 @@ export function recordOfficialTournamentOutcome(
     round: bracketMatch.round,
     won: userWon,
   });
+
+  next = resolvePlayerOpportunityPromisesAfterOfficialMatch(
+    next,
+    input.match,
+  ).state;
 
   const concernsBeforeDynamics = next.teamDynamics.playerConcerns;
   next = applyOfficialMatchDynamicsFeedback({
