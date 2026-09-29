@@ -151,6 +151,53 @@ describe("PlayerHubScreen", () => {
     }
   });
 
+  it("opens player detail from the wider roster card area but keeps the training menu independent", () => {
+    const { state } = renderPlayerHub();
+    const school = state.schools[state.userSchoolId]!;
+    const player = school.playerIds
+      .map((id) => state.players[id]!)
+      .sort(
+        (left, right) =>
+          calculatePlayerDisplayPower(right) -
+            calculatePlayerDisplayPower(left) ||
+          left.id.localeCompare(right.id),
+      )[0]!;
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    const abilities = within(row).getByLabelText(
+      `${player.lastName} ${player.firstName} 能力ランク`,
+    );
+    const attack = within(abilities).getByLabelText(
+      `攻撃 ${ratingToGrade(summarizePlayerAbilities(player).attack)}`,
+    );
+
+    fireEvent.click(attack);
+
+    expect(
+      screen.getByRole("heading", {
+        name: `${player.lastName} ${player.firstName}`,
+      }),
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
+
+    const trainingButton = screen.getByRole("button", {
+      name: new RegExp(`^${player.lastName} ${player.firstName} 個人練習 `),
+    });
+    fireEvent.click(trainingButton);
+
+    expect(
+      screen.getByRole("dialog", {
+        name: `${player.lastName} ${player.firstName}の個人練習`,
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
+  });
+
   it("keeps a visible genius badge after a generational recruit enrolls", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
@@ -1124,6 +1171,93 @@ describe("PlayerHubScreen", () => {
       ]),
     );
   });
+  it("lets the coach proposal target a grade and then adjust individual players", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const onSaveTrainingAssignments = vi.fn();
+
+    renderPlayerHub(state, vi.fn(), { onSaveTrainingAssignments });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "コーチの個人練習提案" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "コーチの個人練習提案",
+    });
+    const firstYears = school.playerIds.filter(
+      (playerId) => state.players[playerId]!.grade === 1,
+    );
+    const secondYearId = school.playerIds.find(
+      (playerId) => state.players[playerId]!.grade === 2,
+    )!;
+    const removedFirstYearId = firstYears[0]!;
+    const removedFirstYear = state.players[removedFirstYearId]!;
+    const addedSecondYear = state.players[secondYearId]!;
+
+    const gradeControls = within(dialog).getByRole("group", {
+      name: "反映対象を学年で選択",
+    });
+    fireEvent.click(within(gradeControls).getByRole("button", { name: "1年" }));
+
+    expect(
+      within(dialog).getByText(`${firstYears.length}人選択中`),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `${removedFirstYear.lastName} ${removedFirstYear.firstName}を反映対象から外す`,
+      }),
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `${addedSecondYear.lastName} ${addedSecondYear.firstName}を反映対象に追加`,
+      }),
+    );
+
+    expect(
+      within(dialog).getByText(`${firstYears.length}人選択中`),
+    ).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: /ポジション特化/ }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /まとめて保存（\d+人）/ }),
+    );
+
+    const saved = onSaveTrainingAssignments.mock.calls[0]![0] as Array<{
+      playerId: string;
+      instructionId: string;
+    }>;
+    const byPlayerId = new Map(
+      saved.map((assignment) => [
+        assignment.playerId,
+        assignment.instructionId,
+      ]),
+    );
+    const expectedInstructionByPosition = {
+      OH: "instruction.oh-specialist",
+      MB: "instruction.mb-specialist",
+      OP: "instruction.op-specialist",
+      S: "instruction.s-specialist",
+      L: "instruction.l-specialist",
+    } as const;
+
+    for (const playerId of firstYears.slice(1)) {
+      const player = state.players[playerId]!;
+      expect(byPlayerId.get(playerId)).toBe(
+        expectedInstructionByPosition[player.preferredPosition],
+      );
+    }
+    expect(byPlayerId.get(secondYearId)).toBe(
+      expectedInstructionByPosition[addedSecondYear.preferredPosition],
+    );
+    expect(byPlayerId.get(removedFirstYearId)).not.toBe(
+      expectedInstructionByPosition[removedFirstYear.preferredPosition],
+    );
+  });
+
   it("stages a position-specialist coach directive for the full roster", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
