@@ -1622,3 +1622,152 @@
     white-space: normal;
   }
 }
+
+
+/* Player requests: turn existing concerns into actionable pre-match decisions. */
+.pre-match-lineup__requests {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 8px;
+  color: var(--game-text, #f4f7fb);
+  background:
+    linear-gradient(145deg, rgb(244 122 24 / 8%), transparent 58%),
+    var(--game-panel, #0b1a2d);
+  border: 1px solid rgb(244 122 24 / 22%);
+  border-radius: 14px;
+}
+
+.pre-match-lineup__requests-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.pre-match-lineup__requests-heading h3 {
+  margin: 1px 0 0;
+  font-size: 0.9rem;
+}
+
+.pre-match-lineup__requests-heading > span {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  color: #ffc08a;
+  font-size: 0.62rem;
+  font-weight: 900;
+  background: rgb(244 122 24 / 10%);
+  border-radius: 999px;
+}
+
+.pre-match-lineup__request-list {
+  display: grid;
+  gap: 5px;
+}
+
+.pre-match-lineup__request-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 8px;
+  gap: 8px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 7%);
+  border-radius: 10px;
+}
+
+.pre-match-lineup__request-list article[data-severity="3"] {
+  border-color: rgb(227 72 72 / 34%);
+  background: rgb(227 72 72 / 7%);
+}
+
+.pre-match-lineup__request-list article > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.pre-match-lineup__request-list strong,
+.pre-match-lineup__request-list span,
+.pre-match-lineup__request-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__request-list strong {
+  font-size: 0.72rem;
+}
+
+.pre-match-lineup__request-list span {
+  color: #ffd1ad;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.pre-match-lineup__request-list small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+}
+
+.pre-match-lineup__request-list b {
+  flex: 0 0 auto;
+  color: #9fd7ff;
+  font-size: 0.58rem;
+}
+
+.pre-match-lineup__requests-more {
+  margin: 0;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+.pre-match-lineup__requests-apply {
+  min-height: 40px;
+  color: #071321;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: var(--game-accent, #f47a18);
+  border: 0;
+  border-radius: 10px;
+}
+
+.pre-match-lineup__request-badge {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 5px;
+  color: #ffd0aa;
+  font-size: 0.52rem;
+  font-weight: 900;
+  line-height: 1.2;
+  background: rgb(244 122 24 / 13%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 999px;
+}
+
+.pre-match-lineup__bench-player > .pre-match-lineup__request-badge {
+  margin-top: 1px;
+}
+
+.pre-match-lineup__picker-identity > .pre-match-lineup__request-badge {
+  margin-block: 1px;
+}
+
+@media (max-width: 350px) {
+  .pre-match-lineup__requests {
+    padding: 8px;
+  }
+
+  .pre-match-lineup__request-list article {
+    gap: 5px;
+  }
+
+  .pre-match-lineup__request-list b {
+    display: none;
+  }
+}
