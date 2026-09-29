@@ -119,15 +119,15 @@ describe("match flow", () => {
     );
     expect(screen.getAllByText(/セット 0 ・ 戦力 \d+/)).toHaveLength(2);
 
-    fireEvent.click(screen.getByRole("button", { name: "次のプレー" }));
-    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
-      `2 / ${fixture.result.match.eventLog.length}`,
+    const nextPointIndex = fixture.result.match.eventLog.findIndex(
+      (event, index) => index > 0 && event.type === "point",
     );
+    expect(nextPointIndex).toBeGreaterThan(0);
+    expect(screen.getByText("得点推移・4倍速")).toBeVisible();
 
-    fireEvent.click(screen.getByRole("button", { name: "2倍" }));
-    expect(screen.getByRole("button", { name: "2倍" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    fireEvent.click(screen.getByRole("button", { name: "次のポイント" }));
+    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
+      `${nextPointIndex + 1} / ${fixture.result.match.eventLog.length}`,
     );
     expect(JSON.stringify(fixture.result)).toBe(resultBefore);
 
@@ -199,10 +199,14 @@ describe("match flow", () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
-  it("plays and pauses without changing the calculated result", () => {
+  it("auto-plays score flow at 4x and can pause without changing the calculated result", () => {
     vi.useFakeTimers();
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
+    const nextPointIndex = fixture.result.match.eventLog.findIndex(
+      (event, index) => index > 0 && event.type === "point",
+    );
+    expect(nextPointIndex).toBeGreaterThan(0);
 
     render(
       <MatchScreen
@@ -213,20 +217,21 @@ describe("match flow", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "再生" }));
+    expect(screen.getByRole("button", { name: "一時停止" })).toBeVisible();
     act(() => {
-      vi.advanceTimersByTime(900);
+      vi.advanceTimersByTime(200);
     });
     expect(screen.getByTestId("event-sequence")).toHaveTextContent(
-      `2 / ${fixture.result.match.eventLog.length}`,
+      `${nextPointIndex + 1} / ${fixture.result.match.eventLog.length}`,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "一時停止" }));
+    const pausedSequence = screen.getByTestId("event-sequence").textContent;
     act(() => {
       vi.advanceTimersByTime(2_000);
     });
-    expect(screen.getByTestId("event-sequence")).toHaveTextContent(
-      `2 / ${fixture.result.match.eventLog.length}`,
+    expect(screen.getByTestId("event-sequence").textContent).toBe(
+      pausedSequence,
     );
     expect(JSON.stringify(fixture.result)).toBe(resultBefore);
 
