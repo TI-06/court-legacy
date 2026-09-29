@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGame } from "../../../src/app/createInitialGame";
+import { createInitialGame } from "../../../../src/app/createInitialGame";
 import {
   positionConversionWeeks,
   progressPositionConversions,
   startPositionConversion,
-} from "../../../src/domain/player/positionConversion";
+} from "../../../../src/domain/player/positionConversion";
 
 function fixture() {
   const state = createInitialGame({
