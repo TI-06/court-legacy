@@ -1,14 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const commands = [
-  [
-    "Formatting",
-    "bash",
-    [
-      "-lc",
-      "npx prettier src/domain/dynamics/playerOpportunityPromises.ts tests/unit/domain/dynamics/playerOpportunityPromises.test.ts tests/unit/features/match/PreMatchLineupScreen.test.tsx worker/game/applyServerGameAction.ts --write && git diff -- src/domain/dynamics/playerOpportunityPromises.ts tests/unit/domain/dynamics/playerOpportunityPromises.test.ts tests/unit/features/match/PreMatchLineupScreen.test.tsx worker/game/applyServerGameAction.ts && exit 1",
-    ],
-  ],
+  ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
   ["Type check", "npm", ["run", "typecheck"]],
   ["V2 structure", "node", ["scripts/verifyStructureCli.mjs"]],
