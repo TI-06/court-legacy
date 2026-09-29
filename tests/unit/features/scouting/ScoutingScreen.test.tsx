@@ -3,6 +3,7 @@ import { beforeEach, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { playerId } from "../../../../src/domain/model/identifiers";
 import type { ScoutReport } from "../../../../src/domain/scouting/scoutReport";
+import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 import { SchoolScreen } from "../../../../src/features/school/SchoolScreen";
 import { ScoutingScreen } from "../../../../src/features/scouting/ScoutingScreen";
 
@@ -51,6 +52,48 @@ const reports: ScoutReport[] = [
     comments: ["トスワークの感覚が良い", "大舞台の経験がある"],
   },
 ];
+
+function scoutingItemStatus(): ShopStatusResponse {
+  return {
+    revision: 8,
+    academicYearIndex: 1,
+    items: [
+      {
+        itemId: "extra-scout-candidate",
+        displayName: "新入生候補追加",
+        description: "次回のスカウト検索結果に新入生候補を1名追加します。",
+        priceYen: 0,
+        annualPurchaseLimit: 2_000_000_000,
+        annualUseLimit: 2_000_000_000,
+        inventoryLimit: null,
+        purchasedCount: 2,
+        usedCount: 0,
+        quantityOwned: 2,
+        canPurchase: true,
+        purchaseBlockedReason: null,
+        canUse: true,
+        useBlockedReason: null,
+      },
+      {
+        itemId: "generational-scout-candidate",
+        displayName: "天才候補生追加",
+        description:
+          "次回のスカウト検索結果に天才ランクの候補を1名確定で追加します。",
+        priceYen: 0,
+        annualPurchaseLimit: 2_000_000_000,
+        annualUseLimit: 2_000_000_000,
+        inventoryLimit: null,
+        purchasedCount: 1,
+        usedCount: 0,
+        quantityOwned: 1,
+        canPurchase: true,
+        purchaseBlockedReason: null,
+        canUse: true,
+        useBlockedReason: null,
+      },
+    ],
+  };
+}
 
 function stateWithCommitted(candidateIds: (typeof candidateA)[] = []) {
   const state = createDemoGame();
@@ -222,6 +265,44 @@ describe("ScoutingScreen", () => {
       "true",
     );
     expect(screen.getByRole("heading", { name: "学校記録" })).toBeVisible();
+  });
+
+  it("uses candidate and genius items from the scouting screen and shows queued effects", () => {
+    const state = stateWithCommitted();
+    state.recruiting = {
+      ...state.recruiting!,
+      pendingExtraScoutCandidates: 1,
+      pendingGenerationalScoutCandidates: 1,
+    };
+    const onUseShopItem = vi.fn();
+
+    render(
+      <ScoutingScreen
+        error={null}
+        loading={false}
+        onBack={vi.fn()}
+        onRecruit={vi.fn()}
+        onRetry={vi.fn()}
+        onUseShopItem={onUseShopItem}
+        recruitingCandidateId={null}
+        reports={[]}
+        shopStatus={scoutingItemStatus()}
+        state={state}
+      />,
+    );
+
+    const items = screen.getByRole("region", { name: "探索アイテム" });
+    expect(within(items).getByText("候補+1 天才確定+1")).toBeVisible();
+    expect(within(items).getByText("所持 2")).toBeVisible();
+    expect(within(items).getByText("所持 1")).toBeVisible();
+
+    fireEvent.click(within(items).getByRole("button", { name: /候補\+1/ }));
+    expect(onUseShopItem).toHaveBeenCalledWith("extra-scout-candidate");
+
+    fireEvent.click(within(items).getByRole("button", { name: /天才確定/ }));
+    expect(onUseShopItem).toHaveBeenCalledWith(
+      "generational-scout-candidate",
+    );
   });
 
   it("allows a persisted extra search credit even when no ticket remains", () => {
