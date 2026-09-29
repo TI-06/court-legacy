@@ -49,7 +49,7 @@ describe("player opportunity requests", () => {
     }
   });
 
-  it("treats a promised appearance as the highest-priority request until the reserve chain resolves", () => {
+  it("keeps a promised appearance active until an official match settles it", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
 
@@ -74,10 +74,10 @@ describe("player opportunity requests", () => {
     );
 
     state.eventMemory.history.push({
-      eventId: eventId("event.reserve-breakthrough"),
+      eventId: eventId("event.reserve-appearance-promise-result"),
       date: "2026-6-1",
       actorPlayerIds: [playerId],
-      choiceId: "role",
+      choiceId: "fulfilled",
       visibleResultCodes: [],
     });
 
