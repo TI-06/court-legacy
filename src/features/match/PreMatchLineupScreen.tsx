@@ -505,23 +505,37 @@ export function PreMatchLineupScreen({
                     <b>{request.title}</b>
                     <small>{request.detail}</small>
                   </div>
-                  <button
-                    disabled={pending || Boolean(player.injury) || isActive}
-                    onClick={() => prioritizeRequestedPlayer(player.id)}
-                    type="button"
-                  >
-                    {player.injury
-                      ? "負傷中"
-                      : isActive
-                        ? "起用済み"
-                        : "優先起用"}
-                  </button>
+                  {request.kind === "promise" &&
+                  request.promiseKind === "substitute" &&
+                  !player.injury &&
+                  !isActive ? (
+                    <span className="pre-match-lineup__request-status">
+                      試合中に優先
+                    </span>
+                  ) : (
+                    <button
+                      disabled={pending || Boolean(player.injury) || isActive}
+                      onClick={() => prioritizeRequestedPlayer(player.id)}
+                      type="button"
+                    >
+                      {player.injury
+                        ? "負傷中"
+                        : isActive
+                          ? "起用済み"
+                          : request.kind === "promise" &&
+                              request.promiseKind === "starter"
+                            ? "先発に入れる"
+                            : request.kind === "promise"
+                              ? "起用する"
+                              : "優先起用"}
+                    </button>
+                  )}
                 </article>
               );
             })}
           </div>
           <p className="pre-match-lineup__request-note">
-            起用しない場合は現在の編成を維持できます。面談で役割継続を伝える選択肢もあります。
+            先発約束はこの画面で対応できます。途中出場の約束は試合中の交代候補で最優先表示されます。
           </p>
         </section>
       ) : null}
