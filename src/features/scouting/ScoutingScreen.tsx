@@ -410,10 +410,7 @@ export function ScoutingScreen({
       generationalCandidateAvailable ||
       pendingExtraCandidates > 0 ||
       pendingGenerationalCandidates > 0 ? (
-        <section
-          aria-label="探索アイテム"
-          className="scouting-search-items"
-        >
+        <section aria-label="探索アイテム" className="scouting-search-items">
           <div className="scouting-search-items__heading">
             <div>
               <span>探索アイテム</span>

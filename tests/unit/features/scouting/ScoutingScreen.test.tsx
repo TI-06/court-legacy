@@ -300,9 +300,7 @@ describe("ScoutingScreen", () => {
     expect(onUseShopItem).toHaveBeenCalledWith("extra-scout-candidate");
 
     fireEvent.click(within(items).getByRole("button", { name: /天才確定/ }));
-    expect(onUseShopItem).toHaveBeenCalledWith(
-      "generational-scout-candidate",
-    );
+    expect(onUseShopItem).toHaveBeenCalledWith("generational-scout-candidate");
   });
 
   it("allows a persisted extra search credit even when no ticket remains", () => {

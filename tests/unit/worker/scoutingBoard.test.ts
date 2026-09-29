@@ -176,9 +176,12 @@ describe("scouting board route", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.reports).toHaveLength(8);
-    expect(body.reports.some((report: { isGenerationalTalent?: boolean }) =>
-      report.isGenerationalTalent === true,
-    )).toBe(true);
+    expect(
+      body.reports.some(
+        (report: { isGenerationalTalent?: boolean }) =>
+          report.isGenerationalTalent === true,
+      ),
+    ).toBe(true);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(8);
 
     const persisted = vi.mocked(gameStore.applyOperation).mock.calls[0]?.[0];
