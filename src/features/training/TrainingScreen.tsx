@@ -20,8 +20,10 @@ interface TrainingScreenProps {
 }
 
 type AssignmentSlot = 1 | 2;
+type CoachDevelopmentDirective = "position-specialist" | "all-rounder";
 type TrainingSheet =
   | "team-menu"
+  | "coach-directive"
   | "assignment-1"
   | "assignment-2"
   | "player-1"
@@ -30,6 +32,56 @@ type TrainingSheet =
   | "instruction-2"
   | "confirm"
   | null;
+
+const positionSpecialistInstructionId = {
+  OH: "instruction.oh-specialist",
+  MB: "instruction.mb-specialist",
+  OP: "instruction.op-specialist",
+  S: "instruction.s-specialist",
+  L: "instruction.l-specialist",
+} as const;
+
+function buildCoachAssignments(
+  players: readonly GameState["players"][PlayerId][],
+  directive: CoachDevelopmentDirective,
+): WeeklyPlan["individualAssignments"] {
+  return players.map((player) => ({
+    playerId: player.id,
+    instructionId:
+      directive === "all-rounder"
+        ? "instruction.overall"
+        : positionSpecialistInstructionId[player.preferredPosition],
+  }));
+}
+
+function detectCoachDirective(
+  players: readonly GameState["players"][PlayerId][],
+  assignments: WeeklyPlan["individualAssignments"],
+): CoachDevelopmentDirective | null {
+  if (assignments.length !== players.length) return null;
+  const byPlayerId = new Map(
+    assignments.map((assignment) => [assignment.playerId, assignment.instructionId]),
+  );
+  if (
+    players.every(
+      (player) => byPlayerId.get(player.id) === "instruction.overall",
+    )
+  ) {
+    return "all-rounder";
+  }
+  if (
+    players.every((player) => {
+      const instructionId = byPlayerId.get(player.id);
+      return (
+        instructionId === positionSpecialistInstructionId[player.preferredPosition] ||
+        instructionId === "instruction.overall"
+      );
+    })
+  ) {
+    return "position-specialist";
+  }
+  return null;
+}
 
 function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
@@ -83,6 +135,15 @@ export function TrainingScreen({
       instructions[0]?.id ??
       "",
   );
+  const savedCoachDirective = detectCoachDirective(
+    players,
+    savedPlan.individualAssignments,
+  );
+  const [coachDirective, setCoachDirective] =
+    useState<CoachDevelopmentDirective | null>(savedCoachDirective);
+  const [coachAssignments, setCoachAssignments] = useState<
+    WeeklyPlan["individualAssignments"] | null
+  >(savedCoachDirective ? savedPlan.individualAssignments : null);
   const [sheet, setSheet] = useState<TrainingSheet>(null);
 
   const selectedMenu = data.trainingMenus.get(teamTrainingMenuId);
@@ -107,10 +168,11 @@ export function TrainingScreen({
 
   const plan: WeeklyPlan = {
     teamTrainingMenuId,
-    individualAssignments: [
-      { playerId: firstPlayerId, instructionId: firstInstructionId },
-      { playerId: secondPlayerId, instructionId: secondInstructionId },
-    ],
+    individualAssignments:
+      coachAssignments ?? [
+        { playerId: firstPlayerId, instructionId: firstInstructionId },
+        { playerId: secondPlayerId, instructionId: secondInstructionId },
+      ],
   };
 
   const save = () => {
@@ -131,6 +193,8 @@ export function TrainingScreen({
   const pickerOtherId = pickerSlot === 1 ? secondPlayerId : firstPlayerId;
 
   const selectPlayer = (playerId: PlayerId) => {
+    setCoachDirective(null);
+    setCoachAssignments(null);
     if (pickerSlot === 1) {
       setFirstPlayerId(playerId);
       setSheet("assignment-1");
@@ -159,6 +223,36 @@ export function TrainingScreen({
           %
         </p>
       ) : null}
+
+      <section className="training-coach-directive" aria-label="コーチ育成指示">
+        <button
+          className="training-compact-row training-compact-row--team"
+          disabled={completed}
+          onClick={() => setSheet("coach-directive")}
+          type="button"
+        >
+          <span className="training-compact-row__main">
+            <span className="training-compact-row__label">コーチ育成指示</span>
+            <strong>
+              {coachDirective === "position-specialist"
+                ? "ポジション特化"
+                : coachDirective === "all-rounder"
+                  ? "オールラウンダー"
+                  : "個別設定"}
+            </strong>
+            <small>
+              {coachDirective === "position-specialist"
+                ? "全選手をポジション別の重要能力へ自動配分"
+                : coachDirective === "all-rounder"
+                  ? "全選手をバランス育成"
+                  : "個人育成2枠を手動で設定"}
+            </small>
+          </span>
+          <span className="training-compact-row__action" aria-hidden="true">
+            変更 ›
+          </span>
+        </button>
+      </section>
 
       <section className="training-setup-card" aria-label="今週の練習設定">
         <button
@@ -228,6 +322,63 @@ export function TrainingScreen({
               : "練習内容を設定してください"
         }
       />
+
+      <BottomSheet
+        description="コーチに全選手の育成方針をまとめて指示します。特化対象が上限に達した選手は自動で全体育成へ切り替わります。"
+        onClose={() => setSheet(null)}
+        open={sheet === "coach-directive"}
+        title="コーチ育成指示"
+      >
+        <div className="training-sheet-choice-list">
+          <ChoiceCard
+            description="OHは攻守、MBはブロック/跳躍、OPは攻撃、Sはトス/判断、Lはレシーブ/速度/判断を重点育成します。"
+            meta={
+              <>
+                <span>全選手対象</span>
+                <span>役割別特化</span>
+                <span>上限時は全体へ自動切替</span>
+              </>
+            }
+            onClick={() => {
+              setCoachDirective("position-specialist");
+              setCoachAssignments(
+                buildCoachAssignments(players, "position-specialist"),
+              );
+              setSheet(null);
+            }}
+            selected={coachDirective === "position-specialist"}
+            title="ポジション特化"
+          />
+          <ChoiceCard
+            description="ポジションに関係なく、全能力をバランスよく伸ばします。"
+            meta={
+              <>
+                <span>全選手対象</span>
+                <span>全体育成</span>
+                <span>偏りを抑える</span>
+              </>
+            }
+            onClick={() => {
+              setCoachDirective("all-rounder");
+              setCoachAssignments(buildCoachAssignments(players, "all-rounder"));
+              setSheet(null);
+            }}
+            selected={coachDirective === "all-rounder"}
+            title="オールラウンダー"
+          />
+          <ChoiceCard
+            description="これまで通り、個人育成2枠を自分で設定します。"
+            meta={<span>手動設定</span>}
+            onClick={() => {
+              setCoachDirective(null);
+              setCoachAssignments(null);
+              setSheet(null);
+            }}
+            selected={coachDirective === null}
+            title="個別設定"
+          />
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         description="カードをタップすると今週のメニューへ設定します。"
@@ -341,6 +492,8 @@ export function TrainingScreen({
                 key={instruction.id}
                 label={instruction.name}
                 onClick={() => {
+                  setCoachDirective(null);
+                  setCoachAssignments(null);
                   if (assignmentSlot === 1) {
                     setFirstInstructionId(instruction.id);
                     setSheet("assignment-1");
