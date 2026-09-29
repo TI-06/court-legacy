@@ -1124,4 +1124,52 @@ describe("PlayerHubScreen", () => {
       ]),
     );
   });
+  it("stages a position-specialist coach directive for the full roster", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const onSaveTrainingAssignments = vi.fn();
+
+    renderPlayerHub(state, vi.fn(), { onSaveTrainingAssignments });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "コーチの個人練習提案" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "コーチの個人練習提案",
+    });
+    expect(within(dialog).getByLabelText("コーチ育成方針")).toBeVisible();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: /ポジション特化/ }),
+    );
+
+    const saveButton = screen.getByRole("button", {
+      name: /まとめて保存（\d+人）/,
+    });
+    fireEvent.click(saveButton);
+
+    const expectedInstructionByPosition = {
+      OH: "instruction.oh-specialist",
+      MB: "instruction.mb-specialist",
+      OP: "instruction.op-specialist",
+      S: "instruction.s-specialist",
+      L: "instruction.l-specialist",
+    } as const;
+
+    expect(onSaveTrainingAssignments).toHaveBeenCalledTimes(1);
+    expect(onSaveTrainingAssignments).toHaveBeenCalledWith(
+      expect.arrayContaining(
+        school.playerIds.map((playerId) => {
+          const player = state.players[playerId]!;
+          return {
+            playerId,
+            instructionId:
+              expectedInstructionByPosition[player.preferredPosition],
+          };
+        }),
+      ),
+    );
+  });
+
 });
