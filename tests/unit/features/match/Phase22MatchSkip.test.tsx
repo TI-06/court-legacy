@@ -66,8 +66,8 @@ describe("Phase22 match result skip", () => {
     );
 
     expect(screen.getByTestId("event-sequence")).toHaveTextContent("1 /");
-    expect(screen.getByRole("button", { name: "再生" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "次のプレー" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "一時停止" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "次のポイント" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "結果までスキップ" }));
 
