@@ -147,6 +147,84 @@ export function buildPreMatchLineupPreset(input: {
   return validatePresetSelection(input.state, input.schoolId, selection);
 }
 
+export function prioritizePlayerForPreMatch(input: {
+  state: GameState;
+  schoolId: SchoolId;
+  selection: TeamSelection;
+  playerId: PlayerId;
+}): TeamSelection {
+  const player = input.state.players[input.playerId];
+  if (!player || player.career.schoolId !== input.schoolId) {
+    throw new Error("priority player is not available for this school");
+  }
+  if (player.injury) {
+    throw new Error("injured player cannot be prioritized");
+  }
+
+  const activePlayerIds = new Set([
+    ...input.selection.rotation.map((assignment) => assignment.playerId),
+    ...(input.selection.liberoPlayerId
+      ? [input.selection.liberoPlayerId]
+      : []),
+  ]);
+  if (activePlayerIds.has(player.id)) {
+    return cloneSelection(input.selection);
+  }
+  if (!input.selection.benchPlayerIds.includes(player.id)) {
+    throw new Error("priority player must be on the bench");
+  }
+
+  if (player.preferredPosition === "L" && input.selection.liberoPlayerId) {
+    return validatePresetSelection(
+      input.state,
+      input.schoolId,
+      replacePreMatchPlayer({
+        selection: input.selection,
+        outgoingPlayerId: input.selection.liberoPlayerId,
+        incomingPlayerId: player.id,
+      }),
+    );
+  }
+
+  const preferredSlots = input.selection.rotation.filter(
+    (assignment) => ROTATION_ROLES[assignment.slot] === player.preferredPosition,
+  );
+  const candidates =
+    preferredSlots.length > 0
+      ? preferredSlots
+      : input.selection.rotation.filter(
+          (assignment) => ROTATION_ROLES[assignment.slot] !== "L",
+        );
+
+  const outgoing = [...candidates].sort((left, right) => {
+    const leftPlayer = input.state.players[left.playerId];
+    const rightPlayer = input.state.players[right.playerId];
+    const leftScore = leftPlayer
+      ? leftPlayer.positionAptitudes[ROTATION_ROLES[left.slot]] * 1_000 +
+        calculatePlayerDisplayPower(leftPlayer)
+      : Number.NEGATIVE_INFINITY;
+    const rightScore = rightPlayer
+      ? rightPlayer.positionAptitudes[ROTATION_ROLES[right.slot]] * 1_000 +
+        calculatePlayerDisplayPower(rightPlayer)
+      : Number.NEGATIVE_INFINITY;
+    return leftScore - rightScore || left.slot - right.slot;
+  })[0];
+
+  if (!outgoing) {
+    throw new Error("no rotation player available for priority selection");
+  }
+
+  return validatePresetSelection(
+    input.state,
+    input.schoolId,
+    replacePreMatchPlayer({
+      selection: input.selection,
+      outgoingPlayerId: outgoing.playerId,
+      incomingPlayerId: player.id,
+    }),
+  );
+}
+
 export function replacePreMatchPlayer(input: {
   selection: TeamSelection;
   outgoingPlayerId: PlayerId;
