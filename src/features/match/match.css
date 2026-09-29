@@ -2256,3 +2256,16 @@
   background: #142536;
   border-radius: 10px;
 }
+
+.match-growth-sheet__continue {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  color: #071321;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 950;
+  background: #7fd0d8;
+  border: 0;
+  border-radius: 11px;
+}
