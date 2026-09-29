@@ -157,9 +157,7 @@ export function applyPlayerOpportunityResponses(
   responses: readonly PlayerOpportunityResponse[],
 ): GameState {
   let next = state;
-  const roster = new Set(
-    state.schools[state.userSchoolId]?.playerIds ?? [],
-  );
+  const roster = new Set(state.schools[state.userSchoolId]?.playerIds ?? []);
   const activeIds = activeSelectionPlayerIds(selection);
 
   for (const response of responses) {
