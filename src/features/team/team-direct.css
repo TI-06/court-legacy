@@ -1619,3 +1619,17 @@
     font-size: 7px;
   }
 }
+
+
+/* Phase46: fit bench overall and readiness on separate compact rows. */
+.bench-player-card {
+  grid-template-areas:
+    "name action"
+    "meta action"
+    "overall action"
+    "readiness action";
+}
+
+.bench-player-card > .player-readiness {
+  grid-area: readiness;
+}
