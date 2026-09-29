@@ -1426,10 +1426,10 @@
 
 .player-coach-proposal-sheet .ui-sheet-content {
   padding-bottom: calc(
-    var(--bottom-navigation-height, 70px) + 28px + env(safe-area-inset-bottom)
+    var(--bottom-navigation-height, 70px) + 18px + env(safe-area-inset-bottom)
   );
   scroll-padding-bottom: calc(
-    var(--bottom-navigation-height, 70px) + 72px + env(safe-area-inset-bottom)
+    var(--bottom-navigation-height, 70px) + 18px + env(safe-area-inset-bottom)
   );
 }
 
@@ -1586,8 +1586,6 @@
 
 .player-coach-proposal__list {
   display: grid;
-  max-height: min(48vh, 420px);
-  overflow-y: auto;
   gap: 5px;
 }
 
@@ -1650,12 +1648,6 @@
 }
 
 .player-coach-proposal__apply {
-  position: sticky;
-  bottom: calc(
-    var(--bottom-navigation-height, 70px) +
-      var(--bottom-navigation-offset, 0px) + 6px
-  );
-  z-index: 3;
   min-height: 48px;
   color: #fff;
   font: inherit;
@@ -1664,9 +1656,6 @@
   background: linear-gradient(135deg, #f47a18, #d9570d);
   border: 0;
   border-radius: 10px;
-  box-shadow:
-    0 -10px 20px rgb(8 19 31 / 72%),
-    0 8px 18px rgb(0 0 0 / 28%);
 }
 
 .player-coach-proposal__apply:disabled {
