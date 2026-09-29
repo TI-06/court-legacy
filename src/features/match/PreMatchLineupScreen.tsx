@@ -1003,10 +1003,17 @@ export function PreMatchLineupScreen({
           onStart(
             cloneSelection(selection),
             cloneTactics(tactics),
-            Object.entries(opportunityResponses).map(([playerId, choice]) => ({
-              playerId: playerId as PlayerId,
-              choice,
-            })),
+            Object.entries(opportunityResponses).flatMap(
+              ([playerId, choice]) =>
+                choice
+                  ? [
+                      {
+                        playerId: playerId as PlayerId,
+                        choice,
+                      },
+                    ]
+                  : [],
+            ),
           )
         }
         type="button"
