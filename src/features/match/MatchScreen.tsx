@@ -96,9 +96,9 @@ function MatchScreenContent({
   schoolDisplayNames,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
-  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
+  const [playing, setPlaying] = useState(!reducedMotion);
+  const [speed, setSpeed] = useState<PlaybackSpeed>(4);
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("points");
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
