@@ -135,7 +135,9 @@ describe("PreMatchLineupScreen", () => {
       ),
     ).toBeVisible();
 
-    fireEvent.click(within(requests).getByRole("button", { name: "優先起用" }));
+    fireEvent.click(
+      within(requests).getByRole("button", { name: "今回先発" }),
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
     );
@@ -148,6 +150,35 @@ describe("PreMatchLineupScreen", () => {
       ) || startedSelection.liberoPlayerId === requestedPlayerId,
     ).toBe(true);
     expect(selection.benchPlayerIds).toContain(requestedPlayerId);
+    expect(onStart.mock.calls[0]?.[2]).toEqual([
+      { playerId: requestedPlayerId, choice: "starter" },
+    ]);
+  });
+
+  it("keeps player promise response controls out of PvP", () => {
+    const { state, selection } = fixture();
+    const requestedPlayerId = selection.benchPlayerIds[0]!;
+    state.teamDynamics.playerConcerns[requestedPlayerId] = [
+      { code: "playing-time", severity: 3 },
+    ];
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pvp"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName="オンライン高校"
+        opponentStrength={91}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("region", { name: "選手からの要望" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "今回先発" })).toBeNull();
   });
 
   it("can restore the saved lineup after applying a preset", () => {
