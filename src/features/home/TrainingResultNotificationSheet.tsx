@@ -150,7 +150,8 @@ export function TrainingResultNotificationSheet({
                                 <b>{abilityLabels[ability]}</b>
                                 {detail ? (
                                   <em>
-                                    {detail.before} {ratingToGrade(detail.before)}
+                                    {detail.before}{" "}
+                                    {ratingToGrade(detail.before)}
                                     <i aria-hidden="true">→</i>
                                     {detail.after} {ratingToGrade(detail.after)}
                                   </em>
