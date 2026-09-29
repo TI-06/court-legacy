@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import type { GameState } from "../../domain/model/GameState";
+import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type { WeeklyPlan } from "../../domain/training/resolveWeeklyTraining";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -42,7 +43,7 @@ const positionSpecialistInstructionId = {
 } as const;
 
 function buildCoachAssignments(
-  players: readonly GameState["players"][PlayerId][],
+  players: readonly Player[],
   directive: CoachDevelopmentDirective,
 ): WeeklyPlan["individualAssignments"] {
   return players.map((player) => ({
@@ -55,12 +56,15 @@ function buildCoachAssignments(
 }
 
 function detectCoachDirective(
-  players: readonly GameState["players"][PlayerId][],
+  players: readonly Player[],
   assignments: WeeklyPlan["individualAssignments"],
 ): CoachDevelopmentDirective | null {
   if (assignments.length !== players.length) return null;
   const byPlayerId = new Map(
-    assignments.map((assignment) => [assignment.playerId, assignment.instructionId]),
+    assignments.map((assignment) => [
+      assignment.playerId,
+      assignment.instructionId,
+    ]),
   );
   if (
     players.every(
@@ -73,7 +77,8 @@ function detectCoachDirective(
     players.every((player) => {
       const instructionId = byPlayerId.get(player.id);
       return (
-        instructionId === positionSpecialistInstructionId[player.preferredPosition] ||
+        instructionId ===
+          positionSpecialistInstructionId[player.preferredPosition] ||
         instructionId === "instruction.overall"
       );
     })
@@ -360,7 +365,9 @@ export function TrainingScreen({
             }
             onClick={() => {
               setCoachDirective("all-rounder");
-              setCoachAssignments(buildCoachAssignments(players, "all-rounder"));
+              setCoachAssignments(
+                buildCoachAssignments(players, "all-rounder"),
+              );
               setSheet(null);
             }}
             selected={coachDirective === "all-rounder"}
