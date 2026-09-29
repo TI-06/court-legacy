@@ -1385,6 +1385,12 @@ export function PlayerHubScreen({
                           目標
                         </span>
                       ) : null}
+                      {player.positionConversion ? (
+                        <span className="player-roster__status-badge player-roster__status-badge--conversion">
+                          {player.positionConversion.targetPosition}転向
+                          {player.positionConversion.remainingWeeks}週
+                        </span>
+                      ) : null}
                     </span>
                     <button
                       aria-label={
