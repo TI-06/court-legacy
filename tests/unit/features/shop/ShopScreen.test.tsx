@@ -72,9 +72,19 @@ describe("ShopScreen", () => {
     expect(screen.getByText("テスト中 / すべて¥0")).toBeVisible();
     expect(screen.queryByText("SHOP")).toBeNull();
     expect(screen.queryByText("TEST / ALL ¥0")).toBeNull();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "ショップ情報を読み込んでいます…",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("読み込み中…");
+  });
+
+  it("keeps refresh loading feedback outside the item layout", () => {
+    renderShop({ loading: true });
+
+    const feedback = screen.getByRole("status");
+    expect(feedback).toHaveClass("shop-screen__feedback-layer");
+    expect(feedback).toHaveTextContent("読み込み中…");
+    expect(screen.getByRole("region", { name: "商品一覧" })).toBeVisible();
+    expect(
+      screen.queryByText("ショップ情報を読み込んでいます…"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the shop without annual purchase or use caps", () => {

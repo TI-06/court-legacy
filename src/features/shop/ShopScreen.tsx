@@ -465,12 +465,6 @@ export function ShopScreen({
         </p>
       </section>
 
-      {loading ? (
-        <p aria-live="polite" className="shop-screen__notice" role="status">
-          ショップ情報を読み込んでいます…
-        </p>
-      ) : null}
-
       {error ? (
         <div
           className="shop-screen__notice shop-screen__notice--error"
@@ -489,20 +483,41 @@ export function ShopScreen({
         </div>
       ) : null}
 
-      {displayedResultMessage || latestUseResult ? (
+      {loading || displayedResultMessage || latestUseResult ? (
         <div
           aria-live="polite"
           className="shop-screen__feedback-layer"
           role="status"
         >
-          {displayedResultMessage ? (
-            <p className="shop-screen__notice shop-screen__notice--success">
-              {displayedResultMessage}
+          {loading ? (
+            <p className="shop-screen__feedback shop-screen__feedback--loading">
+              <span
+                aria-hidden="true"
+                className="shop-screen__feedback-spinner"
+              />
+              <strong>読み込み中…</strong>
             </p>
-          ) : null}
-          {latestUseResult ? (
-            <ShopUseResultPanel presentation={latestUseResult} state={state} />
-          ) : null}
+          ) : (
+            <>
+              {displayedResultMessage ? (
+                <p className="shop-screen__feedback shop-screen__feedback--success">
+                  <span
+                    aria-hidden="true"
+                    className="shop-screen__feedback-icon"
+                  >
+                    ✓
+                  </span>
+                  <strong>{displayedResultMessage}</strong>
+                </p>
+              ) : null}
+              {latestUseResult ? (
+                <ShopUseResultPanel
+                  presentation={latestUseResult}
+                  state={state}
+                />
+              ) : null}
+            </>
+          )}
         </div>
       ) : null}
 

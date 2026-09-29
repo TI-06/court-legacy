@@ -118,7 +118,7 @@ button:focus-visible {
   display: grid;
   gap: 14px;
   width: 100%;
-  padding: 16px 14px
+  padding: 16px 12px
     calc(
       24px + var(--bottom-navigation-height) + var(--bottom-navigation-offset)
     );
@@ -439,5 +439,11 @@ button:focus-visible {
 
   .nav-item span {
     font-size: 0.58rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .app-content {
+    padding-inline: 9px;
   }
 }
