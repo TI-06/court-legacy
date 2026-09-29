@@ -403,6 +403,22 @@
   background: rgb(255 255 255 / 8%);
 }
 
+.pre-match-lineup__request-status {
+  display: grid;
+  min-width: 82px;
+  min-height: 38px;
+  padding: 0 9px;
+  color: #a9dcff;
+  font-size: 0.6rem;
+  font-weight: 950;
+  line-height: 1.2;
+  text-align: center;
+  background: rgb(46 139 216 / 12%);
+  border: 1px solid rgb(116 216 255 / 22%);
+  border-radius: 9px;
+  place-items: center;
+}
+
 .pre-match-lineup__request-note {
   margin: 0;
   color: var(--game-text-muted, #c6d4dd);
