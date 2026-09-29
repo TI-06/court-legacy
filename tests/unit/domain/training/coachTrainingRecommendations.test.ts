@@ -129,6 +129,43 @@ describe("coachTrainingRecommendations", () => {
     });
   });
 
+  it("supports position-specialist and all-rounder directives", () => {
+    const state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    const player = state.players[school.playerIds[0]!]!;
+    player.condition = 80;
+    state.teamPlanning.developmentGoalsByPlayerId = {};
+
+    const expectedByPosition = [
+      ["OH", "instruction.spike"],
+      ["OP", "instruction.spike"],
+      ["MB", "instruction.block"],
+      ["S", "instruction.set"],
+      ["L", "instruction.receive"],
+    ] as const;
+
+    for (const [position, instructionId] of expectedByPosition) {
+      player.preferredPosition = position;
+      expect(
+        buildCoachTrainingRecommendation(
+          state,
+          player,
+          "position-specialist",
+        ),
+      ).toMatchObject({
+        instructionId,
+        reason: "position-specialist",
+      });
+    }
+
+    expect(
+      buildCoachTrainingRecommendation(state, player, "all-rounder"),
+    ).toMatchObject({
+      instructionId: "instruction.overall",
+      reason: "all-rounder",
+    });
+  });
+
   it("returns one deterministic proposal per roster player without changing game state", () => {
     const state = createDemoGame();
     const before = structuredClone(state);
