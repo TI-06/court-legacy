@@ -39,8 +39,7 @@ function appendHistory(
       history: [
         ...state.eventMemory.history,
         {
-          eventId:
-            event === "response" ? RESPONSE_EVENT_ID : OUTCOME_EVENT_ID,
+          eventId: event === "response" ? RESPONSE_EVENT_ID : OUTCOME_EVENT_ID,
           date: state.date,
           actorPlayerIds: [playerId],
           choiceId,
