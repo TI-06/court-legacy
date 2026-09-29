@@ -94,9 +94,8 @@ export function progressPositionConversions(state: GameState): {
   const school = state.schools[state.userSchoolId];
   if (!school) return { state, progress: [] };
 
-  const players = { ...state.players };
+  let players: GameState["players"] | null = null;
   const progress: PositionConversionProgress[] = [];
-  let changed = false;
 
   for (const playerId of school.playerIds) {
     const player = state.players[playerId];
@@ -135,6 +134,7 @@ export function progressPositionConversions(state: GameState): {
       };
     }
 
+    players ??= { ...state.players };
     players[playerId] = nextPlayer;
     progress.push({
       playerId,
@@ -145,11 +145,10 @@ export function progressPositionConversions(state: GameState): {
       remainingWeeks,
       completed,
     });
-    changed = true;
   }
 
   return {
-    state: changed ? { ...state, players } : state,
+    state: players ? { ...state, players } : state,
     progress,
   };
 }
