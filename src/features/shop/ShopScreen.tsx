@@ -368,10 +368,16 @@ export function ShopScreen({
     useState<PlayerId | null>(null);
   const [lastPurchaseItemId, setLastPurchaseItemId] =
     useState<ShopItemId | null>(null);
+  const scoutingScreenItemIds = new Set<ShopItemId>([
+    "extra-scout-candidate",
+    "generational-scout-candidate",
+  ]);
   const ownedItems =
     status?.items.filter(
       (item) =>
-        item.quantityOwned > 0 && shopFundsGrantAmount(item.itemId) === null,
+        item.quantityOwned > 0 &&
+        shopFundsGrantAmount(item.itemId) === null &&
+        !scoutingScreenItemIds.has(item.itemId),
     ) ?? [];
   const lastGrantAmount = lastPurchaseItemId
     ? shopFundsGrantAmount(lastPurchaseItemId)
