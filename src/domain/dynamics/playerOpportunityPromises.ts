@@ -4,10 +4,7 @@ import type { TeamSelection } from "../model/TeamSelection";
 import { eventId, type PlayerId } from "../model/identifiers";
 
 export type PlayerOpportunityResponseChoice =
-  | "starter"
-  | "substitute"
-  | "next-match"
-  | "decline";
+  "starter" | "substitute" | "next-match" | "decline";
 
 export interface PlayerOpportunityResponse {
   playerId: PlayerId;
