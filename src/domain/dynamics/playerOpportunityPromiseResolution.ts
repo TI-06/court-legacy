@@ -7,9 +7,7 @@ import {
 } from "./playerOpportunityRequests";
 
 export type PlayerOpportunityPromiseOutcomeStatus =
-  | "kept"
-  | "broken"
-  | "excused";
+  "kept" | "broken" | "excused";
 
 export interface PlayerOpportunityPromiseOutcome {
   playerId: PlayerId;
