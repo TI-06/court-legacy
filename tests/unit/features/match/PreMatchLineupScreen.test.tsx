@@ -15,6 +15,54 @@ function fixture() {
 }
 
 describe("PreMatchLineupScreen", () => {
+  it("shows player requests and can apply them to the match-only lineup", () => {
+    const { state, selection } = fixture();
+    const benchPlayerId = selection.benchPlayerIds.find(
+      (playerId) => state.players[playerId]?.preferredPosition !== "L",
+    );
+    expect(benchPlayerId).toBeDefined();
+    const benchPlayer = state.players[benchPlayerId!]!;
+
+    state.teamDynamics.recentOfficialMatchesTracked = 4;
+    state.teamDynamics.playerConcerns[benchPlayerId!] = [
+      { code: "playing-time", severity: 3 },
+    ];
+
+    const onStart = vi.fn();
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={onStart}
+        opponentName="ライバル高校"
+        opponentStrength={78}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const requests = screen.getByRole("region", { name: "選手からの要望" });
+    expect(within(requests).getByText("出場機会への不満")).toBeVisible();
+    expect(within(requests).getByText(benchPlayer.lastName, { exact: false })).toBeVisible();
+
+    fireEvent.click(
+      within(requests).getByRole("button", { name: "要望を考慮して編成" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
+
+    const startedSelection = onStart.mock.calls[0]?.[0];
+    expect(
+      startedSelection.rotation.some(
+        (assignment: { playerId: string }) =>
+          assignment.playerId === benchPlayerId,
+      ) || startedSelection.liberoPlayerId === benchPlayerId,
+    ).toBe(true);
+    expect(selection.benchPlayerIds).toContain(benchPlayerId);
+  });
+
   it("shows compact special ability badges on starter cards", () => {
     const { state, selection } = fixture();
     const starterId = selection.rotation[0]!.playerId;
