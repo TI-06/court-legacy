@@ -506,7 +506,12 @@ export function PreMatchLineupScreen({
                     <small>{request.detail}</small>
                   </div>
                   <button
-                    disabled={pending || Boolean(player.injury) || isActive}
+                    disabled={
+                      pending ||
+                      Boolean(player.injury) ||
+                      isActive ||
+                      request.promiseMode === "substitute"
+                    }
                     onClick={() => prioritizeRequestedPlayer(player.id)}
                     type="button"
                   >
@@ -514,7 +519,13 @@ export function PreMatchLineupScreen({
                       ? "負傷中"
                       : isActive
                         ? "起用済み"
-                        : "優先起用"}
+                        : request.promiseMode === "substitute"
+                          ? "試合中に交代で対応"
+                          : request.promiseMode === "starter"
+                            ? "先発で起用"
+                            : request.promiseMode === "next-match"
+                              ? "この試合で起用"
+                              : "優先起用"}
                   </button>
                 </article>
               );
