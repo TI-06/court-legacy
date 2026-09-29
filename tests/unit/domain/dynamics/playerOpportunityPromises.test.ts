@@ -79,28 +79,31 @@ describe("player opportunity promises", () => {
   it(
     "promotes a next-match promise to a starter promise after the current match",
     () => {
-    const state = createDemoGame();
-    const selection = autoSelectTeam({
-      state,
-      schoolId: state.userSchoolId,
-    });
-    const playerId = selection.benchPlayerIds[0]!;
-    const promised = applyPlayerOpportunityResponses(state, selection, [
-      { playerId, choice: "next-match" },
-    ]);
+      const state = createDemoGame();
+      const selection = autoSelectTeam({
+        state,
+        schoolId: state.userSchoolId,
+      });
+      const playerId = selection.benchPlayerIds[0]!;
+      const promised = applyPlayerOpportunityResponses(state, selection, [
+        { playerId, choice: "next-match" },
+      ]);
 
-    const match = {
-      id: matchId("promise-next-match"),
-      homeSchoolId: state.userSchoolId,
-      awaySchoolId: Object.values(state.schools).find(
-        (school) => school.id !== state.userSchoolId,
-      )!.id,
-      homeSelection: selection,
-      awaySelection: selection,
-      eventLog: [],
-    } as MatchState;
+      const match = {
+        id: matchId("promise-next-match"),
+        homeSchoolId: state.userSchoolId,
+        awaySchoolId: Object.values(state.schools).find(
+          (school) => school.id !== state.userSchoolId,
+        )!.id,
+        homeSelection: selection,
+        awaySelection: selection,
+        eventLog: [],
+      } as MatchState;
 
-    const resolved = resolveCompletedMatchOpportunityPromises(promised, match);
+      const resolved = resolveCompletedMatchOpportunityPromises(
+        promised,
+        match,
+      );
       expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([
         { playerId, choice: "starter" },
       ]);
