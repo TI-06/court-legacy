@@ -50,7 +50,7 @@ interface ScoutingScreenProps {
   onSearch?: (criteria: ScoutingSearchCriteria) => void;
   onExtraSearch?: (criteria: ScoutingSearchCriteria) => void;
   onRecruit: (candidateId: PlayerId, action?: RecruitmentAction) => void;
-  onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
+  onUseShopItem?: (itemId: ShopItemId, target?: ShopUseTarget) => void;
 }
 
 const achievementLabels: Record<MiddleSchoolAchievement, string> = {
@@ -141,6 +141,33 @@ function ScoutingShopUseResult({
   presentation: ShopUsePresentation;
 }) {
   if (
+    presentation.itemId === "extra-scout-candidate" ||
+    presentation.itemId === "generational-scout-candidate"
+  ) {
+    const extraCandidateCount =
+      typeof presentation.result.extraCandidateCount === "number"
+        ? presentation.result.extraCandidateCount
+        : 0;
+    const guaranteedGenerationalCount =
+      typeof presentation.result.guaranteedGenerationalCount === "number"
+        ? presentation.result.guaranteedGenerationalCount
+        : 0;
+    return (
+      <section className="scouting-shop-result" aria-live="polite">
+        <h2>次回の探索に予約しました</h2>
+        <div className="scouting-shop-result__metrics">
+          {extraCandidateCount > 0 ? (
+            <span>追加候補 +{extraCandidateCount}人</span>
+          ) : null}
+          {guaranteedGenerationalCount > 0 ? (
+            <span>天才候補 確定 +{guaranteedGenerationalCount}人</span>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
+  if (
     presentation.itemId !== "scout-research" &&
     presentation.itemId !== "potential-appraisal"
   ) {
@@ -227,6 +254,12 @@ export function ScoutingScreen({
   const appraisalStatus = shopStatus?.items.find(
     (item) => item.itemId === "potential-appraisal",
   );
+  const extraCandidateStatus = shopStatus?.items.find(
+    (item) => item.itemId === "extra-scout-candidate",
+  );
+  const generationalCandidateStatus = shopStatus?.items.find(
+    (item) => item.itemId === "generational-scout-candidate",
+  );
   const committedReports = useMemo(
     () => reports.filter((report) => committed.has(report.candidateId)),
     [committed, reports],
@@ -258,6 +291,20 @@ export function ScoutingScreen({
     state.recruiting?.cycleKey === cycleKey
       ? Math.max(0, state.recruiting.extraScoutingSearchCredits ?? 0)
       : 0;
+  const pendingExtraCandidates =
+    state.recruiting?.cycleKey === cycleKey
+      ? Math.max(0, state.recruiting.pendingExtraScoutCandidates ?? 0)
+      : 0;
+  const pendingGenerationalCandidates =
+    state.recruiting?.cycleKey === cycleKey
+      ? Math.max(0, state.recruiting.pendingGenerationalScoutCandidates ?? 0)
+      : 0;
+  const extraCandidateAvailable =
+    Boolean(extraCandidateStatus?.canUse) &&
+    (extraCandidateStatus?.quantityOwned ?? 0) > 0;
+  const generationalCandidateAvailable =
+    Boolean(generationalCandidateStatus?.canUse) &&
+    (generationalCandidateStatus?.quantityOwned ?? 0) > 0;
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [searchRegion, setSearchRegion] = useState<
     "prefecture" | "regional" | "national"
@@ -358,6 +405,64 @@ export function ScoutingScreen({
           <p>{searchResult.message}</p>
         </section>
       )}
+
+      {extraCandidateAvailable ||
+      generationalCandidateAvailable ||
+      pendingExtraCandidates > 0 ||
+      pendingGenerationalCandidates > 0 ? (
+        <section
+          aria-label="探索アイテム"
+          className="scouting-search-items"
+        >
+          <div className="scouting-search-items__heading">
+            <div>
+              <span>探索アイテム</span>
+              <strong>次回のスカウト検索に反映</strong>
+            </div>
+            <small>
+              {pendingExtraCandidates > 0
+                ? `候補+${pendingExtraCandidates} `
+                : ""}
+              {pendingGenerationalCandidates > 0
+                ? `天才確定+${pendingGenerationalCandidates}`
+                : ""}
+            </small>
+          </div>
+          <div className="scouting-search-items__buttons">
+            {extraCandidateAvailable ? (
+              <button
+                disabled={shopPendingItemId !== null}
+                onClick={() => onUseShopItem("extra-scout-candidate")}
+                type="button"
+              >
+                <span>
+                  {shopPendingItemId === "extra-scout-candidate"
+                    ? "予約中…"
+                    : "候補+1"}
+                </span>
+                <small>所持 {extraCandidateStatus?.quantityOwned ?? 0}</small>
+              </button>
+            ) : null}
+            {generationalCandidateAvailable ? (
+              <button
+                className="scouting-search-items__genius"
+                disabled={shopPendingItemId !== null}
+                onClick={() => onUseShopItem("generational-scout-candidate")}
+                type="button"
+              >
+                <span>
+                  {shopPendingItemId === "generational-scout-candidate"
+                    ? "予約中…"
+                    : "天才確定"}
+                </span>
+                <small>
+                  所持 {generationalCandidateStatus?.quantityOwned ?? 0}
+                </small>
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <section className="scouting-search-launch" aria-label="選手探索">
         <div>
