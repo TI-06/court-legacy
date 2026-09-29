@@ -22,9 +22,7 @@ describe("player opportunity promises", () => {
       { playerId, choice: "starter" },
     ]);
 
-    expect(next.players[playerId]!.trust).toBe(
-      Math.min(100, before.trust + 3),
-    );
+    expect(next.players[playerId]!.trust).toBe(Math.min(100, before.trust + 3));
     expect(next.players[playerId]!.morale).toBe(
       Math.min(100, before.morale + 2),
     );
