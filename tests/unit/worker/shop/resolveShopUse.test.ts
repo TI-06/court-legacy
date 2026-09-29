@@ -135,7 +135,7 @@ describe("resolveShopUse", () => {
     );
   });
 
-  it("appends a candidate after the generated search pool without rerolling or exposing truth", async () => {
+  it("queues an extra candidate for the next search without touching the current pool", async () => {
     const snapshot = createSnapshot();
     const { pool, store } = createScoutingContext(snapshot);
 
@@ -145,23 +145,17 @@ describe("resolveShopUse", () => {
       scoutingStore: store,
     });
 
-    expect(resolved.scoutingCycleKey).toBe(pool.cycleKey);
-    expect(resolved.scoutingCandidates).toHaveLength(7);
-    expect(resolved.scoutingCandidates?.slice(0, 6)).toEqual(pool.candidates);
-    expect(resolved.scoutingCandidates?.[6]?.player.id).toMatch(/-0-\d+$/);
-    expect(
-      pool.candidates.some(
-        (candidate) =>
-          candidate.player.id === resolved.scoutingCandidates?.[6]?.player.id,
-      ),
-    ).toBe(false);
-    expect(resolved.publicResult).toEqual({
-      candidateCount: 7,
-      addedCandidateId: resolved.scoutingCandidates?.[6]?.player.id,
+    expect(resolved.state.recruiting).toMatchObject({
+      cycleKey: pool.cycleKey,
+      pendingExtraScoutCandidates: 1,
     });
-    expect(JSON.stringify(resolved.publicResult)).not.toMatch(
-      /abilities|potential|growthPeak|injuryResistance|tier/i,
-    );
+    expect(resolved.scoutingCandidates).toBeUndefined();
+    expect(resolved.scoutingCycleKey).toBeUndefined();
+    expect(resolved.publicResult).toEqual({
+      extraCandidateCount: 1,
+      guaranteedGenerationalCount: 0,
+    });
+    expect(store.getCandidatePool).not.toHaveBeenCalled();
   });
 
   it("researches overall while preserving appraised potential", async () => {
