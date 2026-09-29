@@ -99,7 +99,12 @@
             "type": "trust-change",
             "amount": 4
           }
-        ]
+        ],
+        "followUp": {
+          "eventId": "event.reserve-breakthrough",
+          "afterWeeks": 4,
+          "probability": 100
+        }
       },
       {
         "id": "sub-next",
@@ -114,7 +119,12 @@
             "type": "trust-change",
             "amount": 3
           }
-        ]
+        ],
+        "followUp": {
+          "eventId": "event.reserve-breakthrough",
+          "afterWeeks": 4,
+          "probability": 100
+        }
       },
       {
         "id": "appearance-next",
@@ -129,7 +139,12 @@
             "type": "trust-change",
             "amount": 3
           }
-        ]
+        ],
+        "followUp": {
+          "eventId": "event.reserve-breakthrough",
+          "afterWeeks": 4,
+          "probability": 100
+        }
       },
       {
         "id": "patience",
