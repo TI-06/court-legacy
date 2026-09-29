@@ -97,7 +97,7 @@ export function advanceOneWeek(
   state: GameState,
   options: AdvanceOneWeekOptions = {},
 ): WeekProgressionResult {
-  const players = { ...state.players };
+  let players: GameState["players"] | null = null;
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
   // Kept in the public signature for save/action compatibility; Phase 12 no longer
@@ -108,7 +108,10 @@ export function advanceOneWeek(
     [PlayerId, Player]
   >) {
     const result = recoverPlayer(player);
-    players[playerId] = result.player;
+    if (result.player !== player) {
+      players ??= { ...state.players };
+      players[playerId] = result.player;
+    }
     if (result.recovered) {
       recoveredPlayerIds.push(playerId);
     }
@@ -127,7 +130,7 @@ export function advanceOneWeek(
     state: {
       ...relationshipProgression.state,
       date,
-      players,
+      players: players ?? state.players,
       activeMatch: null,
       calendar: {
         ...relationshipProgression.state.calendar,
