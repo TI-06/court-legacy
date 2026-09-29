@@ -167,10 +167,15 @@ export function progressSpecialRelationshipsWeekly(
   state: GameState,
   nextDate: GameDate,
 ): { state: GameState; transitions: SpecialRelationshipTransition[] } {
-  const nextBonds = { ...state.playerRelationshipBonds };
+  const entries = Object.entries(state.playerRelationshipBonds);
+  if (entries.length === 0) {
+    return { state, transitions: [] };
+  }
+
+  let nextBonds: GameState["playerRelationshipBonds"] | null = null;
   const transitions: SpecialRelationshipTransition[] = [];
 
-  for (const [key, bond] of Object.entries(state.playerRelationshipBonds)) {
+  for (const [key, bond] of entries) {
     const score = state.playerRelationships[key] ?? 50;
     const nextTags: SpecialRelationshipTag[] = [];
 
@@ -207,6 +212,15 @@ export function progressSpecialRelationshipsWeekly(
       nextTags.push(tag);
     }
 
+    const unchanged =
+      nextTags.length === bond.tags.length &&
+      nextTags.every((tag, index) => tag === bond.tags[index]);
+
+    if (unchanged) {
+      continue;
+    }
+
+    nextBonds ??= { ...state.playerRelationshipBonds };
     if (nextTags.length > 0) {
       nextBonds[key] = { ...bond, tags: nextTags };
     } else {
@@ -215,7 +229,7 @@ export function progressSpecialRelationshipsWeekly(
   }
 
   return {
-    state: { ...state, playerRelationshipBonds: nextBonds },
+    state: nextBonds ? { ...state, playerRelationshipBonds: nextBonds } : state,
     transitions,
   };
 }
