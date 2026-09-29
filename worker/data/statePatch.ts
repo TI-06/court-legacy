@@ -92,6 +92,39 @@ export function buildJsonStatePatch(
   return operations;
 }
 
+export function buildJsonStatePatchWithCollapsedRoot(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+  rootKey: string,
+): JsonStatePatchOperation[] {
+  const beforeHas =
+    Object.prototype.hasOwnProperty.call(before, rootKey) &&
+    before[rootKey] !== undefined;
+  const afterHas =
+    Object.prototype.hasOwnProperty.call(after, rootKey) &&
+    after[rootKey] !== undefined;
+  const beforeValue = before[rootKey];
+  const afterValue = after[rootKey];
+
+  if (beforeHas === afterHas && Object.is(beforeValue, afterValue)) {
+    return buildJsonStatePatch(before, after);
+  }
+
+  const alignedBefore = { ...before };
+  if (afterHas) {
+    alignedBefore[rootKey] = afterValue;
+  } else {
+    delete alignedBefore[rootKey];
+  }
+
+  const operations = buildJsonStatePatch(alignedBefore, after);
+  const rootOperation: JsonStatePatchOperation = afterHas
+    ? { op: "set", path: [rootKey], value: afterValue }
+    : { op: "remove", path: [rootKey] };
+
+  return [rootOperation, ...operations];
+}
+
 export function applyJsonStatePatch<T>(
   input: T,
   operations: readonly JsonStatePatchOperation[],
