@@ -976,13 +976,6 @@
 }
 
 @media (max-width: 350px) {
-  .pre-match-lineup__court-context {
-    overflow: visible;
-    min-height: 18px;
-    text-overflow: clip;
-    white-space: normal;
-  }
-
   .pre-match-lineup__court {
     padding: 8px;
     gap: 6px;
@@ -1616,4 +1609,16 @@
 
 .pre-match-lineup__analysis-plan span {
   color: #a7cbd2;
+}
+
+/* Phase46: keep aptitude context readable on the narrowest supported phones. */
+@media (max-width: 350px) {
+  .pre-match-lineup .pre-match-lineup__court-context {
+    display: block;
+    overflow: visible;
+    min-height: 18px;
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
+  }
 }
