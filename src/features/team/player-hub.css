@@ -2012,3 +2012,47 @@
   background: rgb(73 145 156 / 12%);
   border-color: rgb(93 164 175 / 22%);
 }
+
+.player-coach-proposal__directives {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+
+.player-coach-proposal__directives button {
+  align-items: flex-start;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 82px;
+  padding: 10px;
+  text-align: left;
+}
+
+.player-coach-proposal__directives button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.player-coach-proposal__directives strong {
+  font-size: 0.86rem;
+}
+
+.player-coach-proposal__directives small {
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .player-coach-proposal__directives {
+    grid-template-columns: 1fr;
+  }
+
+  .player-coach-proposal__directives button {
+    min-height: 0;
+  }
+}
+
