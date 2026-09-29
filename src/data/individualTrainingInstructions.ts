@@ -67,7 +67,7 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
       fatigue: 0,
       injuryRisk: 4,
       trustGrowth: 2,
-      tags: ["position", "oh", "specialist", "individual"],
+      tags: [...["position", "oh", "specialist", "individual"], "coach-only"],
     },
     {
       id: "instruction.mb-specialist",
@@ -79,7 +79,7 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
       fatigue: 0,
       injuryRisk: 5,
       trustGrowth: 2,
-      tags: ["position", "mb", "specialist", "individual"],
+      tags: [...["position", "mb", "specialist", "individual"], "coach-only"],
     },
     {
       id: "instruction.op-specialist",
@@ -91,7 +91,7 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
       fatigue: 0,
       injuryRisk: 5,
       trustGrowth: 2,
-      tags: ["position", "op", "specialist", "individual"],
+      tags: [...["position", "op", "specialist", "individual"], "coach-only"],
     },
     {
       id: "instruction.s-specialist",
@@ -102,7 +102,7 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
       fatigue: 0,
       injuryRisk: 3,
       trustGrowth: 3,
-      tags: ["position", "s", "specialist", "individual"],
+      tags: [...["position", "s", "specialist", "individual"], "coach-only"],
     },
     {
       id: "instruction.l-specialist",
@@ -114,7 +114,7 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
       fatigue: 0,
       injuryRisk: 2,
       trustGrowth: 3,
-      tags: ["position", "l", "specialist", "individual"],
+      tags: [...["position", "l", "specialist", "individual"], "coach-only"],
     },
     {
       id: "instruction.rest",
