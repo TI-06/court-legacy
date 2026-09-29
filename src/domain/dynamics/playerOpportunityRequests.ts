@@ -37,10 +37,7 @@ export function activeAppearancePromises(
       continue;
     }
 
-    if (
-      occurrence.eventId === "event.reserve-breakthrough" ||
-      occurrence.eventId === "event.reserve-appearance-promise-result"
-    ) {
+    if (occurrence.eventId === "event.reserve-appearance-promise-result") {
       delete active[actor];
     }
   }
