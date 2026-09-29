@@ -4,6 +4,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
+  simulateMatch,
   startMatch,
 } from "../../../../src/domain/match/simulateMatch";
 import { matchId } from "../../../../src/domain/model/identifiers";
@@ -130,6 +131,85 @@ describe("Phase16 MatchScreen authoritative playback", () => {
       `${nextPointIndex + 1} / ${eventCount}`,
     );
     expect(screen.getByRole("heading", { name: "直近の得点" })).toBeVisible();
+  });
+
+  it("shows concrete before-and-after ability growth after a completed match", () => {
+    const state = createDemoGame();
+    const opponent = selectPracticeOpponent(state);
+    const homeSelection = autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    });
+    const awaySelection = autoSelectTeam({ state, schoolId: opponent.id });
+    const result = simulateMatch({
+      state,
+      id: matchId("phase46-growth-popup"),
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: opponent.id,
+      homeSelection,
+      awaySelection,
+      bestOfSets: 3,
+      random: new SeededRandom("phase46-growth-popup"),
+    });
+    const player = state.players[homeSelection.rotation[0]!.playerId]!;
+
+    render(
+      <MatchScreen
+        state={state}
+        opponent={opponent}
+        homeSelection={homeSelection}
+        awaySelection={awaySelection}
+        homeStrength={calculateSelectionStrength(state, homeSelection)}
+        awayStrength={calculateSelectionStrength(state, awaySelection)}
+        result={result}
+        presentation={{
+          kind: "practice",
+          simulation: result,
+          homeTeam: {
+            schoolId: state.userSchoolId,
+            displayName: state.schools[state.userSchoolId]!.name,
+            shortName: state.schools[state.userSchoolId]!.shortName,
+          },
+          awayTeam: {
+            schoolId: opponent.id,
+            displayName: opponent.name,
+            shortName: opponent.shortName,
+          },
+          growth: {
+            players: [
+              {
+                playerId: player.id,
+                displayName: `${player.lastName} ${player.firstName}`,
+                position: player.preferredPosition,
+                abilities: [
+                  {
+                    ability: "decision",
+                    label: "判断",
+                    before: 69,
+                    after: 70,
+                    change: 1,
+                    fromGrade: "C",
+                    toGrade: "B",
+                  },
+                ],
+              },
+            ],
+          },
+        }}
+        reducedMotion={false}
+        onStart={vi.fn()}
+        onReturnHome={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+
+    const dialog = screen.getByRole("dialog", { name: "試合後の成長" });
+    expect(dialog).toHaveTextContent(player.lastName);
+    expect(dialog).toHaveTextContent("判断");
+    expect(dialog).toHaveTextContent("69 C");
+    expect(dialog).toHaveTextContent("70 B");
+    expect(dialog).toHaveTextContent("RANK UP");
   });
 
   it("automatically resumes playback after a coach command succeeds", async () => {

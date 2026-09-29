@@ -1903,3 +1903,112 @@
     font-size: 10px;
   }
 }
+
+/* Phase46: multi-week position conversion */
+.player-position-conversion {
+  display: grid;
+  padding: 11px;
+  gap: 9px;
+  color: #e7eef3;
+  background: #142435;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 13px;
+}
+
+.player-position-conversion__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-position-conversion__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.player-position-conversion__heading span {
+  color: #96aab7;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.player-position-conversion__heading strong {
+  font-size: 14px;
+}
+
+.player-position-conversion__heading > b {
+  padding: 4px 7px;
+  color: #b9dbe0;
+  font-size: 10px;
+  background: rgb(74 159 172 / 12%);
+  border: 1px solid rgb(90 181 194 / 22%);
+  border-radius: 999px;
+}
+
+.player-position-conversion__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.player-position-conversion__choices button {
+  display: grid;
+  min-width: 0;
+  min-height: 56px;
+  padding: 7px 8px;
+  gap: 2px;
+  color: #e7eef3;
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.player-position-conversion__choices button strong {
+  font-size: 13px;
+}
+
+.player-position-conversion__choices button span,
+.player-position-conversion__choices button small,
+.player-position-conversion > p {
+  color: #a8b8c3;
+  font-size: 10px;
+}
+
+.player-position-conversion > p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.player-position-conversion__progress {
+  overflow: hidden;
+  height: 7px;
+  background: rgb(255 255 255 / 7%);
+  border-radius: 999px;
+}
+
+.player-position-conversion__progress > span {
+  display: block;
+  height: 100%;
+  background: #5aa8b2;
+  border-radius: inherit;
+}
+
+.player-position-conversion__cancel {
+  min-height: 38px;
+  color: #d9e4e9;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9px;
+}
+
+.player-roster__status-badge--conversion {
+  color: #b9dce2;
+  background: rgb(73 145 156 / 12%);
+  border-color: rgb(93 164 175 / 22%);
+}

@@ -2155,3 +2155,117 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase46: make post-match development concrete and readable. */
+.match-growth-sheet {
+  display: grid;
+  gap: 10px;
+}
+
+.match-growth-sheet__players {
+  display: grid;
+  gap: 8px;
+}
+
+.match-growth-sheet__players > article {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  color: #e8f1f7;
+  background: #142536;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 12px;
+}
+
+.match-growth-sheet__players header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.match-growth-sheet__players header strong {
+  font-size: 14px;
+}
+
+.match-growth-sheet__players header span {
+  padding: 3px 6px;
+  color: #b9cad6;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgb(255 255 255 / 6%);
+  border-radius: 999px;
+}
+
+.match-growth-sheet__abilities {
+  display: grid;
+  gap: 5px;
+}
+
+.match-growth-sheet__abilities > div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 34px;
+  padding: 5px 7px;
+  gap: 6px;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 8px;
+}
+
+.match-growth-sheet__abilities span {
+  color: #b8c8d3;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.match-growth-sheet__abilities b {
+  overflow: hidden;
+  min-width: 0;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-growth-sheet__abilities b i {
+  padding-inline: 4px;
+  color: #718895;
+  font-style: normal;
+}
+
+.match-growth-sheet__abilities strong {
+  color: #8fd9b0;
+  font-size: 11px;
+}
+
+.match-growth-sheet__abilities em {
+  grid-column: 2 / 4;
+  color: #efca66;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+}
+
+.match-growth-sheet__empty {
+  margin: 0;
+  padding: 12px;
+  color: #bdcbd4;
+  font-size: 12px;
+  text-align: center;
+  background: #142536;
+  border-radius: 10px;
+}
+
+.match-growth-sheet__continue {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+  color: #071321;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 950;
+  background: #7fd0d8;
+  border: 0;
+  border-radius: 11px;
+}

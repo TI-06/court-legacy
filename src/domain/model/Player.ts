@@ -1,4 +1,4 @@
-import type { PlayerId, SchoolId } from "./identifiers";
+import type { GameDate, PlayerId, SchoolId } from "./identifiers";
 
 export type Position = "OH" | "MB" | "OP" | "S" | "L";
 export type Grade = 1 | 2 | 3;
@@ -40,6 +40,14 @@ export interface PlayerInjury {
   recurrenceRisk: number;
 }
 
+export interface PositionConversionPlan {
+  fromPosition: Position;
+  targetPosition: Position;
+  totalWeeks: number;
+  remainingWeeks: number;
+  startedDate: GameDate;
+}
+
 export interface Player {
   id: PlayerId;
   firstName: string;
@@ -51,6 +59,7 @@ export interface Player {
   handedness: Handedness;
   preferredPosition: Position;
   positionAptitudes: Record<Position, number>;
+  positionConversion?: PositionConversionPlan;
   abilities: PlayerAbilities;
   condition: number;
   fatigue: number;

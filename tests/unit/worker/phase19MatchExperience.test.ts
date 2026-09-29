@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import type { PendingMatchPresentation } from "../../../src/domain/calendar/advanceWeekOutcome";
 import {
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
@@ -165,6 +166,22 @@ describe("Phase19 authoritative match experience", () => {
     const result = completeOfficialMatch(snapshot);
     expect(result.state.activeMatch?.phase).toBe("match-complete");
     expect(result.state.players[starterId]!.abilities.decision).toBe(52);
+
+    const presentation = result.outcome as PendingMatchPresentation;
+    const growth = presentation.growth?.players.find(
+      (player) => player.playerId === starterId,
+    );
+    expect(growth?.abilities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ability: "decision",
+          before: 50,
+          after: 52,
+          change: 2,
+        }),
+      ]),
+    );
+
     expect(findDueUserOfficialMatch(result.state)).toBeNull();
 
     const completedSnapshot: CloudGameSnapshot = {

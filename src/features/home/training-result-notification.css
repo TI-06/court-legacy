@@ -244,6 +244,38 @@
   border-radius: 8px;
 }
 
+.training-result-notification__abilities span {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+}
+
+.training-result-notification__abilities span > b {
+  font-size: inherit;
+}
+
+.training-result-notification__abilities span > em {
+  overflow: hidden;
+  min-width: 0;
+  color: #536873;
+  font-size: 0.94em;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-result-notification__abilities span > em i {
+  padding-inline: 3px;
+  color: #82959d;
+  font-style: normal;
+}
+
+.training-result-notification__abilities span > strong {
+  font-size: inherit;
+  white-space: nowrap;
+}
+
 .training-result-notification [data-tone="positive"] {
   color: #0e6140;
   background: #e3f5ec;

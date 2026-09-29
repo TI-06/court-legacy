@@ -1,6 +1,9 @@
 import type { AcademicYearTransitionSummary } from "./academicYearProgression";
 import type { MatchStepResult } from "../match/simulateMatch";
+import type { Position } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
+import type { AbilityKey } from "../validation/gameDataSchema";
+import type { AbilityRatingGrade } from "../selectors/ratingGrades";
 import type {
   TournamentCircuit,
   TournamentLevel,
@@ -12,9 +15,31 @@ export interface MatchTeamPresentation {
   displayName: string;
   shortName: string;
 }
+export interface MatchGrowthAbilityPresentation {
+  ability: AbilityKey;
+  label: string;
+  before: number;
+  after: number;
+  change: number;
+  fromGrade: AbilityRatingGrade;
+  toGrade: AbilityRatingGrade;
+}
+
+export interface MatchGrowthPlayerPresentation {
+  playerId: PlayerId;
+  displayName: string;
+  position: Position;
+  abilities: MatchGrowthAbilityPresentation[];
+}
+
+export interface MatchGrowthPresentation {
+  players: MatchGrowthPlayerPresentation[];
+}
+
 export interface PendingMatchPresentation {
   kind: "practice" | "official";
   simulation: MatchStepResult;
+  growth?: MatchGrowthPresentation;
   homeTeam: MatchTeamPresentation;
   awayTeam: MatchTeamPresentation;
   official?: {

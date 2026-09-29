@@ -534,6 +534,17 @@ const notificationPlayerSchema = z
     trustChange: z.number().int(),
     injured: z.boolean(),
     abilityChanges: z.partialRecord(abilityKeySchema, z.number().int()),
+    abilityValues: z
+      .partialRecord(
+        abilityKeySchema,
+        z
+          .object({
+            before: z.number().int().min(0).max(100),
+            after: z.number().int().min(0).max(100),
+          })
+          .strict(),
+      )
+      .optional(),
     rankUps: z
       .array(
         z
@@ -924,6 +935,16 @@ const weeklyScheduleSchema = z
 
 const persistedPlayerSchema = z
   .object({
+    positionConversion: z
+      .object({
+        fromPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+        targetPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+        totalWeeks: z.number().int().min(2).max(8),
+        remainingWeeks: z.number().int().min(1).max(8),
+        startedDate: gameDateSchema,
+      })
+      .strict()
+      .optional(),
     specialAbilityIds: z.array(z.string().min(1)).max(24).default([]),
     specialAbilityTipLevels: z
       .record(

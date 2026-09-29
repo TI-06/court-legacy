@@ -602,6 +602,23 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const startPositionConversion = async (
+    playerId: PlayerId,
+    targetPosition: "OH" | "MB" | "OP" | "S" | "L",
+  ) => {
+    await cloudSession.runAction(
+      { type: "start-position-conversion", playerId, targetPosition },
+      "ポジション転向を開始しています…",
+    );
+  };
+
+  const cancelPositionConversion = async (playerId: PlayerId) => {
+    await cloudSession.runAction(
+      { type: "cancel-position-conversion", playerId },
+      "ポジション転向を中止しています…",
+    );
+  };
+
   const saveTeamTactics = async (plan: MatchTacticPlan) => {
     await cloudSession.runAction(
       { type: "set-team-tactics", plan },
@@ -1374,6 +1391,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onSaveLineupPreset={saveLineupPreset}
         onSetDevelopmentPriorities={saveDevelopmentPriorities}
         onSetPlayerDevelopmentGoal={savePlayerDevelopmentGoal}
+        onStartPositionConversion={startPositionConversion}
+        onCancelPositionConversion={cancelPositionConversion}
         onSetTeamDefenseBias={saveTeamDefenseBias}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}

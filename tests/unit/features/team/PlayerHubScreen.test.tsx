@@ -23,6 +23,11 @@ interface RenderOptions {
       targetGrade: "S" | "A" | "B" | "C" | "D" | "E" | "F" | "G";
     } | null,
   ) => void;
+  onStartPositionConversion?: (
+    playerId: string,
+    targetPosition: "OH" | "MB" | "OP" | "S" | "L",
+  ) => void;
+  onCancelPositionConversion?: (playerId: string) => void;
   planningPending?: boolean;
   trainingPending?: boolean;
 }
@@ -46,6 +51,8 @@ function renderPlayerHub(
       onSaveTrainingAssignments={options.onSaveTrainingAssignments}
       onSetDevelopmentPriorities={onSetDevelopmentPriorities}
       onSetPlayerDevelopmentGoal={options.onSetPlayerDevelopmentGoal}
+      onStartPositionConversion={options.onStartPositionConversion}
+      onCancelPositionConversion={options.onCancelPositionConversion}
       planningPending={options.planningPending}
       selection={selection}
       state={state}
@@ -161,6 +168,63 @@ describe("PlayerHubScreen", () => {
     const badge = within(row).getByText("天才");
     expect(badge).toBeVisible();
     expect(badge).toHaveClass("player-roster__info-badge--genius");
+  });
+
+  it("starts and surfaces a multi-week position conversion from player growth details", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.preferredPosition = "OH";
+    player.positionAptitudes.S = 45;
+    const onStartPositionConversion = vi.fn();
+
+    const rendered = renderPlayerHub(state, vi.fn(), {
+      onStartPositionConversion,
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成長" }));
+
+    const conversion = screen.getByRole("region", { name: "ポジション転向" });
+    expect(within(conversion).getByText("現在 OH")).toBeVisible();
+    const setter = within(conversion).getByRole("button", { name: /S/ });
+    expect(setter).toHaveTextContent("適性 45 E");
+    expect(setter).toHaveTextContent("目安 6週");
+
+    fireEvent.click(setter);
+    expect(onStartPositionConversion).toHaveBeenCalledWith(playerId, "S");
+
+    player.positionConversion = {
+      fromPosition: "OH",
+      targetPosition: "S",
+      totalWeeks: 6,
+      remainingWeeks: 4,
+      startedDate: state.date,
+    };
+    rendered.view.rerender(
+      <PlayerHubScreen
+        data={gameData}
+        onAssignLeadership={vi.fn()}
+        onChange={vi.fn()}
+        onStartPositionConversion={onStartPositionConversion}
+        selection={autoSelectTeam({ state, schoolId: state.userSchoolId })}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
+
+    const detailButton = screen.getByRole("button", {
+      name: `選手詳細 ${player.lastName} ${player.firstName}`,
+    });
+    const row = detailButton.closest(
+      '[data-testid="roster-player-row"]',
+    ) as HTMLElement;
+    expect(within(row).getByText("S転向4週")).toBeVisible();
   });
 
   it("shows special ability kinds and tip progress without adding a roster row", () => {

@@ -1493,3 +1493,132 @@
     display: grid;
   }
 }
+
+/* Phase46: calmer pre-match lineup hierarchy. */
+.pre-match-lineup__court-shell {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.6%,
+      rgb(232 241 246 / 26%) 49.6%,
+      rgb(232 241 246 / 26%) 50.4%,
+      transparent 50.4%
+    ),
+    linear-gradient(145deg, #405967, #2c4350);
+  border-color: #647e8b;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 9%),
+    0 9px 20px rgb(0 0 0 / 18%);
+}
+
+.pre-match-lineup__net {
+  color: rgb(225 237 244 / 64%);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(230 240 246 / 26%) 0 1px,
+      transparent 1px 8px
+    ),
+    #243b49;
+  border-bottom-color: rgb(230 240 246 / 18%);
+}
+
+.pre-match-lineup__court-player {
+  background: #172b3b;
+  border-color: rgb(199 219 229 / 13%);
+  box-shadow: 0 4px 10px rgb(0 0 0 / 18%);
+}
+
+.pre-match-lineup__court-player-top b {
+  color: #eaf4f7;
+  background: #3f7981;
+}
+
+.pre-match-lineup__court-player-top small {
+  color: #92a8b4;
+}
+
+.pre-match-lineup__court-context {
+  overflow: hidden;
+  color: #b6c8d1;
+  font-size: 0.52rem;
+  font-weight: 850;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__court-player > small {
+  color: #8fa5b0;
+}
+
+.pre-match-lineup__libero-card {
+  background: #172a38;
+  border-color: rgb(198 218 229 / 13%);
+}
+
+.pre-match-lineup__libero-card > b {
+  color: #f1e7bd;
+  background: #6b6548;
+}
+
+.pre-match-lineup__libero-card > strong {
+  color: #b8ccd5;
+}
+
+.pre-match-lineup__bench-player {
+  background: #162838;
+  border-color: rgb(198 218 229 / 10%);
+}
+
+.pre-match-lineup__game-nav button[aria-pressed="true"] {
+  color: #eef7f8;
+  background: #3d747c;
+  border-color: #4f8790;
+  box-shadow: none;
+}
+
+.pre-match-lineup__game-nav button:last-child:not([aria-pressed]) {
+  color: #c4d7df;
+  background: rgb(255 255 255 / 5%);
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.pre-match-lineup__tactic-options button[aria-pressed="true"] {
+  color: #eef7f8;
+  background: #3d747c;
+  border-color: #4f8790;
+  box-shadow: none;
+}
+
+.pre-match-lineup__tactic-options button[aria-pressed="true"] small {
+  color: #d1e0e5;
+}
+
+.pre-match-lineup__preset-grid button:active,
+.pre-match-lineup__saved-presets button:not(:disabled) {
+  color: #cbdde4;
+  background: rgb(77 135 146 / 8%);
+  border-color: rgb(91 151 162 / 18%);
+}
+
+.pre-match-lineup__analysis-plan {
+  background: rgb(67 123 134 / 10%);
+  border-color: rgb(91 151 162 / 20%);
+}
+
+.pre-match-lineup__analysis-plan span {
+  color: #a7cbd2;
+}
+
+/* Phase46: keep aptitude context readable on the narrowest supported phones. */
+@media (max-width: 350px) {
+  .pre-match-lineup .pre-match-lineup__court-context {
+    display: block;
+    overflow: visible;
+    min-height: 18px;
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}

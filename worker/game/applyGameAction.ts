@@ -3,6 +3,7 @@ import { gameDataBootstrap } from "../../src/data/gameData";
 import { advanceGameWeek } from "../../src/domain/calendar/academicYearProgression";
 import type {
   AdvanceWeekOutcome,
+  MatchGrowthPresentation,
   PendingMatchPresentation,
 } from "../../src/domain/calendar/advanceWeekOutcome";
 import {
@@ -45,7 +46,12 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
+import {
+  cancelPositionConversion,
+  startPositionConversion,
+} from "../../src/domain/player/positionConversion";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import { ratingToGrade } from "../../src/domain/selectors/ratingGrades";
 import {
   appendNotification,
   buildCharacterTraitDiscoveredNotification,
@@ -193,6 +199,64 @@ function applyCompletedSoloMatchExperience(
     selection: userSelection,
     strongerOpponent: opponentStrength > userStrength + 2,
   });
+}
+
+const matchGrowthAbilityLabels = {
+  spike: "スパイク",
+  jump: "ジャンプ",
+  receive: "レシーブ",
+  serve: "サーブ",
+  set: "トス",
+  block: "ブロック",
+  speed: "スピード",
+  stamina: "スタミナ",
+  decision: "判断",
+  mental: "メンタル",
+} as const;
+
+function buildMatchGrowthPresentation(
+  before: GameState,
+  after: GameState,
+): MatchGrowthPresentation {
+  const school = after.schools[after.userSchoolId];
+  if (!school) return { players: [] };
+
+  const players = school.playerIds.flatMap((playerId) => {
+    const beforePlayer = before.players[playerId];
+    const afterPlayer = after.players[playerId];
+    if (!beforePlayer || !afterPlayer) return [];
+
+    const abilities = (
+      Object.keys(afterPlayer.abilities) as Array<keyof Player["abilities"]>
+    ).flatMap((ability) => {
+      const beforeValue = beforePlayer.abilities[ability];
+      const afterValue = afterPlayer.abilities[ability];
+      if (afterValue === beforeValue) return [];
+      return [
+        {
+          ability,
+          label: matchGrowthAbilityLabels[ability],
+          before: beforeValue,
+          after: afterValue,
+          change: afterValue - beforeValue,
+          fromGrade: ratingToGrade(beforeValue),
+          toGrade: ratingToGrade(afterValue),
+        },
+      ];
+    });
+
+    if (abilities.length === 0) return [];
+    return [
+      {
+        playerId,
+        displayName: `${afterPlayer.lastName} ${afterPlayer.firstName}`,
+        position: afterPlayer.preferredPosition,
+        abilities,
+      },
+    ];
+  });
+
+  return { players };
 }
 
 function cpuPublicStats(
@@ -542,6 +606,28 @@ function applyTeamPlanning(
   }
 }
 
+function applyPositionConversion(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<
+    GameAction,
+    { type: "start-position-conversion" | "cancel-position-conversion" }
+  >,
+): AppliedGameAction {
+  try {
+    const nextState =
+      action.type === "start-position-conversion"
+        ? startPositionConversion(state, action.playerId, action.targetPosition)
+        : cancelPositionConversion(state, action.playerId);
+    return { state: nextState, teamSelection };
+  } catch (error) {
+    return conflict(
+      "position_conversion_unavailable",
+      error instanceof Error ? error.message : "ポジション転向を設定できません",
+    );
+  }
+}
+
 function applyPracticeScheduling(
   state: GameState,
   teamSelection: TeamSelection,
@@ -807,6 +893,10 @@ function applyPracticeMatchCommand(
       resumedState,
       simulation.match,
     );
+    const matchGrowth = buildMatchGrowthPresentation(
+      resumedState,
+      experiencedState,
+    );
     const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
@@ -842,7 +932,11 @@ function applyPracticeMatchCommand(
     return {
       state: finalizedState,
       teamSelection,
-      outcome: buildPracticePresentation(finalizedState, simulation),
+      outcome: buildPracticePresentation(
+        finalizedState,
+        simulation,
+        matchGrowth,
+      ),
     };
   } catch (error) {
     if (error instanceof MatchCommandValidationError) {
@@ -1090,6 +1184,10 @@ function applyOfficialMatchCommand(
       context.state,
       simulation.match,
     );
+    const matchGrowth = buildMatchGrowthPresentation(
+      resumedState,
+      experiencedState,
+    );
     const recorded = recordOfficialTournamentOutcome({
       state: experiencedState,
       circuit: due.circuit,
@@ -1104,6 +1202,7 @@ function applyOfficialMatchCommand(
       outcome: buildOfficialPresentation(
         progressed,
         buildOfficialActionOutcome(due, simulation),
+        matchGrowth,
       ),
     };
   } catch (error) {
@@ -1169,10 +1268,12 @@ function teamPresentation(
 function buildPracticePresentation(
   state: GameState,
   simulation: MatchStepResult,
+  growth?: MatchGrowthPresentation,
 ): PendingMatchPresentation {
   return {
     kind: "practice",
     simulation,
+    ...(growth ? { growth } : {}),
     homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
     awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
   };
@@ -1186,6 +1287,7 @@ function practicePresentation(
 function buildOfficialPresentation(
   state: GameState,
   outcome: ReturnType<typeof buildOfficialActionOutcome>,
+  growth?: MatchGrowthPresentation,
 ): PendingMatchPresentation {
   const simulation = outcome.simulation;
   const fallback = {
@@ -1195,6 +1297,7 @@ function buildOfficialPresentation(
   return {
     kind: "official",
     simulation,
+    ...(growth ? { growth } : {}),
     homeTeam: teamPresentation(
       state,
       simulation.match.homeSchoolId,
@@ -1522,6 +1625,9 @@ function applyActionByType(
     case "save-lineup-preset":
     case "delete-lineup-preset":
       return applyTeamPlanning(state, teamSelection, action);
+    case "start-position-conversion":
+    case "cancel-position-conversion":
+      return applyPositionConversion(state, teamSelection, action);
     case "practice-offer-accept":
     case "practice-offer-decline":
     case "practice-request":
