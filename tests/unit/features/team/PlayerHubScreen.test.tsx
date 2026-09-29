@@ -216,6 +216,8 @@ describe("PlayerHubScreen", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
+
     const detailButton = screen.getByRole("button", {
       name: `選手詳細 ${player.lastName} ${player.firstName}`,
     });
