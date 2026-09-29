@@ -82,6 +82,24 @@
   background: rgb(244 122 24 / 14%);
 }
 
+.shop-screen__feedback-layer {
+  position: fixed;
+  z-index: 90;
+  top: calc(env(safe-area-inset-top, 0px) + 72px);
+  right: 12px;
+  left: 12px;
+  display: grid;
+  max-width: 560px;
+  gap: 8px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+
+.shop-screen__feedback-layer > * {
+  box-shadow: 0 10px 28px rgb(0 0 0 / 32%);
+  backdrop-filter: blur(14px);
+}
+
 .shop-screen__notice {
   display: flex;
   min-width: 0;
