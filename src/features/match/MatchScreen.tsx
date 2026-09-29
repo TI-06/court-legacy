@@ -756,9 +756,7 @@ function MatchScreenContent({
             description="試合経験で変化した能力を確認できます。"
             onClose={() => setMatchGrowthOpen(false)}
             open={
-              matchComplete &&
-              matchGrowthOpen &&
-              Boolean(presentation?.growth)
+              matchComplete && matchGrowthOpen && Boolean(presentation?.growth)
             }
             title="試合後の成長"
           >
@@ -834,7 +832,9 @@ function MatchScreenContent({
               disabled={matchGrowthOpen && Boolean(presentation?.growth)}
               onClick={onReturnHome}
               tabIndex={
-                matchGrowthOpen && Boolean(presentation?.growth) ? -1 : undefined
+                matchGrowthOpen && Boolean(presentation?.growth)
+                  ? -1
+                  : undefined
               }
               type="button"
             >
