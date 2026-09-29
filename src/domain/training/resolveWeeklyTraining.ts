@@ -296,6 +296,24 @@ function activityFromInstruction(
   };
 }
 
+function resolveEffectiveInstruction(
+  player: Player,
+  instruction: IndividualTrainingInstructionDefinition,
+  fallback: IndividualTrainingInstructionDefinition,
+): IndividualTrainingInstructionDefinition {
+  if (
+    instruction.id === "instruction.overall" ||
+    instruction.id === "instruction.rest"
+  ) {
+    return instruction;
+  }
+
+  const targetsAtCap = instruction.targetAbilities.every(
+    (ability) => player.abilities[ability] >= 100,
+  );
+  return targetsAtCap ? fallback : instruction;
+}
+
 function validate(input: ResolveWeeklyTrainingInput) {
   const school = input.state.schools[input.schoolId];
   if (!school) {
@@ -405,8 +423,13 @@ export function resolveWeeklyTraining(
   const activeTrainingPlayerIds = new Set<PlayerId>(
     validated.school.playerIds.filter((id) => {
       const player = input.state.players[id]!;
-      const instruction =
+      const configuredInstruction =
         validated.instructionByPlayerId.get(id) ?? validated.fallback;
+      const instruction = resolveEffectiveInstruction(
+        player,
+        configuredInstruction,
+        validated.fallback,
+      );
       return (
         !input.restingPlayerIds?.has(id) &&
         !player.injury &&
@@ -431,8 +454,13 @@ export function resolveWeeklyTraining(
       continue;
     }
 
-    const instruction =
+    const configuredInstruction =
       validated.instructionByPlayerId.get(id) ?? validated.fallback;
+    const instruction = resolveEffectiveInstruction(
+      original,
+      configuredInstruction,
+      validated.fallback,
+    );
     assignments.push({ playerId: id, instructionId: instruction.id });
 
     if (original.injury) {
@@ -509,7 +537,21 @@ export function resolveWeeklyTraining(
           trainingPlan: {
             teamTrainingMenuId: input.plan.teamTrainingMenuId,
             individualAssignments: validated.activeAssignments.map(
-              (assignment) => ({ ...assignment }),
+              (assignment) => {
+                const player = input.state.players[assignment.playerId]!;
+                const configuredInstruction =
+                  validated.instructionByPlayerId.get(assignment.playerId) ??
+                  validated.fallback;
+                const instruction = resolveEffectiveInstruction(
+                  player,
+                  configuredInstruction,
+                  validated.fallback,
+                );
+                return {
+                  playerId: assignment.playerId,
+                  instructionId: instruction.id,
+                };
+              },
             ),
           },
         }
