@@ -99,12 +99,24 @@ test("mobile shop repeatedly purchases and uses fatigue recovery without annual 
   await seedRecoverablePlayers(page);
   await openShop(page);
 
+  const productCard = shopCard(page, "疲労回復");
+  const productTopBefore = await productCard.evaluate((element) =>
+    Math.round(element.getBoundingClientRect().top),
+  );
   await purchaseItem(page, "疲労回復");
-  await expect(shopCard(page, "疲労回復")).toContainText("所持 1");
+  await expect(productCard).toContainText("所持 1");
+  expect(
+    await productCard.evaluate((element) =>
+      Math.round(element.getBoundingClientRect().top),
+    ),
+  ).toBe(productTopBefore);
 
   await openInventory(page);
   const inventoryCard = shopCard(page, "疲労回復");
   await expect(inventoryCard).toContainText("×1");
+  const inventoryTopBefore = await inventoryCard.evaluate((element) =>
+    Math.round(element.getBoundingClientRect().top),
+  );
   await inventoryCard
     .getByRole("button", { name: "疲労回復を使用", exact: true })
     .click();
@@ -113,12 +125,18 @@ test("mobile shop repeatedly purchases and uses fatigue recovery without annual 
   ).toBeVisible();
   await page.locator(".shop-target-list button").first().click();
 
+  const pendingInventoryCard = shopCard(page, "疲労回復");
   await expect(
-    shopCard(page, "疲労回復").getByRole("button", {
+    pendingInventoryCard.getByRole("button", {
       name: "疲労回復を使用処理中…",
       exact: true,
     }),
   ).toBeDisabled({ timeout: 300 });
+  expect(
+    await pendingInventoryCard.evaluate((element) =>
+      Math.round(element.getBoundingClientRect().top),
+    ),
+  ).toBe(inventoryTopBefore);
   await expect(
     page.getByRole("heading", { name: "疲労回復の結果" }),
   ).toBeVisible({ timeout: 2_500 });
