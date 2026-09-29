@@ -617,11 +617,7 @@ function applyPositionConversion(
   try {
     const nextState =
       action.type === "start-position-conversion"
-        ? startPositionConversion(
-            state,
-            action.playerId,
-            action.targetPosition,
-          )
+        ? startPositionConversion(state, action.playerId, action.targetPosition)
         : cancelPositionConversion(state, action.playerId);
     return { state: nextState, teamSelection };
   } catch (error) {
