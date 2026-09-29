@@ -976,6 +976,13 @@
 }
 
 @media (max-width: 350px) {
+  .pre-match-lineup__court-context {
+    overflow: visible;
+    min-height: 18px;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .pre-match-lineup__court {
     padding: 8px;
     gap: 6px;
