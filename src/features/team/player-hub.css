@@ -2007,3 +2007,10 @@
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 9px;
 }
+
+
+.player-roster__status-badge--conversion {
+  color: #b9dce2;
+  background: rgb(73 145 156 / 12%);
+  border-color: rgb(93 164 175 / 22%);
+}
