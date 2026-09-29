@@ -31,8 +31,10 @@ describe("scout candidate shop items", () => {
     expect(resolved.state.recruiting).toMatchObject({
       cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
       pendingExtraScoutCandidates: 1,
-      pendingGenerationalScoutCandidates: 0,
     });
+    expect(
+      resolved.state.recruiting?.pendingGenerationalScoutCandidates ?? 0,
+    ).toBe(0);
     expect(resolved.scoutingCandidates).toBeUndefined();
     expect(resolved.publicResult).toEqual({
       extraCandidateCount: 1,
@@ -54,9 +56,11 @@ describe("scout candidate shop items", () => {
 
     expect(resolved.state.recruiting).toMatchObject({
       cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
-      pendingExtraScoutCandidates: 0,
       pendingGenerationalScoutCandidates: 1,
     });
+    expect(resolved.state.recruiting?.pendingExtraScoutCandidates ?? 0).toBe(
+      0,
+    );
     expect(resolved.scoutingCandidates).toBeUndefined();
     expect(resolved.publicResult).toEqual({
       extraCandidateCount: 0,
