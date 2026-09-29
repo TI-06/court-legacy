@@ -25,6 +25,76 @@ function currentRecruitingState(state: GameState): RecruitingState {
       };
 }
 
+export interface ScoutingSearchItemBonuses {
+  extraCandidateCount: number;
+  guaranteedGenerationalCount: number;
+}
+
+export function scoutingSearchItemBonuses(
+  state: GameState,
+): ScoutingSearchItemBonuses {
+  const cycleKey = `${state.userSchoolId}:year-${state.yearIndex}`;
+  if (state.recruiting?.cycleKey !== cycleKey) {
+    return { extraCandidateCount: 0, guaranteedGenerationalCount: 0 };
+  }
+  return {
+    extraCandidateCount: Math.max(
+      0,
+      state.recruiting.pendingExtraScoutCandidates ?? 0,
+    ),
+    guaranteedGenerationalCount: Math.max(
+      0,
+      state.recruiting.pendingGenerationalScoutCandidates ?? 0,
+    ),
+  };
+}
+
+export function addPendingExtraScoutCandidate(state: GameState): GameState {
+  const current = currentRecruitingState(state);
+  return {
+    ...state,
+    recruiting: {
+      ...current,
+      pendingExtraScoutCandidates:
+        Math.max(0, current.pendingExtraScoutCandidates ?? 0) + 1,
+    },
+  };
+}
+
+export function addPendingGenerationalScoutCandidate(
+  state: GameState,
+): GameState {
+  const current = currentRecruitingState(state);
+  return {
+    ...state,
+    recruiting: {
+      ...current,
+      pendingGenerationalScoutCandidates:
+        Math.max(0, current.pendingGenerationalScoutCandidates ?? 0) + 1,
+    },
+  };
+}
+
+export function consumeScoutingSearchItemBonuses(state: GameState): GameState {
+  const bonuses = scoutingSearchItemBonuses(state);
+  if (
+    bonuses.extraCandidateCount === 0 &&
+    bonuses.guaranteedGenerationalCount === 0
+  ) {
+    return state;
+  }
+
+  const current = currentRecruitingState(state);
+  return {
+    ...state,
+    recruiting: {
+      ...current,
+      pendingExtraScoutCandidates: 0,
+      pendingGenerationalScoutCandidates: 0,
+    },
+  };
+}
+
 export function addExtraScoutingSearchCredit(state: GameState): GameState {
   const current = currentRecruitingState(state);
   return {
