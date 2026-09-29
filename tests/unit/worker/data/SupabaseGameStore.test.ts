@@ -197,6 +197,52 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
+  it("falls back from an oversized preferred delta before it reaches the timeout boundary", async () => {
+    const snapshot = createSoakSnapshot("phase47-oversized-preferred-delta");
+    const operationId = "phase47-match-op-oversized";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+      },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+    const statePatch = [
+      {
+        op: "set" as const,
+        path: ["activeMatch"],
+        value: { eventLog: "x".repeat(300_000) },
+      },
+    ];
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: response.game.state,
+      statePatch,
+      preferDelta: true,
+      teamSelection: response.game.teamSelection,
+      response,
+    });
+
+    expect(JSON.stringify(statePatch).length).toBeGreaterThan(262_144);
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v3", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state: response.game.state,
+      p_team_selection: response.game.teamSelection,
+      p_outcome: null,
+    });
+  });
+
   it("returns an exact replay response from the operation RPC", async () => {
     const snapshot = createSoakSnapshot("phase22-save-replay");
     const operationId = "phase22-op-002";
