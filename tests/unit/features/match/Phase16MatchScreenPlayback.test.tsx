@@ -118,11 +118,8 @@ describe("Phase16 MatchScreen authoritative playback", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "得点推移" }));
-    expect(screen.getByRole("button", { name: "得点推移" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(screen.getByText("得点推移・4倍速")).toBeVisible();
+    expect(screen.getByRole("button", { name: "一時停止" })).toBeVisible();
     expect(screen.getByRole("button", { name: "次のポイント" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "次のポイント" }));

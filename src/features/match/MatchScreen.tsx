@@ -17,7 +17,6 @@ import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
-import { presentEventSpecialAbilities } from "./specialAbilityPresentation";
 import "./match.css";
 
 interface MatchScreenProps {
@@ -96,9 +95,9 @@ function MatchScreenContent({
   schoolDisplayNames,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
-  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("rally");
+  const [playing, setPlaying] = useState(!reducedMotion);
+  const speed: PlaybackSpeed = 4;
+  const playbackMode: PlaybackMode = "points";
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
@@ -313,9 +312,6 @@ function MatchScreenContent({
   ).length;
   const currentEvent = presentedEvents.at(-1);
   const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
-  const currentEventSpecialAbilities = currentRawEvent
-    ? presentEventSpecialAbilities(state, result.match, currentRawEvent)
-    : [];
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
@@ -504,20 +500,6 @@ function MatchScreenContent({
                   ? "ラリー演出を省略し、次に点が入る場面まで進みます。"
                   : currentEvent.detail}
               </p>
-              {playbackMode === "rally" &&
-              currentEventSpecialAbilities.length > 0 ? (
-                <div
-                  aria-label="このプレーの特殊能力"
-                  className="match-current-event__specials"
-                >
-                  {currentEventSpecialAbilities.map((ability) => (
-                    <span data-kind={ability.kind} key={ability.id}>
-                      <b>発動</b>
-                      {ability.name}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
             </div>
           </section>
 
@@ -530,31 +512,9 @@ function MatchScreenContent({
             />
           ) : (
             <section className="match-controls" aria-label="再生操作">
-              <div
-                className="match-playback-mode"
-                role="group"
-                aria-label="再生モード"
-              >
-                <button
-                  aria-pressed={playbackMode === "rally"}
-                  onClick={() => {
-                    setPlaying(false);
-                    setPlaybackMode("rally");
-                  }}
-                  type="button"
-                >
-                  ラリー再生
-                </button>
-                <button
-                  aria-pressed={playbackMode === "points"}
-                  onClick={() => {
-                    setPlaying(false);
-                    setPlaybackMode("points");
-                  }}
-                  type="button"
-                >
-                  得点推移
-                </button>
+              <div className="match-playback-mode" aria-label="再生モード">
+                <strong>得点推移・4倍速</strong>
+                <small>試合開始後は自動再生します</small>
               </div>
               <div className="match-playback-row">
                 <button
@@ -616,23 +576,6 @@ function MatchScreenContent({
                     結果までスキップ
                   </button>
                 ) : null}
-              </div>
-              <div
-                className="match-speed-row"
-                role="group"
-                aria-label="再生速度"
-              >
-                <span>速度</span>
-                {([1, 2, 4] as const).map((value) => (
-                  <button
-                    aria-pressed={speed === value}
-                    key={value}
-                    onClick={() => setSpeed(value)}
-                    type="button"
-                  >
-                    {value}倍
-                  </button>
-                ))}
               </div>
               {reducedMotion ? (
                 <p className="match-reduced-motion-note">

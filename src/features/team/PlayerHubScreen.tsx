@@ -133,6 +133,16 @@ const roleLabels: Record<PlayerRole, string> = {
   reserve: "控え",
 };
 
+type CoachDevelopmentDirective = "position-specialist" | "all-rounder";
+
+const positionSpecialistInstructionId: Record<Position, string> = {
+  OH: "instruction.oh-specialist",
+  MB: "instruction.mb-specialist",
+  OP: "instruction.op-specialist",
+  S: "instruction.s-specialist",
+  L: "instruction.l-specialist",
+};
+
 const concernLabels: Record<PlayerConcernCode, string> = {
   "playing-time": "出場機会",
   "role-mismatch": "役割への不満",
@@ -363,6 +373,25 @@ export function PlayerHubScreen({
     });
   };
 
+  const stageCoachDirective = (directive: CoachDevelopmentDirective) => {
+    if (trainingPending || trainingDone) return;
+
+    setTrainingDrafts(() => {
+      const next: Record<string, string> = {};
+      for (const player of players) {
+        const instructionId =
+          directive === "all-rounder"
+            ? "instruction.overall"
+            : positionSpecialistInstructionId[player.preferredPosition];
+        if (instructionId !== persistedInstructionId(player.id)) {
+          next[player.id] = instructionId;
+        }
+      }
+      return next;
+    });
+    setCoachRecommendationsOpen(false);
+  };
+
   const stageCoachRecommendations = () => {
     if (trainingPending || trainingDone) return;
 
@@ -477,31 +506,33 @@ export function PlayerHubScreen({
       ) : null}
 
       <div className="player-training-options">
-        {individualTrainingInstructions.map((item) => {
-          const selected =
-            trainingPlayer !== null &&
-            effectiveInstructionId(trainingPlayer.id) === item.id;
-          return (
-            <button
-              aria-pressed={selected}
-              className={
-                selected ? "player-training-option--selected" : undefined
-              }
-              disabled={trainingPending || trainingDone}
-              key={item.id}
-              onClick={() => {
-                if (trainingPlayer) {
-                  stageTrainingAssignment(trainingPlayer.id, item.id);
+        {individualTrainingInstructions
+          .filter((item) => !item.tags.includes("coach-only"))
+          .map((item) => {
+            const selected =
+              trainingPlayer !== null &&
+              effectiveInstructionId(trainingPlayer.id) === item.id;
+            return (
+              <button
+                aria-pressed={selected}
+                className={
+                  selected ? "player-training-option--selected" : undefined
                 }
-                setTrainingPlayerId(null);
-              }}
-              type="button"
-            >
-              <strong>{item.name}</strong>
-              <small>{item.description}</small>
-            </button>
-          );
-        })}
+                disabled={trainingPending || trainingDone}
+                key={item.id}
+                onClick={() => {
+                  if (trainingPlayer) {
+                    stageTrainingAssignment(trainingPlayer.id, item.id);
+                  }
+                  setTrainingPlayerId(null);
+                }}
+                type="button"
+              >
+                <strong>{item.name}</strong>
+                <small>{item.description}</small>
+              </button>
+            );
+          })}
       </div>
     </BottomSheet>
   );
@@ -516,6 +547,39 @@ export function PlayerHubScreen({
       title="コーチの個人練習提案"
     >
       <div className="player-coach-proposal">
+        <section
+          aria-label="コーチ育成方針"
+          className="player-coach-proposal__directives"
+        >
+          <div>
+            <strong>育成方針を指示</strong>
+            <small>全選手の個人練習をまとめて設定</small>
+          </div>
+          <div
+            aria-label="コーチ育成方針を選択"
+            className="player-coach-proposal__directive-options"
+            role="group"
+          >
+            <button
+              disabled={trainingPending || trainingDone}
+              onClick={() => stageCoachDirective("position-specialist")}
+              type="button"
+            >
+              <strong>ポジション特化</strong>
+              <small>役割に必要な能力を重点育成</small>
+            </button>
+            <button
+              disabled={trainingPending || trainingDone}
+              onClick={() => stageCoachDirective("all-rounder")}
+              type="button"
+            >
+              <strong>オールラウンダー</strong>
+              <small>全能力をバランス育成</small>
+            </button>
+          </div>
+          <p>特化能力が上限に達した選手は、自動で全体育成へ切り替わります。</p>
+        </section>
+
         <div className="player-coach-proposal__summary">
           <strong>{coachRecommendationChangeCount}人を変更提案</strong>
           <span>手動で変更中の選手は上書きしません</span>
