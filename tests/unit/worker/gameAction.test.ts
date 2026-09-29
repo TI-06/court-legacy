@@ -311,9 +311,9 @@ describe("game action route", () => {
     ]);
 
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
-    expect(persisted.previousState.activeMatch?.eventLog.length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      persisted.previousState.activeMatch?.eventLog.length,
+    ).toBeGreaterThan(0);
     expect(persisted.state.activeMatch?.eventLog).toEqual([]);
   });
 
