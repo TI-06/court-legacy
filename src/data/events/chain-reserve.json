@@ -5,8 +5,14 @@
     "category": "relationship",
     "title": "控え選手の焦り",
     "bodyTemplate": "出場機会が少ない{{player}}が、練習後も一人で残っている。",
-    "tags": ["reserve", "chain", "trust"],
-    "trigger": { "maxGrade": 3 },
+    "tags": [
+      "reserve",
+      "chain",
+      "trust"
+    ],
+    "trigger": {
+      "maxGrade": 3
+    },
     "weight": 90,
     "cooldownWeeks": 28,
     "oncePerCareer": false,
@@ -17,9 +23,18 @@
         "label": "役割を具体的に伝える",
         "detail": "次に評価する条件を言葉にし、努力の方向を示す。",
         "effects": [
-          { "type": "trust-change", "amount": 6 },
-          { "type": "morale-change", "amount": 2 },
-          { "type": "fatigue-change", "amount": 2 }
+          {
+            "type": "trust-change",
+            "amount": 6
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 2
+          }
         ],
         "followUp": {
           "eventId": "event.reserve-role-review",
@@ -32,9 +47,19 @@
         "label": "競争で示すよう求める",
         "detail": "成長を促すが、結果が出なければ焦りが強まる。",
         "effects": [
-          { "type": "ability-change", "ability": "mental", "amount": 2 },
-          { "type": "fatigue-change", "amount": 5 },
-          { "type": "morale-change", "amount": -2 }
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 5
+          },
+          {
+            "type": "morale-change",
+            "amount": -2
+          }
         ],
         "followUp": {
           "eventId": "event.reserve-role-review",
@@ -49,8 +74,12 @@
     "version": 1,
     "category": "relationship",
     "title": "控え選手との再面談",
-    "bodyTemplate": "数週間が過ぎ、{{player}}の練習態度と成長を改めて評価する時が来た。",
-    "tags": ["reserve", "chain", "review"],
+    "bodyTemplate": "数週間が過ぎ、{{player}}から今後の起用について改めて相談を受けた。",
+    "tags": [
+      "reserve",
+      "chain",
+      "review"
+    ],
     "trigger": {},
     "weight": 10,
     "cooldownWeeks": 60,
@@ -58,28 +87,68 @@
     "actorCount": 1,
     "choices": [
       {
-        "id": "chance",
-        "label": "短時間の出場機会を約束する",
-        "detail": "本人の意欲を引き出すが、既存の序列が揺れる。",
+        "id": "start-next",
+        "label": "次の公式戦は先発で使う",
+        "detail": "明確なチャンスを約束する。守れば信頼は大きく上がる。",
         "effects": [
-          { "type": "morale-change", "amount": 5 },
-          { "type": "trust-change", "amount": 4 },
-          { "type": "reputation-change", "amount": -2 }
-        ],
-        "followUp": {
-          "eventId": "event.reserve-breakthrough",
-          "afterWeeks": 4,
-          "probability": 100
-        }
+          {
+            "type": "morale-change",
+            "amount": 6
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "id": "sub-next",
+        "label": "途中から出す機会を作る",
+        "detail": "今の先発を維持しつつ、次の公式戦で途中出場を約束する。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "appearance-next",
+        "label": "次の公式戦で起用する",
+        "detail": "先発か途中出場かは試合展開を見て決めると約束する。",
+        "effects": [
+          {
+            "type": "morale-change",
+            "amount": 4
+          },
+          {
+            "type": "trust-change",
+            "amount": 3
+          }
+        ]
       },
       {
         "id": "patience",
-        "label": "役割継続を求める",
-        "detail": "チーム方針を守る代わりに、本人へ忍耐を求める。",
+        "label": "今は約束できない",
+        "detail": "起用は競争で決めると伝える。無理な約束はしない。",
         "effects": [
-          { "type": "ability-change", "ability": "mental", "amount": 2 },
-          { "type": "morale-change", "amount": -3 },
-          { "type": "trust-change", "amount": 1 }
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": -3
+          },
+          {
+            "type": "trust-change",
+            "amount": 1
+          }
         ],
         "followUp": {
           "eventId": "event.reserve-breakthrough",
@@ -95,7 +164,11 @@
     "category": "relationship",
     "title": "控え選手の転機",
     "bodyTemplate": "{{player}}が限られた機会でチームを救い、周囲の見方が変わり始めた。",
-    "tags": ["reserve", "chain", "breakthrough"],
+    "tags": [
+      "reserve",
+      "chain",
+      "breakthrough"
+    ],
     "trigger": {},
     "weight": 8,
     "cooldownWeeks": 80,
@@ -107,9 +180,18 @@
         "label": "競争序列を見直す",
         "detail": "結果を正当に評価するが、主力へ緊張が走る。",
         "effects": [
-          { "type": "morale-change", "amount": 6 },
-          { "type": "trust-change", "amount": 5 },
-          { "type": "reputation-change", "amount": -2 }
+          {
+            "type": "morale-change",
+            "amount": 6
+          },
+          {
+            "type": "trust-change",
+            "amount": 5
+          },
+          {
+            "type": "reputation-change",
+            "amount": -2
+          }
         ]
       },
       {
@@ -117,9 +199,19 @@
         "label": "切り札として役割を固める",
         "detail": "明確な居場所を与えるが、先発への道は狭くなる。",
         "effects": [
-          { "type": "ability-change", "ability": "mental", "amount": 3 },
-          { "type": "trust-change", "amount": 4 },
-          { "type": "morale-change", "amount": 2 }
+          {
+            "type": "ability-change",
+            "ability": "mental",
+            "amount": 3
+          },
+          {
+            "type": "trust-change",
+            "amount": 4
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
         ]
       }
     ]
