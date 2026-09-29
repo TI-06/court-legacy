@@ -980,9 +980,11 @@ export function PlayerHubScreen({
                   </div>
                   <p>
                     {activeConversion.targetPosition}適性{" "}
-                    {selectedPlayer.positionAptitudes[
-                      activeConversion.targetPosition
-                    ]}{" "}
+                    {
+                      selectedPlayer.positionAptitudes[
+                        activeConversion.targetPosition
+                      ]
+                    }{" "}
                     {ratingToGrade(
                       selectedPlayer.positionAptitudes[
                         activeConversion.targetPosition
