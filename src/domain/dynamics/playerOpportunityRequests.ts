@@ -2,14 +2,10 @@ import type { GameState } from "../model/GameState";
 import type { GameDate, PlayerId } from "../model/identifiers";
 
 export type PlayerOpportunityRequestKind =
-  | "promise"
-  | "playing-time"
-  | "role-mismatch";
+  "promise" | "playing-time" | "role-mismatch";
 
 export type PlayerOpportunityPromiseKind =
-  | "starter"
-  | "substitute"
-  | "appearance";
+  "starter" | "substitute" | "appearance";
 
 export interface ActivePlayerOpportunityPromise {
   playerId: PlayerId;
