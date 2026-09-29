@@ -4,7 +4,9 @@ import { individualTrainingInstructions } from "../../../src/data/individualTrai
 describe("Phase 12 individual training instructions", () => {
   it("exposes exactly the six player-facing choices", () => {
     expect(
-      individualTrainingInstructions.map(({ id, name }) => ({ id, name })),
+      individualTrainingInstructions
+        .filter((item) => !item.tags.includes("coach-only"))
+        .map(({ id, name }) => ({ id, name })),
     ).toEqual([
       { id: "instruction.overall", name: "全体" },
       { id: "instruction.attack", name: "攻撃" },
