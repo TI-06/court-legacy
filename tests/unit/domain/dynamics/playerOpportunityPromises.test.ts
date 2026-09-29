@@ -76,7 +76,9 @@ describe("player opportunity promises", () => {
     );
   });
 
-  it("promotes a next-match promise to a starter promise after the current match", () => {
+  it(
+    "promotes a next-match promise to a starter promise after the current match",
+    () => {
     const state = createDemoGame();
     const selection = autoSelectTeam({
       state,
@@ -99,8 +101,9 @@ describe("player opportunity promises", () => {
     } as MatchState;
 
     const resolved = resolveCompletedMatchOpportunityPromises(promised, match);
-    expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([
-      { playerId, choice: "starter" },
-    ]);
-  });
+      expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([
+        { playerId, choice: "starter" },
+      ]);
+    },
+  );
 });
