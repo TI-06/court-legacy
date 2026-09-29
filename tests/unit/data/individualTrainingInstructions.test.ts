@@ -2,10 +2,10 @@ import { completeRawGameData } from "../../../src/data/completeRawGameData";
 import { loadGameData } from "../../../src/data/dataRegistry";
 
 describe("individual training instruction data", () => {
-  it("loads six validated individual instructions", () => {
+  it("loads eleven validated individual instructions", () => {
     const registry = loadGameData(completeRawGameData);
 
-    expect(registry.individualTrainingInstructions.size).toBe(6);
+    expect(registry.individualTrainingInstructions.size).toBe(11);
     expect(
       [...registry.individualTrainingInstructions.values()].every(
         (instruction) => instruction.targetAbilities.length > 0,
