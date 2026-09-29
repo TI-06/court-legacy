@@ -492,7 +492,7 @@ export async function resolveShopUse(
         targetType: "none",
         targetId: null,
         safeRequest: {},
-        publicResult: scoutingSearchItemBonuses(base.state),
+        publicResult: { ...scoutingSearchItemBonuses(base.state) },
       };
     }
     case "generational-scout-candidate": {
@@ -503,7 +503,7 @@ export async function resolveShopUse(
         targetType: "none",
         targetId: null,
         safeRequest: {},
-        publicResult: scoutingSearchItemBonuses(base.state),
+        publicResult: { ...scoutingSearchItemBonuses(base.state) },
       };
     }
     case "scout-research":
