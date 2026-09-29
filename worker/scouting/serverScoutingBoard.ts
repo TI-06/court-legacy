@@ -242,7 +242,8 @@ export function generateServerScoutingCandidates(
       : criteria?.region === "regional"
         ? 5
         : CANDIDATE_COUNT;
-  const resultCount = regionCount + extraCandidateCount;
+  const resultCount =
+    regionCount + extraCandidateCount + guaranteedGenerationalCount;
   const generationCount = Math.max(
     CANDIDATE_COUNT + 6,
     resultCount + guaranteedGenerationalCount + 6,
