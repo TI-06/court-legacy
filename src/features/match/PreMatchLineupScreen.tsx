@@ -506,10 +506,6 @@ export function PreMatchLineupScreen({
             {opportunityRequests.map((request) => {
               const player = state.players[request.playerId];
               if (!player) return null;
-              const isActive =
-                selection.rotation.some(
-                  (assignment) => assignment.playerId === player.id,
-                ) || selection.liberoPlayerId === player.id;
               return (
                 <article
                   className={
