@@ -187,7 +187,8 @@ export function prioritizePlayerForPreMatch(input: {
   }
 
   const preferredSlots = input.selection.rotation.filter(
-    (assignment) => ROTATION_ROLES[assignment.slot] === player.preferredPosition,
+    (assignment) =>
+      ROTATION_ROLES[assignment.slot] === player.preferredPosition,
   );
   const candidates =
     preferredSlots.length > 0
