@@ -78,12 +78,13 @@ describe("weekly progression", () => {
 
     const result = advanceOneWeek(state);
 
+    expect(result.state.players).not.toBe(state.players);
     expect(result.state.players[recoveringId]!.injury?.remainingWeeks).toBe(1);
     expect(result.state.players[healingId]!.injury).toBeNull();
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
-  it("preserves unchanged player objects instead of cloning the full roster", () => {
+  it("preserves the player map when no injuries need progression", () => {
     const state = createState();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const playerBefore = state.players[playerId]!;
@@ -91,6 +92,7 @@ describe("weekly progression", () => {
 
     const result = advanceOneWeek(state);
 
+    expect(result.state.players).toBe(state.players);
     expect(result.state.players[playerId]).toBe(playerBefore);
   });
 
