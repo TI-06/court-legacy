@@ -14,6 +14,8 @@ export type CoachTrainingRecommendationReason =
   | "development-goal"
   | "balanced"
   | "assistant-specialty"
+  | "position-specialist"
+  | "all-rounder"
   | "weakness";
 
 export interface CoachTrainingRecommendation {
@@ -25,15 +27,52 @@ export interface CoachTrainingRecommendation {
 }
 
 export type CoachRecommendationQuality = "basic" | "standard" | "detailed";
+export type CoachDevelopmentDirective =
+  | "position-specialist"
+  | "coach-choice"
+  | "all-rounder";
 
 const instructionNames: Record<string, string> = {
   "instruction.overall": "全体",
   "instruction.attack": "攻撃",
   "instruction.defense": "守備",
+  "instruction.spike": "スパイク特化",
+  "instruction.receive": "レシーブ特化",
+  "instruction.serve": "サーブ特化",
+  "instruction.set": "トス特化",
+  "instruction.block": "ブロック特化",
   "instruction.jump": "跳躍",
   "instruction.fitness": "体力",
   "instruction.rest": "休養",
 };
+
+function positionSpecialistInstruction(
+  player: Player,
+): Pick<CoachTrainingRecommendation, "instructionId" | "instructionName"> {
+  switch (player.preferredPosition) {
+    case "OH":
+    case "OP":
+      return {
+        instructionId: "instruction.spike",
+        instructionName: "スパイク特化",
+      };
+    case "MB":
+      return {
+        instructionId: "instruction.block",
+        instructionName: "ブロック特化",
+      };
+    case "S":
+      return {
+        instructionId: "instruction.set",
+        instructionName: "トス特化",
+      };
+    case "L":
+      return {
+        instructionId: "instruction.receive",
+        instructionName: "レシーブ特化",
+      };
+  }
+}
 
 function goalInstruction(
   goal: PlayerDevelopmentGoalProgress,
@@ -132,6 +171,7 @@ export function coachRecommendationQualityLabel(
 export function buildCoachTrainingRecommendation(
   state: GameState,
   player: Player,
+  directive: CoachDevelopmentDirective = "coach-choice",
 ): CoachTrainingRecommendation {
   if (player.injury) {
     return {
@@ -166,6 +206,26 @@ export function buildCoachTrainingRecommendation(
         reasonLabel: `育成目標「${progress.areaLabel} ${progress.targetGrade}」を優先`,
       };
     }
+  }
+
+  if (directive === "all-rounder") {
+    return {
+      playerId: player.id,
+      instructionId: "instruction.overall",
+      instructionName: "全体",
+      reason: "all-rounder",
+      reasonLabel: "オールラウンダー方針で全能力をバランス強化",
+    };
+  }
+
+  if (directive === "position-specialist") {
+    const instruction = positionSpecialistInstruction(player);
+    return {
+      playerId: player.id,
+      ...instruction,
+      reason: "position-specialist",
+      reasonLabel: `${player.preferredPosition}の役割を優先して${instruction.instructionName}`,
+    };
   }
 
   const quality = coachRecommendationQuality(state);
@@ -218,6 +278,7 @@ export function buildCoachTrainingRecommendation(
 
 export function buildCoachTrainingRecommendations(
   state: GameState,
+  directive: CoachDevelopmentDirective = "coach-choice",
 ): CoachTrainingRecommendation[] {
   const school = state.schools[state.userSchoolId];
   if (!school) return [];
@@ -225,7 +286,9 @@ export function buildCoachTrainingRecommendations(
   return school.playerIds
     .map((playerId) => state.players[playerId])
     .filter((player): player is Player => Boolean(player))
-    .map((player) => buildCoachTrainingRecommendation(state, player));
+    .map((player) =>
+      buildCoachTrainingRecommendation(state, player, directive),
+    );
 }
 
 export function coachRecommendationInstructionName(
