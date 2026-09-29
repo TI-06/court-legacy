@@ -1,4 +1,4 @@
-import type { PlayerId, SchoolId } from "./identifiers";
+import type { GameDate, PlayerId, SchoolId } from "./identifiers";
 
 export type Position = "OH" | "MB" | "OP" | "S" | "L";
 export type Grade = 1 | 2 | 3;
@@ -45,7 +45,7 @@ export interface PositionConversionPlan {
   targetPosition: Position;
   totalWeeks: number;
   remainingWeeks: number;
-  startedDate: string;
+  startedDate: GameDate;
 }
 
 export interface Player {
