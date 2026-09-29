@@ -157,6 +157,23 @@ describe("ShopScreen", () => {
     expect(props.onUse).toHaveBeenCalledWith("fatigue-recovery");
   });
 
+  it("renders transient shop feedback in a floating layer", () => {
+    renderShop({
+      loading: true,
+      error: "ショップ情報を読み込めませんでした",
+      resultMessage: "購入しました ✓",
+    });
+
+    const feedback = screen.getByTestId("shop-feedback-layer");
+    expect(feedback).toHaveAttribute("aria-label", "ショップ通知");
+    expect(feedback).toContainElement(screen.getByRole("status"));
+    expect(feedback).toContainElement(screen.getByRole("alert"));
+    expect(feedback).toContainElement(screen.getByText("購入しました ✓"));
+    expect(feedback).not.toContainElement(
+      screen.getByRole("region", { name: "商品一覧" }),
+    );
+  });
+
   it("shows pending, success, and error states with retry controls", () => {
     const onRetry = vi.fn();
     renderShop({
