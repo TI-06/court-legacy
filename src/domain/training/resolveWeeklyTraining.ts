@@ -304,10 +304,7 @@ function resolveCappedTrainingInstruction(
   instruction: IndividualTrainingInstructionDefinition,
   fallback: IndividualTrainingInstructionDefinition,
 ): IndividualTrainingInstructionDefinition {
-  if (
-    instruction.id === fallback.id ||
-    instruction.id === "instruction.rest"
-  ) {
+  if (instruction.id === fallback.id || instruction.id === "instruction.rest") {
     return instruction;
   }
 

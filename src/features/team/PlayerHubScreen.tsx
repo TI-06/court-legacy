@@ -183,8 +183,7 @@ const coachDevelopmentDirectiveOptions: ReadonlyArray<{
   {
     value: "position-specialist",
     label: "ポジション特化",
-    description:
-      "OH・OPはスパイク、MBはブロック、Sはトス、Lはレシーブを優先",
+    description: "OH・OPはスパイク、MBはブロック、Sはトス、Lはレシーブを優先",
   },
   {
     value: "coach-choice",

@@ -147,11 +147,7 @@ describe("coachTrainingRecommendations", () => {
     for (const [position, instructionId] of expectedByPosition) {
       player.preferredPosition = position;
       expect(
-        buildCoachTrainingRecommendation(
-          state,
-          player,
-          "position-specialist",
-        ),
+        buildCoachTrainingRecommendation(state, player, "position-specialist"),
       ).toMatchObject({
         instructionId,
         reason: "position-specialist",

@@ -28,9 +28,7 @@ export interface CoachTrainingRecommendation {
 
 export type CoachRecommendationQuality = "basic" | "standard" | "detailed";
 export type CoachDevelopmentDirective =
-  | "position-specialist"
-  | "coach-choice"
-  | "all-rounder";
+  "position-specialist" | "coach-choice" | "all-rounder";
 
 const instructionNames: Record<string, string> = {
   "instruction.overall": "全体",
