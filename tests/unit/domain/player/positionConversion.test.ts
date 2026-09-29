@@ -100,8 +100,8 @@ describe("Phase46 position conversion", () => {
     current = progressPositionConversions(current).state;
     expect(current.players[playerId]!.preferredPosition).toBe("S");
     expect(current.players[playerId]!.positionConversion).toBeUndefined();
-    expect(current.players[playerId]!.positionAptitudes.S).toBeGreaterThanOrEqual(
-      72,
-    );
+    expect(
+      current.players[playerId]!.positionAptitudes.S,
+    ).toBeGreaterThanOrEqual(72);
   });
 });
