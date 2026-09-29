@@ -119,6 +119,44 @@ describe("resolveWeeklyTraining", () => {
     expect(state.players[untouchedId]).toEqual(before);
   });
 
+  it("switches a capped specialized instruction to overall and persists it", () => {
+    const state = createTrainingState();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.abilities = {
+      ...player.abilities,
+      spike: 100,
+      jump: 100,
+      decision: 100,
+    };
+
+    const plan = createPlan(school.playerIds);
+    plan.individualAssignments[0] = {
+      playerId,
+      instructionId: "instruction.spike",
+    };
+
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan,
+      data,
+      random: new FixedRandom(100),
+    });
+
+    expect(
+      resolution.result.individualAssignments.find(
+        (assignment) => assignment.playerId === playerId,
+      )?.instructionId,
+    ).toBe("instruction.overall");
+    expect(
+      resolution.state.weeklySchedule.trainingPlan.individualAssignments.find(
+        (assignment) => assignment.playerId === playerId,
+      )?.instructionId,
+    ).toBe("instruction.overall");
+  });
+
   it("trades some individual growth for relationship and cohesion gains", () => {
     const state = createTrainingState();
     const baselineState = structuredClone(state);
