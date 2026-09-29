@@ -116,7 +116,10 @@ export function TrainingScreen({
   );
   const menus = useMemo(() => [...data.trainingMenus.values()], [data]);
   const instructions = useMemo(
-    () => [...data.individualTrainingInstructions.values()],
+    () =>
+      [...data.individualTrainingInstructions.values()].filter(
+        (instruction) => !instruction.tags.includes("coach-only"),
+      ),
     [data],
   );
   const savedPlan = state.weeklySchedule.trainingPlan;
@@ -166,9 +169,9 @@ export function TrainingScreen({
     secondInstructionId.length > 0 &&
     !duplicatePlayers;
   const coachAssignmentsValid =
-    Boolean(coachAssignments) &&
-    coachAssignments!.length === players.length &&
-    coachAssignments!.every((assignment) =>
+    coachAssignments !== null &&
+    coachAssignments.length === players.length &&
+    coachAssignments.every((assignment) =>
       players.some((player) => player.id === assignment.playerId),
     );
   const canSave =
