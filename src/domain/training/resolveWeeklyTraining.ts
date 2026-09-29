@@ -6,7 +6,10 @@ import {
 import { relationshipKey, type GameState } from "../model/GameState";
 import { ABILITY_KEYS, type Player, type PlayerInjury } from "../model/Player";
 import type { PlayerId, SchoolId } from "../model/identifiers";
-import { applyLongTermAbilityGrowth } from "../player/playerDevelopment";
+import {
+  applyLongTermAbilityGrowth,
+  calculateLongTermAbilityCeiling,
+} from "../player/playerDevelopment";
 import {
   adjustSpecialAbilityInjuryRisk,
   getSpecialAbilityRecoveryValues,
@@ -296,6 +299,29 @@ function activityFromInstruction(
   };
 }
 
+function resolveCappedTrainingInstruction(
+  player: Player,
+  instruction: IndividualTrainingInstructionDefinition,
+  fallback: IndividualTrainingInstructionDefinition,
+): IndividualTrainingInstructionDefinition {
+  if (
+    instruction.id === fallback.id ||
+    instruction.id === "instruction.rest"
+  ) {
+    return instruction;
+  }
+
+  const ceiling = calculateLongTermAbilityCeiling(
+    player.potential,
+    player.tier,
+  );
+  const allTargetsAtCeiling = instruction.targetAbilities.every(
+    (ability) => player.abilities[ability] >= ceiling,
+  );
+
+  return allTargetsAtCeiling ? fallback : instruction;
+}
+
 function validate(input: ResolveWeeklyTrainingInput) {
   const school = input.state.schools[input.schoolId];
   if (!school) {
@@ -431,8 +457,13 @@ export function resolveWeeklyTraining(
       continue;
     }
 
-    const instruction =
+    const selectedInstruction =
       validated.instructionByPlayerId.get(id) ?? validated.fallback;
+    const instruction = resolveCappedTrainingInstruction(
+      original,
+      selectedInstruction,
+      validated.fallback,
+    );
     assignments.push({ playerId: id, instructionId: instruction.id });
 
     if (original.injury) {
@@ -508,9 +539,9 @@ export function resolveWeeklyTraining(
           ...input.state.weeklySchedule,
           trainingPlan: {
             teamTrainingMenuId: input.plan.teamTrainingMenuId,
-            individualAssignments: validated.activeAssignments.map(
-              (assignment) => ({ ...assignment }),
-            ),
+            individualAssignments: assignments.map((assignment) => ({
+              ...assignment,
+            })),
           },
         }
       : input.state.weeklySchedule,
