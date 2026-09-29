@@ -504,20 +504,6 @@ function MatchScreenContent({
                   ? "ラリー演出を省略し、次に点が入る場面まで進みます。"
                   : currentEvent.detail}
               </p>
-              {playbackMode === "rally" &&
-              currentEventSpecialAbilities.length > 0 ? (
-                <div
-                  aria-label="このプレーの特殊能力"
-                  className="match-current-event__specials"
-                >
-                  {currentEventSpecialAbilities.map((ability) => (
-                    <span data-kind={ability.kind} key={ability.id}>
-                      <b>発動</b>
-                      {ability.name}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
             </div>
           </section>
 
