@@ -4,31 +4,44 @@ import type { PlayerId } from "../model/identifiers";
 export type PlayerOpportunityRequestKind =
   "promise" | "playing-time" | "role-mismatch";
 
+export type AppearancePromiseMode = "starter" | "substitute" | "next-match";
+
 export interface PlayerOpportunityRequest {
   playerId: PlayerId;
   kind: PlayerOpportunityRequestKind;
   severity: 1 | 2 | 3;
   title: string;
   detail: string;
+  promiseMode?: AppearancePromiseMode;
 }
 
-function activeAppearancePromisePlayerIds(state: GameState): Set<PlayerId> {
-  const active = new Set<PlayerId>();
+export function activeAppearancePromises(
+  state: GameState,
+): Partial<Record<PlayerId, AppearancePromiseMode>> {
+  const active: Partial<Record<PlayerId, AppearancePromiseMode>> = {};
 
   for (const occurrence of state.eventMemory.history) {
     const actor = occurrence.actorPlayerIds[0];
     if (!actor) continue;
 
-    if (
-      occurrence.eventId === "event.reserve-role-review" &&
-      occurrence.choiceId === "chance"
-    ) {
-      active.add(actor);
+    if (occurrence.eventId === "event.reserve-role-review") {
+      if (occurrence.choiceId === "starter") {
+        active[actor] = "starter";
+      } else if (occurrence.choiceId === "chance") {
+        active[actor] = "substitute";
+      } else if (occurrence.choiceId === "next-match") {
+        active[actor] = "next-match";
+      } else if (occurrence.choiceId === "patience") {
+        delete active[actor];
+      }
       continue;
     }
 
-    if (occurrence.eventId === "event.reserve-breakthrough") {
-      active.delete(actor);
+    if (
+      occurrence.eventId === "event.reserve-breakthrough" ||
+      occurrence.eventId === "event.reserve-appearance-promise-result"
+    ) {
+      delete active[actor];
     }
   }
 
@@ -66,14 +79,28 @@ export function derivePlayerOpportunityRequests(
   const roster = new Set(state.schools[state.userSchoolId]?.playerIds ?? []);
   const requests = new Map<PlayerId, PlayerOpportunityRequest>();
 
-  for (const playerId of activeAppearancePromisePlayerIds(state)) {
-    if (!roster.has(playerId)) continue;
+  for (const [rawPlayerId, promiseMode] of Object.entries(
+    activeAppearancePromises(state),
+  )) {
+    const playerId = rawPlayerId as PlayerId;
+    if (!promiseMode || !roster.has(playerId)) continue;
     requests.set(playerId, {
       playerId,
       kind: "promise",
       severity: 3,
-      title: "出場機会を約束中",
-      detail: "面談で短時間でも試合に出すと約束しています。",
+      title:
+        promiseMode === "starter"
+          ? "先発起用を約束中"
+          : promiseMode === "substitute"
+            ? "途中出場を約束中"
+            : "次戦起用を約束中",
+      detail:
+        promiseMode === "starter"
+          ? "次の公式戦で先発起用すると約束しています。"
+          : promiseMode === "substitute"
+            ? "次の公式戦で途中出場の機会を与えると約束しています。"
+            : "次の公式戦で必ず出場機会を与えると約束しています。",
+      promiseMode,
     });
   }
 
