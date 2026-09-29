@@ -105,6 +105,51 @@ describe("PreMatchLineupScreen", () => {
     expect(selection).toEqual(original);
   });
 
+  it("shows player opportunity requests and can prioritize the requested player for this match", () => {
+    const { state, selection } = fixture();
+    const requestedPlayerId = selection.benchPlayerIds[0]!;
+    const requestedPlayer = state.players[requestedPlayerId]!;
+    state.teamDynamics.playerConcerns[requestedPlayerId] = [
+      { code: "playing-time", severity: 3 },
+    ];
+    const onStart = vi.fn();
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={onStart}
+        opponentName="ライバル高校"
+        opponentStrength={78}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    const requests = screen.getByRole("region", { name: "選手からの要望" });
+    expect(within(requests).getByText("出場機会が欲しい")).toBeVisible();
+    expect(
+      within(requests).getByText(
+        `${requestedPlayer.lastName} ${requestedPlayer.firstName}`,
+      ),
+    ).toBeVisible();
+
+    fireEvent.click(within(requests).getByRole("button", { name: "優先起用" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "この編成・戦術で試合開始" }),
+    );
+
+    const startedSelection = onStart.mock.calls[0]?.[0];
+    expect(
+      startedSelection.rotation.some(
+        (assignment: { playerId: string }) =>
+          assignment.playerId === requestedPlayerId,
+      ) || startedSelection.liberoPlayerId === requestedPlayerId,
+    ).toBe(true);
+    expect(selection.benchPlayerIds).toContain(requestedPlayerId);
+  });
+
   it("can restore the saved lineup after applying a preset", () => {
     const { state, selection } = fixture();
     const onStart = vi.fn();

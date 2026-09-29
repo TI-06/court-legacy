@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../../src/app/createInitialGame";
 import {
   buildPreMatchLineupPreset,
+  prioritizePlayerForPreMatch,
   replacePreMatchPlayer,
 } from "../../../../src/domain/match/preMatchLineup";
 import type { PlayerId } from "../../../../src/domain/model/identifiers";
@@ -93,6 +94,30 @@ describe("pre-match lineup", () => {
       ).toEqual([]);
       expect(activeIds(selected)).toHaveLength(7);
     }
+  });
+
+  it("prioritizes a requested bench player into a valid role-compatible match lineup", () => {
+    const { state, baseSelection } = fixture();
+    const requestedPlayerId = baseSelection.benchPlayerIds[0]!;
+    const before = JSON.stringify(baseSelection);
+
+    const selected = prioritizePlayerForPreMatch({
+      state,
+      schoolId: state.userSchoolId,
+      selection: baseSelection,
+      playerId: requestedPlayerId,
+    });
+
+    expect(activeIds(selected)).toContain(requestedPlayerId);
+    expect(selected.benchPlayerIds).not.toContain(requestedPlayerId);
+    expect(
+      validateTeamSelection({
+        state,
+        schoolId: state.userSchoolId,
+        selection: selected,
+      }),
+    ).toEqual([]);
+    expect(JSON.stringify(baseSelection)).toBe(before);
   });
 
   it("replaces a rotation player and keeps serving order and bench consistent", () => {

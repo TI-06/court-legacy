@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import {
   buildPreMatchLineupPreset,
+  prioritizePlayerForPreMatch,
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
+import { derivePlayerOpportunityRequests } from "../../domain/dynamics/playerOpportunityRequests";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -129,6 +131,10 @@ export function PreMatchLineupScreen({
     () => selectSavedLineupSlots(state),
     [state],
   );
+  const opportunityRequests = useMemo(
+    () => derivePlayerOpportunityRequests(state).slice(0, 3),
+    [state],
+  );
   const matchup = useMemo(
     () =>
       opponentTactics ? summarizeTacticMatchup(tactics, opponentTactics) : null,
@@ -194,6 +200,17 @@ export function PreMatchLineupScreen({
         schoolId: state.userSchoolId,
         baseSelection,
         preset,
+      }),
+    );
+  };
+
+  const prioritizeRequestedPlayer = (playerId: PlayerId) => {
+    setSelection((current) =>
+      prioritizePlayerForPreMatch({
+        state,
+        schoolId: state.userSchoolId,
+        selection: current,
+        playerId,
       }),
     );
   };
@@ -446,6 +463,68 @@ export function PreMatchLineupScreen({
           </div>
         </div>
       </section>
+
+      {prepTab === "lineup" && opportunityRequests.length > 0 ? (
+        <section
+          aria-label="選手からの要望"
+          className="pre-match-lineup__requests"
+        >
+          <div className="pre-match-lineup__request-heading">
+            <div>
+              <p className="section-kicker">PLAYER REQUEST</p>
+              <h3>選手からの要望</h3>
+            </div>
+            <span>{opportunityRequests.length}件</span>
+          </div>
+          <div className="pre-match-lineup__request-list">
+            {opportunityRequests.map((request) => {
+              const player = state.players[request.playerId];
+              if (!player) return null;
+              const isActive =
+                selection.rotation.some(
+                  (assignment) => assignment.playerId === player.id,
+                ) || selection.liberoPlayerId === player.id;
+              return (
+                <article
+                  className={
+                    request.kind === "promise"
+                      ? "pre-match-lineup__request is-promised"
+                      : "pre-match-lineup__request"
+                  }
+                  key={player.id}
+                >
+                  <div className="pre-match-lineup__request-copy">
+                    <span>
+                      {request.kind === "promise"
+                        ? "約束"
+                        : request.severity >= 3
+                          ? "強い要望"
+                          : "要望"}
+                    </span>
+                    <strong>{playerName(player)}</strong>
+                    <b>{request.title}</b>
+                    <small>{request.detail}</small>
+                  </div>
+                  <button
+                    disabled={pending || Boolean(player.injury) || isActive}
+                    onClick={() => prioritizeRequestedPlayer(player.id)}
+                    type="button"
+                  >
+                    {player.injury
+                      ? "負傷中"
+                      : isActive
+                        ? "起用済み"
+                        : "優先起用"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+          <p className="pre-match-lineup__request-note">
+            起用しない場合は現在の編成を維持できます。面談で役割継続を伝える選択肢もあります。
+          </p>
+        </section>
+      ) : null}
 
       <section
         className="pre-match-lineup__presets"
