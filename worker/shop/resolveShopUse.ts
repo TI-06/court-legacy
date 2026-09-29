@@ -30,6 +30,7 @@ import type { CloudGameSnapshot } from "../data/GameStore";
 import type {
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
+  ScoutingCandidateTruth,
   ScoutingStore,
 } from "../data/ScoutingStore";
 import type { ShopUseTargetType } from "../data/ShopStore";
