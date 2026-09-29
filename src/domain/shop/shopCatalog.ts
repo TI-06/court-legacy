@@ -61,7 +61,7 @@ export const PHASE5_SHOP_ITEMS = [
   {
     itemId: "generational-scout-candidate",
     displayName: "天才候補生追加",
-    description: "次回のスカウト検索で天才ランクの候補が1名必ず出現します。",
+    description: "次回のスカウト検索結果に天才ランクの候補を1名確定で追加します。",
     priceYen: 0,
     annualPurchaseLimit: 2_000_000_000,
     annualUseLimit: 2_000_000_000,
