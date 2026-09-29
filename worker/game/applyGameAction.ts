@@ -1672,14 +1672,23 @@ export function applyGameAction(
   const teamSelection = cloneTeamSelection(snapshot.teamSelection);
   const applied = applyActionByType(state, teamSelection, action, context);
 
-  // An in-progress match command only changes the live match/runtime state.
-  // Character-trait discovery and season-goal evaluation scan the whole roster
-  // and cannot become newly true until persistent player/team data changes.
-  // Skip those full-roster scans until the match completes.
-  if (
-    action.type === "match-command" &&
-    applied.state.activeMatch?.phase !== "match-complete"
-  ) {
+  // Pure match-session transitions do not change persistent player/team
+  // progression. Long careers can exceed 1 MB, so avoid full-roster trait and
+  // season-goal scans until an action actually changes persistent progression.
+  const advanceOutcome =
+    action.type === "advance-week"
+      ? (applied.outcome as AdvanceWeekOutcome | undefined)
+      : undefined;
+  const isPureMatchSessionTransition =
+    (action.type === "match-command" &&
+      applied.state.activeMatch?.phase !== "match-complete") ||
+    action.type === "official-match" ||
+    action.type === "practice-match" ||
+    (action.type === "advance-week" &&
+      advanceOutcome?.weekAdvanced === false &&
+      advanceOutcome.trainingResult === undefined);
+
+  if (isPureMatchSessionTransition) {
     return applied;
   }
 
