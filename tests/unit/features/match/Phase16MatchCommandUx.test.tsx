@@ -8,6 +8,7 @@ import {
 } from "../../../../src/domain/match/simulateMatch";
 import type { CoachDecisionReason } from "../../../../src/domain/model/Match";
 import {
+  eventId,
   matchId,
   type PlayerId,
 } from "../../../../src/domain/model/identifiers";
@@ -369,6 +370,46 @@ describe("Phase16 match command decision panel", () => {
       type: "set-match-tactics",
       plan: { serve: "aggressive", attack: "quick", block: "commit" },
     });
+  });
+
+  it("prioritizes a promised substitute in the in-match bench list", () => {
+    const fixture = findDecision("set-break");
+    const selection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.homeSelection
+        : fixture.match.awaySelection;
+    const outgoingPlayerId = selection.rotation[0]!.playerId;
+    const promisedPlayerId = selection.benchPlayerIds[0]!;
+    fixture.state.eventMemory.history.push({
+      eventId: eventId("event.reserve-role-review"),
+      date: fixture.state.date,
+      actorPlayerIds: [promisedPlayerId],
+      choiceId: "sub-next",
+      visibleResultCodes: [],
+    });
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "選手交代" }));
+    const dialog = screen.getByRole("dialog", { name: "選手交代" });
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: playerName(fixture.state, outgoingPlayerId),
+      }),
+    );
+
+    const benchGroup = within(dialog).getByRole("group", { name: "ベンチ" });
+    const promised = within(benchGroup).getByRole("button", {
+      name: playerName(fixture.state, promisedPlayerId),
+    });
+    expect(within(promised).getByText("途中出場約束")).toBeVisible();
   });
 
   it("selects one current court player then one current bench player and emits one substitution command", () => {
