@@ -4,6 +4,7 @@ import { eventId, playerId } from "../../../../src/domain/model/identifiers";
 import {
   addSpecialRelationship,
   getRelationshipBond,
+  progressSpecialRelationshipsWeekly,
   removeSpecialRelationship,
 } from "../../../../src/domain/relationships/specialRelationships";
 
@@ -18,6 +19,15 @@ const b = playerId("player-b");
 const source = eventId("event.relationship-test");
 
 describe("special relationship helpers", () => {
+  it("returns the original state when there are no special bonds to progress", () => {
+    const state = relationshipState();
+
+    const result = progressSpecialRelationshipsWeekly(state, "2026-04-08");
+
+    expect(result.state).toBe(state);
+    expect(result.transitions).toEqual([]);
+  });
+
   it("stores pair IDs in canonical sorted order and emits one establishment transition", () => {
     const result = addSpecialRelationship(relationshipState(), {
       playerIds: [b, a],
