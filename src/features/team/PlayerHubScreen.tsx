@@ -480,29 +480,29 @@ export function PlayerHubScreen({
         {individualTrainingInstructions
           .filter((item) => !item.tags.includes("coach-only"))
           .map((item) => {
-          const selected =
-            trainingPlayer !== null &&
-            effectiveInstructionId(trainingPlayer.id) === item.id;
-          return (
-            <button
-              aria-pressed={selected}
-              className={
-                selected ? "player-training-option--selected" : undefined
-              }
-              disabled={trainingPending || trainingDone}
-              key={item.id}
-              onClick={() => {
-                if (trainingPlayer) {
-                  stageTrainingAssignment(trainingPlayer.id, item.id);
+            const selected =
+              trainingPlayer !== null &&
+              effectiveInstructionId(trainingPlayer.id) === item.id;
+            return (
+              <button
+                aria-pressed={selected}
+                className={
+                  selected ? "player-training-option--selected" : undefined
                 }
-                setTrainingPlayerId(null);
-              }}
-              type="button"
-            >
-              <strong>{item.name}</strong>
-              <small>{item.description}</small>
-            </button>
-          );
+                disabled={trainingPending || trainingDone}
+                key={item.id}
+                onClick={() => {
+                  if (trainingPlayer) {
+                    stageTrainingAssignment(trainingPlayer.id, item.id);
+                  }
+                  setTrainingPlayerId(null);
+                }}
+                type="button"
+              >
+                <strong>{item.name}</strong>
+                <small>{item.description}</small>
+              </button>
+            );
           })}
       </div>
     </BottomSheet>
