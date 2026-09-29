@@ -2,9 +2,7 @@ import type { GameState } from "../model/GameState";
 import type { PlayerId } from "../model/identifiers";
 
 export type PlayerOpportunityRequestKind =
-  | "promise"
-  | "playing-time"
-  | "role-mismatch";
+  "promise" | "playing-time" | "role-mismatch";
 
 export interface PlayerOpportunityRequest {
   playerId: PlayerId;
@@ -86,10 +84,7 @@ export function derivePlayerOpportunityRequests(
     if (!roster.has(playerId)) continue;
 
     for (const concern of concerns ?? []) {
-      if (
-        concern.code !== "playing-time" &&
-        concern.code !== "role-mismatch"
-      ) {
+      if (concern.code !== "playing-time" && concern.code !== "role-mismatch") {
         continue;
       }
       if (requests.get(playerId)?.kind === "promise") {
