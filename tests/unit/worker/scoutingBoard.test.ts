@@ -156,6 +156,39 @@ describe("scouting board route", () => {
     expect(serialized).not.toContain('"hiddenTraitIds"');
   });
 
+  it("consumes queued scout item effects in the next search and exposes the guaranteed genius", async () => {
+    const snapshot = createSnapshot();
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      committedCandidateIds: [],
+      scoutingSearchesUsed: 0,
+      pendingExtraScoutCandidates: 1,
+      pendingGenerationalScoutCandidates: 1,
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(scoutingRequest(requestBody), {
+      id: "user-123",
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.reports).toHaveLength(8);
+    expect(body.reports.some((report: { isGenerationalTalent?: boolean }) =>
+      report.isGenerationalTalent === true,
+    )).toBe(true);
+    expect(scoutingStore.savedPool?.candidates).toHaveLength(8);
+
+    const persisted = vi.mocked(gameStore.applyOperation).mock.calls[0]?.[0];
+    expect(persisted?.state.recruiting).toMatchObject({
+      scoutingSearchesUsed: 1,
+      pendingExtraScoutCandidates: 0,
+      pendingGenerationalScoutCandidates: 0,
+    });
+  });
+
   it("replays a completed search without consuming another search or replacing the pool", async () => {
     const snapshot = createSnapshot(8);
     snapshot.state.recruiting = {
