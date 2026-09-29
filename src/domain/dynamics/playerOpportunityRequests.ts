@@ -1,5 +1,9 @@
 import type { GameState } from "../model/GameState";
 import type { PlayerId } from "../model/identifiers";
+import {
+  playerOpportunityPromiseLabel,
+  selectActivePlayerOpportunityPromises,
+} from "./playerOpportunityPromises";
 
 export type PlayerOpportunityRequestKind =
   "promise" | "playing-time" | "role-mismatch";
@@ -65,6 +69,22 @@ export function derivePlayerOpportunityRequests(
 ): PlayerOpportunityRequest[] {
   const roster = new Set(state.schools[state.userSchoolId]?.playerIds ?? []);
   const requests = new Map<PlayerId, PlayerOpportunityRequest>();
+
+  for (const promise of selectActivePlayerOpportunityPromises(state)) {
+    if (!roster.has(promise.playerId)) continue;
+    requests.set(promise.playerId, {
+      playerId: promise.playerId,
+      kind: "promise",
+      severity: 3,
+      title: playerOpportunityPromiseLabel(promise.choice),
+      detail:
+        promise.choice === "starter"
+          ? "この試合で先発起用すると約束しています。"
+          : promise.choice === "substitute"
+            ? "この試合で途中出場の機会を作ると約束しています。"
+            : "次の公式戦で起用すると約束しています。",
+    });
+  }
 
   for (const playerId of activeAppearancePromisePlayerIds(state)) {
     if (!roster.has(playerId)) continue;
