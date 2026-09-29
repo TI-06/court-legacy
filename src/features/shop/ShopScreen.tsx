@@ -465,38 +465,48 @@ export function ShopScreen({
         </p>
       </section>
 
-      {loading ? (
-        <p aria-live="polite" className="shop-screen__notice" role="status">
-          ショップ情報を読み込んでいます…
-        </p>
-      ) : null}
-
-      {error ? (
-        <div
-          className="shop-screen__notice shop-screen__notice--error"
-          role="alert"
+      {loading || error || displayedResultMessage || latestUseResult ? (
+        <aside
+          aria-label="ショップ通知"
+          className="shop-screen__feedback-layer"
+          data-testid="shop-feedback-layer"
         >
-          <p>{error}</p>
-          {retryAction ? (
-            <button onClick={onRetryMutation} type="button">
-              {retryAction === "purchase" ? "購入を再試行" : "使用を再試行"}
-            </button>
-          ) : (
-            <button onClick={onRetry} type="button">
-              再読み込み
-            </button>
-          )}
-        </div>
-      ) : null}
+          {loading ? (
+            <p aria-live="polite" className="shop-screen__notice" role="status">
+              ショップ情報を読み込んでいます…
+            </p>
+          ) : null}
 
-      {displayedResultMessage ? (
-        <p className="shop-screen__notice shop-screen__notice--success">
-          {displayedResultMessage}
-        </p>
-      ) : null}
+          {error ? (
+            <div
+              className="shop-screen__notice shop-screen__notice--error"
+              role="alert"
+            >
+              <p>{error}</p>
+              {retryAction ? (
+                <button onClick={onRetryMutation} type="button">
+                  {retryAction === "purchase"
+                    ? "購入を再試行"
+                    : "使用を再試行"}
+                </button>
+              ) : (
+                <button onClick={onRetry} type="button">
+                  再読み込み
+                </button>
+              )}
+            </div>
+          ) : null}
 
-      {latestUseResult ? (
-        <ShopUseResultPanel presentation={latestUseResult} state={state} />
+          {displayedResultMessage ? (
+            <p className="shop-screen__notice shop-screen__notice--success">
+              {displayedResultMessage}
+            </p>
+          ) : null}
+
+          {latestUseResult ? (
+            <ShopUseResultPanel presentation={latestUseResult} state={state} />
+          ) : null}
+        </aside>
       ) : null}
 
       {targetingItemId === "fatigue-recovery" ? (
