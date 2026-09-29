@@ -205,7 +205,7 @@ describe("PlayerHubScreen", () => {
       remainingWeeks: 4,
       startedDate: state.date,
     };
-    rendered.rerender(
+    rendered.view.rerender(
       <PlayerHubScreen
         data={gameData}
         onAssignLeadership={vi.fn()}
