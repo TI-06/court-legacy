@@ -239,7 +239,6 @@ export function PreMatchLineupScreen({
     }
   };
 
-
   const changeStarter = (slot: RotationSlot, nextPlayerId: PlayerId) => {
     const current = selection.rotation.find((item) => item.slot === slot);
     if (!current || current.playerId === nextPlayerId) return;
