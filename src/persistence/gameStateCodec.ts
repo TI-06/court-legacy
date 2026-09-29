@@ -935,6 +935,16 @@ const weeklyScheduleSchema = z
 
 const persistedPlayerSchema = z
   .object({
+    positionConversion: z
+      .object({
+        fromPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+        targetPosition: z.enum(["OH", "MB", "OP", "S", "L"]),
+        totalWeeks: z.number().int().min(2).max(8),
+        remainingWeeks: z.number().int().min(1).max(8),
+        startedDate: gameDateSchema,
+      })
+      .strict()
+      .optional(),
     specialAbilityIds: z.array(z.string().min(1)).max(24).default([]),
     specialAbilityTipLevels: z
       .record(
