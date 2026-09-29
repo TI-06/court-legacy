@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { createDemoGame } from "../../../src/app/createDemoGame";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   applyPlayerOpportunityResponses,
   resolveCompletedMatchOpportunityPromises,
   selectActivePlayerOpportunityPromises,
-} from "../../../src/domain/dynamics/playerOpportunityPromises";
-import type { MatchState } from "../../../src/domain/model/Match";
-import { matchId } from "../../../src/domain/model/identifiers";
-import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+} from "../../../../src/domain/dynamics/playerOpportunityPromises";
+import type { MatchState } from "../../../../src/domain/model/Match";
+import { matchId } from "../../../../src/domain/model/identifiers";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 
 describe("player opportunity promises", () => {
   it("rewards a fulfilled starter promise", () => {
