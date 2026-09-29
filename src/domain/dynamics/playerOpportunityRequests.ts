@@ -112,6 +112,12 @@ function concernRequest(
 function promisePresentation(
   promise: ActivePlayerOpportunityPromise,
 ): Pick<PlayerOpportunityRequest, "title" | "detail"> {
+  if (promise.choiceId === "chance") {
+    return {
+      title: "出場機会を約束中",
+      detail: "面談で短時間でも試合に出すと約束しています。",
+    };
+  }
   if (promise.promiseKind === "starter") {
     return {
       title: "先発起用を約束中",
