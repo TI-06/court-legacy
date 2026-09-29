@@ -3,6 +3,7 @@ import {
   advanceOneWeek,
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
+  nextWeekDate,
 } from "../../../../src/domain/calendar/weekProgression";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
@@ -29,6 +30,11 @@ function createState() {
 }
 
 describe("weekly progression", () => {
+  it("calculates the next weekly date without progressing game state", () => {
+    expect(nextWeekDate("2034-03-15")).toBe("2034-03-22");
+    expect(nextWeekDate("2034-03-29")).toBe("2034-04-05");
+  });
+
   it("advances the game and calendar dates by seven days", () => {
     const state = createState();
     state.activeMatch = {} as typeof state.activeMatch;
@@ -78,12 +84,13 @@ describe("weekly progression", () => {
 
     const result = advanceOneWeek(state);
 
+    expect(result.state.players).not.toBe(state.players);
     expect(result.state.players[recoveringId]!.injury?.remainingWeeks).toBe(1);
     expect(result.state.players[healingId]!.injury).toBeNull();
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
-  it("preserves unchanged player objects instead of cloning the full roster", () => {
+  it("preserves the player map when no injuries need progression", () => {
     const state = createState();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const playerBefore = state.players[playerId]!;
@@ -91,6 +98,7 @@ describe("weekly progression", () => {
 
     const result = advanceOneWeek(state);
 
+    expect(result.state.players).toBe(state.players);
     expect(result.state.players[playerId]).toBe(playerBefore);
   });
 

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { GameState } from "../../src/domain/model/GameState";
+import {
+  CURRENT_GAME_SCHEMA_VERSION,
+  type GameState,
+} from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
 import { decodeGameState } from "../../src/persistence/gameStateCodec";
@@ -89,7 +92,46 @@ const applyOperationRpcSchema = z
   )
   .min(1);
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isCurrentStoredState(value: unknown): value is GameState {
+  if (!isRecord(value) || value.schemaVersion !== CURRENT_GAME_SCHEMA_VERSION) {
+    return false;
+  }
+
+  return (
+    typeof value.seed === "string" &&
+    typeof value.randomCursor === "number" &&
+    typeof value.date === "string" &&
+    typeof value.yearIndex === "number" &&
+    typeof value.userSchoolId === "string" &&
+    isRecord(value.schools) &&
+    isRecord(value.players) &&
+    isRecord(value.playerRelationships) &&
+    isRecord(value.playerRelationshipBonds) &&
+    isRecord(value.calendar) &&
+    Object.prototype.hasOwnProperty.call(value, "activeMatch") &&
+    Object.prototype.hasOwnProperty.call(value, "pendingEvent") &&
+    isRecord(value.history) &&
+    isRecord(value.eventMemory) &&
+    isRecord(value.settings) &&
+    isRecord(value.world) &&
+    isRecord(value.officialSeason) &&
+    isRecord(value.teamDynamics) &&
+    isRecord(value.weeklySchedule) &&
+    isRecord(value.notifications) &&
+    isRecord(value.schoolManagement) &&
+    isRecord(value.teamPlanning)
+  );
+}
+
 function decodeStoredState(value: unknown): GameState {
+  if (isCurrentStoredState(value)) {
+    return value;
+  }
+
   try {
     return decodeGameState(JSON.stringify(value));
   } catch (error) {

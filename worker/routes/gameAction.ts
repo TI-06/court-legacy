@@ -1,5 +1,5 @@
 import { crossesAcademicYear } from "../../src/domain/calendar/academicYearProgression";
-import { advanceOneWeek } from "../../src/domain/calendar/weekProgression";
+import { nextWeekDate } from "../../src/domain/calendar/weekProgression";
 import type { Player } from "../../src/domain/model/Player";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
@@ -52,8 +52,10 @@ function willCrossAcademicYear(
   if (!snapshot) {
     return false;
   }
-  const weekly = advanceOneWeek(snapshot.state);
-  return crossesAcademicYear(snapshot.state.date, weekly.state.date);
+  return crossesAcademicYear(
+    snapshot.state.date,
+    nextWeekDate(snapshot.state.date),
+  );
 }
 
 async function resolveCommittedIntake(

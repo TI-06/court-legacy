@@ -31,6 +31,10 @@ function addDays(value: GameDate, days: number): GameDate {
   return `${nextYear}-${nextMonth}-${nextDay}` as GameDate;
 }
 
+export function nextWeekDate(value: GameDate): GameDate {
+  return addDays(value, 7);
+}
+
 function actionId(date: GameDate, action: WeeklyAction): string {
   return `week:${date}:${action}`;
 }
@@ -97,7 +101,7 @@ export function advanceOneWeek(
   state: GameState,
   options: AdvanceOneWeekOptions = {},
 ): WeekProgressionResult {
-  const players = { ...state.players };
+  let players: GameState["players"] | null = null;
   const recoveredPlayerIds: PlayerId[] = [];
   const healedPlayerIds: PlayerId[] = [];
   // Kept in the public signature for save/action compatibility; Phase 12 no longer
@@ -108,7 +112,10 @@ export function advanceOneWeek(
     [PlayerId, Player]
   >) {
     const result = recoverPlayer(player);
-    players[playerId] = result.player;
+    if (result.player !== player) {
+      players ??= { ...state.players };
+      players[playerId] = result.player;
+    }
     if (result.recovered) {
       recoveredPlayerIds.push(playerId);
     }
@@ -117,7 +124,7 @@ export function advanceOneWeek(
     }
   }
 
-  const date = addDays(state.date, 7);
+  const date = nextWeekDate(state.date);
   const relationshipProgression = progressSpecialRelationshipsWeekly(
     state,
     date,
@@ -127,7 +134,7 @@ export function advanceOneWeek(
     state: {
       ...relationshipProgression.state,
       date,
-      players,
+      players: players ?? state.players,
       activeMatch: null,
       calendar: {
         ...relationshipProgression.state.calendar,

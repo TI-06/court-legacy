@@ -19,6 +19,60 @@ function createClient(result: RpcResult): MockSupabaseAdminClient {
 }
 
 describe("SupabaseGameStore save stability", () => {
+  it("uses the current-schema state object directly on cloud reads", async () => {
+    const snapshot = createSoakSnapshot("phase48-current-schema-read");
+    const maybeSingle = vi.fn(async () => ({
+      data: {
+        user_id: snapshot.userId,
+        school_id: snapshot.schoolDbId,
+        revision: snapshot.revision,
+        state: snapshot.state,
+        team_selection: snapshot.teamSelection,
+      },
+      error: null,
+    }));
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    const client = {
+      from: vi.fn(() => ({ select })),
+      rpc: vi.fn(),
+    } as unknown as MockSupabaseAdminClient;
+    const store = new SupabaseGameStore(client);
+
+    const loaded = await store.getSnapshot(snapshot.userId);
+
+    expect(loaded?.state).toBe(snapshot.state);
+    expect(loaded?.teamSelection).toEqual(snapshot.teamSelection);
+  });
+
+  it("still rejects malformed current-schema cloud saves", async () => {
+    const snapshot = createSoakSnapshot("phase48-invalid-current-schema-read");
+    const maybeSingle = vi.fn(async () => ({
+      data: {
+        user_id: snapshot.userId,
+        school_id: snapshot.schoolDbId,
+        revision: snapshot.revision,
+        state: {
+          schemaVersion: snapshot.state.schemaVersion,
+          seed: snapshot.state.seed,
+        },
+        team_selection: snapshot.teamSelection,
+      },
+      error: null,
+    }));
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    const client = {
+      from: vi.fn(() => ({ select })),
+      rpc: vi.fn(),
+    } as unknown as MockSupabaseAdminClient;
+    const store = new SupabaseGameStore(client);
+
+    await expect(store.getSnapshot(snapshot.userId)).rejects.toThrow(
+      "cloud game state is invalid",
+    );
+  });
+
   it("avoids uploading the duplicate full response on a normal save", async () => {
     const snapshot = createSoakSnapshot("phase22-save-store");
     const operationId = "phase22-op-001";
