@@ -248,25 +248,49 @@ export function generateServerScoutingCandidates(
     CANDIDATE_COUNT + 6,
     resultCount + guaranteedGenerationalCount + 6,
   );
-  const forcedTierByIndex = new Map<number, RecruitTier>();
-  for (
-    let index = 1;
-    index <= Math.min(guaranteedGenerationalCount, generationCount);
-    index += 1
-  ) {
-    forcedTierByIndex.set(index, "generational");
-  }
-
-  const generated = Array.from({ length: generationCount }, (_, index) =>
+  const baseline = Array.from({ length: generationCount }, (_, index) =>
     generateServerScoutingCandidateAtIndex(
       state,
       index + 1,
       excludedFullNames,
-      forcedTierByIndex,
+      new Map(),
       criteria,
       searchSequence,
     ),
   );
+  const positionMatchedIndexes = baseline
+    .map((candidate, index) => ({ candidate, generationIndex: index + 1 }))
+    .filter(
+      ({ candidate }) =>
+        !criteria ||
+        criteria.position === "any" ||
+        candidate.player.preferredPosition === criteria.position,
+    )
+    .map(({ generationIndex }) => generationIndex);
+  const remainingIndexes = baseline
+    .map((_, index) => index + 1)
+    .filter((index) => !positionMatchedIndexes.includes(index));
+  const forcedIndexes = [...positionMatchedIndexes, ...remainingIndexes].slice(
+    0,
+    Math.min(guaranteedGenerationalCount, generationCount),
+  );
+  const forcedTierByIndex = new Map<number, RecruitTier>(
+    forcedIndexes.map((index) => [index, "generational"]),
+  );
+
+  const generated =
+    forcedTierByIndex.size === 0
+      ? baseline
+      : Array.from({ length: generationCount }, (_, index) =>
+          generateServerScoutingCandidateAtIndex(
+            state,
+            index + 1,
+            excludedFullNames,
+            forcedTierByIndex,
+            criteria,
+            searchSequence,
+          ),
+        );
 
   const positionFiltered =
     criteria && criteria.position !== "any"
@@ -305,9 +329,8 @@ export function generateServerScoutingCandidates(
   const ranked = [...preferred].sort(
     (left, right) => score(right) - score(left),
   );
-  const guaranteed = generated.slice(
-    0,
-    Math.min(guaranteedGenerationalCount, resultCount),
+  const guaranteed = generated.filter((_, index) =>
+    forcedTierByIndex.has(index + 1),
   );
   const guaranteedIds = new Set(
     guaranteed.map((candidate) => candidate.player.id),
