@@ -276,6 +276,48 @@ describe("scouting board route", () => {
     expect((await response.json()).reports).toHaveLength(6);
   });
 
+  it("rebuilds a replayed search with the original queued scout item bonuses", async () => {
+    const snapshot = createSnapshot(8);
+    snapshot.state.recruiting = {
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      committedCandidateIds: [],
+      scoutingSearchesUsed: 1,
+      pendingExtraScoutCandidates: 0,
+      pendingGenerationalScoutCandidates: 0,
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore();
+    vi.mocked(gameStore.getOperationResponse).mockResolvedValue({
+      game: snapshot,
+      operationId: requestBody.operationId,
+      outcome: {
+        scoutingSearchesUsed: 1,
+        search: { region: "national", position: "any", priority: "ability" },
+        searchItemBonuses: {
+          extraCandidateCount: 1,
+          guaranteedGenerationalCount: 1,
+        },
+      },
+    });
+    const handler = createScoutingBoardHandler({ gameStore, scoutingStore });
+
+    const response = await handler(
+      scoutingRequest({ ...requestBody, revision: 7 }),
+      { id: "user-123" },
+    );
+
+    expect(response.status).toBe(200);
+    expect(gameStore.applyOperation).not.toHaveBeenCalled();
+    expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
+    expect(scoutingStore.savedPool?.candidates).toHaveLength(8);
+    expect(
+      scoutingStore.savedPool?.candidates.some(
+        (candidate) => candidate.player.tier === "generational",
+      ),
+    ).toBe(true);
+    expect((await response.json()).reports).toHaveLength(8);
+  });
+
   it("keeps the previous pool when saving the search conflicts", async () => {
     const snapshot = createSnapshot();
     const gameStore = createGameStore(snapshot);
