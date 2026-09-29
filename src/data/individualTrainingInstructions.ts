@@ -60,7 +60,8 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
     {
       id: "instruction.oh-specialist",
       name: "OH特化",
-      description: "アウトサイドヒッター向け。スパイク、レシーブ、サーブを重点的に伸ばす。",
+      description:
+        "アウトサイドヒッター向け。スパイク、レシーブ、サーブを重点的に伸ばす。",
       targetAbilities: ["spike", "receive", "serve"],
       baseGrowth: 7,
       fatigue: 0,
@@ -71,7 +72,8 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
     {
       id: "instruction.mb-specialist",
       name: "MB特化",
-      description: "ミドルブロッカー向け。ブロック、ジャンプ、スピードを重点的に伸ばす。",
+      description:
+        "ミドルブロッカー向け。ブロック、ジャンプ、スピードを重点的に伸ばす。",
       targetAbilities: ["block", "jump", "speed"],
       baseGrowth: 7,
       fatigue: 0,
@@ -82,7 +84,8 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
     {
       id: "instruction.op-specialist",
       name: "OP特化",
-      description: "オポジット向け。スパイク、ブロック、ジャンプを重点的に伸ばす。",
+      description:
+        "オポジット向け。スパイク、ブロック、ジャンプを重点的に伸ばす。",
       targetAbilities: ["spike", "block", "jump"],
       baseGrowth: 7,
       fatigue: 0,
@@ -104,7 +107,8 @@ export const individualTrainingInstructions: IndividualTrainingInstructionDefini
     {
       id: "instruction.l-specialist",
       name: "L特化",
-      description: "リベロ向け。レシーブ、スピード、判断を重点的に伸ばし、攻撃能力は対象外にする。",
+      description:
+        "リベロ向け。レシーブ、スピード、判断を重点的に伸ばし、攻撃能力は対象外にする。",
       targetAbilities: ["receive", "speed", "decision"],
       baseGrowth: 7,
       fatigue: 0,
