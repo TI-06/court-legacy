@@ -186,9 +186,7 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "選手一覧へ戻る" }));
 
     const trainingButton = screen.getByRole("button", {
-      name: new RegExp(
-        `^${player.lastName} ${player.firstName} 個人練習 `,
-      ),
+      name: new RegExp(`^${player.lastName} ${player.firstName} 個人練習 `),
     });
     fireEvent.click(trainingButton);
 
@@ -1202,7 +1200,9 @@ describe("PlayerHubScreen", () => {
     });
     fireEvent.click(within(gradeControls).getByRole("button", { name: "1年" }));
 
-    expect(within(dialog).getByText(`${firstYears.length}人選択中`)).toBeVisible();
+    expect(
+      within(dialog).getByText(`${firstYears.length}人選択中`),
+    ).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", {
@@ -1215,7 +1215,9 @@ describe("PlayerHubScreen", () => {
       }),
     );
 
-    expect(within(dialog).getByText(`${firstYears.length}人選択中`)).toBeVisible();
+    expect(
+      within(dialog).getByText(`${firstYears.length}人選択中`),
+    ).toBeVisible();
 
     fireEvent.click(
       within(dialog).getByRole("button", { name: /ポジション特化/ }),
