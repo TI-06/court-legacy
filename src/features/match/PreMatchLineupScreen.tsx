@@ -3,6 +3,10 @@ import {
   buildPreMatchLineupPreset,
   type PreMatchLineupPreset,
 } from "../../domain/match/preMatchLineup";
+import {
+  applyPreMatchPlayerRequests,
+  selectPreMatchPlayerRequests,
+} from "../../domain/match/preMatchPlayerRequests";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -146,6 +150,17 @@ export function PreMatchLineupScreen({
         : null,
     [baseTactics, mode, opponentSelection, opponentTactics, state],
   );
+  const playerRequests = useMemo(
+    () => selectPreMatchPlayerRequests(state),
+    [state],
+  );
+  const requestPlayerIds = useMemo(
+    () => new Set(playerRequests.map((request) => request.playerId)),
+    [playerRequests],
+  );
+  const actionablePlayerRequestCount = playerRequests.filter(
+    (request) => request.actionable,
+  ).length;
 
   const starterIds = useMemo(
     () => selection.rotation.map(({ playerId }) => playerId),
@@ -272,6 +287,55 @@ export function PreMatchLineupScreen({
           )}
         </article>
       </section>
+
+      {playerRequests.length > 0 ? (
+        <section
+          aria-label="選手からの要望"
+          className="pre-match-lineup__requests"
+        >
+          <div className="pre-match-lineup__requests-heading">
+            <div>
+              <p className="section-kicker">PLAYER REQUEST</p>
+              <h3>選手からの要望</h3>
+            </div>
+            <span>{playerRequests.length}件</span>
+          </div>
+          <div className="pre-match-lineup__request-list">
+            {playerRequests.slice(0, 3).map((request) => (
+              <article
+                data-severity={request.severity}
+                key={`${request.playerId}-${request.code}`}
+              >
+                <div>
+                  <strong>{request.playerName}</strong>
+                  <span>{request.title}</span>
+                  <small>{request.progressLabel}</small>
+                </div>
+                <b>{request.actionable ? "編成で対応可" : "試合結果で改善"}</b>
+              </article>
+            ))}
+          </div>
+          {playerRequests.length > 3 ? (
+            <p className="pre-match-lineup__requests-more">
+              ほか {playerRequests.length - 3}件の要望があります
+            </p>
+          ) : null}
+          {actionablePlayerRequestCount > 0 ? (
+            <button
+              className="pre-match-lineup__requests-apply"
+              disabled={pending}
+              onClick={() =>
+                setSelection((current) =>
+                  applyPreMatchPlayerRequests(state, current),
+                )
+              }
+              type="button"
+            >
+              要望を考慮して編成
+            </button>
+          ) : null}
+        </section>
+      ) : null}
 
       <section
         className="pre-match-lineup__game-nav"
@@ -567,6 +631,11 @@ export function PreMatchLineupScreen({
                     <small>R{slot}</small>
                   </span>
                   <strong>{player.lastName}</strong>
+                  {requestPlayerIds.has(player.id) ? (
+                    <span className="pre-match-lineup__request-badge">
+                      要望あり
+                    </span>
+                  ) : null}
                   {specialAbilityBadges.length > 0 ? (
                     <span
                       aria-label={`${player.lastName}の特殊能力`}
@@ -664,6 +733,9 @@ export function PreMatchLineupScreen({
                 key={playerId}
               >
                 <strong>{player.lastName}</strong>
+                {requestPlayerIds.has(player.id) ? (
+                  <b className="pre-match-lineup__request-badge">要望あり</b>
+                ) : null}
                 <span>
                   {player.preferredPosition}・{player.grade}年・
                   {player.heightCm}cm
@@ -825,6 +897,11 @@ export function PreMatchLineupScreen({
                 >
                   <span className="pre-match-lineup__picker-identity">
                     <strong>{playerName(player)}</strong>
+                    {requestPlayerIds.has(player.id) ? (
+                      <b className="pre-match-lineup__request-badge">
+                        要望あり
+                      </b>
+                    ) : null}
                     <small>
                       {player.preferredPosition}・{player.grade}年
                     </small>
