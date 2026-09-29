@@ -485,9 +485,7 @@ export function ShopScreen({
               <p>{error}</p>
               {retryAction ? (
                 <button onClick={onRetryMutation} type="button">
-                  {retryAction === "purchase"
-                    ? "購入を再試行"
-                    : "使用を再試行"}
+                  {retryAction === "purchase" ? "購入を再試行" : "使用を再試行"}
                 </button>
               ) : (
                 <button onClick={onRetry} type="button">
