@@ -539,9 +539,24 @@ export function resolveWeeklyTraining(
           ...input.state.weeklySchedule,
           trainingPlan: {
             teamTrainingMenuId: input.plan.teamTrainingMenuId,
-            individualAssignments: assignments.map((assignment) => ({
-              ...assignment,
-            })),
+            individualAssignments: validated.activeAssignments.map(
+              (assignment) => {
+                const player = players[assignment.playerId]!;
+                const selectedInstruction =
+                  input.data.individualTrainingInstructions.get(
+                    assignment.instructionId,
+                  )!;
+                const nextInstruction = resolveCappedTrainingInstruction(
+                  player,
+                  selectedInstruction,
+                  validated.fallback,
+                );
+                return {
+                  playerId: assignment.playerId,
+                  instructionId: nextInstruction.id,
+                };
+              },
+            ),
           },
         }
       : input.state.weeklySchedule,
