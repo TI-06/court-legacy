@@ -1427,6 +1427,73 @@
   gap: 9px;
 }
 
+.player-coach-proposal__directives {
+  display: grid;
+  padding: 9px;
+  gap: 8px;
+  background: rgb(116 216 255 / 6%);
+  border: 1px solid rgb(116 216 255 / 16%);
+  border-radius: 10px;
+}
+
+.player-coach-proposal__directives > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-coach-proposal__directives > div:first-child strong {
+  font-size: 12px;
+}
+
+.player-coach-proposal__directives > div:first-child small,
+.player-coach-proposal__directives > p {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+}
+
+.player-coach-proposal__directives > p {
+  margin: 0;
+}
+
+.player-coach-proposal__directive-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.player-coach-proposal__directive-options button {
+  display: grid;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px;
+  gap: 3px;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  background: rgb(12 44 73 / 88%);
+  border: 1px solid rgb(116 216 255 / 20%);
+  border-radius: 9px;
+}
+
+.player-coach-proposal__directive-options button:first-child {
+  border-color: rgb(244 122 24 / 42%);
+}
+
+.player-coach-proposal__directive-options button strong {
+  font-size: 11px;
+}
+
+.player-coach-proposal__directive-options button small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+}
+
+.player-coach-proposal__directive-options button:disabled {
+  opacity: 0.45;
+}
+
 .player-coach-proposal__summary {
   display: flex;
   align-items: center;
