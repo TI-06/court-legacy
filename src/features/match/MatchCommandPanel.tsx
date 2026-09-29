@@ -723,7 +723,13 @@ export function MatchCommandPanel({
                     priorityLabel={
                       opportunityRequests[player.id]
                         ? opportunityRequests[player.id]!.kind === "promise"
-                          ? "出場約束"
+                          ? opportunityRequests[player.id]!.promiseKind ===
+                            "substitute"
+                            ? "途中出場約束"
+                            : opportunityRequests[player.id]!.promiseKind ===
+                                "starter"
+                              ? "先発約束"
+                              : "起用約束"
                           : "出場要望"
                         : undefined
                     }
