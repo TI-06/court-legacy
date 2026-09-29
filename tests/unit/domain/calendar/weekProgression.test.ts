@@ -3,6 +3,7 @@ import {
   advanceOneWeek,
   isWeeklyActionCompleted,
   markWeeklyActionCompleted,
+  nextWeekDate,
 } from "../../../../src/domain/calendar/weekProgression";
 import { generateWorld } from "../../../../src/domain/generation/generateWorld";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
@@ -29,6 +30,11 @@ function createState() {
 }
 
 describe("weekly progression", () => {
+  it("calculates the next weekly date without progressing game state", () => {
+    expect(nextWeekDate("2034-03-15")).toBe("2034-03-22");
+    expect(nextWeekDate("2034-03-29")).toBe("2034-04-05");
+  });
+
   it("advances the game and calendar dates by seven days", () => {
     const state = createState();
     state.activeMatch = {} as typeof state.activeMatch;
