@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import {
-  derivePlayerOpportunityRequests,
-} from "../../../../src/domain/dynamics/playerOpportunityRequests";
+import { derivePlayerOpportunityRequests } from "../../../../src/domain/dynamics/playerOpportunityRequests";
 import { eventId } from "../../../../src/domain/model/identifiers";
 
 describe("player opportunity requests", () => {
