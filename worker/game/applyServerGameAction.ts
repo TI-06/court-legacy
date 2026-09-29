@@ -1,4 +1,6 @@
-import { applyPlayerOpportunityResponses } from "../../src/domain/dynamics/playerOpportunityPromises";
+import {
+  applyPlayerOpportunityResponses,
+} from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { Player } from "../../src/domain/model/Player";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { CloudGameSnapshot } from "../data/GameStore";
