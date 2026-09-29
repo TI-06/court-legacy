@@ -72,9 +72,7 @@ describe("ShopScreen", () => {
     expect(screen.getByText("テスト中 / すべて¥0")).toBeVisible();
     expect(screen.queryByText("SHOP")).toBeNull();
     expect(screen.queryByText("TEST / ALL ¥0")).toBeNull();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "ショップ情報を読み込んでいます…",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("読み込み中…");
   });
 
   it("keeps refresh loading feedback outside the item layout", () => {
