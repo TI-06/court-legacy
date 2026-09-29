@@ -1,9 +1,5 @@
 import type { GameState } from "../model/GameState";
-import type {
-  Player,
-  Position,
-  PositionConversionPlan,
-} from "../model/Player";
+import type { Player, Position, PositionConversionPlan } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 
 export interface PositionConversionProgress {
