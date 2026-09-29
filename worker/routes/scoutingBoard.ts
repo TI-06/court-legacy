@@ -4,6 +4,8 @@ import { RevisionConflictError } from "../data/GameStore";
 import {
   consumeBaseScoutingSearch,
   consumeExtraScoutingSearchCredit,
+  consumeScoutingSearchItemBonuses,
+  scoutingSearchItemBonuses,
 } from "../../src/domain/scouting/scoutingSearchBudget";
 import type {
   ScoutingCandidatePool,
@@ -30,6 +32,13 @@ const searchCriteriaSchema = z
       "immediate",
       "hidden",
     ]),
+  })
+  .strict();
+
+const searchItemBonusesSchema = z
+  .object({
+    extraCandidateCount: z.number().int().nonnegative(),
+    guaranteedGenerationalCount: z.number().int().nonnegative(),
   })
   .strict();
 
@@ -139,13 +148,20 @@ export function createScoutingBoardHandler(
             replayed.game.state.recruiting?.scoutingSearchesUsed ?? 1,
           );
           const replayOutcome = z
-            .object({ search: searchCriteriaSchema.optional() })
+            .object({
+              search: searchCriteriaSchema.optional(),
+              searchItemBonuses: searchItemBonusesSchema.optional(),
+            })
             .passthrough()
             .safeParse(replayed.outcome);
           const replaySearch =
             replayOutcome.success && replayOutcome.data.search
               ? replayOutcome.data.search
               : parsed.data.search;
+          const replaySearchItemBonuses =
+            replayOutcome.success && replayOutcome.data.searchItemBonuses
+              ? replayOutcome.data.searchItemBonuses
+              : { extraCandidateCount: 0, guaranteedGenerationalCount: 0 };
           const replayPoolInput = {
             userId: user.id,
             cycleKey: replayCycleKey,
@@ -154,6 +170,7 @@ export function createScoutingBoardHandler(
               replayed.game.state,
               replaySearch,
               searchSequence,
+              replaySearchItemBonuses,
             ),
           };
           replayPool = replayPool
@@ -193,10 +210,11 @@ export function createScoutingBoardHandler(
     let activeRevision = snapshot.revision;
 
     if (parsed.data.search) {
-      const searchedState =
+      const searchItemBonuses = scoutingSearchItemBonuses(snapshot.state);
+      const searchedWithBudget =
         consumeBaseScoutingSearch(snapshot.state) ??
         consumeExtraScoutingSearchCredit(snapshot.state);
-      if (!searchedState) {
+      if (!searchedWithBudget) {
         return jsonError(
           409,
           "scouting_search_limit",
@@ -204,6 +222,8 @@ export function createScoutingBoardHandler(
         );
       }
 
+      const searchedState =
+        consumeScoutingSearchItemBonuses(searchedWithBudget);
       const searchSequence =
         searchedState.recruiting?.scoutingSearchesUsed ?? 1;
       const nextPoolInput = {
@@ -214,6 +234,7 @@ export function createScoutingBoardHandler(
           snapshot.state,
           parsed.data.search,
           searchSequence,
+          searchItemBonuses,
         ),
       };
       const response: PersistedOperationResponse = {
@@ -228,6 +249,7 @@ export function createScoutingBoardHandler(
           scoutingSearchesUsed:
             searchedState.recruiting?.scoutingSearchesUsed ?? 0,
           search: parsed.data.search,
+          searchItemBonuses,
         },
       };
       try {
