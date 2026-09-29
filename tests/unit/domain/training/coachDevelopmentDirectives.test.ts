@@ -42,7 +42,7 @@ describe("coach development directives", () => {
       state,
       schoolId: state.userSchoolId,
       plan: {
-        teamTrainingMenuId: "training.receive",
+        teamTrainingMenuId: "training.spike",
         individualAssignments: [
           { playerId, instructionId: "instruction.l-specialist" },
         ],
@@ -82,7 +82,7 @@ describe("coach development directives", () => {
       state,
       schoolId: state.userSchoolId,
       plan: {
-        teamTrainingMenuId: "training.receive",
+        teamTrainingMenuId: "training.spike",
         individualAssignments: [
           { playerId, instructionId: "instruction.l-specialist" },
         ],
