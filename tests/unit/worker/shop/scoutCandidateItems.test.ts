@@ -1,15 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../../worker/data/GameStore";
-import type {
-  ScoutingCandidatePool,
-  ScoutingStore,
-} from "../../../../worker/data/ScoutingStore";
-import {
-  generateServerScoutingCandidates,
-  scoutingCycleKey,
-} from "../../../../worker/scouting/serverScoutingBoard";
 import { resolveShopUse } from "../../../../worker/shop/resolveShopUse";
 
 function createSnapshot(): CloudGameSnapshot {
@@ -23,69 +15,33 @@ function createSnapshot(): CloudGameSnapshot {
   };
 }
 
-function createScoutingContext(snapshot: CloudGameSnapshot): {
-  pool: ScoutingCandidatePool;
-  store: ScoutingStore;
-} {
-  const pool: ScoutingCandidatePool = {
-    userId: snapshot.userId,
-    cycleKey: scoutingCycleKey(snapshot.state),
-    creationOperationId: "pool-op",
-    candidates: generateServerScoutingCandidates(snapshot.state),
-  };
-  return {
-    pool,
-    store: {
-      getCandidatePool: vi.fn(async () => pool),
-      createCandidatePool: vi.fn(async () => pool),
-      replaceCandidatePool: vi.fn(async (input) => ({
-        userId: input.userId,
-        cycleKey: input.cycleKey,
-        creationOperationId: input.creationOperationId,
-        candidates: input.candidates,
-      })),
-      listCandidateInsights: vi.fn(async () => []),
-    },
-  };
-}
-
 describe("scout candidate shop items", () => {
-  it("appends a different candidate on every normal extra-candidate use", async () => {
+  it("queues an extra candidate for the next scouting search without requiring an active pool", async () => {
     const snapshot = createSnapshot();
-    const { pool, store } = createScoutingContext(snapshot);
 
-    for (let useIndex = 1; useIndex <= 5; useIndex += 1) {
-      const resolved = await resolveShopUse({
-        snapshot,
-        request: {
-          operationId: `normal-extra-${useIndex}`,
-          revision: 7,
-          itemId: "extra-scout-candidate",
-        },
-        scoutingStore: store,
-      });
-      expect(resolved.scoutingCandidates).toHaveLength(6 + useIndex);
-      const addedId = resolved.scoutingCandidates?.at(-1)?.player.id;
-      expect(addedId?.startsWith("scout-school-user-1-0-")).toBe(true);
-      expect(Number.isInteger(Number(addedId?.split("-").at(-1)))).toBe(true);
-      expect(
-        pool.candidates.some((candidate) => candidate.player.id === addedId),
-      ).toBe(false);
-      pool.candidates.splice(
-        0,
-        pool.candidates.length,
-        ...(resolved.scoutingCandidates ?? []),
-      );
-    }
+    const resolved = await resolveShopUse({
+      snapshot,
+      request: {
+        operationId: "normal-extra-1",
+        revision: 7,
+        itemId: "extra-scout-candidate",
+      },
+    });
 
-    expect(
-      new Set(pool.candidates.map((candidate) => candidate.player.id)).size,
-    ).toBe(11);
+    expect(resolved.state.recruiting).toMatchObject({
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      pendingExtraScoutCandidates: 1,
+      pendingGenerationalScoutCandidates: 0,
+    });
+    expect(resolved.scoutingCandidates).toBeUndefined();
+    expect(resolved.publicResult).toEqual({
+      extraCandidateCount: 1,
+      guaranteedGenerationalCount: 0,
+    });
   });
 
-  it("adds exactly one guaranteed generational (天才) candidate", async () => {
+  it("queues a guaranteed genius candidate for the next scouting search", async () => {
     const snapshot = createSnapshot();
-    const { pool, store } = createScoutingContext(snapshot);
 
     const resolved = await resolveShopUse({
       snapshot,
@@ -94,25 +50,49 @@ describe("scout candidate shop items", () => {
         revision: 7,
         itemId: "generational-scout-candidate",
       },
-      scoutingStore: store,
     });
 
-    expect(resolved.scoutingCandidates).toHaveLength(7);
-    const added = resolved.scoutingCandidates?.at(-1);
-    expect(added?.player.id).toMatch(/-0-\d+$/);
-    expect(
-      pool.candidates.some(
-        (candidate) => candidate.player.id === added?.player.id,
-      ),
-    ).toBe(false);
-    expect(added?.player.tier).toBe("generational");
-    expect(resolved.publicResult).toEqual({
-      candidateCount: 7,
-      addedCandidateId: added?.player.id,
+    expect(resolved.state.recruiting).toMatchObject({
+      cycleKey: `${snapshot.state.userSchoolId}:year-${snapshot.state.yearIndex}`,
+      pendingExtraScoutCandidates: 0,
+      pendingGenerationalScoutCandidates: 1,
     });
-    expect(JSON.stringify(resolved.publicResult)).not.toMatch(
-      /tier|potential|abilities/i,
-    );
-    expect(pool.candidates).toHaveLength(6);
+    expect(resolved.scoutingCandidates).toBeUndefined();
+    expect(resolved.publicResult).toEqual({
+      extraCandidateCount: 0,
+      guaranteedGenerationalCount: 1,
+    });
+  });
+
+  it("stacks multiple queued scouting item effects until the next search", async () => {
+    const snapshot = createSnapshot();
+    const first = await resolveShopUse({
+      snapshot,
+      request: {
+        operationId: "normal-extra-stack",
+        revision: 7,
+        itemId: "extra-scout-candidate",
+      },
+    });
+    const second = await resolveShopUse({
+      snapshot: {
+        ...snapshot,
+        state: first.state,
+      },
+      request: {
+        operationId: "genius-extra-stack",
+        revision: 7,
+        itemId: "generational-scout-candidate",
+      },
+    });
+
+    expect(second.state.recruiting).toMatchObject({
+      pendingExtraScoutCandidates: 1,
+      pendingGenerationalScoutCandidates: 1,
+    });
+    expect(second.publicResult).toEqual({
+      extraCandidateCount: 1,
+      guaranteedGenerationalCount: 1,
+    });
   });
 });
