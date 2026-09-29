@@ -224,6 +224,7 @@ export function latestPlayerOpportunityPromiseOutcomes(
   playerId: PlayerId;
   promiseKind: PlayerOpportunityPromiseKind;
   status: PlayerOpportunityPromiseOutcomeStatus;
+  resultText: string;
 }> {
   const latestDate = [...state.eventMemory.history]
     .reverse()
@@ -253,6 +254,13 @@ export function latestPlayerOpportunityPromiseOutcomes(
         : null;
     if (!status || !promiseKind) return [];
 
-    return [{ playerId, promiseKind, status }];
+    return [
+      {
+        playerId,
+        promiseKind,
+        status,
+        resultText: occurrence.visibleResultCodes[0] ?? "",
+      },
+    ];
   });
 }
