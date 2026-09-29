@@ -488,7 +488,9 @@ export function PreMatchLineupScreen({
         </div>
       </section>
 
-      {prepTab === "lineup" && opportunityRequests.length > 0 ? (
+      {prepTab === "lineup" &&
+      mode === "pve" &&
+      opportunityRequests.length > 0 ? (
         <section
           aria-label="選手からの要望"
           className="pre-match-lineup__requests"
