@@ -1,3 +1,4 @@
+import { applyPlayerOpportunityResponses } from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { Player } from "../../src/domain/model/Player";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type { CloudGameSnapshot } from "../data/GameStore";
@@ -15,7 +16,9 @@ export function applyServerGameAction(
 ): AppliedGameAction {
   if (
     action.type !== "advance-week" ||
-    (!action.matchSelection && !action.matchTactics)
+    (!action.matchSelection &&
+      !action.matchTactics &&
+      !action.playerOpportunityResponses?.length)
   ) {
     return applyGameAction(snapshot, action, context);
   }
@@ -37,11 +40,20 @@ export function applyServerGameAction(
     teamSelection = validated.teamSelection;
   }
 
+  const stateWithOpportunityResponses =
+    action.playerOpportunityResponses?.length
+      ? applyPlayerOpportunityResponses(
+          snapshot.state,
+          teamSelection,
+          action.playerOpportunityResponses,
+        )
+      : snapshot.state;
+
   const state = action.matchTactics
     ? {
-        ...snapshot.state,
+        ...stateWithOpportunityResponses,
         schools: {
-          ...snapshot.state.schools,
+          ...stateWithOpportunityResponses.schools,
           [userSchool.id]: {
             ...userSchool,
             tactics: applyMatchTacticPlan(
@@ -51,7 +63,7 @@ export function applyServerGameAction(
           },
         },
       }
-    : snapshot.state;
+    : stateWithOpportunityResponses;
 
   const applied = applyGameAction(
     {
