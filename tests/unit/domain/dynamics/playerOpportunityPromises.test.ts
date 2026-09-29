@@ -44,14 +44,23 @@ describe("player opportunity promises", () => {
       { playerId, choice: "substitute" },
     ]);
 
-    const match = {
+    const opponentId = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!.id;
+    const match: MatchState = {
       id: matchId("promise-test"),
       homeSchoolId: state.userSchoolId,
-      awaySchoolId: Object.values(state.schools).find(
-        (school) => school.id !== state.userSchoolId,
-      )!.id,
+      awaySchoolId: opponentId,
       homeSelection: selection,
       awaySelection: selection,
+      bestOfSets: 3,
+      phase: "match-complete",
+      currentSetNumber: 2,
+      homeSetsWon: 2,
+      awaySetsWon: 0,
+      sets: [],
+      servingSchoolId: state.userSchoolId,
+      pendingCoachCommandForSchoolId: null,
       eventLog: [
         {
           sequence: 1,
@@ -65,7 +74,9 @@ describe("player opportunity promises", () => {
           detailCode: "substitution.coach-command",
         },
       ],
-    } as MatchState;
+      randomSeed: "promise-test",
+      randomCursor: 0,
+    };
 
     const resolved = resolveCompletedMatchOpportunityPromises(promised, match);
     expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([]);
@@ -85,16 +96,27 @@ describe("player opportunity promises", () => {
       { playerId, choice: "next-match" },
     ]);
 
-    const match = {
+    const opponentId = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!.id;
+    const match: MatchState = {
       id: matchId("promise-next-match"),
       homeSchoolId: state.userSchoolId,
-      awaySchoolId: Object.values(state.schools).find(
-        (school) => school.id !== state.userSchoolId,
-      )!.id,
+      awaySchoolId: opponentId,
       homeSelection: selection,
       awaySelection: selection,
+      bestOfSets: 3,
+      phase: "match-complete",
+      currentSetNumber: 2,
+      homeSetsWon: 2,
+      awaySetsWon: 0,
+      sets: [],
+      servingSchoolId: state.userSchoolId,
+      pendingCoachCommandForSchoolId: null,
       eventLog: [],
-    } as MatchState;
+      randomSeed: "promise-next-match",
+      randomCursor: 0,
+    };
 
     const resolved = resolveCompletedMatchOpportunityPromises(promised, match);
     expect(selectActivePlayerOpportunityPromises(resolved)).toEqual([
