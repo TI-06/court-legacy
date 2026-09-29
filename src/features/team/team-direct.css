@@ -1515,7 +1515,6 @@
   }
 }
 
-
 /* Phase46: calmer lineup hierarchy and more readable player context. */
 .team-screen--direct .volleyball-court {
   background:
@@ -1619,7 +1618,6 @@
     font-size: 7px;
   }
 }
-
 
 /* Phase46: fit bench overall and readiness on separate compact rows. */
 .bench-player-card {
