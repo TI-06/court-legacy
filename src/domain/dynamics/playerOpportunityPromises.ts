@@ -87,6 +87,19 @@ export function selectActivePlayerOpportunityPromises(
     const playerId = occurrence.actorPlayerIds[0];
     if (!playerId) continue;
 
+    if (
+      occurrence.eventId === "event.reserve-role-review" &&
+      occurrence.choiceId === "chance"
+    ) {
+      active.set(playerId, { playerId, choice: "substitute" });
+      continue;
+    }
+
+    if (occurrence.eventId === "event.reserve-breakthrough") {
+      active.delete(playerId);
+      continue;
+    }
+
     if (occurrence.eventId === RESPONSE_EVENT_ID) {
       if (
         occurrence.choiceId === "starter" ||
