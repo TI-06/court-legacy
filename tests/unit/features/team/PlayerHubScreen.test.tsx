@@ -274,7 +274,7 @@ describe("PlayerHubScreen", () => {
     expect(within(row).getByText("S転向4週")).toBeVisible();
   });
 
-  it("shows special ability kinds and tip progress without adding a roster row", () => {
+  it("shows rarity kinds and hides legacy tip progress", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const player = state.players[playerId]!;
@@ -304,7 +304,7 @@ describe("PlayerHubScreen", () => {
     expect(within(summary).getByText("NEG1")).toBeVisible();
     expect(within(summary).getByText("R1")).toBeVisible();
     expect(within(summary).getByText("SR1")).toBeVisible();
-    expect(within(summary).getByText("コツ2")).toBeVisible();
+    expect(within(summary).queryByText(/コツ/)).toBeNull();
 
     fireEvent.click(detailButton);
 
@@ -325,13 +325,8 @@ describe("PlayerHubScreen", () => {
     expect(within(negative).getByText("Negative")).toBeVisible();
     expect(within(elite).getByText("Rare")).toBeVisible();
     expect(within(gold).getByText("Super Rare")).toBeVisible();
-
-    const tips = screen.getByRole("region", { name: "特殊能力のコツ" });
-    expect(within(tips).getByText("読みブロック○")).toBeVisible();
-    expect(within(tips).getByText("Lv.2/3")).toBeVisible();
-    expect(within(tips).getByText("ディグ○")).toBeVisible();
-    expect(within(tips).getByText("Lv.1/3")).toBeVisible();
-    expect(within(tips).getByText("Lv.3で習得")).toBeVisible();
+    expect(screen.queryByRole("region", { name: "特殊能力のコツ" })).toBeNull();
+    expect(screen.queryByText(/Lv\.3で習得/)).toBeNull();
   });
 
   it("shows current ability grades and grouped four-week growth before changing individual training", () => {
