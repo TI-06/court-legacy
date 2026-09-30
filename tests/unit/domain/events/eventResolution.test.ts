@@ -72,7 +72,7 @@ const effectEvent: EventDefinition = {
       detail: "Normal特殊能力の直接習得と赤特付与を確認する。",
       effects: [
         {
-          type: "special-ability-tip",
+          type: "special-ability-acquire",
           abilityId: "attack_course",
           amount: 2,
         },
@@ -127,7 +127,7 @@ describe("event resolution", () => {
     for (const event of gameData.events.values()) {
       for (const choice of event.choices) {
         for (const effect of choice.effects) {
-          if (effect.type !== "special-ability-tip") {
+          if (effect.type !== "special-ability-acquire") {
             continue;
           }
           expect(
@@ -229,7 +229,7 @@ describe("event resolution", () => {
     );
   });
 
-  it("does not persist tip progress when the event acquisition roll fails", () => {
+  it("does not persist legacy progress when the event acquisition roll fails", () => {
     const state = createDemoGame();
     const player = state.schools[state.userSchoolId]!.playerIds[0]!;
     state.players[player]!.specialAbilityIds = [];
