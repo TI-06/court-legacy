@@ -94,6 +94,37 @@ describe("event eligibility", () => {
     ).toBe(false);
   });
 
+  it("supports a minimum count across required special abilities", () => {
+    const state = createDemoGame();
+    const [left] = state.schools[state.userSchoolId]!.playerIds;
+    if (!left) {
+      throw new Error("player missing");
+    }
+    state.players[left]!.specialAbilityIds = ["serve_stable"];
+
+    const partialEvent = eventWithTrigger({
+      requiredSpecialAbilityIds: ["serve_stable", "serve_aim"],
+      minimumRequiredSpecialAbilityCount: 1,
+    });
+
+    expect(
+      isEventEligibleForActors(
+        state,
+        { ...partialEvent, actorCount: 1 },
+        [left],
+      ),
+    ).toBe(true);
+
+    partialEvent.trigger.minimumRequiredSpecialAbilityCount = 2;
+    expect(
+      isEventEligibleForActors(
+        state,
+        { ...partialEvent, actorCount: 1 },
+        [left],
+      ),
+    ).toBe(false);
+  });
+
   it("rejects actors when the pair relationship is outside the range", () => {
     const state = createDemoGame();
     const [left, right] = state.schools[state.userSchoolId]!.playerIds;
