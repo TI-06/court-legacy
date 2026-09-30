@@ -63,10 +63,16 @@ describe("school management screen", () => {
     fireEvent.click(screen.getByRole("tab", { name: "強化予算" }));
 
     const section = screen.getByTestId("annual-investment-section");
-    expect(within(section).getByTestId("annual-investment-training")).toBeVisible();
-    expect(within(section).getByTestId("annual-investment-specialist")).toBeVisible();
+    expect(
+      within(section).getByTestId("annual-investment-training"),
+    ).toBeVisible();
+    expect(
+      within(section).getByTestId("annual-investment-specialist"),
+    ).toBeVisible();
     expect(within(section).getByTestId("annual-investment-camp")).toBeVisible();
-    expect(within(section).getByTestId("annual-investment-scouting")).toBeVisible();
+    expect(
+      within(section).getByTestId("annual-investment-scouting"),
+    ).toBeVisible();
     expect(within(section).getByText("育成支援")).toBeVisible();
     expect(within(section).getByText("専門コーチ招へい")).toBeVisible();
     expect(within(section).getByText("合宿強化")).toBeVisible();
