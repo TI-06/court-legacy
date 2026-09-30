@@ -18,6 +18,9 @@ export interface UserMatchPlayerPerformance {
   idealSets: number;
   successfulDigs: number;
   clutchPoints: number;
+  clutchAttackPoints: number;
+  clutchBlockPoints: number;
+  clutchServiceAces: number;
   attackSuccessRate: number;
   perfectReceiveRate: number;
 }
@@ -72,6 +75,9 @@ function emptyPlayerPerformance(
     idealSets: 0,
     successfulDigs: 0,
     clutchPoints: 0,
+    clutchAttackPoints: 0,
+    clutchBlockPoints: 0,
+    clutchServiceAces: 0,
     attackSuccessRate: 0,
     perfectReceiveRate: 0,
   };
@@ -155,15 +161,23 @@ export function buildUserMatchPerformanceSnapshot(
     }
 
     actor.points += 1;
-    if (isClutchPoint(event.setNumber, event.homeScore, event.awayScore)) {
+    const clutch = isClutchPoint(
+      event.setNumber,
+      event.homeScore,
+      event.awayScore,
+    );
+    if (clutch) {
       actor.clutchPoints += 1;
     }
     if (event.detailCode === "point.attack") {
       actor.attackPoints += 1;
+      if (clutch) actor.clutchAttackPoints += 1;
     } else if (event.detailCode === "point.block") {
       actor.blockPoints += 1;
+      if (clutch) actor.clutchBlockPoints += 1;
     } else if (event.detailCode === "point.serve-ace") {
       actor.serviceAces += 1;
+      if (clutch) actor.clutchServiceAces += 1;
     } else if (event.detailCode === "point.defense") {
       actor.defensePoints += 1;
     }
