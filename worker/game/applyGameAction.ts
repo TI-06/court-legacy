@@ -55,6 +55,7 @@ import {
   applyMatchNormalAbilityAcquisition,
   type MatchNormalAbilityContext,
 } from "../../src/domain/player/matchSpecialAbilityAcquisition";
+import { applyMatchNegativeAbilityRecovery } from "../../src/domain/player/matchNegativeAbilityRecovery";
 import { applyMatchSpecialAbilityAwakening } from "../../src/domain/player/matchSpecialAbilityAwakening";
 import {
   cancelPositionConversion,
@@ -233,11 +234,23 @@ function applyCompletedMatchSpecialAbilities(
       `match-awakening:${performance.matchId}`,
     ),
   });
-  return applyMatchNormalAbilityAcquisition({
+  const negativeRecovery = applyMatchNegativeAbilityRecovery({
     state: awakening.state,
     performance,
     context,
     excludedPlayerIds: awakening.awakenedPlayerIds,
+    random: new SeededRandom(state.seed).fork(
+      `match-negative:${performance.matchId}`,
+    ),
+  });
+  return applyMatchNormalAbilityAcquisition({
+    state: negativeRecovery.state,
+    performance,
+    context,
+    excludedPlayerIds: [
+      ...awakening.awakenedPlayerIds,
+      ...negativeRecovery.recoveredPlayerIds,
+    ],
     random: new SeededRandom(state.seed).fork(
       `match-normal:${performance.matchId}`,
     ),
