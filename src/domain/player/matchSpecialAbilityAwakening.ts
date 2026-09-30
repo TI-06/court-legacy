@@ -101,6 +101,7 @@ function awakeningChance(
 
 function eligibleAwakenings(
   input: ApplyMatchSpecialAbilityAwakeningInput,
+  catalog: readonly SpecialAbilityAwakeningDefinition[],
   playerId: PlayerId,
   stats: UserMatchPlayerPerformance,
 ): SpecialAbilityAwakeningDefinition[] {
@@ -108,9 +109,8 @@ function eligibleAwakenings(
   if (!player) return [];
 
   const result: SpecialAbilityAwakeningDefinition[] = [];
-  for (const event of input.data.events.values()) {
-    const awakening = getSpecialAbilityAwakeningDefinition(event);
-    if (!awakening) continue;
+  for (const awakening of catalog) {
+    const event = awakening.event;
     if (!playerMatchesEventTrigger(player, event.trigger)) continue;
     if (
       event.trigger.recentMatchResult === "win" &&
@@ -145,6 +145,12 @@ function performanceScore(stats: UserMatchPlayerPerformance): number {
 export function applyMatchSpecialAbilityAwakening(
   input: ApplyMatchSpecialAbilityAwakeningInput,
 ): ApplyMatchSpecialAbilityAwakeningResult {
+  const catalog = [...input.data.events.values()]
+    .map(getSpecialAbilityAwakeningDefinition)
+    .filter(
+      (awakening): awakening is SpecialAbilityAwakeningDefinition =>
+        awakening !== null,
+    );
   const rankedPlayers = [...input.performance.players.values()].sort(
     (left, right) =>
       performanceScore(right) - performanceScore(left) ||
@@ -155,6 +161,7 @@ export function applyMatchSpecialAbilityAwakening(
     for (const stats of rankedPlayers) {
       const candidates = eligibleAwakenings(
         input,
+        catalog,
         stats.playerId,
         stats,
       ).filter((candidate) => candidate.rarity === rarity);
