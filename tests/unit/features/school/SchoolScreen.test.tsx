@@ -135,7 +135,9 @@ describe("school management screen", () => {
     expect(within(investments).getByText("分析")).toBeVisible();
 
     fireEvent.click(
-      within(investments).getByRole("button", { name: "Lv.1へ・250" }),
+      within(investments).getByRole("button", {
+        name: "育成 Lv.1へ・250",
+      }),
     );
     expect(onUpgradeAnnualInvestment).toHaveBeenCalledWith("development");
   });
