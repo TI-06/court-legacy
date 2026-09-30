@@ -55,7 +55,9 @@ import {
   applyMatchNormalAbilityAcquisition,
   type MatchNormalAbilityContext,
 } from "../../src/domain/player/matchSpecialAbilityAcquisition";
-import { applyMatchSpecialAbilityAwakening } from "../../src/domain/player/matchSpecialAbilityAwakening";
+import {
+  applyMatchSpecialAbilityAwakening,
+} from "../../src/domain/player/matchSpecialAbilityAwakening";
 import {
   cancelPositionConversion,
   startPositionConversion,
@@ -243,7 +245,6 @@ function applyCompletedMatchSpecialAbilities(
     ),
   }).state;
 }
-
 
 const matchGrowthAbilityLabels = {
   spike: "スパイク",
