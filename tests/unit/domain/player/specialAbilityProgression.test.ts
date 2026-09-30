@@ -2,7 +2,7 @@ import type { RandomSource } from "../../../../src/domain/random/SeededRandom";
 import type { Player } from "../../../../src/domain/model/Player";
 import { playerId, schoolId } from "../../../../src/domain/model/identifiers";
 import {
-  addSpecialAbilityTip,
+  learnSpecialAbility,
   removeNegativeSpecialAbility,
   resolveTrainingCampSpecialAbilityProgress,
 } from "../../../../src/domain/player/specialAbilityProgression";
@@ -95,17 +95,15 @@ function createPlayer(): Player {
 
 // Camp progression uses deterministic random sources so save/retry stays reproducible.
 describe("special ability progression", () => {
-  it("turns three tip levels into a learned ability", () => {
+  it("learns a Normal ability immediately without tip levels", () => {
     const base = createPlayer();
-    const first = addSpecialAbilityTip(base, "attack_course");
-    const second = addSpecialAbilityTip(first.player, "attack_course");
-    const third = addSpecialAbilityTip(second.player, "attack_course");
+    base.specialAbilityTipLevels = { attack_course: 2 };
 
-    expect(first.player.specialAbilityTipLevels?.attack_course).toBe(1);
-    expect(second.player.specialAbilityTipLevels?.attack_course).toBe(2);
-    expect(third.player.specialAbilityIds).toContain("attack_course");
-    expect(third.player.specialAbilityTipLevels?.attack_course).toBeUndefined();
-    expect(third.changes).toEqual([
+    const resolved = learnSpecialAbility(base, "attack_course");
+
+    expect(resolved.player.specialAbilityIds).toContain("attack_course");
+    expect(resolved.player.specialAbilityTipLevels).toBeUndefined();
+    expect(resolved.changes).toEqual([
       {
         playerId: base.id,
         abilityId: "attack_course",
@@ -114,17 +112,16 @@ describe("special ability progression", () => {
     ]);
   });
 
-  it("replaces the opposite red ability on learn", () => {
+  it("replaces the opposite red ability on direct learn", () => {
     const base = createPlayer();
     base.specialAbilityIds = ["serve_unstable"];
     base.specialAbilityTipLevels = { serve_stable: 2 };
 
-    const resolved = addSpecialAbilityTip(base, "serve_stable");
+    const resolved = learnSpecialAbility(base, "serve_stable");
 
     expect(resolved.player.specialAbilityIds).toContain("serve_stable");
     expect(resolved.player.specialAbilityIds).not.toContain("serve_unstable");
-    const tipLevels = resolved.player.specialAbilityTipLevels;
-    expect(tipLevels?.serve_stable).toBeUndefined();
+    expect(resolved.player.specialAbilityTipLevels).toBeUndefined();
   });
 
   it("removes only the selected negative ability", () => {
@@ -140,20 +137,19 @@ describe("special ability progression", () => {
     });
   });
 
-  it("can award a position-relevant tip during training camp", () => {
+  it("can directly learn a position-relevant Normal ability during training camp", () => {
     const base = createPlayer();
-    const random = new SequenceRandom([0.01, 0.5, 0]);
+    base.specialAbilityTipLevels = { receive_dig: 2 };
+    const random = new SequenceRandom([0.01, 0]);
 
     const resolved = resolveTrainingCampSpecialAbilityProgress(base, random);
 
     expect(resolved.changes).toHaveLength(1);
     expect(resolved.changes[0]).toMatchObject({
-      kind: "tip",
-      tipLevel: 1,
+      kind: "learned",
     });
-    expect(
-      Object.values(resolved.player.specialAbilityTipLevels ?? {}),
-    ).toContain(1);
+    expect(resolved.player.specialAbilityIds).toHaveLength(1);
+    expect(resolved.player.specialAbilityTipLevels).toBeUndefined();
   });
 
   it("can improve a negative ability during training camp", () => {
