@@ -110,7 +110,7 @@ function definition(area: AnnualInvestmentArea): AnnualInvestmentDefinition {
   return found;
 }
 
-function levelForArea(
+export function annualInvestmentLevel(
   plan: AnnualInvestmentPlan,
   area: AnnualInvestmentArea,
 ): AnnualInvestmentLevel {
@@ -195,7 +195,7 @@ export function evaluateAnnualInvestment(
   const school = state.schools[state.userSchoolId];
   if (!school) throw new Error("user school is missing");
   const plan = currentAnnualInvestmentPlan(state);
-  const currentLevel = levelForArea(plan, area);
+  const currentLevel = annualInvestmentLevel(plan, area);
   if (currentLevel >= 3) {
     return {
       allowed: false,
