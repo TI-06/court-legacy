@@ -58,12 +58,10 @@ function createFixture(committedCount: number) {
   };
   state.world.nextGenerationalTalentYear = 99;
 
-  const candidates = generateServerScoutingCandidates(
-    state,
-    undefined,
-    0,
-    { extraCandidateCount: 2, guaranteedGenerationalCount: 0 },
-  );
+  const candidates = generateServerScoutingCandidates(state, undefined, 0, {
+    extraCandidateCount: 2,
+    guaranteedGenerationalCount: 0,
+  });
   const cycleKey = scoutingCycleKey(state);
   state.recruiting = {
     cycleKey,

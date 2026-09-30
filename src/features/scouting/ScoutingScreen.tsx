@@ -425,7 +425,8 @@ export function ScoutingScreen({
             <div>
               <span>来年度入学予定</span>
               <strong>
-                獲得決定済み {committedReports.length}/{RECRUITMENT_COMMIT_LIMIT}人
+                獲得決定済み {committedReports.length}/
+                {RECRUITMENT_COMMIT_LIMIT}人
               </strong>
             </div>
           </div>
