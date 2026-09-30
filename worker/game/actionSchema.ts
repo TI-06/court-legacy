@@ -96,6 +96,12 @@ const assistantCoachRankSchema = z.enum([
 ]);
 
 const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
+const annualInvestmentAreaSchema = z.enum([
+  "training",
+  "specialist",
+  "camp",
+  "scouting",
+]);
 const savedLineupSlotSchema = z.union([
   z.literal(1),
   z.literal(2),
@@ -279,6 +285,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
+    .object({
+      type: z.literal("annual-investment"),
+      area: annualInvestmentAreaSchema,
+      specialistFocus: assistantCoachSpecialtySchema.nullable().optional(),
+    })
+    .strict(),
+  z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
   z.object({ type: z.literal("acknowledge-training-camp-result") }).strict(),
@@ -351,6 +364,11 @@ export type GameAction =
       type: "assistant-coach-contract";
       rank: AssistantCoachRank;
       specialty: AssistantCoachSpecialty | null;
+    }
+  | {
+      type: "annual-investment";
+      area: "training" | "specialist" | "camp" | "scouting";
+      specialistFocus?: AssistantCoachSpecialty | null;
     }
   | { type: "event-choice"; choiceId: string }
   | { type: "acknowledge-training-camp-result" };
