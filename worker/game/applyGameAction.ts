@@ -73,6 +73,11 @@ import {
   evaluateAssistantCoachContract,
 } from "../../src/domain/school/assistantCoach";
 import {
+  annualInvestmentEffects,
+  evaluateAnnualInvestmentUpgrade,
+  upgradeAnnualInvestment,
+} from "../../src/domain/school/annualSchoolInvestment";
+import {
   evaluateFacilityUpgrade,
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
@@ -161,18 +166,25 @@ function conflict(code: string, message: string): never {
 }
 
 function trainingGrowthModifiers(state: GameState): AdditionalGrowthModifier[] {
+  const modifiers: AdditionalGrowthModifier[] = [];
   const pendingBoost = state.shopEffects?.nextTrainingGrowthBoost;
-  if (!pendingBoost) {
-    return [];
-  }
-
-  return [
-    {
+  if (pendingBoost) {
+    modifiers.push({
       code: "shop-training-boost",
       label: "練習効率アップ",
       percent: 100 + pendingBoost.percent,
-    },
-  ];
+    });
+  }
+
+  const investment = annualInvestmentEffects(state);
+  if (investment.developmentGrowthPercent > 100) {
+    modifiers.push({
+      code: "annual-development-investment",
+      label: "育成強化予算",
+      percent: investment.developmentGrowthPercent,
+    });
+  }
+  return modifiers;
 }
 
 function applyCompletedSoloMatchExperience(
@@ -1549,6 +1561,27 @@ function applyAssistantCoachContract(
   };
 }
 
+function applyAnnualInvestmentUpgrade(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "annual-investment-upgrade" }>,
+): AppliedGameAction {
+  const evaluation = evaluateAnnualInvestmentUpgrade(state, action.area);
+  if (!evaluation.allowed) {
+    return conflict(
+      `annual_investment_${evaluation.reason.replaceAll("-", "_")}`,
+      evaluation.reason === "max-level"
+        ? "この強化予算は今年度すでに最大です"
+        : "強化予算に必要な資金が不足しています",
+    );
+  }
+  return {
+    state: upgradeAnnualInvestment(state, action.area),
+    teamSelection,
+    outcome: evaluation,
+  };
+}
+
 function applyAcknowledgeTrainingCampResult(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1651,6 +1684,8 @@ function applyActionByType(
       return applyFacilityUpgrade(state, teamSelection, action);
     case "assistant-coach-contract":
       return applyAssistantCoachContract(state, teamSelection, action);
+    case "annual-investment-upgrade":
+      return applyAnnualInvestmentUpgrade(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
     case "acknowledge-training-camp-result":
