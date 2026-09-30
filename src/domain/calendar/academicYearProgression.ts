@@ -12,7 +12,6 @@ import type { School } from "../model/School";
 import type { GameDate, PlayerId, SchoolId } from "../model/identifiers";
 import { ensureCharacterTraitAssignments } from "../player/characterTraitAssignment";
 import { progressPositionConversions } from "../player/positionConversion";
-import { RECRUITMENT_COMMIT_LIMIT } from "../scouting/recruitmentEngagement";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import { grantAnnualSchoolBudget } from "../school/schoolEconomy";
 import {
@@ -378,7 +377,7 @@ export function advanceAcademicYear(
     );
     const availableRosterSlots =
       school.id === state.userSchoolId
-        ? Math.max(RECRUITMENT_COMMIT_LIMIT, baseAvailableRosterSlots)
+        ? Math.max(committedIntake.length, baseAvailableRosterSlots)
         : baseAvailableRosterSlots;
     if (committedIntake.length > availableRosterSlots) {
       throw new Error("committed recruits exceed available roster slots");
