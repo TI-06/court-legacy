@@ -7,15 +7,14 @@ import {
   SPECIAL_ABILITY_CONFLICTS,
   type SpecialAbilityCategory,
 } from "./specialAbilities";
-import { getSpecialAbilityTipChances } from "./specialAbilityDevelopmentModifiers";
+import { getSpecialAbilityCampAcquisitionChance } from "./specialAbilityDevelopmentModifiers";
 
-export type SpecialAbilityProgressKind = "tip" | "learned" | "negative-removed";
+export type SpecialAbilityProgressKind = "learned" | "negative-removed";
 
 export interface SpecialAbilityProgress {
   playerId: PlayerId;
   abilityId: string;
   kind: SpecialAbilityProgressKind;
-  tipLevel?: 1 | 2;
 }
 
 export interface SpecialAbilityProgressResult {
@@ -32,7 +31,11 @@ const POSITION_CATEGORIES: Record<Position, readonly SpecialAbilityCategory[]> =
     L: ["receive", "mental", "physical", "team"],
   };
 
-const MAX_SPECIAL_ABILITY_TIPS = 16;
+function withoutLegacySpecialAbilityTips(player: Player): Player {
+  if (!player.specialAbilityTipLevels) return player;
+  const { specialAbilityTipLevels: _legacyTips, ...cleanPlayer } = player;
+  return cleanPlayer;
+}
 
 function positiveCandidates(player: Player): string[] {
   const owned = new Set(player.specialAbilityIds ?? []);
@@ -54,83 +57,29 @@ function negativeAbilities(player: Player): string[] {
   ).map((ability) => ability.id);
 }
 
-export function addSpecialAbilityTip(
-  player: Player,
-  abilityId: string,
-  amount = 1,
-): SpecialAbilityProgressResult {
-  const owned = player.specialAbilityIds ?? [];
-  if (owned.includes(abilityId) || amount <= 0) {
-    return { player, changes: [] };
-  }
-
-  const existingTips = player.specialAbilityTipLevels ?? {};
-  const current = existingTips[abilityId] ?? 0;
-  if (
-    current === 0 &&
-    Object.keys(existingTips).length >= MAX_SPECIAL_ABILITY_TIPS
-  ) {
-    return { player, changes: [] };
-  }
-  const next = Math.min(3, current + amount) as 0 | 1 | 2 | 3;
-  const tipLevels = { ...existingTips };
-
-  if (next >= 3) {
-    return learnSpecialAbility(
-      {
-        ...player,
-        specialAbilityTipLevels: tipLevels,
-      },
-      abilityId,
-    );
-  }
-
-  tipLevels[abilityId] = next;
-  return {
-    player: {
-      ...player,
-      specialAbilityIds: [...owned],
-      specialAbilityTipLevels: tipLevels,
-    },
-    changes: [
-      {
-        playerId: player.id,
-        abilityId,
-        kind: "tip",
-        tipLevel: next as 1 | 2,
-      },
-    ],
-  };
-}
-
 export function learnSpecialAbility(
   player: Player,
   abilityId: string,
 ): SpecialAbilityProgressResult {
-  const owned = player.specialAbilityIds ?? [];
+  const cleanPlayer = withoutLegacySpecialAbilityTips(player);
+  const owned = cleanPlayer.specialAbilityIds ?? [];
   if (owned.includes(abilityId) || owned.length >= MAX_SPECIAL_ABILITIES) {
-    return { player, changes: [] };
+    return { player: cleanPlayer, changes: [] };
   }
 
-  const tipLevels = { ...(player.specialAbilityTipLevels ?? {}) };
-  delete tipLevels[abilityId];
   const conflictingAbilityId = SPECIAL_ABILITY_CONFLICTS[abilityId];
-  if (conflictingAbilityId) {
-    delete tipLevels[conflictingAbilityId];
-  }
   const withoutConflict = conflictingAbilityId
     ? owned.filter((id) => id !== conflictingAbilityId)
     : [...owned];
 
   return {
     player: {
-      ...player,
+      ...cleanPlayer,
       specialAbilityIds: [...withoutConflict, abilityId],
-      specialAbilityTipLevels: tipLevels,
     },
     changes: [
       {
-        playerId: player.id,
+        playerId: cleanPlayer.id,
         abilityId,
         kind: "learned",
       },
@@ -142,19 +91,20 @@ export function removeSpecialAbility(
   player: Player,
   abilityId: string,
 ): SpecialAbilityProgressResult {
-  const owned = player.specialAbilityIds ?? [];
+  const cleanPlayer = withoutLegacySpecialAbilityTips(player);
+  const owned = cleanPlayer.specialAbilityIds ?? [];
   if (!owned.includes(abilityId)) {
-    return { player, changes: [] };
+    return { player: cleanPlayer, changes: [] };
   }
 
   return {
     player: {
-      ...player,
+      ...cleanPlayer,
       specialAbilityIds: owned.filter((id) => id !== abilityId),
     },
     changes: [
       {
-        playerId: player.id,
+        playerId: cleanPlayer.id,
         abilityId,
         kind: "negative-removed",
       },
@@ -169,7 +119,7 @@ export function resolveTrainingCampSpecialAbilityProgress(
   random: RandomSource,
   bonusPercent = 0,
 ): SpecialAbilityProgressResult {
-  let current = player;
+  let current = withoutLegacySpecialAbilityTips(player);
   const changes: SpecialAbilityProgress[] = [];
   const negatives = negativeAbilities(current);
 
@@ -185,22 +135,16 @@ export function resolveTrainingCampSpecialAbilityProgress(
     changes.push(...removed.changes);
   }
 
-  const tipChances = getSpecialAbilityTipChances(current);
-  if (
-    random.int(1, 100) <=
-    Math.min(100, tipChances.progressPercent + bonusPercent)
-  ) {
+  const acquisitionChance = Math.min(
+    100,
+    getSpecialAbilityCampAcquisitionChance(current) + bonusPercent,
+  );
+  if (random.int(1, 100) <= acquisitionChance) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
-      const tipAmount =
-        random.int(1, 100) <= tipChances.doubleTipPercent ? 2 : 1;
-      const progressed = addSpecialAbilityTip(
-        current,
-        random.pick(candidates),
-        tipAmount,
-      );
-      current = progressed.player;
-      changes.push(...progressed.changes);
+      const learned = learnSpecialAbility(current, random.pick(candidates));
+      current = learned.player;
+      changes.push(...learned.changes);
     }
   }
 
