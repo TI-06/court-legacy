@@ -51,6 +51,7 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
+import { applyMatchNormalAbilityAcquisition } from "../../src/domain/player/matchSpecialAbilityAcquisition";
 import {
   cancelPositionConversion,
   startPositionConversion,
@@ -797,7 +798,15 @@ function applyPracticeMatch(
       matchState,
       simulation.match,
     );
-    const experiencedState = matchExperience.state;
+    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
+      state: matchExperience.state,
+      performance: matchExperience.performance,
+      context: { kind: "practice" },
+      random: new SeededRandom(state.seed).fork(
+        `match-normal:${simulation.match.id}`,
+      ),
+    });
+    const experiencedState = abilityAcquisition.state;
     const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
@@ -908,7 +917,15 @@ function applyPracticeMatchCommand(
       resumedState,
       simulation.match,
     );
-    const experiencedState = matchExperience.state;
+    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
+      state: matchExperience.state,
+      performance: matchExperience.performance,
+      context: { kind: "practice" },
+      random: new SeededRandom(state.seed).fork(
+        `match-normal:${simulation.match.id}`,
+      ),
+    });
+    const experiencedState = abilityAcquisition.state;
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,
@@ -1200,7 +1217,19 @@ function applyOfficialMatchCommand(
       context.state,
       simulation.match,
     );
-    const experiencedState = matchExperience.state;
+    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
+      state: matchExperience.state,
+      performance: matchExperience.performance,
+      context: {
+        kind: "official",
+        level: due.level,
+        round: due.match.round,
+      },
+      random: new SeededRandom(state.seed).fork(
+        `match-normal:${simulation.match.id}`,
+      ),
+    });
+    const experiencedState = abilityAcquisition.state;
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,

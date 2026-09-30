@@ -144,6 +144,9 @@ describe("user match performance snapshot", () => {
     expect(starter.attackPoints).toBe(1);
     expect(starter.points).toBe(1);
     expect(starter.clutchPoints).toBe(1);
+    expect(starter.clutchAttackPoints).toBe(1);
+    expect(starter.clutchBlockPoints).toBe(0);
+    expect(starter.clutchServiceAces).toBe(0);
     expect(starter.attackSuccessRate).toBe(100);
 
     expect(receiver.receiveAttempts).toBe(1);
