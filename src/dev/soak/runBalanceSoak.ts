@@ -6,6 +6,7 @@ import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
 } from "../../domain/school/facilityUpgrade";
+import { evaluateSchoolInvestment } from "../../domain/school/schoolInvestment";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type { GameAction } from "../../../worker/game/actionSchema";
@@ -43,6 +44,17 @@ const COACH_POLICY: readonly Extract<
 ];
 
 const COACH_SPECIALTIES = ["attack", "defense", "physical"] as const;
+const INVESTMENT_DEVELOPMENT_FOCUSES = [
+  "attack",
+  "defense",
+  "physical",
+] as const;
+const INVESTMENT_EXTERNAL_SPECIALISTS = [
+  "attacker",
+  "setter",
+  "blocker",
+  "libero",
+] as const;
 
 export const SOAK_PRESETS = {
   smoke: 1,
@@ -233,6 +245,50 @@ function coachActionForCurrentYear(
   return null;
 }
 
+function schoolInvestmentAction(
+  snapshot: CloudGameSnapshot,
+): Extract<GameAction, { type: "school-investment" }> | null {
+  const yearOffset = snapshot.state.yearIndex - 1;
+  const candidates: readonly Extract<
+    GameAction,
+    { type: "school-investment" }
+  >[] = [
+    {
+      type: "school-investment",
+      category: "development",
+      option:
+        INVESTMENT_DEVELOPMENT_FOCUSES[
+          yearOffset % INVESTMENT_DEVELOPMENT_FOCUSES.length
+        ]!,
+    },
+    {
+      type: "school-investment",
+      category: "external-coach",
+      option:
+        INVESTMENT_EXTERNAL_SPECIALISTS[
+          yearOffset % INVESTMENT_EXTERNAL_SPECIALISTS.length
+        ]!,
+    },
+    { type: "school-investment", category: "camp", option: "elite" },
+    { type: "school-investment", category: "scouting", option: "national" },
+  ];
+
+  for (const candidate of candidates) {
+    const evaluation = evaluateSchoolInvestment(
+      snapshot.state,
+      candidate.category,
+      candidate.option,
+    );
+    if (
+      evaluation.allowed &&
+      evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
+    ) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function facilityAction(
   snapshot: CloudGameSnapshot,
 ): Extract<GameAction, { type: "facility-upgrade" }> | null {
@@ -292,6 +348,14 @@ export function applySoakManagementPolicy(
   const nextFacilityAction = facilityAction(current);
   if (nextFacilityAction) {
     current = applyAction(current, nextFacilityAction).snapshot;
+    actionCount += 1;
+    assertSoakInvariants(current, { actionCount });
+  }
+
+  for (let investmentIndex = 0; investmentIndex < 4; investmentIndex += 1) {
+    const nextInvestmentAction = schoolInvestmentAction(current);
+    if (!nextInvestmentAction) break;
+    current = applyAction(current, nextInvestmentAction).snapshot;
     actionCount += 1;
     assertSoakInvariants(current, { actionCount });
   }
