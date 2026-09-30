@@ -583,6 +583,7 @@ export function SchoolScreen({
           <section
             aria-labelledby="investment-heading"
             className="school-management-section"
+            data-testid="annual-investment-section"
             hidden={managementView !== "investment"}
           >
             <div className="school-staff-command-heading">
