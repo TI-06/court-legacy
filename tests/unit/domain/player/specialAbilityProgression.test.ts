@@ -102,7 +102,9 @@ describe("special ability progression", () => {
     const learned = learnSpecialAbility(base, "attack_course");
 
     expect(learned.player.specialAbilityIds).toContain("attack_course");
-    expect(learned.player.specialAbilityTipLevels?.attack_course).toBeUndefined();
+    expect(
+      learned.player.specialAbilityTipLevels?.attack_course,
+    ).toBeUndefined();
     expect(learned.changes).toEqual([
       {
         playerId: base.id,
@@ -121,7 +123,9 @@ describe("special ability progression", () => {
 
     expect(resolved.player.specialAbilityIds).toContain("serve_stable");
     expect(resolved.player.specialAbilityIds).not.toContain("serve_unstable");
-    expect(resolved.player.specialAbilityTipLevels?.serve_stable).toBeUndefined();
+    expect(
+      resolved.player.specialAbilityTipLevels?.serve_stable,
+    ).toBeUndefined();
   });
 
   it("removes only the selected negative ability", () => {
