@@ -1,6 +1,10 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
 import type { SchoolFacilities } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
+import {
+  SPECIAL_ABILITIES,
+  type SpecialAbilityKind,
+} from "../../domain/player/specialAbilities";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { FACILITY_MAX_LEVEL } from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
@@ -30,6 +34,18 @@ export interface SoakMetricContext {
   growthTypeByPlayerId?: Readonly<Record<string, string>>;
   nationalParticipantStrengthValues?: readonly number[];
   assistantCoachChanges?: number;
+}
+
+export interface SoakSpecialAbilityMetrics {
+  rosterPlayers: number;
+  normal: number;
+  rare: number;
+  superRare: number;
+  negative: number;
+  playersWithRare: number;
+  playersWithSuperRare: number;
+  playersWithNegative: number;
+  perPlayer: SoakDistribution;
 }
 
 export interface SoakSnapshotMetrics {
@@ -76,6 +92,7 @@ export interface SoakSnapshotMetrics {
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
   positionCounts: Record<string, number>;
+  userSpecialAbilities: SoakSpecialAbilityMetrics;
 }
 
 export interface SoakFacilityProgress {
@@ -139,6 +156,60 @@ function averageAbility(player: Player): number {
     ABILITY_KEYS.reduce((sum, ability) => sum + player.abilities[ability], 0) /
       ABILITY_KEYS.length,
   );
+}
+
+
+const SPECIAL_ABILITY_KIND_BY_ID = new Map(
+  SPECIAL_ABILITIES.map((ability) => [ability.id, ability.kind] as const),
+);
+
+function userSpecialAbilityMetrics(
+  players: readonly Player[],
+): SoakSpecialAbilityMetrics {
+  const counts: Record<SpecialAbilityKind, number> = {
+    positive: 0,
+    negative: 0,
+    elite: 0,
+    gold: 0,
+  };
+  let playersWithRare = 0;
+  let playersWithSuperRare = 0;
+  let playersWithNegative = 0;
+  const perPlayerCounts: number[] = [];
+
+  for (const player of players) {
+    let playerRare = 0;
+    let playerSuperRare = 0;
+    let playerNegative = 0;
+    let total = 0;
+
+    for (const abilityId of player.specialAbilityIds ?? []) {
+      const kind = SPECIAL_ABILITY_KIND_BY_ID.get(abilityId);
+      if (!kind) continue;
+      counts[kind] += 1;
+      total += 1;
+      if (kind === "elite") playerRare += 1;
+      else if (kind === "gold") playerSuperRare += 1;
+      else if (kind === "negative") playerNegative += 1;
+    }
+
+    if (playerRare > 0) playersWithRare += 1;
+    if (playerSuperRare > 0) playersWithSuperRare += 1;
+    if (playerNegative > 0) playersWithNegative += 1;
+    perPlayerCounts.push(total);
+  }
+
+  return {
+    rosterPlayers: players.length,
+    normal: counts.positive,
+    rare: counts.elite,
+    superRare: counts.gold,
+    negative: counts.negative,
+    playersWithRare,
+    playersWithSuperRare,
+    playersWithNegative,
+    perPlayer: distribution(perPlayerCounts),
+  };
 }
 
 function sortedFacilities(
@@ -243,6 +314,9 @@ export function captureSoakSnapshotMetrics(
   const state = snapshot.state;
   const userSchool = state.schools[state.userSchoolId]!;
   const players = Object.values(state.players);
+  const userPlayers = userSchool.playerIds
+    .map((playerId) => state.players[playerId])
+    .filter((player): player is Player => player !== undefined);
   const academicYearIndex = context.academicYearIndex ?? state.yearIndex;
   const academicYear = context.academicYear ?? state.calendar.academicYear;
   const currentLedger = state.schoolManagement.fundsHistory.filter(
@@ -378,6 +452,7 @@ export function captureSoakSnapshotMetrics(
     positionCounts: sortedCounts(
       players.map((player) => player.preferredPosition),
     ),
+    userSpecialAbilities: userSpecialAbilityMetrics(userPlayers),
   };
 }
 
@@ -400,5 +475,6 @@ export function formatSoakSnapshotSummary(
     `injured=${metrics.injuredPlayers} injury-weeks=${metrics.injuredPlayerWeeks} new=${metrics.newInjuries} healed=${metrics.healedInjuries} condition-mean=${metrics.condition.mean}`,
     `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles} national-participants=${metrics.nationalParticipantStrength.count} national-p50=${metrics.nationalParticipantStrength.p50}`,
     `assistant-coach=${coach} changes=${metrics.assistantCoachChanges}`,
+    `special=N${metrics.userSpecialAbilities.normal}/R${metrics.userSpecialAbilities.rare}/SR${metrics.userSpecialAbilities.superRare}/NEG${metrics.userSpecialAbilities.negative} mean=${metrics.userSpecialAbilities.perPlayer.mean}`,
   ].join(" | ");
 }
