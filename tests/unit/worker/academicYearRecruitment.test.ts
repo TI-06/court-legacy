@@ -155,12 +155,12 @@ describe("academic-year recruiting integration", () => {
   it("enrolls all seven committed recruits even when the returning roster is already large", async () => {
     const snapshot = createRolloverSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-    for (const playerId of school.playerIds) {
+    school.playerIds.forEach((playerId, index) => {
       snapshot.state.players[playerId] = {
         ...snapshot.state.players[playerId]!,
-        grade: 2,
+        grade: index < 5 ? 3 : 2,
       };
-    }
+    });
     snapshot.state.world.nextGenerationalTalentYear = 99;
 
     const candidates = generateServerScoutingCandidates(
