@@ -575,6 +575,9 @@ function formatRunSummary(report: SoakRunReport): string {
   const nationalDetail = finalMetrics
     ? `national-participants=${finalMetrics.nationalParticipantStrength.count} national-p50=${finalMetrics.nationalParticipantStrength.p50}`
     : "national-participants=0";
+  const specialAbilityDetail = finalMetrics
+    ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
+    : "special=none";
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -585,6 +588,7 @@ function formatRunSummary(report: SoakRunReport): string {
     facilityDetail,
     coachDetail,
     nationalDetail,
+    specialAbilityDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }

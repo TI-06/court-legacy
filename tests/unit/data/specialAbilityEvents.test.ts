@@ -59,6 +59,33 @@ describe("special ability event data", () => {
     }
   });
 
+  it("keeps awakening prerequisite counts valid and reachable", () => {
+    const awakeningEvents = [...gameData.events.values()].filter((event) =>
+      event.tags.some(
+        (tag) => tag === "elite-awakening" || tag === "gold-awakening",
+      ),
+    );
+
+    for (const event of awakeningEvents) {
+      const required = event.trigger.requiredSpecialAbilityIds ?? [];
+      const minimum = event.trigger.minimumRequiredSpecialAbilityCount;
+      expect(required.length, event.id).toBeGreaterThan(0);
+      expect(minimum, event.id).toBeDefined();
+      expect(minimum!, event.id).toBeGreaterThan(0);
+      expect(minimum!, event.id).toBeLessThanOrEqual(required.length);
+
+      if (event.tags.includes("elite-awakening")) {
+        expect(minimum, event.id).toBe(required.length >= 3 ? 2 : 1);
+      }
+      if (
+        event.tags.includes("gold-awakening") &&
+        event.id !== "event.gold-flow-controller"
+      ) {
+        expect(minimum, event.id).toBe(1);
+      }
+    }
+  });
+
   it("provides awakening routes for every elite and gold ability", () => {
     const awakeningEvents = [...gameData.events.values()].filter((event) =>
       event.tags.some(

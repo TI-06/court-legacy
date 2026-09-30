@@ -199,6 +199,7 @@ export const eventTriggerSchema = z.object({
   requiredTraitIds: z.array(dataIdSchema).max(6).optional(),
   excludedTraitIds: z.array(dataIdSchema).max(6).optional(),
   requiredSpecialAbilityIds: z.array(specialAbilityIdSchema).max(6).optional(),
+  minimumRequiredSpecialAbilityCount: z.number().int().min(1).max(6).optional(),
   excludedSpecialAbilityIds: z.array(specialAbilityIdSchema).max(6).optional(),
   abilityRanges: z
     .partialRecord(abilityKeySchema, numericRangeSchema)

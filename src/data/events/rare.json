@@ -135,6 +135,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["serve_stable", "serve_aim"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_serve_craftsman"],
       "abilityRanges": {
         "serve": {
@@ -204,6 +205,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["jump_serve_mastery", "serve_late_game"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_service_ace"],
       "abilityRanges": {
         "serve": {
@@ -273,6 +275,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["receive_breaker", "serve_aim"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_serve_hunter"],
       "abilityRanges": {
         "serve": {
@@ -342,6 +345,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["attack_course", "attack_blockout"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_court_hitter"],
       "abilityRanges": {
         "spike": {
@@ -411,6 +415,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["attack_high_contact", "attack_blockout"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_block_crusher"],
       "abilityRanges": {
         "spike": {
@@ -480,6 +485,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["attack_quick", "attack_transition"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_fast_finisher"],
       "abilityRanges": {
         "spike": {
@@ -553,6 +559,7 @@
         "attack_out_of_system",
         "attack_transition"
       ],
+      "minimumRequiredSpecialAbilityCount": 2,
       "excludedSpecialAbilityIds": ["elite_allround_attacker"],
       "abilityRanges": {
         "spike": {
@@ -629,6 +636,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["set_stable", "set_distribution"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_game_maker"],
       "abilityRanges": {
         "set": {
@@ -698,6 +706,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["set_back", "set_distribution"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_deception_set"],
       "abilityRanges": {
         "set": {
@@ -771,6 +780,7 @@
         "receive_range",
         "receive_cover"
       ],
+      "minimumRequiredSpecialAbilityCount": 2,
       "excludedSpecialAbilityIds": ["elite_defense_craftsman"],
       "abilityRanges": {
         "receive": {
@@ -844,6 +854,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["receive_power", "receive_connect"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_receive_wall"],
       "abilityRanges": {
         "receive": {
@@ -913,6 +924,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["block_read", "block_team"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_block_commander"],
       "abilityRanges": {
         "block": {
@@ -982,6 +994,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["block_commit", "block_close"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_shutdown"],
       "abilityRanges": {
         "block": {
@@ -1051,6 +1064,7 @@
     "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["mental_clutch", "mental_focus"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["elite_clutch"],
       "abilityRanges": {
         "mental": {
@@ -1124,6 +1138,7 @@
         "mental_calm",
         "mental_tournament"
       ],
+      "minimumRequiredSpecialAbilityCount": 2,
       "excludedSpecialAbilityIds": ["elite_steel_mental"],
       "abilityRanges": {
         "mental": {
@@ -1197,6 +1212,7 @@
         "elite_court_hitter",
         "elite_block_crusher"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_absolute_ace"],
       "abilityRanges": {
         "spike": {
@@ -1270,6 +1286,7 @@
         "elite_serve_craftsman",
         "elite_service_ace"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_serve_king"],
       "abilityRanges": {
         "serve": {
@@ -1337,6 +1354,7 @@
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["elite_game_maker", "elite_deception_set"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_commander"],
       "abilityRanges": {
         "set": {
@@ -1410,6 +1428,7 @@
         "elite_defense_craftsman",
         "elite_receive_wall"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_guardian"],
       "abilityRanges": {
         "receive": {
@@ -1480,6 +1499,7 @@
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["elite_block_commander", "elite_shutdown"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_iron_wall"],
       "abilityRanges": {
         "block": {
@@ -1550,6 +1570,7 @@
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["elite_clutch", "team_captaincy"],
+      "minimumRequiredSpecialAbilityCount": 2,
       "excludedSpecialAbilityIds": ["gold_flow_controller"],
       "abilityRanges": {
         "mental": {
@@ -1620,6 +1641,7 @@
     "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": ["elite_clutch", "elite_steel_mental"],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_indomitable"],
       "abilityRanges": {
         "mental": {
@@ -1693,6 +1715,7 @@
         "elite_allround_attacker",
         "elite_defense_craftsman"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_total_player"],
       "abilityRanges": {
         "spike": {
@@ -1778,6 +1801,7 @@
         "elite_fast_finisher",
         "elite_block_crusher"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_ultra_quick"],
       "abilityRanges": {
         "spike": {
@@ -1851,6 +1875,7 @@
         "elite_game_maker",
         "elite_block_commander"
       ],
+      "minimumRequiredSpecialAbilityCount": 1,
       "excludedSpecialAbilityIds": ["gold_court_brain"],
       "abilityRanges": {
         "decision": {
