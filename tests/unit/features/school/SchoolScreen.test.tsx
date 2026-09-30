@@ -48,6 +48,46 @@ describe("school management screen", () => {
     expect(onUpgradeFacility).toHaveBeenCalledWith("trainingRoom", 1);
   });
 
+  it("shows annual development investments as a compact management tab", () => {
+    const state = createState();
+    const onInvestAnnualProgram = vi.fn();
+
+    render(
+      <SchoolScreen
+        onInvestAnnualProgram={onInvestAnnualProgram}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "強化予算" }));
+
+    const section = screen.getByRole("region", { name: "年間強化予算" });
+    expect(within(section).getAllByTestId(/annual-investment-/)).toHaveLength(
+      4,
+    );
+    expect(within(section).getByText("育成支援")).toBeVisible();
+    expect(within(section).getByText("専門コーチ招へい")).toBeVisible();
+    expect(within(section).getByText("合宿強化")).toBeVisible();
+    expect(within(section).getByText("スカウト投資")).toBeVisible();
+
+    fireEvent.click(
+      within(section).getByRole("button", { name: "育成支援へ投資" }),
+    );
+    expect(onInvestAnnualProgram).toHaveBeenCalledWith("training", null);
+
+    fireEvent.click(
+      within(section).getByRole("button", { name: "守備" }),
+    );
+    fireEvent.click(
+      within(section).getByRole("button", { name: "専門コーチ招へいへ投資" }),
+    );
+    expect(onInvestAnnualProgram).toHaveBeenCalledWith(
+      "specialist",
+      "defense",
+    );
+  });
+
   it("shows all facilities in a compact command grid with upgrade availability", () => {
     const state = createState();
 
