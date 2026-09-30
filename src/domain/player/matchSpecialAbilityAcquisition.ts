@@ -227,8 +227,7 @@ export function applyMatchNormalAbilityAcquisition(
   }
 
   return {
-    state:
-      acquisitions.length > 0 ? { ...input.state, players } : input.state,
+    state: acquisitions.length > 0 ? { ...input.state, players } : input.state,
     acquisitions,
   };
 }
