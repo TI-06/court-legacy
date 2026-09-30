@@ -969,7 +969,10 @@ const persistedPlayerSchema = z
       })
       .strict()
       .optional(),
-    specialAbilityIds: z.array(z.string().min(1)).max(MAX_SPECIAL_ABILITIES).default([]),
+    specialAbilityIds: z
+      .array(z.string().min(1))
+      .max(MAX_SPECIAL_ABILITIES)
+      .default([]),
     specialAbilityTipLevels: z
       .record(
         z.string().min(1),
