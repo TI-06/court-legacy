@@ -7,7 +7,7 @@ describe("special ability event data", () => {
       for (const choice of event.choices) {
         for (const effect of choice.effects) {
           if (
-            effect.type !== "special-ability-tip" &&
+            effect.type !== "special-ability-acquire" &&
             effect.type !== "special-ability-add" &&
             effect.type !== "special-ability-remove"
           ) {
@@ -49,7 +49,7 @@ describe("special ability event data", () => {
         expect(
           choice.effects.some(
             (effect) =>
-              effect.type === "special-ability-tip" ||
+              effect.type === "special-ability-acquire" ||
               effect.type === "special-ability-add" ||
               effect.type === "special-ability-remove",
           ),
