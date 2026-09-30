@@ -1572,11 +1572,15 @@ function applySchoolInvestment(
     );
   }
   if (!evaluation.allowed) {
+    let message = "強化予算に必要な資金が不足しています";
+    if (evaluation.reason === "already-selected") {
+      message = "この強化予算は今年度すでに設定済みです";
+    } else if (evaluation.reason === "facility-not-max") {
+      message = "対象施設をLv.50まで強化すると解禁されます";
+    }
     return conflict(
       `school_investment_${evaluation.reason.replaceAll("-", "_")}`,
-      evaluation.reason === "already-selected"
-        ? "この強化予算は今年度すでに設定済みです"
-        : "強化予算に必要な資金が不足しています",
+      message,
     );
   }
   return {
