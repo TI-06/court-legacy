@@ -85,3 +85,101 @@
 .funds-ledger__amount--negative {
   color: #ff9a95;
 }
+
+
+.school-investment-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.school-investment-card {
+  display: grid;
+  padding: 9px;
+  gap: 7px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 12px;
+}
+
+.school-investment-card__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.school-investment-card__heading strong {
+  font-size: 0.76rem;
+}
+
+.school-investment-card__heading span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.school-investment-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.school-investment-options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 8px;
+  gap: 6px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 9px;
+}
+
+.school-investment-options button > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.school-investment-options strong {
+  font-size: 0.67rem;
+}
+
+.school-investment-options small {
+  overflow: hidden;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.54rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.school-investment-options b {
+  flex: 0 0 auto;
+  color: #ffd37a;
+  font-size: 0.62rem;
+}
+
+.school-investment-options button[aria-pressed="true"] {
+  background: rgb(48 126 103 / 22%);
+  border-color: rgb(104 219 178 / 38%);
+}
+
+.school-investment-options button:disabled {
+  opacity: 0.52;
+}
+
+@media (max-width: 390px) {
+  .school-investment-card {
+    padding: 7px;
+  }
+
+  .school-investment-options button {
+    min-height: 44px;
+    padding: 6px;
+  }
+}
