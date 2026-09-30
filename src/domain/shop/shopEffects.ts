@@ -22,8 +22,7 @@ export interface TrainingCampTopGrowth {
 export interface TrainingCampSpecialAbilityChange {
   playerId: PlayerId;
   abilityId: string;
-  kind: "tip" | "learned" | "negative-removed";
-  tipLevel?: 1 | 2;
+  kind: "learned" | "negative-removed";
 }
 
 export interface TrainingCampResult {
