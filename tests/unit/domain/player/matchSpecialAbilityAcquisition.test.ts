@@ -179,7 +179,8 @@ describe("match Normal special ability acquisition", () => {
     expect(first.acquisitions).toHaveLength(2);
     expect(second.acquisitions).toEqual([]);
     const learnedCounts = playerIds.map(
-      (playerId) => second.state.players[playerId]!.specialAbilityIds.length,
+      (playerId) =>
+        (second.state.players[playerId]!.specialAbilityIds ?? []).length,
     );
     expect(learnedCounts.filter((count) => count === 1)).toHaveLength(2);
     expect(learnedCounts.filter((count) => count === 0)).toHaveLength(1);
