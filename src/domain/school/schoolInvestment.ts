@@ -1,10 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { Player } from "../model/Player";
 import type { AdditionalGrowthModifier } from "../training/calculateGrowth";
-import {
-  FACILITY_MAX_LEVEL,
-  type FacilityKey,
-} from "./facilityUpgrade";
+import { FACILITY_MAX_LEVEL, type FacilityKey } from "./facilityUpgrade";
 import { applySchoolFundsChange } from "./schoolEconomy";
 
 export type DevelopmentInvestmentFocus = "attack" | "defense" | "physical";

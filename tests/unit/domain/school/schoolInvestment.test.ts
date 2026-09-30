@@ -57,7 +57,9 @@ describe("school investment programs", () => {
       currentLevel: 49,
       requiredLevel: 50,
     });
-    expect(evaluateSchoolInvestment(state, "development", "attack")).toMatchObject({
+    expect(
+      evaluateSchoolInvestment(state, "development", "attack"),
+    ).toMatchObject({
       allowed: false,
       reason: "facility-not-max",
     });
@@ -69,7 +71,9 @@ describe("school investment programs", () => {
         trainingRoom: 50,
       },
     };
-    expect(evaluateSchoolInvestment(state, "development", "attack")).toMatchObject({
+    expect(
+      evaluateSchoolInvestment(state, "development", "attack"),
+    ).toMatchObject({
       allowed: true,
       reason: "available",
     });
