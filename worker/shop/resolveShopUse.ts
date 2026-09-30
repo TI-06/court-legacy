@@ -4,6 +4,7 @@ import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import { annualCampGrowthPercent } from "../../src/domain/school/annualInvestment";
 import {
   addExtraScoutingSearchCredit,
   addPendingExtraScoutCandidate,
@@ -354,6 +355,7 @@ export function resolveScheduledTrainingCamp(
     if (!player) {
       throw new ShopUseResolutionError("target_not_found");
     }
+    const campGrowthPercent = annualCampGrowthPercent(nextState);
     const resolved = resolvePlayerTrainingActivity({
       player,
       school,
@@ -364,6 +366,16 @@ export function resolveScheduledTrainingCamp(
           TRAINING_CAMP_POSITION_ABILITIES[player.preferredPosition],
         ...TRAINING_CAMP_ACTIVITY,
       },
+      additionalGrowthModifiers:
+        campGrowthPercent > 0
+          ? [
+              {
+                code: "annual-camp-investment",
+                label: "強化合宿グレードUP",
+                percent: 100 + campGrowthPercent,
+              },
+            ]
+          : [],
     });
     let updatedPlayer = resolved.player;
     if (resolved.log.skippedReason === null) {
