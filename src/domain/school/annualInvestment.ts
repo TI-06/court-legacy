@@ -104,6 +104,37 @@ const scoutingBonusByLevel: Record<
   3: { promising: 300, elite: 130, generational: 15, monster: 5 },
 };
 
+function investmentStepCost(
+  investment: AnnualInvestmentDefinition,
+  level: AnnualInvestmentLevel,
+): number {
+  switch (level) {
+    case 0:
+      return investment.stepCosts[0];
+    case 1:
+      return investment.stepCosts[1];
+    case 2:
+      return investment.stepCosts[2];
+    case 3:
+      return 0;
+  }
+}
+
+function nextInvestmentLevel(
+  level: AnnualInvestmentLevel,
+): AnnualInvestmentLevel {
+  switch (level) {
+    case 0:
+      return 1;
+    case 1:
+      return 2;
+    case 2:
+      return 3;
+    case 3:
+      return 3;
+  }
+}
+
 function definition(area: AnnualInvestmentArea): AnnualInvestmentDefinition {
   const found = ANNUAL_INVESTMENT_DEFINITIONS.find(
     (candidate) => candidate.area === area,
@@ -221,8 +252,8 @@ export function evaluateAnnualInvestment(
       reason: "specialist-focus-required",
       area,
       currentLevel,
-      nextLevel: (currentLevel + 1) as AnnualInvestmentLevel,
-      cost: definition(area).stepCosts[currentLevel],
+      nextLevel: nextInvestmentLevel(currentLevel),
+      cost: investmentStepCost(definition(area), currentLevel),
       fundsAfter: school.funds,
       specialistFocus: null,
     };
@@ -238,21 +269,21 @@ export function evaluateAnnualInvestment(
       reason: "specialist-focus-locked",
       area,
       currentLevel,
-      nextLevel: (currentLevel + 1) as AnnualInvestmentLevel,
-      cost: definition(area).stepCosts[currentLevel],
+      nextLevel: nextInvestmentLevel(currentLevel),
+      cost: investmentStepCost(definition(area), currentLevel),
       fundsAfter: school.funds,
       specialistFocus: plan.specialistFocus,
     };
   }
 
-  const cost = definition(area).stepCosts[currentLevel];
+  const cost = investmentStepCost(definition(area), currentLevel);
   const fundsAfter = school.funds - cost;
   return {
     allowed: fundsAfter >= 0,
     reason: fundsAfter >= 0 ? "available" : "insufficient-funds",
     area,
     currentLevel,
-    nextLevel: (currentLevel + 1) as AnnualInvestmentLevel,
+    nextLevel: nextInvestmentLevel(currentLevel),
     cost,
     fundsAfter,
     specialistFocus: requestedFocus,
