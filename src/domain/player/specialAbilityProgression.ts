@@ -189,12 +189,16 @@ export const removeNegativeSpecialAbility = removeSpecialAbility;
 export function resolveTrainingCampSpecialAbilityProgress(
   player: Player,
   random: RandomSource,
+  bonusPercent = 0,
 ): SpecialAbilityProgressResult {
   let current = player;
   const changes: SpecialAbilityProgress[] = [];
   const negatives = negativeAbilities(current);
 
-  if (negatives.length > 0 && random.int(1, 100) <= 18) {
+  if (
+    negatives.length > 0 &&
+    random.int(1, 100) <= Math.min(100, 18 + bonusPercent)
+  ) {
     const removed = removeNegativeSpecialAbility(
       current,
       random.pick(negatives),
@@ -204,7 +208,10 @@ export function resolveTrainingCampSpecialAbilityProgress(
   }
 
   const tipChances = getSpecialAbilityTipChances(current);
-  if (random.int(1, 100) <= tipChances.progressPercent) {
+  if (
+    random.int(1, 100) <=
+    Math.min(100, tipChances.progressPercent + bonusPercent)
+  ) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
       const tipAmount =
