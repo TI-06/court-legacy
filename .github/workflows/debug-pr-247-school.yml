@@ -1,0 +1,23 @@
+name: Debug PR 247 school test
+
+on:
+  push:
+    branches:
+      - feat/annual-development-investment
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/annual-development-investment
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: NO_COLOR=1 npx vitest run tests/unit/features/school/SchoolScreen.test.tsx --reporter=verbose
