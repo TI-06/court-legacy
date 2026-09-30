@@ -143,7 +143,7 @@ describe("special ability progression", () => {
 
   it("can directly learn a position-relevant Normal ability during training camp", () => {
     const base = createPlayer();
-    const random = new SequenceRandom([0.99, 0.01, 0]);
+    const random = new SequenceRandom([0.01, 0]);
 
     const resolved = resolveTrainingCampSpecialAbilityProgress(base, random);
 
