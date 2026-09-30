@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { annualScoutingCandidateBonus } from "../../src/domain/school/annualInvestment";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import {
@@ -210,7 +211,13 @@ export function createScoutingBoardHandler(
     let activeRevision = snapshot.revision;
 
     if (parsed.data.search) {
-      const searchItemBonuses = scoutingSearchItemBonuses(snapshot.state);
+      const queuedSearchItemBonuses = scoutingSearchItemBonuses(snapshot.state);
+      const searchItemBonuses = {
+        ...queuedSearchItemBonuses,
+        extraCandidateCount:
+          queuedSearchItemBonuses.extraCandidateCount +
+          annualScoutingCandidateBonus(snapshot.state),
+      };
       const searchedWithBudget =
         consumeBaseScoutingSearch(snapshot.state) ??
         consumeExtraScoutingSearchCredit(snapshot.state);
