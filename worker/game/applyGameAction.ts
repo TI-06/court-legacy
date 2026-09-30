@@ -79,6 +79,7 @@ import {
 import {
   ANNUAL_INVESTMENT_DEFINITIONS,
   annualInvestmentsUnlocked,
+  annualTrainingGrowthPercent,
   hasAnnualInvestment,
   purchaseAnnualInvestment,
 } from "../../src/domain/school/annualInvestment";
@@ -167,18 +168,24 @@ function conflict(code: string, message: string): never {
 }
 
 function trainingGrowthModifiers(state: GameState): AdditionalGrowthModifier[] {
+  const modifiers: AdditionalGrowthModifier[] = [];
   const pendingBoost = state.shopEffects?.nextTrainingGrowthBoost;
-  if (!pendingBoost) {
-    return [];
-  }
-
-  return [
-    {
+  if (pendingBoost) {
+    modifiers.push({
       code: "shop-training-boost",
       label: "練習効率アップ",
       percent: 100 + pendingBoost.percent,
-    },
-  ];
+    });
+  }
+  const annualPercent = annualTrainingGrowthPercent(state);
+  if (annualPercent > 0) {
+    modifiers.push({
+      code: "annual-strengthening-investment",
+      label: "年間強化投資",
+      percent: 100 + annualPercent,
+    });
+  }
+  return modifiers;
 }
 
 function applyCompletedSoloMatchExperience(
