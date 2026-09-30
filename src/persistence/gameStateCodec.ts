@@ -473,6 +473,7 @@ const fundsLedgerKindSchema = z.enum([
   "shop-grant",
   "facility-upgrade",
   "assistant-coach",
+  "annual-investment",
   "scouting-research",
   "camp",
   "travel",
@@ -491,9 +492,28 @@ const fundsLedgerEntrySchema = z
   })
   .strict();
 
+const annualInvestmentLevelSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
+
+const annualInvestmentPlanSchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    trainingLevel: annualInvestmentLevelSchema,
+    specialistLevel: annualInvestmentLevelSchema,
+    campLevel: annualInvestmentLevelSchema,
+    scoutingLevel: annualInvestmentLevelSchema,
+    specialistFocus: z.enum(["attack", "defense", "physical"]).nullable(),
+  })
+  .strict();
+
 const schoolManagementSchema = z
   .object({
     assistantCoach: assistantCoachContractSchema.nullable(),
+    annualInvestment: annualInvestmentPlanSchema.optional(),
     fundsHistory: z.array(fundsLedgerEntrySchema).max(50),
     lastAnnualBudgetYearIndex: z.number().int().positive(),
   })
