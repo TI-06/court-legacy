@@ -821,18 +821,6 @@ export function PlayerHubScreen({
     const specialAbilities = (selectedPlayer.specialAbilityIds ?? [])
       .map((abilityId) => getSpecialAbilityDefinition(abilityId))
       .filter((ability) => ability !== undefined);
-    const specialAbilityTips = Object.entries(
-      selectedPlayer.specialAbilityTipLevels ?? {},
-    )
-      .flatMap(([abilityId, level]) => {
-        const ability = getSpecialAbilityDefinition(abilityId);
-        return ability && level > 0 && level < 3 ? [{ ability, level }] : [];
-      })
-      .sort(
-        (left, right) =>
-          right.level - left.level ||
-          left.ability.name.localeCompare(right.ability.name, "ja"),
-      );
     const maxTrendGrowth = Math.max(
       1,
       ...growth.trend12.map((point) => point.totalAbilityGrowth),
@@ -955,12 +943,7 @@ export function PlayerHubScreen({
             >
               <div className="player-detail__special-abilities-heading">
                 <h3>特殊能力</h3>
-                <span>
-                  {specialAbilities.length}個
-                  {specialAbilityTips.length > 0
-                    ? `・コツ${specialAbilityTips.length}`
-                    : ""}
-                </span>
+                <span>{specialAbilities.length}個</span>
               </div>
               {specialAbilities.length > 0 ? (
                 <div className="player-detail__special-ability-list">
@@ -984,29 +967,6 @@ export function PlayerHubScreen({
                 </p>
               )}
             </section>
-
-            {specialAbilityTips.length > 0 ? (
-              <section
-                className="player-detail__special-tips"
-                aria-label="特殊能力のコツ"
-              >
-                <div className="player-detail__special-abilities-heading">
-                  <h3>習得コツ</h3>
-                  <span>Lv.3で習得</span>
-                </div>
-                <div className="player-detail__special-tip-list">
-                  {specialAbilityTips.map(({ ability, level }) => (
-                    <article key={ability.id}>
-                      <div>
-                        <strong>{ability.name}</strong>
-                        <small>{ability.description}</small>
-                      </div>
-                      <b>Lv.{level}/3</b>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
           </div>
         ) : null}
 
@@ -1475,12 +1435,9 @@ export function PlayerHubScreen({
             },
             { positive: 0, negative: 0, elite: 0, gold: 0 },
           );
-          const specialAbilityTipCount = Object.values(
-            player.specialAbilityTipLevels ?? {},
-          ).filter((level) => level > 0 && level < 3).length;
-          const hasSpecialAbilitySummary =
-            Object.values(specialAbilityCounts).some((count) => count > 0) ||
-            specialAbilityTipCount > 0;
+          const hasSpecialAbilitySummary = Object.values(
+            specialAbilityCounts,
+          ).some((count) => count > 0);
 
           return (
             <article
@@ -1548,9 +1505,6 @@ export function PlayerHubScreen({
                             </b>
                           ) : null,
                         )}
-                        {specialAbilityTipCount > 0 ? (
-                          <b data-kind="tip">コツ{specialAbilityTipCount}</b>
-                        ) : null}
                       </span>
                     ) : null}
                     <span className="player-roster__status-badges">

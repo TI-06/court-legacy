@@ -70,6 +70,7 @@ export interface Player {
   growthTypeId: string;
   traitIds: string[];
   specialAbilityIds?: string[];
+  /** @deprecated Legacy save compatibility only. New gameplay never writes tip progress. */
   specialAbilityTipLevels?: Record<string, 0 | 1 | 2 | 3>;
   hiddenTraitIds: string[];
   revealedHiddenTraitIds?: string[];

@@ -18,7 +18,7 @@
         "detail": "狙いの精度を優先し、サーブのコツをつかませる。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "serve_aim",
             "amount": 1
           },
@@ -31,7 +31,7 @@
         "detail": "再現性を優先し、安定したサーブフォームを固める。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "serve_stable",
             "amount": 1
           },
@@ -59,7 +59,7 @@
         "detail": "威力と打点を追求する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "jump_serve_mastery",
             "amount": 1
           },
@@ -72,7 +72,7 @@
         "detail": "変化とコントロールを追求する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "float_mastery",
             "amount": 1
           },
@@ -100,7 +100,7 @@
         "detail": "守備位置を見て打ち分ける感覚を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "attack_course",
             "amount": 1
           },
@@ -113,7 +113,7 @@
         "detail": "高い壁を利用する技術を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "attack_blockout",
             "amount": 1
           },
@@ -141,7 +141,7 @@
         "detail": "守備直後から攻撃へ移る技術を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "attack_transition",
             "amount": 1
           },
@@ -154,7 +154,7 @@
         "detail": "速いテンポに入る技術を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "attack_quick",
             "amount": 1
           },
@@ -182,7 +182,7 @@
         "detail": "相手ブロックを散らす判断を磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "set_distribution",
             "amount": 1
           },
@@ -195,7 +195,7 @@
         "detail": "攻撃方向を最後まで隠すトスを磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "set_back",
             "amount": 1
           },
@@ -223,7 +223,7 @@
         "detail": "ディグの初動と面づくりを優先する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "receive_dig",
             "amount": 1
           },
@@ -236,7 +236,7 @@
         "detail": "守備範囲と追いつく速さを優先する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "receive_range",
             "amount": 1
           },
@@ -264,7 +264,7 @@
         "detail": "相手の選択を見てから動く読みを磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "block_read",
             "amount": 1
           },
@@ -277,7 +277,7 @@
         "detail": "止め切れない球も守備へ残す手の出し方を磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "block_touch",
             "amount": 1
           },
@@ -305,7 +305,7 @@
         "detail": "プレッシャーの中で決める経験を積ませる。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "mental_clutch",
             "amount": 1
           },
@@ -319,7 +319,7 @@
         "detail": "結果よりルーティンと集中を優先する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "mental_focus",
             "amount": 1
           },
@@ -347,7 +347,7 @@
         "detail": "長いラリーと連戦に耐える体力を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "physical_stamina",
             "amount": 1
           },
@@ -360,7 +360,7 @@
         "detail": "睡眠とケアを徹底して回復力を伸ばす。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "physical_recovery",
             "amount": 1
           },
@@ -388,7 +388,7 @@
         "detail": "ブロックされた後の二本目を残す動きを磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "receive_cover",
             "amount": 1
           },
@@ -401,7 +401,7 @@
         "detail": "崩れた状況でも攻撃を成立させる判断を磨く。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "attack_out_of_system",
             "amount": 1
           },
@@ -441,7 +441,7 @@
         "detail": "克服は急がず、安定サーブの感覚を積み上げる。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "serve_stable",
             "amount": 1
           },
@@ -482,7 +482,7 @@
         "detail": "まずは集中の入り方を固め、段階的に改善する。",
         "effects": [
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-acquire",
             "abilityId": "mental_focus",
             "amount": 1
           },

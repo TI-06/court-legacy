@@ -9,8 +9,8 @@ import {
 } from "../../../../src/domain/player/specialAbilities";
 import {
   adjustSpecialAbilityInjuryRisk,
+  getSpecialAbilityAcquisitionChance,
   getSpecialAbilityRecoveryValues,
-  getSpecialAbilityTipChances,
   getSpecialAbilityTrainingGrowthPercent,
 } from "../../../../src/domain/player/specialAbilityDevelopmentModifiers";
 import {
@@ -106,8 +106,8 @@ function hasDevelopmentEffect(player: Player, baseline: Player): boolean {
     return true;
   }
   if (
-    JSON.stringify(getSpecialAbilityTipChances(player)) !==
-    JSON.stringify(getSpecialAbilityTipChances(baseline))
+    JSON.stringify(getSpecialAbilityAcquisitionChance(player)) !==
+    JSON.stringify(getSpecialAbilityAcquisitionChance(baseline))
   ) {
     return true;
   }

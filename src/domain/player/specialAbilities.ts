@@ -442,7 +442,7 @@ export const SPECIAL_ABILITIES = [
     name: "練習上手",
     kind: "positive",
     category: "growth",
-    description: "個人練習の成功率とコツ獲得率を上げる",
+    description: "個人練習の成功率と特殊能力の習得率を上げる",
   },
   {
     id: "mental_tournament",

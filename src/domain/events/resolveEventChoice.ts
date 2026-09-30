@@ -330,7 +330,7 @@ function applyEffect(
         })),
         visibleResult: "選手の特徴に変化",
       };
-    case "special-ability-tip": {
+    case "special-ability-acquire": {
       const ability = getSpecialAbilityDefinition(effect.abilityId);
       if (!ability) {
         throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);

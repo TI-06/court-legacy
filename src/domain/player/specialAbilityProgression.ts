@@ -7,15 +7,14 @@ import {
   SPECIAL_ABILITY_CONFLICTS,
   type SpecialAbilityCategory,
 } from "./specialAbilities";
-import { getSpecialAbilityTipChances } from "./specialAbilityDevelopmentModifiers";
+import { getSpecialAbilityAcquisitionChance } from "./specialAbilityDevelopmentModifiers";
 
-export type SpecialAbilityProgressKind = "tip" | "learned" | "negative-removed";
+export type SpecialAbilityProgressKind = "learned" | "negative-removed";
 
 export interface SpecialAbilityProgress {
   playerId: PlayerId;
   abilityId: string;
   kind: SpecialAbilityProgressKind;
-  tipLevel?: 1 | 2;
 }
 
 export interface SpecialAbilityProgressResult {
@@ -31,8 +30,6 @@ const POSITION_CATEGORIES: Record<Position, readonly SpecialAbilityCategory[]> =
     S: ["set", "mental", "team", "physical"],
     L: ["receive", "mental", "physical", "team"],
   };
-
-const MAX_SPECIAL_ABILITY_TIPS = 16;
 
 function positiveCandidates(player: Player): string[] {
   const owned = new Set(player.specialAbilityIds ?? []);
@@ -52,55 +49,6 @@ function negativeAbilities(player: Player): string[] {
   return SPECIAL_ABILITIES.filter(
     (ability) => ability.kind === "negative" && owned.has(ability.id),
   ).map((ability) => ability.id);
-}
-
-export function addSpecialAbilityTip(
-  player: Player,
-  abilityId: string,
-  amount = 1,
-): SpecialAbilityProgressResult {
-  const owned = player.specialAbilityIds ?? [];
-  if (owned.includes(abilityId) || amount <= 0) {
-    return { player, changes: [] };
-  }
-
-  const existingTips = player.specialAbilityTipLevels ?? {};
-  const current = existingTips[abilityId] ?? 0;
-  if (
-    current === 0 &&
-    Object.keys(existingTips).length >= MAX_SPECIAL_ABILITY_TIPS
-  ) {
-    return { player, changes: [] };
-  }
-  const next = Math.min(3, current + amount) as 0 | 1 | 2 | 3;
-  const tipLevels = { ...existingTips };
-
-  if (next >= 3) {
-    return learnSpecialAbility(
-      {
-        ...player,
-        specialAbilityTipLevels: tipLevels,
-      },
-      abilityId,
-    );
-  }
-
-  tipLevels[abilityId] = next;
-  return {
-    player: {
-      ...player,
-      specialAbilityIds: [...owned],
-      specialAbilityTipLevels: tipLevels,
-    },
-    changes: [
-      {
-        playerId: player.id,
-        abilityId,
-        kind: "tip",
-        tipLevel: next as 1 | 2,
-      },
-    ],
-  };
 }
 
 export function learnSpecialAbility(
@@ -185,22 +133,16 @@ export function resolveTrainingCampSpecialAbilityProgress(
     changes.push(...removed.changes);
   }
 
-  const tipChances = getSpecialAbilityTipChances(current);
+  const acquisitionChance = getSpecialAbilityAcquisitionChance(current);
   if (
     random.int(1, 100) <=
-    Math.min(100, tipChances.progressPercent + bonusPercent)
+    Math.min(100, acquisitionChance.acquisitionPercent + bonusPercent)
   ) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
-      const tipAmount =
-        random.int(1, 100) <= tipChances.doubleTipPercent ? 2 : 1;
-      const progressed = addSpecialAbilityTip(
-        current,
-        random.pick(candidates),
-        tipAmount,
-      );
-      current = progressed.player;
-      changes.push(...progressed.changes);
+      const learned = learnSpecialAbility(current, random.pick(candidates));
+      current = learned.player;
+      changes.push(...learned.changes);
     }
   }
 
