@@ -1,8 +1,5 @@
 import type { Player } from "../model/Player";
-import type {
-  EventDefinition,
-  EventEffect,
-} from "../validation/gameDataSchema";
+import type { EventDefinition } from "../validation/gameDataSchema";
 import {
   learnSpecialAbility,
   removeSpecialAbility,
@@ -37,12 +34,9 @@ export function getSpecialAbilityAwakeningDefinition(
   if (!awakenChoice) return null;
 
   const addEffect = awakenChoice.effects.find(
-    (
-      effect,
-    ): effect is Extract<EventEffect, { type: "special-ability-add" }> =>
-      effect.type === "special-ability-add",
+    (effect) => effect.type === "special-ability-add",
   );
-  if (!addEffect) return null;
+  if (!addEffect || addEffect.type !== "special-ability-add") return null;
 
   const target = getSpecialAbilityDefinition(addEffect.abilityId);
   if (
@@ -53,14 +47,9 @@ export function getSpecialAbilityAwakeningDefinition(
     return null;
   }
 
-  const consumedAbilityIds = awakenChoice.effects
-    .filter(
-      (
-        effect,
-      ): effect is Extract<EventEffect, { type: "special-ability-remove" }> =>
-        effect.type === "special-ability-remove",
-    )
-    .map((effect) => effect.abilityId);
+  const consumedAbilityIds = awakenChoice.effects.flatMap((effect) =>
+    effect.type === "special-ability-remove" ? [effect.abilityId] : [],
+  );
 
   return {
     eventId: event.id,
