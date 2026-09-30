@@ -5,7 +5,9 @@ import {
   evaluateSchoolInvestment,
   purchaseSchoolInvestment,
   schoolInvestmentTrainingModifiers,
+  schoolInvestmentUnlock,
   scoutingInvestmentAppealBonus,
+  scoutingInvestmentExtraCandidateCount,
   trainingCampInvestmentModifier,
 } from "../../../../src/domain/school/schoolInvestment";
 
@@ -23,11 +25,56 @@ function stateFixture() {
     },
   });
   const school = state.schools[state.userSchoolId]!;
-  state.schools[state.userSchoolId] = { ...school, funds: 5000 };
+  state.schools[state.userSchoolId] = {
+    ...school,
+    funds: 5000,
+    facilities: {
+      ...school.facilities,
+      gym: 50,
+      trainingRoom: 50,
+      dormitory: 50,
+      scoutingNetwork: 50,
+    },
+  };
   return state;
 }
 
 describe("school investment programs", () => {
+  it("unlocks each program only after its related facility reaches level 50", () => {
+    const state = stateFixture();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = {
+      ...school,
+      facilities: {
+        ...school.facilities,
+        trainingRoom: 49,
+      },
+    };
+
+    expect(schoolInvestmentUnlock(state, "development")).toMatchObject({
+      unlocked: false,
+      facility: "trainingRoom",
+      currentLevel: 49,
+      requiredLevel: 50,
+    });
+    expect(evaluateSchoolInvestment(state, "development", "attack")).toMatchObject({
+      allowed: false,
+      reason: "facility-not-max",
+    });
+
+    state.schools[state.userSchoolId] = {
+      ...state.schools[state.userSchoolId]!,
+      facilities: {
+        ...state.schools[state.userSchoolId]!.facilities,
+        trainingRoom: 50,
+      },
+    };
+    expect(evaluateSchoolInvestment(state, "development", "attack")).toMatchObject({
+      allowed: true,
+      reason: "available",
+    });
+  });
+
   it("spends funds once per category and records the annual plan", () => {
     const state = stateFixture();
     const before = state.schools[state.userSchoolId]!.funds;
@@ -87,6 +134,7 @@ describe("school investment programs", () => {
       specialAbilityBonus: 12,
     });
     expect(scoutingInvestmentAppealBonus(state)).toBe(12);
+    expect(scoutingInvestmentExtraCandidateCount(state)).toBe(2);
 
     const nextYear = { ...state, yearIndex: state.yearIndex + 1 };
     expect(activeSchoolInvestmentPlan(nextYear)).toBeNull();
@@ -95,6 +143,7 @@ describe("school investment programs", () => {
       specialAbilityBonus: 0,
     });
     expect(scoutingInvestmentAppealBonus(nextYear)).toBe(0);
+    expect(scoutingInvestmentExtraCandidateCount(nextYear)).toBe(0);
   });
 
   it("rejects mismatched category options", () => {
