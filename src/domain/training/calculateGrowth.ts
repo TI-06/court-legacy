@@ -23,6 +23,9 @@ export type GrowthModifierCode =
   | "relationship-social"
   | "team-coordination"
   | "special-ability-growth"
+  | "school-development-investment"
+  | "external-specialist-coach"
+  | "camp-investment"
   | "academic";
 
 export interface GrowthModifier {
@@ -42,7 +45,10 @@ export type AdditionalGrowthModifier = GrowthModifier & {
     | "assistant-coach-first-year"
     | "relationship-social"
     | "team-coordination"
-    | "special-ability-growth";
+    | "special-ability-growth"
+    | "school-development-investment"
+    | "external-specialist-coach"
+    | "camp-investment";
 };
 
 export interface GrowthCalculationInput {
