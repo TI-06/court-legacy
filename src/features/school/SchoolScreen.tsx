@@ -592,6 +592,7 @@ export function SchoolScreen({
                     <p>{definition.description}</p>
                     <small>{level === 0 ? "未投資" : effect}</small>
                     <button
+                      aria-label={`${definition.name} ${actionLabel}`}
                       disabled={
                         !evaluation.allowed || !onUpgradeAnnualInvestment
                       }
