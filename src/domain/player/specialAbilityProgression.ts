@@ -33,7 +33,8 @@ const POSITION_CATEGORIES: Record<Position, readonly SpecialAbilityCategory[]> =
 
 function withoutLegacySpecialAbilityTips(player: Player): Player {
   if (!player.specialAbilityTipLevels) return player;
-  const { specialAbilityTipLevels: _legacyTips, ...cleanPlayer } = player;
+  const cleanPlayer = { ...player };
+  delete cleanPlayer.specialAbilityTipLevels;
   return cleanPlayer;
 }
 
