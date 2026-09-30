@@ -1,6 +1,10 @@
 import type { GameState } from "../model/GameState";
 import type { Player } from "../model/Player";
 import type { AdditionalGrowthModifier } from "../training/calculateGrowth";
+import {
+  FACILITY_MAX_LEVEL,
+  type FacilityKey,
+} from "./facilityUpgrade";
 import { applySchoolFundsChange } from "./schoolEconomy";
 
 export type DevelopmentInvestmentFocus = "attack" | "defense" | "physical";
@@ -29,6 +33,39 @@ export const SCHOOL_INVESTMENT_COSTS = {
   camp: { intensive: 300, elite: 700 },
   scouting: { regional: 300, national: 650 },
 } as const;
+
+export const SCHOOL_INVESTMENT_REQUIRED_FACILITY: Record<
+  SchoolInvestmentCategory,
+  FacilityKey
+> = {
+  development: "trainingRoom",
+  "external-coach": "gym",
+  camp: "dormitory",
+  scouting: "scoutingNetwork",
+};
+
+export interface SchoolInvestmentUnlock {
+  unlocked: boolean;
+  facility: FacilityKey;
+  currentLevel: number;
+  requiredLevel: number;
+}
+
+export function schoolInvestmentUnlock(
+  state: GameState,
+  category: SchoolInvestmentCategory,
+): SchoolInvestmentUnlock {
+  const school = state.schools[state.userSchoolId];
+  if (!school) throw new Error("user school is missing");
+  const facility = SCHOOL_INVESTMENT_REQUIRED_FACILITY[category];
+  const currentLevel = school.facilities[facility];
+  return {
+    unlocked: currentLevel >= FACILITY_MAX_LEVEL,
+    facility,
+    currentLevel,
+    requiredLevel: FACILITY_MAX_LEVEL,
+  };
+}
 
 const developmentAbilities: Record<
   DevelopmentInvestmentFocus,
@@ -112,15 +149,19 @@ export function evaluateSchoolInvestment(
   const cost = optionCost(category, option);
   const plan = activeSchoolInvestmentPlan(state);
   const alreadySelected = categoryAlreadySelected(plan, category);
+  const unlock = schoolInvestmentUnlock(state, category);
   return {
-    allowed: !alreadySelected && school.funds >= cost,
-    reason: alreadySelected
-      ? ("already-selected" as const)
-      : school.funds < cost
-        ? ("insufficient-funds" as const)
-        : ("available" as const),
+    allowed: unlock.unlocked && !alreadySelected && school.funds >= cost,
+    reason: !unlock.unlocked
+      ? ("facility-not-max" as const)
+      : alreadySelected
+        ? ("already-selected" as const)
+        : school.funds < cost
+          ? ("insufficient-funds" as const)
+          : ("available" as const),
     cost,
     fundsAfter: school.funds - cost,
+    unlock,
   };
 }
 
@@ -230,5 +271,14 @@ export function scoutingInvestmentAppealBonus(state: GameState): number {
   const tier = activeSchoolInvestmentPlan(state)?.scoutingTier;
   if (tier === "national") return 12;
   if (tier === "regional") return 6;
+  return 0;
+}
+
+export function scoutingInvestmentExtraCandidateCount(
+  state: GameState,
+): number {
+  const tier = activeSchoolInvestmentPlan(state)?.scoutingTier;
+  if (tier === "national") return 2;
+  if (tier === "regional") return 1;
   return 0;
 }
