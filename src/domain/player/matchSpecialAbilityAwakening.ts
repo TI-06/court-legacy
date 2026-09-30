@@ -151,43 +151,49 @@ export function applyMatchSpecialAbilityAwakening(
       left.playerId.localeCompare(right.playerId),
   );
 
-  for (const stats of rankedPlayers) {
-    const candidates = eligibleAwakenings(input, stats.playerId, stats);
-    if (candidates.length === 0) continue;
+  for (const rarity of ["super-rare", "rare"] as const) {
+    for (const stats of rankedPlayers) {
+      const candidates = eligibleAwakenings(
+        input,
+        stats.playerId,
+        stats,
+      ).filter((candidate) => candidate.rarity === rarity);
+      if (candidates.length === 0) continue;
 
-    const chosen = input.random
-      .fork(`awakening-candidate:${stats.playerId}`)
-      .pick(candidates);
-    const chance = awakeningChance(chosen.rarity, input.context);
-    const roll = input.random
-      .fork(
-        `awakening-roll:${stats.playerId}:${chosen.targetAbilityId}`,
-      )
-      .int(1, 100);
-    if (roll > chance) continue;
+      const chosen = input.random
+        .fork(`awakening-candidate:${rarity}:${stats.playerId}`)
+        .pick(candidates);
+      const chance = awakeningChance(chosen.rarity, input.context);
+      const roll = input.random
+        .fork(
+          `awakening-roll:${stats.playerId}:${chosen.targetAbilityId}`,
+        )
+        .int(1, 100);
+      if (roll > chance) continue;
 
-    const player = input.state.players[stats.playerId];
-    if (!player) continue;
-    const awakened = applySpecialAbilityAwakening(player, chosen);
+      const player = input.state.players[stats.playerId];
+      if (!player) continue;
+      const awakened = applySpecialAbilityAwakening(player, chosen);
 
-    return {
-      state: {
-        ...input.state,
-        players: {
-          ...input.state.players,
-          [stats.playerId]: awakened,
+      return {
+        state: {
+          ...input.state,
+          players: {
+            ...input.state.players,
+            [stats.playerId]: awakened,
+          },
         },
-      },
-      awakenings: [
-        {
-          playerId: stats.playerId,
-          abilityId: chosen.targetAbilityId,
-          rarity: chosen.rarity,
-          chancePercent: chance,
-        },
-      ],
-      awakenedPlayerIds: [stats.playerId],
-    };
+        awakenings: [
+          {
+            playerId: stats.playerId,
+            abilityId: chosen.targetAbilityId,
+            rarity: chosen.rarity,
+            chancePercent: chance,
+          },
+        ],
+        awakenedPlayerIds: [stats.playerId],
+      };
+    }
   }
 
   return {
