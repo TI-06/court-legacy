@@ -233,4 +233,6 @@ export function applyMatchNormalAbilityAcquisition(
   };
 }
 
-export const MATCH_NORMAL_ABILITY_IDS = MATCH_NORMAL_ABILITY_RULES.map(\n  (rule) => rule.abilityId,\n);
+export const MATCH_NORMAL_ABILITY_IDS = MATCH_NORMAL_ABILITY_RULES.map(
+  (rule) => rule.abilityId,
+);
