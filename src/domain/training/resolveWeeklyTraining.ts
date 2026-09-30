@@ -14,6 +14,7 @@ import {
 } from "../player/specialAbilityDevelopmentModifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
+import { schoolInvestmentTrainingModifiers } from "../school/schoolInvestment";
 import type {
   AbilityKey,
   IndividualTrainingInstructionDefinition,
@@ -498,6 +499,11 @@ export function resolveWeeklyTraining(
           ...teamMenuGrowthModifiers,
           ...calculateDynamicsTrainingModifiers(original),
           ...assistantCoachTrainingModifiers(
+            input.state,
+            original,
+            instruction.targetAbilities,
+          ),
+          ...schoolInvestmentTrainingModifiers(
             input.state,
             original,
             instruction.targetAbilities,
