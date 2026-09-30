@@ -3,7 +3,10 @@ import type {
   EventDefinition,
   EventEffect,
 } from "../validation/gameDataSchema";
-import { learnSpecialAbility, removeSpecialAbility } from "./specialAbilityProgression";
+import {
+  learnSpecialAbility,
+  removeSpecialAbility,
+} from "./specialAbilityProgression";
 import { getSpecialAbilityDefinition } from "./specialAbilities";
 
 export type SpecialAbilityAwakeningRarity = "rare" | "super-rare";
