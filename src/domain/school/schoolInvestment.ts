@@ -85,9 +85,16 @@ function optionCost(
   category: SchoolInvestmentCategory,
   option: SchoolInvestmentOption,
 ): number {
-  if (category === "development") return SCHOOL_INVESTMENT_COSTS.development;
-  if (category === "external-coach")
+  if (category === "development") {
+    if (!["attack", "defense", "physical"].includes(option))
+      throw new Error("invalid development investment option");
+    return SCHOOL_INVESTMENT_COSTS.development;
+  }
+  if (category === "external-coach") {
+    if (!["attacker", "setter", "blocker", "libero"].includes(option))
+      throw new Error("invalid external coach investment option");
     return SCHOOL_INVESTMENT_COSTS["external-coach"];
+  }
   if (category === "camp") {
     if (option !== "intensive" && option !== "elite")
       throw new Error("invalid camp investment option");
