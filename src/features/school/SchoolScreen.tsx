@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type {
+  AnnualInvestmentArea,
   AssistantCoachRank,
   AssistantCoachSpecialty,
 } from "../../domain/model/SchoolManagement";
@@ -9,6 +10,13 @@ import {
   ASSISTANT_COACH_OPTIONS,
   evaluateAssistantCoachContract,
 } from "../../domain/school/assistantCoach";
+import {
+  ANNUAL_INVESTMENT_DEFINITIONS,
+  annualInvestmentEffectLabel,
+  annualInvestmentLevel,
+  currentAnnualInvestmentPlan,
+  evaluateAnnualInvestment,
+} from "../../domain/school/annualInvestment";
 import {
   FACILITY_DEFINITIONS,
   FACILITY_UPGRADE_LEVEL_OPTIONS,
@@ -44,6 +52,10 @@ interface SchoolScreenProps {
     rank: AssistantCoachRank,
     specialty: AssistantCoachSpecialty | null,
   ) => void;
+  onInvestAnnualProgram?: (
+    area: AnnualInvestmentArea,
+    specialistFocus: AssistantCoachSpecialty | null,
+  ) => void | Promise<unknown>;
   onOpenScouting?: () => void;
 }
 
@@ -128,6 +140,7 @@ export function SchoolScreen({
   state,
   onUpgradeFacility,
   onContractAssistantCoach,
+  onInvestAnnualProgram,
   onOpenScouting,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
@@ -149,6 +162,10 @@ export function SchoolScreen({
   >({});
   const [selectedCoachRank, setSelectedCoachRank] =
     useState<AssistantCoachRank | null>(null);
+  const [investmentSpecialty, setInvestmentSpecialty] =
+    useState<AssistantCoachSpecialty>("attack");
+  const [investmentPendingArea, setInvestmentPendingArea] =
+    useState<AnnualInvestmentArea | null>(null);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -232,6 +249,38 @@ export function SchoolScreen({
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
+  const annualInvestment = currentAnnualInvestmentPlan(state);
+  const activeInvestmentSpecialty =
+    annualInvestment.specialistFocus ?? investmentSpecialty;
+  const annualInvestmentRows = ANNUAL_INVESTMENT_DEFINITIONS.map(
+    (definition) => {
+      const level = annualInvestmentLevel(annualInvestment, definition.area);
+      return {
+        definition,
+        level,
+        evaluation: evaluateAnnualInvestment(
+          state,
+          definition.area,
+          definition.area === "specialist"
+            ? activeInvestmentSpecialty
+            : null,
+        ),
+      };
+    },
+  );
+
+  const investAnnualProgram = async (
+    area: AnnualInvestmentArea,
+    focus: AssistantCoachSpecialty | null,
+  ) => {
+    if (!onInvestAnnualProgram || investmentPendingArea) return;
+    setInvestmentPendingArea(area);
+    try {
+      await onInvestAnnualProgram(area, focus);
+    } finally {
+      setInvestmentPendingArea(null);
+    }
+  };
 
   const confirmUpgrade = async () => {
     if (
@@ -357,6 +406,19 @@ export function SchoolScreen({
               type="button"
             >
               コーチ
+            </button>
+            <button
+              aria-selected={managementView === "investment"}
+              className={
+                managementView === "investment"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("investment")}
+              role="tab"
+              type="button"
+            >
+              強化予算
             </button>
           </div>
 
@@ -517,6 +579,122 @@ export function SchoolScreen({
                   </button>
                 );
               })}
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="investment-heading"
+            className="school-management-section"
+            hidden={managementView !== "investment"}
+          >
+            <div className="school-staff-command-heading">
+              <div>
+                <h4 id="investment-heading">年間強化予算</h4>
+                <small>年度ごとにLv.0へリセット</small>
+              </div>
+              <span>資金 {school.funds}</span>
+            </div>
+
+            <p className="annual-investment-note">
+              設備とは別に、今季どこへ資金を集中するか選びます。
+            </p>
+
+            <div className="annual-investment-grid">
+              {annualInvestmentRows.map(
+                ({ definition, evaluation, level }) => {
+                  const isSpecialist = definition.area === "specialist";
+                  const focus = isSpecialist
+                    ? activeInvestmentSpecialty
+                    : null;
+                  const isPending =
+                    investmentPendingArea === definition.area;
+                  const status =
+                    level >= 3
+                      ? "今年度MAX"
+                      : evaluation.reason === "insufficient-funds"
+                        ? `あと${Math.max(
+                            0,
+                            evaluation.cost - school.funds,
+                          )}必要`
+                        : evaluation.reason === "specialist-focus-required"
+                          ? "専門を選択"
+                          : evaluation.reason === "specialist-focus-locked"
+                            ? "今年度は専門固定"
+                            : `次 ${evaluation.cost}`;
+
+                  return (
+                    <article
+                      className="annual-investment-card"
+                      data-testid={`annual-investment-${definition.area}`}
+                      key={definition.area}
+                    >
+                      <div className="annual-investment-card__heading">
+                        <div>
+                          <strong>{definition.name}</strong>
+                          <small>{definition.description}</small>
+                        </div>
+                        <b>Lv.{level}/3</b>
+                      </div>
+
+                      {isSpecialist ? (
+                        <div
+                          aria-label="専門コーチ分野"
+                          className="annual-investment-focus"
+                          role="group"
+                        >
+                          {(
+                            [
+                              ["attack", "攻撃"],
+                              ["defense", "守備"],
+                              ["physical", "フィジカル"],
+                            ] as const
+                          ).map(([id, label]) => (
+                            <button
+                              aria-pressed={focus === id}
+                              disabled={
+                                annualInvestment.specialistFocus !== null ||
+                                isPending
+                              }
+                              key={id}
+                              onClick={() => setInvestmentSpecialty(id)}
+                              type="button"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="annual-investment-card__status">
+                        <span>
+                          {annualInvestmentEffectLabel(definition.area, level)}
+                        </span>
+                        <small>{status}</small>
+                      </div>
+
+                      <button
+                        aria-label={`${definition.name}へ投資`}
+                        className="annual-investment-card__action"
+                        disabled={
+                          !onInvestAnnualProgram ||
+                          isPending ||
+                          !evaluation.allowed
+                        }
+                        onClick={() =>
+                          void investAnnualProgram(definition.area, focus)
+                        }
+                        type="button"
+                      >
+                        {isPending
+                          ? "反映中…"
+                          : level >= 3
+                            ? "今年度MAX"
+                            : `${evaluation.cost}でLv.${evaluation.nextLevel}へ`}
+                      </button>
+                    </article>
+                  );
+                },
+              )}
             </div>
           </section>
         </section>
