@@ -62,7 +62,7 @@ jobs:
       - name: Run Phase50 10-season balance soak
         run: npm run soak:balance
       - name: Run Phase50 30-season long soak
-        run: npm run soak:long
+        run: node scripts/runBalanceSoak.mjs --preset long --seed phase50-long-a,phase50-long-b,phase50-long-c,phase50-long-d,phase50-long-e,phase50-long-f
 
   mobile-e2e:
     needs: quality
