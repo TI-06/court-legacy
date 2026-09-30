@@ -113,6 +113,33 @@ describe("school management screen", () => {
     );
   });
 
+  it("spends surplus funds through annual strengthening investments", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 5000 };
+    const onUpgradeAnnualInvestment = vi.fn();
+
+    render(
+      <SchoolScreen
+        onUpgradeAnnualInvestment={onUpgradeAnnualInvestment}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "強化予算" }));
+    const investments = screen.getByRole("region", { name: "年間強化予算" });
+    expect(within(investments).getByText("育成")).toBeVisible();
+    expect(within(investments).getByText("スカウト")).toBeVisible();
+    expect(within(investments).getByText("メディカル")).toBeVisible();
+    expect(within(investments).getByText("分析")).toBeVisible();
+
+    fireEvent.click(
+      within(investments).getByRole("button", { name: "Lv.1へ・250" }),
+    );
+    expect(onUpgradeAnnualInvestment).toHaveBeenCalledWith("development");
+  });
+
   it("switches School management between facilities and coaches", () => {
     const state = createState();
 
