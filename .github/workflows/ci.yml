@@ -59,6 +59,10 @@ jobs:
         run: npm run release:check
       - name: Run Phase18 soak smoke preset
         run: npm run soak:smoke
+      - name: Run Phase50 10-season balance soak
+        run: npm run soak:balance
+      - name: Run Phase50 30-season long soak
+        run: npm run soak:long
 
   mobile-e2e:
     needs: quality
