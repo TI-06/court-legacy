@@ -1936,12 +1936,6 @@
   border-color: rgb(240 191 73 / 30%);
 }
 
-.player-roster__special-summary [data-kind="tip"] {
-  color: #9ee6bc;
-  background: rgb(43 140 91 / 14%);
-  border-color: rgb(88 200 139 / 24%);
-}
-
 .player-roster__meta .player-roster__priority-action {
   flex: 0 0 auto;
   min-height: 0;
