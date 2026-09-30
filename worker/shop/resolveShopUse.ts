@@ -4,6 +4,7 @@ import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import { annualTrainingCampGrowthModifiers } from "../../src/domain/school/annualInvestment";
 import {
   addExtraScoutingSearchCredit,
   addPendingExtraScoutCandidate,
@@ -364,6 +365,7 @@ export function resolveScheduledTrainingCamp(
           TRAINING_CAMP_POSITION_ABILITIES[player.preferredPosition],
         ...TRAINING_CAMP_ACTIVITY,
       },
+      additionalGrowthModifiers: annualTrainingCampGrowthModifiers(nextState),
     });
     let updatedPlayer = resolved.player;
     if (resolved.log.skippedReason === null) {
