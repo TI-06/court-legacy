@@ -73,6 +73,10 @@ import {
   evaluateAssistantCoachContract,
 } from "../../src/domain/school/assistantCoach";
 import {
+  evaluateAnnualInvestment,
+  investAnnualProgram,
+} from "../../src/domain/school/annualInvestment";
+import {
   evaluateFacilityUpgrade,
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
@@ -1549,6 +1553,51 @@ function applyAssistantCoachContract(
   };
 }
 
+function applyAnnualInvestment(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "annual-investment" }>,
+): AppliedGameAction {
+  const evaluation = evaluateAnnualInvestment(
+    state,
+    action.area,
+    action.specialistFocus ?? null,
+  );
+  if (!evaluation.allowed) {
+    let message = "この強化予算には投資できません";
+    switch (evaluation.reason) {
+      case "insufficient-funds":
+        message = "強化予算に必要な資金が不足しています";
+        break;
+      case "max-level":
+        message = "この強化予算は今年度すでに最大です";
+        break;
+      case "specialist-focus-required":
+        message = "専門コーチの分野を選んでください";
+        break;
+      case "specialist-focus-locked":
+        message = "専門コーチの分野は今年度中は変更できません";
+        break;
+      case "available":
+        break;
+    }
+    return conflict(
+      `annual_investment_${evaluation.reason.replaceAll("-", "_")}`,
+      message,
+    );
+  }
+
+  return {
+    state: investAnnualProgram(
+      state,
+      action.area,
+      action.specialistFocus ?? null,
+    ),
+    teamSelection,
+    outcome: evaluation,
+  };
+}
+
 function applyAcknowledgeTrainingCampResult(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1651,6 +1700,8 @@ function applyActionByType(
       return applyFacilityUpgrade(state, teamSelection, action);
     case "assistant-coach-contract":
       return applyAssistantCoachContract(state, teamSelection, action);
+    case "annual-investment":
+      return applyAnnualInvestment(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
     case "acknowledge-training-camp-result":
