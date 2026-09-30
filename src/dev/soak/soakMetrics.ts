@@ -1,6 +1,7 @@
 import { ABILITY_KEYS, type Player } from "../../domain/model/Player";
 import type { SchoolFacilities } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
 import { FACILITY_MAX_LEVEL } from "../../domain/school/facilityUpgrade";
 import { autoSelectTeam } from "../../domain/team/autoSelectTeam";
@@ -76,6 +77,12 @@ export interface SoakSnapshotMetrics {
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
   positionCounts: Record<string, number>;
+  specialAbilityKindCounts: {
+    normal: number;
+    negative: number;
+    rare: number;
+    superRare: number;
+  };
 }
 
 export interface SoakFacilityProgress {
@@ -149,6 +156,31 @@ function sortedFacilities(
       left.localeCompare(right),
     ),
   );
+}
+
+function specialAbilityKindCounts(players: readonly Player[]): {
+  normal: number;
+  negative: number;
+  rare: number;
+  superRare: number;
+} {
+  const counts = {
+    normal: 0,
+    negative: 0,
+    rare: 0,
+    superRare: 0,
+  };
+  for (const player of players) {
+    for (const abilityId of player.specialAbilityIds ?? []) {
+      const ability = getSpecialAbilityDefinition(abilityId);
+      if (!ability) continue;
+      if (ability.kind === "positive") counts.normal += 1;
+      else if (ability.kind === "negative") counts.negative += 1;
+      else if (ability.kind === "elite") counts.rare += 1;
+      else counts.superRare += 1;
+    }
+  }
+  return counts;
 }
 
 export function summarizeFacilityMilestones(
@@ -243,6 +275,9 @@ export function captureSoakSnapshotMetrics(
   const state = snapshot.state;
   const userSchool = state.schools[state.userSchoolId]!;
   const players = Object.values(state.players);
+  const userPlayers = userSchool.playerIds
+    .map((playerId) => state.players[playerId])
+    .filter((player): player is Player => player !== undefined);
   const academicYearIndex = context.academicYearIndex ?? state.yearIndex;
   const academicYear = context.academicYear ?? state.calendar.academicYear;
   const currentLedger = state.schoolManagement.fundsHistory.filter(
@@ -378,6 +413,7 @@ export function captureSoakSnapshotMetrics(
     positionCounts: sortedCounts(
       players.map((player) => player.preferredPosition),
     ),
+    specialAbilityKindCounts: specialAbilityKindCounts(userPlayers),
   };
 }
 
@@ -400,5 +436,6 @@ export function formatSoakSnapshotSummary(
     `injured=${metrics.injuredPlayers} injury-weeks=${metrics.injuredPlayerWeeks} new=${metrics.newInjuries} healed=${metrics.healedInjuries} condition-mean=${metrics.condition.mean}`,
     `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles} national-participants=${metrics.nationalParticipantStrength.count} national-p50=${metrics.nationalParticipantStrength.p50}`,
     `assistant-coach=${coach} changes=${metrics.assistantCoachChanges}`,
+    `special=N${metrics.specialAbilityKindCounts.normal}/NEG${metrics.specialAbilityKindCounts.negative}/R${metrics.specialAbilityKindCounts.rare}/SR${metrics.specialAbilityKindCounts.superRare}`,
   ].join(" | ");
 }
