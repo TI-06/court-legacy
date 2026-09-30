@@ -13,32 +13,34 @@ export interface AnnualInvestmentDefinition {
   levelCosts: readonly [number, number, number];
 }
 
-export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] = [
-  {
-    area: "development",
-    name: "育成",
-    description: "年間の練習効率を上げ、選手の成長を後押しします。",
-    levelCosts: [250, 450, 700],
-  },
-  {
-    area: "scouting",
-    name: "スカウト",
-    description: "候補発掘への投資で、上位候補に出会う確率を高めます。",
-    levelCosts: [250, 450, 700],
-  },
-  {
-    area: "medical",
-    name: "メディカル",
-    description: "怪我リスクを抑え、休養時のコンディション回復を高めます。",
-    levelCosts: [220, 400, 650],
-  },
-  {
-    area: "analysis",
-    name: "分析",
-    description: "試合映像とデータ分析を強化し、試合経験の学習効率を高めます。",
-    levelCosts: [220, 400, 650],
-  },
-] as const;
+export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] =
+  [
+    {
+      area: "development",
+      name: "育成",
+      description: "年間の練習効率を上げ、選手の成長を後押しします。",
+      levelCosts: [250, 450, 700],
+    },
+    {
+      area: "scouting",
+      name: "スカウト",
+      description: "候補発掘への投資で、上位候補に出会う確率を高めます。",
+      levelCosts: [250, 450, 700],
+    },
+    {
+      area: "medical",
+      name: "メディカル",
+      description: "怪我リスクを抑え、休養時のコンディション回復を高めます。",
+      levelCosts: [220, 400, 650],
+    },
+    {
+      area: "analysis",
+      name: "分析",
+      description:
+        "試合映像とデータ分析を強化し、試合経験の学習効率を高めます。",
+      levelCosts: [220, 400, 650],
+    },
+  ] as const;
 
 const emptyLevels: Record<AnnualInvestmentArea, AnnualInvestmentLevel> = {
   development: 0,
@@ -84,9 +86,7 @@ export function annualInvestmentEffects(
 }
 
 export type AnnualInvestmentUpgradeReason =
-  | "available"
-  | "insufficient-funds"
-  | "max-level";
+  "available" | "insufficient-funds" | "max-level";
 
 export interface AnnualInvestmentUpgradeEvaluation {
   area: AnnualInvestmentArea;

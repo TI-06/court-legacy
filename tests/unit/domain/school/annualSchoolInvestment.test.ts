@@ -32,10 +32,12 @@ describe("annual school investments", () => {
     state = upgradeAnnualInvestment(state, "development");
     state = upgradeAnnualInvestment(state, "development");
     expect(activeAnnualInvestments(state).levels.development).toBe(3);
-    expect(evaluateAnnualInvestmentUpgrade(state, "development")).toMatchObject({
-      allowed: false,
-      reason: "max-level",
-    });
+    expect(evaluateAnnualInvestmentUpgrade(state, "development")).toMatchObject(
+      {
+        allowed: false,
+        reason: "max-level",
+      },
+    );
   });
 
   it("treats the previous year's investment as inactive", () => {
@@ -44,7 +46,9 @@ describe("annual school investments", () => {
     const nextYear = { ...invested, yearIndex: invested.yearIndex + 1 };
 
     expect(activeAnnualInvestments(nextYear).levels.medical).toBe(0);
-    expect(annualInvestmentEffects(nextYear).medicalInjuryRiskPercent).toBe(100);
+    expect(annualInvestmentEffects(nextYear).medicalInjuryRiskPercent).toBe(
+      100,
+    );
   });
 
   it("exposes meaningful effects for every investment area", () => {
@@ -57,7 +61,12 @@ describe("annual school investments", () => {
         [schoolId]: { ...state.schools[schoolId]!, funds: 10000 },
       },
     };
-    for (const area of ["development", "scouting", "medical", "analysis"] as const) {
+    for (const area of [
+      "development",
+      "scouting",
+      "medical",
+      "analysis",
+    ] as const) {
       state = upgradeAnnualInvestment(state, area);
       state = upgradeAnnualInvestment(state, area);
       state = upgradeAnnualInvestment(state, area);

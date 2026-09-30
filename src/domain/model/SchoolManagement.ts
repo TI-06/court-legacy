@@ -20,10 +20,7 @@ export type AssistantCoachRank =
 export type AssistantCoachSpecialty = "attack" | "defense" | "physical";
 
 export type AnnualInvestmentArea =
-  | "development"
-  | "scouting"
-  | "medical"
-  | "analysis";
+  "development" | "scouting" | "medical" | "analysis";
 
 export type AnnualInvestmentLevel = 0 | 1 | 2 | 3;
 
@@ -31,7 +28,6 @@ export interface AnnualSchoolInvestmentState {
   yearIndex: number;
   levels: Record<AnnualInvestmentArea, AnnualInvestmentLevel>;
 }
-
 
 export interface AssistantCoachContract {
   rank: AssistantCoachRank;

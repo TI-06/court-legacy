@@ -1170,9 +1170,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
-  const upgradeAnnualInvestmentFromUi = async (
-    area: AnnualInvestmentArea,
-  ) => {
+  const upgradeAnnualInvestmentFromUi = async (area: AnnualInvestmentArea) => {
     await cloudSession.runAction(
       { type: "annual-investment-upgrade", area },
       "年間強化予算を反映しています…",

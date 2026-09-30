@@ -51,7 +51,9 @@ interface SchoolScreenProps {
     rank: AssistantCoachRank,
     specialty: AssistantCoachSpecialty | null,
   ) => void;
-  onUpgradeAnnualInvestment?: (area: AnnualInvestmentArea) => void | Promise<unknown>;
+  onUpgradeAnnualInvestment?: (
+    area: AnnualInvestmentArea,
+  ) => void | Promise<unknown>;
   onOpenScouting?: () => void;
 }
 
@@ -243,10 +245,12 @@ export function SchoolScreen({
   ).length;
   const annualInvestments = activeAnnualInvestments(state);
   const investmentEffects = annualInvestmentEffects(state);
-  const investmentOverview = ANNUAL_INVESTMENT_DEFINITIONS.map((definition) => ({
-    definition,
-    evaluation: evaluateAnnualInvestmentUpgrade(state, definition.area),
-  }));
+  const investmentOverview = ANNUAL_INVESTMENT_DEFINITIONS.map(
+    (definition) => ({
+      definition,
+      evaluation: evaluateAnnualInvestmentUpgrade(state, definition.area),
+    }),
+  );
 
   const confirmUpgrade = async () => {
     if (
@@ -559,7 +563,11 @@ export function SchoolScreen({
               </div>
               <span>資金 {school.funds}</span>
             </div>
-            <div className="school-investment-grid" role="region" aria-label="年間強化予算">
+            <div
+              className="school-investment-grid"
+              role="region"
+              aria-label="年間強化予算"
+            >
               {investmentOverview.map(({ definition, evaluation }) => {
                 const level = annualInvestments.levels[definition.area];
                 const effect =
@@ -577,7 +585,10 @@ export function SchoolScreen({
                       ? `あと${Math.max(0, evaluation.cost - school.funds)}必要`
                       : `Lv.${evaluation.nextLevel}へ・${evaluation.cost}`;
                 return (
-                  <article className="school-investment-card" key={definition.area}>
+                  <article
+                    className="school-investment-card"
+                    key={definition.area}
+                  >
                     <div className="school-investment-card__top">
                       <strong>{definition.name}</strong>
                       <span>Lv.{level}/3</span>
@@ -585,8 +596,12 @@ export function SchoolScreen({
                     <p>{definition.description}</p>
                     <small>{level === 0 ? "未投資" : effect}</small>
                     <button
-                      disabled={!evaluation.allowed || !onUpgradeAnnualInvestment}
-                      onClick={() => void onUpgradeAnnualInvestment?.(definition.area)}
+                      disabled={
+                        !evaluation.allowed || !onUpgradeAnnualInvestment
+                      }
+                      onClick={() =>
+                        void onUpgradeAnnualInvestment?.(definition.area)
+                      }
                       type="button"
                     >
                       {actionLabel}

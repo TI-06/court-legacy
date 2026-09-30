@@ -174,8 +174,9 @@ export function applyUserMatchExperience(
     if (amount <= 0) continue;
 
     const abilities = { ...current.abilities };
-    const analysisBonus =
-      annualInvestmentEffects(input.state).analysisDecisionGrowthBonus;
+    const analysisBonus = annualInvestmentEffects(
+      input.state,
+    ).analysisDecisionGrowthBonus;
     for (const key of matchGrowthTargets(current)) {
       abilities[key] = applyLongTermAbilityGrowth(
         abilities[key],
