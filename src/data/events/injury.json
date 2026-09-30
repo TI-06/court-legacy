@@ -27,7 +27,7 @@
             "amount": -8
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "physical_injury_resist",
             "amount": 1
           },
