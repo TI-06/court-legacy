@@ -35,32 +35,34 @@ export interface AnnualInvestmentEvaluation {
   specialistFocus: AssistantCoachSpecialty | null;
 }
 
-export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] = [
-  {
-    area: "training",
-    name: "育成支援",
-    description: "通常練習の成長効率を年度中ずっと底上げします。",
-    stepCosts: [180, 320, 500],
-  },
-  {
-    area: "specialist",
-    name: "専門コーチ招へい",
-    description: "攻撃・守備・フィジカルから選んだ専門分野の育成を強化します。",
-    stepCosts: [250, 400, 650],
-  },
-  {
-    area: "camp",
-    name: "合宿強化",
-    description: "強化合宿で得られる能力成長を底上げします。",
-    stepCosts: [180, 320, 500],
-  },
-  {
-    area: "scouting",
-    name: "スカウト投資",
-    description: "有望・上位ランク候補を発見しやすくします。",
-    stepCosts: [220, 380, 600],
-  },
-] as const;
+export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] =
+  [
+    {
+      area: "training",
+      name: "育成支援",
+      description: "通常練習の成長効率を年度中ずっと底上げします。",
+      stepCosts: [180, 320, 500],
+    },
+    {
+      area: "specialist",
+      name: "専門コーチ招へい",
+      description:
+        "攻撃・守備・フィジカルから選んだ専門分野の育成を強化します。",
+      stepCosts: [250, 400, 650],
+    },
+    {
+      area: "camp",
+      name: "合宿強化",
+      description: "強化合宿で得られる能力成長を底上げします。",
+      stepCosts: [180, 320, 500],
+    },
+    {
+      area: "scouting",
+      name: "スカウト投資",
+      description: "有望・上位ランク候補を発見しやすくします。",
+      stepCosts: [220, 380, 600],
+    },
+  ] as const;
 
 const specialistAbilities: Record<
   AssistantCoachSpecialty,
@@ -211,7 +213,7 @@ export function evaluateAnnualInvestment(
 
   const requestedFocus =
     area === "specialist"
-      ? plan.specialistFocus ?? specialistFocus
+      ? (plan.specialistFocus ?? specialistFocus)
       : plan.specialistFocus;
   if (area === "specialist" && !requestedFocus) {
     return {

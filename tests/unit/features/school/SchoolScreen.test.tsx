@@ -76,16 +76,11 @@ describe("school management screen", () => {
     );
     expect(onInvestAnnualProgram).toHaveBeenCalledWith("training", null);
 
-    fireEvent.click(
-      within(section).getByRole("button", { name: "守備" }),
-    );
+    fireEvent.click(within(section).getByRole("button", { name: "守備" }));
     fireEvent.click(
       within(section).getByRole("button", { name: "専門コーチ招へいへ投資" }),
     );
-    expect(onInvestAnnualProgram).toHaveBeenCalledWith(
-      "specialist",
-      "defense",
-    );
+    expect(onInvestAnnualProgram).toHaveBeenCalledWith("specialist", "defense");
   });
 
   it("shows all facilities in a compact command grid with upgrade availability", () => {

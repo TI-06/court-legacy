@@ -20,10 +20,7 @@ export type AssistantCoachRank =
 export type AssistantCoachSpecialty = "attack" | "defense" | "physical";
 
 export type AnnualInvestmentArea =
-  | "training"
-  | "specialist"
-  | "camp"
-  | "scouting";
+  "training" | "specialist" | "camp" | "scouting";
 
 export type AnnualInvestmentLevel = 0 | 1 | 2 | 3;
 

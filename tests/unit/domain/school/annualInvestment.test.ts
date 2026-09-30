@@ -26,12 +26,10 @@ describe("annual school investment", () => {
 
     state = investAnnualProgram(state, "training");
     expect(currentAnnualInvestmentPlan(state).trainingLevel).toBe(3);
-    expect(
-      evaluateAnnualInvestment(state, "training").reason,
-    ).toBe("max-level");
-    expect(
-      state.schoolManagement.fundsHistory.at(-1),
-    ).toMatchObject({
+    expect(evaluateAnnualInvestment(state, "training").reason).toBe(
+      "max-level",
+    );
+    expect(state.schoolManagement.fundsHistory.at(-1)).toMatchObject({
       kind: "annual-investment",
       label: "育成支援 Lv.3",
       amount: -500,
@@ -46,9 +44,9 @@ describe("annual school investment", () => {
       specialistLevel: 1,
       specialistFocus: "defense",
     });
-    expect(
-      evaluateAnnualInvestment(state, "specialist", "attack").reason,
-    ).toBe("specialist-focus-locked");
+    expect(evaluateAnnualInvestment(state, "specialist", "attack").reason).toBe(
+      "specialist-focus-locked",
+    );
 
     const defenseModifiers = annualInvestmentTrainingModifiers(state, [
       "receive",
