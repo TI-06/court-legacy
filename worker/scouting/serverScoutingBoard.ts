@@ -5,6 +5,7 @@ import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingS
 import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import { annualInvestmentEffects } from "../../src/domain/school/annualSchoolInvestment";
 import {
   calculateRecruitTierProbabilities,
   selectRecruitTier,
@@ -99,6 +100,7 @@ function scoutingTierProbabilities(state: GameState) {
     scoutingNetworkLevel: school.facilities.scoutingNetwork,
     dormitoryLevel: school.facilities.dormitory,
     recentSeasonRating: recentSeasonRating(state),
+    appealBonus: annualInvestmentEffects(state).scoutingAppealBonus,
   });
 }
 
