@@ -1097,7 +1097,11 @@ function migrateVersionNine(legacy: Record<string, unknown>): unknown {
 
       for (const abilityId of Object.keys(tips).sort()) {
         const level = tips[abilityId];
-        if (typeof level !== "number" || level <= 0 || merged.includes(abilityId)) {
+        if (
+          typeof level !== "number" ||
+          level <= 0 ||
+          merged.includes(abilityId)
+        ) {
           continue;
         }
         const conflictId = SPECIAL_ABILITY_CONFLICTS[abilityId];
