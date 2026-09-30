@@ -16,6 +16,7 @@ import type { MatchCommand } from "../domain/model/Match";
 import type { PlayerId, SchoolId } from "../domain/model/identifiers";
 import type { SchoolReputation, TeamTactics } from "../domain/model/School";
 import type {
+  AnnualInvestmentKind,
   AssistantCoachRank,
   AssistantCoachSpecialty,
 } from "../domain/model/SchoolManagement";
@@ -1169,6 +1170,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const purchaseAnnualInvestmentFromUi = async (
+    kind: AnnualInvestmentKind,
+  ) => {
+    await cloudSession.runAction(
+      { type: "annual-investment", kind },
+      "強化投資を反映しています…",
+    );
+  };
+
   const markNotificationRead = async (notificationId: string) => {
     await cloudSession.runAction(
       { type: "mark-notification-read", notificationId },
@@ -1479,6 +1489,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <SchoolScreen
         onContractAssistantCoach={contractAssistantCoachFromUi}
         onOpenScouting={openScouting}
+        onPurchaseAnnualInvestment={purchaseAnnualInvestmentFromUi}
         onUpgradeFacility={upgradeSchoolFacility}
         state={gameState}
       />
