@@ -151,17 +151,17 @@ const concernLabels: Record<PlayerConcernCode, string> = {
 };
 
 const specialAbilityKindLabels: Record<SpecialAbilityKind, string> = {
-  positive: "青特",
-  negative: "赤特",
-  elite: "上位特能",
-  gold: "金特",
+  positive: "Normal",
+  negative: "Negative",
+  elite: "Rare",
+  gold: "Super Rare",
 };
 
 const specialAbilityKindShortLabels: Record<SpecialAbilityKind, string> = {
-  positive: "青",
-  negative: "赤",
-  elite: "上",
-  gold: "金",
+  positive: "N",
+  negative: "NEG",
+  elite: "R",
+  gold: "SR",
 };
 
 const filterOptions: ReadonlyArray<{
