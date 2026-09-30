@@ -72,8 +72,7 @@ export function playerMatchesEventTrigger(
   ) {
     return false;
   }
-  const requiredSpecialAbilityIds =
-    trigger.requiredSpecialAbilityIds ?? [];
+  const requiredSpecialAbilityIds = trigger.requiredSpecialAbilityIds ?? [];
   if (
     trigger.minimumRequiredSpecialAbilityCount !== undefined &&
     requiredSpecialAbilityIds.length === 0
@@ -85,11 +84,12 @@ export function playerMatchesEventTrigger(
     const minimumRequired =
       trigger.minimumRequiredSpecialAbilityCount ??
       requiredSpecialAbilityIds.length;
-    const ownedRequiredCount = requiredSpecialAbilityIds.reduce(
-      (count, abilityId) =>
-        count + (ownedSpecialAbilityIds.has(abilityId) ? 1 : 0),
-      0,
-    );
+    let ownedRequiredCount = 0;
+    for (const abilityId of requiredSpecialAbilityIds) {
+      if (ownedSpecialAbilityIds.has(abilityId)) {
+        ownedRequiredCount += 1;
+      }
+    }
     if (ownedRequiredCount < minimumRequired) {
       return false;
     }
