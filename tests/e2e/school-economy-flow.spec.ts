@@ -130,7 +130,7 @@ for (const width of [320, 360, 390, 414, 480] as const) {
       name: "運営メニュー",
       exact: true,
     });
-    await expect(management.getByRole("tab")).toHaveCount(2);
+    await expect(management.getByRole("tab")).toHaveCount(3);
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expect(page.getByText("4候補")).toBeVisible();
@@ -139,6 +139,13 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     if (width <= 360) {
       await expectCoachGridAboveNavigation(page);
     }
+
+    await management.getByRole("tab", { name: "強化予算" }).click();
+    await expect(
+      page.getByRole("heading", { name: "年間強化予算" }),
+    ).toBeVisible();
+    await expect(page.locator(".school-investment-card")).toHaveCount(4);
+    await expectSchoolNoHorizontalOverflow(page);
 
     await primary.getByRole("tab", { name: "記録" }).click();
     const recordTabs = page.getByRole("tablist", { name: "学校記録メニュー" });
