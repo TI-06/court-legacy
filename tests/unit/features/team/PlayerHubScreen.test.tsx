@@ -300,10 +300,10 @@ describe("PlayerHubScreen", () => {
     const summary = within(row).getByLabelText(
       `${player.lastName} ${player.firstName} 特殊能力サマリー`,
     );
-    expect(within(summary).getByText("青1")).toBeVisible();
-    expect(within(summary).getByText("赤1")).toBeVisible();
-    expect(within(summary).getByText("上1")).toBeVisible();
-    expect(within(summary).getByText("金1")).toBeVisible();
+    expect(within(summary).getByText("N1")).toBeVisible();
+    expect(within(summary).getByText("NEG1")).toBeVisible();
+    expect(within(summary).getByText("R1")).toBeVisible();
+    expect(within(summary).getByText("SR1")).toBeVisible();
     expect(within(summary).getByText("コツ2")).toBeVisible();
 
     fireEvent.click(detailButton);
@@ -321,10 +321,10 @@ describe("PlayerHubScreen", () => {
     const gold = within(abilities)
       .getByText("コートの頭脳")
       .closest("article")!;
-    expect(within(positive).getByText("青特")).toBeVisible();
-    expect(within(negative).getByText("赤特")).toBeVisible();
-    expect(within(elite).getByText("上位特能")).toBeVisible();
-    expect(within(gold).getByText("金特")).toBeVisible();
+    expect(within(positive).getByText("Normal")).toBeVisible();
+    expect(within(negative).getByText("Negative")).toBeVisible();
+    expect(within(elite).getByText("Rare")).toBeVisible();
+    expect(within(gold).getByText("Super Rare")).toBeVisible();
 
     const tips = screen.getByRole("region", { name: "特殊能力のコツ" });
     expect(within(tips).getByText("読みブロック○")).toBeVisible();
