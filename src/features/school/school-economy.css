@@ -108,7 +108,9 @@
 }
 
 .school-investment-card__heading strong {
+  color: var(--game-text, #f4f7fb);
   font-size: 0.76rem;
+  font-weight: 900;
 }
 
 .school-investment-card__heading span {
@@ -160,8 +162,9 @@
 
 .school-investment-options small {
   overflow: hidden;
-  color: var(--game-text-muted, #a9b8ca);
+  color: #c4d7e6;
   font-size: 0.54rem;
+  font-weight: 700;
   line-height: 1.25;
   text-overflow: ellipsis;
 }
@@ -178,7 +181,15 @@
 }
 
 .school-investment-options button:disabled {
-  opacity: 0.52;
+  opacity: 0.7;
+}
+
+.school-investment-options button[aria-pressed="true"]:disabled {
+  opacity: 1;
+}
+
+.school-investment-card--locked .school-investment-options button:disabled {
+  opacity: 0.58;
 }
 
 @media (max-width: 390px) {
