@@ -4,6 +4,7 @@ import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
 import type { PlayerOpportunityResponse } from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
+  AnnualInvestmentArea,
   AssistantCoachRank,
   AssistantCoachSpecialty,
 } from "../../src/domain/model/SchoolManagement";
@@ -96,6 +97,12 @@ const assistantCoachRankSchema = z.enum([
 ]);
 
 const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
+const annualInvestmentAreaSchema = z.enum([
+  "development",
+  "scouting",
+  "medical",
+  "analysis",
+]);
 const savedLineupSlotSchema = z.union([
   z.literal(1),
   z.literal(2),
@@ -279,6 +286,12 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
+    .object({
+      type: z.literal("annual-investment-upgrade"),
+      area: annualInvestmentAreaSchema,
+    })
+    .strict(),
+  z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
   z.object({ type: z.literal("acknowledge-training-camp-result") }).strict(),
@@ -352,6 +365,7 @@ export type GameAction =
       rank: AssistantCoachRank;
       specialty: AssistantCoachSpecialty | null;
     }
+  | { type: "annual-investment-upgrade"; area: AnnualInvestmentArea }
   | { type: "event-choice"; choiceId: string }
   | { type: "acknowledge-training-camp-result" };
 
