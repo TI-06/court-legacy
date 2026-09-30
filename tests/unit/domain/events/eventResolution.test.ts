@@ -72,7 +72,7 @@ const effectEvent: EventDefinition = {
       detail: "Normal特殊能力の直接習得と赤特付与を確認する。",
       effects: [
         {
-          type: "special-ability-tip",
+          type: "special-ability-learn",
           abilityId: "attack_course",
           amount: 2,
         },
@@ -127,7 +127,7 @@ describe("event resolution", () => {
     for (const event of gameData.events.values()) {
       for (const choice of event.choices) {
         for (const effect of choice.effects) {
-          if (effect.type !== "special-ability-tip") {
+          if (effect.type !== "special-ability-learn") {
             continue;
           }
           expect(
