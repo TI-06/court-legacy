@@ -967,7 +967,6 @@ export function PlayerHubScreen({
                 </p>
               )}
             </section>
-
           </div>
         ) : null}
 
