@@ -185,22 +185,16 @@ export function resolveTrainingCampSpecialAbilityProgress(
     changes.push(...removed.changes);
   }
 
-  const tipChances = getSpecialAbilityTipChances(current);
+  const acquisitionChance = getSpecialAbilityTipChances(current);
   if (
     random.int(1, 100) <=
-    Math.min(100, tipChances.progressPercent + bonusPercent)
+    Math.min(100, acquisitionChance.progressPercent + bonusPercent)
   ) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
-      const tipAmount =
-        random.int(1, 100) <= tipChances.doubleTipPercent ? 2 : 1;
-      const progressed = addSpecialAbilityTip(
-        current,
-        random.pick(candidates),
-        tipAmount,
-      );
-      current = progressed.player;
-      changes.push(...progressed.changes);
+      const learned = learnSpecialAbility(current, random.pick(candidates));
+      current = learned.player;
+      changes.push(...learned.changes);
     }
   }
 
