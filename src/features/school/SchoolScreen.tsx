@@ -215,7 +215,10 @@ export function SchoolScreen({
       )
     : null;
   const fundsHistory = [...state.schoolManagement.fundsHistory].reverse();
-  const assistantCoachContract = state.schoolManagement.assistantCoach;
+  const assistantCoachContract =
+    state.schoolManagement.assistantCoach?.contractYearIndex === state.yearIndex
+      ? state.schoolManagement.assistantCoach
+      : null;
   const assistantCoachContractOption = assistantCoachContract
     ? ASSISTANT_COACH_OPTIONS.find(
         (option) => option.rank === assistantCoachContract.rank,

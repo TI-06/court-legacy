@@ -67,4 +67,21 @@ describe("school staff screen", () => {
 
     expect(onContractAssistantCoach).toHaveBeenCalledWith("advanced", "attack");
   });
+
+  it("does not show an expired annual contract as active", () => {
+    const state = createDemoGame();
+    state.schoolManagement.assistantCoach = {
+      rank: "advanced",
+      specialty: "attack",
+      contractYearIndex: state.yearIndex - 1,
+    };
+
+    render(<SchoolScreen onUpgradeFacility={vi.fn()} state={state} />);
+    openCoachTab();
+
+    expect(screen.queryByTestId("assistant-coach-current")).toBeNull();
+    expect(screen.getByText("現在契約中のコーチはいません")).toBeVisible();
+    const advancedCoach = screen.getByTestId("assistant-coach-advanced");
+    expect(within(advancedCoach).getByText("詳細で契約")).toBeVisible();
+  });
 });
