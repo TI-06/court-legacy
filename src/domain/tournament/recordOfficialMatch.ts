@@ -3,6 +3,10 @@ import { selectResolvedPlayerConcerns } from "../dynamics/concernResolution";
 import { applyOfficialMatchDynamicsFeedback } from "../dynamics/officialMatchDynamics";
 import type { MatchState } from "../model/Match";
 import {
+  buildUserMatchPerformanceSnapshot,
+  type UserMatchPerformanceSnapshot,
+} from "../match/userMatchPerformance";
+import {
   appendNotification,
   buildConcernResolutionNotification,
 } from "../notifications/gameNotifications";
@@ -24,6 +28,7 @@ export interface RecordOfficialTournamentOutcomeInput {
   level: TournamentLevel;
   bracketMatchId: string;
   match: MatchState;
+  performance?: UserMatchPerformanceSnapshot;
 }
 
 function stageFor(
@@ -185,9 +190,12 @@ export function recordOfficialTournamentOutcome(
     : input.match.awaySchoolId;
   const userWon = winnerSchoolId === input.state.userSchoolId;
 
+  const performance =
+    input.performance ??
+    buildUserMatchPerformanceSnapshot(input.state, input.match);
   let next = applyOfficialMatchPlayerStats({
     state: input.state,
-    match: input.match,
+    performance,
     circuit: input.circuit,
     level: input.level,
     round: bracketMatch.round,

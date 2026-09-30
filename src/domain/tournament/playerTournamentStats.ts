@@ -1,6 +1,6 @@
 import type { GameState } from "../model/GameState";
-import type { MatchState } from "../model/Match";
 import type { PlayerId } from "../model/identifiers";
+import type { UserMatchPerformanceSnapshot } from "../match/userMatchPerformance";
 import type {
   TournamentCircuit,
   TournamentLevel,
@@ -43,7 +43,7 @@ export interface TournamentResultInput {
 
 export interface ApplyOfficialMatchPlayerStatsInput extends TournamentResultInput {
   state: GameState;
-  match: MatchState;
+  performance: UserMatchPerformanceSnapshot;
 }
 
 function losingResult(
@@ -130,64 +130,17 @@ export function improveBestTournamentResultId(
   return currentRank >= TOURNAMENT_RESULT_RANK[candidate] ? current : candidate;
 }
 
-function userSelection(state: GameState, match: MatchState) {
-  if (match.homeSchoolId === state.userSchoolId) {
-    return match.homeSelection;
-  }
-  if (match.awaySchoolId === state.userSchoolId) {
-    return match.awaySelection;
-  }
-  throw new Error("official match does not involve the user school");
-}
-
 export function applyOfficialMatchPlayerStats(
   input: ApplyOfficialMatchPlayerStatsInput,
 ): GameState {
-  const selection = userSelection(input.state, input.match);
   const participantIds = new Set<PlayerId>(
-    selection.rotation.map((assignment) => assignment.playerId),
+    input.performance.appearanceParticipantIds,
   );
-  if (selection.liberoPlayerId) {
-    participantIds.add(selection.liberoPlayerId);
-  }
-
-  const completedSetCount = input.match.sets.filter(
-    (set) => set.completed,
-  ).length;
-  const scoring = new Map<
-    PlayerId,
-    { points: number; blocks: number; serviceAces: number }
-  >();
-
-  for (const event of input.match.eventLog) {
-    if (
-      event.type !== "point" ||
-      event.winnerSchoolId !== input.state.userSchoolId ||
-      !event.actorPlayerId
-    ) {
-      continue;
-    }
-    const player = input.state.players[event.actorPlayerId];
-    if (!player || player.career.schoolId !== input.state.userSchoolId) {
-      continue;
-    }
-    const totals = scoring.get(player.id) ?? {
-      points: 0,
-      blocks: 0,
-      serviceAces: 0,
-    };
-    totals.points += 1;
-    if (event.detailCode === "point.block") {
-      totals.blocks += 1;
-    }
-    if (event.detailCode === "point.serve-ace") {
-      totals.serviceAces += 1;
-    }
-    scoring.set(player.id, totals);
-  }
-
   const resultId = tournamentResultIdForMatch(input);
-  const affectedIds = new Set<PlayerId>([...participantIds, ...scoring.keys()]);
+  const scoringIds = [...input.performance.players.entries()]
+    .filter(([, stats]) => stats.points > 0)
+    .map(([playerId]) => playerId);
+  const affectedIds = new Set<PlayerId>([...participantIds, ...scoringIds]);
   const players = { ...input.state.players };
 
   for (const playerId of affectedIds) {
@@ -196,21 +149,18 @@ export function applyOfficialMatchPlayerStats(
       continue;
     }
     const participated = participantIds.has(playerId);
-    const totals = scoring.get(playerId) ?? {
-      points: 0,
-      blocks: 0,
-      serviceAces: 0,
-    };
+    const totals = input.performance.players.get(playerId);
     players[playerId] = {
       ...player,
       career: {
         ...player.career,
         appearances: player.career.appearances + (participated ? 1 : 0),
         setsPlayed:
-          player.career.setsPlayed + (participated ? completedSetCount : 0),
-        points: player.career.points + totals.points,
-        blocks: player.career.blocks + totals.blocks,
-        serviceAces: player.career.serviceAces + totals.serviceAces,
+          player.career.setsPlayed +
+          (participated ? input.performance.completedSetCount : 0),
+        points: player.career.points + (totals?.points ?? 0),
+        blocks: player.career.blocks + (totals?.blockPoints ?? 0),
+        serviceAces: player.career.serviceAces + (totals?.serviceAces ?? 0),
         bestTournamentResultId: participated
           ? improveBestTournamentResultId(
               player.career.bestTournamentResultId,
