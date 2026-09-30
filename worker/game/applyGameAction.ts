@@ -23,6 +23,10 @@ import {
   MatchCommandValidationError,
 } from "../../src/domain/match/applyMatchCommand";
 import {
+  buildUserMatchPerformanceSnapshot,
+  type UserMatchPerformanceSnapshot,
+} from "../../src/domain/match/userMatchPerformance";
+import {
   decideCpuCoachCommand,
   type CpuCoachPublicView,
 } from "../../src/domain/match/cpuCoachPolicy";
@@ -185,7 +189,7 @@ function applyCompletedSoloMatchExperience(
   state: GameState,
   strengthState: GameState,
   match: SimulateMatchResult["match"],
-): GameState {
+): { state: GameState; performance: UserMatchPerformanceSnapshot } {
   const userIsHome = match.homeSchoolId === state.userSchoolId;
   const userSelection = userIsHome ? match.homeSelection : match.awaySelection;
   const opponentSelection = userIsHome
@@ -199,13 +203,16 @@ function applyCompletedSoloMatchExperience(
     strengthState,
     opponentSelection,
   );
-  return applyUserMatchExperience({
-    state,
-    data: gameData,
-    match,
-    selection: userSelection,
-    strongerOpponent: opponentStrength > userStrength + 2,
-  });
+  const performance = buildUserMatchPerformanceSnapshot(state, match);
+  return {
+    state: applyUserMatchExperience({
+      state,
+      data: gameData,
+      performance,
+      strongerOpponent: opponentStrength > userStrength + 2,
+    }),
+    performance,
+  };
 }
 
 const matchGrowthAbilityLabels = {
@@ -785,11 +792,12 @@ function applyPracticeMatch(
       randomCursor: simulation.match.randomCursor,
       activeMatch: simulation.match,
     };
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const matchExperience = applyCompletedSoloMatchExperience(
       matchState,
       matchState,
       simulation.match,
     );
+    const experiencedState = matchExperience.state;
     const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
@@ -895,11 +903,12 @@ function applyPracticeMatchCommand(
       };
     }
 
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const matchExperience = applyCompletedSoloMatchExperience(
       resumedState,
       resumedState,
       simulation.match,
     );
+    const experiencedState = matchExperience.state;
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,
@@ -1186,11 +1195,12 @@ function applyOfficialMatchCommand(
       };
     }
 
-    const experiencedState = applyCompletedSoloMatchExperience(
+    const matchExperience = applyCompletedSoloMatchExperience(
       resumedState,
       context.state,
       simulation.match,
     );
+    const experiencedState = matchExperience.state;
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,
@@ -1205,6 +1215,7 @@ function applyOfficialMatchCommand(
       level: due.level,
       bracketMatchId: due.match.id,
       match: simulation.match,
+      performance: matchExperience.performance,
     });
     const progressed = advanceOfficialTournamentsThroughWeek(recorded);
     return {
