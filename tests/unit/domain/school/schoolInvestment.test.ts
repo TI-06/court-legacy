@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGame } from "../../../src/app/createInitialGame";
+import { createInitialGame } from "../../../../src/app/createInitialGame";
 import {
   activeSchoolInvestmentPlan,
   evaluateSchoolInvestment,
@@ -7,7 +7,7 @@ import {
   schoolInvestmentTrainingModifiers,
   scoutingInvestmentAppealBonus,
   trainingCampInvestmentModifier,
-} from "../../../src/domain/school/schoolInvestment";
+} from "../../../../src/domain/school/schoolInvestment";
 
 function stateFixture() {
   const state = createInitialGame({
