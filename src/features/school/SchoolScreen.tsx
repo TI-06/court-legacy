@@ -20,6 +20,7 @@ import { reputationGrade } from "../../domain/school/reputation";
 import {
   activeSchoolInvestmentPlan,
   evaluateSchoolInvestment,
+  schoolInvestmentUnlock,
   SCHOOL_INVESTMENT_COSTS,
   type SchoolInvestmentCategory,
   type SchoolInvestmentOption,
@@ -643,56 +644,80 @@ export function SchoolScreen({
                     [
                       "regional",
                       "地方重点",
-                      "有望選手の発見率を強化",
+                      "検索候補 +1・有望選手率UP",
                       SCHOOL_INVESTMENT_COSTS.scouting.regional,
                     ],
                     [
                       "national",
                       "全国重点",
-                      "上位候補の発見率をさらに強化",
+                      "検索候補 +2・上位候補率UP",
                       SCHOOL_INVESTMENT_COSTS.scouting.national,
                     ],
                   ] as const,
                   selected: investmentPlan?.scoutingTier,
                 },
-              ].map((group) => (
-                <section
-                  className="school-investment-card"
-                  key={group.category}
-                >
-                  <div className="school-investment-card__heading">
-                    <strong>{group.title}</strong>
-                    <span>{group.selected ? "設定済み" : "未設定"}</span>
-                  </div>
-                  <div className="school-investment-options">
-                    {group.options.map(([option, label, effect, cost]) => {
-                      const evaluation = evaluateSchoolInvestment(
-                        state,
-                        group.category,
-                        option,
-                      );
-                      const selected = group.selected === option;
-                      return (
-                        <button
-                          aria-pressed={selected}
-                          disabled={!evaluation.allowed || selected}
-                          key={option}
-                          onClick={() =>
-                            onPurchaseInvestment?.(group.category, option)
-                          }
-                          type="button"
-                        >
-                          <span>
-                            <strong>{label}</strong>
-                            <small>{effect}</small>
-                          </span>
-                          <b>{selected ? "適用中" : cost}</b>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+              ].map((group) => {
+                const unlock = schoolInvestmentUnlock(state, group.category);
+                const requiredFacility = FACILITY_DEFINITIONS.find(
+                  (definition) => definition.key === unlock.facility,
+                );
+                return (
+                  <section
+                    className={
+                      unlock.unlocked
+                        ? "school-investment-card"
+                        : "school-investment-card school-investment-card--locked"
+                    }
+                    key={group.category}
+                  >
+                    <div className="school-investment-card__heading">
+                      <strong>{group.title}</strong>
+                      <span>
+                        {group.selected
+                          ? "設定済み"
+                          : unlock.unlocked
+                            ? "選択可能"
+                            : `${compactFacilityName(
+                                requiredFacility?.name ?? "対象施設",
+                              )} Lv.${unlock.currentLevel}/${unlock.requiredLevel}`}
+                      </span>
+                    </div>
+                    <div className="school-investment-options">
+                      {group.options.map(([option, label, effect, cost]) => {
+                        const evaluation = evaluateSchoolInvestment(
+                          state,
+                          group.category,
+                          option,
+                        );
+                        const selected = group.selected === option;
+                        return (
+                          <button
+                            aria-pressed={selected}
+                            disabled={!evaluation.allowed || selected}
+                            key={option}
+                            onClick={() =>
+                              onPurchaseInvestment?.(group.category, option)
+                            }
+                            type="button"
+                          >
+                            <span>
+                              <strong>{label}</strong>
+                              <small>
+                                {unlock.unlocked
+                                  ? effect
+                                  : `${compactFacilityName(
+                                      requiredFacility?.name ?? "対象施設",
+                                    )} Lv.50で解禁`}
+                              </small>
+                            </span>
+                            <b>{selected ? "適用中" : cost}</b>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
           </section>
         </section>
