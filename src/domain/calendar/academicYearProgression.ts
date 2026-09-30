@@ -449,6 +449,14 @@ export function advanceAcademicYear(
     schoolManagement: {
       ...seasonRewardState.schoolManagement,
       assistantCoach: null,
+      annualInvestment: {
+        yearIndex: state.yearIndex + 1,
+        trainingLevel: 0,
+        specialistLevel: 0,
+        campLevel: 0,
+        scoutingLevel: 0,
+        specialistFocus: null,
+      },
     },
     history: {
       ...state.history,
