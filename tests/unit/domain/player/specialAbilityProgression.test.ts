@@ -140,20 +140,18 @@ describe("special ability progression", () => {
     });
   });
 
-  it("can award a position-relevant tip during training camp", () => {
+  it("can directly learn a position-relevant Normal ability during training camp", () => {
     const base = createPlayer();
-    const random = new SequenceRandom([0.01, 0.5, 0]);
+    const random = new SequenceRandom([0.99, 0.01, 0]);
 
     const resolved = resolveTrainingCampSpecialAbilityProgress(base, random);
 
     expect(resolved.changes).toHaveLength(1);
     expect(resolved.changes[0]).toMatchObject({
-      kind: "tip",
-      tipLevel: 1,
+      kind: "learned",
     });
-    expect(
-      Object.values(resolved.player.specialAbilityTipLevels ?? {}),
-    ).toContain(1);
+    expect(resolved.player.specialAbilityIds).toHaveLength(1);
+    expect(resolved.player.specialAbilityTipLevels).toEqual({});
   });
 
   it("can improve a negative ability during training camp", () => {
