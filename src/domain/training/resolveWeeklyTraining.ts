@@ -14,6 +14,7 @@ import {
 } from "../player/specialAbilityDevelopmentModifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
+import { annualInvestmentEffects } from "../school/annualSchoolInvestment";
 import type {
   AbilityKey,
   IndividualTrainingInstructionDefinition,
@@ -473,8 +474,13 @@ export function resolveWeeklyTraining(
     if (instruction.id === "instruction.rest") {
       const drift = getWeeklyConditionDrift(input.random);
       const recovery = getSpecialAbilityRecoveryValues(original);
+      const investment = annualInvestmentEffects(input.state);
       const nextCondition = clampState(
-        original.condition + 25 + recovery.restConditionBonus + drift,
+        original.condition +
+          25 +
+          recovery.restConditionBonus +
+          investment.medicalRestConditionBonus +
+          drift,
       );
       log.conditionChange = nextCondition - original.condition;
       players[id] = { ...original, condition: nextCondition };
@@ -509,9 +515,16 @@ export function resolveWeeklyTraining(
           ...teamMenuGrowthModifiers,
           ...socialModifiers,
         ];
+    const investment = annualInvestmentEffects(input.state);
+    const baseActivity = activityFromInstruction(instruction);
     const updated = applyActivity(
       original,
-      activityFromInstruction(instruction),
+      {
+        ...baseActivity,
+        injuryRisk: Math.round(
+          (baseActivity.injuryRisk * investment.medicalInjuryRiskPercent) / 100,
+        ),
+      },
       validated.school,
       input.data,
       input.random,
