@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
+import type { GameState } from "../../../../src/domain/model/GameState";
 import {
   ANNUAL_INVESTMENT_DEFINITIONS,
   activeAnnualInvestments,
@@ -10,7 +11,7 @@ import {
   purchaseAnnualInvestment,
 } from "../../../../src/domain/school/annualInvestment";
 
-function maxedState() {
+function maxedState(): GameState {
   const state = createDemoGame();
   const school = state.schools[state.userSchoolId]!;
   return {
@@ -20,9 +21,16 @@ function maxedState() {
       [school.id]: {
         ...school,
         funds: 10000,
-        facilities: Object.fromEntries(
-          Object.keys(school.facilities).map((key) => [key, 50]),
-        ) as typeof school.facilities,
+        facilities: {
+          gym: 50,
+          trainingRoom: 50,
+          analysisRoom: 50,
+          recoveryRoom: 50,
+          dormitory: 50,
+          scoutingNetwork: 50,
+          alumniAssociation: 50,
+          studyRoom: 50,
+        },
       },
     },
   };
