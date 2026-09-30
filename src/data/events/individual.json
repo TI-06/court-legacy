@@ -163,7 +163,7 @@
             "amount": 1
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "serve_stable",
             "amount": 1
           },
@@ -328,7 +328,7 @@
             "amount": 3
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "mental_clutch",
             "amount": 1
           },
