@@ -54,7 +54,9 @@ function activePlayerIds(selection: TeamSelection): PlayerId[] {
   return [...new Set(ids)];
 }
 
-function emptyPlayerPerformance(playerId: PlayerId): UserMatchPlayerPerformance {
+function emptyPlayerPerformance(
+  playerId: PlayerId,
+): UserMatchPlayerPerformance {
   return {
     playerId,
     points: 0,
@@ -148,10 +150,7 @@ export function buildUserMatchPerformanceSnapshot(
       actor.successfulDigs += 1;
     }
 
-    if (
-      event.type !== "point" ||
-      event.winnerSchoolId !== state.userSchoolId
-    ) {
+    if (event.type !== "point" || event.winnerSchoolId !== state.userSchoolId) {
       continue;
     }
 
