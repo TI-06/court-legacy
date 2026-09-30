@@ -7,7 +7,9 @@ import type {
   UserMatchPerformanceSnapshot,
   UserMatchPlayerPerformance,
 } from "../match/userMatchPerformance";
-import type { MatchNormalAbilityContext } from "./matchSpecialAbilityAcquisition";
+import type {
+  MatchNormalAbilityContext,
+} from "./matchSpecialAbilityAcquisition";
 import {
   applySpecialAbilityAwakening,
   getSpecialAbilityAwakeningDefinition,
