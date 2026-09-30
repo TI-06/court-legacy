@@ -9,6 +9,7 @@ export type RecruitmentAction = "visit" | "recommendation" | "commit";
 export type RecruitmentInterestLevel = "low" | "medium" | "high" | "ready";
 
 export const RECRUITMENT_COMMIT_THRESHOLD = 60;
+export const RECRUITMENT_COMMIT_LIMIT = 7;
 export const RECRUITMENT_VISIT_LIMIT = 4;
 export const RECRUITMENT_RECOMMENDATION_LIMIT = 1;
 export const RECRUITMENT_VISIT_BONUS = 12;
