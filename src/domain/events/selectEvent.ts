@@ -7,6 +7,10 @@ import type { EventDefinition } from "../validation/gameDataSchema";
 import { weightedChoice } from "../random/weightedChoice";
 import { characterEventWeightMultiplier } from "./characterEventWeight";
 import { isEventEligibleForActors } from "./eventEligibility";
+import {
+  getSpecialAbilityAwakeningDefinition,
+  type SpecialAbilityAwakeningRarity,
+} from "../player/specialAbilityAwakening";
 
 interface EventCandidate {
   event: EventDefinition;
@@ -185,6 +189,9 @@ function normalCandidates(
     if (requiredTag && !event.tags.includes(requiredTag)) {
       continue;
     }
+    if (!requiredTag && getSpecialAbilityAwakeningDefinition(event)) {
+      continue;
+    }
     for (const actorPlayerIds of combinations(playerIds, event.actorCount)) {
       const primaryActor = actorPlayerIds[0];
       if (avoidRecentActors && primaryActor && recentActors.has(primaryActor)) {
@@ -201,6 +208,52 @@ function normalCandidates(
     }
   }
   return candidates;
+}
+
+function awakeningCandidates(
+  state: GameState,
+  data: GameDataRegistry,
+  rarity: SpecialAbilityAwakeningRarity,
+  avoidRecentActors: boolean,
+  followUpOnlyIds: ReadonlySet<string>,
+): EventCandidate[] {
+  const school = state.schools[state.userSchoolId];
+  if (!school) return [];
+
+  const recentActors = new Set(state.eventMemory.recentPrimaryActorPlayerIds);
+  const candidates: EventCandidate[] = [];
+  for (const event of data.events.values()) {
+    const awakening = getSpecialAbilityAwakeningDefinition(event);
+    if (!awakening || awakening.rarity !== rarity) continue;
+    if (followUpOnlyIds.has(event.id)) continue;
+
+    for (const playerId of school.playerIds) {
+      if (!state.players[playerId]) continue;
+      if (avoidRecentActors && recentActors.has(playerId)) continue;
+      if (!isEventEligibleForActors(state, event, [playerId])) continue;
+      candidates.push({
+        event,
+        actorPlayerIds: [playerId],
+        weight: eventSelectionWeight(state, data, event, [playerId]),
+      });
+    }
+  }
+  return candidates;
+}
+
+function selectWeightedCandidate(
+  candidates: readonly EventCandidate[],
+  random: RandomSource,
+): EventCandidate | null {
+  return (
+    weightedChoice(
+      candidates.map((candidate) => ({
+        value: candidate,
+        weight: candidate.weight,
+      })),
+      random,
+    ) ?? null
+  );
 }
 
 export function selectNextEvent(
@@ -252,6 +305,57 @@ export function selectNextEvent(
   }
 
   const followUpOnlyIds = collectFollowUpOnlyEventIds(data);
+
+  if (!options.requiredTag) {
+    const awakeningPriority = [
+      { rarity: "super-rare" as const, chance: 50 },
+      { rarity: "rare" as const, chance: 40 },
+    ];
+    for (const priority of awakeningPriority) {
+      let awakening = awakeningCandidates(
+        state,
+        data,
+        priority.rarity,
+        true,
+        followUpOnlyIds,
+      );
+      if (awakening.length === 0) {
+        awakening = awakeningCandidates(
+          state,
+          data,
+          priority.rarity,
+          false,
+          followUpOnlyIds,
+        );
+      }
+      if (
+        awakening.length > 0 &&
+        random.int(1, 100) <= priority.chance
+      ) {
+        const selectedAwakening = selectWeightedCandidate(awakening, random);
+        if (selectedAwakening) {
+          const pendingEvent = createPendingEvent(
+            state,
+            selectedAwakening.event,
+            selectedAwakening.actorPlayerIds,
+          );
+          return {
+            state: {
+              ...state,
+              randomCursor: random.cursor,
+              pendingEvent,
+              eventMemory: {
+                ...state.eventMemory,
+                scheduledFollowUps: prunedFollowUps,
+              },
+            },
+            pendingEvent,
+          };
+        }
+      }
+    }
+  }
+
   let candidates = normalCandidates(
     state,
     data,
@@ -282,13 +386,7 @@ export function selectNextEvent(
     };
   }
 
-  const selected = weightedChoice(
-    candidates.map((candidate) => ({
-      value: candidate,
-      weight: candidate.weight,
-    })),
-    random,
-  );
+  const selected = selectWeightedCandidate(candidates, random);
   if (!selected) {
     return { state, pendingEvent: null };
   }
