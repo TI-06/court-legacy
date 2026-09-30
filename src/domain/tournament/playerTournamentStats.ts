@@ -140,10 +140,7 @@ export function applyOfficialMatchPlayerStats(
   const scoringIds = [...input.performance.players.entries()]
     .filter(([, stats]) => stats.points > 0)
     .map(([playerId]) => playerId);
-  const affectedIds = new Set<PlayerId>([
-    ...participantIds,
-    ...scoringIds,
-  ]);
+  const affectedIds = new Set<PlayerId>([...participantIds, ...scoringIds]);
   const players = { ...input.state.players };
 
   for (const playerId of affectedIds) {
@@ -163,8 +160,7 @@ export function applyOfficialMatchPlayerStats(
           (participated ? input.performance.completedSetCount : 0),
         points: player.career.points + (totals?.points ?? 0),
         blocks: player.career.blocks + (totals?.blockPoints ?? 0),
-        serviceAces:
-          player.career.serviceAces + (totals?.serviceAces ?? 0),
+        serviceAces: player.career.serviceAces + (totals?.serviceAces ?? 0),
         bestTournamentResultId: participated
           ? improveBestTournamentResultId(
               player.career.bestTournamentResultId,
