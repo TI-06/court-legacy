@@ -147,12 +147,10 @@ function performanceScore(stats: UserMatchPlayerPerformance): number {
 export function applyMatchSpecialAbilityAwakening(
   input: ApplyMatchSpecialAbilityAwakeningInput,
 ): ApplyMatchSpecialAbilityAwakeningResult {
-  const catalog = [...input.data.events.values()]
-    .map(getSpecialAbilityAwakeningDefinition)
-    .filter(
-      (awakening): awakening is SpecialAbilityAwakeningDefinition =>
-        awakening !== null,
-    );
+  const catalog = [...input.data.events.values()].flatMap((event) => {
+    const awakening = getSpecialAbilityAwakeningDefinition(event);
+    return awakening ? [awakening] : [];
+  });
   const rankedPlayers = [...input.performance.players.values()].sort(
     (left, right) =>
       performanceScore(right) - performanceScore(left) ||
