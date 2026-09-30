@@ -158,9 +158,10 @@ function averageAbility(player: Player): number {
   );
 }
 
-const SPECIAL_ABILITY_KIND_BY_ID = new Map(
-  SPECIAL_ABILITIES.map((ability) => [ability.id, ability.kind] as const),
-);
+const SPECIAL_ABILITY_KIND_BY_ID: ReadonlyMap<string, SpecialAbilityKind> =
+  new Map(
+    SPECIAL_ABILITIES.map((ability) => [ability.id, ability.kind] as const),
+  );
 
 function userSpecialAbilityMetrics(
   players: readonly Player[],
