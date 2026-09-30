@@ -1170,9 +1170,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
-  const purchaseAnnualInvestmentFromUi = async (
-    kind: AnnualInvestmentKind,
-  ) => {
+  const purchaseAnnualInvestmentFromUi = async (kind: AnnualInvestmentKind) => {
     await cloudSession.runAction(
       { type: "annual-investment", kind },
       "強化投資を反映しています…",

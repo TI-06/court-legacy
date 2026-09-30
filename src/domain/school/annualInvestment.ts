@@ -11,36 +11,40 @@ export interface AnnualInvestmentDefinition {
   effectLabel: string;
 }
 
-export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] = [
-  {
-    kind: "training",
-    name: "育成強化プログラム",
-    cost: 600,
-    description: "年間の練習環境へ追加投資し、通常練習の成長効率を高めます。",
-    effectLabel: "通常練習の成長 +8%",
-  },
-  {
-    kind: "specialist-coach",
-    name: "専門コーチ招へい",
-    cost: 700,
-    description: "外部の専門指導者を定期招へいし、年間の育成効率を底上げします。",
-    effectLabel: "通常練習の成長 +5%",
-  },
-  {
-    kind: "camp",
-    name: "強化合宿グレードUP",
-    cost: 900,
-    description: "宿泊・設備・対戦環境を強化し、実施する強化合宿の効果を高めます。",
-    effectLabel: "強化合宿の成長 +20%",
-  },
-  {
-    kind: "scouting",
-    name: "全国スカウト投資",
-    cost: 1000,
-    description: "映像分析・遠征・情報網へ年間投資し、検索時の候補数を増やします。",
-    effectLabel: "毎回の検索候補 +1人",
-  },
-] as const;
+export const ANNUAL_INVESTMENT_DEFINITIONS: readonly AnnualInvestmentDefinition[] =
+  [
+    {
+      kind: "training",
+      name: "育成強化プログラム",
+      cost: 600,
+      description: "年間の練習環境へ追加投資し、通常練習の成長効率を高めます。",
+      effectLabel: "通常練習の成長 +8%",
+    },
+    {
+      kind: "specialist-coach",
+      name: "専門コーチ招へい",
+      cost: 700,
+      description:
+        "外部の専門指導者を定期招へいし、年間の育成効率を底上げします。",
+      effectLabel: "通常練習の成長 +5%",
+    },
+    {
+      kind: "camp",
+      name: "強化合宿グレードUP",
+      cost: 900,
+      description:
+        "宿泊・設備・対戦環境を強化し、実施する強化合宿の効果を高めます。",
+      effectLabel: "強化合宿の成長 +20%",
+    },
+    {
+      kind: "scouting",
+      name: "全国スカウト投資",
+      cost: 1000,
+      description:
+        "映像分析・遠征・情報網へ年間投資し、検索時の候補数を増やします。",
+      effectLabel: "毎回の検索候補 +1人",
+    },
+  ] as const;
 
 export function annualInvestmentsUnlocked(state: GameState): boolean {
   const school = state.schools[state.userSchoolId];

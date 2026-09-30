@@ -51,7 +51,9 @@ interface SchoolScreenProps {
     specialty: AssistantCoachSpecialty | null,
   ) => void;
   onOpenScouting?: () => void;
-  onPurchaseAnnualInvestment?: (kind: AnnualInvestmentKind) => void | Promise<unknown>;
+  onPurchaseAnnualInvestment?: (
+    kind: AnnualInvestmentKind,
+  ) => void | Promise<unknown>;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {

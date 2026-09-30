@@ -20,10 +20,7 @@ export type AssistantCoachRank =
 export type AssistantCoachSpecialty = "attack" | "defense" | "physical";
 
 export type AnnualInvestmentKind =
-  | "training"
-  | "specialist-coach"
-  | "camp"
-  | "scouting";
+  "training" | "specialist-coach" | "camp" | "scouting";
 
 export interface AnnualInvestmentState {
   yearIndex: number;

@@ -1530,7 +1530,10 @@ function applyAnnualInvestment(
     (entry) => entry.kind === action.kind,
   );
   if (!definition) {
-    return conflict("annual_investment_invalid", "強化投資の内容を確認してください");
+    return conflict(
+      "annual_investment_invalid",
+      "強化投資の内容を確認してください",
+    );
   }
   if (!annualInvestmentsUnlocked(state)) {
     return conflict(
