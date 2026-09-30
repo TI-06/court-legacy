@@ -14,6 +14,7 @@ export type GrowthModifierCode =
   | "fatigue"
   | "condition"
   | "shop-training-boost"
+  | "annual-development-investment"
   | "morale"
   | "trust"
   | "assistant-coach"
@@ -34,6 +35,7 @@ export interface GrowthModifier {
 export type AdditionalGrowthModifier = GrowthModifier & {
   code:
     | "shop-training-boost"
+    | "annual-development-investment"
     | "morale"
     | "trust"
     | "assistant-coach"
