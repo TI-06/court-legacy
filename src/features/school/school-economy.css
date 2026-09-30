@@ -85,3 +85,103 @@
 .funds-ledger__amount--negative {
   color: #ff9a95;
 }
+
+
+/* Post-max facility money sink: annual strengthening investments. */
+.school-investment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.school-investment-card {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 6px;
+  background: #f7fafb;
+  border: 1px solid #d6e2e7;
+  border-radius: 12px;
+}
+
+.school-investment-card--active {
+  background: #eef7f3;
+  border-color: #9bc8b3;
+}
+
+.school-investment-card__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-investment-card__heading strong {
+  color: #203f4b;
+  font-size: 0.76rem;
+}
+
+.school-investment-card__heading span {
+  flex: 0 0 auto;
+  color: #795a18;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.school-investment-card p {
+  margin: 0;
+  color: #6a7d86;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.school-investment-card > b {
+  color: #245f69;
+  font-size: 0.66rem;
+}
+
+.school-investment-card button {
+  min-height: 38px;
+  margin-top: 2px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #1f6677, #174f60);
+  border: 0;
+  border-radius: 9px;
+}
+
+.school-investment-card button:disabled {
+  color: #7d8b92;
+  background: #e4eaed;
+}
+
+@media (max-width: 600px) {
+  .school-investment-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .school-investment-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 8px 9px;
+    gap: 3px 8px;
+  }
+
+  .school-investment-card__heading,
+  .school-investment-card p,
+  .school-investment-card > b {
+    grid-column: 1;
+  }
+
+  .school-investment-card button {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    min-width: 92px;
+    max-width: 112px;
+    padding: 0 8px;
+  }
+}
