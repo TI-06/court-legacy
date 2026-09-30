@@ -473,6 +473,7 @@ const fundsLedgerKindSchema = z.enum([
   "shop-grant",
   "facility-upgrade",
   "assistant-coach",
+  "annual-investment",
   "scouting-research",
   "camp",
   "travel",
@@ -494,6 +495,15 @@ const fundsLedgerEntrySchema = z
 const schoolManagementSchema = z
   .object({
     assistantCoach: assistantCoachContractSchema.nullable(),
+    annualInvestments: z
+      .object({
+        yearIndex: z.number().int().positive(),
+        kinds: z
+          .array(z.enum(["training", "specialist-coach", "camp", "scouting"]))
+          .max(4),
+      })
+      .strict()
+      .optional(),
     fundsHistory: z.array(fundsLedgerEntrySchema).max(50),
     lastAnnualBudgetYearIndex: z.number().int().positive(),
   })
