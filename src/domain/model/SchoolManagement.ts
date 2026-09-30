@@ -9,6 +9,7 @@ export type FundsLedgerKind =
   | "shop-grant"
   | "facility-upgrade"
   | "assistant-coach"
+  | "annual-investment"
   | "scouting-research"
   | "camp"
   | "travel";
@@ -17,6 +18,23 @@ export type AssistantCoachRank =
   "beginner" | "intermediate" | "advanced" | "master";
 
 export type AssistantCoachSpecialty = "attack" | "defense" | "physical";
+
+export type AnnualInvestmentArea =
+  | "training"
+  | "specialist"
+  | "camp"
+  | "scouting";
+
+export type AnnualInvestmentLevel = 0 | 1 | 2 | 3;
+
+export interface AnnualInvestmentPlan {
+  yearIndex: number;
+  trainingLevel: AnnualInvestmentLevel;
+  specialistLevel: AnnualInvestmentLevel;
+  campLevel: AnnualInvestmentLevel;
+  scoutingLevel: AnnualInvestmentLevel;
+  specialistFocus: AssistantCoachSpecialty | null;
+}
 
 export interface AssistantCoachContract {
   rank: AssistantCoachRank;
@@ -37,6 +55,7 @@ export interface FundsLedgerEntry {
 
 export interface SchoolManagementState {
   assistantCoach: AssistantCoachContract | null;
+  annualInvestment?: AnnualInvestmentPlan;
   fundsHistory: FundsLedgerEntry[];
   lastAnnualBudgetYearIndex: number;
 }
