@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type {
+  AnnualInvestmentKind,
   AssistantCoachRank,
   AssistantCoachSpecialty,
 } from "../../domain/model/SchoolManagement";
@@ -9,6 +10,11 @@ import {
   ASSISTANT_COACH_OPTIONS,
   evaluateAssistantCoachContract,
 } from "../../domain/school/assistantCoach";
+import {
+  ANNUAL_INVESTMENT_DEFINITIONS,
+  activeAnnualInvestments,
+  annualInvestmentsUnlocked,
+} from "../../domain/school/annualInvestment";
 import {
   FACILITY_DEFINITIONS,
   FACILITY_UPGRADE_LEVEL_OPTIONS,
@@ -45,6 +51,7 @@ interface SchoolScreenProps {
     specialty: AssistantCoachSpecialty | null,
   ) => void;
   onOpenScouting?: () => void;
+  onPurchaseAnnualInvestment?: (kind: AnnualInvestmentKind) => void | Promise<unknown>;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -129,6 +136,7 @@ export function SchoolScreen({
   onUpgradeFacility,
   onContractAssistantCoach,
   onOpenScouting,
+  onPurchaseAnnualInvestment,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
   const [managementView, setManagementView] = useState<SchoolManagementView>(
@@ -232,6 +240,8 @@ export function SchoolScreen({
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
+  const investmentsUnlocked = annualInvestmentsUnlocked(state);
+  const activeInvestments = new Set(activeAnnualInvestments(state));
 
   const confirmUpgrade = async () => {
     if (
@@ -346,6 +356,19 @@ export function SchoolScreen({
               設備
             </button>
             <button
+              aria-selected={managementView === "investments"}
+              className={
+                managementView === "investments"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("investments")}
+              role="tab"
+              type="button"
+            >
+              強化投資
+            </button>
+            <button
               aria-selected={managementView === "staff"}
               className={
                 managementView === "staff"
@@ -428,6 +451,67 @@ export function SchoolScreen({
                       詳細 ›
                     </span>
                   </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="investment-heading"
+            className="school-management-section"
+            hidden={managementView !== "investments"}
+          >
+            <div className="school-staff-command-heading">
+              <div>
+                <h4 id="investment-heading">年間強化投資</h4>
+                <small>
+                  {investmentsUnlocked
+                    ? "施設Lv.50後の資金運用"
+                    : "全施設Lv.50で解禁"}
+                </small>
+              </div>
+              <span>資金 {school.funds}</span>
+            </div>
+            <div className="school-investment-grid">
+              {ANNUAL_INVESTMENT_DEFINITIONS.map((investment) => {
+                const purchased = activeInvestments.has(investment.kind);
+                const affordable = school.funds >= investment.cost;
+                const disabled =
+                  !investmentsUnlocked ||
+                  purchased ||
+                  !affordable ||
+                  !onPurchaseAnnualInvestment;
+                return (
+                  <article
+                    className={
+                      purchased
+                        ? "school-investment-card school-investment-card--active"
+                        : "school-investment-card"
+                    }
+                    key={investment.kind}
+                  >
+                    <div className="school-investment-card__heading">
+                      <strong>{investment.name}</strong>
+                      <span>{investment.cost}</span>
+                    </div>
+                    <p>{investment.description}</p>
+                    <b>{investment.effectLabel}</b>
+                    <button
+                      disabled={disabled}
+                      onClick={() =>
+                        void onPurchaseAnnualInvestment?.(investment.kind)
+                      }
+                      type="button"
+                    >
+                      {purchased
+                        ? "今年度実施済み"
+                        : !investmentsUnlocked
+                          ? "全施設Lv.50で解禁"
+                          : affordable
+                            ? "投資する"
+                            : `あと${investment.cost - school.funds}必要`}
+                    </button>
+                  </article>
                 );
               })}
             </div>
