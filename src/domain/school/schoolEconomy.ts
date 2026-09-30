@@ -97,6 +97,7 @@ export function createInitialSchoolManagement(input: {
 }): SchoolManagementState {
   return {
     assistantCoach: null,
+    annualInvestments: undefined,
     lastAnnualBudgetYearIndex: input.academicYearIndex,
     fundsHistory: [
       {
