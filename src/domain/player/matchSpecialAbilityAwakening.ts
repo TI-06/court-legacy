@@ -7,9 +7,7 @@ import type {
   UserMatchPerformanceSnapshot,
   UserMatchPlayerPerformance,
 } from "../match/userMatchPerformance";
-import type {
-  MatchNormalAbilityContext,
-} from "./matchSpecialAbilityAcquisition";
+import type { MatchNormalAbilityContext } from "./matchSpecialAbilityAcquisition";
 import {
   applySpecialAbilityAwakening,
   getSpecialAbilityAwakeningDefinition,
@@ -172,9 +170,7 @@ export function applyMatchSpecialAbilityAwakening(
         .pick(candidates);
       const chance = awakeningChance(chosen.rarity, input.context);
       const roll = input.random
-        .fork(
-          `awakening-roll:${stats.playerId}:${chosen.targetAbilityId}`,
-        )
+        .fork(`awakening-roll:${stats.playerId}:${chosen.targetAbilityId}`)
         .int(1, 100);
       if (roll > chance) continue;
 
