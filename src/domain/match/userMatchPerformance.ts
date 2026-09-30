@@ -54,9 +54,7 @@ function activePlayerIds(selection: TeamSelection): PlayerId[] {
   return [...new Set(ids)];
 }
 
-function emptyPlayerPerformance(
-  playerId: PlayerId,
-): UserMatchPlayerPerformance {
+function emptyPlayerPerformance(playerId: PlayerId): UserMatchPlayerPerformance {
   return {
     playerId,
     points: 0,
