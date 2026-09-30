@@ -108,20 +108,16 @@ describe("event eligibility", () => {
     });
 
     expect(
-      isEventEligibleForActors(
-        state,
-        { ...partialEvent, actorCount: 1 },
-        [left],
-      ),
+      isEventEligibleForActors(state, { ...partialEvent, actorCount: 1 }, [
+        left,
+      ]),
     ).toBe(true);
 
     partialEvent.trigger.minimumRequiredSpecialAbilityCount = 2;
     expect(
-      isEventEligibleForActors(
-        state,
-        { ...partialEvent, actorCount: 1 },
-        [left],
-      ),
+      isEventEligibleForActors(state, { ...partialEvent, actorCount: 1 }, [
+        left,
+      ]),
     ).toBe(false);
   });
 
