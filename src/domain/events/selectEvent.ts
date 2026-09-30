@@ -328,10 +328,7 @@ export function selectNextEvent(
           followUpOnlyIds,
         );
       }
-      if (
-        awakening.length > 0 &&
-        random.int(1, 100) <= priority.chance
-      ) {
+      if (awakening.length > 0 && random.int(1, 100) <= priority.chance) {
         const selectedAwakening = selectWeightedCandidate(awakening, random);
         if (selectedAwakening) {
           const pendingEvent = createPendingEvent(
