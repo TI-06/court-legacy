@@ -5,7 +5,10 @@ import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingS
 import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
-import { scoutingInvestmentAppealBonus } from "../../src/domain/school/schoolInvestment";
+import {
+  scoutingInvestmentAppealBonus,
+  scoutingInvestmentExtraCandidateCount,
+} from "../../src/domain/school/schoolInvestment";
 import {
   calculateRecruitTierProbabilities,
   selectRecruitTier,
@@ -245,7 +248,10 @@ export function generateServerScoutingCandidates(
         ? 5
         : CANDIDATE_COUNT;
   const resultCount =
-    regionCount + extraCandidateCount + guaranteedGenerationalCount;
+    regionCount +
+    scoutingInvestmentExtraCandidateCount(state) +
+    extraCandidateCount +
+    guaranteedGenerationalCount;
   const generationCount = Math.max(
     CANDIDATE_COUNT + 6,
     resultCount + guaranteedGenerationalCount + 6,
