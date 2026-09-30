@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type {
+  AnnualInvestmentArea,
   AssistantCoachRank,
   AssistantCoachSpecialty,
 } from "../../domain/model/SchoolManagement";
@@ -9,6 +10,12 @@ import {
   ASSISTANT_COACH_OPTIONS,
   evaluateAssistantCoachContract,
 } from "../../domain/school/assistantCoach";
+import {
+  ANNUAL_INVESTMENT_DEFINITIONS,
+  activeAnnualInvestments,
+  annualInvestmentEffects,
+  evaluateAnnualInvestmentUpgrade,
+} from "../../domain/school/annualSchoolInvestment";
 import {
   FACILITY_DEFINITIONS,
   FACILITY_UPGRADE_LEVEL_OPTIONS,
@@ -44,6 +51,7 @@ interface SchoolScreenProps {
     rank: AssistantCoachRank,
     specialty: AssistantCoachSpecialty | null,
   ) => void;
+  onUpgradeAnnualInvestment?: (area: AnnualInvestmentArea) => void | Promise<unknown>;
   onOpenScouting?: () => void;
 }
 
@@ -128,6 +136,7 @@ export function SchoolScreen({
   state,
   onUpgradeFacility,
   onContractAssistantCoach,
+  onUpgradeAnnualInvestment,
   onOpenScouting,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
@@ -232,6 +241,12 @@ export function SchoolScreen({
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
+  const annualInvestments = activeAnnualInvestments(state);
+  const investmentEffects = annualInvestmentEffects(state);
+  const investmentOverview = ANNUAL_INVESTMENT_DEFINITIONS.map((definition) => ({
+    definition,
+    evaluation: evaluateAnnualInvestmentUpgrade(state, definition.area),
+  }));
 
   const confirmUpgrade = async () => {
     if (
@@ -344,6 +359,19 @@ export function SchoolScreen({
               type="button"
             >
               設備
+            </button>
+            <button
+              aria-selected={managementView === "investments"}
+              className={
+                managementView === "investments"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("investments")}
+              role="tab"
+              type="button"
+            >
+              強化予算
             </button>
             <button
               aria-selected={managementView === "staff"}
@@ -515,6 +543,55 @@ export function SchoolScreen({
                       <b aria-hidden="true">詳細 ›</b>
                     </span>
                   </button>
+                );
+              })}
+            </div>
+          </section>
+          <section
+            aria-labelledby="investment-heading"
+            className="school-management-section"
+            hidden={managementView !== "investments"}
+          >
+            <div className="school-investment-heading">
+              <div>
+                <h4 id="investment-heading">年間強化予算</h4>
+                <small>年度ごとに各部門をLv.3まで強化</small>
+              </div>
+              <span>資金 {school.funds}</span>
+            </div>
+            <div className="school-investment-grid" role="region" aria-label="年間強化予算">
+              {investmentOverview.map(({ definition, evaluation }) => {
+                const level = annualInvestments.levels[definition.area];
+                const effect =
+                  definition.area === "development"
+                    ? `練習成長 +${investmentEffects.developmentGrowthPercent - 100}%`
+                    : definition.area === "scouting"
+                      ? `発掘力 +${investmentEffects.scoutingAppealBonus}`
+                      : definition.area === "medical"
+                        ? `怪我リスク ${100 - investmentEffects.medicalInjuryRiskPercent}%軽減`
+                        : `試合判断成長 +${investmentEffects.analysisDecisionGrowthBonus}`;
+                const actionLabel =
+                  evaluation.reason === "max-level"
+                    ? "今年度MAX"
+                    : evaluation.reason === "insufficient-funds"
+                      ? `あと${Math.max(0, evaluation.cost - school.funds)}必要`
+                      : `Lv.${evaluation.nextLevel}へ・${evaluation.cost}`;
+                return (
+                  <article className="school-investment-card" key={definition.area}>
+                    <div className="school-investment-card__top">
+                      <strong>{definition.name}</strong>
+                      <span>Lv.{level}/3</span>
+                    </div>
+                    <p>{definition.description}</p>
+                    <small>{level === 0 ? "未投資" : effect}</small>
+                    <button
+                      disabled={!evaluation.allowed || !onUpgradeAnnualInvestment}
+                      onClick={() => void onUpgradeAnnualInvestment?.(definition.area)}
+                      type="button"
+                    >
+                      {actionLabel}
+                    </button>
+                  </article>
                 );
               })}
             </div>
