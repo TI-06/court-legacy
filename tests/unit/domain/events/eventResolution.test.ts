@@ -1,6 +1,7 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
+import { getSpecialAbilityDefinition } from "../../../../src/domain/player/specialAbilities";
 import { eventId } from "../../../../src/domain/model/identifiers";
 import {
   SeededRandom,
@@ -122,6 +123,22 @@ function fixedRollRandom(roll: number): RandomSource {
 }
 
 describe("event resolution", () => {
+  it("keeps event acquisition effects limited to Normal special abilities", () => {
+    for (const event of gameData.events.values()) {
+      for (const choice of event.choices) {
+        for (const effect of choice.effects) {
+          if (effect.type !== "special-ability-tip") {
+            continue;
+          }
+          expect(
+            getSpecialAbilityDefinition(effect.abilityId)?.kind,
+            `${event.id}/${choice.id}/${effect.abilityId}`,
+          ).toBe("positive");
+        }
+      }
+    }
+  });
+
   it("applies typed effects, schedules follow-up, and stores visible history", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
