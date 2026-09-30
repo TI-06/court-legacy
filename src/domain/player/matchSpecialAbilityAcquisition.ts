@@ -31,6 +31,7 @@ export interface ApplyMatchNormalAbilityAcquisitionInput {
   performance: UserMatchPerformanceSnapshot;
   context: MatchNormalAbilityContext;
   random: RandomSource;
+  excludedPlayerIds?: readonly PlayerId[];
 }
 
 export interface ApplyMatchNormalAbilityAcquisitionResult {
@@ -170,6 +171,7 @@ export function applyMatchNormalAbilityAcquisition(
   input: ApplyMatchNormalAbilityAcquisitionInput,
 ): ApplyMatchNormalAbilityAcquisitionResult {
   const mvp = mvpPlayerId(input.performance);
+  const excludedPlayerIds = new Set(input.excludedPlayerIds ?? []);
   const rankedPlayers = [...input.performance.players.values()].sort(
     (left, right) =>
       performanceScore(right) - performanceScore(left) ||
@@ -178,6 +180,7 @@ export function applyMatchNormalAbilityAcquisition(
   const successfulAttempts: MatchNormalAbilityAcquisition[] = [];
 
   for (const stats of rankedPlayers) {
+    if (excludedPlayerIds.has(stats.playerId)) continue;
     const player = input.state.players[stats.playerId];
     if (!player || player.career.schoolId !== input.state.userSchoolId) {
       continue;

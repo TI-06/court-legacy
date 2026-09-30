@@ -51,7 +51,11 @@ import {
   applyUserMatchExperience,
   calculateSelectionAverageAbility,
 } from "../../src/domain/player/playerDevelopment";
-import { applyMatchNormalAbilityAcquisition } from "../../src/domain/player/matchSpecialAbilityAcquisition";
+import {
+  applyMatchNormalAbilityAcquisition,
+  type MatchNormalAbilityContext,
+} from "../../src/domain/player/matchSpecialAbilityAcquisition";
+import { applyMatchSpecialAbilityAwakening } from "../../src/domain/player/matchSpecialAbilityAwakening";
 import {
   cancelPositionConversion,
   startPositionConversion,
@@ -214,6 +218,30 @@ function applyCompletedSoloMatchExperience(
     }),
     performance,
   };
+}
+function applyCompletedMatchSpecialAbilities(
+  state: GameState,
+  performance: UserMatchPerformanceSnapshot,
+  context: MatchNormalAbilityContext,
+): GameState {
+  const awakening = applyMatchSpecialAbilityAwakening({
+    state,
+    data: gameData,
+    performance,
+    context,
+    random: new SeededRandom(state.seed).fork(
+      `match-awakening:${performance.matchId}`,
+    ),
+  });
+  return applyMatchNormalAbilityAcquisition({
+    state: awakening.state,
+    performance,
+    context,
+    excludedPlayerIds: awakening.awakenedPlayerIds,
+    random: new SeededRandom(state.seed).fork(
+      `match-normal:${performance.matchId}`,
+    ),
+  }).state;
 }
 
 const matchGrowthAbilityLabels = {
@@ -798,15 +826,11 @@ function applyPracticeMatch(
       matchState,
       simulation.match,
     );
-    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
-      state: matchExperience.state,
-      performance: matchExperience.performance,
-      context: { kind: "practice" },
-      random: new SeededRandom(state.seed).fork(
-        `match-normal:${simulation.match.id}`,
-      ),
-    });
-    const experiencedState = abilityAcquisition.state;
+    const experiencedState = applyCompletedMatchSpecialAbilities(
+      matchExperience.state,
+      matchExperience.performance,
+      { kind: "practice" },
+    );
     const recorded = recordMatchOutcome(experiencedState, {
       matchId: simulation.match.id,
       date: state.date,
@@ -917,15 +941,11 @@ function applyPracticeMatchCommand(
       resumedState,
       simulation.match,
     );
-    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
-      state: matchExperience.state,
-      performance: matchExperience.performance,
-      context: { kind: "practice" },
-      random: new SeededRandom(state.seed).fork(
-        `match-normal:${simulation.match.id}`,
-      ),
-    });
-    const experiencedState = abilityAcquisition.state;
+    const experiencedState = applyCompletedMatchSpecialAbilities(
+      matchExperience.state,
+      matchExperience.performance,
+      { kind: "practice" },
+    );
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,
@@ -1217,19 +1237,15 @@ function applyOfficialMatchCommand(
       context.state,
       simulation.match,
     );
-    const abilityAcquisition = applyMatchNormalAbilityAcquisition({
-      state: matchExperience.state,
-      performance: matchExperience.performance,
-      context: {
+    const experiencedState = applyCompletedMatchSpecialAbilities(
+      matchExperience.state,
+      matchExperience.performance,
+      {
         kind: "official",
         level: due.level,
         round: due.match.round,
       },
-      random: new SeededRandom(state.seed).fork(
-        `match-normal:${simulation.match.id}`,
-      ),
-    });
-    const experiencedState = abilityAcquisition.state;
+    );
     const matchGrowth = buildMatchGrowthPresentation(
       resumedState,
       experiencedState,

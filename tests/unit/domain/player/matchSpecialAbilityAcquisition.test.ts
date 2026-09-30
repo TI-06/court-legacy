@@ -186,6 +186,29 @@ describe("match Normal special ability acquisition", () => {
     expect(learnedCounts.filter((count) => count === 0)).toHaveLength(1);
   });
 
+  it("skips Normal acquisition for a player who already awakened", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[playerId] = {
+      ...state.players[playerId]!,
+      specialAbilityIds: [],
+    };
+    const snapshot = performance(state, [
+      stats(playerId, { serviceAces: 2, points: 2 }),
+    ]);
+
+    const result = applyMatchNormalAbilityAcquisition({
+      state,
+      performance: snapshot,
+      context: { kind: "practice" },
+      excludedPlayerIds: [playerId],
+      random: fixedRollRandom(1),
+    });
+
+    expect(result.acquisitions).toEqual([]);
+    expect(result.state.players[playerId]!.specialAbilityIds).toEqual([]);
+  });
+
   it("caps a national-final MVP standout chance at 40%", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
