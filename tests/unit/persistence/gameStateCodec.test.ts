@@ -265,6 +265,31 @@ describe("game state codec", () => {
     expect(repaired.players[playerId]!.specialAbilityTipLevels).toEqual({});
   });
 
+  it("migrates v9 special ability tips into learned abilities without losing progress", () => {
+    const legacy = structuredClone(createDemoGame());
+    const playerId = legacy.schools[legacy.userSchoolId]!.playerIds[0]!;
+    legacy.schemaVersion = 9;
+    legacy.players[playerId]!.specialAbilityIds = [
+      "serve_unstable",
+      "mental_clutch",
+    ];
+    legacy.players[playerId]!.specialAbilityTipLevels = {
+      serve_stable: 1,
+      attack_course: 2,
+    };
+
+    const migrated = decodeGameState(JSON.stringify(legacy));
+    const player = migrated.players[playerId]!;
+
+    expect(migrated.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
+    expect(player.specialAbilityIds).toEqual([
+      "mental_clutch",
+      "attack_course",
+      "serve_stable",
+    ]);
+    expect(player.specialAbilityTipLevels).toEqual({});
+  });
+
   it("repairs current-schema players that predate revealed hidden trait persistence", () => {
     const state = structuredClone(createDemoGame());
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
