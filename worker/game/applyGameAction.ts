@@ -77,6 +77,12 @@ import {
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
 import {
+  ANNUAL_INVESTMENT_DEFINITIONS,
+  annualInvestmentsUnlocked,
+  hasAnnualInvestment,
+  purchaseAnnualInvestment,
+} from "../../src/domain/school/annualInvestment";
+import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
 } from "../../src/domain/season/seasonGoals";
@@ -1508,6 +1514,48 @@ function applyFacilityUpgrade(
   };
 }
 
+function applyAnnualInvestment(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "annual-investment" }>,
+): AppliedGameAction {
+  const definition = ANNUAL_INVESTMENT_DEFINITIONS.find(
+    (entry) => entry.kind === action.kind,
+  );
+  if (!definition) {
+    return conflict("annual_investment_invalid", "強化投資の内容を確認してください");
+  }
+  if (!annualInvestmentsUnlocked(state)) {
+    return conflict(
+      "annual_investment_locked",
+      "全施設をLv.50にすると強化投資を利用できます",
+    );
+  }
+  if (hasAnnualInvestment(state, action.kind)) {
+    return conflict(
+      "annual_investment_already_purchased",
+      "この強化投資は今年度すでに実施済みです",
+    );
+  }
+  const school = state.schools[state.userSchoolId];
+  if (!school || school.funds < definition.cost) {
+    return conflict(
+      "annual_investment_insufficient_funds",
+      "強化投資に必要な資金が不足しています",
+    );
+  }
+
+  return {
+    state: purchaseAnnualInvestment(state, action.kind),
+    teamSelection,
+    outcome: {
+      kind: action.kind,
+      cost: definition.cost,
+      effectLabel: definition.effectLabel,
+    },
+  };
+}
+
 function applyAssistantCoachContract(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1651,6 +1699,8 @@ function applyActionByType(
       return applyFacilityUpgrade(state, teamSelection, action);
     case "assistant-coach-contract":
       return applyAssistantCoachContract(state, teamSelection, action);
+    case "annual-investment":
+      return applyAnnualInvestment(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
     case "acknowledge-training-camp-result":
