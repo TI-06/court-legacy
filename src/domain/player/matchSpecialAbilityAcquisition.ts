@@ -1,5 +1,4 @@
 import type { GameState } from "../model/GameState";
-import type { Player } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import type {
@@ -143,14 +142,13 @@ function mvpPlayerId(
 }
 
 function eligibleRules(
-  player: Player,
   stats: UserMatchPlayerPerformance,
 ): readonly MatchAbilityRule[] {
-  const owned = new Set(player.specialAbilityIds ?? []);
-  return MATCH_NORMAL_ABILITY_RULES.filter((rule) => {
-    if (owned.has(rule.abilityId) || !rule.eligible(stats)) return false;
-    return getSpecialAbilityDefinition(rule.abilityId)?.kind === "positive";
-  });
+  return MATCH_NORMAL_ABILITY_RULES.filter(
+    (rule) =>
+      rule.eligible(stats) &&
+      getSpecialAbilityDefinition(rule.abilityId)?.kind === "positive",
+  );
 }
 
 function acquisitionChance(
@@ -171,25 +169,21 @@ function acquisitionChance(
 export function applyMatchNormalAbilityAcquisition(
   input: ApplyMatchNormalAbilityAcquisitionInput,
 ): ApplyMatchNormalAbilityAcquisitionResult {
-  const players = { ...input.state.players };
-  const acquisitions: MatchNormalAbilityAcquisition[] = [];
   const mvp = mvpPlayerId(input.performance);
-
   const rankedPlayers = [...input.performance.players.values()].sort(
     (left, right) =>
       performanceScore(right) - performanceScore(left) ||
       left.playerId.localeCompare(right.playerId),
   );
+  const successfulAttempts: MatchNormalAbilityAcquisition[] = [];
 
   for (const stats of rankedPlayers) {
-    if (acquisitions.length >= MAX_ACQUISITIONS_PER_MATCH) break;
-
-    const player = players[stats.playerId];
+    const player = input.state.players[stats.playerId];
     if (!player || player.career.schoolId !== input.state.userSchoolId) {
       continue;
     }
 
-    const rules = eligibleRules(player, stats);
+    const rules = eligibleRules(stats);
     if (rules.length === 0) continue;
 
     const chosenRule = input.random
@@ -206,17 +200,30 @@ export function applyMatchNormalAbilityAcquisition(
       .int(1, 100);
     if (roll > chance) continue;
 
-    const learned = learnSpecialAbility(player, chosenRule.abilityId);
-    if (!learned.changes.some((change) => change.kind === "learned")) {
-      continue;
-    }
-
-    players[stats.playerId] = learned.player;
-    acquisitions.push({
+    successfulAttempts.push({
       playerId: stats.playerId,
       abilityId: chosenRule.abilityId,
       chancePercent: chance,
     });
+  }
+
+  const players = { ...input.state.players };
+  const acquisitions: MatchNormalAbilityAcquisition[] = [];
+
+  for (const attempt of successfulAttempts.slice(
+    0,
+    MAX_ACQUISITIONS_PER_MATCH,
+  )) {
+    const player = players[attempt.playerId];
+    if (!player) continue;
+
+    const learned = learnSpecialAbility(player, attempt.abilityId);
+    if (!learned.changes.some((change) => change.kind === "learned")) {
+      continue;
+    }
+
+    players[attempt.playerId] = learned.player;
+    acquisitions.push(attempt);
   }
 
   return {
@@ -226,4 +233,4 @@ export function applyMatchNormalAbilityAcquisition(
   };
 }
 
-export const matchNormalAbilityRules = MATCH_NORMAL_ABILITY_RULES;
+export const MATCH_NORMAL_ABILITY_IDS = MATCH_NORMAL_ABILITY_RULES.map(\n  (rule) => rule.abilityId,\n);
