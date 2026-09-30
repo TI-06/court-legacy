@@ -5,6 +5,7 @@ import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingS
 import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import { applyAnnualScoutingInvestment } from "../../src/domain/school/annualInvestment";
 import {
   calculateRecruitTierProbabilities,
   selectRecruitTier,
@@ -93,13 +94,16 @@ function scoutingTierProbabilities(state: GameState) {
     throw new Error("user school is missing");
   }
 
-  return calculateRecruitTierProbabilities({
-    reputationPoints: school.reputationPoints,
-    coachScouting: school.coach.scouting,
-    scoutingNetworkLevel: school.facilities.scoutingNetwork,
-    dormitoryLevel: school.facilities.dormitory,
-    recentSeasonRating: recentSeasonRating(state),
-  });
+  return applyAnnualScoutingInvestment(
+    calculateRecruitTierProbabilities({
+      reputationPoints: school.reputationPoints,
+      coachScouting: school.coach.scouting,
+      scoutingNetworkLevel: school.facilities.scoutingNetwork,
+      dormitoryLevel: school.facilities.dormitory,
+      recentSeasonRating: recentSeasonRating(state),
+    }),
+    state,
+  );
 }
 
 export function scoutingCycleKey(state: GameState): string {
