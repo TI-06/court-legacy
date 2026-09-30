@@ -60,9 +60,7 @@ describe("school investment programs", () => {
       .map((id) => state.players[id]!)
       .find((player) => player.preferredPosition === "L")!;
 
-    expect(
-      schoolInvestmentTrainingModifiers(state, setter, ["set"]),
-    ).toEqual(
+    expect(schoolInvestmentTrainingModifiers(state, setter, ["set"])).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: "school-development-investment",

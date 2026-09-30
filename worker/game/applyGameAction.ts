@@ -1566,7 +1566,10 @@ function applySchoolInvestment(
   try {
     evaluation = evaluateSchoolInvestment(state, category, option);
   } catch {
-    return conflict("school_investment_invalid_option", "強化予算の内容を確認してください");
+    return conflict(
+      "school_investment_invalid_option",
+      "強化予算の内容を確認してください",
+    );
   }
   if (!evaluation.allowed) {
     return conflict(

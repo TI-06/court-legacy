@@ -565,9 +565,24 @@ export function SchoolScreen({
                   category: "development" as const,
                   title: "育成重点",
                   options: [
-                    ["attack", "攻撃強化", "攻撃系の練習成長 +10%", SCHOOL_INVESTMENT_COSTS.development],
-                    ["defense", "守備強化", "守備系の練習成長 +10%", SCHOOL_INVESTMENT_COSTS.development],
-                    ["physical", "フィジカル強化", "身体能力系の練習成長 +10%", SCHOOL_INVESTMENT_COSTS.development],
+                    [
+                      "attack",
+                      "攻撃強化",
+                      "攻撃系の練習成長 +10%",
+                      SCHOOL_INVESTMENT_COSTS.development,
+                    ],
+                    [
+                      "defense",
+                      "守備強化",
+                      "守備系の練習成長 +10%",
+                      SCHOOL_INVESTMENT_COSTS.development,
+                    ],
+                    [
+                      "physical",
+                      "フィジカル強化",
+                      "身体能力系の練習成長 +10%",
+                      SCHOOL_INVESTMENT_COSTS.development,
+                    ],
                   ] as const,
                   selected: investmentPlan?.developmentFocus,
                 },
@@ -575,10 +590,30 @@ export function SchoolScreen({
                   category: "external-coach" as const,
                   title: "外部専門コーチ",
                   options: [
-                    ["attacker", "アタッカー", "OH・OPの専門練習 +15%", SCHOOL_INVESTMENT_COSTS["external-coach"]],
-                    ["setter", "セッター", "Sの専門練習 +15%", SCHOOL_INVESTMENT_COSTS["external-coach"]],
-                    ["blocker", "ブロッカー", "MBの専門練習 +15%", SCHOOL_INVESTMENT_COSTS["external-coach"]],
-                    ["libero", "リベロ", "Lの専門練習 +15%", SCHOOL_INVESTMENT_COSTS["external-coach"]],
+                    [
+                      "attacker",
+                      "アタッカー",
+                      "OH・OPの専門練習 +15%",
+                      SCHOOL_INVESTMENT_COSTS["external-coach"],
+                    ],
+                    [
+                      "setter",
+                      "セッター",
+                      "Sの専門練習 +15%",
+                      SCHOOL_INVESTMENT_COSTS["external-coach"],
+                    ],
+                    [
+                      "blocker",
+                      "ブロッカー",
+                      "MBの専門練習 +15%",
+                      SCHOOL_INVESTMENT_COSTS["external-coach"],
+                    ],
+                    [
+                      "libero",
+                      "リベロ",
+                      "Lの専門練習 +15%",
+                      SCHOOL_INVESTMENT_COSTS["external-coach"],
+                    ],
                   ] as const,
                   selected: investmentPlan?.externalSpecialist,
                 },
@@ -586,8 +621,18 @@ export function SchoolScreen({
                   category: "camp" as const,
                   title: "強化合宿",
                   options: [
-                    ["intensive", "強化合宿", "合宿成長 +12%・特能進展率UP", SCHOOL_INVESTMENT_COSTS.camp.intensive],
-                    ["elite", "全国強豪合同合宿", "合宿成長 +25%・特能進展率さらにUP", SCHOOL_INVESTMENT_COSTS.camp.elite],
+                    [
+                      "intensive",
+                      "強化合宿",
+                      "合宿成長 +12%・特能進展率UP",
+                      SCHOOL_INVESTMENT_COSTS.camp.intensive,
+                    ],
+                    [
+                      "elite",
+                      "全国強豪合同合宿",
+                      "合宿成長 +25%・特能進展率さらにUP",
+                      SCHOOL_INVESTMENT_COSTS.camp.elite,
+                    ],
                   ] as const,
                   selected: investmentPlan?.campTier,
                 },
@@ -595,13 +640,26 @@ export function SchoolScreen({
                   category: "scouting" as const,
                   title: "スカウト遠征",
                   options: [
-                    ["regional", "地方重点", "有望選手の発見率を強化", SCHOOL_INVESTMENT_COSTS.scouting.regional],
-                    ["national", "全国重点", "上位候補の発見率をさらに強化", SCHOOL_INVESTMENT_COSTS.scouting.national],
+                    [
+                      "regional",
+                      "地方重点",
+                      "有望選手の発見率を強化",
+                      SCHOOL_INVESTMENT_COSTS.scouting.regional,
+                    ],
+                    [
+                      "national",
+                      "全国重点",
+                      "上位候補の発見率をさらに強化",
+                      SCHOOL_INVESTMENT_COSTS.scouting.national,
+                    ],
                   ] as const,
                   selected: investmentPlan?.scoutingTier,
                 },
               ].map((group) => (
-                <section className="school-investment-card" key={group.category}>
+                <section
+                  className="school-investment-card"
+                  key={group.category}
+                >
                   <div className="school-investment-card__heading">
                     <strong>{group.title}</strong>
                     <span>{group.selected ? "設定済み" : "未設定"}</span>

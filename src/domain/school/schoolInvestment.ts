@@ -8,10 +8,7 @@ export type ExternalSpecialist = "attacker" | "setter" | "blocker" | "libero";
 export type CampInvestmentTier = "intensive" | "elite";
 export type ScoutingInvestmentTier = "regional" | "national";
 export type SchoolInvestmentCategory =
-  | "development"
-  | "external-coach"
-  | "camp"
-  | "scouting";
+  "development" | "external-coach" | "camp" | "scouting";
 export type SchoolInvestmentOption =
   | DevelopmentInvestmentFocus
   | ExternalSpecialist
@@ -136,7 +133,8 @@ export function purchaseSchoolInvestment(
   if (!evaluation.allowed) return state;
 
   const current =
-    activeSchoolInvestmentPlan(state) ?? ({ yearIndex: state.yearIndex } as SchoolInvestmentPlan);
+    activeSchoolInvestmentPlan(state) ??
+    ({ yearIndex: state.yearIndex } as SchoolInvestmentPlan);
   const next: SchoolInvestmentPlan = { ...current };
   if (category === "development") {
     if (!["attack", "defense", "physical"].includes(option))
