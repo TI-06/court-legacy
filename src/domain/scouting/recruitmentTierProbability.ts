@@ -9,6 +9,7 @@ export interface RecruitmentTierProbabilityInput {
   scoutingNetworkLevel: number;
   dormitoryLevel: number;
   recentSeasonRating: number;
+  appealBonus?: number;
 }
 
 export interface RecruitTierProbabilities {
@@ -45,7 +46,8 @@ function recruitmentAppeal(input: RecruitmentTierProbabilityInput): number {
       coachScouting * 0.15 +
       scoutingNetwork * 0.15 +
       dormitory * 0.05 +
-      recentSeason * 0.05,
+      recentSeason * 0.05 +
+      (input.appealBonus ?? 0),
     0,
     100,
   );
