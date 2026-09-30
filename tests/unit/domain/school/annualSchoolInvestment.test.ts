@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createDemoGame } from "../../../src/app/createDemoGame";
+import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   activeAnnualInvestments,
   annualInvestmentEffects,
   evaluateAnnualInvestmentUpgrade,
   upgradeAnnualInvestment,
-} from "../../../src/domain/school/annualSchoolInvestment";
+} from "../../../../src/domain/school/annualSchoolInvestment";
 
 describe("annual school investments", () => {
   it("spends school funds and raises one area up to level three", () => {
