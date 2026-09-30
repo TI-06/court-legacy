@@ -67,6 +67,7 @@ describe("school staff screen", () => {
 
     expect(onContractAssistantCoach).toHaveBeenCalledWith("advanced", "attack");
   });
+
   it("does not show an expired annual contract as active", () => {
     const state = createDemoGame();
     state.schoolManagement.assistantCoach = {
@@ -83,5 +84,4 @@ describe("school staff screen", () => {
     const advancedCoach = screen.getByTestId("assistant-coach-advanced");
     expect(within(advancedCoach).getByText("詳細で契約")).toBeVisible();
   });
-
 });
