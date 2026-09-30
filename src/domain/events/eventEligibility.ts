@@ -72,12 +72,27 @@ export function playerMatchesEventTrigger(
   ) {
     return false;
   }
+  const requiredSpecialAbilityIds =
+    trigger.requiredSpecialAbilityIds ?? [];
   if (
-    trigger.requiredSpecialAbilityIds?.some(
-      (abilityId) => !(player.specialAbilityIds ?? []).includes(abilityId),
-    )
+    trigger.minimumRequiredSpecialAbilityCount !== undefined &&
+    requiredSpecialAbilityIds.length === 0
   ) {
     return false;
+  }
+  if (requiredSpecialAbilityIds.length > 0) {
+    const ownedSpecialAbilityIds = new Set(player.specialAbilityIds ?? []);
+    const minimumRequired =
+      trigger.minimumRequiredSpecialAbilityCount ??
+      requiredSpecialAbilityIds.length;
+    const ownedRequiredCount = requiredSpecialAbilityIds.reduce(
+      (count, abilityId) =>
+        count + (ownedSpecialAbilityIds.has(abilityId) ? 1 : 0),
+      0,
+    );
+    if (ownedRequiredCount < minimumRequired) {
+      return false;
+    }
   }
   if (
     trigger.excludedSpecialAbilityIds?.some((abilityId) =>
