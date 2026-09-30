@@ -53,6 +53,10 @@ import type {
   FacilityKey,
   FacilityUpgradeLevels,
 } from "../domain/school/facilityUpgrade";
+import type {
+  SchoolInvestmentCategory,
+  SchoolInvestmentOption,
+} from "../domain/school/schoolInvestment";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type {
   MatchTacticPlan,
@@ -1169,6 +1173,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const purchaseSchoolInvestmentFromUi = async (
+    category: SchoolInvestmentCategory,
+    option: SchoolInvestmentOption,
+  ) => {
+    await cloudSession.runAction(
+      { type: "school-investment", category, option },
+      "強化予算を反映しています…",
+    );
+  };
+
   const markNotificationRead = async (notificationId: string) => {
     await cloudSession.runAction(
       { type: "mark-notification-read", notificationId },
@@ -1479,6 +1493,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <SchoolScreen
         onContractAssistantCoach={contractAssistantCoachFromUi}
         onOpenScouting={openScouting}
+        onPurchaseInvestment={purchaseSchoolInvestmentFromUi}
         onUpgradeFacility={upgradeSchoolFacility}
         state={gameState}
       />

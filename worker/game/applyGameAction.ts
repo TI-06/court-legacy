@@ -77,6 +77,12 @@ import {
   upgradeFacility,
 } from "../../src/domain/school/facilityUpgrade";
 import {
+  evaluateSchoolInvestment,
+  purchaseSchoolInvestment,
+  type SchoolInvestmentCategory,
+  type SchoolInvestmentOption,
+} from "../../src/domain/school/schoolInvestment";
+import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
 } from "../../src/domain/season/seasonGoals";
@@ -1549,6 +1555,41 @@ function applyAssistantCoachContract(
   };
 }
 
+function applySchoolInvestment(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "school-investment" }>,
+): AppliedGameAction {
+  const category = action.category as SchoolInvestmentCategory;
+  const option = action.option as SchoolInvestmentOption;
+  let evaluation;
+  try {
+    evaluation = evaluateSchoolInvestment(state, category, option);
+  } catch {
+    return conflict(
+      "school_investment_invalid_option",
+      "強化予算の内容を確認してください",
+    );
+  }
+  if (!evaluation.allowed) {
+    let message = "強化予算に必要な資金が不足しています";
+    if (evaluation.reason === "already-selected") {
+      message = "この強化予算は今年度すでに設定済みです";
+    } else if (evaluation.reason === "facility-not-max") {
+      message = "対象施設をLv.50まで強化すると解禁されます";
+    }
+    return conflict(
+      `school_investment_${evaluation.reason.replaceAll("-", "_")}`,
+      message,
+    );
+  }
+  return {
+    state: purchaseSchoolInvestment(state, category, option),
+    teamSelection,
+    outcome: evaluation,
+  };
+}
+
 function applyAcknowledgeTrainingCampResult(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1651,6 +1692,8 @@ function applyActionByType(
       return applyFacilityUpgrade(state, teamSelection, action);
     case "assistant-coach-contract":
       return applyAssistantCoachContract(state, teamSelection, action);
+    case "school-investment":
+      return applySchoolInvestment(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
     case "acknowledge-training-camp-result":

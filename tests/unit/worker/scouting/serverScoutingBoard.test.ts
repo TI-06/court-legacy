@@ -1,5 +1,6 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import { purchaseSchoolInvestment } from "../../../../src/domain/school/schoolInvestment";
 import type {
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
@@ -41,6 +42,29 @@ describe("server scouting board Phase 5 integration", () => {
     expect(first).toEqual(second);
     expect(first).toHaveLength(6);
     expect(new Set(first.map(({ player }) => player.id)).size).toBe(6);
+  });
+
+  it("adds annual scouting-investment candidates even after the scouting facility is maxed", () => {
+    let state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = {
+      ...school,
+      funds: 5000,
+      facilities: {
+        ...school.facilities,
+        scoutingNetwork: 50,
+      },
+    };
+    state = purchaseSchoolInvestment(state, "scouting", "national");
+
+    const candidates = generateServerScoutingCandidates(state, {
+      region: "national",
+      position: "any",
+      priority: "ability",
+    });
+
+    expect(candidates).toHaveLength(8);
+    expect(new Set(candidates.map(({ player }) => player.id)).size).toBe(8);
   });
 
   it("adds queued search candidates and guarantees genius talent in the resulting board", () => {

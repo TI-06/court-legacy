@@ -6,6 +6,10 @@ import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scouti
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
+  scoutingInvestmentAppealBonus,
+  scoutingInvestmentExtraCandidateCount,
+} from "../../src/domain/school/schoolInvestment";
+import {
   calculateRecruitTierProbabilities,
   selectRecruitTier,
   type RecruitTier,
@@ -99,6 +103,7 @@ function scoutingTierProbabilities(state: GameState) {
     scoutingNetworkLevel: school.facilities.scoutingNetwork,
     dormitoryLevel: school.facilities.dormitory,
     recentSeasonRating: recentSeasonRating(state),
+    investmentAppealBonus: scoutingInvestmentAppealBonus(state),
   });
 }
 
@@ -243,7 +248,10 @@ export function generateServerScoutingCandidates(
         ? 5
         : CANDIDATE_COUNT;
   const resultCount =
-    regionCount + extraCandidateCount + guaranteedGenerationalCount;
+    regionCount +
+    scoutingInvestmentExtraCandidateCount(state) +
+    extraCandidateCount +
+    guaranteedGenerationalCount;
   const generationCount = Math.max(
     CANDIDATE_COUNT + 6,
     resultCount + guaranteedGenerationalCount + 6,

@@ -96,6 +96,25 @@ const assistantCoachRankSchema = z.enum([
 ]);
 
 const assistantCoachSpecialtySchema = z.enum(["attack", "defense", "physical"]);
+const schoolInvestmentCategorySchema = z.enum([
+  "development",
+  "external-coach",
+  "camp",
+  "scouting",
+]);
+const schoolInvestmentOptionSchema = z.enum([
+  "attack",
+  "defense",
+  "physical",
+  "attacker",
+  "setter",
+  "blocker",
+  "libero",
+  "intensive",
+  "elite",
+  "regional",
+  "national",
+]);
 const savedLineupSlotSchema = z.union([
   z.literal(1),
   z.literal(2),
@@ -279,6 +298,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
+    .object({
+      type: z.literal("school-investment"),
+      category: schoolInvestmentCategorySchema,
+      option: schoolInvestmentOptionSchema,
+    })
+    .strict(),
+  z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
   z.object({ type: z.literal("acknowledge-training-camp-result") }).strict(),
@@ -351,6 +377,22 @@ export type GameAction =
       type: "assistant-coach-contract";
       rank: AssistantCoachRank;
       specialty: AssistantCoachSpecialty | null;
+    }
+  | {
+      type: "school-investment";
+      category: "development" | "external-coach" | "camp" | "scouting";
+      option:
+        | "attack"
+        | "defense"
+        | "physical"
+        | "attacker"
+        | "setter"
+        | "blocker"
+        | "libero"
+        | "intensive"
+        | "elite"
+        | "regional"
+        | "national";
     }
   | { type: "event-choice"; choiceId: string }
   | { type: "acknowledge-training-camp-result" };

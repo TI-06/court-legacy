@@ -476,6 +476,7 @@ const fundsLedgerKindSchema = z.enum([
   "scouting-research",
   "camp",
   "travel",
+  "school-investment",
 ]);
 
 const fundsLedgerEntrySchema = z
@@ -491,11 +492,24 @@ const fundsLedgerEntrySchema = z
   })
   .strict();
 
+const schoolInvestmentPlanSchema = z
+  .object({
+    yearIndex: z.number().int().positive(),
+    developmentFocus: z.enum(["attack", "defense", "physical"]).optional(),
+    externalSpecialist: z
+      .enum(["attacker", "setter", "blocker", "libero"])
+      .optional(),
+    campTier: z.enum(["intensive", "elite"]).optional(),
+    scoutingTier: z.enum(["regional", "national"]).optional(),
+  })
+  .strict();
+
 const schoolManagementSchema = z
   .object({
     assistantCoach: assistantCoachContractSchema.nullable(),
     fundsHistory: z.array(fundsLedgerEntrySchema).max(50),
     lastAnnualBudgetYearIndex: z.number().int().positive(),
+    investmentPlan: schoolInvestmentPlanSchema.optional(),
   })
   .strict();
 
