@@ -5,6 +5,7 @@ import { scoutingBaseSearchesRemaining } from "../../domain/scouting/scoutingSea
 import type { ScoutingSearchCriteria } from "../../domain/scouting/scoutingSearchCriteria";
 import { scoutingSearchResultPresentation } from "../../domain/scouting/scoutingSearchResult";
 import {
+  RECRUITMENT_COMMIT_LIMIT,
   RECRUITMENT_RECOMMENDATION_BONUS,
   RECRUITMENT_RECOMMENDATION_LIMIT,
   RECRUITMENT_VISIT_BONUS,
@@ -423,7 +424,10 @@ export function ScoutingScreen({
           <div className="scouting-committed__header">
             <div>
               <span>来年度入学予定</span>
-              <strong>獲得決定済み {committedReports.length}/7人</strong>
+              <strong>
+                獲得決定済み {committedReports.length}/
+                {RECRUITMENT_COMMIT_LIMIT}人
+              </strong>
             </div>
           </div>
           <div className="scouting-committed__list">

@@ -40,7 +40,7 @@ describe("recruitment long-run soak", () => {
       );
       expect(state.recruiting).toBeUndefined();
       expect(school.playerIds.length).toBeGreaterThanOrEqual(12);
-      expect(school.playerIds.length).toBeLessThanOrEqual(16);
+      expect(school.playerIds.length).toBeLessThanOrEqual(21);
       expect(new Set(school.playerIds).size).toBe(school.playerIds.length);
     }
 

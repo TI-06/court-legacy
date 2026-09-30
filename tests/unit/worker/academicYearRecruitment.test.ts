@@ -152,6 +152,56 @@ describe("academic-year recruiting integration", () => {
     }
   });
 
+  it("enrolls all seven committed recruits even when the returning roster is already large", async () => {
+    const snapshot = createRolloverSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.playerIds.forEach((playerId, index) => {
+      snapshot.state.players[playerId] = {
+        ...snapshot.state.players[playerId]!,
+        grade: index < 5 ? 3 : 2,
+      };
+    });
+    snapshot.state.world.nextGenerationalTalentYear = 99;
+
+    const candidates = generateServerScoutingCandidates(
+      snapshot.state,
+      undefined,
+      0,
+      { extraCandidateCount: 1, guaranteedGenerationalCount: 0 },
+    );
+    const committed = candidates.slice(0, 7);
+    snapshot.state.recruiting = {
+      cycleKey: scoutingCycleKey(snapshot.state),
+      committedCandidateIds: committed.map(({ player }) => player.id),
+      committedCandidates: committed,
+    };
+    const pool: ScoutingCandidatePool = {
+      userId: snapshot.userId,
+      cycleKey: scoutingCycleKey(snapshot.state),
+      creationOperationId: "board-op-seven",
+      candidates,
+    };
+    const gameStore = createGameStore(snapshot);
+    const scoutingStore = createScoutingStore(pool);
+    const handler = createGameActionHandler(gameStore, scoutingStore);
+
+    const response = await handler(advanceWeekRequest(), { id: "user-123" });
+
+    expect(response.status).toBe(200);
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    const userSchool = persisted.state.schools[persisted.state.userSchoolId]!;
+    const enrolledIds = userSchool.playerIds.filter((playerId) =>
+      committed.some(({ player }) => player.id === playerId),
+    );
+    expect(enrolledIds).toHaveLength(7);
+    for (const { player } of committed) {
+      expect(persisted.state.players[player.id]).toMatchObject({
+        id: player.id,
+        grade: 1,
+      });
+    }
+  });
+
   it("does not read hidden recruiting truth on an ordinary non-rollover week", async () => {
     const snapshot = createRolloverSnapshot();
     snapshot.state.date = "2026-09-02";
