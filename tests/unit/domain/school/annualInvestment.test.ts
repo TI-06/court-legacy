@@ -12,6 +12,8 @@ import {
 describe("annual school investment", () => {
   it("spends funds progressively and caps each program at level three", () => {
     let state = createDemoGame();
+    const school = state.schools[state.userSchoolId]!;
+    state.schools[state.userSchoolId] = { ...school, funds: 5_000 };
     const initialFunds = state.schools[state.userSchoolId]!.funds;
 
     state = investAnnualProgram(state, "training");
