@@ -53,7 +53,7 @@
         "effects": [
           { "type": "ability-change", "ability": "mental", "amount": 3 },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "mental_clutch",
             "amount": 1
           },
@@ -68,7 +68,7 @@
         "effects": [
           { "type": "morale-change", "amount": 4 },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "mental_reset",
             "amount": 1
           },
