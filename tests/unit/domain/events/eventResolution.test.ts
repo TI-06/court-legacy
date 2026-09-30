@@ -202,7 +202,7 @@ describe("event resolution", () => {
       throw new Error("player missing");
     }
     state.players[player]!.specialAbilityIds = [];
-    state.players[player]!.specialAbilityTipLevels = {};
+    state.players[player]!.specialAbilityTipLevels = { receive_dig: 2 };
     state.pendingEvent = {
       eventId: eventId(effectEvent.id),
       actorPlayerIds: [player],
@@ -222,7 +222,7 @@ describe("event resolution", () => {
 
     const updatedPlayer = result.state.players[player]!;
     expect(updatedPlayer.specialAbilityIds).toContain("attack_course");
-    expect(updatedPlayer.specialAbilityTipLevels).toEqual({});
+    expect(updatedPlayer.specialAbilityTipLevels).toBeUndefined();
     expect(updatedPlayer.specialAbilityIds).toContain("serve_unstable");
     expect(result.occurrence.visibleResultCodes).toEqual(
       expect.arrayContaining(["コース打ち○ 習得", "サーブ不安定 習得"]),
@@ -233,7 +233,7 @@ describe("event resolution", () => {
     const state = createDemoGame();
     const player = state.schools[state.userSchoolId]!.playerIds[0]!;
     state.players[player]!.specialAbilityIds = [];
-    state.players[player]!.specialAbilityTipLevels = {};
+    delete state.players[player]!.specialAbilityTipLevels;
     state.pendingEvent = {
       eventId: eventId(effectEvent.id),
       actorPlayerIds: [player],
@@ -254,7 +254,9 @@ describe("event resolution", () => {
     expect(result.state.players[player]!.specialAbilityIds).not.toContain(
       "attack_course",
     );
-    expect(result.state.players[player]!.specialAbilityTipLevels).toEqual({});
+    expect(
+      result.state.players[player]!.specialAbilityTipLevels,
+    ).toBeUndefined();
     expect(result.occurrence.visibleResultCodes).toContain(
       "コース打ち○ 習得ならず",
     );
