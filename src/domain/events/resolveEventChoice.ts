@@ -37,7 +37,7 @@ import type {
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(maximum, Math.round(value)));
 
-const EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE = {
+const EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE_BY_TIER = {
   1: 40,
   2: 70,
 } as const;
@@ -330,7 +330,7 @@ function applyEffect(
         })),
         visibleResult: "選手の特徴に変化",
       };
-    case "special-ability-tip": {
+    case "special-ability-learn": {
       const ability = getSpecialAbilityDefinition(effect.abilityId);
       if (!ability) {
         throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);
@@ -342,7 +342,7 @@ function applyEffect(
       }
 
       const players = { ...state.players };
-      const chance = EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE[effect.amount];
+      const chance = EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE_BY_TIER[effect.amount];
       let eligibleCount = 0;
       let learnedCount = 0;
       let alreadyOwnedCount = 0;
