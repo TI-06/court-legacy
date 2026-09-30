@@ -23,7 +23,7 @@
             "amount": 2
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "receive_cover",
             "amount": 1
           },
@@ -136,7 +136,7 @@
             "amount": 1
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "block_read",
             "amount": 1
           },
@@ -157,7 +157,7 @@
             "amount": 3
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "block_commit",
             "amount": 1
           },
@@ -201,7 +201,7 @@
             "amount": 1
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "serve_aim",
             "amount": 1
           },
@@ -473,7 +473,7 @@
             "amount": 2
           },
           {
-            "type": "special-ability-tip",
+            "type": "special-ability-learn",
             "abilityId": "serve_stable",
             "amount": 1
           },
