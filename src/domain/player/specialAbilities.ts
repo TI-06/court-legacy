@@ -4,6 +4,46 @@ export type SpecialAbilityKind =
   | "elite"
   | "gold";
 
+export type SpecialAbilityRarity =
+  | "normal"
+  | "negative"
+  | "rare"
+  | "super-rare";
+
+export const MAX_SPECIAL_ABILITIES = 40;
+
+export const SPECIAL_ABILITY_CONFLICTS: Readonly<Record<string, string>> = {
+  serve_stable: "serve_unstable",
+  serve_unstable: "serve_stable",
+  attack_quick: "attack_quick_bad",
+  attack_quick_bad: "attack_quick",
+  set_stable: "set_unstable",
+  set_unstable: "set_stable",
+  set_emergency: "set_emergency_bad",
+  set_emergency_bad: "set_emergency",
+  receive_serve: "receive_weak",
+  receive_weak: "receive_serve",
+  receive_power: "receive_power_fear",
+  receive_power_fear: "receive_power",
+  receive_tip: "receive_tip_bad",
+  receive_tip_bad: "receive_tip",
+  receive_cover: "receive_cover_slow",
+  receive_cover_slow: "receive_cover",
+  mental_clutch: "mental_choke",
+  mental_choke: "mental_clutch",
+  physical_injury_resist: "physical_injury_prone",
+  physical_injury_prone: "physical_injury_resist",
+};
+
+export const SPECIAL_ABILITY_RARITY_BY_KIND: Readonly<
+  Record<SpecialAbilityKind, SpecialAbilityRarity>
+> = {
+  positive: "normal",
+  negative: "negative",
+  elite: "rare",
+  gold: "super-rare",
+};
+
 export type SpecialAbilityCategory =
   | "serve"
   | "attack"

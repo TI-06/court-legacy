@@ -1,5 +1,8 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
-import { relationshipKey } from "../../../src/domain/model/GameState";
+import {
+  CURRENT_GAME_SCHEMA_VERSION,
+  relationshipKey,
+} from "../../../src/domain/model/GameState";
 import { eventId } from "../../../src/domain/model/identifiers";
 import { buildSpecialRelationshipNotification } from "../../../src/domain/notifications/gameNotifications";
 import { addSpecialRelationship } from "../../../src/domain/relationships/specialRelationships";
@@ -60,7 +63,7 @@ describe("Phase21 schema v9 migration", () => {
     const migrated = decodeGameState(JSON.stringify(legacy));
     const migratedPlayer = migrated.players[playerId]!;
 
-    expect(migrated.schemaVersion).toBe(9);
+    expect(migrated.schemaVersion).toBe(CURRENT_GAME_SCHEMA_VERSION);
     expect(migrated.playerRelationshipBonds).toEqual({});
     expect(migrated.history.relationshipLegacyHistory).toEqual([]);
     expect(migrated.eventMemory.recentActorPairKeys).toEqual([]);
@@ -76,7 +79,7 @@ describe("Phase21 schema v9 migration", () => {
     expect(migratedPlayer.matchConsistency).toBe(81);
   });
 
-  it("round-trips complete v9 relationship state, legacy, recent pair memory, and notification", () => {
+  it("round-trips current relationship state, legacy, recent pair memory, and notification", () => {
     let state = structuredClone(createDemoGame());
     const school = state.schools[state.userSchoolId]!;
     const leftId = school.playerIds[0]!;

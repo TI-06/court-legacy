@@ -2,7 +2,9 @@ import type { Player, Position } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { RandomSource } from "../random/SeededRandom";
 import {
+  MAX_SPECIAL_ABILITIES,
   SPECIAL_ABILITIES,
+  SPECIAL_ABILITY_CONFLICTS,
   type SpecialAbilityCategory,
 } from "./specialAbilities";
 import { getSpecialAbilityTipChances } from "./specialAbilityDevelopmentModifiers";
@@ -30,31 +32,7 @@ const POSITION_CATEGORIES: Record<Position, readonly SpecialAbilityCategory[]> =
     L: ["receive", "mental", "physical", "team"],
   };
 
-const MAX_SPECIAL_ABILITIES = 24;
 const MAX_SPECIAL_ABILITY_TIPS = 16;
-
-const CONFLICTING_SPECIAL_ABILITIES: Readonly<Record<string, string>> = {
-  serve_stable: "serve_unstable",
-  serve_unstable: "serve_stable",
-  attack_quick: "attack_quick_bad",
-  attack_quick_bad: "attack_quick",
-  set_stable: "set_unstable",
-  set_unstable: "set_stable",
-  set_emergency: "set_emergency_bad",
-  set_emergency_bad: "set_emergency",
-  receive_serve: "receive_weak",
-  receive_weak: "receive_serve",
-  receive_power: "receive_power_fear",
-  receive_power_fear: "receive_power",
-  receive_tip: "receive_tip_bad",
-  receive_tip_bad: "receive_tip",
-  receive_cover: "receive_cover_slow",
-  receive_cover_slow: "receive_cover",
-  mental_clutch: "mental_choke",
-  mental_choke: "mental_clutch",
-  physical_injury_resist: "physical_injury_prone",
-  physical_injury_prone: "physical_injury_resist",
-};
 
 function positiveCandidates(player: Player): string[] {
   const owned = new Set(player.specialAbilityIds ?? []);
@@ -136,7 +114,7 @@ export function learnSpecialAbility(
 
   const tipLevels = { ...(player.specialAbilityTipLevels ?? {}) };
   delete tipLevels[abilityId];
-  const conflictingAbilityId = CONFLICTING_SPECIAL_ABILITIES[abilityId];
+  const conflictingAbilityId = SPECIAL_ABILITY_CONFLICTS[abilityId];
   if (conflictingAbilityId) {
     delete tipLevels[conflictingAbilityId];
   }

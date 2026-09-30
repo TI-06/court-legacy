@@ -1,6 +1,7 @@
 import {
   getSpecialAbilityDefinition,
   SPECIAL_ABILITIES,
+  SPECIAL_ABILITY_RARITY_BY_KIND,
 } from "../../../../src/domain/player/specialAbilities";
 
 describe("special ability catalog", () => {
@@ -24,6 +25,15 @@ describe("special ability catalog", () => {
       negative: 20,
       elite: 15,
       gold: 10,
+    });
+  });
+
+  it("maps legacy kinds to the Phase50 rarity model without changing stable IDs", () => {
+    expect(SPECIAL_ABILITY_RARITY_BY_KIND).toEqual({
+      positive: "normal",
+      negative: "negative",
+      elite: "rare",
+      gold: "super-rare",
     });
   });
 
