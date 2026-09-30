@@ -122,6 +122,8 @@ export interface RecruitingState {
   recommendationUsed?: boolean;
   scoutingSearchesUsed?: number;
   extraScoutingSearchCredits?: number;
+  pendingExtraScoutCandidates?: number;
+  pendingGenerationalScoutCandidates?: number;
   candidateEngagements?: Partial<
     Record<PlayerId, RecruitingCandidateEngagement>
   >;

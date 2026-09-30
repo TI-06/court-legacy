@@ -2,6 +2,7 @@ import { gameDataBootstrap } from "../../src/data/gameData";
 import { generatePlayer } from "../../src/domain/generation/generatePlayer";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingSearchCriteria";
+import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
 import { playerId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
@@ -224,9 +225,30 @@ export function generateServerScoutingCandidates(
   state: GameState,
   criteria?: ScoutingSearchCriteria,
   searchSequence = 0,
+  bonuses: ScoutingSearchItemBonuses = {
+    extraCandidateCount: 0,
+    guaranteedGenerationalCount: 0,
+  },
 ): ScoutingCandidateTruth[] {
   const excludedFullNames = defaultExcludedFullNames(state);
-  const generated = Array.from({ length: CANDIDATE_COUNT + 6 }, (_, index) =>
+  const extraCandidateCount = Math.max(0, bonuses.extraCandidateCount);
+  const guaranteedGenerationalCount = Math.max(
+    0,
+    bonuses.guaranteedGenerationalCount,
+  );
+  const regionCount =
+    criteria?.region === "prefecture"
+      ? 4
+      : criteria?.region === "regional"
+        ? 5
+        : CANDIDATE_COUNT;
+  const resultCount =
+    regionCount + extraCandidateCount + guaranteedGenerationalCount;
+  const generationCount = Math.max(
+    CANDIDATE_COUNT + 6,
+    resultCount + guaranteedGenerationalCount + 6,
+  );
+  const baseline = Array.from({ length: generationCount }, (_, index) =>
     generateServerScoutingCandidateAtIndex(
       state,
       index + 1,
@@ -236,6 +258,39 @@ export function generateServerScoutingCandidates(
       searchSequence,
     ),
   );
+  const positionMatchedIndexes = baseline
+    .map((candidate, index) => ({ candidate, generationIndex: index + 1 }))
+    .filter(
+      ({ candidate }) =>
+        !criteria ||
+        criteria.position === "any" ||
+        candidate.player.preferredPosition === criteria.position,
+    )
+    .map(({ generationIndex }) => generationIndex);
+  const remainingIndexes = baseline
+    .map((_, index) => index + 1)
+    .filter((index) => !positionMatchedIndexes.includes(index));
+  const forcedIndexes = [...positionMatchedIndexes, ...remainingIndexes].slice(
+    0,
+    Math.min(guaranteedGenerationalCount, generationCount),
+  );
+  const forcedTierByIndex = new Map<number, RecruitTier>(
+    forcedIndexes.map((index) => [index, "generational"]),
+  );
+
+  const generated =
+    forcedTierByIndex.size === 0
+      ? baseline
+      : Array.from({ length: generationCount }, (_, index) =>
+          generateServerScoutingCandidateAtIndex(
+            state,
+            index + 1,
+            excludedFullNames,
+            forcedTierByIndex,
+            criteria,
+            searchSequence,
+          ),
+        );
 
   const positionFiltered =
     criteria && criteria.position !== "any"
@@ -274,13 +329,16 @@ export function generateServerScoutingCandidates(
   const ranked = [...preferred].sort(
     (left, right) => score(right) - score(left),
   );
-  const regionCount =
-    criteria?.region === "prefecture"
-      ? 4
-      : criteria?.region === "regional"
-        ? 5
-        : CANDIDATE_COUNT;
-  return ranked.slice(0, regionCount);
+  const guaranteed = generated.filter((_, index) =>
+    forcedTierByIndex.has(index + 1),
+  );
+  const guaranteedIds = new Set(
+    guaranteed.map((candidate) => candidate.player.id),
+  );
+  return [
+    ...guaranteed,
+    ...ranked.filter((candidate) => !guaranteedIds.has(candidate.player.id)),
+  ].slice(0, resultCount);
 }
 
 function competitorCount(

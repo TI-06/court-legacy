@@ -50,7 +50,7 @@ export const PHASE5_SHOP_ITEMS = [
   {
     itemId: "extra-scout-candidate",
     displayName: "新入生候補追加",
-    description: "新入生スカウト候補を1名追加します。",
+    description: "次回のスカウト検索結果に新入生候補を1名追加します。",
     priceYen: 0,
     annualPurchaseLimit: 2_000_000_000,
     annualUseLimit: 2_000_000_000,
@@ -61,7 +61,8 @@ export const PHASE5_SHOP_ITEMS = [
   {
     itemId: "generational-scout-candidate",
     displayName: "天才候補生追加",
-    description: "天才ランクの新入生スカウト候補を1名追加します。",
+    description:
+      "次回のスカウト検索結果に天才ランクの候補を1名確定で追加します。",
     priceYen: 0,
     annualPurchaseLimit: 2_000_000_000,
     annualUseLimit: 2_000_000_000,

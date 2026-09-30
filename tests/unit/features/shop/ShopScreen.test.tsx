@@ -167,6 +167,27 @@ describe("ShopScreen", () => {
     expect(props.onUse).toHaveBeenCalledWith("fatigue-recovery");
   });
 
+  it("keeps candidate and genius scout items out of inventory because they are used from scouting", () => {
+    const status = createStatus();
+    status.items = status.items.map((item) =>
+      item.itemId === "extra-scout-candidate" ||
+      item.itemId === "generational-scout-candidate"
+        ? {
+            ...item,
+            quantityOwned: 2,
+            canUse: true,
+            useBlockedReason: null,
+          }
+        : item,
+    );
+
+    renderShop({ view: "inventory", status });
+
+    expect(screen.queryByText("新入生候補追加")).toBeNull();
+    expect(screen.queryByText("天才候補生追加")).toBeNull();
+    expect(screen.getByText("疲労回復")).toBeVisible();
+  });
+
   it("renders purchase and use feedback in an overlay so the item grid does not shift", () => {
     const state = createDemoGame();
     renderShop({

@@ -1056,9 +1056,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         if (
           scoutingOpen &&
           (request.itemId === "scout-research" ||
-            request.itemId === "potential-appraisal" ||
-            request.itemId === "extra-scout-candidate" ||
-            request.itemId === "generational-scout-candidate")
+            request.itemId === "potential-appraisal")
         ) {
           const refreshedReports = await loadScoutingBoard(response.revision);
           if (scoutingCandidateId) {

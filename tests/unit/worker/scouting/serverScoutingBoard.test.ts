@@ -43,6 +43,20 @@ describe("server scouting board Phase 5 integration", () => {
     expect(new Set(first.map(({ player }) => player.id)).size).toBe(6);
   });
 
+  it("adds queued search candidates and guarantees genius talent in the resulting board", () => {
+    const state = createDemoGame();
+    const candidates = generateServerScoutingCandidates(
+      state,
+      { region: "national", position: "any", priority: "ability" },
+      1,
+      { extraCandidateCount: 1, guaranteedGenerationalCount: 1 },
+    );
+
+    expect(candidates).toHaveLength(8);
+    expect(candidates[0]?.player.tier).toBe("generational");
+    expect(new Set(candidates.map(({ player }) => player.id)).size).toBe(8);
+  });
+
   it("generates index seven deterministically without rerolling the original six", () => {
     const state = createDemoGame();
     const originalSix = generateServerScoutingCandidates(state);

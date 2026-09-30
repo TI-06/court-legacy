@@ -4,10 +4,14 @@ import { playerId } from "../../../../src/domain/model/identifiers";
 import {
   ANNUAL_BASE_SCOUT_SEARCHES,
   addExtraScoutingSearchCredit,
+  addPendingExtraScoutCandidate,
+  addPendingGenerationalScoutCandidate,
   consumeBaseScoutingSearch,
   consumeExtraScoutingSearchCredit,
+  consumeScoutingSearchItemBonuses,
   scoutingBaseSearchesRemaining,
   scoutingSearchesUsed,
+  scoutingSearchItemBonuses,
 } from "../../../../src/domain/scouting/scoutingSearchBudget";
 
 function stateWithRecruiting(recruiting?: GameState["recruiting"]): GameState {
@@ -85,6 +89,48 @@ describe("scouting annual search budget", () => {
     expect(searched?.recruiting).toMatchObject({
       scoutingSearchesUsed: 4,
       extraScoutingSearchCredits: 0,
+    });
+  });
+
+  it("queues candidate and genius bonuses until the next search consumes them", () => {
+    let state = stateWithRecruiting({
+      cycleKey: "school-user:year-4",
+      committedCandidateIds: [],
+      scoutingSearchesUsed: 1,
+    });
+
+    state = addPendingExtraScoutCandidate(state);
+    state = addPendingExtraScoutCandidate(state);
+    state = addPendingGenerationalScoutCandidate(state);
+
+    expect(scoutingSearchItemBonuses(state)).toEqual({
+      extraCandidateCount: 2,
+      guaranteedGenerationalCount: 1,
+    });
+
+    const consumed = consumeScoutingSearchItemBonuses(state);
+    expect(scoutingSearchItemBonuses(consumed)).toEqual({
+      extraCandidateCount: 0,
+      guaranteedGenerationalCount: 0,
+    });
+    expect(consumed.recruiting).toMatchObject({
+      pendingExtraScoutCandidates: 0,
+      pendingGenerationalScoutCandidates: 0,
+      scoutingSearchesUsed: 1,
+    });
+  });
+
+  it("does not carry queued scouting item effects into a new academic cycle", () => {
+    const state = stateWithRecruiting({
+      cycleKey: "school-user:year-3",
+      committedCandidateIds: [],
+      pendingExtraScoutCandidates: 2,
+      pendingGenerationalScoutCandidates: 1,
+    });
+
+    expect(scoutingSearchItemBonuses(state)).toEqual({
+      extraCandidateCount: 0,
+      guaranteedGenerationalCount: 0,
     });
   });
 

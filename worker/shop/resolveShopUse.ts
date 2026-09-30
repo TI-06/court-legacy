@@ -4,8 +4,12 @@ import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
-import type { RecruitTier } from "../../src/domain/scouting/recruitmentTierProbability";
-import { addExtraScoutingSearchCredit } from "../../src/domain/scouting/scoutingSearchBudget";
+import {
+  addExtraScoutingSearchCredit,
+  addPendingExtraScoutCandidate,
+  addPendingGenerationalScoutCandidate,
+  scoutingSearchItemBonuses,
+} from "../../src/domain/scouting/scoutingSearchBudget";
 import { getShopItemDefinition } from "../../src/domain/shop/shopCatalog";
 import type { ShopUseRequest } from "../../src/domain/shop/shopContracts";
 import {
@@ -30,10 +34,7 @@ import type {
   ScoutingStore,
 } from "../data/ScoutingStore";
 import type { ShopUseTargetType } from "../data/ShopStore";
-import {
-  generateServerScoutingCandidateAtIndex,
-  scoutingCycleKey,
-} from "../scouting/serverScoutingBoard";
+import { scoutingCycleKey } from "../scouting/serverScoutingBoard";
 
 if (!gameDataBootstrap.ok) {
   throw new Error(gameDataBootstrap.message);
@@ -153,92 +154,6 @@ async function currentScoutingPool(
     throw new ShopUseResolutionError("scouting_cycle_unavailable");
   }
   return pool;
-}
-
-function recruitTierFromCandidate(
-  candidate: ScoutingCandidateTruth,
-): RecruitTier {
-  return candidate.player.tier === "prospect"
-    ? "promising"
-    : candidate.player.tier;
-}
-
-function scoutingCandidateIdParts(candidateId: string): {
-  searchSequence: number;
-  generationIndex: number;
-} | null {
-  const match = candidateId.match(/-(\d+)-(\d+)$/);
-  return match
-    ? { searchSequence: Number(match[1]), generationIndex: Number(match[2]) }
-    : null;
-}
-
-function scoutingPoolSearchSequence(pool: ScoutingCandidatePool): number {
-  const firstId = pool.candidates[0]?.player.id;
-  if (!firstId) return 0;
-  return scoutingCandidateIdParts(firstId)?.searchSequence ?? 0;
-}
-
-function nextScoutingCandidateIndex(pool: ScoutingCandidatePool): number {
-  return (
-    Math.max(
-      0,
-      ...pool.candidates.map(
-        (candidate) =>
-          scoutingCandidateIdParts(candidate.player.id)?.generationIndex ?? 0,
-      ),
-    ) + 1
-  );
-}
-
-async function resolveExtraCandidate(
-  input: ResolveShopUseInput,
-  forcedTier?: RecruitTier,
-): Promise<ResolvedShopUse> {
-  const pool = await currentScoutingPool(input.snapshot, input.scoutingStore);
-  const nextIndex = nextScoutingCandidateIndex(pool);
-  const tierOverrides = new Map<number, RecruitTier>(
-    pool.candidates.map((candidate, index) => [
-      index + 1,
-      recruitTierFromCandidate(candidate),
-    ]),
-  );
-  if (forcedTier) {
-    tierOverrides.set(nextIndex, forcedTier);
-  }
-
-  const generated = generateServerScoutingCandidateAtIndex(
-    input.snapshot.state,
-    nextIndex,
-    undefined,
-    tierOverrides,
-    undefined,
-    scoutingPoolSearchSequence(pool),
-  );
-  if (
-    pool.candidates.some(
-      (candidate) => candidate.player.id === generated.player.id,
-    )
-  ) {
-    throw new ShopUseResolutionError("scouting_cycle_unavailable");
-  }
-
-  const candidates = [...structuredClone(pool.candidates), generated];
-  const base = cloneBase(input.snapshot);
-
-  return {
-    ...base,
-    targetType: "none",
-    targetId: null,
-    safeRequest: {},
-    publicResult: {
-      candidateCount: candidates.length,
-      addedCandidateId: generated.player.id,
-    },
-    scoutingCycleKey: pool.cycleKey,
-    scoutingCandidates: candidates,
-    scoutingInsight: null,
-  };
 }
 
 function findInsight(
@@ -569,10 +484,28 @@ export async function resolveShopUse(
         publicResult: { scoutingSearchCredit: 1 },
       };
     }
-    case "extra-scout-candidate":
-      return resolveExtraCandidate(input);
-    case "generational-scout-candidate":
-      return resolveExtraCandidate(input, "generational");
+    case "extra-scout-candidate": {
+      const base = cloneBase(input.snapshot);
+      base.state = addPendingExtraScoutCandidate(base.state);
+      return {
+        ...base,
+        targetType: "none",
+        targetId: null,
+        safeRequest: {},
+        publicResult: { ...scoutingSearchItemBonuses(base.state) },
+      };
+    }
+    case "generational-scout-candidate": {
+      const base = cloneBase(input.snapshot);
+      base.state = addPendingGenerationalScoutCandidate(base.state);
+      return {
+        ...base,
+        targetType: "none",
+        targetId: null,
+        safeRequest: {},
+        publicResult: { ...scoutingSearchItemBonuses(base.state) },
+      };
+    }
     case "scout-research":
     case "potential-appraisal":
       return resolveScoutingInsight(input);
