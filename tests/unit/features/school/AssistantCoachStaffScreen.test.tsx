@@ -79,9 +79,7 @@ describe("school staff screen", () => {
     openCoachTab();
 
     expect(screen.queryByTestId("assistant-coach-current")).toBeNull();
-    expect(
-      screen.getByText("現在契約中のコーチはいません"),
-    ).toBeVisible();
+    expect(screen.getByText("現在契約中のコーチはいません")).toBeVisible();
     const advancedCoach = screen.getByTestId("assistant-coach-advanced");
     expect(within(advancedCoach).getByText("詳細で契約")).toBeVisible();
   });
