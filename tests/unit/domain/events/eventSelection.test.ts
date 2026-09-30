@@ -1,7 +1,40 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { selectNextEvent } from "../../../../src/domain/events/selectEvent";
 import { eventId } from "../../../../src/domain/model/identifiers";
-import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
+import {
+  SeededRandom,
+  type RandomSource,
+} from "../../../../src/domain/random/SeededRandom";
+
+function fixedRollRandom(roll: number): RandomSource {
+  let cursor = 0;
+  return {
+    get cursor() {
+      return cursor;
+    },
+    next() {
+      cursor += 1;
+      return (roll - 1) / 100;
+    },
+    int(minimum, maximum) {
+      cursor += 1;
+      return Math.max(minimum, Math.min(maximum, roll));
+    },
+    pick(items) {
+      const first = items[0];
+      if (first === undefined) {
+        throw new Error("cannot pick from an empty collection");
+      }
+      return first;
+    },
+    fork() {
+      return fixedRollRandom(roll);
+    },
+    snapshot() {
+      return { seed: `fixed-${roll}`, cursor };
+    },
+  };
+}
 
 describe("event selection", () => {
   it("surfaces a valid due follow-up before weighted normal events", () => {
@@ -52,6 +85,52 @@ describe("event selection", () => {
 
     expect(result.state.eventMemory.scheduledFollowUps).toEqual([]);
     expect(result.pendingEvent?.chainId).not.toBe("invalid-chain");
+  });
+
+  it("prioritizes an eligible Rare awakening before normal events", () => {
+    const state = createDemoGame();
+    const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[actor]!;
+    state.players[actor] = {
+      ...player,
+      abilities: {
+        ...player.abilities,
+        spike: 80,
+        decision: 78,
+      },
+      specialAbilityIds: ["attack_course", "attack_blockout"],
+    };
+
+    const awakening = gameData.events.get("event.awaken-court-hitter")!;
+    const normalBase = gameData.events.get("event.position-trial-result")!;
+    const normal = {
+      ...normalBase,
+      id: "event.normal-fallback-test",
+      tags: ["test-normal"],
+      trigger: {},
+      actorCount: 1,
+    };
+    const isolatedData = {
+      ...gameData,
+      events: new Map([
+        [normal.id, normal],
+        [awakening.id, awakening],
+      ]),
+    };
+
+    const prioritized = selectNextEvent(
+      state,
+      isolatedData,
+      fixedRollRandom(1),
+    );
+    expect(prioritized.pendingEvent?.eventId).toBe(eventId(awakening.id));
+
+    const fallback = selectNextEvent(
+      { ...state, pendingEvent: null },
+      isolatedData,
+      fixedRollRandom(41),
+    );
+    expect(fallback.pendingEvent?.eventId).toBe(eventId(normal.id));
   });
 
   it("does not surface referenced follow-up stages as normal events", () => {
