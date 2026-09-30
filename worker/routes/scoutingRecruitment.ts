@@ -79,7 +79,7 @@ function recruitmentCapacityReached(): Response {
   return jsonError(
     409,
     "recruitment_capacity_reached",
-    "翌年度の選手枠が上限に達しています",
+    `新入生の獲得枠（${RECRUITMENT_COMMIT_LIMIT}人）が上限に達しています`,
   );
 }
 
@@ -255,7 +255,7 @@ export function createScoutingRecruitmentHandler(
           recoverCommittedCandidateTruth(snapshot.state, candidateId),
       )
       .filter((entry) => entry !== null)
-      .slice(0, 7);
+      .slice(0, RECRUITMENT_COMMIT_LIMIT);
     const nextState = {
       ...snapshot.state,
       recruiting: {
