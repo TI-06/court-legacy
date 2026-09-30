@@ -267,7 +267,7 @@ describe("ScoutingScreen", () => {
     expect(screen.getByRole("heading", { name: "学校記録" })).toBeVisible();
   });
 
-  it("uses candidate and genius items from the scouting screen and shows queued effects", () => {
+  it("keeps scouting items inside the search conditions sheet without adding main-screen layout", () => {
     const state = stateWithCommitted();
     state.recruiting = {
       ...state.recruiting!,
@@ -279,6 +279,13 @@ describe("ScoutingScreen", () => {
     render(
       <ScoutingScreen
         error={null}
+        latestShopUseResult={{
+          itemId: "generational-scout-candidate",
+          result: {
+            extraCandidateCount: 1,
+            guaranteedGenerationalCount: 1,
+          },
+        }}
         loading={false}
         onBack={vi.fn()}
         onRecruit={vi.fn()}
@@ -291,15 +298,27 @@ describe("ScoutingScreen", () => {
       />,
     );
 
-    const items = screen.getByRole("region", { name: "探索アイテム" });
-    expect(within(items).getByText("候補+1 天才確定+1")).toBeVisible();
-    expect(within(items).getByText("所持 2")).toBeVisible();
-    expect(within(items).getByText("所持 1")).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "探索アイテム" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("次回の探索に予約しました")).toBeNull();
 
-    fireEvent.click(within(items).getByRole("button", { name: /候補\+1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "スカウトに行く" }));
+
+    const dialog = screen.getByRole("dialog", { name: "探索条件" });
+    const items = within(dialog).getByRole("region", { name: "探索アイテム" });
+    expect(within(items).getByText("この探索に反映")).toBeVisible();
+    expect(within(items).getByText("適用 1 / 所持 2")).toBeVisible();
+    expect(within(items).getByText("適用 1 / 所持 1")).toBeVisible();
+
+    fireEvent.click(
+      within(items).getByRole("button", { name: "新入生候補追加を使う" }),
+    );
     expect(onUseShopItem).toHaveBeenCalledWith("extra-scout-candidate");
 
-    fireEvent.click(within(items).getByRole("button", { name: /天才確定/ }));
+    fireEvent.click(
+      within(items).getByRole("button", { name: "天才候補生追加を使う" }),
+    );
     expect(onUseShopItem).toHaveBeenCalledWith("generational-scout-candidate");
   });
 
