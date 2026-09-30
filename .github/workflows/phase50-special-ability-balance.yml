@@ -1,0 +1,39 @@
+name: Phase50 Special Ability Balance Soak
+
+on:
+  push:
+    branches:
+      - feat/phase50-7-special-ability-balance-soak
+
+permissions:
+  contents: read
+
+jobs:
+  phase50-balance-soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run 10-season Phase50 balance soak
+        run: >-
+          npm run soak:balance --
+          --seed phase50-balance-a,phase50-balance-b
+          --output .phase50-soak/balance
+      - name: Run 30-season Phase50 long soak
+        run: >-
+          npm run soak:long --
+          --seed phase50-long-a,phase50-long-b
+          --output .phase50-soak/long
+      - name: Upload Phase50 soak reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase50-special-ability-soak
+          path: .phase50-soak
+          retention-days: 3
