@@ -1,8 +1,8 @@
 import type { GameDataRegistry } from "../../data/dataRegistry";
-import type { MatchState } from "../model/Match";
 import { clampAbility, type Grade, type Player } from "../model/Player";
 import type { GameState } from "../model/GameState";
 import type { PlayerId } from "../model/identifiers";
+import type { UserMatchPerformanceSnapshot } from "../match/userMatchPerformance";
 import type { TeamSelection } from "../model/TeamSelection";
 import type {
   AbilityKey,
@@ -104,28 +104,6 @@ export function calculateSelectionAverageAbility(
   return total / players.length;
 }
 
-function matchParticipants(
-  match: MatchState,
-  selection: TeamSelection,
-): PlayerId[] {
-  const roster = new Set<PlayerId>([
-    ...selection.rotation.map((assignment) => assignment.playerId),
-    ...selection.benchPlayerIds,
-  ]);
-  if (selection.liberoPlayerId) roster.add(selection.liberoPlayerId);
-
-  const participants = new Set<PlayerId>(selectionPlayerIds(selection));
-  for (const event of match.eventLog) {
-    if (event.actorPlayerId && roster.has(event.actorPlayerId)) {
-      participants.add(event.actorPlayerId);
-    }
-    if (event.targetPlayerId && roster.has(event.targetPlayerId)) {
-      participants.add(event.targetPlayerId);
-    }
-  }
-  return [...participants];
-}
-
 function matchGrowthTargets(player: Player): readonly AbilityKey[] {
   const coreByPosition: Record<Player["preferredPosition"], AbilityKey> = {
     OH: "spike",
@@ -140,24 +118,18 @@ function matchGrowthTargets(player: Player): readonly AbilityKey[] {
 export interface ApplyUserMatchExperienceInput {
   state: GameState;
   data: GameDataRegistry;
-  match: MatchState;
-  selection: TeamSelection;
+  performance: UserMatchPerformanceSnapshot;
   strongerOpponent: boolean;
 }
 
 export function applyUserMatchExperience(
   input: ApplyUserMatchExperienceInput,
 ): GameState {
-  if (input.match.phase !== "match-complete") return input.state;
-
-  const lost =
-    input.match.homeSchoolId === input.state.userSchoolId
-      ? input.match.awaySetsWon > input.match.homeSetsWon
-      : input.match.homeSetsWon > input.match.awaySetsWon;
+  const lost = !input.performance.userWon;
   const players = { ...input.state.players };
   let changed = false;
 
-  for (const id of matchParticipants(input.match, input.selection)) {
+  for (const id of input.performance.experienceParticipantIds) {
     const current = input.state.players[id];
     if (!current || current.career.schoolId !== input.state.userSchoolId)
       continue;
