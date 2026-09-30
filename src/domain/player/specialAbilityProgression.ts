@@ -7,7 +7,7 @@ import {
   SPECIAL_ABILITY_CONFLICTS,
   type SpecialAbilityCategory,
 } from "./specialAbilities";
-import { getSpecialAbilityTipChances } from "./specialAbilityDevelopmentModifiers";
+import { getSpecialAbilityAcquisitionChance } from "./specialAbilityDevelopmentModifiers";
 
 export type SpecialAbilityProgressKind = "tip" | "learned" | "negative-removed";
 
@@ -185,10 +185,10 @@ export function resolveTrainingCampSpecialAbilityProgress(
     changes.push(...removed.changes);
   }
 
-  const acquisitionChance = getSpecialAbilityTipChances(current);
+  const acquisitionChance = getSpecialAbilityAcquisitionChance(current);
   if (
     random.int(1, 100) <=
-    Math.min(100, acquisitionChance.progressPercent + bonusPercent)
+    Math.min(100, acquisitionChance.acquisitionPercent + bonusPercent)
   ) {
     const candidates = positiveCandidates(current);
     if (candidates.length > 0) {
