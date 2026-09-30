@@ -2,6 +2,7 @@ import type { GameDataRegistry } from "../../data/dataRegistry";
 import type { MatchState } from "../model/Match";
 import { clampAbility, type Grade, type Player } from "../model/Player";
 import type { GameState } from "../model/GameState";
+import { annualInvestmentEffects } from "../school/annualSchoolInvestment";
 import type { PlayerId } from "../model/identifiers";
 import type { TeamSelection } from "../model/TeamSelection";
 import type {
@@ -173,10 +174,12 @@ export function applyUserMatchExperience(
     if (amount <= 0) continue;
 
     const abilities = { ...current.abilities };
+    const analysisBonus =
+      annualInvestmentEffects(input.state).analysisDecisionGrowthBonus;
     for (const key of matchGrowthTargets(current)) {
       abilities[key] = applyLongTermAbilityGrowth(
         abilities[key],
-        amount,
+        amount + (key === "decision" ? analysisBonus : 0),
         current.potential,
         current.tier,
       );
