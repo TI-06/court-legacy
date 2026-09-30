@@ -1,8 +1,7 @@
 import type { Player } from "../model/Player";
 
-export interface SpecialAbilityTipChances {
-  progressPercent: number;
-  doubleTipPercent: number;
+export interface SpecialAbilityAcquisitionChance {
+  acquisitionPercent: number;
 }
 
 function abilitySet(player: Player): Set<string> {
@@ -28,18 +27,15 @@ export function adjustSpecialAbilityInjuryRisk(
   return Math.max(0, Math.min(100, Math.round(baseRisk * multiplier)));
 }
 
-export function getSpecialAbilityTipChances(
+export function getSpecialAbilityAcquisitionChance(
   player: Player,
-): SpecialAbilityTipChances {
-  if ((player.specialAbilityIds ?? []).includes("growth_practice")) {
-    return {
-      progressPercent: 50,
-      doubleTipPercent: 20,
-    };
-  }
+): SpecialAbilityAcquisitionChance {
   return {
-    progressPercent: 38,
-    doubleTipPercent: 12,
+    acquisitionPercent: (player.specialAbilityIds ?? []).includes(
+      "growth_practice",
+    )
+      ? 50
+      : 38,
   };
 }
 
