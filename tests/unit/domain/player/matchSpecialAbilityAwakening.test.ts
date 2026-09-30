@@ -204,6 +204,57 @@ describe("match special ability awakening", () => {
     );
   });
 
+  it("prioritizes Super Rare over Rare when both are eligible", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    state.players[playerId] = {
+      ...player,
+      abilities: {
+        ...player.abilities,
+        spike: 92,
+        mental: 85,
+        decision: 80,
+      },
+      specialAbilityIds: [
+        "elite_court_hitter",
+        "elite_block_crusher",
+        "mental_clutch",
+        "mental_focus",
+      ],
+    };
+
+    const result = applyMatchSpecialAbilityAwakening({
+      state,
+      data: gameData,
+      performance: performance(
+        state,
+        stats(playerId, {
+          points: 7,
+          attackPoints: 5,
+          attackAttempts: 8,
+          attackSuccessRate: 63,
+          clutchPoints: 2,
+          clutchAttackPoints: 2,
+        }),
+        true,
+      ),
+      context: {
+        kind: "official",
+        level: "national",
+        round: "final",
+      },
+      random: fixedRollRandom(1),
+    });
+
+    expect(result.awakenings[0]).toEqual(
+      expect.objectContaining({
+        abilityId: "gold_absolute_ace",
+        rarity: "super-rare",
+      }),
+    );
+  });
+
   it("does not allow Super Rare awakening outside nationals", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
