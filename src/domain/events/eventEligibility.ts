@@ -48,7 +48,10 @@ function recentMatchResult(state: GameState): "win" | "loss" | null {
   return match.winnerSchoolId === state.userSchoolId ? "win" : "loss";
 }
 
-function playerMatchesTrigger(player: Player, trigger: EventTrigger): boolean {
+export function playerMatchesEventTrigger(
+  player: Player,
+  trigger: EventTrigger,
+): boolean {
   if (trigger.minGrade !== undefined && player.grade < trigger.minGrade) {
     return false;
   }
@@ -202,7 +205,9 @@ export function isEventEligibleForActors(
     return false;
   }
   if (
-    !actors.every((actor) => playerMatchesTrigger(actor as Player, trigger))
+    !actors.every((actor) =>
+      playerMatchesEventTrigger(actor as Player, trigger),
+    )
   ) {
     return false;
   }
