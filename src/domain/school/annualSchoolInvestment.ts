@@ -121,8 +121,7 @@ export function evaluateAnnualInvestmentUpgrade(
   }
 
   const nextLevel = (currentLevel + 1) as AnnualInvestmentLevel;
-  const cost =
-    definition.levelCosts[currentLevel as 0 | 1 | 2];
+  const cost = definition.levelCosts[currentLevel as 0 | 1 | 2];
   const fundsAfter = school.funds - cost;
   return {
     area,
