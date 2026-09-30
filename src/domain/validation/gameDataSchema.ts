@@ -295,7 +295,7 @@ export const eventEffectSchema = z.discriminatedUnion("type", [
     traitId: dataIdSchema,
   }),
   z.object({
-    type: z.literal("special-ability-tip"),
+    type: z.literal("special-ability-acquire"),
     abilityId: specialAbilityIdSchema,
     amount: z.union([z.literal(1), z.literal(2)]),
   }),
