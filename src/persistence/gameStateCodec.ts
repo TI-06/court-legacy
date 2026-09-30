@@ -5,6 +5,10 @@ import {
   createDefaultGameSettings,
   type GameState,
 } from "../domain/model/GameState";
+import {
+  MAX_SPECIAL_ABILITIES,
+  SPECIAL_ABILITY_CONFLICTS,
+} from "../domain/player/specialAbilities";
 import { createDefaultTeamPlanning } from "../domain/team/teamPlanning";
 import { createOfficialSeason } from "../domain/tournament/createOfficialSeason";
 import { abilityKeySchema } from "../domain/validation/gameDataSchema";
@@ -965,7 +969,7 @@ const persistedPlayerSchema = z
       })
       .strict()
       .optional(),
-    specialAbilityIds: z.array(z.string().min(1)).max(24).default([]),
+    specialAbilityIds: z.array(z.string().min(1)).max(MAX_SPECIAL_ABILITIES).default([]),
     specialAbilityTipLevels: z
       .record(
         z.string().min(1),
@@ -1065,6 +1069,67 @@ function historyWithOfficialTournaments(
   };
 }
 
+function migrateVersionNine(legacy: Record<string, unknown>): unknown {
+  const legacyPlayers =
+    legacy.players &&
+    typeof legacy.players === "object" &&
+    !Array.isArray(legacy.players)
+      ? (legacy.players as Record<string, unknown>)
+      : {};
+  const players = Object.fromEntries(
+    Object.entries(legacyPlayers).map(([id, value]) => {
+      const player =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as Record<string, unknown>)
+          : {};
+      const owned = Array.isArray(player.specialAbilityIds)
+        ? player.specialAbilityIds.filter(
+            (abilityId): abilityId is string => typeof abilityId === "string",
+          )
+        : [];
+      const merged = [...new Set(owned)];
+      const tips =
+        player.specialAbilityTipLevels &&
+        typeof player.specialAbilityTipLevels === "object" &&
+        !Array.isArray(player.specialAbilityTipLevels)
+          ? (player.specialAbilityTipLevels as Record<string, unknown>)
+          : {};
+
+      for (const abilityId of Object.keys(tips).sort()) {
+        const level = tips[abilityId];
+        if (typeof level !== "number" || level <= 0 || merged.includes(abilityId)) {
+          continue;
+        }
+        const conflictId = SPECIAL_ABILITY_CONFLICTS[abilityId];
+        if (conflictId) {
+          const conflictIndex = merged.indexOf(conflictId);
+          if (conflictIndex >= 0) {
+            merged.splice(conflictIndex, 1);
+          }
+        }
+        if (merged.length < MAX_SPECIAL_ABILITIES) {
+          merged.push(abilityId);
+        }
+      }
+
+      return [
+        id,
+        {
+          ...player,
+          specialAbilityIds: merged.slice(0, MAX_SPECIAL_ABILITIES),
+          specialAbilityTipLevels: {},
+        },
+      ];
+    }),
+  );
+
+  return {
+    ...legacy,
+    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    players,
+  };
+}
+
 function migrateVersionEight(legacy: Record<string, unknown>): unknown {
   const legacyPlayers =
     legacy.players &&
@@ -1095,9 +1160,9 @@ function migrateVersionEight(legacy: Record<string, unknown>): unknown {
       ? (legacy.eventMemory as Record<string, unknown>)
       : {};
 
-  return {
+  return migrateVersionNine({
     ...legacy,
-    schemaVersion: CURRENT_GAME_SCHEMA_VERSION,
+    schemaVersion: 9,
     players,
     playerRelationshipBonds: {},
     history: {
@@ -1108,7 +1173,7 @@ function migrateVersionEight(legacy: Record<string, unknown>): unknown {
       ...eventMemory,
       recentActorPairKeys: [],
     },
-  };
+  });
 }
 
 function migrateVersionSeven(legacy: Record<string, unknown>): unknown {
@@ -1257,6 +1322,9 @@ function migrateLegacyState(value: unknown): unknown {
   }
   if (version === 8) {
     return migrateVersionEight(legacy);
+  }
+  if (version === 9) {
+    return migrateVersionNine(legacy);
   }
 
   throw new Error(`未対応のセーブデータ形式です: ${String(version)}`);
