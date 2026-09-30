@@ -4,6 +4,7 @@ import type { PlayerId } from "../../src/domain/model/identifiers";
 import { playerId } from "../../src/domain/model/identifiers";
 import { resolveTrainingCampSpecialAbilityProgress } from "../../src/domain/player/specialAbilityProgression";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
+import { trainingCampInvestmentModifier } from "../../src/domain/school/schoolInvestment";
 import {
   addExtraScoutingSearchCredit,
   addPendingExtraScoutCandidate,
@@ -348,6 +349,7 @@ export function resolveScheduledTrainingCamp(
   const initialCursor = random.cursor;
   const logs: PlayerGrowthLog[] = [];
   const specialAbilityChanges: TrainingCampSpecialAbilityChange[] = [];
+  const campInvestment = trainingCampInvestmentModifier(nextState);
 
   for (const id of school.playerIds) {
     const player = nextState.players[id];
@@ -364,12 +366,23 @@ export function resolveScheduledTrainingCamp(
           TRAINING_CAMP_POSITION_ABILITIES[player.preferredPosition],
         ...TRAINING_CAMP_ACTIVITY,
       },
+      additionalGrowthModifiers:
+        campInvestment.growthPercent > 100
+          ? [
+              {
+                code: "camp-investment",
+                label: "強化合宿予算",
+                percent: campInvestment.growthPercent,
+              },
+            ]
+          : [],
     });
     let updatedPlayer = resolved.player;
     if (resolved.log.skippedReason === null) {
       const progression = resolveTrainingCampSpecialAbilityProgress(
         updatedPlayer,
         random,
+        campInvestment.specialAbilityBonus,
       );
       updatedPlayer = progression.player;
       specialAbilityChanges.push(...progression.changes);
