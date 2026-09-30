@@ -71,6 +71,12 @@ interface SnapshotMetrics {
   playerTierCounts: Record<string, number>;
   growthTypeCounts: Record<string, number>;
   positionCounts: Record<string, number>;
+  specialAbilityKindCounts: {
+    normal: number;
+    negative: number;
+    rare: number;
+    superRare: number;
+  };
 }
 
 interface MetricsSubject {
@@ -124,6 +130,32 @@ describe("Phase18 soak balance metrics", () => {
       "60-79",
       "80-100",
     ]);
+  });
+
+  it("counts user-school special abilities by rarity for long-run balance review", async () => {
+    const { captureSoakSnapshotMetrics } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-special-ability-counts");
+    const playerIds =
+      snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds;
+    snapshot.state.players[playerIds[0]!]!.specialAbilityIds = [
+      "attack_course",
+      "serve_unstable",
+      "elite_game_maker",
+      "gold_court_brain",
+    ];
+    snapshot.state.players[playerIds[1]!]!.specialAbilityIds = [
+      "receive_dig",
+      "serve_unstable",
+    ];
+
+    const metrics = captureSoakSnapshotMetrics(snapshot);
+
+    expect(metrics.specialAbilityKindCounts).toEqual({
+      normal: 2,
+      negative: 2,
+      rare: 1,
+      superRare: 1,
+    });
   });
 
   it("derives annual income and expense from the authoritative funds ledger", async () => {
@@ -301,5 +333,6 @@ describe("Phase18 soak balance metrics", () => {
     expect(summary).toMatch(/growth/i);
     expect(summary).toMatch(/tournament/i);
     expect(summary).toMatch(/injured/i);
+    expect(summary).toMatch(/special=N\d+\/NEG\d+\/R\d+\/SR\d+/);
   });
 });
