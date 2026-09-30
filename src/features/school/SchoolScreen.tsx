@@ -563,11 +563,7 @@ export function SchoolScreen({
               </div>
               <span>資金 {school.funds}</span>
             </div>
-            <div
-              className="school-investment-grid"
-              role="region"
-              aria-label="年間強化予算"
-            >
+            <div className="school-investment-grid">
               {investmentOverview.map(({ definition, evaluation }) => {
                 const level = annualInvestments.levels[definition.area];
                 const effect =
