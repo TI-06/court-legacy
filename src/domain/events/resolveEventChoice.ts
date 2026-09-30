@@ -14,7 +14,6 @@ import { eventActorPairKey } from "./selectEvent";
 import { relationshipKey, type GameState } from "../model/GameState";
 import { clampAbility, type Player } from "../model/Player";
 import {
-  addSpecialAbilityTip,
   learnSpecialAbility,
   removeSpecialAbility,
 } from "../player/specialAbilityProgression";
@@ -37,6 +36,11 @@ import type {
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(maximum, Math.round(value)));
+
+const EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE = {
+  1: 40,
+  2: 70,
+} as const;
 
 function signed(value: number): string {
   return value >= 0 ? `+${value}` : String(value);
@@ -331,15 +335,48 @@ function applyEffect(
       if (!ability) {
         throw new Error(`特殊能力定義が見つかりません: ${effect.abilityId}`);
       }
+      if (ability.kind !== "positive") {
+        throw new Error(
+          `イベント直接習得の対象はNormal特殊能力のみです: ${effect.abilityId}`,
+        );
+      }
+
+      const players = { ...state.players };
+      const chance = EVENT_NORMAL_ABILITY_ACQUISITION_CHANCE[effect.amount];
+      let eligibleCount = 0;
+      let learnedCount = 0;
+      let alreadyOwnedCount = 0;
+
+      for (const actorId of actorPlayerIds) {
+        const player = players[actorId];
+        if (!player) {
+          continue;
+        }
+        if ((player.specialAbilityIds ?? []).includes(effect.abilityId)) {
+          alreadyOwnedCount += 1;
+          continue;
+        }
+
+        eligibleCount += 1;
+        if (random.int(1, 100) > chance) {
+          continue;
+        }
+
+        const learned = learnSpecialAbility(player, effect.abilityId);
+        if (learned.changes.some((change) => change.kind === "learned")) {
+          players[actorId] = learned.player;
+          learnedCount += 1;
+        }
+      }
+
       return {
-        state: updateActors(
-          state,
-          actorPlayerIds,
-          (player) =>
-            addSpecialAbilityTip(player, effect.abilityId, effect.amount)
-              .player,
-        ),
-        visibleResult: `${ability.name} コツ +${effect.amount}`,
+        state: learnedCount > 0 ? { ...state, players } : state,
+        visibleResult:
+          learnedCount > 0
+            ? `${ability.name} 習得`
+            : eligibleCount === 0 && alreadyOwnedCount > 0
+              ? `${ability.name} 習得済み`
+              : `${ability.name} 習得ならず`,
       };
     }
     case "special-ability-add": {

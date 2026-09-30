@@ -1,8 +1,12 @@
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { resolveEventChoice } from "../../../../src/domain/events/resolveEventChoice";
 import { relationshipKey } from "../../../../src/domain/model/GameState";
+import { getSpecialAbilityDefinition } from "../../../../src/domain/player/specialAbilities";
 import { eventId } from "../../../../src/domain/model/identifiers";
-import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
+import {
+  SeededRandom,
+  type RandomSource,
+} from "../../../../src/domain/random/SeededRandom";
 import type { GameDataRegistry } from "../../../../src/data/dataRegistry";
 import type { EventDefinition } from "../../../../src/domain/validation/gameDataSchema";
 
@@ -65,7 +69,7 @@ const effectEvent: EventDefinition = {
     {
       id: "special",
       label: "特殊能力",
-      detail: "特殊能力のコツと赤特付与を確認する。",
+      detail: "Normal特殊能力の直接習得と赤特付与を確認する。",
       effects: [
         {
           type: "special-ability-tip",
@@ -88,7 +92,53 @@ function registryWithFixture(): GameDataRegistry {
   };
 }
 
+function fixedRollRandom(roll: number): RandomSource {
+  let cursor = 0;
+  return {
+    get cursor() {
+      return cursor;
+    },
+    next() {
+      cursor += 1;
+      return (roll - 1) / 100;
+    },
+    int(minimum, maximum) {
+      cursor += 1;
+      return Math.max(minimum, Math.min(maximum, roll));
+    },
+    pick(items) {
+      const first = items[0];
+      if (first === undefined) {
+        throw new Error("cannot pick from an empty collection");
+      }
+      return first;
+    },
+    fork() {
+      return fixedRollRandom(roll);
+    },
+    snapshot() {
+      return { seed: `fixed-${roll}`, cursor };
+    },
+  };
+}
+
 describe("event resolution", () => {
+  it("keeps event acquisition effects limited to Normal special abilities", () => {
+    for (const event of gameData.events.values()) {
+      for (const choice of event.choices) {
+        for (const effect of choice.effects) {
+          if (effect.type !== "special-ability-tip") {
+            continue;
+          }
+          expect(
+            getSpecialAbilityDefinition(effect.abilityId)?.kind,
+            `${event.id}/${choice.id}/${effect.abilityId}`,
+          ).toBe("positive");
+        }
+      }
+    }
+  });
+
   it("applies typed effects, schedules follow-up, and stores visible history", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
@@ -144,7 +194,7 @@ describe("event resolution", () => {
     expect(result.state.eventMemory.occurredCareerKeys).toHaveLength(1);
   });
 
-  it("applies special ability event effects", () => {
+  it("acquires a Normal special ability directly from a strong event effect", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
     const player = school.playerIds[0];
@@ -167,16 +217,46 @@ describe("event resolution", () => {
       state,
       "special",
       registryWithFixture(),
-      new SeededRandom(state.seed, state.randomCursor),
+      fixedRollRandom(70),
     );
 
     const updatedPlayer = result.state.players[player]!;
-    expect(updatedPlayer.specialAbilityTipLevels).toMatchObject({
-      attack_course: 2,
-    });
+    expect(updatedPlayer.specialAbilityIds).toContain("attack_course");
+    expect(updatedPlayer.specialAbilityTipLevels).toEqual({});
     expect(updatedPlayer.specialAbilityIds).toContain("serve_unstable");
     expect(result.occurrence.visibleResultCodes).toEqual(
-      expect.arrayContaining(["コース打ち○ コツ +2", "サーブ不安定 習得"]),
+      expect.arrayContaining(["コース打ち○ 習得", "サーブ不安定 習得"]),
+    );
+  });
+
+  it("does not persist tip progress when the event acquisition roll fails", () => {
+    const state = createDemoGame();
+    const player = state.schools[state.userSchoolId]!.playerIds[0]!;
+    state.players[player]!.specialAbilityIds = [];
+    state.players[player]!.specialAbilityTipLevels = {};
+    state.pendingEvent = {
+      eventId: eventId(effectEvent.id),
+      actorPlayerIds: [player],
+      targetSchoolId: null,
+      surfacedDate: state.date,
+      choiceIds: ["special"],
+      chainId: null,
+      chainStage: null,
+    };
+
+    const result = resolveEventChoice(
+      state,
+      "special",
+      registryWithFixture(),
+      fixedRollRandom(71),
+    );
+
+    expect(result.state.players[player]!.specialAbilityIds).not.toContain(
+      "attack_course",
+    );
+    expect(result.state.players[player]!.specialAbilityTipLevels).toEqual({});
+    expect(result.occurrence.visibleResultCodes).toContain(
+      "コース打ち○ 習得ならず",
     );
   });
 
