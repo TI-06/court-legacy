@@ -6,7 +6,7 @@ import type {
 import { matchId } from "../../../../src/domain/model/identifiers";
 import {
   applyMatchNormalAbilityAcquisition,
-  matchNormalAbilityRules,
+  MATCH_NORMAL_ABILITY_IDS,
 } from "../../../../src/domain/player/matchSpecialAbilityAcquisition";
 import { getSpecialAbilityDefinition } from "../../../../src/domain/player/specialAbilities";
 import type { RandomSource } from "../../../../src/domain/random/SeededRandom";
@@ -88,11 +88,10 @@ function performance(
 
 describe("match Normal special ability acquisition", () => {
   it("keeps every match-acquirable ability in the Normal rarity", () => {
-    for (const rule of matchNormalAbilityRules) {
-      expect(
-        getSpecialAbilityDefinition(rule.abilityId)?.kind,
-        rule.abilityId,
-      ).toBe("positive");
+    for (const abilityId of MATCH_NORMAL_ABILITY_IDS) {
+      expect(getSpecialAbilityDefinition(abilityId)?.kind, abilityId).toBe(
+        "positive",
+      );
     }
   });
 
@@ -141,6 +140,49 @@ describe("match Normal special ability acquisition", () => {
     expect(failure.state.players[playerId]!.specialAbilityTipLevels).toEqual(
       {},
     );
+  });
+
+  it("does not award a different ability when the same match is retried", () => {
+    const state = createDemoGame();
+    const playerIds = state.schools[state.userSchoolId]!.playerIds.slice(0, 3);
+    for (const playerId of playerIds) {
+      state.players[playerId] = {
+        ...state.players[playerId]!,
+        specialAbilityIds: [],
+      };
+    }
+    const snapshot = performance(
+      state,
+      playerIds.map((playerId) =>
+        stats(playerId, {
+          points: 2,
+          serviceAces: 2,
+          serveAttempts: 4,
+          serveErrors: 0,
+        }),
+      ),
+    );
+
+    const first = applyMatchNormalAbilityAcquisition({
+      state,
+      performance: snapshot,
+      context: { kind: "practice" },
+      random: fixedRollRandom(1),
+    });
+    const second = applyMatchNormalAbilityAcquisition({
+      state: first.state,
+      performance: snapshot,
+      context: { kind: "practice" },
+      random: fixedRollRandom(1),
+    });
+
+    expect(first.acquisitions).toHaveLength(2);
+    expect(second.acquisitions).toEqual([]);
+    const learnedCounts = playerIds.map(
+      (playerId) => second.state.players[playerId]!.specialAbilityIds.length,
+    );
+    expect(learnedCounts.filter((count) => count === 1)).toHaveLength(2);
+    expect(learnedCounts.filter((count) => count === 0)).toHaveLength(1);
   });
 
   it("caps a national-final MVP standout chance at 40%", () => {
