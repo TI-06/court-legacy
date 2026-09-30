@@ -2,7 +2,7 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import {
   adjustSpecialAbilityInjuryRisk,
   getSpecialAbilityRecoveryValues,
-  getSpecialAbilityTipChances,
+  getSpecialAbilityCampAcquisitionChance,
   getSpecialAbilityTrainingGrowthPercent,
 } from "../../../../src/domain/player/specialAbilityDevelopmentModifiers";
 
@@ -40,15 +40,11 @@ describe("special ability development modifiers", () => {
     ).toBe(68);
   });
 
-  it("improves camp tip chances for practice talent", () => {
-    expect(getSpecialAbilityTipChances(playerWith())).toEqual({
-      progressPercent: 38,
-      doubleTipPercent: 12,
-    });
-    expect(getSpecialAbilityTipChances(playerWith("growth_practice"))).toEqual({
-      progressPercent: 50,
-      doubleTipPercent: 20,
-    });
+  it("improves direct camp acquisition chance for practice talent", () => {
+    expect(getSpecialAbilityCampAcquisitionChance(playerWith())).toBe(38);
+    expect(
+      getSpecialAbilityCampAcquisitionChance(playerWith("growth_practice")),
+    ).toBe(50);
   });
 
   it("improves explicit recovery effects without reviving weekly auto recovery", () => {
