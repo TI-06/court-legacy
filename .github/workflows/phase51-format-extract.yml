@@ -1,4 +1,4 @@
-name: Phase51 Format Apply
+name: Phase51 Result Dialog Format
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - ".github/workflows/phase51-format-extract.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   format:
@@ -27,31 +27,8 @@ jobs:
           git checkout -B phase51-format-target origin/feat/phase51-experience-projects
       - run: npm ci --no-audit --fund=false
       - name: Apply Prettier
-        run: |
-          npx prettier \
-            src/data/events/phase51-top-team-clinic.json \
-            src/domain/school/schoolSpecialProjectActivities.ts \
-            src/features/school/school-economy.css \
-            src/features/school/SchoolScreen.tsx \
-            tests/unit/domain/events/eventSelection.test.ts \
-            tests/unit/domain/school/schoolSpecialProjectActivities.test.ts \
-            tests/unit/worker/applyGameAction.test.ts \
-            --write
-      - name: Push formatted files only
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            src/data/events/phase51-top-team-clinic.json \
-            src/domain/school/schoolSpecialProjectActivities.ts \
-            src/features/school/school-economy.css \
-            src/features/school/SchoolScreen.tsx \
-            tests/unit/domain/events/eventSelection.test.ts \
-            tests/unit/domain/school/schoolSpecialProjectActivities.test.ts \
-            tests/unit/worker/applyGameAction.test.ts
-          if git diff --cached --quiet; then
-            echo "No formatting changes"
-            exit 0
-          fi
-          git commit -m "style: format Phase51 experience projects"
-          git push origin HEAD:feat/phase51-experience-projects
+        run: npx prettier src/features/home/SpecialProjectActivityResultDialog.tsx --write
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase51-result-dialog-formatted
+          path: src/features/home/SpecialProjectActivityResultDialog.tsx
