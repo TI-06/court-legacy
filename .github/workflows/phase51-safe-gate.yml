@@ -1,4 +1,5 @@
 name: Phase51 Safe Gate
+# rerun: formatting-and-types
 
 on:
   push:
