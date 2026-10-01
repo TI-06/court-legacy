@@ -1,4 +1,5 @@
 import type { SchoolInvestmentPlan } from "../school/schoolInvestment";
+import type { SchoolSpecialProjectState } from "../school/schoolSpecialProjects";
 import type { GameDate } from "./identifiers";
 
 export type FundsLedgerKind =
@@ -13,7 +14,8 @@ export type FundsLedgerKind =
   | "scouting-research"
   | "camp"
   | "travel"
-  | "school-investment";
+  | "school-investment"
+  | "special-project";
 
 export type AssistantCoachRank =
   "beginner" | "intermediate" | "advanced" | "master";
@@ -42,4 +44,5 @@ export interface SchoolManagementState {
   fundsHistory: FundsLedgerEntry[];
   lastAnnualBudgetYearIndex: number;
   investmentPlan?: SchoolInvestmentPlan;
+  specialProjects?: SchoolSpecialProjectState;
 }
