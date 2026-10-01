@@ -534,7 +534,7 @@ export function buildBalanceObservations(
 ): SoakBalanceObservation[] {
   const observations: SoakBalanceObservation[] = [];
   for (const metrics of yearly) {
-    if (metrics.zeroFundWeeks > 0 || metrics.fundsMin === 0) {
+    if (metrics.zeroFundWeeks > 0) {
       observations.push({
         code: "user_funds_zero",
         message: `自校資金の年度内最小残高が0です。週境界で0を観測した回数は${metrics.zeroFundWeeks}回です。経済バランスを確認してください。`,
