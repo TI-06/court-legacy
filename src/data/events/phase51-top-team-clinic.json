@@ -27,6 +27,10 @@
           {
             "type": "morale-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -43,6 +47,10 @@
           {
             "type": "morale-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       }
@@ -76,6 +84,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -92,6 +104,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       }
@@ -125,6 +141,10 @@
           {
             "type": "morale-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -141,6 +161,10 @@
           {
             "type": "morale-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       }
@@ -174,6 +198,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -190,6 +218,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       }
@@ -223,6 +255,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -239,6 +275,10 @@
           {
             "type": "trust-change",
             "amount": 2
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       }
@@ -272,6 +312,10 @@
           {
             "type": "morale-change",
             "amount": 3
+          },
+          {
+            "type": "fatigue-change",
+            "amount": 3
           }
         ]
       },
@@ -287,6 +331,10 @@
           },
           {
             "type": "morale-change",
+            "amount": 3
+          },
+          {
+            "type": "fatigue-change",
             "amount": 3
           }
         ]
