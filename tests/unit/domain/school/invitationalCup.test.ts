@@ -7,6 +7,7 @@ import {
   recordInvitationalOutcome,
 } from "../../../../src/domain/school/invitationalCup";
 import type { MatchState } from "../../../../src/domain/model/Match";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 
 function readyState() {
   const state = createDemoGame();
@@ -20,6 +21,7 @@ function readyState() {
 }
 
 function completedMatch(input: {
+  state: ReturnType<typeof readyState>;
   id: NonNullable<ReturnType<typeof invitationalMatchId>>;
   homeSchoolId: MatchState["homeSchoolId"];
   awaySchoolId: MatchState["awaySchoolId"];
@@ -27,45 +29,27 @@ function completedMatch(input: {
 }): MatchState {
   return {
     id: input.id,
-    seed: "phase51-invitational-test",
-    bestOfSets: 3,
-    phase: "match-complete",
-    setIndex: 2,
-    pointIndex: 0,
     homeSchoolId: input.homeSchoolId,
     awaySchoolId: input.awaySchoolId,
-    homeSelection: {
-      rotation: [],
-      liberoPlayerId: null,
-      benchPlayerIds: [],
-      servingOrderPlayerIds: [],
-      substitutionPolicy: {
-        starterLockPlayerIds: [],
-        allowFatigueBenching: true,
-        allowInjuryBenching: true,
-        automaticSubstitutions: true,
-        automaticSetChanges: true,
-      },
-    },
-    awaySelection: {
-      rotation: [],
-      liberoPlayerId: null,
-      benchPlayerIds: [],
-      servingOrderPlayerIds: [],
-      substitutionPolicy: {
-        starterLockPlayerIds: [],
-        allowFatigueBenching: true,
-        allowInjuryBenching: true,
-        automaticSubstitutions: true,
-        automaticSetChanges: true,
-      },
-    },
+    homeSelection: autoSelectTeam({
+      state: input.state,
+      schoolId: input.homeSchoolId,
+    }),
+    awaySelection: autoSelectTeam({
+      state: input.state,
+      schoolId: input.awaySchoolId,
+    }),
+    bestOfSets: 3,
+    phase: "match-complete",
+    currentSetNumber: 3,
     homeSetsWon: input.userWon ? 2 : 0,
     awaySetsWon: input.userWon ? 0 : 2,
-    currentSet: null,
-    completedSets: [],
-    events: [],
-    runtime: null,
+    sets: [],
+    servingSchoolId: input.homeSchoolId,
+    pendingCoachCommandForSchoolId: null,
+    eventLog: [],
+    randomSeed: "phase51-invitational-test",
+    randomCursor: 0,
   };
 }
 
@@ -91,6 +75,7 @@ describe("Phase51 invitational cup", () => {
     state.schoolManagement.invitationalCup = cup;
     const id = invitationalMatchId(cup)!;
     const match = completedMatch({
+      state,
       id,
       homeSchoolId: state.userSchoolId,
       awaySchoolId: cup.currentOpponentSchoolId!,
@@ -117,6 +102,7 @@ describe("Phase51 invitational cup", () => {
     const finalCup = state.schoolManagement.invitationalCup;
     const id = invitationalMatchId(finalCup)!;
     const match = completedMatch({
+      state,
       id,
       homeSchoolId: state.userSchoolId,
       awaySchoolId: finalCup.currentOpponentSchoolId!,
@@ -139,6 +125,7 @@ describe("Phase51 invitational cup", () => {
     state.schoolManagement.invitationalCup = cup;
     const id = invitationalMatchId(cup)!;
     const match = completedMatch({
+      state,
       id,
       homeSchoolId: state.userSchoolId,
       awaySchoolId: cup.currentOpponentSchoolId!,
