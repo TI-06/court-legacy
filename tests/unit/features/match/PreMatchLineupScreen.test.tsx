@@ -543,9 +543,9 @@ describe("PreMatchLineupScreen", () => {
       name: "相手主力データ",
     });
     expect(within(keyPlayers).getByText("全国データバンク")).toBeVisible();
-    expect(within(keyPlayers).getAllByTestId("opponent-key-player")).toHaveLength(
-      3,
-    );
+    expect(
+      within(keyPlayers).getAllByTestId("opponent-key-player"),
+    ).toHaveLength(3);
   });
 
   it("does not expose full opponent analysis in PvP", () => {
