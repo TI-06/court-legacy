@@ -96,7 +96,16 @@ import {
   evaluateSchoolSpecialProject,
   getSchoolSpecialProjectDefinition,
   purchaseSchoolSpecialProject,
+  type UniversityJointTrainingFocus,
 } from "../../src/domain/school/schoolSpecialProjects";
+import {
+  resolveDueUniversityJointTraining,
+  scheduleEliteExpedition,
+  scheduleTopTeamClinic,
+  scheduleUniversityJointTraining,
+  SchoolSpecialProjectActivityError,
+  type TopTeamClinicFocus,
+} from "../../src/domain/school/schoolSpecialProjectActivities";
 import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
@@ -1560,9 +1569,14 @@ function applyAdvanceWeek(
     const progression = advanceGameWeek(currentState, gameData, {
       userIntake: context.userIntake,
     });
+    const specialActivity = resolveDueUniversityJointTraining(
+      progression.state,
+      gameData,
+    );
+    const progressedState = specialActivity?.state ?? progression.state;
     const stateWithRelationshipNotifications =
       appendSpecialRelationshipNotifications(
-        progression.state,
+        progressedState,
         progression.specialRelationshipTransitions,
       );
     const nextState = progression.academicYearTransition
@@ -1578,6 +1592,9 @@ function applyAdvanceWeek(
       academicYearTransition: progression.academicYearTransition,
       recoveredPlayerIds: progression.recoveredPlayerIds,
       healedPlayerIds: progression.healedPlayerIds,
+      ...(specialActivity
+        ? { specialProjectActivityResult: specialActivity.result }
+        : {}),
     };
     return { state: nextState, teamSelection: nextSelection, outcome };
   } catch (error) {
@@ -1757,11 +1774,72 @@ function applySchoolSpecialProject(
     );
   }
 
-  return {
-    state: purchaseSchoolSpecialProject(state, action.projectId),
-    teamSelection,
-    outcome: evaluation,
-  };
+  try {
+    let nextState = purchaseSchoolSpecialProject(state, action.projectId);
+
+    if (action.projectId === "elite-expedition") {
+      const expedition = scheduleEliteExpedition(nextState);
+      nextState = expedition.state;
+      return {
+        state: nextState,
+        teamSelection,
+        outcome: {
+          ...evaluation,
+          opponentSchoolId: expedition.opponentSchoolId,
+        },
+      };
+    }
+
+    if (action.projectId === "university-joint-training") {
+      if (
+        action.option !== "attack" &&
+        action.option !== "defense" &&
+        action.option !== "physical"
+      ) {
+        return conflict(
+          "university_joint_training_invalid_focus",
+          "合同練習のテーマを選択してください",
+        );
+      }
+      nextState = scheduleUniversityJointTraining(
+        nextState,
+        action.option as UniversityJointTrainingFocus,
+      );
+    } else if (action.projectId === "top-team-clinic") {
+      if (!action.targetPlayerId) {
+        return conflict(
+          "top_team_clinic_player_required",
+          "講習を受ける選手を選択してください",
+        );
+      }
+      if (
+        action.option !== "attack" &&
+        action.option !== "defense" &&
+        action.option !== "mental"
+      ) {
+        return conflict(
+          "top_team_clinic_invalid_focus",
+          "トップチーム講習のテーマを選択してください",
+        );
+      }
+      nextState = scheduleTopTeamClinic(
+        nextState,
+        action.targetPlayerId,
+        action.option as TopTeamClinicFocus,
+      );
+    }
+
+    return {
+      state: nextState,
+      teamSelection,
+      outcome: evaluation,
+    };
+  } catch (error) {
+    if (error instanceof SchoolSpecialProjectActivityError) {
+      return conflict(error.code, error.message);
+    }
+    throw error;
+  }
 }
 
 function applyAcknowledgeTrainingCampResult(
