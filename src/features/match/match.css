@@ -1634,6 +1634,85 @@
   line-height: 1.45;
 }
 
+/* Phase52: opponent targeting commands */
+.match-command-opponent-targeting {
+  display: grid;
+  gap: 12px;
+}
+
+.match-command-opponent-targeting > section {
+  display: grid;
+  gap: 7px;
+}
+
+.match-command-opponent-targeting > section > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.match-command-opponent-targeting > section > div:first-child strong {
+  color: #fff;
+  font-size: 0.72rem;
+}
+
+.match-command-opponent-targeting > section > div:first-child small,
+.match-command-opponent-targeting__note {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.57rem;
+  line-height: 1.4;
+}
+
+.match-command-opponent-targeting__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.match-command-opponent-targeting__grid button {
+  display: grid;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 9px;
+  gap: 2px;
+  color: #eaf8fb;
+  text-align: left;
+  background: rgb(114 213 223 / 8%);
+  border: 1px solid rgb(114 213 223 / 17%);
+  border-radius: 11px;
+}
+
+.match-command-opponent-targeting__grid button strong {
+  overflow: hidden;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-command-opponent-targeting__grid button small {
+  color: #9fc5ce;
+  font-size: 0.55rem;
+  font-weight: 800;
+}
+
+.match-command-opponent-targeting__grid button:disabled {
+  color: #71818c;
+  background: rgb(255 255 255 / 3%);
+  border-color: rgb(255 255 255 / 6%);
+}
+
+@media (max-width: 350px) {
+  .match-command-opponent-targeting__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-command-opponent-targeting > section > div:first-child {
+    display: grid;
+  }
+}
+
 /* Phase30: live feedback for temporary coaching effects. */
 .match-live-coach-effects {
   display: grid;
