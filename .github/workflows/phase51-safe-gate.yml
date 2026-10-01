@@ -1,0 +1,40 @@
+name: Phase51 Safe Gate
+
+on:
+  push:
+    branches:
+      - feat/phase51-special-project-foundation
+    paths:
+      - ".github/workflows/phase51-safe-gate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Safe focused verification
+        shell: bash
+        run: |
+          set +e
+          npx prettier             src/domain/model/SchoolManagement.ts             src/domain/school/schoolSpecialProjects.ts             worker/game/actionSchema.ts             worker/game/applyGameAction.ts             src/features/school/SchoolNavigationState.ts             src/features/school/SchoolScreen.tsx             src/features/school/school-economy.css             src/features/school/school-screen.css             src/app/GameApp.tsx             tests/unit/domain/school/schoolSpecialProjects.test.ts             tests/unit/features/school/SchoolScreen.test.tsx             tests/unit/worker/applyGameAction.test.ts             --check
+          FORMAT=$?
+          if [ "$FORMAT" -ne 0 ]; then
+            npx prettier               src/domain/model/SchoolManagement.ts               src/domain/school/schoolSpecialProjects.ts               worker/game/actionSchema.ts               worker/game/applyGameAction.ts               src/features/school/SchoolNavigationState.ts               src/features/school/SchoolScreen.tsx               src/features/school/school-economy.css               src/features/school/school-screen.css               src/app/GameApp.tsx               tests/unit/domain/school/schoolSpecialProjects.test.ts               tests/unit/features/school/SchoolScreen.test.tsx               tests/unit/worker/applyGameAction.test.ts               --write
+            git diff --               src/domain/model/SchoolManagement.ts               src/domain/school/schoolSpecialProjects.ts               worker/game/actionSchema.ts               worker/game/applyGameAction.ts               src/features/school/SchoolNavigationState.ts               src/features/school/SchoolScreen.tsx               src/features/school/school-economy.css               src/features/school/school-screen.css               src/app/GameApp.tsx               tests/unit/domain/school/schoolSpecialProjects.test.ts               tests/unit/features/school/SchoolScreen.test.tsx               tests/unit/worker/applyGameAction.test.ts
+          fi
+          git checkout -- .
+          npx vitest run             tests/unit/domain/school/schoolSpecialProjects.test.ts             tests/unit/features/school/SchoolScreen.test.tsx             tests/unit/worker/applyGameAction.test.ts
+          TESTS=$?
+          npm run typecheck
+          TYPES=$?
+          echo "SAFE_GATE format=$FORMAT tests=$TESTS types=$TYPES"
+          exit 0
