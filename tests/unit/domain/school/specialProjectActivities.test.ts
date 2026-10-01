@@ -65,8 +65,8 @@ describe("Phase51 special project activities", () => {
     };
     const scheduled = scheduleUniversityJointTraining(state, "attack");
     const eligibleDate =
-      scheduled.schoolManagement.specialProjects
-        ?.pendingUniversityJointTraining?.eligibleDate;
+      scheduled.schoolManagement.specialProjects?.pendingUniversityJointTraining
+        ?.eligibleDate;
     expect(eligibleDate).toBe(addWeeks(state.date, 1));
 
     scheduled.date = eligibleDate!;
