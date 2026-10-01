@@ -148,7 +148,14 @@ describe("event selection", () => {
       specialAbilityIds: ["elite_court_hitter", "elite_block_crusher"],
     };
 
-    const gold = gameData.events.get("event.gold-absolute-ace")!;
+    const goldBase = gameData.events.get("event.gold-absolute-ace")!;
+    const gold = {
+      ...goldBase,
+      trigger: {
+        ...goldBase.trigger,
+        recentMatchResult: undefined,
+      },
+    };
     const normalBase = gameData.events.get("event.position-trial-result")!;
     const normal = {
       ...normalBase,
