@@ -182,7 +182,7 @@ describe("match special ability awakening", () => {
         level: "national",
         round: "final",
       },
-      random: fixedRollRandom(18),
+      random: fixedRollRandom(25),
     });
 
     expect(result.awakenings).toEqual([
@@ -190,7 +190,7 @@ describe("match special ability awakening", () => {
         playerId,
         abilityId: "gold_absolute_ace",
         rarity: "super-rare",
-        chancePercent: 18,
+        chancePercent: 25,
       }),
     ]);
     expect(result.state.players[playerId]!.specialAbilityIds).toContain(
