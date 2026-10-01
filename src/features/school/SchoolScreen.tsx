@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
+import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   AssistantCoachRank,
   AssistantCoachSpecialty,
@@ -34,7 +35,9 @@ import {
   SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT,
   type SchoolSpecialProjectDefinition,
   type SchoolSpecialProjectId,
+  type UniversityJointTrainingFocus,
 } from "../../domain/school/schoolSpecialProjects";
+import type { TopTeamClinicFocus } from "../../domain/school/specialProjectActivities";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
@@ -67,7 +70,10 @@ interface SchoolScreenProps {
     category: SchoolInvestmentCategory,
     option: SchoolInvestmentOption,
   ) => void;
-  onPurchaseSpecialProject?: (projectId: SchoolSpecialProjectId) => void;
+  onPurchaseSpecialProject?: (
+    projectId: SchoolSpecialProjectId,
+    options?: { targetPlayerId?: PlayerId; option?: string },
+  ) => void;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -196,6 +202,11 @@ export function SchoolScreen({
     useState<AssistantCoachRank | null>(null);
   const [selectedSpecialProjectId, setSelectedSpecialProjectId] =
     useState<SchoolSpecialProjectId | null>(null);
+  const [specialProjectOption, setSpecialProjectOption] = useState<
+    UniversityJointTrainingFocus | TopTeamClinicFocus | null
+  >(null);
+  const [specialProjectTargetPlayerId, setSpecialProjectTargetPlayerId] =
+    useState<PlayerId | null>(null);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -850,9 +861,11 @@ export function SchoolScreen({
                               : "preparing"
                         }
                         key={definition.id}
-                        onClick={() =>
-                          setSelectedSpecialProjectId(definition.id)
-                        }
+                        onClick={() => {
+                          setSelectedSpecialProjectId(definition.id);
+                          setSpecialProjectOption(null);
+                          setSpecialProjectTargetPlayerId(null);
+                        }}
                         type="button"
                       >
                         <span className="school-special-project-card__heading">
@@ -1149,15 +1162,129 @@ export function SchoolScreen({
                 </dd>
               </div>
             </dl>
+            {selectedSpecialProject.id === "university-joint-training" ? (
+              <div className="school-special-project-sheet__choices">
+                <strong>合同練習のテーマ</strong>
+                <div
+                  aria-label="大学合同練習テーマ"
+                  className="school-special-project-choice-grid"
+                  role="group"
+                >
+                  {(
+                    [
+                      ["attack", "攻撃"],
+                      ["defense", "守備"],
+                      ["physical", "フィジカル"],
+                    ] as const
+                  ).map(([focus, label]) => (
+                    <button
+                      aria-pressed={specialProjectOption === focus}
+                      key={focus}
+                      onClick={() => setSpecialProjectOption(focus)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {selectedSpecialProject.id === "top-team-clinic" ? (
+              <div className="school-special-project-sheet__choices">
+                <strong>講習を受ける選手</strong>
+                <div
+                  aria-label="トップチーム講習対象選手"
+                  className="school-special-project-player-grid"
+                  role="group"
+                >
+                  {school.playerIds
+                    .map((playerId) => state.players[playerId])
+                    .filter((player) => player && !player.injury)
+                    .map((player) => (
+                      <button
+                        aria-pressed={
+                          specialProjectTargetPlayerId === player!.id
+                        }
+                        key={player!.id}
+                        onClick={() =>
+                          setSpecialProjectTargetPlayerId(player!.id)
+                        }
+                        type="button"
+                      >
+                        <strong>
+                          {player!.lastName} {player!.firstName}
+                        </strong>
+                        <small>
+                          {player!.grade}年・{player!.preferredPosition}
+                        </small>
+                      </button>
+                    ))}
+                </div>
+
+                <strong>指導分野</strong>
+                <div
+                  aria-label="トップチーム講習分野"
+                  className="school-special-project-choice-grid"
+                  role="group"
+                >
+                  {(
+                    [
+                      ["attack", "攻撃"],
+                      ["defense", "守備"],
+                      ["serve", "サーブ"],
+                      ["setting", "セット"],
+                      ["block", "ブロック"],
+                      ["mental", "メンタル"],
+                    ] as const
+                  ).map(([focus, label]) => (
+                    <button
+                      aria-pressed={specialProjectOption === focus}
+                      key={focus}
+                      onClick={() => setSpecialProjectOption(focus)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <button
               disabled={
                 !selectedSpecialProject.effectReady ||
                 !selectedSpecialProjectEvaluation.allowed ||
-                !onPurchaseSpecialProject
+                !onPurchaseSpecialProject ||
+                (selectedSpecialProject.id === "university-joint-training" &&
+                  specialProjectOption === null) ||
+                (selectedSpecialProject.id === "top-team-clinic" &&
+                  (specialProjectOption === null ||
+                    specialProjectTargetPlayerId === null))
               }
               onClick={() => {
-                onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                const options = {
+                  ...(specialProjectTargetPlayerId
+                    ? { targetPlayerId: specialProjectTargetPlayerId }
+                    : {}),
+                  ...(specialProjectOption
+                    ? { option: specialProjectOption }
+                    : {}),
+                };
+                if (
+                  options.targetPlayerId !== undefined ||
+                  options.option !== undefined
+                ) {
+                  onPurchaseSpecialProject?.(
+                    selectedSpecialProject.id,
+                    options,
+                  );
+                } else {
+                  onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                }
                 setSelectedSpecialProjectId(null);
+                setSpecialProjectOption(null);
+                setSpecialProjectTargetPlayerId(null);
               }}
               type="button"
             >
@@ -1174,7 +1301,15 @@ export function SchoolScreen({
                       : selectedSpecialProjectEvaluation.reason ===
                           "insufficient-funds"
                         ? "資金が不足しています"
-                        : `${selectedSpecialProject.cost}を使って実施`}
+                        : selectedSpecialProject.id ===
+                              "university-joint-training" &&
+                            specialProjectOption === null
+                          ? "練習テーマを選択してください"
+                          : selectedSpecialProject.id === "top-team-clinic" &&
+                              (specialProjectOption === null ||
+                                specialProjectTargetPlayerId === null)
+                            ? "選手と指導分野を選択してください"
+                            : `${selectedSpecialProject.cost}を使って実施`}
             </button>
           </div>
         ) : null}

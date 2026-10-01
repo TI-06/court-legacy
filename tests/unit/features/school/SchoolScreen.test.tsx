@@ -171,7 +171,7 @@ describe("school management screen", () => {
     expect(
       within(projects).getAllByRole("button", { name: /の詳細$/ }),
     ).toHaveLength(8);
-    expect(within(projects).getAllByText("準備中")).toHaveLength(4);
+    expect(within(projects).getAllByText("準備中")).toHaveLength(1);
 
     fireEvent.click(
       within(projects).getByRole("button", {
@@ -185,6 +185,74 @@ describe("school management screen", () => {
       within(dialog).getByRole("button", { name: "900を使って実施" }),
     );
     expect(onPurchaseSpecialProject).toHaveBeenCalledWith("national-data-bank");
+  });
+
+  it("collects mobile choices for Phase51 joint training and top-team clinic", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    school.funds = 6000;
+    school.reputationPoints = 900;
+    school.facilities = {
+      gym: 50,
+      trainingRoom: 50,
+      analysisRoom: 50,
+      recoveryRoom: 50,
+      dormitory: 50,
+      scoutingNetwork: 50,
+      alumniAssociation: 50,
+      studyRoom: 50,
+    };
+    const onPurchaseSpecialProject = vi.fn();
+
+    render(
+      <SchoolScreen
+        onPurchaseSpecialProject={onPurchaseSpecialProject}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "特別事業" }));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "大学チーム合同練習の詳細" }),
+    );
+    let dialog = screen.getByRole("dialog", { name: "大学チーム合同練習" });
+    expect(
+      within(dialog).getByRole("button", {
+        name: "練習テーマを選択してください",
+      }),
+    ).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole("button", { name: "攻撃" }));
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "1300を使って実施" }),
+    );
+    expect(onPurchaseSpecialProject).toHaveBeenLastCalledWith(
+      "university-joint-training",
+      { option: "attack" },
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "トップチーム講習の詳細" }),
+    );
+    dialog = screen.getByRole("dialog", { name: "トップチーム講習" });
+    const playerGroup = within(dialog).getByRole("group", {
+      name: "トップチーム講習対象選手",
+    });
+    const targetButton = within(playerGroup).getAllByRole("button")[0]!;
+    const targetPlayerId = school.playerIds[0]!;
+    fireEvent.click(targetButton);
+    fireEvent.click(
+      within(dialog)
+        .getByRole("group", { name: "トップチーム講習分野" })
+        .querySelector("button:nth-child(3)")!,
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "1500を使って実施" }),
+    );
+    expect(onPurchaseSpecialProject).toHaveBeenLastCalledWith(
+      "top-team-clinic",
+      { targetPlayerId, option: "serve" },
+    );
   });
 
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {

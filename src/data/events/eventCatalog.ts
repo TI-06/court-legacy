@@ -22,6 +22,7 @@ import injury from "./injury.json" with { type: "json" };
 import matchEvents from "./match.json" with { type: "json" };
 import ob from "./ob.json" with { type: "json" };
 import practice from "./practice.json" with { type: "json" };
+import phase51TopTeamClinic from "./phase51-top-team-clinic.json" with { type: "json" };
 import rare from "./rare.json" with { type: "json" };
 import relationship from "./relationship.json" with { type: "json" };
 import rivalry from "./rivalry.json" with { type: "json" };
@@ -33,6 +34,7 @@ const rawEventCatalog: unknown[] = [
   ...individual,
   ...relationship,
   ...practice,
+  ...phase51TopTeamClinic,
   ...injury,
   ...academic,
   ...matchEvents,

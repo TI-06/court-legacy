@@ -96,7 +96,16 @@ import {
   evaluateSchoolSpecialProject,
   getSchoolSpecialProjectDefinition,
   purchaseSchoolSpecialProject,
+  type UniversityJointTrainingFocus,
 } from "../../src/domain/school/schoolSpecialProjects";
+import {
+  resolveDueUniversityJointTraining,
+  scheduleEliteExpedition,
+  scheduleTopTeamClinic,
+  scheduleUniversityJointTraining,
+  selectEliteExpeditionOpponent,
+  type TopTeamClinicFocus,
+} from "../../src/domain/school/specialProjectActivities";
 import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
@@ -1565,9 +1574,15 @@ function applyAdvanceWeek(
         progression.state,
         progression.specialRelationshipTransitions,
       );
+    const jointTraining = resolveDueUniversityJointTraining(
+      stateWithRelationshipNotifications,
+      gameData,
+    );
+    const stateWithSpecialActivity =
+      jointTraining?.state ?? stateWithRelationshipNotifications;
     const nextState = progression.academicYearTransition
-      ? stateWithRelationshipNotifications
-      : surfaceWeeklyEvent(stateWithRelationshipNotifications, gameData);
+      ? stateWithSpecialActivity
+      : surfaceWeeklyEvent(stateWithSpecialActivity, gameData);
     const nextSelection = progression.academicYearTransition
       ? autoSelectTeam({ state: nextState, schoolId: nextState.userSchoolId })
       : teamSelection;
@@ -1755,6 +1770,98 @@ function applySchoolSpecialProject(
       `school_special_project_${evaluation.reason.replaceAll("-", "_")}`,
       message,
     );
+  }
+
+  if (action.projectId === "elite-expedition") {
+    if (hasRequiredOfficialMatch(state)) {
+      return conflict(
+        "school_special_project_official_match_required",
+        "公式戦がある週は全国強豪遠征を予約できません",
+      );
+    }
+    if (state.weeklySchedule.practiceMatch.scheduledOpponentId) {
+      return conflict(
+        "school_special_project_practice_match_scheduled",
+        "今週はすでに練習試合が予定されています",
+      );
+    }
+    const opponentSchoolId = selectEliteExpeditionOpponent(state);
+    if (!opponentSchoolId) {
+      return conflict(
+        "school_special_project_opponent_unavailable",
+        "遠征可能な全国強豪校が見つかりません",
+      );
+    }
+    const purchased = purchaseSchoolSpecialProject(state, action.projectId);
+    return {
+      state: scheduleEliteExpedition(purchased, opponentSchoolId),
+      teamSelection,
+      outcome: { ...evaluation, opponentSchoolId },
+    };
+  }
+
+  if (action.projectId === "university-joint-training") {
+    const focus = action.option as UniversityJointTrainingFocus | undefined;
+    if (!focus || !["attack", "defense", "physical"].includes(focus)) {
+      return conflict(
+        "school_special_project_invalid_option",
+        "大学合同練習のテーマを選択してください",
+      );
+    }
+    if (
+      state.schoolManagement.specialProjects?.pendingUniversityJointTraining
+    ) {
+      return conflict(
+        "school_special_project_activity_pending",
+        "すでに特別活動が予約されています",
+      );
+    }
+    const purchased = purchaseSchoolSpecialProject(state, action.projectId);
+    return {
+      state: scheduleUniversityJointTraining(purchased, focus),
+      teamSelection,
+      outcome: { ...evaluation, focus },
+    };
+  }
+
+  if (action.projectId === "top-team-clinic") {
+    const targetPlayerId = action.targetPlayerId;
+    const focus = action.option as TopTeamClinicFocus | undefined;
+    if (
+      !focus ||
+      !["attack", "defense", "serve", "setting", "block", "mental"].includes(
+        focus,
+      )
+    ) {
+      return conflict(
+        "school_special_project_invalid_option",
+        "トップチーム講習の指導分野を選択してください",
+      );
+    }
+    const school = state.schools[state.userSchoolId]!;
+    const player = targetPlayerId ? state.players[targetPlayerId] : undefined;
+    if (
+      !targetPlayerId ||
+      !player ||
+      !school.playerIds.includes(targetPlayerId)
+    ) {
+      return conflict(
+        "school_special_project_invalid_target",
+        "講習を受ける選手を選択してください",
+      );
+    }
+    if (player.injury) {
+      return conflict(
+        "school_special_project_target_injured",
+        "怪我中の選手はトップチーム講習を受けられません",
+      );
+    }
+    const purchased = purchaseSchoolSpecialProject(state, action.projectId);
+    return {
+      state: scheduleTopTeamClinic(purchased, targetPlayerId, focus),
+      teamSelection,
+      outcome: { ...evaluation, targetPlayerId, focus },
+    };
   }
 
   return {

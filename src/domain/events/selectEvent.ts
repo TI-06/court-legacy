@@ -186,7 +186,10 @@ function normalCandidates(
   const candidates: EventCandidate[] = [];
 
   for (const event of data.events.values()) {
-    if (followUpOnlyIds.has(event.id)) {
+    if (
+      followUpOnlyIds.has(event.id) ||
+      event.tags.includes("scheduled-only")
+    ) {
       continue;
     }
     if (requiredTag && !event.tags.includes(requiredTag)) {
