@@ -156,6 +156,9 @@ function pruneInvalidDueFollowUps(
 function collectFollowUpOnlyEventIds(data: GameDataRegistry): Set<string> {
   const followUpOnlyIds = new Set<string>();
   for (const event of data.events.values()) {
+    if (event.tags.includes("scheduled-only")) {
+      followUpOnlyIds.add(event.id);
+    }
     for (const choice of event.choices) {
       if (choice.followUp) {
         followUpOnlyIds.add(choice.followUp.eventId);
