@@ -169,10 +169,15 @@ export function MatchCommandPanel({
     match.homeSchoolId === state.userSchoolId
       ? match.homeSelection
       : match.awaySelection;
+  const opponentSelection =
+    match.homeSchoolId === state.userSchoolId
+      ? match.awaySelection
+      : match.homeSelection;
   const [tacticsOpen, setTacticsOpen] = useState(false);
   const [draftPlan, setDraftPlan] = useState<MatchTacticPlan | null>(null);
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
   const [playerDirectiveOpen, setPlayerDirectiveOpen] = useState(false);
+  const [opponentTargetOpen, setOpponentTargetOpen] = useState(false);
   const [outgoingPlayerId, setOutgoingPlayerId] = useState<PlayerId | null>(
     null,
   );
@@ -253,6 +258,21 @@ export function MatchCommandPanel({
     !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
+  const opponentCourtPlayers = opponentSelection.rotation
+    .map((assignment) => state.players[assignment.playerId])
+    .filter((player): player is Player => Boolean(player));
+  const opponentLiberoPlayer = opponentSelection.liberoPlayerId
+    ? (state.players[opponentSelection.liberoPlayerId] ?? null)
+    : null;
+  const serveTargetPlayers =
+    opponentLiberoPlayer &&
+    !opponentCourtPlayers.some((player) => player.id === opponentLiberoPlayer.id)
+      ? [...opponentCourtPlayers, opponentLiberoPlayer]
+      : opponentCourtPlayers;
+  const blockTargetPlayers = opponentCourtPlayers.filter((player) =>
+    ["OH", "MB", "OP"].includes(player.preferredPosition),
+  );
+
   const rotationPlayerIds = new Set(
     userSelection.rotation.map((assignment) => assignment.playerId),
   );
@@ -400,13 +420,22 @@ export function MatchCommandPanel({
             選手交代
           </button>
           {reason !== "set-break" ? (
-            <button
-              disabled={pending}
-              onClick={() => setPlayerDirectiveOpen(true)}
-              type="button"
-            >
-              個人指示・声かけ
-            </button>
+            <>
+              <button
+                disabled={pending}
+                onClick={() => setPlayerDirectiveOpen(true)}
+                type="button"
+              >
+                個人指示・声かけ
+              </button>
+              <button
+                disabled={pending}
+                onClick={() => setOpponentTargetOpen(true)}
+                type="button"
+              >
+                相手を狙う
+              </button>
+            </>
           ) : null}
           <button
             className="match-command-actions__continue"
@@ -531,6 +560,79 @@ export function MatchCommandPanel({
           <small className="match-command-player-directive__note">
             攻撃集中：指定選手へのトス選択が増加 /
             声かけ：判断・メンタルが一時上昇
+          </small>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet
+        description="5ラリーだけ、相手の誰を狙うか指定します。相手の非公開能力は表示しません。"
+        onClose={() => setOpponentTargetOpen(false)}
+        open={opponentTargetOpen}
+        title="相手を狙う"
+      >
+        <div className="match-command-opponent-targeting">
+          <section aria-label="サーブで狙う相手">
+            <div>
+              <strong>サーブで狙う</strong>
+              <small>コート上の選手・リベロから選択</small>
+            </div>
+            <div className="match-command-opponent-targeting__grid">
+              {serveTargetPlayers.map((player) => {
+                const isLibero = opponentLiberoPlayer?.id === player.id;
+                return (
+                  <button
+                    aria-label={`サーブで狙う ${playerName(player)}`}
+                    disabled={pending}
+                    key={player.id}
+                    onClick={() => {
+                      setOpponentTargetOpen(false);
+                      void onCommand({
+                        type: "target-serve-receiver",
+                        playerId: player.id,
+                      });
+                    }}
+                    type="button"
+                  >
+                    <strong>{playerName(player)}</strong>
+                    <small>
+                      {player.preferredPosition}・
+                      {isLibero ? "リベロ" : "コート"}
+                    </small>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section aria-label="ブロックで警戒する相手">
+            <div>
+              <strong>ブロックで警戒</strong>
+              <small>OH・MB・OPから選択</small>
+            </div>
+            <div className="match-command-opponent-targeting__grid">
+              {blockTargetPlayers.map((player) => (
+                <button
+                  aria-label={`ブロックで警戒 ${playerName(player)}`}
+                  disabled={pending}
+                  key={player.id}
+                  onClick={() => {
+                    setOpponentTargetOpen(false);
+                    void onCommand({
+                      type: "mark-opponent-attacker",
+                      playerId: player.id,
+                    });
+                  }}
+                  type="button"
+                >
+                  <strong>{playerName(player)}</strong>
+                  <small>{player.preferredPosition}・コート</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <small className="match-command-opponent-targeting__note">
+            指示は5ラリーで終了し、通常のチーム戦術は変更しません。
           </small>
         </div>
       </BottomSheet>
