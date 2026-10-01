@@ -28,40 +28,34 @@
 }
 
 .player-special-ability {
+  background: color-mix(
+    in srgb,
+    var(--surface-raised, transparent) 72%,
+    transparent
+  );
   border: 1px solid var(--line-soft);
   border-radius: 10px;
   display: grid;
-  gap: 3px;
+  gap: 5px;
   min-width: 0;
   padding: 8px 9px;
 }
 
-.player-special-ability strong {
-  font-size: 12px;
-  line-height: 1.2;
-}
-
 .player-special-ability__heading {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  display: flex;
   min-width: 0;
 }
 
 .player-special-ability__heading strong {
-  min-width: 0;
-}
-
-.player-special-ability__heading span {
-  flex: 0 0 auto;
-  padding: 1px 5px;
-  color: var(--text-muted);
-  font-size: 8px;
+  border: 2px solid currentcolor;
+  border-radius: 7px;
+  display: inline-flex;
+  font-size: 12px;
   font-weight: 900;
-  line-height: 1.5;
-  border: 1px solid currentcolor;
-  border-radius: 999px;
+  line-height: 1.2;
+  max-width: 100%;
+  padding: 3px 7px;
 }
 
 .player-special-ability small {
@@ -71,58 +65,57 @@
 }
 
 .player-special-ability[data-kind="positive"] {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--line-soft));
+  border-color: rgb(37 99 235 / 25%);
 }
 
 .player-special-ability[data-kind="positive"]
   .player-special-ability__heading
-  span {
-  color: var(--accent);
+  strong {
+  background: rgb(37 99 235 / 10%);
+  color: #2563eb;
 }
 
 .player-special-ability[data-kind="negative"] {
-  background: rgb(169 42 42 / 8%);
-  border-color: rgb(169 42 42 / 35%);
-}
-
-.player-special-ability[data-kind="negative"] strong {
-  color: #a92a2a;
+  border-color: rgb(198 40 40 / 28%);
 }
 
 .player-special-ability[data-kind="negative"]
   .player-special-ability__heading
-  span {
-  color: #a92a2a;
+  strong {
+  background: rgb(198 40 40 / 10%);
+  color: #c62828;
 }
 
 .player-special-ability[data-kind="elite"] {
-  background: rgb(109 64 170 / 10%);
-  border-color: rgb(109 64 170 / 38%);
-}
-
-.player-special-ability[data-kind="elite"] strong {
-  color: #6d40aa;
+  border-color: rgb(124 58 237 / 28%);
 }
 
 .player-special-ability[data-kind="elite"]
   .player-special-ability__heading
-  span {
-  color: #6d40aa;
+  strong {
+  background: rgb(124 58 237 / 10%);
+  color: #7c3aed;
 }
 
 .player-special-ability[data-kind="gold"] {
-  background: rgb(183 132 18 / 12%);
-  border-color: rgb(183 132 18 / 45%);
-}
-
-.player-special-ability[data-kind="gold"] strong {
-  color: #8a6410;
+  background: linear-gradient(
+    135deg,
+    rgb(183 132 18 / 8%),
+    rgb(255 214 102 / 4%)
+  );
+  border-color: rgb(183 132 18 / 38%);
 }
 
 .player-special-ability[data-kind="gold"]
   .player-special-ability__heading
-  span {
+  strong {
+  background: linear-gradient(
+    180deg,
+    rgb(255 232 154 / 42%),
+    rgb(183 132 18 / 14%)
+  );
+  border-color: #b78412;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 28%);
   color: #8a6410;
 }
 
