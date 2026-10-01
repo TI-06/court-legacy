@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
+import type { PlayerId } from "../../domain/model/identifiers";
 import type {
   AssistantCoachRank,
   AssistantCoachSpecialty,
@@ -67,7 +68,11 @@ interface SchoolScreenProps {
     category: SchoolInvestmentCategory,
     option: SchoolInvestmentOption,
   ) => void;
-  onPurchaseSpecialProject?: (projectId: SchoolSpecialProjectId) => void;
+  onPurchaseSpecialProject?: (
+    projectId: SchoolSpecialProjectId,
+    targetPlayerId?: PlayerId,
+    option?: string,
+  ) => void;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -196,6 +201,11 @@ export function SchoolScreen({
     useState<AssistantCoachRank | null>(null);
   const [selectedSpecialProjectId, setSelectedSpecialProjectId] =
     useState<SchoolSpecialProjectId | null>(null);
+  const [specialProjectTargetPlayerId, setSpecialProjectTargetPlayerId] =
+    useState<PlayerId | null>(null);
+  const [specialProjectOption, setSpecialProjectOption] = useState<
+    string | null
+  >(null);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -850,9 +860,20 @@ export function SchoolScreen({
                               : "preparing"
                         }
                         key={definition.id}
-                        onClick={() =>
-                          setSelectedSpecialProjectId(definition.id)
-                        }
+                        onClick={() => {
+                          setSelectedSpecialProjectId(definition.id);
+                          setSpecialProjectTargetPlayerId(
+                            definition.id === "top-team-clinic"
+                              ? (school.playerIds[0] ?? null)
+                              : null,
+                          );
+                          setSpecialProjectOption(
+                            definition.id === "university-joint-training" ||
+                              definition.id === "top-team-clinic"
+                              ? "attack"
+                              : null,
+                          );
+                        }}
                         type="button"
                       >
                         <span className="school-special-project-card__heading">
@@ -1124,6 +1145,86 @@ export function SchoolScreen({
       >
         {selectedSpecialProject && selectedSpecialProjectEvaluation ? (
           <div className="school-special-project-sheet">
+            {selectedSpecialProject.id === "university-joint-training" ? (
+              <div className="school-special-project-choice">
+                <strong>合同練習のテーマ</strong>
+                <div role="group" aria-label="合同練習のテーマ">
+                  {(
+                    [
+                      ["attack", "攻撃"],
+                      ["defense", "守備"],
+                      ["physical", "フィジカル"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      aria-pressed={specialProjectOption === value}
+                      key={value}
+                      onClick={() => setSpecialProjectOption(value)}
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {selectedSpecialProject.id === "top-team-clinic" ? (
+              <>
+                <div className="school-special-project-choice">
+                  <strong>講習を受ける選手</strong>
+                  <div
+                    className="school-special-project-player-grid"
+                    role="group"
+                    aria-label="講習を受ける選手"
+                  >
+                    {school.playerIds.map((playerId) => {
+                      const player = state.players[playerId];
+                      if (!player) return null;
+                      return (
+                        <button
+                          aria-pressed={
+                            specialProjectTargetPlayerId === playerId
+                          }
+                          key={playerId}
+                          onClick={() =>
+                            setSpecialProjectTargetPlayerId(playerId)
+                          }
+                          type="button"
+                        >
+                          <strong>
+                            {player.lastName} {player.firstName}
+                          </strong>
+                          <small>
+                            {player.grade}年・{player.preferredPosition}
+                          </small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="school-special-project-choice">
+                  <strong>講習テーマ</strong>
+                  <div role="group" aria-label="トップチーム講習のテーマ">
+                    {(
+                      [
+                        ["attack", "攻撃"],
+                        ["defense", "守備"],
+                        ["mental", "メンタル"],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        aria-pressed={specialProjectOption === value}
+                        key={value}
+                        onClick={() => setSpecialProjectOption(value)}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
             <dl>
               <div>
                 <dt>費用</dt>
@@ -1153,11 +1254,21 @@ export function SchoolScreen({
               disabled={
                 !selectedSpecialProject.effectReady ||
                 !selectedSpecialProjectEvaluation.allowed ||
-                !onPurchaseSpecialProject
+                !onPurchaseSpecialProject ||
+                (selectedSpecialProject.id === "university-joint-training" &&
+                  !specialProjectOption) ||
+                (selectedSpecialProject.id === "top-team-clinic" &&
+                  (!specialProjectTargetPlayerId || !specialProjectOption))
               }
               onClick={() => {
-                onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                onPurchaseSpecialProject?.(
+                  selectedSpecialProject.id,
+                  specialProjectTargetPlayerId ?? undefined,
+                  specialProjectOption ?? undefined,
+                );
                 setSelectedSpecialProjectId(null);
+                setSpecialProjectTargetPlayerId(null);
+                setSpecialProjectOption(null);
               }}
               type="button"
             >
