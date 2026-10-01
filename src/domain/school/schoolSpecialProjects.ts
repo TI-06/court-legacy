@@ -1,4 +1,5 @@
 import type { GameState } from "../model/GameState";
+import type { GameDate } from "../model/identifiers";
 import type { FacilityKey } from "./facilityUpgrade";
 import { applySchoolFundsChange } from "./schoolEconomy";
 
@@ -16,9 +17,17 @@ export type SchoolSpecialProjectId =
 
 export type SchoolSpecialProjectKind = "annual-contract" | "special-activity";
 
+export type UniversityJointTrainingFocus = "attack" | "defense" | "physical";
+
+export interface PendingUniversityJointTraining {
+  eligibleDate: GameDate;
+  focus: UniversityJointTrainingFocus;
+}
+
 export interface SchoolSpecialProjectState {
   yearIndex: number;
   purchasedProjectIds: SchoolSpecialProjectId[];
+  pendingUniversityJointTraining?: PendingUniversityJointTraining;
 }
 
 export interface SchoolSpecialProjectDefinition {
@@ -78,7 +87,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     summary: "全国クラスの強豪校との対戦機会を作ります。",
     requiredFacilities: { analysisRoom: 50, scoutingNetwork: 50 },
     minimumReputationPoints: 400,
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "university-joint-training",
@@ -88,7 +97,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     summary: "大学チームとの合同練習でチーム全体を刺激します。",
     requiredFacilities: { gym: 50, trainingRoom: 50, dormitory: 50 },
     minimumReputationPoints: 620,
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "top-team-clinic",
@@ -98,7 +107,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     summary: "選手1名がトップレベルの専門指導を受けます。",
     requiredFacilities: { gym: 50, analysisRoom: 50 },
     minimumReputationPoints: 620,
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "invitational-cup",
@@ -275,6 +284,7 @@ export function purchaseSchoolSpecialProject(
     schoolManagement: {
       ...funded.schoolManagement,
       specialProjects: {
+        ...current,
         yearIndex: state.yearIndex,
         purchasedProjectIds: [...current.purchasedProjectIds, projectId],
       },
