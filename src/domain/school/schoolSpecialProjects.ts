@@ -1,4 +1,5 @@
 import type { GameState } from "../model/GameState";
+import type { GameDate } from "../model/identifiers";
 import type { FacilityKey } from "./facilityUpgrade";
 import { applySchoolFundsChange } from "./schoolEconomy";
 
@@ -20,7 +21,7 @@ export type UniversityJointTrainingFocus = "attack" | "defense" | "physical";
 
 export interface PendingUniversityJointTraining {
   kind: "university-joint-training";
-  scheduledDate: import("../model/identifiers").GameDate;
+  scheduledDate: GameDate;
   focus: UniversityJointTrainingFocus;
 }
 
