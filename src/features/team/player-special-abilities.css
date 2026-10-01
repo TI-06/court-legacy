@@ -28,7 +28,11 @@
 }
 
 .player-special-ability {
-  background: color-mix(in srgb, var(--surface-raised, transparent) 72%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--surface-raised, transparent) 72%,
+    transparent
+  );
   border: 1px solid var(--line-soft);
   border-radius: 10px;
   display: grid;
@@ -64,7 +68,9 @@
   border-color: rgb(37 99 235 / 25%);
 }
 
-.player-special-ability[data-kind="positive"] .player-special-ability__heading strong {
+.player-special-ability[data-kind="positive"]
+  .player-special-ability__heading
+  strong {
   background: rgb(37 99 235 / 10%);
   color: #2563eb;
 }
@@ -73,7 +79,9 @@
   border-color: rgb(198 40 40 / 28%);
 }
 
-.player-special-ability[data-kind="negative"] .player-special-ability__heading strong {
+.player-special-ability[data-kind="negative"]
+  .player-special-ability__heading
+  strong {
   background: rgb(198 40 40 / 10%);
   color: #c62828;
 }
@@ -82,7 +90,9 @@
   border-color: rgb(124 58 237 / 28%);
 }
 
-.player-special-ability[data-kind="elite"] .player-special-ability__heading strong {
+.player-special-ability[data-kind="elite"]
+  .player-special-ability__heading
+  strong {
   background: rgb(124 58 237 / 10%);
   color: #7c3aed;
 }
@@ -96,7 +106,9 @@
   border-color: rgb(183 132 18 / 38%);
 }
 
-.player-special-ability[data-kind="gold"] .player-special-ability__heading strong {
+.player-special-ability[data-kind="gold"]
+  .player-special-ability__heading
+  strong {
   background: linear-gradient(
     180deg,
     rgb(255 232 154 / 42%),
