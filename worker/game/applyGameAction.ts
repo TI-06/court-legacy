@@ -2083,10 +2083,7 @@ function applySchoolSpecialProject(
         "公式戦がある週は全国招待大会を開催できません",
       );
     }
-    if (
-      state.activeMatch &&
-      state.activeMatch.phase !== "match-complete"
-    ) {
+    if (state.activeMatch && state.activeMatch.phase !== "match-complete") {
       return conflict(
         "school_special_project_match_in_progress",
         "進行中の試合を完了してください",
