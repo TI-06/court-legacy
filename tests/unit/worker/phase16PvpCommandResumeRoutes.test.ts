@@ -287,9 +287,12 @@ describe("Phase 16 PvP command resume route", () => {
     const publicTargets = saveInput.publicResponse.segment.opponentTargets;
     expect(publicTargets.length).toBeGreaterThan(0);
     expect(publicTargets).toContainEqual(target);
-    expect(
-      Object.keys(publicTargets[0]!).sort(),
-    ).toEqual(["displayName", "playerId", "position", "role"]);
+    expect(Object.keys(publicTargets[0]!).sort()).toEqual([
+      "displayName",
+      "playerId",
+      "position",
+      "role",
+    ]);
 
     const serialized = JSON.stringify(saveInput.publicResponse);
     expect(serialized).not.toContain("abilities");
