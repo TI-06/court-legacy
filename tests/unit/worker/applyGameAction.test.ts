@@ -595,17 +595,32 @@ describe("applyGameAction", () => {
     ).toThrow();
   });
 
-  it("rejects Phase51 project spending until that project's gameplay effect is ready", () => {
+  it("purchases a ready Phase51 annual project through the authoritative action", () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     school.funds = 5000;
     school.facilities.analysisRoom = 50;
-    const fundsBefore = school.funds;
+
+    const result = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "national-data-bank",
+    });
+
+    expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(4100);
+    expect(result.state.schoolManagement.specialProjects).toEqual({
+      yearIndex: result.state.yearIndex,
+      purchasedProjectIds: ["national-data-bank"],
+    });
+    expect(snapshot.state.schoolManagement.specialProjects).toBeUndefined();
+  });
+
+  it("still rejects Phase51 activities whose gameplay effect is not ready", () => {
+    const snapshot = createSnapshot();
 
     try {
       applyGameAction(snapshot, {
         type: "school-special-project",
-        projectId: "national-data-bank",
+        projectId: "elite-expedition",
       });
       throw new Error("expected special project readiness conflict");
     } catch (error) {
@@ -615,9 +630,6 @@ describe("applyGameAction", () => {
       );
     }
 
-    expect(snapshot.state.schools[snapshot.state.userSchoolId]!.funds).toBe(
-      fundsBefore,
-    );
     expect(snapshot.state.schoolManagement.specialProjects).toBeUndefined();
   });
 
