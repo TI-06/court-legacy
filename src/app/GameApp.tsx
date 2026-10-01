@@ -1186,9 +1186,16 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
   const purchaseSchoolSpecialProjectFromUi = async (
     projectId: SchoolSpecialProjectId,
+    targetPlayerId?: PlayerId,
+    option?: string,
   ) => {
     await cloudSession.runAction(
-      { type: "school-special-project", projectId },
+      {
+        type: "school-special-project",
+        projectId,
+        ...(targetPlayerId ? { targetPlayerId } : {}),
+        ...(option ? { option } : {}),
+      },
       "特別事業を確認しています…",
     );
   };
