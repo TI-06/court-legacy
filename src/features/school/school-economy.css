@@ -202,3 +202,204 @@
     padding: 6px;
   }
 }
+
+
+/* Phase51: high-cost endgame school projects. */
+.school-special-project-heading,
+.school-special-project-group__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-special-project-heading > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.school-special-project-heading h4,
+.school-special-project-heading small,
+.school-special-project-group__heading strong,
+.school-special-project-group__heading span {
+  margin: 0;
+}
+
+.school-special-project-heading h4 {
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.82rem;
+}
+
+.school-special-project-heading small,
+.school-special-project-heading > span,
+.school-special-project-group__heading span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.school-special-project-heading > span {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  color: #ffd37a;
+  background: rgb(255 211 122 / 8%);
+  border: 1px solid rgb(255 211 122 / 18%);
+  border-radius: 999px;
+}
+
+.school-special-project-group {
+  display: grid;
+  margin-top: 10px;
+  gap: 6px;
+}
+
+.school-special-project-group__heading strong {
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.7rem;
+}
+
+.school-special-project-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.school-special-project-card {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  gap: 5px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 11px;
+}
+
+.school-special-project-card__heading,
+.school-special-project-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.school-special-project-card__heading strong {
+  min-width: 0;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.school-special-project-card__heading b {
+  flex: 0 0 auto;
+  color: #ffd37a;
+  font-size: 0.66rem;
+}
+
+.school-special-project-card > small {
+  overflow: hidden;
+  color: #c4d7e6;
+  font-size: 0.57rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+}
+
+.school-special-project-card__footer {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.school-special-project-card__footer em {
+  font-style: normal;
+}
+
+.school-special-project-card[data-status="preparing"] {
+  background: rgb(255 255 255 / 2%);
+  border-color: rgb(255 255 255 / 7%);
+}
+
+.school-special-project-card[data-status="preparing"]
+  .school-special-project-card__footer
+  em {
+  color: #d6b26e;
+}
+
+.school-special-project-card[data-status="available"] {
+  border-color: rgb(104 219 178 / 32%);
+}
+
+.school-special-project-card[data-status="completed"] {
+  background: rgb(48 126 103 / 14%);
+  border-color: rgb(104 219 178 / 28%);
+}
+
+.school-special-project-sheet {
+  display: grid;
+  gap: 12px;
+}
+
+.school-special-project-sheet dl {
+  display: grid;
+  margin: 0;
+  gap: 6px;
+}
+
+.school-special-project-sheet dl div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 9px;
+  color: var(--game-text, #f4f7fb);
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 9px;
+}
+
+.school-special-project-sheet dt {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.school-special-project-sheet dd {
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.school-special-project-sheet > button {
+  min-height: 44px;
+  padding: 8px 10px;
+  color: #071321;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: var(--game-accent, #f47a18);
+  border: 0;
+  border-radius: 10px;
+}
+
+.school-special-project-sheet > button:disabled {
+  color: var(--game-text-muted, #a9b8ca);
+  background: rgb(255 255 255 / 8%);
+}
+
+@media (max-width: 390px) {
+  .school-special-project-card {
+    padding: 8px;
+  }
+
+  .school-special-project-heading small {
+    max-width: 210px;
+    white-space: normal;
+  }
+}
