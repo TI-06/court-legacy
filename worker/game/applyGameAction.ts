@@ -1840,7 +1840,11 @@ function applySchoolSpecialProject(
     }
     const school = state.schools[state.userSchoolId]!;
     const player = targetPlayerId ? state.players[targetPlayerId] : undefined;
-    if (!targetPlayerId || !player || !school.playerIds.includes(targetPlayerId)) {
+    if (
+      !targetPlayerId ||
+      !player ||
+      !school.playerIds.includes(targetPlayerId)
+    ) {
       return conflict(
         "school_special_project_invalid_target",
         "講習を受ける選手を選択してください",
