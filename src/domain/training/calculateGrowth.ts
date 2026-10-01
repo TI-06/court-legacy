@@ -87,10 +87,7 @@ function gradeMultiplier(
   }
 }
 
-function academicMultiplier(
-  academic: number,
-  minimumPercent = 50,
-): number {
+function academicMultiplier(academic: number, minimumPercent = 50): number {
   const baseline = academic < 30 ? 50 : academic < 40 ? 75 : 100;
   return clampPercent(Math.max(baseline, minimumPercent), 50, 100);
 }
