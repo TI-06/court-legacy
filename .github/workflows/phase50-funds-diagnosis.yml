@@ -1,0 +1,26 @@
+name: Phase50 Funds Diagnosis
+
+on:
+  push:
+    branches:
+      - test/phase50-funds-zero-diagnosis
+    paths:
+      - ".github/workflows/phase50-funds-diagnosis.yml"
+      - "tests/soak/phase50FundsDiagnosis.test.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Diagnose persistent zero-funds week
+        run: npx vitest run --config vitest.soak.config.ts tests/soak/phase50FundsDiagnosis.test.ts
