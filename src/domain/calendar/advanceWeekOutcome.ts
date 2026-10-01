@@ -37,7 +37,7 @@ export interface MatchGrowthPresentation {
 }
 
 export interface PendingMatchPresentation {
-  kind: "practice" | "official";
+  kind: "practice" | "official" | "invitational";
   simulation: MatchStepResult;
   growth?: MatchGrowthPresentation;
   homeTeam: MatchTeamPresentation;

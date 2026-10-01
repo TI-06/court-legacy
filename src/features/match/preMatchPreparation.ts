@@ -1,5 +1,6 @@
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type { GameState } from "../../domain/model/GameState";
+import { activeInvitationalCup } from "../../domain/school/invitationalCup";
 import type { SchoolId } from "../../domain/model/identifiers";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { calculateSelectionStrength } from "../../domain/selectors/matchSelectors";
@@ -51,6 +52,18 @@ export function selectWeekPreMatchPreparation(
         ? preparationForSchool(state, nextOfficial.opponent.schoolId)
         : {}),
     };
+  }
+
+  const invitational = activeInvitationalCup(state);
+  if (invitational?.currentRound && invitational.currentOpponentSchoolId) {
+    const opponent = state.schools[invitational.currentOpponentSchoolId];
+    if (opponent) {
+      return {
+        kind: "official",
+        opponentName: `全国招待大会・${opponent.name}`,
+        ...preparationForSchool(state, opponent.id),
+      };
+    }
   }
 
   const practice = state.weeklySchedule.practiceMatch;

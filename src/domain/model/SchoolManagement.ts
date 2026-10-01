@@ -1,3 +1,4 @@
+import type { InvitationalCupState } from "../school/invitationalCup";
 import type { SchoolInvestmentPlan } from "../school/schoolInvestment";
 import type { SchoolSpecialProjectState } from "../school/schoolSpecialProjects";
 import type { GameDate } from "./identifiers";
@@ -45,4 +46,5 @@ export interface SchoolManagementState {
   lastAnnualBudgetYearIndex: number;
   investmentPlan?: SchoolInvestmentPlan;
   specialProjects?: SchoolSpecialProjectState;
+  invitationalCup?: InvitationalCupState;
 }

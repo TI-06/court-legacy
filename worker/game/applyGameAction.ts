@@ -99,6 +99,12 @@ import {
   type UniversityJointTrainingFocus,
 } from "../../src/domain/school/schoolSpecialProjects";
 import {
+  activeInvitationalCup,
+  createInvitationalCup,
+  invitationalMatchId,
+  recordInvitationalOutcome,
+} from "../../src/domain/school/invitationalCup";
+import {
   resolveDueUniversityJointTraining,
   scheduleEliteExpedition,
   scheduleTopTeamClinic,
@@ -1089,6 +1095,18 @@ function repairStaleActiveMatchContext(state: GameState): GameState {
     return resumableOfficial ? state : { ...state, activeMatch: null };
   }
 
+  const invitational = activeInvitationalCup(state);
+  const invitationalId = invitational
+    ? invitationalMatchId(invitational)
+    : null;
+  if (
+    invitationalId &&
+    activeMatch.runtime?.controlledSchoolId === state.userSchoolId &&
+    activeMatch.id === invitationalId
+  ) {
+    return state;
+  }
+
   if (isResumableScheduledPracticeMatch(state, activeMatch)) {
     return state;
   }
@@ -1392,6 +1410,14 @@ function applyActiveMatchCommand(
     return applyOfficialMatchCommand(state, teamSelection, action);
   }
 
+  const invitational = activeInvitationalCup(state);
+  const invitationalId = invitational
+    ? invitationalMatchId(invitational)
+    : null;
+  if (invitationalId && activeMatch.id === invitationalId) {
+    return applyInvitationalMatchCommand(state, teamSelection, action);
+  }
+
   const scheduledOpponentId =
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   const activeOpponentId =
@@ -1408,6 +1434,207 @@ function applyActiveMatchCommand(
     "active_match_context_mismatch",
     "進行中の試合を確認できません",
   );
+}
+
+function buildInvitationalPresentation(
+  state: GameState,
+  simulation: MatchStepResult,
+  growth?: MatchGrowthPresentation,
+): PendingMatchPresentation {
+  return {
+    kind: "invitational",
+    simulation,
+    ...(growth ? { growth } : {}),
+    homeTeam: teamPresentation(state, simulation.match.homeSchoolId),
+    awayTeam: teamPresentation(state, simulation.match.awaySchoolId),
+  };
+}
+
+function startInvitationalMatchSession(
+  state: GameState,
+  teamSelection: TeamSelection,
+): AppliedGameAction {
+  const cup = activeInvitationalCup(state);
+  const id = cup ? invitationalMatchId(cup) : null;
+  const opponentId = cup?.currentOpponentSchoolId ?? null;
+  if (!cup || !id || !opponentId) {
+    return conflict(
+      "invitational_match_not_due",
+      "現在開始できる招待大会の試合がありません",
+    );
+  }
+  const opponent = state.schools[opponentId];
+  if (!opponent) {
+    return conflict(
+      "invitational_opponent_missing",
+      "招待大会の対戦校を確認できません",
+    );
+  }
+
+  const issues = validateTeamSelection({
+    state,
+    schoolId: state.userSchoolId,
+    selection: teamSelection,
+  });
+  if (issues.length > 0) {
+    return conflict("invalid_team_selection", issues[0]!.message);
+  }
+
+  const existing = state.activeMatch;
+  if (
+    existing?.runtime &&
+    existing.phase !== "match-complete" &&
+    existing.id === id &&
+    existing.runtime.controlledSchoolId === state.userSchoolId
+  ) {
+    return {
+      state,
+      teamSelection,
+      outcome: {
+        match: existing,
+        analysis: null,
+      } satisfies MatchStepResult,
+    };
+  }
+
+  const opponentSelection = autoSelectTeam({ state, schoolId: opponentId });
+  const random = new SeededRandom(state.seed).fork(
+    `match:${cup.tournamentId}:${cup.currentRound}:${opponentId}`,
+  );
+  const simulation = startMatch({
+    state,
+    id,
+    homeSchoolId: state.userSchoolId,
+    awaySchoolId: opponentId,
+    homeSelection: teamSelection,
+    awaySelection: opponentSelection,
+    bestOfSets: 3,
+    random,
+    controlledSchoolId: state.userSchoolId,
+    automaticCoachSchoolId: opponentId,
+    automaticCoach: pveCpuCoachPolicy,
+    dynamicsReadinessByPlayerId: buildPveDynamicsReadinessByPlayerId(state),
+  });
+
+  return {
+    state: { ...state, activeMatch: simulation.match },
+    teamSelection,
+    outcome: simulation,
+  };
+}
+
+function applyInvitationalMatchCommand(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "match-command" }>,
+): AppliedGameAction {
+  const cup = activeInvitationalCup(state);
+  const expectedId = cup ? invitationalMatchId(cup) : null;
+  const opponentId = cup?.currentOpponentSchoolId ?? null;
+  const activeMatch = state.activeMatch;
+  if (!cup || !expectedId || !opponentId || !activeMatch?.runtime) {
+    return conflict(
+      "active_invitational_match_not_found",
+      "進行中の招待大会の試合がありません",
+    );
+  }
+  if (
+    activeMatch.id !== expectedId ||
+    activeMatch.runtime.controlledSchoolId !== state.userSchoolId
+  ) {
+    return conflict(
+      "active_invitational_match_mismatch",
+      "進行中の試合と招待大会の予定が一致しません",
+    );
+  }
+
+  try {
+    const commandedMatch = applyMatchCommand({
+      state,
+      match: activeMatch,
+      schoolId: state.userSchoolId,
+      command: action.command,
+    });
+    const simulation = resumeMatch({
+      state,
+      match: commandedMatch,
+      automaticCoachSchoolId: opponentId,
+      automaticCoach: pveCpuCoachPolicy,
+    });
+    const resumedState: GameState = {
+      ...state,
+      activeMatch: simulation.match,
+    };
+
+    if (!simulation.analysis) {
+      return {
+        state: resumedState,
+        teamSelection,
+        outcome: buildInvitationalPresentation(resumedState, simulation),
+      };
+    }
+
+    const matchExperience = applyCompletedSoloMatchExperience(
+      resumedState,
+      resumedState,
+      simulation.match,
+    );
+    const experiencedState = applyCompletedMatchSpecialAbilities(
+      matchExperience.state,
+      matchExperience.performance,
+      {
+        kind: "official",
+        level: "national",
+        round: cup.currentRound ?? "semifinal",
+      },
+    );
+    const matchGrowth = buildMatchGrowthPresentation(
+      resumedState,
+      experiencedState,
+    );
+    const promiseResolvedState = resolveCompletedMatchOpportunityPromises(
+      experiencedState,
+      simulation.match,
+    );
+    const userWon =
+      (simulation.match.homeSchoolId === state.userSchoolId &&
+        simulation.match.homeSetsWon === 2) ||
+      (simulation.match.awaySchoolId === state.userSchoolId &&
+        simulation.match.awaySetsWon === 2);
+    const winnerSchoolId = userWon ? state.userSchoolId : opponentId;
+    const recorded = recordMatchOutcome(promiseResolvedState, {
+      matchId: simulation.match.id,
+      date: state.date,
+      homeSchoolId: simulation.match.homeSchoolId,
+      awaySchoolId: simulation.match.awaySchoolId,
+      winnerSchoolId,
+      homeSetsWon: simulation.match.homeSetsWon,
+      awaySetsWon: simulation.match.awaySetsWon,
+      tournamentId: null,
+    });
+    const progressed = recordInvitationalOutcome(recorded, simulation.match);
+
+    return {
+      state: progressed,
+      teamSelection,
+      outcome: buildInvitationalPresentation(
+        progressed,
+        simulation,
+        matchGrowth,
+      ),
+    };
+  } catch (error) {
+    if (error instanceof MatchCommandValidationError) {
+      return conflict(error.code.replaceAll("-", "_"), error.message);
+    }
+    if (error instanceof GameRuleConflictError) throw error;
+    return conflict(
+      "invitational_match_command_unavailable",
+      error instanceof Error
+        ? error.message
+        : "招待大会の監督指示を処理できません",
+    );
+  }
 }
 
 function teamPresentation(
@@ -1540,6 +1767,31 @@ function applyAdvanceWeek(
       outcome,
     };
   }
+  const invitational = activeInvitationalCup(currentState);
+  if (invitational?.currentRound && invitational.currentOpponentSchoolId) {
+    const invitationalMatch = startInvitationalMatchSession(
+      currentState,
+      teamSelection,
+    );
+    const simulation = invitationalMatch.outcome as MatchStepResult;
+    const outcome: AdvanceWeekOutcome = {
+      trainingResult,
+      pendingMatchPresentation: buildInvitationalPresentation(
+        invitationalMatch.state,
+        simulation,
+      ),
+      weekAdvanced: false,
+      academicYearTransition: null,
+      recoveredPlayerIds: [],
+      healedPlayerIds: [],
+    };
+    return {
+      state: invitationalMatch.state,
+      teamSelection: invitationalMatch.teamSelection,
+      outcome,
+    };
+  }
+
   if (
     currentState.weeklySchedule.practiceMatch.scheduledOpponentId !== null &&
     !isWeeklyActionCompleted(currentState, "practice-match") &&
@@ -1821,6 +2073,53 @@ function applySchoolSpecialProject(
       state: scheduleUniversityJointTraining(purchased, focus),
       teamSelection,
       outcome: { ...evaluation, focus },
+    };
+  }
+
+  if (action.projectId === "invitational-cup") {
+    if (hasRequiredOfficialMatch(state)) {
+      return conflict(
+        "school_special_project_official_match_required",
+        "公式戦がある週は全国招待大会を開催できません",
+      );
+    }
+    if (state.activeMatch && state.activeMatch.phase !== "match-complete") {
+      return conflict(
+        "school_special_project_match_in_progress",
+        "進行中の試合を完了してください",
+      );
+    }
+    if (state.weeklySchedule.practiceMatch.scheduledOpponentId) {
+      return conflict(
+        "school_special_project_practice_match_scheduled",
+        "練習試合の予定がある週は全国招待大会を開催できません",
+      );
+    }
+    const existingCup = activeInvitationalCup(state);
+    if (existingCup?.currentRound) {
+      return conflict(
+        "school_special_project_activity_pending",
+        "全国招待大会が進行中です",
+      );
+    }
+    const cup = createInvitationalCup(state);
+    if (!cup) {
+      return conflict(
+        "school_special_project_opponent_unavailable",
+        "全国招待大会に必要な強豪校を集められません",
+      );
+    }
+    const purchased = purchaseSchoolSpecialProject(state, action.projectId);
+    return {
+      state: {
+        ...purchased,
+        schoolManagement: {
+          ...purchased.schoolManagement,
+          invitationalCup: cup,
+        },
+      },
+      teamSelection,
+      outcome: { ...evaluation, tournamentId: cup.tournamentId },
     };
   }
 
