@@ -64,9 +64,7 @@ describe("Phase51 invitational cup", () => {
     expect(cup?.entrantSchoolIds[0]).toBe(state.userSchoolId);
     expect(cup?.currentRound).toBe("semifinal");
     expect(cup?.currentOpponentSchoolId).not.toBeNull();
-    expect(cup?.finalOpponentSchoolId).not.toBe(
-      cup?.currentOpponentSchoolId,
-    );
+    expect(cup?.finalOpponentSchoolId).not.toBe(cup?.currentOpponentSchoolId);
   });
 
   it("moves a semifinal winner to the final without growing tournament history", () => {
