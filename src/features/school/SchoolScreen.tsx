@@ -1162,8 +1162,7 @@ export function SchoolScreen({
                 </dd>
               </div>
             </dl>
-            {selectedSpecialProject.id ===
-            "university-joint-training" ? (
+            {selectedSpecialProject.id === "university-joint-training" ? (
               <div className="school-special-project-sheet__choices">
                 <strong>合同練習のテーマ</strong>
                 <div
