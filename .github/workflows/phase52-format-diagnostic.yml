@@ -1,0 +1,26 @@
+name: Phase52 Format Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase52-opponent-targeting
+    paths:
+      - ".github/workflows/phase52-format-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Show formatted diff
+        run: |
+          npx prettier src/domain/match/applyMatchCommand.ts tests/unit/domain/match/phase16MatchCommands.test.ts --write
+          git diff -- src/domain/match/applyMatchCommand.ts tests/unit/domain/match/phase16MatchCommands.test.ts
