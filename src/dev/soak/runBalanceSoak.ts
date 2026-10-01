@@ -529,12 +529,12 @@ function observeSameYearEnd(
   tracker.fundsMax = Math.max(tracker.fundsMax, funds);
 }
 
-function buildBalanceObservations(
+export function buildBalanceObservations(
   yearly: readonly SoakSnapshotMetrics[],
 ): SoakBalanceObservation[] {
   const observations: SoakBalanceObservation[] = [];
   for (const metrics of yearly) {
-    if (metrics.zeroFundWeeks > 0 || metrics.fundsMin === 0) {
+    if (metrics.zeroFundWeeks > 0) {
       observations.push({
         code: "user_funds_zero",
         message: `自校資金の年度内最小残高が0です。週境界で0を観測した回数は${metrics.zeroFundWeeks}回です。経済バランスを確認してください。`,
@@ -548,10 +548,13 @@ function buildBalanceObservations(
         yearIndex: metrics.yearIndex,
       });
     }
-    if (metrics.userStrength > metrics.cpuStrength.p90 + 20) {
+    if (
+      metrics.nationalParticipantStrength.count > 0 &&
+      metrics.userStrength > metrics.nationalParticipantStrength.p90 + 10
+    ) {
       observations.push({
-        code: "user_strength_above_cpu_p90",
-        message: `自校戦力${metrics.userStrength}がCPU p90 ${metrics.cpuStrength.p90}を大きく上回っています。`,
+        code: "user_strength_above_national_p90",
+        message: `自校戦力${metrics.userStrength}が全国出場校 p90 ${metrics.nationalParticipantStrength.p90}を大きく上回っています。`,
         yearIndex: metrics.yearIndex,
       });
     }
@@ -573,7 +576,7 @@ function formatRunSummary(report: SoakRunReport): string {
     ? `coach=${finalMetrics.assistantCoach.rank}/${finalMetrics.assistantCoach.specialty ?? "general"} changes=${finalMetrics.assistantCoachChanges}`
     : `coach=none changes=${finalMetrics?.assistantCoachChanges ?? 0}`;
   const nationalDetail = finalMetrics
-    ? `national-participants=${finalMetrics.nationalParticipantStrength.count} national-p50=${finalMetrics.nationalParticipantStrength.p50}`
+    ? `national-participants=${finalMetrics.nationalParticipantStrength.count} national-p50=${finalMetrics.nationalParticipantStrength.p50} national-p90=${finalMetrics.nationalParticipantStrength.p90}`
     : "national-participants=0";
   const specialAbilityDetail = finalMetrics
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
