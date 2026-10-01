@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { playerId } from "../../../../src/domain/model/identifiers";
 import { SpecialProjectActivityResultDialog } from "../../../../src/features/home/SpecialProjectActivityResultDialog";
 
 describe("SpecialProjectActivityResultDialog", () => {
@@ -13,7 +14,7 @@ describe("SpecialProjectActivityResultDialog", () => {
           focus: "defense",
           participantCount: 12,
           totalAbilityGrowth: 24,
-          injuredPlayerIds: ["player-1"],
+          injuredPlayerIds: [playerId("player-1")],
         }}
       />,
     );
