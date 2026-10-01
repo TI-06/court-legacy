@@ -1,0 +1,31 @@
+name: Phase50 Investment Long Balance
+
+on:
+  push:
+    branches:
+      - test/phase50-investment-long-balance
+    paths:
+      - ".github/workflows/phase50-investment-long-balance.yml"
+      - "src/dev/soak/**"
+      - "tests/unit/soak/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Focused soak driver tests
+        run: npx vitest run tests/unit/soak/soakDriver.test.ts
+      - name: 10-season balance
+        run: npm run soak:balance -- --seed phase50-balance-a --seed phase50-balance-b
+      - name: 30-season investment balance
+        run: npm run soak:long -- --seed phase50-long-a --seed phase50-long-b --seed phase50-long-c --seed phase50-long-d
