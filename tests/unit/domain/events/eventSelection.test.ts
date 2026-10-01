@@ -174,14 +174,14 @@ describe("event selection", () => {
     const awakened = selectNextEvent(
       state,
       isolatedData,
-      fixedRollRandom(12),
+      fixedRollRandom(3),
     );
     expect(awakened.pendingEvent?.eventId).toBe(eventId(gold.id));
 
     const fallback = selectNextEvent(
       { ...state, pendingEvent: null },
       isolatedData,
-      fixedRollRandom(13),
+      fixedRollRandom(4),
     );
     expect(fallback.pendingEvent?.eventId).toBe(eventId(normal.id));
   });
