@@ -77,12 +77,7 @@ export function createInvitationalCup(
   return {
     yearIndex: state.yearIndex,
     tournamentId: `invitational:${state.yearIndex}`,
-    entrantSchoolIds: [
-      state.userSchoolId,
-      semiOpponent,
-      npcA,
-      npcB,
-    ],
+    entrantSchoolIds: [state.userSchoolId, semiOpponent, npcA, npcB],
     currentRound: "semifinal",
     currentOpponentSchoolId: semiOpponent,
     finalOpponentSchoolId,
@@ -98,9 +93,7 @@ export function activeInvitationalCup(
   return cup?.yearIndex === state.yearIndex ? cup : null;
 }
 
-export function invitationalMatchId(
-  cup: InvitationalCupState,
-): MatchId | null {
+export function invitationalMatchId(cup: InvitationalCupState): MatchId | null {
   if (!cup.currentRound || !cup.currentOpponentSchoolId) return null;
   return matchId(
     `${cup.tournamentId}:${cup.currentRound}:${cup.currentOpponentSchoolId}`,
