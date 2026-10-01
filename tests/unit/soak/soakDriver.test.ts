@@ -159,6 +159,59 @@ describe("Phase18 soak production action driver", () => {
     expect(before.state.date).toBe("2026-04-01");
   });
 
+  it("avoids unaffordable event choices when an affordable alternative exists", async () => {
+    const { createSoakSnapshot, advanceSoakUntilWeekChanges } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-affordable-event");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const actorPlayerId = school.playerIds[0]!;
+    school.funds = 332;
+    snapshot.state.pendingEvent = {
+      eventId: "event.scouting-conflict",
+      actorPlayerIds: [actorPlayerId],
+      targetSchoolId: null,
+      surfacedDate: snapshot.state.date,
+      choiceIds: ["direct", "patient"],
+      chainId: null,
+      chainStage: null,
+    } as never;
+
+    const result = advanceSoakUntilWeekChanges(snapshot);
+    const occurrence = result.snapshot.state.eventMemory.history.at(-1);
+
+    expect(occurrence?.eventId).toBe("event.scouting-conflict");
+    expect(occurrence?.choiceId).toBe("patient");
+    expect(
+      result.snapshot.state.schoolManagement.fundsHistory.some(
+        (entry) =>
+          entry.relatedId === "event.scouting-conflict" && entry.amount < 0,
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the first event choice when it is affordable", async () => {
+    const { createSoakSnapshot, advanceSoakUntilWeekChanges } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-affordable-first-choice");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const actorPlayerId = school.playerIds[0]!;
+    school.funds = 6000;
+    snapshot.state.pendingEvent = {
+      eventId: "event.scouting-conflict",
+      actorPlayerIds: [actorPlayerId],
+      targetSchoolId: null,
+      surfacedDate: snapshot.state.date,
+      choiceIds: ["direct", "patient"],
+      chainId: null,
+      chainStage: null,
+    } as never;
+
+    const result = advanceSoakUntilWeekChanges(snapshot);
+    const occurrence = result.snapshot.state.eventMemory.history.at(-1);
+
+    expect(occurrence?.choiceId).toBe("direct");
+  });
+
   it("resolves a pending event deterministically before advancing the week", async () => {
     const { createSoakSnapshot, advanceSoakUntilWeekChanges } =
       await loadSubject();
