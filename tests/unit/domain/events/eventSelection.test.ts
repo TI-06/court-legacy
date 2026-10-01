@@ -202,19 +202,13 @@ describe("event selection", () => {
   it("keeps scheduled-only clinic events out of the random event pool", () => {
     const state = createDemoGame();
     const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
-    const clinic = gameData.events.get(
-      "event.phase51-top-team-clinic-attack",
-    )!;
+    const clinic = gameData.events.get("event.phase51-top-team-clinic-attack")!;
     const isolatedData = {
       ...gameData,
       events: new Map([[clinic.id, clinic]]),
     };
 
-    const normal = selectNextEvent(
-      state,
-      isolatedData,
-      fixedRollRandom(1),
-    );
+    const normal = selectNextEvent(state, isolatedData, fixedRollRandom(1));
     expect(normal.pendingEvent).toBeNull();
 
     state.eventMemory.scheduledFollowUps = [
@@ -226,11 +220,7 @@ describe("event selection", () => {
         chainStage: 1,
       },
     ];
-    const scheduled = selectNextEvent(
-      state,
-      isolatedData,
-      fixedRollRandom(1),
-    );
+    const scheduled = selectNextEvent(state, isolatedData, fixedRollRandom(1));
     expect(scheduled.pendingEvent?.eventId).toBe(eventId(clinic.id));
     expect(scheduled.pendingEvent?.actorPlayerIds).toEqual([actor]);
   });

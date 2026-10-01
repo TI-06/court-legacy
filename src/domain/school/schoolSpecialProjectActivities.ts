@@ -221,7 +221,8 @@ export function resolveDueUniversityJointTraining(
     const nextPlayer = {
       ...resolved.player,
       fatigue: clampState(
-        resolved.player.fatigue + jointTrainingActivities[pending.focus].fatigue,
+        resolved.player.fatigue +
+          jointTrainingActivities[pending.focus].fatigue,
       ),
     };
     players[playerId] = nextPlayer;

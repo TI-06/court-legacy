@@ -1261,9 +1261,7 @@ export function SchoolScreen({
                   (!specialProjectTargetPlayerId || !specialProjectOption))
               }
               onClick={() => {
-                if (
-                  selectedSpecialProject.id === "university-joint-training"
-                ) {
+                if (selectedSpecialProject.id === "university-joint-training") {
                   onPurchaseSpecialProject?.(
                     selectedSpecialProject.id,
                     undefined,

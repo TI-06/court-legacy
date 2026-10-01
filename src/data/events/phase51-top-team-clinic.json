@@ -5,12 +5,7 @@
     "category": "practice",
     "title": "トップチーム講習・攻撃",
     "bodyTemplate": "トップレベルの指導者から、得点につながる打ち方と勝負所の考え方を学ぶ。",
-    "tags": [
-      "phase51",
-      "scheduled-only",
-      "clinic",
-      "attack"
-    ],
+    "tags": ["phase51", "scheduled-only", "clinic", "attack"],
     "trigger": {},
     "weight": 1,
     "cooldownWeeks": 0,
@@ -57,12 +52,7 @@
     "category": "practice",
     "title": "トップチーム講習・守備",
     "bodyTemplate": "トップレベルの守備練習から、強打への対応と読みの精度を学ぶ。",
-    "tags": [
-      "phase51",
-      "scheduled-only",
-      "clinic",
-      "defense"
-    ],
+    "tags": ["phase51", "scheduled-only", "clinic", "defense"],
     "trigger": {},
     "weight": 1,
     "cooldownWeeks": 0,
@@ -109,12 +99,7 @@
     "category": "practice",
     "title": "トップチーム講習・メンタル",
     "bodyTemplate": "トップ選手の準備と振り返りを学び、練習と試合への向き合い方を見直す。",
-    "tags": [
-      "phase51",
-      "scheduled-only",
-      "clinic",
-      "mental"
-    ],
+    "tags": ["phase51", "scheduled-only", "clinic", "mental"],
     "trigger": {},
     "weight": 1,
     "cooldownWeeks": 0,

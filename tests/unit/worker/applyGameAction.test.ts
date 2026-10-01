@@ -633,9 +633,9 @@ describe("applyGameAction", () => {
     });
 
     expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(3800);
-    expect(
-      result.state.weeklySchedule.practiceMatch.scheduledOpponentId,
-    ).toBe(opponent.id);
+    expect(result.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBe(
+      opponent.id,
+    );
     expect(result.state.schoolManagement.specialProjects).toMatchObject({
       yearIndex: result.state.yearIndex,
       purchasedProjectIds: ["elite-expedition"],

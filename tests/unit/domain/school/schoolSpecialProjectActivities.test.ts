@@ -77,7 +77,9 @@ describe("Phase51 experience project activities", () => {
       resolved?.state.schoolManagement.specialProjects?.pendingActivity,
     ).toBeUndefined();
     expect(resolved?.state.players).not.toEqual(beforePlayers);
-    expect(resolveDueUniversityJointTraining(resolved!.state, gameData)).toBeNull();
+    expect(
+      resolveDueUniversityJointTraining(resolved!.state, gameData),
+    ).toBeNull();
   });
 
   it("schedules a targeted top-team clinic as a next-week event", () => {
