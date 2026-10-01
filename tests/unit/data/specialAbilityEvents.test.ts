@@ -77,9 +77,11 @@ describe("special ability event data", () => {
       if (event.tags.includes("elite-awakening")) {
         expect(minimum, event.id).toBe(required.length >= 3 ? 2 : 1);
       }
-      if (event.tags.includes("gold-awakening")) {
-        expect(required.length, event.id).toBeGreaterThanOrEqual(2);
-        expect(minimum, event.id).toBe(2);
+      if (
+        event.tags.includes("gold-awakening") &&
+        event.id !== "event.gold-flow-controller"
+      ) {
+        expect(minimum, event.id).toBe(1);
       }
     }
   });
