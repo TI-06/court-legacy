@@ -1264,14 +1264,25 @@ export function SchoolScreen({
                     specialProjectTargetPlayerId === null))
               }
               onClick={() => {
-                onPurchaseSpecialProject?.(selectedSpecialProject.id, {
+                const options = {
                   ...(specialProjectTargetPlayerId
                     ? { targetPlayerId: specialProjectTargetPlayerId }
                     : {}),
                   ...(specialProjectOption
                     ? { option: specialProjectOption }
                     : {}),
-                });
+                };
+                if (
+                  options.targetPlayerId !== undefined ||
+                  options.option !== undefined
+                ) {
+                  onPurchaseSpecialProject?.(
+                    selectedSpecialProject.id,
+                    options,
+                  );
+                } else {
+                  onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                }
                 setSelectedSpecialProjectId(null);
                 setSpecialProjectOption(null);
                 setSpecialProjectTargetPlayerId(null);
