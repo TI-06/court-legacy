@@ -1,0 +1,158 @@
+[
+  {
+    "id": "event.phase51-top-team-clinic-attack",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・攻撃",
+    "bodyTemplate": "トップレベルの指導者から、得点につながる打ち方と勝負所の考え方を学ぶ。",
+    "tags": [
+      "phase51",
+      "scheduled-only",
+      "clinic",
+      "attack"
+    ],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "course",
+        "label": "コースの打ち分けを磨く",
+        "detail": "相手ブロックを見て打ち分ける技術を重点的に学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "attack_course",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "clutch",
+        "label": "勝負所の決定力を磨く",
+        "detail": "重要な一本で迷わず振り切るための考え方を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "attack_clutch",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-top-team-clinic-defense",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・守備",
+    "bodyTemplate": "トップレベルの守備練習から、強打への対応と読みの精度を学ぶ。",
+    "tags": [
+      "phase51",
+      "scheduled-only",
+      "clinic",
+      "defense"
+    ],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "dig",
+        "label": "ディグ技術を磨く",
+        "detail": "強打への入り方と面の作り方を重点的に学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "receive_dig",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "read",
+        "label": "読みを磨く",
+        "detail": "相手の助走や配球から次のプレーを予測する。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "block_read",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-top-team-clinic-mental",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・メンタル",
+    "bodyTemplate": "トップ選手の準備と振り返りを学び、練習と試合への向き合い方を見直す。",
+    "tags": [
+      "phase51",
+      "scheduled-only",
+      "clinic",
+      "mental"
+    ],
+    "trigger": {},
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "focus",
+        "label": "集中力を磨く",
+        "detail": "プレーごとに意識を切り替えるルーティンを学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "mental_focus",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "practice",
+        "label": "練習の質を高める",
+        "detail": "日々の反復から課題を見つける方法を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "growth_practice",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  }
+]
