@@ -419,43 +419,44 @@ describe("Phase16 match commands", () => {
   it(
     "rejects own players and non-attackers as Phase52 opponent targets without mutation",
     () => {
-    const context = createContext("phase52-invalid-target-world");
-    const match = findOpponentRunDecision(context);
-    const before = structuredClone(match);
-    const ownPlayerId = match.homeSelection.rotation[0]!.playerId;
+      const context = createContext("phase52-invalid-target-world");
+      const match = findOpponentRunDecision(context);
+      const before = structuredClone(match);
+      const ownPlayerId = match.homeSelection.rotation[0]!.playerId;
 
-    expectValidationCode(
-      () =>
-        applyMatchCommand({
-          state: context.state,
-          match,
-          schoolId: context.homeSchoolId,
-          command: { type: "target-serve-receiver", playerId: ownPlayerId },
-        }),
-      "serve_target_not_on_court",
-    );
-    expect(match).toEqual(before);
-
-    const setter = match.awaySelection.rotation.find(
-      (assignment) =>
-        context.state.players[assignment.playerId]!.preferredPosition === "S",
-    );
-    if (setter) {
       expectValidationCode(
         () =>
           applyMatchCommand({
             state: context.state,
             match,
             schoolId: context.homeSchoolId,
-            command: {
-              type: "mark-opponent-attacker",
-              playerId: setter.playerId,
-            },
+            command: { type: "target-serve-receiver", playerId: ownPlayerId },
           }),
-        "block_target_not_attacker",
+        "serve_target_not_on_court",
       );
       expect(match).toEqual(before);
-    }
+
+      const setter = match.awaySelection.rotation.find(
+        (assignment) =>
+          context.state.players[assignment.playerId]!.preferredPosition ===
+          "S",
+      );
+      if (setter) {
+        expectValidationCode(
+          () =>
+            applyMatchCommand({
+              state: context.state,
+              match,
+              schoolId: context.homeSchoolId,
+              command: {
+                type: "mark-opponent-attacker",
+                playerId: setter.playerId,
+              },
+            }),
+          "block_target_not_attacker",
+        );
+        expect(match).toEqual(before);
+      }
     },
   );
 
@@ -483,47 +484,47 @@ describe("Phase16 match commands", () => {
   it(
     "expires Phase52 temporary targeting through simulation without changing persistent tactics",
     () => {
-    const context = createContext("phase52-target-expiry-world");
-    const match = findOpponentRunDecision(context);
-    const persistentTactics = structuredClone(
-      context.state.schools[context.homeSchoolId]!.tactics,
-    );
-    const playerId =
-      match.awaySelection.liberoPlayerId ??
-      match.awaySelection.rotation[0]!.playerId;
+      const context = createContext("phase52-target-expiry-world");
+      const match = findOpponentRunDecision(context);
+      const persistentTactics = structuredClone(
+        context.state.schools[context.homeSchoolId]!.tactics,
+      );
+      const playerId =
+        match.awaySelection.liberoPlayerId ??
+        match.awaySelection.rotation[0]!.playerId;
 
-    let current = applyMatchCommand({
-      state: context.state,
-      match,
-      schoolId: context.homeSchoolId,
-      command: { type: "target-serve-receiver", playerId },
-    });
-
-    let guard = 0;
-    while (
-      current.phase !== "match-complete" &&
-      current.runtime?.serveTarget &&
-      guard < 12
-    ) {
-      guard += 1;
-      current = resumeMatch({
+      let current = applyMatchCommand({
         state: context.state,
-        match: current,
-      }).match;
-      if (
-        current.phase === "coach-decision" &&
-        current.runtime?.serveTarget
+        match,
+        schoolId: context.homeSchoolId,
+        command: { type: "target-serve-receiver", playerId },
+      });
+
+      let guard = 0;
+      while (
+        current.phase !== "match-complete" &&
+        current.runtime?.serveTarget &&
+        guard < 12
       ) {
-        current = applyMatchCommand({
+        guard += 1;
+        current = resumeMatch({
           state: context.state,
           match: current,
-          schoolId: context.homeSchoolId,
-          command: { type: "continue" },
-        });
+        }).match;
+        if (
+          current.phase === "coach-decision" &&
+          current.runtime?.serveTarget
+        ) {
+          current = applyMatchCommand({
+            state: context.state,
+            match: current,
+            schoolId: context.homeSchoolId,
+            command: { type: "continue" },
+          });
+        }
       }
-    }
 
-    expect(current.runtime?.serveTarget ?? null).toBeNull();
+      expect(current.runtime?.serveTarget ?? null).toBeNull();
       expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
         persistentTactics,
       );
