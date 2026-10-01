@@ -41,7 +41,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     cost: 900,
     summary: "試合前分析で相手主力の情報を詳しく確認できます。",
     requiredFacilities: { analysisRoom: 50 },
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "medical-support",
@@ -50,7 +50,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     cost: 1000,
     summary: "練習時の怪我リスクを抑え、選手管理を強化します。",
     requiredFacilities: { recoveryRoom: 50 },
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "alumni-development",
@@ -59,7 +59,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     cost: 900,
     summary: "若手選手の通常練習をOBが継続支援します。",
     requiredFacilities: { alumniAssociation: 50 },
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "academic-support",
@@ -68,7 +68,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     cost: 750,
     summary: "学業面の支援で低学業選手の練習制限を緩和します。",
     requiredFacilities: { studyRoom: 50 },
-    effectReady: false,
+    effectReady: true,
   },
   {
     id: "elite-expedition",
@@ -159,6 +159,17 @@ export function activeSchoolSpecialProjects(
 ): SchoolSpecialProjectState | null {
   const current = state.schoolManagement.specialProjects;
   return current?.yearIndex === state.yearIndex ? current : null;
+}
+
+export function hasActiveSchoolSpecialProject(
+  state: GameState,
+  projectId: SchoolSpecialProjectId,
+): boolean {
+  return (
+    activeSchoolSpecialProjects(state)?.purchasedProjectIds.includes(
+      projectId,
+    ) ?? false
+  );
 }
 
 export function schoolSpecialProjectRemainingSlots(state: GameState): number {

@@ -2,6 +2,7 @@ import type { GameState } from "../model/GameState";
 import type { Player, PlayerInjury } from "../model/Player";
 import type { GameDate, PlayerId } from "../model/identifiers";
 import { progressSpecialRelationshipsWeekly } from "../relationships/specialRelationships";
+import { hasActiveSchoolSpecialProject } from "../school/schoolSpecialProjects";
 import type { SpecialRelationshipTransition } from "../relationships/relationshipTypes";
 
 export type WeeklyAction = "training" | "practice-match";
@@ -66,16 +67,22 @@ export function markWeeklyActionCompleted(
   };
 }
 
-function progressInjury(injury: PlayerInjury | null): PlayerInjury | null {
+function progressInjury(
+  injury: PlayerInjury | null,
+  recoveryWeeks = 1,
+): PlayerInjury | null {
   if (!injury) {
     return null;
   }
 
-  const remainingWeeks = injury.remainingWeeks - 1;
+  const remainingWeeks = injury.remainingWeeks - recoveryWeeks;
   return remainingWeeks <= 0 ? null : { ...injury, remainingWeeks };
 }
 
-function recoverPlayer(player: Player): {
+function recoverPlayer(
+  player: Player,
+  recoveryWeeks = 1,
+): {
   player: Player;
   recovered: boolean;
   healed: boolean;
@@ -89,7 +96,7 @@ function recoverPlayer(player: Player): {
     };
   }
 
-  const injury = progressInjury(previousInjury);
+  const injury = progressInjury(previousInjury, recoveryWeeks);
   return {
     player: { ...player, injury },
     recovered: false,
@@ -108,10 +115,21 @@ export function advanceOneWeek(
   // applies automatic rest or facility-driven fatigue recovery during week advance.
   void options;
 
+  const userPlayerIds = new Set(
+    state.schools[state.userSchoolId]?.playerIds ?? [],
+  );
+  const medicalSupportActive = hasActiveSchoolSpecialProject(
+    state,
+    "medical-support",
+  );
+
   for (const [playerId, player] of Object.entries(state.players) as Array<
     [PlayerId, Player]
   >) {
-    const result = recoverPlayer(player);
+    const result = recoverPlayer(
+      player,
+      medicalSupportActive && userPlayerIds.has(playerId) ? 2 : 1,
+    );
     if (result.player !== player) {
       players ??= { ...state.players };
       players[playerId] = result.player;

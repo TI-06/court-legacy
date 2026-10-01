@@ -90,6 +90,29 @@ describe("weekly progression", () => {
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
+  it("advances user-school injury rehab by two weeks with medical support", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    state.players[playerId] = {
+      ...state.players[playerId]!,
+      injury: {
+        injuryId: "injury.medical-support",
+        severity: "moderate",
+        remainingWeeks: 4,
+        recurrenceRisk: 20,
+      },
+    };
+    state.schoolManagement.specialProjects = {
+      yearIndex: state.yearIndex,
+      purchasedProjectIds: ["medical-support"],
+    };
+
+    const result = advanceOneWeek(state);
+
+    expect(result.state.players[playerId]!.injury?.remainingWeeks).toBe(2);
+  });
+
   it("preserves the player map when no injuries need progression", () => {
     const state = createState();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;

@@ -1779,3 +1779,72 @@
     min-width: 0;
   }
 }
+
+/* Phase51: opponent key-player intelligence from the national data bank. */
+.pre-match-lineup__analysis-key-players {
+  display: grid;
+  gap: 6px;
+}
+
+.pre-match-lineup__analysis-key-players > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pre-match-lineup__analysis-key-players > div strong {
+  color: #bfeeff;
+  font-size: 0.68rem;
+}
+
+.pre-match-lineup__analysis-key-players > div span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.pre-match-lineup__analysis-key-players article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 2px 8px;
+  background: rgb(116 216 255 / 6%);
+  border: 1px solid rgb(116 216 255 / 12%);
+  border-radius: 9px;
+}
+
+.pre-match-lineup__analysis-key-players article > span {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 5px;
+}
+
+.pre-match-lineup__analysis-key-players article > span strong {
+  overflow: hidden;
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pre-match-lineup__analysis-key-players article > span small,
+.pre-match-lineup__analysis-key-players article > small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.53rem;
+}
+
+.pre-match-lineup__analysis-key-players article > b {
+  color: #ffc56e;
+  font-size: 0.72rem;
+}
+
+.pre-match-lineup__analysis-key-players article > small {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -135,9 +135,9 @@
 
 **Behavior**
 
-- 最終training injury risk x0.70。
-- 0%にはしない。
-- rest時condition recoveryを小幅加算。
+- user-schoolの負傷選手は週進行時にremainingWeeksを2減らす。
+- 通常の個人練習「休養」はcondition回復+5。
+- recoveryRoom Lv50ですでに通常training injury riskがほぼ0になるため、重複する予防率強化は行わない。
 
 ### Task 3: OB育成支援
 

@@ -26,6 +26,7 @@ export type GrowthModifierCode =
   | "school-development-investment"
   | "external-specialist-coach"
   | "camp-investment"
+  | "special-project-alumni-development"
   | "academic";
 
 export interface GrowthModifier {
@@ -48,7 +49,8 @@ export type AdditionalGrowthModifier = GrowthModifier & {
     | "special-ability-growth"
     | "school-development-investment"
     | "external-specialist-coach"
-    | "camp-investment";
+    | "camp-investment"
+    | "special-project-alumni-development";
 };
 
 export interface GrowthCalculationInput {
@@ -58,6 +60,7 @@ export interface GrowthCalculationInput {
   growthType: GrowthTypeDefinition;
   personality: PersonalityDefinition;
   additionalModifiers?: readonly AdditionalGrowthModifier[];
+  academicMinimumPercent?: number;
 }
 
 export interface GrowthCalculationResult {
@@ -84,14 +87,9 @@ function gradeMultiplier(
   }
 }
 
-function academicMultiplier(academic: number): number {
-  if (academic < 30) {
-    return 50;
-  }
-  if (academic < 40) {
-    return 75;
-  }
-  return 100;
+function academicMultiplier(academic: number, minimumPercent = 50): number {
+  const baseline = academic < 30 ? 50 : academic < 40 ? 75 : 100;
+  return clampPercent(Math.max(baseline, minimumPercent), 50, 100);
 }
 
 function trainingRoomMultiplier(level: number): number {
@@ -134,7 +132,10 @@ export function calculateGrowth(
     120,
   );
   const condition = clampPercent(75 + input.player.condition * 0.25, 60, 100);
-  const academic = academicMultiplier(input.player.academic);
+  const academic = academicMultiplier(
+    input.player.academic,
+    input.academicMinimumPercent,
+  );
   const nonAcademicModifiers: GrowthModifier[] = [
     { code: "grade", label: "学年成長", percent: grade },
     { code: "growth-type", label: "成長タイプ", percent: growthType },
