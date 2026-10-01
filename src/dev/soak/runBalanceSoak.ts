@@ -3,7 +3,12 @@ import { gameDataBootstrap } from "../../data/gameData";
 import type { EventChoiceDefinition } from "../../domain/validation/gameDataSchema";
 import type { AdvanceWeekOutcome } from "../../domain/calendar/advanceWeekOutcome";
 import type { PlayerId } from "../../domain/model/identifiers";
+import {
+  SPECIAL_ABILITIES,
+  type SpecialAbilityKind,
+} from "../../domain/player/specialAbilities";
 import { evaluateAssistantCoachContract } from "../../domain/school/assistantCoach";
+import { evaluateSchoolInvestment } from "../../domain/school/schoolInvestment";
 import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
@@ -45,6 +50,17 @@ const COACH_POLICY: readonly Extract<
 ];
 
 const COACH_SPECIALTIES = ["attack", "defense", "physical"] as const;
+const INVESTMENT_DEVELOPMENT_FOCUSES = [
+  "attack",
+  "defense",
+  "physical",
+] as const;
+const INVESTMENT_EXTERNAL_SPECIALISTS = [
+  "attacker",
+  "setter",
+  "blocker",
+  "libero",
+] as const;
 
 export const SOAK_PRESETS = {
   smoke: 1,
@@ -59,6 +75,14 @@ export interface AdvanceSoakWeekOptions {
   maxActionsPerWeek?: number;
 }
 
+export interface SoakSpecialAbilityFlow {
+  normalAcquired: number;
+  rareAcquired: number;
+  superRareAcquired: number;
+  negativeAcquired: number;
+  negativeRecovered: number;
+}
+
 export interface AdvanceSoakWeekResult {
   snapshot: CloudGameSnapshot;
   actionCount: number;
@@ -66,6 +90,7 @@ export interface AdvanceSoakWeekResult {
   completedMatches: number;
   newInjuryPlayerIds: PlayerId[];
   healedPlayerIds: PlayerId[];
+  specialAbilityFlow: SoakSpecialAbilityFlow;
   academicYearTransition: AdvanceWeekOutcome["academicYearTransition"];
 }
 
@@ -97,6 +122,7 @@ export interface SoakRunReport {
   };
   yearly: SoakSnapshotMetrics[];
   facilityMilestones: SoakFacilityMilestoneSummary;
+  specialAbilityFlow: SoakSpecialAbilityFlow;
   observations: SoakBalanceObservation[];
 }
 
@@ -168,6 +194,70 @@ export function createSoakSnapshot(seed: string): CloudGameSnapshot {
   };
 }
 
+const SPECIAL_ABILITY_KIND_BY_ID: ReadonlyMap<string, SpecialAbilityKind> =
+  new Map(
+    SPECIAL_ABILITIES.map((ability) => [ability.id, ability.kind] as const),
+  );
+
+function emptySpecialAbilityFlow(): SoakSpecialAbilityFlow {
+  return {
+    normalAcquired: 0,
+    rareAcquired: 0,
+    superRareAcquired: 0,
+    negativeAcquired: 0,
+    negativeRecovered: 0,
+  };
+}
+
+function addSpecialAbilityFlow(
+  target: SoakSpecialAbilityFlow,
+  delta: SoakSpecialAbilityFlow,
+): void {
+  target.normalAcquired += delta.normalAcquired;
+  target.rareAcquired += delta.rareAcquired;
+  target.superRareAcquired += delta.superRareAcquired;
+  target.negativeAcquired += delta.negativeAcquired;
+  target.negativeRecovered += delta.negativeRecovered;
+}
+
+export function observeSoakSpecialAbilityFlow(
+  before: CloudGameSnapshot,
+  after: CloudGameSnapshot,
+): SoakSpecialAbilityFlow {
+  const flow = emptySpecialAbilityFlow();
+  const beforeSchool = before.state.schools[before.state.userSchoolId]!;
+  const afterSchool = after.state.schools[after.state.userSchoolId]!;
+  const afterRoster = new Set(afterSchool.playerIds);
+
+  for (const playerId of beforeSchool.playerIds) {
+    if (!afterRoster.has(playerId)) continue;
+    const beforePlayer = before.state.players[playerId];
+    const afterPlayer = after.state.players[playerId];
+    if (!beforePlayer || !afterPlayer) continue;
+
+    const beforeIds = new Set(beforePlayer.specialAbilityIds ?? []);
+    const afterIds = new Set(afterPlayer.specialAbilityIds ?? []);
+
+    for (const abilityId of afterIds) {
+      if (beforeIds.has(abilityId)) continue;
+      const kind = SPECIAL_ABILITY_KIND_BY_ID.get(abilityId);
+      if (kind === "positive") flow.normalAcquired += 1;
+      else if (kind === "elite") flow.rareAcquired += 1;
+      else if (kind === "gold") flow.superRareAcquired += 1;
+      else if (kind === "negative") flow.negativeAcquired += 1;
+    }
+
+    for (const abilityId of beforeIds) {
+      if (afterIds.has(abilityId)) continue;
+      if (SPECIAL_ABILITY_KIND_BY_ID.get(abilityId) === "negative") {
+        flow.negativeRecovered += 1;
+      }
+    }
+  }
+
+  return flow;
+}
+
 function applyAction(
   snapshot: CloudGameSnapshot,
   action: GameAction,
@@ -235,6 +325,50 @@ function coachActionForCurrentYear(
   return null;
 }
 
+function schoolInvestmentAction(
+  snapshot: CloudGameSnapshot,
+): Extract<GameAction, { type: "school-investment" }> | null {
+  const yearOffset = snapshot.state.yearIndex - 1;
+  const candidates: readonly Extract<
+    GameAction,
+    { type: "school-investment" }
+  >[] = [
+    {
+      type: "school-investment",
+      category: "development",
+      option:
+        INVESTMENT_DEVELOPMENT_FOCUSES[
+          yearOffset % INVESTMENT_DEVELOPMENT_FOCUSES.length
+        ]!,
+    },
+    {
+      type: "school-investment",
+      category: "external-coach",
+      option:
+        INVESTMENT_EXTERNAL_SPECIALISTS[
+          yearOffset % INVESTMENT_EXTERNAL_SPECIALISTS.length
+        ]!,
+    },
+    { type: "school-investment", category: "camp", option: "elite" },
+    { type: "school-investment", category: "scouting", option: "national" },
+  ];
+
+  for (const candidate of candidates) {
+    const evaluation = evaluateSchoolInvestment(
+      snapshot.state,
+      candidate.category,
+      candidate.option,
+    );
+    if (
+      evaluation.allowed &&
+      evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
+    ) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function facilityAction(
   snapshot: CloudGameSnapshot,
 ): Extract<GameAction, { type: "facility-upgrade" }> | null {
@@ -294,6 +428,14 @@ export function applySoakManagementPolicy(
   const nextFacilityAction = facilityAction(current);
   if (nextFacilityAction) {
     current = applyAction(current, nextFacilityAction).snapshot;
+    actionCount += 1;
+    assertSoakInvariants(current, { actionCount });
+  }
+
+  for (let investmentIndex = 0; investmentIndex < 4; investmentIndex += 1) {
+    const nextInvestmentAction = schoolInvestmentAction(current);
+    if (!nextInvestmentAction) break;
+    current = applyAction(current, nextInvestmentAction).snapshot;
     actionCount += 1;
     assertSoakInvariants(current, { actionCount });
   }
@@ -413,6 +555,7 @@ export function advanceSoakUntilWeekChanges(
   let completedMatches = 0;
   const newInjuryPlayerIds = new Set<PlayerId>();
   const healedPlayerIds = new Set<PlayerId>();
+  const specialAbilityFlow = emptySpecialAbilityFlow();
   let academicYearTransition: AdvanceWeekOutcome["academicYearTransition"] =
     null;
 
@@ -425,6 +568,10 @@ export function advanceSoakUntilWeekChanges(
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
     const next = applied.snapshot;
+    addSpecialAbilityFlow(
+      specialAbilityFlow,
+      observeSoakSpecialAbilityFlow(current, next),
+    );
     actionCount += 1;
     assertSoakInvariants(next, { actionCount });
 
@@ -457,6 +604,7 @@ export function advanceSoakUntilWeekChanges(
     completedMatches,
     newInjuryPlayerIds: [...newInjuryPlayerIds].sort(),
     healedPlayerIds: [...healedPlayerIds].sort(),
+    specialAbilityFlow,
     academicYearTransition,
   };
 }
@@ -626,6 +774,8 @@ function formatRunSummary(report: SoakRunReport): string {
   const specialAbilityDetail = finalMetrics
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
+  const specialFlowDetail =
+    `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -637,6 +787,7 @@ function formatRunSummary(report: SoakRunReport): string {
     coachDetail,
     nationalDetail,
     specialAbilityDetail,
+    specialFlowDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -661,6 +812,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   let tracker = createYearTracker(snapshot);
   let completedWeeks = 0;
   let actions = 0;
+  const specialAbilityFlow = emptySpecialAbilityFlow();
 
   assertSoakInvariants(snapshot, { actionCount: actions });
 
@@ -681,6 +833,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     });
     tracker.newInjuries += advanced.newInjuryPlayerIds.length;
     tracker.healedInjuries += advanced.healedPlayerIds.length;
+    addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
     actions += advanced.actionCount;
     completedWeeks += 1;
     snapshot = advanced.snapshot;
@@ -730,6 +883,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     },
     yearly,
     facilityMilestones,
+    specialAbilityFlow,
     observations,
   };
 
