@@ -102,8 +102,7 @@ function buildOpponentKeyPlayers(
     .sort(
       (left, right) =>
         calculatePlayerDisplayPower(right) -
-          calculatePlayerDisplayPower(left) ||
-        left.id.localeCompare(right.id),
+          calculatePlayerDisplayPower(left) || left.id.localeCompare(right.id),
     )
     .slice(0, 3)
     .map((player) => {
