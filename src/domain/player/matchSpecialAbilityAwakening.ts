@@ -88,9 +88,9 @@ function awakeningChance(
 ): number {
   if (rarity === "super-rare") {
     if (context.kind !== "official" || context.level !== "national") return 0;
-    if (context.round === "final") return 18;
-    if (context.round === "semifinal") return 12;
-    return 8;
+    if (context.round === "final") return 25;
+    if (context.round === "semifinal") return 18;
+    return 12;
   }
 
   if (context.kind === "practice") return 5;
