@@ -150,11 +150,11 @@ const concernLabels: Record<PlayerConcernCode, string> = {
   "team-slump": "チーム不調",
 };
 
-const specialAbilityKindLabels: Record<SpecialAbilityKind, string> = {
-  positive: "Normal",
-  negative: "Negative",
-  elite: "Rare",
-  gold: "Super Rare",
+const specialAbilityKindAriaLabels: Record<SpecialAbilityKind, string> = {
+  positive: "プラス特殊能力",
+  negative: "マイナス特殊能力",
+  elite: "レア特殊能力",
+  gold: "金特殊能力",
 };
 
 const specialAbilityKindShortLabels: Record<SpecialAbilityKind, string> = {
@@ -949,13 +949,13 @@ export function PlayerHubScreen({
                 <div className="player-detail__special-ability-list">
                   {specialAbilities.map((ability) => (
                     <article
+                      aria-label={`${ability.name} ${specialAbilityKindAriaLabels[ability.kind]}`}
                       className="player-special-ability"
                       data-kind={ability.kind}
                       key={ability.id}
                     >
                       <div className="player-special-ability__heading">
                         <strong>{ability.name}</strong>
-                        <span>{specialAbilityKindLabels[ability.kind]}</span>
                       </div>
                       <small>{ability.description}</small>
                     </article>
