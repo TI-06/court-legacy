@@ -118,7 +118,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     requiredFacilities: { gym: 50, analysisRoom: 50 },
     minimumReputationPoints: 850,
     minimumNationalTitles: 1,
-    effectReady: false,
+    effectReady: true,
   },
 ] as const satisfies readonly SchoolSpecialProjectDefinition[];
 
