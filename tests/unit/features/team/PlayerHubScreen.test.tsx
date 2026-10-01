@@ -274,7 +274,7 @@ describe("PlayerHubScreen", () => {
     expect(within(row).getByText("S転向4週")).toBeVisible();
   });
 
-  it("shows rarity kinds and hides legacy tip progress", () => {
+  it("shows color-coded special ability badges without rarity text or legacy tip progress", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
     const player = state.players[playerId]!;
@@ -321,10 +321,18 @@ describe("PlayerHubScreen", () => {
     const gold = within(abilities)
       .getByText("コートの頭脳")
       .closest("article")!;
-    expect(within(positive).getByText("Normal")).toBeVisible();
-    expect(within(negative).getByText("Negative")).toBeVisible();
-    expect(within(elite).getByText("Rare")).toBeVisible();
-    expect(within(gold).getByText("Super Rare")).toBeVisible();
+    expect(positive).toHaveAttribute("data-kind", "positive");
+    expect(negative).toHaveAttribute("data-kind", "negative");
+    expect(elite).toHaveAttribute("data-kind", "elite");
+    expect(gold).toHaveAttribute("data-kind", "gold");
+    expect(positive).toHaveAccessibleName("コース打ち○ プラス特殊能力");
+    expect(negative).toHaveAccessibleName("サーブ不安定 マイナス特殊能力");
+    expect(elite).toHaveAccessibleName("ゲームメイカー レア特殊能力");
+    expect(gold).toHaveAccessibleName("コートの頭脳 金特殊能力");
+    expect(within(abilities).queryByText("Normal")).toBeNull();
+    expect(within(abilities).queryByText("Negative")).toBeNull();
+    expect(within(abilities).queryByText("Rare")).toBeNull();
+    expect(within(abilities).queryByText("Super Rare")).toBeNull();
     expect(screen.queryByRole("region", { name: "特殊能力のコツ" })).toBeNull();
     expect(screen.queryByText(/Lv\.3で習得/)).toBeNull();
   });
