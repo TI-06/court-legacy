@@ -266,6 +266,129 @@ describe("resolveWeeklyTraining", () => {
     );
   });
 
+  it("applies OB development only to first- and second-year regular weekly training", () => {
+    const state = createTrainingState();
+    const school = state.schools[state.userSchoolId]!;
+    const firstYearId = school.playerIds[0]!;
+    const thirdYearId = school.playerIds[1]!;
+    state.players[firstYearId] = {
+      ...state.players[firstYearId]!,
+      grade: 1,
+    };
+    state.players[thirdYearId] = {
+      ...state.players[thirdYearId]!,
+      grade: 3,
+    };
+    state.schoolManagement.specialProjects = {
+      yearIndex: state.yearIndex,
+      purchasedProjectIds: ["alumni-development"],
+    };
+
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan: createPlan(school.playerIds),
+      data,
+      random: new FixedRandom(100),
+    });
+    const firstYearLog = resolution.result.playerLogs.find(
+      (log) => log.playerId === firstYearId,
+    )!;
+    const thirdYearLog = resolution.result.playerLogs.find(
+      (log) => log.playerId === thirdYearId,
+    )!;
+
+    expect(firstYearLog.modifiers).toContainEqual({
+      code: "special-project-alumni-development",
+      label: "OB育成支援",
+      percent: 106,
+    });
+    expect(
+      thirdYearLog.modifiers.some(
+        (modifier) =>
+          modifier.code === "special-project-alumni-development",
+      ),
+    ).toBe(false);
+  });
+
+  it("raises only the worst academic growth restriction to 75 percent", () => {
+    const state = createTrainingState();
+    const school = state.schools[state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    state.players[playerId] = {
+      ...state.players[playerId]!,
+      academic: 20,
+    };
+    state.schoolManagement.specialProjects = {
+      yearIndex: state.yearIndex,
+      purchasedProjectIds: ["academic-support"],
+    };
+
+    const resolution = resolveWeeklyTraining({
+      state,
+      schoolId: state.userSchoolId,
+      plan: createPlan(school.playerIds),
+      data,
+      random: new FixedRandom(100),
+    });
+    const log = resolution.result.playerLogs.find(
+      (entry) => entry.playerId === playerId,
+    )!;
+
+    expect(log.academicRestricted).toBe(true);
+    expect(log.modifiers).toContainEqual({
+      code: "academic",
+      label: "学業参加制限",
+      percent: 75,
+    });
+  });
+
+  it("adds a small condition bonus to explicit rest with medical support", () => {
+    const baseline = createTrainingState();
+    const supported = structuredClone(baseline);
+    const playerId = baseline.schools[baseline.userSchoolId]!.playerIds[0]!;
+    baseline.players[playerId] = {
+      ...baseline.players[playerId]!,
+      condition: 40,
+    };
+    supported.players[playerId] = structuredClone(baseline.players[playerId]!);
+    supported.schoolManagement.specialProjects = {
+      yearIndex: supported.yearIndex,
+      purchasedProjectIds: ["medical-support"],
+    };
+
+    const baselinePlan = createPlan(
+      baseline.schools[baseline.userSchoolId]!.playerIds,
+    );
+    baselinePlan.individualAssignments = baselinePlan.individualAssignments.map(
+      (assignment) =>
+        assignment.playerId === playerId
+          ? { ...assignment, instructionId: "instruction.rest" }
+          : assignment,
+    );
+    const supportedPlan = structuredClone(baselinePlan);
+
+    const normal = resolveWeeklyTraining({
+      state: baseline,
+      schoolId: baseline.userSchoolId,
+      plan: baselinePlan,
+      data,
+      random: new FixedRandom(100),
+    });
+    const withMedical = resolveWeeklyTraining({
+      state: supported,
+      schoolId: supported.userSchoolId,
+      plan: supportedPlan,
+      data,
+      random: new FixedRandom(100),
+    });
+
+    expect(
+      withMedical.state.players[playerId]!.condition -
+        normal.state.players[playerId]!.condition,
+    ).toBe(5);
+  });
+
   it("creates an injury from high training risk through the injected random source", () => {
     const state = createTrainingState();
     const school = state.schools[state.userSchoolId]!;
