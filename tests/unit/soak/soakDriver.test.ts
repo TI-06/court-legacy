@@ -83,7 +83,7 @@ describe("Phase18 soak production action driver", () => {
     );
   });
 
-  it("uses maxed facilities to exercise all four annual investment categories without crossing the reserve", async () => {
+  it("uses all four annual investments before routing excess funds into Phase51 projects", async () => {
     const { createSoakSnapshot, applySoakManagementPolicy } =
       await loadSubject();
     const snapshot = createSoakSnapshot("phase50-investment-policy");
@@ -98,7 +98,7 @@ describe("Phase18 soak production action driver", () => {
     const first = applySoakManagementPolicy(snapshot);
     const plan = first.snapshot.state.schoolManagement.investmentPlan;
 
-    expect(first.actionCount).toBe(5);
+    expect(first.actionCount).toBe(6);
     expect(plan).toMatchObject({
       yearIndex: snapshot.state.yearIndex,
       developmentFocus: "attack",
@@ -107,11 +107,48 @@ describe("Phase18 soak production action driver", () => {
       scoutingTier: "national",
     });
     expect(
+      first.snapshot.state.schoolManagement.specialProjects?.purchasedProjectIds,
+    ).toEqual(["national-data-bank"]);
+    expect(
       first.snapshot.state.schools[first.snapshot.state.userSchoolId]!.funds,
     ).toBeGreaterThanOrEqual(300);
 
     const second = applySoakManagementPolicy(first.snapshot);
     expect(second.actionCount).toBe(0);
+  });
+
+  it("exercises the Phase51 yearly cap deterministically when endgame funds are available", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase51-special-project-policy");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 10000;
+    school.reputationPoints = 900;
+    school.reputation = "elite";
+    school.history.nationalTitles = 1;
+    for (const facility of Object.keys(school.facilities) as Array<
+      keyof typeof school.facilities
+    >) {
+      school.facilities[facility] = 50;
+    }
+
+    const result = applySoakManagementPolicy(snapshot);
+
+    expect(
+      result.snapshot.state.schoolManagement.specialProjects
+        ?.purchasedProjectIds,
+    ).toEqual(["national-data-bank", "medical-support"]);
+    expect(
+      result.snapshot.state.schools[result.snapshot.state.userSchoolId]!.funds,
+    ).toBeGreaterThanOrEqual(300);
+
+    const metrics = captureSoakSnapshotMetrics(result.snapshot, {
+      specialProjectIds: ["national-data-bank", "medical-support"],
+    });
+    expect(metrics.specialProjectCounts).toEqual({
+      "medical-support": 1,
+      "national-data-bank": 1,
+    });
   });
 
   it("keeps the management reserve instead of spending the school below 300", async () => {
