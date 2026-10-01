@@ -57,14 +57,9 @@ describe("Phase51 school special projects", () => {
   it("debits funds once and stores only the current academic year's selected ids", () => {
     const state = createReadyState();
 
-    const purchased = purchaseSchoolSpecialProject(
-      state,
-      "national-data-bank",
-    );
+    const purchased = purchaseSchoolSpecialProject(state, "national-data-bank");
 
-    expect(
-      purchased.schools[purchased.userSchoolId]!.funds,
-    ).toBe(4100);
+    expect(purchased.schools[purchased.userSchoolId]!.funds).toBe(4100);
     expect(activeSchoolSpecialProjects(purchased)).toEqual({
       yearIndex: state.yearIndex,
       purchasedProjectIds: ["national-data-bank"],
@@ -100,9 +95,9 @@ describe("Phase51 school special projects", () => {
     );
     expect(thirdEvaluation.allowed).toBe(false);
     expect(thirdEvaluation.reason).toBe("yearly-limit");
-    expect(
-      purchaseSchoolSpecialProject(second, "academic-support"),
-    ).toBe(second);
+    expect(purchaseSchoolSpecialProject(second, "academic-support")).toBe(
+      second,
+    );
   });
 
   it("treats a previous-year project state as inactive instead of growing history", () => {
