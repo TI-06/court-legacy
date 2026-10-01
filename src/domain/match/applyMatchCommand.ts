@@ -195,10 +195,7 @@ function validateEncouragementTarget(
   }
 }
 
-function opponentSchoolId(
-  match: MatchState,
-  schoolId: SchoolId,
-): SchoolId {
+function opponentSchoolId(match: MatchState, schoolId: SchoolId): SchoolId {
   if (schoolId === match.homeSchoolId) return match.awaySchoolId;
   if (schoolId === match.awaySchoolId) return match.homeSchoolId;
   return fail(
