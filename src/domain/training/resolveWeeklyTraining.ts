@@ -209,7 +209,6 @@ function createInjury(risk: number, random: RandomSource): PlayerInjury {
 
 interface TrainingProjectEffects {
   academicMinimumPercent: number;
-  injuryRiskPercent: number;
 }
 
 function applyActivity(
@@ -223,7 +222,6 @@ function applyActivity(
   balanced = false,
   projectEffects: TrainingProjectEffects = {
     academicMinimumPercent: 50,
-    injuryRiskPercent: 100,
   },
 ): Player {
   if (player.injury) {
@@ -263,7 +261,7 @@ function applyActivity(
   const ability = applyGrowth(player, targets, amount);
   const conditionChange = getWeeklyConditionDrift(random);
   const trust = trustChange(activity.trustGrowth, personality);
-  const adjustedRisk = adjustSpecialAbilityInjuryRisk(
+  const risk = adjustSpecialAbilityInjuryRisk(
     player,
     calculatePhase12InjuryRisk({
       baseRisk: activity.injuryRisk,
@@ -271,10 +269,6 @@ function applyActivity(
       injuryResistance: player.injuryResistance ?? 50,
       recoveryRoomLevel: school.facilities.recoveryRoom,
     }),
-  );
-  const risk = Math.max(
-    0,
-    Math.round((adjustedRisk * projectEffects.injuryRiskPercent) / 100),
   );
   const injury =
     risk > 0 && random.int(1, 100) <= risk ? createInjury(risk, random) : null;
@@ -436,7 +430,6 @@ export function resolveWeeklyTraining(
     hasActiveSchoolSpecialProject(input.state, "academic-support");
   const trainingProjectEffects: TrainingProjectEffects = {
     academicMinimumPercent: academicSupportActive ? 75 : 50,
-    injuryRiskPercent: medicalSupportActive ? 70 : 100,
   };
   const teamMenuGrowthModifiers: AdditionalGrowthModifier[] =
     validated.teamMenu.id === "training.coordination"
