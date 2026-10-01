@@ -222,4 +222,81 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("runtime");
     expect(serialized).not.toContain("abilities");
   });
+
+  it("accepts a public Phase52 target id without exposing defender private player data", async () => {
+    const challenger = challengerSnapshot();
+    const defender = defenderSnapshot();
+    const started = startAtOpponentRun();
+    const target = started.segment.opponentTargets.find(
+      (candidate) => candidate.role === "court",
+    );
+    if (!target) throw new Error("public target fixture missing");
+
+    const publicResponse = {
+      status: "in-progress" as const,
+      operationId,
+      revision: challenger.revision,
+      seasonId: "2026-09",
+      opponent: {
+        snapshotId: defender.id,
+        schoolName: defender.school.name,
+        schoolShortName: defender.school.shortName,
+      },
+      segment: started.segment,
+    };
+    const persisted: PersistedPvpMatchSession = {
+      challengerUserId,
+      operationId,
+      defenderSnapshotId: defender.id,
+      challengerSourceRevision: challenger.revision,
+      currentCursor: started.session.match.randomCursor,
+      privateSession: started.session,
+      publicResponse,
+      finalResponse: null,
+      createdAt: "2026-09-10T10:20:00.000Z",
+      updatedAt: "2026-09-10T10:20:00.000Z",
+    };
+    const store = storeForSession(persisted, defender);
+    const handler = createPvpChallengeCommandHandler({ pvpStore: store });
+
+    const response = await handler(
+      new Request("https://court-legacy.test/api/pvp/challenge/command", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          operationId,
+          commandId: "command-target-001",
+          command: {
+            type: "target-serve-receiver",
+            playerId: target.playerId,
+          },
+        }),
+      }),
+      { id: challengerUserId },
+    );
+
+    expect(response.status).toBe(200);
+    expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
+    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
+      .calls[0]![0];
+    expect(saveInput.command).toEqual({
+      type: "target-serve-receiver",
+      playerId: target.playerId,
+    });
+
+    const publicTargets = saveInput.publicResponse.segment.opponentTargets;
+    expect(publicTargets.length).toBeGreaterThan(0);
+    expect(publicTargets).toContainEqual(target);
+    expect(
+      Object.keys(publicTargets[0]!).sort(),
+    ).toEqual(["displayName", "playerId", "position", "role"]);
+
+    const serialized = JSON.stringify(saveInput.publicResponse);
+    expect(serialized).not.toContain("abilities");
+    expect(serialized).not.toContain("hiddenTraitIds");
+    expect(serialized).not.toContain("traitIds");
+    expect(serialized).not.toContain("condition");
+    expect(serialized).not.toContain("fatigue");
+    expect(serialized).not.toContain("potential");
+  });
 });
