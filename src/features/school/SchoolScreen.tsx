@@ -25,6 +25,16 @@ import {
   type SchoolInvestmentCategory,
   type SchoolInvestmentOption,
 } from "../../domain/school/schoolInvestment";
+import {
+  activeSchoolSpecialProjects,
+  evaluateSchoolSpecialProject,
+  getSchoolSpecialProjectDefinition,
+  schoolSpecialProjectRemainingSlots,
+  SCHOOL_SPECIAL_PROJECT_DEFINITIONS,
+  SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT,
+  type SchoolSpecialProjectDefinition,
+  type SchoolSpecialProjectId,
+} from "../../domain/school/schoolSpecialProjects";
 import { BottomSheet } from "../../ui/BottomSheet";
 import "../../ui/ui.css";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
@@ -57,6 +67,7 @@ interface SchoolScreenProps {
     category: SchoolInvestmentCategory,
     option: SchoolInvestmentOption,
   ) => void;
+  onPurchaseSpecialProject?: (projectId: SchoolSpecialProjectId) => void;
 }
 
 const reputationLabels: Record<SchoolReputation, string> = {
@@ -126,6 +137,26 @@ function compactFacilityName(name: string): string {
   return name;
 }
 
+function specialProjectRequirementLabel(
+  definition: SchoolSpecialProjectDefinition,
+): string {
+  const facilities = Object.entries(definition.requiredFacilities).map(
+    ([key, level]) => {
+      const facility = FACILITY_DEFINITIONS.find(
+        (definition) => definition.key === key,
+      );
+      return `${compactFacilityName(facility?.name ?? key)} Lv.${level}`;
+    },
+  );
+  if (definition.minimumReputationPoints !== undefined) {
+    facilities.push(`評判 ${definition.minimumReputationPoints}以上`);
+  }
+  if (definition.minimumNationalTitles !== undefined) {
+    facilities.push(`全国優勝 ${definition.minimumNationalTitles}回以上`);
+  }
+  return facilities.join("・");
+}
+
 function facilityActionLabel(
   name: string,
   reason: ReturnType<typeof evaluateFacilityUpgrade>["reason"],
@@ -142,6 +173,7 @@ export function SchoolScreen({
   onContractAssistantCoach,
   onOpenScouting,
   onPurchaseInvestment,
+  onPurchaseSpecialProject,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
   const [managementView, setManagementView] = useState<SchoolManagementView>(
@@ -162,6 +194,8 @@ export function SchoolScreen({
   >({});
   const [selectedCoachRank, setSelectedCoachRank] =
     useState<AssistantCoachRank | null>(null);
+  const [selectedSpecialProjectId, setSelectedSpecialProjectId] =
+    useState<SchoolSpecialProjectId | null>(null);
   const school = state.schools[state.userSchoolId];
 
   const recentMatches = useMemo(() => {
@@ -242,6 +276,15 @@ export function SchoolScreen({
     : null;
   const seasonProgress = buildSeasonProgressPresentation(state);
   const investmentPlan = activeSchoolInvestmentPlan(state);
+  const specialProjectState = activeSchoolSpecialProjects(state);
+  const specialProjectRemainingSlots =
+    schoolSpecialProjectRemainingSlots(state);
+  const selectedSpecialProject = selectedSpecialProjectId
+    ? getSchoolSpecialProjectDefinition(selectedSpecialProjectId)
+    : null;
+  const selectedSpecialProjectEvaluation = selectedSpecialProjectId
+    ? evaluateSchoolSpecialProject(state, selectedSpecialProjectId)
+    : null;
   const facilityOverview = FACILITY_DEFINITIONS.map((definition) => ({
     definition,
     evaluation: evaluateFacilityUpgrade(state, school.id, definition.key),
@@ -387,6 +430,19 @@ export function SchoolScreen({
               type="button"
             >
               強化予算
+            </button>
+            <button
+              aria-selected={managementView === "special-projects"}
+              className={
+                managementView === "special-projects"
+                  ? "school-management-tab--active"
+                  : undefined
+              }
+              onClick={() => setManagementView("special-projects")}
+              role="tab"
+              type="button"
+            >
+              特別事業
             </button>
           </div>
 
@@ -723,6 +779,94 @@ export function SchoolScreen({
               })}
             </div>
           </section>
+
+          <section
+            aria-labelledby="special-project-heading"
+            className="school-management-section"
+            hidden={managementView !== "special-projects"}
+          >
+            <div className="school-special-project-heading">
+              <div>
+                <h4 id="special-project-heading">特別事業</h4>
+                <small>高額な年間契約・特別活動。年度ごとに2件まで</small>
+              </div>
+              <span>
+                年度利用{" "}
+                {SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT -
+                  specialProjectRemainingSlots}
+                /{SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT}
+              </span>
+            </div>
+
+            {(["annual-contract", "special-activity"] as const).map((kind) => (
+              <section
+                className="school-special-project-group"
+                key={kind}
+                aria-label={kind === "annual-contract" ? "年間契約" : "特別活動"}
+              >
+                <div className="school-special-project-group__heading">
+                  <strong>
+                    {kind === "annual-contract" ? "年間契約" : "特別活動"}
+                  </strong>
+                  <span>資金 {school.funds}</span>
+                </div>
+                <div className="school-special-project-grid">
+                  {SCHOOL_SPECIAL_PROJECT_DEFINITIONS.filter(
+                    (definition) => definition.kind === kind,
+                  ).map((definition) => {
+                    const evaluation = evaluateSchoolSpecialProject(
+                      state,
+                      definition.id,
+                    );
+                    const purchased =
+                      specialProjectState?.purchasedProjectIds.includes(
+                        definition.id,
+                      ) ?? false;
+                    const status = purchased
+                      ? "今年度実施済み"
+                      : !definition.effectReady
+                        ? "準備中"
+                        : evaluation.reason === "yearly-limit"
+                          ? "年度上限"
+                          : evaluation.reason === "requirements-not-met"
+                            ? "条件未達"
+                            : evaluation.reason === "insufficient-funds"
+                              ? `あと${Math.max(
+                                  0,
+                                  definition.cost - school.funds,
+                                )}必要`
+                              : "利用可能";
+                    return (
+                      <button
+                        aria-label={`${definition.name}の詳細`}
+                        className="school-special-project-card"
+                        data-status={
+                          purchased
+                            ? "completed"
+                            : definition.effectReady
+                              ? evaluation.reason
+                              : "preparing"
+                        }
+                        key={definition.id}
+                        onClick={() => setSelectedSpecialProjectId(definition.id)}
+                        type="button"
+                      >
+                        <span className="school-special-project-card__heading">
+                          <strong>{definition.name}</strong>
+                          <b>{definition.cost}</b>
+                        </span>
+                        <small>{definition.summary}</small>
+                        <span className="school-special-project-card__footer">
+                          <em>{status}</em>
+                          <span aria-hidden="true">詳細 ›</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </section>
         </section>
       ) : null}
 
@@ -963,6 +1107,74 @@ export function SchoolScreen({
             />
           ))}
         </div>
+      </BottomSheet>
+
+      <BottomSheet
+        className="ui-bottom-sheet--game-choice"
+        description={selectedSpecialProject?.summary ?? ""}
+        onClose={() => setSelectedSpecialProjectId(null)}
+        open={Boolean(
+          selectedSpecialProject && selectedSpecialProjectEvaluation,
+        )}
+        title={selectedSpecialProject?.name ?? "特別事業"}
+      >
+        {selectedSpecialProject && selectedSpecialProjectEvaluation ? (
+          <div className="school-special-project-sheet">
+            <dl>
+              <div>
+                <dt>費用</dt>
+                <dd>{selectedSpecialProject.cost}</dd>
+              </div>
+              <div>
+                <dt>実施後の資金</dt>
+                <dd>
+                  {Math.max(
+                    0,
+                    selectedSpecialProjectEvaluation.fundsAfter,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>年度残り枠</dt>
+                <dd>
+                  {specialProjectRemainingSlots}/
+                  {SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT}
+                </dd>
+              </div>
+              <div>
+                <dt>解禁条件</dt>
+                <dd>{specialProjectRequirementLabel(selectedSpecialProject)}</dd>
+              </div>
+            </dl>
+            <button
+              disabled={
+                !selectedSpecialProject.effectReady ||
+                !selectedSpecialProjectEvaluation.allowed ||
+                !onPurchaseSpecialProject
+              }
+              onClick={() => {
+                onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                setSelectedSpecialProjectId(null);
+              }}
+              type="button"
+            >
+              {!selectedSpecialProject.effectReady
+                ? "効果実装後に利用可能"
+                : selectedSpecialProjectEvaluation.reason ===
+                    "already-purchased"
+                  ? "今年度実施済み"
+                  : selectedSpecialProjectEvaluation.reason === "yearly-limit"
+                    ? "今年度の上限に到達"
+                    : selectedSpecialProjectEvaluation.reason ===
+                        "requirements-not-met"
+                      ? "解禁条件を満たしていません"
+                      : selectedSpecialProjectEvaluation.reason ===
+                          "insufficient-funds"
+                        ? "資金が不足しています"
+                        : `${selectedSpecialProject.cost}を使って実施`}
+            </button>
+          </div>
+        ) : null}
       </BottomSheet>
 
       <BottomSheet
