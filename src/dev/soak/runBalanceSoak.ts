@@ -1,4 +1,6 @@
 import { createInitialGame } from "../../app/createInitialGame";
+import { gameDataBootstrap } from "../../data/gameData";
+import type { EventChoiceDefinition } from "../../domain/validation/gameDataSchema";
 import type { AdvanceWeekOutcome } from "../../domain/calendar/advanceWeekOutcome";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { evaluateAssistantCoachContract } from "../../domain/school/assistantCoach";
@@ -314,16 +316,59 @@ function actionGuardError(
   );
 }
 
+function requiredFundsForEventChoice(choice: EventChoiceDefinition): number {
+  let runningFundsDelta = 0;
+  let minimumFundsDelta = 0;
+  for (const effect of choice.effects) {
+    if (effect.type !== "funds-change") continue;
+    runningFundsDelta += effect.amount;
+    minimumFundsDelta = Math.min(minimumFundsDelta, runningFundsDelta);
+  }
+  return Math.abs(minimumFundsDelta);
+}
+
+function soakEventChoiceId(snapshot: CloudGameSnapshot): string {
+  const pendingEvent = snapshot.state.pendingEvent;
+  if (!pendingEvent) {
+    throw new Error("soak event choice requested without a pending event");
+  }
+  if (!gameDataBootstrap.ok) {
+    throw new Error(gameDataBootstrap.message);
+  }
+
+  const event = gameDataBootstrap.data.events.get(pendingEvent.eventId);
+  if (!event) {
+    throw new Error(
+      `soak event definition missing: seed=${snapshot.state.seed} date=${snapshot.state.date} event=${pendingEvent.eventId}`,
+    );
+  }
+
+  const pendingChoiceIds = new Set(pendingEvent.choiceIds);
+  const choices = event.choices.filter((choice) =>
+    pendingChoiceIds.has(choice.id),
+  );
+  if (choices.length === 0) {
+    throw new Error(
+      `soak pending event has no choices: seed=${snapshot.state.seed} date=${snapshot.state.date} event=${pendingEvent.eventId}`,
+    );
+  }
+
+  const availableFunds = userFunds(snapshot);
+  const affordable = choices.find(
+    (choice) => requiredFundsForEventChoice(choice) <= availableFunds,
+  );
+  if (affordable) return affordable.id;
+
+  return [...choices].sort(
+    (left, right) =>
+      requiredFundsForEventChoice(left) - requiredFundsForEventChoice(right),
+  )[0]!.id;
+}
+
 function nextAction(snapshot: CloudGameSnapshot): GameAction {
   const pendingEvent = snapshot.state.pendingEvent;
   if (pendingEvent) {
-    const choiceId = pendingEvent.choiceIds[0];
-    if (!choiceId) {
-      throw new Error(
-        `soak pending event has no choices: seed=${snapshot.state.seed} date=${snapshot.state.date} event=${pendingEvent.eventId}`,
-      );
-    }
-    return { type: "event-choice", choiceId };
+    return { type: "event-choice", choiceId: soakEventChoiceId(snapshot) };
   }
 
   const activeMatch = snapshot.state.activeMatch;
