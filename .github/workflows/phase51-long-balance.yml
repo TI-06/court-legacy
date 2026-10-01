@@ -1,0 +1,31 @@
+name: Phase51 Long Balance
+
+on:
+  push:
+    branches:
+      - test/phase51-special-project-balance
+    paths:
+      - ".github/workflows/phase51-long-balance.yml"
+      - "src/dev/soak/**"
+      - "tests/unit/soak/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Focused soak tests
+        run: npx vitest run tests/unit/soak/soakDriver.test.ts
+      - name: 10-season Phase51 balance
+        run: npm run soak:balance -- --seed phase51-balance-a --seed phase51-balance-b
+      - name: 30-season Phase51 balance
+        run: npm run soak:long -- --seed phase51-long-a --seed phase51-long-b --seed phase51-long-c --seed phase51-long-d
