@@ -1,4 +1,5 @@
 import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
+import { captureSoakSnapshotMetrics } from "../../../src/dev/soak/soakMetrics";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
 const subjectPath = "../../../src/dev/soak/runBalanceSoak";
@@ -18,6 +19,9 @@ interface SoakDriverSubject {
     resolvedEvents: number;
     completedMatches: number;
   };
+  buildBalanceObservations(
+    yearly: readonly ReturnType<typeof captureSoakSnapshotMetrics>[],
+  ): Array<{ code: string; message: string; yearIndex: number }>;
 }
 
 async function loadSubject(): Promise<SoakDriverSubject> {
@@ -79,6 +83,38 @@ describe("Phase18 soak production action driver", () => {
     expect(result.actionCount).toBe(0);
     expect(resultSchool.funds).toBe(300);
     expect(resultState.schoolManagement.assistantCoach).toBeNull();
+  });
+
+  it("compares user strength with national contenders instead of the full CPU field", async () => {
+    const { createSoakSnapshot, buildBalanceObservations } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-national-strength");
+    const metrics = captureSoakSnapshotMetrics(snapshot, {
+      nationalParticipantStrengthValues: [88, 90, 92, 94],
+    });
+
+    const normal = buildBalanceObservations([
+      {
+        ...metrics,
+        userStrength: 94,
+        cpuStrength: { ...metrics.cpuStrength, p90: 60 },
+      },
+    ]);
+    expect(normal.some((observation) => observation.code.includes("strength"))).toBe(false);
+
+    const excessive = buildBalanceObservations([
+      {
+        ...metrics,
+        userStrength: 105,
+        cpuStrength: { ...metrics.cpuStrength, p90: 60 },
+      },
+    ]);
+    expect(excessive).toEqual([
+      expect.objectContaining({
+        code: "user_strength_above_national_p90",
+        yearIndex: metrics.yearIndex,
+      }),
+    ]);
   });
 
   it("advances a normal game week through the production game action boundary", async () => {
