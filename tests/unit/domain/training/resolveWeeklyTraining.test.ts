@@ -305,8 +305,7 @@ describe("resolveWeeklyTraining", () => {
     });
     expect(
       thirdYearLog.modifiers.some(
-        (modifier) =>
-          modifier.code === "special-project-alumni-development",
+        (modifier) => modifier.code === "special-project-alumni-development",
       ),
     ).toBe(false);
   });
