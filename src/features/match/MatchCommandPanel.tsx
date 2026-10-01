@@ -266,7 +266,9 @@ export function MatchCommandPanel({
     : null;
   const serveTargetPlayers =
     opponentLiberoPlayer &&
-    !opponentCourtPlayers.some((player) => player.id === opponentLiberoPlayer.id)
+    !opponentCourtPlayers.some(
+      (player) => player.id === opponentLiberoPlayer.id,
+    )
       ? [...opponentCourtPlayers, opponentLiberoPlayer]
       : opponentCourtPlayers;
   const blockTargetPlayers = opponentCourtPlayers.filter((player) =>
