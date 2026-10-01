@@ -308,7 +308,7 @@ export function selectNextEvent(
 
   if (!options.requiredTag) {
     const awakeningPriority = [
-      { rarity: "super-rare" as const, chance: 3 },
+      { rarity: "super-rare" as const, chance: 50 },
       { rarity: "rare" as const, chance: 40 },
     ];
     for (const priority of awakeningPriority) {
