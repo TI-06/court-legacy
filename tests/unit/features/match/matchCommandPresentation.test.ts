@@ -204,6 +204,95 @@ describe("Phase16 match command presentation", () => {
     ).toEqual([]);
   });
 
+  it("presents Phase52 target commands as bounded live effects and factual impact rows", () => {
+    const { state, match } = fixture();
+    const runtime = match.runtime;
+    if (!runtime) throw new Error("runtime fixture missing");
+    const opponentSelection =
+      match.homeSchoolId === state.userSchoolId
+        ? match.awaySelection
+        : match.homeSelection;
+    const serveTargetId = opponentSelection.rotation[0]!.playerId;
+    const blockTargetId = opponentSelection.rotation
+      .map((assignment) => assignment.playerId)
+      .find((playerId) => {
+        const position = state.players[playerId]?.preferredPosition;
+        return position === "OH" || position === "MB" || position === "OP";
+      });
+    if (!blockTargetId) throw new Error("block target fixture missing");
+    const boundary = runtime.commandHistory[0]!.eventSequence;
+
+    runtime.commandHistory.push(
+      {
+        sequence: 5,
+        schoolId: state.userSchoolId,
+        setNumber: 1,
+        homeScore: 10,
+        awayScore: 12,
+        decisionReason: "mid-set",
+        command: {
+          type: "target-serve-receiver",
+          playerId: serveTargetId,
+        },
+        eventSequence: boundary + 2,
+      },
+      {
+        sequence: 6,
+        schoolId: state.userSchoolId,
+        setNumber: 1,
+        homeScore: 10,
+        awayScore: 12,
+        decisionReason: "mid-set",
+        command: {
+          type: "mark-opponent-attacker",
+          playerId: blockTargetId,
+        },
+        eventSequence: boundary + 2,
+      },
+    );
+
+    const live = buildLiveCoachEffectRows(
+      state,
+      match,
+      state.userSchoolId,
+      boundary + 4,
+    );
+    expect(live).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "target-serve-receiver",
+          label: `${playerName(state, serveTargetId)}をサーブで狙う`,
+          ralliesRemaining: 3,
+        }),
+        expect.objectContaining({
+          kind: "mark-opponent-attacker",
+          label: `${playerName(state, blockTargetId)}をブロック警戒`,
+          ralliesRemaining: 3,
+        }),
+      ]),
+    );
+
+    const impact = buildMatchCommandImpactRows(state, match);
+    expect(
+      impact.find((row) =>
+        row.commandLabel.includes(playerName(state, serveTargetId)),
+      ),
+    ).toMatchObject({
+      observedRallies: 5,
+      schoolPoints: 3,
+      opponentPoints: 2,
+    });
+    expect(
+      impact.find((row) =>
+        row.commandLabel.includes(playerName(state, blockTargetId)),
+      ),
+    ).toMatchObject({
+      observedRallies: 5,
+      schoolPoints: 3,
+      opponentPoints: 2,
+    });
+  });
+
   it("never invents causal wording for observed post-command results", () => {
     const { state, match } = fixture();
     const text = JSON.stringify(buildMatchCommandImpactRows(state, match));

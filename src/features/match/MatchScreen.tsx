@@ -370,7 +370,7 @@ function MatchScreenContent({
   const decisionDetail =
     decisionReason === "set-break"
       ? "戦術変更・選手交代で次セットを整えられます"
-      : "戦術変更・選手交代・タイムアウト・選手指示を選べます";
+      : "戦術変更・交代・選手指示・相手ターゲットを選べます";
 
   const submitCoachCommand = async (command: MatchCommand) => {
     if (!onCommand) return;
