@@ -685,23 +685,30 @@ describe("applyGameAction", () => {
     });
   });
 
-  it("still rejects the Phase51 invitational until its tournament flow is ready", () => {
+  it("purchases a ready Phase51 invitational cup through the authoritative action", () => {
     const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 900;
+    school.reputation = "elite";
+    school.history.nationalTitles = 1;
+    school.facilities.gym = 50;
+    school.facilities.analysisRoom = 50;
 
-    try {
-      applyGameAction(snapshot, {
-        type: "school-special-project",
-        projectId: "invitational-cup",
-      });
-      throw new Error("expected special project readiness conflict");
-    } catch (error) {
-      expect(error).toBeInstanceOf(GameRuleConflictError);
-      expect((error as GameRuleConflictError).code).toBe(
-        "school_special_project_not_ready",
-      );
-    }
+    const result = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
 
-    expect(snapshot.state.schoolManagement.specialProjects).toBeUndefined();
+    expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(3200);
+    expect(result.state.schoolManagement.invitationalCup).toMatchObject({
+      currentRound: "semifinal",
+      championSchoolId: null,
+      userEliminated: false,
+    });
+    expect(
+      result.state.schoolManagement.specialProjects?.purchasedProjectIds,
+    ).toContain("invitational-cup");
   });
 
   it("resolves a pending event choice using server game data", () => {
