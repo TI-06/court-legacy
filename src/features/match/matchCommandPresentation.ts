@@ -15,7 +15,12 @@ export interface MatchCommandImpactRow {
 
 export interface MatchLiveCoachEffectRow {
   sequence: number;
-  kind: "timeout" | "focus-attacker" | "encourage-player";
+  kind:
+    | "timeout"
+    | "focus-attacker"
+    | "encourage-player"
+    | "target-serve-receiver"
+    | "mark-opponent-attacker";
   label: string;
   ralliesRemaining: number;
 }
@@ -37,6 +42,10 @@ function commandLabel(state: GameState, record: MatchCommandRecord): string {
       return `${playerDisplayName(state, record.command.playerId)}に攻撃集中`;
     case "encourage-player":
       return `${playerDisplayName(state, record.command.playerId)}に声かけ`;
+    case "target-serve-receiver":
+      return `${playerDisplayName(state, record.command.playerId)}をサーブで狙う`;
+    case "mark-opponent-attacker":
+      return `${playerDisplayName(state, record.command.playerId)}をブロック警戒`;
     case "substitute":
       return `${playerDisplayName(state, record.command.outgoingPlayerId)} → ${playerDisplayName(state, record.command.incomingPlayerId)}`;
     case "continue":
@@ -57,7 +66,9 @@ function observedPointSplit(
     record.command.type !== "timeout" &&
     record.command.type !== "set-match-tactics" &&
     record.command.type !== "focus-attacker" &&
-    record.command.type !== "encourage-player"
+    record.command.type !== "encourage-player" &&
+    record.command.type !== "target-serve-receiver" &&
+    record.command.type !== "mark-opponent-attacker"
   ) {
     return { observedRallies: 0, schoolPoints: 0, opponentPoints: 0 };
   }
@@ -112,6 +123,10 @@ function temporaryEffectLabel(
       return `${playerDisplayName(state, record.command.playerId)}に攻撃集中`;
     case "encourage-player":
       return `${playerDisplayName(state, record.command.playerId)}に声かけ`;
+    case "target-serve-receiver":
+      return `${playerDisplayName(state, record.command.playerId)}をサーブで狙う`;
+    case "mark-opponent-attacker":
+      return `${playerDisplayName(state, record.command.playerId)}をブロック警戒`;
     default:
       return null;
   }

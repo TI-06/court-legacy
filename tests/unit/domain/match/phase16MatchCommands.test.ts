@@ -364,6 +364,163 @@ describe("Phase16 match commands", () => {
     });
   });
 
+  it("applies a five-rally serve target to an active opponent player", () => {
+    const context = createContext("phase52-serve-target-world");
+    const match = findOpponentRunDecision(context);
+    const playerId =
+      match.awaySelection.liberoPlayerId ??
+      match.awaySelection.rotation[0]!.playerId;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "target-serve-receiver", playerId },
+    });
+
+    expect(next.runtime?.serveTarget).toEqual({
+      schoolId: context.homeSchoolId,
+      playerId,
+      ralliesRemaining: 5,
+    });
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "target-serve-receiver",
+      playerId,
+    });
+  });
+
+  it("applies a five-rally block target only to an opponent attacker", () => {
+    const context = createContext("phase52-block-target-world");
+    const match = findOpponentRunDecision(context);
+    const playerId = match.awaySelection.rotation.find((assignment) =>
+      ["OH", "MB", "OP"].includes(
+        context.state.players[assignment.playerId]!.preferredPosition,
+      ),
+    )!.playerId;
+
+    const next = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "mark-opponent-attacker", playerId },
+    });
+
+    expect(next.runtime?.blockTarget).toEqual({
+      schoolId: context.homeSchoolId,
+      playerId,
+      ralliesRemaining: 5,
+    });
+    expect(next.runtime?.commandHistory.at(-1)?.command).toEqual({
+      type: "mark-opponent-attacker",
+      playerId,
+    });
+  });
+
+  it("rejects own players and non-attackers as Phase52 opponent targets without mutation", () => {
+    const context = createContext("phase52-invalid-target-world");
+    const match = findOpponentRunDecision(context);
+    const before = structuredClone(match);
+    const ownPlayerId = match.homeSelection.rotation[0]!.playerId;
+
+    expectValidationCode(
+      () =>
+        applyMatchCommand({
+          state: context.state,
+          match,
+          schoolId: context.homeSchoolId,
+          command: { type: "target-serve-receiver", playerId: ownPlayerId },
+        }),
+      "serve_target_not_on_court",
+    );
+    expect(match).toEqual(before);
+
+    const setter = match.awaySelection.rotation.find(
+      (assignment) =>
+        context.state.players[assignment.playerId]!.preferredPosition === "S",
+    );
+    if (setter) {
+      expectValidationCode(
+        () =>
+          applyMatchCommand({
+            state: context.state,
+            match,
+            schoolId: context.homeSchoolId,
+            command: {
+              type: "mark-opponent-attacker",
+              playerId: setter.playerId,
+            },
+          }),
+        "block_target_not_attacker",
+      );
+      expect(match).toEqual(before);
+    }
+  });
+
+  it("rejects Phase52 temporary targeting during a set break", () => {
+    const context = makeHomeDominant(
+      createContext("phase52-target-break-world"),
+    );
+    const match = findSetBreakDecision(context);
+    const before = structuredClone(match);
+    const playerId = match.awaySelection.rotation[0]!.playerId;
+
+    expectValidationCode(
+      () =>
+        applyMatchCommand({
+          state: context.state,
+          match,
+          schoolId: context.homeSchoolId,
+          command: { type: "target-serve-receiver", playerId },
+        }),
+      "command_not_allowed_for_decision",
+    );
+    expect(match).toEqual(before);
+  });
+
+  it("expires Phase52 temporary targeting through simulation without changing persistent tactics", () => {
+    const context = createContext("phase52-target-expiry-world");
+    const match = findOpponentRunDecision(context);
+    const persistentTactics = structuredClone(
+      context.state.schools[context.homeSchoolId]!.tactics,
+    );
+    const playerId =
+      match.awaySelection.liberoPlayerId ??
+      match.awaySelection.rotation[0]!.playerId;
+
+    let current = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "target-serve-receiver", playerId },
+    });
+
+    let guard = 0;
+    while (
+      current.phase !== "match-complete" &&
+      current.runtime?.serveTarget &&
+      guard < 12
+    ) {
+      guard += 1;
+      current = resumeMatch({
+        state: context.state,
+        match: current,
+      }).match;
+      if (current.phase === "coach-decision" && current.runtime?.serveTarget) {
+        current = applyMatchCommand({
+          state: context.state,
+          match: current,
+          schoolId: context.homeSchoolId,
+          command: { type: "continue" },
+        });
+      }
+    }
+
+    expect(current.runtime?.serveTarget ?? null).toBeNull();
+    expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
+      persistentTactics,
+    );
+  });
+
   it("substitutes one court player with one bench player only inside the match", () => {
     const context = createContext("substitution-world");
     const match = findOpponentRunDecision(context);

@@ -121,6 +121,8 @@ interface AbilityContext {
   timeoutBoost: MatchRuntimeState["timeoutBoost"];
   attackerFocus?: MatchRuntimeState["attackerFocus"];
   encouragementBoost?: MatchRuntimeState["encouragementBoost"];
+  serveTarget?: MatchRuntimeState["serveTarget"];
+  blockTarget?: MatchRuntimeState["blockTarget"];
   rallyRuntime?: RallyRuntime;
 }
 
@@ -399,6 +401,17 @@ function chooseReceiver(
   abilityContext?: AbilityContext,
 ): Player {
   const active = activePlayers(state, receivingSelection);
+  const temporaryTarget =
+    abilityContext?.serveTarget?.schoolId === servingSchool.id &&
+    abilityContext.serveTarget.ralliesRemaining > 0
+      ? active.find(
+          (player) => player.id === abilityContext.serveTarget?.playerId,
+        )
+      : undefined;
+  if (temporaryTarget && random.next() < 0.82) {
+    return temporaryTarget;
+  }
+
   const configuredTarget = servingSchool.tactics.serveTargetPlayerId;
   const configured = configuredTarget
     ? active.find((player) => player.id === configuredTarget)
@@ -771,12 +784,19 @@ function simulateRally(
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
+  const blockTargetBonus =
+    abilityContext?.blockTarget?.schoolId === serving.school.id &&
+    abilityContext.blockTarget.playerId === attacker.id &&
+    abilityContext.blockTarget.ralliesRemaining > 0
+      ? 6
+      : 0;
   const blockPower =
     effectiveAbility(blocker, "block", abilityContext) * 0.62 +
     effectiveAbility(blocker, "jump", abilityContext) * 0.24 +
     effectiveAbility(blocker, "decision", abilityContext) * 0.14 +
     serving.school.coach.tactics * 0.08 +
-    blockMatchupAdjustment(receiving.school, serving.school);
+    blockMatchupAdjustment(receiving.school, serving.school) +
+    blockTargetBonus;
   const digPower =
     effectiveAbility(digger, "receive", abilityContext) * 0.58 +
     effectiveAbility(digger, "speed", abilityContext) * 0.25 +
@@ -1113,6 +1133,8 @@ function createInitialMatchState(
       timeoutBoost: null,
       attackerFocus: null,
       encouragementBoost: null,
+      serveTarget: null,
+      blockTarget: null,
       pendingDecisionReason: null,
       commandHistory: [],
       ralliesInCurrentSet: 0,
@@ -1143,6 +1165,8 @@ function beginNextSet(match: MatchState): void {
   runtime.timeoutBoost = null;
   runtime.attackerFocus = null;
   runtime.encouragementBoost = null;
+  runtime.serveTarget = null;
+  runtime.blockTarget = null;
   runtime.pendingDecisionReason = null;
   runtime.ralliesInCurrentSet = 0;
 }
@@ -1259,6 +1283,18 @@ function decrementTemporaryCoachEffects(match: MatchState): void {
     runtime.encouragementBoost.ralliesRemaining -= 1;
     if (runtime.encouragementBoost.ralliesRemaining <= 0) {
       runtime.encouragementBoost = null;
+    }
+  }
+  if (runtime.serveTarget) {
+    runtime.serveTarget.ralliesRemaining -= 1;
+    if (runtime.serveTarget.ralliesRemaining <= 0) {
+      runtime.serveTarget = null;
+    }
+  }
+  if (runtime.blockTarget) {
+    runtime.blockTarget.ralliesRemaining -= 1;
+    if (runtime.blockTarget.ralliesRemaining <= 0) {
+      runtime.blockTarget = null;
     }
   }
 }
@@ -1525,6 +1561,8 @@ function runUntilBoundary(
         timeoutBoost: runtime.timeoutBoost,
         attackerFocus: runtime.attackerFocus,
         encouragementBoost: runtime.encouragementBoost,
+        serveTarget: runtime.serveTarget,
+        blockTarget: runtime.blockTarget,
         rallyRuntime,
       },
     );
