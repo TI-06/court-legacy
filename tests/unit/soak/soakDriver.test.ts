@@ -107,7 +107,8 @@ describe("Phase18 soak production action driver", () => {
       scoutingTier: "national",
     });
     expect(
-      first.snapshot.state.schoolManagement.specialProjects?.purchasedProjectIds,
+      first.snapshot.state.schoolManagement.specialProjects
+        ?.purchasedProjectIds,
     ).toEqual(["national-data-bank"]);
     expect(
       first.snapshot.state.schools[first.snapshot.state.userSchoolId]!.funds,
