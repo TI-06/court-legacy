@@ -155,3 +155,120 @@ export function scheduleUniversityJointTraining(
     },
   };
 }
+
+function applyJointTrainingFatigue(player: Player, fatigue: number): Player {
+  return {
+    ...player,
+    fatigue: clampState(player.fatigue + fatigue),
+  };
+}
+
+export function resolveDueUniversityJointTraining(
+  state: GameState,
+  data: GameDataRegistry,
+): { state: GameState; result: UniversityJointTrainingResult } | null {
+  const projects = state.schoolManagement.specialProjects;
+  const pending = projects?.pendingUniversityJointTraining;
+  if (!projects || !pending || pending.eligibleDate > state.date) return null;
+
+  const school = state.schools[state.userSchoolId];
+  if (!school) return null;
+
+  const random = new SeededRandom(state.seed, state.randomCursor);
+  const players = { ...state.players };
+  const logs: PlayerGrowthLog[] = [];
+  const injuredPlayerIds: PlayerId[] = [];
+  const activity: TrainingActivity = {
+    targetAbilities: UNIVERSITY_FOCUS_ABILITIES[pending.focus],
+    baseGrowth: 3,
+    fatigue: 0,
+    injuryRisk: 4,
+    trustGrowth: 1,
+  };
+
+  for (const playerId of school.playerIds) {
+    const original = players[playerId];
+    if (!original) continue;
+
+    const resolved = resolvePlayerTrainingActivity({
+      player: original,
+      school,
+      data,
+      random,
+      activity,
+    });
+    const fatigueChange = original.injury ? 0 : 8;
+    const player = original.injury
+      ? resolved.player
+      : applyJointTrainingFatigue(resolved.player, fatigueChange);
+    const log: PlayerGrowthLog = {
+      ...resolved.log,
+      fatigueChange: resolved.log.fatigueChange + fatigueChange,
+    };
+
+    players[playerId] = player;
+    logs.push(log);
+    if (log.injury) injuredPlayerIds.push(playerId);
+  }
+
+  const nextProjects = { ...projects };
+  delete nextProjects.pendingUniversityJointTraining;
+  const totalFatigueChange = logs.reduce(
+    (total, log) => total + log.fatigueChange,
+    0,
+  );
+
+  return {
+    state: {
+      ...state,
+      randomCursor: random.cursor,
+      players,
+      schoolManagement: {
+        ...state.schoolManagement,
+        specialProjects: nextProjects,
+      },
+    },
+    result: {
+      focus: pending.focus,
+      participantCount: logs.length,
+      grewPlayerCount: logs.filter((log) => log.totalAbilityGrowth > 0).length,
+      totalAbilityGrowth: logs.reduce(
+        (total, log) => total + log.totalAbilityGrowth,
+        0,
+      ),
+      injuredPlayerIds,
+      averageFatigueChange:
+        logs.length === 0 ? 0 : totalFatigueChange / logs.length,
+      playerLogs: logs,
+    },
+  };
+}
+
+export function scheduleTopTeamClinic(
+  state: GameState,
+  targetPlayerId: PlayerId,
+  focus: TopTeamClinicFocus,
+): GameState {
+  const school = state.schools[state.userSchoolId];
+  const player = state.players[targetPlayerId];
+  if (!school?.playerIds.includes(targetPlayerId) || !player || player.injury) {
+    return state;
+  }
+
+  return {
+    ...state,
+    eventMemory: {
+      ...state.eventMemory,
+      scheduledFollowUps: [
+        ...state.eventMemory.scheduledFollowUps,
+        {
+          eventId: eventId(TOP_TEAM_CLINIC_EVENT_IDS[focus]),
+          eligibleDate: addWeeks(state.date, 1),
+          actorPlayerIds: [targetPlayerId],
+          chainId: `phase51-top-team-clinic:${state.yearIndex}:${targetPlayerId}`,
+          chainStage: 1,
+        },
+      ],
+    },
+  };
+}
