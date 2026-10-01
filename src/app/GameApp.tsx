@@ -58,6 +58,7 @@ import type {
   SchoolInvestmentOption,
 } from "../domain/school/schoolInvestment";
 import type { SchoolSpecialProjectId } from "../domain/school/schoolSpecialProjects";
+import type { UniversityJointTrainingResult } from "../domain/school/schoolSpecialProjectActivities";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type {
   MatchTacticPlan,
@@ -76,6 +77,7 @@ import { CalendarSheet } from "../features/calendar/CalendarSheet";
 import { EventDialog } from "../features/home/EventDialog";
 import { HomeScreen } from "../features/home/HomeScreen";
 import type { HomeCommandAction } from "../features/home/homeCommandCenter";
+import { SpecialProjectActivityResultDialog } from "../features/home/SpecialProjectActivityResultDialog";
 import { TrainingCampResultDialog } from "../features/home/TrainingCampResultDialog";
 import { YearTransitionDialog } from "../features/home/YearTransitionDialog";
 import { MatchOfficialEntry } from "../features/match/MatchOfficialEntry";
@@ -249,6 +251,10 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     useState<ShopUseTarget | null>(null);
   const [latestYearTransition, setLatestYearTransition] =
     useState<AcademicYearTransitionSummary | null>(null);
+  const [
+    latestSpecialProjectActivityResult,
+    setLatestSpecialProjectActivityResult,
+  ] = useState<UniversityJointTrainingResult | null>(null);
 
   const gameState = cloudSession.snapshot.state;
   const teamSelection = cloudSession.snapshot.teamSelection;
@@ -1234,6 +1240,9 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
 
     const outcome = response.outcome as AdvanceWeekOutcome | undefined;
     setLatestYearTransition(outcome?.academicYearTransition ?? null);
+    setLatestSpecialProjectActivityResult(
+      outcome?.specialProjectActivityResult ?? null,
+    );
     setPreMatch(null);
     setMatchView("practice");
     setPvpResult(null);
@@ -1698,6 +1707,11 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
           pending={cloudSession.operation.status === "submitting"}
           result={gameState.shopEffects.trainingCampResult}
           state={gameState}
+        />
+      ) : latestSpecialProjectActivityResult ? (
+        <SpecialProjectActivityResultDialog
+          onClose={() => setLatestSpecialProjectActivityResult(null)}
+          result={latestSpecialProjectActivityResult}
         />
       ) : latestYearTransition ? (
         <YearTransitionDialog
