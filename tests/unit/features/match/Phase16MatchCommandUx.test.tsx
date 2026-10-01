@@ -226,6 +226,68 @@ describe("Phase16 match command decision panel", () => {
     });
   });
 
+  it("targets visible opponent players without exposing opponent ability grades", () => {
+    const fixture = findDecision("opponent-run");
+    const onCommand = vi.fn();
+    const opponentSelection =
+      fixture.match.homeSchoolId === fixture.state.userSchoolId
+        ? fixture.match.awaySelection
+        : fixture.match.homeSelection;
+    const serveTargetId = opponentSelection.rotation[0]!.playerId;
+    const blockTargetId = opponentSelection.rotation
+      .map((assignment) => assignment.playerId)
+      .find((playerId) => {
+        const position = fixture.state.players[playerId]?.preferredPosition;
+        return position === "OH" || position === "MB" || position === "OP";
+      });
+    if (!blockTargetId) throw new Error("block target fixture missing");
+
+    render(
+      <MatchCommandPanel
+        state={fixture.state}
+        match={fixture.match}
+        pending={false}
+        onCommand={onCommand}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
+    let dialog = screen.getByRole("dialog", { name: "相手を狙う" });
+
+    expect(
+      within(dialog).getByRole("region", { name: "サーブで狙う相手" }),
+    ).toBeVisible();
+    expect(
+      within(dialog).getByRole("region", {
+        name: "ブロックで警戒する相手",
+      }),
+    ).toBeVisible();
+    expect(dialog).not.toHaveTextContent("総合");
+    expect(dialog).not.toHaveTextContent("疲労");
+
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `サーブで狙う ${playerName(fixture.state, serveTargetId)}`,
+      }),
+    );
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "target-serve-receiver",
+      playerId: serveTargetId,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
+    dialog = screen.getByRole("dialog", { name: "相手を狙う" });
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: `ブロックで警戒 ${playerName(fixture.state, blockTargetId)}`,
+      }),
+    );
+    expect(onCommand).toHaveBeenLastCalledWith({
+      type: "mark-opponent-attacker",
+      playerId: blockTargetId,
+    });
+  });
+
   it("uses set-break copy, hides timeout, and continues to the next set", () => {
     const fixture = findDecision("set-break");
     const onCommand = vi.fn();
@@ -241,6 +303,7 @@ describe("Phase16 match command decision panel", () => {
 
     expect(screen.getByText("セット間の監督指示")).toBeVisible();
     expect(screen.queryByRole("button", { name: "タイムアウト" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "相手を狙う" })).toBeNull();
     expect(screen.getByRole("button", { name: "戦術変更" })).toBeVisible();
     expect(screen.getByRole("button", { name: "選手交代" })).toBeVisible();
 
