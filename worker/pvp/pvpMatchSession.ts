@@ -6,7 +6,12 @@ import type {
   MatchPhase,
   MatchState,
 } from "../../src/domain/model/Match";
-import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import {
+  matchId,
+  type PlayerId,
+  type SchoolId,
+} from "../../src/domain/model/identifiers";
+import type { Position } from "../../src/domain/model/Player";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
@@ -39,6 +44,13 @@ export interface PvpPublicSetState {
   winner: "challenger" | "defender" | null;
 }
 
+export interface PvpPublicOpponentTarget {
+  playerId: PlayerId;
+  displayName: string;
+  position: Position;
+  role: "court" | "libero";
+}
+
 export interface PvpMatchSegment {
   status: "in-progress" | "complete";
   operationId: string;
@@ -53,6 +65,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
+  opponentTargets: PvpPublicOpponentTarget[];
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
@@ -116,6 +129,32 @@ function automaticCoachForSession(
   };
 }
 
+function buildPublicOpponentTargets(
+  session: PvpServerMatchSession,
+): PvpPublicOpponentTarget[] {
+  const selection = session.match.awaySelection;
+  const liberoPlayerId = selection.liberoPlayerId;
+  const orderedIds: PlayerId[] = selection.rotation.map(
+    (assignment) => assignment.playerId,
+  );
+  if (liberoPlayerId && !orderedIds.includes(liberoPlayerId)) {
+    orderedIds.push(liberoPlayerId);
+  }
+
+  return orderedIds.flatMap((playerId) => {
+    const player = session.simulationState.players[playerId];
+    if (!player) return [];
+    return [
+      {
+        playerId,
+        displayName: `${player.lastName} ${player.firstName}`,
+        position: player.preferredPosition,
+        role: liberoPlayerId === playerId ? "libero" : "court",
+      } satisfies PvpPublicOpponentTarget,
+    ];
+  });
+}
+
 function sideForSchool(
   challengerSchoolId: SchoolId,
   schoolId: SchoolId | null,
@@ -151,6 +190,7 @@ export function buildPvpPublicSegment(
     },
     challengerSelection: session.match.homeSelection,
     challengerTactics: runtime.homeTactics,
+    opponentTargets: buildPublicOpponentTargets(session),
     timeoutAvailable:
       pendingDecisionReason === "opponent-run" &&
       !runtime.timeoutUsedSchoolIds.includes(session.challengerSchoolId),
