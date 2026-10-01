@@ -689,6 +689,72 @@ describe("applyGameAction", () => {
     });
   });
 
+  it("resolves university joint training after a save-style state handoff and advances the week", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.trainingRoom = 50;
+    school.facilities.dormitory = 50;
+
+    const purchased = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "university-joint-training",
+      option: "physical",
+    });
+    const continued: CloudGameSnapshot = {
+      ...snapshot,
+      state: purchased.state,
+      teamSelection: purchased.teamSelection,
+    };
+    const advanced = applyGameAction(continued, { type: "advance-week" });
+    const outcome = advanced.outcome as {
+      weekAdvanced: boolean;
+      specialProjectActivityResult?: {
+        focus: string;
+        participantCount: number;
+      };
+    };
+
+    expect(outcome.weekAdvanced).toBe(true);
+    expect(outcome.specialProjectActivityResult).toMatchObject({
+      focus: "physical",
+      participantCount: expect.any(Number),
+    });
+    expect(
+      advanced.state.schoolManagement.specialProjects?.pendingActivity,
+    ).toBeUndefined();
+  });
+
+  it("surfaces the scheduled top-team clinic for the same target after advancing", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.analysisRoom = 50;
+    const targetPlayerId = school.playerIds[0]!;
+
+    const purchased = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "top-team-clinic",
+      targetPlayerId,
+      option: "mental",
+    });
+    const continued: CloudGameSnapshot = {
+      ...snapshot,
+      state: purchased.state,
+      teamSelection: purchased.teamSelection,
+    };
+    const advanced = applyGameAction(continued, { type: "advance-week" });
+
+    expect(advanced.state.pendingEvent).toMatchObject({
+      eventId: "event.phase51-top-team-clinic-mental",
+      actorPlayerIds: [targetPlayerId],
+    });
+  });
+
   it("keeps the invitational gated until PR51-4", () => {
     const snapshot = createSnapshot();
 
