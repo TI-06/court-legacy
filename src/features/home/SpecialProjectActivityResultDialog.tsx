@@ -33,9 +33,7 @@ export function SpecialProjectActivityResultDialog({
           <h2 id="special-project-activity-result-title">
             大学チーム合同練習の結果
           </h2>
-          <p>
-            {focusLabels[result.focus]}をテーマにした合同練習を終えました。
-          </p>
+          <p>{focusLabels[result.focus]}をテーマにした合同練習を終えました。</p>
         </header>
 
         <main className="training-camp-event__content">
