@@ -9,6 +9,7 @@ interface SoakDriverSubject {
   applySoakManagementPolicy(snapshot: CloudGameSnapshot): {
     snapshot: CloudGameSnapshot;
     actionCount: number;
+    specialProjectIds: string[];
   };
   advanceSoakUntilWeekChanges(
     snapshot: CloudGameSnapshot,
@@ -83,12 +84,19 @@ describe("Phase18 soak production action driver", () => {
     );
   });
 
-  it("uses maxed facilities to exercise all four annual investment categories without crossing the reserve", async () => {
+  it("uses maxed facilities to exercise annual investments and two Phase51 projects without crossing the reserve", async () => {
     const { createSoakSnapshot, applySoakManagementPolicy } =
       await loadSubject();
     const snapshot = createSoakSnapshot("phase50-investment-policy");
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
-    school.funds = 5000;
+    school.funds = 10000;
+    snapshot.state.schoolManagement.assistantCoach = {
+      rank: "master",
+      specialty: "attack",
+      contractYearIndex: snapshot.state.yearIndex,
+    };
+    school.reputationPoints = 1000;
+    school.history.nationalTitles = 1;
     for (const facility of Object.keys(school.facilities) as Array<
       keyof typeof school.facilities
     >) {
@@ -98,7 +106,15 @@ describe("Phase18 soak production action driver", () => {
     const first = applySoakManagementPolicy(snapshot);
     const plan = first.snapshot.state.schoolManagement.investmentPlan;
 
-    expect(first.actionCount).toBe(5);
+    expect(first.actionCount).toBe(6);
+    expect(first.specialProjectIds).toEqual([
+      "national-data-bank",
+      "medical-support",
+    ]);
+    expect(
+      first.snapshot.state.schoolManagement.specialProjects
+        ?.purchasedProjectIds,
+    ).toEqual(["national-data-bank", "medical-support"]);
     expect(plan).toMatchObject({
       yearIndex: snapshot.state.yearIndex,
       developmentFocus: "attack",
@@ -112,6 +128,7 @@ describe("Phase18 soak production action driver", () => {
 
     const second = applySoakManagementPolicy(first.snapshot);
     expect(second.actionCount).toBe(0);
+    expect(second.specialProjectIds).toEqual([]);
   });
 
   it("keeps the management reserve instead of spending the school below 300", async () => {
