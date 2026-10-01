@@ -481,9 +481,11 @@ export function formatSoakSnapshotSummary(
     `injured=${metrics.injuredPlayers} injury-weeks=${metrics.injuredPlayerWeeks} new=${metrics.newInjuries} healed=${metrics.healedInjuries} condition-mean=${metrics.condition.mean}`,
     `tournament=${tournament} titles=${metrics.userTournamentTitles} national-titles=${metrics.userNationalTitles} national-participants=${metrics.nationalParticipantStrength.count} national-p50=${metrics.nationalParticipantStrength.p50}`,
     `assistant-coach=${coach} changes=${metrics.assistantCoachChanges}`,
-    `projects=${Object.entries(metrics.specialProjectCounts)
-      .map(([projectId, count]) => `${projectId}:${count}`)
-      .join(",") || "none"} invitational-titles=${metrics.userInvitationalTitles}`,
+    `projects=${
+      Object.entries(metrics.specialProjectCounts)
+        .map(([projectId, count]) => `${projectId}:${count}`)
+        .join(",") || "none"
+    } invitational-titles=${metrics.userInvitationalTitles}`,
     `special=N${metrics.userSpecialAbilities.normal}/R${metrics.userSpecialAbilities.rare}/SR${metrics.userSpecialAbilities.superRare}/NEG${metrics.userSpecialAbilities.negative} mean=${metrics.userSpecialAbilities.perPlayer.mean}`,
   ].join(" | ");
 }
