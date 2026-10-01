@@ -774,8 +774,7 @@ function formatRunSummary(report: SoakRunReport): string {
   const specialAbilityDetail = finalMetrics
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
-  const specialFlowDetail =
-    `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
+  const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
