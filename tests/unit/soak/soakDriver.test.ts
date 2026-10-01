@@ -131,7 +131,8 @@ describe("Phase18 soak production action driver", () => {
       await loadSubject();
     const before = createSoakSnapshot("phase50-special-flow");
     const after = createSoakSnapshot("phase50-special-flow");
-    const playerId = before.state.schools[before.state.userSchoolId]!.playerIds[0]!;
+    const playerId =
+      before.state.schools[before.state.userSchoolId]!.playerIds[0]!;
     before.state.players[playerId]!.specialAbilityIds = ["serve_unstable"];
     after.state.players[playerId]!.specialAbilityIds = [
       "attack_course",
