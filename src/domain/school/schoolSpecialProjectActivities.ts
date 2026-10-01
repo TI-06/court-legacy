@@ -233,7 +233,8 @@ export function resolveDueUniversityJointTraining(
     }
   }
 
-  const { pendingActivity: _pendingActivity, ...remainingProjects } = projects;
+  const remainingProjects = { ...projects };
+  delete remainingProjects.pendingActivity;
   return {
     state: {
       ...state,
