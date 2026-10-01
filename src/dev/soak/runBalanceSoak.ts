@@ -426,9 +426,10 @@ function specialProjectAction(
       ) {
         continue;
       }
-      const focus = INVESTMENT_DEVELOPMENT_FOCUSES[
-        yearOffset % INVESTMENT_DEVELOPMENT_FOCUSES.length
-      ]!;
+      const focus =
+        INVESTMENT_DEVELOPMENT_FOCUSES[
+          yearOffset % INVESTMENT_DEVELOPMENT_FOCUSES.length
+        ]!;
       return {
         type: "school-special-project",
         projectId: definition.id,
@@ -926,9 +927,11 @@ function formatRunSummary(report: SoakRunReport): string {
     : "special=none";
   const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}(event=${report.specialAbilityFlow.superRareFromEvent},match=${report.specialAbilityFlow.superRareFromMatch},other=${report.specialAbilityFlow.superRareFromOther})/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
   const projectDetail = finalMetrics
-    ? `projects=${Object.entries(finalMetrics.specialProjectCounts)
-        .map(([projectId, count]) => `${projectId}:${count}`)
-        .join(",") || "none"} invitational-titles=${finalMetrics.userInvitationalTitles}`
+    ? `projects=${
+        Object.entries(finalMetrics.specialProjectCounts)
+          .map(([projectId, count]) => `${projectId}:${count}`)
+          .join(",") || "none"
+      } invitational-titles=${finalMetrics.userInvitationalTitles}`
     : "projects=none invitational-titles=0";
   return [
     `seed=${report.metadata.seed}`,
