@@ -136,7 +136,9 @@ function ensureCommandAllowed(
     reason === "set-break" &&
     (command.type === "timeout" ||
       command.type === "focus-attacker" ||
-      command.type === "encourage-player")
+      command.type === "encourage-player" ||
+      command.type === "target-serve-receiver" ||
+      command.type === "mark-opponent-attacker")
   ) {
     fail(
       "command_not_allowed_for_decision",
@@ -190,6 +192,67 @@ function validateEncouragementTarget(
   const player = state.players[playerId];
   if (!player || player.career.schoolId !== schoolId) {
     fail("encourage_player_invalid", "声をかける選手を確認できません");
+  }
+}
+
+function opponentSchoolId(
+  match: MatchState,
+  schoolId: SchoolId,
+): SchoolId {
+  if (schoolId === match.homeSchoolId) return match.awaySchoolId;
+  if (schoolId === match.awaySchoolId) return match.homeSchoolId;
+  return fail(
+    "command_school_not_in_match",
+    "この学校は試合に参加していません",
+  );
+}
+
+function validateServeTarget(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId,
+): void {
+  const opponentId = opponentSchoolId(match, schoolId);
+  const selection = selectionForSchool(match, opponentId);
+  if (!activePlayerIds(selection).includes(playerId)) {
+    fail(
+      "serve_target_not_on_court",
+      "サーブで狙う選手は相手コート上の選手から選んでください",
+    );
+  }
+  const player = state.players[playerId];
+  if (!player || player.career.schoolId !== opponentId) {
+    fail("serve_target_invalid", "サーブで狙う相手選手を確認できません");
+  }
+}
+
+function validateBlockTarget(
+  state: GameState,
+  match: MatchState,
+  schoolId: SchoolId,
+  playerId: PlayerId,
+): void {
+  const opponentId = opponentSchoolId(match, schoolId);
+  const selection = selectionForSchool(match, opponentId);
+  if (!selection.rotation.some((item) => item.playerId === playerId)) {
+    fail(
+      "block_target_not_on_court",
+      "ブロックで警戒する選手は相手コート上の選手から選んでください",
+    );
+  }
+  const player = state.players[playerId];
+  if (!player || player.career.schoolId !== opponentId) {
+    fail(
+      "block_target_invalid",
+      "ブロックで警戒する相手選手を確認できません",
+    );
+  }
+  if (!["OH", "MB", "OP"].includes(player.preferredPosition)) {
+    fail(
+      "block_target_not_attacker",
+      "ブロック警戒はOH・MB・OPから選んでください",
+    );
   }
 }
 
@@ -379,6 +442,34 @@ export function applyMatchCommand(input: ApplyMatchCommandInput): MatchState {
         input.command.playerId,
       );
       runtime.encouragementBoost = {
+        schoolId: input.schoolId,
+        playerId: input.command.playerId,
+        ralliesRemaining: 5,
+      };
+      break;
+    }
+    case "target-serve-receiver": {
+      validateServeTarget(
+        input.state,
+        match,
+        input.schoolId,
+        input.command.playerId,
+      );
+      runtime.serveTarget = {
+        schoolId: input.schoolId,
+        playerId: input.command.playerId,
+        ralliesRemaining: 5,
+      };
+      break;
+    }
+    case "mark-opponent-attacker": {
+      validateBlockTarget(
+        input.state,
+        match,
+        input.schoolId,
+        input.command.playerId,
+      );
+      runtime.blockTarget = {
         schoolId: input.schoolId,
         playerId: input.command.playerId,
         ralliesRemaining: 5,
