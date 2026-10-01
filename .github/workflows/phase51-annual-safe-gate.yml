@@ -1,4 +1,5 @@
 name: Phase51 Annual Safe Gate
+# rerun: annual-effects-fix
 
 on:
   push:
