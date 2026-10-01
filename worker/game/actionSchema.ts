@@ -12,6 +12,7 @@ import type {
   FacilityKey,
   FacilityUpgradeLevels,
 } from "../../src/domain/school/facilityUpgrade";
+import type { SchoolSpecialProjectId } from "../../src/domain/school/schoolSpecialProjects";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type {
   PlayerDevelopmentGoal,
