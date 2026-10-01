@@ -79,7 +79,7 @@ function continueSnapshot(
 }
 
 describe("Phase16 resumable practice match session", () => {
-  it("accepts only the four high-level match commands in the game action schema", () => {
+  it("accepts the supported high-level match commands in the game action schema", () => {
     const commands = [
       { type: "timeout" },
       {
@@ -92,6 +92,14 @@ describe("Phase16 resumable practice match session", () => {
         incomingPlayerId: "player-in",
       },
       { type: "continue" },
+      {
+        type: "target-serve-receiver",
+        playerId: "public-opponent-receiver",
+      },
+      {
+        type: "mark-opponent-attacker",
+        playerId: "public-opponent-attacker",
+      },
     ] as const;
 
     for (const command of commands) {
@@ -337,6 +345,34 @@ describe("Phase16 resumable practice match session", () => {
     expect(current.state.schools[current.state.userSchoolId]!.tactics).toEqual(
       persistentTactics,
     );
+  });
+
+  it("routes a Phase52 serve target through the resumable practice match session", () => {
+    const { snapshot } = createSnapshot("phase52-practice-target-route");
+    const started = applyServerGameAction(snapshot, { type: "advance-week" });
+    const active = started.state.activeMatch;
+    if (!active) throw new Error("active practice match missing");
+    const opponentSelection =
+      active.homeSchoolId === started.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const playerId = opponentSelection.rotation[0]!.playerId;
+
+    const targeted = applyServerGameAction(
+      continueSnapshot(snapshot, started),
+      {
+        type: "match-command",
+        command: { type: "target-serve-receiver", playerId },
+      },
+    );
+
+    expect(targeted.state.activeMatch?.id).toBe(active.id);
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+    ).toEqual({ type: "target-serve-receiver", playerId });
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics,
+    ).toEqual(snapshot.state.schools[snapshot.state.userSchoolId]!.tactics);
   });
 
   it("rejects match commands when no resumable active match exists without mutating the snapshot", () => {
