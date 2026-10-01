@@ -14,7 +14,11 @@ import {
   evaluateSchoolSpecialProject,
   type SchoolSpecialProjectId,
 } from "../../domain/school/schoolSpecialProjects";
-import { activeInvitationalCup } from "../../domain/school/invitationalCup";
+import {
+  activeInvitationalCup,
+  createInvitationalCup,
+} from "../../domain/school/invitationalCup";
+import { selectEliteExpeditionOpponent } from "../../domain/school/specialProjectActivities";
 import { findDueUserOfficialMatch } from "../../domain/tournament/progressOfficialTournaments";
 import {
   FACILITY_DEFINITIONS,
@@ -440,8 +444,18 @@ function specialProjectAction(
       }
     }
 
+    if (projectId === "elite-expedition") {
+      if (!selectEliteExpeditionOpponent(state)) continue;
+      return { type: "school-special-project", projectId };
+    }
+
     if (projectId === "invitational-cup") {
-      if (activeInvitationalCup(state)?.currentRound) continue;
+      if (
+        activeInvitationalCup(state)?.currentRound ||
+        !createInvitationalCup(state)
+      ) {
+        continue;
+      }
       return { type: "school-special-project", projectId };
     }
 
