@@ -402,3 +402,75 @@
     white-space: normal;
   }
 }
+
+
+.school-special-project-choice {
+  display: grid;
+  gap: 6px;
+}
+
+.school-special-project-choice > strong {
+  color: var(--game-text, #f4f7fb);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.school-special-project-choice > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.school-special-project-choice button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 7px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 8px;
+}
+
+.school-special-project-choice button[aria-pressed="true"] {
+  color: #fff3cf;
+  background: rgb(244 122 24 / 18%);
+  border-color: rgb(255 190 102 / 42%);
+}
+
+.school-special-project-choice .school-special-project-player-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: min(32vh, 220px);
+  overflow-y: auto;
+}
+
+.school-special-project-player-grid button {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.school-special-project-player-grid strong,
+.school-special-project-player-grid small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.school-special-project-player-grid strong {
+  font-size: 0.62rem;
+}
+
+.school-special-project-player-grid small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.52rem;
+}
+
+@media (max-width: 390px) {
+  .school-special-project-choice .school-special-project-player-grid {
+    grid-template-columns: 1fr;
+    max-height: min(28vh, 190px);
+  }
+}
