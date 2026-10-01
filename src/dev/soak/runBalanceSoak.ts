@@ -921,9 +921,7 @@ function aggregateSpecialProjectUsage(
     }
   }
   return Object.fromEntries(
-    [...totals.entries()].sort(([left], [right]) =>
-      left.localeCompare(right),
-    ),
+    [...totals.entries()].sort(([left], [right]) => left.localeCompare(right)),
   );
 }
 
