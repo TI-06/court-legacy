@@ -133,6 +133,59 @@ describe("event selection", () => {
     expect(fallback.pendingEvent?.eventId).toBe(eventId(normal.id));
   });
 
+  it("keeps Super Rare awakening events at a genuinely rare priority", () => {
+    const state = createDemoGame();
+    const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[actor]!;
+    state.players[actor] = {
+      ...player,
+      abilities: {
+        ...player.abilities,
+        spike: 92,
+        mental: 85,
+      },
+      specialAbilityIds: ["elite_court_hitter", "elite_block_crusher"],
+    };
+
+    const goldBase = gameData.events.get("event.gold-absolute-ace")!;
+    const gold = {
+      ...goldBase,
+      trigger: {
+        ...goldBase.trigger,
+        recentMatchResult: undefined,
+      },
+    };
+    const normalBase = gameData.events.get("event.position-trial-result")!;
+    const normal = {
+      ...normalBase,
+      id: "event.normal-gold-fallback-test",
+      tags: ["test-normal"],
+      trigger: {},
+      actorCount: 1,
+    };
+    const isolatedData = {
+      ...gameData,
+      events: new Map([
+        [normal.id, normal],
+        [gold.id, gold],
+      ]),
+    };
+
+    const awakened = selectNextEvent(
+      state,
+      isolatedData,
+      fixedRollRandom(12),
+    );
+    expect(awakened.pendingEvent?.eventId).toBe(eventId(gold.id));
+
+    const fallback = selectNextEvent(
+      { ...state, pendingEvent: null },
+      isolatedData,
+      fixedRollRandom(13),
+    );
+    expect(fallback.pendingEvent?.eventId).toBe(eventId(normal.id));
+  });
+
   it("does not surface referenced follow-up stages as normal events", () => {
     const state = createDemoGame();
     const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
