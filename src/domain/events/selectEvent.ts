@@ -7,10 +7,13 @@ import type { EventDefinition } from "../validation/gameDataSchema";
 import { weightedChoice } from "../random/weightedChoice";
 import { characterEventWeightMultiplier } from "./characterEventWeight";
 import { isEventEligibleForActors } from "./eventEligibility";
+import { weeksBetween } from "./eventDate";
 import {
   getSpecialAbilityAwakeningDefinition,
   type SpecialAbilityAwakeningRarity,
 } from "../player/specialAbilityAwakening";
+
+const SUPER_RARE_EVENT_TEAM_COOLDOWN_WEEKS = 104;
 
 interface EventCandidate {
   event: EventDefinition;
@@ -210,6 +213,45 @@ function normalCandidates(
   return candidates;
 }
 
+function hasRecentSuperRareEventAwakening(
+  state: GameState,
+  data: GameDataRegistry,
+): boolean {
+  for (
+    let index = state.eventMemory.history.length - 1;
+    index >= 0;
+    index -= 1
+  ) {
+    const occurrence = state.eventMemory.history[index];
+    if (!occurrence) continue;
+    if (
+      weeksBetween(occurrence.date, state.date) >=
+      SUPER_RARE_EVENT_TEAM_COOLDOWN_WEEKS
+    ) {
+      break;
+    }
+
+    const event = data.events.get(occurrence.eventId);
+    if (!event) continue;
+    const awakening = getSpecialAbilityAwakeningDefinition(event);
+    if (!awakening || awakening.rarity !== "super-rare") continue;
+
+    const choice = event.choices.find(
+      (candidate) => candidate.id === occurrence.choiceId,
+    );
+    if (
+      choice?.effects.some(
+        (effect) =>
+          effect.type === "special-ability-add" &&
+          effect.abilityId === awakening.targetAbilityId,
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function awakeningCandidates(
   state: GameState,
   data: GameDataRegistry,
@@ -219,6 +261,12 @@ function awakeningCandidates(
 ): EventCandidate[] {
   const school = state.schools[state.userSchoolId];
   if (!school) return [];
+  if (
+    rarity === "super-rare" &&
+    hasRecentSuperRareEventAwakening(state, data)
+  ) {
+    return [];
+  }
 
   const recentActors = new Set(state.eventMemory.recentPrimaryActorPlayerIds);
   const candidates: EventCandidate[] = [];
