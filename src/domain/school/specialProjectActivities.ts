@@ -62,3 +62,96 @@ function schoolStrength(state: GameState, schoolId: SchoolId): number {
     return 0;
   }
 }
+
+export function selectEliteExpeditionOpponent(
+  state: GameState,
+): SchoolId | null {
+  const recent = new Set<SchoolId>([
+    ...state.weeklySchedule.recentPracticeMatches
+      .slice(-8)
+      .map((entry) => entry.opponentSchoolId),
+    ...state.history.matches.slice(-8).flatMap((match) => {
+      if (match.homeSchoolId === state.userSchoolId) return [match.awaySchoolId];
+      if (match.awaySchoolId === state.userSchoolId) return [match.homeSchoolId];
+      return [];
+    }),
+  ]);
+
+  const eligible = Object.values(state.schools)
+    .filter(
+      (school) =>
+        school.id !== state.userSchoolId &&
+        (school.reputation === "national-regular" ||
+          school.reputation === "elite") &&
+        school.playerIds.filter((playerId) => state.players[playerId]).length >=
+          6,
+    )
+    .map((school) => ({
+      schoolId: school.id,
+      strength: schoolStrength(state, school.id),
+      recent: recent.has(school.id),
+    }))
+    .filter((candidate) => candidate.strength > 0)
+    .sort(
+      (left, right) =>
+        Number(left.recent) - Number(right.recent) ||
+        right.strength - left.strength ||
+        String(left.schoolId).localeCompare(String(right.schoolId)),
+    );
+
+  return eligible[0]?.schoolId ?? null;
+}
+
+export function scheduleEliteExpedition(
+  state: GameState,
+  opponentSchoolId: SchoolId,
+): GameState {
+  if (
+    !state.schools[opponentSchoolId] ||
+    opponentSchoolId === state.userSchoolId
+  ) {
+    return state;
+  }
+
+  return {
+    ...state,
+    weeklySchedule: {
+      ...state.weeklySchedule,
+      practiceMatch: {
+        ...state.weeklySchedule.practiceMatch,
+        incomingOffer: null,
+        outgoingCandidates:
+          state.weeklySchedule.practiceMatch.outgoingCandidates.map(
+            (candidate) =>
+              candidate.schoolId === opponentSchoolId
+                ? { ...candidate, status: "accepted" as const }
+                : candidate,
+          ),
+        scheduledOpponentId: opponentSchoolId,
+        scheduledBy: "outgoing",
+      },
+    },
+  };
+}
+
+export function scheduleUniversityJointTraining(
+  state: GameState,
+  focus: UniversityJointTrainingFocus,
+): GameState {
+  const current = state.schoolManagement.specialProjects;
+  if (!current) return state;
+
+  return {
+    ...state,
+    schoolManagement: {
+      ...state.schoolManagement,
+      specialProjects: {
+        ...current,
+        pendingUniversityJointTraining: {
+          eligibleDate: addWeeks(state.date, 1),
+          focus,
+        },
+      },
+    },
+  };
+}
