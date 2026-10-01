@@ -727,19 +727,35 @@ function startPracticeMatchSession(
     );
   }
 
-  if (state.activeMatch && state.activeMatch.phase !== "match-complete") {
-    return conflict(
-      "match_already_in_progress",
-      "進行中の試合を完了してください",
-    );
-  }
-
   const scheduledOpponentId =
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   if (!scheduledOpponentId) {
     return conflict(
       "practice_match_not_scheduled",
       "練習試合の対戦相手を決めてください",
+    );
+  }
+
+  const existing = state.activeMatch;
+  if (
+    existing &&
+    existing.phase !== "match-complete" &&
+    isResumableScheduledPracticeMatch(state, existing)
+  ) {
+    return {
+      state,
+      teamSelection,
+      outcome: {
+        match: existing,
+        analysis: null,
+      } satisfies MatchStepResult,
+    };
+  }
+
+  if (existing && existing.phase !== "match-complete") {
+    return conflict(
+      "match_already_in_progress",
+      "進行中の試合を完了してください",
     );
   }
 
@@ -1018,6 +1034,52 @@ function applyPracticeMatchCommand(
         : "試合中の監督指示を処理できません",
     );
   }
+}
+
+function activeMatchOpponentId(
+  state: GameState,
+  activeMatch: MatchState,
+): SchoolId | null {
+  return activeMatch.homeSchoolId === state.userSchoolId
+    ? activeMatch.awaySchoolId
+    : activeMatch.awaySchoolId === state.userSchoolId
+      ? activeMatch.homeSchoolId
+      : null;
+}
+
+function isResumableScheduledPracticeMatch(
+  state: GameState,
+  activeMatch: MatchState,
+): boolean {
+  const scheduledOpponentId =
+    state.weeklySchedule.practiceMatch.scheduledOpponentId;
+  return Boolean(
+    scheduledOpponentId &&
+    activeMatch.runtime?.controlledSchoolId === state.userSchoolId &&
+    activeMatchOpponentId(state, activeMatch) === scheduledOpponentId &&
+    String(activeMatch.id).startsWith(`practice-${state.date}-`),
+  );
+}
+
+function repairStaleActiveMatchContext(state: GameState): GameState {
+  const activeMatch = state.activeMatch;
+  if (!activeMatch || activeMatch.phase === "match-complete") {
+    return state;
+  }
+
+  const due = findDueUserOfficialMatch(state);
+  if (due) {
+    const resumableOfficial =
+      activeMatch.runtime?.controlledSchoolId === state.userSchoolId &&
+      activeMatch.id === matchId(due.match.id);
+    return resumableOfficial ? state : { ...state, activeMatch: null };
+  }
+
+  if (isResumableScheduledPracticeMatch(state, activeMatch)) {
+    return state;
+  }
+
+  return { ...state, activeMatch: null };
 }
 
 function buildOfficialSimulationContext(
@@ -1780,7 +1842,11 @@ export function applyGameAction(
   // even when an action touches only a tiny subtree (especially match commands).
   // Domain transitions are immutable, so preserve structural sharing and let
   // statePatch skip untouched roots by reference.
-  const state = ensureCharacterTraitAssignments(snapshot.state, gameData);
+  const traitState = ensureCharacterTraitAssignments(snapshot.state, gameData);
+  const state =
+    action.type === "advance-week" || action.type === "official-match"
+      ? repairStaleActiveMatchContext(traitState)
+      : traitState;
   const teamSelection = cloneTeamSelection(snapshot.teamSelection);
   const applied = applyActionByType(state, teamSelection, action, context);
 
