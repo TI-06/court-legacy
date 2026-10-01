@@ -222,9 +222,7 @@ describe("school management screen", () => {
         name: "練習テーマを選択してください",
       }),
     ).toBeDisabled();
-    fireEvent.click(
-      within(dialog).getByRole("button", { name: "攻撃" }),
-    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "攻撃" }));
     fireEvent.click(
       within(dialog).getByRole("button", { name: "1300を使って実施" }),
     );
@@ -246,7 +244,7 @@ describe("school management screen", () => {
     fireEvent.click(
       within(dialog)
         .getByRole("group", { name: "トップチーム講習分野" })
-        .querySelector('button:nth-child(3)')!,
+        .querySelector("button:nth-child(3)")!,
     );
     fireEvent.click(
       within(dialog).getByRole("button", { name: "1500を使って実施" }),
