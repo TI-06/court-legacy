@@ -1,0 +1,25 @@
+name: Phase52 UI Format Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase52-opponent-targeting-ui
+    paths:
+      - ".github/workflows/phase52-ui-format.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: |
+          npx prettier src/features/match/MatchCommandPanel.tsx --write
+          git diff -- src/features/match/MatchCommandPanel.tsx
