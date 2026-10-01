@@ -79,6 +79,9 @@ export interface SoakSpecialAbilityFlow {
   normalAcquired: number;
   rareAcquired: number;
   superRareAcquired: number;
+  superRareFromEvent: number;
+  superRareFromMatch: number;
+  superRareFromOther: number;
   negativeAcquired: number;
   negativeRecovered: number;
 }
@@ -204,6 +207,9 @@ function emptySpecialAbilityFlow(): SoakSpecialAbilityFlow {
     normalAcquired: 0,
     rareAcquired: 0,
     superRareAcquired: 0,
+    superRareFromEvent: 0,
+    superRareFromMatch: 0,
+    superRareFromOther: 0,
     negativeAcquired: 0,
     negativeRecovered: 0,
   };
@@ -216,6 +222,9 @@ function addSpecialAbilityFlow(
   target.normalAcquired += delta.normalAcquired;
   target.rareAcquired += delta.rareAcquired;
   target.superRareAcquired += delta.superRareAcquired;
+  target.superRareFromEvent += delta.superRareFromEvent;
+  target.superRareFromMatch += delta.superRareFromMatch;
+  target.superRareFromOther += delta.superRareFromOther;
   target.negativeAcquired += delta.negativeAcquired;
   target.negativeRecovered += delta.negativeRecovered;
 }
@@ -568,10 +577,20 @@ export function advanceSoakUntilWeekChanges(
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
     const next = applied.snapshot;
-    addSpecialAbilityFlow(
-      specialAbilityFlow,
-      observeSoakSpecialAbilityFlow(current, next),
-    );
+    const specialAbilityDelta = observeSoakSpecialAbilityFlow(current, next);
+    if (specialAbilityDelta.superRareAcquired > 0) {
+      if (action.type === "event-choice") {
+        specialAbilityDelta.superRareFromEvent +=
+          specialAbilityDelta.superRareAcquired;
+      } else if (action.type === "match-command") {
+        specialAbilityDelta.superRareFromMatch +=
+          specialAbilityDelta.superRareAcquired;
+      } else {
+        specialAbilityDelta.superRareFromOther +=
+          specialAbilityDelta.superRareAcquired;
+      }
+    }
+    addSpecialAbilityFlow(specialAbilityFlow, specialAbilityDelta);
     actionCount += 1;
     assertSoakInvariants(next, { actionCount });
 
@@ -774,7 +793,7 @@ function formatRunSummary(report: SoakRunReport): string {
   const specialAbilityDetail = finalMetrics
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
-  const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
+  const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}(event=${report.specialAbilityFlow.superRareFromEvent},match=${report.specialAbilityFlow.superRareFromMatch},other=${report.specialAbilityFlow.superRareFromOther})/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
