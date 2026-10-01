@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
+import type { PvpChallengeInProgressResponse } from "../../../src/domain/pvp/pvpContracts";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import type {
@@ -284,7 +285,9 @@ describe("Phase 16 PvP command resume route", () => {
       playerId: target.playerId,
     });
 
-    const publicTargets = saveInput.publicResponse.segment.opponentTargets;
+    const savedPublicResponse =
+      saveInput.publicResponse as PvpChallengeInProgressResponse;
+    const publicTargets = savedPublicResponse.segment.opponentTargets ?? [];
     expect(publicTargets.length).toBeGreaterThan(0);
     expect(publicTargets).toContainEqual(target);
     expect(Object.keys(publicTargets[0]!).sort()).toEqual([
@@ -294,7 +297,7 @@ describe("Phase 16 PvP command resume route", () => {
       "role",
     ]);
 
-    const serialized = JSON.stringify(saveInput.publicResponse);
+    const serialized = JSON.stringify(savedPublicResponse);
     expect(serialized).not.toContain("abilities");
     expect(serialized).not.toContain("hiddenTraitIds");
     expect(serialized).not.toContain("traitIds");
