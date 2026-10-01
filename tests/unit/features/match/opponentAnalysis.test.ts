@@ -68,7 +68,7 @@ describe("opponentAnalysis", () => {
         expect.objectContaining({
           displayName: expect.any(String),
           position: expect.any(String),
-          abilityGrade: expect.stringMatching(/^[S-F]$/),
+          abilityGrade: expect.stringMatching(/^(S|A|B|C|D|E|F|G)$/),
           specialAbilityNames: expect.any(Array),
         }),
       ]),
