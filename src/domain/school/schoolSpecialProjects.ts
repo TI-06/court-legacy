@@ -161,6 +161,17 @@ export function activeSchoolSpecialProjects(
   return current?.yearIndex === state.yearIndex ? current : null;
 }
 
+export function hasActiveSchoolSpecialProject(
+  state: GameState,
+  projectId: SchoolSpecialProjectId,
+): boolean {
+  return (
+    activeSchoolSpecialProjects(state)?.purchasedProjectIds.includes(
+      projectId,
+    ) ?? false
+  );
+}
+
 export function schoolSpecialProjectRemainingSlots(state: GameState): number {
   return Math.max(
     0,
