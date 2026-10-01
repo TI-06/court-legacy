@@ -119,6 +119,30 @@ describe("Phase18 soak production action driver", () => {
     ]);
   });
 
+  it("does not flag a transient zero ledger balance unless a week starts at zero funds", async () => {
+    const { createSoakSnapshot, buildBalanceObservations } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-funds-observation");
+    const metrics = captureSoakSnapshotMetrics(snapshot);
+
+    const transient = buildBalanceObservations([
+      { ...metrics, fundsMin: 0, zeroFundWeeks: 0 },
+    ]);
+    expect(
+      transient.some((observation) => observation.code === "user_funds_zero"),
+    ).toBe(false);
+
+    const persistent = buildBalanceObservations([
+      { ...metrics, fundsMin: 0, zeroFundWeeks: 1 },
+    ]);
+    expect(persistent).toEqual([
+      expect.objectContaining({
+        code: "user_funds_zero",
+        yearIndex: metrics.yearIndex,
+      }),
+    ]);
+  });
+
   it("advances a normal game week through the production game action boundary", async () => {
     const { createSoakSnapshot, advanceSoakUntilWeekChanges } =
       await loadSubject();
