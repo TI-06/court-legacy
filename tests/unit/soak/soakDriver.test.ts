@@ -22,6 +22,16 @@ interface SoakDriverSubject {
   buildBalanceObservations(
     yearly: readonly ReturnType<typeof captureSoakSnapshotMetrics>[],
   ): Array<{ code: string; message: string; yearIndex: number }>;
+  observeSoakSpecialAbilityFlow(
+    before: CloudGameSnapshot,
+    after: CloudGameSnapshot,
+  ): {
+    normalAcquired: number;
+    rareAcquired: number;
+    superRareAcquired: number;
+    negativeAcquired: number;
+    negativeRecovered: number;
+  };
 }
 
 async function loadSubject(): Promise<SoakDriverSubject> {
@@ -70,6 +80,37 @@ describe("Phase18 soak production action driver", () => {
     );
   });
 
+  it("uses maxed facilities to exercise all four annual investment categories without crossing the reserve", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase50-investment-policy");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    for (const facility of Object.keys(school.facilities) as Array<
+      keyof typeof school.facilities
+    >) {
+      school.facilities[facility] = 50;
+    }
+
+    const first = applySoakManagementPolicy(snapshot);
+    const plan = first.snapshot.state.schoolManagement.investmentPlan;
+
+    expect(first.actionCount).toBe(5);
+    expect(plan).toMatchObject({
+      yearIndex: snapshot.state.yearIndex,
+      developmentFocus: "attack",
+      externalSpecialist: "attacker",
+      campTier: "elite",
+      scoutingTier: "national",
+    });
+    expect(
+      first.snapshot.state.schools[first.snapshot.state.userSchoolId]!.funds,
+    ).toBeGreaterThanOrEqual(300);
+
+    const second = applySoakManagementPolicy(first.snapshot);
+    expect(second.actionCount).toBe(0);
+  });
+
   it("keeps the management reserve instead of spending the school below 300", async () => {
     const { createSoakSnapshot, applySoakManagementPolicy } =
       await loadSubject();
@@ -83,6 +124,28 @@ describe("Phase18 soak production action driver", () => {
     expect(result.actionCount).toBe(0);
     expect(resultSchool.funds).toBe(300);
     expect(resultState.schoolManagement.assistantCoach).toBeNull();
+  });
+
+  it("counts in-career special ability acquisition and negative recovery separately", async () => {
+    const { createSoakSnapshot, observeSoakSpecialAbilityFlow } =
+      await loadSubject();
+    const before = createSoakSnapshot("phase50-special-flow");
+    const after = createSoakSnapshot("phase50-special-flow");
+    const playerId = before.state.schools[before.state.userSchoolId]!.playerIds[0]!;
+    before.state.players[playerId]!.specialAbilityIds = ["serve_unstable"];
+    after.state.players[playerId]!.specialAbilityIds = [
+      "attack_course",
+      "elite_serve_craftsman",
+      "gold_commander",
+    ];
+
+    expect(observeSoakSpecialAbilityFlow(before, after)).toEqual({
+      normalAcquired: 1,
+      rareAcquired: 1,
+      superRareAcquired: 1,
+      negativeAcquired: 0,
+      negativeRecovered: 1,
+    });
   });
 
   it("compares user strength with national contenders instead of the full CPU field", async () => {
