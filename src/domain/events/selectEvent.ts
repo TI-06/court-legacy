@@ -217,7 +217,11 @@ function hasRecentSuperRareEventAwakening(
   state: GameState,
   data: GameDataRegistry,
 ): boolean {
-  for (let index = state.eventMemory.history.length - 1; index >= 0; index -= 1) {
+  for (
+    let index = state.eventMemory.history.length - 1;
+    index >= 0;
+    index -= 1
+  ) {
     const occurrence = state.eventMemory.history[index];
     if (!occurrence) continue;
     if (
