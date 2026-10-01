@@ -8,6 +8,8 @@ on:
       - ".github/workflows/phase50-investment-long-balance.yml"
       - "src/dev/soak/**"
       - "tests/unit/soak/**"
+      - "src/domain/player/matchSpecialAbilityAwakening.ts"
+      - "tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts"
 
 permissions:
   contents: read
@@ -23,8 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Focused soak driver tests
-        run: npx vitest run tests/unit/soak/soakDriver.test.ts
+      - name: Focused Phase50 tests
+        run: npx vitest run tests/unit/soak/soakDriver.test.ts tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts
       - name: 10-season balance
         run: npm run soak:balance -- --seed phase50-balance-a --seed phase50-balance-b
       - name: 30-season investment balance
