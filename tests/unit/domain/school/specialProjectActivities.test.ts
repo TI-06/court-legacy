@@ -69,8 +69,6 @@ describe("Phase51 special project activities", () => {
         ?.pendingUniversityJointTraining?.eligibleDate;
     expect(eligibleDate).toBe(addWeeks(state.date, 1));
 
-    const beforeTotal = Object.values(scheduled.state ?? {}).length;
-    void beforeTotal;
     scheduled.date = eligibleDate!;
 
     const resolved = resolveDueUniversityJointTraining(scheduled, gameData);
