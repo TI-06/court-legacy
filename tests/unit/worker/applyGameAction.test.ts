@@ -614,13 +614,88 @@ describe("applyGameAction", () => {
     expect(snapshot.state.schoolManagement.specialProjects).toBeUndefined();
   });
 
-  it("still rejects Phase51 activities whose gameplay effect is not ready", () => {
+  it("purchases an elite expedition and schedules the strong practice opponent atomically", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 500;
+    school.facilities.analysisRoom = 50;
+    school.facilities.scoutingNetwork = 50;
+    const opponent = Object.values(snapshot.state.schools).find(
+      (candidate) => candidate.id !== snapshot.state.userSchoolId,
+    )!;
+    opponent.reputation = "elite";
+    opponent.reputationPoints = 1000;
+
+    const result = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "elite-expedition",
+    });
+
+    expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(3800);
+    expect(
+      result.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    ).toBe(opponent.id);
+    expect(result.state.schoolManagement.specialProjects).toMatchObject({
+      yearIndex: result.state.yearIndex,
+      purchasedProjectIds: ["elite-expedition"],
+    });
+  });
+
+  it("stores a one-shot university joint-training reservation with its selected focus", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.trainingRoom = 50;
+    school.facilities.dormitory = 50;
+
+    const result = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "university-joint-training",
+      option: "defense",
+    });
+
+    expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(3700);
+    expect(
+      result.state.schoolManagement.specialProjects?.pendingActivity,
+    ).toMatchObject({
+      kind: "university-joint-training",
+      focus: "defense",
+    });
+  });
+
+  it("schedules a targeted top-team clinic event for the next week", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.analysisRoom = 50;
+    const targetPlayerId = school.playerIds[0]!;
+
+    const result = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "top-team-clinic",
+      targetPlayerId,
+      option: "attack",
+    });
+
+    expect(result.state.schools[result.state.userSchoolId]!.funds).toBe(3500);
+    expect(result.state.eventMemory.scheduledFollowUps.at(-1)).toMatchObject({
+      eventId: "event.phase51-top-team-clinic-attack",
+      actorPlayerIds: [targetPlayerId],
+    });
+  });
+
+  it("keeps the invitational gated until PR51-4", () => {
     const snapshot = createSnapshot();
 
     try {
       applyGameAction(snapshot, {
         type: "school-special-project",
-        projectId: "elite-expedition",
+        projectId: "invitational-cup",
       });
       throw new Error("expected special project readiness conflict");
     } catch (error) {
