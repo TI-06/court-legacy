@@ -105,6 +105,8 @@
 
 最初は購入契約と表示まで。効果はPR51-2/3で個別接続する。
 
+安全のため、各定義は `effectReady: false` で開始する。PR51-1のUIでは費用・条件・内容を確認できるが購入確定は無効。Workerも直接actionを送られた場合は `school_special_project_not_ready` で拒否する。各効果を実装・テストしたPRで対象IDだけ `effectReady: true` に切り替える。
+
 ---
 
 ## PR51-2: Lv50年間プロジェクト4種
