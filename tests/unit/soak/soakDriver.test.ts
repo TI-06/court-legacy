@@ -29,6 +29,9 @@ interface SoakDriverSubject {
     normalAcquired: number;
     rareAcquired: number;
     superRareAcquired: number;
+    superRareFromEvent: number;
+    superRareFromMatch: number;
+    superRareFromOther: number;
     negativeAcquired: number;
     negativeRecovered: number;
   };
@@ -144,6 +147,9 @@ describe("Phase18 soak production action driver", () => {
       normalAcquired: 1,
       rareAcquired: 1,
       superRareAcquired: 1,
+      superRareFromEvent: 0,
+      superRareFromMatch: 0,
+      superRareFromOther: 0,
       negativeAcquired: 0,
       negativeRecovered: 1,
     });
