@@ -414,7 +414,9 @@ function specialProjectAction(
   const yearOffset = Math.max(0, state.yearIndex - 1);
   const ordered = SPECIAL_PROJECT_POLICY.map(
     (_, index) =>
-      SPECIAL_PROJECT_POLICY[(index + yearOffset) % SPECIAL_PROJECT_POLICY.length]!,
+      SPECIAL_PROJECT_POLICY[
+        (index + yearOffset) % SPECIAL_PROJECT_POLICY.length
+      ]!,
   );
 
   for (const projectId of ordered) {
@@ -431,10 +433,7 @@ function specialProjectAction(
       continue;
     }
 
-    if (
-      projectId === "elite-expedition" ||
-      projectId === "invitational-cup"
-    ) {
+    if (projectId === "elite-expedition" || projectId === "invitational-cup") {
       if (
         findDueUserOfficialMatch(state) ||
         state.weeklySchedule.practiceMatch.scheduledOpponentId ||
@@ -479,7 +478,8 @@ function specialProjectAction(
     if (projectId === "top-team-clinic") {
       const school = state.schools[state.userSchoolId]!;
       const targetPlayerId = school.playerIds.find(
-        (playerId) => state.players[playerId] && !state.players[playerId]!.injury,
+        (playerId) =>
+          state.players[playerId] && !state.players[playerId]!.injury,
       );
       if (!targetPlayerId) continue;
       const focuses = [
@@ -931,10 +931,12 @@ function formatRunSummary(report: SoakRunReport): string {
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
   const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}(event=${report.specialAbilityFlow.superRareFromEvent},match=${report.specialAbilityFlow.superRareFromMatch},other=${report.specialAbilityFlow.superRareFromOther})/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
-  const projectDetail = `projects=${Object.entries(report.specialProjectPurchases)
-    .filter(([, count]) => count > 0)
-    .map(([projectId, count]) => `${projectId}:${count}`)
-    .join(",") || "none"}`;
+  const projectDetail = `projects=${
+    Object.entries(report.specialProjectPurchases)
+      .filter(([, count]) => count > 0)
+      .map(([projectId, count]) => `${projectId}:${count}`)
+      .join(",") || "none"
+  }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
   return [
     `seed=${report.metadata.seed}`,
