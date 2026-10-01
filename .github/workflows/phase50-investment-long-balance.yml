@@ -10,6 +10,8 @@ on:
       - "tests/unit/soak/**"
       - "src/domain/player/matchSpecialAbilityAwakening.ts"
       - "tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts"
+      - "src/domain/events/selectEvent.ts"
+      - "tests/unit/domain/events/eventSelection.test.ts"
 
 permissions:
   contents: read
@@ -26,7 +28,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Focused Phase50 tests
-        run: npx vitest run tests/unit/soak/soakDriver.test.ts tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts
+        run: npx vitest run tests/unit/soak/soakDriver.test.ts tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts tests/unit/domain/events/eventSelection.test.ts
       - name: 10-season balance
         run: npm run soak:balance -- --seed phase50-balance-a --seed phase50-balance-b
       - name: 30-season investment balance
