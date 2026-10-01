@@ -1,0 +1,38 @@
+name: Phase51 Long Balance Validation
+
+on:
+  push:
+    branches:
+      - test/phase51-special-project-soak
+    paths:
+      - ".github/workflows/phase51-long-balance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run 10-season Phase51 balance seeds
+        run: npm run soak:balance -- --seed phase51-balance-a,phase51-balance-b
+
+  long:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run 30-season Phase51 balance seeds
+        run: npm run soak:long -- --seed phase51-long-a,phase51-long-b,phase51-long-c,phase51-long-d
