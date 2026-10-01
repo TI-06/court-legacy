@@ -1261,11 +1261,23 @@ export function SchoolScreen({
                   (!specialProjectTargetPlayerId || !specialProjectOption))
               }
               onClick={() => {
-                onPurchaseSpecialProject?.(
-                  selectedSpecialProject.id,
-                  specialProjectTargetPlayerId ?? undefined,
-                  specialProjectOption ?? undefined,
-                );
+                if (
+                  selectedSpecialProject.id === "university-joint-training"
+                ) {
+                  onPurchaseSpecialProject?.(
+                    selectedSpecialProject.id,
+                    undefined,
+                    specialProjectOption ?? undefined,
+                  );
+                } else if (selectedSpecialProject.id === "top-team-clinic") {
+                  onPurchaseSpecialProject?.(
+                    selectedSpecialProject.id,
+                    specialProjectTargetPlayerId ?? undefined,
+                    specialProjectOption ?? undefined,
+                  );
+                } else {
+                  onPurchaseSpecialProject?.(selectedSpecialProject.id);
+                }
                 setSelectedSpecialProjectId(null);
                 setSpecialProjectTargetPlayerId(null);
                 setSpecialProjectOption(null);
