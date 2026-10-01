@@ -14,6 +14,7 @@ import {
   applyGameAction,
   GameRuleConflictError,
 } from "../../../worker/game/applyGameAction";
+import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
 
 function createSnapshot(): CloudGameSnapshot {
   const state = createInitialGame({
@@ -568,6 +569,56 @@ describe("applyGameAction", () => {
 
     expect(schoolAfter.facilities.gym).toBe(schoolBefore.facilities.gym + 1);
     expect(schoolAfter.funds).toBeLessThan(schoolBefore.funds);
+  });
+
+  it("accepts only known Phase51 special project ids in the action contract", () => {
+    expect(() =>
+      gameActionRequestSchema.parse({
+        operationId: "phase51-valid-project",
+        revision: 7,
+        action: {
+          type: "school-special-project",
+          projectId: "national-data-bank",
+        },
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      gameActionRequestSchema.parse({
+        operationId: "phase51-invalid-project",
+        revision: 7,
+        action: {
+          type: "school-special-project",
+          projectId: "unknown-project",
+        },
+      }),
+    ).toThrow();
+  });
+
+  it("rejects Phase51 project spending until that project's gameplay effect is ready", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.facilities.analysisRoom = 50;
+    const fundsBefore = school.funds;
+
+    try {
+      applyGameAction(snapshot, {
+        type: "school-special-project",
+        projectId: "national-data-bank",
+      });
+      throw new Error("expected special project readiness conflict");
+    } catch (error) {
+      expect(error).toBeInstanceOf(GameRuleConflictError);
+      expect((error as GameRuleConflictError).code).toBe(
+        "school_special_project_not_ready",
+      );
+    }
+
+    expect(snapshot.state.schools[snapshot.state.userSchoolId]!.funds).toBe(
+      fundsBefore,
+    );
+    expect(snapshot.state.schoolManagement.specialProjects).toBeUndefined();
   });
 
   it("resolves a pending event choice using server game data", () => {
