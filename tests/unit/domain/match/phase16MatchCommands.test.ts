@@ -416,7 +416,9 @@ describe("Phase16 match commands", () => {
     });
   });
 
-  it("rejects own players and non-attackers as Phase52 opponent targets without mutation", () => {
+  it(
+    "rejects own players and non-attackers as Phase52 opponent targets without mutation",
+    () => {
     const context = createContext("phase52-invalid-target-world");
     const match = findOpponentRunDecision(context);
     const before = structuredClone(match);
@@ -454,7 +456,8 @@ describe("Phase16 match commands", () => {
       );
       expect(match).toEqual(before);
     }
-  });
+    },
+  );
 
   it("rejects Phase52 temporary targeting during a set break", () => {
     const context = makeHomeDominant(
@@ -477,7 +480,9 @@ describe("Phase16 match commands", () => {
     expect(match).toEqual(before);
   });
 
-  it("expires Phase52 temporary targeting through simulation without changing persistent tactics", () => {
+  it(
+    "expires Phase52 temporary targeting through simulation without changing persistent tactics",
+    () => {
     const context = createContext("phase52-target-expiry-world");
     const match = findOpponentRunDecision(context);
     const persistentTactics = structuredClone(
@@ -519,10 +524,11 @@ describe("Phase16 match commands", () => {
     }
 
     expect(current.runtime?.serveTarget ?? null).toBeNull();
-    expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
-      persistentTactics,
-    );
-  });
+      expect(context.state.schools[context.homeSchoolId]!.tactics).toEqual(
+        persistentTactics,
+      );
+    },
+  );
 
   it("substitutes one court player with one bench player only inside the match", () => {
     const context = createContext("substitution-world");
