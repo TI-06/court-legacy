@@ -9,8 +9,10 @@ on:
       - "src/data/events/rare.json"
       - "src/dev/soak/**"
       - "src/domain/player/matchSpecialAbilityAwakening.ts"
+      - "src/domain/events/selectEvent.ts"
       - "tests/unit/data/specialAbilityEvents.test.ts"
       - "tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts"
+      - "tests/unit/domain/events/eventSelection.test.ts"
       - "tests/unit/soak/**"
 
 permissions:
