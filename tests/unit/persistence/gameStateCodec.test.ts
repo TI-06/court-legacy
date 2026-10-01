@@ -1,9 +1,6 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
-import {
-  matchId,
-  type GameDate,
-} from "../../../src/domain/model/identifiers";
+import { matchId, type GameDate } from "../../../src/domain/model/identifiers";
 import { startMatch } from "../../../src/domain/match/simulateMatch";
 import { SeededRandom } from "../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../src/domain/selectors/matchSelectors";
