@@ -10,6 +10,13 @@ import {
 import { evaluateAssistantCoachContract } from "../../domain/school/assistantCoach";
 import { evaluateSchoolInvestment } from "../../domain/school/schoolInvestment";
 import {
+  evaluateSchoolSpecialProject,
+  SCHOOL_SPECIAL_PROJECT_DEFINITIONS,
+  type SchoolSpecialProjectId,
+} from "../../domain/school/schoolSpecialProjects";
+import { activeInvitationalCup } from "../../domain/school/invitationalCup";
+import { hasRequiredOfficialMatch } from "../../domain/tournament/progressOfficialTournaments";
+import {
   FACILITY_DEFINITIONS,
   evaluateFacilityUpgrade,
 } from "../../domain/school/facilityUpgrade";
@@ -122,6 +129,7 @@ export interface SoakRunReport {
     completedWeeks: number;
     actions: number;
     schemaVersion: number;
+    finalSnapshotJsonBytes: number;
   };
   yearly: SoakSnapshotMetrics[];
   facilityMilestones: SoakFacilityMilestoneSummary;
@@ -156,6 +164,7 @@ interface SoakYearTracker {
   growthTypeByPlayerId: Record<string, string>;
   nationalParticipantStrengthValues: number[];
   observedNationalTournamentIds: Set<string>;
+  specialProjectIds: Set<SchoolSpecialProjectId>;
 }
 
 export class SoakActionGuardError extends Error {
@@ -378,6 +387,106 @@ function schoolInvestmentAction(
   return null;
 }
 
+function specialProjectAction(
+  snapshot: CloudGameSnapshot,
+): Extract<GameAction, { type: "school-special-project" }> | null {
+  const state = snapshot.state;
+  const yearOffset = Math.max(0, state.yearIndex - 1);
+  const definitions = SCHOOL_SPECIAL_PROJECT_DEFINITIONS;
+  const ordered = definitions.map(
+    (_, index) => definitions[(index + yearOffset) % definitions.length]!,
+  );
+
+  for (const definition of ordered) {
+    const evaluation = evaluateSchoolSpecialProject(state, definition.id);
+    if (
+      !definition.effectReady ||
+      !evaluation.allowed ||
+      evaluation.fundsAfter < SOAK_MANAGEMENT_RESERVE
+    ) {
+      continue;
+    }
+
+    if (definition.id === "elite-expedition") {
+      if (
+        hasRequiredOfficialMatch(state) ||
+        state.weeklySchedule.practiceMatch.scheduledOpponentId
+      ) {
+        continue;
+      }
+      return {
+        type: "school-special-project",
+        projectId: definition.id,
+      };
+    }
+
+    if (definition.id === "university-joint-training") {
+      if (
+        state.schoolManagement.specialProjects?.pendingUniversityJointTraining
+      ) {
+        continue;
+      }
+      const focus = INVESTMENT_DEVELOPMENT_FOCUSES[
+        yearOffset % INVESTMENT_DEVELOPMENT_FOCUSES.length
+      ]!;
+      return {
+        type: "school-special-project",
+        projectId: definition.id,
+        option: focus,
+      };
+    }
+
+    if (definition.id === "top-team-clinic") {
+      const school = state.schools[state.userSchoolId]!;
+      const target = school.playerIds
+        .map((playerId) => state.players[playerId])
+        .filter((player) => player && !player.injury)
+        .sort(
+          (left, right) =>
+            (left!.specialAbilityIds?.length ?? 0) -
+              (right!.specialAbilityIds?.length ?? 0) ||
+            String(left!.id).localeCompare(String(right!.id)),
+        )[0];
+      if (!target) continue;
+      const focuses = [
+        "attack",
+        "defense",
+        "serve",
+        "setting",
+        "block",
+        "mental",
+      ] as const;
+      return {
+        type: "school-special-project",
+        projectId: definition.id,
+        targetPlayerId: target.id,
+        option: focuses[yearOffset % focuses.length]!,
+      };
+    }
+
+    if (definition.id === "invitational-cup") {
+      if (
+        hasRequiredOfficialMatch(state) ||
+        state.weeklySchedule.practiceMatch.scheduledOpponentId ||
+        activeInvitationalCup(state)?.currentRound
+      ) {
+        continue;
+      }
+      return {
+        type: "school-special-project",
+        projectId: definition.id,
+      };
+    }
+
+    return {
+      type: "school-special-project",
+      projectId: definition.id,
+    };
+  }
+
+  return null;
+}
+
 function facilityAction(
   snapshot: CloudGameSnapshot,
 ): Extract<GameAction, { type: "facility-upgrade" }> | null {
@@ -445,6 +554,14 @@ export function applySoakManagementPolicy(
     const nextInvestmentAction = schoolInvestmentAction(current);
     if (!nextInvestmentAction) break;
     current = applyAction(current, nextInvestmentAction).snapshot;
+    actionCount += 1;
+    assertSoakInvariants(current, { actionCount });
+  }
+
+  for (let projectIndex = 0; projectIndex < 2; projectIndex += 1) {
+    const nextProjectAction = specialProjectAction(current);
+    if (!nextProjectAction) break;
+    current = applyAction(current, nextProjectAction).snapshot;
     actionCount += 1;
     assertSoakInvariants(current, { actionCount });
   }
@@ -667,6 +784,7 @@ function createYearTracker(snapshot: CloudGameSnapshot): SoakYearTracker {
     growthTypeByPlayerId: createGrowthTypeMap(snapshot),
     nationalParticipantStrengthValues: [],
     observedNationalTournamentIds: new Set<string>(),
+    specialProjectIds: new Set<SchoolSpecialProjectId>(),
   };
 }
 
@@ -714,6 +832,17 @@ function observeNationalParticipants(
   }
 }
 
+function observeSpecialProjects(
+  tracker: SoakYearTracker,
+  snapshot: CloudGameSnapshot,
+): void {
+  const projects = snapshot.state.schoolManagement.specialProjects;
+  if (projects?.yearIndex !== tracker.academicYearIndex) return;
+  for (const projectId of projects.purchasedProjectIds) {
+    tracker.specialProjectIds.add(projectId);
+  }
+}
+
 function observeWeekStart(
   tracker: SoakYearTracker,
   snapshot: CloudGameSnapshot,
@@ -721,6 +850,7 @@ function observeWeekStart(
   observePlayerGrowthTypes(tracker, snapshot);
   observeAssistantCoach(tracker, snapshot);
   observeNationalParticipants(tracker, snapshot);
+  observeSpecialProjects(tracker, snapshot);
 
   const funds = userFunds(snapshot);
   tracker.fundsMin = Math.min(tracker.fundsMin, funds);
@@ -735,6 +865,7 @@ function observeSameYearEnd(
 ): void {
   observePlayerGrowthTypes(tracker, snapshot);
   observeNationalParticipants(tracker, snapshot);
+  observeSpecialProjects(tracker, snapshot);
 
   const funds = userFunds(snapshot);
   tracker.fundsMin = Math.min(tracker.fundsMin, funds);
@@ -794,6 +925,11 @@ function formatRunSummary(report: SoakRunReport): string {
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
   const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}(event=${report.specialAbilityFlow.superRareFromEvent},match=${report.specialAbilityFlow.superRareFromMatch},other=${report.specialAbilityFlow.superRareFromOther})/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
+  const projectDetail = finalMetrics
+    ? `projects=${Object.entries(finalMetrics.specialProjectCounts)
+        .map(([projectId, count]) => `${projectId}:${count}`)
+        .join(",") || "none"} invitational-titles=${finalMetrics.userInvitationalTitles}`
+    : "projects=none invitational-titles=0";
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -806,6 +942,8 @@ function formatRunSummary(report: SoakRunReport): string {
     nationalDetail,
     specialAbilityDetail,
     specialFlowDetail,
+    projectDetail,
+    `save-bytes=${report.metadata.finalSnapshotJsonBytes}`,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -881,6 +1019,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       nationalParticipantStrengthValues:
         tracker.nationalParticipantStrengthValues,
       assistantCoachChanges: tracker.assistantCoachChanges,
+      specialProjectIds: [...tracker.specialProjectIds],
     });
     yearly.push({ ...metrics, assistantCoach: tracker.assistantCoach });
     tracker = createYearTracker(snapshot);
@@ -898,6 +1037,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       completedWeeks,
       actions,
       schemaVersion: snapshot.state.schemaVersion,
+      finalSnapshotJsonBytes: new TextEncoder().encode(JSON.stringify(snapshot))
+        .byteLength,
     },
     yearly,
     facilityMilestones,
