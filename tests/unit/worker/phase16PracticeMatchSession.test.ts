@@ -156,20 +156,20 @@ describe("Phase16 resumable practice match session", () => {
   it(
     "re-opens the same persisted practice match after a reload-style advance retry",
     () => {
-    const { snapshot, opponentId } = createSnapshot(
-      "phase16-practice-resume-after-reload",
-    );
-    const started = applyServerGameAction(snapshot, { type: "advance-week" });
-    const startedMatch = started.state.activeMatch;
-    if (!startedMatch) throw new Error("active practice match missing");
+      const { snapshot, opponentId } = createSnapshot(
+        "phase16-practice-resume-after-reload",
+      );
+      const started = applyServerGameAction(snapshot, {
+        type: "advance-week",
+      });
+      const startedMatch = started.state.activeMatch;
+      if (!startedMatch) throw new Error("active practice match missing");
 
       const resumed = applyServerGameAction(
         continueSnapshot(snapshot, started),
-        {
-          type: "advance-week",
-        },
+        { type: "advance-week" },
       );
-    const outcome = advanceWeekOutcome(resumed);
+      const outcome = advanceWeekOutcome(resumed);
 
       expect(outcome.weekAdvanced).toBe(false);
       expect(outcome.pendingMatchPresentation?.kind).toBe("practice");
