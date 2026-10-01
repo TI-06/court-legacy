@@ -1,0 +1,320 @@
+[
+  {
+    "id": "event.phase51-clinic-attack",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・攻撃",
+    "bodyTemplate": "トップレベルの攻撃指導を受ける機会が来た。どの技術を重点的に磨くか。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "course",
+        "label": "コース打ちを磨く",
+        "detail": "実戦的な打ち分けを重点的に学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "attack_course",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "clutch",
+        "label": "勝負所の攻撃を磨く",
+        "detail": "終盤でも思い切って振り切る感覚を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "attack_clutch",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-clinic-defense",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・守備",
+    "bodyTemplate": "トップレベルの守備指導を受ける機会が来た。守備の武器を一つ伸ばしたい。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "dig",
+        "label": "ディグを磨く",
+        "detail": "強打への入り方と面の作り方を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "receive_dig",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "range",
+        "label": "守備範囲を広げる",
+        "detail": "一歩目と予測を重点的に磨く。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "receive_range",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-clinic-serve",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・サーブ",
+    "bodyTemplate": "トップレベルのサーブ指導を受ける機会が来た。安定か狙いか、テーマを絞る。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "stable",
+        "label": "安定感を磨く",
+        "detail": "強さを保ったままミスを減らす技術を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "serve_stable",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "aim",
+        "label": "狙い打ちを磨く",
+        "detail": "相手の弱点へ打ち分ける感覚を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "serve_aim",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-clinic-setting",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・セット",
+    "bodyTemplate": "トップレベルのセッター指導を受ける機会が来た。安定か配球か、磨くテーマを決める。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "stable",
+        "label": "トスの安定を磨く",
+        "detail": "苦しい体勢でもぶれないトスを学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "set_stable",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "distribution",
+        "label": "配球を磨く",
+        "detail": "相手ブロックを散らす組み立てを学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "set_distribution",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-clinic-block",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・ブロック",
+    "bodyTemplate": "トップレベルのブロック指導を受ける機会が来た。読みか連携か、重点を決める。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "read",
+        "label": "読みを磨く",
+        "detail": "相手セッターと助走から攻撃を読む。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "block_read",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "id": "team",
+        "label": "連携を磨く",
+        "detail": "横との間合いと閉じ方を重点的に学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "block_team",
+            "amount": 2
+          },
+          {
+            "type": "trust-change",
+            "amount": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "event.phase51-clinic-mental",
+    "version": 1,
+    "category": "practice",
+    "title": "トップチーム講習・メンタル",
+    "bodyTemplate": "トップレベルの選手から試合中の考え方を学ぶ機会が来た。勝負強さか切り替えを磨く。",
+    "tags": [
+      "phase51",
+      "top-team-clinic",
+      "scheduled-only"
+    ],
+    "trigger": {
+      "injuryState": "healthy"
+    },
+    "weight": 1,
+    "cooldownWeeks": 0,
+    "oncePerCareer": false,
+    "actorCount": 1,
+    "choices": [
+      {
+        "id": "clutch",
+        "label": "勝負強さを磨く",
+        "detail": "終盤でも普段通りプレーする準備を学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "mental_clutch",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "id": "reset",
+        "label": "切り替えを磨く",
+        "detail": "ミスを引きずらないルーティンを学ぶ。",
+        "effects": [
+          {
+            "type": "special-ability-acquire",
+            "abilityId": "mental_reset",
+            "amount": 2
+          },
+          {
+            "type": "morale-change",
+            "amount": 3
+          }
+        ]
+      }
+    ]
+  }
+]
