@@ -5,10 +5,7 @@
     "category": "rare",
     "title": "誰も止められない一日",
     "bodyTemplate": "{{player}}が練習中、どんなトスからでも得点を決める特別な集中状態に入った。",
-    "tags": [
-      "rare",
-      "zone"
-    ],
+    "tags": ["rare", "zone"],
     "trigger": {
       "abilityRanges": {
         "spike": {
@@ -73,10 +70,7 @@
     "category": "rare",
     "title": "六人の呼吸",
     "bodyTemplate": "紅白戦で六人の判断が重なり、指示なしでも守備から攻撃まで繋がった。",
-    "tags": [
-      "rare",
-      "team"
-    ],
+    "tags": ["rare", "team"],
     "trigger": {
       "relationship": {
         "min": 70
@@ -138,20 +132,11 @@
     "category": "rare",
     "title": "サーブの再現性が一段上がる",
     "bodyTemplate": "{{player}}が狙いと安定を両立する感覚をつかみ、同じフォームからコースを打ち分け始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "serve_stable",
-        "serve_aim"
-      ],
+      "requiredSpecialAbilityIds": ["serve_stable", "serve_aim"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_serve_craftsman"
-      ],
+      "excludedSpecialAbilityIds": ["elite_serve_craftsman"],
       "abilityRanges": {
         "serve": {
           "min": 75
@@ -217,20 +202,11 @@
     "category": "rare",
     "title": "一本で流れを変えるサーブ",
     "bodyTemplate": "{{player}}のジャンプサーブが終盤でも崩れず、一本で相手を押し切る威力に届き始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "jump_serve_mastery",
-        "serve_late_game"
-      ],
+      "requiredSpecialAbilityIds": ["jump_serve_mastery", "serve_late_game"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_service_ace"
-      ],
+      "excludedSpecialAbilityIds": ["elite_service_ace"],
       "abilityRanges": {
         "serve": {
           "min": 82
@@ -296,20 +272,11 @@
     "category": "rare",
     "title": "狙う相手が見える",
     "bodyTemplate": "{{player}}が相手の弱点を見抜き、同じフォームから狙ったレシーバーへ圧力をかけ続けている。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "receive_breaker",
-        "serve_aim"
-      ],
+      "requiredSpecialAbilityIds": ["receive_breaker", "serve_aim"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_serve_hunter"
-      ],
+      "excludedSpecialAbilityIds": ["elite_serve_hunter"],
       "abilityRanges": {
         "serve": {
           "min": 80
@@ -375,20 +342,11 @@
     "category": "rare",
     "title": "コートが広く見える",
     "bodyTemplate": "{{player}}がブロックと守備位置を同時に見て、空いた場所へ打ち切る感覚をつかんだ。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "attack_course",
-        "attack_blockout"
-      ],
+      "requiredSpecialAbilityIds": ["attack_course", "attack_blockout"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_court_hitter"
-      ],
+      "excludedSpecialAbilityIds": ["elite_court_hitter"],
       "abilityRanges": {
         "spike": {
           "min": 80
@@ -454,20 +412,11 @@
     "category": "rare",
     "title": "高い壁の上を叩く",
     "bodyTemplate": "{{player}}の打点とブロックアウト技術が噛み合い、高い壁にも正面から勝てる形が見えた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "attack_high_contact",
-        "attack_blockout"
-      ],
+      "requiredSpecialAbilityIds": ["attack_high_contact", "attack_blockout"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_block_crusher"
-      ],
+      "excludedSpecialAbilityIds": ["elite_block_crusher"],
       "abilityRanges": {
         "spike": {
           "min": 82
@@ -533,20 +482,11 @@
     "category": "rare",
     "title": "速攻の一瞬が止まって見える",
     "bodyTemplate": "{{player}}が切り返しから最短の助走で入り、速いテンポでも打ち切れるようになってきた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "attack_quick",
-        "attack_transition"
-      ],
+      "requiredSpecialAbilityIds": ["attack_quick", "attack_transition"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_fast_finisher"
-      ],
+      "excludedSpecialAbilityIds": ["elite_fast_finisher"],
       "abilityRanges": {
         "spike": {
           "min": 80
@@ -612,11 +552,7 @@
     "category": "rare",
     "title": "崩れても攻撃が終わらない",
     "bodyTemplate": "{{player}}が後衛でも二段トスでも攻撃参加し、どの局面からでも得点へつなげ始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "attack_backrow",
@@ -624,9 +560,7 @@
         "attack_transition"
       ],
       "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "elite_allround_attacker"
-      ],
+      "excludedSpecialAbilityIds": ["elite_allround_attacker"],
       "abilityRanges": {
         "spike": {
           "min": 78
@@ -699,20 +633,11 @@
     "category": "rare",
     "title": "攻撃全体を動かすトス",
     "bodyTemplate": "{{player}}が安定したトスと配球判断を一つにし、相手ブロックを見ながら攻撃全体を操り始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "set_stable",
-        "set_distribution"
-      ],
+      "requiredSpecialAbilityIds": ["set_stable", "set_distribution"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_game_maker"
-      ],
+      "excludedSpecialAbilityIds": ["elite_game_maker"],
       "abilityRanges": {
         "set": {
           "min": 82
@@ -778,20 +703,11 @@
     "category": "rare",
     "title": "最後まで読ませない",
     "bodyTemplate": "{{player}}がバックセットと配球の間を使い、相手ブロックが跳ぶ直前まで攻撃先を隠せるようになった。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "set_back",
-        "set_distribution"
-      ],
+      "requiredSpecialAbilityIds": ["set_back", "set_distribution"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_deception_set"
-      ],
+      "excludedSpecialAbilityIds": ["elite_deception_set"],
       "abilityRanges": {
         "set": {
           "min": 80
@@ -857,11 +773,7 @@
     "category": "rare",
     "title": "守備範囲が一つにつながる",
     "bodyTemplate": "{{player}}がサーブレシーブからカバーまで迷いなく動き、守備の穴を先回りして埋め始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "receive_serve",
@@ -869,9 +781,7 @@
         "receive_cover"
       ],
       "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "elite_defense_craftsman"
-      ],
+      "excludedSpecialAbilityIds": ["elite_defense_craftsman"],
       "abilityRanges": {
         "receive": {
           "min": 80
@@ -941,20 +851,11 @@
     "category": "rare",
     "title": "強打を正面で止める",
     "bodyTemplate": "{{player}}が強打に押されず、難しいボールも次の攻撃へつなぐ守備を見せ始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "receive_power",
-        "receive_connect"
-      ],
+      "requiredSpecialAbilityIds": ["receive_power", "receive_connect"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_receive_wall"
-      ],
+      "excludedSpecialAbilityIds": ["elite_receive_wall"],
       "abilityRanges": {
         "receive": {
           "min": 84
@@ -1020,20 +921,11 @@
     "category": "rare",
     "title": "ブロックが一枚の壁になる",
     "bodyTemplate": "{{player}}の読みと連携指示が噛み合い、周囲のブロッカーまで同時に動き始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "block_read",
-        "block_team"
-      ],
+      "requiredSpecialAbilityIds": ["block_read", "block_team"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_block_commander"
-      ],
+      "excludedSpecialAbilityIds": ["elite_block_commander"],
       "abilityRanges": {
         "block": {
           "min": 82
@@ -1099,20 +991,11 @@
     "category": "rare",
     "title": "逃げ道を消すブロック",
     "bodyTemplate": "{{player}}がコミットと横の閉じを高い精度で両立し、相手の打つ場所そのものを消している。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "block_commit",
-        "block_close"
-      ],
+      "requiredSpecialAbilityIds": ["block_commit", "block_close"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_shutdown"
-      ],
+      "excludedSpecialAbilityIds": ["elite_shutdown"],
       "abilityRanges": {
         "block": {
           "min": 84
@@ -1178,20 +1061,11 @@
     "category": "rare",
     "title": "一番苦しい一本ほど強い",
     "bodyTemplate": "{{player}}が終盤の接戦でも集中を切らさず、重要な一本で普段以上のプレーを見せている。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "mental_clutch",
-        "mental_focus"
-      ],
+      "requiredSpecialAbilityIds": ["mental_clutch", "mental_focus"],
       "minimumRequiredSpecialAbilityCount": 1,
-      "excludedSpecialAbilityIds": [
-        "elite_clutch"
-      ],
+      "excludedSpecialAbilityIds": ["elite_clutch"],
       "abilityRanges": {
         "mental": {
           "min": 82
@@ -1257,11 +1131,7 @@
     "category": "rare",
     "title": "崩れない心",
     "bodyTemplate": "{{player}}が劣勢でも大会でも表情を変えず、次の一点だけに集中できるようになった。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "elite-awakening"
-    ],
+    "tags": ["rare", "special-ability", "elite-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "mental_comeback",
@@ -1269,9 +1139,7 @@
         "mental_tournament"
       ],
       "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "elite_steel_mental"
-      ],
+      "excludedSpecialAbilityIds": ["elite_steel_mental"],
       "abilityRanges": {
         "mental": {
           "min": 85
@@ -1338,20 +1206,14 @@
     "category": "rare",
     "title": "エースの完成",
     "bodyTemplate": "勝負所で託された{{player}}が、強いブロックを前にしても迷わず決め切った。チームの誰もが次の一本も託そうとしている。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_court_hitter",
         "elite_block_crusher"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_absolute_ace"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_absolute_ace"],
       "abilityRanges": {
         "spike": {
           "min": 92
@@ -1418,20 +1280,14 @@
     "category": "rare",
     "title": "サーブだけで試合を支配する",
     "bodyTemplate": "{{player}}のサーブが威力、精度、狙いのすべてで相手を上回り、一つのローテーションで流れを完全に変えた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_serve_craftsman",
         "elite_service_ace"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_serve_king"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_serve_king"],
       "abilityRanges": {
         "serve": {
           "min": 92
@@ -1495,20 +1351,11 @@
     "category": "rare",
     "title": "攻撃のすべてが手の中にある",
     "bodyTemplate": "{{player}}が相手ブロックの動きを読み切り、どの攻撃手を使っても一枚の壁しか残さない配球を見せた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "elite_game_maker",
-        "elite_deception_set"
-      ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_commander"
-      ],
+      "requiredSpecialAbilityIds": ["elite_game_maker", "elite_deception_set"],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_commander"],
       "abilityRanges": {
         "set": {
           "min": 92
@@ -1575,20 +1422,14 @@
     "category": "rare",
     "title": "コートに落ちる場所がない",
     "bodyTemplate": "{{player}}が強打も軟打も崩れたボールも拾い続け、相手がどこへ打っても得点にならない時間が続いた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_defense_craftsman",
         "elite_receive_wall"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_guardian"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_guardian"],
       "abilityRanges": {
         "receive": {
           "min": 92
@@ -1655,20 +1496,11 @@
     "category": "rare",
     "title": "完全な壁",
     "bodyTemplate": "{{player}}を中心にブロックが完成し、相手の強打が何度打っても前衛を抜けなくなった。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "elite_block_commander",
-        "elite_shutdown"
-      ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_iron_wall"
-      ],
+      "requiredSpecialAbilityIds": ["elite_block_commander", "elite_shutdown"],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_iron_wall"],
       "abilityRanges": {
         "block": {
           "min": 92
@@ -1735,20 +1567,11 @@
     "category": "rare",
     "title": "流れそのものを変える声",
     "bodyTemplate": "苦しい連続失点の中、{{player}}の一本と声掛けを境にチーム全体の動きが変わった。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "elite_clutch",
-        "team_captaincy"
-      ],
+      "requiredSpecialAbilityIds": ["elite_clutch", "team_captaincy"],
       "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_flow_controller"
-      ],
+      "excludedSpecialAbilityIds": ["gold_flow_controller"],
       "abilityRanges": {
         "mental": {
           "min": 88
@@ -1815,20 +1638,11 @@
     "category": "rare",
     "title": "折れない選手",
     "bodyTemplate": "追い込まれた場面で{{player}}だけは普段と同じ呼吸をしていた。劣勢が深いほど、その存在感が増していく。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
-      "requiredSpecialAbilityIds": [
-        "elite_clutch",
-        "elite_steel_mental"
-      ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_indomitable"
-      ],
+      "requiredSpecialAbilityIds": ["elite_clutch", "elite_steel_mental"],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_indomitable"],
       "abilityRanges": {
         "mental": {
           "min": 92
@@ -1895,20 +1709,14 @@
     "category": "rare",
     "title": "六つの局面すべてで戦える",
     "bodyTemplate": "{{player}}が攻撃、守備、つなぎのどこに入っても穴を作らず、ポジションの枠を越えた働きを見せた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_allround_attacker",
         "elite_defense_craftsman"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_total_player"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_total_player"],
       "abilityRanges": {
         "spike": {
           "min": 85
@@ -1987,20 +1795,14 @@
     "category": "rare",
     "title": "見えてからでは間に合わない",
     "bodyTemplate": "{{player}}の速攻がさらに一段速くなり、相手ブロックが反応した時にはすでにボールが床へ向かっていた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_fast_finisher",
         "elite_block_crusher"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_ultra_quick"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_ultra_quick"],
       "abilityRanges": {
         "spike": {
           "min": 90
@@ -2067,20 +1869,14 @@
     "category": "rare",
     "title": "二手先まで見えている",
     "bodyTemplate": "{{player}}が配球と相手前衛の動きを同時に読み、プレーが始まる前から次の展開を作り始めた。",
-    "tags": [
-      "rare",
-      "special-ability",
-      "gold-awakening"
-    ],
+    "tags": ["rare", "special-ability", "gold-awakening"],
     "trigger": {
       "requiredSpecialAbilityIds": [
         "elite_game_maker",
         "elite_block_commander"
       ],
-      "minimumRequiredSpecialAbilityCount": 2,
-      "excludedSpecialAbilityIds": [
-        "gold_court_brain"
-      ],
+      "minimumRequiredSpecialAbilityCount": 1,
+      "excludedSpecialAbilityIds": ["gold_court_brain"],
       "abilityRanges": {
         "decision": {
           "min": 92
