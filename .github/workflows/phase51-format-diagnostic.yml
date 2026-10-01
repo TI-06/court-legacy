@@ -1,0 +1,26 @@
+name: Phase51 Format Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase51-special-activities
+    paths:
+      - ".github/workflows/phase51-format-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Show formatted diff
+        run: |
+          npx prettier src/data/events/phase51-top-team-clinic.json src/domain/school/specialProjectActivities.ts src/features/school/school-economy.css src/features/school/SchoolScreen.tsx tests/unit/domain/school/specialProjectActivities.test.ts tests/unit/features/school/SchoolScreen.test.tsx worker/game/applyGameAction.ts --write
+          git diff -- src/data/events/phase51-top-team-clinic.json src/domain/school/specialProjectActivities.ts src/features/school/school-economy.css src/features/school/SchoolScreen.tsx tests/unit/domain/school/specialProjectActivities.test.ts tests/unit/features/school/SchoolScreen.test.tsx worker/game/applyGameAction.ts
