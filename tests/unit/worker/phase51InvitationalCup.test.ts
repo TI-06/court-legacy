@@ -79,6 +79,38 @@ describe("Phase51 invitational cup worker flow", () => {
     );
   });
 
+  it("routes a Phase52 serve target through the invitational match session", () => {
+    const snapshot = createSnapshot();
+    const purchased = applyServerGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
+    const purchasedSnapshot = continueSnapshot(snapshot, purchased);
+    const started = applyServerGameAction(purchasedSnapshot, {
+      type: "advance-week",
+    });
+    const active = started.state.activeMatch;
+    if (!active) throw new Error("invitational match missing");
+    const opponentSelection =
+      active.homeSchoolId === started.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const playerId = opponentSelection.rotation[0]!.playerId;
+
+    const targeted = applyServerGameAction(
+      continueSnapshot(purchasedSnapshot, started),
+      {
+        type: "match-command",
+        command: { type: "target-serve-receiver", playerId },
+      },
+    );
+
+    expect(targeted.state.activeMatch?.id).toBe(active.id);
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+    ).toEqual({ type: "target-serve-receiver", playerId });
+  });
+
   it("re-opens the same invitational match after a reload-style advance retry", () => {
     const snapshot = createSnapshot();
     const purchased = applyServerGameAction(snapshot, {
