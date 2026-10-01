@@ -1055,9 +1055,9 @@ function isResumableScheduledPracticeMatch(
     state.weeklySchedule.practiceMatch.scheduledOpponentId;
   return Boolean(
     scheduledOpponentId &&
-      activeMatch.runtime?.controlledSchoolId === state.userSchoolId &&
-      activeMatchOpponentId(state, activeMatch) === scheduledOpponentId &&
-      String(activeMatch.id).startsWith(`practice-${state.date}-`),
+    activeMatch.runtime?.controlledSchoolId === state.userSchoolId &&
+    activeMatchOpponentId(state, activeMatch) === scheduledOpponentId &&
+    String(activeMatch.id).startsWith(`practice-${state.date}-`),
   );
 }
 
