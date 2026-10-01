@@ -100,7 +100,9 @@ describe("Phase18 soak production action driver", () => {
         cpuStrength: { ...metrics.cpuStrength, p90: 60 },
       },
     ]);
-    expect(normal.some((observation) => observation.code.includes("strength"))).toBe(false);
+    expect(
+      normal.some((observation) => observation.code.includes("strength")),
+    ).toBe(false);
 
     const excessive = buildBalanceObservations([
       {
