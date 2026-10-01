@@ -240,10 +240,7 @@ function validateBlockTarget(
   }
   const player = state.players[playerId];
   if (!player || player.career.schoolId !== opponentId) {
-    fail(
-      "block_target_invalid",
-      "ブロックで警戒する相手選手を確認できません",
-    );
+    fail("block_target_invalid", "ブロックで警戒する相手選手を確認できません");
   }
   if (!["OH", "MB", "OP"].includes(player.preferredPosition)) {
     fail(
