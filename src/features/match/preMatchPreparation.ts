@@ -55,10 +55,7 @@ export function selectWeekPreMatchPreparation(
   }
 
   const invitational = activeInvitationalCup(state);
-  if (
-    invitational?.currentRound &&
-    invitational.currentOpponentSchoolId
-  ) {
+  if (invitational?.currentRound && invitational.currentOpponentSchoolId) {
     const opponent = state.schools[invitational.currentOpponentSchoolId];
     if (opponent) {
       return {
