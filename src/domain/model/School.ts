@@ -54,6 +54,7 @@ export interface SchoolHistorySummary {
   prefecturalTitles: number;
   nationalAppearances: number;
   nationalTitles: number;
+  invitationalTitles?: number;
   recentSeasonRatings?: number[];
   peakReputationPoints?: number;
 }
