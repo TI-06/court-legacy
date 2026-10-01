@@ -1,0 +1,35 @@
+name: Phase50 Final Balance Check
+
+on:
+  push:
+    branches:
+      - test/phase50-investment-long-balance
+    paths:
+      - ".github/workflows/phase50-final-balance.yml"
+      - "src/data/events/rare.json"
+      - "src/dev/soak/**"
+      - "src/domain/player/matchSpecialAbilityAwakening.ts"
+      - "tests/unit/data/specialAbilityEvents.test.ts"
+      - "tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts"
+      - "tests/unit/soak/**"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Focused Phase50 tests
+        run: npx vitest run tests/unit/data/specialAbilityEvents.test.ts tests/unit/domain/player/matchSpecialAbilityAwakening.test.ts tests/unit/soak/soakDriver.test.ts tests/unit/domain/events/phase21RelationshipLongRun.test.ts
+      - name: 10-season balance
+        run: npm run soak:balance -- --seed phase50-balance-a --seed phase50-balance-b
+      - name: 30-season balance
+        run: npm run soak:long -- --seed phase50-long-a --seed phase50-long-b --seed phase50-long-c --seed phase50-long-d
