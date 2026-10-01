@@ -36,3 +36,5 @@ jobs:
       - run: npm ci
       - name: Run 30-season Phase51 balance seeds
         run: npm run soak:long -- --seed phase51-long-a,phase51-long-b,phase51-long-c,phase51-long-d
+
+# rerun: expedition-candidate-guard
