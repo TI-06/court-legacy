@@ -141,7 +141,7 @@ describe("school management screen", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("enables ready Phase51 annual projects while keeping later activities gated", () => {
+  it("enables ready Phase51 projects while keeping the invitational gated", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     school.funds = 5000;
@@ -171,7 +171,7 @@ describe("school management screen", () => {
     expect(
       within(projects).getAllByRole("button", { name: /の詳細$/ }),
     ).toHaveLength(8);
-    expect(within(projects).getAllByText("準備中")).toHaveLength(4);
+    expect(within(projects).getAllByText("準備中")).toHaveLength(1);
 
     fireEvent.click(
       within(projects).getByRole("button", {
@@ -185,6 +185,94 @@ describe("school management screen", () => {
       within(dialog).getByRole("button", { name: "900を使って実施" }),
     );
     expect(onPurchaseSpecialProject).toHaveBeenCalledWith("national-data-bank");
+  });
+
+  it("chooses a university joint-training theme without a desktop select", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.trainingRoom = 50;
+    school.facilities.dormitory = 50;
+    const onPurchaseSpecialProject = vi.fn();
+
+    render(
+      <SchoolScreen
+        onPurchaseSpecialProject={onPurchaseSpecialProject}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "特別事業" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "大学チーム合同練習の詳細" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "大学チーム合同練習",
+    });
+    const focus = within(dialog).getByRole("group", {
+      name: "合同練習のテーマ",
+    });
+    fireEvent.click(within(focus).getByRole("button", { name: "守備" }));
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "1300を使って実施" }),
+    );
+
+    expect(onPurchaseSpecialProject).toHaveBeenCalledWith(
+      "university-joint-training",
+      undefined,
+      "defense",
+    );
+    expect(within(dialog).queryByRole("combobox")).toBeNull();
+  });
+
+  it("chooses a player and focus for the top-team clinic", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.analysisRoom = 50;
+    const targetPlayerId = school.playerIds[1]!;
+    const target = state.players[targetPlayerId]!;
+    const onPurchaseSpecialProject = vi.fn();
+
+    render(
+      <SchoolScreen
+        onPurchaseSpecialProject={onPurchaseSpecialProject}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "特別事業" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "トップチーム講習の詳細" }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "トップチーム講習" });
+    const players = within(dialog).getByRole("group", {
+      name: "講習を受ける選手",
+    });
+    fireEvent.click(
+      within(players).getByRole("button", {
+        name: new RegExp(`${target.lastName} ${target.firstName}`),
+      }),
+    );
+    const focus = within(dialog).getByRole("group", {
+      name: "トップチーム講習のテーマ",
+    });
+    fireEvent.click(within(focus).getByRole("button", { name: "メンタル" }));
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "1500を使って実施" }),
+    );
+
+    expect(onPurchaseSpecialProject).toHaveBeenCalledWith(
+      "top-team-clinic",
+      targetPlayerId,
+      "mental",
+    );
   });
 
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {
