@@ -1842,10 +1842,7 @@ export function applyGameAction(
   // even when an action touches only a tiny subtree (especially match commands).
   // Domain transitions are immutable, so preserve structural sharing and let
   // statePatch skip untouched roots by reference.
-  const traitState = ensureCharacterTraitAssignments(
-    snapshot.state,
-    gameData,
-  );
+  const traitState = ensureCharacterTraitAssignments(snapshot.state, gameData);
   const state =
     action.type === "advance-week" || action.type === "official-match"
       ? repairStaleActiveMatchContext(traitState)
