@@ -15,12 +15,7 @@ import type { AbilityKey } from "../validation/gameDataSchema";
 import type { UniversityJointTrainingFocus } from "./schoolSpecialProjects";
 
 export type TopTeamClinicFocus =
-  | "attack"
-  | "defense"
-  | "serve"
-  | "setting"
-  | "block"
-  | "mental";
+  "attack" | "defense" | "serve" | "setting" | "block" | "mental";
 
 export interface UniversityJointTrainingResult {
   focus: UniversityJointTrainingFocus;
@@ -71,8 +66,10 @@ export function selectEliteExpeditionOpponent(
       .slice(-8)
       .map((entry) => entry.opponentSchoolId),
     ...state.history.matches.slice(-8).flatMap((match) => {
-      if (match.homeSchoolId === state.userSchoolId) return [match.awaySchoolId];
-      if (match.awaySchoolId === state.userSchoolId) return [match.homeSchoolId];
+      if (match.homeSchoolId === state.userSchoolId)
+        return [match.awaySchoolId];
+      if (match.awaySchoolId === state.userSchoolId)
+        return [match.homeSchoolId];
       return [];
     }),
   ]);
