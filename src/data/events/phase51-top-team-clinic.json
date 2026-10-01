@@ -5,11 +5,7 @@
     "category": "practice",
     "title": "トップチーム講習・攻撃",
     "bodyTemplate": "トップレベルの攻撃指導を受ける機会が来た。どの技術を重点的に磨くか。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -58,11 +54,7 @@
     "category": "practice",
     "title": "トップチーム講習・守備",
     "bodyTemplate": "トップレベルの守備指導を受ける機会が来た。守備の武器を一つ伸ばしたい。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -111,11 +103,7 @@
     "category": "practice",
     "title": "トップチーム講習・サーブ",
     "bodyTemplate": "トップレベルのサーブ指導を受ける機会が来た。安定か狙いか、テーマを絞る。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -164,11 +152,7 @@
     "category": "practice",
     "title": "トップチーム講習・セット",
     "bodyTemplate": "トップレベルのセッター指導を受ける機会が来た。安定か配球か、磨くテーマを決める。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -217,11 +201,7 @@
     "category": "practice",
     "title": "トップチーム講習・ブロック",
     "bodyTemplate": "トップレベルのブロック指導を受ける機会が来た。読みか連携か、重点を決める。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
@@ -270,11 +250,7 @@
     "category": "practice",
     "title": "トップチーム講習・メンタル",
     "bodyTemplate": "トップレベルの選手から試合中の考え方を学ぶ機会が来た。勝負強さか切り替えを磨く。",
-    "tags": [
-      "phase51",
-      "top-team-clinic",
-      "scheduled-only"
-    ],
+    "tags": ["phase51", "top-team-clinic", "scheduled-only"],
     "trigger": {
       "injuryState": "healthy"
     },
