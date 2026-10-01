@@ -871,6 +871,36 @@ export function PreMatchLineupScreen({
                   {state.schools[state.userSchoolId]?.coach.observation ?? 0}
                 </span>
               </div>
+              {opponentAnalysis.keyPlayers.length > 0 ? (
+                <section
+                  aria-label="相手主力データ"
+                  className="pre-match-lineup__analysis-key-players"
+                >
+                  <div>
+                    <strong>全国データバンク</strong>
+                    <span>主力3名</span>
+                  </div>
+                  {opponentAnalysis.keyPlayers.map((player) => (
+                    <article key={player.playerId}>
+                      <span>
+                        <strong>{player.displayName}</strong>
+                        <small>{player.position}</small>
+                      </span>
+                      <b>{player.abilityGrade}</b>
+                      <small>
+                        {player.specialAbilityNames.length > 0
+                          ? `${player.specialAbilityNames.join("・")}${
+                              player.additionalSpecialAbilityCount > 0
+                                ? ` ほか${player.additionalSpecialAbilityCount}`
+                                : ""
+                            }`
+                          : "特殊能力なし"}
+                      </small>
+                    </article>
+                  ))}
+                </section>
+              ) : null}
+
               <ul className="pre-match-lineup__analysis-observations">
                 {opponentAnalysis.observations.map((observation) => (
                   <li key={observation}>{observation}</li>
