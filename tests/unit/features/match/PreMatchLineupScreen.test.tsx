@@ -503,6 +503,51 @@ describe("PreMatchLineupScreen", () => {
     );
   });
 
+  it("shows national data bank key-player cards only in the PvE analysis sheet", () => {
+    const { state, selection } = fixture();
+    const opponent = Object.values(state.schools).find(
+      (candidate) => candidate.id !== state.userSchoolId,
+    );
+    if (!opponent) throw new Error("opponent fixture missing");
+    const opponentSelection = autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    });
+    state.schoolManagement.specialProjects = {
+      yearIndex: state.yearIndex,
+      purchasedProjectIds: ["national-data-bank"],
+    };
+
+    render(
+      <PreMatchLineupScreen
+        baseSelection={selection}
+        mode="pve"
+        onCancel={vi.fn()}
+        onStart={vi.fn()}
+        opponentName={opponent.name}
+        opponentSelection={opponentSelection}
+        opponentStrength={88}
+        opponentTactics={{
+          serve: "balanced",
+          attack: "balanced",
+          block: "mixed",
+        }}
+        pending={false}
+        state={state}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "対戦分析" }));
+    const analysisDialog = screen.getByRole("dialog", { name: "対戦分析" });
+    const keyPlayers = within(analysisDialog).getByRole("region", {
+      name: "相手主力データ",
+    });
+    expect(within(keyPlayers).getByText("全国データバンク")).toBeVisible();
+    expect(within(keyPlayers).getAllByTestId("opponent-key-player")).toHaveLength(
+      3,
+    );
+  });
+
   it("does not expose full opponent analysis in PvP", () => {
     const { state, selection } = fixture();
 
