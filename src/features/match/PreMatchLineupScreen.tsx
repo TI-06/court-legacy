@@ -881,7 +881,10 @@ export function PreMatchLineupScreen({
                     <span>主力3名</span>
                   </div>
                   {opponentAnalysis.keyPlayers.map((player) => (
-                    <article key={player.playerId}>
+                    <article
+                      data-testid="opponent-key-player"
+                      key={player.playerId}
+                    >
                       <span>
                         <strong>{player.displayName}</strong>
                         <small>{player.position}</small>
