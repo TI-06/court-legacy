@@ -141,12 +141,19 @@ describe("school management screen", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows Phase51 special projects as safe previews until each effect is implemented", () => {
+  it("enables ready Phase51 annual projects while keeping later activities gated", () => {
     const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    school.funds = 5000;
+    school.facilities.analysisRoom = 50;
+    school.facilities.recoveryRoom = 50;
+    school.facilities.alumniAssociation = 50;
+    school.facilities.studyRoom = 50;
+    const onPurchaseSpecialProject = vi.fn();
 
     render(
       <SchoolScreen
-        onPurchaseSpecialProject={vi.fn()}
+        onPurchaseSpecialProject={onPurchaseSpecialProject}
         onUpgradeFacility={vi.fn()}
         state={state}
       />,
@@ -164,7 +171,7 @@ describe("school management screen", () => {
     expect(
       within(projects).getAllByRole("button", { name: /の詳細$/ }),
     ).toHaveLength(8);
-    expect(within(projects).getAllByText("準備中")).toHaveLength(8);
+    expect(within(projects).getAllByText("準備中")).toHaveLength(4);
 
     fireEvent.click(
       within(projects).getByRole("button", {
@@ -174,9 +181,12 @@ describe("school management screen", () => {
     const dialog = screen.getByRole("dialog", { name: "全国データバンク" });
     expect(within(dialog).getByText("900")).toBeVisible();
     expect(within(dialog).getByText("分析室 Lv.50")).toBeVisible();
-    expect(
-      within(dialog).getByRole("button", { name: "効果実装後に利用可能" }),
-    ).toBeDisabled();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "900を使って実施" }),
+    );
+    expect(onPurchaseSpecialProject).toHaveBeenCalledWith(
+      "national-data-bank",
+    );
   });
 
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {
