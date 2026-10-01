@@ -15,6 +15,7 @@ import {
 import type { RandomSource } from "../random/SeededRandom";
 import { assistantCoachTrainingModifiers } from "../school/assistantCoach";
 import { schoolInvestmentTrainingModifiers } from "../school/schoolInvestment";
+import { hasActiveSchoolSpecialProject } from "../school/schoolSpecialProjects";
 import type {
   AbilityKey,
   IndividualTrainingInstructionDefinition,
@@ -206,6 +207,11 @@ function createInjury(risk: number, random: RandomSource): PlayerInjury {
   };
 }
 
+interface TrainingProjectEffects {
+  academicMinimumPercent: number;
+  injuryRiskPercent: number;
+}
+
 function applyActivity(
   player: Player,
   activity: TrainingActivity,
@@ -215,6 +221,10 @@ function applyActivity(
   log: PlayerGrowthLog,
   extra: readonly AdditionalGrowthModifier[],
   balanced = false,
+  projectEffects: TrainingProjectEffects = {
+    academicMinimumPercent: 50,
+    injuryRiskPercent: 100,
+  },
 ): Player {
   if (player.injury) {
     log.skippedReason = "injured";
@@ -231,6 +241,7 @@ function applyActivity(
     school,
     growthType,
     personality,
+    academicMinimumPercent: projectEffects.academicMinimumPercent,
     additionalModifiers:
       specialAbilityGrowthPercent === 100
         ? extra
@@ -252,7 +263,7 @@ function applyActivity(
   const ability = applyGrowth(player, targets, amount);
   const conditionChange = getWeeklyConditionDrift(random);
   const trust = trustChange(activity.trustGrowth, personality);
-  const risk = adjustSpecialAbilityInjuryRisk(
+  const adjustedRisk = adjustSpecialAbilityInjuryRisk(
     player,
     calculatePhase12InjuryRisk({
       baseRisk: activity.injuryRisk,
@@ -260,6 +271,10 @@ function applyActivity(
       injuryResistance: player.injuryResistance ?? 50,
       recoveryRoomLevel: school.facilities.recoveryRoom,
     }),
+  );
+  const risk = Math.max(
+    0,
+    Math.round((adjustedRisk * projectEffects.injuryRiskPercent) / 100),
   );
   const injury =
     risk > 0 && random.int(1, 100) <= risk ? createInjury(risk, random) : null;
@@ -410,6 +425,19 @@ export function resolveWeeklyTraining(
   const injuredPlayerIds: PlayerId[] = [];
   const assignments: IndividualTrainingAssignment[] = [];
   const includeDynamics = input.schoolId === input.state.userSchoolId;
+  const medicalSupportActive =
+    includeDynamics &&
+    hasActiveSchoolSpecialProject(input.state, "medical-support");
+  const alumniDevelopmentActive =
+    includeDynamics &&
+    hasActiveSchoolSpecialProject(input.state, "alumni-development");
+  const academicSupportActive =
+    includeDynamics &&
+    hasActiveSchoolSpecialProject(input.state, "academic-support");
+  const trainingProjectEffects: TrainingProjectEffects = {
+    academicMinimumPercent: academicSupportActive ? 75 : 50,
+    injuryRiskPercent: medicalSupportActive ? 70 : 100,
+  };
   const teamMenuGrowthModifiers: AdditionalGrowthModifier[] =
     validated.teamMenu.id === "training.coordination"
       ? [
@@ -475,7 +503,11 @@ export function resolveWeeklyTraining(
       const drift = getWeeklyConditionDrift(input.random);
       const recovery = getSpecialAbilityRecoveryValues(original);
       const nextCondition = clampState(
-        original.condition + 25 + recovery.restConditionBonus + drift,
+        original.condition +
+          25 +
+          recovery.restConditionBonus +
+          (medicalSupportActive ? 5 : 0) +
+          drift,
       );
       log.conditionChange = nextCondition - original.condition;
       players[id] = { ...original, condition: nextCondition };
@@ -508,6 +540,15 @@ export function resolveWeeklyTraining(
             original,
             instruction.targetAbilities,
           ),
+          ...(alumniDevelopmentActive && original.grade <= 2
+            ? [
+                {
+                  code: "special-project-alumni-development" as const,
+                  label: "OB育成支援",
+                  percent: 106,
+                },
+              ]
+            : []),
           ...socialModifiers,
         ]
       : [
@@ -524,6 +565,7 @@ export function resolveWeeklyTraining(
       log,
       extraModifiers,
       instruction.id === "instruction.overall",
+      trainingProjectEffects,
     );
     players[id] = updated;
     logs.push(log);
