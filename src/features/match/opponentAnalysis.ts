@@ -1,5 +1,11 @@
 import type { GameState } from "../../domain/model/GameState";
+import type { Position } from "../../domain/model/Player";
+import type { PlayerId } from "../../domain/model/identifiers";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
+import { calculatePlayerDisplayPower } from "../../domain/selectors/playerPresentation";
+import { ratingToGrade } from "../../domain/selectors/ratingGrades";
+import { hasActiveSchoolSpecialProject } from "../../domain/school/schoolSpecialProjects";
 import type {
   AttackPlan,
   BlockPlan,
@@ -10,11 +16,21 @@ import { buildTeamProfile, type TeamProfile } from "./matchPresentation";
 
 export type OpponentAnalysisTier = "basic" | "standard" | "advanced";
 
+export interface OpponentKeyPlayerAnalysis {
+  playerId: PlayerId;
+  displayName: string;
+  position: Position;
+  abilityGrade: string;
+  specialAbilityNames: string[];
+  additionalSpecialAbilityCount: number;
+}
+
 export interface OpponentAnalysisReport {
   score: number;
   tier: OpponentAnalysisTier;
   tierLabel: string;
   observations: string[];
+  keyPlayers: OpponentKeyPlayerAnalysis[];
   recommendedPlan: MatchTacticPlan;
   recommendedReasons: string[];
 }
@@ -70,6 +86,46 @@ function sortedProfileKeys(profile: TeamProfile): Array<keyof TeamProfile> {
   );
 }
 
+function buildOpponentKeyPlayers(
+  state: GameState,
+  selection: TeamSelection,
+): OpponentKeyPlayerAnalysis[] {
+  if (!hasActiveSchoolSpecialProject(state, "national-data-bank")) return [];
+
+  const playerIds = [
+    ...selection.rotation.map((assignment) => assignment.playerId),
+    ...(selection.liberoPlayerId ? [selection.liberoPlayerId] : []),
+  ];
+  return [...new Set(playerIds)]
+    .map((playerId) => state.players[playerId])
+    .filter((player) => player !== undefined)
+    .sort(
+      (left, right) =>
+        calculatePlayerDisplayPower(right) -
+          calculatePlayerDisplayPower(left) ||
+        left.id.localeCompare(right.id),
+    )
+    .slice(0, 3)
+    .map((player) => {
+      const specialAbilityNames = (player.specialAbilityIds ?? [])
+        .map((abilityId) => getSpecialAbilityDefinition(abilityId)?.name)
+        .filter((name): name is string => name !== undefined);
+      return {
+        playerId: player.id,
+        displayName: `${player.lastName} ${player.firstName}`,
+        position: player.preferredPosition,
+        abilityGrade: ratingToGrade(
+          Math.round(calculatePlayerDisplayPower(player) / 100),
+        ),
+        specialAbilityNames: specialAbilityNames.slice(0, 3),
+        additionalSpecialAbilityCount: Math.max(
+          0,
+          specialAbilityNames.length - 3,
+        ),
+      };
+    });
+}
+
 export function calculateOpponentAnalysisScore(state: GameState): number {
   const school = state.schools[state.userSchoolId];
   if (!school) return 0;
@@ -92,6 +148,10 @@ export function buildOpponentAnalysis(input: {
   const score = calculateOpponentAnalysisScore(input.state);
   const tier = analysisTier(score);
   const profile = buildTeamProfile(input.state, input.opponentSelection);
+  const keyPlayers = buildOpponentKeyPlayers(
+    input.state,
+    input.opponentSelection,
+  );
   const sorted = sortedProfileKeys(profile);
   const strongest = sorted[0] ?? "attack";
   const weakest = sorted.at(-1) ?? "receive";
@@ -135,6 +195,7 @@ export function buildOpponentAnalysis(input: {
     tier,
     tierLabel: analysisTierLabel(tier),
     observations,
+    keyPlayers,
     recommendedPlan,
     recommendedReasons,
   };
