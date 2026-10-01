@@ -15,6 +15,7 @@ import {
   type SchoolSpecialProjectId,
 } from "../../domain/school/schoolSpecialProjects";
 import { activeInvitationalCup } from "../../domain/school/invitationalCup";
+import { selectEliteExpeditionOpponent } from "../../domain/school/specialProjectActivities";
 import { hasRequiredOfficialMatch } from "../../domain/tournament/progressOfficialTournaments";
 import {
   FACILITY_DEFINITIONS,
@@ -134,6 +135,7 @@ export interface SoakRunReport {
   yearly: SoakSnapshotMetrics[];
   facilityMilestones: SoakFacilityMilestoneSummary;
   specialAbilityFlow: SoakSpecialAbilityFlow;
+  specialProjectUsage: Record<string, number>;
   observations: SoakBalanceObservation[];
 }
 
@@ -410,7 +412,8 @@ function specialProjectAction(
     if (definition.id === "elite-expedition") {
       if (
         hasRequiredOfficialMatch(state) ||
-        state.weeklySchedule.practiceMatch.scheduledOpponentId
+        state.weeklySchedule.practiceMatch.scheduledOpponentId ||
+        !selectEliteExpeditionOpponent(state)
       ) {
         continue;
       }
@@ -906,6 +909,24 @@ export function buildBalanceObservations(
   return observations;
 }
 
+function aggregateSpecialProjectUsage(
+  yearly: readonly SoakSnapshotMetrics[],
+): Record<string, number> {
+  const totals = new Map<string, number>();
+  for (const metrics of yearly) {
+    for (const [projectId, count] of Object.entries(
+      metrics.specialProjectCounts,
+    )) {
+      totals.set(projectId, (totals.get(projectId) ?? 0) + count);
+    }
+  }
+  return Object.fromEntries(
+    [...totals.entries()].sort(([left], [right]) =>
+      left.localeCompare(right),
+    ),
+  );
+}
+
 function formatRunSummary(report: SoakRunReport): string {
   const finalMetrics = report.yearly.at(-1);
   const finalDetail = finalMetrics
@@ -926,13 +947,11 @@ function formatRunSummary(report: SoakRunReport): string {
     ? `special=N${finalMetrics.userSpecialAbilities.normal}/R${finalMetrics.userSpecialAbilities.rare}/SR${finalMetrics.userSpecialAbilities.superRare}/NEG${finalMetrics.userSpecialAbilities.negative} mean=${finalMetrics.userSpecialAbilities.perPlayer.mean} sr-players=${finalMetrics.userSpecialAbilities.playersWithSuperRare}`
     : "special=none";
   const specialFlowDetail = `special-flow=N+${report.specialAbilityFlow.normalAcquired}/R+${report.specialAbilityFlow.rareAcquired}/SR+${report.specialAbilityFlow.superRareAcquired}(event=${report.specialAbilityFlow.superRareFromEvent},match=${report.specialAbilityFlow.superRareFromMatch},other=${report.specialAbilityFlow.superRareFromOther})/NEG+${report.specialAbilityFlow.negativeAcquired}/NEG-recovered=${report.specialAbilityFlow.negativeRecovered}`;
-  const projectDetail = finalMetrics
-    ? `projects=${
-        Object.entries(finalMetrics.specialProjectCounts)
-          .map(([projectId, count]) => `${projectId}:${count}`)
-          .join(",") || "none"
-      } invitational-titles=${finalMetrics.userInvitationalTitles}`
-    : "projects=none invitational-titles=0";
+  const projectDetail = `projects-total=${
+    Object.entries(report.specialProjectUsage)
+      .map(([projectId, count]) => `${projectId}:${count}`)
+      .join(",") || "none"
+  } invitational-titles=${finalMetrics?.userInvitationalTitles ?? 0}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -1031,6 +1050,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const completedSeasons = snapshot.state.yearIndex - startingYearIndex;
   const observations = buildBalanceObservations(yearly);
   const facilityMilestones = summarizeFacilityMilestones(yearly);
+  const specialProjectUsage = aggregateSpecialProjectUsage(yearly);
   const report: SoakRunReport = {
     metadata: {
       seed: options.seed,
@@ -1046,6 +1066,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     yearly,
     facilityMilestones,
     specialAbilityFlow,
+    specialProjectUsage,
     observations,
   };
 
