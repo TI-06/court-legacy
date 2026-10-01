@@ -153,6 +153,64 @@ describe("Phase16 resumable practice match session", () => {
     ).toBe(false);
   });
 
+  it("re-opens the same persisted practice match after a reload-style advance retry", () => {
+    const { snapshot, opponentId } = createSnapshot(
+      "phase16-practice-resume-after-reload",
+    );
+    const started = applyServerGameAction(snapshot, { type: "advance-week" });
+    const startedMatch = started.state.activeMatch;
+    if (!startedMatch) throw new Error("active practice match missing");
+
+    const resumed = applyServerGameAction(continueSnapshot(snapshot, started), {
+      type: "advance-week",
+    });
+    const outcome = advanceWeekOutcome(resumed);
+
+    expect(outcome.weekAdvanced).toBe(false);
+    expect(outcome.pendingMatchPresentation?.kind).toBe("practice");
+    expect(outcome.pendingMatchPresentation?.simulation.analysis).toBeNull();
+    expect(resumed.state.activeMatch?.id).toBe(startedMatch.id);
+    expect(resumed.state.activeMatch?.phase).toBe(startedMatch.phase);
+    expect(
+      resumed.state.weeklySchedule.practiceMatch.scheduledOpponentId,
+    ).toBe(opponentId);
+  });
+
+  it("drops an orphaned active match before starting the currently scheduled practice match", () => {
+    const { snapshot, opponentId } = createSnapshot(
+      "phase16-practice-stale-recovery",
+    );
+    const started = applyServerGameAction(snapshot, { type: "advance-week" });
+    const startedMatch = started.state.activeMatch;
+    if (!startedMatch) throw new Error("active practice match missing");
+
+    const resumedSnapshot = continueSnapshot(snapshot, started);
+    const alternateOpponent = Object.values(resumedSnapshot.state.schools).find(
+      (school) =>
+        school.id !== resumedSnapshot.state.userSchoolId &&
+        school.id !== opponentId,
+    );
+    if (!alternateOpponent) throw new Error("alternate opponent missing");
+    resumedSnapshot.state.weeklySchedule.practiceMatch.scheduledOpponentId =
+      alternateOpponent.id;
+    resumedSnapshot.state.weeklySchedule.practiceMatch.scheduledBy = "outgoing";
+
+    const recovered = applyServerGameAction(resumedSnapshot, {
+      type: "advance-week",
+    });
+    const outcome = advanceWeekOutcome(recovered);
+    const recoveredMatch = recovered.state.activeMatch;
+
+    expect(outcome.weekAdvanced).toBe(false);
+    expect(outcome.pendingMatchPresentation?.kind).toBe("practice");
+    expect(recoveredMatch).not.toBeNull();
+    expect(recoveredMatch?.id).not.toBe(startedMatch.id);
+    expect(
+      recoveredMatch?.homeSchoolId === alternateOpponent.id ||
+        recoveredMatch?.awaySchoolId === alternateOpponent.id,
+    ).toBe(true);
+  });
+
   it("captures pre-match lineup and tactics inside activeMatch without persisting either override", () => {
     const { snapshot } = createSnapshot("phase16-practice-overrides");
     const persistentSelection = structuredClone(snapshot.teamSelection);
