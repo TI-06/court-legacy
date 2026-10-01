@@ -199,6 +199,42 @@ describe("event selection", () => {
     expect(availableAgain.pendingEvent?.eventId).toBe(eventId(gold.id));
   });
 
+  it("keeps scheduled-only clinic events out of the random event pool", () => {
+    const state = createDemoGame();
+    const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const clinic = gameData.events.get(
+      "event.phase51-top-team-clinic-attack",
+    )!;
+    const isolatedData = {
+      ...gameData,
+      events: new Map([[clinic.id, clinic]]),
+    };
+
+    const normal = selectNextEvent(
+      state,
+      isolatedData,
+      fixedRollRandom(1),
+    );
+    expect(normal.pendingEvent).toBeNull();
+
+    state.eventMemory.scheduledFollowUps = [
+      {
+        eventId: eventId(clinic.id),
+        eligibleDate: state.date,
+        actorPlayerIds: [actor],
+        chainId: "phase51-clinic-test",
+        chainStage: 1,
+      },
+    ];
+    const scheduled = selectNextEvent(
+      state,
+      isolatedData,
+      fixedRollRandom(1),
+    );
+    expect(scheduled.pendingEvent?.eventId).toBe(eventId(clinic.id));
+    expect(scheduled.pendingEvent?.actorPlayerIds).toEqual([actor]);
+  });
+
   it("does not surface referenced follow-up stages as normal events", () => {
     const state = createDemoGame();
     const actor = state.schools[state.userSchoolId]!.playerIds[0]!;
