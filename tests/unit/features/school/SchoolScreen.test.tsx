@@ -141,7 +141,7 @@ describe("school management screen", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("enables ready Phase51 annual projects while keeping later activities gated", () => {
+  it("shows all Phase51 projects as implemented while preserving unlock conditions", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     school.funds = 5000;
@@ -171,7 +171,7 @@ describe("school management screen", () => {
     expect(
       within(projects).getAllByRole("button", { name: /の詳細$/ }),
     ).toHaveLength(8);
-    expect(within(projects).getAllByText("準備中")).toHaveLength(1);
+    expect(within(projects).queryByText("準備中")).toBeNull();
 
     fireEvent.click(
       within(projects).getByRole("button", {
