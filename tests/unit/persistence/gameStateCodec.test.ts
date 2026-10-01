@@ -1,6 +1,13 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
-import type { GameDate } from "../../../src/domain/model/identifiers";
+import {
+  matchId,
+  type GameDate,
+} from "../../../src/domain/model/identifiers";
+import { startMatch } from "../../../src/domain/match/simulateMatch";
+import { SeededRandom } from "../../../src/domain/random/SeededRandom";
+import { selectPracticeOpponent } from "../../../src/domain/selectors/matchSelectors";
+import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import {
   decodeGameState,
   encodeGameState,
@@ -14,6 +21,64 @@ describe("game state codec", () => {
 
     expect(decoded).toEqual(state);
     expect(decoded).not.toBe(state);
+  });
+
+  it("round-trips Phase52 active-match opponent targets for reload recovery", () => {
+    const state = createDemoGame();
+    const opponent = selectPracticeOpponent(state);
+    const homeSelection = autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    });
+    const awaySelection = autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    });
+    const started = startMatch({
+      state,
+      id: matchId("phase52-codec-target"),
+      homeSchoolId: state.userSchoolId,
+      awaySchoolId: opponent.id,
+      homeSelection,
+      awaySelection,
+      bestOfSets: 3,
+      random: new SeededRandom("phase52-codec-target"),
+      controlledSchoolId: state.userSchoolId,
+    });
+    if (!started.match.runtime) throw new Error("match runtime missing");
+    const serveTargetId = awaySelection.rotation[0]!.playerId;
+    const blockTargetId = awaySelection.rotation
+      .map((assignment) => assignment.playerId)
+      .find((playerId) => {
+        const position = state.players[playerId]?.preferredPosition;
+        return position === "OH" || position === "MB" || position === "OP";
+      });
+    if (!blockTargetId) throw new Error("block target fixture missing");
+
+    started.match.runtime.serveTarget = {
+      schoolId: state.userSchoolId,
+      playerId: serveTargetId,
+      ralliesRemaining: 4,
+    };
+    started.match.runtime.blockTarget = {
+      schoolId: state.userSchoolId,
+      playerId: blockTargetId,
+      ralliesRemaining: 3,
+    };
+    state.activeMatch = started.match;
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.activeMatch?.runtime?.serveTarget).toEqual({
+      schoolId: state.userSchoolId,
+      playerId: serveTargetId,
+      ralliesRemaining: 4,
+    });
+    expect(decoded.activeMatch?.runtime?.blockTarget).toEqual({
+      schoolId: state.userSchoolId,
+      playerId: blockTargetId,
+      ralliesRemaining: 3,
+    });
   });
 
   it("round-trips a training-result notification", () => {
