@@ -184,9 +184,7 @@ describe("school management screen", () => {
     fireEvent.click(
       within(dialog).getByRole("button", { name: "900を使って実施" }),
     );
-    expect(onPurchaseSpecialProject).toHaveBeenCalledWith(
-      "national-data-bank",
-    );
+    expect(onPurchaseSpecialProject).toHaveBeenCalledWith("national-data-bank");
   });
 
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {
