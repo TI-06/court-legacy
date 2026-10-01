@@ -33,8 +33,7 @@ export interface SchoolSpecialProjectDefinition {
   effectReady: boolean;
 }
 
-export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS =
-  [
+export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS = [
     {
       id: "national-data-bank",
       name: "全国データバンク",
@@ -112,7 +111,7 @@ export const SCHOOL_SPECIAL_PROJECT_DEFINITIONS =
       minimumNationalTitles: 1,
       effectReady: false,
     },
-  ] as const satisfies readonly SchoolSpecialProjectDefinition[];
+] as const satisfies readonly SchoolSpecialProjectDefinition[];
 
 const definitionById = new Map(
   SCHOOL_SPECIAL_PROJECT_DEFINITIONS.map((definition) => [
