@@ -93,6 +93,11 @@ import {
   type SchoolInvestmentOption,
 } from "../../src/domain/school/schoolInvestment";
 import {
+  evaluateSchoolSpecialProject,
+  getSchoolSpecialProjectDefinition,
+  purchaseSchoolSpecialProject,
+} from "../../src/domain/school/schoolSpecialProjects";
+import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
 } from "../../src/domain/season/seasonGoals";
@@ -1721,6 +1726,44 @@ function applySchoolInvestment(
   };
 }
 
+function applySchoolSpecialProject(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "school-special-project" }>,
+): AppliedGameAction {
+  const definition = getSchoolSpecialProjectDefinition(action.projectId);
+  if (!definition.effectReady) {
+    return conflict(
+      "school_special_project_not_ready",
+      "この特別事業は準備中です",
+    );
+  }
+
+  const evaluation = evaluateSchoolSpecialProject(state, action.projectId);
+  if (!evaluation.allowed) {
+    let message = "特別事業を実施できません";
+    if (evaluation.reason === "already-purchased") {
+      message = "この特別事業は今年度すでに実施済みです";
+    } else if (evaluation.reason === "yearly-limit") {
+      message = "今年度の特別事業は2件までです";
+    } else if (evaluation.reason === "requirements-not-met") {
+      message = "特別事業の解禁条件を満たしていません";
+    } else if (evaluation.reason === "insufficient-funds") {
+      message = "特別事業に必要な資金が不足しています";
+    }
+    return conflict(
+      `school_special_project_${evaluation.reason.replaceAll("-", "_")}`,
+      message,
+    );
+  }
+
+  return {
+    state: purchaseSchoolSpecialProject(state, action.projectId),
+    teamSelection,
+    outcome: evaluation,
+  };
+}
+
 function applyAcknowledgeTrainingCampResult(
   state: GameState,
   teamSelection: TeamSelection,
@@ -1825,6 +1868,8 @@ function applyActionByType(
       return applyAssistantCoachContract(state, teamSelection, action);
     case "school-investment":
       return applySchoolInvestment(state, teamSelection, action);
+    case "school-special-project":
+      return applySchoolSpecialProject(state, teamSelection, action);
     case "event-choice":
       return applyEventChoice(state, teamSelection, action);
     case "acknowledge-training-camp-result":

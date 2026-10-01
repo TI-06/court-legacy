@@ -1,15 +1,22 @@
 import type { SchoolView } from "./SchoolNavigationTabs";
 
-type LegacySchoolView = "facilities" | "staff" | "investments" | "alumni";
+type LegacySchoolView =
+  "facilities" | "staff" | "investments" | "special-projects" | "alumni";
 type SchoolViewRequest = Exclude<SchoolView, "scouting"> | LegacySchoolView;
 
-export type SchoolManagementView = "facilities" | "staff" | "investments";
+export type SchoolManagementView =
+  "facilities" | "staff" | "investments" | "special-projects";
 
 let requestedSchoolView: Exclude<SchoolView, "scouting"> | null = null;
 let requestedSchoolManagementView: SchoolManagementView | null = null;
 
 export function requestSchoolView(view: SchoolViewRequest): void {
-  if (view === "facilities" || view === "staff" || view === "investments") {
+  if (
+    view === "facilities" ||
+    view === "staff" ||
+    view === "investments" ||
+    view === "special-projects"
+  ) {
     requestedSchoolView = "management";
     requestedSchoolManagementView = view;
     return;

@@ -141,6 +141,44 @@ describe("school management screen", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows Phase51 special projects as safe previews until each effect is implemented", () => {
+    const state = createState();
+
+    render(
+      <SchoolScreen
+        onPurchaseSpecialProject={vi.fn()}
+        onUpgradeFacility={vi.fn()}
+        state={state}
+      />,
+    );
+
+    const managementTabs = screen.getByRole("tablist", {
+      name: "運営メニュー",
+    });
+    fireEvent.click(
+      within(managementTabs).getByRole("tab", { name: "特別事業" }),
+    );
+
+    const projects = screen.getByRole("region", { name: "特別事業" });
+    expect(within(projects).getByText("年度利用 0/2")).toBeVisible();
+    expect(
+      within(projects).getAllByRole("button", { name: /の詳細$/ }),
+    ).toHaveLength(8);
+    expect(within(projects).getAllByText("準備中")).toHaveLength(8);
+
+    fireEvent.click(
+      within(projects).getByRole("button", {
+        name: "全国データバンクの詳細",
+      }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "全国データバンク" });
+    expect(within(dialog).getByText("900")).toBeVisible();
+    expect(within(dialog).getByText("分析室 Lv.50")).toBeVisible();
+    expect(
+      within(dialog).getByRole("button", { name: "効果実装後に利用可能" }),
+    ).toBeDisabled();
+  });
+
   it("lets the player choose +5 or +10 bulk facility upgrades", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;

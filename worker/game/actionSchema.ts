@@ -12,6 +12,7 @@ import type {
   FacilityKey,
   FacilityUpgradeLevels,
 } from "../../src/domain/school/facilityUpgrade";
+import type { SchoolSpecialProjectId } from "../../src/domain/school/schoolSpecialProjects";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type {
   PlayerDevelopmentGoal,
@@ -114,6 +115,16 @@ const schoolInvestmentOptionSchema = z.enum([
   "elite",
   "regional",
   "national",
+]);
+const schoolSpecialProjectIdSchema = z.enum([
+  "national-data-bank",
+  "medical-support",
+  "alumni-development",
+  "academic-support",
+  "elite-expedition",
+  "university-joint-training",
+  "top-team-clinic",
+  "invitational-cup",
 ]);
 const savedLineupSlotSchema = z.union([
   z.literal(1),
@@ -305,6 +316,14 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
+    .object({
+      type: z.literal("school-special-project"),
+      projectId: schoolSpecialProjectIdSchema,
+      targetPlayerId: playerIdSchema.optional(),
+      option: z.string().trim().min(1).max(40).optional(),
+    })
+    .strict(),
+  z
     .object({ type: z.literal("event-choice"), choiceId: z.string().min(1) })
     .strict(),
   z.object({ type: z.literal("acknowledge-training-camp-result") }).strict(),
@@ -393,6 +412,12 @@ export type GameAction =
         | "elite"
         | "regional"
         | "national";
+    }
+  | {
+      type: "school-special-project";
+      projectId: SchoolSpecialProjectId;
+      targetPlayerId?: PlayerId;
+      option?: string;
     }
   | { type: "event-choice"; choiceId: string }
   | { type: "acknowledge-training-camp-result" };

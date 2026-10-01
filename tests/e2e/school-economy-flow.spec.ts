@@ -130,7 +130,7 @@ for (const width of [320, 360, 390, 414, 480] as const) {
       name: "運営メニュー",
       exact: true,
     });
-    await expect(management.getByRole("tab")).toHaveCount(3);
+    await expect(management.getByRole("tab")).toHaveCount(4);
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expect(page.getByText("4候補")).toBeVisible();
@@ -145,6 +145,12 @@ for (const width of [320, 360, 390, 414, 480] as const) {
       page.getByRole("heading", { name: "年間強化予算" }),
     ).toBeVisible();
     await expect(page.locator(".school-investment-card")).toHaveCount(4);
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await management.getByRole("tab", { name: "特別事業" }).click();
+    await expect(page.getByRole("heading", { name: "特別事業" })).toBeVisible();
+    await expect(page.locator(".school-special-project-card")).toHaveCount(8);
+    await expect(page.getByText("年度利用 0/2")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
 
     await primary.getByRole("tab", { name: "記録" }).click();

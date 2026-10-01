@@ -57,6 +57,7 @@ import type {
   SchoolInvestmentCategory,
   SchoolInvestmentOption,
 } from "../domain/school/schoolInvestment";
+import type { SchoolSpecialProjectId } from "../domain/school/schoolSpecialProjects";
 import { autoSelectTeam } from "../domain/team/autoSelectTeam";
 import type {
   MatchTacticPlan,
@@ -1183,6 +1184,15 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     );
   };
 
+  const purchaseSchoolSpecialProjectFromUi = async (
+    projectId: SchoolSpecialProjectId,
+  ) => {
+    await cloudSession.runAction(
+      { type: "school-special-project", projectId },
+      "特別事業を確認しています…",
+    );
+  };
+
   const markNotificationRead = async (notificationId: string) => {
     await cloudSession.runAction(
       { type: "mark-notification-read", notificationId },
@@ -1493,6 +1503,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <SchoolScreen
         onContractAssistantCoach={contractAssistantCoachFromUi}
         onOpenScouting={openScouting}
+        onPurchaseSpecialProject={purchaseSchoolSpecialProjectFromUi}
         onPurchaseInvestment={purchaseSchoolInvestmentFromUi}
         onUpgradeFacility={upgradeSchoolFacility}
         state={gameState}
