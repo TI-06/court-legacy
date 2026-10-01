@@ -30,6 +30,8 @@ export type MatchCommand =
   | { type: "set-match-tactics"; plan: MatchTacticPlan }
   | { type: "focus-attacker"; playerId: PlayerId }
   | { type: "encourage-player"; playerId: PlayerId }
+  | { type: "target-serve-receiver"; playerId: PlayerId }
+  | { type: "mark-opponent-attacker"; playerId: PlayerId }
   | {
       type: "substitute";
       outgoingPlayerId: PlayerId;
@@ -73,6 +75,16 @@ export interface MatchRuntimeState {
     ralliesRemaining: number;
   } | null;
   encouragementBoost?: {
+    schoolId: SchoolId;
+    playerId: PlayerId;
+    ralliesRemaining: number;
+  } | null;
+  serveTarget?: {
+    schoolId: SchoolId;
+    playerId: PlayerId;
+    ralliesRemaining: number;
+  } | null;
+  blockTarget?: {
     schoolId: SchoolId;
     playerId: PlayerId;
     ralliesRemaining: number;
