@@ -1,0 +1,25 @@
+name: Phase52 Routing Format Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase52-targeting-routing
+    paths:
+      - ".github/workflows/phase52-routing-format.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: |
+          npx prettier tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts --write
+          git diff -- tests/unit/persistence/gameStateCodec.test.ts tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts
