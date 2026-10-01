@@ -802,7 +802,9 @@ export function SchoolScreen({
               <section
                 className="school-special-project-group"
                 key={kind}
-                aria-label={kind === "annual-contract" ? "年間契約" : "特別活動"}
+                aria-label={
+                  kind === "annual-contract" ? "年間契約" : "特別活動"
+                }
               >
                 <div className="school-special-project-group__heading">
                   <strong>
@@ -848,7 +850,9 @@ export function SchoolScreen({
                               : "preparing"
                         }
                         key={definition.id}
-                        onClick={() => setSelectedSpecialProjectId(definition.id)}
+                        onClick={() =>
+                          setSelectedSpecialProjectId(definition.id)
+                        }
                         type="button"
                       >
                         <span className="school-special-project-card__heading">
@@ -1128,10 +1132,7 @@ export function SchoolScreen({
               <div>
                 <dt>実施後の資金</dt>
                 <dd>
-                  {Math.max(
-                    0,
-                    selectedSpecialProjectEvaluation.fundsAfter,
-                  )}
+                  {Math.max(0, selectedSpecialProjectEvaluation.fundsAfter)}
                 </dd>
               </div>
               <div>
@@ -1143,7 +1144,9 @@ export function SchoolScreen({
               </div>
               <div>
                 <dt>解禁条件</dt>
-                <dd>{specialProjectRequirementLabel(selectedSpecialProject)}</dd>
+                <dd>
+                  {specialProjectRequirementLabel(selectedSpecialProject)}
+                </dd>
               </div>
             </dl>
             <button
