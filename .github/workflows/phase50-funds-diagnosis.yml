@@ -1,4 +1,4 @@
-name: Phase50 Funds Diagnosis
+name: Phase50 Funds Balance Check
 
 on:
   push:
@@ -6,13 +6,14 @@ on:
       - test/phase50-funds-zero-diagnosis
     paths:
       - ".github/workflows/phase50-funds-diagnosis.yml"
-      - "tests/soak/phase50FundsDiagnosis.test.ts"
+      - "src/dev/soak/**"
+      - "tests/unit/soak/**"
 
 permissions:
   contents: read
 
 jobs:
-  diagnose:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -22,5 +23,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Diagnose persistent zero-funds week
-        run: npx vitest run --config vitest.soak.config.ts tests/soak/phase50FundsDiagnosis.test.ts
+      - name: Focused soak driver tests
+        run: npx vitest run tests/unit/soak/soakDriver.test.ts
+      - name: Re-run affected 10-season seed
+        run: npm run soak:balance -- --seed phase50-balance-b
