@@ -36,6 +36,47 @@ describe("opponentAnalysis", () => {
     expect(calculateOpponentAnalysisScore(state)).toBe(70);
   });
 
+  it("adds top-three opponent intelligence only when the national data bank is active", () => {
+    const { state, opponentSelection } = fixture();
+    const input = {
+      state,
+      opponentSelection,
+      opponentTactics: {
+        serve: "balanced" as const,
+        attack: "balanced" as const,
+        block: "mixed" as const,
+      },
+      basePlan: {
+        serve: "balanced" as const,
+        attack: "balanced" as const,
+        block: "mixed" as const,
+      },
+    };
+
+    const withoutProject = buildOpponentAnalysis(input);
+    expect(withoutProject.keyPlayers).toEqual([]);
+
+    state.schoolManagement.specialProjects = {
+      yearIndex: state.yearIndex,
+      purchasedProjectIds: ["national-data-bank"],
+    };
+    const withProject = buildOpponentAnalysis(input);
+
+    expect(withProject.keyPlayers).toHaveLength(3);
+    expect(withProject.keyPlayers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          displayName: expect.any(String),
+          position: expect.any(String),
+          abilityGrade: expect.stringMatching(/^[S-F]$/),
+          specialAbilityNames: expect.any(Array),
+        }),
+      ]),
+    );
+    expect(withProject.score).toBe(withoutProject.score);
+    expect(withProject.recommendedPlan).toEqual(withoutProject.recommendedPlan);
+  });
+
   it("recommends existing tactic counters without adding a hidden match bonus", () => {
     const { state, school, opponentSelection } = fixture();
     school.coach.observation = 80;
