@@ -95,6 +95,41 @@ describe("Phase16 official match sessions", () => {
     ).not.toBe("completed");
   });
 
+  it("routes a Phase52 block target through the official match session", () => {
+    const snapshot = officialWeekSnapshot();
+    const started = applyGameAction(snapshot, { type: "advance-week" });
+    const active = started.state.activeMatch;
+    if (!active) throw new Error("official active match missing");
+    const opponentSelection =
+      active.homeSchoolId === started.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const playerId = opponentSelection.rotation
+      .map((assignment) => assignment.playerId)
+      .find((candidateId) => {
+        const position = started.state.players[candidateId]?.preferredPosition;
+        return position === "OH" || position === "MB" || position === "OP";
+      });
+    if (!playerId) throw new Error("official block target missing");
+
+    const targeted = applyGameAction(
+      {
+        ...snapshot,
+        state: started.state,
+        teamSelection: started.teamSelection,
+      },
+      {
+        type: "match-command",
+        command: { type: "mark-opponent-attacker", playerId },
+      },
+    );
+
+    expect(targeted.state.activeMatch?.id).toBe(active.id);
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+    ).toEqual({ type: "mark-opponent-attacker", playerId });
+  });
+
   it("resumes the same official match through commands and finalizes tournament history exactly once", () => {
     const snapshot = officialWeekSnapshot();
     const due = findDueUserOfficialMatch(snapshot.state)!;
