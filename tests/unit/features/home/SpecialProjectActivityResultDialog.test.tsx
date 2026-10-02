@@ -1,12 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type {
-  UniversityJointTrainingResult,
-} from "../../../../src/domain/school/specialProjectActivities";
-import {
-  SpecialProjectActivityResultDialog,
-} from "../../../../src/features/home/SpecialProjectActivityResultDialog";
+import type { UniversityJointTrainingResult } from "../../../../src/domain/school/specialProjectActivities";
+import { SpecialProjectActivityResultDialog } from "../../../../src/features/home/SpecialProjectActivityResultDialog";
 
 describe("SpecialProjectActivityResultDialog", () => {
   it("shows the joint-training summary, top growth, and closes locally", () => {
