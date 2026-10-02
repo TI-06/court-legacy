@@ -155,6 +155,15 @@ function activitySample(player: PlayerMatchStats): number {
   );
 }
 
+function isRatedPlayerEvaluation(
+  player: PlayerMatchEvaluation,
+): player is PlayerMatchEvaluation & {
+  score: number;
+  grade: ReturnType<typeof ratingToGrade>;
+} {
+  return player.rated && player.score !== null && player.grade !== null;
+}
+
 function playerScore(
   player: PlayerMatchStats,
   userTeam: TeamMatchStats,
@@ -253,14 +262,7 @@ export function buildMatchReviewEvaluation({
 
   const teamMvp =
     [...players]
-      .filter(
-        (
-          player,
-        ): player is PlayerMatchEvaluation & {
-          score: number;
-          grade: ReturnType<typeof ratingToGrade>;
-        } => player.rated && player.score !== null && player.grade !== null,
-      )
+      .filter(isRatedPlayerEvaluation)
       .sort((first, second) => {
         if (second.score !== first.score) return second.score - first.score;
         return first.playerId.localeCompare(second.playerId);
