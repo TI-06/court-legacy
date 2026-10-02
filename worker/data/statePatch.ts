@@ -158,9 +158,7 @@ function mergePatchAtPath(
   }
 
   const key = path[path.length - 1]!;
-  const target = Array.isArray(current)
-    ? current[Number(key)]
-    : current[key];
+  const target = Array.isArray(current) ? current[Number(key)] : current[key];
   if (!isRecord(target)) {
     throw new Error("cannot merge non-object JSON state target");
   }
