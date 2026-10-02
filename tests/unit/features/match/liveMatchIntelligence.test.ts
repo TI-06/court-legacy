@@ -48,10 +48,7 @@ function fixture() {
   };
 }
 
-function event(
-  sequence: number,
-  overrides: Partial<MatchEvent>,
-): MatchEvent {
+function event(sequence: number, overrides: Partial<MatchEvent>): MatchEvent {
   return {
     sequence,
     type: "serve",
