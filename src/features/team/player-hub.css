@@ -2475,3 +2475,44 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Phase54-3: season / legacy record scope */
+.player-stats-scope {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 4px;
+  margin-bottom: 10px;
+  gap: 4px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 11px;
+}
+
+.player-stats-scope button {
+  min-height: 36px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 900;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.player-stats-scope button[aria-pressed="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.player-legacy-leaderboard .player-season-leaderboard__rows button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.player-legacy-leaderboard button:disabled small {
+  color: #8fa0ab;
+}
+
+.player-legacy-leaderboard button:disabled em {
+  color: #d7e2e8;
+}

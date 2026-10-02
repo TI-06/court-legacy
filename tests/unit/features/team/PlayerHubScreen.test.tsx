@@ -226,6 +226,54 @@ describe("PlayerHubScreen", () => {
     expect(within(record).getByText("14")).toBeVisible();
   });
 
+  it("switches the team stats sheet between current season and school legacy records", () => {
+    const state = createDemoGame();
+    const activeId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const active = state.players[activeId]!;
+    active.career.points = 75;
+    active.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 4,
+      setsPlayed: 9,
+      points: 28,
+      blocks: 3,
+      serviceAces: 2,
+      attackPoints: 20,
+      attackAttempts: 40,
+      perfectReceives: 12,
+      receiveAttempts: 20,
+      defensePoints: 3,
+      idealSets: 0,
+      successfulDigs: 4,
+    };
+    state.history.graduates.push({
+      playerId: "legacy-player" as typeof active.id,
+      schoolId: state.userSchoolId,
+      graduationYear: state.calendar.academicYear - 1,
+      displayName: "歴代 一郎",
+      position: "OH",
+      appearances: 20,
+      points: 150,
+      blocks: 8,
+      serviceAces: 10,
+      awardIds: [],
+    });
+
+    renderPlayerHub(state);
+
+    fireEvent.click(screen.getByRole("button", { name: "今季の公式戦成績" }));
+    expect(
+      screen.getByRole("region", { name: "今季公式戦ランキング" }),
+    ).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "歴代" }));
+
+    const legacy = screen.getByRole("region", { name: "学校歴代ランキング" });
+    expect(within(legacy).getAllByText("歴代 一郎").length).toBeGreaterThan(0);
+    expect(within(legacy).getAllByText("150").length).toBeGreaterThan(0);
+    expect(screen.getByText("学校歴代記録")).toBeVisible();
+  });
+
   it("keeps a visible genius badge after a generational recruit enrolls", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;

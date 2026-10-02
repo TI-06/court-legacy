@@ -52,6 +52,7 @@ import {
   buildPlayerSeasonPresentation,
 } from "./playerCareerPresentation";
 import { buildTeamSeasonLeaderboard } from "./playerSeasonLeaderboard";
+import { buildSchoolLegacyLeaderboard } from "./playerLegacyLeaderboard";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -308,6 +309,7 @@ export function PlayerHubScreen({
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
   const [seasonStatsOpen, setSeasonStatsOpen] = useState(false);
+  const [statsScope, setStatsScope] = useState<"season" | "legacy">("season");
   const [coachTargetPlayerIds, setCoachTargetPlayerIds] = useState<PlayerId[]>(
     [],
   );
@@ -332,6 +334,10 @@ export function PlayerHubScreen({
   );
   const seasonLeaderboard = useMemo(
     () => buildTeamSeasonLeaderboard(state),
+    [state],
+  );
+  const legacyLeaderboard = useMemo(
+    () => buildSchoolLegacyLeaderboard(state),
     [state],
   );
   const recommendationQuality = coachRecommendationQuality(state);
@@ -1543,7 +1549,10 @@ export function PlayerHubScreen({
         <button
           aria-label="今季の公式戦成績"
           className="player-hub__season-stats"
-          onClick={() => setSeasonStatsOpen(true)}
+          onClick={() => {
+            setStatsScope("season");
+            setSeasonStatsOpen(true);
+          }}
           type="button"
         >
           <span>SEASON</span>
@@ -1758,35 +1767,108 @@ export function PlayerHubScreen({
 
       <BottomSheet
         className="player-season-leaderboard-sheet"
-        description="今季の公式戦だけを集計します。選手をタップすると個人成績を開きます。"
+        description={
+          statsScope === "season"
+            ? "今季の公式戦だけを集計します。選手をタップすると個人成績を開きます。"
+            : "現役と卒業生の公式戦キャリア記録から歴代上位を表示します。"
+        }
         onClose={() => setSeasonStatsOpen(false)}
         open={seasonStatsOpen}
-        title={`${seasonLeaderboard.academicYear}年度 今季成績`}
+        title={
+          statsScope === "season"
+            ? `${seasonLeaderboard.academicYear}年度 今季成績`
+            : "学校歴代記録"
+        }
       >
-        <section
-          aria-label="今季公式戦ランキング"
-          className="player-season-leaderboard"
-        >
-          {!seasonLeaderboard.hasOfficialStats ? (
-            <p className="player-season-leaderboard__empty">
-              今季の公式戦成績はまだありません
-            </p>
-          ) : (
-            seasonLeaderboard.sections.map((section) => (
-              <section key={section.id}>
-                <div className="player-season-leaderboard__heading">
-                  <strong>{section.label}</strong>
-                  {section.id === "attack-rate" ||
-                  section.id === "receive-rate" ? (
-                    <small>5回以上で集計</small>
-                  ) : null}
-                </div>
-                {section.rows.length > 0 ? (
+        <nav className="player-stats-scope" aria-label="成績ランキング切替">
+          <button
+            aria-pressed={statsScope === "season"}
+            onClick={() => setStatsScope("season")}
+            type="button"
+          >
+            今季
+          </button>
+          <button
+            aria-pressed={statsScope === "legacy"}
+            onClick={() => setStatsScope("legacy")}
+            type="button"
+          >
+            歴代
+          </button>
+        </nav>
+
+        {statsScope === "season" ? (
+          <section
+            aria-label="今季公式戦ランキング"
+            className="player-season-leaderboard"
+          >
+            {!seasonLeaderboard.hasOfficialStats ? (
+              <p className="player-season-leaderboard__empty">
+                今季の公式戦成績はまだありません
+              </p>
+            ) : (
+              seasonLeaderboard.sections.map((section) => (
+                <section key={section.id}>
+                  <div className="player-season-leaderboard__heading">
+                    <strong>{section.label}</strong>
+                    {section.id === "attack-rate" ||
+                    section.id === "receive-rate" ? (
+                      <small>5回以上で集計</small>
+                    ) : null}
+                  </div>
+                  {section.rows.length > 0 ? (
+                    <div className="player-season-leaderboard__rows">
+                      {section.rows.map((row, index) => (
+                        <button
+                          key={row.playerId}
+                          onClick={() => {
+                            setSeasonStatsOpen(false);
+                            setDetailMode("record");
+                            setSelectedPlayerId(row.playerId);
+                          }}
+                          type="button"
+                        >
+                          <b>{index + 1}</b>
+                          <span>
+                            <strong>{row.displayName}</strong>
+                            <small>{row.position}</small>
+                          </span>
+                          <em>{row.valueLabel}</em>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="player-season-leaderboard__no-sample">
+                      集計対象なし
+                    </p>
+                  )}
+                </section>
+              ))
+            )}
+          </section>
+        ) : (
+          <section
+            aria-label="学校歴代ランキング"
+            className="player-season-leaderboard player-legacy-leaderboard"
+          >
+            {!legacyLeaderboard.hasRecords ? (
+              <p className="player-season-leaderboard__empty">
+                公式戦の歴代記録はまだありません
+              </p>
+            ) : (
+              legacyLeaderboard.sections.map((section) => (
+                <section key={section.id}>
+                  <div className="player-season-leaderboard__heading">
+                    <strong>{section.label}</strong>
+                    <small>歴代TOP5</small>
+                  </div>
                   <div className="player-season-leaderboard__rows">
                     {section.rows.map((row, index) => (
                       <button
-                        key={row.playerId}
+                        disabled={!row.active}
+                        key={`${section.id}-${row.playerId}`}
                         onClick={() => {
+                          if (!row.active) return;
                           setSeasonStatsOpen(false);
                           setDetailMode("record");
                           setSelectedPlayerId(row.playerId);
@@ -1796,21 +1878,19 @@ export function PlayerHubScreen({
                         <b>{index + 1}</b>
                         <span>
                           <strong>{row.displayName}</strong>
-                          <small>{row.position}</small>
+                          <small>
+                            {row.position}・{row.statusLabel}
+                          </small>
                         </span>
                         <em>{row.valueLabel}</em>
                       </button>
                     ))}
                   </div>
-                ) : (
-                  <p className="player-season-leaderboard__no-sample">
-                    集計対象なし
-                  </p>
-                )}
-              </section>
-            ))
-          )}
-        </section>
+                </section>
+              ))
+            )}
+          </section>
+        )}
       </BottomSheet>
 
       {trainingSaveBar}
