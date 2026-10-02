@@ -42,7 +42,8 @@ export interface TournamentResultInput {
   won: boolean;
 }
 
-export interface ApplyOfficialMatchPlayerStatsInput extends TournamentResultInput {
+export interface ApplyOfficialMatchPlayerStatsInput
+  extends TournamentResultInput {
   state: GameState;
   performance: UserMatchPerformanceSnapshot;
 }
@@ -192,7 +193,8 @@ export function applyOfficialMatchPlayerStats(
           (participated ? input.performance.completedSetCount : 0),
         points: player.career.points + (totals?.points ?? 0),
         blocks: player.career.blocks + (totals?.blockPoints ?? 0),
-        serviceAces: player.career.serviceAces + (totals?.serviceAces ?? 0),
+        serviceAces:
+          player.career.serviceAces + (totals?.serviceAces ?? 0),
         bestTournamentResultId: participated
           ? improveBestTournamentResultId(
               player.career.bestTournamentResultId,
@@ -206,7 +208,8 @@ export function applyOfficialMatchPlayerStats(
             seasonStats.setsPlayed +
             (participated ? input.performance.completedSetCount : 0),
           points: seasonStats.points + (totals?.points ?? 0),
-          attackPoints: seasonStats.attackPoints + (totals?.attackPoints ?? 0),
+          attackPoints:
+            seasonStats.attackPoints + (totals?.attackPoints ?? 0),
           attackAttempts:
             seasonStats.attackAttempts + (totals?.attackAttempts ?? 0),
           blocks: seasonStats.blocks + (totals?.blockPoints ?? 0),
