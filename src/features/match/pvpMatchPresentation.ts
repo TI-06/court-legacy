@@ -32,18 +32,19 @@ const EMPTY_SELECTION: TeamSelection = {
 function publicOpponentSelection(
   segment: PvpMatchSegment,
 ): TeamSelection {
-  const court = segment.opponentPlayers
+  const opponentPlayers = segment.opponentPlayers ?? [];
+  const court = opponentPlayers
     .filter(
       (
         player,
-      ): player is (typeof segment.opponentPlayers)[number] & {
+      ): player is (typeof opponentPlayers)[number] & {
         role: "court";
         slot: RotationSlot;
       } => player.role === "court" && player.slot !== null,
     )
     .sort((left, right) => left.slot - right.slot);
   const libero =
-    segment.opponentPlayers.find((player) => player.role === "libero") ?? null;
+    opponentPlayers.find((player) => player.role === "libero") ?? null;
 
   return {
     rotation: court.map((player) => ({
@@ -150,7 +151,7 @@ export interface PvpMatchScreenPresentation {
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
   schoolDisplayNames: Partial<Record<ReturnType<typeof schoolId>, string>>;
-  opponentTargetPlayers: PvpMatchSegment["opponentPlayers"];
+  opponentTargetPlayers: NonNullable<PvpMatchSegment["opponentPlayers"]>;
 }
 
 export function buildPvpMatchScreenPresentation(
@@ -191,7 +192,7 @@ export function buildPvpMatchScreenPresentation(
     },
     homeSelection: segment.challengerSelection,
     awaySelection,
-    opponentTargetPlayers: segment.opponentPlayers,
+    opponentTargetPlayers: segment.opponentPlayers ?? [],
     schoolDisplayNames: {
       [userSchoolId]: "自校",
       [awaySchoolId]: response.opponent.schoolName,
