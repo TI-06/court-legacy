@@ -223,90 +223,87 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("abilities");
   });
 
-  it(
-    "accepts a serve target command while returning only public defender identities",
-    async () => {
-      const challenger = challengerSnapshot();
-      const defender = defenderSnapshot();
-      const started = startAtOpponentRun();
-      const targetPlayerId =
-        started.session.match.awaySelection.rotation[0]!.playerId;
-      const publicResponse = {
-        status: "in-progress" as const,
-        operationId,
-        revision: challenger.revision,
-        seasonId: "2026-09",
-        opponent: {
-          snapshotId: defender.id,
-          schoolName: defender.school.name,
-          schoolShortName: defender.school.shortName,
-        },
-        segment: started.segment,
-      };
-      const persisted: PersistedPvpMatchSession = {
-        challengerUserId,
-        operationId,
-        defenderSnapshotId: defender.id,
-        challengerSourceRevision: challenger.revision,
-        currentCursor: started.session.match.randomCursor,
-        privateSession: started.session,
-        publicResponse,
-        finalResponse: null,
-        createdAt: "2026-09-10T10:20:00.000Z",
-        updatedAt: "2026-09-10T10:20:00.000Z",
-      };
-      const store = storeForSession(persisted, defender);
-      const handler = createPvpChallengeCommandHandler({ pvpStore: store });
+  it("accepts a serve target command while returning only public defender identities", async () => {
+    const challenger = challengerSnapshot();
+    const defender = defenderSnapshot();
+    const started = startAtOpponentRun();
+    const targetPlayerId =
+      started.session.match.awaySelection.rotation[0]!.playerId;
+    const publicResponse = {
+      status: "in-progress" as const,
+      operationId,
+      revision: challenger.revision,
+      seasonId: "2026-09",
+      opponent: {
+        snapshotId: defender.id,
+        schoolName: defender.school.name,
+        schoolShortName: defender.school.shortName,
+      },
+      segment: started.segment,
+    };
+    const persisted: PersistedPvpMatchSession = {
+      challengerUserId,
+      operationId,
+      defenderSnapshotId: defender.id,
+      challengerSourceRevision: challenger.revision,
+      currentCursor: started.session.match.randomCursor,
+      privateSession: started.session,
+      publicResponse,
+      finalResponse: null,
+      createdAt: "2026-09-10T10:20:00.000Z",
+      updatedAt: "2026-09-10T10:20:00.000Z",
+    };
+    const store = storeForSession(persisted, defender);
+    const handler = createPvpChallengeCommandHandler({ pvpStore: store });
 
-      const response = await handler(
-        new Request("https://court-legacy.test/api/pvp/challenge/command", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            operationId,
-            commandId: "command-target-serve-001",
-            command: {
-              type: "target-serve-receiver",
-              playerId: targetPlayerId,
-            },
-          }),
+    const response = await handler(
+      new Request("https://court-legacy.test/api/pvp/challenge/command", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          operationId,
+          commandId: "command-target-serve-001",
+          command: {
+            type: "target-serve-receiver",
+            playerId: targetPlayerId,
+          },
         }),
-        { id: challengerUserId },
+      }),
+      { id: challengerUserId },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
+      .calls[0]![0];
+    expect(saveInput.command).toEqual({
+      type: "target-serve-receiver",
+      playerId: targetPlayerId,
+    });
+
+    const defenderPlayers = body.segment?.defenderPlayers;
+    expect(defenderPlayers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: targetPlayerId,
+          firstName: expect.any(String),
+          lastName: expect.any(String),
+          preferredPosition: expect.any(String),
+          role: "court",
+        }),
+      ]),
+    );
+    for (const player of defenderPlayers ?? []) {
+      expect(Object.keys(player).sort()).toEqual(
+        ["firstName", "id", "lastName", "preferredPosition", "role"].sort(),
       );
-      const body = await response.json();
+    }
 
-      expect(response.status).toBe(200);
-      const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
-        .calls[0]![0];
-      expect(saveInput.command).toEqual({
-        type: "target-serve-receiver",
-        playerId: targetPlayerId,
-      });
-
-      const defenderPlayers = body.segment?.defenderPlayers;
-      expect(defenderPlayers).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: targetPlayerId,
-            firstName: expect.any(String),
-            lastName: expect.any(String),
-            preferredPosition: expect.any(String),
-            role: "court",
-          }),
-        ]),
-      );
-      for (const player of defenderPlayers ?? []) {
-        expect(Object.keys(player).sort()).toEqual(
-          ["firstName", "id", "lastName", "preferredPosition", "role"].sort(),
-        );
-      }
-
-      const serialized = JSON.stringify(body);
-      expect(serialized).not.toContain('"abilities"');
-      expect(serialized).not.toContain('"hiddenTraitIds"');
-      expect(serialized).not.toContain('"traitIds"');
-      expect(serialized).not.toContain('"condition"');
-      expect(serialized).not.toContain('"fatigue"');
-    },
-  );
+    const serialized = JSON.stringify(body);
+    expect(serialized).not.toContain('"abilities"');
+    expect(serialized).not.toContain('"hiddenTraitIds"');
+    expect(serialized).not.toContain('"traitIds"');
+    expect(serialized).not.toContain('"condition"');
+    expect(serialized).not.toContain('"fatigue"');
+  });
 });
