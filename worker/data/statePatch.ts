@@ -5,6 +5,11 @@ export type JsonStatePatchOperation =
       value: unknown;
     }
   | {
+      op: "merge";
+      path: string[];
+      value: Record<string, unknown>;
+    }
+  | {
       op: "remove";
       path: string[];
     };
@@ -125,6 +130,53 @@ export function buildJsonStatePatchWithCollapsedRoot(
   return [rootOperation, ...operations];
 }
 
+function mergePatchAtPath(
+  result: unknown,
+  path: readonly string[],
+  value: Record<string, unknown>,
+): unknown {
+  if (path.length === 0) {
+    if (!isRecord(result)) {
+      throw new Error("cannot merge non-object JSON state root");
+    }
+    return {
+      ...result,
+      ...structuredClone(value),
+    };
+  }
+
+  let current = result as Record<string, unknown> | unknown[];
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const segment = path[index]!;
+    const next = Array.isArray(current)
+      ? current[Number(segment)]
+      : current[segment];
+    if (typeof next !== "object" || next === null) {
+      throw new Error("invalid JSON state patch path");
+    }
+    current = next as Record<string, unknown> | unknown[];
+  }
+
+  const key = path[path.length - 1]!;
+  const target = Array.isArray(current)
+    ? current[Number(key)]
+    : current[key];
+  if (!isRecord(target)) {
+    throw new Error("cannot merge non-object JSON state target");
+  }
+
+  const merged = {
+    ...target,
+    ...structuredClone(value),
+  };
+  if (Array.isArray(current)) {
+    current[Number(key)] = merged;
+  } else {
+    current[key] = merged;
+  }
+  return result;
+}
+
 export function applyJsonStatePatch<T>(
   input: T,
   operations: readonly JsonStatePatchOperation[],
@@ -132,6 +184,11 @@ export function applyJsonStatePatch<T>(
   let result = structuredClone(input) as unknown;
 
   for (const operation of operations) {
+    if (operation.op === "merge") {
+      result = mergePatchAtPath(result, operation.path, operation.value);
+      continue;
+    }
+
     if (operation.path.length === 0) {
       if (operation.op === "remove") {
         throw new Error("cannot remove JSON state root");
@@ -206,4 +263,70 @@ export function collapseJsonStatePatchRoot(
     .slice(firstIndex)
     .filter((operation) => operation.path[0] !== rootKey);
   return [...before, replacement, ...afterOperations];
+}
+
+export function coalesceJsonStatePatchObjectRoots(
+  after: Record<string, unknown>,
+  operations: readonly JsonStatePatchOperation[],
+  rootKeys: readonly string[],
+): JsonStatePatchOperation[] {
+  let result = [...operations];
+
+  for (const rootKey of rootKeys) {
+    const affected = result.filter(
+      (operation) => operation.path[0] === rootKey,
+    );
+    if (affected.length === 0) continue;
+    if (affected.some((operation) => operation.path.length < 2)) continue;
+
+    const afterRoot = after[rootKey];
+    if (!isRecord(afterRoot)) continue;
+
+    const touchedKeys = [
+      ...new Set(
+        affected
+          .map((operation) => operation.path[1])
+          .filter((key): key is string => key !== undefined),
+      ),
+    ];
+    if (touchedKeys.length === 0) continue;
+
+    const mergeValue: Record<string, unknown> = {};
+    const removals: JsonStatePatchOperation[] = [];
+    for (const key of touchedKeys) {
+      const afterHas =
+        Object.prototype.hasOwnProperty.call(afterRoot, key) &&
+        afterRoot[key] !== undefined;
+      if (afterHas) {
+        mergeValue[key] = afterRoot[key];
+      } else {
+        removals.push({ op: "remove", path: [rootKey, key] });
+      }
+    }
+
+    const firstIndex = result.findIndex(
+      (operation) => operation.path[0] === rootKey,
+    );
+    if (firstIndex < 0) continue;
+
+    const replacement: JsonStatePatchOperation[] = [];
+    if (Object.keys(mergeValue).length > 0) {
+      replacement.push({
+        op: "merge",
+        path: [rootKey],
+        value: mergeValue,
+      });
+    }
+    replacement.push(...removals);
+
+    const beforeOperations = result
+      .slice(0, firstIndex)
+      .filter((operation) => operation.path[0] !== rootKey);
+    const afterOperations = result
+      .slice(firstIndex)
+      .filter((operation) => operation.path[0] !== rootKey);
+    result = [...beforeOperations, ...replacement, ...afterOperations];
+  }
+
+  return result;
 }
