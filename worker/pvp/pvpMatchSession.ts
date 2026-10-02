@@ -13,7 +13,10 @@ import {
   type SchoolId,
 } from "../../src/domain/model/identifiers";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
-import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
+import {
+  applyMatchCommand,
+  MatchCommandValidationError,
+} from "../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
   startMatch,
