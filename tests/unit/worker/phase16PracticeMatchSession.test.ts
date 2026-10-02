@@ -183,7 +183,8 @@ describe("Phase16 resumable practice match session", () => {
     const { snapshot } = createSnapshot("phase52-practice-target-reload");
     const started = applyServerGameAction(snapshot, { type: "advance-week" });
     const startedMatch = started.state.activeMatch;
-    if (!startedMatch?.runtime) throw new Error("active practice match missing");
+    if (!startedMatch?.runtime)
+      throw new Error("active practice match missing");
     const targetPlayerId =
       startedMatch.awaySelection.liberoPlayerId ??
       startedMatch.awaySelection.rotation[0]!.playerId;
