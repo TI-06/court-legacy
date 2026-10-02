@@ -2516,3 +2516,58 @@
 .player-legacy-leaderboard button:disabled em {
   color: #d7e2e8;
 }
+
+
+.player-career-awards {
+  display: grid;
+  margin-top: 10px;
+  gap: 7px;
+}
+
+.player-career-awards__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-career-awards__heading strong {
+  font-size: 0.72rem;
+}
+
+.player-career-awards__heading span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.56rem;
+  font-weight: 850;
+}
+
+.player-career-awards__list {
+  display: grid;
+  gap: 5px;
+}
+
+.player-career-awards__list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  padding: 7px 8px;
+  gap: 8px;
+  background: rgb(244 122 24 / 8%);
+  border: 1px solid rgb(244 122 24 / 16%);
+  border-radius: 9px;
+}
+
+.player-career-awards__list span {
+  color: #ffc18b;
+  font-size: 0.56rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.player-career-awards__list strong {
+  overflow: hidden;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
