@@ -200,7 +200,11 @@ for (const width of [320, 360, 390, 414, 480]) {
 
     await continueUntilResult(page);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "監督采配" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "自校の試合評価" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "選手評価" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "監督采配" })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 }

@@ -10,10 +10,7 @@ import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
 import { buildLiveMatchIntelligence } from "./liveMatchIntelligence";
-import {
-  buildLiveCoachEffectRows,
-  buildMatchCommandImpactRows,
-} from "./matchCommandPresentation";
+import { buildLiveCoachEffectRows } from "./matchCommandPresentation";
 import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
@@ -359,9 +356,6 @@ function MatchScreenContent({
         state.userSchoolId,
         visibleEventSequence,
       );
-  const commandImpactRows = matchComplete
-    ? buildMatchCommandImpactRows(state, result.match)
-    : [];
   const userWon = result.analysis?.winnerSchoolId === state.userSchoolId;
   const userShortName = userIsHome ? homeShortName : awayShortName;
   const opponentShortName = userIsHome ? awayShortName : homeShortName;
@@ -667,6 +661,16 @@ function MatchScreenContent({
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
 
+          <MatchResultStats
+            state={state}
+            match={result.match}
+            userSchoolId={state.userSchoolId}
+            homeName={homeShortName}
+            awayName={awayShortName}
+            homeStrength={homeStrength}
+            awayStrength={awayStrength}
+          />
+
           {presentation?.kind === "practice" ? (
             <PracticeMatchReviewPanel
               awayStrength={awayStrength}
@@ -681,43 +685,6 @@ function MatchScreenContent({
           ) : null}
 
           <MatchResultStoryPanel state={state} match={result.match} />
-
-          <MatchResultStats
-            state={state}
-            match={result.match}
-            userSchoolId={state.userSchoolId}
-            homeName={homeShortName}
-            awayName={awayShortName}
-          />
-
-          {commandImpactRows.length > 0 ? (
-            <section
-              className="match-command-impact"
-              aria-labelledby="match-command-impact-heading"
-            >
-              <div className="section-heading">
-                <div>
-                  <p className="section-kicker">COACHING LOG</p>
-                  <h2 id="match-command-impact-heading">監督采配</h2>
-                </div>
-              </div>
-              <div className="match-command-impact__list">
-                {commandImpactRows.map((row) => (
-                  <article key={row.sequence}>
-                    <span>
-                      第{row.setNumber}セット ・ {row.homeScore}-{row.awayScore}
-                    </span>
-                    <strong>{row.commandLabel}</strong>
-                    <p>
-                      {row.observedRallies > 0
-                        ? `観測 ${row.observedRallies}ラリー：自校 ${row.schoolPoints} - 相手 ${row.opponentPoints}`
-                        : "指示時点の記録"}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null}
 
           <BottomSheet
             description="試合経験で変化した能力を確認できます。"

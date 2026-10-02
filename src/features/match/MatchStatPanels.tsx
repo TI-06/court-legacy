@@ -11,6 +11,7 @@ import {
 import "./matchGameStats.css";
 import { PreMatchRivalryContext } from "./PreMatchRivalryContext";
 import { ratingToGrade } from "./teamRatingGrade";
+import { buildMatchReviewEvaluation } from "./matchReviewEvaluation";
 
 interface PreMatchComparisonProps {
   state: GameState;
@@ -257,15 +258,8 @@ interface MatchResultStatsProps {
   userSchoolId: SchoolId;
   homeName: string;
   awayName: string;
-}
-
-function teamNameFor(
-  schoolId: SchoolId,
-  match: MatchState,
-  homeName: string,
-  awayName: string,
-): string {
-  return schoolId === match.homeSchoolId ? homeName : awayName;
+  homeStrength: number;
+  awayStrength: number;
 }
 
 export function MatchResultStats({
@@ -274,96 +268,108 @@ export function MatchResultStats({
   userSchoolId,
   homeName,
   awayName,
+  homeStrength,
+  awayStrength,
 }: MatchResultStatsProps) {
   const summary = buildMatchStatSummary(state, match);
+  const evaluation = buildMatchReviewEvaluation({
+    match,
+    summary,
+    userSchoolId,
+    homeStrength,
+    awayStrength,
+  });
   const userIsHome = match.homeSchoolId === userSchoolId;
   const user = userIsHome ? summary.home : summary.away;
   const opponent = userIsHome ? summary.away : summary.home;
   const userName = userIsHome ? homeName : awayName;
   const opponentName = userIsHome ? awayName : homeName;
-  const mvpTeamName = teamNameFor(
-    summary.mvp.schoolId,
-    match,
-    homeName,
-    awayName,
-  );
+  const userPlayers = summary.players
+    .filter((player) => player.schoolId === userSchoolId)
+    .map((player) => ({
+      stats: player,
+      evaluation: evaluation.players.find(
+        (item) => item.playerId === player.playerId,
+      ),
+    }))
+    .sort((first, second) => {
+      const firstScore = first.evaluation?.score ?? -1;
+      const secondScore = second.evaluation?.score ?? -1;
+      if (secondScore !== firstScore) return secondScore - firstScore;
+      if (second.stats.points !== first.stats.points) {
+        return second.stats.points - first.stats.points;
+      }
+      return first.stats.playerId.localeCompare(second.stats.playerId);
+    });
+  const teamMvp =
+    userPlayers.find(
+      (player) => player.stats.playerId === evaluation.teamMvpPlayerId,
+    ) ?? userPlayers[0];
   const rows = [
     ["総得点", user.totalPoints, opponent.totalPoints],
-    ["アタック得点", user.attackPoints, opponent.attackPoints],
-    ["ブロック得点", user.blockPoints, opponent.blockPoints],
-    ["サーブエース", user.serviceAces, opponent.serviceAces],
-    ["ラリー得点", user.rallyPoints, opponent.rallyPoints],
-    ["相手ミス得点", user.opponentErrorPoints, opponent.opponentErrorPoints],
+    ["アタック", user.attackPoints, opponent.attackPoints],
+    ["決定率", `${user.attackSuccessRate}%`, `${opponent.attackSuccessRate}%`],
+    ["ブロック", user.blockPoints, opponent.blockPoints],
+    ["サーブACE", user.serviceAces, opponent.serviceAces],
     [
-      "アタック決定率",
-      `${user.attackSuccessRate}%`,
-      `${opponent.attackSuccessRate}%`,
+      "好レシーブ率",
+      `${user.perfectReceiveRate}%`,
+      `${opponent.perfectReceiveRate}%`,
     ],
-    ["サーブミス", user.serveErrors, opponent.serveErrors],
+  ] as const;
+  const categoryRows = [
+    ["攻撃", evaluation.team.attack],
+    ["ブロック", evaluation.team.block],
+    ["サーブ", evaluation.team.serve],
+    ["レシーブ", evaluation.team.receive],
   ] as const;
 
   return (
     <>
-      <section className="match-mvp-card" aria-labelledby="match-mvp-heading">
-        <div className="match-mvp-card__badge" aria-hidden="true">
-          MVP
+      <section
+        className="match-review-summary"
+        aria-labelledby="match-review-heading"
+      >
+        <div className="match-review-summary__grade">
+          <span>TEAM RATING</span>
+          <strong>{evaluation.team.grade}</strong>
+          <b>{evaluation.team.score}</b>
         </div>
-        <div className="match-mvp-card__copy">
-          <p className="section-kicker">PLAYER OF THE MATCH</p>
-          <h2 id="match-mvp-heading">MVP</h2>
-          <strong>{summary.mvp.name}</strong>
-          <span>
-            {summary.mvp.position} ・ {mvpTeamName}
-          </span>
-          <p>
-            {summary.mvp.points}得点（アタック{summary.mvp.attackPoints} /
-            ブロック
-            {summary.mvp.blockPoints} / エース{summary.mvp.serviceAces}）
-            {summary.mvp.defensePoints > 0
-              ? `。守備でも${summary.mvp.defensePoints}回、得点につながるプレー。`
-              : "。直接得点で勝利に大きく貢献。"}
-          </p>
+        <div className="match-review-summary__copy">
+          <p className="section-kicker">MATCH REVIEW</p>
+          <h2 id="match-review-heading">自校の試合評価</h2>
+          <small>
+            勝敗・相手戦力・実際のプレー内容から評価
+            {evaluation.team.strengthAdjustment !== 0
+              ? ` / 戦力差補正 ${evaluation.team.strengthAdjustment > 0 ? "+" : ""}${evaluation.team.strengthAdjustment}`
+              : ""}
+          </small>
         </div>
-        <div className="match-mvp-card__metrics">
-          <span>
-            <small>得点</small>
-            <strong>{summary.mvp.points}</strong>
-          </span>
-          <span>
-            <small>ブロック</small>
-            <strong>{summary.mvp.blockPoints}</strong>
-          </span>
-          <span>
-            <small>サーブエース</small>
-            <strong>{summary.mvp.serviceAces}</strong>
-          </span>
+        <div className="match-review-summary__categories">
+          {categoryRows.map(([label, item]) => (
+            <span key={label}>
+              <small>{label}</small>
+              <strong>{item.grade}</strong>
+              <b>{item.score}</b>
+            </span>
+          ))}
         </div>
-      </section>
-
-      <section className="match-awards" aria-label="試合個人賞">
-        <article>
-          <span>最多得点</span>
-          <strong>{summary.topScorer.name}</strong>
-          <b>{summary.topScorer.points}得点</b>
-        </article>
-        <article>
-          <span>最多ブロック</span>
-          <strong>{summary.topBlocker.name}</strong>
-          <b>{summary.topBlocker.blockPoints}本</b>
-        </article>
-        <article>
-          <span>サーブエース</span>
-          <strong>{summary.topServer.name}</strong>
-          <b>{summary.topServer.serviceAces}本</b>
-        </article>
-        <article>
-          <span>ベストレシーバー</span>
-          <strong>{summary.bestReceiver.name}</strong>
-          <b>
-            好レシーブ {summary.bestReceiver.perfectReceives}/
-            {summary.bestReceiver.receiveAttempts}
-          </b>
-        </article>
+        {teamMvp ? (
+          <div className="match-team-mvp">
+            <span>TEAM MVP</span>
+            <div>
+              <strong>{teamMvp.stats.name}</strong>
+              <small>{teamMvp.stats.position}</small>
+            </div>
+            <b>
+              {teamMvp.evaluation?.grade ?? "--"}
+              {teamMvp.evaluation?.score !== null &&
+              teamMvp.evaluation?.score !== undefined
+                ? `・${teamMvp.evaluation.score}`
+                : ""}
+            </b>
+          </div>
+        ) : null}
       </section>
 
       <section className="match-box-score" aria-labelledby="team-stats-heading">
@@ -385,6 +391,67 @@ export function MatchResultStats({
               <span>{label}</span>
               <strong>{opponentValue}</strong>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className="match-player-review"
+        aria-labelledby="player-review-heading"
+      >
+        <div className="match-game-heading">
+          <div>
+            <p className="section-kicker">PLAYER REVIEW</p>
+            <h2 id="player-review-heading">選手評価</h2>
+          </div>
+          <small>自校のみ</small>
+        </div>
+        <div className="match-player-review__list">
+          {userPlayers.map(({ stats, evaluation: playerEvaluation }) => (
+            <article key={stats.playerId}>
+              <header>
+                <div>
+                  <strong>{stats.name}</strong>
+                  <small>{stats.position}</small>
+                </div>
+                <span
+                  className={
+                    playerEvaluation?.rated
+                      ? "match-player-review__grade"
+                      : "match-player-review__grade is-unrated"
+                  }
+                >
+                  <b>{playerEvaluation?.grade ?? "--"}</b>
+                  <small>{playerEvaluation?.score ?? "評価なし"}</small>
+                </span>
+              </header>
+              <div className="match-player-review__metrics">
+                <span>
+                  <small>得点</small>
+                  <b>{stats.points}</b>
+                </span>
+                <span>
+                  <small>ATT</small>
+                  <b>
+                    {stats.attackPoints}/{stats.attackAttempts}
+                  </b>
+                </span>
+                <span>
+                  <small>BLK</small>
+                  <b>{stats.blockPoints}</b>
+                </span>
+                <span>
+                  <small>ACE</small>
+                  <b>{stats.serviceAces}</b>
+                </span>
+                <span>
+                  <small>REC</small>
+                  <b>
+                    {stats.perfectReceives}/{stats.receiveAttempts}
+                  </b>
+                </span>
+              </div>
+            </article>
           ))}
         </div>
       </section>
