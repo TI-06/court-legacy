@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import type { UniversityJointTrainingResult } from "../../../../src/domain/school/specialProjectActivities";
+import type {
+  UniversityJointTrainingResult,
+} from "../../../../src/domain/school/specialProjectActivities";
 import { SpecialProjectActivityResultDialog } from "../../../../src/features/home/SpecialProjectActivityResultDialog";
 
 describe("SpecialProjectActivityResultDialog", () => {
@@ -51,7 +53,9 @@ describe("SpecialProjectActivityResultDialog", () => {
     expect(
       screen.getByRole("dialog", { name: "大学チーム合同練習の結果" }),
     ).toBeVisible();
-    expect(screen.getByText("守備をテーマにした合同練習が終了しました。")).toBeVisible();
+    expect(
+      screen.getByText("守備をテーマにした合同練習が終了しました。"),
+    ).toBeVisible();
 
     const summary = screen.getByLabelText("大学合同練習サマリー");
     expect(within(summary).getByText("12人")).toBeVisible();
