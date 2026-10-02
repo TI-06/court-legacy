@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand, MatchState } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
+import type { PvpPublicOpponentTarget } from "../../domain/pvp/pvpContracts";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { opportunityRequestByPlayerId } from "../../domain/dynamics/playerOpportunityRequests";
@@ -25,10 +26,13 @@ interface MatchCommandPanelProps {
   state: GameState;
   match: MatchState;
   pending: boolean;
+  opponentTargets?: PvpPublicOpponentTarget[];
   onCommand: (command: MatchCommand) => void | Promise<void>;
 }
 
-function playerName(player: Player): string {
+function playerName(
+  player: Pick<Player, "firstName" | "lastName">,
+): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
@@ -149,6 +153,7 @@ export function MatchCommandPanel({
   state,
   match,
   pending,
+  opponentTargets,
   onCommand,
 }: MatchCommandPanelProps) {
   const runtime = match.runtime;
@@ -258,21 +263,36 @@ export function MatchCommandPanel({
     !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
-  const opponentCourtPlayers = opponentSelection.rotation
+  const publicOpponentTargets =
+    opponentTargets?.map((target) => ({
+      id: target.playerId,
+      firstName: target.firstName,
+      lastName: target.lastName,
+      preferredPosition: target.preferredPosition,
+      isLibero: target.role === "libero",
+    })) ?? null;
+  const localOpponentCourtPlayers = opponentSelection.rotation
     .map((assignment) => state.players[assignment.playerId])
-    .filter((player): player is Player => Boolean(player));
-  const opponentLiberoPlayer = opponentSelection.liberoPlayerId
+    .filter((player): player is Player => Boolean(player))
+    .map((player) => ({ ...player, isLibero: false }));
+  const localOpponentLiberoPlayer = opponentSelection.liberoPlayerId
     ? (state.players[opponentSelection.liberoPlayerId] ?? null)
     : null;
-  const serveTargetPlayers =
-    opponentLiberoPlayer &&
-    !opponentCourtPlayers.some(
-      (player) => player.id === opponentLiberoPlayer.id,
+  const localServeTargets =
+    localOpponentLiberoPlayer &&
+    !localOpponentCourtPlayers.some(
+      (player) => player.id === localOpponentLiberoPlayer.id,
     )
-      ? [...opponentCourtPlayers, opponentLiberoPlayer]
-      : opponentCourtPlayers;
-  const blockTargetPlayers = opponentCourtPlayers.filter((player) =>
-    ["OH", "MB", "OP"].includes(player.preferredPosition),
+      ? [
+          ...localOpponentCourtPlayers,
+          { ...localOpponentLiberoPlayer, isLibero: true },
+        ]
+      : localOpponentCourtPlayers;
+  const serveTargetPlayers = publicOpponentTargets ?? localServeTargets;
+  const blockTargetPlayers = serveTargetPlayers.filter(
+    (player) =>
+      !player.isLibero &&
+      ["OH", "MB", "OP"].includes(player.preferredPosition),
   );
 
   const rotationPlayerIds = new Set(
@@ -580,7 +600,7 @@ export function MatchCommandPanel({
             </div>
             <div className="match-command-opponent-targeting__grid">
               {serveTargetPlayers.map((player) => {
-                const isLibero = opponentLiberoPlayer?.id === player.id;
+                const isLibero = player.isLibero;
                 return (
                   <button
                     aria-label={`サーブで狙う ${playerName(player)}`}
