@@ -151,9 +151,8 @@ describe("Phase 16 private resumable PvP match session", () => {
     }
 
     const defenderPlayerIds =
-      resumed.session.simulationState.schools[
-        resumed.session.defenderSchoolId
-      ]!.playerIds;
+      resumed.session.simulationState.schools[resumed.session.defenderSchoolId]!
+        .playerIds;
     expect(defenderPlayerIds).toContain(command.playerId);
     expect(command.playerId).not.toBe(publicTarget.playerId);
     expect(JSON.stringify(resumed.segment)).not.toContain(command.playerId);
