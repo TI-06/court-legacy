@@ -119,22 +119,23 @@ function publicLiberoTargetId(): PlayerId {
 function publicOpponentTargets(
   session: PvpServerMatchSession,
 ): PvpPublicOpponentTarget[] {
-  const targets: PvpPublicOpponentTarget[] = session.match.awaySelection.rotation
-    .slice()
-    .sort((left, right) => left.slot - right.slot)
-    .flatMap((assignment) => {
-      const player = session.simulationState.players[assignment.playerId];
-      if (!player) return [];
-      return [
-        {
-          playerId: publicCourtTargetId(assignment.slot),
-          firstName: player.firstName,
-          lastName: player.lastName,
-          preferredPosition: player.preferredPosition,
-          role: "court" as const,
-        },
-      ];
-    });
+  const targets: PvpPublicOpponentTarget[] =
+    session.match.awaySelection.rotation
+      .slice()
+      .sort((left, right) => left.slot - right.slot)
+      .flatMap((assignment) => {
+        const player = session.simulationState.players[assignment.playerId];
+        if (!player) return [];
+        return [
+          {
+            playerId: publicCourtTargetId(assignment.slot),
+            firstName: player.firstName,
+            lastName: player.lastName,
+            preferredPosition: player.preferredPosition,
+            role: "court" as const,
+          },
+        ];
+      });
 
   const liberoId = session.match.awaySelection.liberoPlayerId;
   if (
@@ -186,10 +187,7 @@ function resolvePublicTargetCommand(
   ) {
     return command;
   }
-  const internalPlayerId = internalOpponentTargetId(
-    session,
-    command.playerId,
-  );
+  const internalPlayerId = internalOpponentTargetId(session, command.playerId);
   if (!internalPlayerId) {
     throw new MatchCommandValidationError(
       "pvp_target_unavailable",
