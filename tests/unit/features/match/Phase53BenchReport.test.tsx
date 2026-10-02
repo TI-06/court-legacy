@@ -136,9 +136,7 @@ describe("Phase53 bench report", () => {
     );
 
     expect(onCommand).not.toHaveBeenCalled();
-    fireEvent.click(
-      screen.getByRole("button", { name: "タイムアウトを取る" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "タイムアウトを取る" }));
     expect(onCommand).toHaveBeenCalledOnce();
     expect(onCommand).toHaveBeenCalledWith({ type: "timeout" });
   });
@@ -172,8 +170,6 @@ describe("Phase53 bench report", () => {
       />,
     );
 
-    expect(
-      screen.queryByRole("region", { name: "ベンチレポート" }),
-    ).toBeNull();
+    expect(screen.queryByRole("region", { name: "ベンチレポート" })).toBeNull();
   });
 });
