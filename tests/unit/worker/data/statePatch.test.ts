@@ -289,10 +289,7 @@ describe("buildJsonStatePatch", () => {
     };
     const after = structuredClone(before);
     after.history.matches = after.history.matches.slice(2);
-    after.history.matches.push(
-      { id: 13, score: 20 },
-      { id: 14, score: 21 },
-    );
+    after.history.matches.push({ id: 13, score: 20 }, { id: 14, score: 21 });
 
     const raw = buildJsonStatePatch(before, after);
     expect(
@@ -309,8 +306,7 @@ describe("buildJsonStatePatch", () => {
     expect(
       compact.filter(
         (operation) =>
-          operation.path[0] === "history" &&
-          operation.path[1] === "matches",
+          operation.path[0] === "history" && operation.path[1] === "matches",
       ),
     ).toEqual([
       {
