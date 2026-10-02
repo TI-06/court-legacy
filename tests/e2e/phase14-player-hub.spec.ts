@@ -107,6 +107,39 @@ for (const width of widths) {
     await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
     await expectPlayerHubNoHorizontalOverflow(page);
 
+    await page.getByRole("button", { name: "今季の公式戦成績" }).click();
+    const statsSheet = page.getByRole("dialog", { name: /今季成績$/ });
+    await expect(statsSheet).toBeVisible();
+    await expect(
+      statsSheet.getByRole("button", { name: "今季" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await statsSheet.getByRole("button", { name: "歴代" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "学校歴代記録" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "歴代" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expectPlayerHubNoHorizontalOverflow(page);
+
+    const statsLayout = await page.evaluate(() => {
+      const sheet = document.querySelector(".player-season-leaderboard-sheet");
+      return {
+        viewport: document.documentElement.clientWidth,
+        sheetClient: sheet?.clientWidth ?? 0,
+        sheetScroll: sheet?.scrollWidth ?? 0,
+      };
+    });
+    expect(statsLayout.sheetClient).toBeGreaterThan(0);
+    expect(statsLayout.sheetClient).toBeLessThanOrEqual(statsLayout.viewport);
+    expect(statsLayout.sheetScroll).toBeLessThanOrEqual(
+      statsLayout.sheetClient + 1,
+    );
+
+    await page.getByRole("dialog", { name: "学校歴代記録" })
+      .getByRole("button", { name: "閉じる" })
+      .click();
+
     await page.getByRole("button", { name: "チーム" }).click();
     await expect(
       page.getByRole("heading", { name: "チーム状態" }),
