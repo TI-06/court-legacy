@@ -122,18 +122,19 @@ describe("Phase16 MatchScreen command presentation", () => {
     expect(tactics).toHaveTextContent("ブロック コミット");
   });
 
-  it("shows factual coach-command history after an interactive match completes", () => {
+  it("shows the Phase53 result review instead of the coaching log after an interactive match completes", () => {
     const base = completeInteractiveMatch();
 
     renderMatch(base, base.result);
     fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
 
     expect(screen.getByRole("heading", { name: "試合結果" })).toBeVisible();
-    const commandImpact = screen.getByRole("region", { name: "監督采配" });
-    expect(commandImpact).toHaveTextContent("戦術変更");
-    expect(commandImpact).toHaveTextContent("観測");
-    expect(commandImpact).not.toHaveTextContent("効果で");
-    expect(commandImpact).not.toHaveTextContent("成功させた");
+    expect(
+      screen.getByRole("heading", { name: "自校の試合評価" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "選手評価" })).toBeVisible();
+    expect(screen.queryByRole("region", { name: "監督采配" })).toBeNull();
+    expect(screen.getByText("TEAM MVP")).toBeVisible();
   });
 
   it("shows practice review for practice results and keeps it out of official results", () => {
