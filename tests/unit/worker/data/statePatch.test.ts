@@ -4,6 +4,7 @@ import {
   applyJsonStatePatch,
   buildJsonStatePatch,
   buildJsonStatePatchWithCollapsedRoot,
+  collapseNoisyJsonStatePatchPaths,
   coalesceJsonStatePatchObjectRoots,
   collapseJsonStatePatchRoot,
   type JsonStatePatchOperation,
@@ -271,6 +272,51 @@ describe("buildJsonStatePatch", () => {
       {
         op: "remove",
         path: ["players", "b"],
+      },
+    ]);
+    expect(applyJsonStatePatch(before, compact)).toEqual(after);
+  });
+
+  it("collapses a noisy nested history path into one exact replacement", () => {
+    const before = {
+      history: {
+        matches: Array.from({ length: 12 }, (_, index) => ({
+          id: index + 1,
+          score: index,
+        })),
+        graduates: [{ id: "keep" }],
+      },
+    };
+    const after = structuredClone(before);
+    after.history.matches = after.history.matches.slice(2);
+    after.history.matches.push(
+      { id: 13, score: 20 },
+      { id: 14, score: 21 },
+    );
+
+    const raw = buildJsonStatePatch(before, after);
+    expect(
+      raw.filter((operation) => operation.path[0] === "history"),
+    ).toHaveLength(expect.any(Number));
+
+    const compact = collapseNoisyJsonStatePatchPaths(
+      after as unknown as Record<string, unknown>,
+      raw,
+      [["history", "matches"]],
+      4,
+    );
+
+    expect(
+      compact.filter(
+        (operation) =>
+          operation.path[0] === "history" &&
+          operation.path[1] === "matches",
+      ),
+    ).toEqual([
+      {
+        op: "set",
+        path: ["history", "matches"],
+        value: after.history.matches,
       },
     ]);
     expect(applyJsonStatePatch(before, compact)).toEqual(after);
