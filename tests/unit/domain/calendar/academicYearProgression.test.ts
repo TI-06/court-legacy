@@ -122,6 +122,47 @@ describe("academic year progression", () => {
     }
   });
 
+  it("drops bounded season stats when a player graduates", () => {
+    const state = createDemoGame();
+    state.date = "2027-03-31";
+    state.calendar.currentDate = state.date;
+    state.calendar.weekOfYear = 52;
+    const playerId = state.schools[state.userSchoolId]!.playerIds.find(
+      (id) => state.players[id]!.grade === 3,
+    )!;
+    state.players[playerId]!.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 5,
+      setsPlayed: 12,
+      points: 44,
+      attackPoints: 25,
+      attackAttempts: 48,
+      blocks: 7,
+      serviceAces: 4,
+      receiveAttempts: 15,
+      perfectReceives: 10,
+      defensePoints: 3,
+      idealSets: 0,
+      successfulDigs: 6,
+    };
+
+    const result = advanceGameWeek(state, gameData);
+
+    expect(result.academicYearTransition?.graduatedPlayerIds).toContain(
+      playerId,
+    );
+    expect(result.state.players[playerId]!.career.seasonStats).toBeUndefined();
+    expect(
+      result.state.history.graduates.find(
+        (graduate) => graduate.playerId === playerId,
+      ),
+    ).toMatchObject({
+      points: state.players[playerId]!.career.points,
+      blocks: state.players[playerId]!.career.blocks,
+      serviceAces: state.players[playerId]!.career.serviceAces,
+    });
+  });
+
   it("grants the next annual school budget exactly once", () => {
     const state = createDemoGame();
     state.date = "2027-03-31";
