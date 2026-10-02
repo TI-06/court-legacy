@@ -236,4 +236,66 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("traitIds");
     expect(serialized).not.toContain("potential");
   });
+
+  it("accepts a Phase52 PvP serve-target command through the canonical route", async () => {
+    const challenger = challengerSnapshot();
+    const defender = defenderSnapshot();
+    const started = startAtOpponentRun();
+    const target = started.segment.opponentTargetPlayers.find(
+      (player) => player.role === "court",
+    );
+    if (!target) throw new Error("public opponent target fixture missing");
+
+    const publicResponse = {
+      status: "in-progress" as const,
+      operationId,
+      revision: challenger.revision,
+      seasonId: "2026-09",
+      opponent: {
+        snapshotId: defender.id,
+        schoolName: defender.school.name,
+        schoolShortName: defender.school.shortName,
+      },
+      segment: started.segment,
+    };
+    const persisted: PersistedPvpMatchSession = {
+      challengerUserId,
+      operationId,
+      defenderSnapshotId: defender.id,
+      challengerSourceRevision: challenger.revision,
+      currentCursor: started.session.match.randomCursor,
+      privateSession: started.session,
+      publicResponse,
+      finalResponse: null,
+      createdAt: "2026-09-10T10:20:00.000Z",
+      updatedAt: "2026-09-10T10:20:00.000Z",
+    };
+    const store = storeForSession(persisted, defender);
+    const handler = createPvpChallengeCommandHandler({ pvpStore: store });
+
+    const response = await handler(
+      new Request("https://court-legacy.test/api/pvp/challenge/command", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          operationId,
+          commandId: "phase52-serve-target-001",
+          command: {
+            type: "target-serve-receiver",
+            playerId: target.playerId,
+          },
+        }),
+      }),
+      { id: challengerUserId },
+    );
+
+    expect(response.status).toBe(200);
+    expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
+    const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
+      .calls[0]![0];
+    expect(saveInput.command).toEqual({
+      type: "target-serve-receiver",
+      playerId: target.playerId,
+    });
+  });
 });
