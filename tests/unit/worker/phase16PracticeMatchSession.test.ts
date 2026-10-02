@@ -339,6 +339,51 @@ describe("Phase16 resumable practice match session", () => {
     );
   });
 
+  it("routes a Phase52 serve target through a resumable practice match", () => {
+    const { snapshot } = createSnapshot("phase52-practice-target-route");
+    let current = applyServerGameAction(snapshot, { type: "advance-week" });
+    let currentSnapshot = continueSnapshot(snapshot, current);
+
+    for (let guard = 0; guard < 4; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active) throw new Error("practice active match missing");
+      if (active.runtime?.pendingDecisionReason !== "set-break") break;
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+    }
+
+    const active = current.state.activeMatch;
+    if (!active?.runtime) throw new Error("practice runtime missing");
+    const opponentSelection =
+      active.homeSchoolId === current.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const targetPlayerId = opponentSelection.rotation[0]!.playerId;
+    const persistentTarget =
+      current.state.schools[current.state.userSchoolId]!.tactics
+        .serveTargetPlayerId;
+
+    const targeted = applyServerGameAction(currentSnapshot, {
+      type: "match-command",
+      command: { type: "target-serve-receiver", playerId: targetPlayerId },
+    });
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (record) =>
+          record.command.type === "target-serve-receiver" &&
+          record.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics
+        .serveTargetPlayerId,
+    ).toBe(persistentTarget);
+  });
+
   it("rejects match commands when no resumable active match exists without mutating the snapshot", () => {
     const { snapshot } = createSnapshot("phase16-command-without-match");
     const before = structuredClone(snapshot);
