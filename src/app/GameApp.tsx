@@ -1535,6 +1535,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         awayStrength={pvpActiveOpponent?.teamPower ?? 0}
         homeSelection={pvpMatchPresentation.homeSelection}
         homeStrength={homeStrength}
+        opponentTargets={pvpMatchPresentation.opponentTargets}
         commandPending={pvpCommandPending}
         onCommand={issuePvpMatchCommand}
         onReturnHome={() => undefined}

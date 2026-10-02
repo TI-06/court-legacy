@@ -5,6 +5,7 @@ import type {
   PendingMatchPresentation,
 } from "../../../src/domain/calendar/advanceWeekOutcome";
 import { isWeeklyActionCompleted } from "../../../src/domain/calendar/weekProgression";
+import { applyMatchCommand } from "../../../src/domain/match/applyMatchCommand";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import { gameActionRequestSchema } from "../../../worker/game/actionSchema";
@@ -176,6 +177,41 @@ describe("Phase16 resumable practice match session", () => {
     expect(resumed.state.weeklySchedule.practiceMatch.scheduledOpponentId).toBe(
       opponentId,
     );
+  });
+
+  it("keeps Phase52 target rallies after a reload-style practice match reopen", () => {
+    const { snapshot } = createSnapshot("phase52-practice-target-reload");
+    const started = applyServerGameAction(snapshot, { type: "advance-week" });
+    const startedMatch = started.state.activeMatch;
+    if (!startedMatch?.runtime)
+      throw new Error("active practice match missing");
+    const targetPlayerId =
+      startedMatch.awaySelection.liberoPlayerId ??
+      startedMatch.awaySelection.rotation[0]!.playerId;
+    const targeted = applyMatchCommand({
+      state: started.state,
+      match: startedMatch,
+      schoolId: started.state.userSchoolId,
+      command: { type: "target-serve-receiver", playerId: targetPlayerId },
+    });
+
+    const reloadedSnapshot: CloudGameSnapshot = {
+      ...continueSnapshot(snapshot, started),
+      state: {
+        ...started.state,
+        activeMatch: targeted,
+      },
+    };
+    const reopened = applyServerGameAction(reloadedSnapshot, {
+      type: "advance-week",
+    });
+
+    expect(reopened.state.activeMatch?.id).toBe(targeted.id);
+    expect(reopened.state.activeMatch?.runtime?.serveTarget).toEqual({
+      schoolId: started.state.userSchoolId,
+      playerId: targetPlayerId,
+      ralliesRemaining: 5,
+    });
   });
 
   it("drops an orphaned active match before starting the currently scheduled practice match", () => {

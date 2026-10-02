@@ -149,6 +149,10 @@ describe("Phase 16 PvP command resume route", () => {
     const started = startAtOpponentRun();
     expect(started.session.match.phase).toBe("coach-decision");
     expect(started.segment.pendingDecisionReason).toBe("opponent-run");
+    const publicTarget = started.segment.opponentTargets?.find(
+      (target) => target.role === "court",
+    );
+    if (!publicTarget) throw new Error("public PvP target missing");
 
     const publicResponse = {
       status: "in-progress" as const,
@@ -184,7 +188,10 @@ describe("Phase 16 PvP command resume route", () => {
         body: JSON.stringify({
           operationId,
           commandId: "command-resume-001",
-          command: { type: "continue" },
+          command: {
+            type: "target-serve-receiver",
+            playerId: publicTarget.playerId,
+          },
         }),
       }),
       { id: challengerUserId },
@@ -211,7 +218,10 @@ describe("Phase 16 PvP command resume route", () => {
     expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
     const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
       .calls[0]![0];
-    expect(saveInput.command).toEqual({ type: "continue" });
+    expect(saveInput.command).toEqual({
+      type: "target-serve-receiver",
+      playerId: publicTarget.playerId,
+    });
     expect(saveInput.expectedCursor).toBe(persisted.currentCursor);
     expect(saveInput.nextCursor).toBeGreaterThan(persisted.currentCursor);
     expect(saveInput.privateSession).not.toBe(persisted.privateSession);
@@ -221,5 +231,12 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("simulationState");
     expect(serialized).not.toContain("runtime");
     expect(serialized).not.toContain("abilities");
+    expect(serialized).not.toContain("hiddenTraitIds");
+    const defenderPlayerIds =
+      started.session.simulationState.schools[started.session.defenderSchoolId]!
+        .playerIds;
+    for (const defenderPlayerId of defenderPlayerIds) {
+      expect(serialized).not.toContain(defenderPlayerId);
+    }
   });
 });

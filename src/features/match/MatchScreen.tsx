@@ -5,6 +5,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
+import type { PvpPublicOpponentTarget } from "../../domain/pvp/pvpContracts";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
@@ -24,6 +25,7 @@ interface MatchScreenProps {
   opponent: Pick<School, "id" | "name" | "shortName">;
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
+  opponentTargets?: PvpPublicOpponentTarget[];
   homeStrength: number;
   awayStrength: number;
   result: MatchStepResult | null;
@@ -80,6 +82,7 @@ function MatchScreenContent({
   opponent,
   homeSelection,
   awaySelection,
+  opponentTargets,
   homeStrength,
   awayStrength,
   result: legacyResult,
@@ -507,6 +510,7 @@ function MatchScreenContent({
             <MatchCommandPanel
               match={result.match}
               onCommand={submitCoachCommand}
+              opponentTargets={opponentTargets}
               pending={commandPending}
               state={state}
             />

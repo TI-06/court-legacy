@@ -272,6 +272,17 @@ function isPvpSide(value: unknown): boolean {
   return value === null || value === "challenger" || value === "defender";
 }
 
+function isPvpOpponentTarget(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.playerId === "string" &&
+    typeof value.firstName === "string" &&
+    typeof value.lastName === "string" &&
+    ["OH", "MB", "OP", "S", "L"].includes(String(value.preferredPosition)) &&
+    (value.role === "court" || value.role === "libero")
+  );
+}
+
 function isPvpMatchSegment(value: unknown): boolean {
   if (!isRecord(value)) return false;
   if (
@@ -293,6 +304,9 @@ function isPvpMatchSegment(value: unknown): boolean {
     typeof value.currentScore.defender !== "number" ||
     !isPvpTeamSelection(value.challengerSelection) ||
     !isPvpTacticPlan(value.challengerTactics) ||
+    (value.opponentTargets !== undefined &&
+      (!Array.isArray(value.opponentTargets) ||
+        !value.opponentTargets.every(isPvpOpponentTarget))) ||
     typeof value.timeoutAvailable !== "boolean" ||
     !Array.isArray(value.sets) ||
     !Array.isArray(value.events)
