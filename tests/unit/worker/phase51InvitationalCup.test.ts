@@ -102,6 +102,7 @@ describe("Phase51 invitational cup worker flow", () => {
     expect(resumed.state.activeMatch?.id).toBe(startedMatch.id);
     expect(resumed.state.activeMatch?.phase).toBe(startedMatch.phase);
   });
+
   it("routes Phase52 opponent targeting through invitational matches", () => {
     const snapshot = createSnapshot();
     const purchased = applyServerGameAction(snapshot, {
@@ -148,5 +149,4 @@ describe("Phase51 invitational cup worker flow", () => {
       ),
     ).toBe(true);
   });
-
 });
