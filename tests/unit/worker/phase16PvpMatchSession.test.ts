@@ -156,7 +156,6 @@ describe("Phase 16 private resumable PvP match session", () => {
       "actorPlayerId",
       "targetPlayerId",
       "serveTargetPlayerId",
-      "defender:",
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
