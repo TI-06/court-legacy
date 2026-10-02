@@ -41,6 +41,20 @@ const seasonAwardLabels: Record<string, string> = {
   setter: "ベストセッター",
 };
 
+const seasonAwardOrder: Record<string, number> = {
+  mvp: 0,
+  attacker: 1,
+  blocker: 2,
+  server: 3,
+  receiver: 4,
+  setter: 5,
+};
+
+function awardSortRank(awardId: string): number {
+  const match = /^season:\d+:([a-z-]+)$/.exec(awardId);
+  return match ? (seasonAwardOrder[match[1] ?? ""] ?? 99) : 99;
+}
+
 function awardPresentation(awardId: string): PlayerAwardPresentation {
   const match = /^season:(\d+):([a-z-]+)$/.exec(awardId);
   if (!match) {
@@ -68,7 +82,7 @@ function awardPresentations(
     .sort(
       (left, right) =>
         (right.academicYear ?? -1) - (left.academicYear ?? -1) ||
-        left.label.localeCompare(right.label) ||
+        awardSortRank(left.id) - awardSortRank(right.id) ||
         left.id.localeCompare(right.id),
     );
 }
