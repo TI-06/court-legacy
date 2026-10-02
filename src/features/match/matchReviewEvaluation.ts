@@ -98,13 +98,9 @@ function teamEvaluation(
     (match.awaySchoolId === userSchoolId &&
       match.awaySetsWon > match.homeSetsWon);
   const userSets =
-    match.homeSchoolId === userSchoolId
-      ? match.homeSetsWon
-      : match.awaySetsWon;
+    match.homeSchoolId === userSchoolId ? match.homeSetsWon : match.awaySetsWon;
   const opponentSets =
-    match.homeSchoolId === userSchoolId
-      ? match.awaySetsWon
-      : match.homeSetsWon;
+    match.homeSchoolId === userSchoolId ? match.awaySetsWon : match.homeSetsWon;
 
   const attack = rating(
     58 + (user.attackSuccessRate - opponent.attackSuccessRate) * 0.72,
@@ -261,12 +257,10 @@ export function buildMatchReviewEvaluation({
   });
 
   const teamMvp =
-    [...players]
-      .filter(isRatedPlayerEvaluation)
-      .sort((first, second) => {
-        if (second.score !== first.score) return second.score - first.score;
-        return first.playerId.localeCompare(second.playerId);
-      })[0] ?? null;
+    [...players].filter(isRatedPlayerEvaluation).sort((first, second) => {
+      if (second.score !== first.score) return second.score - first.score;
+      return first.playerId.localeCompare(second.playerId);
+    })[0] ?? null;
 
   return {
     team: teamEvaluation(
