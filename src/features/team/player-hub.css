@@ -2269,7 +2269,6 @@
   }
 }
 
-
 /* Phase54-2: current-season leaderboard */
 .player-hub__season-stats {
   display: grid;
@@ -2430,7 +2429,6 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-
 
 .player-season-record {
   display: grid;
