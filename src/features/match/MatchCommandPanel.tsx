@@ -450,8 +450,9 @@ export function MatchCommandPanel({
       case "focus-attacker":
         return "個人指示を見る";
       case "target-serve-receiver":
+        return "サーブ候補を見る";
       case "mark-opponent-attacker":
-        return "相手を狙う";
+        return "警戒候補を見る";
     }
   };
 
