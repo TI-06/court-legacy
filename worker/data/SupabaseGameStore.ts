@@ -74,13 +74,13 @@ const storedOperationSchema = z.object({
   resulting_revision: z.number().int().positive(),
 });
 
-const MAX_JSON_PATCH_BYTES = 32_768;
-const MAX_PREFERRED_JSON_PATCH_BYTES = 262_144;
+const MAX_JSON_PATCH_BYTES = 262_144;
 // Each JSONB patch operation rewrites part of the canonical save inside
 // Postgres. Production saves above 1 MB have shown that allowing dozens of
 // operations can hit the API's statement timeout even when the request body is
-// much smaller than a full-state save. Keep a hard operation ceiling that
-// preferDelta cannot bypass.
+// much smaller than a full-state save. V5 coalesces high-churn entity maps
+// before reaching this store, but keep the hard operation ceiling as a final
+// safety valve.
 const MAX_JSON_PATCH_OPERATIONS = 16;
 
 const applyOperationRpcSchema = z
@@ -368,13 +368,9 @@ export class SupabaseGameStore implements GameStore {
     const patchBytes = JSON.stringify(statePatch).length;
     const exceedsOperationSafetyLimit =
       statePatch.length > MAX_JSON_PATCH_OPERATIONS;
-    const exceedsNormalDeltaBudget = patchBytes > MAX_JSON_PATCH_BYTES;
-    const exceedsPreferredDeltaBudget =
-      input.preferDelta && patchBytes > MAX_PREFERRED_JSON_PATCH_BYTES;
+    const exceedsDeltaBudget = patchBytes > MAX_JSON_PATCH_BYTES;
     const useFullStateFallback =
-      exceedsOperationSafetyLimit ||
-      exceedsPreferredDeltaBudget ||
-      (!input.preferDelta && exceedsNormalDeltaBudget);
+      exceedsOperationSafetyLimit || exceedsDeltaBudget;
     const { data, error } = useFullStateFallback
       ? await this.client.rpc("apply_game_operation_v3", {
           p_user_id: input.userId,
@@ -384,7 +380,7 @@ export class SupabaseGameStore implements GameStore {
           p_team_selection: input.teamSelection,
           p_outcome: input.response.outcome ?? null,
         })
-      : await this.client.rpc("apply_game_operation_v4", {
+      : await this.client.rpc("apply_game_operation_v5", {
           p_user_id: input.userId,
           p_operation_id: input.operationId,
           p_expected_revision: input.expectedRevision,

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import {
+  applyJsonStatePatch,
   buildJsonStatePatch,
   buildJsonStatePatchWithCollapsedRoot,
+  collapseNoisyJsonStatePatchPaths,
+  coalesceJsonStatePatchObjectRoots,
   collapseJsonStatePatchRoot,
   type JsonStatePatchOperation,
 } from "../../../../worker/data/statePatch";
@@ -193,5 +196,151 @@ describe("buildJsonStatePatch", () => {
     expect(JSON.stringify(patch).length).toBeLessThan(
       JSON.stringify(after).length / 20,
     );
+  });
+  it("coalesces high-churn object maps into shallow merge operations", () => {
+    const before = {
+      players: {
+        a: { morale: 50, trust: 40 },
+        b: { morale: 60, trust: 50 },
+        c: { morale: 70, trust: 60 },
+      },
+      schools: {
+        user: { funds: 100, reputation: 20 },
+        rival: { funds: 200, reputation: 40 },
+      },
+      history: { matches: [{ id: 1 }] },
+    };
+    const after = structuredClone(before);
+    after.players.a.morale = 51;
+    after.players.b.trust = 55;
+    after.schools.user.funds = 120;
+    after.history.matches.push({ id: 2 });
+
+    const raw = buildJsonStatePatch(before, after);
+    const compact = coalesceJsonStatePatchObjectRoots(
+      after as unknown as Record<string, unknown>,
+      raw,
+      ["players", "schools"],
+    );
+
+    expect(compact.filter((operation) => operation.op === "merge")).toEqual([
+      {
+        op: "merge",
+        path: ["players"],
+        value: {
+          a: after.players.a,
+          b: after.players.b,
+        },
+      },
+      {
+        op: "merge",
+        path: ["schools"],
+        value: {
+          user: after.schools.user,
+        },
+      },
+    ]);
+    expect(compact.length).toBeLessThan(raw.length);
+    expect(applyJsonStatePatch(before, compact)).toEqual(after);
+  });
+
+  it("keeps removals explicit while batching object-map updates", () => {
+    const before = {
+      players: {
+        a: { morale: 50 },
+        b: { morale: 60 },
+      },
+    };
+    const after = {
+      players: {
+        a: { morale: 55 },
+      },
+    };
+
+    const compact = coalesceJsonStatePatchObjectRoots(
+      after as unknown as Record<string, unknown>,
+      buildJsonStatePatch(before, after),
+      ["players"],
+    );
+
+    expect(compact).toEqual([
+      {
+        op: "merge",
+        path: ["players"],
+        value: { a: after.players.a },
+      },
+      {
+        op: "remove",
+        path: ["players", "b"],
+      },
+    ]);
+    expect(applyJsonStatePatch(before, compact)).toEqual(after);
+  });
+
+  it("collapses a noisy nested history path into one exact replacement", () => {
+    const before = {
+      history: {
+        matches: Array.from({ length: 12 }, (_, index) => ({
+          id: index + 1,
+          score: index,
+        })),
+        graduates: [{ id: "keep" }],
+      },
+    };
+    const after = structuredClone(before);
+    after.history.matches = after.history.matches.slice(2);
+    after.history.matches.push({ id: 13, score: 20 }, { id: 14, score: 21 });
+
+    const raw = buildJsonStatePatch(before, after);
+    expect(
+      raw.filter((operation) => operation.path[0] === "history").length,
+    ).toBeGreaterThan(4);
+
+    const compact = collapseNoisyJsonStatePatchPaths(
+      after as unknown as Record<string, unknown>,
+      raw,
+      [["history", "matches"]],
+      4,
+    );
+
+    expect(
+      compact.filter(
+        (operation) =>
+          operation.path[0] === "history" && operation.path[1] === "matches",
+      ),
+    ).toEqual([
+      {
+        op: "set",
+        path: ["history", "matches"],
+        value: after.history.matches,
+      },
+    ]);
+    expect(applyJsonStatePatch(before, compact)).toEqual(after);
+  });
+
+  it("applies shallow merge patches without replacing untouched map entries", () => {
+    const before = {
+      players: {
+        a: { morale: 50 },
+        b: { morale: 60 },
+      },
+    };
+
+    const result = applyJsonStatePatch(before, [
+      {
+        op: "merge",
+        path: ["players"],
+        value: {
+          a: { morale: 80 },
+        },
+      },
+    ]);
+
+    expect(result).toEqual({
+      players: {
+        a: { morale: 80 },
+        b: { morale: 60 },
+      },
+    });
   });
 });
