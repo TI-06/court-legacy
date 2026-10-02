@@ -3,6 +3,10 @@ import { FACILITY_MAX_LEVEL } from "../../domain/school/facilityUpgrade";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 
+const SEASON_AWARD_ID_PATTERN =
+  /^season:(\d+):(mvp|attacker|blocker|server|receiver|setter)$/;
+const MAX_SEASON_AWARDS_PER_PLAYER = 18;
+
 export interface SoakInvariantViolation {
   code: string;
   message: string;
@@ -179,6 +183,45 @@ export function inspectSoakInvariants(
     ] as const) {
       inspectBoundedPlayerValue(items, player[field], `${playerPath}.${field}`);
     }
+    const seenAwardIds = new Set<string>();
+    let seasonAwardCount = 0;
+    for (const awardId of player.career.awardIds) {
+      const awardPath = `${playerPath}.career.awardIds`;
+      if (seenAwardIds.has(awardId)) {
+        violation(
+          items,
+          "duplicate_player_award_id",
+          "同じ表彰IDが選手キャリアに重複しています",
+          awardPath,
+        );
+        continue;
+      }
+      seenAwardIds.add(awardId);
+
+      const match = SEASON_AWARD_ID_PATTERN.exec(awardId);
+      if (!match) continue;
+      seasonAwardCount += 1;
+      const awardYear = Number(match[1]);
+      const firstYear = player.career.enrolledYear;
+      const lastYear = firstYear + 2;
+      if (awardYear < firstYear || awardYear > lastYear) {
+        violation(
+          items,
+          "season_award_outside_player_career",
+          "年間表彰の年度が選手の在籍3年間から外れています",
+          awardPath,
+        );
+      }
+    }
+    if (seasonAwardCount > MAX_SEASON_AWARDS_PER_PLAYER) {
+      violation(
+        items,
+        "player_season_awards_unbounded",
+        `年間表彰が1選手あたり${MAX_SEASON_AWARDS_PER_PLAYER}件を超えています`,
+        `${playerPath}.career.awardIds`,
+      );
+    }
+
     if (player.injury) {
       const path = `${playerPath}.injury.remainingWeeks`;
       if (inspectFinite(items, player.injury.remainingWeeks, path)) {
