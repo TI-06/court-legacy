@@ -1,0 +1,26 @@
+name: Phase52 Format Diagnostic
+
+on:
+  push:
+    branches:
+      - test/phase52-targeting-worker-pvp
+    paths:
+      - ".github/workflows/phase52-format-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Show exact Prettier diff
+        run: |
+          npx prettier tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts --write
+          git diff -- tests/unit/app/Phase16PvpMatchCommand.test.tsx tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts
