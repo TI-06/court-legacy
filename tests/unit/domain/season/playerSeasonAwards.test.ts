@@ -1,6 +1,10 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { PlayerSeasonStats } from "../../../../src/domain/model/Player";
-import { selectSeasonAwards } from "../../../../src/domain/season/playerSeasonAwards";
+import {
+  grantSeasonAwards,
+  seasonAwardId,
+  selectSeasonAwards,
+} from "../../../../src/domain/season/playerSeasonAwards";
 
 function stats(
   academicYear: number,
@@ -127,6 +131,30 @@ describe("Phase55 season awards", () => {
     );
 
     expect(blocker?.playerId).toBe(firstId);
+  });
+
+  it("grants year-qualified award ids once even when reapplied", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.career.seasonStats = stats(state.calendar.academicYear, {
+      appearances: 4,
+      points: 30,
+      attackPoints: 24,
+      attackAttempts: 40,
+    });
+
+    const selection = selectSeasonAwards(state);
+    const once = grantSeasonAwards(state, selection);
+    const twice = grantSeasonAwards(once, selection);
+    const expectedId = seasonAwardId(state.calendar.academicYear, "mvp");
+
+    expect(once.players[playerId]!.career.awardIds).toContain(expectedId);
+    expect(
+      twice.players[playerId]!.career.awardIds.filter(
+        (awardId) => awardId === expectedId,
+      ),
+    ).toHaveLength(1);
   });
 
   it("ignores stale season stats from a previous academic year", () => {
