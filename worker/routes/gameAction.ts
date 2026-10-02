@@ -11,11 +11,7 @@ import {
 import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
-import {
-  buildJsonStatePatch,
-  buildJsonStatePatchWithCollapsedRoot,
-  coalesceJsonStatePatchObjectRoots,
-} from "../data/statePatch";
+import { buildPersistenceStatePatch } from "../game/buildPersistenceStatePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -181,24 +177,9 @@ export function createGameActionHandler(
             },
           }
         : applied.state;
-    const activeMatchChanged =
-      loadedSnapshot.state.activeMatch !== persistedState.activeMatch;
-    const rawStatePatch = activeMatchChanged
-      ? buildJsonStatePatchWithCollapsedRoot(
-          loadedSnapshot.state as unknown as Record<string, unknown>,
-          persistedState as unknown as Record<string, unknown>,
-          "activeMatch",
-        )
-      : buildJsonStatePatch(loadedSnapshot.state, persistedState);
-    const statePatch = coalesceJsonStatePatchObjectRoots(
-      persistedState as unknown as Record<string, unknown>,
-      rawStatePatch,
-      [
-        "players",
-        "schools",
-        "playerRelationships",
-        "playerRelationshipBonds",
-      ],
+    const statePatch = buildPersistenceStatePatch(
+      loadedSnapshot.state,
+      persistedState,
     );
     const response: PersistedOperationResponse = {
       game: {
