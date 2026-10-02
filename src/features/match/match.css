@@ -1634,6 +1634,133 @@
   line-height: 1.45;
 }
 
+/* Phase53: compact observed-play bench report. */
+.match-bench-report {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  gap: 8px;
+  background: rgb(114 213 223 / 6%);
+  border: 1px solid rgb(114 213 223 / 16%);
+  border-radius: 13px;
+}
+
+.match-bench-report > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.match-bench-report > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.match-bench-report > header span {
+  color: #72d5df;
+  font-size: 0.54rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.match-bench-report > header strong {
+  color: #f4f7fb;
+  font-size: 0.72rem;
+}
+
+.match-bench-report > header small {
+  flex: 0 0 auto;
+  color: #8fa8b8;
+  font-size: 0.53rem;
+  font-weight: 800;
+}
+
+.match-bench-report__list {
+  display: grid;
+  gap: 6px;
+}
+
+.match-bench-report__list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 9px;
+  gap: 8px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.match-bench-report__list article > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-bench-report__list article strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-bench-report__list article p {
+  margin: 0;
+  color: #a9c0ce;
+  font-size: 0.57rem;
+  line-height: 1.35;
+}
+
+.match-bench-report__list button {
+  min-height: 36px;
+  padding: 6px 8px;
+  color: #071321;
+  font: inherit;
+  font-size: 0.59rem;
+  font-weight: 950;
+  white-space: nowrap;
+  background: #72d5df;
+  border: 0;
+  border-radius: 9px;
+}
+
+.match-bench-report__list button:disabled {
+  opacity: 0.5;
+}
+
+.match-command-opponent-targeting__grid button.is-recommended {
+  background: rgb(244 122 24 / 13%);
+  border-color: rgb(244 122 24 / 42%);
+  box-shadow: inset 3px 0 0 var(--game-accent, #f47a18);
+}
+
+.match-command-opponent-targeting__grid button.is-recommended small {
+  color: #ffc08a;
+}
+
+@media (max-width: 350px) {
+  .match-bench-report > header {
+    align-items: start;
+  }
+
+  .match-bench-report > header small {
+    display: none;
+  }
+
+  .match-bench-report__list article {
+    grid-template-columns: 1fr;
+  }
+
+  .match-bench-report__list button {
+    width: 100%;
+  }
+}
+
 /* Phase52: opponent targeting commands */
 .match-command-opponent-targeting-sheet {
   animation: match-opponent-target-sheet-enter 160ms ease-out;
