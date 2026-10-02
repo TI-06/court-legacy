@@ -200,10 +200,7 @@ export function YearTransitionDialog({
         ) : null}
 
         {summary.seasonAwards.winners.length > 0 ? (
-          <section
-            aria-label="年間表彰"
-            className="year-transition-awards"
-          >
+          <section aria-label="年間表彰" className="year-transition-awards">
             <div className="year-transition-awards__heading">
               <div>
                 <span>SEASON AWARDS</span>
