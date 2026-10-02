@@ -3,12 +3,7 @@ import type { Player, PlayerSeasonStats } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 
 export type SeasonAwardCategory =
-  | "mvp"
-  | "attacker"
-  | "blocker"
-  | "server"
-  | "receiver"
-  | "setter";
+  "mvp" | "attacker" | "blocker" | "server" | "receiver" | "setter";
 
 export interface SeasonAwardWinner {
   category: SeasonAwardCategory;
@@ -78,8 +73,7 @@ function winner(
     .sort(
       (left, right) =>
         right.score - left.score ||
-        right.candidate.stats.appearances -
-          left.candidate.stats.appearances ||
+        right.candidate.stats.appearances - left.candidate.stats.appearances ||
         left.candidate.player.id.localeCompare(right.candidate.player.id),
     )[0];
 
@@ -135,8 +129,7 @@ export function selectSeasonAwards(state: GameState): SeasonAwardSelection {
     "attacker",
     pool.filter(
       (candidate) =>
-        candidate.stats.attackAttempts >= 5 &&
-        candidate.stats.attackPoints > 0,
+        candidate.stats.attackAttempts >= 5 && candidate.stats.attackPoints > 0,
     ),
     ({ stats }) =>
       stats.attackPoints * 100 +
