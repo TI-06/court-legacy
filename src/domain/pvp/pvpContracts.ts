@@ -89,7 +89,7 @@ export interface PvpPublicSetState {
   winner: "challenger" | "defender" | null;
 }
 
-export interface PvpPublicOpponentPlayer {
+export interface PvpPublicOpponentIdentity {
   id: PlayerId;
   firstName: string;
   lastName: string;
@@ -110,7 +110,7 @@ export interface PvpMatchSegment {
     defender: number;
   };
   challengerSelection: TeamSelection;
-  defenderPlayers?: PvpPublicOpponentPlayer[];
+  defenderPlayers?: PvpPublicOpponentIdentity[];
   challengerTactics: MatchTacticPlan;
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
