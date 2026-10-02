@@ -214,7 +214,14 @@ describe("Phase 16 private resumable PvP match session", () => {
     expect(opponentPlayers.length).toBeLessThanOrEqual(7);
     for (const player of opponentPlayers) {
       expect(Object.keys(player).sort()).toEqual(
-        ["firstName", "id", "lastName", "preferredPosition", "role", "slot"].sort(),
+        [
+          "firstName",
+          "id",
+          "lastName",
+          "preferredPosition",
+          "role",
+          "slot",
+        ].sort(),
       );
     }
 
