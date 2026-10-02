@@ -6,7 +6,10 @@ import type {
   MatchState,
 } from "../../domain/model/Match";
 import { matchId, schoolId } from "../../domain/model/identifiers";
-import type { TeamSelection } from "../../domain/model/TeamSelection";
+import type {
+  RotationSlot,
+  TeamSelection,
+} from "../../domain/model/TeamSelection";
 import type {
   PvpChallengeInProgressResponse,
   PvpMatchSegment,
@@ -25,6 +28,40 @@ const EMPTY_SELECTION: TeamSelection = {
     automaticSetChanges: false,
   },
 };
+
+function publicOpponentSelection(
+  segment: PvpMatchSegment,
+): TeamSelection {
+  const court = segment.opponentPlayers
+    .filter(
+      (
+        player,
+      ): player is (typeof segment.opponentPlayers)[number] & {
+        role: "court";
+        slot: RotationSlot;
+      } => player.role === "court" && player.slot !== null,
+    )
+    .sort((left, right) => left.slot - right.slot);
+  const libero =
+    segment.opponentPlayers.find((player) => player.role === "libero") ?? null;
+
+  return {
+    rotation: court.map((player) => ({
+      slot: player.slot,
+      playerId: player.id,
+    })),
+    liberoPlayerId: libero?.id ?? null,
+    benchPlayerIds: [],
+    servingOrderPlayerIds: court.map((player) => player.id),
+    substitutionPolicy: {
+      starterLockPlayerIds: [],
+      allowFatigueBenching: false,
+      allowInjuryBenching: true,
+      automaticSubstitutions: false,
+      automaticSetChanges: false,
+    },
+  };
+}
 
 const DEFAULT_OPPONENT_TACTICS = {
   serve: "balanced" as const,
@@ -81,6 +118,7 @@ function eventsFromSegment(
 function runtimeFromSegment(
   segment: PvpMatchSegment,
   homeSchoolId: ReturnType<typeof schoolId>,
+  awaySelection: TeamSelection,
 ): MatchRuntimeState {
   return {
     controlledSchoolId: homeSchoolId,
@@ -89,7 +127,7 @@ function runtimeFromSegment(
     homeTactics: segment.challengerTactics,
     awayTactics: DEFAULT_OPPONENT_TACTICS,
     homeBaseSelection: segment.challengerSelection,
-    awayBaseSelection: EMPTY_SELECTION,
+    awayBaseSelection: awaySelection,
     runWinnerSchoolId: null,
     runLength: 0,
     opponentRunDecisionConsumed: false,
@@ -112,6 +150,7 @@ export interface PvpMatchScreenPresentation {
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
   schoolDisplayNames: Partial<Record<ReturnType<typeof schoolId>, string>>;
+  opponentTargetPlayers: PvpMatchSegment["opponentPlayers"];
 }
 
 export function buildPvpMatchScreenPresentation(
@@ -120,12 +159,13 @@ export function buildPvpMatchScreenPresentation(
 ): PvpMatchScreenPresentation {
   const awaySchoolId = opponentSchoolId(response.opponent.snapshotId);
   const segment = response.segment;
+  const awaySelection = publicOpponentSelection(segment);
   const match: MatchState = {
     id: matchId(segment.matchId),
     homeSchoolId: userSchoolId,
     awaySchoolId,
     homeSelection: segment.challengerSelection,
-    awaySelection: EMPTY_SELECTION,
+    awaySelection,
     bestOfSets: 3,
     phase: segment.phase,
     currentSetNumber: segment.currentSetNumber,
@@ -139,7 +179,7 @@ export function buildPvpMatchScreenPresentation(
     eventLog: eventsFromSegment(segment, userSchoolId, awaySchoolId),
     randomSeed: "public-pvp-segment",
     randomCursor: segment.events.length,
-    runtime: runtimeFromSegment(segment, userSchoolId),
+    runtime: runtimeFromSegment(segment, userSchoolId, awaySelection),
   };
 
   return {
@@ -150,7 +190,8 @@ export function buildPvpMatchScreenPresentation(
       shortName: response.opponent.schoolShortName,
     },
     homeSelection: segment.challengerSelection,
-    awaySelection: EMPTY_SELECTION,
+    awaySelection,
+    opponentTargetPlayers: segment.opponentPlayers,
     schoolDisplayNames: {
       [userSchoolId]: "自校",
       [awaySchoolId]: response.opponent.schoolName,
