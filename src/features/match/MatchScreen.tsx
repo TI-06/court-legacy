@@ -4,7 +4,7 @@ import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
-import type { PvpPublicOpponentPlayer } from "../../domain/pvp/pvpContracts";
+import type { PvpPublicOpponentIdentity } from "../../domain/pvp/pvpContracts";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -40,7 +40,7 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
-  opponentPublicPlayers?: readonly PvpPublicOpponentPlayer[];
+  opponentPublicPlayers?: readonly PvpPublicOpponentIdentity[];
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
