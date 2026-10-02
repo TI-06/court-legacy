@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -222,7 +228,9 @@ describe("Phase16 GameApp PvP match commands", () => {
     });
   });
 
-  it("targets only public PvP opponent identities without exposing private metrics", async () => {
+  it(
+    "targets only public PvP opponent identities without exposing private metrics",
+    async () => {
     const snapshot = createSnapshot();
     const challengePvpTeam = vi.fn<
       NonNullable<GameApiClient["challengePvpTeam"]>
@@ -254,15 +262,16 @@ describe("Phase16 GameApp PvP match commands", () => {
     );
 
     await waitFor(() => expect(commandPvpChallenge).toHaveBeenCalledTimes(1));
-    expect(commandPvpChallenge.mock.calls[0]![1]).toMatchObject({
-      operationId: "phase16-pvp-operation",
-      commandId: expect.any(String),
-      command: {
-        type: "target-serve-receiver",
-        playerId: pvpServeTargetId,
-      },
-    });
-  });
+      expect(commandPvpChallenge.mock.calls[0]![1]).toMatchObject({
+        operationId: "phase16-pvp-operation",
+        commandId: expect.any(String),
+        command: {
+          type: "target-serve-receiver",
+          playerId: pvpServeTargetId,
+        },
+      });
+    },
+  );
 
   it("checks authoritative status after a network ambiguity and retries with the same command id only when unchanged", async () => {
     const snapshot = createSnapshot();
