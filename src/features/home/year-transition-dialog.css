@@ -192,6 +192,130 @@
   font-size: 0.68rem;
 }
 
+.year-transition-awards {
+  display: grid;
+  min-width: 0;
+  padding: 11px;
+  gap: 8px;
+  color: #eef8fa;
+  background:
+    radial-gradient(circle at 88% 10%, rgb(244 122 24 / 16%), transparent 34%),
+    linear-gradient(145deg, #17283d, #102033);
+  border: 1px solid rgb(244 122 24 / 24%);
+  border-radius: 14px;
+}
+
+.year-transition-awards__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.year-transition-awards__heading > div {
+  min-width: 0;
+}
+
+.year-transition-awards__heading span {
+  color: #ffc28d;
+  font-size: 0.52rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.year-transition-awards__heading h3 {
+  margin: 2px 0 0;
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.year-transition-awards__heading small {
+  color: #9fb2c0;
+  font-size: 0.56rem;
+  font-weight: 850;
+}
+
+.year-transition-awards__mvp {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  gap: 9px;
+  background: rgb(244 122 24 / 13%);
+  border: 1px solid rgb(244 122 24 / 28%);
+  border-radius: 11px;
+}
+
+.year-transition-awards__mvp > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: #201307;
+  font-size: 0.62rem;
+  font-weight: 950;
+  background: #ffb66f;
+  border-radius: 50%;
+}
+
+.year-transition-awards__mvp > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.year-transition-awards__mvp strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-awards__mvp small {
+  color: #c7d6df;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.year-transition-awards__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.year-transition-awards__grid article {
+  display: grid;
+  min-width: 0;
+  padding: 8px;
+  gap: 2px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.year-transition-awards__grid span {
+  color: #ffc18b;
+  font-size: 0.54rem;
+  font-weight: 900;
+}
+
+.year-transition-awards__grid strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-awards__grid small {
+  color: #9fb5c3;
+  font-size: 0.54rem;
+  line-height: 1.35;
+}
+
 .year-transition-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -327,6 +451,18 @@
   .year-transition-season__ranks article + article {
     border-top: 1px solid rgb(255 255 255 / 10%);
     border-left: 0;
+  }
+
+  .year-transition-awards__heading {
+    align-items: start;
+  }
+
+  .year-transition-awards__heading small {
+    display: none;
+  }
+
+  .year-transition-awards__grid {
+    grid-template-columns: 1fr;
   }
 
   .year-transition-metrics {
