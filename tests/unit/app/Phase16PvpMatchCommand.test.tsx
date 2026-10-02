@@ -6,6 +6,7 @@ import type {
   PvpChallengeInProgressResponse,
   PvpOpponentSummary,
 } from "../../../src/domain/pvp/pvpContracts";
+import { playerId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import {
   ApiError,
