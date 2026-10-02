@@ -1,10 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import {
-  resumeMatch,
-  startMatch,
-} from "../../../../src/domain/match/simulateMatch";
+import { resumeMatch, startMatch } from "../../../../src/domain/match/simulateMatch";
 import { applyMatchCommand } from "../../../../src/domain/match/applyMatchCommand";
 import type { CoachDecisionReason } from "../../../../src/domain/model/Match";
 import { matchId } from "../../../../src/domain/model/identifiers";
