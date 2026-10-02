@@ -2436,7 +2436,11 @@
   display: grid;
   padding: 10px;
   gap: 9px;
-  background: linear-gradient(145deg, rgb(20 54 70 / 92%), rgb(10 27 43 / 96%));
+  background: linear-gradient(
+    145deg,
+    rgb(20 54 70 / 92%),
+    rgb(10 27 43 / 96%)
+  );
   border: 1px solid rgb(114 213 223 / 18%);
   border-radius: 12px;
 }
