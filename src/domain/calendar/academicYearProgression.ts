@@ -354,6 +354,8 @@ export function advanceAcademicYear(
         graduates.push(playerId);
         graduatedPlayerIds.push(playerId);
         graduatedSummaries.push(graduateSummary(player, nextAcademicYear));
+        const { seasonStats: _seasonStats, ...career } = player.career;
+        players[playerId] = { ...player, career };
       } else {
         players[playerId] = { ...player, grade: promoteGrade(player.grade) };
         returningPlayerIds.push(playerId);
