@@ -157,6 +157,6 @@ export function buildPvpMatchScreenPresentation(
       [userSchoolId]: "自校",
       [awaySchoolId]: response.opponent.schoolName,
     },
-    opponentPublicPlayers: segment.defenderPlayers,
+    opponentPublicPlayers: segment.defenderPlayers ?? [],
   };
 }
