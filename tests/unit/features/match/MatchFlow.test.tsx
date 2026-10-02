@@ -96,7 +96,7 @@ describe("match flow", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("reveals the immutable event log and finishes on concise volleyball awards and exact box score", () => {
+  it("reveals the immutable event log and finishes on the Phase53 review and exact box score", () => {
     const fixture = createMatchFixture();
     const resultBefore = JSON.stringify(fixture.result);
 
@@ -136,21 +136,25 @@ describe("match flow", () => {
     expect(
       screen.getByRole("heading", { name: "試合結果" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "MVP" })).toBeInTheDocument();
-    expect(screen.getByText("最多得点")).toBeInTheDocument();
-    expect(screen.getByText("最多ブロック")).toBeInTheDocument();
-    expect(screen.getAllByText("サーブエース").length).toBeGreaterThan(0);
-    expect(screen.getByText("ベストレシーバー")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "自校の試合評価" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("TEAM RATING")).toBeInTheDocument();
+    expect(screen.getByText("TEAM MVP")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "選手評価" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "監督采配" })).toBeNull();
     expect(
       screen.getByRole("heading", { name: "チームスタッツ" }),
     ).toBeInTheDocument();
     const teamStats = screen.getByRole("region", { name: "チームスタッツ" });
     expect(within(teamStats).getByText("総得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("アタック得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("ブロック得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("ラリー得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("相手ミス得点")).toBeInTheDocument();
-    expect(within(teamStats).getByText("アタック決定率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("アタック")).toBeInTheDocument();
+    expect(within(teamStats).getByText("決定率")).toBeInTheDocument();
+    expect(within(teamStats).getByText("ブロック")).toBeInTheDocument();
+    expect(within(teamStats).getByText("サーブACE")).toBeInTheDocument();
+    expect(within(teamStats).getByText("好レシーブ率")).toBeInTheDocument();
     expect(screen.queryByText("Aパス率")).toBeNull();
     expect(
       screen.queryByRole("heading", { name: "勝敗を分けた要因" }),
