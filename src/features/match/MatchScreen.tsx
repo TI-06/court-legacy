@@ -4,6 +4,7 @@ import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
 import type { School } from "../../domain/model/School";
+import type { PvpPublicOpponentPlayer } from "../../domain/pvp/pvpContracts";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -39,6 +40,7 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
+  opponentPublicPlayers?: readonly PvpPublicOpponentPlayer[];
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -93,6 +95,7 @@ function MatchScreenContent({
   trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
+  opponentPublicPlayers,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(!reducedMotion);
@@ -507,6 +510,7 @@ function MatchScreenContent({
             <MatchCommandPanel
               match={result.match}
               onCommand={submitCoachCommand}
+              opponentPublicPlayers={opponentPublicPlayers}
               pending={commandPending}
               state={state}
             />
