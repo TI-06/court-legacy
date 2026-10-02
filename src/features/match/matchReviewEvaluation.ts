@@ -109,9 +109,7 @@ function teamEvaluation(
   const attack = rating(
     58 + (user.attackSuccessRate - opponent.attackSuccessRate) * 0.72,
   );
-  const block = rating(
-    58 + (user.blockPoints - opponent.blockPoints) * 6,
-  );
+  const block = rating(58 + (user.blockPoints - opponent.blockPoints) * 6);
   const serve = rating(
     58 +
       (user.serviceAces - opponent.serviceAces) * 5 -
@@ -202,7 +200,8 @@ function playerScore(
           -8,
           Math.min(
             8,
-            (userTeam.attackSuccessRate - opponentTeam.attackSuccessRate) * 0.25,
+            (userTeam.attackSuccessRate - opponentTeam.attackSuccessRate) *
+              0.25,
           ),
         ) +
         serveImpact * 0.25 +
