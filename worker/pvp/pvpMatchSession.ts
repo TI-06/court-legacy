@@ -16,6 +16,7 @@ import {
 } from "../../src/domain/match/simulateMatch";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
+import type { PvpPublicOpponentPlayer } from "../../src/domain/pvp/pvpContracts";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { PublishedPvpTeamSnapshot } from "../data/PvPStore";
 import { chooseAutomaticDefenderCommand } from "./automaticDefenderCoach";
@@ -52,6 +53,7 @@ export interface PvpMatchSegment {
     defender: number;
   };
   challengerSelection: TeamSelection;
+  defenderPlayers: PvpPublicOpponentPlayer[];
   challengerTactics: MatchTacticPlan;
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
