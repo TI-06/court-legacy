@@ -217,6 +217,39 @@ describe("Phase16 GameApp PvP match commands", () => {
     });
   });
 
+  it("sends a Phase52 serve target command from the PvP target sheet", async () => {
+    const snapshot = createSnapshot();
+    const challengePvpTeam = vi.fn<
+      NonNullable<GameApiClient["challengePvpTeam"]>
+    >(async () => inProgress(snapshot));
+    const commandPvpChallenge = vi.fn<
+      NonNullable<GameApiClient["commandPvpChallenge"]>
+    >(async () => inProgress(snapshot, 2));
+    const api = baseApi(
+      snapshot,
+      challengePvpTeam,
+      commandPvpChallenge,
+      vi.fn(async () => inProgress(snapshot)),
+    );
+
+    await openPreparedPvpMatch(api, snapshot);
+    fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "サーブで狙う 白波 翼",
+      }),
+    );
+
+    await waitFor(() => expect(commandPvpChallenge).toHaveBeenCalledTimes(1));
+    expect(commandPvpChallenge.mock.calls[0]![1]).toMatchObject({
+      operationId: "phase16-pvp-operation",
+      command: {
+        type: "target-serve-receiver",
+        playerId: "pvp:defender:oh-1",
+      },
+    });
+  });
+
   it("checks authoritative status after a network ambiguity and retries with the same command id only when unchanged", async () => {
     const snapshot = createSnapshot();
     const challengePvpTeam = vi.fn<
