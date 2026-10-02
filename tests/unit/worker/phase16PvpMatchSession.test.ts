@@ -60,6 +60,24 @@ function startFixture() {
   });
 }
 
+function startTargetableFixture() {
+  for (let index = 0; index < 40; index += 1) {
+    const started = startPvpMatchSession({
+      operationId: `phase52-pvp-target-${index}`,
+      challenger: challengerSnapshot(),
+      defender: defenderSnapshot(),
+      challengerSourceRevision: 8,
+      seasonId: "2026-10",
+      challengeDayKey: "2026-10-02",
+      matchSeed: `phase52-pvp-target-seed-${index}`,
+    });
+    if (started.segment.pendingDecisionReason === "opponent-run") {
+      return started;
+    }
+  }
+  throw new Error("could not find targetable PvP fixture");
+}
+
 function continueCommand(): MatchCommand {
   return { type: "continue" };
 }
@@ -129,6 +147,33 @@ describe("Phase 16 private resumable PvP match session", () => {
     expect(started.session.match.randomCursor).toBe(cursorBefore);
   });
 
+  it("accepts a Phase52 serve target through the private PvP session using only public identity", () => {
+    const started = startTargetableFixture();
+    const target = started.segment.opponentPlayers?.find(
+      (player) => player.role === "court",
+    );
+    if (!target) throw new Error("public opponent target missing");
+
+    const resumed = resumePvpMatchSession({
+      session: started.session,
+      command: {
+        type: "target-serve-receiver",
+        playerId: target.id,
+      },
+    });
+
+    expect(
+      resumed.session.match.runtime?.commandHistory.at(-1)?.command,
+    ).toEqual({
+      type: "target-serve-receiver",
+      playerId: target.id,
+    });
+    const serialized = JSON.stringify(resumed.segment);
+    expect(serialized).not.toContain("abilities");
+    expect(serialized).not.toContain("hiddenTraitIds");
+    expect(serialized).not.toContain("specialAbilityIds");
+  });
+
   it("sanitizes public segments while exposing only challenger-owned command state", () => {
     const started = startFixture();
     const runtime = started.session.match.runtime;
@@ -150,6 +195,9 @@ describe("Phase 16 private resumable PvP match session", () => {
       "abilities",
       "potential",
       "hiddenTraitIds",
+      "specialAbilityIds",
+      "fatigue",
+      "condition",
       "runtime",
       "homeSelection",
       "awaySelection",
@@ -161,11 +209,26 @@ describe("Phase 16 private resumable PvP match session", () => {
       expect(serialized).not.toContain(forbidden);
     }
 
-    const defenderPlayerIds =
-      started.session.simulationState.schools[started.session.defenderSchoolId]!
-        .playerIds;
-    for (const defenderPlayerId of defenderPlayerIds) {
-      expect(serialized).not.toContain(defenderPlayerId);
+    const opponentPlayers = started.segment.opponentPlayers ?? [];
+    expect(opponentPlayers.length).toBeGreaterThanOrEqual(6);
+    expect(opponentPlayers.length).toBeLessThanOrEqual(7);
+    for (const player of opponentPlayers) {
+      expect(Object.keys(player).sort()).toEqual(
+        ["firstName", "id", "lastName", "preferredPosition", "role", "slot"].sort(),
+      );
+    }
+
+    const exposedIds = new Set(opponentPlayers.map((player) => player.id));
+    const defenderSelection = started.session.match.awaySelection;
+    const allowedIds = new Set([
+      ...defenderSelection.rotation.map((assignment) => assignment.playerId),
+      ...(defenderSelection.liberoPlayerId
+        ? [defenderSelection.liberoPlayerId]
+        : []),
+    ]);
+    expect(exposedIds).toEqual(allowedIds);
+    for (const benchId of defenderSelection.benchPlayerIds) {
+      expect(serialized).not.toContain(benchId);
     }
 
     expect(started.segment.events.length).toBeGreaterThan(0);
