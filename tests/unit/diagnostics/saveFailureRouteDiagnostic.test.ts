@@ -23,10 +23,7 @@ interface SaveRoutePoint {
   stateBytes: number;
   fullStateFallback: boolean;
   fallbackReason:
-    | "operation-count"
-    | "patch-bytes"
-    | "preferred-patch-bytes"
-    | null;
+    "operation-count" | "patch-bytes" | "preferred-patch-bytes" | null;
   matchPhase: string | null;
   historyMatches: number;
   playerCount: number;
@@ -152,29 +149,31 @@ describe("save failure route diagnostic", () => {
 
     const full = points.filter((point) => point.fullStateFallback);
     const byAction = Object.fromEntries(
-      [...new Set(points.map((point) => point.actionType))].map((actionType) => {
-        const actionPoints = points.filter(
-          (point) => point.actionType === actionType,
-        );
-        return [
-          actionType,
-          {
-            total: actionPoints.length,
-            fullStateFallbacks: actionPoints.filter(
-              (point) => point.fullStateFallback,
-            ).length,
-            maxPatchOperations: Math.max(
-              ...actionPoints.map((point) => point.patchOperations),
-            ),
-            maxPatchBytes: Math.max(
-              ...actionPoints.map((point) => point.patchBytes),
-            ),
-            maxStateBytes: Math.max(
-              ...actionPoints.map((point) => point.stateBytes),
-            ),
-          },
-        ];
-      }),
+      [...new Set(points.map((point) => point.actionType))].map(
+        (actionType) => {
+          const actionPoints = points.filter(
+            (point) => point.actionType === actionType,
+          );
+          return [
+            actionType,
+            {
+              total: actionPoints.length,
+              fullStateFallbacks: actionPoints.filter(
+                (point) => point.fullStateFallback,
+              ).length,
+              maxPatchOperations: Math.max(
+                ...actionPoints.map((point) => point.patchOperations),
+              ),
+              maxPatchBytes: Math.max(
+                ...actionPoints.map((point) => point.patchBytes),
+              ),
+              maxStateBytes: Math.max(
+                ...actionPoints.map((point) => point.stateBytes),
+              ),
+            },
+          ];
+        },
+      ),
     );
 
     const largestFallbacks = [...full]
