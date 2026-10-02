@@ -47,7 +47,10 @@ import {
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
-import { buildPlayerCareerPresentation } from "./playerCareerPresentation";
+import {
+  buildPlayerCareerPresentation,
+  buildPlayerSeasonPresentation,
+} from "./playerCareerPresentation";
 import { buildTeamSeasonLeaderboard } from "./playerSeasonLeaderboard";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
@@ -845,6 +848,10 @@ export function PlayerHubScreen({
     ) as DevelopmentGoalArea[];
     const positionOptions = ["OH", "MB", "OP", "S", "L"] as const;
     const activeConversion = selectedPlayer.positionConversion;
+    const seasonStats = buildPlayerSeasonPresentation(
+      selectedPlayer,
+      state.calendar.academicYear,
+    );
     const career = buildPlayerCareerPresentation(selectedPlayer);
 
     return (
@@ -1256,6 +1263,53 @@ export function PlayerHubScreen({
             data-testid="player-detail-record"
           >
             <section
+              className="player-season-record"
+              aria-label="今季公式戦成績"
+            >
+              <div className="player-career-record__heading">
+                <div>
+                  <span>THIS SEASON</span>
+                  <h3>{seasonStats.academicYear}年度</h3>
+                </div>
+                <small>公式戦のみ集計</small>
+              </div>
+              <div className="player-season-record__grid">
+                <article>
+                  <span>出場</span>
+                  <strong>{seasonStats.appearances}</strong>
+                </article>
+                <article>
+                  <span>得点</span>
+                  <strong>{seasonStats.points}</strong>
+                </article>
+                <article>
+                  <span>ブロック</span>
+                  <strong>{seasonStats.blocks}</strong>
+                </article>
+                <article>
+                  <span>ACE</span>
+                  <strong>{seasonStats.serviceAces}</strong>
+                </article>
+                <article>
+                  <span>ATT</span>
+                  <strong>
+                    {seasonStats.attackAttempts >= 5
+                      ? `${seasonStats.attackSuccessRate}%`
+                      : "--"}
+                  </strong>
+                </article>
+                <article>
+                  <span>REC</span>
+                  <strong>
+                    {seasonStats.receiveAttempts >= 5
+                      ? `${seasonStats.perfectReceiveRate}%`
+                      : "--"}
+                  </strong>
+                </article>
+              </div>
+            </section>
+
+            <section
               className="player-career-record"
               aria-label="公式戦キャリア成績"
             >
@@ -1496,7 +1550,7 @@ export function PlayerHubScreen({
           <strong>今季成績</strong>
           <small>
             {seasonLeaderboard.hasOfficialStats
-              ? `出場 ${seasonLeaderboard.totalAppearances}`
+              ? `延べ出場 ${seasonLeaderboard.totalAppearances}`
               : "公式戦前"}
           </small>
         </button>
