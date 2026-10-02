@@ -6,7 +6,12 @@ import type {
   MatchPhase,
   MatchState,
 } from "../../src/domain/model/Match";
-import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import {
+  matchId,
+  playerId,
+  type PlayerId,
+  type SchoolId,
+} from "../../src/domain/model/identifiers";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
@@ -16,7 +21,7 @@ import {
 } from "../../src/domain/match/simulateMatch";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
-import type { PvpPublicOpponentPlayer } from "../../src/domain/pvp/pvpContracts";
+import type { PvpPublicOpponentIdentity } from "../../src/domain/pvp/pvpContracts";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { PublishedPvpTeamSnapshot } from "../data/PvPStore";
 import { chooseAutomaticDefenderCommand } from "./automaticDefenderCoach";
@@ -53,7 +58,7 @@ export interface PvpMatchSegment {
     defender: number;
   };
   challengerSelection: TeamSelection;
-  defenderPlayers?: PvpPublicOpponentPlayer[];
+  defenderPlayers?: PvpPublicOpponentIdentity[];
   challengerTactics: MatchTacticPlan;
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
@@ -118,9 +123,30 @@ function automaticCoachForSession(
   };
 }
 
+function publicDefenderPlayerId(
+  session: PvpServerMatchSession,
+  privatePlayerId: PlayerId,
+): PlayerId {
+  const prefix = `defender:${session.defenderSnapshotId}:`;
+  const value = String(privatePlayerId);
+  if (!value.startsWith(prefix)) {
+    throw new Error("PvP defender player id is outside its snapshot namespace");
+  }
+  return playerId(value.slice(prefix.length));
+}
+
+function privateDefenderPlayerId(
+  session: PvpServerMatchSession,
+  publicPlayerId: PlayerId,
+): PlayerId {
+  return playerId(
+    `defender:${session.defenderSnapshotId}:${publicPlayerId}`,
+  );
+}
+
 function publicDefenderPlayers(
   session: PvpServerMatchSession,
-): PvpPublicOpponentPlayer[] {
+): PvpPublicOpponentIdentity[] {
   const rotationIds = session.match.awaySelection.rotation.map(
     (assignment) => assignment.playerId,
   );
@@ -130,16 +156,19 @@ function publicDefenderPlayers(
       ? [...rotationIds, liberoId]
       : rotationIds;
 
-  return ids.flatMap((playerId) => {
-    const player = session.simulationState.players[playerId];
+  return ids.flatMap((privatePlayerId) => {
+    const player = session.simulationState.players[privatePlayerId];
     if (!player) return [];
     return [
       {
-        id: player.id,
+        id: publicDefenderPlayerId(session, privatePlayerId),
         firstName: player.firstName,
         lastName: player.lastName,
         preferredPosition: player.preferredPosition,
-        role: player.id === liberoId ? ("libero" as const) : ("court" as const),
+        role:
+          privatePlayerId === liberoId
+            ? ("libero" as const)
+            : ("court" as const),
       },
     ];
   });
@@ -254,11 +283,22 @@ export function resumePvpMatchSession(
   if (input.session.finalized) {
     throw new Error("finalized PvP match session cannot be resumed");
   }
+  const command: MatchCommand =
+    input.command.type === "target-serve-receiver" ||
+    input.command.type === "mark-opponent-attacker"
+      ? {
+          ...input.command,
+          playerId: privateDefenderPlayerId(
+            input.session,
+            input.command.playerId,
+          ),
+        }
+      : input.command;
   const commandedMatch = applyMatchCommand({
     state: input.session.simulationState,
     match: input.session.match,
     schoolId: input.session.challengerSchoolId,
-    command: input.command,
+    command,
   });
   const resolved = resumeMatch({
     state: input.session.simulationState,
