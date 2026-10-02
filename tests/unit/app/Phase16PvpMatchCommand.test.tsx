@@ -231,37 +231,37 @@ describe("Phase16 GameApp PvP match commands", () => {
   it(
     "targets only public PvP opponent identities without exposing private metrics",
     async () => {
-    const snapshot = createSnapshot();
-    const challengePvpTeam = vi.fn<
-      NonNullable<GameApiClient["challengePvpTeam"]>
-    >(async () => inProgress(snapshot));
-    const commandPvpChallenge = vi.fn<
-      NonNullable<GameApiClient["commandPvpChallenge"]>
-    >(async () => inProgress(snapshot, 2));
-    const api = baseApi(
-      snapshot,
-      challengePvpTeam,
-      commandPvpChallenge,
-      vi.fn(async () => inProgress(snapshot)),
-    );
+      const snapshot = createSnapshot();
+      const challengePvpTeam = vi.fn<
+        NonNullable<GameApiClient["challengePvpTeam"]>
+      >(async () => inProgress(snapshot));
+      const commandPvpChallenge = vi.fn<
+        NonNullable<GameApiClient["commandPvpChallenge"]>
+      >(async () => inProgress(snapshot, 2));
+      const api = baseApi(
+        snapshot,
+        challengePvpTeam,
+        commandPvpChallenge,
+        vi.fn(async () => inProgress(snapshot)),
+      );
 
-    await openPreparedPvpMatch(api, snapshot);
-    fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
-    const dialog = screen.getByRole("dialog", { name: "相手を狙う" });
+      await openPreparedPvpMatch(api, snapshot);
+      fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
+      const dialog = screen.getByRole("dialog", { name: "相手を狙う" });
 
-    expect(dialog).toHaveTextContent("白石 蓮");
-    expect(dialog).toHaveTextContent("青木 湊");
-    expect(dialog).not.toHaveTextContent("総合");
-    expect(dialog).not.toHaveTextContent("疲労");
-    expect(dialog).not.toHaveTextContent("調子");
+      expect(dialog).toHaveTextContent("白石 蓮");
+      expect(dialog).toHaveTextContent("青木 湊");
+      expect(dialog).not.toHaveTextContent("総合");
+      expect(dialog).not.toHaveTextContent("疲労");
+      expect(dialog).not.toHaveTextContent("調子");
 
-    fireEvent.click(
-      within(dialog).getByRole("button", {
-        name: "サーブで狙う 白石 蓮",
-      }),
-    );
+      fireEvent.click(
+        within(dialog).getByRole("button", {
+          name: "サーブで狙う 白石 蓮",
+        }),
+      );
 
-    await waitFor(() => expect(commandPvpChallenge).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(commandPvpChallenge).toHaveBeenCalledTimes(1));
       expect(commandPvpChallenge.mock.calls[0]![1]).toMatchObject({
         operationId: "phase16-pvp-operation",
         commandId: expect.any(String),
