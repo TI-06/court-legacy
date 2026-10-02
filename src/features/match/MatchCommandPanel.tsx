@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand, MatchState } from "../../domain/model/Match";
-import type { Player } from "../../domain/model/Player";
+import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { opportunityRequestByPlayerId } from "../../domain/dynamics/playerOpportunityRequests";
@@ -21,10 +21,18 @@ import { BottomSheet } from "../../ui/BottomSheet";
 
 const substitutionCourtOrder = [4, 3, 2, 5, 6, 1] as const;
 
+export interface MatchOpponentTargetPlayer {
+  playerId: PlayerId;
+  displayName: string;
+  preferredPosition: Position;
+  role: "court" | "libero";
+}
+
 interface MatchCommandPanelProps {
   state: GameState;
   match: MatchState;
   pending: boolean;
+  opponentTargetPlayers?: readonly MatchOpponentTargetPlayer[];
   onCommand: (command: MatchCommand) => void | Promise<void>;
 }
 
@@ -68,7 +76,7 @@ function SubstitutionPlayerButton({
 
   return (
     <button
-      aria-label={playerName(player)}
+      aria-label={player.displayName}
       aria-pressed={selected}
       className="match-command-substitution__player"
       disabled={pending}
@@ -80,7 +88,7 @@ function SubstitutionPlayerButton({
           {slot ? <b>R{slot}</b> : null}
           <small>{slot ? "COURT" : "BENCH"}</small>
         </span>
-        <strong>{playerName(player)}</strong>
+        <strong>{player.displayName}</strong>
         <small>{player.preferredPosition}</small>
         {priorityLabel ? (
           <em className="match-command-substitution__request-badge">
@@ -149,6 +157,7 @@ export function MatchCommandPanel({
   state,
   match,
   pending,
+  opponentTargetPlayers,
   onCommand,
 }: MatchCommandPanelProps) {
   const runtime = match.runtime;
@@ -255,24 +264,42 @@ export function MatchCommandPanel({
     : null;
   const directivePlayers =
     liberoPlayer &&
-    !courtPlayers.some((player) => player.id === liberoPlayer.id)
+    !courtPlayers.some((player) => player.playerId === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
-  const opponentCourtPlayers = opponentSelection.rotation
+  const localOpponentCourtPlayers = opponentSelection.rotation
     .map((assignment) => state.players[assignment.playerId])
     .filter((player): player is Player => Boolean(player));
-  const opponentLiberoPlayer = opponentSelection.liberoPlayerId
+  const localOpponentLiberoPlayer = opponentSelection.liberoPlayerId
     ? (state.players[opponentSelection.liberoPlayerId] ?? null)
     : null;
-  const serveTargetPlayers =
-    opponentLiberoPlayer &&
-    !opponentCourtPlayers.some(
-      (player) => player.id === opponentLiberoPlayer.id,
+  const localOpponentTargets: MatchOpponentTargetPlayer[] = [
+    ...localOpponentCourtPlayers.map((player) => ({
+      playerId: player.playerId,
+      displayName: player.displayName,
+      preferredPosition: player.preferredPosition,
+      role: "court" as const,
+    })),
+    ...(localOpponentLiberoPlayer &&
+    !localOpponentCourtPlayers.some(
+      (player) => player.playerId === localOpponentLiberoPlayer.id,
     )
-      ? [...opponentCourtPlayers, opponentLiberoPlayer]
-      : opponentCourtPlayers;
-  const blockTargetPlayers = opponentCourtPlayers.filter((player) =>
-    ["OH", "MB", "OP"].includes(player.preferredPosition),
+      ? [
+          {
+            playerId: localOpponentLiberoPlayer.id,
+            displayName: playerName(localOpponentLiberoPlayer),
+            preferredPosition: localOpponentLiberoPlayer.preferredPosition,
+            role: "libero" as const,
+          },
+        ]
+      : []),
+  ];
+  const targetPlayers = opponentTargetPlayers ?? localOpponentTargets;
+  const serveTargetPlayers = targetPlayers;
+  const blockTargetPlayers = targetPlayers.filter(
+    (player) =>
+      player.role === "court" &&
+      ["OH", "MB", "OP"].includes(player.preferredPosition),
   );
 
   const rotationPlayerIds = new Set(
@@ -513,12 +540,12 @@ export function MatchCommandPanel({
           <div aria-label="選手への個別指示" role="group">
             {directivePlayers.map((player) => {
               const canFocusAttack =
-                rotationPlayerIds.has(player.id) &&
+                rotationPlayerIds.has(player.playerId) &&
                 player.preferredPosition !== "L";
               return (
-                <article key={player.id}>
+                <article key={player.playerId}>
                   <div>
-                    <strong>{playerName(player)}</strong>
+                    <strong>{player.displayName}</strong>
                     <small>{player.preferredPosition}</small>
                   </div>
                   <span>
@@ -527,13 +554,13 @@ export function MatchCommandPanel({
                   </span>
                   <div>
                     <button
-                      aria-label={`攻撃を集める ${playerName(player)}`}
+                      aria-label={`攻撃を集める ${player.displayName}`}
                       disabled={pending || !canFocusAttack}
                       onClick={() => {
                         setPlayerDirectiveOpen(false);
                         void onCommand({
                           type: "focus-attacker",
-                          playerId: player.id,
+                          playerId: player.playerId,
                         });
                       }}
                       type="button"
@@ -541,13 +568,13 @@ export function MatchCommandPanel({
                       攻撃を集める
                     </button>
                     <button
-                      aria-label={`声をかける ${playerName(player)}`}
+                      aria-label={`声をかける ${player.displayName}`}
                       disabled={pending}
                       onClick={() => {
                         setPlayerDirectiveOpen(false);
                         void onCommand({
                           type: "encourage-player",
-                          playerId: player.id,
+                          playerId: player.playerId,
                         });
                       }}
                       type="button"
@@ -580,22 +607,22 @@ export function MatchCommandPanel({
             </div>
             <div className="match-command-opponent-targeting__grid">
               {serveTargetPlayers.map((player) => {
-                const isLibero = opponentLiberoPlayer?.id === player.id;
+                const isLibero = player.role === "libero";
                 return (
                   <button
-                    aria-label={`サーブで狙う ${playerName(player)}`}
+                    aria-label={`サーブで狙う ${player.displayName}`}
                     disabled={pending}
-                    key={player.id}
+                    key={player.playerId}
                     onClick={() => {
                       setOpponentTargetOpen(false);
                       void onCommand({
                         type: "target-serve-receiver",
-                        playerId: player.id,
+                        playerId: player.playerId,
                       });
                     }}
                     type="button"
                   >
-                    <strong>{playerName(player)}</strong>
+                    <strong>{player.displayName}</strong>
                     <small>
                       {player.preferredPosition}・
                       {isLibero ? "リベロ" : "コート"}
@@ -614,19 +641,19 @@ export function MatchCommandPanel({
             <div className="match-command-opponent-targeting__grid">
               {blockTargetPlayers.map((player) => (
                 <button
-                  aria-label={`ブロックで警戒 ${playerName(player)}`}
+                  aria-label={`ブロックで警戒 ${player.displayName}`}
                   disabled={pending}
-                  key={player.id}
+                  key={player.playerId}
                   onClick={() => {
                     setOpponentTargetOpen(false);
                     void onCommand({
                       type: "mark-opponent-attacker",
-                      playerId: player.id,
+                      playerId: player.playerId,
                     });
                   }}
                   type="button"
                 >
-                  <strong>{playerName(player)}</strong>
+                  <strong>{player.displayName}</strong>
                   <small>{player.preferredPosition}・コート</small>
                 </button>
               ))}
@@ -780,12 +807,12 @@ export function MatchCommandPanel({
               >
                 {courtPlayers.map((player) => (
                   <SubstitutionPlayerButton
-                    key={player.id}
-                    onSelect={() => selectOutgoingPlayer(player.id)}
+                    key={player.playerId}
+                    onSelect={() => selectOutgoingPlayer(player.playerId)}
                     pending={pending}
                     player={player}
                     selected={false}
-                    slot={courtSlotByPlayerId.get(player.id)}
+                    slot={courtSlotByPlayerId.get(player.playerId)}
                   />
                 ))}
               </section>
@@ -820,18 +847,18 @@ export function MatchCommandPanel({
               >
                 {benchPlayers.map((player) => (
                   <SubstitutionPlayerButton
-                    key={player.id}
-                    onSelect={() => setIncomingPlayerId(player.id)}
+                    key={player.playerId}
+                    onSelect={() => setIncomingPlayerId(player.playerId)}
                     pending={pending}
                     player={player}
                     priorityLabel={
-                      opportunityRequests[player.id]
-                        ? opportunityRequests[player.id]!.kind === "promise"
+                      opportunityRequests[player.playerId]
+                        ? opportunityRequests[player.playerId]!.kind === "promise"
                           ? "出場約束"
                           : "出場要望"
                         : undefined
                     }
-                    selected={player.id === incomingPlayerId}
+                    selected={player.playerId === incomingPlayerId}
                   />
                 ))}
               </section>
