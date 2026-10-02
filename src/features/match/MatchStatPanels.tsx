@@ -311,7 +311,11 @@ export function MatchResultStats({
     ["決定率", `${user.attackSuccessRate}%`, `${opponent.attackSuccessRate}%`],
     ["ブロック", user.blockPoints, opponent.blockPoints],
     ["サーブACE", user.serviceAces, opponent.serviceAces],
-    ["好レシーブ率", `${user.perfectReceiveRate}%`, `${opponent.perfectReceiveRate}%`],
+    [
+      "好レシーブ率",
+      `${user.perfectReceiveRate}%`,
+      `${opponent.perfectReceiveRate}%`,
+    ],
   ] as const;
   const categoryRows = [
     ["攻撃", evaluation.team.attack],
