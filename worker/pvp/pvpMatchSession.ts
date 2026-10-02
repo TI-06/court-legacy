@@ -135,17 +135,17 @@ function publicOpponentPlayers(
   );
   const players: PvpPublicOpponentPlayer[] = selection.rotation.flatMap(
     (assignment) => {
-    const player = session.simulationState.players[assignment.playerId];
-    if (!player) return [];
-    return [
-      {
-        id: player.id,
-        lastName: player.lastName,
-        firstName: player.firstName,
-        preferredPosition: player.preferredPosition,
-        role: "court" as const,
-        slot: assignment.slot,
-      },
+      const player = session.simulationState.players[assignment.playerId];
+      if (!player) return [];
+      return [
+        {
+          id: player.id,
+          lastName: player.lastName,
+          firstName: player.firstName,
+          preferredPosition: player.preferredPosition,
+          role: "court" as const,
+          slot: assignment.slot,
+        },
       ];
     },
   );
