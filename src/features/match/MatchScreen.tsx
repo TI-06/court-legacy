@@ -3,6 +3,7 @@ import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeek
 import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand } from "../../domain/model/Match";
+import type { Player } from "../../domain/model/Player";
 import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
@@ -39,6 +40,10 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
+  opponentTargetPlayers?: readonly Pick<
+    Player,
+    "id" | "lastName" | "firstName" | "preferredPosition"
+  >[];
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -93,6 +98,7 @@ function MatchScreenContent({
   trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
+  opponentTargetPlayers,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(!reducedMotion);
@@ -509,6 +515,7 @@ function MatchScreenContent({
               onCommand={submitCoachCommand}
               pending={commandPending}
               state={state}
+              opponentPlayers={opponentTargetPlayers}
             />
           ) : (
             <section className="match-controls" aria-label="再生操作">
