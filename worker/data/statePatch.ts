@@ -328,3 +328,67 @@ export function coalesceJsonStatePatchObjectRoots(
 
   return result;
 }
+
+function pathStartsWith(
+  operationPath: readonly string[],
+  prefix: readonly string[],
+): boolean {
+  return prefix.every((segment, index) => operationPath[index] === segment);
+}
+
+function valueAtPath(
+  input: Record<string, unknown>,
+  path: readonly string[],
+): { present: boolean; value: unknown } {
+  let current: unknown = input;
+  for (const segment of path) {
+    if (!isRecord(current) && !Array.isArray(current)) {
+      return { present: false, value: undefined };
+    }
+    const next = Array.isArray(current)
+      ? current[Number(segment)]
+      : current[segment];
+    if (next === undefined) {
+      return { present: false, value: undefined };
+    }
+    current = next;
+  }
+  return { present: true, value: current };
+}
+
+export function collapseNoisyJsonStatePatchPaths(
+  after: Record<string, unknown>,
+  operations: readonly JsonStatePatchOperation[],
+  paths: readonly (readonly string[])[],
+  operationThreshold = 4,
+): JsonStatePatchOperation[] {
+  let result = [...operations];
+
+  for (const path of paths) {
+    const affected = result.filter((operation) =>
+      pathStartsWith(operation.path, path),
+    );
+    if (affected.length <= operationThreshold) continue;
+
+    const firstIndex = result.findIndex((operation) =>
+      pathStartsWith(operation.path, path),
+    );
+    if (firstIndex < 0) continue;
+
+    const target = valueAtPath(after, path);
+    const replacement: JsonStatePatchOperation = target.present
+      ? { op: "set", path: [...path], value: target.value }
+      : { op: "remove", path: [...path] };
+
+    const beforeOperations = result
+      .slice(0, firstIndex)
+      .filter((operation) => !pathStartsWith(operation.path, path));
+    const afterOperations = result
+      .slice(firstIndex)
+      .filter((operation) => !pathStartsWith(operation.path, path));
+    result = [...beforeOperations, replacement, ...afterOperations];
+  }
+
+  return result;
+}
+
