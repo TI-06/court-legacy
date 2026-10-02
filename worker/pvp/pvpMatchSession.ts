@@ -116,6 +116,32 @@ function automaticCoachForSession(
   };
 }
 
+function publicDefenderPlayers(
+  session: PvpServerMatchSession,
+): PvpMatchSegment["defenderPlayers"] {
+  const rotationIds = session.match.awaySelection.rotation.map(
+    (assignment) => assignment.playerId,
+  );
+  const liberoId = session.match.awaySelection.liberoPlayerId;
+  const ids = liberoId && !rotationIds.includes(liberoId)
+    ? [...rotationIds, liberoId]
+    : rotationIds;
+
+  return ids.flatMap((playerId) => {
+    const player = session.simulationState.players[playerId];
+    if (!player) return [];
+    return [
+      {
+        id: player.id,
+        firstName: player.firstName,
+        lastName: player.lastName,
+        preferredPosition: player.preferredPosition,
+        role: player.id === liberoId ? ("libero" as const) : ("court" as const),
+      },
+    ];
+  });
+}
+
 function sideForSchool(
   challengerSchoolId: SchoolId,
   schoolId: SchoolId | null,
@@ -150,6 +176,7 @@ export function buildPvpPublicSegment(
       defender: runtime.awayScore,
     },
     challengerSelection: session.match.homeSelection,
+    defenderPlayers: publicDefenderPlayers(session),
     challengerTactics: runtime.homeTactics,
     timeoutAvailable:
       pendingDecisionReason === "opponent-run" &&
