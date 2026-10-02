@@ -1380,7 +1380,7 @@
 
 /* Phase26-4: coach proposals reuse the existing staged batch-save flow. */
 .player-hub__controls {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .player-hub__coach-proposal {
@@ -2266,5 +2266,167 @@
   .player-career-record__primary,
   .player-career-record__secondary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* Phase54-2: current-season leaderboard */
+.player-hub__season-stats {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 7px;
+  gap: 1px;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  background: linear-gradient(145deg, rgb(54 177 185 / 22%), #102c49);
+  border: 1px solid rgb(114 213 223 / 34%);
+  border-radius: 9px;
+}
+
+.player-hub__season-stats span {
+  color: #8ee7ed;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.player-hub__season-stats strong {
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-hub__season-stats small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.player-season-leaderboard-sheet .ui-sheet-content {
+  padding-bottom: calc(
+    var(--bottom-navigation-height, 70px) + 18px + env(safe-area-inset-bottom)
+  );
+}
+
+.player-season-leaderboard {
+  display: grid;
+  gap: 10px;
+}
+
+.player-season-leaderboard > section {
+  display: grid;
+  gap: 6px;
+}
+
+.player-season-leaderboard__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-season-leaderboard__heading strong {
+  color: #f4f7fb;
+  font-size: 12px;
+}
+
+.player-season-leaderboard__heading small {
+  color: #91a8b8;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.player-season-leaderboard__rows {
+  display: grid;
+  gap: 5px;
+}
+
+.player-season-leaderboard__rows button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 9px;
+  gap: 8px;
+  color: #edf7fb;
+  font: inherit;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.player-season-leaderboard__rows button:first-child {
+  background: rgb(244 122 24 / 10%);
+  border-color: rgb(244 122 24 / 28%);
+}
+
+.player-season-leaderboard__rows button > b {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  color: #ffd4ad;
+  font-size: 11px;
+  background: rgb(244 122 24 / 14%);
+  border-radius: 999px;
+  place-items: center;
+}
+
+.player-season-leaderboard__rows button > span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.player-season-leaderboard__rows button > span strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-season-leaderboard__rows button > span small {
+  color: #94a9b8;
+  font-size: 9px;
+}
+
+.player-season-leaderboard__rows button > em {
+  color: #8ee7ed;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.player-season-leaderboard__empty,
+.player-season-leaderboard__no-sample {
+  margin: 0;
+  color: #91a8b8;
+  font-size: 10px;
+}
+
+.player-season-leaderboard__empty {
+  padding: 18px 10px;
+  text-align: center;
+  background: rgb(255 255 255 / 4%);
+  border: 1px dashed rgb(255 255 255 / 10%);
+  border-radius: 10px;
+}
+
+.player-season-leaderboard__no-sample {
+  padding: 8px 9px;
+  background: rgb(255 255 255 / 3%);
+  border-radius: 8px;
+}
+
+@media (min-width: 720px) {
+  .player-hub__controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
