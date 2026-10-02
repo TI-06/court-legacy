@@ -79,7 +79,7 @@ function continueSnapshot(
 }
 
 describe("Phase16 resumable practice match session", () => {
-  it("accepts only the four high-level match commands in the game action schema", () => {
+  it("accepts the canonical high-level match commands in the game action schema", () => {
     const commands = [
       { type: "timeout" },
       {
@@ -92,6 +92,8 @@ describe("Phase16 resumable practice match session", () => {
         incomingPlayerId: "player-in",
       },
       { type: "continue" },
+      { type: "target-serve-receiver", playerId: "opponent-player-1" },
+      { type: "mark-opponent-attacker", playerId: "opponent-player-2" },
     ] as const;
 
     for (const command of commands) {
@@ -337,6 +339,55 @@ describe("Phase16 resumable practice match session", () => {
     expect(current.state.schools[current.state.userSchoolId]!.tactics).toEqual(
       persistentTactics,
     );
+  });
+
+  it("routes a Phase52 serve target through the authoritative practice match session", () => {
+    const { snapshot } = createSnapshot("phase52-practice-target-route");
+    let currentSnapshot = snapshot;
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "advance-week",
+    });
+
+    for (let guard = 0; guard < 6; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active || active.phase === "match-complete") break;
+      if (active.runtime?.pendingDecisionReason !== "set-break") break;
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+    }
+
+    const active = current.state.activeMatch;
+    if (
+      !active ||
+      active.phase === "match-complete" ||
+      active.runtime?.pendingDecisionReason === "set-break"
+    ) {
+      throw new Error("targetable practice decision fixture missing");
+    }
+    const targetPlayerId = active.awaySelection.rotation[0]!.playerId;
+    const persistentTactics = structuredClone(
+      current.state.schools[current.state.userSchoolId]!.tactics,
+    );
+    currentSnapshot = continueSnapshot(currentSnapshot, current);
+
+    const targeted = applyServerGameAction(currentSnapshot, {
+      type: "match-command",
+      command: { type: "target-serve-receiver", playerId: targetPlayerId },
+    });
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (entry) =>
+          entry.command.type === "target-serve-receiver" &&
+          entry.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics,
+    ).toEqual(persistentTactics);
   });
 
   it("rejects match commands when no resumable active match exists without mutating the snapshot", () => {
