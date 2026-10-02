@@ -9,6 +9,7 @@ Turn the match statistics already recorded on Player.career into visible long-te
 ## Scope
 
 Phase54-1 only exposes existing authoritative career data:
+
 - official match appearances
 - sets played
 - points
@@ -26,6 +27,7 @@ No new persistent field is introduced in the first step.
 Add a fourth player-detail tab: 成績.
 
 The screen stays mobile-first and compact:
+
 - career headline
 - five core stat cards
 - points per appearance
