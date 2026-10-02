@@ -125,7 +125,8 @@ describe("save failure recurrence diagnostic", () => {
           ? patchBytes > PREFERRED_DELTA_BYTES
           : patchBytes > NORMAL_DELTA_BYTES);
 
-      const bucket = buckets[action.type] ?? (buckets[action.type] = emptyBucket());
+      const bucket =
+        buckets[action.type] ?? (buckets[action.type] = emptyBucket());
       bucket.actions += 1;
       if (fullStateFallback) bucket.fullStateFallbacks += 1;
       bucket.maxPatchOperations = Math.max(
