@@ -28,7 +28,9 @@ describe("Phase54 school legacy leaderboard", () => {
     const result = buildSchoolLegacyLeaderboard(state);
 
     expect(result.hasRecords).toBe(true);
-    expect(result.sections.find((section) => section.id === "points")?.rows[0]).toMatchObject({
+    expect(
+      result.sections.find((section) => section.id === "points")?.rows[0],
+    ).toMatchObject({
       displayName: "卒業 太郎",
       value: 140,
       statusLabel: `${state.calendar.academicYear - 1}年卒`,
@@ -68,6 +70,8 @@ describe("Phase54 school legacy leaderboard", () => {
     const points = result.sections.find((section) => section.id === "points")!;
 
     expect(points.rows).toHaveLength(5);
-    expect(points.rows.some((row) => row.displayName === "他校 選手")).toBe(false);
+    expect(
+      points.rows.some((row) => row.displayName === "他校 選手"),
+    ).toBe(false);
   });
 });
