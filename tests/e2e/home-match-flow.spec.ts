@@ -45,7 +45,9 @@ async function issueOpponentTargetAtNextDecision(page: Page) {
 
   for (let guard = 0; guard < 8; guard += 1) {
     if (await resultHeading.isVisible().catch(() => false)) {
-      throw new Error("match completed before Phase52 targeting became available");
+      throw new Error(
+        "match completed before Phase52 targeting became available",
+      );
     }
 
     const decision = page.getByRole("region", { name: "監督指示" });
