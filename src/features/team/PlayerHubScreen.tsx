@@ -1798,10 +1798,10 @@ export function PlayerHubScreen({
         </nav>
 
         {statsScope === "season" ? (
-        <section
-          aria-label="今季公式戦ランキング"
-          className="player-season-leaderboard"
-        >
+          <section
+            aria-label="今季公式戦ランキング"
+            className="player-season-leaderboard"
+          >
           {!seasonLeaderboard.hasOfficialStats ? (
             <p className="player-season-leaderboard__empty">
               今季の公式戦成績はまだありません
@@ -1845,7 +1845,7 @@ export function PlayerHubScreen({
               </section>
             ))
           )}
-        </section>
+          </section>
         ) : (
           <section
             aria-label="学校歴代ランキング"
