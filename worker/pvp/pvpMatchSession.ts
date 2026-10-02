@@ -53,7 +53,7 @@ export interface PvpMatchSegment {
     defender: number;
   };
   challengerSelection: TeamSelection;
-  defenderPlayers: PvpPublicOpponentPlayer[];
+  defenderPlayers?: PvpPublicOpponentPlayer[];
   challengerTactics: MatchTacticPlan;
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
@@ -120,7 +120,7 @@ function automaticCoachForSession(
 
 function publicDefenderPlayers(
   session: PvpServerMatchSession,
-): PvpMatchSegment["defenderPlayers"] {
+): PvpPublicOpponentPlayer[] {
   const rotationIds = session.match.awaySelection.rotation.map(
     (assignment) => assignment.playerId,
   );
