@@ -291,9 +291,7 @@ describe("Phase16 GameApp PvP match commands", () => {
         name: "ブロックで警戒 白石 悠斗",
       }),
     ).toBeVisible();
-    expect(
-      screen.queryByText(/総合|攻撃|レシーブ [SABCDEFG]/),
-    ).toBeNull();
+    expect(screen.queryByText(/総合|攻撃|レシーブ [SABCDEFG]/)).toBeNull();
 
     fireEvent.click(
       screen.getByRole("button", {
