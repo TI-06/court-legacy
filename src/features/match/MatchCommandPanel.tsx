@@ -76,7 +76,7 @@ function SubstitutionPlayerButton({
 
   return (
     <button
-      aria-label={player.displayName}
+      aria-label={playerName(player)}
       aria-pressed={selected}
       className="match-command-substitution__player"
       disabled={pending}
@@ -88,7 +88,7 @@ function SubstitutionPlayerButton({
           {slot ? <b>R{slot}</b> : null}
           <small>{slot ? "COURT" : "BENCH"}</small>
         </span>
-        <strong>{player.displayName}</strong>
+        <strong>{playerName(player)}</strong>
         <small>{player.preferredPosition}</small>
         {priorityLabel ? (
           <em className="match-command-substitution__request-badge">
@@ -264,7 +264,7 @@ export function MatchCommandPanel({
     : null;
   const directivePlayers =
     liberoPlayer &&
-    !courtPlayers.some((player) => player.playerId === liberoPlayer.id)
+    !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
   const localOpponentCourtPlayers = opponentSelection.rotation
@@ -275,14 +275,14 @@ export function MatchCommandPanel({
     : null;
   const localOpponentTargets: MatchOpponentTargetPlayer[] = [
     ...localOpponentCourtPlayers.map((player) => ({
-      playerId: player.playerId,
-      displayName: player.displayName,
+      playerId: player.id,
+      displayName: playerName(player),
       preferredPosition: player.preferredPosition,
       role: "court" as const,
     })),
     ...(localOpponentLiberoPlayer &&
     !localOpponentCourtPlayers.some(
-      (player) => player.playerId === localOpponentLiberoPlayer.id,
+      (player) => player.id === localOpponentLiberoPlayer.id,
     )
       ? [
           {
@@ -540,12 +540,12 @@ export function MatchCommandPanel({
           <div aria-label="選手への個別指示" role="group">
             {directivePlayers.map((player) => {
               const canFocusAttack =
-                rotationPlayerIds.has(player.playerId) &&
+                rotationPlayerIds.has(player.id) &&
                 player.preferredPosition !== "L";
               return (
-                <article key={player.playerId}>
+                <article key={player.id}>
                   <div>
-                    <strong>{player.displayName}</strong>
+                    <strong>{playerName(player)}</strong>
                     <small>{player.preferredPosition}</small>
                   </div>
                   <span>
@@ -554,13 +554,13 @@ export function MatchCommandPanel({
                   </span>
                   <div>
                     <button
-                      aria-label={`攻撃を集める ${player.displayName}`}
+                      aria-label={`攻撃を集める ${playerName(player)}`}
                       disabled={pending || !canFocusAttack}
                       onClick={() => {
                         setPlayerDirectiveOpen(false);
                         void onCommand({
                           type: "focus-attacker",
-                          playerId: player.playerId,
+                          playerId: player.id,
                         });
                       }}
                       type="button"
@@ -568,13 +568,13 @@ export function MatchCommandPanel({
                       攻撃を集める
                     </button>
                     <button
-                      aria-label={`声をかける ${player.displayName}`}
+                      aria-label={`声をかける ${playerName(player)}`}
                       disabled={pending}
                       onClick={() => {
                         setPlayerDirectiveOpen(false);
                         void onCommand({
                           type: "encourage-player",
-                          playerId: player.playerId,
+                          playerId: player.id,
                         });
                       }}
                       type="button"
@@ -807,12 +807,12 @@ export function MatchCommandPanel({
               >
                 {courtPlayers.map((player) => (
                   <SubstitutionPlayerButton
-                    key={player.playerId}
-                    onSelect={() => selectOutgoingPlayer(player.playerId)}
+                    key={player.id}
+                    onSelect={() => selectOutgoingPlayer(player.id)}
                     pending={pending}
                     player={player}
                     selected={false}
-                    slot={courtSlotByPlayerId.get(player.playerId)}
+                    slot={courtSlotByPlayerId.get(player.id)}
                   />
                 ))}
               </section>
@@ -847,18 +847,18 @@ export function MatchCommandPanel({
               >
                 {benchPlayers.map((player) => (
                   <SubstitutionPlayerButton
-                    key={player.playerId}
-                    onSelect={() => setIncomingPlayerId(player.playerId)}
+                    key={player.id}
+                    onSelect={() => setIncomingPlayerId(player.id)}
                     pending={pending}
                     player={player}
                     priorityLabel={
-                      opportunityRequests[player.playerId]
-                        ? opportunityRequests[player.playerId]!.kind === "promise"
+                      opportunityRequests[player.id]
+                        ? opportunityRequests[player.id]!.kind === "promise"
                           ? "出場約束"
                           : "出場要望"
                         : undefined
                     }
-                    selected={player.playerId === incomingPlayerId}
+                    selected={player.id === incomingPlayerId}
                   />
                 ))}
               </section>
