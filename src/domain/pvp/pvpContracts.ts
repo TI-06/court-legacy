@@ -110,7 +110,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
-  opponentTargetPlayers?: PvpPublicOpponentTargetPlayer[];
+  opponentTargetPlayers?: Array<PvpPublicOpponentTargetPlayer>;
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
