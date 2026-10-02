@@ -211,10 +211,20 @@ describe("Phase 16 PvP challenge routes", () => {
       "actorPlayerId",
       "targetPlayerId",
       "serveTargetPlayerId",
-      "defender:",
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+
+    const targets = body.segment.opponentTargetPlayers as Array<
+      Record<string, unknown>
+    >;
+    expect(targets.length).toBeGreaterThan(0);
+    expect(Object.keys(targets[0]!).sort()).toEqual([
+      "displayName",
+      "playerId",
+      "preferredPosition",
+      "role",
+    ]);
   });
 
   it("reloads only the authenticated challenger's persisted public session response", async () => {
