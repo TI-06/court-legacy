@@ -95,6 +95,65 @@ describe("Phase16 official match sessions", () => {
     ).not.toBe("completed");
   });
 
+  it("routes a Phase52 opponent serve target through the official match command path", () => {
+    const snapshot = officialWeekSnapshot();
+    let applied = applyGameAction(snapshot, { type: "advance-week" });
+
+    for (let guard = 0; guard < 8; guard += 1) {
+      const active = applied.state.activeMatch;
+      if (!active || active.phase === "match-complete") {
+        throw new Error("official match completed before targetable decision");
+      }
+      const reason = active.runtime?.pendingDecisionReason;
+      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+        const opponentSelection =
+          active.homeSchoolId === applied.state.userSchoolId
+            ? active.awaySelection
+            : active.homeSelection;
+        const targetPlayerId = opponentSelection.rotation[0]!.playerId;
+        const persistentTactics = structuredClone(
+          applied.state.schools[applied.state.userSchoolId]!.tactics,
+        );
+        applied = applyGameAction(
+          {
+            ...snapshot,
+            state: applied.state,
+            teamSelection: applied.teamSelection,
+          },
+          {
+            type: "match-command",
+            command: {
+              type: "target-serve-receiver",
+              playerId: targetPlayerId,
+            },
+          },
+        );
+
+        expect(
+          applied.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+        ).toEqual({
+          type: "target-serve-receiver",
+          playerId: targetPlayerId,
+        });
+        expect(
+          applied.state.schools[applied.state.userSchoolId]!.tactics,
+        ).toEqual(persistentTactics);
+        return;
+      }
+
+      applied = applyGameAction(
+        {
+          ...snapshot,
+          state: applied.state,
+          teamSelection: applied.teamSelection,
+        },
+        { type: "match-command", command: { type: "continue" } },
+      );
+    }
+
+    throw new Error("official match never reached targetable decision");
+  });
+
   it("resumes the same official match through commands and finalizes tournament history exactly once", () => {
     const snapshot = officialWeekSnapshot();
     const due = findDueUserOfficialMatch(snapshot.state)!;
