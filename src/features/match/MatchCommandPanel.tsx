@@ -584,6 +584,7 @@ export function MatchCommandPanel({
       </BottomSheet>
 
       <BottomSheet
+        className="match-command-opponent-targeting-sheet"
         description="5ラリーだけ、相手の誰を狙うか指定します。相手の非公開能力は表示しません。"
         onClose={() => setOpponentTargetOpen(false)}
         open={opponentTargetOpen}
