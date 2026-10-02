@@ -8,6 +8,7 @@ import type {
 } from "../../src/domain/model/Match";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { Position } from "../../src/domain/model/Player";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
@@ -39,6 +40,13 @@ export interface PvpPublicSetState {
   winner: "challenger" | "defender" | null;
 }
 
+export interface PvpPublicOpponentTargetPlayer {
+  playerId: MatchState["awaySelection"]["rotation"][number]["playerId"];
+  displayName: string;
+  preferredPosition: Position;
+  role: "court" | "libero";
+}
+
 export interface PvpMatchSegment {
   status: "in-progress" | "complete";
   operationId: string;
@@ -53,6 +61,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
+  opponentTargetPlayers: PvpPublicOpponentTargetPlayer[];
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
@@ -124,6 +133,40 @@ function sideForSchool(
   return schoolId === challengerSchoolId ? "challenger" : "defender";
 }
 
+function publicOpponentTargetPlayers(
+  session: PvpServerMatchSession,
+): PvpPublicOpponentTargetPlayer[] {
+  const seen = new Set<string>();
+  const players: PvpPublicOpponentTargetPlayer[] = [];
+
+  for (const assignment of session.match.awaySelection.rotation) {
+    const player = session.simulationState.players[assignment.playerId];
+    if (!player || seen.has(player.id)) continue;
+    seen.add(player.id);
+    players.push({
+      playerId: player.id,
+      displayName: `${player.lastName} ${player.firstName}`,
+      preferredPosition: player.preferredPosition,
+      role: "court",
+    });
+  }
+
+  const liberoId = session.match.awaySelection.liberoPlayerId;
+  if (liberoId && !seen.has(liberoId)) {
+    const libero = session.simulationState.players[liberoId];
+    if (libero) {
+      players.push({
+        playerId: libero.id,
+        displayName: `${libero.lastName} ${libero.firstName}`,
+        preferredPosition: libero.preferredPosition,
+        role: "libero",
+      });
+    }
+  }
+
+  return players;
+}
+
 export function buildPvpPublicSegment(
   session: PvpServerMatchSession,
 ): PvpMatchSegment {
@@ -151,6 +194,7 @@ export function buildPvpPublicSegment(
     },
     challengerSelection: session.match.homeSelection,
     challengerTactics: runtime.homeTactics,
+    opponentTargetPlayers: publicOpponentTargetPlayers(session),
     timeoutAvailable:
       pendingDecisionReason === "opponent-run" &&
       !runtime.timeoutUsedSchoolIds.includes(session.challengerSchoolId),
