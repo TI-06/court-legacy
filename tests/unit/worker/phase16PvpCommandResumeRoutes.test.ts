@@ -227,8 +227,12 @@ describe("Phase 16 PvP command resume route", () => {
     const challenger = challengerSnapshot();
     const defender = defenderSnapshot();
     const started = startAtOpponentRun();
-    const targetPlayerId =
-      started.session.match.awaySelection.rotation[0]!.playerId;
+    const targetPlayerId = started.segment.defenderPlayers?.find(
+      (player) => player.role === "court",
+    )?.id;
+    if (!targetPlayerId) {
+      throw new Error("public PvP target fixture missing");
+    }
     const publicResponse = {
       status: "in-progress" as const,
       operationId,
