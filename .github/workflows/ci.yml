@@ -53,11 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Show Phase53 Prettier diff
-        run: |
-          npx prettier tests/unit/features/match/Phase53BenchReport.test.tsx --write
-          git diff -- tests/unit/features/match/Phase53BenchReport.test.tsx
-          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
