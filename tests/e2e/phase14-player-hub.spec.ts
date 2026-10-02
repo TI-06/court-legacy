@@ -107,9 +107,7 @@ for (const width of widths) {
     await page.getByRole("button", { name: "選手一覧へ戻る" }).click();
     await expectPlayerHubNoHorizontalOverflow(page);
 
-    await page
-      .getByRole("button", { name: "今季の公式戦成績" })
-      .click();
+    await page.getByRole("button", { name: "今季の公式戦成績" }).click();
     const statsSheet = page.getByRole("dialog", { name: /今季成績$/ });
     await expect(statsSheet).toBeVisible();
     await expect(
@@ -125,9 +123,7 @@ for (const width of widths) {
     await expectPlayerHubNoHorizontalOverflow(page);
 
     const statsLayout = await page.evaluate(() => {
-      const sheet = document.querySelector(
-        ".player-season-leaderboard-sheet",
-      );
+      const sheet = document.querySelector(".player-season-leaderboard-sheet");
       return {
         viewport: document.documentElement.clientWidth,
         sheetClient: sheet?.clientWidth ?? 0,
