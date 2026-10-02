@@ -1540,6 +1540,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onReturnHome={() => undefined}
         onStart={() => undefined}
         opponent={pvpMatchPresentation.opponent}
+        opponentTargetPlayers={pvpMatchPresentation.opponentTargetPlayers}
         reducedMotion={gameState.settings.reducedMotion}
         result={pvpMatchPresentation.result}
         schoolDisplayNames={pvpMatchPresentation.schoolDisplayNames}
