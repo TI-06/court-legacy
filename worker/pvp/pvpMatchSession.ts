@@ -133,7 +133,8 @@ function publicOpponentPlayers(
   const courtIds = new Set(
     selection.rotation.map((assignment) => assignment.playerId),
   );
-  const players = selection.rotation.flatMap((assignment) => {
+  const players: PvpPublicOpponentPlayer[] = selection.rotation.flatMap(
+    (assignment) => {
     const player = session.simulationState.players[assignment.playerId];
     if (!player) return [];
     return [
@@ -145,8 +146,9 @@ function publicOpponentPlayers(
         role: "court" as const,
         slot: assignment.slot,
       },
-    ];
-  });
+      ];
+    },
+  );
 
   const liberoId = selection.liberoPlayerId;
   if (liberoId && !courtIds.has(liberoId)) {
