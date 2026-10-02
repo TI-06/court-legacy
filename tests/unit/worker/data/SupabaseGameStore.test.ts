@@ -103,7 +103,7 @@ describe("SupabaseGameStore save stability", () => {
       }),
     ).resolves.toEqual({ response, replayed: false });
 
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v5", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
@@ -162,7 +162,7 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
-  it("never lets preferDelta bypass the hard patch-operation safety limit", async () => {
+  it("keeps the hard patch-operation safety limit after V5 batching", async () => {
     const snapshot = createSoakSnapshot("phase40-match-delta-hard-limit");
     const operationId = "phase40-match-op-hard-limit";
     const response = {
@@ -190,7 +190,6 @@ describe("SupabaseGameStore save stability", () => {
       previousState: snapshot.state,
       state: response.game.state,
       statePatch,
-      preferDelta: true,
       teamSelection: response.game.teamSelection,
       response,
     });
@@ -205,7 +204,7 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
-  it("keeps a single large mid-match root replacement on delta persistence", async () => {
+  it("keeps a bounded large delta on V5 persistence for any action", async () => {
     const snapshot = createSoakSnapshot("phase40-match-delta-large-root");
     const operationId = "phase40-match-op-large-root";
     const response = {
@@ -241,7 +240,8 @@ describe("SupabaseGameStore save stability", () => {
     });
 
     expect(JSON.stringify(statePatch).length).toBeGreaterThan(32_768);
-    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
+    expect(JSON.stringify(statePatch).length).toBeLessThan(262_144);
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v5", {
       p_user_id: snapshot.userId,
       p_operation_id: operationId,
       p_expected_revision: snapshot.revision,
