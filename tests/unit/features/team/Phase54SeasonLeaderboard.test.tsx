@@ -84,6 +84,12 @@ describe("Phase54 season leaderboard UI", () => {
       }),
     ).toBeVisible();
     expect(screen.getByTestId("player-detail-record")).toBeVisible();
+    const seasonRecord = screen.getByRole("region", {
+      name: "今季公式戦成績",
+    });
+    expect(within(seasonRecord).getByText("24")).toBeVisible();
+    expect(within(seasonRecord).getByText("60%")).toBeVisible();
+    expect(within(seasonRecord).getByText("63%")).toBeVisible();
   });
 
   it("shows an empty-state before the first official match", () => {
