@@ -264,7 +264,11 @@ describe("Phase16 resumable practice match session", () => {
         throw new Error("practice match completed before targetable decision");
       }
       const reason = active.runtime?.pendingDecisionReason;
-      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+      if (
+        active.phase === "coach-decision" &&
+        reason &&
+        reason !== "set-break"
+      ) {
         const opponentSelection =
           active.homeSchoolId === current.state.userSchoolId
             ? active.awaySelection
