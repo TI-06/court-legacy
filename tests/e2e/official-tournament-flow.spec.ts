@@ -251,13 +251,20 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expectNoBodyOverflow(page);
 
     if (width === 390) {
-      await expect(page.getByRole("heading", { name: "MVP" })).toBeVisible();
       await expect(
-        page.getByRole("region", { name: "試合個人賞" }),
+        page.getByRole("heading", { name: "自校の試合評価" }),
       ).toBeVisible();
+      await expect(page.getByText("TEAM RATING")).toBeVisible();
+      await expect(page.getByText("TEAM MVP")).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "チームスタッツ" }),
       ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "選手評価" }),
+      ).toBeVisible();
+      await expect(page.getByRole("region", { name: "監督采配" })).toHaveCount(
+        0,
+      );
     }
 
     const afterResult = await page.evaluate((snapshotKey) => {
