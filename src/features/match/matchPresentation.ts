@@ -391,6 +391,7 @@ function bestPlayerBy(
 export function buildMatchStatSummary(
   state: GameState,
   match: MatchState,
+  visibleEventSequence = Number.POSITIVE_INFINITY,
 ): MatchStatSummary {
   const home = createTeamStats(match.homeSchoolId);
   const away = createTeamStats(match.awaySchoolId);
@@ -430,6 +431,10 @@ export function buildMatchStatSummary(
   };
 
   for (const matchEvent of match.eventLog) {
+    if (matchEvent.sequence > visibleEventSequence) {
+      continue;
+    }
+
     const actor = statsForActor(matchEvent.actorPlayerId);
     const actorSchoolId = actor?.schoolId;
     const actorTeam = actorSchoolId ? teamForSchool(actorSchoolId) : undefined;
