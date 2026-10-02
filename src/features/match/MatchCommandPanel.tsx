@@ -32,9 +32,7 @@ interface MatchCommandPanelProps {
   >[];
 }
 
-function playerName(
-  player: Pick<Player, "lastName" | "firstName">,
-): string {
+function playerName(player: Pick<Player, "lastName" | "firstName">): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
