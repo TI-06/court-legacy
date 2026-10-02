@@ -153,7 +153,7 @@ export function buildPvpMatchScreenPresentation(
     },
     homeSelection: segment.challengerSelection,
     awaySelection: EMPTY_SELECTION,
-    opponentTargetPlayers: segment.opponentTargetPlayers,
+    opponentTargetPlayers: segment.opponentTargetPlayers ?? [],
     schoolDisplayNames: {
       [userSchoolId]: "自校",
       [awaySchoolId]: response.opponent.schoolName,
