@@ -116,7 +116,9 @@ async function finishInteractiveMatch(page: Page) {
     if (await nextSet.isVisible().catch(() => false)) {
       await nextSet.click();
     } else {
-      await decision.getByRole("button", { name: "このまま続ける" }).click();
+      await decision
+        .getByRole("button", { name: /^このまま(?:続ける|勝負する)$/ })
+        .click();
     }
     await expect(decision).toBeHidden();
   }
