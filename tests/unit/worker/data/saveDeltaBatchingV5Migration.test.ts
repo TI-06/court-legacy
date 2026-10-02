@@ -19,13 +19,13 @@ describe("save delta batching V5 migration", () => {
     expect(sql).toContain("apply_jsonb_state_patch_v2");
     expect(sql).toContain("offset 16");
     expect(sql).toContain("'resultingRevision'");
-    expect(sql).toContain("grant execute on function public.apply_game_operation_v5");
+    expect(sql).toContain(
+      "grant execute on function public.apply_game_operation_v5",
+    );
   });
 
   it("keeps the new RPC private from browser roles", () => {
-    expect(sql).toContain(
-      "from public, anon, authenticated",
-    );
+    expect(sql).toContain("from public, anon, authenticated");
     expect(sql).toContain("to service_role");
   });
 });
