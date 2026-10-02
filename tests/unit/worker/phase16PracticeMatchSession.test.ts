@@ -251,6 +251,56 @@ describe("Phase16 resumable practice match session", () => {
     );
   });
 
+  it("routes a Phase52 opponent serve target through the practice match command path", () => {
+    const { snapshot } = createSnapshot("phase52-practice-target-route");
+    let currentSnapshot = snapshot;
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "advance-week",
+    });
+
+    for (let guard = 0; guard < 8; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active || active.phase === "match-complete") {
+        throw new Error("practice match completed before targetable decision");
+      }
+      const reason = active.runtime?.pendingDecisionReason;
+      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+        const opponentSelection =
+          active.homeSchoolId === current.state.userSchoolId
+            ? active.awaySelection
+            : active.homeSelection;
+        const targetPlayerId = opponentSelection.rotation[0]!.playerId;
+        const persistentTactics = structuredClone(
+          current.state.schools[current.state.userSchoolId]!.tactics,
+        );
+        currentSnapshot = continueSnapshot(currentSnapshot, current);
+        const targeted = applyServerGameAction(currentSnapshot, {
+          type: "match-command",
+          command: { type: "target-serve-receiver", playerId: targetPlayerId },
+        });
+
+        expect(
+          targeted.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+        ).toEqual({
+          type: "target-serve-receiver",
+          playerId: targetPlayerId,
+        });
+        expect(
+          targeted.state.schools[targeted.state.userSchoolId]!.tactics,
+        ).toEqual(persistentTactics);
+        return;
+      }
+
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+    }
+
+    throw new Error("practice match never reached targetable decision");
+  });
+
   it("applies one command, resumes the same practice match, and finalizes only at match-complete", () => {
     const { snapshot, opponentId } = createSnapshot("phase16-practice-command");
     const persistentSelection = structuredClone(snapshot.teamSelection);
