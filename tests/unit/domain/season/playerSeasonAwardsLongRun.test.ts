@@ -56,9 +56,7 @@ describe("Phase55 annual awards long-run", () => {
     }
 
     const seasonAwardIds = Object.values(state.players).flatMap((player) =>
-      player.career.awardIds.filter((awardId) =>
-        awardId.startsWith("season:"),
-      ),
+      player.career.awardIds.filter((awardId) => awardId.startsWith("season:")),
     );
 
     expect(seasonAwardIds).toHaveLength(awardedAcrossYears);
