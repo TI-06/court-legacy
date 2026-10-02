@@ -331,14 +331,18 @@ export function MatchCommandPanel({
       (insight) =>
         insight.suggestedCommand === "target-serve-receiver" &&
         insight.targetPlayerId !== null &&
-        serveTargetPlayers.some((player) => player.id === insight.targetPlayerId),
+        serveTargetPlayers.some(
+          (player) => player.id === insight.targetPlayerId,
+        ),
     )?.targetPlayerId ?? null;
   const liveBlockTargetId =
     benchInsights.find(
       (insight) =>
         insight.suggestedCommand === "mark-opponent-attacker" &&
         insight.targetPlayerId !== null &&
-        blockTargetPlayers.some((player) => player.id === insight.targetPlayerId),
+        blockTargetPlayers.some(
+          (player) => player.id === insight.targetPlayerId,
+        ),
     )?.targetPlayerId ?? null;
   const actionableBenchInsights = benchInsights.filter((insight) => {
     switch (insight.suggestedCommand) {
@@ -705,7 +709,9 @@ export function MatchCommandPanel({
                   <button
                     aria-label={`サーブで狙う ${playerName(player)}`}
                     className={
-                      player.id === liveServeTargetId ? "is-recommended" : undefined
+                      player.id === liveServeTargetId
+                        ? "is-recommended"
+                        : undefined
                     }
                     disabled={pending}
                     key={player.id}
@@ -740,7 +746,9 @@ export function MatchCommandPanel({
                 <button
                   aria-label={`ブロックで警戒 ${playerName(player)}`}
                   className={
-                    player.id === liveBlockTargetId ? "is-recommended" : undefined
+                    player.id === liveBlockTargetId
+                      ? "is-recommended"
+                      : undefined
                   }
                   disabled={pending}
                   key={player.id}
