@@ -79,6 +79,63 @@ describe("Phase51 invitational cup worker flow", () => {
     );
   });
 
+  it("routes a Phase52 serve target through the invitational command path", () => {
+    const snapshot = createSnapshot();
+    const purchased = applyServerGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
+    let currentSnapshot = continueSnapshot(snapshot, purchased);
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "advance-week",
+    });
+    currentSnapshot = continueSnapshot(currentSnapshot, current);
+
+    for (let guard = 0; guard < 6; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active?.runtime) throw new Error("invitational runtime missing");
+      if (active.runtime.pendingDecisionReason !== "set-break") break;
+
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+    }
+
+    const active = current.state.activeMatch;
+    if (!active?.runtime) throw new Error("invitational active match missing");
+    expect(active.runtime.pendingDecisionReason).not.toBe("set-break");
+
+    const opponentSelection =
+      active.homeSchoolId === current.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const targetPlayerId =
+      opponentSelection.liberoPlayerId ??
+      opponentSelection.rotation[0]!.playerId;
+    const persistentTarget =
+      current.state.schools[current.state.userSchoolId]!.tactics
+        .serveTargetPlayerId;
+
+    const targeted = applyServerGameAction(currentSnapshot, {
+      type: "match-command",
+      command: { type: "target-serve-receiver", playerId: targetPlayerId },
+    });
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (record) =>
+          record.command.type === "target-serve-receiver" &&
+          record.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics
+        .serveTargetPlayerId,
+    ).toBe(persistentTarget);
+  });
+
   it("re-opens the same invitational match after a reload-style advance retry", () => {
     const snapshot = createSnapshot();
     const purchased = applyServerGameAction(snapshot, {
