@@ -5,6 +5,8 @@ import type {
   MatchPhase,
 } from "../model/Match";
 import type { TeamSelection } from "../model/TeamSelection";
+import type { PlayerId } from "../model/identifiers";
+import type { Position } from "../model/Player";
 import type {
   MatchTacticPlan,
   PublicTacticSummary,
@@ -87,6 +89,13 @@ export interface PvpPublicSetState {
   winner: "challenger" | "defender" | null;
 }
 
+export interface PvpPublicOpponentTargetPlayer {
+  playerId: PlayerId;
+  displayName: string;
+  preferredPosition: Position;
+  role: "court" | "libero";
+}
+
 export interface PvpMatchSegment {
   status: "in-progress" | "complete";
   operationId: string;
@@ -101,6 +110,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
+  opponentTargetPlayers: PvpPublicOpponentTargetPlayer[];
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
