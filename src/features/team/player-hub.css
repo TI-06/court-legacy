@@ -2152,3 +2152,119 @@
   background: rgb(73 145 156 / 12%);
   border-color: rgb(93 164 175 / 22%);
 }
+
+/* Phase54: player career records */
+.player-career-record {
+  display: grid;
+  gap: 12px;
+}
+
+.player-career-record__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.player-career-record__heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.player-career-record__heading span {
+  color: var(--game-accent, #f47a18);
+  font-size: 0.55rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.player-career-record__heading h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.player-career-record__heading small {
+  color: var(--game-text-muted, #71828b);
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.player-career-record__primary,
+.player-career-record__secondary,
+.player-career-record__legacy {
+  display: grid;
+  gap: 8px;
+}
+
+.player-career-record__primary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.player-career-record__secondary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.player-career-record__legacy {
+  grid-template-columns: 1fr;
+}
+
+.player-career-record article {
+  min-width: 0;
+  padding: 10px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 12px;
+}
+
+.player-career-record article span,
+.player-career-record article strong,
+.player-career-record article small {
+  display: block;
+}
+
+.player-career-record article span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.57rem;
+  font-weight: 800;
+}
+
+.player-career-record article strong {
+  margin-top: 4px;
+  color: var(--game-text, #f4f7fb);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.player-career-record article small {
+  margin-top: 2px;
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 0.52rem;
+}
+
+.player-career-record__legacy article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-career-record__legacy article strong {
+  margin-top: 0;
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+@media (max-width: 350px) {
+  .player-career-record__heading {
+    align-items: start;
+  }
+
+  .player-career-record__heading small {
+    display: none;
+  }
+
+  .player-career-record__primary,
+  .player-career-record__secondary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

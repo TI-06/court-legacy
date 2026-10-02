@@ -1,0 +1,52 @@
+import type { Player } from "../../domain/model/Player";
+
+export interface PlayerCareerPresentation {
+  appearances: number;
+  setsPlayed: number;
+  points: number;
+  blocks: number;
+  serviceAces: number;
+  pointsPerAppearance: number;
+  captainSeasons: number;
+  awardCount: number;
+  bestTournamentResultLabel: string;
+}
+
+const tournamentResultLabels: Record<string, string> = {
+  "spring-high:national:champion": "春高 全国優勝",
+  "interhigh:national:champion": "インターハイ 全国優勝",
+  "national:finalist": "全国大会 準優勝",
+  "national:semifinalist": "全国大会 ベスト4",
+  "national:quarterfinalist": "全国大会 ベスト8",
+  "national:participant": "全国大会 出場",
+  "prefectural:champion": "県大会 優勝",
+  "prefectural:finalist": "県大会 準優勝",
+  "prefectural:semifinalist": "県大会 ベスト4",
+  "prefectural:quarterfinalist": "県大会 ベスト8",
+  "prefectural:participant": "県大会 出場",
+};
+
+function roundOne(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+export function buildPlayerCareerPresentation(
+  player: Player,
+): PlayerCareerPresentation {
+  const career = player.career;
+  return {
+    appearances: career.appearances,
+    setsPlayed: career.setsPlayed,
+    points: career.points,
+    blocks: career.blocks,
+    serviceAces: career.serviceAces,
+    pointsPerAppearance:
+      career.appearances > 0 ? roundOne(career.points / career.appearances) : 0,
+    captainSeasons: career.captainSeasons,
+    awardCount: career.awardIds.length,
+    bestTournamentResultLabel: career.bestTournamentResultId
+      ? (tournamentResultLabels[career.bestTournamentResultId] ??
+        "公式大会 記録あり")
+      : "記録なし",
+  };
+}

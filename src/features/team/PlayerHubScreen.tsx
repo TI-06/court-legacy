@@ -47,6 +47,7 @@ import {
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
+import { buildPlayerCareerPresentation } from "./playerCareerPresentation";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -107,7 +108,7 @@ interface PlayerHubScreenProps {
 }
 
 type HubMode = "roster" | "lineup" | "dynamics" | "tactics";
-export type PlayerDetailMode = "ability" | "growth" | "personality";
+export type PlayerDetailMode = "ability" | "growth" | "personality" | "record";
 
 const abilityLabels = {
   attack: "攻撃",
@@ -249,6 +250,7 @@ function PlayerDetailTabs({
           ["ability", "能力"],
           ["growth", "成長"],
           ["personality", "人物"],
+          ["record", "成績"],
         ] as const
       ).map(([id, label]) => (
         <button
@@ -837,6 +839,7 @@ export function PlayerHubScreen({
     ) as DevelopmentGoalArea[];
     const positionOptions = ["OH", "MB", "OP", "S", "L"] as const;
     const activeConversion = selectedPlayer.positionConversion;
+    const career = buildPlayerCareerPresentation(selectedPlayer);
 
     return (
       <main className="app-content player-hub player-detail">
@@ -1237,6 +1240,74 @@ export function PlayerHubScreen({
                   })}
                 </div>
               )}
+            </section>
+          </div>
+        ) : null}
+
+        {detailMode === "record" ? (
+          <div
+            className="player-detail__tab-panel"
+            data-testid="player-detail-record"
+          >
+            <section
+              className="player-career-record"
+              aria-label="公式戦キャリア成績"
+            >
+              <div className="player-career-record__heading">
+                <div>
+                  <span>CAREER RECORD</span>
+                  <h3>公式戦キャリア</h3>
+                </div>
+                <small>公式戦のみ集計</small>
+              </div>
+
+              <div className="player-career-record__primary">
+                <article>
+                  <span>出場</span>
+                  <strong>{career.appearances}</strong>
+                  <small>試合</small>
+                </article>
+                <article>
+                  <span>得点</span>
+                  <strong>{career.points}</strong>
+                  <small>通算</small>
+                </article>
+                <article>
+                  <span>平均得点</span>
+                  <strong>{career.pointsPerAppearance.toFixed(1)}</strong>
+                  <small>1試合</small>
+                </article>
+              </div>
+
+              <div className="player-career-record__secondary">
+                <article>
+                  <span>セット出場</span>
+                  <strong>{career.setsPlayed}</strong>
+                </article>
+                <article>
+                  <span>ブロック</span>
+                  <strong>{career.blocks}</strong>
+                </article>
+                <article>
+                  <span>サービスエース</span>
+                  <strong>{career.serviceAces}</strong>
+                </article>
+              </div>
+
+              <div className="player-career-record__legacy">
+                <article>
+                  <span>最高大会成績</span>
+                  <strong>{career.bestTournamentResultLabel}</strong>
+                </article>
+                <article>
+                  <span>主将経験</span>
+                  <strong>{career.captainSeasons}シーズン</strong>
+                </article>
+                <article>
+                  <span>表彰</span>
+                  <strong>{career.awardCount}件</strong>
+                </article>
+              </div>
             </section>
           </div>
         ) : null}
