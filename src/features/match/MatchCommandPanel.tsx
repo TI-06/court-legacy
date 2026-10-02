@@ -19,6 +19,7 @@ import {
   type TacticOption,
 } from "../team/tacticsPresentation";
 import { BottomSheet } from "../../ui/BottomSheet";
+import type { LiveMatchInsight } from "./liveMatchIntelligence";
 
 const substitutionCourtOrder = [4, 3, 2, 5, 6, 1] as const;
 
@@ -27,6 +28,7 @@ interface MatchCommandPanelProps {
   match: MatchState;
   pending: boolean;
   opponentTargets?: PvpPublicOpponentTarget[];
+  benchInsights?: readonly LiveMatchInsight[];
   onCommand: (command: MatchCommand) => void | Promise<void>;
 }
 
@@ -152,6 +154,7 @@ export function MatchCommandPanel({
   match,
   pending,
   opponentTargets,
+  benchInsights = [],
   onCommand,
 }: MatchCommandPanelProps) {
   const runtime = match.runtime;
@@ -301,7 +304,18 @@ export function MatchCommandPanel({
   const incomingPlayer = incomingPlayerId
     ? (state.players[incomingPlayerId] ?? null)
     : null;
-  const attackRecommendation =
+  const liveAttackInsight =
+    benchInsights.find(
+      (insight) =>
+        insight.suggestedCommand === "focus-attacker" &&
+        insight.targetPlayerId !== null &&
+        rotationPlayerIds.has(insight.targetPlayerId) &&
+        state.players[insight.targetPlayerId]?.preferredPosition !== "L",
+    ) ?? null;
+  const liveAttackRecommendation = liveAttackInsight?.targetPlayerId
+    ? (state.players[liveAttackInsight.targetPlayerId] ?? null)
+    : null;
+  const abilityAttackRecommendation =
     [...courtPlayers]
       .filter((player) => player.preferredPosition !== "L")
       .sort(
@@ -310,6 +324,34 @@ export function MatchCommandPanel({
             summarizePlayerAbilities(left).attack ||
           right.condition - left.condition,
       )[0] ?? null;
+  const attackRecommendation =
+    liveAttackRecommendation ?? abilityAttackRecommendation;
+  const liveServeTargetId =
+    benchInsights.find(
+      (insight) =>
+        insight.suggestedCommand === "target-serve-receiver" &&
+        insight.targetPlayerId !== null &&
+        serveTargetPlayers.some((player) => player.id === insight.targetPlayerId),
+    )?.targetPlayerId ?? null;
+  const liveBlockTargetId =
+    benchInsights.find(
+      (insight) =>
+        insight.suggestedCommand === "mark-opponent-attacker" &&
+        insight.targetPlayerId !== null &&
+        blockTargetPlayers.some((player) => player.id === insight.targetPlayerId),
+    )?.targetPlayerId ?? null;
+  const actionableBenchInsights = benchInsights.filter((insight) => {
+    switch (insight.suggestedCommand) {
+      case "timeout":
+        return timeoutAvailable;
+      case "focus-attacker":
+        return liveAttackInsight?.targetPlayerId === insight.targetPlayerId;
+      case "target-serve-receiver":
+        return liveServeTargetId === insight.targetPlayerId;
+      case "mark-opponent-attacker":
+        return liveBlockTargetId === insight.targetPlayerId;
+    }
+  });
   const encouragementRecommendation =
     [...directivePlayers].sort(
       (left, right) =>
@@ -382,6 +424,33 @@ export function MatchCommandPanel({
     closeSubstitution();
   };
 
+  const openBenchInsight = (insight: LiveMatchInsight) => {
+    switch (insight.suggestedCommand) {
+      case "timeout":
+        void onCommand({ type: "timeout" });
+        return;
+      case "focus-attacker":
+        setPlayerDirectiveOpen(true);
+        return;
+      case "target-serve-receiver":
+      case "mark-opponent-attacker":
+        setOpponentTargetOpen(true);
+        return;
+    }
+  };
+
+  const benchInsightActionLabel = (insight: LiveMatchInsight): string => {
+    switch (insight.suggestedCommand) {
+      case "timeout":
+        return "タイムアウトを取る";
+      case "focus-attacker":
+        return "個人指示を見る";
+      case "target-serve-receiver":
+      case "mark-opponent-attacker":
+        return "相手を狙う";
+    }
+  };
+
   return (
     <>
       <section className="match-command-panel" aria-label="監督指示">
@@ -398,6 +467,37 @@ export function MatchCommandPanel({
                   : "セット間の監督指示"}
           </p>
         </div>
+
+        {actionableBenchInsights.length > 0 ? (
+          <section className="match-bench-report" aria-label="ベンチレポート">
+            <header>
+              <div>
+                <span>BENCH REPORT</span>
+                <strong>今の試合内容から</strong>
+              </div>
+              <small>観測済みのプレーのみ</small>
+            </header>
+            <div className="match-bench-report__list">
+              {actionableBenchInsights.map((insight) => (
+                <article
+                  key={`${insight.kind}-${insight.targetPlayerId ?? "team"}`}
+                >
+                  <div>
+                    <strong>{insight.headline}</strong>
+                    <p>{insight.detail}</p>
+                  </div>
+                  <button
+                    disabled={pending}
+                    onClick={() => openBenchInsight(insight)}
+                    type="button"
+                  >
+                    {benchInsightActionLabel(insight)}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {quickCriticalPlans.length > 0 ? (
           <div className="match-command-quick" aria-label="重要場面の一手">
@@ -476,7 +576,7 @@ export function MatchCommandPanel({
         <div className="match-command-player-directive">
           <p>
             攻撃を託す選手、声をかける選手を選びます。
-            推奨は能力・調子・疲労から自動で示します。
+            推奨は試合中の実績を優先し、実績が少ない場合は能力・調子から示します。
           </p>
           <div
             aria-label="おすすめ個人指示"
@@ -497,8 +597,10 @@ export function MatchCommandPanel({
                 <span>攻撃を託すなら</span>
                 <strong>{playerName(attackRecommendation)}</strong>
                 <small>
-                  攻撃{playerAttackGrade(attackRecommendation)}・総合
-                  {playerOverallGrade(attackRecommendation)}
+                  {liveAttackRecommendation?.id === attackRecommendation.id &&
+                  liveAttackInsight
+                    ? liveAttackInsight.detail
+                    : `攻撃${playerAttackGrade(attackRecommendation)}・総合${playerOverallGrade(attackRecommendation)}`}
                 </small>
               </button>
             ) : null}
@@ -602,6 +704,9 @@ export function MatchCommandPanel({
                 return (
                   <button
                     aria-label={`サーブで狙う ${playerName(player)}`}
+                    className={
+                      player.id === liveServeTargetId ? "is-recommended" : undefined
+                    }
                     disabled={pending}
                     key={player.id}
                     onClick={() => {
@@ -617,6 +722,7 @@ export function MatchCommandPanel({
                     <small>
                       {player.preferredPosition}・
                       {isLibero ? "リベロ" : "コート"}
+                      {player.id === liveServeTargetId ? "・おすすめ" : ""}
                     </small>
                   </button>
                 );
@@ -633,6 +739,9 @@ export function MatchCommandPanel({
               {blockTargetPlayers.map((player) => (
                 <button
                   aria-label={`ブロックで警戒 ${playerName(player)}`}
+                  className={
+                    player.id === liveBlockTargetId ? "is-recommended" : undefined
+                  }
                   disabled={pending}
                   key={player.id}
                   onClick={() => {
@@ -645,7 +754,10 @@ export function MatchCommandPanel({
                   type="button"
                 >
                   <strong>{playerName(player)}</strong>
-                  <small>{player.preferredPosition}・コート</small>
+                  <small>
+                    {player.preferredPosition}・コート
+                    {player.id === liveBlockTargetId ? "・おすすめ" : ""}
+                  </small>
                 </button>
               ))}
             </div>
