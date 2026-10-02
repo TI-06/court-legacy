@@ -64,6 +64,15 @@ function inProgressResponse() {
         attack: "balanced" as const,
         block: "read" as const,
       },
+      opponentTargets: [
+        {
+          playerId: "pvp-public:r1",
+          firstName: "太郎",
+          lastName: "白波",
+          preferredPosition: "OH" as const,
+          role: "court" as const,
+        },
+      ],
       timeoutAvailable: true,
       sets: [],
       pendingDecisionReason: "opponent-run" as const,
