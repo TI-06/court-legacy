@@ -207,6 +207,7 @@ describe("PlayerHubScreen", () => {
     player.career.points = 52;
     player.career.blocks = 9;
     player.career.serviceAces = 5;
+    player.career.awardIds = ["season:1:mvp", "season:1:server"];
     player.career.bestTournamentResultId = "prefectural:champion";
 
     renderPlayerHub(state);
@@ -224,6 +225,10 @@ describe("PlayerHubScreen", () => {
     expect(within(record).getByText("52")).toBeVisible();
     expect(within(record).getByText("8.7")).toBeVisible();
     expect(within(record).getByText("14")).toBeVisible();
+    const awards = within(record).getByRole("region", { name: "受賞歴" });
+    expect(within(awards).getByText("年間MVP")).toBeVisible();
+    expect(within(awards).getByText("ベストサーバー")).toBeVisible();
+    expect(within(awards).getAllByText("1年度")).toHaveLength(2);
   });
 
   it("switches the team stats sheet between current season and school legacy records", () => {

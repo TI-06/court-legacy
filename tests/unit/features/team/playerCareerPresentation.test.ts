@@ -30,9 +30,42 @@ describe("Phase54 player career presentation", () => {
       pointsPerAppearance: 8.4,
       captainSeasons: 1,
       awardCount: 2,
+      awards: [
+        { id: "award.a", academicYear: null, label: "表彰" },
+        { id: "award.b", academicYear: null, label: "表彰" },
+      ],
       bestTournamentResultLabel: "全国大会 ベスト4",
     });
     expect(player.career).toEqual(before);
+  });
+
+  it("parses and sorts named Phase55 season awards", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.career.awardIds = [
+      "season:1:server",
+      "season:2:mvp",
+      "season:2:receiver",
+    ];
+
+    expect(buildPlayerCareerPresentation(player).awards).toEqual([
+      {
+        id: "season:2:mvp",
+        academicYear: 2,
+        label: "年間MVP",
+      },
+      {
+        id: "season:2:receiver",
+        academicYear: 2,
+        label: "ベストレシーバー",
+      },
+      {
+        id: "season:1:server",
+        academicYear: 1,
+        label: "ベストサーバー",
+      },
+    ]);
   });
 
   it("shows safe zero-state labels before an official appearance", () => {

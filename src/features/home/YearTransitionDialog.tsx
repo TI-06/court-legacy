@@ -83,6 +83,12 @@ export function YearTransitionDialog({
   const seasonResult = archivedSeason
     ? buildSeasonResultPresentation(archivedSeason)
     : null;
+  const seasonMvp =
+    summary.seasonAwards.winners.find((award) => award.category === "mvp") ??
+    null;
+  const specialistAwards = summary.seasonAwards.winners.filter(
+    (award) => award.category !== "mvp",
+  );
   const ambitionSelectionPending =
     state.seasonGoals?.ambitionSelectionPending === true;
   const currentAmbition = state.seasonGoals?.ambition ?? "challenge";
@@ -190,6 +196,40 @@ export function YearTransitionDialog({
                 <strong>{seasonResult.deltas.nationalAppearances}回</strong>
               </span>
             </div>
+          </section>
+        ) : null}
+
+        {summary.seasonAwards.winners.length > 0 ? (
+          <section aria-label="年間表彰" className="year-transition-awards">
+            <div className="year-transition-awards__heading">
+              <div>
+                <span>SEASON AWARDS</span>
+                <h3>{summary.seasonAwards.academicYear}年度 年間表彰</h3>
+              </div>
+              <small>{summary.seasonAwards.winners.length}部門</small>
+            </div>
+
+            {seasonMvp ? (
+              <article className="year-transition-awards__mvp">
+                <span>MVP</span>
+                <div>
+                  <strong>{seasonMvp.displayName}</strong>
+                  <small>{seasonMvp.metricLabel}</small>
+                </div>
+              </article>
+            ) : null}
+
+            {specialistAwards.length > 0 ? (
+              <div className="year-transition-awards__grid">
+                {specialistAwards.map((award) => (
+                  <article key={award.category}>
+                    <span>{award.label}</span>
+                    <strong>{award.displayName}</strong>
+                    <small>{award.metricLabel}</small>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </section>
         ) : null}
 

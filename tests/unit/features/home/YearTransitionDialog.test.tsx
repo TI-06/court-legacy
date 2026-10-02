@@ -25,6 +25,23 @@ describe("year transition dialog", () => {
     tournament.achievement = "prefectural-title";
     school.history.officialWins = goals.baseline.officialWins + 1;
     school.history.prefecturalTitles = goals.baseline.prefecturalTitles + 1;
+    const awardPlayerId = school.playerIds[0]!;
+    const awardPlayer = state.players[awardPlayerId]!;
+    awardPlayer.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 5,
+      setsPlayed: 12,
+      points: 38,
+      attackPoints: 30,
+      attackAttempts: 50,
+      blocks: 4,
+      serviceAces: 6,
+      receiveAttempts: 12,
+      perfectReceives: 8,
+      defensePoints: 2,
+      idealSets: 0,
+      successfulDigs: 4,
+    };
 
     const result = advanceGameWeek(state, gameData);
     const summary = result.academicYearTransition;
@@ -93,6 +110,16 @@ describe("year transition dialog", () => {
     expect(within(intakeMetric!).getByText(/\d+名/)).toBeVisible();
     expect(screen.getByText("新主将")).toBeVisible();
     expect(screen.getByText("世代級選手が入学")).toBeVisible();
+
+    const awards = screen.getByRole("region", { name: "年間表彰" });
+    expect(within(awards).getByText("SEASON AWARDS")).toBeVisible();
+    const mvpCard = within(awards).getByText("MVP").closest("article");
+    expect(mvpCard).not.toBeNull();
+    expect(
+      within(mvpCard!).getByText(
+        `${awardPlayer.lastName} ${awardPlayer.firstName}`,
+      ),
+    ).toBeVisible();
 
     const ambition = screen.getByRole("region", {
       name: "新シーズン目標方針",
