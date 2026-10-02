@@ -2476,7 +2476,6 @@
   }
 }
 
-
 /* Phase54-3: season / legacy record scope */
 .player-stats-scope {
   display: grid;
@@ -2510,17 +2509,10 @@
   opacity: 1;
 }
 
-.player-legacy-leaderboard
-  .player-season-leaderboard__rows
-  button:disabled
-  span
-  small {
+.player-legacy-leaderboard button:disabled small {
   color: #8fa0ab;
 }
 
-.player-legacy-leaderboard
-  .player-season-leaderboard__rows
-  button:disabled
-  em {
+.player-legacy-leaderboard button:disabled em {
   color: #d7e2e8;
 }
