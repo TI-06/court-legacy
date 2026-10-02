@@ -195,9 +195,7 @@ export function buildLiveMatchIntelligence({
   const userPlayers = summary.players.filter(
     (player) => player.schoolId === userSchoolId,
   );
-  const opponentSchoolId = userIsHome
-    ? match.awaySchoolId
-    : match.homeSchoolId;
+  const opponentSchoolId = userIsHome ? match.awaySchoolId : match.homeSchoolId;
   const opponentPlayers = summary.players.filter(
     (player) => player.schoolId === opponentSchoolId,
   );
@@ -232,7 +230,9 @@ export function buildLiveMatchIntelligence({
     }
     const kind = first.kind.localeCompare(second.kind);
     if (kind !== 0) return kind;
-    return (first.targetPlayerId ?? "").localeCompare(second.targetPlayerId ?? "");
+    return (first.targetPlayerId ?? "").localeCompare(
+      second.targetPlayerId ?? "",
+    );
   });
 
   return {
