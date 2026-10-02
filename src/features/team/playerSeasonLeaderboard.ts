@@ -7,11 +7,7 @@ import type {
 import type { PlayerId } from "../../domain/model/identifiers";
 
 export type SeasonLeaderboardCategory =
-  | "points"
-  | "blocks"
-  | "service-aces"
-  | "attack-rate"
-  | "receive-rate";
+  "points" | "blocks" | "service-aces" | "attack-rate" | "receive-rate";
 
 export interface SeasonLeaderboardRow {
   playerId: PlayerId;
