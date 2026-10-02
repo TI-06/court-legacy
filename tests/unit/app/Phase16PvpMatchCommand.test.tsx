@@ -91,6 +91,20 @@ function inProgress(
         attack: "balanced",
         block: "read",
       },
+      opponentTargetPlayers: [
+        {
+          playerId: playerId("pvp:defender:oh-1"),
+          displayName: "白波 翼",
+          preferredPosition: "OH",
+          role: "court",
+        },
+        {
+          playerId: playerId("pvp:defender:libero-1"),
+          displayName: "白波 守",
+          preferredPosition: "L",
+          role: "libero",
+        },
+      ],
       timeoutAvailable: true,
       sets: [],
       pendingDecisionReason: "opponent-run",
