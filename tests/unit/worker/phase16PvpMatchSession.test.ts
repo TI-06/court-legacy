@@ -161,11 +161,26 @@ describe("Phase 16 private resumable PvP match session", () => {
       expect(serialized).not.toContain(forbidden);
     }
 
+    expect(started.segment.opponentTargetPlayers.length).toBeGreaterThan(0);
+    for (const target of started.segment.opponentTargetPlayers) {
+      expect(Object.keys(target).sort()).toEqual([
+        "displayName",
+        "playerId",
+        "preferredPosition",
+        "role",
+      ]);
+    }
+
+    const exposedTargetIds = new Set(
+      started.segment.opponentTargetPlayers.map((target) => target.playerId),
+    );
     const defenderPlayerIds =
       started.session.simulationState.schools[started.session.defenderSchoolId]!
         .playerIds;
     for (const defenderPlayerId of defenderPlayerIds) {
-      expect(serialized).not.toContain(defenderPlayerId);
+      if (!exposedTargetIds.has(defenderPlayerId)) {
+        expect(serialized).not.toContain(defenderPlayerId);
+      }
     }
 
     expect(started.segment.events.length).toBeGreaterThan(0);
