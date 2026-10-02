@@ -102,4 +102,51 @@ describe("Phase51 invitational cup worker flow", () => {
     expect(resumed.state.activeMatch?.id).toBe(startedMatch.id);
     expect(resumed.state.activeMatch?.phase).toBe(startedMatch.phase);
   });
+  it("routes Phase52 opponent targeting through invitational matches", () => {
+    const snapshot = createSnapshot();
+    const purchased = applyServerGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
+    let currentSnapshot = continueSnapshot(snapshot, purchased);
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "advance-week",
+    });
+
+    for (let guard = 0; guard < 6; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active || active.phase === "match-complete") break;
+      if (active.runtime?.pendingDecisionReason !== "set-break") break;
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+    }
+
+    const active = current.state.activeMatch;
+    if (
+      !active ||
+      active.phase === "match-complete" ||
+      active.runtime?.pendingDecisionReason === "set-break"
+    ) {
+      throw new Error("targetable invitational decision fixture missing");
+    }
+    const targetPlayerId = active.awaySelection.rotation[0]!.playerId;
+    currentSnapshot = continueSnapshot(currentSnapshot, current);
+
+    const targeted = applyServerGameAction(currentSnapshot, {
+      type: "match-command",
+      command: { type: "target-serve-receiver", playerId: targetPlayerId },
+    });
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (entry) =>
+          entry.command.type === "target-serve-receiver" &&
+          entry.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+  });
+
 });
