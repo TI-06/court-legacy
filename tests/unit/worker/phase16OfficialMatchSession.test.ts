@@ -105,7 +105,11 @@ describe("Phase16 official match sessions", () => {
         throw new Error("official match completed before targetable decision");
       }
       const reason = active.runtime?.pendingDecisionReason;
-      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+      if (
+        active.phase === "coach-decision" &&
+        reason &&
+        reason !== "set-break"
+      ) {
         const opponentSelection =
           active.homeSchoolId === applied.state.userSchoolId
             ? active.awaySelection
