@@ -221,7 +221,11 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("simulationState");
     expect(serialized).not.toContain("runtime");
     expect(serialized).not.toContain("abilities");
-  it("accepts a serve target command while returning only public defender identities", async () => {
+  });
+
+  it(
+    "accepts a serve target command while returning only public defender identities",
+    async () => {
     const challenger = challengerSnapshot();
     const defender = defenderSnapshot();
     const started = startAtOpponentRun();
@@ -299,9 +303,8 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain('"abilities"');
     expect(serialized).not.toContain('"hiddenTraitIds"');
     expect(serialized).not.toContain('"traitIds"');
-    expect(serialized).not.toContain('"condition"');
-    expect(serialized).not.toContain('"fatigue"');
-  });
-
-  });
+      expect(serialized).not.toContain('"condition"');
+      expect(serialized).not.toContain('"fatigue"');
+    },
+  );
 });
