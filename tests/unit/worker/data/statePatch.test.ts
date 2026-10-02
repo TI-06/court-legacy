@@ -296,8 +296,8 @@ describe("buildJsonStatePatch", () => {
 
     const raw = buildJsonStatePatch(before, after);
     expect(
-      raw.filter((operation) => operation.path[0] === "history"),
-    ).toHaveLength(expect.any(Number));
+      raw.filter((operation) => operation.path[0] === "history").length,
+    ).toBeGreaterThan(4);
 
     const compact = collapseNoisyJsonStatePatchPaths(
       after as unknown as Record<string, unknown>,
