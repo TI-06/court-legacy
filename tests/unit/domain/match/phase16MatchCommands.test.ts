@@ -511,7 +511,9 @@ describe("Phase16 match commands", () => {
       match: continued,
     }).match;
 
-    expect(resumed.currentSetNumber).toBeGreaterThan(continued.currentSetNumber);
+    expect(resumed.currentSetNumber).toBeGreaterThan(
+      continued.currentSetNumber,
+    );
     expect(resumed.runtime?.serveTarget ?? null).toBeNull();
     expect(resumed.runtime?.blockTarget ?? null).toBeNull();
   });
