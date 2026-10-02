@@ -1,4 +1,7 @@
-import type { GameState, GraduatedPlayerSummary } from "../../domain/model/GameState";
+import type {
+  GameState,
+  GraduatedPlayerSummary,
+} from "../../domain/model/GameState";
 import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 
