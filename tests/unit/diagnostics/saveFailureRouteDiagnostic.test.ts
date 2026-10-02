@@ -22,7 +22,11 @@ interface SaveRoutePoint {
   patchBytes: number;
   stateBytes: number;
   fullStateFallback: boolean;
-  fallbackReason: "operation-count" | "patch-bytes" | "preferred-patch-bytes" | null;
+  fallbackReason:
+    | "operation-count"
+    | "patch-bytes"
+    | "preferred-patch-bytes"
+    | null;
   matchPhase: string | null;
   historyMatches: number;
   playerCount: number;
