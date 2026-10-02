@@ -43,10 +43,7 @@ function completedFixture() {
 describe("Phase53 match review evaluation", () => {
   it("produces bounded team and position-aware player ratings for the user school", () => {
     const fixture = completedFixture();
-    const summary = buildMatchStatSummary(
-      fixture.state,
-      fixture.result.match,
-    );
+    const summary = buildMatchStatSummary(fixture.state, fixture.result.match);
     const evaluation = buildMatchReviewEvaluation({
       match: fixture.result.match,
       summary,
@@ -79,10 +76,7 @@ describe("Phase53 match review evaluation", () => {
 
   it("does not assign a fake poor grade to a player with no observed activity", () => {
     const fixture = completedFixture();
-    const summary = buildMatchStatSummary(
-      fixture.state,
-      fixture.result.match,
-    );
+    const summary = buildMatchStatSummary(fixture.state, fixture.result.match);
     const userPlayer = summary.players.find(
       (player) => player.schoolId === fixture.state.userSchoolId,
     );
