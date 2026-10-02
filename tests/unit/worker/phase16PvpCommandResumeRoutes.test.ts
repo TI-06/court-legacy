@@ -184,7 +184,10 @@ describe("Phase 16 PvP command resume route", () => {
         body: JSON.stringify({
           operationId,
           commandId: "command-resume-001",
-          command: { type: "continue" },
+          command: {
+            type: "target-serve-receiver",
+            playerId: started.segment.opponentPlayers?.[0]?.id,
+          },
         }),
       }),
       { id: challengerUserId },
@@ -211,7 +214,10 @@ describe("Phase 16 PvP command resume route", () => {
     expect(store.saveMatchSessionCommand).toHaveBeenCalledTimes(1);
     const saveInput = vi.mocked(store.saveMatchSessionCommand).mock
       .calls[0]![0];
-    expect(saveInput.command).toEqual({ type: "continue" });
+    expect(saveInput.command).toEqual({
+      type: "target-serve-receiver",
+      playerId: started.segment.opponentPlayers?.[0]?.id,
+    });
     expect(saveInput.expectedCursor).toBe(persisted.currentCursor);
     expect(saveInput.nextCursor).toBeGreaterThan(persisted.currentCursor);
     expect(saveInput.privateSession).not.toBe(persisted.privateSession);
@@ -221,5 +227,7 @@ describe("Phase 16 PvP command resume route", () => {
     expect(serialized).not.toContain("simulationState");
     expect(serialized).not.toContain("runtime");
     expect(serialized).not.toContain("abilities");
+    expect(serialized).not.toContain("hiddenTraitIds");
+    expect(serialized).not.toContain("specialAbilityIds");
   });
 });
