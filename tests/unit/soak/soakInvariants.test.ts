@@ -84,6 +84,64 @@ describe("Phase18 soak hard invariants", () => {
     expect(codes).toContain("invalid_team_selection");
   });
 
+  it("detects duplicate and out-of-career Phase55 award ids", async () => {
+    const { inspectSoakInvariants } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase55-award-invariants");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = snapshot.state.players[playerId]!;
+    const enrolledYear = player.career.enrolledYear;
+
+    player.career.awardIds = [
+      `season:${enrolledYear}:mvp`,
+      `season:${enrolledYear}:mvp`,
+      `season:${enrolledYear + 3}:server`,
+    ];
+
+    const violations = inspectSoakInvariants(snapshot);
+
+    expect(violations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "duplicate_player_award_id",
+          path: expect.stringContaining("career.awardIds"),
+        }),
+        expect.objectContaining({
+          code: "season_award_outside_player_career",
+          path: expect.stringContaining("career.awardIds"),
+        }),
+      ]),
+    );
+  });
+
+  it("caps Phase55 season award history at six awards across three school years", async () => {
+    const { inspectSoakInvariants } = await loadSubject();
+    const snapshot = createSoakSnapshot("phase55-award-bound");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const playerId = school.playerIds[0]!;
+    const player = snapshot.state.players[playerId]!;
+    const enrolledYear = player.career.enrolledYear;
+    const categories = [
+      "mvp",
+      "attacker",
+      "blocker",
+      "server",
+      "receiver",
+      "setter",
+    ] as const;
+
+    player.career.awardIds = Array.from({ length: 4 }, (_, yearOffset) =>
+      categories.map(
+        (category) => `season:${enrolledYear + yearOffset}:${category}`,
+      ),
+    ).flat();
+
+    const codes = inspectSoakInvariants(snapshot).map((item) => item.code);
+
+    expect(codes).toContain("player_season_awards_unbounded");
+    expect(codes).toContain("season_award_outside_player_career");
+  });
+
   it("throws one reproducible invariant error with seed, date, year, week and action count", async () => {
     const { assertSoakInvariants } = await loadSubject();
     const snapshot = cloneSnapshot(
