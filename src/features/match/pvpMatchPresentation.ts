@@ -10,6 +10,7 @@ import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type {
   PvpChallengeInProgressResponse,
   PvpMatchSegment,
+  PvpPublicOpponentTarget,
 } from "../../domain/pvp/pvpContracts";
 
 const EMPTY_SELECTION: TeamSelection = {
@@ -111,6 +112,7 @@ export interface PvpMatchScreenPresentation {
   };
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
+  opponentTargets: PvpPublicOpponentTarget[];
   schoolDisplayNames: Partial<Record<ReturnType<typeof schoolId>, string>>;
 }
 
@@ -151,6 +153,7 @@ export function buildPvpMatchScreenPresentation(
     },
     homeSelection: segment.challengerSelection,
     awaySelection: EMPTY_SELECTION,
+    opponentTargets: segment.opponentTargets ?? [],
     schoolDisplayNames: {
       [userSchoolId]: "自校",
       [awaySchoolId]: response.opponent.schoolName,
