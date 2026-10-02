@@ -222,9 +222,7 @@ describe("buildJsonStatePatch", () => {
       ["players", "schools"],
     );
 
-    expect(
-      compact.filter((operation) => operation.op === "merge"),
-    ).toEqual([
+    expect(compact.filter((operation) => operation.op === "merge")).toEqual([
       {
         op: "merge",
         path: ["players"],
@@ -303,5 +301,4 @@ describe("buildJsonStatePatch", () => {
       },
     });
   });
-
 });
