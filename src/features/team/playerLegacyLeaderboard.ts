@@ -6,10 +6,7 @@ import type { Player, Position } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 
 export type LegacyLeaderboardCategory =
-  | "appearances"
-  | "points"
-  | "blocks"
-  | "service-aces";
+  "appearances" | "points" | "blocks" | "service-aces";
 
 export interface LegacyLeaderboardRow {
   playerId: PlayerId;
