@@ -1635,6 +1635,23 @@
 }
 
 /* Phase52: opponent targeting commands */
+.match-command-opponent-targeting-sheet {
+  animation: match-opponent-target-sheet-enter 160ms ease-out;
+  transform-origin: bottom center;
+}
+
+@keyframes match-opponent-target-sheet-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .match-command-opponent-targeting {
   display: grid;
   gap: 12px;

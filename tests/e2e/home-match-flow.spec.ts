@@ -40,6 +40,58 @@ async function schedulePracticeMatch(page: Page) {
   await expect(scheduled).toBeVisible();
 }
 
+async function issueOpponentTargetAtNextDecision(page: Page) {
+  const resultHeading = page.getByRole("heading", { name: "試合結果" });
+
+  for (let guard = 0; guard < 8; guard += 1) {
+    if (await resultHeading.isVisible().catch(() => false)) {
+      throw new Error(
+        "match completed before Phase52 targeting became available",
+      );
+    }
+
+    const decision = page.getByRole("region", { name: "監督指示" });
+    if (!(await decision.isVisible().catch(() => false))) {
+      const toDecision = page.getByRole("button", { name: "次の判断まで進む" });
+      await expect(toDecision).toBeVisible();
+      await toDecision.click();
+      await expect(decision).toBeVisible();
+    }
+
+    const targeting = decision.getByRole("button", { name: "相手を狙う" });
+    if (await targeting.isVisible().catch(() => false)) {
+      await targeting.click();
+      const dialog = page.getByRole("dialog", { name: "相手を狙う" });
+      await expect(dialog).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+
+      const viewport = page.viewportSize();
+      const box = await dialog.boundingBox();
+      expect(viewport).not.toBeNull();
+      expect(box).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+
+      const serveTarget = dialog
+        .getByRole("button", { name: /^サーブで狙う / })
+        .first();
+      await expect(serveTarget).toBeVisible();
+      await serveTarget.click();
+      return;
+    }
+
+    const nextSet = decision.getByRole("button", {
+      name: "このまま次セットへ",
+    });
+    await expect(nextSet).toBeVisible();
+    await nextSet.click();
+    await expect(decision).toBeHidden();
+  }
+
+  throw new Error("Phase52 targeting did not become available");
+}
+
 async function finishInteractiveMatch(page: Page) {
   const resultHeading = page.getByRole("heading", { name: "試合結果" });
 
@@ -64,7 +116,9 @@ async function finishInteractiveMatch(page: Page) {
     if (await nextSet.isVisible().catch(() => false)) {
       await nextSet.click();
     } else {
-      await decision.getByRole("button", { name: "このまま続ける" }).click();
+      await decision
+        .getByRole("button", { name: /^このまま(?:続ける|勝負する)$/ })
+        .click();
     }
     await expect(decision).toBeHidden();
   }
@@ -115,6 +169,11 @@ for (const width of [320, 360, 390, 414, 480]) {
     ).toBeVisible();
     await expect(page.getByTestId("event-sequence")).toContainText("1 /");
     await expectNoHorizontalOverflow(page);
+
+    if (width === 390) {
+      await issueOpponentTargetAtNextDecision(page);
+      await expectNoHorizontalOverflow(page);
+    }
 
     await finishInteractiveMatch(page);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();

@@ -477,6 +477,47 @@ describe("Phase16 match commands", () => {
     expect(match).toEqual(before);
   });
 
+  it("clears both Phase52 targets when the next set begins", () => {
+    const context = makeHomeDominant(
+      createContext("phase52-target-set-boundary-world"),
+    );
+    const match = findSetBreakDecision(context);
+    if (!match.runtime) throw new Error("match runtime missing");
+    const targetPlayerId = match.awaySelection.rotation[0]!.playerId;
+
+    match.runtime.serveTarget = {
+      schoolId: context.homeSchoolId,
+      playerId: targetPlayerId,
+      ralliesRemaining: 4,
+    };
+    match.runtime.blockTarget = {
+      schoolId: context.homeSchoolId,
+      playerId: targetPlayerId,
+      ralliesRemaining: 4,
+    };
+
+    const continued = applyMatchCommand({
+      state: context.state,
+      match,
+      schoolId: context.homeSchoolId,
+      command: { type: "continue" },
+    });
+    expect(continued.phase).toBe("set-complete");
+    expect(continued.runtime?.serveTarget).not.toBeNull();
+    expect(continued.runtime?.blockTarget).not.toBeNull();
+
+    const resumed = resumeMatch({
+      state: context.state,
+      match: continued,
+    }).match;
+
+    expect(resumed.currentSetNumber).toBeGreaterThan(
+      continued.currentSetNumber,
+    );
+    expect(resumed.runtime?.serveTarget ?? null).toBeNull();
+    expect(resumed.runtime?.blockTarget ?? null).toBeNull();
+  });
+
   it("expires Phase52 temporary targeting through simulation without changing persistent tactics", () => {
     const context = createContext("phase52-target-expiry-world");
     const match = findOpponentRunDecision(context);
