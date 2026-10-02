@@ -3,9 +3,7 @@ import { playerId } from "../../../../src/domain/model/identifiers";
 import { buildSchoolLegacyLeaderboard } from "../../../../src/features/team/playerLegacyLeaderboard";
 
 describe("Phase54 school legacy leaderboard", () => {
-  it(
-    "combines active players and user-school graduates without new persistence",
-    () => {
+  it("combines active players and user-school graduates without new persistence", () => {
       const state = createDemoGame();
       const activeId = state.schools[state.userSchoolId]!.playerIds[0]!;
       const active = state.players[activeId]!;
@@ -43,12 +41,9 @@ describe("Phase54 school legacy leaderboard", () => {
           .find((section) => section.id === "appearances")
           ?.rows.some((row) => row.playerId === activeId && row.active),
       ).toBe(true);
-    },
-  );
+  });
 
-  it(
-    "filters graduates from other schools and caps each category at five",
-    () => {
+  it("filters graduates from other schools and caps each category at five", () => {
       const state = createDemoGame();
       const school = state.schools[state.userSchoolId]!;
       for (let index = 0; index < school.playerIds.length; index += 1) {
@@ -80,6 +75,5 @@ describe("Phase54 school legacy leaderboard", () => {
       expect(
         points.rows.some((row) => row.displayName === "他校 選手"),
       ).toBe(false);
-    },
-  );
+  });
 });
