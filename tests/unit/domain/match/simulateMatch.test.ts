@@ -4,7 +4,10 @@ import { createAbilities } from "../../../../src/domain/model/Player";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import { SeededRandom } from "../../../../src/domain/random/SeededRandom";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
-import { simulateMatch } from "../../../../src/domain/match/simulateMatch";
+import {
+  getTemporaryBlockTargetPowerBonus,
+  simulateMatch,
+} from "../../../../src/domain/match/simulateMatch";
 
 if (!gameDataBootstrap.ok) {
   throw new Error(gameDataBootstrap.message);
@@ -123,6 +126,48 @@ function makeHomeDominant(context: ReturnType<typeof createContext>) {
 
   return context;
 }
+
+describe("Phase52 temporary block targeting", () => {
+  it("adds +6 only when the marked attacker is actually attacking", () => {
+    const context = createContext("phase52-block-bonus");
+    const targetPlayerId = context.awaySelection.rotation[0]!.playerId;
+    const otherPlayerId = context.awaySelection.rotation[1]!.playerId;
+    const blockTarget = {
+      schoolId: context.homeSchoolId,
+      playerId: targetPlayerId,
+      ralliesRemaining: 5,
+    };
+
+    expect(
+      getTemporaryBlockTargetPowerBonus({
+        blockTarget,
+        blockingSchoolId: context.homeSchoolId,
+        attackerPlayerId: targetPlayerId,
+      }),
+    ).toBe(6);
+    expect(
+      getTemporaryBlockTargetPowerBonus({
+        blockTarget,
+        blockingSchoolId: context.homeSchoolId,
+        attackerPlayerId: otherPlayerId,
+      }),
+    ).toBe(0);
+    expect(
+      getTemporaryBlockTargetPowerBonus({
+        blockTarget: { ...blockTarget, ralliesRemaining: 0 },
+        blockingSchoolId: context.homeSchoolId,
+        attackerPlayerId: targetPlayerId,
+      }),
+    ).toBe(0);
+    expect(
+      getTemporaryBlockTargetPowerBonus({
+        blockTarget,
+        blockingSchoolId: context.awaySchoolId,
+        attackerPlayerId: targetPlayerId,
+      }),
+    ).toBe(0);
+  });
+});
 
 describe("simulateMatch", () => {
   it("completes a best-of-three match when one school wins two sets", () => {
