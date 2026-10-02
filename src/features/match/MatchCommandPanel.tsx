@@ -26,9 +26,15 @@ interface MatchCommandPanelProps {
   match: MatchState;
   pending: boolean;
   onCommand: (command: MatchCommand) => void | Promise<void>;
+  opponentPlayers?: readonly Pick<
+    Player,
+    "id" | "lastName" | "firstName" | "preferredPosition"
+  >[];
 }
 
-function playerName(player: Player): string {
+function playerName(
+  player: Pick<Player, "lastName" | "firstName">,
+): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
@@ -150,6 +156,7 @@ export function MatchCommandPanel({
   match,
   pending,
   onCommand,
+  opponentPlayers,
 }: MatchCommandPanelProps) {
   const runtime = match.runtime;
   const reason = runtime?.pendingDecisionReason;
@@ -258,11 +265,23 @@ export function MatchCommandPanel({
     !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
+  const opponentPlayerById = new Map(
+    (opponentPlayers ?? Object.values(state.players)).map(
+      (player) => [player.id, player] as const,
+    ),
+  );
   const opponentCourtPlayers = opponentSelection.rotation
-    .map((assignment) => state.players[assignment.playerId])
-    .filter((player): player is Player => Boolean(player));
+    .map((assignment) => opponentPlayerById.get(assignment.playerId))
+    .filter(
+      (
+        player,
+      ): player is Pick<
+        Player,
+        "id" | "lastName" | "firstName" | "preferredPosition"
+      > => Boolean(player),
+    );
   const opponentLiberoPlayer = opponentSelection.liberoPlayerId
-    ? (state.players[opponentSelection.liberoPlayerId] ?? null)
+    ? (opponentPlayerById.get(opponentSelection.liberoPlayerId) ?? null)
     : null;
   const serveTargetPlayers =
     opponentLiberoPlayer &&
