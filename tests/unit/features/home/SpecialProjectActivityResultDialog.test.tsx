@@ -30,9 +30,10 @@ describe("SpecialProjectActivityResultDialog", () => {
           skippedReason: null,
           modifiers: [],
           socialGrowth: {
-            percent: 100,
-            strongestPositiveLabel: null,
-            strongestNegativeLabel: null,
+            contributions: [],
+            rawPercentPoints: 0,
+            appliedPercentPoints: 0,
+            capped: false,
           },
         },
       ],
