@@ -91,10 +91,7 @@ describe("Save Stability V5 endurance", () => {
             }
           : applied.state;
 
-      const patch = buildPersistenceStatePatch(
-        prepared.state,
-        persistedState,
-      );
+      const patch = buildPersistenceStatePatch(prepared.state, persistedState);
       const reconstructed = applyJsonStatePatch(prepared.state, patch);
       expect(reconstructed).toEqual(persistedState);
 
@@ -109,10 +106,7 @@ describe("Save Stability V5 endurance", () => {
         metric.maximumPatchOperations,
         patch.length,
       );
-      metric.maximumPatchBytes = Math.max(
-        metric.maximumPatchBytes,
-        patchBytes,
-      );
+      metric.maximumPatchBytes = Math.max(metric.maximumPatchBytes, patchBytes);
 
       const nextSnapshot: CloudGameSnapshot = {
         ...prepared,
@@ -146,9 +140,7 @@ describe("Save Stability V5 endurance", () => {
         totalFallbacks,
         baselineFallbacks,
         reduction:
-          baselineFallbacks === 0
-            ? 1
-            : 1 - totalFallbacks / baselineFallbacks,
+          baselineFallbacks === 0 ? 1 : 1 - totalFallbacks / baselineFallbacks,
         metrics,
       }),
     );
