@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGame } from "../../../src/app/createInitialGame";
-import type { AdvanceWeekOutcome } from "../../../src/domain/calendar/advanceWeekOutcome";
+import type {
+  AdvanceWeekOutcome,
+  PendingMatchPresentation,
+} from "../../../src/domain/calendar/advanceWeekOutcome";
 import { activeInvitationalCup } from "../../../src/domain/school/invitationalCup";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
@@ -134,6 +137,33 @@ describe("Phase51 invitational cup worker flow", () => {
       targeted.state.schools[targeted.state.userSchoolId]!.tactics
         .serveTargetPlayerId,
     ).toBe(persistentTarget);
+  });
+
+  it("completes the invitational through the canonical match command result path", () => {
+    const snapshot = createSnapshot();
+    const purchased = applyServerGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
+    const purchasedSnapshot = continueSnapshot(snapshot, purchased);
+    const started = applyServerGameAction(purchasedSnapshot, {
+      type: "advance-week",
+    });
+    const startedMatch = started.state.activeMatch;
+    if (!startedMatch) throw new Error("invitational match missing");
+
+    const skipped = applyServerGameAction(
+      continueSnapshot(purchasedSnapshot, started),
+      { type: "match-command", command: { type: "skip-to-result" } },
+    );
+    const presentation = skipped.outcome as PendingMatchPresentation;
+
+    expect(presentation.kind).toBe("invitational");
+    expect(presentation.simulation.analysis).not.toBeNull();
+    expect(presentation.simulation.match.id).toBe(startedMatch.id);
+    expect(presentation.simulation.match.phase).toBe("match-complete");
+    expect(skipped.state.activeMatch?.id).toBe(startedMatch.id);
+    expect(skipped.state.activeMatch?.phase).toBe("match-complete");
   });
 
   it("re-opens the same invitational match after a reload-style advance retry", () => {
