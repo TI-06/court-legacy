@@ -217,9 +217,23 @@ describe("Phase 16 PvP command resume route", () => {
     expect(saveInput.privateSession).not.toBe(persisted.privateSession);
     expect(store.commitRatedMatch).not.toHaveBeenCalled();
 
+    const targets = body.segment.opponentTargetPlayers as Array<
+      Record<string, unknown>
+    >;
+    expect(targets.length).toBeGreaterThan(0);
+    expect(Object.keys(targets[0]!).sort()).toEqual([
+      "displayName",
+      "playerId",
+      "preferredPosition",
+      "role",
+    ]);
+
     const serialized = JSON.stringify(body);
     expect(serialized).not.toContain("simulationState");
     expect(serialized).not.toContain("runtime");
     expect(serialized).not.toContain("abilities");
+    expect(serialized).not.toContain("hiddenTraitIds");
+    expect(serialized).not.toContain("traitIds");
+    expect(serialized).not.toContain("potential");
   });
 });
