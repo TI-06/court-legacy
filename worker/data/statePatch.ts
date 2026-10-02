@@ -391,4 +391,3 @@ export function collapseNoisyJsonStatePatchPaths(
 
   return result;
 }
-
