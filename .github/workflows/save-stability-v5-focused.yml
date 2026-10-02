@@ -20,10 +20,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
       - name: Check formatting
-        run: |
-          npx prettier --write worker/data/statePatch.ts tests/unit/worker/data/statePatch.test.ts
-          git diff -- worker/data/statePatch.ts tests/unit/worker/data/statePatch.test.ts
-          exit 1
+        run: npx prettier --check worker/data/statePatch.ts worker/data/SupabaseGameStore.ts worker/game/buildPersistenceStatePatch.ts worker/routes/gameAction.ts tests/unit/worker/data/statePatch.test.ts tests/unit/worker/data/SupabaseGameStore.test.ts tests/unit/worker/data/saveDeltaBatchingV5Migration.test.ts tests/unit/diagnostics/saveDeltaBatchingV5Endurance.test.ts
       - name: Run focused save tests
         run: >-
           npx vitest run
