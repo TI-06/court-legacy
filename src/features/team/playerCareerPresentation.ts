@@ -60,7 +60,9 @@ function awardPresentation(awardId: string): PlayerAwardPresentation {
   };
 }
 
-function awardPresentations(awardIds: readonly string[]): PlayerAwardPresentation[] {
+function awardPresentations(
+  awardIds: readonly string[],
+): PlayerAwardPresentation[] {
   return awardIds
     .map(awardPresentation)
     .sort(
