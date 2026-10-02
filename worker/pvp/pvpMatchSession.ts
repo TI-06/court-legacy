@@ -8,6 +8,7 @@ import type {
 } from "../../src/domain/model/Match";
 import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { PvpPublicOpponentPlayer } from "../../src/domain/pvp/pvpContracts";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
   resumeMatch,
@@ -53,6 +54,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
+  opponentPlayers: PvpPublicOpponentPlayer[];
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
@@ -124,6 +126,46 @@ function sideForSchool(
   return schoolId === challengerSchoolId ? "challenger" : "defender";
 }
 
+function publicOpponentPlayers(
+  session: PvpServerMatchSession,
+): PvpPublicOpponentPlayer[] {
+  const selection = session.match.awaySelection;
+  const courtIds = new Set(
+    selection.rotation.map((assignment) => assignment.playerId),
+  );
+  const players = selection.rotation.flatMap((assignment) => {
+    const player = session.simulationState.players[assignment.playerId];
+    if (!player) return [];
+    return [
+      {
+        id: player.id,
+        lastName: player.lastName,
+        firstName: player.firstName,
+        preferredPosition: player.preferredPosition,
+        role: "court" as const,
+        slot: assignment.slot,
+      },
+    ];
+  });
+
+  const liberoId = selection.liberoPlayerId;
+  if (liberoId && !courtIds.has(liberoId)) {
+    const libero = session.simulationState.players[liberoId];
+    if (libero) {
+      players.push({
+        id: libero.id,
+        lastName: libero.lastName,
+        firstName: libero.firstName,
+        preferredPosition: libero.preferredPosition,
+        role: "libero",
+        slot: null,
+      });
+    }
+  }
+
+  return players;
+}
+
 export function buildPvpPublicSegment(
   session: PvpServerMatchSession,
 ): PvpMatchSegment {
@@ -151,6 +193,7 @@ export function buildPvpPublicSegment(
     },
     challengerSelection: session.match.homeSelection,
     challengerTactics: runtime.homeTactics,
+    opponentPlayers: publicOpponentPlayers(session),
     timeoutAvailable:
       pendingDecisionReason === "opponent-run" &&
       !runtime.timeoutUsedSchoolIds.includes(session.challengerSchoolId),
