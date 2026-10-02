@@ -6,7 +6,12 @@ import type {
   MatchPhase,
   MatchState,
 } from "../../src/domain/model/Match";
-import { matchId, type SchoolId } from "../../src/domain/model/identifiers";
+import {
+  matchId,
+  playerId,
+  type PlayerId,
+  type SchoolId,
+} from "../../src/domain/model/identifiers";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import { applyMatchCommand } from "../../src/domain/match/applyMatchCommand";
 import {
@@ -16,6 +21,7 @@ import {
 } from "../../src/domain/match/simulateMatch";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
+import type { PvpPublicOpponentTarget } from "../../src/domain/pvp/pvpContracts";
 import type { CloudGameSnapshot } from "../data/GameStore";
 import type { PublishedPvpTeamSnapshot } from "../data/PvPStore";
 import { chooseAutomaticDefenderCommand } from "./automaticDefenderCoach";
@@ -53,6 +59,7 @@ export interface PvpMatchSegment {
   };
   challengerSelection: TeamSelection;
   challengerTactics: MatchTacticPlan;
+  opponentTargets?: PvpPublicOpponentTarget[];
   timeoutAvailable: boolean;
   sets: PvpPublicSetState[];
   pendingDecisionReason: CoachDecisionReason | null;
@@ -94,6 +101,102 @@ export interface ResumePvpMatchSessionInput {
 export interface PvpMatchSessionStep {
   session: PvpServerMatchSession;
   segment: PvpMatchSegment;
+}
+
+const PUBLIC_TARGET_PREFIX = "pvp-public:";
+
+function publicCourtTargetId(slot: number): PlayerId {
+  return playerId(`${PUBLIC_TARGET_PREFIX}r${slot}`);
+}
+
+function publicLiberoTargetId(): PlayerId {
+  return playerId(`${PUBLIC_TARGET_PREFIX}libero`);
+}
+
+function publicOpponentTargets(
+  session: PvpServerMatchSession,
+): PvpPublicOpponentTarget[] {
+  const targets: PvpPublicOpponentTarget[] = session.match.awaySelection.rotation
+    .slice()
+    .sort((left, right) => left.slot - right.slot)
+    .flatMap((assignment) => {
+      const player = session.simulationState.players[assignment.playerId];
+      if (!player) return [];
+      return [
+        {
+          playerId: publicCourtTargetId(assignment.slot),
+          firstName: player.firstName,
+          lastName: player.lastName,
+          preferredPosition: player.preferredPosition,
+          role: "court" as const,
+        },
+      ];
+    });
+
+  const liberoId = session.match.awaySelection.liberoPlayerId;
+  if (
+    liberoId &&
+    !session.match.awaySelection.rotation.some(
+      (assignment) => assignment.playerId === liberoId,
+    )
+  ) {
+    const libero = session.simulationState.players[liberoId];
+    if (libero) {
+      targets.push({
+        playerId: publicLiberoTargetId(),
+        firstName: libero.firstName,
+        lastName: libero.lastName,
+        preferredPosition: libero.preferredPosition,
+        role: "libero",
+      });
+    }
+  }
+
+  return targets;
+}
+
+function internalOpponentTargetId(
+  session: PvpServerMatchSession,
+  publicId: PlayerId,
+): PlayerId | null {
+  const raw = String(publicId);
+  if (raw === `${PUBLIC_TARGET_PREFIX}libero`) {
+    return session.match.awaySelection.liberoPlayerId;
+  }
+  const match = /^pvp-public:r([1-6])$/.exec(raw);
+  if (!match) return null;
+  const slot = Number(match[1]);
+  return (
+    session.match.awaySelection.rotation.find(
+      (assignment) => assignment.slot === slot,
+    )?.playerId ?? null
+  );
+}
+
+function resolvePublicTargetCommand(
+  session: PvpServerMatchSession,
+  command: MatchCommand,
+): MatchCommand {
+  if (
+    command.type !== "target-serve-receiver" &&
+    command.type !== "mark-opponent-attacker"
+  ) {
+    return command;
+  }
+  const internalPlayerId = internalOpponentTargetId(
+    session,
+    command.playerId,
+  );
+  if (!internalPlayerId) {
+    throw new MatchCommandValidationError(
+      "pvp_target_unavailable",
+      "指定した相手選手は現在ターゲットにできません",
+    );
+  }
+  return {
+    ...command,
+    playerId: internalPlayerId,
+  };
 }
 
 function automaticCoachForSession(
@@ -151,6 +254,7 @@ export function buildPvpPublicSegment(
     },
     challengerSelection: session.match.homeSelection,
     challengerTactics: runtime.homeTactics,
+    opponentTargets: publicOpponentTargets(session),
     timeoutAvailable:
       pendingDecisionReason === "opponent-run" &&
       !runtime.timeoutUsedSchoolIds.includes(session.challengerSchoolId),
@@ -228,7 +332,7 @@ export function resumePvpMatchSession(
     state: input.session.simulationState,
     match: input.session.match,
     schoolId: input.session.challengerSchoolId,
-    command: input.command,
+    command: resolvePublicTargetCommand(input.session, input.command),
   });
   const resolved = resumeMatch({
     state: input.session.simulationState,
