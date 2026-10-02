@@ -14,6 +14,7 @@ import { compactGameSnapshot } from "../game/compactGameSnapshot";
 import {
   buildJsonStatePatch,
   buildJsonStatePatchWithCollapsedRoot,
+  coalesceJsonStatePatchObjectRoots,
 } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
@@ -182,13 +183,23 @@ export function createGameActionHandler(
         : applied.state;
     const activeMatchChanged =
       loadedSnapshot.state.activeMatch !== persistedState.activeMatch;
-    const statePatch = activeMatchChanged
+    const rawStatePatch = activeMatchChanged
       ? buildJsonStatePatchWithCollapsedRoot(
           loadedSnapshot.state as unknown as Record<string, unknown>,
           persistedState as unknown as Record<string, unknown>,
           "activeMatch",
         )
       : buildJsonStatePatch(loadedSnapshot.state, persistedState);
+    const statePatch = coalesceJsonStatePatchObjectRoots(
+      persistedState as unknown as Record<string, unknown>,
+      rawStatePatch,
+      [
+        "players",
+        "schools",
+        "playerRelationships",
+        "playerRelationshipBonds",
+      ],
+    );
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
