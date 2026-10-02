@@ -3,7 +3,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand, MatchState } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
-import type { PvpPublicOpponentPlayer } from "../../domain/pvp/pvpContracts";
+import type { PvpPublicOpponentIdentity } from "../../domain/pvp/pvpContracts";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { opportunityRequestByPlayerId } from "../../domain/dynamics/playerOpportunityRequests";
 import {
@@ -27,7 +27,7 @@ interface MatchCommandPanelProps {
   match: MatchState;
   pending: boolean;
   onCommand: (command: MatchCommand) => void | Promise<void>;
-  opponentPublicPlayers?: readonly PvpPublicOpponentPlayer[];
+  opponentPublicPlayers?: readonly PvpPublicOpponentIdentity[];
 }
 
 type NamedPositionPlayer = Pick<
