@@ -1,0 +1,26 @@
+name: Phase52 Final Format Diagnostic
+
+on:
+  push:
+    branches:
+      - test/phase52-final-gate
+    paths:
+      - ".github/workflows/phase52-final-format.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Show Prettier diff
+        run: |
+          npx prettier src/domain/match/simulateMatch.ts tests/e2e/home-match-flow.spec.ts tests/unit/domain/match/phase16MatchCommands.test.ts --write
+          git diff -- src/domain/match/simulateMatch.ts tests/e2e/home-match-flow.spec.ts tests/unit/domain/match/phase16MatchCommands.test.ts
