@@ -1,4 +1,5 @@
 import type { GameState } from "../model/GameState";
+import type { PlayerSeasonStats } from "../model/Player";
 import type { PlayerId } from "../model/identifiers";
 import type { UserMatchPerformanceSnapshot } from "../match/userMatchPerformance";
 import type {
@@ -44,6 +45,33 @@ export interface TournamentResultInput {
 export interface ApplyOfficialMatchPlayerStatsInput extends TournamentResultInput {
   state: GameState;
   performance: UserMatchPerformanceSnapshot;
+}
+
+function emptySeasonStats(academicYear: number): PlayerSeasonStats {
+  return {
+    academicYear,
+    appearances: 0,
+    setsPlayed: 0,
+    points: 0,
+    attackPoints: 0,
+    attackAttempts: 0,
+    blocks: 0,
+    serviceAces: 0,
+    receiveAttempts: 0,
+    perfectReceives: 0,
+    defensePoints: 0,
+    idealSets: 0,
+    successfulDigs: 0,
+  };
+}
+
+function currentSeasonStats(
+  stats: PlayerSeasonStats | undefined,
+  academicYear: number,
+): PlayerSeasonStats {
+  return stats?.academicYear === academicYear
+    ? { ...stats }
+    : emptySeasonStats(academicYear);
 }
 
 function losingResult(
@@ -150,6 +178,10 @@ export function applyOfficialMatchPlayerStats(
     }
     const participated = participantIds.has(playerId);
     const totals = input.performance.players.get(playerId);
+    const seasonStats = currentSeasonStats(
+      player.career.seasonStats,
+      input.state.calendar.academicYear,
+    );
     players[playerId] = {
       ...player,
       career: {
@@ -167,6 +199,28 @@ export function applyOfficialMatchPlayerStats(
               resultId,
             )
           : player.career.bestTournamentResultId,
+        seasonStats: {
+          ...seasonStats,
+          appearances: seasonStats.appearances + (participated ? 1 : 0),
+          setsPlayed:
+            seasonStats.setsPlayed +
+            (participated ? input.performance.completedSetCount : 0),
+          points: seasonStats.points + (totals?.points ?? 0),
+          attackPoints: seasonStats.attackPoints + (totals?.attackPoints ?? 0),
+          attackAttempts:
+            seasonStats.attackAttempts + (totals?.attackAttempts ?? 0),
+          blocks: seasonStats.blocks + (totals?.blockPoints ?? 0),
+          serviceAces: seasonStats.serviceAces + (totals?.serviceAces ?? 0),
+          receiveAttempts:
+            seasonStats.receiveAttempts + (totals?.receiveAttempts ?? 0),
+          perfectReceives:
+            seasonStats.perfectReceives + (totals?.perfectReceives ?? 0),
+          defensePoints:
+            seasonStats.defensePoints + (totals?.defensePoints ?? 0),
+          idealSets: seasonStats.idealSets + (totals?.idealSets ?? 0),
+          successfulDigs:
+            seasonStats.successfulDigs + (totals?.successfulDigs ?? 0),
+        },
       },
     };
   }

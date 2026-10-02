@@ -1,5 +1,18 @@
 import type { Player } from "../../domain/model/Player";
 
+export interface PlayerSeasonPresentation {
+  academicYear: number;
+  appearances: number;
+  setsPlayed: number;
+  points: number;
+  blocks: number;
+  serviceAces: number;
+  attackSuccessRate: number;
+  attackAttempts: number;
+  perfectReceiveRate: number;
+  receiveAttempts: number;
+}
+
 export interface PlayerCareerPresentation {
   appearances: number;
   setsPlayed: number;
@@ -28,6 +41,39 @@ const tournamentResultLabels: Record<string, string> = {
 
 function roundOne(value: number): number {
   return Math.round(value * 10) / 10;
+}
+
+function percentage(numerator: number, denominator: number): number {
+  return denominator <= 0 ? 0 : Math.round((numerator / denominator) * 100);
+}
+
+export function buildPlayerSeasonPresentation(
+  player: Player,
+  academicYear: number,
+): PlayerSeasonPresentation {
+  const stats =
+    player.career.seasonStats?.academicYear === academicYear
+      ? player.career.seasonStats
+      : null;
+
+  return {
+    academicYear,
+    appearances: stats?.appearances ?? 0,
+    setsPlayed: stats?.setsPlayed ?? 0,
+    points: stats?.points ?? 0,
+    blocks: stats?.blocks ?? 0,
+    serviceAces: stats?.serviceAces ?? 0,
+    attackSuccessRate: percentage(
+      stats?.attackPoints ?? 0,
+      stats?.attackAttempts ?? 0,
+    ),
+    attackAttempts: stats?.attackAttempts ?? 0,
+    perfectReceiveRate: percentage(
+      stats?.perfectReceives ?? 0,
+      stats?.receiveAttempts ?? 0,
+    ),
+    receiveAttempts: stats?.receiveAttempts ?? 0,
+  };
 }
 
 export function buildPlayerCareerPresentation(

@@ -288,6 +288,21 @@ describe("recordOfficialTournamentOutcome", () => {
     const first = starters[0]!;
     const second = starters[1]!;
     const third = starters[2]!;
+    state.players[first]!.career.seasonStats = {
+      academicYear: state.calendar.academicYear - 1,
+      appearances: 9,
+      setsPlayed: 20,
+      points: 99,
+      attackPoints: 50,
+      attackAttempts: 90,
+      blocks: 12,
+      serviceAces: 10,
+      receiveAttempts: 30,
+      perfectReceives: 20,
+      defensePoints: 8,
+      idealSets: 4,
+      successfulDigs: 11,
+    };
 
     const next = recordOfficialTournamentOutcome({
       state,
@@ -323,6 +338,31 @@ describe("recordOfficialTournamentOutcome", () => {
     expect(next.players[third]!.career.serviceAces).toBe(
       state.players[third]!.career.serviceAces + 1,
     );
+
+    expect(next.players[first]!.career.seasonStats).toMatchObject({
+      academicYear: state.calendar.academicYear,
+      appearances: 1,
+      setsPlayed: 3,
+      points: 2,
+      blocks: 0,
+      serviceAces: 0,
+    });
+    expect(next.players[second]!.career.seasonStats).toMatchObject({
+      academicYear: state.calendar.academicYear,
+      appearances: 1,
+      setsPlayed: 3,
+      points: 1,
+      blocks: 1,
+      serviceAces: 0,
+    });
+    expect(next.players[third]!.career.seasonStats).toMatchObject({
+      academicYear: state.calendar.academicYear,
+      appearances: 1,
+      setsPlayed: 3,
+      points: 1,
+      blocks: 0,
+      serviceAces: 1,
+    });
   });
 
   it("is exactly idempotent when the same completed match is recorded again", () => {

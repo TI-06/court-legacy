@@ -44,6 +44,42 @@ Do not mix practice-match statistics into official career totals.
 - presentation-only derivation from Player.career
 - O(1) per opened player
 
-## Follow-up direction
+## Phase54-2 Current-season leaderboard
 
-Phase54-2 may add a user-school season leaderboard using a compact bounded accumulator, but only after the display foundation is stable and save impact is reviewed.
+Phase54-2 adds one optional bounded `seasonStats` object to players who actually receive official-match stats.
+
+The accumulator contains only the current academic year's official-match totals:
+
+- appearances / sets
+- points
+- attack points / attempts
+- blocks / service aces
+- receive attempts / perfect receives
+- defense points / ideal sets / successful digs
+
+### Save-size rules
+
+- generated world players do not receive the field
+- only user-school players touched by official-match recording receive it
+- one object per player maximum; no per-match season-stat history
+- a stale academic-year object is treated as zero immediately
+- the first official match of a new academic year replaces the stale object
+- no schema-version bump is required because the field is optional and current saves already preserve passthrough player data
+
+### Team leaderboard UX
+
+Player Hub receives an `今季成績` action instead of a fifth top-level tab.
+
+The action opens a compact BottomSheet containing TOP3 for:
+
+- points
+- blocks
+- service aces
+- attack success rate
+- perfect receive rate
+
+Rate rankings require at least five attempts.
+
+Selecting a ranked player opens that player's 成績 tab. The player detail shows current-season official stats separately from career totals.
+
+Practice and invitational matches do not update this accumulator.

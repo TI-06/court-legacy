@@ -47,7 +47,11 @@ import {
   summarizePlayerAbilities,
 } from "../../domain/selectors/playerPresentation";
 import { ratingToGrade } from "../../domain/selectors/ratingGrades";
-import { buildPlayerCareerPresentation } from "./playerCareerPresentation";
+import {
+  buildPlayerCareerPresentation,
+  buildPlayerSeasonPresentation,
+} from "./playerCareerPresentation";
+import { buildTeamSeasonLeaderboard } from "./playerSeasonLeaderboard";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -303,6 +307,7 @@ export function PlayerHubScreen({
   );
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
+  const [seasonStatsOpen, setSeasonStatsOpen] = useState(false);
   const [coachTargetPlayerIds, setCoachTargetPlayerIds] = useState<PlayerId[]>(
     [],
   );
@@ -323,6 +328,10 @@ export function PlayerHubScreen({
   );
   const coachRecommendations = useMemo(
     () => buildCoachTrainingRecommendations(state),
+    [state],
+  );
+  const seasonLeaderboard = useMemo(
+    () => buildTeamSeasonLeaderboard(state),
     [state],
   );
   const recommendationQuality = coachRecommendationQuality(state);
@@ -839,6 +848,10 @@ export function PlayerHubScreen({
     ) as DevelopmentGoalArea[];
     const positionOptions = ["OH", "MB", "OP", "S", "L"] as const;
     const activeConversion = selectedPlayer.positionConversion;
+    const seasonStats = buildPlayerSeasonPresentation(
+      selectedPlayer,
+      state.calendar.academicYear,
+    );
     const career = buildPlayerCareerPresentation(selectedPlayer);
 
     return (
@@ -1250,6 +1263,53 @@ export function PlayerHubScreen({
             data-testid="player-detail-record"
           >
             <section
+              className="player-season-record"
+              aria-label="今季公式戦成績"
+            >
+              <div className="player-career-record__heading">
+                <div>
+                  <span>THIS SEASON</span>
+                  <h3>{seasonStats.academicYear}年度</h3>
+                </div>
+                <small>公式戦のみ集計</small>
+              </div>
+              <div className="player-season-record__grid">
+                <article>
+                  <span>出場</span>
+                  <strong>{seasonStats.appearances}</strong>
+                </article>
+                <article>
+                  <span>得点</span>
+                  <strong>{seasonStats.points}</strong>
+                </article>
+                <article>
+                  <span>ブロック</span>
+                  <strong>{seasonStats.blocks}</strong>
+                </article>
+                <article>
+                  <span>ACE</span>
+                  <strong>{seasonStats.serviceAces}</strong>
+                </article>
+                <article>
+                  <span>ATT</span>
+                  <strong>
+                    {seasonStats.attackAttempts >= 5
+                      ? `${seasonStats.attackSuccessRate}%`
+                      : "--"}
+                  </strong>
+                </article>
+                <article>
+                  <span>REC</span>
+                  <strong>
+                    {seasonStats.receiveAttempts >= 5
+                      ? `${seasonStats.perfectReceiveRate}%`
+                      : "--"}
+                  </strong>
+                </article>
+              </div>
+            </section>
+
+            <section
               className="player-career-record"
               aria-label="公式戦キャリア成績"
             >
@@ -1480,6 +1540,20 @@ export function PlayerHubScreen({
             {coachRecommendationQualityLabel(recommendationQuality)}
           </small>
         </button>
+        <button
+          aria-label="今季の公式戦成績"
+          className="player-hub__season-stats"
+          onClick={() => setSeasonStatsOpen(true)}
+          type="button"
+        >
+          <span>SEASON</span>
+          <strong>今季成績</strong>
+          <small>
+            {seasonLeaderboard.hasOfficialStats
+              ? `延べ出場 ${seasonLeaderboard.totalAppearances}`
+              : "公式戦前"}
+          </small>
+        </button>
       </section>
 
       <div className="player-roster">
@@ -1681,6 +1755,63 @@ export function PlayerHubScreen({
           );
         })}
       </div>
+
+      <BottomSheet
+        className="player-season-leaderboard-sheet"
+        description="今季の公式戦だけを集計します。選手をタップすると個人成績を開きます。"
+        onClose={() => setSeasonStatsOpen(false)}
+        open={seasonStatsOpen}
+        title={`${seasonLeaderboard.academicYear}年度 今季成績`}
+      >
+        <section
+          aria-label="今季公式戦ランキング"
+          className="player-season-leaderboard"
+        >
+          {!seasonLeaderboard.hasOfficialStats ? (
+            <p className="player-season-leaderboard__empty">
+              今季の公式戦成績はまだありません
+            </p>
+          ) : (
+            seasonLeaderboard.sections.map((section) => (
+              <section key={section.id}>
+                <div className="player-season-leaderboard__heading">
+                  <strong>{section.label}</strong>
+                  {section.id === "attack-rate" ||
+                  section.id === "receive-rate" ? (
+                    <small>5回以上で集計</small>
+                  ) : null}
+                </div>
+                {section.rows.length > 0 ? (
+                  <div className="player-season-leaderboard__rows">
+                    {section.rows.map((row, index) => (
+                      <button
+                        key={row.playerId}
+                        onClick={() => {
+                          setSeasonStatsOpen(false);
+                          setDetailMode("record");
+                          setSelectedPlayerId(row.playerId);
+                        }}
+                        type="button"
+                      >
+                        <b>{index + 1}</b>
+                        <span>
+                          <strong>{row.displayName}</strong>
+                          <small>{row.position}</small>
+                        </span>
+                        <em>{row.valueLabel}</em>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="player-season-leaderboard__no-sample">
+                    集計対象なし
+                  </p>
+                )}
+              </section>
+            ))
+          )}
+        </section>
+      </BottomSheet>
 
       {trainingSaveBar}
       {trainingSheet}
