@@ -198,6 +198,34 @@ describe("PlayerHubScreen", () => {
     expect(screen.getByRole("heading", { name: "選手一覧" })).toBeVisible();
   });
 
+  it("shows official career records in the player detail record tab", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.career.appearances = 6;
+    player.career.setsPlayed = 14;
+    player.career.points = 52;
+    player.career.blocks = 9;
+    player.career.serviceAces = 5;
+    player.career.bestTournamentResultId = "prefectural:champion";
+
+    renderPlayerHub(state);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `選手詳細 ${player.lastName} ${player.firstName}`,
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "成績" }));
+
+    const record = screen.getByRole("region", { name: "公式戦キャリア成績" });
+    expect(within(record).getByText("公式戦キャリア")).toBeVisible();
+    expect(within(record).getByText("県大会 優勝")).toBeVisible();
+    expect(within(record).getByText("52")).toBeVisible();
+    expect(within(record).getByText("8.7")).toBeVisible();
+    expect(within(record).getByText("14")).toBeVisible();
+  });
+
   it("keeps a visible genius badge after a generational recruit enrolls", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
