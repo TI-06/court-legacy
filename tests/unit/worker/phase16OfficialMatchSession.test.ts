@@ -143,4 +143,59 @@ describe("Phase16 official match sessions", () => {
       )?.status,
     ).toBe("completed");
   });
+  it("routes Phase52 opponent targeting through official match sessions", () => {
+    const snapshot = officialWeekSnapshot();
+    let applied = applyGameAction(snapshot, { type: "advance-week" });
+
+    for (let guard = 0; guard < 6; guard += 1) {
+      const active = applied.state.activeMatch;
+      if (!active || active.phase === "match-complete") break;
+      if (active.runtime?.pendingDecisionReason !== "set-break") break;
+      applied = applyGameAction(
+        {
+          ...snapshot,
+          state: applied.state,
+          teamSelection: applied.teamSelection,
+        },
+        { type: "match-command", command: { type: "continue" } },
+      );
+    }
+
+    const active = applied.state.activeMatch;
+    if (
+      !active ||
+      active.phase === "match-complete" ||
+      active.runtime?.pendingDecisionReason === "set-break"
+    ) {
+      throw new Error("targetable official decision fixture missing");
+    }
+    const targetPlayerId = active.awaySelection.rotation[0]!.playerId;
+    const persistentTactics = structuredClone(
+      applied.state.schools[applied.state.userSchoolId]!.tactics,
+    );
+
+    const targeted = applyGameAction(
+      {
+        ...snapshot,
+        state: applied.state,
+        teamSelection: applied.teamSelection,
+      },
+      {
+        type: "match-command",
+        command: { type: "target-serve-receiver", playerId: targetPlayerId },
+      },
+    );
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (entry) =>
+          entry.command.type === "target-serve-receiver" &&
+          entry.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics,
+    ).toEqual(persistentTactics);
+  });
+
 });
