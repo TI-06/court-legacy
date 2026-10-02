@@ -1,5 +1,8 @@
 import { createDemoGame } from "../../../../src/app/createDemoGame";
-import { buildPlayerCareerPresentation } from "../../../../src/features/team/playerCareerPresentation";
+import {
+  buildPlayerCareerPresentation,
+  buildPlayerSeasonPresentation,
+} from "../../../../src/features/team/playerCareerPresentation";
 
 describe("Phase54 player career presentation", () => {
   it("derives compact official career totals without changing player data", () => {
@@ -44,5 +47,47 @@ describe("Phase54 player career presentation", () => {
 
     expect(result.pointsPerAppearance).toBe(0);
     expect(result.bestTournamentResultLabel).toBe("記録なし");
+  });
+
+  it("shows only the requested academic year's season totals", () => {
+    const state = createDemoGame();
+    const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;
+    const player = state.players[playerId]!;
+    player.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 4,
+      setsPlayed: 9,
+      points: 31,
+      attackPoints: 18,
+      attackAttempts: 30,
+      blocks: 5,
+      serviceAces: 3,
+      receiveAttempts: 10,
+      perfectReceives: 8,
+      defensePoints: 2,
+      idealSets: 0,
+      successfulDigs: 4,
+    };
+
+    expect(
+      buildPlayerSeasonPresentation(player, state.calendar.academicYear),
+    ).toMatchObject({
+      appearances: 4,
+      points: 31,
+      blocks: 5,
+      serviceAces: 3,
+      attackSuccessRate: 60,
+      perfectReceiveRate: 80,
+    });
+    expect(
+      buildPlayerSeasonPresentation(player, state.calendar.academicYear + 1),
+    ).toMatchObject({
+      appearances: 0,
+      points: 0,
+      blocks: 0,
+      serviceAces: 0,
+      attackSuccessRate: 0,
+      perfectReceiveRate: 0,
+    });
   });
 });
