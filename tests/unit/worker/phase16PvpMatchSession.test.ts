@@ -129,6 +129,36 @@ describe("Phase 16 private resumable PvP match session", () => {
     expect(started.session.match.randomCursor).toBe(cursorBefore);
   });
 
+  it("maps a public opponent target token to the private defender player only on the server", () => {
+    const started = startFixture();
+    const publicTarget = started.segment.opponentTargets?.find(
+      (target) => target.role === "court",
+    );
+    if (!publicTarget) throw new Error("public PvP target missing");
+
+    const resumed = resumePvpMatchSession({
+      session: started.session,
+      command: {
+        type: "target-serve-receiver",
+        playerId: publicTarget.playerId,
+      },
+    });
+    const command = resumed.session.match.runtime?.commandHistory.find(
+      (record) => record.command.type === "target-serve-receiver",
+    )?.command;
+    if (!command || command.type !== "target-serve-receiver") {
+      throw new Error("translated serve target command missing");
+    }
+
+    const defenderPlayerIds =
+      resumed.session.simulationState.schools[
+        resumed.session.defenderSchoolId
+      ]!.playerIds;
+    expect(defenderPlayerIds).toContain(command.playerId);
+    expect(command.playerId).not.toBe(publicTarget.playerId);
+    expect(JSON.stringify(resumed.segment)).not.toContain(command.playerId);
+  });
+
   it("sanitizes public segments while exposing only challenger-owned command state", () => {
     const started = startFixture();
     const runtime = started.session.match.runtime;
@@ -139,6 +169,12 @@ describe("Phase 16 private resumable PvP match session", () => {
       started.session.match.homeSelection,
     );
     expect(started.segment.challengerTactics).toEqual(runtime.homeTactics);
+    expect(started.segment.opponentTargets?.length).toBeGreaterThanOrEqual(6);
+    expect(
+      started.segment.opponentTargets?.every((target) =>
+        String(target.playerId).startsWith("pvp-public:"),
+      ),
+    ).toBe(true);
     expect(started.segment.timeoutAvailable).toBe(
       runtime.pendingDecisionReason === "opponent-run" &&
         !runtime.timeoutUsedSchoolIds.includes(
