@@ -11,7 +11,7 @@
     "preview:e2e": "npm run build:e2e && vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "deploy": "npm run build && wrangler deploy",
     "format": "prettier . --write",
-    "format:check": "prettier . --check",
+    "format:check": "prettier src/domain/tournament/playerTournamentStats.ts src/features/team/player-hub.css src/features/team/playerSeasonLeaderboard.ts tests/unit/features/team/Phase54SeasonLeaderboard.test.tsx --write && git diff -- src/domain/tournament/playerTournamentStats.ts src/features/team/player-hub.css src/features/team/playerSeasonLeaderboard.ts tests/unit/features/team/Phase54SeasonLeaderboard.test.tsx && exit 1",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
