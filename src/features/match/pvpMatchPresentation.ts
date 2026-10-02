@@ -29,9 +29,7 @@ const EMPTY_SELECTION: TeamSelection = {
   },
 };
 
-function publicOpponentSelection(
-  segment: PvpMatchSegment,
-): TeamSelection {
+function publicOpponentSelection(segment: PvpMatchSegment): TeamSelection {
   const opponentPlayers = segment.opponentPlayers ?? [];
   const court = opponentPlayers
     .filter(
