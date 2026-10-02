@@ -1,5 +1,9 @@
 import type { GameState } from "../../domain/model/GameState";
-import type { Player, PlayerSeasonStats, Position } from "../../domain/model/Player";
+import type {
+  Player,
+  PlayerSeasonStats,
+  Position,
+} from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
 
 export type SeasonLeaderboardCategory =
