@@ -15,20 +15,6 @@ import type {
   PvpMatchSegment,
 } from "../../domain/pvp/pvpContracts";
 
-const EMPTY_SELECTION: TeamSelection = {
-  rotation: [],
-  liberoPlayerId: null,
-  benchPlayerIds: [],
-  servingOrderPlayerIds: [],
-  substitutionPolicy: {
-    starterLockPlayerIds: [],
-    allowFatigueBenching: false,
-    allowInjuryBenching: true,
-    automaticSubstitutions: false,
-    automaticSetChanges: false,
-  },
-};
-
 function publicOpponentSelection(segment: PvpMatchSegment): TeamSelection {
   const opponentPlayers = segment.opponentPlayers ?? [];
   const court = opponentPlayers
