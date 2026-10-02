@@ -9,6 +9,7 @@ Make long-term school history visible without adding another permanent history p
 ## Data source
 
 Use only data already persisted:
+
 - active user-school players from Player.career
 - user-school graduates from GameState.history.graduates
 
@@ -19,10 +20,12 @@ No new schema field is introduced.
 Reuse the existing 今季成績 BottomSheet.
 
 Add a compact segmented control:
+
 - 今季
 - 歴代
 
 歴代 shows top five for:
+
 - 出場試合
 - 通算得点
 - 通算ブロック
