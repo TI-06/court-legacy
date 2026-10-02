@@ -125,9 +125,10 @@ function publicDefenderPlayers(
     (assignment) => assignment.playerId,
   );
   const liberoId = session.match.awaySelection.liberoPlayerId;
-  const ids = liberoId && !rotationIds.includes(liberoId)
-    ? [...rotationIds, liberoId]
-    : rotationIds;
+  const ids =
+    liberoId && !rotationIds.includes(liberoId)
+      ? [...rotationIds, liberoId]
+      : rotationIds;
 
   return ids.flatMap((playerId) => {
     const player = session.simulationState.players[playerId];
