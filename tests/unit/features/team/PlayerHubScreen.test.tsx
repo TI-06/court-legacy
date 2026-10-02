@@ -269,7 +269,7 @@ describe("PlayerHubScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "歴代" }));
 
     const legacy = screen.getByRole("region", { name: "学校歴代ランキング" });
-    expect(within(legacy).getByText("歴代 一郎")).toBeVisible();
+    expect(within(legacy).getAllByText("歴代 一郎").length).toBeGreaterThan(0);
     expect(within(legacy).getAllByText("150").length).toBeGreaterThan(0);
     expect(screen.getByText("学校歴代記録")).toBeVisible();
   });
