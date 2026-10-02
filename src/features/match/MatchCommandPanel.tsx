@@ -30,9 +30,7 @@ interface MatchCommandPanelProps {
   onCommand: (command: MatchCommand) => void | Promise<void>;
 }
 
-function playerName(
-  player: Pick<Player, "firstName" | "lastName">,
-): string {
+function playerName(player: Pick<Player, "firstName" | "lastName">): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
@@ -291,8 +289,7 @@ export function MatchCommandPanel({
   const serveTargetPlayers = publicOpponentTargets ?? localServeTargets;
   const blockTargetPlayers = serveTargetPlayers.filter(
     (player) =>
-      !player.isLibero &&
-      ["OH", "MB", "OP"].includes(player.preferredPosition),
+      !player.isLibero && ["OH", "MB", "OP"].includes(player.preferredPosition),
   );
 
   const rotationPlayerIds = new Set(
