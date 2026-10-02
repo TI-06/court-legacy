@@ -16,6 +16,24 @@ for (const [label, command, arguments_] of commands) {
   });
 
   if (result.status !== 0) {
+    if (label === "Formatting") {
+      spawnSync(
+        "npx",
+        ["prettier", "tests/e2e/phase14-player-hub.spec.ts", "--write"],
+        {
+          encoding: "utf8",
+          shell: process.platform === "win32",
+        },
+      );
+      const diff = spawnSync(
+        "git",
+        ["diff", "--", "tests/e2e/phase14-player-hub.spec.ts"],
+        { encoding: "utf8" },
+      );
+      if (diff.stdout) {
+        console.error(diff.stdout.trim());
+      }
+    }
     console.error(`\n[FAILED] ${label}`);
     if (result.stdout) {
       console.error(result.stdout.trim());
