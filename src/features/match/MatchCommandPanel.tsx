@@ -3,6 +3,7 @@ import type { GameState } from "../../domain/model/GameState";
 import type { MatchCommand, MatchState } from "../../domain/model/Match";
 import type { Player } from "../../domain/model/Player";
 import type { PlayerId } from "../../domain/model/identifiers";
+import type { PvpPublicOpponentPlayer } from "../../domain/pvp/pvpContracts";
 import { getPlayerConditionPresentation } from "../../domain/player/playerCondition";
 import { opportunityRequestByPlayerId } from "../../domain/dynamics/playerOpportunityRequests";
 import {
@@ -26,9 +27,15 @@ interface MatchCommandPanelProps {
   match: MatchState;
   pending: boolean;
   onCommand: (command: MatchCommand) => void | Promise<void>;
+  opponentPublicPlayers?: readonly PvpPublicOpponentPlayer[];
 }
 
-function playerName(player: Player): string {
+type NamedPositionPlayer = Pick<
+  Player,
+  "id" | "firstName" | "lastName" | "preferredPosition"
+>;
+
+function playerName(player: NamedPositionPlayer): string {
   return `${player.lastName} ${player.firstName}`;
 }
 
@@ -150,6 +157,7 @@ export function MatchCommandPanel({
   match,
   pending,
   onCommand,
+  opponentPublicPlayers,
 }: MatchCommandPanelProps) {
   const runtime = match.runtime;
   const reason = runtime?.pendingDecisionReason;
@@ -258,12 +266,20 @@ export function MatchCommandPanel({
     !courtPlayers.some((player) => player.id === liberoPlayer.id)
       ? [...courtPlayers, liberoPlayer]
       : courtPlayers;
-  const opponentCourtPlayers = opponentSelection.rotation
-    .map((assignment) => state.players[assignment.playerId])
-    .filter((player): player is Player => Boolean(player));
-  const opponentLiberoPlayer = opponentSelection.liberoPlayerId
-    ? (state.players[opponentSelection.liberoPlayerId] ?? null)
-    : null;
+  const publicCourtPlayers =
+    opponentPublicPlayers?.filter((player) => player.role === "court") ?? null;
+  const publicLiberoPlayer =
+    opponentPublicPlayers?.find((player) => player.role === "libero") ?? null;
+  const opponentCourtPlayers: NamedPositionPlayer[] =
+    publicCourtPlayers ??
+    opponentSelection.rotation
+      .map((assignment) => state.players[assignment.playerId])
+      .filter((player): player is Player => Boolean(player));
+  const opponentLiberoPlayer: NamedPositionPlayer | null =
+    publicLiberoPlayer ??
+    (opponentSelection.liberoPlayerId
+      ? (state.players[opponentSelection.liberoPlayerId] ?? null)
+      : null);
   const serveTargetPlayers =
     opponentLiberoPlayer &&
     !opponentCourtPlayers.some(
