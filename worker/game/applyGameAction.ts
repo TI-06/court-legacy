@@ -1845,6 +1845,9 @@ function applyAdvanceWeek(
       academicYearTransition: progression.academicYearTransition,
       recoveredPlayerIds: progression.recoveredPlayerIds,
       healedPlayerIds: progression.healedPlayerIds,
+      ...(jointTraining
+        ? { specialProjectActivityResult: jointTraining.result }
+        : {}),
     };
     return { state: nextState, teamSelection: nextSelection, outcome };
   } catch (error) {

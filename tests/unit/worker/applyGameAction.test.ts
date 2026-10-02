@@ -662,6 +662,49 @@ describe("applyGameAction", () => {
     ).toMatchObject({ focus: "attack" });
   });
 
+  it("returns the Phase51 joint-training result after the scheduled week resolves", () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 5000;
+    school.reputationPoints = 700;
+    school.facilities.gym = 50;
+    school.facilities.trainingRoom = 50;
+    school.facilities.dormitory = 50;
+
+    const purchased = applyGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "university-joint-training",
+      option: "defense",
+    });
+    const continued: CloudGameSnapshot = {
+      ...snapshot,
+      revision: snapshot.revision + 1,
+      state: purchased.state,
+      teamSelection: purchased.teamSelection,
+    };
+
+    const advanced = applyGameAction(continued, { type: "advance-week" });
+    const outcome = advanced.outcome as {
+      weekAdvanced: boolean;
+      specialProjectActivityResult?: {
+        focus: string;
+        participantCount: number;
+        totalAbilityGrowth: number;
+      };
+    };
+
+    expect(outcome.weekAdvanced).toBe(true);
+    expect(outcome.specialProjectActivityResult).toMatchObject({
+      focus: "defense",
+      participantCount: expect.any(Number),
+      totalAbilityGrowth: expect.any(Number),
+    });
+    expect(
+      advanced.state.schoolManagement.specialProjects
+        ?.pendingUniversityJointTraining,
+    ).toBeUndefined();
+  });
+
   it("schedules a Phase51 top-team clinic for the selected player", () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;

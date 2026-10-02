@@ -10,6 +10,7 @@ import type {
   TournamentRound,
 } from "../tournament/tournamentTypes";
 import type { TrainingResult } from "../training/resolveWeeklyTraining";
+import type { UniversityJointTrainingResult } from "../school/specialProjectActivities";
 export interface MatchTeamPresentation {
   schoolId: SchoolId;
   displayName: string;
@@ -56,4 +57,5 @@ export interface AdvanceWeekOutcome {
   academicYearTransition: AcademicYearTransitionSummary | null;
   recoveredPlayerIds: PlayerId[];
   healedPlayerIds: PlayerId[];
+  specialProjectActivityResult?: UniversityJointTrainingResult;
 }
