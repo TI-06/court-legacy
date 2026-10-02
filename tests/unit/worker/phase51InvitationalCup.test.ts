@@ -79,6 +79,60 @@ describe("Phase51 invitational cup worker flow", () => {
     );
   });
 
+  it("routes a Phase52 opponent serve target through the invitational command path", () => {
+    const snapshot = createSnapshot();
+    const purchased = applyServerGameAction(snapshot, {
+      type: "school-special-project",
+      projectId: "invitational-cup",
+    });
+    let currentSnapshot = continueSnapshot(snapshot, purchased);
+    let current = applyServerGameAction(currentSnapshot, {
+      type: "advance-week",
+    });
+
+    for (let guard = 0; guard < 8; guard += 1) {
+      const active = current.state.activeMatch;
+      if (!active || active.phase === "match-complete") {
+        throw new Error("invitational completed before targetable decision");
+      }
+      const reason = active.runtime?.pendingDecisionReason;
+      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+        const opponentSelection =
+          active.homeSchoolId === current.state.userSchoolId
+            ? active.awaySelection
+            : active.homeSelection;
+        const targetPlayerId = opponentSelection.rotation[0]!.playerId;
+        const persistentTactics = structuredClone(
+          current.state.schools[current.state.userSchoolId]!.tactics,
+        );
+        currentSnapshot = continueSnapshot(currentSnapshot, current);
+        const targeted = applyServerGameAction(currentSnapshot, {
+          type: "match-command",
+          command: { type: "target-serve-receiver", playerId: targetPlayerId },
+        });
+
+        expect(
+          targeted.state.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+        ).toEqual({
+          type: "target-serve-receiver",
+          playerId: targetPlayerId,
+        });
+        expect(
+          targeted.state.schools[targeted.state.userSchoolId]!.tactics,
+        ).toEqual(persistentTactics);
+        return;
+      }
+
+      currentSnapshot = continueSnapshot(currentSnapshot, current);
+      current = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+    }
+
+    throw new Error("invitational never reached targetable decision");
+  });
+
   it("re-opens the same invitational match after a reload-style advance retry", () => {
     const snapshot = createSnapshot();
     const purchased = applyServerGameAction(snapshot, {
