@@ -20,6 +20,22 @@ export interface PlayerAbilities {
   mental: number;
 }
 
+export interface PlayerSeasonStats {
+  academicYear: number;
+  appearances: number;
+  setsPlayed: number;
+  points: number;
+  attackPoints: number;
+  attackAttempts: number;
+  blocks: number;
+  serviceAces: number;
+  receiveAttempts: number;
+  perfectReceives: number;
+  defensePoints: number;
+  idealSets: number;
+  successfulDigs: number;
+}
+
 export interface PlayerCareer {
   schoolId: SchoolId;
   enrolledYear: number;
@@ -31,6 +47,7 @@ export interface PlayerCareer {
   captainSeasons: number;
   awardIds: string[];
   bestTournamentResultId: string | null;
+  seasonStats?: PlayerSeasonStats;
 }
 
 export interface PlayerInjury {
