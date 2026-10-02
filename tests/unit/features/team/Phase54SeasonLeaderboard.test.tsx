@@ -4,7 +4,9 @@ import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
 describe("Phase54 season leaderboard UI", () => {
-  it("opens a compact team leaderboard and drills into the selected player's record", () => {
+  it(
+    "opens a compact team leaderboard and drills into the selected player's record",
+    () => {
     const state = createDemoGame();
     const ids = state.schools[state.userSchoolId]!.playerIds;
     const first = state.players[ids[0]!]!;
@@ -51,7 +53,9 @@ describe("Phase54 season leaderboard UI", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "今季の公式戦成績" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "今季の公式戦成績" }),
+    );
 
     const dialog = screen.getByRole("dialog", {
       name: `${state.calendar.academicYear}年度 今季成績`,
@@ -90,7 +94,8 @@ describe("Phase54 season leaderboard UI", () => {
     expect(within(seasonRecord).getByText("24")).toBeVisible();
     expect(within(seasonRecord).getByText("60%")).toBeVisible();
     expect(within(seasonRecord).getByText("63%")).toBeVisible();
-  });
+    },
+  );
 
   it("shows an empty-state before the first official match", () => {
     const state = createDemoGame();
