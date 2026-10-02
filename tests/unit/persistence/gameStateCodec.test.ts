@@ -3,6 +3,7 @@ import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState
 import { applyMatchCommand } from "../../../src/domain/match/applyMatchCommand";
 import { startMatch } from "../../../src/domain/match/simulateMatch";
 import { matchId } from "../../../src/domain/model/identifiers";
+import type { MatchState } from "../../../src/domain/model/Match";
 import { SeededRandom } from "../../../src/domain/random/SeededRandom";
 import { selectPracticeOpponent } from "../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
@@ -33,7 +34,7 @@ describe("game state codec", () => {
       state,
       schoolId: opponent.id,
     });
-    let targetableMatch = null;
+    let targetableMatch: MatchState | null = null;
 
     for (let index = 0; index < 80; index += 1) {
       const started = startMatch({
