@@ -242,6 +242,9 @@ describe("PlayerHubScreen", () => {
       attackAttempts: 40,
       perfectReceives: 12,
       receiveAttempts: 20,
+      defensePoints: 3,
+      idealSets: 0,
+      successfulDigs: 4,
     };
     state.history.graduates.push({
       playerId: "legacy-player" as typeof active.id,
