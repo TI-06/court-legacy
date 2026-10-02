@@ -143,6 +143,7 @@ describe("Phase16 official match sessions", () => {
       )?.status,
     ).toBe("completed");
   });
+
   it("routes Phase52 opponent targeting through official match sessions", () => {
     const snapshot = officialWeekSnapshot();
     let applied = applyGameAction(snapshot, { type: "advance-week" });
@@ -197,5 +198,4 @@ describe("Phase16 official match sessions", () => {
       targeted.state.schools[targeted.state.userSchoolId]!.tactics,
     ).toEqual(persistentTactics);
   });
-
 });
