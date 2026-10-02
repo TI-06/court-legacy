@@ -1,5 +1,11 @@
 import { createDemoGame } from "../../../src/app/createDemoGame";
 import { CURRENT_GAME_SCHEMA_VERSION } from "../../../src/domain/model/GameState";
+import { applyMatchCommand } from "../../../src/domain/match/applyMatchCommand";
+import { startMatch } from "../../../src/domain/match/simulateMatch";
+import { matchId } from "../../../src/domain/model/identifiers";
+import { SeededRandom } from "../../../src/domain/random/SeededRandom";
+import { selectPracticeOpponent } from "../../../src/domain/selectors/matchSelectors";
+import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import type { GameDate } from "../../../src/domain/model/identifiers";
 import {
   decodeGameState,
@@ -14,6 +20,67 @@ describe("game state codec", () => {
 
     expect(decoded).toEqual(state);
     expect(decoded).not.toBe(state);
+  });
+
+  it("round-trips active Phase52 opponent targeting with its remaining rallies", () => {
+    const state = createDemoGame();
+    const opponent = selectPracticeOpponent(state);
+    const homeSelection = autoSelectTeam({
+      state,
+      schoolId: state.userSchoolId,
+    });
+    const awaySelection = autoSelectTeam({
+      state,
+      schoolId: opponent.id,
+    });
+    let targetableMatch = null;
+
+    for (let index = 0; index < 80; index += 1) {
+      const started = startMatch({
+        state,
+        id: matchId(`phase52-codec-target-${index}`),
+        homeSchoolId: state.userSchoolId,
+        awaySchoolId: opponent.id,
+        homeSelection,
+        awaySelection,
+        bestOfSets: 3,
+        random: new SeededRandom(`phase52-codec-target-${index}`),
+        controlledSchoolId: state.userSchoolId,
+      });
+      if (
+        started.match.phase === "coach-decision" &&
+        started.match.runtime?.pendingDecisionReason !== "set-break"
+      ) {
+        targetableMatch = started.match;
+        break;
+      }
+    }
+    if (!targetableMatch) throw new Error("targetable codec fixture missing");
+
+    const targetPlayerId = targetableMatch.awaySelection.rotation[0]!.playerId;
+    state.activeMatch = applyMatchCommand({
+      state,
+      match: targetableMatch,
+      schoolId: state.userSchoolId,
+      command: {
+        type: "target-serve-receiver",
+        playerId: targetPlayerId,
+      },
+    });
+
+    const decoded = decodeGameState(encodeGameState(state));
+
+    expect(decoded.activeMatch?.runtime?.serveTarget).toEqual({
+      schoolId: state.userSchoolId,
+      playerId: targetPlayerId,
+      ralliesRemaining: 5,
+    });
+    expect(
+      decoded.activeMatch?.runtime?.commandHistory.at(-1)?.command,
+    ).toEqual({
+      type: "target-serve-receiver",
+      playerId: targetPlayerId,
+    });
   });
 
   it("round-trips a training-result notification", () => {
