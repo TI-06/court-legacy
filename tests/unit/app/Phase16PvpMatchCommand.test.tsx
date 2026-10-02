@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -6,6 +12,7 @@ import type {
   PvpChallengeInProgressResponse,
   PvpOpponentSummary,
 } from "../../../src/domain/pvp/pvpContracts";
+import { playerId } from "../../../src/domain/model/identifiers";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
 import {
   ApiError,
@@ -90,6 +97,22 @@ function inProgress(
         attack: "balanced",
         block: "read",
       },
+      opponentTargets: [
+        {
+          playerId: playerId("pvp-public:r1"),
+          firstName: "太郎",
+          lastName: "白波",
+          preferredPosition: "OH",
+          role: "court",
+        },
+        {
+          playerId: playerId("pvp-public:libero"),
+          firstName: "守",
+          lastName: "白波",
+          preferredPosition: "L",
+          role: "libero",
+        },
+      ],
       timeoutAvailable: true,
       sets: [],
       pendingDecisionReason: "opponent-run",
@@ -199,6 +222,41 @@ describe("Phase16 GameApp PvP match commands", () => {
       operationId: "phase16-pvp-operation",
       commandId: expect.any(String),
       command: { type: "continue" },
+    });
+  });
+
+  it("sends a Phase52 opponent target command using only the public PvP target id", async () => {
+    const snapshot = createSnapshot();
+    const challengePvpTeam = vi.fn<
+      NonNullable<GameApiClient["challengePvpTeam"]>
+    >(async () => inProgress(snapshot));
+    const commandPvpChallenge = vi.fn<
+      NonNullable<GameApiClient["commandPvpChallenge"]>
+    >(async () => inProgress(snapshot, 2));
+    const api = baseApi(
+      snapshot,
+      challengePvpTeam,
+      commandPvpChallenge,
+      vi.fn(async () => inProgress(snapshot)),
+    );
+
+    await openPreparedPvpMatch(api, snapshot);
+    fireEvent.click(screen.getByRole("button", { name: "相手を狙う" }));
+    const dialog = screen.getByRole("dialog", { name: "相手を狙う" });
+    fireEvent.click(
+      within(dialog).getByRole("button", {
+        name: "サーブで狙う 白波 太郎",
+      }),
+    );
+
+    await waitFor(() => expect(commandPvpChallenge).toHaveBeenCalledTimes(1));
+    expect(commandPvpChallenge.mock.calls[0]![1]).toMatchObject({
+      operationId: "phase16-pvp-operation",
+      commandId: expect.any(String),
+      command: {
+        type: "target-serve-receiver",
+        playerId: "pvp-public:r1",
+      },
     });
   });
 
