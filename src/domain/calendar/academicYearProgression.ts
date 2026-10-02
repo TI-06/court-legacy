@@ -19,6 +19,11 @@ import {
   resolveSeasonReputation,
 } from "../school/reputation";
 import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
+import {
+  grantSeasonAwards,
+  selectSeasonAwards,
+  type SeasonAwardSelection,
+} from "../season/playerSeasonAwards";
 import { grantCompletedSeasonGoalRewards } from "../season/seasonGoalRewards";
 import { createOfficialSeason } from "../tournament/createOfficialSeason";
 import { advanceOfficialTournamentsThroughWeek } from "../tournament/progressOfficialTournaments";
@@ -37,6 +42,7 @@ export interface AcademicYearTransitionSummary {
   captainPlayerIdsBySchool: Record<SchoolId, PlayerId | null>;
   generationalTalentPlayerId: PlayerId | null;
   generationalTalentSchoolId: SchoolId | null;
+  seasonAwards: SeasonAwardSelection;
 }
 
 export interface AdvanceGameWeekResult extends WeekProgressionResult {
@@ -295,7 +301,9 @@ export function advanceAcademicYear(
   const generationalTalentDue =
     nextAcademicYear >= state.world.nextGenerationalTalentYear;
   const maximumBaseRosterSize = generationalTalentDue ? 15 : 16;
-  const players = { ...state.players };
+  const completedSeasonAwards = selectSeasonAwards(state);
+  const awardedState = grantSeasonAwards(state, completedSeasonAwards);
+  const players = { ...awardedState.players };
   let schools = Object.fromEntries(
     Object.values(state.schools).map((school) => {
       const resolved = resolveAnnualSchoolReputation(school);
@@ -566,6 +574,7 @@ export function advanceAcademicYear(
       captainPlayerIdsBySchool,
       generationalTalentPlayerId,
       generationalTalentSchoolId,
+      seasonAwards: completedSeasonAwards,
     },
   };
 }

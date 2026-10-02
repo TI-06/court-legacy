@@ -196,3 +196,45 @@ export function selectSeasonAwards(state: GameState): SeasonAwardSelection {
     winners,
   };
 }
+
+export function seasonAwardId(
+  academicYear: number,
+  category: SeasonAwardCategory,
+): string {
+  return `season:${academicYear}:${category}`;
+}
+
+export function grantSeasonAwards(
+  state: GameState,
+  selection: SeasonAwardSelection = selectSeasonAwards(state),
+): GameState {
+  if (selection.winners.length === 0) {
+    return state;
+  }
+
+  const players = { ...state.players };
+  let changed = false;
+
+  for (const award of selection.winners) {
+    const player = players[award.playerId];
+    if (!player || player.career.schoolId !== state.userSchoolId) {
+      continue;
+    }
+
+    const awardId = seasonAwardId(selection.academicYear, award.category);
+    if (player.career.awardIds.includes(awardId)) {
+      continue;
+    }
+
+    players[player.id] = {
+      ...player,
+      career: {
+        ...player.career,
+        awardIds: [...player.career.awardIds, awardId],
+      },
+    };
+    changed = true;
+  }
+
+  return changed ? { ...state, players } : state;
+}

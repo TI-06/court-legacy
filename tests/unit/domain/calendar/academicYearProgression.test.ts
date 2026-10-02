@@ -153,14 +153,21 @@ describe("academic year progression", () => {
     );
     expect(result.state.players[playerId]!.career.seasonStats).toBeUndefined();
     expect(
-      result.state.history.graduates.find(
-        (graduate) => graduate.playerId === playerId,
+      result.academicYearTransition?.seasonAwards.winners.some(
+        (award) => award.playerId === playerId && award.category === "mvp",
       ),
-    ).toMatchObject({
+    ).toBe(true);
+    const graduate = result.state.history.graduates.find(
+      (candidate) => candidate.playerId === playerId,
+    );
+    expect(graduate).toMatchObject({
       points: state.players[playerId]!.career.points,
       blocks: state.players[playerId]!.career.blocks,
       serviceAces: state.players[playerId]!.career.serviceAces,
     });
+    expect(graduate?.awardIds).toContain(
+      `season:${state.calendar.academicYear}:mvp`,
+    );
   });
 
   it("grants the next annual school budget exactly once", () => {
