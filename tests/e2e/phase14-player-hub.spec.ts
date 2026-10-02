@@ -136,7 +136,8 @@ for (const width of widths) {
       statsLayout.sheetClient + 1,
     );
 
-    await page.getByRole("dialog", { name: "学校歴代記録" })
+    await page
+      .getByRole("dialog", { name: "学校歴代記録" })
       .getByRole("button", { name: "閉じる" })
       .click();
 
