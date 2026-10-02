@@ -113,12 +113,13 @@ describe("year transition dialog", () => {
 
     const awards = screen.getByRole("region", { name: "年間表彰" });
     expect(within(awards).getByText("SEASON AWARDS")).toBeVisible();
+    const mvpCard = within(awards).getByText("MVP").closest("article");
+    expect(mvpCard).not.toBeNull();
     expect(
-      within(awards).getByText(
+      within(mvpCard!).getByText(
         `${awardPlayer.lastName} ${awardPlayer.firstName}`,
       ),
     ).toBeVisible();
-    expect(within(awards).getByText("MVP")).toBeVisible();
 
     const ambition = screen.getByRole("region", {
       name: "新シーズン目標方針",
