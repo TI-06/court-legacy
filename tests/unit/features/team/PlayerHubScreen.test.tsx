@@ -261,9 +261,7 @@ describe("PlayerHubScreen", () => {
 
     renderPlayerHub(state);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "今季の公式戦成績" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "今季の公式戦成績" }));
     expect(
       screen.getByRole("region", { name: "今季公式戦ランキング" }),
     ).toBeVisible();
