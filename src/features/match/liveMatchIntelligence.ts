@@ -188,11 +188,7 @@ export function buildLiveMatchIntelligence({
   userSchoolId,
   visibleEventSequence,
 }: BuildLiveMatchIntelligenceArgs): LiveMatchIntelligence {
-  const summary = buildMatchStatSummary(
-    state,
-    match,
-    visibleEventSequence,
-  );
+  const summary = buildMatchStatSummary(state, match, visibleEventSequence);
   const userIsHome = match.homeSchoolId === userSchoolId;
   const userTeam = userIsHome ? summary.home : summary.away;
   const opponentTeam = userIsHome ? summary.away : summary.home;
@@ -205,11 +201,7 @@ export function buildLiveMatchIntelligence({
   const opponentPlayers = summary.players.filter(
     (player) => player.schoolId === opponentSchoolId,
   );
-  const pointFlow = buildPointFlow(
-    match,
-    userSchoolId,
-    visibleEventSequence,
-  );
+  const pointFlow = buildPointFlow(match, userSchoolId, visibleEventSequence);
 
   const insights: LiveMatchInsight[] = [];
 
@@ -240,9 +232,7 @@ export function buildLiveMatchIntelligence({
     }
     const kind = first.kind.localeCompare(second.kind);
     if (kind !== 0) return kind;
-    return (first.targetPlayerId ?? "").localeCompare(
-      second.targetPlayerId ?? "",
-    );
+    return (first.targetPlayerId ?? "").localeCompare(second.targetPlayerId ?? "");
   });
 
   return {
