@@ -7,7 +7,10 @@ import type { School } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
-import { MatchCommandPanel } from "./MatchCommandPanel";
+import {
+  MatchCommandPanel,
+  type MatchOpponentTargetPlayer,
+} from "./MatchCommandPanel";
 import {
   buildLiveCoachEffectRows,
   buildMatchCommandImpactRows,
@@ -39,6 +42,7 @@ interface MatchScreenProps {
   trainingPlanPending?: boolean;
   allowResultSkip?: boolean;
   schoolDisplayNames?: Partial<Record<School["id"], string>>;
+  opponentTargetPlayers?: readonly MatchOpponentTargetPlayer[];
 }
 
 type PlaybackSpeed = 1 | 2 | 4;
@@ -93,6 +97,7 @@ function MatchScreenContent({
   trainingPlanPending = false,
   allowResultSkip = false,
   schoolDisplayNames,
+  opponentTargetPlayers,
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(!reducedMotion);
@@ -507,6 +512,7 @@ function MatchScreenContent({
             <MatchCommandPanel
               match={result.match}
               onCommand={submitCoachCommand}
+              opponentTargetPlayers={opponentTargetPlayers}
               pending={commandPending}
               state={state}
             />
