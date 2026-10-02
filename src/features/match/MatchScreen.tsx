@@ -9,6 +9,7 @@ import type { PvpPublicOpponentTarget } from "../../domain/pvp/pvpContracts";
 import { validateTeamSelection } from "../../domain/team/validateTeamSelection";
 import { BottomSheet } from "../../ui/BottomSheet";
 import { MatchCommandPanel } from "./MatchCommandPanel";
+import { buildLiveMatchIntelligence } from "./liveMatchIntelligence";
 import {
   buildLiveCoachEffectRows,
   buildMatchCommandImpactRows,
@@ -208,6 +209,25 @@ function MatchScreenContent({
     );
   }, [presentation, result, revealedEventIndex, schoolDisplayNames, state]);
 
+  const visibleEventSequence =
+    result?.match.eventLog[revealedEventIndex]?.sequence ?? 0;
+  const liveMatchIntelligence = useMemo(() => {
+    if (
+      !result ||
+      !decisionReady ||
+      result.match.runtime?.pendingDecisionReason === "set-break"
+    ) {
+      return null;
+    }
+
+    return buildLiveMatchIntelligence({
+      state,
+      match: result.match,
+      userSchoolId: state.userSchoolId,
+      visibleEventSequence,
+    });
+  }, [decisionReady, result, state, visibleEventSequence]);
+
   if (!result) {
     const strengthDifference = homeStrength - awayStrength;
     const comparisonLabel =
@@ -331,7 +351,6 @@ function MatchScreenContent({
       ? result.match.runtime.homeTactics
       : result.match.runtime.awayTactics
     : null;
-  const visibleEventSequence = currentRawEvent?.sequence ?? 0;
   const liveCoachEffects = matchComplete
     ? []
     : buildLiveCoachEffectRows(
@@ -508,6 +527,7 @@ function MatchScreenContent({
 
           {decisionReady && onCommand ? (
             <MatchCommandPanel
+              benchInsights={liveMatchIntelligence?.insights}
               match={result.match}
               onCommand={submitCoachCommand}
               opponentTargets={opponentTargets}
