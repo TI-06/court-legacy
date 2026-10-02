@@ -95,6 +95,60 @@ describe("Phase16 official match sessions", () => {
     ).not.toBe("completed");
   });
 
+  it("routes a Phase52 serve target through an official match session", () => {
+    const snapshot = officialWeekSnapshot();
+    let applied = applyGameAction(snapshot, { type: "advance-week" });
+
+    for (let guard = 0; guard < 4; guard += 1) {
+      const active = applied.state.activeMatch;
+      if (!active) throw new Error("official active match missing");
+      if (active.runtime?.pendingDecisionReason !== "set-break") break;
+      applied = applyGameAction(
+        {
+          ...snapshot,
+          state: applied.state,
+          teamSelection: applied.teamSelection,
+        },
+        { type: "match-command", command: { type: "continue" } },
+      );
+    }
+
+    const active = applied.state.activeMatch;
+    if (!active?.runtime) throw new Error("official runtime missing");
+    const opponentSelection =
+      active.homeSchoolId === applied.state.userSchoolId
+        ? active.awaySelection
+        : active.homeSelection;
+    const targetPlayerId = opponentSelection.rotation[0]!.playerId;
+    const persistentTarget =
+      applied.state.schools[applied.state.userSchoolId]!.tactics
+        .serveTargetPlayerId;
+
+    const targeted = applyGameAction(
+      {
+        ...snapshot,
+        state: applied.state,
+        teamSelection: applied.teamSelection,
+      },
+      {
+        type: "match-command",
+        command: { type: "target-serve-receiver", playerId: targetPlayerId },
+      },
+    );
+
+    expect(
+      targeted.state.activeMatch?.runtime?.commandHistory.some(
+        (record) =>
+          record.command.type === "target-serve-receiver" &&
+          record.command.playerId === targetPlayerId,
+      ),
+    ).toBe(true);
+    expect(
+      targeted.state.schools[targeted.state.userSchoolId]!.tactics
+        .serveTargetPlayerId,
+    ).toBe(persistentTarget);
+  });
+
   it("resumes the same official match through commands and finalizes tournament history exactly once", () => {
     const snapshot = officialWeekSnapshot();
     const due = findDueUserOfficialMatch(snapshot.state)!;
