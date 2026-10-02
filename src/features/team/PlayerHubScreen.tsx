@@ -1376,10 +1376,7 @@ export function PlayerHubScreen({
               </div>
 
               {career.awards.length > 0 ? (
-                <section
-                  className="player-career-awards"
-                  aria-label="受賞歴"
-                >
+                <section className="player-career-awards" aria-label="受賞歴">
                   <div className="player-career-awards__heading">
                     <strong>受賞歴</strong>
                     <span>{career.awards.length}件</span>
