@@ -141,6 +141,19 @@ export function getDefenseDirectionAdjustment(
   return defenseBias === attackDirection ? 3 : -3;
 }
 
+export function getTemporaryBlockTargetPowerBonus(input: {
+  blockTarget: MatchRuntimeState["blockTarget"];
+  blockingSchoolId: SchoolId;
+  attackerPlayerId: PlayerId;
+}): number {
+  return input.blockTarget?.schoolId === input.blockingSchoolId &&
+    input.blockTarget.playerId === input.attackerPlayerId &&
+    input.blockTarget.ralliesRemaining > 0
+    ? 6
+    : 0;
+}
+
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.max(minimum, Math.min(maximum, value));
 }
@@ -784,12 +797,11 @@ function simulateRally(
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
-  const blockTargetBonus =
-    abilityContext?.blockTarget?.schoolId === serving.school.id &&
-    abilityContext.blockTarget.playerId === attacker.id &&
-    abilityContext.blockTarget.ralliesRemaining > 0
-      ? 6
-      : 0;
+  const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
+    blockTarget: abilityContext?.blockTarget,
+    blockingSchoolId: serving.school.id,
+    attackerPlayerId: attacker.id,
+  });
   const blockPower =
     effectiveAbility(blocker, "block", abilityContext) * 0.62 +
     effectiveAbility(blocker, "jump", abilityContext) * 0.24 +
