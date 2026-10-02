@@ -1,0 +1,28 @@
+name: Phase52 Focused Test Diagnostic
+
+on:
+  push:
+    branches:
+      - feat/phase52-command-path-review
+    paths:
+      - ".github/workflows/phase52-focused-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run focused failed tests without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run             tests/unit/worker/phase16PracticeMatchSession.test.ts             tests/unit/worker/phase16OfficialMatchSession.test.ts             tests/unit/worker/phase51InvitationalCup.test.ts             tests/unit/worker/phase16PvpMatchSession.test.ts             tests/unit/worker/phase16PvpCommandResumeRoutes.test.ts             tests/unit/worker/phase16PvpChallengeRoutes.test.ts             tests/unit/app/Phase16PvpMatchCommand.test.tsx             tests/unit/services/GameApiClient.pvp.test.ts             --reporter=verbose
+          exit 0
