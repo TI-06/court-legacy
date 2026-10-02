@@ -43,6 +43,7 @@ interface RouteMetric {
   fullStateFallbacks: number;
   maximumPatchOperations: number;
   maximumPatchBytes: number;
+  maximumOperationsByRoot: Record<string, number>;
 }
 
 function emptyMetric(): RouteMetric {
@@ -51,6 +52,7 @@ function emptyMetric(): RouteMetric {
     fullStateFallbacks: 0,
     maximumPatchOperations: 0,
     maximumPatchBytes: 0,
+    maximumOperationsByRoot: {},
   };
 }
 
@@ -107,6 +109,20 @@ describe("Save Stability V5 endurance", () => {
         patch.length,
       );
       metric.maximumPatchBytes = Math.max(metric.maximumPatchBytes, patchBytes);
+      const operationCountByRoot = new Map<string, number>();
+      for (const operation of patch) {
+        const root = operation.path[0] ?? "<root>";
+        operationCountByRoot.set(
+          root,
+          (operationCountByRoot.get(root) ?? 0) + 1,
+        );
+      }
+      for (const [root, count] of operationCountByRoot) {
+        metric.maximumOperationsByRoot[root] = Math.max(
+          metric.maximumOperationsByRoot[root] ?? 0,
+          count,
+        );
+      }
 
       const nextSnapshot: CloudGameSnapshot = {
         ...prepared,
