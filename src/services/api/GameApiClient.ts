@@ -278,9 +278,7 @@ function isPvpOpponentTarget(value: unknown): boolean {
     typeof value.playerId === "string" &&
     typeof value.firstName === "string" &&
     typeof value.lastName === "string" &&
-    ["OH", "MB", "OP", "S", "L"].includes(
-      String(value.preferredPosition),
-    ) &&
+    ["OH", "MB", "OP", "S", "L"].includes(String(value.preferredPosition)) &&
     (value.role === "court" || value.role === "libero")
   );
 }
