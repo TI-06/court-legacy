@@ -49,8 +49,11 @@ describe("Phase55 annual awards long-run", () => {
       const result = advanceGameWeek(state, gameData);
       const awards = result.academicYearTransition?.seasonAwards.winners ?? [];
 
-      expect(awards.length).toBeGreaterThan(0);
-      expect(awards.length).toBeLessThanOrEqual(6);
+      if (awards.length === 0 || awards.length > 6) {
+        throw new Error(
+          `Phase55 award count out of bounds: calendarYear=${calendarYear} academicYear=${state.calendar.academicYear} count=${awards.length}`,
+        );
+      }
       awardedAcrossYears += awards.length;
       state = result.state;
     }
@@ -59,15 +62,31 @@ describe("Phase55 annual awards long-run", () => {
       player.career.awardIds.filter((awardId) => awardId.startsWith("season:")),
     );
 
-    expect(seasonAwardIds).toHaveLength(awardedAcrossYears);
-    expect(seasonAwardIds.length).toBeLessThanOrEqual(30 * 6);
+    if (seasonAwardIds.length !== awardedAcrossYears) {
+      throw new Error(
+        `Phase55 award persistence mismatch: persisted=${seasonAwardIds.length} awarded=${awardedAcrossYears}`,
+      );
+    }
+    if (seasonAwardIds.length > 30 * 6) {
+      throw new Error(
+        `Phase55 total award bound exceeded: persisted=${seasonAwardIds.length}`,
+      );
+    }
 
     for (const player of Object.values(state.players)) {
       const awards = player.career.awardIds.filter((awardId) =>
         awardId.startsWith("season:"),
       );
-      expect(new Set(awards).size).toBe(awards.length);
-      expect(awards.length).toBeLessThanOrEqual(18);
+      if (new Set(awards).size !== awards.length) {
+        throw new Error(
+          `Phase55 duplicate award ids: playerId=${player.id} awards=${awards.join(",")}`,
+        );
+      }
+      if (awards.length > 18) {
+        throw new Error(
+          `Phase55 player award bound exceeded: playerId=${player.id} count=${awards.length}`,
+        );
+      }
     }
   });
 });
