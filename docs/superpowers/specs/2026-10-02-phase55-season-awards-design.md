@@ -30,6 +30,7 @@ Awards are based only on the completed academic year's official-match `PlayerSea
 ### MVP
 
 Weighted all-around score from:
+
 - total points
 - attack efficiency with sample gate
 - blocks
@@ -61,12 +62,14 @@ No new top-level history array is required.
 ## UX direction
 
 At academic-year transition:
+
 - show a compact 年間表彰 result sheet
 - MVP first
 - specialist awards below
 - allow tapping active returning players into player detail
 
 Player career record:
+
 - show award count initially
 - later expose named awards in a compact list
 
