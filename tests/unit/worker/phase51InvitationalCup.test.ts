@@ -96,7 +96,11 @@ describe("Phase51 invitational cup worker flow", () => {
         throw new Error("invitational completed before targetable decision");
       }
       const reason = active.runtime?.pendingDecisionReason;
-      if (active.phase === "coach-decision" && reason && reason !== "set-break") {
+      if (
+        active.phase === "coach-decision" &&
+        reason &&
+        reason !== "set-break"
+      ) {
         const opponentSelection =
           active.homeSchoolId === current.state.userSchoolId
             ? active.awaySelection
