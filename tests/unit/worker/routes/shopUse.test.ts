@@ -5,6 +5,7 @@ import type {
   CloudGameSnapshot,
   GameStore,
 } from "../../../../worker/data/GameStore";
+import { buildJsonStateDelta } from "../../../../worker/data/stateDelta";
 import {
   ShopStoreMutationError,
   type ShopMutationResult,
@@ -68,7 +69,7 @@ function createShopStore(): ShopStore {
       operationType: "use",
       requestFingerprint: input.requestFingerprint,
       revision: 9,
-      academicYearIndex: input.state.yearIndex,
+      academicYearIndex: 1,
       itemId: input.itemId,
       quantityOwned: 0,
       purchasedCount: 1,
@@ -77,7 +78,7 @@ function createShopStore(): ShopStore {
         operationId: input.operationId,
         operationType: "use",
         revision: 9,
-        academicYearIndex: input.state.yearIndex,
+        academicYearIndex: 1,
         itemId: input.itemId,
         quantityOwned: 0,
         purchasedCount: 1,
@@ -247,7 +248,10 @@ describe("shop use route", () => {
       requestFingerprint: fingerprint(body),
       expectedRevision: 8,
       itemId: "fatigue-recovery",
-      state: resolved.state,
+      stateDelta: buildJsonStateDelta(
+        snapshot.state as unknown as Record<string, unknown>,
+        resolved.state as unknown as Record<string, unknown>,
+      ),
       teamSelection: resolved.teamSelection,
       targetType: "player",
       targetId: body.target.playerId,
