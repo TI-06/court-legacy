@@ -60,6 +60,21 @@ const savedLineupSlotSchema = z.union([
   z.literal(3),
 ]);
 
+const teamIdentitySchema = z
+  .object({
+    style: z.enum([
+      "quick-combination",
+      "serve-block",
+      "defense-rally",
+      "ace-centered",
+      "balanced",
+    ]),
+    mastery: z.number().int().min(0).max(100),
+    weeksInStyle: z.number().int().nonnegative(),
+    changeCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
 const teamPlanningSchema = z
   .object({
     developmentPriorityPlayerIds: z.array(playerIdSchema).max(3),
@@ -85,6 +100,7 @@ const teamPlanningSchema = z
           .strict(),
       )
       .max(3),
+    teamIdentity: teamIdentitySchema.optional(),
   })
   .strict()
   .superRefine((planning, context) => {
