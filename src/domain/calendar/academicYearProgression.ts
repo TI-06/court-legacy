@@ -19,6 +19,7 @@ import {
   resolveSeasonReputation,
 } from "../school/reputation";
 import { createSeasonGoals, evaluateSeasonGoals } from "../season/seasonGoals";
+import { progressTeamIdentityWeek } from "../team/teamIdentity";
 import {
   grantSeasonAwards,
   selectSeasonAwards,
@@ -605,9 +606,8 @@ export function advanceGameWeek(
     restingPlayerIds: options.restingPlayerIds,
   });
   const conversionProgress = progressPositionConversions(weeklyBase.state);
-  const weeklyState = advanceOfficialTournamentsThroughWeek(
-    conversionProgress.state,
-  );
+  const identityProgress = progressTeamIdentityWeek(conversionProgress.state);
+  const weeklyState = advanceOfficialTournamentsThroughWeek(identityProgress);
   if (!crossesAcademicYear(state.date, weeklyState.date)) {
     return {
       ...weeklyBase,
