@@ -13,12 +13,7 @@ export type TeamIdentityMasteryTier =
   "forming" | "established" | "mature" | "signature";
 
 export type TeamIdentityExecutionPhase =
-  | "serve"
-  | "receive"
-  | "set"
-  | "attack"
-  | "block"
-  | "dig";
+  "serve" | "receive" | "set" | "attack" | "block" | "dig";
 
 export const TEAM_IDENTITY_DEFINITIONS: readonly TeamIdentityDefinition[] = [
   {
@@ -127,7 +122,6 @@ export function calculateTeamIdentityAlignment(
       );
   }
 }
-
 
 const TEAM_IDENTITY_PHASE_MAX: Record<
   TeamIdentityStyle,
