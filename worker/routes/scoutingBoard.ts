@@ -12,6 +12,7 @@ import type {
   ScoutingStore,
 } from "../data/ScoutingStore";
 import type { ShopStore } from "../data/ShopStore";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -259,6 +260,10 @@ export function createScoutingBoardHandler(
           expectedRevision: snapshot.revision,
           previousState: snapshot.state,
           state: searchedState,
+          stateDelta: buildJsonStateDelta(
+            snapshot.state as unknown as Record<string, unknown>,
+            searchedState as unknown as Record<string, unknown>,
+          ),
           teamSelection: snapshot.teamSelection,
           response,
         });
