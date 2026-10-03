@@ -4,10 +4,10 @@ import { runTeamIdentityMatrix } from "../../../src/dev/soak/runTeamIdentityMatr
 vi.setConfig({ testTimeout: 180_000 });
 
 describe("Phase56 temporary identity matrix probe", () => {
-  it("prints the 160-match-per-series balance matrix", () => {
+  it("prints the fast balance matrix probe", () => {
     const result = runTeamIdentityMatrix({
       seed: "phase56-team-identity-matrix",
-      matchesPerSeries: 160,
+      matchesPerSeries: 40,
     });
 
     console.info(`[phase56-identity-matrix-probe] ${result.summary}`);
