@@ -4,6 +4,7 @@ import {
   MAX_RIVAL_ALUMNI_PER_SCHOOL,
 } from "../../src/domain/world/rivalWorldProgression";
 import type { PlayerId } from "../../src/domain/model/identifiers";
+import { MAX_PLAYER_DEVELOPMENT_WEEKS } from "../../src/domain/player/playerDevelopmentHistory";
 import type { CloudGameSnapshot } from "../data/GameStore";
 
 function needsLongTermArchiveCompaction(snapshot: CloudGameSnapshot): boolean {
@@ -37,12 +38,26 @@ export function compactGameSnapshot(
   const archiveCompactedState = needsLongTermArchiveCompaction(snapshot)
     ? compactLongTermArchives(snapshot.state)
     : snapshot.state;
-  const completedMatch = archiveCompactedState.activeMatch;
+  const developmentWeeks =
+    archiveCompactedState.history.playerDevelopmentWeeks;
+  const developmentCompactedState =
+    developmentWeeks.length > MAX_PLAYER_DEVELOPMENT_WEEKS
+      ? {
+          ...archiveCompactedState,
+          history: {
+            ...archiveCompactedState.history,
+            playerDevelopmentWeeks: developmentWeeks.slice(
+              -MAX_PLAYER_DEVELOPMENT_WEEKS,
+            ),
+          },
+        }
+      : developmentCompactedState;
+  const completedMatch = developmentCompactedState.activeMatch;
   const matchCompactedState =
     completedMatch?.phase === "match-complete" &&
     completedMatch.eventLog.length > 0
       ? {
-          ...archiveCompactedState,
+          ...developmentCompactedState,
           activeMatch: {
             ...completedMatch,
             eventLog: [],
