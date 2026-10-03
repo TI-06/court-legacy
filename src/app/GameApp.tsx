@@ -67,6 +67,7 @@ import type {
 import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
+  TeamIdentityStyle,
 } from "../domain/team/teamPlanningTypes";
 import type {
   IndividualTrainingAssignment,
@@ -635,6 +636,13 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-team-tactics", plan },
       "基本戦術を保存しています…",
+    );
+  };
+
+  const saveTeamIdentity = async (style: TeamIdentityStyle) => {
+    await cloudSession.runAction(
+      { type: "set-team-identity", style },
+      "チーム哲学を保存しています…",
     );
   };
 
@@ -1438,6 +1446,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onStartPositionConversion={startPositionConversion}
         onCancelPositionConversion={cancelPositionConversion}
         onSetTeamDefenseBias={saveTeamDefenseBias}
+        onSetTeamIdentity={saveTeamIdentity}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}
         tacticsPending={cloudSession.operation.status === "submitting"}
