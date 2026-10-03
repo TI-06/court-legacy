@@ -72,7 +72,9 @@ describe("Phase21 character trait assignment", () => {
     const state = structuredClone(createDemoGame());
     const school = state.schools[state.userSchoolId]!;
     const alumniId = school.playerIds[0]!;
-    school.playerIds = school.playerIds.filter((playerId) => playerId !== alumniId);
+    school.playerIds = school.playerIds.filter(
+      (playerId) => playerId !== alumniId,
+    );
     school.alumniPlayerIds = [...school.alumniPlayerIds, alumniId];
     const alumni = state.players[alumniId]!;
     alumni.hiddenTraitIds = [];
