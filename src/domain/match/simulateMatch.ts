@@ -360,7 +360,6 @@ function effectiveAbility(
   return multiplier === 1 ? base : clamp(base * multiplier, 0, 100);
 }
 
-
 function identityExecutionBonus(
   state: GameState,
   school: School,
@@ -706,20 +705,10 @@ function simulateRally(
   );
   const serverStrength =
     serveStrength(server, serving.school, abilityContext) +
-    identityExecutionBonus(
-      state,
-      serving.school,
-      "serve",
-      abilityContext,
-    );
+    identityExecutionBonus(state, serving.school, "serve", abilityContext);
   const receiverStrength =
     receiveStrength(receiver, receiving.school, abilityContext) +
-    identityExecutionBonus(
-      state,
-      receiving.school,
-      "receive",
-      abilityContext,
-    );
+    identityExecutionBonus(state, receiving.school, "receive", abilityContext);
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
   const serveSpecial = getServeSpecialAbilityAdjustment(
