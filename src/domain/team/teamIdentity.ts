@@ -1,10 +1,7 @@
 import type { GameState } from "../model/GameState";
 import type { TeamTactics } from "../model/School";
 import { deriveMatchTacticPlan, type MatchTacticPlan } from "./matchTactics";
-import type {
-  TeamIdentityState,
-  TeamIdentityStyle,
-} from "./teamPlanningTypes";
+import type { TeamIdentityState, TeamIdentityStyle } from "./teamPlanningTypes";
 
 export interface TeamIdentityDefinition {
   id: TeamIdentityStyle;
@@ -13,10 +10,7 @@ export interface TeamIdentityDefinition {
 }
 
 export type TeamIdentityMasteryTier =
-  | "forming"
-  | "established"
-  | "mature"
-  | "signature";
+  "forming" | "established" | "mature" | "signature";
 
 export const TEAM_IDENTITY_DEFINITIONS: readonly TeamIdentityDefinition[] = [
   {
@@ -160,8 +154,7 @@ export function progressTeamIdentityWeek(state: GameState): GameState {
   );
 
   const gain =
-    2 +
-    (alignment >= 80 ? 3 : alignment >= 60 ? 2 : alignment >= 40 ? 1 : 0);
+    2 + (alignment >= 80 ? 3 : alignment >= 60 ? 2 : alignment >= 40 ? 1 : 0);
   const mastery = Math.min(100, identity.mastery + gain);
 
   return {
