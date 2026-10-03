@@ -17,10 +17,12 @@ import {
   deriveMatchTacticPlan,
   type MatchTacticPlan,
 } from "../../domain/team/matchTactics";
+import { resolveTeamIdentity } from "../../domain/team/teamIdentity";
 import type {
   DevelopmentGoalArea,
   PlayerDevelopmentGoal,
   SavedLineupSlot,
+  TeamIdentityStyle,
 } from "../../domain/team/teamPlanningTypes";
 import {
   buildCoachTrainingRecommendations,
@@ -101,6 +103,7 @@ interface PlayerHubScreenProps {
   ) => void | Promise<void>;
   onCancelPositionConversion?: (playerId: PlayerId) => void | Promise<void>;
   onSetTeamTactics?: (plan: MatchTacticPlan) => void | Promise<void>;
+  onSetTeamIdentity?: (style: TeamIdentityStyle) => void | Promise<void>;
   onSetTeamDefenseBias?: (
     defenseBias: TeamTactics["defenseBias"],
   ) => void | Promise<void>;
@@ -290,6 +293,7 @@ export function PlayerHubScreen({
   onStartPositionConversion,
   onCancelPositionConversion,
   onSetTeamTactics,
+  onSetTeamIdentity,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
   onDeleteLineupPreset,
@@ -805,8 +809,10 @@ export function PlayerHubScreen({
         <HubTabs mode={mode} onChange={setMode} />
         <TeamTacticsPanel
           currentDefenseBias={school.tactics.defenseBias}
+          currentIdentity={resolveTeamIdentity(state)}
           currentPlan={deriveMatchTacticPlan(school.tactics)}
           onSave={(plan) => void onSetTeamTactics?.(plan)}
+          onSaveIdentity={(style) => void onSetTeamIdentity?.(style)}
           onSaveDefenseBias={(defenseBias) =>
             void onSetTeamDefenseBias?.(defenseBias)
           }

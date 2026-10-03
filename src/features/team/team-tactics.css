@@ -5,6 +5,7 @@
 }
 
 .team-tactics__hero,
+.team-tactics__identity,
 .team-tactics__axis {
   min-width: 0;
   padding: 11px;
@@ -30,9 +31,157 @@
   line-height: 1.5;
 }
 
+.team-tactics__identity,
 .team-tactics__axis {
   display: grid;
   gap: 8px;
+}
+
+.team-tactics__identity-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.team-tactics__identity-heading h3,
+.team-tactics__identity-heading p {
+  margin: 0;
+}
+
+.team-tactics__identity-heading h3 {
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.team-tactics__identity-heading > span {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  color: #ffd0a5;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgb(244 122 24 / 14%);
+  border: 1px solid rgb(244 122 24 / 30%);
+  border-radius: 999px;
+}
+
+.team-tactics__identity-current {
+  display: grid;
+  padding: 9px;
+  gap: 7px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.team-tactics__identity-current > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.team-tactics__identity-current span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.team-tactics__identity-current strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.team-tactics__identity-current small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.team-tactics__identity-meter {
+  overflow: hidden;
+  height: 6px;
+  background: rgb(255 255 255 / 8%);
+  border-radius: 999px;
+}
+
+.team-tactics__identity-meter i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f47a18, #ffbc73);
+  border-radius: inherit;
+}
+
+.team-tactics__identity-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.team-tactics__identity-choice {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 62px;
+  padding: 8px;
+  gap: 3px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: #102945;
+  border: 1px solid rgb(255 255 255 / 11%);
+  border-radius: 9px;
+}
+
+.team-tactics__identity-choice strong {
+  font-size: 11px;
+}
+
+.team-tactics__identity-choice small {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.team-tactics__identity-choice[aria-pressed="true"] {
+  background: linear-gradient(145deg, rgb(244 122 24 / 22%), #123154);
+  border-color: rgb(244 122 24 / 75%);
+}
+
+.team-tactics__identity-choice[aria-pressed="true"] strong {
+  color: #ffd4ad;
+}
+
+.team-tactics__identity-choice:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.team-tactics__identity-fit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 9px;
+  gap: 8px;
+  background: rgb(77 173 255 / 7%);
+  border-radius: 9px;
+}
+
+.team-tactics__identity-fit span {
+  color: var(--game-text-muted, #a9b8ca);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.team-tactics__identity-fit strong {
+  color: #d9efff;
+  font-size: 13px;
+}
+
+.team-tactics__identity-warning {
+  margin: 0;
+  color: #ffc79c;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .team-tactics__axis-title {
@@ -114,7 +263,8 @@
 }
 
 @media (max-width: 350px) {
-  .team-tactics__choices {
+  .team-tactics__choices,
+  .team-tactics__identity-choices {
     gap: 4px;
   }
 

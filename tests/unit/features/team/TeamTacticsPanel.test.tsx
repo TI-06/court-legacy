@@ -22,9 +22,16 @@ function renderPanel(
   return render(
     <TeamTacticsPanel
       currentDefenseBias="balanced"
+      currentIdentity={{
+        style: "balanced",
+        mastery: 50,
+        weeksInStyle: 0,
+        changeCount: 0,
+      }}
       currentPlan={balancedPlan}
       onSave={vi.fn()}
       onSaveDefenseBias={vi.fn()}
+      onSaveIdentity={vi.fn()}
       pending={false}
       {...overrides}
     />,
@@ -40,11 +47,41 @@ describe("TeamTacticsPanel", () => {
     expect(selectedOption("攻撃戦術")).toHaveTextContent("バランス");
     expect(selectedOption("ブロック戦術")).toHaveTextContent("ミックス");
     expect(screen.getByText(/ミスを抑える/)).toBeVisible();
-    expect(screen.getByText(/MB参加/)).toBeVisible();
+    expect(
+      within(screen.getByRole("group", { name: "攻撃戦術" })).getByText(
+        /MB参加/,
+      ),
+    ).toBeVisible();
     expect(screen.getByText(/トスを見て/)).toBeVisible();
     expect(
       screen.getByRole("button", { name: "基本戦術を保存" }),
     ).toBeDisabled();
+  });
+
+  it("stages and saves a team identity while showing mastery loss clearly", () => {
+    const onSaveIdentity = vi.fn();
+    renderPanel({ onSaveIdentity });
+
+    expect(
+      screen.getByRole("progressbar", { name: "チーム哲学习熟度 50" }),
+    ).toHaveAttribute("aria-valuenow", "50");
+    expect(screen.getByText("現在の戦術との一致度")).toBeVisible();
+
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "チーム哲学を選択" })).getByRole(
+        "button",
+        { name: /高速コンビ/ },
+      ),
+    );
+
+    expect(onSaveIdentity).not.toHaveBeenCalled();
+    expect(screen.getByText(/習熟度は最大30から再スタート/)).toBeVisible();
+    const save = screen.getByRole("button", { name: "チーム哲学を保存" });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+
+    expect(onSaveIdentity).toHaveBeenCalledTimes(1);
+    expect(onSaveIdentity).toHaveBeenCalledWith("quick-combination");
   });
 
   it("keeps edits local until save and emits one complete plan", () => {
@@ -119,9 +156,16 @@ describe("TeamTacticsPanel", () => {
     rerender(
       <TeamTacticsPanel
         currentDefenseBias="cross"
+        currentIdentity={{
+          style: "serve-block",
+          mastery: 72,
+          weeksInStyle: 8,
+          changeCount: 1,
+        }}
         currentPlan={authoritativePlan}
         onSave={vi.fn()}
         onSaveDefenseBias={vi.fn()}
+        onSaveIdentity={vi.fn()}
         pending={true}
       />,
     );
