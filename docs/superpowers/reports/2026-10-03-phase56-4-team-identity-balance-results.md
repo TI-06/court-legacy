@@ -18,24 +18,78 @@ The effect is intentionally PVE-only and opt-in at the match-engine call boundar
 - PVE user team only: explicit opt-in from Worker practice / official / invitational paths
 - no new persisted arrays or event-log entries
 
-## Required verification
+## Verification
 
-- [ ] focused identity-domain tests
-- [ ] generic/PvP isolation regression
-- [ ] practice/official/invitational Worker regression
-- [ ] full `npm run verify`
-- [ ] mobile E2E
-- [ ] deterministic Phase56 identity matrix
-- [ ] existing Phase19 tactical matrix
-- [ ] long-run save/progression regression
+- [x] focused identity-domain tests
+- [x] generic/PvP isolation regression
+- [x] practice/official/invitational Worker regression
+- [x] full `npm run verify`
+- [x] mobile E2E
+- [x] deterministic Phase56 identity matrix
+- [x] existing Phase19 tactical matrix
+- [x] 30-season long-run save/progression regression
 
-## Balance matrix acceptance
+## Phase56 identity matrix
 
-| Metric                                |                   Target |  Result |
-| ------------------------------------- | -----------------------: | ------: |
-| aligned mastery 100 vs mastery 0      | measurable positive edge | pending |
-| equal-strength mastery win-rate delta |                  <= 5 pp | pending |
-| mismatched mastery delta              |       <= 1.5 pp absolute | pending |
-| mastery 100 vs opponent +8 ability    |      user win rate < 40% | pending |
+The original 160-match sample was too noisy for a deliberately small effect, so the final gate uses **2,000 matches per series**. The harness reuses one standardized world per series so the larger sample remains fast and deterministic.
 
-Final measured values will replace the pending entries before merge.
+| Metric | Target | Result |
+| --- | ---: | ---: |
+| baseline equal-strength win rate | near 50% | 50.0% |
+| aligned mastery 100 win rate | measurable positive edge | 53.1% |
+| aligned mastery 100 delta | > 0 and <= 5 pp | **+3.0 pp** |
+| mismatched mastery delta | <= 1.5 pp absolute | **0.0 pp** |
+| mastery 100 vs opponent +8 ability | user win rate < 40% | **23.8%** |
+
+The identity effect is therefore visible but remains materially weaker than roster strength.
+
+## Existing Phase19 tactical matrix regression
+
+| Metric | Result |
+| --- | ---: |
+| neutral | 50% |
+| favorable tactics | 57% |
+| unfavorable tactics | 46% |
+| stronger roster despite tactical disadvantage | 82% |
+| plan average: balanced | 51% |
+| plan average: quick | 46% |
+| plan average: side | 51% |
+| CPU counter Tier0 / Tier3 | 50% / 56% |
+| CPU neutral Tier0 / Tier3 | 50% / 50% |
+
+Phase56 does not erase the existing tactical matchup model or create a dominant identity path.
+
+## 30-season long soak
+
+Both canonical long-soak seeds completed **30/30 seasons and 1,566 weeks**.
+
+### phase18-release-a
+
+- actions: 5,516
+- final team strength: 93
+- national field p50 / p90: 87 / 102
+- save bytes: 271,579 -> 1,142,173
+- observed maximum save bytes: 1,142,705
+- progression observations/errors: 0
+
+### phase18-release-b
+
+- actions: 5,407
+- final team strength: 96
+- national field p50 / p90: 87 / 106
+- save bytes: 271,334 -> 1,142,618
+- observed maximum save bytes: 1,142,618
+- progression observations/errors: 0
+
+Phase56 adds only one compact bounded identity object, so the long-run save-size curve remains driven by pre-existing career/history data rather than identity mastery.
+
+## Decision
+
+Keep the Phase56-4 coefficients as implemented:
+
+- specialist max: +2.0 execution points
+- balanced max: +0.8 execution points
+- no effect below mastery 30
+- no effect when tactical alignment is <= 40
+
+No further strength increase is justified by the matrix.
