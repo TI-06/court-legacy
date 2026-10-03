@@ -4,6 +4,7 @@ import {
 } from "../../src/domain/shop/shopContracts";
 import type { GameStore } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import {
   ShopStoreMutationError,
   type ShopMutationErrorCode,
@@ -143,7 +144,10 @@ export function createShopUseHandler(
         requestFingerprint: fingerprint,
         expectedRevision: parsed.data.revision,
         itemId: parsed.data.itemId,
-        state: resolved.state,
+        stateDelta: buildJsonStateDelta(
+          snapshot.state as unknown as Record<string, unknown>,
+          resolved.state as unknown as Record<string, unknown>,
+        ),
         teamSelection: resolved.teamSelection,
         targetType: resolved.targetType,
         targetId: resolved.targetId,
