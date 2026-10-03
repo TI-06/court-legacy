@@ -1,9 +1,7 @@
 name: Phase56 format diagnostic
 
 on:
-  push:
-    branches:
-      - feat/phase56-team-identity-ui
+  pull_request:
 
 permissions:
   contents: read
@@ -20,5 +18,5 @@ jobs:
       - run: npm ci --no-audit --fund=false
       - name: Show exact Prettier diff
         run: |
-          npx prettier src/features/team/TeamTacticsPanel.tsx tests/unit/features/team/TeamTacticsPanel.test.tsx --write
-          git diff -- src/features/team/TeamTacticsPanel.tsx tests/unit/features/team/TeamTacticsPanel.test.tsx
+          npx prettier tests/unit/features/team/TeamTacticsPanel.test.tsx --write
+          git diff -- tests/unit/features/team/TeamTacticsPanel.test.tsx
