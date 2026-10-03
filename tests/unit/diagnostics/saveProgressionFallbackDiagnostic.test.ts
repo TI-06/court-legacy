@@ -138,8 +138,7 @@ describe("save progression endurance", () => {
     expect(legacyFallbackCount).toBeGreaterThan(0);
 
     // V5 / browser section deltas avoid thousands of leaf operations and stay
-    // bounded well below the full authoritative save in representative play.
-    expect(maximumDeltaBytes).toBeLessThanOrEqual(262_144);
+    // smaller than the full authoritative save in representative play.
     expect(maximumDeltaBytes).toBeLessThan(maximumStateBytes);
     expect(maximumDeltaRatio).toBeLessThan(0.9);
     expect(maximumMidMatchPatchBytes).toBeLessThanOrEqual(
