@@ -5,6 +5,7 @@ import {
   applyJsonStatePatch,
   buildJsonStatePatch,
   collapseJsonStatePatchRoot,
+  compactJsonStatePatchForPersistence,
 } from "../../../worker/data/statePatch";
 import type { GameAction } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
@@ -48,8 +49,11 @@ describe("phase40 long-session save endurance", () => {
     let midMatchCommands = 0;
     let deltaEligibleOperations = 0;
     let fullStateFallbackOperations = 0;
+    let rawFullStateFallbackOperations = 0;
     let largestPatchOperations = 0;
     let largestPatchBytes = 0;
+    let largestCompactedPatchOperations = 0;
+    let largestCompactedPatchBytes = 0;
     const maximumActions = 4_000;
 
     while (completedWeeks < 104 || completedMatches < 6) {
@@ -80,9 +84,25 @@ describe("phase40 long-session save endurance", () => {
       expect(reconstructed).toEqual(applied.state);
 
       const patchBytes = JSON.stringify(patch).length;
-      const usesFullStateFallback =
+      const rawUsesFullStateFallback =
         patch.length > MAX_JSON_PATCH_OPERATIONS ||
         (!isMidMatchCommand && patchBytes > MAX_JSON_PATCH_BYTES);
+      if (rawUsesFullStateFallback) {
+        rawFullStateFallbackOperations += 1;
+      }
+
+      const compactedPatch = compactJsonStatePatchForPersistence(
+        applied.state as unknown as Record<string, unknown>,
+        patch,
+        MAX_JSON_PATCH_OPERATIONS,
+      );
+      expect(applyJsonStatePatch(prepared.state, compactedPatch)).toEqual(
+        applied.state,
+      );
+      const compactedPatchBytes = JSON.stringify(compactedPatch).length;
+      const usesFullStateFallback =
+        compactedPatch.length > MAX_JSON_PATCH_OPERATIONS ||
+        (!isMidMatchCommand && compactedPatchBytes > MAX_JSON_PATCH_BYTES);
 
       if (usesFullStateFallback) {
         fullStateFallbackOperations += 1;
@@ -100,6 +120,14 @@ describe("phase40 long-session save endurance", () => {
 
       largestPatchOperations = Math.max(largestPatchOperations, patch.length);
       largestPatchBytes = Math.max(largestPatchBytes, patchBytes);
+      largestCompactedPatchOperations = Math.max(
+        largestCompactedPatchOperations,
+        compactedPatch.length,
+      );
+      largestCompactedPatchBytes = Math.max(
+        largestCompactedPatchBytes,
+        compactedPatchBytes,
+      );
 
       const nextSnapshot: CloudGameSnapshot = {
         ...prepared,
@@ -122,9 +150,16 @@ describe("phase40 long-session save endurance", () => {
     expect(completedMatches).toBeGreaterThanOrEqual(6);
     expect(midMatchCommands).toBeGreaterThan(0);
     expect(deltaEligibleOperations).toBeGreaterThan(0);
-    expect(fullStateFallbackOperations).toBeGreaterThan(0);
+    expect(rawFullStateFallbackOperations).toBeGreaterThan(0);
+    expect(fullStateFallbackOperations).toBeLessThan(
+      rawFullStateFallbackOperations,
+    );
     expect(actionCount).toBeLessThan(maximumActions);
     expect(largestPatchOperations).toBeGreaterThan(MAX_JSON_PATCH_OPERATIONS);
     expect(largestPatchBytes).toBeGreaterThan(0);
+    expect(largestCompactedPatchOperations).toBeLessThanOrEqual(
+      largestPatchOperations,
+    );
+    expect(largestCompactedPatchBytes).toBeGreaterThan(0);
   }, 60_000);
 });
