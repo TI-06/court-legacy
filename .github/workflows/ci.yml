@@ -59,6 +59,11 @@ jobs:
         run: npm run release:check
       - name: Run Phase18 soak smoke preset
         run: npm run soak:smoke
+      - name: Run Phase56 identity matrix for PR 316
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
+        env:
+          PHASE56_IDENTITY_MATRIX_RUN: "1"
+        run: npx vitest run tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
 
   mobile-e2e:
     needs: quality
