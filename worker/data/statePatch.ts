@@ -213,7 +213,6 @@ function collapsePatchGroupsAtDepth(
   let operationCount = operations.length;
 
   for (const candidate of candidates) {
-    if (operationCount <= maximumOperations) break;
     const [firstIndex] = candidate.indices;
     if (firstIndex === undefined) continue;
     collapsed.set(firstIndex, replacementForPath(after, candidate.prefix));
