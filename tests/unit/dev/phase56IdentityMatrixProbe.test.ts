@@ -14,9 +14,9 @@ describe("Phase56 temporary identity matrix probe", () => {
 
     expect(result.report.masteredWinRateDelta).toBeGreaterThan(0);
     expect(result.report.masteredWinRateDelta).toBeLessThanOrEqual(0.05);
-    expect(Math.abs(result.report.mismatchedMasteredWinRate)).toBeLessThanOrEqual(
-      0.015,
-    );
+    expect(
+      Math.abs(result.report.mismatchedMasteredWinRate),
+    ).toBeLessThanOrEqual(0.015);
     expect(result.report.strongerOpponentWinRate).toBeLessThan(0.4);
   });
 });
