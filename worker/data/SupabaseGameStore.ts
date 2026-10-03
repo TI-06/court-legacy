@@ -375,23 +375,32 @@ export class SupabaseGameStore implements GameStore {
       exceedsOperationSafetyLimit ||
       exceedsPreferredDeltaBudget ||
       (!input.preferDelta && exceedsNormalDeltaBudget);
-    const { data, error } = useFullStateFallback
-      ? await this.client.rpc("apply_game_operation_v3", {
+    const { data, error } = input.stateDelta
+      ? await this.client.rpc("apply_game_operation_v5", {
           p_user_id: input.userId,
           p_operation_id: input.operationId,
           p_expected_revision: input.expectedRevision,
-          p_state: input.state,
+          p_state_delta: input.stateDelta,
           p_team_selection: input.teamSelection,
           p_outcome: input.response.outcome ?? null,
         })
-      : await this.client.rpc("apply_game_operation_v4", {
-          p_user_id: input.userId,
-          p_operation_id: input.operationId,
-          p_expected_revision: input.expectedRevision,
-          p_state_patch: statePatch,
-          p_team_selection: input.teamSelection,
-          p_outcome: input.response.outcome ?? null,
-        });
+      : useFullStateFallback
+        ? await this.client.rpc("apply_game_operation_v3", {
+            p_user_id: input.userId,
+            p_operation_id: input.operationId,
+            p_expected_revision: input.expectedRevision,
+            p_state: input.state,
+            p_team_selection: input.teamSelection,
+            p_outcome: input.response.outcome ?? null,
+          })
+        : await this.client.rpc("apply_game_operation_v4", {
+            p_user_id: input.userId,
+            p_operation_id: input.operationId,
+            p_expected_revision: input.expectedRevision,
+            p_state_patch: statePatch,
+            p_team_selection: input.teamSelection,
+            p_outcome: input.response.outcome ?? null,
+          });
 
     if (error && isRevisionConflict(error)) {
       throw new RevisionConflictError();
