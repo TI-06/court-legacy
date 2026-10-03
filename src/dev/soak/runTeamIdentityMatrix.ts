@@ -96,13 +96,9 @@ function standardizePlayers(
   }
 }
 
-function runOne(
-  input: SeriesInput,
-  pairIndex: number,
-  focalIsHome: boolean,
-): boolean {
+function prepareSeries(input: SeriesInput) {
   const state = generateWorld({
-    seed: `${input.seed}.world.${pairIndex}`,
+    seed: `${input.seed}.world`,
     userSchool: USER_SCHOOL,
     data,
   });
@@ -146,8 +142,31 @@ function runOne(
     input.opponentAbility ?? 70,
   );
 
+  return {
+    state,
+    focalSchoolId,
+    opponentSchoolId,
+    focalSelection: autoSelectTeam({ state, schoolId: focalSchoolId }),
+    opponentSelection: autoSelectTeam({ state, schoolId: opponentSchoolId }),
+  };
+}
+
+function runOne(
+  input: SeriesInput,
+  series: ReturnType<typeof prepareSeries>,
+  pairIndex: number,
+  focalIsHome: boolean,
+): boolean {
+  const {
+    state,
+    focalSchoolId,
+    opponentSchoolId,
+    focalSelection,
+    opponentSelection,
+  } = series;
   const homeSchoolId = focalIsHome ? focalSchoolId : opponentSchoolId;
   const awaySchoolId = focalIsHome ? opponentSchoolId : focalSchoolId;
+
   const result = simulateMatch({
     state,
     id: matchId(
@@ -155,10 +174,12 @@ function runOne(
     ),
     homeSchoolId,
     awaySchoolId,
-    homeSelection: autoSelectTeam({ state, schoolId: homeSchoolId }),
-    awaySelection: autoSelectTeam({ state, schoolId: awaySchoolId }),
+    homeSelection: focalIsHome ? focalSelection : opponentSelection,
+    awaySelection: focalIsHome ? opponentSelection : focalSelection,
     bestOfSets: 3,
-    random: new SeededRandom(`${input.seed}.match.${pairIndex}`),
+    random: new SeededRandom(
+      `${input.seed}.match.${pairIndex}.${focalIsHome ? "h" : "a"}`,
+    ),
     ...(input.enableIdentity === false
       ? {}
       : { identityMasterySchoolId: focalSchoolId }),
@@ -173,10 +194,11 @@ function runOne(
 
 function runMirroredSeries(input: SeriesInput): number {
   const matches = Math.max(2, Math.floor(input.matches / 2) * 2);
+  const series = prepareSeries(input);
   let wins = 0;
   for (let pairIndex = 0; pairIndex < matches / 2; pairIndex += 1) {
-    if (runOne(input, pairIndex, true)) wins += 1;
-    if (runOne(input, pairIndex, false)) wins += 1;
+    if (runOne(input, series, pairIndex, true)) wins += 1;
+    if (runOne(input, series, pairIndex, false)) wins += 1;
   }
   return wins / matches;
 }
