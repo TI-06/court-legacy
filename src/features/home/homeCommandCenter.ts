@@ -43,7 +43,10 @@ import type {
 } from "../../domain/tournament/tournamentTypes";
 import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
-import { selectSeasonStory, type SeasonStory } from "../../domain/season/seasonStory";
+import {
+  selectSeasonStory,
+  type SeasonStory,
+} from "../../domain/season/seasonStory";
 
 export type HomeCommandPriority =
   "critical" | "attention" | "normal" | "complete";
