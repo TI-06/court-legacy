@@ -363,10 +363,8 @@ export function HomeCommandCenter({
                 </span>
                 <strong>{summary.season.story.headline}</strong>
                 <small>
-                  目標 {summary.season.primaryGoal?.label ?? "全目標達成"}・
-                  {summary.season.primaryGoal?.progressLabel ?? "達成"}・
-                  {summary.season.ambitionLabel}・残り報酬 +
-                  {summary.season.remainingRewardFunds}
+                  {summary.season.primaryGoal?.label ?? "全目標達成"}・
+                  {summary.season.primaryGoal?.progressLabel ?? "達成"}
                 </small>
               </div>
               <div className="home-season-card__ranks">
