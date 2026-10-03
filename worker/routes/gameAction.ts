@@ -190,12 +190,10 @@ export function createGameActionHandler(
           "activeMatch",
         )
       : buildJsonStatePatch(loadedSnapshot.state, persistedState);
-    const stateDelta = isMidMatchCommand
-      ? undefined
-      : buildJsonStateDelta(
-          loadedSnapshot.state as unknown as Record<string, unknown>,
-          persistedState as unknown as Record<string, unknown>,
-        );
+    const stateDelta = buildJsonStateDelta(
+      loadedSnapshot.state as unknown as Record<string, unknown>,
+      persistedState as unknown as Record<string, unknown>,
+    );
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
