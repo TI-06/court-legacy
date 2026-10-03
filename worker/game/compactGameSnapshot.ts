@@ -51,7 +51,7 @@ export function compactGameSnapshot(
             ),
           },
         }
-      : developmentCompactedState;
+      : archiveCompactedState;
   const completedMatch = developmentCompactedState.activeMatch;
   const matchCompactedState =
     completedMatch?.phase === "match-complete" &&
@@ -63,7 +63,7 @@ export function compactGameSnapshot(
             eventLog: [],
           },
         }
-      : archiveCompactedState;
+      : developmentCompactedState;
   const items = matchCompactedState.notifications.items;
   if (items.length <= 1 && matchCompactedState === snapshot.state) {
     return snapshot;
