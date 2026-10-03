@@ -83,9 +83,9 @@ describe("Phase21 character trait assignment", () => {
 
     const next = ensureCharacterTraitAssignments(state, data);
 
-    expect(
-      next.players[alumniId]!.hiddenTraitAssignmentInitialized,
-    ).toBe(false);
+    expect(next.players[alumniId]!.hiddenTraitAssignmentInitialized).toBe(
+      false,
+    );
     expect(next.players[alumniId]!.hiddenTraitIds).toEqual([]);
   });
 
