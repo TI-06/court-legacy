@@ -63,7 +63,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
         env:
           PHASE56_IDENTITY_MATRIX_RUN: "1"
-        run: npx vitest run tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
+        run: npx vitest run --config vitest.soak.config.ts tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
 
   mobile-e2e:
     needs: quality
