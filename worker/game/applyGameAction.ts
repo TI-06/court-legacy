@@ -125,6 +125,7 @@ import {
   setPlayerDevelopmentGoal,
   TeamPlanningValidationError,
 } from "../../src/domain/team/teamPlanning";
+import { setTeamIdentityStyle } from "../../src/domain/team/teamIdentity";
 import { validateTeamSelection } from "../../src/domain/team/validateTeamSelection";
 import { materializeGuestOpponent } from "../../src/domain/tournament/materializeGuestOpponent";
 import {
@@ -588,6 +589,18 @@ function applyTeamTactics(
       },
     },
     teamSelection,
+  };
+}
+
+function applyTeamIdentity(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-identity" }>,
+): AppliedGameAction {
+  return {
+    state: setTeamIdentityStyle(state, action.style),
+    teamSelection,
+    outcome: { teamIdentity: action.style },
   };
 }
 
@@ -2247,6 +2260,8 @@ function applyActionByType(
       return applyTeamTactics(state, teamSelection, action);
     case "set-team-defense-bias":
       return applyTeamDefenseBias(state, teamSelection, action);
+    case "set-team-identity":
+      return applyTeamIdentity(state, teamSelection, action);
     case "set-team-leadership":
       return applyTeamLeadership(state, teamSelection, action);
     case "set-development-priorities":
