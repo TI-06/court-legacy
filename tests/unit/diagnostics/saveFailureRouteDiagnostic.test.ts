@@ -184,24 +184,23 @@ describe("save failure route diagnostic", () => {
       )
       .slice(0, 20);
 
-    console.log(
-      "SAVE_ROUTE_DIAGNOSTIC",
-      JSON.stringify({
-        completedWeeks,
-        completedMatches,
-        actionCount: points.length,
-        fullStateFallbackCount: full.length,
-        fullStateFallbackRate:
-          points.length === 0 ? 0 : full.length / points.length,
-        maxStateBytes: Math.max(...points.map((point) => point.stateBytes)),
-        maxPatchBytes: Math.max(...points.map((point) => point.patchBytes)),
-        maxPatchOperations: Math.max(
-          ...points.map((point) => point.patchOperations),
-        ),
-        byAction,
-        largestFallbacks,
-      }),
-    );
+    const diagnostic = {
+      completedWeeks,
+      completedMatches,
+      actionCount: points.length,
+      fullStateFallbackCount: full.length,
+      fullStateFallbackRate:
+        points.length === 0 ? 0 : full.length / points.length,
+      maxStateBytes: Math.max(...points.map((point) => point.stateBytes)),
+      maxPatchBytes: Math.max(...points.map((point) => point.patchBytes)),
+      maxPatchOperations: Math.max(
+        ...points.map((point) => point.patchOperations),
+      ),
+      byAction,
+      largestFallbacks,
+    };
+
+    throw new Error(`SAVE_ROUTE_DIAGNOSTIC ${JSON.stringify(diagnostic)}`);
 
     expect(completedWeeks).toBeGreaterThanOrEqual(156);
     expect(completedMatches).toBeGreaterThanOrEqual(9);
