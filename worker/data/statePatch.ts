@@ -125,6 +125,134 @@ export function buildJsonStatePatchWithCollapsedRoot(
   return [rootOperation, ...operations];
 }
 
+
+function valueAtPath(
+  root: Record<string, unknown>,
+  path: readonly string[],
+): { present: boolean; value: unknown } {
+  let current: unknown = root;
+  for (const segment of path) {
+    if (Array.isArray(current)) {
+      const index = Number(segment);
+      if (!Number.isInteger(index) || index < 0 || index >= current.length) {
+        return { present: false, value: undefined };
+      }
+      current = current[index];
+      continue;
+    }
+    if (!isRecord(current) || !Object.prototype.hasOwnProperty.call(current, segment)) {
+      return { present: false, value: undefined };
+    }
+    current = current[segment];
+  }
+  return { present: current !== undefined, value: current };
+}
+
+function replacementForPath(
+  after: Record<string, unknown>,
+  path: string[],
+): JsonStatePatchOperation {
+  const target = valueAtPath(after, path);
+  return target.present
+    ? { op: "set", path, value: target.value }
+    : { op: "remove", path };
+}
+
+function collapsePatchGroupsAtDepth(
+  after: Record<string, unknown>,
+  operations: readonly JsonStatePatchOperation[],
+  depth: number,
+  maximumOperations: number,
+): JsonStatePatchOperation[] {
+  if (operations.length <= maximumOperations) {
+    return [...operations];
+  }
+
+  const groups = new Map<
+    string,
+    { prefix: string[]; indices: number[]; replacementBytes: number }
+  >();
+
+  operations.forEach((operation, index) => {
+    if (operation.path.length < depth) return;
+    const prefix = operation.path.slice(0, depth);
+    const key = JSON.stringify(prefix);
+    const existing = groups.get(key);
+    if (existing) {
+      existing.indices.push(index);
+      return;
+    }
+    const replacement = replacementForPath(after, prefix);
+    groups.set(key, {
+      prefix,
+      indices: [index],
+      replacementBytes: JSON.stringify(replacement).length,
+    });
+  });
+
+  const candidates = [...groups.values()]
+    .filter((group) => group.indices.length > 1)
+    .sort((left, right) => {
+      const leftSavings = left.indices.length - 1;
+      const rightSavings = right.indices.length - 1;
+      const leftEfficiency = leftSavings / Math.max(1, left.replacementBytes);
+      const rightEfficiency = rightSavings / Math.max(1, right.replacementBytes);
+      return (
+        rightEfficiency - leftEfficiency ||
+        rightSavings - leftSavings ||
+        left.replacementBytes - right.replacementBytes ||
+        JSON.stringify(left.prefix).localeCompare(JSON.stringify(right.prefix))
+      );
+    });
+
+  const collapsed = new Map<number, JsonStatePatchOperation>();
+  const removed = new Set<number>();
+  let operationCount = operations.length;
+
+  for (const candidate of candidates) {
+    if (operationCount <= maximumOperations) break;
+    const [firstIndex] = candidate.indices;
+    if (firstIndex === undefined) continue;
+    collapsed.set(firstIndex, replacementForPath(after, candidate.prefix));
+    for (const index of candidate.indices.slice(1)) {
+      removed.add(index);
+    }
+    operationCount -= candidate.indices.length - 1;
+  }
+
+  return operations.flatMap((operation, index) => {
+    if (removed.has(index)) return [];
+    return [collapsed.get(index) ?? operation];
+  });
+}
+
+export function compactJsonStatePatchForPersistence(
+  after: Record<string, unknown>,
+  operations: readonly JsonStatePatchOperation[],
+  maximumOperations: number,
+): JsonStatePatchOperation[] {
+  if (operations.length <= maximumOperations) {
+    return [...operations];
+  }
+
+  const secondLevel = collapsePatchGroupsAtDepth(
+    after,
+    operations,
+    2,
+    maximumOperations,
+  );
+  if (secondLevel.length <= maximumOperations) {
+    return secondLevel;
+  }
+
+  return collapsePatchGroupsAtDepth(
+    after,
+    secondLevel,
+    1,
+    maximumOperations,
+  );
+}
+
 export function applyJsonStatePatch<T>(
   input: T,
   operations: readonly JsonStatePatchOperation[],
