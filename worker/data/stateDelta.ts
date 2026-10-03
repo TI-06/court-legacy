@@ -116,7 +116,7 @@ export function buildJsonStateDelta(
   return delta;
 }
 
-export function applyJsonStateDelta<T extends Record<string, unknown>>(
+export function applyJsonStateDelta<T extends object>(
   input: T,
   delta: JsonStateDelta,
 ): T {
