@@ -231,7 +231,9 @@ export function createGameActionHandler(
           userId: snapshot.userId,
           schoolDbId: snapshot.schoolDbId,
           revision: snapshot.revision + 1,
-          statePatch,
+          ...(isMidMatchCommand
+            ? { statePatch }
+            : { stateDelta: stateDelta! }),
           teamSelection: applied.teamSelection,
         },
         ...(!isMidMatchCommand && applied.outcome !== undefined
