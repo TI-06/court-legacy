@@ -255,7 +255,7 @@ describe("game action route", () => {
 
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.preferDelta).toBe(true);
-    expect(persisted.stateDelta).toBeUndefined();
+    expect(persisted.stateDelta).toBeDefined();
     expect(persisted.response.outcome).toBeUndefined();
   });
 
