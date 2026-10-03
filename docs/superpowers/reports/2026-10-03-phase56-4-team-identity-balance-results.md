@@ -31,11 +31,11 @@ The effect is intentionally PVE-only and opt-in at the match-engine call boundar
 
 ## Balance matrix acceptance
 
-| Metric | Target | Result |
-| --- | ---: | ---: |
-| aligned mastery 100 vs mastery 0 | measurable positive edge | pending |
-| equal-strength mastery win-rate delta | <= 5 pp | pending |
-| mismatched mastery delta | <= 1.5 pp absolute | pending |
-| mastery 100 vs opponent +8 ability | user win rate < 40% | pending |
+| Metric                                |                   Target |  Result |
+| ------------------------------------- | -----------------------: | ------: |
+| aligned mastery 100 vs mastery 0      | measurable positive edge | pending |
+| equal-strength mastery win-rate delta |                  <= 5 pp | pending |
+| mismatched mastery delta              |       <= 1.5 pp absolute | pending |
+| mastery 100 vs opponent +8 ability    |      user win rate < 40% | pending |
 
 Final measured values will replace the pending entries before merge.
