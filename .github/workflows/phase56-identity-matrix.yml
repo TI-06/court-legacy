@@ -1,0 +1,31 @@
+name: Phase56 Identity Matrix
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/dev/soak/runTeamIdentityMatrix.ts"
+      - "src/domain/match/simulateMatch.ts"
+      - "src/domain/team/teamIdentity.ts"
+      - "tests/soak/phase56TeamIdentityMatrix.test.ts"
+      - ".github/workflows/phase56-identity-matrix.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  phase56-identity-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Run Phase56 identity balance matrix
+        env:
+          PHASE56_IDENTITY_MATRIX_RUN: "1"
+        run: npx vitest run tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
