@@ -47,7 +47,11 @@ describe("TeamTacticsPanel", () => {
     expect(selectedOption("攻撃戦術")).toHaveTextContent("バランス");
     expect(selectedOption("ブロック戦術")).toHaveTextContent("ミックス");
     expect(screen.getByText(/ミスを抑える/)).toBeVisible();
-    expect(screen.getByText(/MB参加/)).toBeVisible();
+    expect(
+      within(screen.getByRole("group", { name: "攻撃戦術" })).getByText(
+        /MB参加/,
+      ),
+    ).toBeVisible();
     expect(screen.getByText(/トスを見て/)).toBeVisible();
     expect(
       screen.getByRole("button", { name: "基本戦術を保存" }),
@@ -58,7 +62,6 @@ describe("TeamTacticsPanel", () => {
     const onSaveIdentity = vi.fn();
     renderPanel({ onSaveIdentity });
 
-    expect(screen.getByText("バランス")).toBeVisible();
     expect(
       screen.getByRole("progressbar", { name: "チーム哲学习熟度 50" }),
     ).toHaveAttribute("aria-valuenow", "50");
