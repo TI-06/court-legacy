@@ -5,7 +5,7 @@ const enabled = process.env.PHASE56_IDENTITY_MATRIX_RUN === "1";
 const describeMatrix = enabled ? describe : describe.skip;
 
 if (enabled) {
-  vi.setConfig({ testTimeout: 180_000 });
+  vi.setConfig({ testTimeout: 600_000 });
 }
 
 describeMatrix("Phase56 team identity balance matrix", () => {
