@@ -12,10 +12,7 @@ import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
 import { buildJsonStateDelta } from "../data/stateDelta";
-import {
-  buildJsonStatePatch,
-  buildJsonStatePatchWithCollapsedRoot,
-} from "../data/statePatch";
+import { buildJsonStatePatchWithCollapsedRoot } from "../data/statePatch";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -181,15 +178,13 @@ export function createGameActionHandler(
             },
           }
         : applied.state;
-    const activeMatchChanged =
-      loadedSnapshot.state.activeMatch !== persistedState.activeMatch;
-    const statePatch = activeMatchChanged
+    const statePatch = isMidMatchCommand
       ? buildJsonStatePatchWithCollapsedRoot(
           loadedSnapshot.state as unknown as Record<string, unknown>,
           persistedState as unknown as Record<string, unknown>,
           "activeMatch",
         )
-      : buildJsonStatePatch(loadedSnapshot.state, persistedState);
+      : undefined;
     const stateDelta = isMidMatchCommand
       ? undefined
       : buildJsonStateDelta(
