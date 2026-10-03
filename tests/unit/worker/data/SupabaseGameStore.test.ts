@@ -345,6 +345,61 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
+  it("uses v5 for an oversized mid-match save when a section delta is provided", async () => {
+    const snapshot = createSoakSnapshot("phase-save-midmatch-v5");
+    const operationId = "phase-save-midmatch-v5-001";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+      },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+    const statePatch = [
+      {
+        op: "set" as const,
+        path: ["activeMatch"],
+        value: { eventLog: "x".repeat(300_000) },
+      },
+    ];
+    const stateDelta = {
+      set: {
+        activeMatch: { eventLog: "x".repeat(300_000) },
+      },
+      merge: {},
+      remove: [],
+      removeKeys: {},
+    };
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: response.game.state,
+      statePatch,
+      stateDelta,
+      preferDelta: true,
+      teamSelection: response.game.teamSelection,
+      response,
+    });
+
+    expect(JSON.stringify(statePatch).length).toBeGreaterThan(262_144);
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v5", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state_delta: stateDelta,
+      p_team_selection: response.game.teamSelection,
+      p_outcome: null,
+    });
+  });
+
   it("returns an exact replay response from the operation RPC", async () => {
     const snapshot = createSoakSnapshot("phase22-save-replay");
     const operationId = "phase22-op-002";
