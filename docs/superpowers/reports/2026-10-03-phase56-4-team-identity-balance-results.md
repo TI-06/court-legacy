@@ -89,16 +89,3 @@ Keep the Phase56-4 coefficients as implemented:
 - no effect when tactical alignment is <= 40
 
 No further strength increase is justified by the matrix.
-
-
-## Measured matrix
-
-160 matches per series, mirrored home/away:
-
-- baseline equal-strength win rate: 50.0%
-- aligned mastery 100 win rate: 53.1%
-- aligned mastery delta: +3.0 percentage points
-- mismatched mastery delta: 0.0 percentage points
-- mastery 100 against +8 ability opponent: 23.8% win rate
-
-These results satisfy the Phase56-4 acceptance targets: mastery is visible but subordinate to roster strength, and contradictory tactics erase the advantage.
