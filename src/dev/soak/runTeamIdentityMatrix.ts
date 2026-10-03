@@ -139,11 +139,7 @@ function runOne(
     changeCount: 0,
   };
 
-  standardizePlayers(
-    state,
-    focalSchool.playerIds,
-    input.focalAbility ?? 70,
-  );
+  standardizePlayers(state, focalSchool.playerIds, input.focalAbility ?? 70);
   standardizePlayers(
     state,
     opponentSchool.playerIds,
