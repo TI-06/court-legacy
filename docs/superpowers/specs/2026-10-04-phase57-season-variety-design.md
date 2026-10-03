@@ -58,12 +58,15 @@ Changing philosophy mid-season can therefore sacrifice progress, which is an int
 ## Later Phase57 slices
 
 ### Phase57-2: calendar pressure variation
+
 Add a small set of bounded seasonal situations around tournament preparation, camps, injuries, and rivalry weeks instead of adding more permanent screens.
 
 ### Phase57-3: generation story
+
 Make graduation/newcomer turnover more visible through compact season-opening and season-ending summaries.
 
 ### Phase57-4: long-session pacing audit
+
 Measure repeated weekly actions, screen visits, save size, and match frequency over 10/30 seasons and remove low-value repetition.
 
 ## Acceptance
