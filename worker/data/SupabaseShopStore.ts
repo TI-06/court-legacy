@@ -264,13 +264,13 @@ export class SupabaseShopStore implements ShopStore {
   }
 
   async use(input: CommitShopUseInput): Promise<ShopMutationResult> {
-    const { data, error } = await this.client.rpc("commit_shop_item_use", {
+    const { data, error } = await this.client.rpc("commit_shop_item_use_v2", {
       p_user_id: input.userId,
       p_operation_id: input.operationId,
       p_request_fingerprint: input.requestFingerprint,
       p_expected_revision: input.expectedRevision,
       p_item_id: input.itemId,
-      p_state: input.state,
+      p_state_delta: input.stateDelta,
       p_team_selection: input.teamSelection,
       p_target_type: input.targetType,
       p_target_id: input.targetId,
