@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import { selectSeasonStory } from "../../../../src/domain/season/seasonStory";
 import { matchId } from "../../../../src/domain/model/identifiers";
 import {
   buildCharacterTraitDiscoveredNotification,
@@ -131,16 +132,18 @@ describe("Phase 13 Home command center", () => {
     expect(props.onCommand).toHaveBeenCalledWith({ target: "tournament" });
   });
 
-  it("shows the season goal and links directly to school records", () => {
+  it("shows the season story and links directly to school records", () => {
     const props = createProps();
     const regionalGoal = props.state.seasonGoals!.goals.find(
       (goal) => goal.kind === "regional-rank",
     )!;
+    const story = selectSeasonStory(props.state);
     render(<HomeScreen {...props} />);
 
-    const season = screen.getByRole("region", { name: "今季目標" });
+    const season = screen.getByRole("region", { name: "今季ストーリー" });
+    expect(within(season).getByText(story.headline)).toBeVisible();
     expect(
-      within(season).getByText(`県内${regionalGoal.target}位以内`),
+      within(season).getByText(new RegExp(`県内${regionalGoal.target}位以内`)),
     ).toBeVisible();
     expect(within(season).getByText("県内")).toBeVisible();
     expect(within(season).getByText("全国")).toBeVisible();
