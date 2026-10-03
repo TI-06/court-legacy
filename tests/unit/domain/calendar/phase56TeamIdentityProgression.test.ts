@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createDemoGame,
-  gameData,
-} from "../../../../src/app/createDemoGame";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { advanceGameWeek } from "../../../../src/domain/calendar/academicYearProgression";
 
 describe("Phase56 weekly team identity progression", () => {
