@@ -210,8 +210,6 @@ function collapsePatchGroupsAtDepth(
 
   const collapsed = new Map<number, JsonStatePatchOperation>();
   const removed = new Set<number>();
-  let operationCount = operations.length;
-
   for (const candidate of candidates) {
     const [firstIndex] = candidate.indices;
     if (firstIndex === undefined) continue;
@@ -219,7 +217,6 @@ function collapsePatchGroupsAtDepth(
     for (const index of candidate.indices.slice(1)) {
       removed.add(index);
     }
-    operationCount -= candidate.indices.length - 1;
   }
 
   return operations.flatMap((operation, index) => {
