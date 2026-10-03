@@ -12,7 +12,7 @@ describeMatrix("Phase56 team identity balance matrix", () => {
   it("keeps mastery meaningful but smaller than roster strength", () => {
     const result = runTeamIdentityMatrix({
       seed: "phase56-team-identity-matrix",
-      matchesPerSeries: 160,
+      matchesPerSeries: 2_000,
     });
     const report = result.report;
 
