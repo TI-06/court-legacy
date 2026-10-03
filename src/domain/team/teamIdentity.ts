@@ -12,6 +12,14 @@ export interface TeamIdentityDefinition {
 export type TeamIdentityMasteryTier =
   "forming" | "established" | "mature" | "signature";
 
+export type TeamIdentityExecutionPhase =
+  | "serve"
+  | "receive"
+  | "set"
+  | "attack"
+  | "block"
+  | "dig";
+
 export const TEAM_IDENTITY_DEFINITIONS: readonly TeamIdentityDefinition[] = [
   {
     id: "quick-combination",
@@ -118,6 +126,60 @@ export function calculateTeamIdentityAlignment(
           boolPoints(defenseBias === "balanced", 25),
       );
   }
+}
+
+
+const TEAM_IDENTITY_PHASE_MAX: Record<
+  TeamIdentityStyle,
+  Partial<Record<TeamIdentityExecutionPhase, number>>
+> = {
+  "quick-combination": { set: 2, attack: 2 },
+  "serve-block": { serve: 2, block: 2 },
+  "defense-rally": { receive: 2, dig: 2 },
+  "ace-centered": { attack: 2 },
+  balanced: {
+    serve: 0.8,
+    receive: 0.8,
+    set: 0.8,
+    attack: 0.8,
+    block: 0.8,
+    dig: 0.8,
+  },
+};
+
+function teamIdentityMasteryFactor(mastery: number): number {
+  const value = clampPercent(mastery);
+  if (value < 30) return 0;
+  if (value < 60) return ((value - 30) / 30) * 0.6;
+  if (value < 85) return 0.6 + ((value - 60) / 25) * 0.25;
+  return 0.85 + ((value - 85) / 15) * 0.15;
+}
+
+function teamIdentityAlignmentFactor(alignment: number): number {
+  const value = clampPercent(alignment);
+  return value <= 40 ? 0 : (value - 40) / 60;
+}
+
+export function calculateTeamIdentityExecutionBonus(
+  identity: TeamIdentityState,
+  plan: MatchTacticPlan,
+  defenseBias: TeamTactics["defenseBias"],
+  phase: TeamIdentityExecutionPhase,
+): number {
+  const maximum = TEAM_IDENTITY_PHASE_MAX[identity.style][phase] ?? 0;
+  if (maximum === 0) return 0;
+
+  const alignment = calculateTeamIdentityAlignment(
+    identity.style,
+    plan,
+    defenseBias,
+  );
+  const bonus =
+    maximum *
+    teamIdentityMasteryFactor(identity.mastery) *
+    teamIdentityAlignmentFactor(alignment);
+
+  return Math.round(bonus * 1_000) / 1_000;
 }
 
 export function setTeamIdentityStyle(
