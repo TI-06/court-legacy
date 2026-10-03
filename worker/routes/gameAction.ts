@@ -11,6 +11,7 @@ import {
 import { GameRuleConflictError } from "../game/applyGameAction";
 import { applyServerGameAction } from "../game/applyServerGameAction";
 import { compactGameSnapshot } from "../game/compactGameSnapshot";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import {
   buildJsonStatePatch,
   buildJsonStatePatchWithCollapsedRoot,
@@ -189,6 +190,12 @@ export function createGameActionHandler(
           "activeMatch",
         )
       : buildJsonStatePatch(loadedSnapshot.state, persistedState);
+    const stateDelta = isMidMatchCommand
+      ? undefined
+      : buildJsonStateDelta(
+          loadedSnapshot.state as unknown as Record<string, unknown>,
+          persistedState as unknown as Record<string, unknown>,
+        );
     const response: PersistedOperationResponse = {
       game: {
         ...snapshot,
@@ -210,6 +217,7 @@ export function createGameActionHandler(
         previousState: loadedSnapshot.state,
         state: persistedState,
         statePatch,
+        stateDelta,
         preferDelta: isMidMatchCommand,
         teamSelection: applied.teamSelection,
         response,
