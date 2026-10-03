@@ -1,7 +1,11 @@
 export type SeasonAmbition = "steady" | "challenge" | "bold";
 
 export type SeasonGoalKind =
-  "regional-rank" | "official-wins" | "tournament-achievement";
+  | "regional-rank"
+  | "national-rank"
+  | "identity-mastery"
+  | "official-wins"
+  | "tournament-achievement";
 
 export type TournamentAchievementTarget =
   "prefectural-title" | "national-appearance" | "national-title";
@@ -14,6 +18,14 @@ interface SeasonGoalBase {
 export type SeasonGoalDefinition =
   | (SeasonGoalBase & {
       kind: "regional-rank";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "national-rank";
+      achievement?: never;
+    })
+  | (SeasonGoalBase & {
+      kind: "identity-mastery";
       achievement?: never;
     })
   | (SeasonGoalBase & {
