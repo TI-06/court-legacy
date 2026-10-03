@@ -61,7 +61,8 @@ export function selectSeasonStory(state: GameState): SeasonStory {
       id: "title-defense",
       label: "王者防衛",
       headline: "追われる立場で迎えるシーズン",
-      detail: "前年の全国制覇を再現できるか。主力管理と勝負所の完成度が問われます。",
+      detail:
+        "前年の全国制覇を再現できるか。主力管理と勝負所の完成度が問われます。",
       focusLabel: "連覇・主力管理",
     };
   }
