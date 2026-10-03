@@ -1,7 +1,10 @@
 import type { GameState } from "../model/GameState";
 import type { TeamTactics } from "../model/School";
 import { deriveMatchTacticPlan, type MatchTacticPlan } from "./matchTactics";
-import type { TeamIdentityState, TeamIdentityStyle } from "./teamPlanningTypes";
+import type {
+  TeamIdentityState,
+  TeamIdentityStyle,
+} from "./teamPlanningTypes";
 
 export interface TeamIdentityDefinition {
   id: TeamIdentityStyle;
