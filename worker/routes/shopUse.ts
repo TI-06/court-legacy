@@ -11,6 +11,7 @@ import {
 } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import {
   resolveShopUse,
   ShopUseResolutionError,
@@ -143,7 +144,10 @@ export function createShopUseHandler(
         requestFingerprint: fingerprint,
         expectedRevision: parsed.data.revision,
         itemId: parsed.data.itemId,
-        state: resolved.state,
+        stateDelta: buildJsonStateDelta(
+          snapshot.state as unknown as Record<string, unknown>,
+          resolved.state as unknown as Record<string, unknown>,
+        ),
         teamSelection: resolved.teamSelection,
         targetType: resolved.targetType,
         targetId: resolved.targetId,
