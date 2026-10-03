@@ -352,7 +352,10 @@ export function HomeCommandCenter({
           ) : null}
 
           {summary.season ? (
-            <section className="home-season-card" aria-label="今季ストーリー">
+            <section
+              aria-label="今季ストーリー"
+              className="home-season-card"
+            >
               <div
                 className="home-season-card__goal"
                 title={summary.season.story.detail}
