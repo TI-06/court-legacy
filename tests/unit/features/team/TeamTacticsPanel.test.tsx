@@ -39,54 +39,47 @@ function renderPanel(
 }
 
 describe("TeamTacticsPanel", () => {
-  it(
-    "shows all three volleyball tactic axes with the authoritative plan selected",
-    () => {
-      renderPanel();
+  it("shows all three volleyball tactic axes with the authoritative plan selected", () => {
+    renderPanel();
 
-      expect(screen.getByRole("heading", { name: "基本戦術" })).toBeVisible();
-      expect(selectedOption("サーブ戦術")).toHaveTextContent("バランス");
-      expect(selectedOption("攻撃戦術")).toHaveTextContent("バランス");
-      expect(selectedOption("ブロック戦術")).toHaveTextContent("ミックス");
-      expect(screen.getByText(/ミスを抑える/)).toBeVisible();
-      expect(screen.getByText(/MB参加/)).toBeVisible();
-      expect(screen.getByText(/トスを見て/)).toBeVisible();
-      expect(
-        screen.getByRole("button", { name: "基本戦術を保存" }),
-      ).toBeDisabled();
-    },
-  );
+    expect(screen.getByRole("heading", { name: "基本戦術" })).toBeVisible();
+    expect(selectedOption("サーブ戦術")).toHaveTextContent("バランス");
+    expect(selectedOption("攻撃戦術")).toHaveTextContent("バランス");
+    expect(selectedOption("ブロック戦術")).toHaveTextContent("ミックス");
+    expect(screen.getByText(/ミスを抑える/)).toBeVisible();
+    expect(screen.getByText(/MB参加/)).toBeVisible();
+    expect(screen.getByText(/トスを見て/)).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "基本戦術を保存" }),
+    ).toBeDisabled();
+  });
 
-  it(
-    "stages and saves a team identity while showing mastery loss clearly",
-    () => {
-      const onSaveIdentity = vi.fn();
-      renderPanel({ onSaveIdentity });
+  it("stages and saves a team identity while showing mastery loss clearly", () => {
+    const onSaveIdentity = vi.fn();
+    renderPanel({ onSaveIdentity });
 
-      expect(screen.getByText("バランス")).toBeVisible();
-      expect(
-        screen.getByRole("progressbar", { name: "チーム哲学习熟度 50" }),
-      ).toHaveAttribute("aria-valuenow", "50");
-      expect(screen.getByText("現在の戦術との一致度")).toBeVisible();
+    expect(screen.getByText("バランス")).toBeVisible();
+    expect(
+      screen.getByRole("progressbar", { name: "チーム哲学习熟度 50" }),
+    ).toHaveAttribute("aria-valuenow", "50");
+    expect(screen.getByText("現在の戦術との一致度")).toBeVisible();
 
-      fireEvent.click(
-        within(
-          screen.getByRole("group", { name: "チーム哲学を選択" }),
-        ).getByRole("button", { name: /高速コンビ/ }),
-      );
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "チーム哲学を選択" })).getByRole(
+        "button",
+        { name: /高速コンビ/ },
+      ),
+    );
 
-      expect(onSaveIdentity).not.toHaveBeenCalled();
-      expect(
-        screen.getByText(/習熟度は最大30から再スタート/),
-      ).toBeVisible();
-      const save = screen.getByRole("button", { name: "チーム哲学を保存" });
-      expect(save).toBeEnabled();
-      fireEvent.click(save);
+    expect(onSaveIdentity).not.toHaveBeenCalled();
+    expect(screen.getByText(/習熟度は最大30から再スタート/)).toBeVisible();
+    const save = screen.getByRole("button", { name: "チーム哲学を保存" });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
 
-      expect(onSaveIdentity).toHaveBeenCalledTimes(1);
-      expect(onSaveIdentity).toHaveBeenCalledWith("quick-combination");
-    },
-  );
+    expect(onSaveIdentity).toHaveBeenCalledTimes(1);
+    expect(onSaveIdentity).toHaveBeenCalledWith("quick-combination");
+  });
 
   it("keeps edits local until save and emits one complete plan", () => {
     const onSave = vi.fn();
@@ -118,80 +111,74 @@ describe("TeamTacticsPanel", () => {
     });
   });
 
-  it(
-    "saves defense coverage separately from the PvP match tactic plan",
-    () => {
-      const onSave = vi.fn();
-      const onSaveDefenseBias = vi.fn();
-      renderPanel({ onSave, onSaveDefenseBias });
+  it("saves defense coverage separately from the PvP match tactic plan", () => {
+    const onSave = vi.fn();
+    const onSaveDefenseBias = vi.fn();
+    renderPanel({ onSave, onSaveDefenseBias });
 
-      fireEvent.click(
-        within(screen.getByRole("group", { name: "守備配置" })).getByRole(
-          "button",
-          { name: /ライン警戒/ },
-        ),
-      );
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "守備配置" })).getByRole(
+        "button",
+        { name: /ライン警戒/ },
+      ),
+    );
 
-      expect(onSave).not.toHaveBeenCalled();
-      expect(onSaveDefenseBias).not.toHaveBeenCalled();
-      const save = screen.getByRole("button", { name: "守備配置を保存" });
-      expect(save).toBeEnabled();
-      fireEvent.click(save);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onSaveDefenseBias).not.toHaveBeenCalled();
+    const save = screen.getByRole("button", { name: "守備配置を保存" });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
 
-      expect(onSaveDefenseBias).toHaveBeenCalledTimes(1);
-      expect(onSaveDefenseBias).toHaveBeenCalledWith("line");
-      expect(onSave).not.toHaveBeenCalled();
-    },
-  );
+    expect(onSaveDefenseBias).toHaveBeenCalledTimes(1);
+    expect(onSaveDefenseBias).toHaveBeenCalledWith("line");
+    expect(onSave).not.toHaveBeenCalled();
+  });
 
-  it(
-    "disables editing while pending and resynchronizes after an authoritative update",
-    () => {
-      const { rerender } = renderPanel();
+  it("disables editing while pending and resynchronizes after an authoritative update", () => {
+    const { rerender } = renderPanel();
 
-      fireEvent.click(
-        within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
-          "button",
-          { name: /リード/ },
-        ),
-      );
-      expect(selectedOption("ブロック戦術")).toHaveTextContent("リード");
+    fireEvent.click(
+      within(screen.getByRole("group", { name: "ブロック戦術" })).getByRole(
+        "button",
+        { name: /リード/ },
+      ),
+    );
+    expect(selectedOption("ブロック戦術")).toHaveTextContent("リード");
 
-      const authoritativePlan: MatchTacticPlan = {
-        serve: "safe",
-        attack: "side",
-        block: "commit",
-      };
-      rerender(
-        <TeamTacticsPanel
-          currentDefenseBias="cross"
-          currentIdentity={{
-            style: "serve-block",
-            mastery: 72,
-            weeksInStyle: 8,
-            changeCount: 1,
-          }}
-          currentPlan={authoritativePlan}
-          onSave={vi.fn()}
-          onSaveDefenseBias={vi.fn()}
-          onSaveIdentity={vi.fn()}
-          pending={true}
-        />,
-      );
+    const authoritativePlan: MatchTacticPlan = {
+      serve: "safe",
+      attack: "side",
+      block: "commit",
+    };
+    rerender(
+      <TeamTacticsPanel
+        currentDefenseBias="cross"
+        currentIdentity={{
+          style: "serve-block",
+          mastery: 72,
+          weeksInStyle: 8,
+          changeCount: 1,
+        }}
+        currentPlan={authoritativePlan}
+        onSave={vi.fn()}
+        onSaveDefenseBias={vi.fn()}
+        onSaveIdentity={vi.fn()}
+        pending={true}
+      />,
+    );
 
-      expect(selectedOption("サーブ戦術")).toHaveTextContent("安全重視");
-      expect(selectedOption("攻撃戦術")).toHaveTextContent("サイド重視");
-      expect(selectedOption("ブロック戦術")).toHaveTextContent("コミット");
-      expect(selectedOption("守備配置")).toHaveTextContent("クロス警戒");
-      expect(
-        screen.getByRole("button", { name: "基本戦術を保存" }),
-      ).toBeDisabled();
-      expect(
-        screen.getByRole("button", { name: "守備配置を保存" }),
-      ).toBeDisabled();
-      for (const button of screen.getAllByRole("button")) {
-        expect(button).toBeDisabled();
-      }
-    },
-  );
+    expect(selectedOption("サーブ戦術")).toHaveTextContent("安全重視");
+    expect(selectedOption("攻撃戦術")).toHaveTextContent("サイド重視");
+    expect(selectedOption("ブロック戦術")).toHaveTextContent("コミット");
+    expect(selectedOption("守備配置")).toHaveTextContent("クロス警戒");
+    expect(
+      screen.getByRole("button", { name: "基本戦術を保存" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "守備配置を保存" }),
+    ).toBeDisabled();
+    for (const button of screen.getAllByRole("button")) {
+      expect(button).toBeDisabled();
+    }
+  });
 });
