@@ -16,9 +16,7 @@ function needsLongTermArchiveCompaction(snapshot: CloudGameSnapshot): boolean {
         ? MAX_ALUMNI_PER_SCHOOL
         : MAX_RIVAL_ALUMNI_PER_SCHOOL;
     const alumniPlayerIds =
-      limit === 0
-        ? []
-        : [...new Set(school.alumniPlayerIds)].slice(-limit);
+      limit === 0 ? [] : [...new Set(school.alumniPlayerIds)].slice(-limit);
     if (new Set(school.alumniPlayerIds).size > limit) {
       return true;
     }
