@@ -363,28 +363,35 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const statePatch =
-      input.statePatch ?? buildJsonStatePatch(input.previousState, input.state);
-    const patchBytes = JSON.stringify(statePatch).length;
-    const exceedsOperationSafetyLimit =
-      statePatch.length > MAX_JSON_PATCH_OPERATIONS;
-    const exceedsNormalDeltaBudget = patchBytes > MAX_JSON_PATCH_BYTES;
-    const exceedsPreferredDeltaBudget =
-      input.preferDelta && patchBytes > MAX_PREFERRED_JSON_PATCH_BYTES;
-    const useFullStateFallback =
-      exceedsOperationSafetyLimit ||
-      exceedsPreferredDeltaBudget ||
-      (!input.preferDelta && exceedsNormalDeltaBudget);
-    const { data, error } = input.stateDelta
-      ? await this.client.rpc("apply_game_operation_v5", {
-          p_user_id: input.userId,
-          p_operation_id: input.operationId,
-          p_expected_revision: input.expectedRevision,
-          p_state_delta: input.stateDelta,
-          p_team_selection: input.teamSelection,
-          p_outcome: input.response.outcome ?? null,
-        })
-      : useFullStateFallback
+    let data: unknown;
+    let error: { code?: string; message?: string } | null;
+
+    if (input.stateDelta) {
+      const result = await this.client.rpc("apply_game_operation_v5", {
+        p_user_id: input.userId,
+        p_operation_id: input.operationId,
+        p_expected_revision: input.expectedRevision,
+        p_state_delta: input.stateDelta,
+        p_team_selection: input.teamSelection,
+        p_outcome: input.response.outcome ?? null,
+      });
+      data = result.data;
+      error = result.error;
+    } else {
+      const statePatch =
+        input.statePatch ??
+        buildJsonStatePatch(input.previousState, input.state);
+      const patchBytes = JSON.stringify(statePatch).length;
+      const exceedsOperationSafetyLimit =
+        statePatch.length > MAX_JSON_PATCH_OPERATIONS;
+      const exceedsNormalDeltaBudget = patchBytes > MAX_JSON_PATCH_BYTES;
+      const exceedsPreferredDeltaBudget =
+        input.preferDelta && patchBytes > MAX_PREFERRED_JSON_PATCH_BYTES;
+      const useFullStateFallback =
+        exceedsOperationSafetyLimit ||
+        exceedsPreferredDeltaBudget ||
+        (!input.preferDelta && exceedsNormalDeltaBudget);
+      const result = useFullStateFallback
         ? await this.client.rpc("apply_game_operation_v3", {
             p_user_id: input.userId,
             p_operation_id: input.operationId,
@@ -401,6 +408,9 @@ export class SupabaseGameStore implements GameStore {
             p_team_selection: input.teamSelection,
             p_outcome: input.response.outcome ?? null,
           });
+      data = result.data;
+      error = result.error;
+    }
 
     if (error && isRevisionConflict(error)) {
       throw new RevisionConflictError();
