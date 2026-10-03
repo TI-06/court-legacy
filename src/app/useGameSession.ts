@@ -65,10 +65,7 @@ function materializeActionResponse(
       state:
         "stateDelta" in response.gameDelta &&
         response.gameDelta.stateDelta !== undefined
-          ? applyJsonStateDelta(
-              current.state,
-              response.gameDelta.stateDelta,
-            )
+          ? applyJsonStateDelta(current.state, response.gameDelta.stateDelta)
           : applyJsonStatePatch(
               current.state,
               response.gameDelta.statePatch ?? [],
