@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createSoakSnapshot } from "../../../src/dev/soak/runBalanceSoak";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import {
+  applyJsonStateDelta,
+  buildJsonStateDelta,
+} from "../../../worker/data/stateDelta";
+import {
   applyJsonStatePatch,
   buildJsonStatePatch,
   collapseJsonStatePatchRoot,
@@ -47,7 +51,8 @@ describe("phase40 long-session save endurance", () => {
     let actionCount = 0;
     let midMatchCommands = 0;
     let deltaEligibleOperations = 0;
-    let fullStateFallbackOperations = 0;
+    let legacyFullStateFallbackOperations = 0;
+    let sectionDeltaOperations = 0;
     let largestPatchOperations = 0;
     let largestPatchBytes = 0;
     const maximumActions = 4_000;
@@ -85,9 +90,23 @@ describe("phase40 long-session save endurance", () => {
         (!isMidMatchCommand && patchBytes > MAX_JSON_PATCH_BYTES);
 
       if (usesFullStateFallback) {
-        fullStateFallbackOperations += 1;
+        legacyFullStateFallbackOperations += 1;
       } else {
         deltaEligibleOperations += 1;
+      }
+
+      if (!isMidMatchCommand) {
+        const stateDelta = buildJsonStateDelta(
+          prepared.state as unknown as Record<string, unknown>,
+          applied.state as unknown as Record<string, unknown>,
+        );
+        expect(
+          applyJsonStateDelta(
+            prepared.state as unknown as Record<string, unknown>,
+            stateDelta,
+          ),
+        ).toEqual(applied.state);
+        sectionDeltaOperations += 1;
       }
 
       if (isMidMatchCommand) {
@@ -122,7 +141,8 @@ describe("phase40 long-session save endurance", () => {
     expect(completedMatches).toBeGreaterThanOrEqual(6);
     expect(midMatchCommands).toBeGreaterThan(0);
     expect(deltaEligibleOperations).toBeGreaterThan(0);
-    expect(fullStateFallbackOperations).toBeGreaterThan(0);
+    expect(legacyFullStateFallbackOperations).toBeGreaterThan(0);
+    expect(sectionDeltaOperations).toBeGreaterThan(0);
     expect(actionCount).toBeLessThan(maximumActions);
     expect(largestPatchOperations).toBeGreaterThan(MAX_JSON_PATCH_OPERATIONS);
     expect(largestPatchBytes).toBeGreaterThan(0);

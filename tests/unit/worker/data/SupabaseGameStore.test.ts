@@ -119,6 +119,54 @@ describe("SupabaseGameStore save stability", () => {
     );
   });
 
+  it("uses section-delta persistence for normal progression when provided", async () => {
+    const snapshot = createSoakSnapshot("save-section-delta-store");
+    const operationId = "save-section-delta-001";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+      },
+      outcome: { weekAdvanced: true },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+    const stateDelta = {
+      set: { date: snapshot.state.date },
+      merge: {
+        players: {
+          "player-example": { score: 1 },
+        },
+      },
+      remove: [],
+      removeKeys: {},
+    };
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: response.game.state,
+      stateDelta,
+      teamSelection: response.game.teamSelection,
+      response,
+    });
+
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v5", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state_delta: stateDelta,
+      p_team_selection: response.game.teamSelection,
+      p_outcome: response.outcome,
+    });
+  });
+
   it("falls back to full-state persistence when a patch would timeout Postgres", async () => {
     const snapshot = createSoakSnapshot("phase37-large-week-patch");
     const operationId = "phase37-large-week-001";

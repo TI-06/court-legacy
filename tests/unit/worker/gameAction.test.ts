@@ -160,6 +160,7 @@ describe("game action route", () => {
     expect(persisted.expectedRevision).toBe(4);
     expect(persisted.operationId).toBe("operation-001");
     expect(persisted.response.game.revision).toBe(5);
+    expect(persisted.stateDelta).toBeDefined();
 
     const body = await response.json();
     expect(body.operationId).toBe("operation-001");
@@ -254,6 +255,7 @@ describe("game action route", () => {
 
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.preferDelta).toBe(true);
+    expect(persisted.stateDelta).toBeUndefined();
     expect(persisted.response.outcome).toBeUndefined();
   });
 
