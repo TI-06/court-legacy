@@ -125,7 +125,6 @@ export function buildJsonStatePatchWithCollapsedRoot(
   return [rootOperation, ...operations];
 }
 
-
 function valueAtPath(
   root: Record<string, unknown>,
   path: readonly string[],
@@ -205,9 +204,7 @@ function collapsePatchGroupsAtDepth(
         rightEfficiency - leftEfficiency ||
         rightSavings - leftSavings ||
         left.replacementBytes - right.replacementBytes ||
-        JSON.stringify(left.prefix).localeCompare(
-          JSON.stringify(right.prefix),
-        )
+        JSON.stringify(left.prefix).localeCompare(JSON.stringify(right.prefix))
       );
     });
 
