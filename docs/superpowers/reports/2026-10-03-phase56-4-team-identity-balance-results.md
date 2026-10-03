@@ -11,7 +11,7 @@ The effect is intentionally PVE-only and opt-in at the match-engine call boundar
 ## Implemented constraints
 
 - specialist phase bonus: maximum +2.0 execution points
-- balanced phase bonus: maximum +0.8 execution points
+- balanced identity: maximum +0.8 execution points per supported phase
 - mastery below 30: no match effect
 - tactical alignment at or below 40: no match effect
 - generic simulation without `identityMasterySchoolId`: unchanged
@@ -33,29 +33,25 @@ The effect is intentionally PVE-only and opt-in at the match-engine call boundar
 
 The original 160-match sample was too noisy for a deliberately small effect, so the final gate uses **2,000 matches per series**. The harness reuses one standardized world per series so the larger sample remains fast and deterministic.
 
-| Metric | Target | Result |
-| --- | ---: | ---: |
-| baseline equal-strength win rate | near 50% | 50.0% |
-| aligned mastery 100 win rate | measurable positive edge | 53.1% |
-| aligned mastery 100 delta | > 0 and <= 5 pp | **+3.0 pp** |
-| mismatched mastery delta | <= 1.5 pp absolute | **0.0 pp** |
-| mastery 100 vs opponent +8 ability | user win rate < 40% | **23.8%** |
+- baseline equal-strength win rate: 50.0%
+- aligned mastery 100 win rate: 53.1%
+- aligned mastery 100 delta: **+3.0 percentage points**
+- mismatched mastery delta: **0.0 percentage points**
+- mastery 100 vs opponent +8 ability: **23.8% user win rate**
 
 The identity effect is therefore visible but remains materially weaker than roster strength.
 
 ## Existing Phase19 tactical matrix regression
 
-| Metric | Result |
-| --- | ---: |
-| neutral | 50% |
-| favorable tactics | 57% |
-| unfavorable tactics | 46% |
-| stronger roster despite tactical disadvantage | 82% |
-| plan average: balanced | 51% |
-| plan average: quick | 46% |
-| plan average: side | 51% |
-| CPU counter Tier0 / Tier3 | 50% / 56% |
-| CPU neutral Tier0 / Tier3 | 50% / 50% |
+- neutral: 50%
+- favorable tactics: 57%
+- unfavorable tactics: 46%
+- stronger roster despite tactical disadvantage: 82%
+- plan average, balanced: 51%
+- plan average, quick: 46%
+- plan average, side: 51%
+- CPU counter, Tier0 / Tier3: 50% / 56%
+- CPU neutral, Tier0 / Tier3: 50% / 50%
 
 Phase56 does not erase the existing tactical matchup model or create a dominant identity path.
 
