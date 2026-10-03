@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { runTeamIdentityMatrix } from "../../src/dev/soak/runTeamIdentityMatrix";
 
-const enabled = process.env.PHASE56_IDENTITY_MATRIX_RUN === "1";
+const enabled = true;
 const describeMatrix = enabled ? describe : describe.skip;
 
 if (enabled) {
