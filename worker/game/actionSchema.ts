@@ -17,6 +17,7 @@ import type { MatchTacticPlan } from "../../src/domain/team/matchTactics";
 import type {
   PlayerDevelopmentGoal,
   SavedLineupSlot,
+  TeamIdentityStyle,
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
@@ -131,6 +132,13 @@ const savedLineupSlotSchema = z.union([
   z.literal(2),
   z.literal(3),
 ]);
+const teamIdentityStyleSchema = z.enum([
+  "quick-combination",
+  "serve-block",
+  "defense-rally",
+  "ace-centered",
+  "balanced",
+]);
 const developmentGoalSchema = z
   .object({
     area: z.enum(["attack", "defense", "jump", "stamina", "mental"]),
@@ -215,6 +223,12 @@ const gameActionSchema = z.discriminatedUnion("type", [
     .object({
       type: z.literal("set-team-defense-bias"),
       defenseBias: z.enum(["line", "balanced", "cross"]),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("set-team-identity"),
+      style: teamIdentityStyleSchema,
     })
     .strict(),
   z
@@ -350,6 +364,7 @@ export type GameAction =
       type: "set-team-defense-bias";
       defenseBias: "line" | "balanced" | "cross";
     }
+  | { type: "set-team-identity"; style: TeamIdentityStyle }
   | {
       type: "set-team-leadership";
       captainPlayerId: PlayerId;
