@@ -1,5 +1,6 @@
 import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { JsonStateDelta } from "./stateDelta";
 import type { JsonStatePatchOperation } from "./statePatch";
 
 export interface CloudGameSnapshot {
@@ -34,6 +35,7 @@ export interface PersistOperationInput {
   previousState: GameState;
   state: GameState;
   statePatch?: JsonStatePatchOperation[];
+  stateDelta?: JsonStateDelta;
   preferDelta?: boolean;
   teamSelection: TeamSelection;
   response: PersistedOperationResponse;
