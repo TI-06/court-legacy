@@ -90,6 +90,30 @@ describe("weekly progression", () => {
     expect(result.healedPlayerIds).toContain(healingId);
   });
 
+  it("does not progress injuries for retained alumni", () => {
+    const state = createState();
+    const school = state.schools[state.userSchoolId]!;
+    const alumniId = school.playerIds[0]!;
+    school.playerIds = school.playerIds.filter(
+      (playerId) => playerId !== alumniId,
+    );
+    school.alumniPlayerIds = [...school.alumniPlayerIds, alumniId];
+    state.players[alumniId] = {
+      ...state.players[alumniId]!,
+      injury: {
+        injuryId: "injury.alumni",
+        severity: "moderate",
+        remainingWeeks: 3,
+        recurrenceRisk: 20,
+      },
+    };
+
+    const result = advanceOneWeek(state);
+
+    expect(result.state.players[alumniId]!.injury?.remainingWeeks).toBe(3);
+    expect(result.healedPlayerIds).not.toContain(alumniId);
+  });
+
   it("advances user-school injury rehab by two weeks with medical support", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
