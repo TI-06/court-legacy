@@ -144,7 +144,7 @@ describe("Phase 13 Home command center", () => {
     expect(within(season).getByText(story.headline)).toBeVisible();
     expect(
       within(season).getByText(
-        new RegExp(`目標 県内${regionalGoal.target}位以内`),
+        new RegExp(`県内${regionalGoal.target}位以内`),
       ),
     ).toBeVisible();
     expect(within(season).getByText("県内")).toBeVisible();
