@@ -39,7 +39,9 @@ function renderPanel(
 }
 
 describe("TeamTacticsPanel", () => {
-  it("shows all three volleyball tactic axes with the authoritative plan selected", () => {
+  it(
+    "shows all three volleyball tactic axes with the authoritative plan selected",
+    () => {
     renderPanel();
 
     expect(screen.getByRole("heading", { name: "基本戦術" })).toBeVisible();
@@ -49,12 +51,15 @@ describe("TeamTacticsPanel", () => {
     expect(screen.getByText(/ミスを抑える/)).toBeVisible();
     expect(screen.getByText(/MB参加/)).toBeVisible();
     expect(screen.getByText(/トスを見て/)).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "基本戦術を保存" }),
-    ).toBeDisabled();
-  });
+      expect(
+        screen.getByRole("button", { name: "基本戦術を保存" }),
+      ).toBeDisabled();
+    },
+  );
 
-  it("stages and saves a team identity while showing mastery loss clearly", () => {
+  it(
+    "stages and saves a team identity while showing mastery loss clearly",
+    () => {
     const onSaveIdentity = vi.fn();
     renderPanel({ onSaveIdentity });
 
@@ -79,9 +84,10 @@ describe("TeamTacticsPanel", () => {
     expect(save).toBeEnabled();
     fireEvent.click(save);
 
-    expect(onSaveIdentity).toHaveBeenCalledTimes(1);
-    expect(onSaveIdentity).toHaveBeenCalledWith("quick-combination");
-  });
+      expect(onSaveIdentity).toHaveBeenCalledTimes(1);
+      expect(onSaveIdentity).toHaveBeenCalledWith("quick-combination");
+    },
+  );
 
   it("keeps edits local until save and emits one complete plan", () => {
     const onSave = vi.fn();
@@ -113,7 +119,9 @@ describe("TeamTacticsPanel", () => {
     });
   });
 
-  it("saves defense coverage separately from the PvP match tactic plan", () => {
+  it(
+    "saves defense coverage separately from the PvP match tactic plan",
+    () => {
     const onSave = vi.fn();
     const onSaveDefenseBias = vi.fn();
     renderPanel({ onSave, onSaveDefenseBias });
@@ -132,11 +140,14 @@ describe("TeamTacticsPanel", () => {
     fireEvent.click(save);
 
     expect(onSaveDefenseBias).toHaveBeenCalledTimes(1);
-    expect(onSaveDefenseBias).toHaveBeenCalledWith("line");
-    expect(onSave).not.toHaveBeenCalled();
-  });
+      expect(onSaveDefenseBias).toHaveBeenCalledWith("line");
+      expect(onSave).not.toHaveBeenCalled();
+    },
+  );
 
-  it("disables editing while pending and resynchronizes after an authoritative update", () => {
+  it(
+    "disables editing while pending and resynchronizes after an authoritative update",
+    () => {
     const { rerender } = renderPanel();
 
     fireEvent.click(
@@ -179,8 +190,9 @@ describe("TeamTacticsPanel", () => {
     expect(
       screen.getByRole("button", { name: "守備配置を保存" }),
     ).toBeDisabled();
-    for (const button of screen.getAllByRole("button")) {
-      expect(button).toBeDisabled();
-    }
-  });
+      for (const button of screen.getAllByRole("button")) {
+        expect(button).toBeDisabled();
+      }
+    },
+  );
 });
