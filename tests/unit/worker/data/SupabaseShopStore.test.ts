@@ -193,7 +193,7 @@ describe("SupabaseShopStore", () => {
       response: { operationId: "shop-use-001", revision: 9 },
     };
     const client = createClient({
-      commit_shop_item_use: { data: [row], error: null },
+      commit_shop_item_use_v2: { data: [row], error: null },
     });
     const store = new SupabaseShopStore(client);
     const input: CommitShopUseInput = {
@@ -202,7 +202,12 @@ describe("SupabaseShopStore", () => {
       requestFingerprint: "use:fatigue-recovery:player-1:8",
       expectedRevision: 8,
       itemId: "fatigue-recovery",
-      state: { schemaVersion: 2 } as never,
+      stateDelta: {
+        set: {},
+        merge: { players: { "player-1": { fatigue: 30 } } },
+        remove: [],
+        removeKeys: {},
+      },
       teamSelection: { starters: {} } as never,
       targetType: "player",
       targetId: "player-1",
@@ -217,13 +222,13 @@ describe("SupabaseShopStore", () => {
       quantityOwned: 0,
       usedCount: 1,
     });
-    expect(client.rpc).toHaveBeenCalledWith("commit_shop_item_use", {
+    expect(client.rpc).toHaveBeenCalledWith("commit_shop_item_use_v2", {
       p_user_id: "user-123",
       p_operation_id: "shop-use-001",
       p_request_fingerprint: "use:fatigue-recovery:player-1:8",
       p_expected_revision: 8,
       p_item_id: "fatigue-recovery",
-      p_state: input.state,
+      p_state_delta: input.stateDelta,
       p_team_selection: input.teamSelection,
       p_target_type: "player",
       p_target_id: "player-1",
