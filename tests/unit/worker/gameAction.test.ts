@@ -9,6 +9,7 @@ import type {
   PersistOperationResult,
 } from "../../../worker/data/GameStore";
 import { RevisionConflictError } from "../../../worker/data/GameStore";
+import { applyJsonStateDelta } from "../../../worker/data/stateDelta";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { createGameActionHandler } from "../../../worker/routes/gameAction";
 
@@ -161,12 +162,20 @@ describe("game action route", () => {
     expect(persisted.operationId).toBe("operation-001");
     expect(persisted.response.game.revision).toBe(5);
     expect(persisted.stateDelta).toBeDefined();
+    expect(persisted.statePatch).toBeUndefined();
 
     const body = await response.json();
     expect(body.operationId).toBe("operation-001");
     expect(body.game).toBeUndefined();
     expect(body.gameDelta.revision).toBe(5);
-    expect(body.gameDelta.statePatch).toEqual(expect.any(Array));
+    expect(body.gameDelta.statePatch).toBeUndefined();
+    expect(body.gameDelta.stateDelta).toBeDefined();
+    expect(
+      applyJsonStateDelta(
+        snapshot.state as unknown as Record<string, unknown>,
+        body.gameDelta.stateDelta,
+      ),
+    ).toEqual(persisted.state);
     expect(JSON.stringify(body).length).toBeLessThan(
       JSON.stringify(persisted.response).length,
     );
@@ -197,11 +206,10 @@ describe("game action route", () => {
 
     expect(response.status).toBe(200);
     const body = await response.json();
-    const notificationPatch = body.gameDelta.statePatch.filter(
-      (entry: { path: string[] }) =>
-        entry.path[0] === "notifications" && entry.path[1] === "items",
-    );
-    expect(notificationPatch.length).toBeGreaterThan(0);
+    expect(body.gameDelta.statePatch).toBeUndefined();
+    expect(body.gameDelta.stateDelta.merge.notifications).toMatchObject({
+      items: [expect.objectContaining({ id: second.id })],
+    });
 
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.previousState.notifications.items).toHaveLength(2);
@@ -256,6 +264,7 @@ describe("game action route", () => {
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(persisted.preferDelta).toBe(true);
     expect(persisted.stateDelta).toBeUndefined();
+    expect(persisted.statePatch).toEqual(expect.any(Array));
     expect(persisted.response.outcome).toBeUndefined();
   });
 
@@ -301,16 +310,10 @@ describe("game action route", () => {
 
     expect(response.status).toBe(200);
     const body = await response.json();
-    const activeMatchPatch = body.gameDelta.statePatch.filter(
-      (entry: { path: string[] }) => entry.path[0] === "activeMatch",
-    );
-    expect(activeMatchPatch).toEqual([
-      expect.objectContaining({
-        op: "set",
-        path: ["activeMatch"],
-        value: expect.objectContaining({ eventLog: [] }),
-      }),
-    ]);
+    expect(body.gameDelta.statePatch).toBeUndefined();
+    expect(body.gameDelta.stateDelta.merge.activeMatch).toMatchObject({
+      eventLog: [],
+    });
 
     const [persisted] = vi.mocked(store.applyOperation).mock.calls[0]!;
     expect(

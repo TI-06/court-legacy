@@ -8,6 +8,7 @@ import type {
   GameActionRequest,
   GameActionResponse,
 } from "../../worker/game/actionSchema";
+import { applyJsonStateDelta } from "../../worker/data/stateDelta";
 import { applyJsonStatePatch } from "../../worker/data/statePatch";
 import type { RecoveryCachePort } from "../persistence/RecoveryCache";
 import { browserRecoveryCache } from "../persistence/RecoveryCache";
@@ -61,7 +62,14 @@ function materializeActionResponse(
       userId: response.gameDelta.userId,
       schoolDbId: response.gameDelta.schoolDbId,
       revision: response.gameDelta.revision,
-      state: applyJsonStatePatch(current.state, response.gameDelta.statePatch),
+      state:
+        "stateDelta" in response.gameDelta &&
+        response.gameDelta.stateDelta !== undefined
+          ? applyJsonStateDelta(current.state, response.gameDelta.stateDelta)
+          : applyJsonStatePatch(
+              current.state,
+              response.gameDelta.statePatch ?? [],
+            ),
       teamSelection: response.gameDelta.teamSelection,
     },
     ...(response.outcome !== undefined ? { outcome: response.outcome } : {}),

@@ -137,7 +137,8 @@ describe("save progression endurance", () => {
     // fine-grained patch strategy would still fall back to full state often.
     expect(legacyFallbackCount).toBeGreaterThan(0);
 
-    // V5 must stay meaningfully smaller than the full authoritative save.
+    // V5 / browser section deltas avoid thousands of leaf operations and stay
+    // smaller than the full authoritative save in representative play.
     expect(maximumDeltaBytes).toBeLessThan(maximumStateBytes);
     expect(maximumDeltaRatio).toBeLessThan(0.9);
     expect(maximumMidMatchPatchBytes).toBeLessThanOrEqual(

@@ -20,6 +20,7 @@ import type {
 } from "../../src/domain/team/teamPlanningTypes";
 import type { WeeklyPlan } from "../../src/domain/training/resolveWeeklyTraining";
 import type { PersistedOperationResponse } from "../data/GameStore";
+import type { JsonStateDelta } from "../data/stateDelta";
 import type { JsonStatePatchOperation } from "../data/statePatch";
 
 const playerIdSchema = z.string().min(1);
@@ -428,15 +429,26 @@ export interface GameActionRequest {
   action: GameAction;
 }
 
+interface GameDeltaBase {
+  userId: string;
+  schoolDbId: string;
+  revision: number;
+  teamSelection: TeamSelection;
+}
+
+type GameDelta =
+  | (GameDeltaBase & {
+      statePatch: JsonStatePatchOperation[];
+      stateDelta?: never;
+    })
+  | (GameDeltaBase & {
+      stateDelta: JsonStateDelta;
+      statePatch?: never;
+    });
+
 export interface DeltaGameActionResponse {
   operationId: string;
-  gameDelta: {
-    userId: string;
-    schoolDbId: string;
-    revision: number;
-    statePatch: JsonStatePatchOperation[];
-    teamSelection: TeamSelection;
-  };
+  gameDelta: GameDelta;
   outcome?: unknown;
 }
 

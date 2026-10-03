@@ -68,12 +68,14 @@ export function buildJsonStateDelta(
 
     const beforeValue = before[root];
     const afterValue = after[root];
-    if (jsonEqual(beforeValue, afterValue)) {
+    if (Object.is(beforeValue, afterValue)) {
       continue;
     }
 
     if (!isRecord(beforeValue) || !isRecord(afterValue)) {
-      delta.set[root] = afterValue;
+      if (!jsonEqual(beforeValue, afterValue)) {
+        delta.set[root] = afterValue;
+      }
       continue;
     }
 
@@ -114,7 +116,7 @@ export function buildJsonStateDelta(
   return delta;
 }
 
-export function applyJsonStateDelta<T extends Record<string, unknown>>(
+export function applyJsonStateDelta<T extends object>(
   input: T,
   delta: JsonStateDelta,
 ): T {

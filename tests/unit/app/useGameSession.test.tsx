@@ -178,6 +178,65 @@ describe("useGameSession", () => {
     recoveryWrite.resolve();
   });
 
+  it("applies a section-delta response locally for normal actions", async () => {
+    const initialSnapshot = createSnapshot(1);
+    const playerId =
+      initialSnapshot.state.schools[initialSnapshot.state.userSchoolId]!
+        .playerIds[0]!;
+    const beforeMorale = initialSnapshot.state.players[playerId]!.morale;
+    const nextMorale = Math.min(100, beforeMorale + 2);
+    const gameApi = api({
+      applyAction: vi.fn().mockResolvedValue({
+        operationId: "op-section-delta",
+        gameDelta: {
+          userId: initialSnapshot.userId,
+          schoolDbId: initialSnapshot.schoolDbId,
+          revision: 2,
+          stateDelta: {
+            set: {},
+            merge: {
+              players: {
+                [playerId]: {
+                  ...initialSnapshot.state.players[playerId]!,
+                  morale: nextMorale,
+                },
+              },
+            },
+            remove: [],
+            removeKeys: {},
+          },
+          teamSelection: initialSnapshot.teamSelection,
+        },
+      }),
+    });
+
+    const { result } = renderHook(() =>
+      useGameSession({
+        accessToken: "token",
+        initialSnapshot,
+        api: gameApi,
+        recoveryCache: cache(),
+        createOperationId: () => "op-section-delta",
+      }),
+    );
+
+    await act(async () => {
+      await result.current.runAction(
+        { type: "mark-notification-read", notificationId: "n-1" },
+        "保存",
+      );
+    });
+
+    expect(result.current.snapshot.revision).toBe(2);
+    expect(result.current.snapshot.state.players[playerId]!.morale).toBe(
+      nextMorale,
+    );
+    expect(result.current.operation).toEqual({
+      status: "success",
+      label: "保存",
+    });
+  });
+
   it("recovers from an invalid client delta by adopting the authoritative snapshot", async () => {
     const initialSnapshot = createSnapshot(1);
     const latestSnapshot = createSnapshot(2);
