@@ -26,6 +26,11 @@ import {
   getAttackBlockMatchupPoints,
   type ServePlan,
 } from "../team/matchTactics";
+import {
+  calculateTeamIdentityExecutionBonus,
+  resolveTeamIdentity,
+  type TeamIdentityExecutionPhase,
+} from "../team/teamIdentity";
 import { validateTeamSelection } from "../team/validateTeamSelection";
 
 export interface SimulateMatchInput {
@@ -38,6 +43,7 @@ export interface SimulateMatchInput {
   bestOfSets: 3 | 5;
   random: RandomSource;
   dynamicsReadinessByPlayerId?: Readonly<Partial<Record<PlayerId, number>>>;
+  identityMasterySchoolId?: SchoolId;
 }
 
 export interface SimulateMatchResult {
@@ -75,6 +81,7 @@ export interface ResumeMatchInput {
   match: MatchState;
   automaticCoachSchoolId?: SchoolId;
   automaticCoach?: AutomaticCoachPolicy;
+  identityMasterySchoolId?: SchoolId;
 }
 
 type MatchSide = "home" | "away";
@@ -124,6 +131,7 @@ interface AbilityContext {
   serveTarget?: MatchRuntimeState["serveTarget"];
   blockTarget?: MatchRuntimeState["blockTarget"];
   rallyRuntime?: RallyRuntime;
+  identityMasterySchoolId?: SchoolId;
 }
 
 const ATTACK_POSITIONS: readonly Position[] = ["OH", "MB", "OP", "S"];
@@ -350,6 +358,22 @@ function effectiveAbility(
     timeoutAbilityMultiplier(player, ability, context) *
     encouragementAbilityMultiplier(player, ability, context);
   return multiplier === 1 ? base : clamp(base * multiplier, 0, 100);
+}
+
+function identityExecutionBonus(
+  state: GameState,
+  school: School,
+  phase: TeamIdentityExecutionPhase,
+  context: AbilityContext | undefined,
+): number {
+  if (context?.identityMasterySchoolId !== school.id) return 0;
+
+  return calculateTeamIdentityExecutionBonus(
+    resolveTeamIdentity(state),
+    deriveMatchTacticPlan(school.tactics),
+    school.tactics.defenseBias,
+    phase,
+  );
 }
 
 function average(values: readonly number[]): number {
@@ -679,12 +703,12 @@ function simulateRally(
     random,
     abilityContext,
   );
-  const serverStrength = serveStrength(server, serving.school, abilityContext);
-  const receiverStrength = receiveStrength(
-    receiver,
-    receiving.school,
-    abilityContext,
-  );
+  const serverStrength =
+    serveStrength(server, serving.school, abilityContext) +
+    identityExecutionBonus(state, serving.school, "serve", abilityContext);
+  const receiverStrength =
+    receiveStrength(receiver, receiving.school, abilityContext) +
+    identityExecutionBonus(state, receiving.school, "receive", abilityContext);
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
   const serveSpecial = getServeSpecialAbilityAdjustment(
@@ -768,6 +792,7 @@ function simulateRally(
     receiveQuality * 0.28 +
     receiving.school.coach.tactics * 0.08 +
     tempoModifier +
+    identityExecutionBonus(state, receiving.school, "set", abilityContext) +
     (random.next() - 0.5) * 12;
   const attacker = chooseAttacker(state, receiving, random, abilityContext);
   writer.push(
@@ -793,6 +818,7 @@ function simulateRally(
     attacker.positionAptitudes[attacker.preferredPosition] * 0.12 +
     setQuality * 0.35 +
     receiving.school.coach.tactics * 0.07 +
+    identityExecutionBonus(state, receiving.school, "attack", abilityContext) +
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
@@ -807,7 +833,8 @@ function simulateRally(
     effectiveAbility(blocker, "decision", abilityContext) * 0.14 +
     serving.school.coach.tactics * 0.08 +
     blockMatchupAdjustment(receiving.school, serving.school) +
-    blockTargetBonus;
+    blockTargetBonus +
+    identityExecutionBonus(state, serving.school, "block", abilityContext);
   const digPower =
     effectiveAbility(digger, "receive", abilityContext) * 0.58 +
     effectiveAbility(digger, "speed", abilityContext) * 0.25 +
@@ -816,7 +843,8 @@ function simulateRally(
     getDefenseDirectionAdjustment(
       serving.school.tactics.defenseBias,
       attackDirection,
-    );
+    ) +
+    identityExecutionBonus(state, serving.school, "dig", abilityContext);
 
   writer.push(
     "attack",
@@ -1507,6 +1535,7 @@ function runUntilBoundary(
   state: GameState,
   sourceMatch: MatchState,
   randomOverride?: RandomSource,
+  identityMasterySchoolId?: SchoolId,
   automaticCoachSchoolId?: SchoolId,
   automaticCoach?: AutomaticCoachPolicy,
 ): MatchStepResult {
@@ -1575,6 +1604,7 @@ function runUntilBoundary(
         serveTarget: runtime.serveTarget,
         blockTarget: runtime.blockTarget,
         rallyRuntime,
+        identityMasterySchoolId,
       },
     );
 
@@ -1690,6 +1720,7 @@ export function startMatch(input: StartMatchInput): MatchStepResult {
     input.state,
     match,
     undefined,
+    input.identityMasterySchoolId,
     input.automaticCoachSchoolId,
     input.automaticCoach,
   );
@@ -1700,6 +1731,7 @@ export function resumeMatch(input: ResumeMatchInput): MatchStepResult {
     input.state,
     input.match,
     undefined,
+    input.identityMasterySchoolId,
     input.automaticCoachSchoolId,
     input.automaticCoach,
   );
@@ -1707,7 +1739,12 @@ export function resumeMatch(input: ResumeMatchInput): MatchStepResult {
 
 export function simulateMatch(input: SimulateMatchInput): SimulateMatchResult {
   const match = createInitialMatchState(input, null);
-  const result = runUntilBoundary(input.state, match, input.random);
+  const result = runUntilBoundary(
+    input.state,
+    match,
+    input.random,
+    input.identityMasterySchoolId,
+  );
   if (!result.analysis || result.match.phase !== "match-complete") {
     throw new Error("non-interactive match did not complete");
   }

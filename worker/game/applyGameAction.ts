@@ -812,6 +812,7 @@ function startPracticeMatchSession(
       awaySelection: opponentSelection,
       bestOfSets: 3,
       random,
+      identityMasterySchoolId: state.userSchoolId,
       controlledSchoolId: state.userSchoolId,
       automaticCoachSchoolId: opponent.id,
       automaticCoach: pveCpuCoachPolicy,
@@ -877,6 +878,7 @@ function applyPracticeMatch(
       awaySelection: opponentSelection,
       bestOfSets: 3,
       random,
+      identityMasterySchoolId: state.userSchoolId,
     });
     const matchState: GameState = {
       ...state,
@@ -981,6 +983,7 @@ function applyPracticeMatchCommand(
     const simulation = resumeMatch({
       state,
       match: commandedMatch,
+      identityMasterySchoolId: state.userSchoolId,
       automaticCoachSchoolId: opponentSchoolId,
       automaticCoach: pveCpuCoachPolicy,
     });
@@ -1257,6 +1260,7 @@ function applyOfficialMatch(
       awaySelection: context.userIsHome ? context.selection : teamSelection,
       bestOfSets: 3,
       random,
+      identityMasterySchoolId: state.userSchoolId,
       controlledSchoolId: state.userSchoolId,
       automaticCoachSchoolId: context.schoolId,
       automaticCoach: pveCpuCoachPolicy,
@@ -1333,6 +1337,7 @@ function applyOfficialMatchCommand(
     const simulation = resumeMatch({
       state: context.state,
       match: commandedMatch,
+      identityMasterySchoolId: state.userSchoolId,
       automaticCoachSchoolId: context.schoolId,
       automaticCoach: pveCpuCoachPolicy,
     });
@@ -1523,6 +1528,7 @@ function startInvitationalMatchSession(
     awaySelection: opponentSelection,
     bestOfSets: 3,
     random,
+    identityMasterySchoolId: state.userSchoolId,
     controlledSchoolId: state.userSchoolId,
     automaticCoachSchoolId: opponentId,
     automaticCoach: pveCpuCoachPolicy,
@@ -1571,6 +1577,7 @@ function applyInvitationalMatchCommand(
     const simulation = resumeMatch({
       state,
       match: commandedMatch,
+      identityMasterySchoolId: state.userSchoolId,
       automaticCoachSchoolId: opponentId,
       automaticCoach: pveCpuCoachPolicy,
     });
