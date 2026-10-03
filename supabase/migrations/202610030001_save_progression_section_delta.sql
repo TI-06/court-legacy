@@ -61,11 +61,11 @@ begin
   -- Merge object roots one root at a time. Each root is rebuilt once, then
   -- written back once, avoiding thousands of whole-state jsonb_set rewrites.
   for v_root in
-    select key
+    select root_key
     from (
-      select key from jsonb_object_keys(v_merge) as key
+      select jsonb_object_keys(v_merge) as root_key
       union
-      select key from jsonb_object_keys(v_remove_keys) as key
+      select jsonb_object_keys(v_remove_keys) as root_key
     ) as roots
   loop
     v_root_value := coalesce(v_result -> v_root, '{}'::jsonb);
