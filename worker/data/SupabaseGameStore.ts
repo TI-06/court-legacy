@@ -20,7 +20,10 @@ import {
   RevisionConflictError,
 } from "./GameStore";
 import type { SupabaseAdminClient } from "./createSupabaseAdmin";
-import { buildJsonStatePatch } from "./statePatch";
+import {
+  buildJsonStatePatch,
+  compactJsonStatePatchForPersistence,
+} from "./statePatch";
 
 const rotationSlotSchema = z.union([
   z.literal(1),
@@ -363,8 +366,13 @@ export class SupabaseGameStore implements GameStore {
   async applyOperation(
     input: PersistOperationInput,
   ): Promise<PersistOperationResult> {
-    const statePatch =
+    const rawStatePatch =
       input.statePatch ?? buildJsonStatePatch(input.previousState, input.state);
+    const statePatch = compactJsonStatePatchForPersistence(
+      input.state as unknown as Record<string, unknown>,
+      rawStatePatch,
+      MAX_JSON_PATCH_OPERATIONS,
+    );
     const patchBytes = JSON.stringify(statePatch).length;
     const exceedsOperationSafetyLimit =
       statePatch.length > MAX_JSON_PATCH_OPERATIONS;
