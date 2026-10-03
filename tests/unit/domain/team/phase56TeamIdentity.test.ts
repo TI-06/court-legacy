@@ -21,23 +21,23 @@ describe("Phase56 team identity foundation", () => {
   it(
     "changes identity without allowing mastery to carry over at full strength",
     () => {
-    const state = createDemoGame();
-    state.teamPlanning.teamIdentity = {
-      style: "balanced",
-      mastery: 88,
-      weeksInStyle: 18,
-      changeCount: 2,
-    };
+      const state = createDemoGame();
+      state.teamPlanning.teamIdentity = {
+        style: "balanced",
+        mastery: 88,
+        weeksInStyle: 18,
+        changeCount: 2,
+      };
 
-    const updated = setTeamIdentityStyle(state, "quick-combination");
+      const updated = setTeamIdentityStyle(state, "quick-combination");
 
-    expect(updated.teamPlanning.teamIdentity).toEqual({
-      style: "quick-combination",
-      mastery: 30,
-      weeksInStyle: 0,
-      changeCount: 3,
-    });
-    expect(state.teamPlanning.teamIdentity?.style).toBe("balanced");
+      expect(updated.teamPlanning.teamIdentity).toEqual({
+        style: "quick-combination",
+        mastery: 30,
+        weeksInStyle: 0,
+        changeCount: 3,
+      });
+      expect(state.teamPlanning.teamIdentity?.style).toBe("balanced");
       expect(setTeamIdentityStyle(updated, "quick-combination")).toBe(updated);
     },
   );
@@ -45,40 +45,40 @@ describe("Phase56 team identity foundation", () => {
   it(
     "scores tactical alignment by identity without applying a hidden match bonus",
     () => {
-    expect(
-      calculateTeamIdentityAlignment(
-        "serve-block",
-        {
-          serve: "aggressive",
-          attack: "balanced",
-          block: "commit",
-        },
-        "balanced",
-      ),
-    ).toBe(100);
+      expect(
+        calculateTeamIdentityAlignment(
+          "serve-block",
+          {
+            serve: "aggressive",
+            attack: "balanced",
+            block: "commit",
+          },
+          "balanced",
+        ),
+      ).toBe(100);
 
-    expect(
-      calculateTeamIdentityAlignment(
-        "serve-block",
-        {
-          serve: "safe",
-          attack: "balanced",
-          block: "read",
-        },
-        "balanced",
-      ),
-    ).toBe(0);
+      expect(
+        calculateTeamIdentityAlignment(
+          "serve-block",
+          {
+            serve: "safe",
+            attack: "balanced",
+            block: "read",
+          },
+          "balanced",
+        ),
+      ).toBe(0);
 
-    expect(
-      calculateTeamIdentityAlignment(
-        "balanced",
-        {
-          serve: "balanced",
-          attack: "balanced",
-          block: "mixed",
-        },
-        "balanced",
-      ),
+      expect(
+        calculateTeamIdentityAlignment(
+          "balanced",
+          {
+            serve: "balanced",
+            attack: "balanced",
+            block: "mixed",
+          },
+          "balanced",
+        ),
       ).toBe(100);
     },
   );
@@ -86,36 +86,36 @@ describe("Phase56 team identity foundation", () => {
   it(
     "progresses mastery faster when weekly tactics match the chosen identity",
     () => {
-    const aligned = createDemoGame();
-    const alignedSchool = aligned.schools[aligned.userSchoolId]!;
-    aligned.teamPlanning.teamIdentity = {
-      style: "serve-block",
-      mastery: 40,
-      weeksInStyle: 3,
-      changeCount: 1,
-    };
-    alignedSchool.tactics = {
-      ...alignedSchool.tactics,
-      serveRisk: 75,
-      attackTempo: "balanced",
-      blockSystem: "commit",
-      defenseBias: "balanced",
-    };
+      const aligned = createDemoGame();
+      const alignedSchool = aligned.schools[aligned.userSchoolId]!;
+      aligned.teamPlanning.teamIdentity = {
+        style: "serve-block",
+        mastery: 40,
+        weeksInStyle: 3,
+        changeCount: 1,
+      };
+      alignedSchool.tactics = {
+        ...alignedSchool.tactics,
+        serveRisk: 75,
+        attackTempo: "balanced",
+        blockSystem: "commit",
+        defenseBias: "balanced",
+      };
 
-    const misaligned = structuredClone(aligned);
-    const misalignedSchool = misaligned.schools[misaligned.userSchoolId]!;
-    misalignedSchool.tactics = {
-      ...misalignedSchool.tactics,
-      serveRisk: 25,
-      blockSystem: "read",
-    };
+      const misaligned = structuredClone(aligned);
+      const misalignedSchool = misaligned.schools[misaligned.userSchoolId]!;
+      misalignedSchool.tactics = {
+        ...misalignedSchool.tactics,
+        serveRisk: 25,
+        blockSystem: "read",
+      };
 
-    const alignedNext = progressTeamIdentityWeek(aligned);
-    const misalignedNext = progressTeamIdentityWeek(misaligned);
+      const alignedNext = progressTeamIdentityWeek(aligned);
+      const misalignedNext = progressTeamIdentityWeek(misaligned);
 
-    expect(alignedNext.teamPlanning.teamIdentity?.mastery).toBe(45);
-    expect(misalignedNext.teamPlanning.teamIdentity?.mastery).toBe(42);
-    expect(alignedNext.teamPlanning.teamIdentity?.weeksInStyle).toBe(4);
+      expect(alignedNext.teamPlanning.teamIdentity?.mastery).toBe(45);
+      expect(misalignedNext.teamPlanning.teamIdentity?.mastery).toBe(42);
+      expect(alignedNext.teamPlanning.teamIdentity?.weeksInStyle).toBe(4);
       expect(aligned.teamPlanning.teamIdentity?.mastery).toBe(40);
     },
   );
