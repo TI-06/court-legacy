@@ -4,6 +4,7 @@ import {
   buildJsonStatePatch,
   buildJsonStatePatchWithCollapsedRoot,
   collapseJsonStatePatchRoot,
+  compactJsonStatePatchForPersistence,
   type JsonStatePatchOperation,
 } from "../../../../worker/data/statePatch";
 
@@ -176,6 +177,41 @@ describe("buildJsonStatePatch", () => {
       value: 42,
     });
     expect(applyPatch(before, patch)).toEqual(after);
+  });
+
+  it("compacts many player-field changes into bounded player-root delta operations", () => {
+    const snapshot = createSoakSnapshot("save-delta-compaction-many-players");
+    const before = snapshot.state;
+    const after = structuredClone(before);
+    const school = after.schools[after.userSchoolId]!;
+
+    for (const [index, playerId] of school.playerIds.entries()) {
+      const player = after.players[playerId]!;
+      player.morale = Math.max(0, Math.min(100, player.morale + 1));
+      player.trust = Math.max(0, Math.min(100, player.trust + 2));
+      player.fatigue = Math.max(0, Math.min(100, player.fatigue + index + 1));
+    }
+
+    const raw = buildJsonStatePatch(before, after);
+    expect(raw.length).toBeGreaterThan(16);
+
+    const compact = compactJsonStatePatchForPersistence(
+      after as unknown as Record<string, unknown>,
+      raw,
+      16,
+    );
+
+    expect(compact.length).toBeLessThanOrEqual(16);
+    expect(applyPatch(before, compact)).toEqual(after);
+    expect(JSON.stringify(compact).length).toBeLessThan(
+      JSON.stringify(after).length / 2,
+    );
+    expect(
+      compact.every(
+        (operation) =>
+          operation.path[0] !== "players" || operation.path.length === 2,
+      ),
+    ).toBe(true);
   });
 
   it("keeps a realistic player update far smaller than the full save", () => {
