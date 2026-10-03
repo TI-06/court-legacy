@@ -175,14 +175,26 @@ describe("SupabaseGameStore save stability", () => {
     expect(persistedPatch).toHaveLength(16);
   });
 
-  it("falls back to full-state persistence when a patch would timeout Postgres", async () => {
+  it("falls back to full-state persistence when a compacted patch still exceeds the operation limit", async () => {
     const snapshot = createSoakSnapshot("phase37-large-week-patch");
     const operationId = "phase37-large-week-001";
+    const nextState = structuredClone(snapshot.state) as typeof snapshot.state &
+      Record<string, unknown>;
+    const statePatch = Array.from({ length: 17 }, (_, index) => {
+      const key = `uncompactableRoot${index}`;
+      nextState[key] = index;
+      return {
+        op: "set" as const,
+        path: [key],
+        value: index,
+      };
+    });
     const response = {
       operationId,
       game: {
         ...snapshot,
         revision: snapshot.revision + 1,
+        state: nextState,
       },
       outcome: { weekAdvanced: true },
     };
@@ -191,18 +203,13 @@ describe("SupabaseGameStore save stability", () => {
       error: null,
     });
     const store = new SupabaseGameStore(client);
-    const statePatch = Array.from({ length: 65 }, (_, index) => ({
-      op: "set" as const,
-      path: ["test", String(index)],
-      value: index,
-    }));
 
     await store.applyOperation({
       userId: snapshot.userId,
       operationId,
       expectedRevision: snapshot.revision,
       previousState: snapshot.state,
-      state: response.game.state,
+      state: nextState,
       statePatch,
       teamSelection: response.game.teamSelection,
       response,
@@ -218,14 +225,26 @@ describe("SupabaseGameStore save stability", () => {
     });
   });
 
-  it("never lets preferDelta bypass the hard patch-operation safety limit", async () => {
+  it("never lets preferDelta bypass the post-compaction operation safety limit", async () => {
     const snapshot = createSoakSnapshot("phase40-match-delta-hard-limit");
     const operationId = "phase40-match-op-hard-limit";
+    const nextState = structuredClone(snapshot.state) as typeof snapshot.state &
+      Record<string, unknown>;
+    const statePatch = Array.from({ length: 17 }, (_, index) => {
+      const key = `preferredUncompactableRoot${index}`;
+      nextState[key] = index;
+      return {
+        op: "set" as const,
+        path: [key],
+        value: index,
+      };
+    });
     const response = {
       operationId,
       game: {
         ...snapshot,
         revision: snapshot.revision + 1,
+        state: nextState,
       },
     };
     const client = createClient({
@@ -233,18 +252,13 @@ describe("SupabaseGameStore save stability", () => {
       error: null,
     });
     const store = new SupabaseGameStore(client);
-    const statePatch = Array.from({ length: 17 }, (_, index) => ({
-      op: "set" as const,
-      path: ["activeMatch", "eventLog", String(index)],
-      value: { sequence: index + 1 },
-    }));
 
     await store.applyOperation({
       userId: snapshot.userId,
       operationId,
       expectedRevision: snapshot.revision,
       previousState: snapshot.state,
-      state: response.game.state,
+      state: nextState,
       statePatch,
       preferDelta: true,
       teamSelection: response.game.teamSelection,
