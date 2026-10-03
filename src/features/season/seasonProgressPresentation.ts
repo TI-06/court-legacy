@@ -106,12 +106,16 @@ function tournamentGoalLabel(achievement: TournamentAchievementTarget): string {
 
 function goalLabel(goal: SeasonGoalResult): string {
   if (goal.kind === "regional-rank") return `県内${goal.target}位以内`;
+  if (goal.kind === "national-rank") return `全国${goal.target}位以内`;
+  if (goal.kind === "identity-mastery") return `チーム哲学习熟 ${goal.target}`;
   if (goal.kind === "official-wins") return `公式戦${goal.target}勝`;
   return tournamentGoalLabel(goal.achievement);
 }
 
 function goalProgressLabel(goal: SeasonGoalResult): string {
   if (goal.kind === "regional-rank") return `現在 ${goal.progress}位`;
+  if (goal.kind === "national-rank") return `現在 ${goal.progress}位`;
+  if (goal.kind === "identity-mastery") return `${goal.progress}/${goal.target}`;
   if (goal.kind === "official-wins") {
     return `${goal.progress}/${goal.target}勝`;
   }
@@ -120,8 +124,11 @@ function goalProgressLabel(goal: SeasonGoalResult): string {
 
 function goalRemainingLabel(goal: SeasonGoalResult): string {
   if (goal.achieved) return "達成済み";
-  if (goal.kind === "regional-rank") {
+  if (goal.kind === "regional-rank" || goal.kind === "national-rank") {
     return `あと${Math.max(0, goal.progress - goal.target)}位`;
+  }
+  if (goal.kind === "identity-mastery") {
+    return `あと${Math.max(0, goal.target - goal.progress)}`;
   }
   if (goal.kind === "official-wins") {
     return `あと${Math.max(0, goal.target - goal.progress)}勝`;
