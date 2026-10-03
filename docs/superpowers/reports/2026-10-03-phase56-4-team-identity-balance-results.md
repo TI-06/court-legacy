@@ -97,7 +97,7 @@ No further strength increase is justified by the matrix.
 
 - baseline equal-strength win rate: 50.0%
 - aligned mastery 100 win rate: 53.1%
-- aligned mastery delta: +3.1 percentage points
+- aligned mastery delta: +3.0 percentage points
 - mismatched mastery delta: 0.0 percentage points
 - mastery 100 against +8 ability opponent: 23.8% win rate
 
