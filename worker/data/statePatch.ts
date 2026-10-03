@@ -140,7 +140,10 @@ function valueAtPath(
       current = current[index];
       continue;
     }
-    if (!isRecord(current) || !Object.prototype.hasOwnProperty.call(current, segment)) {
+    if (
+      !isRecord(current) ||
+      !Object.prototype.hasOwnProperty.call(current, segment)
+    ) {
       return { present: false, value: undefined };
     }
     current = current[segment];
@@ -196,12 +199,15 @@ function collapsePatchGroupsAtDepth(
       const leftSavings = left.indices.length - 1;
       const rightSavings = right.indices.length - 1;
       const leftEfficiency = leftSavings / Math.max(1, left.replacementBytes);
-      const rightEfficiency = rightSavings / Math.max(1, right.replacementBytes);
+      const rightEfficiency =
+        rightSavings / Math.max(1, right.replacementBytes);
       return (
         rightEfficiency - leftEfficiency ||
         rightSavings - leftSavings ||
         left.replacementBytes - right.replacementBytes ||
-        JSON.stringify(left.prefix).localeCompare(JSON.stringify(right.prefix))
+        JSON.stringify(left.prefix).localeCompare(
+          JSON.stringify(right.prefix),
+        )
       );
     });
 
@@ -245,12 +251,7 @@ export function compactJsonStatePatchForPersistence(
     return secondLevel;
   }
 
-  return collapsePatchGroupsAtDepth(
-    after,
-    secondLevel,
-    1,
-    maximumOperations,
-  );
+  return collapsePatchGroupsAtDepth(after, secondLevel, 1, maximumOperations);
 }
 
 export function applyJsonStatePatch<T>(
