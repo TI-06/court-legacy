@@ -3,6 +3,7 @@ export function json(data: unknown, init: ResponseInit = {}): Response {
   if (!headers.has("content-type")) {
     headers.set("content-type", "application/json; charset=utf-8");
   }
+  headers.set("x-court-legacy-save-protocol", "game-v5-shop-v2");
 
   return new Response(JSON.stringify(data), {
     ...init,
