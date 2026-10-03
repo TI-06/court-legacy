@@ -19,7 +19,7 @@ import { rivalSchoolBalanceProfile } from "./rivalSchoolBalance";
 export const MAX_MATCH_HISTORY = 500;
 export const MAX_GRADUATE_HISTORY = 640;
 export const MAX_ALUMNI_PER_SCHOOL = 40;
-export const MAX_RIVAL_ALUMNI_PER_SCHOOL = 12;
+export const MAX_RIVAL_ALUMNI_PER_SCHOOL = 0;
 export const MAX_GENERATIONAL_TALENTS = 64;
 
 const DESTINY_RIVAL_THRESHOLD = 60;
@@ -517,9 +517,10 @@ export function compactLongTermArchives(state: GameState): GameState {
       school.id === state.userSchoolId
         ? MAX_ALUMNI_PER_SCHOOL
         : MAX_RIVAL_ALUMNI_PER_SCHOOL;
-    const alumniPlayerIds = [...new Set(school.alumniPlayerIds)].slice(
-      -alumniLimit,
-    );
+    const alumniPlayerIds =
+      alumniLimit === 0
+        ? []
+        : [...new Set(school.alumniPlayerIds)].slice(-alumniLimit);
     schools[school.id] = { ...school, alumniPlayerIds };
     for (const playerId of [...school.playerIds, ...alumniPlayerIds]) {
       retainedPlayerIds.add(playerId);
