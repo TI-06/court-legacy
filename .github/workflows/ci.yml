@@ -76,6 +76,36 @@ jobs:
           PHASE56_IDENTITY_MATRIX_RUN: "1"
         run: npx vitest run --config vitest.soak.config.ts tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
 
+  phase19-tactical-matrix:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run Phase19 tactical matrix
+        env:
+          PHASE19_TACTICAL_MATRIX_RUN: "1"
+        run: npx vitest run --config vitest.soak.config.ts tests/soak/phase19TacticalMatrix.test.ts --reporter=verbose
+
+  long-soak:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run long progression soak
+        run: npm run soak:long
+
   mobile-e2e:
     needs: quality
     runs-on: ubuntu-latest
