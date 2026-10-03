@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import { SupabaseGameStore } from "../../../../worker/data/SupabaseGameStore";
+import { buildJsonStatePatch } from "../../../../worker/data/statePatch";
 import type { SupabaseAdminClient } from "../../../../worker/data/createSupabaseAdmin";
 
 interface RpcResult {
@@ -117,6 +118,61 @@ describe("SupabaseGameStore save stability", () => {
     expect(JSON.stringify(rpcPayload?.p_state_patch).length).toBeLessThan(
       JSON.stringify(response.game.state).length / 10,
     );
+  });
+
+  it("compacts realistic high-fanout player changes before choosing full-state fallback", async () => {
+    const snapshot = createSoakSnapshot("save-store-compact-player-delta");
+    const nextState = structuredClone(snapshot.state);
+    const school = nextState.schools[nextState.userSchoolId]!;
+
+    for (const [index, playerId] of school.playerIds.entries()) {
+      const player = nextState.players[playerId]!;
+      player.morale = Math.max(0, Math.min(100, player.morale + 1));
+      player.trust = Math.max(0, Math.min(100, player.trust + 2));
+      player.fatigue = Math.max(0, Math.min(100, player.fatigue + index + 1));
+    }
+
+    const statePatch = buildJsonStatePatch(snapshot.state, nextState);
+    expect(statePatch.length).toBeGreaterThan(16);
+
+    const operationId = "save-store-compact-player-delta-op";
+    const response = {
+      operationId,
+      game: {
+        ...snapshot,
+        revision: snapshot.revision + 1,
+        state: nextState,
+      },
+    };
+    const client = createClient({
+      data: [{ response: null, replayed: false }],
+      error: null,
+    });
+    const store = new SupabaseGameStore(client);
+
+    await store.applyOperation({
+      userId: snapshot.userId,
+      operationId,
+      expectedRevision: snapshot.revision,
+      previousState: snapshot.state,
+      state: nextState,
+      statePatch,
+      teamSelection: snapshot.teamSelection,
+      response,
+    });
+
+    expect(client.rpc).toHaveBeenCalledWith("apply_game_operation_v4", {
+      p_user_id: snapshot.userId,
+      p_operation_id: operationId,
+      p_expected_revision: snapshot.revision,
+      p_state_patch: expect.any(Array),
+      p_team_selection: snapshot.teamSelection,
+      p_outcome: null,
+    });
+    const persistedPatch = vi.mocked(client.rpc).mock.calls[0]?.[1]
+      ?.p_state_patch;
+    expect(Array.isArray(persistedPatch)).toBe(true);
+    expect(persistedPatch).toHaveLength(16);
   });
 
   it("falls back to full-state persistence when a patch would timeout Postgres", async () => {
