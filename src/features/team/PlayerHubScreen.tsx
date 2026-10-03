@@ -293,6 +293,7 @@ export function PlayerHubScreen({
   onStartPositionConversion,
   onCancelPositionConversion,
   onSetTeamTactics,
+  onSetTeamIdentity,
   onSetTeamDefenseBias,
   onSaveLineupPreset,
   onDeleteLineupPreset,
