@@ -71,9 +71,9 @@ describe("Phase56 team identity action", () => {
       weeksInStyle: 0,
       changeCount: 1,
     });
-    expect(
-      result.state.schools[result.state.userSchoolId]!.tactics,
-    ).toEqual(tacticsBefore);
+    expect(result.state.schools[result.state.userSchoolId]!.tactics).toEqual(
+      tacticsBefore,
+    );
     expect(result.state.schemaVersion).toBe(schemaVersionBefore);
     expect(result.outcome).toEqual({ style: "quick-combination" });
   });
