@@ -136,7 +136,9 @@ describe("Phase21 character trait discovery", () => {
     const state = createState();
     const school = state.schools[state.userSchoolId]!;
     const alumniId = school.playerIds[0]!;
-    school.playerIds = school.playerIds.filter((playerId) => playerId !== alumniId);
+    school.playerIds = school.playerIds.filter(
+      (playerId) => playerId !== alumniId,
+    );
     school.alumniPlayerIds = [...school.alumniPlayerIds, alumniId];
     const alumni = assignOnly(state, alumniId, "character.training-lover");
     alumni.trust = 100;
