@@ -13,7 +13,7 @@ import type {
 
 type SeasonGoalSource = Pick<
   GameState,
-  "yearIndex" | "calendar" | "schools" | "userSchoolId"
+  "yearIndex" | "calendar" | "schools" | "userSchoolId" | "teamPlanning"
 >;
 
 function historyBaseline(school: School): SeasonHistoryBaseline {
@@ -78,7 +78,7 @@ function ambitionTournamentTarget(
   return baseTarget;
 }
 
-function regionalRankTarget(
+function rankTarget(
   startRank: number,
   total: number,
   ambition: SeasonAmbition,
@@ -88,25 +88,67 @@ function regionalRankTarget(
   return Math.max(1, startRank - improvement);
 }
 
+function identityMasteryTarget(
+  currentMastery: number,
+  ambition: SeasonAmbition,
+): number {
+  const increase = ambition === "steady" ? 10 : ambition === "bold" ? 30 : 20;
+  return Math.min(100, Math.max(0, currentMastery) + increase);
+}
+
+function buildFocusGoal(input: {
+  yearIndex: number;
+  startRegionalRank: number;
+  regionalTotal: number;
+  startNationalRank: number;
+  nationalTotal: number;
+  identityMastery: number;
+  ambition: SeasonAmbition;
+}): SeasonGoalDefinition {
+  const cycle = (input.yearIndex - 1) % 3;
+  if (cycle === 1) {
+    return {
+      id: `season:${input.yearIndex}:national-rank`,
+      kind: "national-rank",
+      target: rankTarget(
+        input.startNationalRank,
+        input.nationalTotal,
+        input.ambition,
+      ),
+    };
+  }
+  if (cycle === 2) {
+    return {
+      id: `season:${input.yearIndex}:identity-mastery`,
+      kind: "identity-mastery",
+      target: identityMasteryTarget(input.identityMastery, input.ambition),
+    };
+  }
+  return {
+    id: `season:${input.yearIndex}:regional-rank`,
+    kind: "regional-rank",
+    target: rankTarget(
+      input.startRegionalRank,
+      input.regionalTotal,
+      input.ambition,
+    ),
+  };
+}
+
 function buildGoals(input: {
   yearIndex: number;
   startRegionalRank: number;
   regionalTotal: number;
+  startNationalRank: number;
+  nationalTotal: number;
+  identityMastery: number;
   reputationPoints: number;
   ambition: SeasonAmbition;
 }): SeasonGoalDefinition[] {
   const baseWins = officialWinTarget(input.reputationPoints);
   const baseTournament = tournamentTarget(input.reputationPoints);
   return [
-    {
-      id: `season:${input.yearIndex}:regional-rank`,
-      kind: "regional-rank",
-      target: regionalRankTarget(
-        input.startRegionalRank,
-        input.regionalTotal,
-        input.ambition,
-      ),
-    },
+    buildFocusGoal(input),
     {
       id: `season:${input.yearIndex}:official-wins`,
       kind: "official-wins",
@@ -138,6 +180,9 @@ export function createSeasonGoals(
     yearIndex: state.yearIndex,
     startRegionalRank: ranking.regional.rank,
     regionalTotal: ranking.regional.total,
+    startNationalRank: ranking.national.rank,
+    nationalTotal: ranking.national.total,
+    identityMastery: state.teamPlanning.teamIdentity?.mastery ?? 50,
     reputationPoints: school.reputationPoints,
     ambition,
   });
@@ -218,11 +263,15 @@ export function evaluateSeasonGoals(
     const progress =
       goal.kind === "regional-rank"
         ? ranking.regional.rank
-        : goal.kind === "official-wins"
-          ? deltas.officialWins
-          : tournamentProgress(goal.achievement, deltas);
+        : goal.kind === "national-rank"
+          ? ranking.national.rank
+          : goal.kind === "identity-mastery"
+            ? (state.teamPlanning.teamIdentity?.mastery ?? 50)
+            : goal.kind === "official-wins"
+              ? deltas.officialWins
+              : tournamentProgress(goal.achievement, deltas);
     const achieved =
-      goal.kind === "regional-rank"
+      goal.kind === "regional-rank" || goal.kind === "national-rank"
         ? progress <= goal.target
         : progress >= goal.target;
     return { ...goal, progress, achieved };
@@ -279,6 +328,9 @@ export function previewSeasonAmbition(
       yearIndex: current.yearIndex,
       startRegionalRank: current.startingRanks.regional,
       regionalTotal: current.rankingTotals.regional,
+      startNationalRank: current.startingRanks.national,
+      nationalTotal: current.rankingTotals.national,
+      identityMastery: state.teamPlanning.teamIdentity?.mastery ?? 50,
       reputationPoints: school.reputationPoints,
       ambition,
     }),
