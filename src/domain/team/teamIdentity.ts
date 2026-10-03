@@ -157,7 +157,8 @@ export function progressTeamIdentityWeek(state: GameState): GameState {
   );
 
   const gain =
-    2 + (alignment >= 80 ? 3 : alignment >= 60 ? 2 : alignment >= 40 ? 1 : 0);
+    2 +
+    (alignment >= 80 ? 3 : alignment >= 60 ? 2 : alignment >= 40 ? 1 : 0);
   const mastery = Math.min(100, identity.mastery + gain);
 
   return {
