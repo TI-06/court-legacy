@@ -53,6 +53,7 @@ describe("save progression endurance", () => {
     let maximumStateBytes = 0;
     let maximumDeltaBytes = 0;
     let maximumDeltaRatio = 0;
+    let legacyFallbacksBeatenBySectionDelta = 0;
     let maximumMidMatchPatchBytes = 0;
 
     while (completedWeeks < 156 && actionCount < 6_000) {
@@ -110,6 +111,13 @@ describe("save progression endurance", () => {
         expect(reconstructed).toEqual(applied.state);
 
         const deltaBytes = JSON.stringify(delta).length;
+        if (
+          patch.length > LEGACY_MAX_JSON_PATCH_OPERATIONS ||
+          patchBytes > LEGACY_MAX_JSON_PATCH_BYTES
+        ) {
+          expect(deltaBytes).toBeLessThan(patchBytes);
+          legacyFallbacksBeatenBySectionDelta += 1;
+        }
         maximumDeltaBytes = Math.max(maximumDeltaBytes, deltaBytes);
         maximumDeltaRatio = Math.max(
           maximumDeltaRatio,
@@ -136,8 +144,10 @@ describe("save progression endurance", () => {
     // This proves the regression scenario remains represented: the legacy
     // fine-grained patch strategy would still fall back to full state often.
     expect(legacyFallbackCount).toBeGreaterThan(0);
+    expect(legacyFallbacksBeatenBySectionDelta).toBe(legacyFallbackCount);
 
-    // V5 must stay meaningfully smaller than the full authoritative save.
+    // V5 / browser section deltas must stay meaningfully smaller than both the
+    // legacy fine-grained patch and the full authoritative save.
     expect(maximumDeltaBytes).toBeLessThan(maximumStateBytes);
     expect(maximumDeltaRatio).toBeLessThan(0.9);
     expect(maximumMidMatchPatchBytes).toBeLessThanOrEqual(
