@@ -128,9 +128,9 @@ describe("Phase56 team identity foundation", () => {
       defenseBias: "balanced",
     };
 
-    expect(progressTeamIdentityWeek(state).teamPlanning.teamIdentity?.mastery).toBe(
-      100,
-    );
+    expect(
+      progressTeamIdentityWeek(state).teamPlanning.teamIdentity?.mastery,
+    ).toBe(100);
     expect(teamIdentityMasteryTier(0)).toBe("forming");
     expect(teamIdentityMasteryTier(30)).toBe("established");
     expect(teamIdentityMasteryTier(60)).toBe("mature");
