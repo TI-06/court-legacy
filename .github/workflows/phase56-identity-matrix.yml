@@ -28,4 +28,4 @@ jobs:
       - name: Run Phase56 identity balance matrix
         env:
           PHASE56_IDENTITY_MATRIX_RUN: "1"
-        run: npx vitest run tests/soak/phase56TeamIdentityMatrix.test.ts --reporter=verbose
+        run: npx vitest run --config vitest.phase56.config.ts --reporter=verbose
