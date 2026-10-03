@@ -147,9 +147,8 @@ export function TeamTacticsPanel({
     draft,
     defenseDraft,
   );
-  const masteryTier = masteryTierLabels[
-    teamIdentityMasteryTier(currentIdentity.mastery)
-  ];
+  const masteryTier =
+    masteryTierLabels[teamIdentityMasteryTier(currentIdentity.mastery)];
 
   const updateDraft = <Axis extends keyof MatchTacticPlan>(
     axis: Axis,
