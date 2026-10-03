@@ -138,6 +138,8 @@ describe("scouting board route", () => {
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(6);
     expect(gameStore.applyOperation).toHaveBeenCalledTimes(1);
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(persisted.stateDelta).toBeDefined();
 
     const body = await response.json();
     expect(body.operationId).toBe("scouting-board-001");
