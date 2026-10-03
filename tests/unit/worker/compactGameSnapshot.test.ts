@@ -148,9 +148,9 @@ describe("compactGameSnapshot", () => {
     const compacted = compactGameSnapshot(snapshot);
 
     expect(compacted.state.history.playerDevelopmentWeeks).toHaveLength(12);
-    expect(
-      compacted.state.history.playerDevelopmentWeeks[0]?.weekOfYear,
-    ).toBe(41);
+    expect(compacted.state.history.playerDevelopmentWeeks[0]?.weekOfYear).toBe(
+      41,
+    );
     expect(
       compacted.state.history.playerDevelopmentWeeks.at(-1)?.weekOfYear,
     ).toBe(52);
