@@ -1,5 +1,5 @@
-import type { GameState } from "../../src/domain/model/GameState";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
+import type { JsonStateDelta } from "./stateDelta";
 import type { ShopItemId } from "../../src/domain/shop/shopCatalog";
 
 export interface ShopStatusItem {
@@ -63,7 +63,7 @@ export interface CommitShopUseInput {
   requestFingerprint: string;
   expectedRevision: number;
   itemId: ShopItemId;
-  state: GameState;
+  stateDelta: JsonStateDelta;
   teamSelection: TeamSelection;
   targetType: ShopUseTargetType;
   targetId: string | null;
