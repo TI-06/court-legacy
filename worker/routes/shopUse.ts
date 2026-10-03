@@ -11,6 +11,8 @@ import {
 } from "../data/ShopStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
+import { buildJsonStateDelta } from "../data/stateDelta";
+import { compactGameSnapshot } from "../game/compactGameSnapshot";
 import {
   resolveShopUse,
   ShopUseResolutionError,
@@ -106,14 +108,15 @@ export function createShopUseHandler(
       );
     }
 
-    const snapshot = await deps.gameStore.getSnapshot(user.id);
-    if (!snapshot) {
+    const loadedSnapshot = await deps.gameStore.getSnapshot(user.id);
+    if (!loadedSnapshot) {
       return jsonError(
         409,
         "game_not_initialized",
         "学校データを作成してください",
       );
     }
+    const snapshot = compactGameSnapshot(loadedSnapshot);
     if (snapshot.revision !== parsed.data.revision) {
       return jsonError(
         409,
@@ -143,7 +146,10 @@ export function createShopUseHandler(
         requestFingerprint: fingerprint,
         expectedRevision: parsed.data.revision,
         itemId: parsed.data.itemId,
-        state: resolved.state,
+        stateDelta: buildJsonStateDelta(
+          snapshot.state as unknown as Record<string, unknown>,
+          resolved.state as unknown as Record<string, unknown>,
+        ),
         teamSelection: resolved.teamSelection,
         targetType: resolved.targetType,
         targetId: resolved.targetId,
