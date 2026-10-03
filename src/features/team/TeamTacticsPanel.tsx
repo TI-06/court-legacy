@@ -6,6 +6,15 @@ import type {
   ServePlan,
 } from "../../domain/team/matchTactics";
 import {
+  calculateTeamIdentityAlignment,
+  TEAM_IDENTITY_DEFINITIONS,
+  teamIdentityMasteryTier,
+} from "../../domain/team/teamIdentity";
+import type {
+  TeamIdentityState,
+  TeamIdentityStyle,
+} from "../../domain/team/teamPlanningTypes";
+import {
   attackTacticOptions,
   blockTacticOptions,
   defenseBiasOptions,
@@ -18,9 +27,11 @@ import "./team-tactics.css";
 export interface TeamTacticsPanelProps {
   currentPlan: MatchTacticPlan;
   currentDefenseBias: DefenseBias;
+  currentIdentity: TeamIdentityState;
   pending: boolean;
   onSave: (plan: MatchTacticPlan) => void;
   onSaveDefenseBias: (defenseBias: DefenseBias) => void;
+  onSaveIdentity: (style: TeamIdentityStyle) => void;
 }
 
 interface DraftState {
@@ -32,6 +43,18 @@ interface DefenseDraftState {
   baseValue: DefenseBias;
   value: DefenseBias;
 }
+
+interface IdentityDraftState {
+  baseStyle: TeamIdentityStyle;
+  style: TeamIdentityStyle;
+}
+
+const masteryTierLabels = {
+  forming: "形成中",
+  established: "定着",
+  mature: "熟練",
+  signature: "完成",
+} as const;
 
 function samePlan(left: MatchTacticPlan, right: MatchTacticPlan): boolean {
   return (
@@ -86,13 +109,17 @@ function TacticChoiceGroup<Value extends string>({
 export function TeamTacticsPanel({
   currentPlan,
   currentDefenseBias,
+  currentIdentity,
   pending,
   onSave,
   onSaveDefenseBias,
+  onSaveIdentity,
 }: TeamTacticsPanelProps) {
   const [draftState, setDraftState] = useState<DraftState | null>(null);
   const [defenseDraftState, setDefenseDraftState] =
     useState<DefenseDraftState | null>(null);
+  const [identityDraftState, setIdentityDraftState] =
+    useState<IdentityDraftState | null>(null);
   const authoritativeKey = planKey(currentPlan);
   const draft =
     draftState?.baseKey === authoritativeKey ? draftState.plan : currentPlan;
@@ -106,6 +133,23 @@ export function TeamTacticsPanel({
       ? defenseDraftState.value
       : currentDefenseBias;
   const defenseUnchanged = defenseDraft === currentDefenseBias;
+  const identityDraft =
+    identityDraftState?.baseStyle === currentIdentity.style
+      ? identityDraftState.style
+      : currentIdentity.style;
+  const identityUnchanged = identityDraft === currentIdentity.style;
+  const currentIdentityDefinition =
+    TEAM_IDENTITY_DEFINITIONS.find(
+      (definition) => definition.id === currentIdentity.style,
+    ) ?? TEAM_IDENTITY_DEFINITIONS.at(-1)!;
+  const identityAlignment = calculateTeamIdentityAlignment(
+    identityDraft,
+    draft,
+    defenseDraft,
+  );
+  const masteryTier = masteryTierLabels[
+    teamIdentityMasteryTier(currentIdentity.mastery)
+  ];
 
   const updateDraft = <Axis extends keyof MatchTacticPlan>(
     axis: Axis,
@@ -125,6 +169,82 @@ export function TeamTacticsPanel({
           <h2>基本戦術</h2>
           <p>普段の戦い方を決めます。試合前にはその試合だけ変更できます。</p>
         </div>
+      </section>
+
+      <section className="team-tactics__identity" aria-label="チーム哲学">
+        <div className="team-tactics__identity-heading">
+          <div>
+            <p className="section-kicker">TEAM IDENTITY</p>
+            <h3>チーム哲学</h3>
+          </div>
+          <span>
+            {masteryTier} {currentIdentity.mastery}
+          </span>
+        </div>
+
+        <div className="team-tactics__identity-current">
+          <div>
+            <span>現在</span>
+            <strong>{currentIdentityDefinition.label}</strong>
+            <small>{currentIdentityDefinition.description}</small>
+          </div>
+          <div
+            aria-label={`チーム哲学习熟度 ${currentIdentity.mastery}`}
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={currentIdentity.mastery}
+            className="team-tactics__identity-meter"
+            role="progressbar"
+          >
+            <i style={{ width: `${currentIdentity.mastery}%` }} />
+          </div>
+        </div>
+
+        <div
+          aria-label="チーム哲学を選択"
+          className="team-tactics__identity-choices"
+          role="group"
+        >
+          {TEAM_IDENTITY_DEFINITIONS.map((definition) => (
+            <button
+              aria-pressed={identityDraft === definition.id}
+              className="team-tactics__identity-choice"
+              disabled={pending}
+              key={definition.id}
+              onClick={() =>
+                setIdentityDraftState({
+                  baseStyle: currentIdentity.style,
+                  style: definition.id,
+                })
+              }
+              type="button"
+            >
+              <strong>{definition.label}</strong>
+              <small>{definition.description}</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="team-tactics__identity-fit">
+          <span>現在の戦術との一致度</span>
+          <strong>{identityAlignment}%</strong>
+        </div>
+
+        {!identityUnchanged ? (
+          <p className="team-tactics__identity-warning">
+            方針を変更すると、習熟度は最大30から再スタートします。
+          </p>
+        ) : null}
+
+        <button
+          aria-label="チーム哲学を保存"
+          className="team-tactics__save"
+          disabled={pending || identityUnchanged}
+          onClick={() => onSaveIdentity(identityDraft)}
+          type="button"
+        >
+          {pending ? "チーム哲学を保存しています…" : "チーム哲学を保存"}
+        </button>
       </section>
 
       <TacticChoiceGroup<ServePlan>
