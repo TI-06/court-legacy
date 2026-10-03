@@ -50,6 +50,16 @@ describe("phase40 long-session save endurance", () => {
     let fullStateFallbackOperations = 0;
     let largestPatchOperations = 0;
     let largestPatchBytes = 0;
+    const fallbackSamples: Array<{
+      actionCount: number;
+      completedWeeks: number;
+      completedMatches: number;
+      actionType: GameAction["type"];
+      patchOperations: number;
+      patchBytes: number;
+      stateBytes: number;
+      activeMatchBytes: number;
+    }> = [];
     const maximumActions = 4_000;
 
     while (completedWeeks < 104 || completedMatches < 6) {
@@ -86,6 +96,20 @@ describe("phase40 long-session save endurance", () => {
 
       if (usesFullStateFallback) {
         fullStateFallbackOperations += 1;
+        if (fallbackSamples.length < 40) {
+          fallbackSamples.push({
+            actionCount,
+            completedWeeks,
+            completedMatches,
+            actionType: action.type,
+            patchOperations: patch.length,
+            patchBytes,
+            stateBytes: JSON.stringify(applied.state).length,
+            activeMatchBytes: applied.state.activeMatch
+              ? JSON.stringify(applied.state.activeMatch).length
+              : 0,
+          });
+        }
       } else {
         deltaEligibleOperations += 1;
       }
@@ -117,6 +141,20 @@ describe("phase40 long-session save endurance", () => {
       snapshot = nextSnapshot;
       actionCount += 1;
     }
+
+    console.info(
+      "PHASE40_SAVE_FALLBACKS",
+      JSON.stringify({
+        completedWeeks,
+        completedMatches,
+        actionCount,
+        fullStateFallbackOperations,
+        deltaEligibleOperations,
+        largestPatchOperations,
+        largestPatchBytes,
+        fallbackSamples,
+      }),
+    );
 
     expect(completedWeeks).toBeGreaterThanOrEqual(104);
     expect(completedMatches).toBeGreaterThanOrEqual(6);
