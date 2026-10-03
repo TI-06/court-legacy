@@ -18,11 +18,7 @@ export interface SeasonStory {
   focusLabel: string;
 }
 
-const STAR_TIERS = new Set<PlayerTier>([
-  "elite",
-  "generational",
-  "monster",
-]);
+const STAR_TIERS = new Set<PlayerTier>(["elite", "generational", "monster"]);
 
 function previousNationalChampion(state: GameState): boolean {
   const previousAcademicYear = state.calendar.academicYear - 1;
