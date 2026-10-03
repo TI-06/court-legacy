@@ -18,7 +18,9 @@ describe("Phase56 team identity foundation", () => {
     expect(state.teamPlanning.teamIdentity).toBeUndefined();
   });
 
-  it("changes identity without allowing mastery to carry over at full strength", () => {
+  it(
+    "changes identity without allowing mastery to carry over at full strength",
+    () => {
     const state = createDemoGame();
     state.teamPlanning.teamIdentity = {
       style: "balanced",
@@ -36,10 +38,13 @@ describe("Phase56 team identity foundation", () => {
       changeCount: 3,
     });
     expect(state.teamPlanning.teamIdentity?.style).toBe("balanced");
-    expect(setTeamIdentityStyle(updated, "quick-combination")).toBe(updated);
-  });
+      expect(setTeamIdentityStyle(updated, "quick-combination")).toBe(updated);
+    },
+  );
 
-  it("scores tactical alignment by identity without applying a hidden match bonus", () => {
+  it(
+    "scores tactical alignment by identity without applying a hidden match bonus",
+    () => {
     expect(
       calculateTeamIdentityAlignment(
         "serve-block",
@@ -74,10 +79,13 @@ describe("Phase56 team identity foundation", () => {
         },
         "balanced",
       ),
-    ).toBe(100);
-  });
+      ).toBe(100);
+    },
+  );
 
-  it("progresses mastery faster when weekly tactics match the chosen identity", () => {
+  it(
+    "progresses mastery faster when weekly tactics match the chosen identity",
+    () => {
     const aligned = createDemoGame();
     const alignedSchool = aligned.schools[aligned.userSchoolId]!;
     aligned.teamPlanning.teamIdentity = {
@@ -108,8 +116,9 @@ describe("Phase56 team identity foundation", () => {
     expect(alignedNext.teamPlanning.teamIdentity?.mastery).toBe(45);
     expect(misalignedNext.teamPlanning.teamIdentity?.mastery).toBe(42);
     expect(alignedNext.teamPlanning.teamIdentity?.weeksInStyle).toBe(4);
-    expect(aligned.teamPlanning.teamIdentity?.mastery).toBe(40);
-  });
+      expect(aligned.teamPlanning.teamIdentity?.mastery).toBe(40);
+    },
+  );
 
   it("caps mastery and exposes stable mastery tiers", () => {
     const state = createDemoGame();
