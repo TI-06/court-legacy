@@ -200,19 +200,19 @@ describe("save failure route diagnostic", () => {
       largestFallbacks,
     };
 
-    throw new Error(
-      `SAVE_ROUTE_DIAGNOSTIC ${JSON.stringify({
-        completedWeeks: diagnostic.completedWeeks,
-        completedMatches: diagnostic.completedMatches,
-        actionCount: diagnostic.actionCount,
-        fullStateFallbackCount: diagnostic.fullStateFallbackCount,
-        fullStateFallbackRate: diagnostic.fullStateFallbackRate,
-        maxStateBytes: diagnostic.maxStateBytes,
-        maxPatchBytes: diagnostic.maxPatchBytes,
-        maxPatchOperations: diagnostic.maxPatchOperations,
-        byAction: diagnostic.byAction,
-      })}`,
-    );
+    const compactDiagnostic = {
+      completedWeeks: diagnostic.completedWeeks,
+      completedMatches: diagnostic.completedMatches,
+      actionCount: diagnostic.actionCount,
+      fullStateFallbackCount: diagnostic.fullStateFallbackCount,
+      fullStateFallbackRate: diagnostic.fullStateFallbackRate,
+      maxStateBytes: diagnostic.maxStateBytes,
+      maxPatchBytes: diagnostic.maxPatchBytes,
+      maxPatchOperations: diagnostic.maxPatchOperations,
+      byAction: diagnostic.byAction,
+    };
+    console.error("SAVE_ROUTE_DIAGNOSTIC", JSON.stringify(compactDiagnostic));
+    throw new Error("save route diagnostic complete");
 
     expect(completedWeeks).toBeGreaterThanOrEqual(156);
     expect(completedMatches).toBeGreaterThanOrEqual(9);
