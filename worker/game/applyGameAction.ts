@@ -118,6 +118,7 @@ import {
 } from "../../src/domain/season/seasonGoals";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
+import { setTeamIdentityStyle } from "../../src/domain/team/teamIdentity";
 import {
   deleteLineupPreset,
   saveLineupPreset,
@@ -588,6 +589,18 @@ function applyTeamTactics(
       },
     },
     teamSelection,
+  };
+}
+
+function applyTeamIdentity(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "set-team-identity" }>,
+): AppliedGameAction {
+  return {
+    state: setTeamIdentityStyle(state, action.style),
+    teamSelection,
+    outcome: { style: action.style },
   };
 }
 
@@ -2245,6 +2258,8 @@ function applyActionByType(
       return applyTeamSelection(state, action);
     case "set-team-tactics":
       return applyTeamTactics(state, teamSelection, action);
+    case "set-team-identity":
+      return applyTeamIdentity(state, teamSelection, action);
     case "set-team-defense-bias":
       return applyTeamDefenseBias(state, teamSelection, action);
     case "set-team-leadership":
