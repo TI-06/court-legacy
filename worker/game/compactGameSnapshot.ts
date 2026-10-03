@@ -1,3 +1,4 @@
+import { MAX_PLAYER_DEVELOPMENT_WEEKS } from "../../src/domain/player/playerDevelopmentHistory";
 import {
   compactLongTermArchives,
   MAX_ALUMNI_PER_SCHOOL,
@@ -14,7 +15,10 @@ function needsLongTermArchiveCompaction(snapshot: CloudGameSnapshot): boolean {
       school.id === snapshot.state.userSchoolId
         ? MAX_ALUMNI_PER_SCHOOL
         : MAX_RIVAL_ALUMNI_PER_SCHOOL;
-    const alumniPlayerIds = [...new Set(school.alumniPlayerIds)].slice(-limit);
+    const alumniPlayerIds =
+      limit === 0
+        ? []
+        : [...new Set(school.alumniPlayerIds)].slice(-limit);
     if (new Set(school.alumniPlayerIds).size > limit) {
       return true;
     }
@@ -37,18 +41,35 @@ export function compactGameSnapshot(
   const archiveCompactedState = needsLongTermArchiveCompaction(snapshot)
     ? compactLongTermArchives(snapshot.state)
     : snapshot.state;
-  const completedMatch = archiveCompactedState.activeMatch;
+  const developmentWeeks =
+    archiveCompactedState.history.playerDevelopmentWeeks.length >
+    MAX_PLAYER_DEVELOPMENT_WEEKS
+      ? archiveCompactedState.history.playerDevelopmentWeeks.slice(
+          -MAX_PLAYER_DEVELOPMENT_WEEKS,
+        )
+      : archiveCompactedState.history.playerDevelopmentWeeks;
+  const developmentCompactedState =
+    developmentWeeks === archiveCompactedState.history.playerDevelopmentWeeks
+      ? archiveCompactedState
+      : {
+          ...archiveCompactedState,
+          history: {
+            ...archiveCompactedState.history,
+            playerDevelopmentWeeks: developmentWeeks,
+          },
+        };
+  const completedMatch = developmentCompactedState.activeMatch;
   const matchCompactedState =
     completedMatch?.phase === "match-complete" &&
     completedMatch.eventLog.length > 0
       ? {
-          ...archiveCompactedState,
+          ...developmentCompactedState,
           activeMatch: {
             ...completedMatch,
             eventLog: [],
           },
         }
-      : archiveCompactedState;
+      : developmentCompactedState;
   const items = matchCompactedState.notifications.items;
   if (items.length <= 1 && matchCompactedState === snapshot.state) {
     return snapshot;
