@@ -173,6 +173,20 @@ const seasonGoalDefinitionSchema = z.discriminatedUnion("kind", [
   z
     .object({
       id: z.string().min(1),
+      kind: z.literal("national-rank"),
+      target: z.number().int().positive(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("identity-mastery"),
+      target: z.number().int().min(0).max(100),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
       kind: z.literal("official-wins"),
       target: z.number().int().positive(),
     })
@@ -205,6 +219,24 @@ const seasonGoalResultSchema = z.discriminatedUnion("kind", [
       kind: z.literal("regional-rank"),
       target: z.number().int().positive(),
       progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("national-rank"),
+      target: z.number().int().positive(),
+      progress: z.number().int().nonnegative(),
+      achieved: z.boolean(),
+    })
+    .strict(),
+  z
+    .object({
+      id: z.string().min(1),
+      kind: z.literal("identity-mastery"),
+      target: z.number().int().min(0).max(100),
+      progress: z.number().int().min(0).max(100),
       achieved: z.boolean(),
     })
     .strict(),
