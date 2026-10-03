@@ -38,7 +38,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "foundation",
       label: "土台づくり",
-      headline: "まずはチームの軸を作るシーズン",
+      headline: "まずはチームの軸を作る年",
       detail: "育成とスカウトを積み上げ、次の勝負年へつなげます。",
       focusLabel: "育成・スカウト",
     };
@@ -60,7 +60,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "title-defense",
       label: "王者防衛",
-      headline: "追われる立場で迎えるシーズン",
+      headline: "王者として迎える年",
       detail:
         "前年の全国制覇を再現できるか。主力管理と勝負所の完成度が問われます。",
       focusLabel: "連覇・主力管理",
@@ -71,7 +71,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "golden-generation",
       label: "黄金世代",
-      headline: "特別な才能を結果へ変えるシーズン",
+      headline: "才能を結果へ変える年",
       detail: `注目級の選手が${starPlayers.length}名。全国で結果を残せる世代です。`,
       focusLabel: "全国・主力育成",
     };
@@ -81,7 +81,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "senior-window",
       label: "集大成",
-      headline: "3年生中心の勝負年",
+      headline: "3年生の集大成",
       detail: `3年生が${thirdYears}名。今の主力で取れる結果を取りに行くシーズンです。`,
       focusLabel: "勝負・コンディション",
     };
@@ -91,7 +91,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "rebuild",
       label: "再構築",
-      headline: "若い戦力を次の柱へ育てるシーズン",
+      headline: "若手を柱へ育てる年",
       detail: `1年生が${firstYears}名。目先の結果と将来への投資を両立します。`,
       focusLabel: "育成・経験",
     };
@@ -101,7 +101,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "national-chase",
       label: "全国上位挑戦",
-      headline: "全国の壁を越えるシーズン",
+      headline: "全国上位を狙う年",
       detail:
         startingNationalRank <= 16
           ? `全国${startingNationalRank}位スタート。上位定着を狙います。`
@@ -114,7 +114,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
     return {
       id: "breakthrough",
       label: "突破の年",
-      headline: "県内上位から全国へ踏み出すシーズン",
+      headline: "全国へ踏み出す年",
       detail:
         startingRegionalRank <= 4
           ? `県内${startingRegionalRank}位スタート。全国出場が現実的な目標です。`
@@ -126,7 +126,7 @@ export function selectSeasonStory(state: GameState): SeasonStory {
   return {
     id: "foundation",
     label: "土台づくり",
-    headline: "チームの基礎を積み上げるシーズン",
+    headline: "チームの土台を作る年",
     detail: "育成・設備・スカウトを整え、次の勝負年へつなげます。",
     focusLabel: "育成・基盤",
   };
