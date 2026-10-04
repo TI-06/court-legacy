@@ -116,6 +116,10 @@ import {
   SeasonAmbitionSelectionError,
   selectSeasonAmbition,
 } from "../../src/domain/season/seasonGoals";
+import {
+  resolveSeasonTurningPoint,
+  SeasonTurningPointError,
+} from "../../src/domain/season/seasonTurningPoint";
 import { autoSelectTeam } from "../../src/domain/team/autoSelectTeam";
 import { applyMatchTacticPlan } from "../../src/domain/team/matchTactics";
 import { setTeamIdentityStyle } from "../../src/domain/team/teamIdentity";
@@ -1897,6 +1901,32 @@ function applySeasonAmbition(
   }
 }
 
+function applySeasonTurningPoint(
+  state: GameState,
+  teamSelection: TeamSelection,
+  action: Extract<GameAction, { type: "resolve-season-turning-point" }>,
+): AppliedGameAction {
+  try {
+    return {
+      state: resolveSeasonTurningPoint(
+        state,
+        action.turningPointId,
+        action.choiceId,
+      ),
+      teamSelection,
+      outcome: {
+        turningPointId: action.turningPointId,
+        choiceId: action.choiceId,
+      },
+    };
+  } catch (error) {
+    if (error instanceof SeasonTurningPointError) {
+      return conflict(`season_turning_point_${error.reason}`, error.message);
+    }
+    throw error;
+  }
+}
+
 function applyMarkNotificationRead(
   state: GameState,
   teamSelection: TeamSelection,
@@ -2259,6 +2289,8 @@ function applyActionByType(
       return applyTraining(state, teamSelection, action);
     case "set-season-ambition":
       return applySeasonAmbition(state, teamSelection, action);
+    case "resolve-season-turning-point":
+      return applySeasonTurningPoint(state, teamSelection, action);
     case "set-training-plan":
       return applyTrainingPlan(state, teamSelection, action);
     case "team-selection":
