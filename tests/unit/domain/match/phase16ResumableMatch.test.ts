@@ -204,31 +204,36 @@ describe("Phase16 resumable match API", () => {
     }
   });
 
-  it("opens a mid-set decision only when the controlled team is under pressure", () => {
-    const context = createContext("phase30-midset-world");
-    const found = findDecision(context, "mid-set", "phase30-midset");
-    const runtime = found.match.runtime!;
-    const controlledScore =
-      runtime.controlledSchoolId === found.match.homeSchoolId
-        ? runtime.homeScore
-        : runtime.awayScore;
-    const opponentScore =
-      runtime.controlledSchoolId === found.match.homeSchoolId
-        ? runtime.awayScore
-        : runtime.homeScore;
-    const requiredDeficit =
-      found.match.currentSetNumber === found.match.bestOfSets ? 2 : 3;
+  it(
+    "opens a mid-set decision only when the controlled team is under pressure",
+    () => {
+      const context = createContext("phase30-midset-world");
+      const found = findDecision(context, "mid-set", "phase30-midset");
+      const runtime = found.match.runtime!;
+      const controlledScore =
+        runtime.controlledSchoolId === found.match.homeSchoolId
+          ? runtime.homeScore
+          : runtime.awayScore;
+      const opponentScore =
+        runtime.controlledSchoolId === found.match.homeSchoolId
+          ? runtime.awayScore
+          : runtime.homeScore;
+      const requiredDeficit =
+        found.match.currentSetNumber === found.match.bestOfSets ? 2 : 3;
 
-    expect(found.match.phase).toBe("coach-decision");
-    expect(runtime.pendingDecisionReason).toBe("mid-set");
-    expect(Math.max(runtime.homeScore, runtime.awayScore)).toBeGreaterThanOrEqual(
-      found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
-    );
-    expect(opponentScore - controlledScore).toBeGreaterThanOrEqual(
-      requiredDeficit,
-    );
-    expect(runtime.midSetDecisionConsumed).not.toBe(true);
-  });
+      expect(found.match.phase).toBe("coach-decision");
+      expect(runtime.pendingDecisionReason).toBe("mid-set");
+      expect(
+        Math.max(runtime.homeScore, runtime.awayScore),
+      ).toBeGreaterThanOrEqual(
+        found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
+      );
+      expect(opponentScore - controlledScore).toBeGreaterThanOrEqual(
+        requiredDeficit,
+      );
+      expect(runtime.midSetDecisionConsumed).not.toBe(true);
+    },
+  );
 
   it("opens an opponent-run decision exactly when the opponent reaches four straight points", () => {
     const context = createContext("phase16-run-world");
