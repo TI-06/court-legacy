@@ -3,7 +3,6 @@ import { findCurrentTrainingCampActivity } from "../calendar/trainingCampCalenda
 import type { GameState } from "../model/GameState";
 import { SeededRandom } from "../random/SeededRandom";
 import { selectNextOfficialEvent } from "../tournament/tournamentSelectors";
-import { selectFeaturedUserRival } from "../world/rivalryHistory";
 import { selectNextEvent } from "./selectEvent";
 
 function hasDueFollowUp(state: GameState): boolean {
@@ -24,14 +23,6 @@ function contextualEventTag(state: GameState): string | undefined {
     nextOfficial.weeksUntil !== 1
   ) {
     return undefined;
-  }
-
-  const featuredRival = selectFeaturedUserRival(state);
-  if (
-    featuredRival &&
-    nextOfficial.opponent.schoolId === featuredRival.opponentSchoolId
-  ) {
-    return "rival";
   }
 
   return "tournament";
