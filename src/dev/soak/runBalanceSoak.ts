@@ -731,7 +731,7 @@ export function advanceSoakUntilWeekChanges(
     const action = nextAction(current);
     const resolvedEventId =
       action.type === "event-choice"
-        ? current.state.pendingEvent?.eventId ?? null
+        ? (current.state.pendingEvent?.eventId ?? null)
         : null;
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
