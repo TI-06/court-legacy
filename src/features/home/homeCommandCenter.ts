@@ -46,6 +46,10 @@ import {
   selectSeasonStory,
   type SeasonStory,
 } from "../../domain/season/seasonStory";
+import {
+  selectSeasonTurningPoint,
+  type SeasonTurningPoint,
+} from "../../domain/season/seasonTurningPoint";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 
 export type HomeCommandPriority =
@@ -62,6 +66,7 @@ export type HomeCommandAction =
   | { target: "scouting" }
   | { target: "practice" }
   | { target: "tournament" }
+  | { target: "season-turning-point" }
   | { target: "start-week-match" };
 
 export interface HomeSummary {
@@ -130,7 +135,8 @@ interface HomeBaseTask {
     | "injury"
     | "facility"
     | "staff"
-    | "scouting";
+    | "scouting"
+    | "season";
   title: string;
   detail: string;
 }
@@ -209,6 +215,7 @@ export type HomeCommandNews =
 
 export interface HomeCommandCenterModel {
   summary: HomeSummary;
+  turningPoint: SeasonTurningPoint | null;
   tasks: HomeCommandTask[];
   news: HomeCommandNews[];
   advance: {
@@ -525,6 +532,7 @@ function buildTasks(
     "trainingMenus" | "individualTrainingInstructions"
   >,
   players: readonly Player[],
+  turningPoint: SeasonTurningPoint | null,
 ): HomeCommandTask[] {
   const school = state.schools[state.userSchoolId];
   if (!school) return [];
@@ -543,6 +551,23 @@ function buildTasks(
         detail: `${levelLabels[nextOfficial.level]} ${roundLabels[nextOfficial.round]}・vs ${nextOfficial.opponent.shortName}`,
         action: { target: "start-week-match" },
         actionLabel: "試合準備",
+        complete: false,
+      },
+    });
+  }
+
+  if (turningPoint) {
+    candidates.push({
+      order: 5,
+      task: {
+        id: `season-turning:${turningPoint.id}`,
+        kind: "action",
+        priority: "attention",
+        category: "season",
+        title: "今季の重要判断",
+        detail: `${turningPoint.contextLabel}・${turningPoint.title}`,
+        action: { target: "season-turning-point" },
+        actionLabel: "判断",
         complete: false,
       },
     });
@@ -934,10 +959,12 @@ export function selectHomeCommandCenter(input: {
     input.state.weeklySchedule.practiceMatch.incomingOffer &&
     !input.state.weeklySchedule.practiceMatch.scheduledOpponentId,
   );
+  const turningPoint = selectSeasonTurningPoint(input.state);
 
   return {
     summary: buildSummary(input.state, input.homeStrength, players),
-    tasks: buildTasks(input.state, input.data, players),
+    turningPoint,
+    tasks: buildTasks(input.state, input.data, players, turningPoint),
     news: buildNews(input.state),
     advance: {
       requiresConfirmation: unansweredOffer,
