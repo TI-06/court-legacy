@@ -771,7 +771,10 @@ export function advanceSoakUntilWeekChanges(
         outcome.academicYearTransition ?? academicYearTransition;
     }
     completedMatches += next.state.history.matches.filter(
-      (match) => !historyMatchIds.has(String(match.matchId)),
+      (match) =>
+        !historyMatchIds.has(String(match.matchId)) &&
+        (match.homeSchoolId === next.state.userSchoolId ||
+          match.awaySchoolId === next.state.userSchoolId),
     ).length;
 
     current = next;
