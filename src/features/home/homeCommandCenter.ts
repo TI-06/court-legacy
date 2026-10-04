@@ -42,6 +42,10 @@ import type {
   TournamentRound,
 } from "../../domain/tournament/tournamentTypes";
 import { selectPracticeRecommendation } from "../../domain/weekly/practiceMatchPlanning";
+import {
+  selectSeasonStory,
+  type SeasonStory,
+} from "../../domain/season/seasonStory";
 import { buildSeasonProgressPresentation } from "../season/seasonProgressPresentation";
 
 export type HomeCommandPriority =
@@ -93,6 +97,7 @@ export interface HomeSummary {
   };
   season: null | {
     academicYear: number;
+    story: SeasonStory;
     ambitionLabel: string;
     remainingRewardFunds: number;
     achievedCount: number;
@@ -416,6 +421,7 @@ function buildSummary(
     season: seasonProgress
       ? {
           academicYear: seasonProgress.academicYear,
+          story: selectSeasonStory(state),
           ambitionLabel: seasonProgress.ambitionLabel,
           remainingRewardFunds: seasonProgress.remainingRewardFunds,
           achievedCount: seasonProgress.achievedCount,

@@ -352,21 +352,20 @@ export function HomeCommandCenter({
           ) : null}
 
           {summary.season ? (
-            <section className="home-season-card" aria-label="今季目標">
-              <div className="home-season-card__goal">
+            <section className="home-season-card" aria-label="今季ストーリー">
+              <div
+                className="home-season-card__goal"
+                title={summary.season.story.detail}
+              >
                 <span>
-                  今季目標・{summary.season.ambitionLabel}・残り報酬 +
-                  {summary.season.remainingRewardFunds}
+                  今季・{summary.season.story.label}・
+                  {summary.season.story.focusLabel}
                 </span>
-                <strong>
-                  {summary.season.primaryGoal?.label ?? "目標達成"}
-                </strong>
+                <strong>{summary.season.story.headline}</strong>
                 <small>
-                  {summary.season.primaryGoal?.progressLabel ?? "全目標達成"}
-                  {summary.season.primaryGoal
-                    ? `・年度末 +${summary.season.primaryGoal.rewardFunds}`
-                    : ""}
-                  ・{summary.season.achievedCount}/{summary.season.goalCount}
+                  {summary.season.primaryGoal?.label ?? "全目標達成"}・
+                  {summary.season.primaryGoal?.progressLabel ?? "達成"}・
+                  {summary.season.achievedCount}/{summary.season.goalCount}
                   達成
                 </small>
               </div>
