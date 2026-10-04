@@ -482,7 +482,8 @@ export function advanceAcademicYear(
         state.date,
       ),
       completedActivityIds: state.calendar.completedActivityIds.filter(
-        (id) => !id.startsWith("week:"),
+        (id) =>
+          !id.startsWith("week:") && !id.startsWith("season-turning:"),
       ),
     },
   };
