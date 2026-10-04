@@ -108,7 +108,11 @@ describe("year transition dialog", () => {
     expect(intakeMetric).not.toBeNull();
     expect(within(graduationMetric!).getByText("4名")).toBeVisible();
     expect(within(intakeMetric!).getByText(/\d+名/)).toBeVisible();
-    expect(screen.getByText("新主将")).toBeVisible();
+    const generation = screen.getByRole("region", { name: "世代交代" });
+    expect(within(generation).getByText("GENERATION SHIFT")).toBeVisible();
+    expect(within(generation).getByText("卒業世代の中心")).toBeVisible();
+    expect(within(generation).getByText("新主将")).toBeVisible();
+    expect(within(generation).getByText("新入生の注目株")).toBeVisible();
     expect(screen.getByText("世代級選手が入学")).toBeVisible();
 
     const awards = screen.getByRole("region", { name: "年間表彰" });

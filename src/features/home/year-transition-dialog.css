@@ -641,3 +641,100 @@
     white-space: normal;
   }
 }
+
+.year-transition-generation {
+  display: grid;
+  min-width: 0;
+  padding: 11px;
+  gap: 8px;
+  color: #edf7f8;
+  background: linear-gradient(145deg, #17323f, #214c58);
+  border: 1px solid rgb(126 208 218 / 22%);
+  border-radius: 14px;
+}
+
+.year-transition-generation__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.year-transition-generation__heading span {
+  color: #83d6df;
+  font-size: 0.52rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+}
+
+.year-transition-generation__heading h3 {
+  margin: 2px 0 0;
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.year-transition-generation__heading small {
+  color: #abc8cd;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.year-transition-generation__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.year-transition-generation__grid article {
+  display: grid;
+  min-width: 0;
+  padding: 9px 8px;
+  gap: 3px;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+}
+
+.year-transition-generation__grid article.is-captain {
+  background: rgb(244 122 24 / 12%);
+  border-color: rgb(244 122 24 / 24%);
+}
+
+.year-transition-generation__grid span {
+  color: #9ec9cf;
+  font-size: 0.54rem;
+  font-weight: 900;
+}
+
+.year-transition-generation__grid strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.year-transition-generation__grid small {
+  overflow: hidden;
+  color: #b7ced2;
+  font-size: 0.54rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 350px) {
+  .year-transition-generation__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .year-transition-generation__grid article {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .year-transition-generation__grid span {
+    grid-column: 1 / -1;
+  }
+}
