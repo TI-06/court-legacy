@@ -3,6 +3,7 @@ import { findCurrentTrainingCampActivity } from "../../../../src/domain/calendar
 import type { AdvanceWeekOutcome } from "../../../../src/domain/calendar/advanceWeekOutcome";
 import { eventActorPairKey } from "../../../../src/domain/events/selectEvent";
 import type { GameState } from "../../../../src/domain/model/GameState";
+import { selectNextOfficialEvent } from "../../../../src/domain/tournament/tournamentSelectors";
 import { createSoakSnapshot } from "../../../../src/dev/soak/runBalanceSoak";
 import type { CloudGameSnapshot } from "../../../../worker/data/GameStore";
 import type { GameAction } from "../../../../worker/game/actionSchema";
@@ -229,10 +230,14 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
       );
       if (applied.outcome.weekAdvanced) {
         simulatedWeeks += 1;
+        const nextOfficial = selectNextOfficialEvent(snapshot.state);
+        const contextualPreparationWeek =
+          nextOfficial?.kind === "match" && nextOfficial.weeksUntil === 1;
         if (
           applied.outcome.academicYearTransition === null &&
           (snapshot.state.calendar.weekOfYear % 3 === 0 ||
-            findCurrentTrainingCampActivity(snapshot.state))
+            findCurrentTrainingCampActivity(snapshot.state) ||
+            contextualPreparationWeek)
         ) {
           rootEventSlots += 1;
         }
