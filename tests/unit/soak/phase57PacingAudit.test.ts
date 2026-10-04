@@ -16,6 +16,8 @@ describe("Phase57 pacing audit", () => {
     );
     expect(pacing.averageProgressionActionsPerWeek).toBeGreaterThanOrEqual(1);
     expect(pacing.maxProgressionActionsInWeek).toBeGreaterThanOrEqual(1);
+    expect(pacing.resolvedEvents).toBeGreaterThanOrEqual(pacing.eventWeeks);
+    expect(pacing.completedMatches).toBeGreaterThanOrEqual(pacing.matchWeeks);
     expect(pacing.interactiveWeeks).toBeLessThanOrEqual(
       metadata.completedWeeks,
     );
