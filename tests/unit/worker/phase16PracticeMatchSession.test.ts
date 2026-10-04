@@ -181,24 +181,47 @@ describe("Phase16 resumable practice match session", () => {
 
   it("keeps Phase52 target rallies after a reload-style practice match reopen", () => {
     const { snapshot } = createSnapshot("phase52-practice-target-reload");
-    const started = applyServerGameAction(snapshot, { type: "advance-week" });
-    const startedMatch = started.state.activeMatch;
-    if (!startedMatch?.runtime)
-      throw new Error("active practice match missing");
+    let currentResult = applyServerGameAction(snapshot, {
+      type: "advance-week",
+    });
+    let currentSnapshot = continueSnapshot(snapshot, currentResult);
+    let targetableMatch = currentResult.state.activeMatch;
+    let guard = 0;
+
+    while (
+      targetableMatch?.runtime?.pendingDecisionReason === "set-break" &&
+      guard < 4
+    ) {
+      currentResult = applyServerGameAction(currentSnapshot, {
+        type: "match-command",
+        command: { type: "continue" },
+      });
+      currentSnapshot = continueSnapshot(currentSnapshot, currentResult);
+      targetableMatch = currentResult.state.activeMatch;
+      guard += 1;
+    }
+
+    if (!targetableMatch?.runtime) {
+      throw new Error("targetable practice match missing");
+    }
+    expect(targetableMatch.runtime.pendingDecisionReason).toMatch(
+      /^(opponent-run|mid-set|critical-score)$/,
+    );
+
     const targetPlayerId =
-      startedMatch.awaySelection.liberoPlayerId ??
-      startedMatch.awaySelection.rotation[0]!.playerId;
+      targetableMatch.awaySelection.liberoPlayerId ??
+      targetableMatch.awaySelection.rotation[0]!.playerId;
     const targeted = applyMatchCommand({
-      state: started.state,
-      match: startedMatch,
-      schoolId: started.state.userSchoolId,
+      state: currentResult.state,
+      match: targetableMatch,
+      schoolId: currentResult.state.userSchoolId,
       command: { type: "target-serve-receiver", playerId: targetPlayerId },
     });
 
     const reloadedSnapshot: CloudGameSnapshot = {
-      ...continueSnapshot(snapshot, started),
+      ...currentSnapshot,
       state: {
-        ...started.state,
+        ...currentResult.state,
         activeMatch: targeted,
       },
     };
@@ -208,7 +231,7 @@ describe("Phase16 resumable practice match session", () => {
 
     expect(reopened.state.activeMatch?.id).toBe(targeted.id);
     expect(reopened.state.activeMatch?.runtime?.serveTarget).toEqual({
-      schoolId: started.state.userSchoolId,
+      schoolId: currentResult.state.userSchoolId,
       playerId: targetPlayerId,
       ralliesRemaining: 5,
     });
