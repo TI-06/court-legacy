@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/phase57-pacing-soak.yml"
       - "src/dev/soak/runBalanceSoak.ts"
+      - "src/domain/match/simulateMatch.ts"
 
 permissions:
   contents: read
