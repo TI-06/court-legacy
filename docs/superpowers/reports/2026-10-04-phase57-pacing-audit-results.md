@@ -24,49 +24,57 @@ Matches are counted only when the user school participates. Match detection comp
 
 ## 10-season results
 
-| Metric | phase18-release-a | phase18-release-b |
-| --- | ---: | ---: |
-| Seasons | 10 | 10 |
-| Weeks | 522 | 522 |
-| Avg progression actions / week | 2.90 | 2.89 |
-| Max progression actions in a week | 12 | 13 |
-| Quiet weeks | 209 | 215 |
-| Quiet-week share | 40.0% | 41.2% |
-| Longest quiet streak | 4 weeks | 4 weeks |
-| Interactive weeks | 313 | 307 |
-| Event weeks | 228 | 223 |
-| Resolved events | 228 | 223 |
-| Unique event IDs | 103 | 103 |
-| User match weeks | 146 | 143 |
-| User matches | 146 | 143 |
-| Most repeated event | rival-rematch ×7 | camp-block-film ×6 |
-| Final save size | 1,039,723 bytes | 1,048,173 bytes |
-| Balance observations | 0 | 0 |
+### phase18-release-a
+
+- seasons: 10
+- weeks: 522
+- average progression actions: 2.90 per week
+- maximum progression actions in one week: 12
+- quiet weeks: 209 (40.0%)
+- longest quiet streak: 4 weeks
+- interactive weeks: 313
+- event weeks / resolved events: 228 / 228
+- unique event IDs: 103
+- user match weeks / user matches: 146 / 146
+- most repeated event: `event.rival-rematch` ×7
+- final save size: 1,039,723 bytes
+- balance observations: 0
+
+### phase18-release-b
+
+- seasons: 10
+- weeks: 522
+- average progression actions: 2.89 per week
+- maximum progression actions in one week: 13
+- quiet weeks: 215 (41.2%)
+- longest quiet streak: 4 weeks
+- interactive weeks: 307
+- event weeks / resolved events: 223 / 223
+- unique event IDs: 103
+- user match weeks / user matches: 143 / 143
+- most repeated event: `event.camp-block-film` ×6
+- final save size: 1,048,173 bytes
+- balance observations: 0
 
 ## 30-season result
 
 Seed: `phase18-release-a`
 
-| Metric | Result |
-| --- | ---: |
-| Seasons | 30 |
-| Weeks | 1,566 |
-| Avg progression actions / week | 2.96 |
-| Max progression actions in a week | 13 |
-| Quiet weeks | 638 |
-| Quiet-week share | 40.7% |
-| Longest quiet streak | 4 weeks |
-| Interactive weeks | 928 |
-| Event weeks | 668 |
-| Resolved events | 668 |
-| Unique event IDs | 146 |
-| User match weeks | 443 |
-| User matches | 443 |
-| Most repeated event | captain-discipline ×17 |
-| Initial save size | 271,579 bytes |
-| Final save size | 1,143,194 bytes |
-| Maximum observed save size | 1,143,194 bytes |
-| Balance observations | 0 |
+- seasons: 30
+- weeks: 1,566
+- average progression actions: 2.96 per week
+- maximum progression actions in one week: 13
+- quiet weeks: 638 (40.7%)
+- longest quiet streak: 4 weeks
+- interactive weeks: 928
+- event weeks / resolved events: 668 / 668
+- unique event IDs: 146
+- user match weeks / user matches: 443 / 443
+- most repeated event: `event.captain-discipline` ×17
+- initial save size: 271,579 bytes
+- final save size: 1,143,194 bytes
+- maximum observed save size: 1,143,194 bytes
+- balance observations: 0
 
 ## Findings
 
