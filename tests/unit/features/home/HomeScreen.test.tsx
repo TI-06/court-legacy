@@ -140,7 +140,9 @@ describe("Phase 13 Home command center", () => {
 
     const season = screen.getByRole("region", { name: "今季ストーリー" });
     expect(within(season).getByText(story.headline)).toBeVisible();
-    expect(within(season).getByText(new RegExp(String(primaryGoal.target)))).toBeVisible();
+    expect(
+      within(season).getByText(new RegExp(String(primaryGoal.target))),
+    ).toBeVisible();
     expect(within(season).getByText("県内")).toBeVisible();
     expect(within(season).getByText("全国")).toBeVisible();
 
