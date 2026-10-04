@@ -125,6 +125,17 @@ export interface SoakBalanceObservation {
   yearIndex: number;
 }
 
+export interface SoakPacingMetrics {
+  progressionActions: number;
+  averageProgressionActionsPerWeek: number;
+  maxProgressionActionsInWeek: number;
+  eventWeeks: number;
+  matchWeeks: number;
+  interactiveWeeks: number;
+  quietWeeks: number;
+  longestQuietWeekStreak: number;
+}
+
 export interface SoakRunReport {
   metadata: {
     seed: string;
@@ -139,6 +150,7 @@ export interface SoakRunReport {
     maxObservedSaveBytes: number;
   };
   yearly: SoakSnapshotMetrics[];
+  pacing: SoakPacingMetrics;
   facilityMilestones: SoakFacilityMilestoneSummary;
   specialAbilityFlow: SoakSpecialAbilityFlow;
   specialProjectPurchases: Record<SchoolSpecialProjectId, number>;
@@ -938,6 +950,7 @@ function formatRunSummary(report: SoakRunReport): string {
       .join(",") || "none"
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
+  const pacingDetail = `pacing=avg${report.pacing.averageProgressionActionsPerWeek}/wk max=${report.pacing.maxProgressionActionsInWeek} quiet=${report.pacing.quietWeeks} longest-quiet=${report.pacing.longestQuietWeekStreak} interactive=${report.pacing.interactiveWeeks} events=${report.pacing.eventWeeks} matches=${report.pacing.matchWeeks}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -952,6 +965,7 @@ function formatRunSummary(report: SoakRunReport): string {
     specialFlowDetail,
     projectDetail,
     saveDetail,
+    pacingDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -980,6 +994,14 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const specialProjectPurchases = emptySpecialProjectPurchases();
   const initialSaveBytes = JSON.stringify(snapshot).length;
   let maxObservedSaveBytes = initialSaveBytes;
+  let progressionActions = 0;
+  let maxProgressionActionsInWeek = 0;
+  let eventWeeks = 0;
+  let matchWeeks = 0;
+  let interactiveWeeks = 0;
+  let quietWeeks = 0;
+  let currentQuietWeekStreak = 0;
+  let longestQuietWeekStreak = 0;
 
   assertSoakInvariants(snapshot, { actionCount: actions });
 
@@ -1005,6 +1027,30 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     tracker.healedInjuries += advanced.healedPlayerIds.length;
     addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
     actions += advanced.actionCount;
+    progressionActions += advanced.actionCount;
+    maxProgressionActionsInWeek = Math.max(
+      maxProgressionActionsInWeek,
+      advanced.actionCount,
+    );
+    const hadEvent = advanced.resolvedEvents > 0;
+    const hadMatch = advanced.completedMatches > 0;
+    if (hadEvent) eventWeeks += 1;
+    if (hadMatch) matchWeeks += 1;
+    if (hadEvent || hadMatch) interactiveWeeks += 1;
+
+    const quietWeek =
+      advanced.actionCount === 1 && !hadEvent && !hadMatch;
+    if (quietWeek) {
+      quietWeeks += 1;
+      currentQuietWeekStreak += 1;
+      longestQuietWeekStreak = Math.max(
+        longestQuietWeekStreak,
+        currentQuietWeekStreak,
+      );
+    } else {
+      currentQuietWeekStreak = 0;
+    }
+
     completedWeeks += 1;
     snapshot = advanced.snapshot;
     assertSoakInvariants(snapshot, { actionCount: actions });
@@ -1045,6 +1091,19 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const completedSeasons = snapshot.state.yearIndex - startingYearIndex;
   const observations = buildBalanceObservations(yearly);
   const facilityMilestones = summarizeFacilityMilestones(yearly);
+  const pacing: SoakPacingMetrics = {
+    progressionActions,
+    averageProgressionActionsPerWeek:
+      completedWeeks === 0
+        ? 0
+        : Number((progressionActions / completedWeeks).toFixed(2)),
+    maxProgressionActionsInWeek,
+    eventWeeks,
+    matchWeeks,
+    interactiveWeeks,
+    quietWeeks,
+    longestQuietWeekStreak,
+  };
   const report: SoakRunReport = {
     metadata: {
       seed: options.seed,
@@ -1059,6 +1118,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       maxObservedSaveBytes,
     },
     yearly,
+    pacing,
     facilityMilestones,
     specialAbilityFlow,
     specialProjectPurchases,
