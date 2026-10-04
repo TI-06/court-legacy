@@ -688,3 +688,35 @@ button.home-command-news-row {
     min-height: 36px;
   }
 }
+
+
+.home-turning-point-choices {
+  display: grid;
+  gap: 8px;
+}
+
+.home-turning-point-choices button {
+  display: grid;
+  min-height: 58px;
+  padding: 10px 12px;
+  text-align: left;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--game-radius-sm);
+  gap: 3px;
+}
+
+.home-turning-point-choices button strong {
+  color: var(--game-text);
+  font-size: 13px;
+}
+
+.home-turning-point-choices button small {
+  color: var(--game-text-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.home-turning-point-choices button:disabled {
+  opacity: 0.5;
+}
