@@ -101,6 +101,7 @@ export interface AdvanceSoakWeekResult {
   snapshot: CloudGameSnapshot;
   actionCount: number;
   resolvedEvents: number;
+  resolvedEventIds: string[];
   completedMatches: number;
   newInjuryPlayerIds: PlayerId[];
   healedPlayerIds: PlayerId[];
@@ -125,6 +126,21 @@ export interface SoakBalanceObservation {
   yearIndex: number;
 }
 
+export interface SoakPacingMetrics {
+  progressionActions: number;
+  averageProgressionActionsPerWeek: number;
+  maxProgressionActionsInWeek: number;
+  resolvedEvents: number;
+  completedMatches: number;
+  eventWeeks: number;
+  matchWeeks: number;
+  interactiveWeeks: number;
+  quietWeeks: number;
+  longestQuietWeekStreak: number;
+  uniqueEventIds: number;
+  topRepeatedEvents: Array<{ eventId: string; count: number }>;
+}
+
 export interface SoakRunReport {
   metadata: {
     seed: string;
@@ -139,6 +155,7 @@ export interface SoakRunReport {
     maxObservedSaveBytes: number;
   };
   yearly: SoakSnapshotMetrics[];
+  pacing: SoakPacingMetrics;
   facilityMilestones: SoakFacilityMilestoneSummary;
   specialAbilityFlow: SoakSpecialAbilityFlow;
   specialProjectPurchases: Record<SchoolSpecialProjectId, number>;
@@ -698,6 +715,7 @@ export function advanceSoakUntilWeekChanges(
   let current = snapshot;
   let actionCount = 0;
   let resolvedEvents = 0;
+  const resolvedEventIds: string[] = [];
   let completedMatches = 0;
   const newInjuryPlayerIds = new Set<PlayerId>();
   const healedPlayerIds = new Set<PlayerId>();
@@ -711,6 +729,10 @@ export function advanceSoakUntilWeekChanges(
     }
 
     const action = nextAction(current);
+    const resolvedEventId =
+      action.type === "event-choice"
+        ? current.state.pendingEvent?.eventId ?? null
+        : null;
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
     const next = applied.snapshot;
@@ -733,6 +755,7 @@ export function advanceSoakUntilWeekChanges(
 
     if (action.type === "event-choice") {
       resolvedEvents += 1;
+      if (resolvedEventId) resolvedEventIds.push(String(resolvedEventId));
     }
     if (action.type === "advance-week") {
       const outcome = advanceWeekOutcome(applied.outcome);
@@ -757,6 +780,7 @@ export function advanceSoakUntilWeekChanges(
     snapshot: current,
     actionCount,
     resolvedEvents,
+    resolvedEventIds,
     completedMatches,
     newInjuryPlayerIds: [...newInjuryPlayerIds].sort(),
     healedPlayerIds: [...healedPlayerIds].sort(),
@@ -938,6 +962,7 @@ function formatRunSummary(report: SoakRunReport): string {
       .join(",") || "none"
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
+  const pacingDetail = `pacing=avg${report.pacing.averageProgressionActionsPerWeek}/wk max=${report.pacing.maxProgressionActionsInWeek} quiet=${report.pacing.quietWeeks} longest-quiet=${report.pacing.longestQuietWeekStreak} interactive=${report.pacing.interactiveWeeks} event-weeks=${report.pacing.eventWeeks} events=${report.pacing.resolvedEvents} unique-events=${report.pacing.uniqueEventIds} match-weeks=${report.pacing.matchWeeks} matches=${report.pacing.completedMatches}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -952,6 +977,7 @@ function formatRunSummary(report: SoakRunReport): string {
     specialFlowDetail,
     projectDetail,
     saveDetail,
+    pacingDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
@@ -980,6 +1006,17 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const specialProjectPurchases = emptySpecialProjectPurchases();
   const initialSaveBytes = JSON.stringify(snapshot).length;
   let maxObservedSaveBytes = initialSaveBytes;
+  let progressionActions = 0;
+  let maxProgressionActionsInWeek = 0;
+  let resolvedEvents = 0;
+  let completedMatches = 0;
+  const eventIdCounts = new Map<string, number>();
+  let eventWeeks = 0;
+  let matchWeeks = 0;
+  let interactiveWeeks = 0;
+  let quietWeeks = 0;
+  let currentQuietWeekStreak = 0;
+  let longestQuietWeekStreak = 0;
 
   assertSoakInvariants(snapshot, { actionCount: actions });
 
@@ -1005,6 +1042,35 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     tracker.healedInjuries += advanced.healedPlayerIds.length;
     addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
     actions += advanced.actionCount;
+    progressionActions += advanced.actionCount;
+    maxProgressionActionsInWeek = Math.max(
+      maxProgressionActionsInWeek,
+      advanced.actionCount,
+    );
+    resolvedEvents += advanced.resolvedEvents;
+    for (const eventId of advanced.resolvedEventIds) {
+      eventIdCounts.set(eventId, (eventIdCounts.get(eventId) ?? 0) + 1);
+    }
+    completedMatches += advanced.completedMatches;
+    const hadEvent = advanced.resolvedEvents > 0;
+    const hadMatch = advanced.completedMatches > 0;
+    if (hadEvent) eventWeeks += 1;
+    if (hadMatch) matchWeeks += 1;
+    if (hadEvent || hadMatch) interactiveWeeks += 1;
+
+    const quietWeek =
+      advanced.actionCount === 1 && !hadEvent && !hadMatch;
+    if (quietWeek) {
+      quietWeeks += 1;
+      currentQuietWeekStreak += 1;
+      longestQuietWeekStreak = Math.max(
+        longestQuietWeekStreak,
+        currentQuietWeekStreak,
+      );
+    } else {
+      currentQuietWeekStreak = 0;
+    }
+
     completedWeeks += 1;
     snapshot = advanced.snapshot;
     assertSoakInvariants(snapshot, { actionCount: actions });
@@ -1045,6 +1111,30 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const completedSeasons = snapshot.state.yearIndex - startingYearIndex;
   const observations = buildBalanceObservations(yearly);
   const facilityMilestones = summarizeFacilityMilestones(yearly);
+  const topRepeatedEvents = [...eventIdCounts.entries()]
+    .sort(
+      ([leftId, leftCount], [rightId, rightCount]) =>
+        rightCount - leftCount || leftId.localeCompare(rightId),
+    )
+    .slice(0, 5)
+    .map(([eventId, count]) => ({ eventId, count }));
+  const pacing: SoakPacingMetrics = {
+    progressionActions,
+    averageProgressionActionsPerWeek:
+      completedWeeks === 0
+        ? 0
+        : Number((progressionActions / completedWeeks).toFixed(2)),
+    maxProgressionActionsInWeek,
+    resolvedEvents,
+    completedMatches,
+    eventWeeks,
+    matchWeeks,
+    interactiveWeeks,
+    quietWeeks,
+    longestQuietWeekStreak,
+    uniqueEventIds: eventIdCounts.size,
+    topRepeatedEvents,
+  };
   const report: SoakRunReport = {
     metadata: {
       seed: options.seed,
@@ -1059,6 +1149,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       maxObservedSaveBytes,
     },
     yearly,
+    pacing,
     facilityMilestones,
     specialAbilityFlow,
     specialProjectPurchases,
