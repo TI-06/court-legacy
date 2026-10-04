@@ -25,6 +25,43 @@ describe("Phase17 season goals", () => {
     ]);
   });
 
+  it("rotates the first season focus across regional, national, and identity goals", () => {
+    const first = createDemoGame();
+    first.yearIndex = 1;
+    const second = structuredClone(first);
+    second.yearIndex = 2;
+    const third = structuredClone(first);
+    third.yearIndex = 3;
+
+    expect(createSeasonGoals(first).goals[0]?.kind).toBe("regional-rank");
+    expect(createSeasonGoals(second).goals[0]?.kind).toBe("national-rank");
+    expect(createSeasonGoals(third).goals[0]?.kind).toBe("identity-mastery");
+    expect(createSeasonGoals(first).goals).toHaveLength(3);
+    expect(createSeasonGoals(second).goals).toHaveLength(3);
+    expect(createSeasonGoals(third).goals).toHaveLength(3);
+  });
+
+  it("scales the identity mastery focus with ambition", () => {
+    const state = createDemoGame();
+    state.yearIndex = 3;
+    state.teamPlanning.teamIdentity = {
+      style: "balanced",
+      mastery: 50,
+      weeksInStyle: 4,
+      changeCount: 0,
+    };
+
+    const steady = createSeasonGoals(state, { ambition: "steady" });
+    const challenge = createSeasonGoals(state, { ambition: "challenge" });
+    const bold = createSeasonGoals(state, { ambition: "bold" });
+    const target = (goals: typeof steady) =>
+      goals.goals.find((goal) => goal.kind === "identity-mastery")!.target;
+
+    expect(target(steady)).toBe(60);
+    expect(target(challenge)).toBe(70);
+    expect(target(bold)).toBe(80);
+  });
+
   it("builds easier steady goals and harder bold goals from the same season start", () => {
     const state = createDemoGame();
     const steady = createSeasonGoals(state, { ambition: "steady" });

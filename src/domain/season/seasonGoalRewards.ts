@@ -15,6 +15,8 @@ export const seasonAmbitionRewardMultiplier: Record<SeasonAmbition, number> = {
 
 function baseSeasonGoalFundReward(goal: SeasonGoalDefinition): number {
   if (goal.kind === "regional-rank") return 120;
+  if (goal.kind === "national-rank") return 180;
+  if (goal.kind === "identity-mastery") return 160;
   if (goal.kind === "official-wins") {
     return Math.max(100, Math.min(245, goal.target * 35));
   }
@@ -34,6 +36,8 @@ export function seasonGoalFundReward(
 
 export function seasonGoalRewardLabel(goal: SeasonGoalDefinition): string {
   if (goal.kind === "regional-rank") return "県内順位目標達成";
+  if (goal.kind === "national-rank") return "全国順位目標達成";
+  if (goal.kind === "identity-mastery") return "チーム哲学习熟目標達成";
   if (goal.kind === "official-wins") return "公式戦勝利目標達成";
   if (goal.achievement === "national-title") return "全国大会優勝目標達成";
   if (goal.achievement === "national-appearance") return "全国大会出場目標達成";
