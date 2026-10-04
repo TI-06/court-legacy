@@ -99,20 +99,20 @@ After PR #335 reduced mid-set coaching decisions to pressure situations only, th
 
 ### 30-season comparison
 
-| Metric | Before | After | Change |
-| --- | ---: | ---: | ---: |
-| weeks | 1,566 | 1,566 | unchanged |
-| total actions | 5,033 | 4,240 | -793 (-15.8%) |
-| average actions/week | 3.21 | 2.71 | -15.6% |
-| maximum actions in one week | 27 | 23 | -4 |
-| heavy weeks (>4 actions) | 428 | 254 | -174 (-40.7%) |
-| match commands | 1,945 | 1,152 | -793 (-40.8%) |
-| mid-set decisions | 908 | 115 | -793 (-87.3%) |
-| set-break decisions | 491 | 491 | unchanged |
-| critical-score decisions | 294 | 294 | unchanged |
-| opponent-run decisions | 252 | 252 | unchanged |
-| final save bytes | 1,126,860 | 1,126,860 | unchanged |
-| maximum observed save bytes | 1,139,567 | 1,139,567 | unchanged |
+| Metric                      |    Before |     After | Change        |
+| --------------------------- | --------: | --------: | ------------- |
+| weeks                       |     1,566 |     1,566 | unchanged     |
+| total actions               |     5,033 |     4,240 | -793 (-15.8%) |
+| average actions/week        |      3.21 |      2.71 | -15.6%        |
+| maximum actions in one week |        27 |        23 | -4            |
+| heavy weeks (>4 actions)    |       428 |       254 | -174 (-40.7%) |
+| match commands              |     1,945 |     1,152 | -793 (-40.8%) |
+| mid-set decisions           |       908 |       115 | -793 (-87.3%) |
+| set-break decisions         |       491 |       491 | unchanged     |
+| critical-score decisions    |       294 |       294 | unchanged     |
+| opponent-run decisions      |       252 |       252 | unchanged     |
+| final save bytes            | 1,126,860 | 1,126,860 | unchanged     |
+| maximum observed save bytes | 1,139,567 | 1,139,567 | unchanged     |
 
 ### Result
 
