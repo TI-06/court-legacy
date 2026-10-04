@@ -1,9 +1,9 @@
 name: Phase57 Pacing Measurement
 
 on:
-  push:
+  pull_request:
     branches:
-      - chore/phase57-pacing-measurement
+      - main
     paths:
       - ".github/workflows/phase57-pacing-measurement.yml"
 
