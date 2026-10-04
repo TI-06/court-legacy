@@ -5,6 +5,10 @@ import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
 import type { School } from "../../domain/model/School";
 import type {
+  SeasonTurningPointChoiceId,
+  SeasonTurningPointId,
+} from "../../domain/season/seasonTurningPoint";
+import type {
   CharacterTraitDiscoveredNotification,
   DevelopmentGoalAchievementNotification,
   SeasonGoalAchievementNotification,
@@ -37,6 +41,10 @@ interface HomeScreenProps {
   onDeclinePracticeOffer?: () => void;
   operationPending?: boolean;
   onMarkNotificationRead: (notificationId: string) => Promise<void> | void;
+  onResolveSeasonTurningPoint?: (
+    turningPointId: SeasonTurningPointId,
+    choiceId: SeasonTurningPointChoiceId,
+  ) => Promise<void> | void;
 
   // Transitional compatibility for the existing GameApp wiring. Task 3 replaces
   // these callbacks with the HomeCommandAction contract and removes this bridge.
@@ -60,6 +68,7 @@ export function HomeScreen({
   onDeclinePracticeOffer = () => undefined,
   operationPending = false,
   onMarkNotificationRead,
+  onResolveSeasonTurningPoint = () => undefined,
   onOpenSchool = () => undefined,
   onOpenTeam = () => undefined,
   onOpenMatch = () => undefined,
@@ -70,6 +79,7 @@ export function HomeScreen({
   const [selectedGoalAchievement, setSelectedGoalAchievement] =
     useState<DevelopmentGoalAchievementNotification | null>(null);
   const [advanceWarningOpen, setAdvanceWarningOpen] = useState(false);
+  const [turningPointOpen, setTurningPointOpen] = useState(false);
   const resolvedData =
     data ?? (gameDataBootstrap.ok ? gameDataBootstrap.data : null);
   if (!resolvedData) {
@@ -153,6 +163,9 @@ export function HomeScreen({
       case "tournament":
         onOpenOfficialTournament();
         return;
+      case "season-turning-point":
+        setTurningPointOpen(true);
+        return;
       case "start-week-match":
         requestAdvance();
         return;
@@ -200,6 +213,35 @@ export function HomeScreen({
           dispatchCommand({ target: "player", playerId, detail: "growth" });
         }}
       />
+
+      <BottomSheet
+        description={model.turningPoint?.detail ?? ""}
+        onClose={() => setTurningPointOpen(false)}
+        open={turningPointOpen && Boolean(model.turningPoint)}
+        title={model.turningPoint?.title ?? "今季の重要判断"}
+      >
+        {model.turningPoint ? (
+          <div className="home-turning-point-choices">
+            {model.turningPoint.choices.map((choice) => (
+              <button
+                disabled={operationPending}
+                key={choice.id}
+                onClick={() => {
+                  setTurningPointOpen(false);
+                  void onResolveSeasonTurningPoint(
+                    model.turningPoint!.id,
+                    choice.id,
+                  );
+                }}
+                type="button"
+              >
+                <strong>{choice.label}</strong>
+                <small>{choice.detail}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </BottomSheet>
 
       <BottomSheet
         description="練習試合の申し込みが未回答です。このまま次週へ進みますか？"
