@@ -40,6 +40,42 @@ function playerNames(
     .map((player) => `${player.lastName} ${player.firstName}`);
 }
 
+function playerDisplayName(player: Player | null): string {
+  return player ? `${player.lastName} ${player.firstName}` : "該当なし";
+}
+
+function careerImpact(player: Player): number {
+  return (
+    player.career.appearances * 3 +
+    player.career.points +
+    player.career.blocks * 2 +
+    player.career.serviceAces * 2
+  );
+}
+
+function rosterAbilityTotal(player: Player): number {
+  return Object.values(player.abilities).reduce(
+    (total, value) => total + value,
+    0,
+  );
+}
+
+function selectStandoutPlayer(
+  state: GameState,
+  playerIds: readonly PlayerId[],
+  score: (player: Player) => number,
+): Player | null {
+  return (
+    playerIds
+      .map((playerId) => state.players[playerId])
+      .filter((player): player is Player => Boolean(player))
+      .sort(
+        (left, right) =>
+          score(right) - score(left) || left.id.localeCompare(right.id),
+      )[0] ?? null
+  );
+}
+
 function seasonGoalPreviewLabel(goal: SeasonGoalDefinition): string {
   if (goal.kind === "regional-rank") return `県内${goal.target}位`;
   if (goal.kind === "official-wins") return `公式${goal.target}勝`;
@@ -73,6 +109,17 @@ export function YearTransitionDialog({
     summary.captainPlayerIdsBySchool[state.userSchoolId] ?? null;
   const graduatedNames = playerNames(state, graduatedPlayerIds);
   const intakeNames = playerNames(state, intakePlayerIds);
+  const standoutGraduate = selectStandoutPlayer(
+    state,
+    graduatedPlayerIds,
+    careerImpact,
+  );
+  const spotlightIntake = selectStandoutPlayer(
+    state,
+    intakePlayerIds,
+    rosterAbilityTotal,
+  );
+  const newCaptain = captainPlayerId ? state.players[captainPlayerId] ?? null : null;
   const generationalPlayer = summary.generationalTalentPlayerId
     ? state.players[summary.generationalTalentPlayerId]
     : null;
@@ -294,6 +341,48 @@ export function YearTransitionDialog({
             ) : null}
           </section>
         ) : null}
+
+        <section
+          aria-label="世代交代"
+          className="year-transition-generation"
+        >
+          <div className="year-transition-generation__heading">
+            <div>
+              <span>GENERATION SHIFT</span>
+              <h3>世代交代</h3>
+            </div>
+            <small>次のチームの軸</small>
+          </div>
+          <div className="year-transition-generation__grid">
+            <article>
+              <span>卒業世代の中心</span>
+              <strong>{playerDisplayName(standoutGraduate)}</strong>
+              <small>
+                {standoutGraduate
+                  ? `${standoutGraduate.preferredPosition}・通算${standoutGraduate.career.appearances}試合`
+                  : "卒業生なし"}
+              </small>
+            </article>
+            <article className="is-captain">
+              <span>新主将</span>
+              <strong>{playerDisplayName(newCaptain)}</strong>
+              <small>
+                {newCaptain
+                  ? `${newCaptain.preferredPosition}・3年生`
+                  : "主将未定"}
+              </small>
+            </article>
+            <article>
+              <span>新入生の注目株</span>
+              <strong>{playerDisplayName(spotlightIntake)}</strong>
+              <small>
+                {spotlightIntake
+                  ? `${spotlightIntake.preferredPosition}・${spotlightIntake.tier}`
+                  : "新入生なし"}
+              </small>
+            </article>
+          </div>
+        </section>
 
         <div className="year-transition-metrics">
           <div>
