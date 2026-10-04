@@ -346,10 +346,7 @@ export function YearTransitionDialog({
           </section>
         ) : null}
 
-        <section
-          aria-label="世代交代"
-          className="year-transition-generation"
-        >
+        <section aria-label="世代交代" className="year-transition-generation">
           <div className="year-transition-generation__heading">
             <div>
               <span>GENERATION SHIFT</span>
