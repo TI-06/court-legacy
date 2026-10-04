@@ -73,7 +73,7 @@ describe("Phase18 soak production action driver", () => {
       specialty: "attack",
       contractYearIndex: before.state.yearIndex,
     });
-    expect(firstSchool.facilities.gym).toBe(gymBefore + 5);
+    expect(firstSchool.facilities.gym).toBe(gymBefore + 1);
     expect(firstSchool.funds).toBeLessThan(schoolBefore.funds);
     expect(firstSchool.funds).toBeGreaterThanOrEqual(300);
 
@@ -82,6 +82,28 @@ describe("Phase18 soak production action driver", () => {
     expect(second.snapshot.state.schoolManagement.assistantCoach).toEqual(
       firstState.schoolManagement.assistantCoach,
     );
+  });
+
+  it("uses a +10 bulk facility upgrade when funds comfortably allow it", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase57-bulk-facility");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 3000;
+    snapshot.state.schoolManagement.assistantCoach = {
+      rank: "master",
+      specialty: "attack",
+      contractYearIndex: snapshot.state.yearIndex,
+    };
+
+    const before = school.facilities.gym;
+    const result = applySoakManagementPolicy(snapshot);
+    const after =
+      result.snapshot.state.schools[result.snapshot.state.userSchoolId]!;
+
+    expect(result.actionCount).toBeGreaterThanOrEqual(1);
+    expect(after.facilities.gym).toBe(before + 10);
+    expect(after.funds).toBeGreaterThanOrEqual(300);
   });
 
   it("uses maxed facilities to exercise annual investments and two Phase51 projects without crossing the reserve", async () => {
