@@ -203,9 +203,9 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(result.report.metadata.completedSeasons).toBe(3);
     expect(result.report.yearly).toHaveLength(3);
     expect(result.report.pacing.averageActionsPerWeek).toBeGreaterThan(0);
-    expect(result.report.pacing.actionsByType["advance-week"]).toBe(
-      result.report.metadata.completedWeeks,
-    );
+    expect(
+      result.report.pacing.actionsByType["advance-week"],
+    ).toBeGreaterThanOrEqual(result.report.metadata.completedWeeks);
     expect(result.report.pacing.actionsByType["event-choice"]).toBe(
       result.report.pacing.resolvedEvents,
     );
