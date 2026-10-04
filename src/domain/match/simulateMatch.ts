@@ -1279,12 +1279,26 @@ function hasReachedMidSet(match: MatchState): boolean {
   );
 }
 
+function controlledScoreDeficit(match: MatchState): number {
+  const runtime = runtimeOrThrow(match);
+  if (runtime.controlledSchoolId === null) return 0;
+
+  return runtime.controlledSchoolId === match.homeSchoolId
+    ? runtime.awayScore - runtime.homeScore
+    : runtime.homeScore - runtime.awayScore;
+}
+
+function midSetPressureDeficitThreshold(match: MatchState): number {
+  return match.currentSetNumber === match.bestOfSets ? 2 : 3;
+}
+
 function shouldOpenMidSetDecision(match: MatchState): boolean {
   const runtime = runtimeOrThrow(match);
   return (
     runtime.controlledSchoolId !== null &&
     runtime.midSetDecisionConsumed !== true &&
-    hasReachedMidSet(match)
+    hasReachedMidSet(match) &&
+    controlledScoreDeficit(match) >= midSetPressureDeficitThreshold(match)
   );
 }
 
