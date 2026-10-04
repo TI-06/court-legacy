@@ -1,0 +1,42 @@
+name: Phase57 Pacing Soak
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/phase57-pacing-soak.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pacing-soak:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: balance-a
+            preset: balance
+            seed: phase57-pacing-a
+          - name: balance-b
+            preset: balance
+            seed: phase57-pacing-b
+          - name: long-a
+            preset: long
+            seed: phase57-pacing-a
+          - name: long-b
+            preset: long
+            seed: phase57-pacing-b
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run pacing soak
+        run: node scripts/runBalanceSoak.mjs --preset ${{ matrix.preset }} --seed ${{ matrix.seed }}
