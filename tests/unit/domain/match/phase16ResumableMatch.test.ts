@@ -204,7 +204,7 @@ describe("Phase16 resumable match API", () => {
     }
   });
 
-  it("opens one mid-set decision in every interactive set", () => {
+  it("opens a mid-set decision during an interactive match", () => {
     const context = createContext("phase30-midset-world");
     const found = findDecision(context, "mid-set", "phase30-midset");
 
@@ -216,6 +216,32 @@ describe("Phase16 resumable match API", () => {
       found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
     );
     expect(found.match.runtime?.midSetDecisionConsumed).not.toBe(true);
+  });
+
+  it("does not force another mid-set decision after the first one in a match", () => {
+    const context = createContext("phase57-single-midset-world");
+    let step = findDecision(context, "mid-set", "phase57-single-midset-random");
+    let laterMidSetDecisions = 0;
+    let guard = 0;
+
+    while (step.match.phase !== "match-complete") {
+      guard += 1;
+      if (guard > 16) {
+        throw new Error("match did not complete within pacing guard");
+      }
+      const commanded = applyMatchCommand({
+        state: context.state,
+        match: step.match,
+        schoolId: context.homeSchoolId,
+        command: { type: "continue" },
+      });
+      step = resumeMatch({ state: context.state, match: commanded });
+      if (step.match.runtime?.pendingDecisionReason === "mid-set") {
+        laterMidSetDecisions += 1;
+      }
+    }
+
+    expect(laterMidSetDecisions).toBe(0);
   });
 
   it("opens an opponent-run decision exactly when the opponent reaches four straight points", () => {
