@@ -129,6 +129,8 @@ export interface SoakPacingMetrics {
   progressionActions: number;
   averageProgressionActionsPerWeek: number;
   maxProgressionActionsInWeek: number;
+  resolvedEvents: number;
+  completedMatches: number;
   eventWeeks: number;
   matchWeeks: number;
   interactiveWeeks: number;
@@ -950,7 +952,7 @@ function formatRunSummary(report: SoakRunReport): string {
       .join(",") || "none"
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
-  const pacingDetail = `pacing=avg${report.pacing.averageProgressionActionsPerWeek}/wk max=${report.pacing.maxProgressionActionsInWeek} quiet=${report.pacing.quietWeeks} longest-quiet=${report.pacing.longestQuietWeekStreak} interactive=${report.pacing.interactiveWeeks} events=${report.pacing.eventWeeks} matches=${report.pacing.matchWeeks}`;
+  const pacingDetail = `pacing=avg${report.pacing.averageProgressionActionsPerWeek}/wk max=${report.pacing.maxProgressionActionsInWeek} quiet=${report.pacing.quietWeeks} longest-quiet=${report.pacing.longestQuietWeekStreak} interactive=${report.pacing.interactiveWeeks} event-weeks=${report.pacing.eventWeeks} events=${report.pacing.resolvedEvents} match-weeks=${report.pacing.matchWeeks} matches=${report.pacing.completedMatches}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -996,6 +998,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   let maxObservedSaveBytes = initialSaveBytes;
   let progressionActions = 0;
   let maxProgressionActionsInWeek = 0;
+  let resolvedEvents = 0;
+  let completedMatches = 0;
   let eventWeeks = 0;
   let matchWeeks = 0;
   let interactiveWeeks = 0;
@@ -1032,6 +1036,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       maxProgressionActionsInWeek,
       advanced.actionCount,
     );
+    resolvedEvents += advanced.resolvedEvents;
+    completedMatches += advanced.completedMatches;
     const hadEvent = advanced.resolvedEvents > 0;
     const hadMatch = advanced.completedMatches > 0;
     if (hadEvent) eventWeeks += 1;
@@ -1098,6 +1104,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
         ? 0
         : Number((progressionActions / completedWeeks).toFixed(2)),
     maxProgressionActionsInWeek,
+    resolvedEvents,
+    completedMatches,
     eventWeeks,
     matchWeeks,
     interactiveWeeks,
