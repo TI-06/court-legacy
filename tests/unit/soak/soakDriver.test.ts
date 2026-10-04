@@ -84,6 +84,28 @@ describe("Phase18 soak production action driver", () => {
     );
   });
 
+  it("uses a +10 bulk facility upgrade when funds comfortably allow it", async () => {
+    const { createSoakSnapshot, applySoakManagementPolicy } =
+      await loadSubject();
+    const snapshot = createSoakSnapshot("phase57-bulk-facility");
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    school.funds = 3000;
+    snapshot.state.schoolManagement.assistantCoach = {
+      rank: "master",
+      specialty: "attack",
+      contractYearIndex: snapshot.state.yearIndex,
+    };
+
+    const before = school.facilities.gym;
+    const result = applySoakManagementPolicy(snapshot);
+    const after =
+      result.snapshot.state.schools[result.snapshot.state.userSchoolId]!;
+
+    expect(result.actionCount).toBeGreaterThanOrEqual(1);
+    expect(after.facilities.gym).toBe(before + 10);
+    expect(after.funds).toBeGreaterThanOrEqual(300);
+  });
+
   it("uses maxed facilities to exercise annual investments and two Phase51 projects without crossing the reserve", async () => {
     const { createSoakSnapshot, applySoakManagementPolicy } =
       await loadSubject();
