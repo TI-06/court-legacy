@@ -32,3 +32,34 @@ Use 10-season and 30-season runs to identify:
 - repeated low-value interactions
 
 Any gameplay simplification should be justified by these measurements rather than adding another permanent screen.
+
+
+## Measured baseline
+
+Two deterministic seeds were run at 10 and 30 seasons.
+
+| Horizon | Avg actions/week | Max actions/week | Event choices | Match commands | Mid-set decisions | Save size at end |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 10 seasons A | 3.54 | 13 | 227 | 669 | 316 | 1,034,982 B |
+| 10 seasons B | 3.54 | 14 | 221 | 674 | 291 | 1,037,332 B |
+| 30 seasons A | 3.50 | 14 | 668 | 1,928 | 897 | 1,144,918 B |
+| 30 seasons B | 3.48 | 14 | 656 | 1,917 | 853 | 1,141,615 B |
+
+The match decision mix showed that the guaranteed mid-set stop represented roughly 45% of all match commands. Set breaks, opponent runs, and critical-score moments were materially less frequent and are more contextual.
+
+## Match-pacing adjustment
+
+The controlled team now receives at most one explicit mid-set coaching stop per match. Set-break, opponent-run, and critical-score decisions remain available. CPU automatic mid-set coaching remains active in later sets.
+
+Measured with the same deterministic seeds:
+
+| Horizon | Avg actions/week | Max actions/week | Match commands | Mid-set decisions |
+| --- | ---: | ---: | ---: | ---: |
+| 10 seasons A | 3.22 | 11 | 501 | 146 |
+| 10 seasons B | 3.23 | 12 | 514 | 131 |
+| 30 seasons A | 3.26 | 12 | 1,528 | 433 |
+| 30 seasons B | 3.24 | 12 | 1,533 | 393 |
+
+This reduces match commands by about 20-25%, mid-set stops by about 52-55%, and total authoritative actions by about 7-9% while keeping the contextual coaching moments.
+
+The 30-season save remained approximately 1.13 MB and produced no balance observations, so the pacing adjustment does not add save growth.
