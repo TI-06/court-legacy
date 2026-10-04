@@ -963,6 +963,10 @@ function formatRunSummary(report: SoakRunReport): string {
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
   const pacingDetail = `pacing=avg${report.pacing.averageProgressionActionsPerWeek}/wk max=${report.pacing.maxProgressionActionsInWeek} quiet=${report.pacing.quietWeeks} longest-quiet=${report.pacing.longestQuietWeekStreak} interactive=${report.pacing.interactiveWeeks} event-weeks=${report.pacing.eventWeeks} events=${report.pacing.resolvedEvents} unique-events=${report.pacing.uniqueEventIds} match-weeks=${report.pacing.matchWeeks} matches=${report.pacing.completedMatches}`;
+  const topEvent = report.pacing.topRepeatedEvents[0];
+  const eventVarietyDetail = topEvent
+    ? `top-event=${topEvent.eventId}:${topEvent.count}`
+    : "top-event=none";
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -978,6 +982,7 @@ function formatRunSummary(report: SoakRunReport): string {
     projectDetail,
     saveDetail,
     pacingDetail,
+    eventVarietyDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
 }
