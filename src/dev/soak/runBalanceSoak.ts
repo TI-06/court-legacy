@@ -103,6 +103,7 @@ export interface AdvanceSoakWeekResult {
   snapshot: CloudGameSnapshot;
   actionCount: number;
   actionCounts: SoakActionCounts;
+  matchDecisionsByReason: Record<string, number>;
   resolvedEvents: number;
   completedMatches: number;
   newInjuryPlayerIds: PlayerId[];
@@ -131,6 +132,7 @@ export interface SoakBalanceObservation {
 
 export interface SoakPacingMetrics {
   actionsByType: SoakActionCounts;
+  matchDecisionsByReason: Record<string, number>;
   resolvedEvents: number;
   completedMatches: number;
   eventWeeks: number;
@@ -262,6 +264,15 @@ function incrementActionCount(
   amount = 1,
 ): void {
   target[actionType] = (target[actionType] ?? 0) + amount;
+}
+
+function addStringCounts(
+  target: Record<string, number>,
+  delta: Readonly<Record<string, number>>,
+): void {
+  for (const [key, amount] of Object.entries(delta)) {
+    target[key] = (target[key] ?? 0) + amount;
+  }
 }
 
 function addActionCounts(
@@ -747,6 +758,7 @@ export function advanceSoakUntilWeekChanges(
   let current = snapshot;
   let actionCount = 0;
   const actionCounts: SoakActionCounts = {};
+  const matchDecisionsByReason: Record<string, number> = {};
   let resolvedEvents = 0;
   let completedMatches = 0;
   const newInjuryPlayerIds = new Set<PlayerId>();
@@ -761,6 +773,12 @@ export function advanceSoakUntilWeekChanges(
     }
 
     const action = nextAction(current);
+    if (action.type === "match-command") {
+      const reason =
+        current.state.activeMatch?.runtime?.pendingDecisionReason ?? "unknown";
+      matchDecisionsByReason[reason] =
+        (matchDecisionsByReason[reason] ?? 0) + 1;
+    }
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
     const next = applied.snapshot;
@@ -808,6 +826,7 @@ export function advanceSoakUntilWeekChanges(
     snapshot: current,
     actionCount,
     actionCounts,
+    matchDecisionsByReason,
     resolvedEvents,
     completedMatches,
     newInjuryPlayerIds: [...newInjuryPlayerIds].sort(),
@@ -997,6 +1016,12 @@ function formatRunSummary(report: SoakRunReport): string {
       .map(([type, count]) => `${type}:${count}`)
       .join(",") || "none"
   }`;
+  const decisionMixDetail = `decision-mix=${
+    Object.entries(report.pacing.matchDecisionsByReason)
+      .sort((left, right) => right[1] - left[1])
+      .map(([reason, count]) => `${reason}:${count}`)
+      .join(",") || "none"
+  }`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -1012,6 +1037,7 @@ function formatRunSummary(report: SoakRunReport): string {
     projectDetail,
     pacingDetail,
     actionMixDetail,
+    decisionMixDetail,
     saveDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
@@ -1040,6 +1066,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   const specialAbilityFlow = emptySpecialAbilityFlow();
   const specialProjectPurchases = emptySpecialProjectPurchases();
   const actionsByType: SoakActionCounts = {};
+  const matchDecisionsByReason: Record<string, number> = {};
   let resolvedEvents = 0;
   let completedMatches = 0;
   let eventWeeks = 0;
@@ -1082,6 +1109,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
     actions += advanced.actionCount;
     addActionCounts(actionsByType, advanced.actionCounts);
+    addStringCounts(matchDecisionsByReason, advanced.matchDecisionsByReason);
     completedWeeks += 1;
     snapshot = advanced.snapshot;
     assertSoakInvariants(snapshot, { actionCount: actions });
@@ -1138,6 +1166,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     yearly,
     pacing: {
       actionsByType,
+      matchDecisionsByReason,
       resolvedEvents,
       completedMatches,
       eventWeeks,
