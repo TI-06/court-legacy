@@ -421,6 +421,7 @@ function buildSummary(
     season: seasonProgress
       ? {
           academicYear: seasonProgress.academicYear,
+          story: selectSeasonStory(state),
           ambitionLabel: seasonProgress.ambitionLabel,
           remainingRewardFunds: seasonProgress.remainingRewardFunds,
           achievedCount: seasonProgress.achievedCount,
