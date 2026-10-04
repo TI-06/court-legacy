@@ -125,6 +125,16 @@ export interface SoakBalanceObservation {
   yearIndex: number;
 }
 
+export interface SoakPacingMetrics {
+  resolvedEvents: number;
+  completedMatches: number;
+  eventWeeks: number;
+  matchWeeks: number;
+  maxActionsInWeek: number;
+  weeksOverFourActions: number;
+  averageActionsPerWeek: number;
+}
+
 export interface SoakRunReport {
   metadata: {
     seed: string;
@@ -139,6 +149,7 @@ export interface SoakRunReport {
     maxObservedSaveBytes: number;
   };
   yearly: SoakSnapshotMetrics[];
+  pacing: SoakPacingMetrics;
   facilityMilestones: SoakFacilityMilestoneSummary;
   specialAbilityFlow: SoakSpecialAbilityFlow;
   specialProjectPurchases: Record<SchoolSpecialProjectId, number>;
@@ -938,6 +949,7 @@ function formatRunSummary(report: SoakRunReport): string {
       .join(",") || "none"
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
+  const pacingDetail = `pacing=avg-actions:${report.pacing.averageActionsPerWeek.toFixed(2)},max-actions:${report.pacing.maxActionsInWeek},events:${report.pacing.resolvedEvents}/${report.pacing.eventWeeks}w,matches:${report.pacing.completedMatches}/${report.pacing.matchWeeks}w,heavy-weeks:${report.pacing.weeksOverFourActions}`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -951,6 +963,7 @@ function formatRunSummary(report: SoakRunReport): string {
     specialAbilityDetail,
     specialFlowDetail,
     projectDetail,
+    pacingDetail,
     saveDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
@@ -978,6 +991,12 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   let actions = 0;
   const specialAbilityFlow = emptySpecialAbilityFlow();
   const specialProjectPurchases = emptySpecialProjectPurchases();
+  let resolvedEvents = 0;
+  let completedMatches = 0;
+  let eventWeeks = 0;
+  let matchWeeks = 0;
+  let maxActionsInWeek = 0;
+  let weeksOverFourActions = 0;
   const initialSaveBytes = JSON.stringify(snapshot).length;
   let maxObservedSaveBytes = initialSaveBytes;
 
@@ -1001,6 +1020,13 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     const advanced = advanceSoakUntilWeekChanges(snapshot, {
       maxActionsPerWeek: options.maxActionsPerWeek,
     });
+    const weeklyActions = managed.actionCount + advanced.actionCount;
+    resolvedEvents += advanced.resolvedEvents;
+    completedMatches += advanced.completedMatches;
+    if (advanced.resolvedEvents > 0) eventWeeks += 1;
+    if (advanced.completedMatches > 0) matchWeeks += 1;
+    maxActionsInWeek = Math.max(maxActionsInWeek, weeklyActions);
+    if (weeklyActions > 4) weeksOverFourActions += 1;
     tracker.newInjuries += advanced.newInjuryPlayerIds.length;
     tracker.healedInjuries += advanced.healedPlayerIds.length;
     addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
@@ -1059,6 +1085,16 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
       maxObservedSaveBytes,
     },
     yearly,
+    pacing: {
+      resolvedEvents,
+      completedMatches,
+      eventWeeks,
+      matchWeeks,
+      maxActionsInWeek,
+      weeksOverFourActions,
+      averageActionsPerWeek:
+        completedWeeks === 0 ? 0 : actions / completedWeeks,
+    },
     facilityMilestones,
     specialAbilityFlow,
     specialProjectPurchases,
