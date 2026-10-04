@@ -78,6 +78,8 @@ function selectStandoutPlayer(
 
 function seasonGoalPreviewLabel(goal: SeasonGoalDefinition): string {
   if (goal.kind === "regional-rank") return `県内${goal.target}位`;
+  if (goal.kind === "national-rank") return `全国${goal.target}位`;
+  if (goal.kind === "identity-mastery") return `哲学习熟${goal.target}`;
   if (goal.kind === "official-wins") return `公式${goal.target}勝`;
   if (goal.achievement === "national-title") return "全国優勝";
   if (goal.achievement === "national-appearance") return "全国出場";
@@ -119,7 +121,9 @@ export function YearTransitionDialog({
     intakePlayerIds,
     rosterAbilityTotal,
   );
-  const newCaptain = captainPlayerId ? state.players[captainPlayerId] ?? null : null;
+  const newCaptain = captainPlayerId
+    ? (state.players[captainPlayerId] ?? null)
+    : null;
   const generationalPlayer = summary.generationalTalentPlayerId
     ? state.players[summary.generationalTalentPlayerId]
     : null;
