@@ -36,6 +36,10 @@ import type {
 } from "../domain/pvp/pvpContracts";
 import type { RecruitmentAction } from "../domain/scouting/recruitmentEngagement";
 import type { SeasonAmbition } from "../domain/season/seasonGoalTypes";
+import type {
+  SeasonTurningPointChoiceId,
+  SeasonTurningPointId,
+} from "../domain/season/seasonTurningPoint";
 import type { ScoutReport } from "../domain/scouting/scoutReport";
 import type { ScoutingSearchCriteria } from "../domain/scouting/scoutingSearchCriteria";
 import type { ShopItemId } from "../domain/shop/shopCatalog";
@@ -1358,6 +1362,8 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       case "tournament":
         openOfficialTournament();
         return;
+      case "season-turning-point":
+        return;
       case "start-week-match":
         void advanceWeek();
         return;
@@ -1368,6 +1374,20 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
     await cloudSession.runAction(
       { type: "set-season-ambition", ambition },
       "シーズン目標方針を保存しています…",
+    );
+  };
+
+  const resolveSeasonTurningPointFromUi = async (
+    turningPointId: SeasonTurningPointId,
+    choiceId: SeasonTurningPointChoiceId,
+  ) => {
+    await cloudSession.runAction(
+      {
+        type: "resolve-season-turning-point",
+        turningPointId,
+        choiceId,
+      },
+      "今季の方針を保存しています…",
     );
   };
 
@@ -1426,6 +1446,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onCommand={handleHomeCommand}
         onDeclinePracticeOffer={() => void declinePracticeOffer()}
         onMarkNotificationRead={markNotificationRead}
+        onResolveSeasonTurningPoint={resolveSeasonTurningPointFromUi}
         operationPending={cloudSession.operation.status === "submitting"}
         state={gameState}
       />
