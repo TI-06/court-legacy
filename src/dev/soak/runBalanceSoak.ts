@@ -270,11 +270,7 @@ function addActionCounts(
 ): void {
   for (const [actionType, amount] of Object.entries(delta)) {
     if (!amount) continue;
-    incrementActionCount(
-      target,
-      actionType as GameAction["type"],
-      amount,
-    );
+    incrementActionCount(target, actionType as GameAction["type"], amount);
   }
 }
 
