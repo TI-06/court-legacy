@@ -204,9 +204,13 @@ describe("Phase16 resumable match API", () => {
     }
   });
 
-  it("opens one mid-set decision in every interactive set", () => {
+  it("opens a mid-set decision when the controlled team is under pressure", () => {
     const context = createContext("phase30-midset-world");
     const found = findDecision(context, "mid-set", "phase30-midset");
+    const deficit =
+      found.match.runtime!.awayScore - found.match.runtime!.homeScore;
+    const minimumDeficit =
+      found.match.currentSetNumber === found.match.bestOfSets ? 2 : 3;
 
     expect(found.match.phase).toBe("coach-decision");
     expect(found.match.runtime?.pendingDecisionReason).toBe("mid-set");
@@ -215,6 +219,7 @@ describe("Phase16 resumable match API", () => {
     ).toBeGreaterThanOrEqual(
       found.match.currentSetNumber === found.match.bestOfSets ? 8 : 12,
     );
+    expect(deficit).toBeGreaterThanOrEqual(minimumDeficit);
     expect(found.match.runtime?.midSetDecisionConsumed).not.toBe(true);
   });
 
