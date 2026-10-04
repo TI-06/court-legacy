@@ -6,7 +6,6 @@ import {
   buildJsonStateDelta,
 } from "../../../worker/data/stateDelta";
 import {
-  applyJsonStatePatch,
   buildJsonStatePatch,
   collapseJsonStatePatchRoot,
 } from "../../../worker/data/statePatch";
@@ -14,8 +13,9 @@ import type { GameAction } from "../../../worker/game/actionSchema";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
 import { compactGameSnapshot } from "../../../worker/game/compactGameSnapshot";
 
-const MAX_JSON_PATCH_BYTES = 32_768;
-const MAX_JSON_PATCH_OPERATIONS = 16;
+const LEGACY_MAX_JSON_PATCH_BYTES = 32_768;
+const LEGACY_MAX_JSON_PATCH_OPERATIONS = 16;
+const TARGET_WEEKS = 520;
 
 function nextAction(snapshot: CloudGameSnapshot): GameAction {
   const pendingEvent = snapshot.state.pendingEvent;
@@ -43,24 +43,24 @@ function nextAction(snapshot: CloudGameSnapshot): GameAction {
   return { type: "advance-week" };
 }
 
-describe("phase40 long-session save endurance", () => {
-  it("keeps every save reconstructable and routable across 104 weeks and repeated matches", () => {
-    let snapshot = createSoakSnapshot("phase40-save-endurance-104-weeks");
+describe("Phase58 V5 long-session save endurance", () => {
+  it("keeps every 10-year save reconstructable through section deltas, including mid-match saves", () => {
+    let snapshot = createSoakSnapshot("phase58-v5-save-endurance-10-years");
     let completedWeeks = 0;
     let completedMatches = 0;
     let actionCount = 0;
     let midMatchCommands = 0;
-    let deltaEligibleOperations = 0;
-    let legacyFullStateFallbackOperations = 0;
     let sectionDeltaOperations = 0;
-    let largestPatchOperations = 0;
-    let largestPatchBytes = 0;
-    const maximumActions = 4_000;
+    let legacyPatchFallbackCandidates = 0;
+    let largestStateDeltaBytes = 0;
+    let largestFullStateBytes = 0;
+    let largestDeltaToStateRatio = 0;
+    const maximumActions = 20_000;
 
-    while (completedWeeks < 104 || completedMatches < 6) {
+    while (completedWeeks < TARGET_WEEKS) {
       if (actionCount >= maximumActions) {
         throw new Error(
-          `endurance guard exhausted: weeks=${completedWeeks} matches=${completedMatches}`,
+          `endurance guard exhausted: weeks=${completedWeeks} matches=${completedMatches} actions=${actionCount}`,
         );
       }
 
@@ -72,58 +72,67 @@ describe("phase40 long-session save endurance", () => {
       const isMidMatchCommand =
         action.type === "match-command" &&
         applied.state.activeMatch?.phase !== "match-complete";
-      const rawPatch = buildJsonStatePatch(prepared.state, applied.state);
-      const patch = isMidMatchCommand
+      const persistedState =
+        applied.state.activeMatch?.phase === "match-complete" &&
+        applied.state.activeMatch.eventLog.length > 0
+          ? {
+              ...applied.state,
+              activeMatch: {
+                ...applied.state.activeMatch,
+                eventLog: [],
+              },
+            }
+          : applied.state;
+
+      const stateDelta = buildJsonStateDelta(
+        prepared.state as unknown as Record<string, unknown>,
+        persistedState as unknown as Record<string, unknown>,
+      );
+      const reconstructed = applyJsonStateDelta(
+        prepared.state as unknown as Record<string, unknown>,
+        stateDelta,
+      );
+      expect(reconstructed).toEqual(persistedState);
+      sectionDeltaOperations += 1;
+
+      const rawPatch = buildJsonStatePatch(prepared.state, persistedState);
+      const legacyPatch = isMidMatchCommand
         ? collapseJsonStatePatchRoot(
-            applied.state as unknown as Record<string, unknown>,
+            persistedState as unknown as Record<string, unknown>,
             rawPatch,
             "activeMatch",
           )
         : rawPatch;
-
-      const reconstructed = applyJsonStatePatch(prepared.state, patch);
-      expect(reconstructed).toEqual(applied.state);
-
-      const patchBytes = JSON.stringify(patch).length;
-      const usesFullStateFallback =
-        patch.length > MAX_JSON_PATCH_OPERATIONS ||
-        (!isMidMatchCommand && patchBytes > MAX_JSON_PATCH_BYTES);
-
-      if (usesFullStateFallback) {
-        legacyFullStateFallbackOperations += 1;
-      } else {
-        deltaEligibleOperations += 1;
+      const legacyPatchBytes = JSON.stringify(legacyPatch).length;
+      if (
+        legacyPatch.length > LEGACY_MAX_JSON_PATCH_OPERATIONS ||
+        (!isMidMatchCommand &&
+          legacyPatchBytes > LEGACY_MAX_JSON_PATCH_BYTES)
+      ) {
+        legacyPatchFallbackCandidates += 1;
       }
 
-      if (!isMidMatchCommand) {
-        const stateDelta = buildJsonStateDelta(
-          prepared.state as unknown as Record<string, unknown>,
-          applied.state as unknown as Record<string, unknown>,
-        );
-        expect(
-          applyJsonStateDelta(
-            prepared.state as unknown as Record<string, unknown>,
-            stateDelta,
-          ),
-        ).toEqual(applied.state);
-        sectionDeltaOperations += 1;
-      }
+      const stateDeltaBytes = JSON.stringify(stateDelta).length;
+      const fullStateBytes = JSON.stringify(persistedState).length;
+      largestStateDeltaBytes = Math.max(
+        largestStateDeltaBytes,
+        stateDeltaBytes,
+      );
+      largestFullStateBytes = Math.max(largestFullStateBytes, fullStateBytes);
+      largestDeltaToStateRatio = Math.max(
+        largestDeltaToStateRatio,
+        fullStateBytes === 0 ? 0 : stateDeltaBytes / fullStateBytes,
+      );
 
       if (isMidMatchCommand) {
         midMatchCommands += 1;
-        expect(
-          patch.filter((operation) => operation.path[0] === "activeMatch"),
-        ).toHaveLength(1);
-        expect(patch.length).toBeLessThanOrEqual(MAX_JSON_PATCH_OPERATIONS);
+        expect(stateDelta.set).toHaveProperty("activeMatch");
       }
-
-      largestPatchOperations = Math.max(largestPatchOperations, patch.length);
-      largestPatchBytes = Math.max(largestPatchBytes, patchBytes);
 
       const nextSnapshot: CloudGameSnapshot = {
         ...prepared,
         revision: prepared.revision + 1,
-        state: applied.state,
+        state: persistedState,
         teamSelection: applied.teamSelection,
       };
       if (nextSnapshot.state.date !== previousDate) {
@@ -137,14 +146,29 @@ describe("phase40 long-session save endurance", () => {
       actionCount += 1;
     }
 
-    expect(completedWeeks).toBeGreaterThanOrEqual(104);
-    expect(completedMatches).toBeGreaterThanOrEqual(6);
+    console.info(
+      [
+        "[phase58-save-endurance]",
+        `weeks=${completedWeeks}`,
+        `actions=${actionCount}`,
+        `matches=${completedMatches}`,
+        `midMatch=${midMatchCommands}`,
+        `sectionDelta=${sectionDeltaOperations}`,
+        `legacyFallbackCandidates=${legacyPatchFallbackCandidates}`,
+        `maxDeltaBytes=${largestStateDeltaBytes}`,
+        `maxStateBytes=${largestFullStateBytes}`,
+        `maxDeltaRatio=${largestDeltaToStateRatio.toFixed(4)}`,
+      ].join(" "),
+    );
+
+    expect(completedWeeks).toBe(TARGET_WEEKS);
+    expect(completedMatches).toBeGreaterThan(0);
     expect(midMatchCommands).toBeGreaterThan(0);
-    expect(deltaEligibleOperations).toBeGreaterThan(0);
-    expect(legacyFullStateFallbackOperations).toBeGreaterThan(0);
-    expect(sectionDeltaOperations).toBeGreaterThan(0);
+    expect(sectionDeltaOperations).toBe(actionCount);
+    expect(legacyPatchFallbackCandidates).toBeGreaterThan(0);
     expect(actionCount).toBeLessThan(maximumActions);
-    expect(largestPatchOperations).toBeGreaterThan(MAX_JSON_PATCH_OPERATIONS);
-    expect(largestPatchBytes).toBeGreaterThan(0);
-  }, 60_000);
+    expect(largestStateDeltaBytes).toBeGreaterThan(0);
+    expect(largestFullStateBytes).toBeGreaterThan(largestStateDeltaBytes);
+    expect(largestDeltaToStateRatio).toBeLessThan(1);
+  }, 180_000);
 });
