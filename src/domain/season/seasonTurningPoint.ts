@@ -1,5 +1,6 @@
 import { findCurrentTrainingCampActivity } from "../calendar/trainingCampCalendar";
 import type { GameState } from "../model/GameState";
+import type { Player } from "../model/Player";
 import { selectNextOfficialEvent } from "../tournament/tournamentSelectors";
 import { selectFeaturedUserRival } from "../world/rivalryHistory";
 import { selectSeasonStory, type SeasonStoryId } from "./seasonStory";
@@ -208,7 +209,7 @@ function clamp100(value: number): number {
 
 function adjustRoster(
   state: GameState,
-  change: (player: GameState["players"][string]) => {
+  change: (player: Player) => {
     morale?: number;
     trust?: number;
     condition?: number;
