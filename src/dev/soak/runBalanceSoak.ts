@@ -97,9 +97,13 @@ export interface SoakSpecialAbilityFlow {
   negativeRecovered: number;
 }
 
+export type SoakActionCounts = Partial<Record<GameAction["type"], number>>;
+
 export interface AdvanceSoakWeekResult {
   snapshot: CloudGameSnapshot;
   actionCount: number;
+  actionCounts: SoakActionCounts;
+  matchDecisionsByReason: Record<string, number>;
   resolvedEvents: number;
   completedMatches: number;
   newInjuryPlayerIds: PlayerId[];
@@ -111,6 +115,7 @@ export interface AdvanceSoakWeekResult {
 export interface SoakManagementPolicyResult {
   snapshot: CloudGameSnapshot;
   actionCount: number;
+  actionCounts: SoakActionCounts;
   specialProjectIds: SchoolSpecialProjectId[];
 }
 
@@ -126,6 +131,8 @@ export interface SoakBalanceObservation {
 }
 
 export interface SoakPacingMetrics {
+  actionsByType: SoakActionCounts;
+  matchDecisionsByReason: Record<string, number>;
   resolvedEvents: number;
   completedMatches: number;
   eventWeeks: number;
@@ -249,6 +256,33 @@ function emptySpecialAbilityFlow(): SoakSpecialAbilityFlow {
     negativeAcquired: 0,
     negativeRecovered: 0,
   };
+}
+
+function incrementActionCount(
+  target: SoakActionCounts,
+  actionType: GameAction["type"],
+  amount = 1,
+): void {
+  target[actionType] = (target[actionType] ?? 0) + amount;
+}
+
+function addStringCounts(
+  target: Record<string, number>,
+  delta: Readonly<Record<string, number>>,
+): void {
+  for (const [key, amount] of Object.entries(delta)) {
+    target[key] = (target[key] ?? 0) + amount;
+  }
+}
+
+function addActionCounts(
+  target: SoakActionCounts,
+  delta: SoakActionCounts,
+): void {
+  for (const [actionType, amount] of Object.entries(delta)) {
+    if (!amount) continue;
+    incrementActionCount(target, actionType as GameAction["type"], amount);
+  }
 }
 
 function addSpecialAbilityFlow(
@@ -558,17 +592,24 @@ export function applySoakManagementPolicy(
     (snapshot.state.activeMatch &&
       snapshot.state.activeMatch.phase !== "match-complete")
   ) {
-    return { snapshot, actionCount: 0, specialProjectIds: [] };
+    return {
+      snapshot,
+      actionCount: 0,
+      actionCounts: {},
+      specialProjectIds: [],
+    };
   }
 
   let current = snapshot;
   let actionCount = 0;
+  const actionCounts: SoakActionCounts = {};
   const specialProjectIds: SchoolSpecialProjectId[] = [];
 
   const coachAction = coachActionForCurrentYear(current);
   if (coachAction) {
     current = applyAction(current, coachAction).snapshot;
     actionCount += 1;
+    incrementActionCount(actionCounts, coachAction.type);
     assertSoakInvariants(current, { actionCount });
   }
 
@@ -576,6 +617,7 @@ export function applySoakManagementPolicy(
   if (nextFacilityAction) {
     current = applyAction(current, nextFacilityAction).snapshot;
     actionCount += 1;
+    incrementActionCount(actionCounts, nextFacilityAction.type);
     assertSoakInvariants(current, { actionCount });
   }
 
@@ -584,6 +626,7 @@ export function applySoakManagementPolicy(
     if (!nextInvestmentAction) break;
     current = applyAction(current, nextInvestmentAction).snapshot;
     actionCount += 1;
+    incrementActionCount(actionCounts, nextInvestmentAction.type);
     assertSoakInvariants(current, { actionCount });
   }
 
@@ -594,10 +637,16 @@ export function applySoakManagementPolicy(
     current = applied.snapshot;
     specialProjectIds.push(nextProjectAction.projectId);
     actionCount += 1;
+    incrementActionCount(actionCounts, nextProjectAction.type);
     assertSoakInvariants(current, { actionCount });
   }
 
-  return { snapshot: current, actionCount, specialProjectIds };
+  return {
+    snapshot: current,
+    actionCount,
+    actionCounts,
+    specialProjectIds,
+  };
 }
 
 function actionGuardError(
@@ -708,6 +757,8 @@ export function advanceSoakUntilWeekChanges(
   const startingDate = snapshot.state.date;
   let current = snapshot;
   let actionCount = 0;
+  const actionCounts: SoakActionCounts = {};
+  const matchDecisionsByReason: Record<string, number> = {};
   let resolvedEvents = 0;
   let completedMatches = 0;
   const newInjuryPlayerIds = new Set<PlayerId>();
@@ -722,6 +773,12 @@ export function advanceSoakUntilWeekChanges(
     }
 
     const action = nextAction(current);
+    if (action.type === "match-command") {
+      const reason =
+        current.state.activeMatch?.runtime?.pendingDecisionReason ?? "unknown";
+      matchDecisionsByReason[reason] =
+        (matchDecisionsByReason[reason] ?? 0) + 1;
+    }
     const historyCount = current.state.history.matches.length;
     const applied = applyAction(current, action);
     const next = applied.snapshot;
@@ -740,6 +797,7 @@ export function advanceSoakUntilWeekChanges(
     }
     addSpecialAbilityFlow(specialAbilityFlow, specialAbilityDelta);
     actionCount += 1;
+    incrementActionCount(actionCounts, action.type);
     assertSoakInvariants(next, { actionCount });
 
     if (action.type === "event-choice") {
@@ -767,6 +825,8 @@ export function advanceSoakUntilWeekChanges(
   return {
     snapshot: current,
     actionCount,
+    actionCounts,
+    matchDecisionsByReason,
     resolvedEvents,
     completedMatches,
     newInjuryPlayerIds: [...newInjuryPlayerIds].sort(),
@@ -950,6 +1010,18 @@ function formatRunSummary(report: SoakRunReport): string {
   }`;
   const saveDetail = `save-bytes=${report.metadata.initialSaveBytes}->${report.metadata.finalSaveBytes} max=${report.metadata.maxObservedSaveBytes}`;
   const pacingDetail = `pacing=avg-actions:${report.pacing.averageActionsPerWeek.toFixed(2)},max-actions:${report.pacing.maxActionsInWeek},events:${report.pacing.resolvedEvents}/${report.pacing.eventWeeks}w,matches:${report.pacing.completedMatches}/${report.pacing.matchWeeks}w,heavy-weeks:${report.pacing.weeksOverFourActions}`;
+  const actionMixDetail = `action-mix=${
+    Object.entries(report.pacing.actionsByType)
+      .sort((left, right) => right[1] - left[1])
+      .map(([type, count]) => `${type}:${count}`)
+      .join(",") || "none"
+  }`;
+  const decisionMixDetail = `decision-mix=${
+    Object.entries(report.pacing.matchDecisionsByReason)
+      .sort((left, right) => right[1] - left[1])
+      .map(([reason, count]) => `${reason}:${count}`)
+      .join(",") || "none"
+  }`;
   return [
     `seed=${report.metadata.seed}`,
     `preset=${report.metadata.preset}`,
@@ -964,6 +1036,8 @@ function formatRunSummary(report: SoakRunReport): string {
     specialFlowDetail,
     projectDetail,
     pacingDetail,
+    actionMixDetail,
+    decisionMixDetail,
     saveDetail,
     `observations=${report.observations.length}`,
   ].join(" | ");
@@ -991,6 +1065,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
   let actions = 0;
   const specialAbilityFlow = emptySpecialAbilityFlow();
   const specialProjectPurchases = emptySpecialProjectPurchases();
+  const actionsByType: SoakActionCounts = {};
+  const matchDecisionsByReason: Record<string, number> = {};
   let resolvedEvents = 0;
   let completedMatches = 0;
   let eventWeeks = 0;
@@ -1009,6 +1085,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
 
     const managed = applySoakManagementPolicy(snapshot);
     actions += managed.actionCount;
+    addActionCounts(actionsByType, managed.actionCounts);
     for (const projectId of managed.specialProjectIds) {
       specialProjectPurchases[projectId] += 1;
     }
@@ -1031,6 +1108,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     tracker.healedInjuries += advanced.healedPlayerIds.length;
     addSpecialAbilityFlow(specialAbilityFlow, advanced.specialAbilityFlow);
     actions += advanced.actionCount;
+    addActionCounts(actionsByType, advanced.actionCounts);
+    addStringCounts(matchDecisionsByReason, advanced.matchDecisionsByReason);
     completedWeeks += 1;
     snapshot = advanced.snapshot;
     assertSoakInvariants(snapshot, { actionCount: actions });
@@ -1086,6 +1165,8 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     },
     yearly,
     pacing: {
+      actionsByType,
+      matchDecisionsByReason,
       resolvedEvents,
       completedMatches,
       eventWeeks,
