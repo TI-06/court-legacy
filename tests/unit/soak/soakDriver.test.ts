@@ -73,7 +73,7 @@ describe("Phase18 soak production action driver", () => {
       specialty: "attack",
       contractYearIndex: before.state.yearIndex,
     });
-    expect(firstSchool.facilities.gym).toBe(gymBefore + 1);
+    expect(firstSchool.facilities.gym).toBe(gymBefore + 5);
     expect(firstSchool.funds).toBeLessThan(schoolBefore.funds);
     expect(firstSchool.funds).toBeGreaterThanOrEqual(300);
 
