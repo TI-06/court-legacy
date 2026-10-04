@@ -569,16 +569,23 @@ function facilityAction(
   });
 
   for (const definition of ordered) {
-    const evaluation = evaluateFacilityUpgrade(
-      state,
-      state.userSchoolId,
-      definition.key,
-    );
-    if (
-      evaluation.allowed &&
-      evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
-    ) {
-      return { type: "facility-upgrade", facility: definition.key };
+    for (const levels of [10, 5, 1] as const) {
+      const evaluation = evaluateFacilityUpgrade(
+        state,
+        state.userSchoolId,
+        definition.key,
+        levels,
+      );
+      if (
+        evaluation.allowed &&
+        evaluation.fundsAfter >= SOAK_MANAGEMENT_RESERVE
+      ) {
+        return {
+          type: "facility-upgrade",
+          facility: definition.key,
+          levels,
+        };
+      }
     }
   }
   return null;
