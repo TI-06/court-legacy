@@ -48,6 +48,21 @@ describe("event pipeline", () => {
     expect(definition?.trigger.tournamentStages).toContain("camp");
   });
 
+  it("forces a tournament-context event one week before an official match", () => {
+    const state = createDemoGame();
+    state.calendar.weekOfYear = 8;
+    state.date = "2026-05-20";
+    state.calendar.currentDate = state.date;
+
+    const surfaced = surfaceWeeklyEvent(state, gameData);
+
+    expect(8 % 3).not.toBe(0);
+    expect(surfaced.pendingEvent).not.toBeNull();
+    const definition = gameData.events.get(surfaced.pendingEvent!.eventId);
+    expect(definition?.tags).toContain("tournament");
+    expect(definition?.tags).not.toContain("camp-event");
+  });
+
   it("does not force a normal event every week", () => {
     const state = createDemoGame();
     state.calendar.weekOfYear = 2;
