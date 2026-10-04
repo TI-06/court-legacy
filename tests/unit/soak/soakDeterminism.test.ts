@@ -66,6 +66,7 @@ interface RunResult {
     facilityMilestones: FacilityMilestones;
     pacing: {
       actionsByType: Record<string, number>;
+      matchDecisionsByReason: Record<string, number>;
       resolvedEvents: number;
       completedMatches: number;
       eventWeeks: number;
@@ -215,6 +216,12 @@ describe("Phase18 deterministic multi-season soak runner", () => {
         0,
       ),
     ).toBe(result.report.metadata.actions);
+    expect(
+      Object.values(result.report.pacing.matchDecisionsByReason).reduce(
+        (sum, count) => sum + count,
+        0,
+      ),
+    ).toBe(result.report.pacing.actionsByType["match-command"] ?? 0);
     expect(result.report.pacing.maxActionsInWeek).toBeGreaterThanOrEqual(
       result.report.pacing.averageActionsPerWeek,
     );
@@ -232,6 +239,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     );
     expect(result.summary).toContain("pacing=avg-actions:");
     expect(result.summary).toContain("action-mix=");
+    expect(result.summary).toContain("decision-mix=");
     expect(result.snapshot.state.pendingEvent).toBeNull();
     expect(
       result.snapshot.state.activeMatch === null ||
