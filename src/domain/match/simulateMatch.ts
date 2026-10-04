@@ -1288,6 +1288,19 @@ function shouldOpenMidSetDecision(match: MatchState): boolean {
   );
 }
 
+function controlledMidSetDecisionAlreadyUsed(match: MatchState): boolean {
+  const runtime = runtimeOrThrow(match);
+  const controlledSchoolId = runtime.controlledSchoolId;
+  return (
+    controlledSchoolId !== null &&
+    runtime.commandHistory.some(
+      (record) =>
+        record.schoolId === controlledSchoolId &&
+        record.decisionReason === "mid-set",
+    )
+  );
+}
+
 function criticalScoreThreshold(match: MatchState): number {
   const decidingSet = match.currentSetNumber === match.bestOfSets;
   return decidingSet ? 10 : 20;
@@ -1706,6 +1719,10 @@ function runUntilBoundary(
         "mid-set",
         automaticCoach,
       );
+      if (controlledMidSetDecisionAlreadyUsed(match)) {
+        runtime.midSetDecisionConsumed = true;
+        continue;
+      }
       match.phase = "coach-decision";
       match.pendingCoachCommandForSchoolId = runtime.controlledSchoolId;
       runtime.pendingDecisionReason = "mid-set";
