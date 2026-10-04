@@ -234,10 +234,9 @@ function runPhase21LongRun(seed: string): Phase21LongRunMetrics {
         const contextualPreparationWeek =
           nextOfficial?.kind === "match" && nextOfficial.weeksUntil === 1;
         if (
-          applied.outcome.academicYearTransition === null &&
-          (snapshot.state.calendar.weekOfYear % 3 === 0 ||
-            findCurrentTrainingCampActivity(snapshot.state) ||
-            contextualPreparationWeek)
+          snapshot.state.calendar.weekOfYear % 3 === 0 ||
+          findCurrentTrainingCampActivity(snapshot.state) ||
+          contextualPreparationWeek
         ) {
           rootEventSlots += 1;
         }
