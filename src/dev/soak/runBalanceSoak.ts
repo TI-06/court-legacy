@@ -1063,8 +1063,7 @@ export function runBalanceSoak(options: RunBalanceSoakOptions): SoakRunResult {
     if (hadMatch) matchWeeks += 1;
     if (hadEvent || hadMatch) interactiveWeeks += 1;
 
-    const quietWeek =
-      advanced.actionCount === 1 && !hadEvent && !hadMatch;
+    const quietWeek = advanced.actionCount === 1 && !hadEvent && !hadMatch;
     if (quietWeek) {
       quietWeeks += 1;
       currentQuietWeekStreak += 1;
