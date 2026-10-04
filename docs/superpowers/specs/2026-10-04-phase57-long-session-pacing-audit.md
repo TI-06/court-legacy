@@ -13,8 +13,8 @@ The audit extends the existing deterministic soak report only. It does not add s
 - progression actions required across all simulated weeks
 - average progression actions per week
 - maximum progression actions in one week
-- weeks containing an event
-- weeks containing a completed match
+- total resolved events and weeks containing an event
+- total completed matches and weeks containing a completed match
 - interactive weeks containing either an event or match
 - quiet weeks where the only required progression action is advance-week
 - longest consecutive quiet-week streak
