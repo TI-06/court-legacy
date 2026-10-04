@@ -1,0 +1,27 @@
+name: Phase57 Pacing Measurement V2
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/phase57-pacing-measurement-v2.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pacing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Run 10-season pacing soak
+        run: npm run soak:balance -- --seed phase57-pacing-a
+      - name: Run 30-season pacing soak
+        run: npm run soak:long -- --seed phase57-pacing-a
