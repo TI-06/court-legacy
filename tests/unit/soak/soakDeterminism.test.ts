@@ -65,6 +65,7 @@ interface RunResult {
     yearly: YearlyMetrics[];
     facilityMilestones: FacilityMilestones;
     pacing: {
+      actionsByType: Record<string, number>;
       resolvedEvents: number;
       completedMatches: number;
       eventWeeks: number;
@@ -202,6 +203,18 @@ describe("Phase18 deterministic multi-season soak runner", () => {
     expect(result.report.metadata.completedSeasons).toBe(3);
     expect(result.report.yearly).toHaveLength(3);
     expect(result.report.pacing.averageActionsPerWeek).toBeGreaterThan(0);
+    expect(result.report.pacing.actionsByType["advance-week"]).toBe(
+      result.report.metadata.completedWeeks,
+    );
+    expect(result.report.pacing.actionsByType["event-choice"]).toBe(
+      result.report.pacing.resolvedEvents,
+    );
+    expect(
+      Object.values(result.report.pacing.actionsByType).reduce(
+        (sum, count) => sum + count,
+        0,
+      ),
+    ).toBe(result.report.metadata.actions);
     expect(result.report.pacing.maxActionsInWeek).toBeGreaterThanOrEqual(
       result.report.pacing.averageActionsPerWeek,
     );
@@ -218,6 +231,7 @@ describe("Phase18 deterministic multi-season soak runner", () => {
       result.report.pacing.matchWeeks,
     );
     expect(result.summary).toContain("pacing=avg-actions:");
+    expect(result.summary).toContain("action-mix=");
     expect(result.snapshot.state.pendingEvent).toBeNull();
     expect(
       result.snapshot.state.activeMatch === null ||
