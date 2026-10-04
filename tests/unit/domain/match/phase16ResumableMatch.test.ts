@@ -220,11 +220,7 @@ describe("Phase16 resumable match API", () => {
 
   it("does not force another mid-set decision after the first one in a match", () => {
     const context = createContext("phase57-single-midset-world");
-    let step = findDecision(
-      context,
-      "mid-set",
-      "phase57-single-midset-random",
-    );
+    let step = findDecision(context, "mid-set", "phase57-single-midset-random");
     let laterMidSetDecisions = 0;
     let guard = 0;
 
