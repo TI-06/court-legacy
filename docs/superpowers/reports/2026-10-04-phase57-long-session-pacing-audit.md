@@ -6,46 +6,34 @@ Date: 2026-10-04
 
 Measure long-session repetition and interaction density before adding more systems.
 
-The soak report now records:
+The soak report records:
 
 - average authoritative actions per simulated week
 - maximum actions required in one week
 - weeks requiring more than four actions
 - resolved event count and number of event weeks
 - completed match count and number of match weeks
-- existing save-size measurements remain unchanged
+- authoritative action counts by type
+- match decision counts by reason
+- existing save-size measurements
 
-## Why this matters
-
-A long-running management game can become tiring even when individual features are good. The useful signal is not only total content count, but how often the player is forced through repeated interactions before reaching the next meaningful week.
-
-Phase57-4 keeps this as diagnostic output only. No new save state is persisted.
-
-## Follow-up thresholds
-
-Use 10-season and 30-season runs to identify:
-
-- excessive action density
-- event saturation
-- match congestion
-- save growth
-- repeated low-value interactions
-
-Any gameplay simplification should be justified by these measurements rather than adding another permanent screen.
-
+No new gameplay state is persisted for these diagnostics.
 
 ## Measured baseline
 
-Two deterministic seeds were run at 10 and 30 seasons.
+Two deterministic seeds were run at both 10 and 30 seasons.
 
-| Horizon | Avg actions/week | Max actions/week | Event choices | Match commands | Mid-set decisions | Save size at end |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 10 seasons A | 3.54 | 13 | 227 | 669 | 316 | 1,034,982 B |
-| 10 seasons B | 3.54 | 14 | 221 | 674 | 291 | 1,037,332 B |
-| 30 seasons A | 3.50 | 14 | 668 | 1,928 | 897 | 1,144,918 B |
-| 30 seasons B | 3.48 | 14 | 656 | 1,917 | 853 | 1,141,615 B |
+### 10 seasons
 
-The match decision mix showed that the guaranteed mid-set stop represented roughly 45% of all match commands. Set breaks, opponent runs, and critical-score moments were materially less frequent and are more contextual.
+- Seed A: 3.54 actions/week, max 13, 227 event choices, 669 match commands, 316 mid-set decisions, final save 1,034,982 bytes.
+- Seed B: 3.54 actions/week, max 14, 221 event choices, 674 match commands, 291 mid-set decisions, final save 1,037,332 bytes.
+
+### 30 seasons
+
+- Seed A: 3.50 actions/week, max 14, 668 event choices, 1,928 match commands, 897 mid-set decisions, final save 1,144,918 bytes.
+- Seed B: 3.48 actions/week, max 14, 656 event choices, 1,917 match commands, 853 mid-set decisions, final save 1,141,615 bytes.
+
+The decision mix showed that the guaranteed mid-set stop represented roughly 45% of all match commands. Set breaks, opponent runs, and critical-score moments were materially less frequent and more contextual.
 
 ## Match-pacing adjustment
 
@@ -53,13 +41,28 @@ The controlled team now receives at most one explicit mid-set coaching stop per 
 
 Measured with the same deterministic seeds:
 
-| Horizon | Avg actions/week | Max actions/week | Match commands | Mid-set decisions |
-| --- | ---: | ---: | ---: | ---: |
-| 10 seasons A | 3.22 | 11 | 501 | 146 |
-| 10 seasons B | 3.23 | 12 | 514 | 131 |
-| 30 seasons A | 3.26 | 12 | 1,528 | 433 |
-| 30 seasons B | 3.24 | 12 | 1,533 | 393 |
+### 10 seasons after adjustment
 
-This reduces match commands by about 20-25%, mid-set stops by about 52-55%, and total authoritative actions by about 7-9% while keeping the contextual coaching moments.
+- Seed A: 3.22 actions/week, max 11, 501 match commands, 146 mid-set decisions.
+- Seed B: 3.23 actions/week, max 12, 514 match commands, 131 mid-set decisions.
+
+### 30 seasons after adjustment
+
+- Seed A: 3.26 actions/week, max 12, 1,528 match commands, 433 mid-set decisions.
+- Seed B: 3.24 actions/week, max 12, 1,533 match commands, 393 mid-set decisions.
+
+The adjustment reduces match commands by about 20-25%, mid-set stops by about 52-55%, and total authoritative actions by about 7-9% while preserving contextual coaching moments.
 
 The 30-season save remained approximately 1.13 MB and produced no balance observations, so the pacing adjustment does not add save growth.
+
+## Follow-up
+
+Continue to use the pacing metrics to identify:
+
+- excessive action density
+- event saturation
+- match congestion
+- save growth
+- repeated low-value interactions
+
+Further simplification should be justified by measured interaction cost rather than by adding another permanent screen.
