@@ -733,7 +733,9 @@ export function advanceSoakUntilWeekChanges(
       action.type === "event-choice"
         ? (current.state.pendingEvent?.eventId ?? null)
         : null;
-    const historyCount = current.state.history.matches.length;
+    const historyMatchIds = new Set(
+      current.state.history.matches.map((match) => String(match.matchId)),
+    );
     const applied = applyAction(current, action);
     const next = applied.snapshot;
     const specialAbilityDelta = observeSoakSpecialAbilityFlow(current, next);
@@ -768,10 +770,9 @@ export function advanceSoakUntilWeekChanges(
       academicYearTransition =
         outcome.academicYearTransition ?? academicYearTransition;
     }
-    completedMatches += Math.max(
-      0,
-      next.state.history.matches.length - historyCount,
-    );
+    completedMatches += next.state.history.matches.filter(
+      (match) => !historyMatchIds.has(String(match.matchId)),
+    ).length;
 
     current = next;
   }
