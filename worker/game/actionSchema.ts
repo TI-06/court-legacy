@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { MatchCommand } from "../../src/domain/model/Match";
 import type { SeasonAmbition } from "../../src/domain/season/seasonGoalTypes";
+import type {
+  SeasonTurningPointChoiceId,
+  SeasonTurningPointId,
+} from "../../src/domain/season/seasonTurningPoint";
 import type { PlayerOpportunityResponse } from "../../src/domain/dynamics/playerOpportunityPromises";
 import type { TeamSelection } from "../../src/domain/model/TeamSelection";
 import type {
@@ -198,6 +202,13 @@ const gameActionSchema = z.discriminatedUnion("type", [
     })
     .strict(),
   z
+    .object({
+      type: z.literal("resolve-season-turning-point"),
+      turningPointId: z.enum(["season-direction", "pressure-moment"]),
+      choiceId: z.enum(["win-now", "build-future", "push", "recover"]),
+    })
+    .strict(),
+  z
     .object({ type: z.literal("set-training-plan"), plan: weeklyPlanSchema })
     .strict(),
   z
@@ -356,6 +367,11 @@ export const gameActionRequestSchema = z
 export type GameAction =
   | { type: "training"; plan: WeeklyPlan }
   | { type: "set-season-ambition"; ambition: SeasonAmbition }
+  | {
+      type: "resolve-season-turning-point";
+      turningPointId: SeasonTurningPointId;
+      choiceId: SeasonTurningPointChoiceId;
+    }
   | { type: "set-training-plan"; plan: WeeklyPlan }
   | { type: "team-selection"; selection: TeamSelection }
   | { type: "set-team-tactics"; plan: MatchTacticPlan }
