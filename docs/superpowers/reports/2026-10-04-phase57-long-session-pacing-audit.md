@@ -92,3 +92,30 @@ Keep mid-set interaction only when the human-controlled team is materially under
 - opponent-run decisions
 
 This should remove the largest low-value repeated prompt without turning matches back into passive simulations.
+
+## Post-change verification
+
+After PR #335 reduced mid-set coaching decisions to pressure situations only, the same 30-season seed (`phase57-pacing-30`) was rerun against the merged implementation.
+
+### 30-season comparison
+
+| Metric                      |    Before |     After | Change        |
+| --------------------------- | --------: | --------: | ------------- |
+| weeks                       |     1,566 |     1,566 | unchanged     |
+| total actions               |     5,033 |     4,240 | -793 (-15.8%) |
+| average actions/week        |      3.21 |      2.71 | -15.6%        |
+| maximum actions in one week |        27 |        23 | -4            |
+| heavy weeks (>4 actions)    |       428 |       254 | -174 (-40.7%) |
+| match commands              |     1,945 |     1,152 | -793 (-40.8%) |
+| mid-set decisions           |       908 |       115 | -793 (-87.3%) |
+| set-break decisions         |       491 |       491 | unchanged     |
+| critical-score decisions    |       294 |       294 | unchanged     |
+| opponent-run decisions      |       252 |       252 | unchanged     |
+| final save bytes            | 1,126,860 | 1,126,860 | unchanged     |
+| maximum observed save bytes | 1,139,567 | 1,139,567 | unchanged     |
+
+### Result
+
+The change removed 87.3% of mid-set interruptions while preserving every measured set-break, critical-score, and opponent-run decision. Total match commands fell by 40.8%, heavy weeks fell by 40.7%, and the long-session save-size profile remained unchanged.
+
+Phase57-4 therefore meets its pacing objective without weakening the contextual coaching decisions that were intentionally retained.
