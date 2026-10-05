@@ -119,4 +119,3 @@ After PR #335 reduced mid-set coaching decisions to pressure situations only, th
 The change removed 87.3% of mid-set interruptions while preserving every measured set-break, critical-score, and opponent-run decision. Total match commands fell by 40.8%, heavy weeks fell by 40.7%, and the long-session save-size profile remained unchanged.
 
 Phase57-4 therefore meets its pacing objective without weakening the contextual coaching decisions that were intentionally retained.
-
