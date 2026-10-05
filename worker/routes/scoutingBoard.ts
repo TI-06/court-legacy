@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import {
   consumeBaseScoutingSearch,
   consumeExtraScoutingSearchCredit,
@@ -259,6 +260,10 @@ export function createScoutingBoardHandler(
           expectedRevision: snapshot.revision,
           previousState: snapshot.state,
           state: searchedState,
+          stateDelta: buildJsonStateDelta(
+            snapshot.state as unknown as Record<string, unknown>,
+            searchedState as unknown as Record<string, unknown>,
+          ),
           teamSelection: snapshot.teamSelection,
           response,
         });

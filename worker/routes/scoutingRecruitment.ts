@@ -6,6 +6,7 @@ import {
 } from "../../src/domain/scouting/recruitmentEngagement";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
+import { buildJsonStateDelta } from "../data/stateDelta";
 import type { ScoutingStore } from "../data/ScoutingStore";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
@@ -210,6 +211,10 @@ export function createScoutingRecruitmentHandler(
           expectedRevision: snapshot.revision,
           previousState: snapshot.state,
           state: applied.state,
+          stateDelta: buildJsonStateDelta(
+            snapshot.state as unknown as Record<string, unknown>,
+            applied.state as unknown as Record<string, unknown>,
+          ),
           teamSelection: snapshot.teamSelection,
           response,
         });
@@ -286,6 +291,10 @@ export function createScoutingRecruitmentHandler(
         expectedRevision: snapshot.revision,
         previousState: snapshot.state,
         state: nextState,
+        stateDelta: buildJsonStateDelta(
+          snapshot.state as unknown as Record<string, unknown>,
+          nextState as unknown as Record<string, unknown>,
+        ),
         teamSelection: snapshot.teamSelection,
         response,
       });

@@ -151,6 +151,7 @@ describe("scouting recruitment route", () => {
     const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
     expect(persisted.expectedRevision).toBe(7);
     expect(persisted.response.game.revision).toBe(8);
+    expect(persisted.stateDelta).toBeDefined();
     expect(persisted.state.recruiting).toMatchObject({
       cycleKey: scouting.pool.cycleKey,
       committedCandidateIds: [candidate.player.id],
@@ -332,6 +333,7 @@ describe("scouting recruitment route", () => {
 
     expect(response.status).toBe(200);
     const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(persisted.stateDelta).toBeDefined();
     expect(persisted.state.recruiting).toMatchObject({
       cycleKey: scouting.pool.cycleKey,
       committedCandidateIds: [],
