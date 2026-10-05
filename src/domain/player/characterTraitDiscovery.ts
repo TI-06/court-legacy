@@ -62,8 +62,14 @@ export function discoverEligibleCharacterTraits(
   let players: GameState["players"] | null = null;
   const discoveries: CharacterTraitDiscovery[] = [];
 
-  for (const playerId of Object.keys(state.players).sort()) {
-    const player = state.players[playerId as PlayerId];
+  const activePlayerIds = [
+    ...new Set(
+      Object.values(state.schools).flatMap((school) => school.playerIds),
+    ),
+  ].sort();
+
+  for (const playerId of activePlayerIds) {
+    const player = state.players[playerId];
     if (!player) continue;
     const hidden = [...new Set(player.hiddenTraitIds)].sort();
     const hiddenSet = new Set(hidden);
