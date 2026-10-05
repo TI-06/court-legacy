@@ -11,6 +11,7 @@ import type {
   ScoutingCandidatePool,
   ScoutingStore,
 } from "../../../worker/data/ScoutingStore";
+import { applyJsonStateDelta } from "../../../worker/data/stateDelta";
 import { createScoutingRecruitmentHandler } from "../../../worker/routes/scoutingRecruitment";
 import {
   buildServerScoutReports,
@@ -162,6 +163,13 @@ describe("scouting recruitment route", () => {
       ],
     });
     expect(persisted.state.recruiting?.committedCandidates).toHaveLength(1);
+    expect(persisted.stateDelta).toBeDefined();
+    expect(
+      applyJsonStateDelta(
+        snapshot.state as unknown as Record<string, unknown>,
+        persisted.stateDelta!,
+      ),
+    ).toEqual(persisted.state);
 
     const body = await response.json();
     expect(body.outcome).toEqual({
@@ -344,6 +352,13 @@ describe("scouting recruitment route", () => {
         },
       },
     });
+    expect(persisted.stateDelta).toBeDefined();
+    expect(
+      applyJsonStateDelta(
+        snapshot.state as unknown as Record<string, unknown>,
+        persisted.stateDelta!,
+      ),
+    ).toEqual(persisted.state);
     const body = await response.json();
     expect(body.outcome).toMatchObject({
       candidateId: candidate.player.id,

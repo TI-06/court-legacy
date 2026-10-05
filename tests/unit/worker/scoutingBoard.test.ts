@@ -10,6 +10,7 @@ import type {
   ScoutingCandidatePool,
   ScoutingStore,
 } from "../../../worker/data/ScoutingStore";
+import { applyJsonStateDelta } from "../../../worker/data/stateDelta";
 import { createScoutingBoardHandler } from "../../../worker/routes/scoutingBoard";
 import { generateServerScoutingCandidates } from "../../../worker/scouting/serverScoutingBoard";
 
@@ -138,6 +139,14 @@ describe("scouting board route", () => {
     expect(scoutingStore.createCandidatePool).toHaveBeenCalledTimes(1);
     expect(scoutingStore.savedPool?.candidates).toHaveLength(6);
     expect(gameStore.applyOperation).toHaveBeenCalledTimes(1);
+    const [persisted] = vi.mocked(gameStore.applyOperation).mock.calls[0]!;
+    expect(persisted.stateDelta).toBeDefined();
+    expect(
+      applyJsonStateDelta(
+        snapshot.state as unknown as Record<string, unknown>,
+        persisted.stateDelta!,
+      ),
+    ).toEqual(persisted.state);
 
     const body = await response.json();
     expect(body.operationId).toBe("scouting-board-001");
