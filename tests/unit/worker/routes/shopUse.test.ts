@@ -12,6 +12,7 @@ import {
   type ShopStore,
 } from "../../../../worker/data/ShopStore";
 import { createShopUseHandler } from "../../../../worker/routes/shopUse";
+import { buildJsonStateDelta } from "../../../../worker/data/stateDelta";
 import {
   ShopUseResolutionError,
   type ResolvedShopUse,
@@ -165,7 +166,7 @@ describe("shop use route", () => {
       operationId: body.operationId,
       operationType: "use",
       revision: 9,
-      academicYearIndex: snapshot.state.yearIndex,
+      academicYearIndex: 1,
       itemId: body.itemId,
       quantityOwned: 0,
       purchasedCount: 1,

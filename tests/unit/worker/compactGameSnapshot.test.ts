@@ -86,10 +86,16 @@ describe("compactGameSnapshot", () => {
 
     const compacted = compactGameSnapshot(snapshot);
 
+    const retainedRivalAlumni =
+      MAX_RIVAL_ALUMNI_PER_SCHOOL === 0
+        ? []
+        : alumniIds.slice(-MAX_RIVAL_ALUMNI_PER_SCHOOL);
     expect(compacted.state.schools[rival.id]!.alumniPlayerIds).toEqual(
-      alumniIds.slice(-MAX_RIVAL_ALUMNI_PER_SCHOOL),
+      retainedRivalAlumni,
     );
-    for (const id of alumniIds.slice(0, -MAX_RIVAL_ALUMNI_PER_SCHOOL)) {
+    for (const id of alumniIds.filter(
+      (candidate) => !retainedRivalAlumni.includes(candidate),
+    )) {
       expect(compacted.state.players[id]).toBeUndefined();
     }
     for (const id of rival.playerIds) {
@@ -119,6 +125,35 @@ describe("compactGameSnapshot", () => {
     for (const id of rival.playerIds) {
       expect(compacted.state.players[id]).toBeDefined();
     }
+  });
+
+  it("self-heals development history to the 12 weeks actually used by Player Hub", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const template = {
+      gameDate: snapshot.state.date,
+      academicYearIndex: snapshot.state.yearIndex,
+      weekOfYear: 1,
+      trainingMenuId: "training.spike",
+      players: [],
+    };
+    snapshot.state.history.playerDevelopmentWeeks = Array.from(
+      { length: 52 },
+      (_, index) => ({
+        ...template,
+        weekOfYear: index + 1,
+      }),
+    );
+
+    const compacted = compactGameSnapshot(snapshot);
+
+    expect(compacted.state.history.playerDevelopmentWeeks).toHaveLength(12);
+    expect(compacted.state.history.playerDevelopmentWeeks[0]?.weekOfYear).toBe(
+      41,
+    );
+    expect(
+      compacted.state.history.playerDevelopmentWeeks.at(-1)?.weekOfYear,
+    ).toBe(52);
   });
 
   it("self-heals a completed match by dropping its large live event log", () => {
