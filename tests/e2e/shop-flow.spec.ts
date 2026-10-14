@@ -412,6 +412,7 @@ test("training efficiency boost is visibly pending, applies once, and disappears
   await navigation.getByRole("button", { name: "ホーム", exact: true }).click();
   await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
+  await page.getByRole("tab", { name: /最近の動き/ }).click();
   await expect(
     page.getByRole("button", { name: /今週の練習結果/ }),
   ).toBeVisible({ timeout: 2_500 });

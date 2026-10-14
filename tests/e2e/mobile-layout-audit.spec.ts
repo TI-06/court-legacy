@@ -501,6 +501,7 @@ for (const viewport of mobileViewports) {
       `${viewport.width}-home-after-match`,
     );
 
+    await page.getByRole("tab", { name: /最近の動き/ }).click();
     const trainingNotificationButton = page
       .getByRole("button", { name: /今週の練習結果/ })
       .first();

@@ -186,6 +186,7 @@ for (const width of [320, 360, 390, 414, 480]) {
     }
     await expectNoHorizontalOverflow(page);
 
+    await page.getByRole("tab", { name: /最近の動き/ }).click();
     const trainingResult = page
       .getByRole("button", { name: /今週の練習結果/ })
       .first();

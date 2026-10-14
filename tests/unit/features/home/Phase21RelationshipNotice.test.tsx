@@ -44,6 +44,7 @@ describe("Phase21 Home relationship notice", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     expect(screen.getByText("相棒関係が成立")).toBeVisible();
     expect(
       screen.getByText(

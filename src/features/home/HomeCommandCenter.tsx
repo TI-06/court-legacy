@@ -98,9 +98,26 @@ export function HomeCommandCenter({
 }: HomeCommandCenterProps) {
   const [tasksOpen, setTasksOpen] = useState(false);
   const [newsOpen, setNewsOpen] = useState(false);
+  const [selectedBriefing, setSelectedBriefing] = useState<
+    "official" | "season" | "rival"
+  >("official");
+  const [selectedDesk, setSelectedDesk] = useState<"tasks" | "news">("tasks");
   const { summary } = model;
-  const visibleTasks = model.tasks.slice(0, 2);
+  const briefingTabs = [
+    ...(summary.official ? [{ id: "official" as const, label: "公式戦" }] : []),
+    ...(summary.season ? [{ id: "season" as const, label: "今季" }] : []),
+    ...(summary.featuredRival
+      ? [{ id: "rival" as const, label: "ライバル" }]
+      : []),
+  ];
+  const activeBriefing = briefingTabs.some((tab) => tab.id === selectedBriefing)
+    ? selectedBriefing
+    : briefingTabs[0]?.id;
+  // Only one digest is shown per page. The sheets retain every item.
+  const visibleTasks = model.tasks.slice(0, 1);
   const visibleNews = model.news.slice(0, 1);
+  const activeDesk =
+    selectedDesk === "news" && model.news.length === 0 ? "tasks" : selectedDesk;
 
   const renderTask = (task: HomeCommandTask) => {
     if (task.kind === "action") {
@@ -293,7 +310,9 @@ export function HomeCommandCenter({
           <div>
             <span>今週</span>
             <h2 id="home-week-heading">
-              {summary.dateLabel}・{summary.weekLabel}
+              <span className="home-command-summary__date">
+                {summary.dateLabel}・{summary.weekLabel}
+              </span>
               {summary.camp ? (
                 <span
                   aria-label={`強化合宿期間 ${summary.camp.title}`}
@@ -308,8 +327,39 @@ export function HomeCommandCenter({
           <strong title={summary.schoolName}>{summary.schoolName}</strong>
         </div>
 
-        <div className="home-command-summary__briefing">
-          {summary.official ? (
+        {briefingTabs.length > 1 ? (
+          <div
+            aria-label="ホーム情報の表示切替"
+            className="home-command-briefing-tabs"
+            role="tablist"
+          >
+            {briefingTabs.map((tab) => (
+              <button
+                aria-controls="home-briefing-panel"
+                aria-selected={activeBriefing === tab.id}
+                className={activeBriefing === tab.id ? "is-active" : ""}
+                id={`home-briefing-tab-${tab.id}`}
+                key={tab.id}
+                onClick={() => setSelectedBriefing(tab.id)}
+                role="tab"
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <div
+          aria-labelledby={
+            briefingTabs.length > 1
+              ? `home-briefing-tab-${activeBriefing}`
+              : undefined
+          }
+          className="home-command-summary__briefing"
+          id="home-briefing-panel"
+          role={briefingTabs.length > 1 ? "tabpanel" : undefined}
+        >
+          {activeBriefing === "official" && summary.official ? (
             <div
               className={`home-command-objective home-official-card${summary.official.due ? " is-due" : ""}`}
             >
@@ -333,7 +383,7 @@ export function HomeCommandCenter({
             </div>
           ) : null}
 
-          {summary.featuredRival ? (
+          {activeBriefing === "rival" && summary.featuredRival ? (
             <button
               aria-label={`注目ライバル ${summary.featuredRival.displayName} ${summary.featuredRival.recordLabel}`}
               className="home-featured-rival"
@@ -351,7 +401,7 @@ export function HomeCommandCenter({
             </button>
           ) : null}
 
-          {summary.season ? (
+          {activeBriefing === "season" && summary.season ? (
             <section className="home-season-card" aria-label="今季ストーリー">
               <div
                 className="home-season-card__goal"
@@ -431,62 +481,90 @@ export function HomeCommandCenter({
       </section>
 
       <section
+        aria-label="ホームの確認事項"
         className="home-command-section home-command-section--tasks"
-        aria-labelledby="home-command-tasks-heading"
       >
-        <div className="home-command-section__heading">
-          <div>
-            <span>COACH DESK</span>
-            <h3 id="home-command-tasks-heading">今週やること</h3>
-          </div>
-          <div className="home-command-section__heading-actions">
-            <small>{model.tasks.length}件</small>
-            {model.tasks.length > 2 ? (
-              <button
-                aria-label="やることをすべて見る"
-                onClick={() => setTasksOpen(true)}
-                type="button"
-              >
-                一覧
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        {visibleTasks.length === 0 ? (
-          <p className="home-command-empty">今週の準備は整っています</p>
-        ) : (
-          <div className="home-command-task-list">
-            {visibleTasks.map(renderTask)}
-          </div>
-        )}
-      </section>
-
-      {visibleNews.length > 0 ? (
-        <section
-          className="home-command-section home-command-news home-notification-list"
-          aria-labelledby="home-command-news-heading"
+        <div
+          aria-label="確認事項の表示切替"
+          className="home-command-desk-tabs"
+          role="tablist"
         >
-          <div className="home-command-section__heading home-command-section__heading--news">
-            <div>
-              <span>NEWS</span>
-              <h3 id="home-command-news-heading">最近の動き</h3>
-            </div>
-            {model.news.length > 1 ? (
-              <button
-                aria-label="ニュースをすべて見る"
-                onClick={() => setNewsOpen(true)}
-                type="button"
-              >
-                一覧
-              </button>
-            ) : null}
-          </div>
-          <div className="home-command-news-list">
-            {visibleNews.map(renderNews)}
-          </div>
-        </section>
-      ) : null}
+          <button
+            aria-controls="home-command-desk-panel"
+            aria-selected={activeDesk === "tasks"}
+            className={activeDesk === "tasks" ? "is-active" : ""}
+            id="home-command-desk-tab-tasks"
+            onClick={() => setSelectedDesk("tasks")}
+            role="tab"
+            type="button"
+          >
+            やること <small>{model.tasks.length}</small>
+          </button>
+          {model.news.length > 0 ? (
+            <button
+              aria-controls="home-command-desk-panel"
+              aria-selected={activeDesk === "news"}
+              className={activeDesk === "news" ? "is-active" : ""}
+              id="home-command-desk-tab-news"
+              onClick={() => setSelectedDesk("news")}
+              role="tab"
+              type="button"
+            >
+              最近の動き <small>{model.news.length}</small>
+            </button>
+          ) : null}
+        </div>
+        <div
+          aria-labelledby={`home-command-desk-tab-${activeDesk}`}
+          className="home-command-desk-panel"
+          id="home-command-desk-panel"
+          role="tabpanel"
+        >
+          {activeDesk === "tasks" ? (
+            <>
+              <div className="home-command-section__heading">
+                <div>
+                  <h3 id="home-command-tasks-heading">今週やること</h3>
+                </div>
+                {model.tasks.length > 0 ? (
+                  <button
+                    aria-label="やることをすべて見る"
+                    onClick={() => setTasksOpen(true)}
+                    type="button"
+                  >
+                    すべて見る
+                  </button>
+                ) : null}
+              </div>
+              {visibleTasks.length === 0 ? (
+                <p className="home-command-empty">今週の準備は整っています</p>
+              ) : (
+                <div className="home-command-task-list">
+                  {visibleTasks.map(renderTask)}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="home-command-section__heading">
+                <div>
+                  <h3 id="home-command-news-heading">最近の動き</h3>
+                </div>
+                <button
+                  aria-label="ニュースをすべて見る"
+                  onClick={() => setNewsOpen(true)}
+                  type="button"
+                >
+                  すべて見る
+                </button>
+              </div>
+              <div className="home-command-news-list">
+                {visibleNews.map(renderNews)}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
 
       <BottomSheet
         description="優先度順に、今週確認したい項目をまとめています。"

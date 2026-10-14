@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
@@ -40,27 +40,35 @@ function renderHomeWithAssignments(assignAllPlayers: boolean) {
 describe("Phase22 Home individual training summary", () => {
   it("groups configured individual menus instead of presenting the legacy team menu as the weekly training", () => {
     renderHomeWithAssignments(true);
+    fireEvent.click(
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const tasks = screen.getByRole("dialog", { name: "今週やること" });
 
-    expect(screen.getByText(/攻撃 2名/)).toBeVisible();
-    expect(screen.getByText(/守備 3名/)).toBeVisible();
-    expect(screen.getByText(/全体 \d+名/)).toBeVisible();
+    expect(within(tasks).getByText(/攻撃 2名/)).toBeVisible();
+    expect(within(tasks).getByText(/守備 3名/)).toBeVisible();
+    expect(within(tasks).getByText(/全体 \d+名/)).toBeVisible();
     expect(screen.queryByText("スパイク練習")).toBeNull();
     expect(screen.queryByRole("button", { name: /個人練習を設定/ })).toBeNull();
   });
 
   it("shows a setup action only while at least one roster player is truly unconfigured", () => {
     const { school } = renderHomeWithAssignments(false);
+    fireEvent.click(
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const tasks = screen.getByRole("dialog", { name: "今週やること" });
 
-    expect(screen.getByText(/未設定 1名/)).toBeVisible();
+    expect(within(tasks).getByText(/未設定 1名/)).toBeVisible();
     expect(
-      screen.getByText(
+      within(tasks).getByText(
         new RegExp(
           `設定済み ${school.playerIds.length - 1}/${school.playerIds.length}名`,
         ),
       ),
     ).toBeVisible();
     expect(
-      screen.getByRole("button", { name: /個人練習を設定/ }),
+      within(tasks).getByRole("button", { name: /個人練習を設定/ }),
     ).toBeVisible();
   });
 });

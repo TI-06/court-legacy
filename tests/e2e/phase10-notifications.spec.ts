@@ -51,6 +51,8 @@ test("training result notification survives reload and keeps durable read state"
   await advanceWeekFromHome(page);
   await expect(page.locator(".operation-status")).toHaveText("保存済み ✓");
 
+  await page.getByRole("tab", { name: /最近の動き/ }).click();
+
   let notificationRow = page.getByRole("button", {
     name: /今週の練習結果/,
   });
@@ -63,6 +65,7 @@ test("training result notification survives reload and keeps durable read state"
   await page.reload();
   await expect(page.getByRole("main", { name: "ホーム" })).toBeVisible();
 
+  await page.getByRole("tab", { name: /最近の動き/ }).click();
   notificationRow = page.getByRole("button", { name: /今週の練習結果/ });
   await expect(notificationRow).toBeVisible();
   await expect(notificationRow).toContainText("NEW");

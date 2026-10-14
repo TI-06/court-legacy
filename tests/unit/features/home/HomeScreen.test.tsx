@@ -137,6 +137,7 @@ describe("Phase 13 Home command center", () => {
     const primaryGoal = props.state.seasonGoals!.goals[0]!;
     const story = selectSeasonStory(props.state);
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: "今季" }));
 
     const season = screen.getByRole("region", { name: "今季ストーリー" });
     expect(within(season).getByText(story.headline)).toBeVisible();
@@ -173,6 +174,7 @@ describe("Phase 13 Home command center", () => {
     ];
 
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: "ライバル" }));
 
     const rival = screen.getByRole("button", {
       name: `注目ライバル ${opponent.shortName} 0勝1敗`,
@@ -197,7 +199,13 @@ describe("Phase 13 Home command center", () => {
       );
     render(<HomeScreen {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /個人練習を設定/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
+    const tasks = screen.getByRole("dialog", { name: "今週やること" });
+    fireEvent.click(
+      within(tasks).getByRole("button", { name: /個人練習を設定/ }),
+    );
     expect(props.onCommand).toHaveBeenCalledWith({ target: "team" });
   });
 
@@ -269,6 +277,7 @@ describe("Phase 13 Home command center", () => {
     props.state.notifications.items = [notification];
     render(<HomeScreen {...props} />);
 
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     expect(
       screen.getAllByTestId("home-command-news").length,
     ).toBeLessThanOrEqual(3);
@@ -296,6 +305,7 @@ describe("Phase 13 Home command center", () => {
     props.state.notifications.items = [notification];
 
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
 
     expect(screen.getByText("NEW 能力ランクアップ！")).toBeVisible();
     expect(screen.getByText(/跳躍 E→D/)).toBeVisible();
@@ -333,6 +343,7 @@ describe("Phase 13 Home command center", () => {
     props.state.notifications.items = [notification];
 
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
 
     expect(screen.getByText("NEW シーズン目標達成！")).toBeVisible();
     expect(screen.getByText("公式戦2勝・年度末 +100")).toBeVisible();
@@ -378,6 +389,7 @@ describe("Phase 13 Home command center", () => {
     props.state.notifications.items = [notification];
 
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -413,6 +425,7 @@ describe("Phase 13 Home command center", () => {
     );
     props.state.notifications.items = [notification];
     render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     expect(screen.getByText("新しい個性を発見！")).toBeInTheDocument();
     expect(screen.queryByTestId("fullscreen-event")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /新しい個性を発見！/ }));

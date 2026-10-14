@@ -143,6 +143,7 @@ describe("GameApp notifications", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     fireEvent.click(screen.getByRole("button", { name: /育成目標達成！/ }));
     fireEvent.click(
       screen.getByRole("button", {
@@ -193,6 +194,7 @@ describe("GameApp notifications", () => {
       />,
     );
 
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     fireEvent.click(screen.getByRole("button", { name: /今週の練習結果/ }));
 
     expect(
