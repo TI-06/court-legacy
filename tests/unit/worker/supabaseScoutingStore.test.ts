@@ -106,6 +106,64 @@ describe("SupabaseScoutingStore", () => {
     expect(pool.candidates).toEqual([canonicalCandidate]);
   });
 
+  it("reads server-only archived rival candidates after migration", async () => {
+    const candidate = candidateTruth();
+    const rivalSchoolId = "school-rival-1";
+    const fake = createReadClient({
+      user_id: "user-123",
+      cycle_key: "school-user:year-3",
+      creation_operation_id: "search-2",
+      candidates: [candidate],
+      archived_rival_candidates: [
+        {
+          player: candidate.player,
+          schoolId: rivalSchoolId,
+          signingWeekOfYear: 17,
+        },
+      ],
+    });
+
+    const store = new SupabaseScoutingStore(fake.client);
+    const result = await store.getCandidatePool(
+      "user-123",
+      "school-user:year-3",
+    );
+    expect(result?.archivedRivalCandidates).toEqual([
+      {
+        player: candidate.player,
+        schoolId: rivalSchoolId,
+        signingWeekOfYear: 17,
+      },
+    ]);
+  });
+
+  it("reads legacy pools if the archive migration is not yet applied", async () => {
+    const candidate = candidateTruth();
+    const row = {
+      user_id: "user-123",
+      cycle_key: "school-user:year-3",
+      creation_operation_id: "search-1",
+      candidates: [candidate],
+    };
+    const fake = createReadClient(row);
+    fake.maybeSingle
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: "42703",
+          message: 'column "archived_rival_candidates" does not exist',
+        },
+      })
+      .mockResolvedValueOnce({ data: row, error: null });
+
+    const result = await new SupabaseScoutingStore(
+      fake.client,
+    ).getCandidatePool("user-123", "school-user:year-3");
+    expect(result?.candidates).toEqual([candidate]);
+    expect(result?.archivedRivalCandidates).toBeUndefined();
+    expect(fake.select).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects malformed hidden candidate rows instead of passing corrupt truth into the game", async () => {
     const fake = createReadClient({
       user_id: "user-123",
