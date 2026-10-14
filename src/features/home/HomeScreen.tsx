@@ -23,6 +23,7 @@ import {
 import { TrainingResultNotificationSheet } from "./TrainingResultNotificationSheet";
 import "./home-command-center.css";
 import "./training-result-notification.css";
+import "./home-phase61.css";
 
 interface HomeScreenProps {
   state: GameState;
