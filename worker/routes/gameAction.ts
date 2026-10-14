@@ -143,16 +143,36 @@ export async function resolveRivalIntake(
     pool.candidates.map((candidate) => [candidate.player.id, candidate.player]),
   );
   const recruits: Player[] = [];
+  const committedIds = new Set(state.recruiting.committedCandidateIds);
+  const seen = new Set<string>();
+  for (const archived of pool.archivedRivalCandidates ?? []) {
+    const candidateId = archived.player.id;
+    if (
+      archived.signingWeekOfYear > state.calendar.weekOfYear ||
+      committedIds.has(candidateId) ||
+      seen.has(candidateId) ||
+      !state.schools[archived.schoolId] ||
+      archived.schoolId === state.userSchoolId
+    ) {
+      continue;
+    }
+    seen.add(candidateId);
+    recruits.push({
+      ...archived.player,
+      career: { ...archived.player.career, schoolId: archived.schoolId },
+    });
+  }
   for (const report of reports) {
     const schoolId = rivalSigningSchoolId(state, report);
     if (!schoolId || schoolId === state.userSchoolId) continue;
     const player = truthById.get(report.candidateId);
-    if (!player) continue;
+    if (!player || seen.has(player.id)) continue;
+    seen.add(player.id);
     recruits.push({
       ...player,
       career: { ...player.career, schoolId },
     });
-    if (recruits.length >= 7) break;
+    if (recruits.length >= 24) break;
   }
   return recruits;
 }

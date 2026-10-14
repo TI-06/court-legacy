@@ -1,5 +1,5 @@
 import type { Player } from "../../src/domain/model/Player";
-import type { PlayerId } from "../../src/domain/model/identifiers";
+import type { PlayerId, SchoolId } from "../../src/domain/model/identifiers";
 import type {
   MiddleSchoolAchievement,
   OverallScoutPrecision,
@@ -17,11 +17,18 @@ export interface ScoutingCandidateInsight {
   potentialPrecision: PotentialScoutPrecision;
 }
 
+export interface ArchivedRivalCandidate {
+  player: Player;
+  schoolId: SchoolId;
+  signingWeekOfYear: number;
+}
+
 export interface ScoutingCandidatePool {
   userId: string;
   cycleKey: string;
   creationOperationId: string;
   candidates: ScoutingCandidateTruth[];
+  archivedRivalCandidates?: ArchivedRivalCandidate[];
 }
 
 export interface CreateScoutingCandidatePoolInput {
@@ -29,6 +36,7 @@ export interface CreateScoutingCandidatePoolInput {
   cycleKey: string;
   creationOperationId: string;
   candidates: ScoutingCandidateTruth[];
+  archivedRivalCandidates?: ArchivedRivalCandidate[];
 }
 
 export interface ScoutingStore {

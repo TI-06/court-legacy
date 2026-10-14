@@ -12,6 +12,7 @@ import type {
   ScoutingStore,
 } from "../data/ScoutingStore";
 import type { ShopStore } from "../data/ShopStore";
+import { archiveReplacedScoutingPool } from "../scouting/rivalSigningArchive";
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
@@ -172,6 +173,7 @@ export function createScoutingBoardHandler(
               searchSequence,
               replaySearchItemBonuses,
             ),
+            archivedRivalCandidates: replayPool?.archivedRivalCandidates ?? [],
           };
           replayPool = replayPool
             ? await deps.scoutingStore.replaceCandidatePool(replayPoolInput)
@@ -226,10 +228,18 @@ export function createScoutingBoardHandler(
         consumeScoutingSearchItemBonuses(searchedWithBudget);
       const searchSequence =
         searchedState.recruiting?.scoutingSearchesUsed ?? 1;
+      const archivedRivalCandidates = pool
+        ? archiveReplacedScoutingPool(
+            snapshot.state,
+            pool,
+            await deps.scoutingStore.listCandidateInsights(user.id, cycleKey),
+          )
+        : [];
       const nextPoolInput = {
         userId: user.id,
         cycleKey,
         creationOperationId: parsed.data.operationId,
+        archivedRivalCandidates,
         candidates: generateServerScoutingCandidates(
           snapshot.state,
           parsed.data.search,
