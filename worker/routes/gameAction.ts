@@ -19,7 +19,9 @@ import {
 import { json, jsonError } from "../http/json";
 import type { AuthenticatedRequestHandler } from "../router";
 import {
+  buildServerScoutReports,
   recoverCommittedCandidateTruth,
+  rivalSigningSchoolId,
   scoutingCycleKey,
 } from "../scouting/serverScoutingBoard";
 
@@ -109,6 +111,52 @@ async function resolveCommittedIntake(
   return { userIntake };
 }
 
+/**
+ * The currently active server-owned scouting pool is the authoritative source
+ * for rival signings. Earlier searches have already been replaced in storage
+ * and are not reconstructed from approximate scout reports.
+ */
+async function resolveRivalIntake(
+  snapshot: NonNullable<Awaited<ReturnType<GameStore["getSnapshot"]>>>,
+  userId: string,
+  scoutingStore?: ScoutingStore,
+): Promise<Player[]> {
+  if (!willCrossAcademicYear(snapshot) || !scoutingStore) {
+    return [];
+  }
+  const state = snapshot.state;
+  if (state.recruiting?.cycleKey !== scoutingCycleKey(state)) {
+    return [];
+  }
+  const pool = await scoutingStore.getCandidatePool(
+    userId,
+    scoutingCycleKey(state),
+  );
+  if (!pool) return [];
+
+  const insights = await scoutingStore.listCandidateInsights(
+    userId,
+    pool.cycleKey,
+  );
+  const reports = buildServerScoutReports(state, pool, insights);
+  const truthById = new Map(
+    pool.candidates.map((candidate) => [candidate.player.id, candidate.player]),
+  );
+  const recruits: Player[] = [];
+  for (const report of reports) {
+    const schoolId = rivalSigningSchoolId(state, report);
+    if (!schoolId || schoolId === state.userSchoolId) continue;
+    const player = truthById.get(report.candidateId);
+    if (!player) continue;
+    recruits.push({
+      ...player,
+      career: { ...player.career, schoolId },
+    });
+    if (recruits.length >= 7) break;
+  }
+  return recruits;
+}
+
 export function createGameActionHandler(
   store: GameStore,
   scoutingStore?: ScoutingStore,
@@ -154,11 +202,16 @@ export function createGameActionHandler(
     if (recruitingContext.error) {
       return recruitingContext.error;
     }
+    const rivalIntake =
+      actionRequest.action.type === "advance-week"
+        ? await resolveRivalIntake(snapshot, user.id, scoutingStore)
+        : [];
 
     let applied;
     try {
       applied = applyServerGameAction(snapshot, actionRequest.action, {
         userIntake: recruitingContext.userIntake,
+        rivalIntake,
       });
     } catch (error) {
       if (error instanceof GameRuleConflictError) {

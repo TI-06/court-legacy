@@ -7,6 +7,7 @@ import { applyGameAction, type AppliedGameAction } from "./applyGameAction";
 
 export interface ServerGameActionContext {
   userIntake?: readonly Player[];
+  rivalIntake?: readonly Player[];
 }
 
 export function applyServerGameAction(

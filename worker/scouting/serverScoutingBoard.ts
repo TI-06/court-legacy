@@ -3,7 +3,10 @@ import { generatePlayer } from "../../src/domain/generation/generatePlayer";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingSearchCriteria";
 import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
-import { playerId } from "../../src/domain/model/identifiers";
+import {
+  playerId,
+  type SchoolId,
+} from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
   scoutingInvestmentAppealBonus,
@@ -357,11 +360,11 @@ function competitorCount(
   return 0;
 }
 
-function competitorSchoolNames(
+function competitorSchoolIds(
   state: GameState,
   candidateId: string,
   evaluationStars: ScoutReport["evaluationStars"],
-): string[] {
+): SchoolId[] {
   const count = competitorCount(evaluationStars);
   if (count === 0) return [];
 
@@ -384,11 +387,11 @@ function competitorSchoolNames(
     ].join(":"),
   );
   const pool = [...candidates];
-  const selected: string[] = [];
+  const selected: SchoolId[] = [];
   while (selected.length < Math.min(count, pool.length)) {
     const index = random.int(0, pool.length - 1);
     const [school] = pool.splice(index, 1);
-    if (school) selected.push(school.shortName);
+    if (school) selected.push(school.id);
   }
   return selected;
 }
@@ -438,10 +441,13 @@ export function buildRecruitmentCompetitionProfile(
     report.evaluationStars,
   );
 
-  const competitors = competitorSchoolNames(
+  const competitorIds = competitorSchoolIds(
     state,
     report.candidateId,
     report.evaluationStars,
+  );
+  const competitors = competitorIds.map(
+    (schoolId) => state.schools[schoolId]!.shortName,
   );
   const race = evaluateCompetitorDecision(
     state,
@@ -461,6 +467,21 @@ export function buildRecruitmentCompetitionProfile(
     competitorDecisionWeeksRemaining: race.weeksRemaining,
     signedByCompetitor: race.signedBy,
   };
+}
+
+/**
+ * Resolve the real receiving school from an already validated server scouting
+ * report. This is deliberately never returned as candidate truth to the UI.
+ */
+export function rivalSigningSchoolId(
+  state: GameState,
+  report: ScoutReport,
+): SchoolId | null {
+  if (!report.recruitment?.signedByCompetitor) return null;
+  return (
+    competitorSchoolIds(state, report.candidateId, report.evaluationStars)[0] ??
+    null
+  );
 }
 
 export function buildServerScoutReports(
