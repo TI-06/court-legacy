@@ -91,7 +91,8 @@ export function deriveCourtMoment(
       ? true
       : actorSide === "away"
         ? false
-        : (current.winnerSchoolId ?? match.servingSchoolId) === match.homeSchoolId;
+        : (current.winnerSchoolId ?? match.servingSchoolId) ===
+          match.homeSchoolId;
 
   return {
     play: playForEvent(action),
@@ -134,7 +135,11 @@ export function LiveCourtAnimation({
   const direction = moment.fromHome ? "home" : "away";
 
   return (
-    <section className="court-live" aria-label="試合2Dコート" data-testid="live-court">
+    <section
+      className="court-live"
+      aria-label="試合2Dコート"
+      data-testid="live-court"
+    >
       <div className="court-live__caption">
         <span>コートビュー</span>
         <strong>{PLAY_LABEL[moment.play]}</strong>
@@ -157,11 +162,29 @@ export function LiveCourtAnimation({
         <path d="M180 12V146" stroke="#e8f2f8" strokeWidth="6" opacity=".92" />
         {homeSelection.rotation.map(({ slot }, index) => {
           const [x, y] = HOME_SPOTS[index]!;
-          const active = moment.actorSide === "home" && moment.actorSlot === slot;
+          const active =
+            moment.actorSide === "home" && moment.actorSlot === slot;
           return (
-            <g key={`home-${slot}`} className={active ? "court-live__actor" : undefined}>
-              <circle cx={x} cy={y} r="12" fill="#175971" stroke={active ? "#fff0a2" : "#c9ebf0"} strokeWidth={active ? 3 : 1.5} />
-              <text x={x} y={y + 3.5} fill="#fff" fontSize="10" textAnchor="middle" fontWeight="700">
+            <g
+              key={`home-${slot}`}
+              className={active ? "court-live__actor" : undefined}
+            >
+              <circle
+                cx={x}
+                cy={y}
+                r="12"
+                fill="#175971"
+                stroke={active ? "#fff0a2" : "#c9ebf0"}
+                strokeWidth={active ? 3 : 1.5}
+              />
+              <text
+                x={x}
+                y={y + 3.5}
+                fill="#fff"
+                fontSize="10"
+                textAnchor="middle"
+                fontWeight="700"
+              >
                 {slot}
               </text>
             </g>
@@ -169,11 +192,29 @@ export function LiveCourtAnimation({
         })}
         {awaySelection.rotation.map(({ slot }, index) => {
           const [x, y] = AWAY_SPOTS[index]!;
-          const active = moment.actorSide === "away" && moment.actorSlot === slot;
+          const active =
+            moment.actorSide === "away" && moment.actorSlot === slot;
           return (
-            <g key={`away-${slot}`} className={active ? "court-live__actor" : undefined}>
-              <circle cx={x} cy={y} r="12" fill="#9f5238" stroke={active ? "#fff0a2" : "#ffe0bc"} strokeWidth={active ? 3 : 1.5} />
-              <text x={x} y={y + 3.5} fill="#fff" fontSize="10" textAnchor="middle" fontWeight="700">
+            <g
+              key={`away-${slot}`}
+              className={active ? "court-live__actor" : undefined}
+            >
+              <circle
+                cx={x}
+                cy={y}
+                r="12"
+                fill="#9f5238"
+                stroke={active ? "#fff0a2" : "#ffe0bc"}
+                strokeWidth={active ? 3 : 1.5}
+              />
+              <text
+                x={x}
+                y={y + 3.5}
+                fill="#fff"
+                fontSize="10"
+                textAnchor="middle"
+                fontWeight="700"
+              >
                 {slot}
               </text>
             </g>
@@ -182,7 +223,11 @@ export function LiveCourtAnimation({
         <circle
           key={event.sequence}
           data-testid="live-court-ball"
-          className={animate ? `court-live__ball court-live__ball--${direction}` : "court-live__ball"}
+          className={
+            animate
+              ? `court-live__ball court-live__ball--${direction}`
+              : "court-live__ball"
+          }
           data-animated={animate ? "true" : "false"}
           cx={animate ? ballStartX : ballEndX}
           cy="79"
