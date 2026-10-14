@@ -50,9 +50,7 @@ function fixture() {
     userId: "rival-fixture",
     cycleKey,
     creationOperationId: "search-1",
-    candidates: [
-      { player, middleSchoolAchievement: "national-event" },
-    ],
+    candidates: [{ player, middleSchoolAchievement: "national-event" }],
   };
   const store = {
     getCandidatePool: async () => pool,
@@ -78,11 +76,7 @@ describe("Phase59-2 rival enrollment", () => {
     expect(destination).not.toBeNull();
     expect(destination).not.toBe(state.userSchoolId);
 
-    const rivalIntake = await resolveRivalIntake(
-      snapshot,
-      pool.userId,
-      store,
-    );
+    const rivalIntake = await resolveRivalIntake(snapshot, pool.userId, store);
     expect(rivalIntake).toHaveLength(1);
     expect(rivalIntake[0]!.id).toBe(player.id);
     expect(rivalIntake[0]!.career.schoolId).toBe(destination);
@@ -96,7 +90,9 @@ describe("Phase59-2 rival enrollment", () => {
     expect(result.state.schools[destination!]!.playerIds).toContain(player.id);
     expect(result.state.players[player.id]!.grade).toBe(1);
     expect(result.state.players[player.id]!.career.schoolId).toBe(destination);
-    expect(result.state.players[player.id]!.abilities).toEqual(player.abilities);
+    expect(result.state.players[player.id]!.abilities).toEqual(
+      player.abilities,
+    );
     expect(result.summary.intakePlayerIdsBySchool[destination!]).toContain(
       player.id,
     );
@@ -108,22 +104,14 @@ describe("Phase59-2 rival enrollment", () => {
   it("never assigns an already committed candidate to another school", async () => {
     const { state, player, pool, store, snapshot } = fixture();
     state.recruiting!.committedCandidateIds = [player.id];
-    const rivalIntake = await resolveRivalIntake(
-      snapshot,
-      pool.userId,
-      store,
-    );
+    const rivalIntake = await resolveRivalIntake(snapshot, pool.userId, store);
     expect(rivalIntake).toEqual([]);
   });
 
   it("does not auto-enroll candidates without an expired deadline", async () => {
     const { state, pool, store, snapshot } = fixture();
     state.recruiting!.scoutingSearchWeekOfYear = state.calendar.weekOfYear;
-    const rivalIntake = await resolveRivalIntake(
-      snapshot,
-      pool.userId,
-      store,
-    );
+    const rivalIntake = await resolveRivalIntake(snapshot, pool.userId, store);
     expect(rivalIntake).toEqual([]);
   });
 });

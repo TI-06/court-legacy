@@ -3,10 +3,7 @@ import { generatePlayer } from "../../src/domain/generation/generatePlayer";
 import type { GameState } from "../../src/domain/model/GameState";
 import type { ScoutingSearchCriteria } from "../../src/domain/scouting/scoutingSearchCriteria";
 import type { ScoutingSearchItemBonuses } from "../../src/domain/scouting/scoutingSearchBudget";
-import {
-  playerId,
-  type SchoolId,
-} from "../../src/domain/model/identifiers";
+import { playerId, type SchoolId } from "../../src/domain/model/identifiers";
 import { SeededRandom } from "../../src/domain/random/SeededRandom";
 import {
   scoutingInvestmentAppealBonus,
