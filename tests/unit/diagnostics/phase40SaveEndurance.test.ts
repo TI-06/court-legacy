@@ -129,10 +129,9 @@ describe("Phase58 V5 long-session save endurance", () => {
           JSON.stringify(prepared.state.activeMatch) !==
           JSON.stringify(persistedState.activeMatch)
         ) {
-          expect(
-            Object.prototype.hasOwnProperty.call(stateDelta.set, "activeMatch") ||
-              Object.prototype.hasOwnProperty.call(stateDelta.merge, "activeMatch"),
-          ).toBe(true);
+          const activeMatchDelta =
+            stateDelta.set.activeMatch ?? stateDelta.merge.activeMatch;
+          expect(activeMatchDelta).toBeDefined();
         }
       }
 
