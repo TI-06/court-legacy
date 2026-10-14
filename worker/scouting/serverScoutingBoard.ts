@@ -415,7 +415,9 @@ function evaluateCompetitorDecision(
     return { weeksRemaining: null, signedBy: null };
   }
   const random = new SeededRandom(
-    [state.seed, scoutingCycleKey(state), candidateId, "rival-signing"].join(":"),
+    [state.seed, scoutingCycleKey(state), candidateId, "rival-signing"].join(
+      ":",
+    ),
   );
   const deadlineWeeks = (evaluationStars >= 5 ? 4 : 6) + random.int(0, 2);
   const weeksElapsed = Math.max(0, state.calendar.weekOfYear - firstWeek);

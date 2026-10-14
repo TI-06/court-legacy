@@ -557,10 +557,10 @@ export function ScoutingScreen({
                     <span className="scouting-competition scouting-competition--lost">
                       {signedByCompetitor}に入学決定
                     </span>
-                  ) : report.recruitment
-                      ?.competitorDecisionWeeksRemaining !== null &&
-                    report.recruitment
-                      ?.competitorDecisionWeeksRemaining !== undefined ? (
+                  ) : report.recruitment?.competitorDecisionWeeksRemaining !==
+                      null &&
+                    report.recruitment?.competitorDecisionWeeksRemaining !==
+                      undefined ? (
                     <span className="scouting-competition scouting-competition--urgent">
                       他校決定まで残
                       {report.recruitment.competitorDecisionWeeksRemaining}週
