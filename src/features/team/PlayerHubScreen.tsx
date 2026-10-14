@@ -362,6 +362,7 @@ export function PlayerHubScreen({
   );
   const currentRosterPage = Math.min(rosterPage, rosterPageCount - 1);
   const rosterStart = currentRosterPage * rosterPageSize;
+  const rosterEnd = Math.min(rosterStart + rosterPageSize, rosterItems.length);
   const visibleRosterItems = rosterItems.slice(
     rosterStart,
     rosterStart + rosterPageSize,
@@ -1843,9 +1844,7 @@ export function PlayerHubScreen({
             ‹ 前へ
           </button>
           <span aria-live="polite">
-            {rosterStart + 1}〜
-            {Math.min(rosterStart + rosterPageSize, rosterItems.length)}人 /
-            {rosterItems.length}人
+            {`${rosterStart + 1}〜${rosterEnd}人 / ${rosterItems.length}人`}
           </span>
           <button
             aria-label="次の選手ページ"

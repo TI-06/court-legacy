@@ -62,8 +62,12 @@ for (const viewport of [
       };
     });
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
-    expect(geometry.bodyHeight).toBeLessThanOrEqual(geometry.viewportHeight + 1);
-    expect(geometry.hubHeight).toBeLessThanOrEqual(geometry.hubClientHeight + 1);
+    expect(geometry.bodyHeight).toBeLessThanOrEqual(
+      geometry.viewportHeight + 1,
+    );
+    expect(geometry.hubHeight).toBeLessThanOrEqual(
+      geometry.hubClientHeight + 1,
+    );
     expect(geometry.lastRowBottom).toBeLessThanOrEqual(
       geometry.rosterBottom + 1,
     );
