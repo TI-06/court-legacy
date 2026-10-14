@@ -69,6 +69,69 @@ describe("Phase60 read-only live court", () => {
       />,
     );
     expect(screen.queryByTestId("live-court-point-effect")).toBeNull();
+    expect(screen.queryByTestId("live-court-special-ability")).toBeNull();
+  });
+
+  it("reveals only an authoritative scoring skill and respects reduced motion", () => {
+    const props = fixture();
+    props.match.eventLog[1]!.scoringSpecialAbilityId = "gold_absolute_ace";
+    const { rerender } = render(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={1}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    const badge = screen.getByTestId("live-court-special-ability");
+    expect(badge).toHaveAttribute("data-skill-id", "gold_absolute_ace");
+    expect(badge).toHaveTextContent("絶対的エース");
+    expect(badge).toHaveClass("court-live__skill-burst--animate");
+
+    rerender(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={1}
+        playing={true}
+        reducedMotion={true}
+      />,
+    );
+    expect(screen.getByTestId("live-court-special-ability")).not.toHaveClass(
+      "court-live__skill-burst--animate",
+    );
+
+    rerender(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={0}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-special-ability")).toBeNull();
+  });
+
+  it("does not invent a special ability for old logs or invalid IDs", () => {
+    const props = fixture();
+    const { rerender } = render(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={1}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-special-ability")).toBeNull();
+    props.match.eventLog[1]!.scoringSpecialAbilityId = "not-a-real-skill";
+    rerender(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={1}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-special-ability")).toBeNull();
   });
 
   it("animates only during playback and never requires save state", () => {

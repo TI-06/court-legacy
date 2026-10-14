@@ -19,6 +19,7 @@ import {
   getSpecialAbilityAbilityDelta,
   type MatchSpecialAbilitySituation,
 } from "../player/specialAbilityMatchModifiers";
+import { getScoringSpecialAbilityId } from "../player/scoringSpecialAbility";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import {
   applyMatchTacticPlan,
@@ -111,6 +112,7 @@ interface EventWriter {
     targetPlayerId: PlayerId | null,
     winnerSchoolId: SchoolId | null,
     detailCode: string,
+    scoringSpecialAbilityId?: string | null,
   ) => void;
 }
 
@@ -592,6 +594,7 @@ function createEventWriter(events: MatchEvent[] = []): EventWriter {
       targetPlayerId,
       winnerSchoolId,
       detailCode,
+      scoringSpecialAbilityId,
     ) {
       events.push({
         sequence: events.length + 1,
@@ -603,6 +606,7 @@ function createEventWriter(events: MatchEvent[] = []): EventWriter {
         targetPlayerId,
         winnerSchoolId,
         detailCode,
+        ...(scoringSpecialAbilityId ? { scoringSpecialAbilityId } : {}),
       });
     },
   };
@@ -711,9 +715,10 @@ function simulateRally(
     identityExecutionBonus(state, receiving.school, "receive", abilityContext);
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
+  const servingSituation = matchSituationForSide(runtime, runtime.servingSide);
   const serveSpecial = getServeSpecialAbilityAdjustment(
     server,
-    matchSituationForSide(runtime, runtime.servingSide),
+    servingSituation,
   );
   const serveErrorChance = clamp(
     0.024 +
@@ -752,6 +757,11 @@ function simulateRally(
   );
   if (random.next() < aceChance) {
     writer.events.at(-1)!.detailCode = "serve.ace";
+    const serveSkill = getScoringSpecialAbilityId(
+      server,
+      "serve",
+      servingSituation,
+    );
     awardPoint(runtime, runtime.servingSide);
     writer.push(
       "point",
@@ -760,6 +770,7 @@ function simulateRally(
       receiver.id,
       serving.school.id,
       "point.serve-ace",
+      serveSkill,
     );
     return runtime.servingSide;
   }
@@ -862,6 +873,11 @@ function simulateRally(
   );
   if (random.next() < blockKillChance) {
     writer.push("block", runtime, blocker.id, attacker.id, null, "block.kill");
+    const blockerSkill = getScoringSpecialAbilityId(
+      blocker,
+      "block",
+      servingSituation,
+    );
     awardPoint(runtime, runtime.servingSide);
     writer.push(
       "point",
@@ -870,6 +886,7 @@ function simulateRally(
       attacker.id,
       serving.school.id,
       "point.block",
+      blockerSkill,
     );
     return runtime.servingSide;
   }
@@ -884,6 +901,11 @@ function simulateRally(
 
   if (random.next() < attackPointChance) {
     writer.push("dig", runtime, digger.id, attacker.id, null, "dig.failed");
+    const attackerSkill = getScoringSpecialAbilityId(
+      attacker,
+      "attack",
+      matchSituationForSide(runtime, receivingSide),
+    );
     awardPoint(runtime, receivingSide);
     writer.push(
       "point",
@@ -892,11 +914,17 @@ function simulateRally(
       digger.id,
       receiving.school.id,
       "point.attack",
+      attackerSkill,
     );
     return receivingSide;
   }
 
   writer.push("dig", runtime, digger.id, attacker.id, null, "dig.counter");
+  const diggerSkill = getScoringSpecialAbilityId(
+    digger,
+    "receive",
+    servingSituation,
+  );
   awardPoint(runtime, runtime.servingSide);
   writer.push(
     "point",
@@ -905,6 +933,7 @@ function simulateRally(
     attacker.id,
     serving.school.id,
     "point.defense",
+    diggerSkill,
   );
   return runtime.servingSide;
 }

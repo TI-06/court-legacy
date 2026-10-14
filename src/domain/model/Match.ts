@@ -121,6 +121,8 @@ export interface MatchEvent {
   targetPlayerId: PlayerId | null;
   winnerSchoolId: SchoolId | null;
   detailCode: string;
+  /** Server-evaluated positive skill that contributed to this scoring play. */
+  scoringSpecialAbilityId?: string;
 }
 
 export interface MatchSetState {
