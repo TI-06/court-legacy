@@ -116,9 +116,10 @@ export function HomeCommandCenter({
   // Only one digest is shown per page. The sheets retain every item.
   const visibleTasks = model.tasks.slice(0, 1);
   const visibleNews = model.news.slice(0, 1);
-  const activeDesk = selectedDesk === "news" && model.news.length === 0
-    ? "tasks"
-    : selectedDesk;
+  const activeDesk =
+    selectedDesk === "news" && model.news.length === 0
+      ? "tasks"
+      : selectedDesk;
 
   const renderTask = (task: HomeCommandTask) => {
     if (task.kind === "action") {
