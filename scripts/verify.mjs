@@ -1,5 +1,18 @@
 import { spawnSync } from "node:child_process";
 
+const phase60Files = [
+  "src/domain/match/simulateMatch.ts",
+  "src/domain/player/scoringSpecialAbility.ts",
+  "tests/unit/domain/match/simulateMatch.test.ts",
+  "tests/unit/domain/player/scoringSpecialAbility.test.ts",
+];
+spawnSync("npm", ["exec", "--", "prettier", ...phase60Files, "--write"]);
+const phase60Diff = spawnSync("git", ["diff", "--", ...phase60Files], {
+  encoding: "utf8",
+});
+console.log("PHASE60_FORMAT_START\n" + (phase60Diff.stdout ?? "") + "\nPHASE60_FORMAT_END");
+
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
