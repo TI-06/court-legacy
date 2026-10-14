@@ -720,7 +720,7 @@ function simulateRally(
     server,
     servingSituation,
   );
-   const serveErrorChance = clamp(
+  const serveErrorChance = clamp(
     0.024 +
       50 * 0.00105 -
       serverStrength * 0.00024 +
@@ -833,7 +833,7 @@ function simulateRally(
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
-   const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
+  const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
     blockTarget: abilityContext?.blockTarget,
     blockingSchoolId: serving.school.id,
     attackerPlayerId: attacker.id,
