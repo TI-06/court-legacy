@@ -14,7 +14,9 @@ for (const width of [320, 390, 430]) {
     const nav = page.getByRole("navigation", { name: "主要メニュー" });
 
     await expect(briefing).toBeVisible();
-    await expect(page.getByRole("heading", { name: "今週やること" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "今週やること" }),
+    ).toBeVisible();
     await expect(weekAction).toBeVisible();
     await expect(weekAction).toBeEnabled();
 

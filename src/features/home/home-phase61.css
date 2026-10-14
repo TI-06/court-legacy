@@ -57,8 +57,19 @@
   border: 2px solid var(--game-accent-blue);
   border-radius: 8px;
   background:
-    linear-gradient(to bottom, transparent calc(50% - 1px), var(--game-accent-blue) 50%, transparent calc(50% + 1px)),
-    radial-gradient(circle at 50% 50%, transparent 20px, var(--game-accent-blue) 21px, var(--game-accent-blue) 22px, transparent 23px);
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 1px),
+      var(--game-accent-blue) 50%,
+      transparent calc(50% + 1px)
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 20px,
+      var(--game-accent-blue) 21px,
+      var(--game-accent-blue) 22px,
+      transparent 23px
+    );
   transform: rotate(-13deg);
   pointer-events: none;
 }
@@ -113,13 +124,21 @@
   min-height: 76px;
   padding: 12px 11px;
   gap: 11px;
-  background: linear-gradient(110deg, rgb(255 152 98 / 13%), rgb(255 255 255 / 4%));
+  background: linear-gradient(
+    110deg,
+    rgb(255 152 98 / 13%),
+    rgb(255 255 255 / 4%)
+  );
   border: 1px solid rgb(255 152 98 / 34%);
   border-radius: 13px;
 }
 
 .game-page-frame .home-command-objective.is-due {
-  background: linear-gradient(110deg, rgb(255 152 98 / 26%), rgb(255 152 98 / 7%));
+  background: linear-gradient(
+    110deg,
+    rgb(255 152 98 / 26%),
+    rgb(255 152 98 / 7%)
+  );
   border-color: rgb(255 152 98 / 70%);
 }
 
@@ -393,12 +412,18 @@
   font-size: 10px;
 }
 
-.game-page-frame .home-command-summary__briefing .home-season-card__goal strong {
+.game-page-frame
+  .home-command-summary__briefing
+  .home-season-card__goal
+  strong {
   color: #f5f9fa;
   font-size: 13px;
 }
 
-.game-page-frame .home-command-summary__briefing .home-season-card__ranks strong {
+.game-page-frame
+  .home-command-summary__briefing
+  .home-season-card__ranks
+  strong {
   font-size: 13px;
 }
 

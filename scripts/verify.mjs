@@ -1,19 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-const phase61Files = [
-  "docs/superpowers/specs/2026-10-14-phase61-2-home-dashboard.md",
-  "src/features/home/home-phase61.css",
-  "tests/e2e/phase61-home-command-desk.spec.ts",
-];
-spawnSync("npm", ["exec", "--", "prettier", ...phase61Files, "--write"], {
-  encoding: "utf8",
-});
-const phase61Diff = spawnSync("git", ["diff", "--", ...phase61Files], {
-  encoding: "utf8",
-});
-console.log(`PHASE61_FORMAT_START\n${phase61Diff.stdout}\nPHASE61_FORMAT_END`);
-
-
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
