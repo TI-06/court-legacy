@@ -6,9 +6,9 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 430, height: 932 },
 ]) {
-  test(`Home keeps its command desk visible without scrolling at ${viewport.width}x${viewport.height}`, async ({
-    page,
-  }) => {
+  test(
+    `Home keeps its command desk visible without scrolling at ${viewport.width}x${viewport.height}`,
+    async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
 
@@ -55,8 +55,12 @@ for (const viewport of [
       };
     });
 
-    expect(positions.pageHeight).toBeLessThanOrEqual(positions.viewportHeight + 1);
-    expect(positions.pageWidth).toBeLessThanOrEqual(positions.viewportWidth + 1);
+    expect(positions.pageHeight).toBeLessThanOrEqual(
+      positions.viewportHeight + 1,
+    );
+    expect(positions.pageWidth).toBeLessThanOrEqual(
+      positions.viewportWidth + 1,
+    );
     expect(positions.homeScrollHeight).toBeLessThanOrEqual(
       positions.homeClientHeight + 1,
     );
@@ -72,7 +76,9 @@ for (const viewport of [
     expect(positions.actionBottom).toBeLessThanOrEqual(positions.navTop + 1);
     expect(positions.headerBottom).toBeLessThanOrEqual(positions.summaryBottom);
 
-    const briefingTabs = page.getByRole("tablist", { name: "ホーム情報の表示切替" });
+    const briefingTabs = page.getByRole("tablist", {
+      name: "ホーム情報の表示切替",
+    });
     if ((await briefingTabs.count()) > 0) {
       const tabs = briefingTabs.getByRole("tab");
       expect(await tabs.count()).toBeGreaterThan(1);
@@ -90,5 +96,6 @@ for (const viewport of [
 
     await expect(page.getByRole("heading", { name: "今週やること" })).toBeVisible();
     await expect(nav).toBeVisible();
-  });
+    },
+  );
 }
