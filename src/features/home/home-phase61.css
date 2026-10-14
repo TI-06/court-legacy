@@ -419,6 +419,16 @@
   color: #f5f9fa;
   font-size: 13px;
 }
+.game-page-frame
+  .home-command-summary__briefing
+  .home-season-card__goal
+  small {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.35;
+}
 
 .game-page-frame
   .home-command-summary__briefing
