@@ -6,7 +6,7 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 430, height: 932 },
 ]) {
-  test(`Player roster has visible page controls without scrolling at ${viewport.width}x${viewport.height}`, async ({
+  test(`Player roster ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
@@ -19,14 +19,28 @@ for (const viewport of [
     });
     const rows = page.getByTestId("roster-player-row");
     await expect(pager).toBeVisible();
-    await expect(rows).toHaveCount(
-      viewport.height < 620 ? 1 : viewport.height < 760 ? 2 : viewport.height < 900 ? 3 : 4,
-    );
+    const expectedRows =
+      viewport.height < 620
+        ? 1
+        : viewport.height < 760
+          ? 2
+          : viewport.height < 900
+            ? 3
+            : 4;
+    await expect(rows).toHaveCount(expectedRows);
 
-    const firstPlayer = await rows.first().getByRole("button", { name: /^選手詳細 / }).getAttribute("aria-label");
-    await pager.getByRole("button", { name: "次の選手ページ" }).click();
-    await expect(pager.getByRole("button", { name: "前の選手ページ" })).toBeEnabled();
-    await expect(rows.first().getByRole("button", { name: /^選手詳細 / })).not.toHaveAttribute("aria-label", firstPlayer ?? "");
+    const firstPlayer = await rows
+      .first()
+      .getByRole("button", { name: /^選手詳細 / })
+      .getAttribute("aria-label");
+    const nextPage = pager.getByRole("button", { name: "次の選手ページ" });
+    await nextPage.click();
+    await expect(
+      pager.getByRole("button", { name: "前の選手ページ" }),
+    ).toBeEnabled();
+    await expect(
+      rows.first().getByRole("button", { name: /^選手詳細 / }),
+    ).not.toHaveAttribute("aria-label", firstPlayer ?? "");
 
     const geometry = await page.evaluate(() => {
       const parent = document.querySelector(".player-hub--paged")!;
@@ -42,14 +56,17 @@ for (const viewport of [
         hubClientHeight: parent.clientHeight,
         pagerBottom: pager.getBoundingClientRect().bottom,
         navTop: nav.getBoundingClientRect().top,
-        lastRowBottom: rows.lastElementChild?.getBoundingClientRect().bottom ?? 0,
+        lastRowBottom:
+          rows.lastElementChild?.getBoundingClientRect().bottom ?? 0,
         rosterBottom: rows.getBoundingClientRect().bottom,
       };
     });
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
     expect(geometry.bodyHeight).toBeLessThanOrEqual(geometry.viewportHeight + 1);
     expect(geometry.hubHeight).toBeLessThanOrEqual(geometry.hubClientHeight + 1);
-    expect(geometry.lastRowBottom).toBeLessThanOrEqual(geometry.rosterBottom + 1);
+    expect(geometry.lastRowBottom).toBeLessThanOrEqual(
+      geometry.rosterBottom + 1,
+    );
     expect(geometry.pagerBottom).toBeLessThanOrEqual(geometry.navTop + 1);
   });
 }

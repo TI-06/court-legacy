@@ -1833,10 +1833,7 @@ export function PlayerHubScreen({
       </div>
 
       {rosterPageCount > 1 ? (
-        <nav
-          aria-label="選手一覧のページ切替"
-          className="player-hub__pager"
-        >
+        <nav aria-label="選手一覧のページ切替" className="player-hub__pager">
           <button
             aria-label="前の選手ページ"
             disabled={currentRosterPage === 0}
