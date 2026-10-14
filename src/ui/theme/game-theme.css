@@ -1,17 +1,17 @@
 :root {
-  --game-bg: #050b14;
-  --game-bg-raised: #071321;
-  --game-panel: #0b1a2d;
-  --game-panel-strong: #102945;
+  --game-bg: #07131f;
+  --game-bg-raised: #0b2131;
+  --game-panel: #10293b;
+  --game-panel-strong: #15374b;
   --game-panel-light: #f5f6f7;
-  --game-accent: #f47a18;
-  --game-accent-blue: #2e8bd8;
-  --game-text: #f4f7fb;
-  --game-text-muted: #a9b8ca;
+  --game-accent: #ff9862;
+  --game-accent-blue: #55c6d4;
+  --game-text: #f5f9fa;
+  --game-text-muted: #bdcbd4;
   --game-text-dark: #162335;
-  --game-danger: #e34848;
-  --game-warning: #e3a53a;
-  --game-success: #33b579;
+  --game-danger: #f38b83;
+  --game-warning: #ffd181;
+  --game-success: #8ce3b7;
   --game-font-screen-title: 22px;
   --game-font-card-title: 18px;
   --game-font-heading: 16px;
@@ -29,7 +29,7 @@
   --game-radius-md: 12px;
   --game-touch: 44px;
   --game-touch-primary: 48px;
-  --game-nav-height: 62px;
+  --game-nav-height: 70px;
   --game-safe-bottom: env(safe-area-inset-bottom, 0px);
   color: var(--game-text);
   background: var(--game-bg);
@@ -399,4 +399,144 @@ body {
   color: #7f8c99;
   background: rgb(255 255 255 / 8%);
   box-shadow: none;
+}
+
+/* Phase61-1: shared premium volleyball game skin. Legacy feature pages
+   transition individually in Phase61-2 through 61-6. */
+.game-page-frame {
+  background:
+    radial-gradient(ellipse at 80% -3%, rgb(85 198 212 / 15%), transparent 44%),
+    linear-gradient(180deg, #0d2435, var(--game-bg) 58%);
+}
+
+.game-header {
+  min-height: 70px;
+  gap: 12px;
+  padding: max(9px, env(safe-area-inset-top)) 16px 10px;
+  background: rgb(7 19 31 / 94%);
+  border-bottom-color: rgb(85 198 212 / 17%);
+}
+
+.game-header__identity {
+  flex: 1 1 auto;
+}
+
+.game-header__identity > p {
+  color: var(--game-text);
+  font-size: 17px;
+  letter-spacing: 0.025em;
+}
+
+.game-header__meta {
+  min-width: 0;
+  gap: 6px;
+  color: var(--game-text-muted);
+  font-size: 12px;
+}
+
+.game-header__meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-header__meta span + span::before {
+  margin-right: 6px;
+  color: var(--game-accent-blue);
+  content: "•";
+}
+
+.game-header__action {
+  color: var(--game-text);
+  background: rgb(85 198 212 / 8%);
+  border-color: rgb(85 198 212 / 25%);
+  border-radius: 14px;
+}
+
+.bottom-game-nav {
+  gap: 3px;
+  padding: 5px 6px var(--game-safe-bottom);
+  background: rgb(7 19 31 / 97%);
+  border-top-color: rgb(85 198 212 / 19%);
+}
+
+.bottom-game-nav__item {
+  position: relative;
+  min-height: 56px;
+  gap: 3px;
+  color: #b9c9d4;
+  border-radius: 13px;
+}
+
+.bottom-game-nav__item--active {
+  color: var(--game-text);
+  background: linear-gradient(180deg, rgb(85 198 212 / 14%), rgb(85 198 212 / 4%));
+}
+
+.bottom-game-nav__item--active::before {
+  position: absolute;
+  top: 2px;
+  width: 22px;
+  height: 3px;
+  content: "";
+  background: var(--game-accent);
+  border-radius: 999px;
+}
+
+.bottom-game-nav__item--active .game-icon {
+  color: var(--game-accent-blue);
+}
+
+.game-panel {
+  background: linear-gradient(160deg, rgb(255 255 255 / 3%), transparent 65%), var(--game-panel);
+  border-color: rgb(85 198 212 / 13%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 17%);
+}
+
+.game-panel--accent {
+  background: linear-gradient(135deg, rgb(255 152 98 / 17%), transparent 63%), var(--game-panel-strong);
+  border-color: rgb(255 152 98 / 36%);
+}
+
+.game-page-frame .ui-bottom-sheet {
+  background: linear-gradient(180deg, #18384b, var(--game-panel));
+  border-color: rgb(85 198 212 / 19%);
+}
+
+.game-page-frame .ui-choice-card,
+.game-page-frame .ui-player-tile {
+  background: linear-gradient(145deg, rgb(85 198 212 / 6%), rgb(255 255 255 / 3%));
+  border-color: rgb(85 198 212 / 14%);
+}
+
+.game-page-frame .ui-choice-card--selected,
+.game-page-frame .ui-player-tile--selected {
+  background: linear-gradient(135deg, rgb(255 152 98 / 13%), rgb(85 198 212 / 8%));
+  border-color: rgb(255 152 98 / 55%);
+}
+
+.game-page-frame .ui-choice-chip--selected,
+.game-page-frame .ui-sticky-action-bar button:not(:disabled) {
+  color: #07131f;
+  background: var(--game-accent);
+  border-color: var(--game-accent);
+}
+
+@media (max-width: 350px) {
+  .game-header {
+    padding-inline: 10px;
+  }
+
+  .bottom-game-nav {
+    gap: 0;
+    padding-inline: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page-frame .ui-bottom-sheet,
+  .game-header__action,
+  .bottom-game-nav__item {
+    animation: none;
+    transition: none;
+  }
 }
