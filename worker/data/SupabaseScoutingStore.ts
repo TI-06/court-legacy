@@ -90,12 +90,18 @@ function mapPool(value: unknown): ScoutingCandidatePool {
       middleSchoolAchievement:
         candidate.middleSchoolAchievement as MiddleSchoolAchievement,
     })),
-    archivedRivalCandidates:
-      parsed.data.archived_rival_candidates?.map((candidate) => ({
-        player: candidate.player as unknown as Player,
-        schoolId: candidate.schoolId as ArchivedRivalCandidate["schoolId"],
-        signingWeekOfYear: candidate.signingWeekOfYear,
-      })) ?? [],
+    ...(parsed.data.archived_rival_candidates
+      ? {
+          archivedRivalCandidates: parsed.data.archived_rival_candidates.map(
+            (candidate) => ({
+              player: candidate.player as unknown as Player,
+              schoolId:
+                candidate.schoolId as ArchivedRivalCandidate["schoolId"],
+              signingWeekOfYear: candidate.signingWeekOfYear,
+            }),
+          ),
+        }
+      : {}),
   };
 }
 
