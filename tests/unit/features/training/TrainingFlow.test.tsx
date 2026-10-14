@@ -81,6 +81,7 @@ describe("Phase 12 player training flow", () => {
     );
 
     expect(await screen.findAllByText("2026年4月8日")).not.toHaveLength(0);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
     expect(
       screen.getByRole("button", { name: /今週の練習結果/ }),
     ).toBeVisible();
