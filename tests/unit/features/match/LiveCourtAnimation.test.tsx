@@ -73,6 +73,14 @@ describe("Phase60 read-only live court", () => {
       "data-animated",
       "true",
     );
+    expect(screen.getByTestId("live-court")).toHaveAttribute(
+      "data-play",
+      "attack",
+    );
+    expect(screen.getByTestId("live-court-active-player")).toHaveClass(
+      "court-live__actor--attack",
+      "court-live__actor--home",
+    );
     rerender(
       <LiveCourtAnimation
         {...props}
@@ -84,6 +92,9 @@ describe("Phase60 read-only live court", () => {
     expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
       "data-animated",
       "false",
+    );
+    expect(screen.getByTestId("live-court-active-player")).not.toHaveClass(
+      "court-live__actor--attack",
     );
   });
 });

@@ -38,6 +38,53 @@
   filter: drop-shadow(0 0 4px rgb(255 255 255 / 65%));
 }
 
+.court-live__actor {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.court-live__actor--home.court-live__actor--attack,
+.court-live__actor--home.court-live__actor--serve {
+  animation: court-live-step-home 170ms ease-out both;
+}
+
+.court-live__actor--away.court-live__actor--attack,
+.court-live__actor--away.court-live__actor--serve {
+  animation: court-live-step-away 170ms ease-out both;
+}
+
+.court-live__actor--block {
+  animation: court-live-jump 170ms ease-out both;
+}
+
+.court-live__actor--receive {
+  animation: court-live-dig 170ms ease-out both;
+}
+
+@keyframes court-live-step-home {
+  50% {
+    transform: translate(7px, -3px);
+  }
+}
+
+@keyframes court-live-step-away {
+  50% {
+    transform: translate(-7px, -3px);
+  }
+}
+
+@keyframes court-live-jump {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes court-live-dig {
+  50% {
+    transform: translateY(5px) scale(1.08, 0.92);
+  }
+}
+
 .court-live__ball--home {
   animation: court-live-forward 170ms ease-out both;
 }
@@ -46,26 +93,65 @@
   animation: court-live-backward 170ms ease-out both;
 }
 
+.court-live__ball--home.court-live__ball--receive {
+  animation-name: court-live-receive-home;
+}
+
+.court-live__ball--away.court-live__ball--receive {
+  animation-name: court-live-receive-away;
+}
+
 @keyframes court-live-forward {
-  from {
-    transform: translate(-2px, -9px);
+  0% {
+    transform: translate(0, 0);
   }
-  to {
-    transform: translate(105px, 5px);
+  45% {
+    transform: translate(48px, -22px);
+  }
+  100% {
+    transform: translate(105px, 0);
   }
 }
 
 @keyframes court-live-backward {
-  from {
-    transform: translate(2px, -9px);
+  0% {
+    transform: translate(0, 0);
   }
-  to {
-    transform: translate(-105px, 5px);
+  45% {
+    transform: translate(-48px, -22px);
+  }
+  100% {
+    transform: translate(-105px, 0);
+  }
+}
+
+@keyframes court-live-receive-home {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(28px, -15px);
+  }
+  100% {
+    transform: translate(60px, 0);
+  }
+}
+
+@keyframes court-live-receive-away {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-28px, -15px);
+  }
+  100% {
+    transform: translate(-60px, 0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .court-live__ball {
+  .court-live__ball,
+  .court-live__actor {
     animation: none !important;
   }
 }
