@@ -114,4 +114,55 @@ describe("Phase59-2 rival enrollment", () => {
     const rivalIntake = await resolveRivalIntake(snapshot, pool.userId, store);
     expect(rivalIntake).toEqual([]);
   });
+
+  it("enrolls an archived rival winner even after a new search replaces the pool", async () => {
+    const { state, player, pool, store, snapshot } = fixture();
+    const rivalSchoolId = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!.id;
+    pool.archivedRivalCandidates = [
+      {
+        player: structuredClone(player),
+        schoolId: rivalSchoolId,
+        signingWeekOfYear: 18,
+      },
+    ];
+    pool.candidates = [
+      {
+        player: {
+          ...player,
+          id: playerId("scout-latest-new-search"),
+        },
+        middleSchoolAchievement: "national-event",
+      },
+    ];
+    state.recruiting!.scoutingSearchWeekOfYear = 52;
+
+    const intake = await resolveRivalIntake(snapshot, pool.userId, store);
+    expect(intake.map((candidate) => candidate.id)).toEqual([player.id]);
+    expect(intake[0]!.career.schoolId).toBe(rivalSchoolId);
+
+    const result = advanceAcademicYear(
+      state,
+      gameData,
+      new SeededRandom(state.seed, state.randomCursor),
+      { rivalIntake: intake },
+    );
+    expect(result.state.schools[rivalSchoolId]!.playerIds).toContain(player.id);
+  });
+
+  it("keeps future signings out of enrollment and protects archived commitments", async () => {
+    const { state, player, pool, store, snapshot } = fixture();
+    const rivalSchoolId = Object.values(state.schools).find(
+      (school) => school.id !== state.userSchoolId,
+    )!.id;
+    pool.archivedRivalCandidates = [
+      { player, schoolId: rivalSchoolId, signingWeekOfYear: 53 },
+    ];
+    state.recruiting!.scoutingSearchWeekOfYear = 52;
+    expect(await resolveRivalIntake(snapshot, pool.userId, store)).toEqual([]);
+    pool.archivedRivalCandidates[0]!.signingWeekOfYear = 18;
+    state.recruiting!.committedCandidateIds = [player.id];
+    expect(await resolveRivalIntake(snapshot, pool.userId, store)).toEqual([]);
+  });
 });

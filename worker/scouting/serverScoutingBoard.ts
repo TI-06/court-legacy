@@ -470,15 +470,22 @@ export function buildRecruitmentCompetitionProfile(
  * Resolve the real receiving school from an already validated server scouting
  * report. This is deliberately never returned as candidate truth to the UI.
  */
+export function preferredRivalSchoolId(
+  state: GameState,
+  report: ScoutReport,
+): SchoolId | null {
+  return (
+    competitorSchoolIds(state, report.candidateId, report.evaluationStars)[0] ??
+    null
+  );
+}
+
 export function rivalSigningSchoolId(
   state: GameState,
   report: ScoutReport,
 ): SchoolId | null {
   if (!report.recruitment?.signedByCompetitor) return null;
-  return (
-    competitorSchoolIds(state, report.candidateId, report.evaluationStars)[0] ??
-    null
-  );
+  return preferredRivalSchoolId(state, report);
 }
 
 export function buildServerScoutReports(

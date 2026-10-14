@@ -3,6 +3,7 @@ import type { Player } from "../../src/domain/model/Player";
 import type { PlayerId } from "../../src/domain/model/identifiers";
 import type { MiddleSchoolAchievement } from "../../src/domain/scouting/scoutReport";
 import type {
+  ArchivedRivalCandidate,
   CreateScoutingCandidatePoolInput,
   ScoutingCandidateInsight,
   ScoutingCandidatePool,
@@ -40,11 +41,21 @@ const candidateSchema = z.object({
   middleSchoolAchievement: achievementSchema,
 });
 
+const archivedRivalCandidateSchema = z.object({
+  player: persistedPlayerSchema,
+  schoolId: z.string().min(1),
+  signingWeekOfYear: z.number().int().min(1).max(53),
+});
+
 const poolRowSchema = z.object({
   user_id: z.string().min(1),
   cycle_key: z.string().min(1),
   creation_operation_id: z.string().min(1),
   candidates: z.array(candidateSchema).min(1),
+  archived_rival_candidates: z
+    .array(archivedRivalCandidateSchema)
+    .max(24)
+    .optional(),
 });
 
 const insightRowSchema = z.object({
@@ -79,6 +90,18 @@ function mapPool(value: unknown): ScoutingCandidatePool {
       middleSchoolAchievement:
         candidate.middleSchoolAchievement as MiddleSchoolAchievement,
     })),
+    ...(parsed.data.archived_rival_candidates
+      ? {
+          archivedRivalCandidates: parsed.data.archived_rival_candidates.map(
+            (candidate) => ({
+              player: candidate.player as unknown as Player,
+              schoolId:
+                candidate.schoolId as ArchivedRivalCandidate["schoolId"],
+              signingWeekOfYear: candidate.signingWeekOfYear,
+            }),
+          ),
+        }
+      : {}),
   };
 }
 
@@ -97,6 +120,21 @@ function mapInsight(value: unknown): ScoutingCandidateInsight {
   };
 }
 
+function missingRivalArchiveColumn(
+  error: { code?: string; message?: string } | null,
+): boolean {
+  return Boolean(
+    error &&
+    (error.code === "42703" || error.code === "PGRST204") &&
+    error.message?.includes("archived_rival_candidates"),
+  );
+}
+
+const POOL_COLUMNS =
+  "user_id, cycle_key, creation_operation_id, candidates, archived_rival_candidates";
+const LEGACY_POOL_COLUMNS =
+  "user_id, cycle_key, creation_operation_id, candidates";
+
 export class SupabaseScoutingStore implements ScoutingStore {
   constructor(private readonly client: SupabaseAdminClient) {}
 
@@ -104,21 +142,28 @@ export class SupabaseScoutingStore implements ScoutingStore {
     userId: string,
     cycleKey: string,
   ): Promise<ScoutingCandidatePool | null> {
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from("scouting_candidate_pools")
-      .select("user_id, cycle_key, creation_operation_id, candidates")
+      .select(POOL_COLUMNS)
       .eq("user_id", userId)
       .eq("cycle_key", cycleKey)
       .maybeSingle();
+
+    if (missingRivalArchiveColumn(error)) {
+      ({ data, error } = await this.client
+        .from("scouting_candidate_pools")
+        .select(LEGACY_POOL_COLUMNS)
+        .eq("user_id", userId)
+        .eq("cycle_key", cycleKey)
+        .maybeSingle());
+    }
 
     if (error) {
       throw new ScoutingStoreDataError("scouting candidate pool read failed", {
         cause: error,
       });
     }
-    if (!data) {
-      return null;
-    }
+    if (!data) return null;
 
     return mapPool(data);
   }
@@ -159,24 +204,36 @@ export class SupabaseScoutingStore implements ScoutingStore {
   async replaceCandidatePool(
     input: CreateScoutingCandidatePoolInput,
   ): Promise<ScoutingCandidatePool> {
-    const { data, error } = await this.client
+    const update = {
+      creation_operation_id: input.creationOperationId,
+      candidates: input.candidates,
+      created_at: new Date().toISOString(),
+    };
+    let { data, error } = await this.client
       .from("scouting_candidate_pools")
       .update({
-        creation_operation_id: input.creationOperationId,
-        candidates: input.candidates,
-        created_at: new Date().toISOString(),
+        ...update,
+        archived_rival_candidates: input.archivedRivalCandidates ?? [],
       })
       .eq("user_id", input.userId)
       .eq("cycle_key", input.cycleKey)
-      .select("user_id, cycle_key, creation_operation_id, candidates")
+      .select(POOL_COLUMNS)
       .single();
+
+    if (missingRivalArchiveColumn(error)) {
+      ({ data, error } = await this.client
+        .from("scouting_candidate_pools")
+        .update(update)
+        .eq("user_id", input.userId)
+        .eq("cycle_key", input.cycleKey)
+        .select(LEGACY_POOL_COLUMNS)
+        .single());
+    }
 
     if (error) {
       throw new ScoutingStoreDataError(
         "scouting candidate pool replacement failed",
-        {
-          cause: error,
-        },
+        { cause: error },
       );
     }
 
