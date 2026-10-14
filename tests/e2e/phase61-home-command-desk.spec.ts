@@ -23,6 +23,7 @@ for (const width of [320, 390, 430]) {
     const layout = await page.evaluate(() => {
       const action = document.querySelector(".home-command-advance")!;
       const navigation = document.querySelector(".bottom-game-nav")!;
+      const hero = document.querySelector(".home-command-summary")!;
       const actionRect = action.getBoundingClientRect();
       const navRect = navigation.getBoundingClientRect();
       return {
@@ -32,9 +33,14 @@ for (const width of [320, 390, 430]) {
         navTop: navRect.top,
         actionLeft: actionRect.left,
         actionRight: actionRect.right,
+        heroClientWidth: hero.clientWidth,
+        heroScrollWidth: hero.scrollWidth,
       };
     });
     expect(layout.width).toBeLessThanOrEqual(layout.viewport);
+    expect(layout.heroScrollWidth).toBeLessThanOrEqual(
+      layout.heroClientWidth,
+    );
     expect(layout.actionBottom).toBeLessThanOrEqual(layout.navTop + 2);
     expect(layout.actionRight).toBeLessThanOrEqual(width + 1);
     expect(layout.actionLeft).toBeGreaterThanOrEqual(-1);
