@@ -395,7 +395,7 @@ function competitorSchoolNames(
 
 function evaluateCompetitorDecision(
   state: GameState,
-  candidateId: string,
+  candidateId: ScoutReport["candidateId"],
   evaluationStars: ScoutReport["evaluationStars"],
   competitors: readonly string[],
 ): { weeksRemaining: number | null; signedBy: string | null } {
