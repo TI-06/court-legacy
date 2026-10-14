@@ -40,7 +40,9 @@ function renderHomeWithAssignments(assignAllPlayers: boolean) {
 describe("Phase22 Home individual training summary", () => {
   it("groups configured individual menus instead of presenting the legacy team menu as the weekly training", () => {
     renderHomeWithAssignments(true);
-    fireEvent.click(screen.getByRole("button", { name: "やることをすべて見る" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
     const tasks = screen.getByRole("dialog", { name: "今週やること" });
 
     expect(within(tasks).getByText(/攻撃 2名/)).toBeVisible();
@@ -52,7 +54,9 @@ describe("Phase22 Home individual training summary", () => {
 
   it("shows a setup action only while at least one roster player is truly unconfigured", () => {
     const { school } = renderHomeWithAssignments(false);
-    fireEvent.click(screen.getByRole("button", { name: "やることをすべて見る" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "やることをすべて見る" }),
+    );
     const tasks = screen.getByRole("dialog", { name: "今週やること" });
 
     expect(within(tasks).getByText(/未設定 1名/)).toBeVisible();
