@@ -2,6 +2,7 @@ import type { MatchState } from "../../domain/model/Match";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { deriveCourtMoment, type CourtPlay } from "./liveCourtMoment";
 import { pointCelebrationForEvent } from "./pointCelebration";
+import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import "./liveCourtAnimation.css";
 
 interface LiveCourtAnimationProps {
@@ -56,6 +57,10 @@ export function LiveCourtAnimation({
     awaySelection,
   );
   const celebration = pointCelebrationForEvent(event, match);
+  const scoringSkill =
+    celebration && event.scoringSpecialAbilityId
+      ? getSpecialAbilityDefinition(event.scoringSpecialAbilityId)
+      : null;
   const direction = moment.fromHome ? "home" : "away";
   const receive = moment.play === "receive";
   const animate = playing && !reducedMotion && moment.play !== "rally";
@@ -200,6 +205,40 @@ export function LiveCourtAnimation({
               textAnchor="middle"
             >
               {celebration.label}
+            </text>
+          </g>
+        ) : null}
+        {scoringSkill ? (
+          <g
+            key={`skill-${event.sequence}`}
+            className={
+              playing && !reducedMotion
+                ? "court-live__skill-burst court-live__skill-burst--animate"
+                : "court-live__skill-burst"
+            }
+            data-testid="live-court-special-ability"
+            data-skill-id={scoringSkill.id}
+          >
+            <rect
+              x={celebration?.fromHome ? 22 : 188}
+              y="52"
+              width="150"
+              height="23"
+              rx="11"
+              fill="#40345d"
+              fillOpacity=".95"
+              stroke="#ecd18f"
+              strokeWidth="1.3"
+            />
+            <text
+              x={celebration?.fromHome ? 97 : 263}
+              y="67.5"
+              textAnchor="middle"
+              fill="#fff2b9"
+              fontSize="10.5"
+              fontWeight="700"
+            >
+              {scoringSkill.name} 発揮
             </text>
           </g>
         ) : null}

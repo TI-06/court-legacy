@@ -19,6 +19,7 @@ import {
   getSpecialAbilityAbilityDelta,
   type MatchSpecialAbilitySituation,
 } from "../player/specialAbilityMatchModifiers";
+import { getScoringSpecialAbilityId } from "../player/scoringSpecialAbility";
 import { SeededRandom, type RandomSource } from "../random/SeededRandom";
 import {
   applyMatchTacticPlan,
@@ -111,6 +112,7 @@ interface EventWriter {
     targetPlayerId: PlayerId | null,
     winnerSchoolId: SchoolId | null,
     detailCode: string,
+    scoringSpecialAbilityId?: string | null,
   ) => void;
 }
 
@@ -592,6 +594,7 @@ function createEventWriter(events: MatchEvent[] = []): EventWriter {
       targetPlayerId,
       winnerSchoolId,
       detailCode,
+      scoringSpecialAbilityId,
     ) {
       events.push({
         sequence: events.length + 1,
@@ -603,6 +606,9 @@ function createEventWriter(events: MatchEvent[] = []): EventWriter {
         targetPlayerId,
         winnerSchoolId,
         detailCode,
+        ...(scoringSpecialAbilityId
+          ? { scoringSpecialAbilityId }
+          : {}),
       });
     },
   };
@@ -711,9 +717,18 @@ function simulateRally(
     identityExecutionBonus(state, receiving.school, "receive", abilityContext);
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
+  const servingSituation = matchSituationForSide(
+    runtime,
+    runtime.servingSide,
+  );
   const serveSpecial = getServeSpecialAbilityAdjustment(
     server,
-    matchSituationForSide(runtime, runtime.servingSide),
+    servingSituation,
+  );
+  const serveSkill = getScoringSpecialAbilityId(
+    server,
+    "serve",
+    servingSituation,
   );
   const serveErrorChance = clamp(
     0.024 +
@@ -760,6 +775,7 @@ function simulateRally(
       receiver.id,
       serving.school.id,
       "point.serve-ace",
+      serveSkill,
     );
     return runtime.servingSide;
   }
@@ -822,6 +838,21 @@ function simulateRally(
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
+  const attackerSkill = getScoringSpecialAbilityId(
+    attacker,
+    "attack",
+    matchSituationForSide(runtime, receivingSide),
+  );
+  const blockerSkill = getScoringSpecialAbilityId(
+    blocker,
+    "block",
+    servingSituation,
+  );
+  const diggerSkill = getScoringSpecialAbilityId(
+    digger,
+    "receive",
+    servingSituation,
+  );
   const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
     blockTarget: abilityContext?.blockTarget,
     blockingSchoolId: serving.school.id,
@@ -870,6 +901,7 @@ function simulateRally(
       attacker.id,
       serving.school.id,
       "point.block",
+      blockerSkill,
     );
     return runtime.servingSide;
   }
@@ -892,6 +924,7 @@ function simulateRally(
       digger.id,
       receiving.school.id,
       "point.attack",
+      attackerSkill,
     );
     return receivingSide;
   }
@@ -905,6 +938,7 @@ function simulateRally(
     attacker.id,
     serving.school.id,
     "point.defense",
+    diggerSkill,
   );
   return runtime.servingSide;
 }

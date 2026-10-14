@@ -173,10 +173,21 @@
   animation: court-live-point-pop 220ms ease-out both;
 }
 
+.court-live__skill-burst {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.court-live__skill-burst--animate {
+  animation: court-live-point-pop 250ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .court-live__ball,
   .court-live__actor,
-  .court-live__celebration {
+  .court-live__celebration,
+  .court-live__skill-burst {
     animation: none !important;
   }
 }
