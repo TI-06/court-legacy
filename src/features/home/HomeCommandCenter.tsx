@@ -117,9 +117,7 @@ export function HomeCommandCenter({
   const visibleTasks = model.tasks.slice(0, 1);
   const visibleNews = model.news.slice(0, 1);
   const activeDesk =
-    selectedDesk === "news" && model.news.length === 0
-      ? "tasks"
-      : selectedDesk;
+    selectedDesk === "news" && model.news.length === 0 ? "tasks" : selectedDesk;
 
   const renderTask = (task: HomeCommandTask) => {
     if (task.kind === "action") {

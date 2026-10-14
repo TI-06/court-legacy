@@ -19,7 +19,9 @@ for (const viewport of [
     await expect(home).toBeVisible();
     await expect(summary).toBeVisible();
     await expect(desk).toBeVisible();
-    await expect(action.getByRole("button", { name: "今週を進める" })).toBeVisible();
+    await expect(
+      action.getByRole("button", { name: "今週を進める" }),
+    ).toBeVisible();
 
     const positions = await page.evaluate(() => {
       const selectors = [
@@ -65,12 +67,8 @@ for (const viewport of [
     expect(positions.centerScrollHeight).toBeLessThanOrEqual(
       positions.centerClientHeight + 1,
     );
-    expect(positions.summaryBottom).toBeLessThanOrEqual(
-      positions.deskTop + 1,
-    );
-    expect(positions.deskBottom).toBeLessThanOrEqual(
-      positions.actionTop + 1,
-    );
+    expect(positions.summaryBottom).toBeLessThanOrEqual(positions.deskTop + 1);
+    expect(positions.deskBottom).toBeLessThanOrEqual(positions.actionTop + 1);
     expect(positions.actionBottom).toBeLessThanOrEqual(positions.navTop + 1);
     expect(positions.headerBottom).toBeLessThanOrEqual(positions.summaryBottom);
 
@@ -88,11 +86,15 @@ for (const viewport of [
     const newsTab = page.getByRole("tab", { name: /最近の動き/ });
     if ((await newsTab.count()) > 0) {
       await newsTab.click();
-      await expect(page.getByRole("heading", { name: "最近の動き" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "最近の動き" }),
+      ).toBeVisible();
       await page.getByRole("tab", { name: /やること/ }).click();
     }
 
-    await expect(page.getByRole("heading", { name: "今週やること" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "今週やること" }),
+    ).toBeVisible();
     await expect(nav).toBeVisible();
   });
 }

@@ -538,7 +538,6 @@
   }
 }
 
-
 /* Phase61-3: a single-screen command deck. Long content lives in tabs/sheets,
    not a vertically scrolling Home. The actual header height determines the
    remaining space (unlike the previous hard-coded 76px subtraction). */
