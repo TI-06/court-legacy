@@ -420,10 +420,7 @@
   font-size: 13px;
 }
 
-.game-page-frame
-  .home-command-summary__briefing
-  .home-season-card__goal
-  small {
+.game-page-frame .home-season-card__goal small {
   overflow: visible;
   overflow-wrap: anywhere;
   text-overflow: clip;
