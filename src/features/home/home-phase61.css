@@ -601,6 +601,7 @@
 .game-page-frame .home-command-summary__date {
   display: block;
   min-width: 0;
+  font-size: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
