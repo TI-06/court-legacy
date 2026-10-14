@@ -42,7 +42,10 @@ export function archiveReplacedScoutingPool(
   );
 
   for (const report of reports) {
-    if (userCommitted.has(report.candidateId) || known.has(report.candidateId)) {
+    if (
+      userCommitted.has(report.candidateId) ||
+      known.has(report.candidateId)
+    ) {
       continue;
     }
     const schoolId = preferredRivalSchoolId(state, report);
