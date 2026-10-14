@@ -4,10 +4,8 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { MatchState } from "../../../../src/domain/model/Match";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
-import {
-  deriveCourtMoment,
-  LiveCourtAnimation,
-} from "../../../../src/features/match/LiveCourtAnimation";
+import { deriveCourtMoment } from "../../../../src/features/match/liveCourtMoment";
+import { LiveCourtAnimation } from "../../../../src/features/match/LiveCourtAnimation";
 
 function fixture() {
   const state = createDemoGame();
