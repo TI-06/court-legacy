@@ -6,9 +6,7 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 430, height: 932 },
 ]) {
-  test(
-    `Home keeps its command desk visible without scrolling at ${viewport.width}x${viewport.height}`,
-    async ({ page }) => {
+  test(`Home ${viewport.width}x${viewport.height} fits`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
 
@@ -96,6 +94,5 @@ for (const viewport of [
 
     await expect(page.getByRole("heading", { name: "今週やること" })).toBeVisible();
     await expect(nav).toBeVisible();
-    },
-  );
+  });
 }
