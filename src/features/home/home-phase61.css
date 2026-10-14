@@ -705,7 +705,10 @@
   margin: 0;
 }
 
-.game-page-frame .home-command-desk-panel .home-command-section__heading button {
+.game-page-frame
+  .home-command-desk-panel
+  .home-command-section__heading
+  button {
   min-height: 32px;
   padding: 0 10px;
   color: #94e5eb;
