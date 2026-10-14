@@ -56,7 +56,7 @@ export function archiveReplacedScoutingPool(
     const player = byId.get(report.candidateId);
     if (!player) continue;
     known.add(report.candidateId);
-    archived.push({ player, schoolId, signingWeekOfYear });
+    archived.push({ player: structuredClone(player), schoolId, signingWeekOfYear });
   }
   return archived.slice(-MAX_ARCHIVED_RIVAL_CANDIDATES);
 }
