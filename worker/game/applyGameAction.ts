@@ -176,6 +176,7 @@ export interface AppliedGameAction {
 
 export interface ApplyGameActionContext {
   userIntake?: readonly Player[];
+  rivalIntake?: readonly Player[];
 }
 
 function cloneTeamSelection(selection: TeamSelection): TeamSelection {
@@ -1840,6 +1841,7 @@ function applyAdvanceWeek(
 
     const progression = advanceGameWeek(currentState, gameData, {
       userIntake: context.userIntake,
+      rivalIntake: context.rivalIntake,
     });
     const stateWithRelationshipNotifications =
       appendSpecialRelationshipNotifications(

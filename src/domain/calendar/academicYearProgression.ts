@@ -52,6 +52,7 @@ export interface AdvanceGameWeekResult extends WeekProgressionResult {
 
 export interface AcademicYearProgressionOptions {
   userIntake?: readonly Player[];
+  rivalIntake?: readonly Player[];
   restingPlayerIds?: ReadonlySet<PlayerId>;
 }
 
@@ -372,6 +373,12 @@ export function advanceAcademicYear(
       }
     }
 
+    const desiredIntakeCount = random.int(4, 7);
+    const minimumIntakeCount = Math.max(0, 12 - returningPlayerIds.length);
+    const baseAvailableRosterSlots = Math.max(
+      0,
+      maximumBaseRosterSize - returningPlayerIds.length,
+    );
     const committedIntake =
       school.id === state.userSchoolId
         ? prepareCommittedIntake(
@@ -380,13 +387,14 @@ export function advanceAcademicYear(
             nextAcademicYear,
             options.userIntake ?? [],
           )
-        : [];
-    const desiredIntakeCount = random.int(4, 7);
-    const minimumIntakeCount = Math.max(0, 12 - returningPlayerIds.length);
-    const baseAvailableRosterSlots = Math.max(
-      0,
-      maximumBaseRosterSize - returningPlayerIds.length,
-    );
+        : prepareCommittedIntake(
+            state,
+            school.id,
+            nextAcademicYear,
+            (options.rivalIntake ?? [])
+              .filter((player) => player.career.schoolId === school.id)
+              .slice(0, baseAvailableRosterSlots),
+          );
     const availableRosterSlots =
       school.id === state.userSchoolId
         ? Math.max(committedIntake.length, baseAvailableRosterSlots)
