@@ -33,6 +33,8 @@ export interface RecruitmentCompetitionProfile {
   interestLevel: "low" | "medium" | "high" | "ready";
   canCommit: boolean;
   competitorSchoolNames: string[];
+  competitorDecisionWeeksRemaining?: number | null;
+  signedByCompetitor?: string | null;
 }
 
 export interface ScoutReport {

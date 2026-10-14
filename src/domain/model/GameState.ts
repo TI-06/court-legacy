@@ -121,6 +121,7 @@ export interface RecruitingState {
   visitActionsUsed?: number;
   recommendationUsed?: boolean;
   scoutingSearchesUsed?: number;
+  scoutingSearchWeekOfYear?: number;
   extraScoutingSearchCredits?: number;
   pendingExtraScoutCandidates?: number;
   pendingGenerationalScoutCandidates?: number;

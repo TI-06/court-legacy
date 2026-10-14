@@ -393,6 +393,41 @@ function competitorSchoolNames(
   return selected;
 }
 
+function evaluateCompetitorDecision(
+  state: GameState,
+  candidateId: ScoutReport["candidateId"],
+  evaluationStars: ScoutReport["evaluationStars"],
+  competitors: readonly string[],
+): { weeksRemaining: number | null; signedBy: string | null } {
+  if (competitors.length === 0) {
+    return { weeksRemaining: null, signedBy: null };
+  }
+  const recruiting = state.recruiting;
+  if (recruiting?.cycleKey !== scoutingCycleKey(state)) {
+    return { weeksRemaining: null, signedBy: null };
+  }
+  if (recruiting.committedCandidateIds.includes(candidateId)) {
+    return { weeksRemaining: null, signedBy: null };
+  }
+  const firstWeek = recruiting.scoutingSearchWeekOfYear;
+  if (firstWeek === undefined) {
+    // Legacy searches are not subject to a retroactive deadline.
+    return { weeksRemaining: null, signedBy: null };
+  }
+  const random = new SeededRandom(
+    [state.seed, scoutingCycleKey(state), candidateId, "rival-signing"].join(
+      ":",
+    ),
+  );
+  const deadlineWeeks = (evaluationStars >= 5 ? 4 : 6) + random.int(0, 2);
+  const weeksElapsed = Math.max(0, state.calendar.weekOfYear - firstWeek);
+  const weeksRemaining = Math.max(0, deadlineWeeks - weeksElapsed);
+  return {
+    weeksRemaining,
+    signedBy: weeksRemaining === 0 ? (competitors[0] ?? null) : null,
+  };
+}
+
 export function buildRecruitmentCompetitionProfile(
   state: GameState,
   report: ScoutReport,
@@ -408,13 +443,23 @@ export function buildRecruitmentCompetitionProfile(
     report.candidateId,
     report.evaluationStars,
   );
+  const race = evaluateCompetitorDecision(
+    state,
+    report.candidateId,
+    report.evaluationStars,
+    competitors,
+  );
 
   return {
     interestScore,
     interestLevel: recruitmentInterestLevel(interestScore),
     canCommit:
-      competitors.length === 0 || interestScore >= RECRUITMENT_COMMIT_THRESHOLD,
+      race.signedBy === null &&
+      (competitors.length === 0 ||
+        interestScore >= RECRUITMENT_COMMIT_THRESHOLD),
     competitorSchoolNames: competitors,
+    competitorDecisionWeeksRemaining: race.weeksRemaining,
+    signedByCompetitor: race.signedBy,
   };
 }
 

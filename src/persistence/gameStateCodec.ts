@@ -429,6 +429,7 @@ const recruitingStateSchema = z
     visitActionsUsed: z.number().int().min(0).max(4).optional(),
     recommendationUsed: z.boolean().optional(),
     scoutingSearchesUsed: z.number().int().nonnegative().optional(),
+    scoutingSearchWeekOfYear: z.number().int().min(1).max(53).optional(),
     extraScoutingSearchCredits: z.number().int().nonnegative().optional(),
     pendingExtraScoutCandidates: z.number().int().nonnegative().optional(),
     pendingGenerationalScoutCandidates: z

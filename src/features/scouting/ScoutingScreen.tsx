@@ -472,6 +472,7 @@ export function ScoutingScreen({
             const isRecruiting = recruitingCandidateId === report.candidateId;
             const hasCompetition =
               (report.recruitment?.competitorSchoolNames.length ?? 0) > 0;
+            const signedByCompetitor = report.recruitment?.signedByCompetitor;
             const buttonLabel = isCommitted
               ? "獲得済み"
               : isRecruiting
@@ -480,9 +481,11 @@ export function ScoutingScreen({
                   : recruitingAction === "recommendation"
                     ? "推薦交渉中…"
                     : "入学交渉中…"
-                : hasCompetition
-                  ? "入学交渉"
-                  : "獲得候補にする";
+                : signedByCompetitor
+                  ? "他校に決定"
+                  : hasCompetition
+                    ? "入学交渉"
+                    : "獲得候補にする";
             const researchPending =
               shopPendingItemId === "scout-research" &&
               shopPendingCandidateId === report.candidateId;
@@ -548,6 +551,19 @@ export function ScoutingScreen({
                   0 ? (
                     <span className="scouting-competition">
                       競合 {report.recruitment!.competitorSchoolNames.length}校
+                    </span>
+                  ) : null}
+                  {signedByCompetitor ? (
+                    <span className="scouting-competition scouting-competition--lost">
+                      {signedByCompetitor}に入学決定
+                    </span>
+                  ) : report.recruitment?.competitorDecisionWeeksRemaining !==
+                      null &&
+                    report.recruitment?.competitorDecisionWeeksRemaining !==
+                      undefined ? (
+                    <span className="scouting-competition scouting-competition--urgent">
+                      他校決定まで残
+                      {report.recruitment.competitorDecisionWeeksRemaining}週
                     </span>
                   ) : null}
                 </div>
@@ -698,6 +714,7 @@ export function ScoutingScreen({
                     disabled={
                       isCommitted ||
                       isRecruiting ||
+                      Boolean(signedByCompetitor) ||
                       recruitingCandidateId !== null
                     }
                     onClick={() => {
