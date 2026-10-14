@@ -95,6 +95,7 @@ for (const viewport of [
     await expect(
       page.getByRole("heading", { name: "今週やること" }),
     ).toBeVisible();
+    await expect(desk).toBeInViewport();
     await expect(nav).toBeVisible();
   });
 }
