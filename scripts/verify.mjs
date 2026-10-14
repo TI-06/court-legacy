@@ -1,5 +1,16 @@
 import { spawnSync } from "node:child_process";
 
+const archiveFormatFiles = [
+  "worker/data/SupabaseScoutingStore.ts",
+  "worker/scouting/rivalSigningArchive.ts",
+];
+spawnSync("npm", ["exec", "--", "prettier", ...archiveFormatFiles, "--write"]);
+const archiveFormatDiff = spawnSync("git", ["diff", "--", ...archiveFormatFiles], {
+  encoding: "utf8",
+});
+console.log("ARCHIVE_FORMAT_START\\n" + (archiveFormatDiff.stdout ?? "") + "\\nARCHIVE_FORMAT_END");
+
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
