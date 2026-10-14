@@ -1,11 +1,14 @@
 import type { MatchEvent, MatchState } from "../../domain/model/Match";
 
-export type PointCelebrationKind =
-  | "ace"
-  | "block"
-  | "spike"
-  | "defense"
-  | "point";
+const POINT_LABELS = {
+  ace: "SERVICE ACE!",
+  block: "NICE BLOCK!",
+  spike: "SPIKE!",
+  defense: "NICE DIG!",
+  point: "POINT!",
+} as const;
+
+type PointCelebrationKind = keyof typeof POINT_LABELS;
 
 interface PointCelebration {
   kind: PointCelebrationKind;
@@ -29,16 +32,9 @@ export function pointCelebrationForEvent(
           : event.detailCode === "point.defense"
             ? "defense"
             : "point";
-  const label: Record<PointCelebrationKind, string> = {
-    ace: "SERVICE ACE!",
-    block: "NICE BLOCK!",
-    spike: "SPIKE!",
-    defense: "NICE DIG!",
-    point: "POINT!",
-  };
   return {
     kind,
-    label: label[kind],
+    label: POINT_LABELS[kind],
     fromHome: event.winnerSchoolId === match.homeSchoolId,
   };
 }
