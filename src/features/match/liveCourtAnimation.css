@@ -1,0 +1,71 @@
+.court-live {
+  display: grid;
+  min-width: 0;
+  padding: 12px;
+  gap: 8px;
+  background: #163849;
+  border: 1px solid #2a5262;
+  border-radius: 17px;
+}
+
+.court-live__caption {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.court-live__caption span {
+  color: #cce1e9;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.court-live__caption strong {
+  color: #ffe5b0;
+  font-size: 0.76rem;
+}
+
+.court-live__field {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 230px;
+}
+
+.court-live__ball {
+  filter: drop-shadow(0 0 4px rgb(255 255 255 / 65%));
+}
+
+.court-live__ball--home {
+  animation: court-live-forward 170ms ease-out both;
+}
+
+.court-live__ball--away {
+  animation: court-live-backward 170ms ease-out both;
+}
+
+@keyframes court-live-forward {
+  from {
+    transform: translate(-2px, -9px);
+  }
+  to {
+    transform: translate(105px, 5px);
+  }
+}
+
+@keyframes court-live-backward {
+  from {
+    transform: translate(2px, -9px);
+  }
+  to {
+    transform: translate(-105px, 5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .court-live__ball {
+    animation: none !important;
+  }
+}

@@ -14,6 +14,7 @@ import { buildLiveCoachEffectRows } from "./matchCommandPresentation";
 import { tacticOptionLabel } from "../team/tacticsPresentation";
 import { MatchResultStats, PreMatchComparison } from "./MatchStatPanels";
 import { MatchResultStoryPanel } from "./MatchResultStoryPanel";
+import { LiveCourtAnimation } from "./LiveCourtAnimation";
 import { PracticeMatchReviewPanel } from "./PracticeMatchReviewPanel";
 import { presentMatchEvent, summarizeSetScore } from "./matchPresentation";
 import "./match.css";
@@ -444,6 +445,18 @@ function MatchScreenContent({
               </small>
             </article>
           </section>
+
+          {state.settings.matchDisplayMode !== "text" &&
+          state.settings.matchDisplayMode !== "instant" ? (
+            <LiveCourtAnimation
+              match={result.match}
+              visibleEventIndex={revealedEventIndex}
+              homeSelection={result.match.homeSelection}
+              awaySelection={result.match.awaySelection}
+              reducedMotion={reducedMotion}
+              playing={playing && !segmentRevealed}
+            />
+          ) : null}
 
           <section
             className={`match-interaction-status${
