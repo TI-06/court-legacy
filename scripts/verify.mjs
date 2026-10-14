@@ -1,9 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-const formatted = spawnSync("npm", ["exec", "--", "prettier", "tests/unit/diagnostics/phase40SaveEndurance.test.ts", "--write"], { encoding: "utf8" });
-const formatDiff = spawnSync("git", ["diff", "--", "tests/unit/diagnostics/phase40SaveEndurance.test.ts"], { encoding: "utf8" });
-console.log("FORMAT_DEBUG_START\\n" + (formatted.stderr ?? "") + (formatDiff.stdout ?? "") + "\\nFORMAT_DEBUG_END");
-
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],

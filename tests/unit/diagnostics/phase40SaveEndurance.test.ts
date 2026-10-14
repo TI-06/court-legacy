@@ -106,8 +106,7 @@ describe("Phase58 V5 long-session save endurance", () => {
       const legacyPatchBytes = JSON.stringify(legacyPatch).length;
       if (
         legacyPatch.length > LEGACY_MAX_JSON_PATCH_OPERATIONS ||
-        (!isMidMatchCommand &&
-          legacyPatchBytes > LEGACY_MAX_JSON_PATCH_BYTES)
+        (!isMidMatchCommand && legacyPatchBytes > LEGACY_MAX_JSON_PATCH_BYTES)
       ) {
         legacyPatchFallbackCandidates += 1;
       }
