@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { GameButton } from "./theme/GameButton";
 
 interface StickyActionBarProps {
   label: string;
@@ -18,9 +19,9 @@ export function StickyActionBar({
       {summary ? (
         <div className="ui-sticky-action-bar__summary">{summary}</div>
       ) : null}
-      <button disabled={disabled} onClick={onClick} type="button">
+      <GameButton disabled={disabled} onClick={onClick} variant="primary">
         {label}
-      </button>
+      </GameButton>
     </div>
   );
 }
