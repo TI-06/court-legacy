@@ -38,10 +38,7 @@ export function archiveReplacedScoutingPool(
   const known = new Set(archived.map((item) => item.player.id));
   const reports = buildServerScoutReports(state, pool, insights);
   const byId = new Map(
-    pool.candidates.map((candidate) => [
-      candidate.player.id,
-      candidate.player,
-    ]),
+    pool.candidates.map((candidate) => [candidate.player.id, candidate.player]),
   );
 
   for (const report of reports) {
@@ -56,7 +53,11 @@ export function archiveReplacedScoutingPool(
     const player = byId.get(report.candidateId);
     if (!player) continue;
     known.add(report.candidateId);
-    archived.push({ player: structuredClone(player), schoolId, signingWeekOfYear });
+    archived.push({
+      player: structuredClone(player),
+      schoolId,
+      signingWeekOfYear,
+    });
   }
   return archived.slice(-MAX_ARCHIVED_RIVAL_CANDIDATES);
 }

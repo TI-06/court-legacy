@@ -24,7 +24,12 @@ function candidateTruth() {
 }
 
 function createReadClient(row: unknown) {
-  const maybeSingle = vi.fn(async () => ({ data: row, error: null }));
+  const maybeSingle = vi.fn(
+    async (): Promise<{
+      data: unknown;
+      error: { code: string; message: string } | null;
+    }> => ({ data: row, error: null }),
+  );
   const secondEq = vi.fn(() => ({ maybeSingle }));
   const firstEq = vi.fn(() => ({ eq: secondEq }));
   const select = vi.fn(() => ({ eq: firstEq }));

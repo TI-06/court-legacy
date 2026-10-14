@@ -95,8 +95,7 @@ function mapPool(value: unknown): ScoutingCandidatePool {
           archivedRivalCandidates: parsed.data.archived_rival_candidates.map(
             (candidate) => ({
               player: candidate.player as unknown as Player,
-              schoolId:
-                candidate.schoolId as ArchivedRivalCandidate["schoolId"],
+              schoolId: candidate.schoolId as ArchivedRivalCandidate["schoolId"],
               signingWeekOfYear: candidate.signingWeekOfYear,
             }),
           ),
