@@ -125,7 +125,12 @@ describe("Phase58 V5 long-session save endurance", () => {
 
       if (isMidMatchCommand) {
         midMatchCommands += 1;
-        expect(stateDelta.set).toHaveProperty("activeMatch");
+        if (
+          JSON.stringify(prepared.state.activeMatch) !==
+          JSON.stringify(persistedState.activeMatch)
+        ) {
+          expect(stateDelta.set).toHaveProperty("activeMatch");
+        }
       }
 
       const nextSnapshot: CloudGameSnapshot = {

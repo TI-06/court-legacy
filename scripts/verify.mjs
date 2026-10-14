@@ -1,15 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-const target = spawnSync(
-  "npm",
-  ["exec", "--", "vitest", "run", "tests/unit/diagnostics/phase40SaveEndurance.test.ts"],
-  { encoding: "utf8" },
-);
-console.log("PHASE58_TARGET_DIAGNOSTIC_START");
-console.log(target.stdout);
-console.error(target.stderr);
-console.log("PHASE58_TARGET_DIAGNOSTIC_END");
-
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
