@@ -1,5 +1,10 @@
 import { spawnSync } from "node:child_process";
 
+const filesToFormat = ["src/features/scouting/ScoutingScreen.tsx", "worker/scouting/serverScoutingBoard.ts"];
+spawnSync("npm", ["exec", "--", "prettier", ...filesToFormat, "--write"], { encoding: "utf8" });
+const formatDiff = spawnSync("git", ["diff", "--", ...filesToFormat], { encoding: "utf8" });
+console.log("FORMAT_DEBUG_START\\n" + (formatDiff.stdout ?? "") + "\\nFORMAT_DEBUG_END");
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
