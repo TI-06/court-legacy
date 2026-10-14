@@ -54,16 +54,36 @@ export function LiveCourtAnimation({
     homeSelection,
     awaySelection,
   );
-  const animate = playing && !reducedMotion;
-  const ballStartX = moment.fromHome ? 145 : 215;
-  const ballEndX = moment.fromHome ? 250 : 110;
   const direction = moment.fromHome ? "home" : "away";
+  const receive = moment.play === "receive";
+  const animate = playing && !reducedMotion && moment.play !== "rally";
+  const ballStartX = receive
+    ? moment.fromHome
+      ? 85
+      : 275
+    : moment.fromHome
+      ? 145
+      : 215;
+  const ballEndX = receive
+    ? moment.fromHome
+      ? 145
+      : 215
+    : moment.fromHome
+      ? 250
+      : 110;
+  const actorMotionClass = animate
+    ? `court-live__actor court-live__actor--${moment.play} court-live__actor--${direction}`
+    : "court-live__actor";
+  const ballMotionClass = animate
+    ? `court-live__ball court-live__ball--${direction} court-live__ball--${moment.play}`
+    : "court-live__ball";
 
   return (
     <section
       className="court-live"
       aria-label="試合2Dコート"
       data-testid="live-court"
+      data-play={moment.play}
     >
       <div className="court-live__caption">
         <span>コートビュー</span>
@@ -92,7 +112,8 @@ export function LiveCourtAnimation({
           return (
             <g
               key={`home-${slot}`}
-              className={active ? "court-live__actor" : undefined}
+              className={active ? actorMotionClass : undefined}
+              data-testid={active ? "live-court-active-player" : undefined}
             >
               <circle
                 cx={x}
@@ -122,7 +143,8 @@ export function LiveCourtAnimation({
           return (
             <g
               key={`away-${slot}`}
-              className={active ? "court-live__actor" : undefined}
+              className={active ? actorMotionClass : undefined}
+              data-testid={active ? "live-court-active-player" : undefined}
             >
               <circle
                 cx={x}
@@ -148,11 +170,7 @@ export function LiveCourtAnimation({
         <circle
           key={event.sequence}
           data-testid="live-court-ball"
-          className={
-            animate
-              ? `court-live__ball court-live__ball--${direction}`
-              : "court-live__ball"
-          }
+          className={ballMotionClass}
           data-animated={animate ? "true" : "false"}
           cx={animate ? ballStartX : ballEndX}
           cy="79"
