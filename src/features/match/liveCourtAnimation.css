@@ -149,9 +149,34 @@
   }
 }
 
+@keyframes court-live-point-pop {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.court-live__celebration {
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.court-live__celebration--animate {
+  animation: court-live-point-pop 220ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .court-live__ball,
-  .court-live__actor {
+  .court-live__actor,
+  .court-live__celebration {
     animation: none !important;
   }
 }

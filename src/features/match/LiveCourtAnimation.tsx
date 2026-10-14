@@ -1,6 +1,7 @@
 import type { MatchState } from "../../domain/model/Match";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import { deriveCourtMoment, type CourtPlay } from "./liveCourtMoment";
+import { pointCelebrationForEvent } from "./pointCelebration";
 import "./liveCourtAnimation.css";
 
 interface LiveCourtAnimationProps {
@@ -54,6 +55,7 @@ export function LiveCourtAnimation({
     homeSelection,
     awaySelection,
   );
+  const celebration = pointCelebrationForEvent(event, match);
   const direction = moment.fromHome ? "home" : "away";
   const receive = moment.play === "receive";
   const animate = playing && !reducedMotion && moment.play !== "rally";
@@ -167,6 +169,40 @@ export function LiveCourtAnimation({
             </g>
           );
         })}
+        {celebration ? (
+          <g
+            key={`point-${event.sequence}`}
+            className={
+              playing && !reducedMotion
+                ? "court-live__celebration court-live__celebration--animate"
+                : "court-live__celebration"
+            }
+            data-testid="live-court-point-effect"
+            data-celebration={celebration.kind}
+          >
+            <rect
+              x={celebration.fromHome ? 46 : 214}
+              y="19"
+              width="100"
+              height="29"
+              rx="14"
+              fill="#143348"
+              fillOpacity=".94"
+              stroke="#ffe6a9"
+              strokeWidth="1.5"
+            />
+            <text
+              x={celebration.fromHome ? 96 : 264}
+              y="38"
+              fill="#fff0af"
+              fontSize="12"
+              fontWeight="800"
+              textAnchor="middle"
+            >
+              {celebration.label}
+            </text>
+          </g>
+        ) : null}
         <circle
           key={event.sequence}
           data-testid="live-court-ball"
