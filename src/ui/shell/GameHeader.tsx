@@ -23,7 +23,11 @@ export function GameHeader({
 
   return (
     <header className="game-header">
+      <span aria-hidden="true" className="game-header__mark">
+        CL
+      </span>
       <div className="game-header__identity">
+        <span className="game-header__brand">COURT LEGACY</span>
         <p>{schoolName}</p>
         <div className="game-header__meta">
           <span>{dateLabel}</span>
