@@ -58,6 +58,19 @@ describe("Phase60 read-only live court", () => {
     });
   });
 
+  it("never reveals future point effects before the event is shown", () => {
+    const props = fixture();
+    render(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={0}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-point-effect")).toBeNull();
+  });
+
   it("animates only during playback and never requires save state", () => {
     const props = fixture();
     const { rerender } = render(
@@ -77,6 +90,10 @@ describe("Phase60 read-only live court", () => {
       "data-play",
       "attack",
     );
+    expect(screen.getByTestId("live-court-point-effect")).toHaveAttribute(
+      "data-celebration",
+      "spike",
+    );
     expect(screen.getByTestId("live-court-active-player")).toHaveClass(
       "court-live__actor--attack",
       "court-live__actor--home",
@@ -95,6 +112,9 @@ describe("Phase60 read-only live court", () => {
     );
     expect(screen.getByTestId("live-court-active-player")).not.toHaveClass(
       "court-live__actor--attack",
+    );
+    expect(screen.getByTestId("live-court-point-effect")).not.toHaveClass(
+      "court-live__celebration--animate",
     );
   });
 });
