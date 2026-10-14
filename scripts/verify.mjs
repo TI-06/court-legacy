@@ -1,16 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-const formatFiles = [
-  "src/features/match/LiveCourtAnimation.tsx",
-  "src/features/match/liveCourtMoment.ts",
-];
-spawnSync("npm", ["exec", "--", "prettier", ...formatFiles, "--write"]);
-const diff = spawnSync("git", ["diff", "--", ...formatFiles], {
-  encoding: "utf8",
-});
-console.log("COURT_FORMAT_START\\n" + (diff.stdout ?? "") + "\\nCOURT_FORMAT_END");
-
-
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],

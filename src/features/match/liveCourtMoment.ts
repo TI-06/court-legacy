@@ -71,4 +71,3 @@ export function deriveCourtMoment(
     actorSlot: homeActor?.slot ?? awayActor?.slot ?? null,
   };
 }
-

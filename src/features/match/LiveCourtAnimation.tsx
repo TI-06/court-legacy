@@ -14,8 +14,6 @@ interface LiveCourtAnimationProps {
   playing: boolean;
 }
 
-
-
 const HOME_SPOTS = [
   [139, 39],
   [139, 79],
@@ -32,7 +30,6 @@ const AWAY_SPOTS = [
   [279, 79],
   [279, 119],
 ] as const;
-
 
 const PLAY_LABEL: Record<CourtPlay, string> = {
   serve: "サーブ",
