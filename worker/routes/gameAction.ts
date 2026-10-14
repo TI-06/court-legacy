@@ -116,7 +116,7 @@ async function resolveCommittedIntake(
  * for rival signings. Earlier searches have already been replaced in storage
  * and are not reconstructed from approximate scout reports.
  */
-async function resolveRivalIntake(
+export async function resolveRivalIntake(
   snapshot: NonNullable<Awaited<ReturnType<GameStore["getSnapshot"]>>>,
   userId: string,
   scoutingStore?: ScoutingStore,
