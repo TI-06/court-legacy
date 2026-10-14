@@ -45,7 +45,7 @@ test("Phase24 management screens keep the dark game theme through editing", asyn
   await expect(managementTab).toHaveAttribute("aria-selected", "true");
   await expect(managementTab).toHaveCSS(
     "background-color",
-    "rgb(244, 122, 24)",
+    "rgb(255, 152, 98)",
   );
 
   await page.getByRole("button", { name: "トレーニング設備の詳細" }).click();
