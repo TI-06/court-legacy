@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 for (const width of [320, 390, 480]) {
-  test(`Phase61 premium shell fits ${width}px without losing navigation`, async ({
-    page,
-  }) => {
+  const label = `Phase61 premium shell fits ${width}px without losing navigation`;
+  test(label, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/");
 
@@ -34,9 +33,8 @@ for (const width of [320, 390, 480]) {
 
     const navBox = await navigation.boundingBox();
     expect(navBox).not.toBeNull();
-    expect(Math.abs((navBox?.y ?? 0) + (navBox?.height ?? 0) - 800)).toBeLessThan(
-      2,
-    );
+    const navBottom = (navBox?.y ?? 0) + (navBox?.height ?? 0);
+    expect(Math.abs(navBottom - 800)).toBeLessThan(2);
 
     const playerTab = navigation.getByRole("button", { name: "選手" });
     const playerBox = await playerTab.boundingBox();
