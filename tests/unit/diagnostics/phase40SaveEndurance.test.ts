@@ -16,6 +16,8 @@ import { compactGameSnapshot } from "../../../worker/game/compactGameSnapshot";
 const LEGACY_MAX_JSON_PATCH_BYTES = 32_768;
 const LEGACY_MAX_JSON_PATCH_OPERATIONS = 16;
 const TARGET_WEEKS = 520;
+const ENDURANCE_TEST_NAME =
+  "keeps every 10-year save reconstructable through section deltas, including mid-match saves";
 
 function nextAction(snapshot: CloudGameSnapshot): GameAction {
   const pendingEvent = snapshot.state.pendingEvent;
@@ -44,7 +46,7 @@ function nextAction(snapshot: CloudGameSnapshot): GameAction {
 }
 
 describe("Phase58 V5 long-session save endurance", () => {
-  it("keeps every 10-year save reconstructable through section deltas, including mid-match saves", () => {
+  it(ENDURANCE_TEST_NAME, () => {
     let snapshot = createSoakSnapshot("phase58-v5-save-endurance-10-years");
     let completedWeeks = 0;
     let completedMatches = 0;
