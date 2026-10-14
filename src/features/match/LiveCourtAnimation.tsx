@@ -8,8 +8,6 @@ interface LiveCourtAnimationProps {
   visibleEventIndex: number;
   homeSelection: TeamSelection;
   awaySelection: TeamSelection;
-  homeLabel: string;
-  awayLabel: string;
   reducedMotion: boolean;
   playing: boolean;
 }
@@ -44,8 +42,6 @@ export function LiveCourtAnimation({
   visibleEventIndex,
   homeSelection,
   awaySelection,
-  homeLabel,
-  awayLabel,
   reducedMotion,
   playing,
 }: LiveCourtAnimationProps) {
@@ -166,10 +162,6 @@ export function LiveCourtAnimation({
           strokeWidth="2"
         />
       </svg>
-      <div className="court-live__teams">
-        <span title={homeLabel}>{homeLabel}</span>
-        <span title={awayLabel}>{awayLabel}</span>
-      </div>
     </section>
   );
 }

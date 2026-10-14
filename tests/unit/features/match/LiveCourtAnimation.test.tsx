@@ -64,8 +64,6 @@ describe("Phase60 read-only live court", () => {
       <LiveCourtAnimation
         {...props}
         visibleEventIndex={1}
-        homeLabel="自校"
-        awayLabel="相手校"
         playing={true}
         reducedMotion={false}
       />,
@@ -79,8 +77,6 @@ describe("Phase60 read-only live court", () => {
       <LiveCourtAnimation
         {...props}
         visibleEventIndex={1}
-        homeLabel="自校"
-        awayLabel="相手校"
         playing={true}
         reducedMotion={true}
       />,

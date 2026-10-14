@@ -453,8 +453,6 @@ function MatchScreenContent({
               visibleEventIndex={revealedEventIndex}
               homeSelection={result.match.homeSelection}
               awaySelection={result.match.awaySelection}
-              homeLabel={homeShortName}
-              awayLabel={awayShortName}
               reducedMotion={reducedMotion}
               playing={playing && !segmentRevealed}
             />
