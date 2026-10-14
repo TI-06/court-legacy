@@ -1,5 +1,17 @@
 import { spawnSync } from "node:child_process";
 
+const phase59Files = [
+  "docs/superpowers/specs/2026-10-14-phase59-2-rival-enrollment.md",
+  "tests/unit/worker/scouting/rivalEnrollment.test.ts",
+  "worker/scouting/serverScoutingBoard.ts",
+];
+spawnSync("npm", ["exec", "--", "prettier", ...phase59Files, "--write"]);
+const phase59Diff = spawnSync("git", ["diff", "--", ...phase59Files], {
+  encoding: "utf8",
+});
+console.log("PHASE59_FORMAT_START\n" + (phase59Diff.stdout ?? "") + "\nPHASE59_FORMAT_END");
+
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
