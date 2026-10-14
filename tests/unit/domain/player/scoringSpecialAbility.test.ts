@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { Player } from "../../../../src/domain/model/Player";
-import {
-  getScoringSpecialAbilityId,
-} from "../../../../src/domain/player/scoringSpecialAbility";
+import { getScoringSpecialAbilityId } from "../../../../src/domain/player/scoringSpecialAbility";
 
 const normal = {
   ownScore: 10,
@@ -15,7 +13,8 @@ const critical = { ...normal, ownScore: 23, opponentScore: 22 };
 
 function equipped(...ids: string[]): Player {
   const state = createDemoGame();
-  const player = state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
+  const player =
+    state.players[state.schools[state.userSchoolId]!.playerIds[0]!]!;
   return {
     ...player,
     abilities: {

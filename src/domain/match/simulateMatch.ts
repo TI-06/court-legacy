@@ -606,9 +606,7 @@ function createEventWriter(events: MatchEvent[] = []): EventWriter {
         targetPlayerId,
         winnerSchoolId,
         detailCode,
-        ...(scoringSpecialAbilityId
-          ? { scoringSpecialAbilityId }
-          : {}),
+        ...(scoringSpecialAbilityId ? { scoringSpecialAbilityId } : {}),
       });
     },
   };
@@ -717,10 +715,7 @@ function simulateRally(
     identityExecutionBonus(state, receiving.school, "receive", abilityContext);
   const servePlan = deriveMatchTacticPlan(serving.school.tactics).serve;
   const serveProfile = SERVE_TACTIC_PROFILE[servePlan];
-  const servingSituation = matchSituationForSide(
-    runtime,
-    runtime.servingSide,
-  );
+  const servingSituation = matchSituationForSide(runtime, runtime.servingSide);
   const serveSpecial = getServeSpecialAbilityAdjustment(
     server,
     servingSituation,

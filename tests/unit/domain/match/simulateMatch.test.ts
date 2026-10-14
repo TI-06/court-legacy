@@ -254,7 +254,9 @@ describe("simulateMatch", () => {
     const points = first.eventLog.filter((event) => event.type === "point");
     expect(points.length).toBeGreaterThan(50);
     expect(
-      points.some((event) => event.scoringSpecialAbilityId === "gold_total_player"),
+      points.some(
+        (event) => event.scoringSpecialAbilityId === "gold_total_player",
+      ),
     ).toBe(true);
     expect(
       first.eventLog
@@ -263,9 +265,9 @@ describe("simulateMatch", () => {
           (event) =>
             event.type === "point" &&
             event.actorPlayerId !== null &&
-            context.state.players[event.actorPlayerId]?.specialAbilityIds?.includes(
-              event.scoringSpecialAbilityId!,
-            ),
+            context.state.players[
+              event.actorPlayerId
+            ]?.specialAbilityIds?.includes(event.scoringSpecialAbilityId!),
         ),
     ).toBe(true);
   });

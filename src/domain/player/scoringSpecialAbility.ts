@@ -8,7 +8,10 @@ import {
 
 type ScoringPhase = "serve" | "attack" | "block" | "receive";
 
-const RELEVANT_ABILITIES: Record<ScoringPhase, readonly (keyof PlayerAbilities)[]> = {
+const RELEVANT_ABILITIES: Record<
+  ScoringPhase,
+  readonly (keyof PlayerAbilities)[]
+> = {
   serve: ["serve", "mental"],
   attack: ["spike", "jump", "decision"],
   block: ["block", "jump", "decision"],
@@ -45,10 +48,7 @@ export function getScoringSpecialAbilityId(
         situation,
       );
       const raw = player.abilities[ability];
-      contribution += Math.max(
-        0,
-        Math.min(100, raw + delta) - raw,
-      );
+      contribution += Math.max(0, Math.min(100, raw + delta) - raw);
     }
     if (phase === "serve") {
       const serve = getServeSpecialAbilityAdjustment(ownedOnly, situation);
