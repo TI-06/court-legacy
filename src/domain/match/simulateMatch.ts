@@ -720,12 +720,7 @@ function simulateRally(
     server,
     servingSituation,
   );
-  const serveSkill = getScoringSpecialAbilityId(
-    server,
-    "serve",
-    servingSituation,
-  );
-  const serveErrorChance = clamp(
+   const serveErrorChance = clamp(
     0.024 +
       50 * 0.00105 -
       serverStrength * 0.00024 +
@@ -762,6 +757,11 @@ function simulateRally(
   );
   if (random.next() < aceChance) {
     writer.events.at(-1)!.detailCode = "serve.ace";
+    const serveSkill = getScoringSpecialAbilityId(
+      server,
+      "serve",
+      servingSituation,
+    );
     awardPoint(runtime, runtime.servingSide);
     writer.push(
       "point",
@@ -833,22 +833,7 @@ function simulateRally(
     (attackVariationRoll - 0.5) * 16;
   const blocker = chooseBlocker(state, serving.selection, abilityContext);
   const digger = chooseDigger(state, serving.selection, abilityContext);
-  const attackerSkill = getScoringSpecialAbilityId(
-    attacker,
-    "attack",
-    matchSituationForSide(runtime, receivingSide),
-  );
-  const blockerSkill = getScoringSpecialAbilityId(
-    blocker,
-    "block",
-    servingSituation,
-  );
-  const diggerSkill = getScoringSpecialAbilityId(
-    digger,
-    "receive",
-    servingSituation,
-  );
-  const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
+   const blockTargetBonus = getTemporaryBlockTargetPowerBonus({
     blockTarget: abilityContext?.blockTarget,
     blockingSchoolId: serving.school.id,
     attackerPlayerId: attacker.id,
@@ -888,6 +873,11 @@ function simulateRally(
   );
   if (random.next() < blockKillChance) {
     writer.push("block", runtime, blocker.id, attacker.id, null, "block.kill");
+    const blockerSkill = getScoringSpecialAbilityId(
+      blocker,
+      "block",
+      servingSituation,
+    );
     awardPoint(runtime, runtime.servingSide);
     writer.push(
       "point",
@@ -911,6 +901,11 @@ function simulateRally(
 
   if (random.next() < attackPointChance) {
     writer.push("dig", runtime, digger.id, attacker.id, null, "dig.failed");
+    const attackerSkill = getScoringSpecialAbilityId(
+      attacker,
+      "attack",
+      matchSituationForSide(runtime, receivingSide),
+    );
     awardPoint(runtime, receivingSide);
     writer.push(
       "point",
@@ -925,6 +920,11 @@ function simulateRally(
   }
 
   writer.push("dig", runtime, digger.id, attacker.id, null, "dig.counter");
+  const diggerSkill = getScoringSpecialAbilityId(
+    digger,
+    "receive",
+    servingSituation,
+  );
   awardPoint(runtime, runtime.servingSide);
   writer.push(
     "point",
