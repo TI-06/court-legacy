@@ -54,6 +54,8 @@ test("mobile training saves a plan and resolves it with next-week progression", 
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();
 
+  await page.getByRole("tab", { name: /最近の動き/ }).click();
+
   const resultNotification = page.getByRole("button", {
     name: /今週の練習結果/,
   });
@@ -206,6 +208,7 @@ test("school management upgrades a facility and calendar resolves saved training
   await expect(
     page.getByRole("banner").getByText("2026年4月8日"),
   ).toBeVisible();
+  await page.getByRole("tab", { name: /最近の動き/ }).click();
   await expect(
     page.getByRole("button", { name: /今週の練習結果/ }),
   ).toBeVisible();
