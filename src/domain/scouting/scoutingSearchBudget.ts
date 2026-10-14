@@ -119,6 +119,7 @@ export function consumeExtraScoutingSearchCredit(
     recruiting: {
       ...current,
       scoutingSearchesUsed: scoutingSearchesUsed(state) + 1,
+      scoutingSearchWeekOfYear: state.calendar?.weekOfYear ?? 1,
       extraScoutingSearchCredits: credits - 1,
     },
   };
@@ -135,6 +136,7 @@ export function consumeBaseScoutingSearch(state: GameState): GameState | null {
     recruiting: {
       ...current,
       scoutingSearchesUsed: scoutingSearchesUsed(state) + 1,
+      scoutingSearchWeekOfYear: state.calendar?.weekOfYear ?? 1,
     },
   };
 }

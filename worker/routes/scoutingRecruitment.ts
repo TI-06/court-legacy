@@ -83,6 +83,14 @@ function recruitmentCapacityReached(): Response {
   );
 }
 
+function candidateLostToCompetitor(schoolName: string): Response {
+  return jsonError(
+    409,
+    "candidate_signed_with_competitor",
+    `${schoolName}への入学が決定したため、この候補とは交渉できません`,
+  );
+}
+
 function candidateNotReady(): Response {
   return jsonError(
     409,
@@ -164,6 +172,23 @@ export function createScoutingRecruitmentHandler(
       return candidateAlreadyCommitted();
     }
 
+    const insights = await deps.scoutingStore.listCandidateInsights(
+      user.id,
+      cycleKey,
+    );
+    const currentReport = buildServerScoutReports(
+      snapshot.state,
+      pool,
+      insights,
+    ).find(
+      (candidateReport) => candidateReport.candidateId === candidate.player.id,
+    );
+    if (currentReport?.recruitment?.signedByCompetitor) {
+      return candidateLostToCompetitor(
+        currentReport.recruitment.signedByCompetitor,
+      );
+    }
+
     if (action !== "commit") {
       const applied = applyRecruitmentAction(
         snapshot.state,
@@ -178,10 +203,6 @@ export function createScoutingRecruitmentHandler(
         return candidateAlreadyCommitted();
       }
 
-      const insights = await deps.scoutingStore.listCandidateInsights(
-        user.id,
-        cycleKey,
-      );
       const updatedReport = buildServerScoutReports(
         applied.state,
         pool,
@@ -222,13 +243,7 @@ export function createScoutingRecruitmentHandler(
       }
     }
 
-    const insights = await deps.scoutingStore.listCandidateInsights(
-      user.id,
-      cycleKey,
-    );
-    const report = buildServerScoutReports(snapshot.state, pool, insights).find(
-      (candidateReport) => candidateReport.candidateId === candidate.player.id,
-    );
+    const report = currentReport;
     if (!report?.recruitment?.canCommit) {
       return candidateNotReady();
     }

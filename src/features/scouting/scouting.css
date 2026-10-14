@@ -909,6 +909,16 @@
   background: #f4eadf !important;
 }
 
+.scouting-competition--urgent {
+  color: #8b4c18 !important;
+  background: #fff0d0 !important;
+}
+
+.scouting-competition--lost {
+  color: #7b3542 !important;
+  background: #fae5e9 !important;
+}
+
 .scouting-negotiation {
   display: grid;
   gap: 10px;
