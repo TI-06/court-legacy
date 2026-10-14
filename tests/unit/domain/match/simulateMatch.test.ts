@@ -236,6 +236,40 @@ describe("simulateMatch", () => {
     expect(match.eventLog.at(-1)?.type).toBe("match-end");
   });
 
+  it("records server-proven scoring skills only on the point actor without extra events", () => {
+    const context = createContext("phase60-4-game");
+    for (const playerId of [
+      ...context.state.schools[context.homeSchoolId]!.playerIds,
+      ...context.state.schools[context.awaySchoolId]!.playerIds,
+    ]) {
+      context.state.players[playerId] = {
+        ...context.state.players[playerId]!,
+        specialAbilityIds: ["gold_total_player"],
+        abilities: createAbilities(65),
+      };
+    }
+    const first = runMatch("phase60-4-roll", 3, context).match;
+    const second = runMatch("phase60-4-roll", 3, context).match;
+    expect(first.eventLog).toEqual(second.eventLog);
+    const points = first.eventLog.filter((event) => event.type === "point");
+    expect(points.length).toBeGreaterThan(50);
+    expect(
+      points.some((event) => event.scoringSpecialAbilityId === "gold_total_player"),
+    ).toBe(true);
+    expect(
+      first.eventLog
+        .filter((event) => event.scoringSpecialAbilityId)
+        .every(
+          (event) =>
+            event.type === "point" &&
+            event.actorPlayerId !== null &&
+            context.state.players[event.actorPlayerId]?.specialAbilityIds?.includes(
+              event.scoringSpecialAbilityId!,
+            ),
+        ),
+    ).toBe(true);
+  });
+
   it("records rotations when the receiving team wins a rally", () => {
     const { match } = runMatch("side-out-rotations", 3);
     const rotations = match.eventLog.filter(
