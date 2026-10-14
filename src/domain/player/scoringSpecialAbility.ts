@@ -39,6 +39,16 @@ export function getScoringSpecialAbilityId(
   for (const id of player.specialAbilityIds ?? []) {
     const definition = getSpecialAbilityDefinition(id);
     if (!definition || definition.kind === "negative") continue;
+    const category = definition.category;
+    if (
+      category !== phase &&
+      category !== "overall" &&
+      category !== "mental" &&
+      category !== "decision" &&
+      category !== "team"
+    ) {
+      continue;
+    }
     const ownedOnly = { ...player, specialAbilityIds: [id] };
     let contribution = 0;
     for (const ability of RELEVANT_ABILITIES[phase]) {
