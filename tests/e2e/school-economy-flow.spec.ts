@@ -96,6 +96,21 @@ async function expectCoachGridAboveNavigation(page: Page) {
   );
 }
 
+async function countManagementCards(page: Page, selector: string) {
+  const pager = page.getByRole("navigation", {
+    name: "学校運営のページ切替",
+  });
+  let total = 0;
+  for (let current = 0; current < 20; current += 1) {
+    total += await page.locator(selector).count();
+    if ((await pager.count()) === 0) break;
+    const next = pager.getByRole("button", { name: "次の学校運営ページ" });
+    if (await next.isDisabled()) break;
+    await next.click();
+  }
+  return total;
+}
+
 async function expectSeasonRankingAboveNavigation(page: Page) {
   const ranking = page.locator(".school-season-ranking");
   const navigation = page.getByRole("navigation", { name: "主要メニュー" });
@@ -119,7 +134,7 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(primary.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
-    await expect(page.getByTestId("facility-tile")).toHaveCount(8);
+    expect(await countManagementCards(page, "[data-testid=facility-tile]")).toBe(8);
     await expect(page.getByText("強化可能 8/8")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
@@ -134,7 +149,7 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expect(page.getByText("4候補")).toBeVisible();
-    await expect(page.locator(".assistant-coach-card")).toHaveCount(4);
+    expect(await countManagementCards(page, ".assistant-coach-card")).toBe(4);
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
       await expectCoachGridAboveNavigation(page);
@@ -144,12 +159,12 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(
       page.getByRole("heading", { name: "年間強化予算" }),
     ).toBeVisible();
-    await expect(page.locator(".school-investment-card")).toHaveCount(4);
+    expect(await countManagementCards(page, ".school-investment-card")).toBe(4);
     await expectSchoolNoHorizontalOverflow(page);
 
     await management.getByRole("tab", { name: "特別事業" }).click();
     await expect(page.getByRole("heading", { name: "特別事業" })).toBeVisible();
-    await expect(page.locator(".school-special-project-card")).toHaveCount(8);
+    expect(await countManagementCards(page, ".school-special-project-card")).toBe(8);
     await expect(page.getByText("年度利用 0/2")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
 

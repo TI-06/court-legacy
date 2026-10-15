@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -186,6 +186,17 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [managementPage, setManagementPage] = useState(0);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1024 : window.innerWidth,
+    height: typeof window === "undefined" ? 844 : window.innerHeight,
+  }));
+  useEffect(() => {
+    const updateViewport = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
@@ -303,6 +314,64 @@ export function SchoolScreen({
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
+  const isCompactSchool = viewport.width <= 520;
+  const managementPageSize = !isCompactSchool
+    ? Math.max(
+        facilityOverview.length,
+        ASSISTANT_COACH_OPTIONS.length,
+        SCHOOL_SPECIAL_PROJECT_DEFINITIONS.length,
+        4,
+      )
+    : managementView === "facilities"
+      ? viewport.height < 740
+        ? 4
+        : viewport.height < 880
+          ? 6
+          : 8
+      : managementView === "staff"
+        ? viewport.height < 740
+          ? 2
+          : 4
+        : managementView === "investments"
+          ? viewport.height < 880
+            ? 1
+            : 2
+          : viewport.height < 760
+            ? 2
+            : 4;
+  const managementItemCount =
+    managementView === "facilities"
+      ? facilityOverview.length
+      : managementView === "staff"
+        ? ASSISTANT_COACH_OPTIONS.length
+        : managementView === "investments"
+          ? 4
+          : SCHOOL_SPECIAL_PROJECT_DEFINITIONS.length;
+  const managementPageCount = Math.max(
+    1,
+    Math.ceil(managementItemCount / managementPageSize),
+  );
+  const currentManagementPage = Math.min(
+    managementPage,
+    managementPageCount - 1,
+  );
+  const managementPageStart = currentManagementPage * managementPageSize;
+  const visibleFacilityOverview = facilityOverview.slice(
+    managementPageStart,
+    managementPageStart + managementPageSize,
+  );
+  const visibleCoachOptions = ASSISTANT_COACH_OPTIONS.slice(
+    managementPageStart,
+    managementPageStart + managementPageSize,
+  );
+  const visibleSpecialProjects = SCHOOL_SPECIAL_PROJECT_DEFINITIONS.slice(
+    managementPageStart,
+    managementPageStart + managementPageSize,
+  );
+  const selectManagementView = (nextView: SchoolManagementView) => {
+    setManagementView(nextView);
+    setManagementPage(0);
+  };
 
   const confirmUpgrade = async () => {
     if (
@@ -326,7 +395,9 @@ export function SchoolScreen({
   };
 
   return (
-    <main className="app-content school-screen">
+    <main
+      className={`app-content school-screen${view === "management" ? " school-screen--one-screen" : ""}`}
+    >
       <section
         className="school-hero school-hero--compact"
         data-testid="school-hero"
@@ -410,7 +481,7 @@ export function SchoolScreen({
                   ? "school-management-tab--active"
                   : undefined
               }
-              onClick={() => setManagementView("facilities")}
+              onClick={() => selectManagementView("facilities")}
               role="tab"
               type="button"
             >
@@ -423,7 +494,7 @@ export function SchoolScreen({
                   ? "school-management-tab--active"
                   : undefined
               }
-              onClick={() => setManagementView("staff")}
+              onClick={() => selectManagementView("staff")}
               role="tab"
               type="button"
             >
@@ -436,7 +507,7 @@ export function SchoolScreen({
                   ? "school-management-tab--active"
                   : undefined
               }
-              onClick={() => setManagementView("investments")}
+              onClick={() => selectManagementView("investments")}
               role="tab"
               type="button"
             >
@@ -449,7 +520,7 @@ export function SchoolScreen({
                   ? "school-management-tab--active"
                   : undefined
               }
-              onClick={() => setManagementView("special-projects")}
+              onClick={() => selectManagementView("special-projects")}
               role="tab"
               type="button"
             >
@@ -473,7 +544,7 @@ export function SchoolScreen({
               <span>資金 {school.funds}</span>
             </div>
             <div className="facility-grid">
-              {facilityOverview.map(({ definition, evaluation }) => {
+              {visibleFacilityOverview.map(({ definition, evaluation }) => {
                 const missingFunds = Math.max(
                   0,
                   evaluation.cost - school.funds,
@@ -567,7 +638,7 @@ export function SchoolScreen({
             )}
 
             <div className="assistant-coach-grid">
-              {ASSISTANT_COACH_OPTIONS.map((option) => {
+              {visibleCoachOptions.map((option) => {
                 const contractedThisYear =
                   assistantCoachContract?.contractYearIndex === state.yearIndex;
                 const affordable = option.annualCost <= school.funds;
@@ -726,7 +797,9 @@ export function SchoolScreen({
                   ] as const,
                   selected: investmentPlan?.scoutingTier,
                 },
-              ].map((group) => {
+              ]
+                .slice(managementPageStart, managementPageStart + managementPageSize)
+                .map((group) => {
                 const unlock = schoolInvestmentUnlock(state, group.category);
                 const requiredFacility = FACILITY_DEFINITIONS.find(
                   (definition) => definition.key === unlock.facility,
@@ -809,7 +882,11 @@ export function SchoolScreen({
               </span>
             </div>
 
-            {(["annual-contract", "special-activity"] as const).map((kind) => (
+            {(["annual-contract", "special-activity"] as const)
+              .filter((kind) =>
+                visibleSpecialProjects.some((definition) => definition.kind === kind),
+              )
+              .map((kind) => (
               <section
                 className="school-special-project-group"
                 key={kind}
@@ -824,7 +901,7 @@ export function SchoolScreen({
                   <span>資金 {school.funds}</span>
                 </div>
                 <div className="school-special-project-grid">
-                  {SCHOOL_SPECIAL_PROJECT_DEFINITIONS.filter(
+                  {visibleSpecialProjects.filter(
                     (definition) => definition.kind === kind,
                   ).map((definition) => {
                     const evaluation = evaluateSchoolSpecialProject(
@@ -884,6 +961,32 @@ export function SchoolScreen({
               </section>
             ))}
           </section>
+          {managementPageCount > 1 ? (
+            <nav
+              aria-label="学校運営のページ切替"
+              className="school-management-pager"
+            >
+              <button
+                aria-label="前の学校運営ページ"
+                disabled={currentManagementPage === 0}
+                onClick={() => setManagementPage((page) => Math.max(0, page - 1))}
+                type="button"
+              >
+                ‹ 前へ
+              </button>
+              <span aria-live="polite">
+                {currentManagementPage + 1} / {managementPageCount}
+              </span>
+              <button
+                aria-label="次の学校運営ページ"
+                disabled={currentManagementPage >= managementPageCount - 1}
+                onClick={() => setManagementPage((page) => Math.min(managementPageCount - 1, page + 1))}
+                type="button"
+              >
+                次へ ›
+              </button>
+            </nav>
+          ) : null}
         </section>
       ) : null}
 
