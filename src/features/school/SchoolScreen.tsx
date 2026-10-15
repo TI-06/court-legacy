@@ -706,7 +706,9 @@ export function SchoolScreen({
                 <button
                   aria-label="前のコーチページ"
                   disabled={currentStaffPage === 0}
-                  onClick={() => setStaffPage(Math.max(0, currentStaffPage - 1))}
+                  onClick={() =>
+                    setStaffPage(Math.max(0, currentStaffPage - 1))
+                  }
                   type="button"
                 >
                   ‹ 前へ
