@@ -270,9 +270,10 @@ for (const viewport of [
       ["振り返り", ".practice-match-review"],
     ] as const) {
       await tabs.getByRole("tab", { name: tab }).click();
-      await expect(
-        tabs.getByRole("tab", { name: tab }),
-      ).toHaveAttribute("aria-selected", "true");
+      await expect(tabs.getByRole("tab", { name: tab })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
       await expect(page.locator(visible)).toBeVisible();
       const result = await clearance(
         ".match-result-body",
@@ -289,9 +290,7 @@ for (const viewport of [
     expect(height.documentHeight).toBeLessThanOrEqual(
       height.viewportHeight + 1,
     );
-    await page
-      .getByRole("button", { name: "結果を確認して次へ" })
-      .click();
+    await page.getByRole("button", { name: "結果を確認して次へ" }).click();
     await expect(page.getByTestId("home-screen")).toBeVisible();
   });
 }
