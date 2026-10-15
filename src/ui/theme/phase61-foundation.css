@@ -401,14 +401,14 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  @media (max-width: 520px) {
-    .game-page-frame[data-reduced-motion="false"]
-      > .game-page-frame__content {
-      animation: phase63-scene-enter 180ms ease-out both;
-    }
+@media (prefers-reduced-motion: no-preference) and (max-width: 520px) {
+  .game-page-frame[data-reduced-motion="false"]
+    > .game-page-frame__content {
+    animation: phase63-scene-enter 180ms ease-out both;
   }
+}
 
+@media (prefers-reduced-motion: no-preference) {
   .game-page-frame[data-reduced-motion="false"]
     .game-header__date {
     animation: phase63-week-update 440ms ease-out both;
