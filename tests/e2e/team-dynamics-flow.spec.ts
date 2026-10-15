@@ -142,6 +142,10 @@ test("leadership assignment, training, and an official match persist visible dyn
 
   await expect(page.getByRole("heading", { name: "チーム状態" })).toBeVisible();
   await expect(page.getByLabel("チーム結束力")).toContainText("1");
+  await page
+    .getByRole("tablist", { name: "チーム内メニュー" })
+    .getByRole("tab", { name: "役職" })
+    .click();
   await page.getByLabel("主将", { exact: true }).click();
   await page
     .getByRole("dialog", { name: "主将を選ぶ" })
