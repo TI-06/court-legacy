@@ -1034,59 +1034,59 @@ export function SchoolScreen({
                       (currentSpecialProjectPage + 1) * specialProjectPageSize,
                     )
                     .map((definition) => {
-                    const evaluation = evaluateSchoolSpecialProject(
-                      state,
-                      definition.id,
-                    );
-                    const purchased =
-                      specialProjectState?.purchasedProjectIds.includes(
+                      const evaluation = evaluateSchoolSpecialProject(
+                        state,
                         definition.id,
-                      ) ?? false;
-                    const status = purchased
-                      ? "今年度実施済み"
-                      : !definition.effectReady
-                        ? "準備中"
-                        : evaluation.reason === "yearly-limit"
-                          ? "年度上限"
-                          : evaluation.reason === "requirements-not-met"
-                            ? "条件未達"
-                            : evaluation.reason === "insufficient-funds"
-                              ? `あと${Math.max(
-                                  0,
-                                  definition.cost - school.funds,
-                                )}必要`
-                              : "利用可能";
-                    return (
-                      <button
-                        aria-label={`${definition.name}の詳細`}
-                        className="school-special-project-card"
-                        data-status={
-                          purchased
-                            ? "completed"
-                            : definition.effectReady
-                              ? evaluation.reason
-                              : "preparing"
-                        }
-                        key={definition.id}
-                        onClick={() => {
-                          setSelectedSpecialProjectId(definition.id);
-                          setSpecialProjectOption(null);
-                          setSpecialProjectTargetPlayerId(null);
-                        }}
-                        type="button"
-                      >
-                        <span className="school-special-project-card__heading">
-                          <strong>{definition.name}</strong>
-                          <b>{definition.cost}</b>
-                        </span>
-                        <small>{definition.summary}</small>
-                        <span className="school-special-project-card__footer">
-                          <em>{status}</em>
-                          <span aria-hidden="true">詳細 ›</span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                      );
+                      const purchased =
+                        specialProjectState?.purchasedProjectIds.includes(
+                          definition.id,
+                        ) ?? false;
+                      const status = purchased
+                        ? "今年度実施済み"
+                        : !definition.effectReady
+                          ? "準備中"
+                          : evaluation.reason === "yearly-limit"
+                            ? "年度上限"
+                            : evaluation.reason === "requirements-not-met"
+                              ? "条件未達"
+                              : evaluation.reason === "insufficient-funds"
+                                ? `あと${Math.max(
+                                    0,
+                                    definition.cost - school.funds,
+                                  )}必要`
+                                : "利用可能";
+                      return (
+                        <button
+                          aria-label={`${definition.name}の詳細`}
+                          className="school-special-project-card"
+                          data-status={
+                            purchased
+                              ? "completed"
+                              : definition.effectReady
+                                ? evaluation.reason
+                                : "preparing"
+                          }
+                          key={definition.id}
+                          onClick={() => {
+                            setSelectedSpecialProjectId(definition.id);
+                            setSpecialProjectOption(null);
+                            setSpecialProjectTargetPlayerId(null);
+                          }}
+                          type="button"
+                        >
+                          <span className="school-special-project-card__heading">
+                            <strong>{definition.name}</strong>
+                            <b>{definition.cost}</b>
+                          </span>
+                          <small>{definition.summary}</small>
+                          <span className="school-special-project-card__footer">
+                            <em>{status}</em>
+                            <span aria-hidden="true">詳細 ›</span>
+                          </span>
+                        </button>
+                      );
+                    })}
                 </div>
               </section>
             ))}
@@ -1099,7 +1099,9 @@ export function SchoolScreen({
                   aria-label="前の特別事業ページ"
                   disabled={currentSpecialProjectPage === 0}
                   onClick={() =>
-                    setSpecialProjectPage(Math.max(0, currentSpecialProjectPage - 1))
+                    setSpecialProjectPage(
+                      Math.max(0, currentSpecialProjectPage - 1),
+                    )
                   }
                   type="button"
                 >
