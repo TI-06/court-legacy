@@ -344,12 +344,15 @@ for (const viewport of mobileViewports) {
     await page.getByRole("button", { name: "編成", exact: true }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team`);
     await expectNavigationFixed(page, `${viewport.width}-team`);
+    const lineupTabs = page.getByRole("tablist", { name: "編成内メニュー" });
+    await lineupTabs.getByRole("tab", { name: "ベンチ" }).click();
     await expectNoHorizontalScroll(
       page,
       ".bench-rail",
       `${viewport.width}-team-bench-overview`,
     );
     if (viewport.width <= 360) {
+      await lineupTabs.getByRole("tab", { name: "設定" }).click();
       await page.locator(".team-lineup-tools").scrollIntoViewIfNeeded();
       await expectAboveNavigation(
         page,
@@ -373,6 +376,7 @@ for (const viewport of mobileViewports) {
         .getByRole("button", { name: "閉じる" })
         .click();
 
+      await lineupTabs.getByRole("tab", { name: "ベンチ" }).click();
       await page
         .getByTestId("bench-player")
         .first()
@@ -388,6 +392,7 @@ for (const viewport of mobileViewports) {
         .getByRole("button", { name: "閉じる" })
         .click();
     }
+    await lineupTabs.getByRole("tab", { name: "コート" }).click();
     await page.getByRole("button", { name: "ローテーション1を変更" }).click();
     await expectLayoutFits(page, testInfo, `${viewport.width}-team-picker`);
     await page

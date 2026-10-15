@@ -21,6 +21,20 @@ describe("team selection direct-touch UI", () => {
       screen.getByRole("heading", { name: "チーム編成" }),
     ).toBeInTheDocument();
     expect(screen.getByText("長押しで移動・タップで編集")).toBeVisible();
+    const lineupTabs = screen.getByRole("tablist", { name: "編成内メニュー" });
+    expect(within(lineupTabs).getAllByRole("tab")).toHaveLength(3);
+    expect(
+      within(lineupTabs).getByRole("tab", { name: "コート" }),
+    ).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(within(lineupTabs).getByRole("tab", { name: "ベンチ" }));
+    expect(
+      within(lineupTabs).getByRole("tab", { name: "ベンチ" }),
+    ).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(within(lineupTabs).getByRole("tab", { name: "設定" }));
+    expect(
+      within(lineupTabs).getByRole("tab", { name: "設定" }),
+    ).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(within(lineupTabs).getByRole("tab", { name: "コート" }));
     expect(screen.getByText("先発6人")).toBeVisible();
     expect(screen.getByText("守備専門")).toBeVisible();
     expect(screen.getByText("控え選手")).toBeVisible();
@@ -97,6 +111,10 @@ describe("team selection direct-touch UI", () => {
     );
 
     expect(screen.queryByRole("dialog", { name: /の起用先$/ })).toBeNull();
+    expect(screen.getByRole("tab", { name: "コート" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     await waitFor(() =>
       expect(screen.getByText("編成は有効です")).toBeInTheDocument(),
     );

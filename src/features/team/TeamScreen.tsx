@@ -60,6 +60,7 @@ type PickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
 type LineupSettingsView = "saved" | "policy" | null;
+type LineupPane = "court" | "bench" | "settings";
 
 const ROTATION_ROLES: Record<RotationSlot, Position> = {
   1: "S",
@@ -187,6 +188,7 @@ export function TeamScreen({
     useState<PlayerId | null>(null);
   const [lineupSettingsView, setLineupSettingsView] =
     useState<LineupSettingsView>(null);
+  const [lineupPane, setLineupPane] = useState<LineupPane>("court");
   const [activePlacement, setActivePlacement] = useState<TeamPlacement | null>(
     null,
   );
@@ -348,6 +350,7 @@ export function TeamScreen({
     if (!next) return;
     emitSelection(next);
     setBenchDeployPlayerId(null);
+    setLineupPane("court");
   };
 
   const toggleStarterLock = (playerId: PlayerId) => {
@@ -541,7 +544,10 @@ export function TeamScreen({
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <main className="app-content team-screen team-screen--direct">
+      <main
+        className="app-content team-screen team-screen--direct"
+        data-lineup-pane={lineupPane}
+      >
         <header className="team-screen__header">
           <div>
             <h2>チーム編成</h2>
@@ -572,216 +578,260 @@ export function TeamScreen({
           </span>
         </section>
 
-        <section
-          className="team-panel team-court-panel"
-          aria-labelledby="rotation-heading"
+        <nav
+          aria-label="編成内メニュー"
+          className="team-lineup-sections"
+          role="tablist"
         >
-          <div className="team-section-heading">
-            <div>
-              <p className="section-kicker">先発6人</p>
-              <h3 id="rotation-heading">コート配置</h3>
-            </div>
-            <span
-              className={issues.length === 0 ? "team-valid" : "team-invalid"}
+          {(
+            [
+              ["court", "コート", "先発・リベロ"],
+              [
+                "bench",
+                "ベンチ",
+                String(selection.benchPlayerIds.length) + "人",
+              ],
+              ["settings", "設定", "保存・交代"],
+            ] as const
+          ).map(([id, label, description]) => (
+            <button
+              aria-selected={lineupPane === id}
+              key={id}
+              onClick={() => setLineupPane(id)}
+              role="tab"
+              type="button"
             >
-              {issues.length === 0
-                ? "編成は有効です"
-                : `${issues.length}件の問題`}
-            </span>
-          </div>
+              <strong>{label}</strong>
+              <small aria-hidden="true">{description}</small>
+            </button>
+          ))}
+        </nav>
 
-          <div className="volleyball-court" aria-label="スターティングコート">
-            {[...selection.rotation]
-              .sort((first, second) => first.slot - second.slot)
-              .map((assignment) => {
-                const player = playerById[assignment.playerId]!;
-                const locked = lockedIds.has(player.id);
-                const placement: TeamPlacement = {
-                  type: "rotation",
-                  slot: assignment.slot,
-                };
+        <div
+          className="team-lineup-pane team-lineup-pane--court"
+          data-active={lineupPane === "court"}
+        >
+          <section
+            className="team-panel team-court-panel"
+            aria-labelledby="rotation-heading"
+          >
+            <div className="team-section-heading">
+              <div>
+                <p className="section-kicker">先発6人</p>
+                <h3 id="rotation-heading">コート配置</h3>
+              </div>
+              <span
+                className={issues.length === 0 ? "team-valid" : "team-invalid"}
+              >
+                {issues.length === 0
+                  ? "編成は有効です"
+                  : `${issues.length}件の問題`}
+              </span>
+            </div>
+
+            <div className="volleyball-court" aria-label="スターティングコート">
+              {[...selection.rotation]
+                .sort((first, second) => first.slot - second.slot)
+                .map((assignment) => {
+                  const player = playerById[assignment.playerId]!;
+                  const locked = lockedIds.has(player.id);
+                  const placement: TeamPlacement = {
+                    type: "rotation",
+                    slot: assignment.slot,
+                  };
+                  return (
+                    <LineupDragSurface
+                      className="court-slot"
+                      disabled={pending}
+                      key={assignment.slot}
+                      placement={placement}
+                    >
+                      <button
+                        aria-label={`ローテーション${assignment.slot}を変更`}
+                        className="court-player-button"
+                        data-testid="court-player"
+                        disabled={pending}
+                        onClick={() =>
+                          setPickerTarget({
+                            type: "rotation",
+                            slot: assignment.slot,
+                          })
+                        }
+                        type="button"
+                      >
+                        <span className="court-player-button__top">
+                          <b>{ROTATION_ROLES[assignment.slot]}</b>
+                          <small>R{assignment.slot}</small>
+                          {locked ? <small>固定</small> : null}
+                        </span>
+                        <strong>{player.lastName}</strong>
+                        <span className="court-player-button__meta">
+                          本{player.preferredPosition}・
+                          {ROTATION_ROLES[assignment.slot]}適
+                          {ratingToGrade(
+                            player.positionAptitudes[
+                              ROTATION_ROLES[assignment.slot]
+                            ],
+                          )}{" "}
+                          {
+                            player.positionAptitudes[
+                              ROTATION_ROLES[assignment.slot]
+                            ]
+                          }
+                        </span>
+                        <span className="court-player-button__submeta">
+                          {player.heightCm}cm・総
+                          {ratingToGrade(playerOverall(player))}{" "}
+                          {playerOverall(player)}
+                        </span>
+                        <PlayerReadiness compact player={player} />
+                      </button>
+                    </LineupDragSurface>
+                  );
+                })}
+            </div>
+          </section>
+
+          {selection.liberoPlayerId ? (
+            <section
+              className="team-panel team-special-panel"
+              aria-labelledby="libero-heading"
+            >
+              <div className="team-section-heading team-section-heading--compact">
+                <div>
+                  <p className="section-kicker">守備専門</p>
+                  <h3 id="libero-heading">リベロ</h3>
+                </div>
+              </div>
+              {(() => {
+                const player = playerById[selection.liberoPlayerId]!;
                 return (
                   <LineupDragSurface
-                    className="court-slot"
                     disabled={pending}
-                    key={assignment.slot}
-                    placement={placement}
+                    placement={{ type: "libero" }}
                   >
                     <button
-                      aria-label={`ローテーション${assignment.slot}を変更`}
-                      className="court-player-button"
-                      data-testid="court-player"
+                      aria-label="リベロを変更"
+                      className="libero-player-button"
                       disabled={pending}
-                      onClick={() =>
-                        setPickerTarget({
-                          type: "rotation",
-                          slot: assignment.slot,
-                        })
-                      }
+                      onClick={() => setPickerTarget({ type: "libero" })}
                       type="button"
                     >
-                      <span className="court-player-button__top">
-                        <b>{ROTATION_ROLES[assignment.slot]}</b>
-                        <small>R{assignment.slot}</small>
-                        {locked ? <small>固定</small> : null}
+                      <span className="libero-player-button__mark">L</span>
+                      <span className="libero-player-button__main">
+                        <strong>{playerName(player)}</strong>
+                        <small>
+                          {player.grade}年・{player.preferredPosition}・
+                          {player.heightCm}cm・総
+                          {ratingToGrade(playerOverall(player))}{" "}
+                          {playerOverall(player)}
+                        </small>
+                        <PlayerReadiness compact player={player} />
                       </span>
-                      <strong>{player.lastName}</strong>
-                      <span className="court-player-button__meta">
-                        本{player.preferredPosition}・
-                        {ROTATION_ROLES[assignment.slot]}適
-                        {ratingToGrade(
-                          player.positionAptitudes[
-                            ROTATION_ROLES[assignment.slot]
-                          ],
-                        )}{" "}
-                        {
-                          player.positionAptitudes[
-                            ROTATION_ROLES[assignment.slot]
-                          ]
-                        }
-                      </span>
-                      <span className="court-player-button__submeta">
-                        {player.heightCm}cm・総
-                        {ratingToGrade(playerOverall(player))}{" "}
-                        {playerOverall(player)}
-                      </span>
-                      <PlayerReadiness compact player={player} />
+                      <span aria-hidden="true">›</span>
                     </button>
                   </LineupDragSurface>
                 );
-              })}
-          </div>
-        </section>
+              })()}
+            </section>
+          ) : null}
+        </div>
 
-        {selection.liberoPlayerId ? (
+        <div
+          className="team-lineup-pane team-lineup-pane--bench"
+          data-active={lineupPane === "bench"}
+        >
           <section
-            className="team-panel team-special-panel"
-            aria-labelledby="libero-heading"
+            className="team-panel team-bench-panel"
+            aria-labelledby="bench-heading"
           >
             <div className="team-section-heading team-section-heading--compact">
               <div>
-                <p className="section-kicker">守備専門</p>
-                <h3 id="libero-heading">リベロ</h3>
+                <p className="section-kicker">控え選手</p>
+                <h3 id="bench-heading">ベンチ</h3>
               </div>
+              <span className="bench-count">
+                {selection.benchPlayerIds.length}人
+              </span>
             </div>
-            {(() => {
-              const player = playerById[selection.liberoPlayerId]!;
-              return (
-                <LineupDragSurface
-                  disabled={pending}
-                  placement={{ type: "libero" }}
-                >
-                  <button
-                    aria-label="リベロを変更"
-                    className="libero-player-button"
+            <div className="bench-rail">
+              {selection.benchPlayerIds.map((playerId) => {
+                const player = playerById[playerId];
+                if (!player) return null;
+                return (
+                  <LineupDragSurface
                     disabled={pending}
-                    onClick={() => setPickerTarget({ type: "libero" })}
-                    type="button"
+                    key={player.id}
+                    placement={{ type: "bench", playerId: player.id }}
                   >
-                    <span className="libero-player-button__mark">L</span>
-                    <span className="libero-player-button__main">
-                      <strong>{playerName(player)}</strong>
-                      <small>
-                        {player.grade}年・{player.preferredPosition}・
-                        {player.heightCm}cm・総
-                        {ratingToGrade(playerOverall(player))}{" "}
+                    <article
+                      className="bench-player-card"
+                      data-testid="bench-player"
+                    >
+                      <strong>{player.lastName}</strong>
+                      <span>
+                        {player.preferredPosition}・{player.grade}年・
+                        {player.heightCm}cm
+                      </span>
+                      <small className="bench-player-card__overall">
+                        総{ratingToGrade(playerOverall(player))}{" "}
                         {playerOverall(player)}
                       </small>
                       <PlayerReadiness compact player={player} />
-                    </span>
-                    <span aria-hidden="true">›</span>
-                  </button>
-                </LineupDragSurface>
-              );
-            })()}
-          </section>
-        ) : null}
-
-        <section
-          className="team-panel team-bench-panel"
-          aria-labelledby="bench-heading"
-        >
-          <div className="team-section-heading team-section-heading--compact">
-            <div>
-              <p className="section-kicker">控え選手</p>
-              <h3 id="bench-heading">ベンチ</h3>
+                      <button
+                        aria-label={`${playerName(player)}を起用`}
+                        className="bench-player-card__deploy"
+                        disabled={pending}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setBenchDeployPlayerId(player.id);
+                        }}
+                        onPointerDown={(event) => event.stopPropagation()}
+                        type="button"
+                      >
+                        起用
+                      </button>
+                    </article>
+                  </LineupDragSurface>
+                );
+              })}
             </div>
-            <span className="bench-count">
-              {selection.benchPlayerIds.length}人
-            </span>
-          </div>
-          <div className="bench-rail">
-            {selection.benchPlayerIds.map((playerId) => {
-              const player = playerById[playerId];
-              if (!player) return null;
-              return (
-                <LineupDragSurface
-                  disabled={pending}
-                  key={player.id}
-                  placement={{ type: "bench", playerId: player.id }}
-                >
-                  <article
-                    className="bench-player-card"
-                    data-testid="bench-player"
-                  >
-                    <strong>{player.lastName}</strong>
-                    <span>
-                      {player.preferredPosition}・{player.grade}年・
-                      {player.heightCm}cm
-                    </span>
-                    <small className="bench-player-card__overall">
-                      総{ratingToGrade(playerOverall(player))}{" "}
-                      {playerOverall(player)}
-                    </small>
-                    <PlayerReadiness compact player={player} />
-                    <button
-                      aria-label={`${playerName(player)}を起用`}
-                      className="bench-player-card__deploy"
-                      disabled={pending}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setBenchDeployPlayerId(player.id);
-                      }}
-                      onPointerDown={(event) => event.stopPropagation()}
-                      type="button"
-                    >
-                      起用
-                    </button>
-                  </article>
-                </LineupDragSurface>
-              );
-            })}
-          </div>
-        </section>
+          </section>
+        </div>
 
-        <section className="team-lineup-tools" aria-label="編成設定">
-          <button
-            aria-label="保存編成を開く"
-            className="team-lineup-tool"
-            onClick={() => setLineupSettingsView("saved")}
-            type="button"
-          >
-            <span>
-              <small>編成スロット</small>
-              <strong>保存編成</strong>
-            </span>
-            <b>{savedLineupCount}/3</b>
-            <i aria-hidden="true">›</i>
-          </button>
-          <button
-            aria-label="交代方針を開く"
-            className="team-lineup-tool"
-            onClick={() => setLineupSettingsView("policy")}
-            type="button"
-          >
-            <span>
-              <small>試合中の自動設定</small>
-              <strong>交代方針</strong>
-            </span>
-            <b>{enabledPolicyCount}/3 ON</b>
-            <i aria-hidden="true">›</i>
-          </button>
-        </section>
+        <div
+          className="team-lineup-pane team-lineup-pane--settings"
+          data-active={lineupPane === "settings"}
+        >
+          <section className="team-lineup-tools" aria-label="編成設定">
+            <button
+              aria-label="保存編成を開く"
+              className="team-lineup-tool"
+              onClick={() => setLineupSettingsView("saved")}
+              type="button"
+            >
+              <span>
+                <small>編成スロット</small>
+                <strong>保存編成</strong>
+              </span>
+              <b>{savedLineupCount}/3</b>
+              <i aria-hidden="true">›</i>
+            </button>
+            <button
+              aria-label="交代方針を開く"
+              className="team-lineup-tool"
+              onClick={() => setLineupSettingsView("policy")}
+              type="button"
+            >
+              <span>
+                <small>試合中の自動設定</small>
+                <strong>交代方針</strong>
+              </span>
+              <b>{enabledPolicyCount}/3 ON</b>
+              <i aria-hidden="true">›</i>
+            </button>
+          </section>
+        </div>
 
         {issues.length > 0 ? (
           <section

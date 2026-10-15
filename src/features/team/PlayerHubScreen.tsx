@@ -62,6 +62,7 @@ import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
 import { TeamScreen } from "./TeamScreen";
+import { GameIcon } from "../../ui/theme/GameIcon";
 import { TeamTacticsPanel } from "./TeamTacticsPanel";
 import {
   playerGrowthMomentumLabels,
@@ -225,19 +226,20 @@ function HubTabs({
     <nav className="player-hub__tabs" aria-label="選手画面の表示切替">
       {(
         [
-          ["roster", "選手"],
-          ["lineup", "編成"],
-          ["dynamics", "チーム"],
-          ["tactics", "戦術"],
+          ["roster", "選手", "team"],
+          ["lineup", "編成", "match"],
+          ["dynamics", "チーム", "training"],
+          ["tactics", "戦術", "save"],
         ] as const
-      ).map(([id, label]) => (
+      ).map(([id, label, icon]) => (
         <button
           aria-current={mode === id ? "page" : undefined}
           key={id}
           onClick={() => onChange(id)}
           type="button"
         >
-          {label}
+          <GameIcon className="player-hub__tab-icon" name={icon} />
+          <span>{label}</span>
         </button>
       ))}
     </nav>
@@ -808,7 +810,7 @@ export function PlayerHubScreen({
 
   if (mode === "lineup") {
     return (
-      <div className="player-hub">
+      <div className="player-hub player-hub--lineup">
         <HubTabs mode={mode} onChange={setMode} />
         <TeamScreen
           onChange={onChange}

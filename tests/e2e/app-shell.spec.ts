@@ -91,6 +91,9 @@ test("@critical mobile team selection uses a court picker without overflow", asy
   await expect(
     page.getByRole("button", { name: "ローテーション1を変更" }),
   ).toBeVisible();
+  const lineupTabs = page.getByRole("tablist", { name: "編成内メニュー" });
+  await expect(lineupTabs.getByRole("tab")).toHaveCount(3);
+  await lineupTabs.getByRole("tab", { name: "ベンチ" }).click();
   await expect(page.getByTestId("bench-player")).toHaveCount(5);
   const benchRailSize = await page
     .locator(".bench-rail")
@@ -125,6 +128,7 @@ test("@critical mobile team selection uses a court picker without overflow", asy
   ).toBeVisible();
   await benchTargetDialog.getByRole("button", { name: "閉じる" }).click();
 
+  await lineupTabs.getByRole("tab", { name: "設定" }).click();
   await expect(
     page.getByRole("button", { name: "保存編成を開く" }),
   ).toBeVisible();
@@ -132,6 +136,7 @@ test("@critical mobile team selection uses a court picker without overflow", asy
     page.getByRole("button", { name: "交代方針を開く" }),
   ).toBeVisible();
 
+  await lineupTabs.getByRole("tab", { name: "コート" }).click();
   await page.getByRole("button", { name: "ローテーション1を変更" }).click();
   const picker = page.getByRole("dialog", {
     name: "ローテーション1を入れ替え",
@@ -145,10 +150,14 @@ test("@critical mobile team selection uses a court picker without overflow", asy
 
   await page.getByRole("button", { name: "自動編成" }).click();
   await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
+  await lineupTabs.getByRole("tab", { name: "設定" }).click();
   await page.getByRole("button", { name: "交代方針を開く" }).click();
   const policyDialog = page.getByRole("dialog", { name: "交代方針" });
   await policyDialog.getByRole("button", { name: "安全調整" }).click();
   await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
+  await policyDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(policyDialog).not.toBeVisible();
+  await lineupTabs.getByRole("tab", { name: "コート" }).click();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
   const bodyWidth = await page
