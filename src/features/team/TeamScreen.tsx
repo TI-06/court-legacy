@@ -60,6 +60,7 @@ type PickerTarget =
   { type: "rotation"; slot: RotationSlot } | { type: "libero" };
 
 type LineupSettingsView = "saved" | "policy" | null;
+type LineupPane = "court" | "bench" | "settings";
 
 const ROTATION_ROLES: Record<RotationSlot, Position> = {
   1: "S",
@@ -187,6 +188,7 @@ export function TeamScreen({
     useState<PlayerId | null>(null);
   const [lineupSettingsView, setLineupSettingsView] =
     useState<LineupSettingsView>(null);
+  const [lineupPane, setLineupPane] = useState<LineupPane>("court");
   const [activePlacement, setActivePlacement] = useState<TeamPlacement | null>(
     null,
   );
@@ -541,7 +543,7 @@ export function TeamScreen({
       onDragStart={handleDragStart}
       sensors={sensors}
     >
-      <main className="app-content team-screen team-screen--direct">
+      <main className="app-content team-screen team-screen--direct" data-lineup-pane={lineupPane}>
         <header className="team-screen__header">
           <div>
             <h2>チーム編成</h2>
@@ -572,7 +574,29 @@ export function TeamScreen({
           </span>
         </section>
 
-        <section
+        <nav aria-label="編成内メニュー" className="team-lineup-sections" role="tablist">
+          {(
+            [
+              ["court", "コート", "先発・リベロ"],
+              ["bench", "ベンチ", String(selection.benchPlayerIds.length) + "人"],
+              ["settings", "設定", "保存・交代"],
+            ] as const
+          ).map(([id, label, description]) => (
+            <button
+              aria-selected={lineupPane === id}
+              key={id}
+              onClick={() => setLineupPane(id)}
+              role="tab"
+              type="button"
+            >
+              <strong>{label}</strong>
+              <small aria-hidden="true">{description}</small>
+            </button>
+          ))}
+        </nav>
+
+        <div className="team-lineup-pane team-lineup-pane--court" data-active={lineupPane === "court"}>
+          <section
           className="team-panel team-court-panel"
           aria-labelledby="rotation-heading"
         >
@@ -696,8 +720,10 @@ export function TeamScreen({
             })()}
           </section>
         ) : null}
+        </div>
 
-        <section
+        <div className="team-lineup-pane team-lineup-pane--bench" data-active={lineupPane === "bench"}>
+          <section
           className="team-panel team-bench-panel"
           aria-labelledby="bench-heading"
         >
@@ -753,8 +779,10 @@ export function TeamScreen({
             })}
           </div>
         </section>
+        </div>
 
-        <section className="team-lineup-tools" aria-label="編成設定">
+        <div className="team-lineup-pane team-lineup-pane--settings" data-active={lineupPane === "settings"}>
+          <section className="team-lineup-tools" aria-label="編成設定">
           <button
             aria-label="保存編成を開く"
             className="team-lineup-tool"
@@ -782,6 +810,7 @@ export function TeamScreen({
             <i aria-hidden="true">›</i>
           </button>
         </section>
+        </div>
 
         {issues.length > 0 ? (
           <section
