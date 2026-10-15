@@ -43,3 +43,53 @@ for (const width of [320, 390, 480]) {
     await expect(playerTab).toHaveAttribute("aria-current", "page");
   });
 }
+
+test("Phase63 animations respond to navigation and respect reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+
+  const frame = page.locator(".game-page-frame");
+  const scene = page.locator(".game-page-frame__content");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  await expect(frame).toHaveAttribute("data-reduced-motion", "false");
+
+  const motionName = await scene.evaluate(
+    (element) => getComputedStyle(element).animationName,
+  );
+  expect(motionName).toContain("phase63-scene-enter");
+  const initialScene = await scene.elementHandle();
+  await navigation.getByRole("button", { name: "選手" }).click();
+  await expect(
+    navigation.getByRole("button", { name: "選手" }),
+  ).toHaveAttribute("aria-current", "page");
+  expect(await initialScene?.evaluate((element) => element.isConnected)).toBe(
+    false,
+  );
+
+  const calendarMotion = await page
+    .locator(".game-header__date")
+    .evaluate((element) => getComputedStyle(element).animationName);
+  expect(calendarMotion).toContain("phase63-week-update");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await navigation.getByRole("button", { name: "学校" }).click();
+  await expect(
+    navigation.getByRole("button", { name: "学校" }),
+  ).toHaveAttribute("aria-current", "page");
+  expect(
+    await scene.evaluate((element) => getComputedStyle(element).animationName),
+  ).toBe("none");
+  expect(
+    await page
+      .locator(".game-header__date")
+      .evaluate((element) => getComputedStyle(element).animationName),
+  ).toBe("none");
+  const widths = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(widths.documentWidth).toBeLessThanOrEqual(widths.viewportWidth + 1);
+});
