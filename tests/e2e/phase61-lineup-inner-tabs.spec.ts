@@ -105,9 +105,7 @@ async function expectPlayerPanelFits(page: Page) {
   );
   expect(geometry.menuBottom).toBeLessThanOrEqual(geometry.navTop + 1);
   expect(geometry.paneBottom).toBeLessThanOrEqual(geometry.navTop + 1);
-  expect(geometry.navBottom).toBeLessThanOrEqual(
-    geometry.viewportHeight + 1,
-  );
+  expect(geometry.navBottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
 }
 
 for (const viewport of [
@@ -150,10 +148,10 @@ for (const viewport of [
     await expect(tacticTabs.getByRole("tab")).toHaveCount(3);
     for (const name of ["基本戦術", "守備配置", "チーム哲学"]) {
       await tacticTabs.getByRole("tab", { name }).click();
-      const active = page.locator(
-        '.team-tactics__pane[data-active="true"]',
-      );
-      await active.getByRole("button", { name: /を保存$/ }).scrollIntoViewIfNeeded();
+      const active = page.locator('.team-tactics__pane[data-active="true"]');
+      await active
+        .getByRole("button", { name: /を保存$/ })
+        .scrollIntoViewIfNeeded();
       await expectPlayerPanelFits(page);
     }
   });
