@@ -387,9 +387,7 @@ for (const viewport of [
   { width: 390, height: 844, pageSize: 4 },
   { width: 430, height: 932, pageSize: 4 },
 ]) {
-  test(`school special projects paging at ${viewport.width}x${viewport.height}`, async ({
-    page,
-  }) => {
+  test(`special projects at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
     await page
@@ -415,12 +413,13 @@ for (const viewport of [
         await expect(pager).toContainText(`1 / ${pages}`);
         const initialCard = await cards.first().getAttribute("aria-label");
         for (let index = 2; index <= pages; index += 1) {
-          await pager.getByRole("button", { name: "次の特別事業ページ" }).click();
+          await pager
+            .getByRole("button", { name: "次の特別事業ページ" })
+            .click();
           await expect(pager).toContainText(`${index} / ${pages}`);
         }
-        await expect(cards.first()).not.toHaveAttribute(
-          "aria-label",
-          initialCard ?? "",
+        expect(await cards.first().getAttribute("aria-label")).not.toBe(
+          initialCard,
         );
         await expect(
           pager.getByRole("button", { name: "次の特別事業ページ" }),
