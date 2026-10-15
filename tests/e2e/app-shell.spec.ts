@@ -155,6 +155,8 @@ test("@critical mobile team selection uses a court picker without overflow", asy
   const policyDialog = page.getByRole("dialog", { name: "交代方針" });
   await policyDialog.getByRole("button", { name: "安全調整" }).click();
   await expect(page.getByText("保存済み ✓", { exact: true })).toBeVisible();
+  await policyDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(policyDialog).not.toBeVisible();
   await lineupTabs.getByRole("tab", { name: "コート" }).click();
   await expect(page.getByText("編成は有効です")).toBeVisible();
 
