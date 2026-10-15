@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Print expected Prettier adjustment for history E2E
-        run: |
-          npx prettier tests/e2e/school-economy-flow.spec.ts --write
-          git diff -- tests/e2e/school-economy-flow.spec.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
