@@ -194,6 +194,7 @@ export function SchoolScreen({
     useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
   const [staffPage, setStaffPage] = useState(0);
+  const [specialProjectPage, setSpecialProjectPage] = useState(0);
   const [investmentCategory, setInvestmentCategory] =
     useState<SchoolInvestmentCategory>("development");
   const [viewport, setViewport] = useState(() => ({
@@ -314,6 +315,25 @@ export function SchoolScreen({
     viewport.width <= 520
       ? ([specialProjectKind] as const)
       : (["annual-contract", "special-activity"] as const);
+  const specialProjectPageSize =
+    viewport.width > 520
+      ? SCHOOL_SPECIAL_PROJECT_DEFINITIONS.length
+      : viewport.height < 620
+        ? 1
+        : viewport.height < 740
+          ? 2
+          : 4;
+  const specialProjectCount = SCHOOL_SPECIAL_PROJECT_DEFINITIONS.filter(
+    (definition) => definition.kind === specialProjectKind,
+  ).length;
+  const specialProjectPageCount = Math.max(
+    1,
+    Math.ceil(specialProjectCount / specialProjectPageSize),
+  );
+  const currentSpecialProjectPage = Math.min(
+    specialProjectPage,
+    specialProjectPageCount - 1,
+  );
   const selectedSpecialProject = selectedSpecialProjectId
     ? getSchoolSpecialProjectDefinition(selectedSpecialProjectId)
     : null;
@@ -968,7 +988,10 @@ export function SchoolScreen({
               >
                 <button
                   aria-selected={specialProjectKind === "annual-contract"}
-                  onClick={() => setSpecialProjectKind("annual-contract")}
+                  onClick={() => {
+                    setSpecialProjectKind("annual-contract");
+                    setSpecialProjectPage(0);
+                  }}
                   role="tab"
                   type="button"
                 >
@@ -976,7 +999,10 @@ export function SchoolScreen({
                 </button>
                 <button
                   aria-selected={specialProjectKind === "special-activity"}
-                  onClick={() => setSpecialProjectKind("special-activity")}
+                  onClick={() => {
+                    setSpecialProjectKind("special-activity");
+                    setSpecialProjectPage(0);
+                  }}
                   role="tab"
                   type="button"
                 >
@@ -1002,63 +1028,107 @@ export function SchoolScreen({
                 <div className="school-special-project-grid">
                   {SCHOOL_SPECIAL_PROJECT_DEFINITIONS.filter(
                     (definition) => definition.kind === kind,
-                  ).map((definition) => {
-                    const evaluation = evaluateSchoolSpecialProject(
-                      state,
-                      definition.id,
-                    );
-                    const purchased =
-                      specialProjectState?.purchasedProjectIds.includes(
+                  )
+                    .slice(
+                      currentSpecialProjectPage * specialProjectPageSize,
+                      (currentSpecialProjectPage + 1) * specialProjectPageSize,
+                    )
+                    .map((definition) => {
+                      const evaluation = evaluateSchoolSpecialProject(
+                        state,
                         definition.id,
-                      ) ?? false;
-                    const status = purchased
-                      ? "今年度実施済み"
-                      : !definition.effectReady
-                        ? "準備中"
-                        : evaluation.reason === "yearly-limit"
-                          ? "年度上限"
-                          : evaluation.reason === "requirements-not-met"
-                            ? "条件未達"
-                            : evaluation.reason === "insufficient-funds"
-                              ? `あと${Math.max(
-                                  0,
-                                  definition.cost - school.funds,
-                                )}必要`
-                              : "利用可能";
-                    return (
-                      <button
-                        aria-label={`${definition.name}の詳細`}
-                        className="school-special-project-card"
-                        data-status={
-                          purchased
-                            ? "completed"
-                            : definition.effectReady
-                              ? evaluation.reason
-                              : "preparing"
-                        }
-                        key={definition.id}
-                        onClick={() => {
-                          setSelectedSpecialProjectId(definition.id);
-                          setSpecialProjectOption(null);
-                          setSpecialProjectTargetPlayerId(null);
-                        }}
-                        type="button"
-                      >
-                        <span className="school-special-project-card__heading">
-                          <strong>{definition.name}</strong>
-                          <b>{definition.cost}</b>
-                        </span>
-                        <small>{definition.summary}</small>
-                        <span className="school-special-project-card__footer">
-                          <em>{status}</em>
-                          <span aria-hidden="true">詳細 ›</span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                      );
+                      const purchased =
+                        specialProjectState?.purchasedProjectIds.includes(
+                          definition.id,
+                        ) ?? false;
+                      const status = purchased
+                        ? "今年度実施済み"
+                        : !definition.effectReady
+                          ? "準備中"
+                          : evaluation.reason === "yearly-limit"
+                            ? "年度上限"
+                            : evaluation.reason === "requirements-not-met"
+                              ? "条件未達"
+                              : evaluation.reason === "insufficient-funds"
+                                ? `あと${Math.max(
+                                    0,
+                                    definition.cost - school.funds,
+                                  )}必要`
+                                : "利用可能";
+                      return (
+                        <button
+                          aria-label={`${definition.name}の詳細`}
+                          className="school-special-project-card"
+                          data-status={
+                            purchased
+                              ? "completed"
+                              : definition.effectReady
+                                ? evaluation.reason
+                                : "preparing"
+                          }
+                          key={definition.id}
+                          onClick={() => {
+                            setSelectedSpecialProjectId(definition.id);
+                            setSpecialProjectOption(null);
+                            setSpecialProjectTargetPlayerId(null);
+                          }}
+                          type="button"
+                        >
+                          <span className="school-special-project-card__heading">
+                            <strong>{definition.name}</strong>
+                            <b>{definition.cost}</b>
+                          </span>
+                          <small>{definition.summary}</small>
+                          <span className="school-special-project-card__footer">
+                            <em>{status}</em>
+                            <span aria-hidden="true">詳細 ›</span>
+                          </span>
+                        </button>
+                      );
+                    })}
                 </div>
               </section>
             ))}
+            {viewport.width <= 520 && specialProjectPageCount > 1 ? (
+              <nav
+                aria-label="特別事業一覧のページ切替"
+                className="school-special-project-pager"
+              >
+                <button
+                  aria-label="前の特別事業ページ"
+                  disabled={currentSpecialProjectPage === 0}
+                  onClick={() =>
+                    setSpecialProjectPage(
+                      Math.max(0, currentSpecialProjectPage - 1),
+                    )
+                  }
+                  type="button"
+                >
+                  ‹ 前へ
+                </button>
+                <span aria-live="polite">
+                  {currentSpecialProjectPage + 1} / {specialProjectPageCount}
+                </span>
+                <button
+                  aria-label="次の特別事業ページ"
+                  disabled={
+                    currentSpecialProjectPage >= specialProjectPageCount - 1
+                  }
+                  onClick={() =>
+                    setSpecialProjectPage(
+                      Math.min(
+                        currentSpecialProjectPage + 1,
+                        specialProjectPageCount - 1,
+                      ),
+                    )
+                  }
+                  type="button"
+                >
+                  次へ ›
+                </button>
+              </nav>
+            ) : null}
           </section>
         </section>
       ) : null}

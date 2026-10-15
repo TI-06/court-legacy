@@ -380,3 +380,54 @@ for (const viewport of [
     ).toBeVisible();
   });
 }
+
+for (const viewport of [
+  { width: 320, height: 568, pageSize: 1 },
+  { width: 360, height: 667, pageSize: 2 },
+  { width: 390, height: 844, pageSize: 4 },
+  { width: 430, height: 932, pageSize: 4 },
+]) {
+  test(`special projects at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "主要メニュー" })
+      .getByRole("button", { name: "学校", exact: true })
+      .click();
+    await page
+      .getByRole("tablist", { name: "運営メニュー", exact: true })
+      .getByRole("tab", { name: "特別事業" })
+      .click();
+    const tabs = page.getByRole("tablist", {
+      name: "特別事業の表示切替",
+    });
+    const pager = page.getByRole("navigation", {
+      name: "特別事業一覧のページ切替",
+    });
+    const cards = page.locator(".school-special-project-card");
+    const pages = Math.ceil(4 / viewport.pageSize);
+    for (const label of ["年間契約", "特別活動"]) {
+      await tabs.getByRole("tab", { name: label }).click();
+      await expect(cards).toHaveCount(viewport.pageSize);
+      if (pages > 1) {
+        await expect(pager).toContainText(`1 / ${pages}`);
+        const initialCard = await cards.first().getAttribute("aria-label");
+        for (let index = 2; index <= pages; index += 1) {
+          await pager
+            .getByRole("button", { name: "次の特別事業ページ" })
+            .click();
+          await expect(pager).toContainText(`${index} / ${pages}`);
+        }
+        expect(await cards.first().getAttribute("aria-label")).not.toBe(
+          initialCard,
+        );
+        await expect(
+          pager.getByRole("button", { name: "次の特別事業ページ" }),
+        ).toBeDisabled();
+      } else {
+        await expect(pager).toHaveCount(0);
+      }
+      await expectSchoolNoHorizontalOverflow(page);
+    }
+  });
+}
