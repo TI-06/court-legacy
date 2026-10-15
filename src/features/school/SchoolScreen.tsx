@@ -182,19 +182,21 @@ export function SchoolScreen({
   onPurchaseSpecialProject,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
-  const [facilityPage, setFacilityPage] = useState(0);
-  const [facilityViewportHeight, setFacilityViewportHeight] = useState(() =>
-    typeof window === "undefined" ? 844 : window.innerHeight,
-  );
-  useEffect(() => {
-    const updateHeight = () => setFacilityViewportHeight(window.innerHeight);
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
   const [managementView, setManagementView] = useState<SchoolManagementView>(
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [facilityPage, setFacilityPage] = useState(0);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1024 : window.innerWidth,
+    height: typeof window === "undefined" ? 844 : window.innerHeight,
+  }));
+  useEffect(() => {
+    const updateViewport = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
@@ -309,6 +311,23 @@ export function SchoolScreen({
     definition,
     evaluation: evaluateFacilityUpgrade(state, school.id, definition.key),
   }));
+  const facilityPageSize =
+    viewport.width > 520
+      ? facilityOverview.length
+      : viewport.height < 620
+        ? 1
+        : viewport.height < 740
+          ? 2
+          : 4;
+  const facilityPageCount = Math.max(
+    1,
+    Math.ceil(facilityOverview.length / facilityPageSize),
+  );
+  const currentFacilityPage = Math.min(facilityPage, facilityPageCount - 1);
+  const visibleFacilityOverview = facilityOverview.slice(
+    currentFacilityPage * facilityPageSize,
+    (currentFacilityPage + 1) * facilityPageSize,
+  );
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
@@ -482,98 +501,87 @@ export function SchoolScreen({
               <span>資金 {school.funds}</span>
             </div>
             <div className="facility-grid">
-              {facilityOverview
-                .slice(
-                  facilityPage * (facilityViewportHeight < 740 ? 2 : 4),
-                  (facilityPage + 1) * (facilityViewportHeight < 740 ? 2 : 4),
-                )
-                .map(({ definition, evaluation }) => {
-                  const missingFunds = Math.max(
-                    0,
-                    evaluation.cost - school.funds,
-                  );
-                  const status =
-                    evaluation.reason === "max-level"
-                      ? "最大Lv"
-                      : evaluation.reason === "insufficient-funds"
-                        ? `あと${missingFunds}必要`
-                        : evaluation.reason === "invalid-level"
-                          ? "要確認"
-                          : `次 ${evaluation.cost}`;
-                  return (
-                    <button
-                      aria-label={`${definition.name}の詳細`}
+              {visibleFacilityOverview.map(({ definition, evaluation }) => {
+                const missingFunds = Math.max(
+                  0,
+                  evaluation.cost - school.funds,
+                );
+                const status =
+                  evaluation.reason === "max-level"
+                    ? "最大Lv"
+                    : evaluation.reason === "insufficient-funds"
+                      ? `あと${missingFunds}必要`
+                      : evaluation.reason === "invalid-level"
+                        ? "要確認"
+                        : `次 ${evaluation.cost}`;
+                return (
+                  <button
+                    aria-label={`${definition.name}の詳細`}
+                    className={
+                      evaluation.allowed
+                        ? "facility-tile facility-tile--available"
+                        : "facility-tile"
+                    }
+                    data-testid="facility-tile"
+                    key={definition.key}
+                    onClick={() => {
+                      setSelectedFacility(definition.key);
+                      setSelectedUpgradeLevels(1);
+                    }}
+                    type="button"
+                  >
+                    <span className="facility-tile__top">
+                      <strong>{compactFacilityName(definition.name)}</strong>
+                      <b>Lv.{evaluation.currentLevel} / 50</b>
+                    </span>
+                    <progress
+                      aria-label={`${definition.name} レベル進捗`}
+                      className="facility-tile__progress"
+                      max={50}
+                      value={evaluation.currentLevel}
+                    />
+                    <small
                       className={
                         evaluation.allowed
-                          ? "facility-tile facility-tile--available"
-                          : "facility-tile"
+                          ? undefined
+                          : "facility-tile__warning"
                       }
-                      data-testid="facility-tile"
-                      key={definition.key}
-                      onClick={() => {
-                        setSelectedFacility(definition.key);
-                        setSelectedUpgradeLevels(1);
-                      }}
-                      type="button"
                     >
-                      <span className="facility-tile__top">
-                        <strong>{compactFacilityName(definition.name)}</strong>
-                        <b>Lv.{evaluation.currentLevel} / 50</b>
-                      </span>
-                      <progress
-                        aria-label={`${definition.name} レベル進捗`}
-                        className="facility-tile__progress"
-                        max={50}
-                        value={evaluation.currentLevel}
-                      />
-                      <small
-                        className={
-                          evaluation.allowed
-                            ? undefined
-                            : "facility-tile__warning"
-                        }
-                      >
-                        {status}
-                      </small>
-                      <span
-                        className="facility-tile__detail"
-                        aria-hidden="true"
-                      >
-                        詳細 ›
-                      </span>
-                    </button>
-                  );
-                })}
+                      {status}
+                    </small>
+                    <span className="facility-tile__detail" aria-hidden="true">
+                      詳細 ›
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            {facilityOverview.length >
-            (facilityViewportHeight < 740 ? 2 : 4) ? (
+            {facilityPageCount > 1 ? (
               <nav
                 aria-label="設備一覧のページ切替"
                 className="school-facility-pager"
               >
                 <button
-                  disabled={facilityPage === 0}
+                  aria-label="前の設備ページ"
+                  disabled={currentFacilityPage === 0}
                   onClick={() =>
-                    setFacilityPage((page) => Math.max(0, page - 1))
+                    setFacilityPage(Math.max(0, currentFacilityPage - 1))
                   }
                   type="button"
                 >
                   ‹ 前へ
                 </button>
-                <span>
-                  {facilityPage + 1} /{" "}
-                  {Math.ceil(
-                    facilityOverview.length /
-                      (facilityViewportHeight < 740 ? 2 : 4),
-                  )}
+                <span aria-live="polite">
+                  {currentFacilityPage + 1} / {facilityPageCount}
                 </span>
                 <button
-                  disabled={
-                    (facilityPage + 1) *
-                      (facilityViewportHeight < 740 ? 2 : 4) >=
-                    facilityOverview.length
+                  aria-label="次の設備ページ"
+                  disabled={currentFacilityPage >= facilityPageCount - 1}
+                  onClick={() =>
+                    setFacilityPage(
+                      Math.min(currentFacilityPage + 1, facilityPageCount - 1),
+                    )
                   }
-                  onClick={() => setFacilityPage((page) => page + 1)}
                   type="button"
                 >
                   次へ ›
@@ -836,9 +844,9 @@ export function SchoolScreen({
                           </button>
                         );
                       })}
-                  </div>
-                </section>
-              );
+                    </div>
+                  </section>
+                );
               })}
             </div>
           </section>
