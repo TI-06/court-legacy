@@ -1680,7 +1680,9 @@ export function PlayerHubScreen({
               }}
             >
               <div className="player-roster__main">
-                <span className="player-roster__number">{rosterStart + index + 1}</span>
+                <span className="player-roster__number">
+                  {rosterStart + index + 1}
+                </span>
                 <span className="player-roster__name">
                   <button
                     aria-label={`選手詳細 ${playerName(player)}`}
