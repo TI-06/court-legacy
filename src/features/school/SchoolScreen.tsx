@@ -835,10 +835,10 @@ export function SchoolScreen({
                             <b>{selected ? "適用中" : cost}</b>
                           </button>
                         );
-                        })}
-                    </div>
-                  </section>
-                );
+                      })}
+                  </div>
+                </section>
+              );
               })}
             </div>
           </section>
