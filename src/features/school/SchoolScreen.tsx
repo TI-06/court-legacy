@@ -34,6 +34,7 @@ import {
   SCHOOL_SPECIAL_PROJECT_DEFINITIONS,
   SCHOOL_SPECIAL_PROJECT_YEARLY_LIMIT,
   type SchoolSpecialProjectDefinition,
+  type SchoolSpecialProjectKind,
   type SchoolSpecialProjectId,
   type UniversityJointTrainingFocus,
 } from "../../domain/school/schoolSpecialProjects";
@@ -186,6 +187,8 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [specialProjectKind, setSpecialProjectKind] =
+    useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === "undefined" ? 1024 : window.innerWidth,
@@ -301,6 +304,10 @@ export function SchoolScreen({
   const specialProjectState = activeSchoolSpecialProjects(state);
   const specialProjectRemainingSlots =
     schoolSpecialProjectRemainingSlots(state);
+  const visibleSpecialProjectKinds =
+    viewport.width <= 520
+      ? ([specialProjectKind] as const)
+      : (["annual-contract", "special-activity"] as const);
   const selectedSpecialProject = selectedSpecialProjectId
     ? getSchoolSpecialProjectDefinition(selectedSpecialProjectId)
     : null;
@@ -869,7 +876,32 @@ export function SchoolScreen({
               </span>
             </div>
 
-            {(["annual-contract", "special-activity"] as const).map((kind) => (
+            {viewport.width <= 520 ? (
+              <div
+                aria-label="特別事業の表示切替"
+                className="school-special-project-kind-tabs"
+                role="tablist"
+              >
+                <button
+                  aria-selected={specialProjectKind === "annual-contract"}
+                  onClick={() => setSpecialProjectKind("annual-contract")}
+                  role="tab"
+                  type="button"
+                >
+                  年間契約
+                </button>
+                <button
+                  aria-selected={specialProjectKind === "special-activity"}
+                  onClick={() => setSpecialProjectKind("special-activity")}
+                  role="tab"
+                  type="button"
+                >
+                  特別活動
+                </button>
+              </div>
+            ) : null}
+
+            {visibleSpecialProjectKinds.map((kind) => (
               <section
                 className="school-special-project-group"
                 key={kind}

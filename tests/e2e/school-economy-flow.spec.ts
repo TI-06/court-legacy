@@ -181,7 +181,20 @@ for (const width of [320, 360, 390, 414, 480] as const) {
 
     await management.getByRole("tab", { name: "特別事業" }).click();
     await expect(page.getByRole("heading", { name: "特別事業" })).toBeVisible();
-    await expect(page.locator(".school-special-project-card")).toHaveCount(8);
+    await expect(page.locator(".school-special-project-card")).toHaveCount(4);
+    const projectTabs = page.getByRole("tablist", {
+      name: "特別事業の表示切替",
+    });
+    await expect(projectTabs.getByRole("tab")).toHaveCount(2);
+    await projectTabs.getByRole("tab", { name: "特別活動" }).click();
+    await expect(page.locator(".school-special-project-card")).toHaveCount(4);
+    await expect(
+      page.getByRole("button", { name: "全国招待大会の詳細" }),
+    ).toBeVisible();
+    await projectTabs.getByRole("tab", { name: "年間契約" }).click();
+    await expect(
+      page.getByRole("button", { name: "全国データバンクの詳細" }),
+    ).toBeVisible();
     await expect(page.getByText("年度利用 0/2")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
 
