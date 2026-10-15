@@ -375,6 +375,8 @@ for (const viewport of [
       await expect(page.getByRole("tabpanel")).toHaveCount(1);
       await expectSchoolNoHorizontalOverflow(page);
     }
-    await expect(page.getByRole("heading", { name: "卒業生記録" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "卒業生記録" }),
+    ).toBeVisible();
   });
 }
