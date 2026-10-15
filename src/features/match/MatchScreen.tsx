@@ -101,6 +101,9 @@ function MatchScreenContent({
   const speed: PlaybackSpeed = 4;
   const playbackMode: PlaybackMode = "points";
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
+  const [resultView, setResultView] = useState<
+    "review" | "team" | "players" | "recap"
+  >("review");
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
@@ -410,6 +413,7 @@ function MatchScreenContent({
       className={`app-content match-screen${
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
+      data-result-view={matchComplete ? resultView : undefined}
     >
       {!matchComplete ? (
         <>
@@ -674,30 +678,60 @@ function MatchScreenContent({
             <p>{summarizeSetScore(result.match).split("｜")[1]}</p>
           </section>
 
-          <MatchResultStats
-            state={state}
-            match={result.match}
-            userSchoolId={state.userSchoolId}
-            homeName={homeShortName}
-            awayName={awayShortName}
-            homeStrength={homeStrength}
-            awayStrength={awayStrength}
-          />
-
-          {presentation?.kind === "practice" ? (
-            <PracticeMatchReviewPanel
-              awayStrength={awayStrength}
-              homeStrength={homeStrength}
-              match={result.match}
-              onApplyTrainingRecommendation={
-                onApplyPracticeTrainingRecommendation
-              }
-              pending={trainingPlanPending}
+          <nav
+            aria-label="試合結果の表示切替"
+            className="match-result-detail-tabs"
+            role="tablist"
+          >
+            {(
+              [
+                ["review", "総合評価"],
+                ["team", "チーム"],
+                ["players", "選手"],
+                ["recap", "振り返り"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                aria-selected={resultView === id}
+                key={id}
+                onClick={() => setResultView(id)}
+                role="tab"
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div
+            aria-label="試合結果の詳細"
+            className="match-result-body"
+            role="tabpanel"
+          >
+            <MatchResultStats
               state={state}
+              match={result.match}
+              userSchoolId={state.userSchoolId}
+              homeName={homeShortName}
+              awayName={awayShortName}
+              homeStrength={homeStrength}
+              awayStrength={awayStrength}
             />
-          ) : null}
 
-          <MatchResultStoryPanel state={state} match={result.match} />
+            {presentation?.kind === "practice" ? (
+              <PracticeMatchReviewPanel
+                awayStrength={awayStrength}
+                homeStrength={homeStrength}
+                match={result.match}
+                onApplyTrainingRecommendation={
+                  onApplyPracticeTrainingRecommendation
+                }
+                pending={trainingPlanPending}
+                state={state}
+              />
+            ) : null}
+
+              <MatchResultStoryPanel state={state} match={result.match} />
+          </div>
 
           <BottomSheet
             description="試合経験で変化した能力を確認できます。"
