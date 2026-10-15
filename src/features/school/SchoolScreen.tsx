@@ -1228,16 +1228,11 @@ export function SchoolScreen({
                   role="tabpanel"
                 >
                   {seasonProgress ? (
-                    <>
-                      <SchoolLegacyPanel presentation={seasonProgress.legacy} />
-                      {seasonProgress.legacy.opponents.length === 0 &&
-                      seasonProgress.legacy.notableMatches.length === 0 ? (
-                        <p className="school-empty-state">対戦史はまだありません</p>
-                      ) : null}
-                    </>
-                  ) : (
-                    <p className="school-empty-state">対戦史はまだありません</p>
-                  )}
+                    <SchoolLegacyPanel presentation={seasonProgress.legacy} />
+                  ) : null}
+                  <p className="school-empty-state school-history-no-rivals">
+                    対戦史はまだありません
+                  </p>
                 </div>
               ) : null}
               {viewport.width > 520 || historyView === "seasons" ? (
