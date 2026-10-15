@@ -431,3 +431,83 @@ for (const viewport of [
     }
   });
 }
+
+async function expectRecordPanelAboveNavigation(page: Page) {
+  const panel = page.locator(".school-panel--records");
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const panelBox = await panel.boundingBox();
+  const navigationBox = await navigation.boundingBox();
+
+  expect(panelBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect((panelBox?.y ?? 0) + (panelBox?.height ?? 0)).toBeLessThanOrEqual(
+    (navigationBox?.y ?? 0) + 1,
+  );
+}
+
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 360, height: 667 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+]) {
+  test(`mobile school records fit ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "主要メニュー" })
+      .getByRole("button", { name: "学校", exact: true })
+      .click();
+    await page
+      .getByRole("tablist", { name: "学校運営メニュー" })
+      .getByRole("tab", { name: "記録" })
+      .click();
+
+    const recordTabs = page.getByRole("tablist", { name: "学校記録メニュー" });
+    const seasonTabs = page.getByRole("tablist", {
+      name: "今季の表示切替",
+    });
+    await expect(seasonTabs.getByRole("tab")).toHaveCount(2);
+    await expect(
+      page.getByRole("tabpanel", { name: "今季の順位" }),
+    ).toBeVisible();
+    await expectRecordPanelAboveNavigation(page);
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await seasonTabs.getByRole("tab", { name: "年間目標" }).click();
+    await expect(
+      page.getByRole("tabpanel", { name: "今季の年間目標" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("tabpanel", { name: "今季の順位" }),
+    ).toHaveCount(0);
+    await expectRecordPanelAboveNavigation(page);
+
+    await recordTabs.getByRole("tab", { name: "戦績" }).click();
+    const resultsTabs = page.getByRole("tablist", {
+      name: "戦績の表示切替",
+    });
+    await expect(resultsTabs.getByRole("tab")).toHaveCount(2);
+    await expect(
+      page.getByRole("tabpanel", { name: "直近の試合" }),
+    ).toBeVisible();
+    await expectRecordPanelAboveNavigation(page);
+
+    await resultsTabs.getByRole("tab", { name: "通算成績" }).click();
+    const cumulative = page.getByRole("tabpanel", { name: "通算成績" });
+    await expect(cumulative).toBeVisible();
+    await expect(cumulative.locator("span")).toHaveCount(5);
+    await expectRecordPanelAboveNavigation(page);
+    await expectSchoolNoHorizontalOverflow(page);
+
+    await recordTabs.getByRole("tab", { name: "歴史" }).click();
+    const historyTabs = page.getByRole("tablist", {
+      name: "学校の歴史内メニュー",
+    });
+    await expect(historyTabs.getByRole("tab")).toHaveCount(3);
+    await expectRecordPanelAboveNavigation(page);
+    await expectSchoolNoHorizontalOverflow(page);
+  });
+}
