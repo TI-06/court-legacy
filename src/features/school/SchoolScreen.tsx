@@ -544,127 +544,127 @@ export function SchoolScreen({
                     </button>
                   );
                 })}
-              </div>
-              {facilityOverview.length >
-              (facilityViewportHeight < 740 ? 2 : 4) ? (
-                <nav
+            </div>
+            {facilityOverview.length >
+            (facilityViewportHeight < 740 ? 2 : 4) ? (
+              <nav
                 aria-label="設備一覧のページ切替"
                 className="school-facility-pager"
               >
-                  <button
-                    disabled={facilityPage === 0}
-                    onClick={() =>
+                <button
+                  disabled={facilityPage === 0}
+                  onClick={() =>
                     setFacilityPage((page) => Math.max(0, page - 1))
                   }
-                    type="button"
-                  >
-                    ‹ 前へ
-                  </button>
-                  <span>
-                    {facilityPage + 1} /{" "}
-                    {Math.ceil(
-                      facilityOverview.length /
-                        (facilityViewportHeight < 740 ? 2 : 4),
-                    )}
-                  </span>
-                  <button
-                    disabled={
-                      (facilityPage + 1) *
-                        (facilityViewportHeight < 740 ? 2 : 4) >=
-                      facilityOverview.length
-                    }
-                    onClick={() => setFacilityPage((page) => page + 1)}
-                    type="button"
-                  >
-                    次へ ›
-                  </button>
-                </nav>
-              ) : null}
-            </section>
-
-            <section
-              aria-labelledby="staff-heading"
-              className="school-management-section"
-              hidden={managementView !== "staff"}
-            >
-              <div className="school-staff-command-heading">
-                <div>
-                  <h4 id="staff-heading">スタッフ</h4>
-                  <small>{ASSISTANT_COACH_OPTIONS.length}候補</small>
-                </div>
-                <span>資金 {school.funds}</span>
-              </div>
-
-              {assistantCoachContract && assistantCoachContractOption ? (
-                <div
-                  className="assistant-coach-current"
-                  data-testid="assistant-coach-current"
+                  type="button"
                 >
-                  <span>契約中</span>
-                  <strong>
-                    {assistantCoachRankLabels[assistantCoachContract.rank]}
-                    {assistantCoachContract.specialty
-                      ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
-                      : "・総合"}
-                  </strong>
-                  <small>
-                    {state.calendar.academicYear}年度・全体成長 +
-                    {assistantCoachContractOption.generalPercent - 100}%
-                  </small>
-                </div>
-              ) : (
-                <p className="assistant-coach-none">
-                  現在契約中のコーチはいません
-                </p>
-              )}
+                  ‹ 前へ
+                </button>
+                <span>
+                  {facilityPage + 1} /{" "}
+                  {Math.ceil(
+                    facilityOverview.length /
+                      (facilityViewportHeight < 740 ? 2 : 4),
+                  )}
+                </span>
+                <button
+                  disabled={
+                    (facilityPage + 1) *
+                      (facilityViewportHeight < 740 ? 2 : 4) >=
+                    facilityOverview.length
+                  }
+                  onClick={() => setFacilityPage((page) => page + 1)}
+                  type="button"
+                >
+                  次へ ›
+                </button>
+              </nav>
+            ) : null}
+          </section>
 
-              <div className="assistant-coach-grid">
-                {ASSISTANT_COACH_OPTIONS.map((option) => {
-                  const contractedThisYear =
-                    assistantCoachContract?.contractYearIndex === state.yearIndex;
-                  const affordable = option.annualCost <= school.funds;
-                  const status = contractedThisYear
-                    ? "今年度契約済み"
-                    : affordable
-                      ? "詳細で契約"
-                      : `あと${option.annualCost - school.funds}必要`;
-                  return (
-                    <button
-                      aria-label={`${option.name}の詳細`}
-                      className={
-                        !contractedThisYear && affordable
-                          ? "assistant-coach-card assistant-coach-card--available"
-                          : "assistant-coach-card"
-                      }
-                      data-testid={`assistant-coach-${option.rank}`}
-                      key={option.rank}
-                      onClick={() => setSelectedCoachRank(option.rank)}
-                      type="button"
-                    >
-                      <span className="assistant-coach-card__heading">
-                        <strong>{option.name}</strong>
-                        <span>年間 {option.annualCost}</span>
-                      </span>
-                      <span className="assistant-coach-effects">
-                        <span>全体 +{option.generalPercent - 100}%</span>
-                        {option.specialtyPercent ? (
-                          <span>専門 +{option.specialtyPercent - 100}%</span>
-                        ) : (
-                          <span>総合指導</span>
-                        )}
-                        {option.conditionPercent ? (
-                          <span>低調子 +{option.conditionPercent - 100}%</span>
-                        ) : null}
-                        {option.firstYearPercent ? (
-                          <span>1年生 +{option.firstYearPercent - 100}%</span>
-                        ) : null}
-                      </span>
-                      <span className="assistant-coach-card__summary">
-                        <small>{status}</small>
-                        <b aria-hidden="true">詳細 ›</b>
-                      </span>
-                    </button>
-                  );
+          <section
+            aria-labelledby="staff-heading"
+            className="school-management-section"
+            hidden={managementView !== "staff"}
+          >
+            <div className="school-staff-command-heading">
+              <div>
+                <h4 id="staff-heading">スタッフ</h4>
+                <small>{ASSISTANT_COACH_OPTIONS.length}候補</small>
+              </div>
+              <span>資金 {school.funds}</span>
+            </div>
+
+            {assistantCoachContract && assistantCoachContractOption ? (
+              <div
+                className="assistant-coach-current"
+                data-testid="assistant-coach-current"
+              >
+                <span>契約中</span>
+                <strong>
+                  {assistantCoachRankLabels[assistantCoachContract.rank]}
+                  {assistantCoachContract.specialty
+                    ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
+                    : "・総合"}
+                </strong>
+                <small>
+                  {state.calendar.academicYear}年度・全体成長 +
+                  {assistantCoachContractOption.generalPercent - 100}%
+                </small>
+              </div>
+            ) : (
+              <p className="assistant-coach-none">
+                現在契約中のコーチはいません
+              </p>
+            )}
+
+            <div className="assistant-coach-grid">
+              {ASSISTANT_COACH_OPTIONS.map((option) => {
+                const contractedThisYear =
+                  assistantCoachContract?.contractYearIndex === state.yearIndex;
+                const affordable = option.annualCost <= school.funds;
+                const status = contractedThisYear
+                  ? "今年度契約済み"
+                  : affordable
+                    ? "詳細で契約"
+                    : `あと${option.annualCost - school.funds}必要`;
+                return (
+                  <button
+                    aria-label={`${option.name}の詳細`}
+                    className={
+                      !contractedThisYear && affordable
+                        ? "assistant-coach-card assistant-coach-card--available"
+                        : "assistant-coach-card"
+                    }
+                    data-testid={`assistant-coach-${option.rank}`}
+                    key={option.rank}
+                    onClick={() => setSelectedCoachRank(option.rank)}
+                    type="button"
+                  >
+                    <span className="assistant-coach-card__heading">
+                      <strong>{option.name}</strong>
+                      <span>年間 {option.annualCost}</span>
+                    </span>
+                    <span className="assistant-coach-effects">
+                      <span>全体 +{option.generalPercent - 100}%</span>
+                      {option.specialtyPercent ? (
+                        <span>専門 +{option.specialtyPercent - 100}%</span>
+                      ) : (
+                        <span>総合指導</span>
+                      )}
+                      {option.conditionPercent ? (
+                        <span>低調子 +{option.conditionPercent - 100}%</span>
+                      ) : null}
+                      {option.firstYearPercent ? (
+                        <span>1年生 +{option.firstYearPercent - 100}%</span>
+                      ) : null}
+                    </span>
+                    <span className="assistant-coach-card__summary">
+                      <small>{status}</small>
+                      <b aria-hidden="true">詳細 ›</b>
+                    </span>
+                  </button>
+                );
                 })}
               </div>
             </section>
