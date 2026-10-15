@@ -51,6 +51,10 @@ for (const width of [320, 360, 390, 414, 480]) {
 
     await navigation.getByRole("button", { name: "選手", exact: true }).click();
     await page.getByRole("button", { name: "編成", exact: true }).click();
+    await page
+      .getByRole("tablist", { name: "編成内メニュー" })
+      .getByRole("tab", { name: "設定" })
+      .click();
     await page.getByRole("button", { name: "保存編成を開く" }).click();
     const savedLineupDialog = page.getByRole("dialog", { name: "保存編成" });
     await expect(savedLineupDialog).toBeVisible();
