@@ -501,3 +501,61 @@
 .team-dynamics__selectors .mobile-choice-field__label {
   font-size: 0.68rem;
 }
+
+/* Phase61: shared three-way mobile game menu. */
+.team-inner-nav {
+  display: none;
+}
+
+.team-tactics__pane,
+.team-dynamics__pane {
+  display: contents;
+}
+
+@media (max-width: 520px) {
+  .team-inner-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    background: rgb(6 23 38 / 80%);
+    border: 1px solid rgb(124 188 205 / 22%);
+    border-radius: 12px;
+  }
+
+  .team-inner-nav button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 2px;
+    color: var(--game-text-muted, #a9b8ca);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    background: transparent;
+    border: 0;
+    border-radius: 9px;
+  }
+
+  .team-inner-nav button[aria-selected="true"] {
+    color: #061725;
+    background: #55c6d4;
+  }
+
+  .team-inner-nav button:focus-visible {
+    outline: 2px solid #ff9862;
+    outline-offset: -2px;
+  }
+
+  .team-tactics__pane,
+  .team-dynamics__pane {
+    display: none;
+    min-width: 0;
+  }
+
+  .team-tactics__pane[data-active="true"],
+  .team-dynamics__pane[data-active="true"] {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+  }
+}

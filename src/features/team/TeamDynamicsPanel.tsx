@@ -214,6 +214,9 @@ export function TeamDynamicsPanel({
       guidance,
     })),
   );
+  const [mobilePanel, setMobilePanel] = useState<
+    "cohesion" | "leadership" | "concerns"
+  >("cohesion");
   const leadershipEditorKey = `${dynamics.captainPlayerId ?? "none"}:${dynamics.viceCaptainPlayerId ?? "none"}`;
   const trainingDone = isWeeklyActionCompleted(state, "training");
   const coordinationTrainingSelected =
@@ -256,6 +259,26 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
+      <nav className="team-inner-nav" aria-label="チーム内メニュー" role="tablist">
+        {(
+          [
+            ["cohesion", "結束・連携"],
+            ["leadership", "主将・副主将"],
+            ["concerns", "選手の状態"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-selected={mobilePanel === id}
+            key={id}
+            onClick={() => setMobilePanel(id)}
+            role="tab"
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="team-dynamics__pane" data-active={mobilePanel === "cohesion"}>
       <section
         aria-labelledby="cohesion-guide-heading"
         className="team-dynamics__cohesion-guide"
@@ -318,7 +341,9 @@ export function TeamDynamicsPanel({
           <small>個人成長効率90%・参加選手の関係性 +8</small>
         </button>
       </section>
+      </div>
 
+      <div className="team-dynamics__pane" data-active={mobilePanel === "leadership"}>
       <LeadershipEditor
         key={leadershipEditorKey}
         candidates={candidates}
@@ -328,6 +353,9 @@ export function TeamDynamicsPanel({
         onAssignLeadership={onAssignLeadership}
       />
 
+      </div>
+
+      <div className="team-dynamics__pane" data-active={mobilePanel === "concerns"}>
       <div className="team-dynamics__detail-grid">
         <section aria-labelledby="suitability-heading">
           <div className="team-dynamics__section-heading">
@@ -387,6 +415,7 @@ export function TeamDynamicsPanel({
             </p>
           )}
         </section>
+      </div>
       </div>
     </section>
   );

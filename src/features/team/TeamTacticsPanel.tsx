@@ -150,6 +150,10 @@ export function TeamTacticsPanel({
   const masteryTier =
     masteryTierLabels[teamIdentityMasteryTier(currentIdentity.mastery)];
 
+  const [mobilePanel, setMobilePanel] = useState<
+    "identity" | "tactics" | "defense"
+  >("tactics");
+
   const updateDraft = <Axis extends keyof MatchTacticPlan>(
     axis: Axis,
     value: MatchTacticPlan[Axis],
@@ -170,6 +174,26 @@ export function TeamTacticsPanel({
         </div>
       </section>
 
+      <nav className="team-inner-nav" aria-label="戦術内メニュー" role="tablist">
+        {(
+          [
+            ["tactics", "基本戦術"],
+            ["defense", "守備配置"],
+            ["identity", "チーム哲学"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-selected={mobilePanel === id}
+            key={id}
+            onClick={() => setMobilePanel(id)}
+            role="tab"
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="team-tactics__pane" data-active={mobilePanel === "identity"}>
       <section className="team-tactics__identity" aria-label="チーム哲学">
         <div className="team-tactics__identity-heading">
           <div>
@@ -245,7 +269,9 @@ export function TeamTacticsPanel({
           {pending ? "チーム哲学を保存しています…" : "チーム哲学を保存"}
         </button>
       </section>
+      </div>
 
+      <div className="team-tactics__pane" data-active={mobilePanel === "tactics"}>
       <TacticChoiceGroup<ServePlan>
         label="サーブ戦術"
         onChange={(serve) => updateDraft("serve", serve)}
@@ -268,6 +294,18 @@ export function TeamTacticsPanel({
         value={draft.block}
       />
 
+      <button
+        aria-label="基本戦術を保存"
+        className="team-tactics__save"
+        disabled={pending || unchanged}
+        onClick={() => onSave({ ...draft })}
+        type="button"
+      >
+        {pending ? "基本戦術を保存しています…" : "基本戦術を保存"}
+      </button>
+      </div>
+
+      <div className="team-tactics__pane" data-active={mobilePanel === "defense"}>
       <TacticChoiceGroup<DefenseBias>
         label="守備配置"
         onChange={(value) =>
@@ -288,15 +326,7 @@ export function TeamTacticsPanel({
         {pending ? "守備配置を保存しています…" : "守備配置を保存"}
       </button>
 
-      <button
-        aria-label="基本戦術を保存"
-        className="team-tactics__save"
-        disabled={pending || unchanged}
-        onClick={() => onSave({ ...draft })}
-        type="button"
-      >
-        {pending ? "基本戦術を保存しています…" : "基本戦術を保存"}
-      </button>
+      </div>
     </main>
   );
 }
