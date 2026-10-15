@@ -171,6 +171,13 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expectNoHorizontalOverflow(page);
 
     if (width === 390) {
+      const pointsAnimation = await page
+        .getByTestId("match-live-home-points")
+        .evaluate((element) => getComputedStyle(element).animationName);
+      expect(pointsAnimation).toContain("phase63-point-scored");
+    }
+
+    if (width === 390) {
       await issueOpponentTargetAtNextDecision(page);
       await expectNoHorizontalOverflow(page);
     }
@@ -178,6 +185,13 @@ for (const width of [320, 360, 390, 414, 480]) {
     await finishInteractiveMatch(page);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
+
+    if (width === 390) {
+      const resultAnimation = await page
+        .getByTestId("match-result-verdict")
+        .evaluate((element) => getComputedStyle(element).animationName);
+      expect(resultAnimation).toContain("phase63-result-stamp");
+    }
 
     await page.getByRole("button", { name: "結果を確認して次へ" }).click();
     await expect(home).toBeVisible();
