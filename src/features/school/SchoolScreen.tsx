@@ -191,6 +191,8 @@ export function SchoolScreen({
     useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
   const [staffPage, setStaffPage] = useState(0);
+  const [investmentCategory, setInvestmentCategory] =
+    useState<SchoolInvestmentCategory>("development");
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === "undefined" ? 1024 : window.innerWidth,
     height: typeof window === "undefined" ? 844 : window.innerHeight,
@@ -745,6 +747,32 @@ export function SchoolScreen({
               <span>資金 {school.funds}</span>
             </div>
 
+            {viewport.width <= 520 ? (
+              <div
+                aria-label="年間強化予算のカテゴリ"
+                className="school-investment-tabs"
+                role="tablist"
+              >
+                {(
+                  [
+                    ["development", "育成重点"],
+                    ["external-coach", "専門コーチ"],
+                    ["camp", "強化合宿"],
+                    ["scouting", "遠征"],
+                  ] as const
+                ).map(([category, label]) => (
+                  <button
+                    aria-selected={investmentCategory === category}
+                    key={category}
+                    onClick={() => setInvestmentCategory(category)}
+                    role="tab"
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="school-investment-grid">
               {[
                 {
@@ -848,6 +876,11 @@ export function SchoolScreen({
                 );
                 return (
                   <section
+                    aria-label={group.title}
+                    hidden={
+                      viewport.width <= 520 &&
+                      investmentCategory !== group.category
+                    }
                     className={
                       unlock.unlocked
                         ? "school-investment-card"
