@@ -367,12 +367,11 @@ for (const viewport of [
       ["年度別", "年度別の記録"],
       ["卒業生", "卒業生の記録"],
     ] as const) {
-      await innerTabs.getByRole("tab", { name: label }).click();
-      await expect(page.getByRole("tabpanel", { name: panel })).toBeVisible();
-      await expect(innerTabs.getByRole("tab", { name: label })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
+      const selectedTab = innerTabs.getByRole("tab", { name: label });
+      await selectedTab.click();
+      const selectedPanel = page.getByRole("tabpanel", { name: panel });
+      await expect(selectedPanel).toBeVisible();
+      await expect(selectedTab).toHaveAttribute("aria-selected", "true");
       await expect(page.getByRole("tabpanel")).toHaveCount(1);
       await expectSchoolNoHorizontalOverflow(page);
     }
