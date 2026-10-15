@@ -99,9 +99,14 @@ function NearbyRankingRows({
 
 export function SchoolSeasonRanking({
   presentation,
+  compact = false,
 }: {
   presentation: SeasonProgressPresentation;
+  compact?: boolean;
 }) {
+  const [mobileSection, setMobileSection] = useState<"ranking" | "goals">(
+    "ranking",
+  );
   const [selectedScope, setSelectedScope] = useState<
     "regional" | "national" | null
   >(null);
@@ -130,7 +135,37 @@ export function SchoolSeasonRanking({
           </div>
         </div>
 
-        <div className="school-season-ranking__goals">
+        {compact ? (
+          <div
+            aria-label="今季の表示切替"
+            className="school-season-ranking__mobile-tabs"
+            role="tablist"
+          >
+            <button
+              aria-selected={mobileSection === "ranking"}
+              onClick={() => setMobileSection("ranking")}
+              role="tab"
+              type="button"
+            >
+              ランキング
+            </button>
+            <button
+              aria-selected={mobileSection === "goals"}
+              onClick={() => setMobileSection("goals")}
+              role="tab"
+              type="button"
+            >
+              年間目標
+            </button>
+          </div>
+        ) : null}
+
+        <div
+          aria-label="今季の年間目標"
+          className="school-season-ranking__goals"
+          hidden={compact && mobileSection !== "goals"}
+          role="tabpanel"
+        >
           {presentation.goals.map((goal) => (
             <article
               className={goal.achieved ? "is-achieved" : undefined}
@@ -151,7 +186,12 @@ export function SchoolSeasonRanking({
           ))}
         </div>
 
-        <div className="school-season-ranking__scopes">
+        <div
+          aria-label="今季の順位"
+          className="school-season-ranking__scopes"
+          hidden={compact && mobileSection !== "ranking"}
+          role="tabpanel"
+        >
           <RankingScope
             label="県内"
             onOpen={() => setSelectedScope("regional")}
