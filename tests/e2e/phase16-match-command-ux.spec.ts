@@ -203,6 +203,14 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expect(
       page.getByRole("heading", { name: "自校の試合評価" }),
     ).toBeVisible();
+    const growth = page.getByRole("dialog", { name: "試合後の成長" });
+    if (await growth.isVisible().catch(() => false)) {
+      await growth.getByRole("button", { name: "閉じる" }).click();
+    }
+    await page
+      .getByRole("tablist", { name: "試合結果の表示切替" })
+      .getByRole("tab", { name: "選手" })
+      .click();
     await expect(page.getByRole("heading", { name: "選手評価" })).toBeVisible();
     await expect(page.getByRole("region", { name: "監督采配" })).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
