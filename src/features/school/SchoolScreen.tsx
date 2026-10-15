@@ -187,6 +187,9 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [resultsSection, setResultsSection] = useState<"matches" | "totals">(
+    "matches",
+  );
   const [historyView, setHistoryView] = useState<
     "rivalries" | "seasons" | "graduates"
   >("graduates");
@@ -258,7 +261,14 @@ export function SchoolScreen({
     );
   }
 
-  const recentMatchPreview = recentMatches.slice(0, 3);
+  const recentMatchPreview = recentMatches.slice(
+    0,
+    viewport.width <= 520 && viewport.height < 620
+      ? 1
+      : viewport.width <= 520 && viewport.height < 740
+        ? 2
+        : 3,
+  );
   const graduates = state.history.graduates
     .filter((graduate) => graduate.schoolId === school.id)
     .sort(
@@ -1140,7 +1150,10 @@ export function SchoolScreen({
       ) : null}
 
       {view === "records" ? (
-        <section className="school-panel" aria-labelledby="record-heading">
+        <section
+          className="school-panel school-panel--records"
+          aria-labelledby="record-heading"
+        >
           <div className="school-section-heading">
             <div>
               <p className="section-kicker">記録</p>
@@ -1177,7 +1190,10 @@ export function SchoolScreen({
 
           {recordView === "season" ? (
             seasonProgress ? (
-              <SchoolSeasonRanking presentation={seasonProgress} />
+              <SchoolSeasonRanking
+                compact={viewport.width <= 520}
+                presentation={seasonProgress}
+              />
             ) : (
               <p className="school-empty-state">今季の記録はまだありません</p>
             )
@@ -1185,10 +1201,39 @@ export function SchoolScreen({
 
           {recordView === "results" ? (
             <div
-              className="school-record-content"
+              className="school-record-content school-record-content--results"
               data-testid="school-record-results"
             >
-              <div className="school-record-grid">
+              {viewport.width <= 520 ? (
+                <div
+                  aria-label="戦績の表示切替"
+                  className="school-results-tabs"
+                  role="tablist"
+                >
+                  <button
+                    aria-selected={resultsSection === "matches"}
+                    onClick={() => setResultsSection("matches")}
+                    role="tab"
+                    type="button"
+                  >
+                    直近の試合
+                  </button>
+                  <button
+                    aria-selected={resultsSection === "totals"}
+                    onClick={() => setResultsSection("totals")}
+                    role="tab"
+                    type="button"
+                  >
+                    通算成績
+                  </button>
+                </div>
+              ) : null}
+              <div
+                aria-label="通算成績"
+                className="school-record-grid"
+                hidden={viewport.width <= 520 && resultsSection !== "totals"}
+                role="tabpanel"
+              >
                 <span>
                   公式戦勝利<strong>{school.history.officialWins}</strong>
                 </span>
@@ -1205,59 +1250,69 @@ export function SchoolScreen({
                   全国優勝<strong>{school.history.nationalTitles}</strong>
                 </span>
               </div>
-              <h4>直近の試合</h4>
-              {recentMatches.length === 0 ? (
-                <p className="school-empty-state">試合記録はまだありません</p>
-              ) : (
-                <>
-                  <div className="school-match-list">
-                    {recentMatchPreview.map((match) => {
-                      const home = match.homeSchoolId === school.id;
-                      const opponentId = home
-                        ? match.awaySchoolId
-                        : match.homeSchoolId;
-                      const opponent = state.schools[opponentId]!;
-                      const userSets = home
-                        ? match.homeSetsWon
-                        : match.awaySetsWon;
-                      const opponentSets = home
-                        ? match.awaySetsWon
-                        : match.homeSetsWon;
-                      const won = match.winnerSchoolId === school.id;
-                      return (
-                        <article
-                          className="school-match-record"
-                          data-testid="school-match-record"
-                          key={match.matchId}
-                        >
-                          <div>
-                            <time>{formatDate(match.date)}</time>
-                            <strong>{opponent.name}</strong>
-                          </div>
-                          <span
-                            className={
-                              won ? "school-result--win" : "school-result--loss"
-                            }
+              <div
+                aria-label="直近の試合"
+                className="school-results-recent"
+                hidden={viewport.width <= 520 && resultsSection !== "matches"}
+                role="tabpanel"
+              >
+                <h4>直近の試合</h4>
+                {recentMatches.length === 0 ? (
+                  <p className="school-empty-state">試合記録はまだありません</p>
+                ) : (
+                  <>
+                    <div className="school-match-list">
+                      {recentMatchPreview.map((match) => {
+                        const home = match.homeSchoolId === school.id;
+                        const opponentId = home
+                          ? match.awaySchoolId
+                          : match.homeSchoolId;
+                        const opponent = state.schools[opponentId]!;
+                        const userSets = home
+                          ? match.homeSetsWon
+                          : match.awaySetsWon;
+                        const opponentSets = home
+                          ? match.awaySetsWon
+                          : match.homeSetsWon;
+                        const won = match.winnerSchoolId === school.id;
+                        return (
+                          <article
+                            className="school-match-record"
+                            data-testid="school-match-record"
+                            key={match.matchId}
                           >
-                            {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
-                          </span>
-                        </article>
-                      );
-                    })}
-                  </div>
-                  {recentMatches.length > recentMatchPreview.length ? (
-                    <button
-                      aria-label={`直近${recentMatches.length}試合をすべて見る`}
-                      className="school-match-list__all"
-                      onClick={() => setRecentMatchesOpen(true)}
-                      type="button"
-                    >
-                      <span>すべての試合</span>
-                      <b aria-hidden="true">›</b>
-                    </button>
-                  ) : null}
-                </>
-              )}
+                            <div>
+                              <time>{formatDate(match.date)}</time>
+                              <strong>{opponent.name}</strong>
+                            </div>
+                            <span
+                              className={
+                                won
+                                  ? "school-result--win"
+                                  : "school-result--loss"
+                              }
+                            >
+                              {won ? "勝利" : "敗戦"} {userSets} -{" "}
+                              {opponentSets}
+                            </span>
+                          </article>
+                        );
+                      })}
+                    </div>
+                    {recentMatches.length > recentMatchPreview.length ? (
+                      <button
+                        aria-label={`直近${recentMatches.length}試合をすべて見る`}
+                        className="school-match-list__all"
+                        onClick={() => setRecentMatchesOpen(true)}
+                        type="button"
+                      >
+                        <span>すべての試合</span>
+                        <b aria-hidden="true">›</b>
+                      </button>
+                    ) : null}
+                  </>
+                )}
+              </div>
             </div>
           ) : null}
 

@@ -471,3 +471,54 @@
     font-size: 0.5rem;
   }
 }
+/* Phase61: rankings and annual goals become separate mobile game views. */
+.school-season-ranking__mobile-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 11px;
+}
+
+.school-season-ranking__mobile-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-season-ranking__mobile-tabs button[aria-selected="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.school-season-ranking__goals[hidden],
+.school-season-ranking__scopes[hidden] {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .school-season-ranking {
+    margin-top: 7px;
+  }
+
+  .school-season-ranking__heading {
+    gap: 5px;
+  }
+
+  .school-season-ranking__status {
+    justify-content: flex-end;
+  }
+
+  .school-season-ranking__scope-action {
+    min-height: 40px;
+  }
+}
