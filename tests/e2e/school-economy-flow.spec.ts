@@ -112,7 +112,8 @@ async function expectSeasonRankingAboveNavigation(page: Page) {
 test("small 320px school facility paging", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/");
-  await page.getByRole("navigation", { name: "主要メニュー" })
+  await page
+    .getByRole("navigation", { name: "主要メニュー" })
     .getByRole("button", { name: "学校", exact: true })
     .click();
   const pager = page.getByRole("navigation", {
