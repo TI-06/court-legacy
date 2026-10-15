@@ -1243,7 +1243,9 @@ export function SchoolScreen({
                       presentations={seasonProgress.archivedSeasons}
                     />
                   ) : (
-                    <p className="school-empty-state">過去の年度記録はまだありません</p>
+                    <p className="school-empty-state">
+                      過去の年度記録はまだありません
+                    </p>
                   )}
                 </div>
               ) : null}
@@ -1253,45 +1255,45 @@ export function SchoolScreen({
                   className="school-history-pane"
                   role="tabpanel"
                 >
-              <section
-                className="school-alumni-section"
-                aria-labelledby="alumni-heading"
-              >
-                <div className="school-subsection-heading">
-                  <div>
-                    <h4 id="alumni-heading">卒業生記録</h4>
-                    <small>学校を巣立った選手</small>
-                  </div>
-                  <span>{graduates.length}人</span>
-                </div>
-                {graduates.length === 0 ? (
-                  <p className="school-empty-state">
-                    卒業生の記録はまだありません
-                  </p>
-                ) : (
-                  <>
-                    <div className="alumni-list">
-                      {recentGraduates.map((graduate) => (
-                        <AlumniRow
-                          graduate={graduate}
-                          key={`${graduate.playerId}-${graduate.graduationYear}`}
-                        />
-                      ))}
+                  <section
+                    className="school-alumni-section"
+                    aria-labelledby="alumni-heading"
+                  >
+                    <div className="school-subsection-heading">
+                      <div>
+                        <h4 id="alumni-heading">卒業生記録</h4>
+                        <small>学校を巣立った選手</small>
+                      </div>
+                      <span>{graduates.length}人</span>
                     </div>
-                    {graduates.length > recentGraduates.length ? (
-                      <button
-                        aria-label={`卒業生${graduates.length}人をすべて見る`}
-                        className="school-alumni-section__all"
-                        onClick={() => setAlumniHistoryOpen(true)}
-                        type="button"
-                      >
-                        <span>すべての卒業生</span>
-                        <b aria-hidden="true">›</b>
-                      </button>
-                    ) : null}
-                  </>
-                )}
-              </section>
+                    {graduates.length === 0 ? (
+                      <p className="school-empty-state">
+                        卒業生の記録はまだありません
+                      </p>
+                    ) : (
+                      <>
+                        <div className="alumni-list">
+                          {recentGraduates.map((graduate) => (
+                            <AlumniRow
+                              graduate={graduate}
+                              key={`${graduate.playerId}-${graduate.graduationYear}`}
+                            />
+                          ))}
+                        </div>
+                        {graduates.length > recentGraduates.length ? (
+                          <button
+                            aria-label={`卒業生${graduates.length}人をすべて見る`}
+                            className="school-alumni-section__all"
+                            onClick={() => setAlumniHistoryOpen(true)}
+                            type="button"
+                          >
+                            <span>すべての卒業生</span>
+                            <b aria-hidden="true">›</b>
+                          </button>
+                        ) : null}
+                      </>
+                    )}
+                  </section>
                 </div>
               ) : null}
             </div>
