@@ -280,7 +280,9 @@ test("short 320px screen pages through all assistant coaches", async ({
     await expect(cards).toHaveCount(1);
     await expect(pager).toContainText(`${pageIndex} / 4`);
   }
-  await expect(pager.getByRole("button", { name: "次のコーチページ" })).toBeDisabled();
+  await expect(
+    pager.getByRole("button", { name: "次のコーチページ" }),
+  ).toBeDisabled();
   await pager.getByRole("button", { name: "前のコーチページ" }).click();
   await expect(pager).toContainText("3 / 4");
   for (let pageIndex = 2; pageIndex >= 1; pageIndex -= 1) {
