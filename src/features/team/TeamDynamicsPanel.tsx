@@ -93,6 +93,7 @@ function LeadershipEditor({
   return (
     <section
       className="team-dynamics__leadership"
+      data-team-pane="leadership"
       aria-labelledby="leadership-heading"
     >
       <div className="team-dynamics__section-heading">
@@ -162,6 +163,9 @@ export function TeamDynamicsPanel({
   onSetTeamTrainingMenu,
   onAssignLeadership,
 }: TeamDynamicsPanelProps) {
+  const [activeSection, setActiveSection] = useState<
+    "summary" | "leadership" | "candidates" | "concerns"
+  >("summary");
   const school = state.schools[state.userSchoolId]!;
   const dynamics = state.teamDynamics;
   const captain = dynamics.captainPlayerId
@@ -221,7 +225,11 @@ export function TeamDynamicsPanel({
     "training.coordination";
 
   return (
-    <section className="team-dynamics" aria-labelledby="team-dynamics-heading">
+    <section
+      aria-labelledby="team-dynamics-heading"
+      className="team-dynamics"
+      data-team-active={activeSection}
+    >
       <div className="team-dynamics__heading">
         <div>
           <p className="section-kicker">チーム管理</p>
@@ -256,7 +264,29 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
+      <nav aria-label="チーム内メニュー" className="team-dynamics__tabs" role="tablist">
+        {(
+          [
+            ["summary", "結束"],
+            ["leadership", "役職"],
+            ["candidates", "主将候補"],
+            ["concerns", "注意点"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-selected={activeSection === id}
+            key={id}
+            onClick={() => setActiveSection(id)}
+            role="tab"
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
       <section
+        data-team-pane="summary"
         aria-labelledby="cohesion-guide-heading"
         className="team-dynamics__cohesion-guide"
       >
@@ -329,7 +359,7 @@ export function TeamDynamicsPanel({
       />
 
       <div className="team-dynamics__detail-grid">
-        <section aria-labelledby="suitability-heading">
+        <section aria-labelledby="suitability-heading" data-team-pane="candidates">
           <div className="team-dynamics__section-heading">
             <div>
               <p className="section-kicker">候補比較</p>
@@ -353,7 +383,7 @@ export function TeamDynamicsPanel({
           </div>
         </section>
 
-        <section aria-labelledby="concern-heading">
+        <section aria-labelledby="concern-heading" data-team-pane="concerns">
           <div className="team-dynamics__section-heading">
             <div>
               <p className="section-kicker">選手の注意点</p>

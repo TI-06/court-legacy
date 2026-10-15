@@ -281,3 +281,57 @@
     font-size: 8px;
   }
 }
+
+/* Mobile tactics: separate basic plan, defensive positioning and identity. */
+.team-tactics__tabs {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .team-tactics__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    background: rgb(255 255 255 / 5%);
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 12px;
+  }
+
+  .team-tactics__tabs button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 3px;
+    color: var(--game-text-muted, #a9b8ca);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    background: transparent;
+    border: 0;
+    border-radius: 9px;
+  }
+
+  .team-tactics__tabs button[aria-selected="true"] {
+    color: #061725;
+    background: #55c6d4;
+  }
+
+  .team-tactics [data-tactics-pane] {
+    display: none;
+  }
+
+  .team-tactics[data-tactics-active="basic"] [data-tactics-pane="basic"],
+  .team-tactics[data-tactics-active="defense"] [data-tactics-pane="defense"],
+  .team-tactics[data-tactics-active="identity"] [data-tactics-pane="identity"] {
+    display: grid;
+  }
+
+  .team-tactics__hero {
+    padding: 8px 10px;
+  }
+
+  .team-tactics__hero > div > p:last-child {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+}

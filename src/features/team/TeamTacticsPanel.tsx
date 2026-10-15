@@ -74,15 +74,17 @@ function TacticChoiceGroup<Value extends string>({
   options,
   pending,
   onChange,
+  pane,
 }: {
   label: string;
   value: Value;
+  pane: "basic" | "defense";
   options: readonly TacticOption<Value>[];
   pending: boolean;
   onChange: (value: Value) => void;
 }) {
   return (
-    <section className="team-tactics__axis" aria-label={label} role="group">
+    <section aria-label={label} className="team-tactics__axis" data-tactics-pane={pane} role="group">
       <div className="team-tactics__axis-title">
         <strong>{label.replace("戦術", "")}</strong>
         <span>1つ選択</span>
@@ -115,6 +117,9 @@ export function TeamTacticsPanel({
   onSaveDefenseBias,
   onSaveIdentity,
 }: TeamTacticsPanelProps) {
+  const [activeSection, setActiveSection] = useState<
+    "basic" | "defense" | "identity"
+  >("basic");
   const [draftState, setDraftState] = useState<DraftState | null>(null);
   const [defenseDraftState, setDefenseDraftState] =
     useState<DefenseDraftState | null>(null);
@@ -161,7 +166,7 @@ export function TeamTacticsPanel({
   };
 
   return (
-    <main className="app-content team-tactics">
+    <main className="app-content team-tactics" data-tactics-active={activeSection}>
       <section className="team-tactics__hero">
         <div>
           <p className="section-kicker">チーム方針</p>
@@ -170,7 +175,31 @@ export function TeamTacticsPanel({
         </div>
       </section>
 
-      <section className="team-tactics__identity" aria-label="チーム哲学">
+      <nav aria-label="戦術内メニュー" className="team-tactics__tabs" role="tablist">
+        {(
+          [
+            ["basic", "基本戦術"],
+            ["defense", "守備配置"],
+            ["identity", "チーム哲学"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-selected={activeSection === id}
+            key={id}
+            onClick={() => setActiveSection(id)}
+            role="tab"
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      <section
+        aria-label="チーム哲学"
+        className="team-tactics__identity"
+        data-tactics-pane="identity"
+      >
         <div className="team-tactics__identity-heading">
           <div>
             <p className="section-kicker">TEAM IDENTITY</p>
@@ -248,6 +277,7 @@ export function TeamTacticsPanel({
 
       <TacticChoiceGroup<ServePlan>
         label="サーブ戦術"
+        pane="basic"
         onChange={(serve) => updateDraft("serve", serve)}
         options={serveTacticOptions}
         pending={pending}
@@ -255,6 +285,7 @@ export function TeamTacticsPanel({
       />
       <TacticChoiceGroup<AttackPlan>
         label="攻撃戦術"
+        pane="basic"
         onChange={(attack) => updateDraft("attack", attack)}
         options={attackTacticOptions}
         pending={pending}
@@ -262,6 +293,7 @@ export function TeamTacticsPanel({
       />
       <TacticChoiceGroup<BlockPlan>
         label="ブロック戦術"
+        pane="basic"
         onChange={(block) => updateDraft("block", block)}
         options={blockTacticOptions}
         pending={pending}
@@ -270,6 +302,7 @@ export function TeamTacticsPanel({
 
       <TacticChoiceGroup<DefenseBias>
         label="守備配置"
+        pane="defense"
         onChange={(value) =>
           setDefenseDraftState({ baseValue: currentDefenseBias, value })
         }
@@ -280,6 +313,7 @@ export function TeamTacticsPanel({
 
       <button
         aria-label="守備配置を保存"
+        data-tactics-pane="defense"
         className="team-tactics__save"
         disabled={pending || defenseUnchanged}
         onClick={() => onSaveDefenseBias(defenseDraft)}
@@ -290,6 +324,7 @@ export function TeamTacticsPanel({
 
       <button
         aria-label="基本戦術を保存"
+        data-tactics-pane="basic"
         className="team-tactics__save"
         disabled={pending || unchanged}
         onClick={() => onSave({ ...draft })}
