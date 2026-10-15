@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type {
   PlayerConcernCode,
@@ -319,6 +319,18 @@ export function PlayerHubScreen({
   );
   const [filter, setFilter] = useState<PlayerHubFilter>("all");
   const [sort, setSort] = useState<PlayerHubSort>("power");
+  const [rosterPage, setRosterPage] = useState(0);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1024 : window.innerWidth,
+    height: typeof window === "undefined" ? 844 : window.innerHeight,
+  }));
+
+  useEffect(() => {
+    const updateViewport = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   const school = state.schools[state.userSchoolId]!;
   const players = useMemo(
@@ -331,6 +343,29 @@ export function PlayerHubScreen({
   const rosterItems = useMemo(
     () => selectPlayerHubRoster({ state, selection, filter, sort }),
     [state, selection, filter, sort],
+  );
+  // A paged roster replaces page scrolling on phones. Filtering/sorting
+  // always operates on the full roster, and staged training is not discarded.
+  const rosterPageSize =
+    viewport.width > 520
+      ? Math.max(1, rosterItems.length)
+      : viewport.height < 620
+        ? 1
+        : viewport.height < 760
+          ? 2
+          : viewport.height < 900
+            ? 3
+            : 4;
+  const rosterPageCount = Math.max(
+    1,
+    Math.ceil(rosterItems.length / rosterPageSize),
+  );
+  const currentRosterPage = Math.min(rosterPage, rosterPageCount - 1);
+  const rosterStart = currentRosterPage * rosterPageSize;
+  const rosterEnd = Math.min(rosterStart + rosterPageSize, rosterItems.length);
+  const visibleRosterItems = rosterItems.slice(
+    rosterStart,
+    rosterStart + rosterPageSize,
   );
   const coachRecommendations = useMemo(
     () => buildCoachTrainingRecommendations(state),
@@ -1529,7 +1564,7 @@ export function PlayerHubScreen({
   }
 
   return (
-    <main className="app-content player-hub">
+    <main className="app-content player-hub player-hub--paged">
       <HubTabs mode={mode} onChange={setMode} />
 
       <section className="player-hub__heading">
@@ -1547,7 +1582,10 @@ export function PlayerHubScreen({
           ariaLabel="選手絞り込み"
           label="絞り込み"
           layout="grid"
-          onChange={setFilter}
+          onChange={(nextFilter) => {
+            setFilter(nextFilter);
+            setRosterPage(0);
+          }}
           options={filterOptions}
           title="表示する選手"
           value={filter}
@@ -1555,7 +1593,10 @@ export function PlayerHubScreen({
         <MobileChoiceSheet
           ariaLabel="並び替え"
           label="並び替え"
-          onChange={setSort}
+          onChange={(nextSort) => {
+            setSort(nextSort);
+            setRosterPage(0);
+          }}
           options={sortOptions}
           title="並び順"
           value={sort}
@@ -1596,7 +1637,7 @@ export function PlayerHubScreen({
         {rosterItems.length === 0 ? (
           <p className="player-roster__empty">条件に該当する選手はいません</p>
         ) : null}
-        {rosterItems.map((item, index) => {
+        {visibleRosterItems.map((item, index) => {
           const player = item.player;
           const condition = getPlayerConditionPresentation(player.condition);
           const abilities = summarizePlayerAbilities(player);
@@ -1639,7 +1680,9 @@ export function PlayerHubScreen({
               }}
             >
               <div className="player-roster__main">
-                <span className="player-roster__number">{index + 1}</span>
+                <span className="player-roster__number">
+                  {rosterStart + index + 1}
+                </span>
                 <span className="player-roster__name">
                   <button
                     aria-label={`選手詳細 ${playerName(player)}`}
@@ -1791,6 +1834,32 @@ export function PlayerHubScreen({
           );
         })}
       </div>
+
+      {rosterPageCount > 1 ? (
+        <nav aria-label="選手一覧のページ切替" className="player-hub__pager">
+          <button
+            aria-label="前の選手ページ"
+            disabled={currentRosterPage === 0}
+            onClick={() => setRosterPage((page) => Math.max(0, page - 1))}
+            type="button"
+          >
+            ‹ 前へ
+          </button>
+          <span aria-live="polite">
+            {`${rosterStart + 1}〜${rosterEnd}人 / ${rosterItems.length}人`}
+          </span>
+          <button
+            aria-label="次の選手ページ"
+            disabled={currentRosterPage >= rosterPageCount - 1}
+            onClick={() =>
+              setRosterPage((page) => Math.min(rosterPageCount - 1, page + 1))
+            }
+            type="button"
+          >
+            次へ ›
+          </button>
+        </nav>
+      ) : null}
 
       <BottomSheet
         className="player-season-leaderboard-sheet"
