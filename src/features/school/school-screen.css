@@ -1720,6 +1720,10 @@
   background: var(--game-accent, #f47a18);
 }
 
+.school-history-pane:has(.school-legacy) .school-history-no-rivals {
+  display: none;
+}
+
 .school-history-pane {
   display: block;
   min-width: 0;
