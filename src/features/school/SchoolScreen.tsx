@@ -1258,56 +1258,59 @@ export function SchoolScreen({
               >
                 <h4>直近の試合</h4>
                 {recentMatches.length === 0 ? (
-                <p className="school-empty-state">試合記録はまだありません</p>
-              ) : (
-                <>
-                  <div className="school-match-list">
-                    {recentMatchPreview.map((match) => {
-                      const home = match.homeSchoolId === school.id;
-                      const opponentId = home
-                        ? match.awaySchoolId
-                        : match.homeSchoolId;
-                      const opponent = state.schools[opponentId]!;
-                      const userSets = home
-                        ? match.homeSetsWon
-                        : match.awaySetsWon;
-                      const opponentSets = home
-                        ? match.awaySetsWon
-                        : match.homeSetsWon;
-                      const won = match.winnerSchoolId === school.id;
-                      return (
-                        <article
-                          className="school-match-record"
-                          data-testid="school-match-record"
-                          key={match.matchId}
-                        >
-                          <div>
-                            <time>{formatDate(match.date)}</time>
-                            <strong>{opponent.name}</strong>
-                          </div>
-                          <span
-                            className={
-                              won ? "school-result--win" : "school-result--loss"
-                            }
+                  <p className="school-empty-state">試合記録はまだありません</p>
+                ) : (
+                  <>
+                    <div className="school-match-list">
+                      {recentMatchPreview.map((match) => {
+                        const home = match.homeSchoolId === school.id;
+                        const opponentId = home
+                          ? match.awaySchoolId
+                          : match.homeSchoolId;
+                        const opponent = state.schools[opponentId]!;
+                        const userSets = home
+                          ? match.homeSetsWon
+                          : match.awaySetsWon;
+                        const opponentSets = home
+                          ? match.awaySetsWon
+                          : match.homeSetsWon;
+                        const won = match.winnerSchoolId === school.id;
+                        return (
+                          <article
+                            className="school-match-record"
+                            data-testid="school-match-record"
+                            key={match.matchId}
                           >
-                            {won ? "勝利" : "敗戦"} {userSets} - {opponentSets}
-                          </span>
-                        </article>
-                      );
-                    })}
-                  </div>
-                  {recentMatches.length > recentMatchPreview.length ? (
-                    <button
-                      aria-label={`直近${recentMatches.length}試合をすべて見る`}
-                      className="school-match-list__all"
-                      onClick={() => setRecentMatchesOpen(true)}
-                      type="button"
-                    >
-                      <span>すべての試合</span>
-                      <b aria-hidden="true">›</b>
-                    </button>
-                  ) : null}
-                </>
+                            <div>
+                              <time>{formatDate(match.date)}</time>
+                              <strong>{opponent.name}</strong>
+                            </div>
+                            <span
+                              className={
+                                won
+                                  ? "school-result--win"
+                                  : "school-result--loss"
+                              }
+                            >
+                              {won ? "勝利" : "敗戦"} {userSets} -{" "}
+                              {opponentSets}
+                            </span>
+                          </article>
+                        );
+                      })}
+                    </div>
+                    {recentMatches.length > recentMatchPreview.length ? (
+                      <button
+                        aria-label={`直近${recentMatches.length}試合をすべて見る`}
+                        className="school-match-list__all"
+                        onClick={() => setRecentMatchesOpen(true)}
+                        type="button"
+                      >
+                        <span>すべての試合</span>
+                        <b aria-hidden="true">›</b>
+                      </button>
+                    ) : null}
+                  </>
                 )}
               </div>
             </div>
