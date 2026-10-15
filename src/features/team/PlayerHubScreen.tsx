@@ -827,7 +827,7 @@ export function PlayerHubScreen({
 
   if (mode === "dynamics") {
     return (
-      <main className="app-content player-hub">
+      <main className="app-content player-hub player-hub--mobile-panels">
         <HubTabs mode={mode} onChange={setMode} />
         <TeamDynamicsPanel
           onAssignLeadership={onAssignLeadership}
@@ -842,7 +842,7 @@ export function PlayerHubScreen({
 
   if (mode === "tactics") {
     return (
-      <main className="app-content player-hub">
+      <main className="app-content player-hub player-hub--mobile-panels">
         <HubTabs mode={mode} onChange={setMode} />
         <TeamTacticsPanel
           currentDefenseBias={school.tactics.defenseBias}
