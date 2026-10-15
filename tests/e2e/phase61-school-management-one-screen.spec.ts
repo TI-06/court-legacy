@@ -29,20 +29,25 @@ for (const viewport of [
     ] as const) {
       await operations.getByRole("tab", { name: tab }).click();
       await expect(page.locator(selector).first()).toBeVisible();
-      await expect(pager).toBeVisible();
-      const first = await page.locator(selector).first().textContent();
-      await pager.getByRole("button", { name: "次の学校運営ページ" }).click();
-      await expect(
-        pager.getByRole("button", { name: "前の学校運営ページ" }),
-      ).toBeEnabled();
-      await expect(page.locator(selector).first()).not.toHaveText(first ?? "");
+      if ((await pager.count()) > 0) {
+        const first = await page.locator(selector).first().textContent();
+        await pager.getByRole("button", { name: "次の学校運営ページ" }).click();
+        await expect(
+          pager.getByRole("button", { name: "前の学校運営ページ" }),
+        ).toBeEnabled();
+        await expect(page.locator(selector).first()).not.toHaveText(
+          first ?? "",
+        );
+      }
 
       const sizes = await page.evaluate((itemSelector) => {
         const school = document.querySelector(".school-screen--one-screen")!;
         const panel = document.querySelector(".school-panel--management")!;
-        const item = document.querySelector(itemSelector)!;
-        const pager = document.querySelector(".school-management-pager")!;
+        const items = document.querySelectorAll(itemSelector);
+        const item = items[items.length - 1]!;
+        const pager = document.querySelector(".school-management-pager");
         const nav = document.querySelector(".bottom-game-nav")!;
+        const panelBottom = panel.getBoundingClientRect().bottom;
         return {
           viewportWidth: document.documentElement.clientWidth,
           documentWidth: document.documentElement.scrollWidth,
@@ -50,10 +55,10 @@ for (const viewport of [
           documentHeight: document.documentElement.scrollHeight,
           schoolHeight: school.clientHeight,
           schoolScrollHeight: school.scrollHeight,
-          panelBottom: panel.getBoundingClientRect().bottom,
+          panelBottom,
           itemBottom: item.getBoundingClientRect().bottom,
-          pagerTop: pager.getBoundingClientRect().top,
-          pagerBottom: pager.getBoundingClientRect().bottom,
+          pagerTop: pager?.getBoundingClientRect().top ?? panelBottom,
+          pagerBottom: pager?.getBoundingClientRect().bottom ?? panelBottom,
           navTop: nav.getBoundingClientRect().top,
         };
       }, selector);

@@ -336,9 +336,11 @@ export function SchoolScreen({
           ? viewport.height < 880
             ? 1
             : 2
-          : viewport.height < 760
-            ? 2
-            : 4;
+          : viewport.height < 650
+            ? 1
+            : viewport.height < 760
+              ? 2
+              : 4;
   const managementItemCount =
     managementView === "facilities"
       ? facilityOverview.length
