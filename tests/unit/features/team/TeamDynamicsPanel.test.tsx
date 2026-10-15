@@ -52,7 +52,7 @@ describe("TeamDynamicsPanel", () => {
     );
 
     expect(screen.getByRole("heading", { name: "チーム状態" })).toBeVisible();
-    expect(screen.getByText("役職")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "役職を決める" })).toBeVisible();
     expect(screen.getAllByText("主将適性").length).toBeGreaterThan(0);
     expect(screen.getByText("気になる状態")).toBeVisible();
     for (const english of [
