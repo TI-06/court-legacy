@@ -334,3 +334,50 @@ for (const viewport of [
     }
   });
 }
+
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 360, height: 667 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+]) {
+  test(`school history mobile submenu at ${viewport.width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "主要メニュー" })
+      .getByRole("button", { name: "学校", exact: true })
+      .click();
+    await page
+      .getByRole("tablist", { name: "学校運営メニュー" })
+      .getByRole("tab", { name: "記録" })
+      .click();
+    await page
+      .getByRole("tablist", { name: "学校記録メニュー" })
+      .getByRole("tab", { name: "歴史" })
+      .click();
+    const innerTabs = page.getByRole("tablist", {
+      name: "学校の歴史内メニュー",
+    });
+    await expect(innerTabs.getByRole("tab")).toHaveCount(3);
+    for (const [label, panel] of [
+      ["対戦史", "対戦史の記録"],
+      ["年度別", "年度別の記録"],
+      ["卒業生", "卒業生の記録"],
+    ] as const) {
+      await innerTabs.getByRole("tab", { name: label }).click();
+      await expect(
+        page.getByRole("tabpanel", { name: panel }),
+      ).toBeVisible();
+      await expect(innerTabs.getByRole("tab", { name: label })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(page.getByRole("tabpanel")).toHaveCount(1);
+      await expectSchoolNoHorizontalOverflow(page);
+    }
+    await expect(page.getByRole("heading", { name: "卒業生記録" })).toBeVisible();
+  });
+}
