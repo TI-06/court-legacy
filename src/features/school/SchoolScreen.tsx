@@ -190,6 +190,7 @@ export function SchoolScreen({
   const [specialProjectKind, setSpecialProjectKind] =
     useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
+  const [staffPage, setStaffPage] = useState(0);
   const [viewport, setViewport] = useState(() => ({
     width: typeof window === "undefined" ? 1024 : window.innerWidth,
     height: typeof window === "undefined" ? 844 : window.innerHeight,
@@ -338,6 +339,21 @@ export function SchoolScreen({
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
+  const staffPageSize =
+    viewport.width > 520
+      ? ASSISTANT_COACH_OPTIONS.length
+      : viewport.height < 740
+        ? 1
+        : 2;
+  const staffPageCount = Math.max(
+    1,
+    Math.ceil(ASSISTANT_COACH_OPTIONS.length / staffPageSize),
+  );
+  const currentStaffPage = Math.min(staffPage, staffPageCount - 1);
+  const visibleCoachOptions = ASSISTANT_COACH_OPTIONS.slice(
+    currentStaffPage * staffPageSize,
+    (currentStaffPage + 1) * staffPageSize,
+  );
 
   const confirmUpgrade = async () => {
     if (
@@ -634,7 +650,7 @@ export function SchoolScreen({
             )}
 
             <div className="assistant-coach-grid">
-              {ASSISTANT_COACH_OPTIONS.map((option) => {
+              {visibleCoachOptions.map((option) => {
                 const contractedThisYear =
                   assistantCoachContract?.contractYearIndex === state.yearIndex;
                 const affordable = option.annualCost <= school.funds;
@@ -682,6 +698,38 @@ export function SchoolScreen({
                 );
               })}
             </div>
+            {staffPageCount > 1 ? (
+              <nav
+                aria-label="コーチ一覧のページ切替"
+                className="school-staff-pager"
+              >
+                <button
+                  aria-label="前のコーチページ"
+                  disabled={currentStaffPage === 0}
+                  onClick={() =>
+                    setStaffPage(Math.max(0, currentStaffPage - 1))
+                  }
+                  type="button"
+                >
+                  ‹ 前へ
+                </button>
+                <span aria-live="polite">
+                  {currentStaffPage + 1} / {staffPageCount}
+                </span>
+                <button
+                  aria-label="次のコーチページ"
+                  disabled={currentStaffPage >= staffPageCount - 1}
+                  onClick={() =>
+                    setStaffPage(
+                      Math.min(currentStaffPage + 1, staffPageCount - 1),
+                    )
+                  }
+                  type="button"
+                >
+                  次へ ›
+                </button>
+              </nav>
+            ) : null}
           </section>
 
           <section

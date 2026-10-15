@@ -166,7 +166,15 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expect(page.getByText("4候補")).toBeVisible();
-    await expect(page.locator(".assistant-coach-card")).toHaveCount(4);
+    const coachPager = page.getByRole("navigation", {
+      name: "コーチ一覧のページ切替",
+    });
+    await expect(page.locator(".assistant-coach-card")).toHaveCount(2);
+    await expect(coachPager).toContainText("1 / 2");
+    await coachPager.getByRole("button", { name: "次のコーチページ" }).click();
+    await expect(coachPager).toContainText("2 / 2");
+    await expect(page.locator(".assistant-coach-card")).toHaveCount(2);
+    await coachPager.getByRole("button", { name: "前のコーチページ" }).click();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
       await expectCoachGridAboveNavigation(page);
@@ -248,3 +256,38 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expectSchoolNoHorizontalOverflow(page);
   });
 }
+
+test("short 320px screen pages through all assistant coaches", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "学校", exact: true }).click();
+  await page
+    .getByRole("tablist", { name: "運営メニュー", exact: true })
+    .getByRole("tab", { name: "コーチ" })
+    .click();
+
+  const cards = page.locator(".assistant-coach-card");
+  const pager = page.getByRole("navigation", {
+    name: "コーチ一覧のページ切替",
+  });
+  await expect(cards).toHaveCount(1);
+  await expect(pager).toContainText("1 / 4");
+  const firstCoach = await cards.first().textContent();
+  for (let pageIndex = 2; pageIndex <= 4; pageIndex += 1) {
+    await pager.getByRole("button", { name: "次のコーチページ" }).click();
+    await expect(cards).toHaveCount(1);
+    await expect(pager).toContainText(`${pageIndex} / 4`);
+  }
+  await expect(
+    pager.getByRole("button", { name: "次のコーチページ" }),
+  ).toBeDisabled();
+  await pager.getByRole("button", { name: "前のコーチページ" }).click();
+  await expect(pager).toContainText("3 / 4");
+  for (let pageIndex = 2; pageIndex >= 1; pageIndex -= 1) {
+    await pager.getByRole("button", { name: "前のコーチページ" }).click();
+  }
+  await expect(cards.first()).toHaveText(firstCoach ?? "");
+  await expectSchoolNoHorizontalOverflow(page);
+});
