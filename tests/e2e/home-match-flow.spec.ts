@@ -200,3 +200,98 @@ for (const width of [320, 360, 390, 414, 480]) {
     await expectNoHorizontalOverflow(page);
   });
 }
+
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 360, height: 667 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+]) {
+  test(`match screens fit ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+
+    const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+    await navigation.getByRole("button", { name: "試合" }).click();
+    await schedulePracticeMatch(page);
+    await navigation.getByRole("button", { name: "ホーム" }).click();
+    await page.getByRole("button", { name: "今週を進める" }).click();
+
+    const clearance = async (content: string, action: string) =>
+      page.evaluate(
+        ({ content, action }) => {
+          const target = document.querySelector(content)!;
+          const controls = document.querySelector(action)!;
+          const nav = document.querySelector(".bottom-game-nav")!;
+          return {
+            contentBottom: target.getBoundingClientRect().bottom,
+            actionTop: controls.getBoundingClientRect().top,
+            actionBottom: controls.getBoundingClientRect().bottom,
+            navTop: nav.getBoundingClientRect().top,
+            bodyWidth: document.documentElement.scrollWidth,
+            viewportWidth: document.documentElement.clientWidth,
+          };
+        },
+        { content, action },
+      );
+
+    await expect(page.getByRole("heading", { name: "試合準備" })).toBeVisible();
+    const preMatch = await clearance(
+      ".pre-match-lineup__versus",
+      ".pre-match-lineup__start",
+    );
+    expect(preMatch.actionBottom).toBeLessThanOrEqual(preMatch.navTop + 1);
+    expect(preMatch.bodyWidth).toBeLessThanOrEqual(preMatch.viewportWidth + 1);
+
+    await page
+      .getByRole("button", { name: "この編成・戦術で試合開始" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "試合ダイジェスト" }),
+    ).toBeVisible();
+    const live = await clearance(".match-scoreboard", ".match-controls");
+    expect(live.actionBottom).toBeLessThanOrEqual(live.navTop + 1);
+    expect(live.bodyWidth).toBeLessThanOrEqual(live.viewportWidth + 1);
+
+    await finishInteractiveMatch(page);
+    const growth = page.getByRole("dialog", { name: "試合後の成長" });
+    if (await growth.isVisible().catch(() => false)) {
+      await growth.getByRole("button", { name: "閉じる" }).click();
+    }
+    const tabs = page.getByRole("tablist", { name: "試合結果の表示切替" });
+    await expect(tabs.getByRole("tab")).toHaveCount(4);
+
+    for (const [tab, visible] of [
+      ["総合評価", ".match-review-summary"],
+      ["チーム", ".match-box-score"],
+      ["選手", ".match-player-review"],
+      ["振り返り", ".practice-match-review"],
+    ] as const) {
+      await tabs.getByRole("tab", { name: tab }).click();
+      await expect(
+        tabs.getByRole("tab", { name: tab }),
+      ).toHaveAttribute("aria-selected", "true");
+      await expect(page.locator(visible)).toBeVisible();
+      const result = await clearance(
+        ".match-result-body",
+        ".match-result-actions--fixed",
+      );
+      expect(result.contentBottom).toBeLessThanOrEqual(result.actionTop + 1);
+      expect(result.actionBottom).toBeLessThanOrEqual(result.navTop + 1);
+      expect(result.bodyWidth).toBeLessThanOrEqual(result.viewportWidth + 1);
+    }
+    const height = await page.evaluate(() => ({
+      documentHeight: document.documentElement.scrollHeight,
+      viewportHeight: document.documentElement.clientHeight,
+    }));
+    expect(height.documentHeight).toBeLessThanOrEqual(
+      height.viewportHeight + 1,
+    );
+    await page
+      .getByRole("button", { name: "結果を確認して次へ" })
+      .click();
+    await expect(page.getByTestId("home-screen")).toBeVisible();
+  });
+}
