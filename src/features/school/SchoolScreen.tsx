@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -186,6 +186,17 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [facilityPage, setFacilityPage] = useState(0);
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window === "undefined" ? 1024 : window.innerWidth,
+    height: typeof window === "undefined" ? 844 : window.innerHeight,
+  }));
+  useEffect(() => {
+    const updateViewport = () =>
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
   const [selectedFacility, setSelectedFacility] = useState<FacilityKey | null>(
     null,
   );
@@ -300,6 +311,23 @@ export function SchoolScreen({
     definition,
     evaluation: evaluateFacilityUpgrade(state, school.id, definition.key),
   }));
+  const facilityPageSize =
+    viewport.width > 520
+      ? facilityOverview.length
+      : viewport.height < 620
+        ? 1
+        : viewport.height < 740
+          ? 2
+          : 4;
+  const facilityPageCount = Math.max(
+    1,
+    Math.ceil(facilityOverview.length / facilityPageSize),
+  );
+  const currentFacilityPage = Math.min(facilityPage, facilityPageCount - 1);
+  const visibleFacilityOverview = facilityOverview.slice(
+    currentFacilityPage * facilityPageSize,
+    (currentFacilityPage + 1) * facilityPageSize,
+  );
   const availableFacilityCount = facilityOverview.filter(
     ({ evaluation }) => evaluation.allowed,
   ).length;
@@ -473,7 +501,7 @@ export function SchoolScreen({
               <span>資金 {school.funds}</span>
             </div>
             <div className="facility-grid">
-              {facilityOverview.map(({ definition, evaluation }) => {
+              {visibleFacilityOverview.map(({ definition, evaluation }) => {
                 const missingFunds = Math.max(
                   0,
                   evaluation.cost - school.funds,
@@ -528,6 +556,38 @@ export function SchoolScreen({
                 );
               })}
             </div>
+            {facilityPageCount > 1 ? (
+              <nav
+                aria-label="設備一覧のページ切替"
+                className="school-facility-pager"
+              >
+                <button
+                  aria-label="前の設備ページ"
+                  disabled={currentFacilityPage === 0}
+                  onClick={() =>
+                    setFacilityPage(Math.max(0, currentFacilityPage - 1))
+                  }
+                  type="button"
+                >
+                  ‹ 前へ
+                </button>
+                <span aria-live="polite">
+                  {currentFacilityPage + 1} / {facilityPageCount}
+                </span>
+                <button
+                  aria-label="次の設備ページ"
+                  disabled={currentFacilityPage >= facilityPageCount - 1}
+                  onClick={() =>
+                    setFacilityPage(
+                      Math.min(currentFacilityPage + 1, facilityPageCount - 1),
+                    )
+                  }
+                  type="button"
+                >
+                  次へ ›
+                </button>
+              </nav>
+            ) : null}
           </section>
 
           <section

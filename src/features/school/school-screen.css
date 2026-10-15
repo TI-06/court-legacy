@@ -1619,3 +1619,35 @@
   min-height: 42px;
   padding: 8px 9px;
 }
+
+/* Phase61: device-height-based facility paging without shrinking touch targets. */
+.school-facility-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.school-facility-pager button {
+  min-width: 0;
+  min-height: 42px;
+  color: #e5f9fd;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgb(85 198 212 / 14%);
+  border: 1px solid rgb(85 198 212 / 35%);
+  border-radius: 9px;
+}
+
+.school-facility-pager button:disabled {
+  opacity: 0.35;
+}
+
+.school-facility-pager span {
+  color: var(--game-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
