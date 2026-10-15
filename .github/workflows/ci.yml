@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Phase63 formatting
-        run: |
-          npx prettier tests/e2e/phase61-premium-shell.spec.ts --write
-          git diff -- tests/e2e/phase61-premium-shell.spec.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
