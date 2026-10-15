@@ -259,7 +259,11 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
-      <nav className="team-inner-nav" aria-label="チーム内メニュー" role="tablist">
+      <nav
+        className="team-inner-nav"
+        aria-label="チーム内メニュー"
+        role="tablist"
+      >
         {(
           [
             ["cohesion", "結束・連携"],
@@ -278,144 +282,156 @@ export function TeamDynamicsPanel({
           </button>
         ))}
       </nav>
-      <div className="team-dynamics__pane" data-active={mobilePanel === "cohesion"}>
-      <section
-        aria-labelledby="cohesion-guide-heading"
-        className="team-dynamics__cohesion-guide"
+      <div
+        className="team-dynamics__pane"
+        data-active={mobilePanel === "cohesion"}
       >
-        <div className="team-dynamics__section-heading">
-          <div>
-            <p className="section-kicker">結束のしくみ</p>
-            <h3 id="cohesion-guide-heading">結束の内訳</h3>
-          </div>
-          <span>高いほどチームが安定</span>
-        </div>
-        <div
-          aria-label="結束の内訳"
-          className="team-dynamics__cohesion-factors"
+        <section
+          aria-labelledby="cohesion-guide-heading"
+          className="team-dynamics__cohesion-guide"
         >
-          {cohesionFactors.map((factor) => (
-            <article key={factor.label}>
-              <span>{factor.label}</span>
-              <strong>{factor.value}</strong>
-              <small>影響 {factor.weight}</small>
-            </article>
-          ))}
-        </div>
-        <div className="team-dynamics__cohesion-effect">
-          <div>
-            <span>現在の試合効果</span>
-            <strong>連携補正 {cohesionMatchEffectLabel}</strong>
-          </div>
-          <small>
-            PvE試合の準備度に反映。結束だけの効果は最大 -2.0%〜+2.0%です。
-          </small>
-        </div>
-        <div className="team-dynamics__cohesion-tips">
-          <strong>結束を上げるには</strong>
-          <p>
-            「連携練習」やコンビ・ローテーション練習で関係性を上げる／
-            公式戦で勝って士気を上げる／選手の不満を解消する／
-            適性の高い主将・副主将を置く／スタメンをある程度継続する。
-          </p>
-        </div>
-        <button
-          className="team-dynamics__coordination-action"
-          disabled={
-            pending ||
-            trainingPending ||
-            trainingDone ||
-            coordinationTrainingSelected ||
-            !onSetTeamTrainingMenu
-          }
-          onClick={() => void onSetTeamTrainingMenu?.("training.coordination")}
-          type="button"
-        >
-          <span>
-            {coordinationTrainingSelected
-              ? "今週は連携練習を設定済み"
-              : trainingDone
-                ? "今週の練習は実施済み"
-                : "今週は連携練習にする"}
-          </span>
-          <small>個人成長効率90%・参加選手の関係性 +8</small>
-        </button>
-      </section>
-      </div>
-
-      <div className="team-dynamics__pane" data-active={mobilePanel === "leadership"}>
-      <LeadershipEditor
-        key={leadershipEditorKey}
-        candidates={candidates}
-        captainPlayerId={dynamics.captainPlayerId}
-        viceCaptainPlayerId={dynamics.viceCaptainPlayerId}
-        pending={pending}
-        onAssignLeadership={onAssignLeadership}
-      />
-
-      </div>
-
-      <div className="team-dynamics__pane" data-active={mobilePanel === "concerns"}>
-      <div className="team-dynamics__detail-grid">
-        <section aria-labelledby="suitability-heading">
           <div className="team-dynamics__section-heading">
             <div>
-              <p className="section-kicker">候補比較</p>
-              <h3 id="suitability-heading">主将適性</h3>
+              <p className="section-kicker">結束のしくみ</p>
+              <h3 id="cohesion-guide-heading">結束の内訳</h3>
             </div>
+            <span>高いほどチームが安定</span>
           </div>
-          <div className="team-dynamics__candidate-list">
-            {candidates.slice(0, 6).map(({ player, suitability }, index) => (
-              <article key={player.id}>
-                <span>{index + 1}</span>
-                <div>
-                  <strong>{playerName(player)}</strong>
-                  <small>
-                    {player.grade}年・{player.preferredPosition}・
-                    {roleLabels[dynamics.playerRoles[player.id] ?? "reserve"]}
-                  </small>
-                </div>
-                <b>{suitability}</b>
+          <div
+            aria-label="結束の内訳"
+            className="team-dynamics__cohesion-factors"
+          >
+            {cohesionFactors.map((factor) => (
+              <article key={factor.label}>
+                <span>{factor.label}</span>
+                <strong>{factor.value}</strong>
+                <small>影響 {factor.weight}</small>
               </article>
             ))}
           </div>
-        </section>
-
-        <section aria-labelledby="concern-heading">
-          <div className="team-dynamics__section-heading">
+          <div className="team-dynamics__cohesion-effect">
             <div>
-              <p className="section-kicker">選手の注意点</p>
-              <h3 id="concern-heading">気になる選手</h3>
+              <span>現在の試合効果</span>
+              <strong>連携補正 {cohesionMatchEffectLabel}</strong>
             </div>
+            <small>
+              PvE試合の準備度に反映。結束だけの効果は最大 -2.0%〜+2.0%です。
+            </small>
           </div>
-          {concerns.length > 0 ? (
-            <div className="team-dynamics__concern-list">
-              {concerns.map(({ player, guidance }, index) => (
-                <article key={`${player.id}:${guidance.code}:${index}`}>
+          <div className="team-dynamics__cohesion-tips">
+            <strong>結束を上げるには</strong>
+            <p>
+              「連携練習」やコンビ・ローテーション練習で関係性を上げる／
+              公式戦で勝って士気を上げる／選手の不満を解消する／
+              適性の高い主将・副主将を置く／スタメンをある程度継続する。
+            </p>
+          </div>
+          <button
+            className="team-dynamics__coordination-action"
+            disabled={
+              pending ||
+              trainingPending ||
+              trainingDone ||
+              coordinationTrainingSelected ||
+              !onSetTeamTrainingMenu
+            }
+            onClick={() =>
+              void onSetTeamTrainingMenu?.("training.coordination")
+            }
+            type="button"
+          >
+            <span>
+              {coordinationTrainingSelected
+                ? "今週は連携練習を設定済み"
+                : trainingDone
+                  ? "今週の練習は実施済み"
+                  : "今週は連携練習にする"}
+            </span>
+            <small>個人成長効率90%・参加選手の関係性 +8</small>
+          </button>
+        </section>
+      </div>
+
+      <div
+        className="team-dynamics__pane"
+        data-active={mobilePanel === "leadership"}
+      >
+        <LeadershipEditor
+          key={leadershipEditorKey}
+          candidates={candidates}
+          captainPlayerId={dynamics.captainPlayerId}
+          viceCaptainPlayerId={dynamics.viceCaptainPlayerId}
+          pending={pending}
+          onAssignLeadership={onAssignLeadership}
+        />
+      </div>
+
+      <div
+        className="team-dynamics__pane"
+        data-active={mobilePanel === "concerns"}
+      >
+        <div className="team-dynamics__detail-grid">
+          <section aria-labelledby="suitability-heading">
+            <div className="team-dynamics__section-heading">
+              <div>
+                <p className="section-kicker">候補比較</p>
+                <h3 id="suitability-heading">主将適性</h3>
+              </div>
+            </div>
+            <div className="team-dynamics__candidate-list">
+              {candidates.slice(0, 6).map(({ player, suitability }, index) => (
+                <article key={player.id}>
+                  <span>{index + 1}</span>
                   <div>
-                    <strong>
-                      {playerName(player)}・{guidance.title}
-                    </strong>
-                    <small>{guidance.reason}</small>
+                    <strong>{playerName(player)}</strong>
                     <small>
-                      {guidance.progressLabel}・重要度 {guidance.severity}
-                      /3・信頼 {player.trust}・士気 {player.morale}
+                      {player.grade}年・{player.preferredPosition}・
+                      {roleLabels[dynamics.playerRoles[player.id] ?? "reserve"]}
                     </small>
-                    <p>対処：{guidance.resolution}</p>
                   </div>
-                  <span>
-                    {guidance.status === "improving" ? "改善中" : "対応が必要"}
-                  </span>
+                  <b>{suitability}</b>
                 </article>
               ))}
             </div>
-          ) : (
-            <p className="team-dynamics__empty">
-              現在、強い不満や起用上の注意はありません。
-            </p>
-          )}
-        </section>
-      </div>
+          </section>
+
+          <section aria-labelledby="concern-heading">
+            <div className="team-dynamics__section-heading">
+              <div>
+                <p className="section-kicker">選手の注意点</p>
+                <h3 id="concern-heading">気になる選手</h3>
+              </div>
+            </div>
+            {concerns.length > 0 ? (
+              <div className="team-dynamics__concern-list">
+                {concerns.map(({ player, guidance }, index) => (
+                  <article key={`${player.id}:${guidance.code}:${index}`}>
+                    <div>
+                      <strong>
+                        {playerName(player)}・{guidance.title}
+                      </strong>
+                      <small>{guidance.reason}</small>
+                      <small>
+                        {guidance.progressLabel}・重要度 {guidance.severity}
+                        /3・信頼 {player.trust}・士気 {player.morale}
+                      </small>
+                      <p>対処：{guidance.resolution}</p>
+                    </div>
+                    <span>
+                      {guidance.status === "improving"
+                        ? "改善中"
+                        : "対応が必要"}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="team-dynamics__empty">
+                現在、強い不満や起用上の注意はありません。
+              </p>
+            )}
+          </section>
+        </div>
       </div>
     </section>
   );
