@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Phase62 formatting diff
-        run: |
-          npx prettier src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/e2e/phase61-lineup-inner-tabs.spec.ts --write
-          git diff -- src/features/team/PlayerHubScreen.tsx src/features/team/player-hub.css tests/e2e/phase61-lineup-inner-tabs.spec.ts
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
