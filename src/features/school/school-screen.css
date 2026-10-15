@@ -1706,7 +1706,9 @@
     flex: 0 0 auto;
   }
 
-  .game-page-frame .school-screen--one-screen .school-management-section:not([hidden]) {
+  .game-page-frame
+    .school-screen--one-screen
+    .school-management-section:not([hidden]) {
     display: flex;
     flex: 1 1 0;
     flex-direction: column;

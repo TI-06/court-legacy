@@ -31,9 +31,7 @@ for (const viewport of [
       await expect(page.locator(selector).first()).toBeVisible();
       await expect(pager).toBeVisible();
       const first = await page.locator(selector).first().textContent();
-      await pager
-        .getByRole("button", { name: "次の学校運営ページ" })
-        .click();
+      await pager.getByRole("button", { name: "次の学校運営ページ" }).click();
       await expect(
         pager.getByRole("button", { name: "前の学校運営ページ" }),
       ).toBeEnabled();
@@ -59,9 +57,7 @@ for (const viewport of [
           navTop: nav.getBoundingClientRect().top,
         };
       }, selector);
-      expect(sizes.documentWidth).toBeLessThanOrEqual(
-        sizes.viewportWidth + 1,
-      );
+      expect(sizes.documentWidth).toBeLessThanOrEqual(sizes.viewportWidth + 1);
       expect(sizes.documentHeight).toBeLessThanOrEqual(
         sizes.viewportHeight + 1,
       );

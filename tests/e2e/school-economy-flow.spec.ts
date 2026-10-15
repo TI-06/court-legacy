@@ -134,7 +134,9 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(primary.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
-    expect(await countManagementCards(page, "[data-testid=facility-tile]")).toBe(8);
+    expect(
+      await countManagementCards(page, "[data-testid=facility-tile]"),
+    ).toBe(8);
     await expect(page.getByText("強化可能 8/8")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
@@ -164,7 +166,9 @@ for (const width of [320, 360, 390, 414, 480] as const) {
 
     await management.getByRole("tab", { name: "特別事業" }).click();
     await expect(page.getByRole("heading", { name: "特別事業" })).toBeVisible();
-    expect(await countManagementCards(page, ".school-special-project-card")).toBe(8);
+    expect(
+      await countManagementCards(page, ".school-special-project-card"),
+    ).toBe(8);
     await expect(page.getByText("年度利用 0/2")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
 

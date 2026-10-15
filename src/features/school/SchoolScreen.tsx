@@ -798,69 +798,72 @@ export function SchoolScreen({
                   selected: investmentPlan?.scoutingTier,
                 },
               ]
-                .slice(managementPageStart, managementPageStart + managementPageSize)
+                .slice(
+                  managementPageStart,
+                  managementPageStart + managementPageSize,
+                )
                 .map((group) => {
-                const unlock = schoolInvestmentUnlock(state, group.category);
-                const requiredFacility = FACILITY_DEFINITIONS.find(
-                  (definition) => definition.key === unlock.facility,
-                );
-                return (
-                  <section
-                    className={
-                      unlock.unlocked
-                        ? "school-investment-card"
-                        : "school-investment-card school-investment-card--locked"
-                    }
-                    key={group.category}
-                  >
-                    <div className="school-investment-card__heading">
-                      <strong>{group.title}</strong>
-                      <span>
-                        {group.selected
-                          ? "設定済み"
-                          : unlock.unlocked
-                            ? "選択可能"
-                            : `${compactFacilityName(
-                                requiredFacility?.name ?? "対象施設",
-                              )} Lv.${unlock.currentLevel}/${unlock.requiredLevel}`}
-                      </span>
-                    </div>
-                    <div className="school-investment-options">
-                      {group.options.map(([option, label, effect, cost]) => {
-                        const evaluation = evaluateSchoolInvestment(
-                          state,
-                          group.category,
-                          option,
-                        );
-                        const selected = group.selected === option;
-                        return (
-                          <button
-                            aria-pressed={selected}
-                            disabled={!evaluation.allowed || selected}
-                            key={option}
-                            onClick={() =>
-                              onPurchaseInvestment?.(group.category, option)
-                            }
-                            type="button"
-                          >
-                            <span>
-                              <strong>{label}</strong>
-                              <small>
-                                {unlock.unlocked
-                                  ? effect
-                                  : `${compactFacilityName(
-                                      requiredFacility?.name ?? "対象施設",
-                                    )} Lv.50で解禁`}
-                              </small>
-                            </span>
-                            <b>{selected ? "適用中" : cost}</b>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-                );
-              })}
+                  const unlock = schoolInvestmentUnlock(state, group.category);
+                  const requiredFacility = FACILITY_DEFINITIONS.find(
+                    (definition) => definition.key === unlock.facility,
+                  );
+                  return (
+                    <section
+                      className={
+                        unlock.unlocked
+                          ? "school-investment-card"
+                          : "school-investment-card school-investment-card--locked"
+                      }
+                      key={group.category}
+                    >
+                      <div className="school-investment-card__heading">
+                        <strong>{group.title}</strong>
+                        <span>
+                          {group.selected
+                            ? "設定済み"
+                            : unlock.unlocked
+                              ? "選択可能"
+                              : `${compactFacilityName(
+                                  requiredFacility?.name ?? "対象施設",
+                                )} Lv.${unlock.currentLevel}/${unlock.requiredLevel}`}
+                        </span>
+                      </div>
+                      <div className="school-investment-options">
+                        {group.options.map(([option, label, effect, cost]) => {
+                          const evaluation = evaluateSchoolInvestment(
+                            state,
+                            group.category,
+                            option,
+                          );
+                          const selected = group.selected === option;
+                          return (
+                            <button
+                              aria-pressed={selected}
+                              disabled={!evaluation.allowed || selected}
+                              key={option}
+                              onClick={() =>
+                                onPurchaseInvestment?.(group.category, option)
+                              }
+                              type="button"
+                            >
+                              <span>
+                                <strong>{label}</strong>
+                                <small>
+                                  {unlock.unlocked
+                                    ? effect
+                                    : `${compactFacilityName(
+                                        requiredFacility?.name ?? "対象施設",
+                                      )} Lv.50で解禁`}
+                                </small>
+                              </span>
+                              <b>{selected ? "適用中" : cost}</b>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
             </div>
           </section>
 
@@ -884,82 +887,84 @@ export function SchoolScreen({
 
             {(["annual-contract", "special-activity"] as const)
               .filter((kind) =>
-                visibleSpecialProjects.some((definition) => definition.kind === kind),
+                visibleSpecialProjects.some(
+                  (definition) => definition.kind === kind,
+                ),
               )
               .map((kind) => (
-              <section
-                className="school-special-project-group"
-                key={kind}
-                aria-label={
-                  kind === "annual-contract" ? "年間契約" : "特別活動"
-                }
-              >
-                <div className="school-special-project-group__heading">
-                  <strong>
-                    {kind === "annual-contract" ? "年間契約" : "特別活動"}
-                  </strong>
-                  <span>資金 {school.funds}</span>
-                </div>
-                <div className="school-special-project-grid">
-                  {visibleSpecialProjects.filter(
-                    (definition) => definition.kind === kind,
-                  ).map((definition) => {
-                    const evaluation = evaluateSchoolSpecialProject(
-                      state,
-                      definition.id,
-                    );
-                    const purchased =
-                      specialProjectState?.purchasedProjectIds.includes(
-                        definition.id,
-                      ) ?? false;
-                    const status = purchased
-                      ? "今年度実施済み"
-                      : !definition.effectReady
-                        ? "準備中"
-                        : evaluation.reason === "yearly-limit"
-                          ? "年度上限"
-                          : evaluation.reason === "requirements-not-met"
-                            ? "条件未達"
-                            : evaluation.reason === "insufficient-funds"
-                              ? `あと${Math.max(
-                                  0,
-                                  definition.cost - school.funds,
-                                )}必要`
-                              : "利用可能";
-                    return (
-                      <button
-                        aria-label={`${definition.name}の詳細`}
-                        className="school-special-project-card"
-                        data-status={
-                          purchased
-                            ? "completed"
-                            : definition.effectReady
-                              ? evaluation.reason
-                              : "preparing"
-                        }
-                        key={definition.id}
-                        onClick={() => {
-                          setSelectedSpecialProjectId(definition.id);
-                          setSpecialProjectOption(null);
-                          setSpecialProjectTargetPlayerId(null);
-                        }}
-                        type="button"
-                      >
-                        <span className="school-special-project-card__heading">
-                          <strong>{definition.name}</strong>
-                          <b>{definition.cost}</b>
-                        </span>
-                        <small>{definition.summary}</small>
-                        <span className="school-special-project-card__footer">
-                          <em>{status}</em>
-                          <span aria-hidden="true">詳細 ›</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+                <section
+                  className="school-special-project-group"
+                  key={kind}
+                  aria-label={
+                    kind === "annual-contract" ? "年間契約" : "特別活動"
+                  }
+                >
+                  <div className="school-special-project-group__heading">
+                    <strong>
+                      {kind === "annual-contract" ? "年間契約" : "特別活動"}
+                    </strong>
+                    <span>資金 {school.funds}</span>
+                  </div>
+                  <div className="school-special-project-grid">
+                    {visibleSpecialProjects
+                      .filter((definition) => definition.kind === kind)
+                      .map((definition) => {
+                        const evaluation = evaluateSchoolSpecialProject(
+                          state,
+                          definition.id,
+                        );
+                        const purchased =
+                          specialProjectState?.purchasedProjectIds.includes(
+                            definition.id,
+                          ) ?? false;
+                        const status = purchased
+                          ? "今年度実施済み"
+                          : !definition.effectReady
+                            ? "準備中"
+                            : evaluation.reason === "yearly-limit"
+                              ? "年度上限"
+                              : evaluation.reason === "requirements-not-met"
+                                ? "条件未達"
+                                : evaluation.reason === "insufficient-funds"
+                                  ? `あと${Math.max(
+                                      0,
+                                      definition.cost - school.funds,
+                                    )}必要`
+                                  : "利用可能";
+                        return (
+                          <button
+                            aria-label={`${definition.name}の詳細`}
+                            className="school-special-project-card"
+                            data-status={
+                              purchased
+                                ? "completed"
+                                : definition.effectReady
+                                  ? evaluation.reason
+                                  : "preparing"
+                            }
+                            key={definition.id}
+                            onClick={() => {
+                              setSelectedSpecialProjectId(definition.id);
+                              setSpecialProjectOption(null);
+                              setSpecialProjectTargetPlayerId(null);
+                            }}
+                            type="button"
+                          >
+                            <span className="school-special-project-card__heading">
+                              <strong>{definition.name}</strong>
+                              <b>{definition.cost}</b>
+                            </span>
+                            <small>{definition.summary}</small>
+                            <span className="school-special-project-card__footer">
+                              <em>{status}</em>
+                              <span aria-hidden="true">詳細 ›</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </section>
+              ))}
           </section>
           {managementPageCount > 1 ? (
             <nav
@@ -969,7 +974,9 @@ export function SchoolScreen({
               <button
                 aria-label="前の学校運営ページ"
                 disabled={currentManagementPage === 0}
-                onClick={() => setManagementPage((page) => Math.max(0, page - 1))}
+                onClick={() =>
+                  setManagementPage((page) => Math.max(0, page - 1))
+                }
                 type="button"
               >
                 ‹ 前へ
@@ -980,7 +987,11 @@ export function SchoolScreen({
               <button
                 aria-label="次の学校運営ページ"
                 disabled={currentManagementPage >= managementPageCount - 1}
-                onClick={() => setManagementPage((page) => Math.min(managementPageCount - 1, page + 1))}
+                onClick={() =>
+                  setManagementPage((page) =>
+                    Math.min(managementPageCount - 1, page + 1),
+                  )
+                }
                 type="button"
               >
                 次へ ›
