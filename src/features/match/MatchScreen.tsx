@@ -430,7 +430,13 @@ function MatchScreenContent({
           <section className="match-scoreboard" aria-label="現在のスコア">
             <article>
               <span>{homeShortName}</span>
-              <strong>{currentEvent.score.split(" - ")[0]}</strong>
+              <strong
+                className="match-scoreboard__point match-scoreboard__point--home"
+                data-testid="match-live-home-points"
+                key={currentEvent.score.split(" - ")[0]}
+              >
+                {currentEvent.score.split(" - ")[0]}
+              </strong>
               <small>
                 セット {revealedHomeSets} ・ 戦力 {homeStrength}
               </small>
@@ -443,7 +449,13 @@ function MatchScreenContent({
             </div>
             <article>
               <span>{awayShortName}</span>
-              <strong>{currentEvent.score.split(" - ")[1]}</strong>
+              <strong
+                className="match-scoreboard__point match-scoreboard__point--away"
+                data-testid="match-live-away-points"
+                key={currentEvent.score.split(" - ")[1]}
+              >
+                {currentEvent.score.split(" - ")[1]}
+              </strong>
               <small>
                 セット {revealedAwaySets} ・ 戦力 {awayStrength}
               </small>
