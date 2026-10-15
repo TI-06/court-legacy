@@ -1198,27 +1198,27 @@ export function SchoolScreen({
             >
               {viewport.width <= 520 ? (
                 <div
-                aria-label="学校の歴史内メニュー"
-                className="school-history-tabs"
-                role="tablist"
-              >
-                {(
-                  [
-                    ["rivalries", "対戦史"],
-                    ["seasons", "年度別"],
-                    ["graduates", "卒業生"],
-                  ] as const
-                ).map(([id, label]) => (
-                  <button
-                    aria-selected={historyView === id}
-                    key={id}
-                    onClick={() => setHistoryView(id)}
-                    role="tab"
-                    type="button"
-                  >
-                    {label}
-                  </button>
-                ))}
+                  aria-label="学校の歴史内メニュー"
+                  className="school-history-tabs"
+                  role="tablist"
+                >
+                  {(
+                    [
+                      ["rivalries", "対戦史"],
+                      ["seasons", "年度別"],
+                      ["graduates", "卒業生"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      aria-selected={historyView === id}
+                      key={id}
+                      onClick={() => setHistoryView(id)}
+                      role="tab"
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               ) : null}
               {viewport.width > 520 || historyView === "rivalries" ? (
