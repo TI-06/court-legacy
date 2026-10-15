@@ -256,9 +256,18 @@ for (const width of [320, 360, 390, 414, 480]) {
       ).toBeVisible();
       await expect(page.getByText("TEAM RATING")).toBeVisible();
       await expect(page.getByText("TEAM MVP")).toBeVisible();
+      const growth = page.getByRole("dialog", { name: "試合後の成長" });
+      if (await growth.isVisible().catch(() => false)) {
+        await growth.getByRole("button", { name: "閉じる" }).click();
+      }
+      const tabs = page.getByRole("tablist", {
+        name: "試合結果の表示切替",
+      });
+      await tabs.getByRole("tab", { name: "チーム" }).click();
       await expect(
         page.getByRole("heading", { name: "チームスタッツ" }),
       ).toBeVisible();
+      await tabs.getByRole("tab", { name: "選手" }).click();
       await expect(
         page.getByRole("heading", { name: "選手評価" }),
       ).toBeVisible();
