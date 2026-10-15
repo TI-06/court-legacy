@@ -1772,3 +1772,79 @@
   font-weight: 800;
   white-space: nowrap;
 }
+/* Phase61: keep the school records surface above the fixed game navigation. */
+.school-results-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 11px;
+}
+
+.school-results-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-results-tabs button[aria-selected="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.school-record-grid[hidden],
+.school-results-recent[hidden] {
+  display: none;
+}
+
+.school-results-recent {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.school-results-recent > h4 {
+  margin: 0;
+}
+
+.school-results-recent .school-match-list {
+  margin-top: 0;
+  gap: 6px;
+}
+
+@media (max-width: 520px) {
+  .school-panel--records {
+    max-height: max(170px, calc(100dvh - 355px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .school-panel--records .school-record-content--results {
+    margin-top: 7px;
+    gap: 7px;
+  }
+
+  .school-panel--records .school-record-grid {
+    margin-top: 0;
+    gap: 5px;
+  }
+
+  .school-panel--records .school-record-grid span {
+    padding: 7px;
+    gap: 2px;
+  }
+
+  .school-panel--records .school-match-record {
+    padding: 7px 8px;
+    gap: 6px;
+  }
+}
