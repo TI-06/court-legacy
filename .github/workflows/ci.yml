@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Diagnose mobile UI Prettier changes
-        run: |
-          npx prettier src/features/team/TeamScreen.tsx src/features/team/PlayerHubScreen.tsx src/features/team/team-direct.css src/features/team/player-hub.css tests/e2e/app-shell.spec.ts tests/e2e/mobile-layout-audit.spec.ts tests/e2e/phase14-saved-lineup-ux.spec.ts tests/e2e/phase61-lineup-inner-tabs.spec.ts tests/unit/features/team/TeamSelectionFlow.test.tsx --write
-          git diff -U0 -- src/features/team/TeamScreen.tsx src/features/team/PlayerHubScreen.tsx src/features/team/team-direct.css src/features/team/player-hub.css tests/e2e/app-shell.spec.ts tests/e2e/mobile-layout-audit.spec.ts tests/e2e/phase14-saved-lineup-ux.spec.ts tests/e2e/phase61-lineup-inner-tabs.spec.ts tests/unit/features/team/TeamSelectionFlow.test.tsx
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence

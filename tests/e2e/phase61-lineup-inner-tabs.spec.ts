@@ -27,14 +27,20 @@ for (const viewport of [
       "true",
     );
     await expect(page.getByTestId("court-player")).toHaveCount(6);
-    await expect(page.getByRole("button", { name: "リベロを変更" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "リベロを変更" }),
+    ).toBeVisible();
 
     await tabs.getByRole("tab", { name: "ベンチ" }).click();
     await expect(page.getByTestId("bench-player")).toHaveCount(5);
     await expect(page.getByTestId("bench-player").first()).toBeVisible();
     await tabs.getByRole("tab", { name: "設定" }).click();
-    await expect(page.getByRole("button", { name: "保存編成を開く" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "交代方針を開く" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "保存編成を開く" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "交代方針を開く" }),
+    ).toBeVisible();
     await tabs.getByRole("tab", { name: "コート" }).click();
     await expect(
       page.getByRole("button", { name: "ローテーション1を変更" }),
