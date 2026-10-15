@@ -84,7 +84,12 @@ function TacticChoiceGroup<Value extends string>({
   onChange: (value: Value) => void;
 }) {
   return (
-    <section aria-label={label} className="team-tactics__axis" data-tactics-pane={pane} role="group">
+    <section
+      aria-label={label}
+      className="team-tactics__axis"
+      data-tactics-pane={pane}
+      role="group"
+    >
       <div className="team-tactics__axis-title">
         <strong>{label.replace("戦術", "")}</strong>
         <span>1つ選択</span>
@@ -166,7 +171,10 @@ export function TeamTacticsPanel({
   };
 
   return (
-    <main className="app-content team-tactics" data-tactics-active={activeSection}>
+    <main
+      className="app-content team-tactics"
+      data-tactics-active={activeSection}
+    >
       <section className="team-tactics__hero">
         <div>
           <p className="section-kicker">チーム方針</p>
@@ -175,7 +183,11 @@ export function TeamTacticsPanel({
         </div>
       </section>
 
-      <nav aria-label="戦術内メニュー" className="team-tactics__tabs" role="tablist">
+      <nav
+        aria-label="戦術内メニュー"
+        className="team-tactics__tabs"
+        role="tablist"
+      >
         {(
           [
             ["basic", "基本戦術"],

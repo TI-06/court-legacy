@@ -264,7 +264,11 @@ export function TeamDynamicsPanel({
         </article>
       </div>
 
-      <nav aria-label="チーム内メニュー" className="team-dynamics__tabs" role="tablist">
+      <nav
+        aria-label="チーム内メニュー"
+        className="team-dynamics__tabs"
+        role="tablist"
+      >
         {(
           [
             ["summary", "結束"],
@@ -359,7 +363,10 @@ export function TeamDynamicsPanel({
       />
 
       <div className="team-dynamics__detail-grid">
-        <section aria-labelledby="suitability-heading" data-team-pane="candidates">
+        <section
+          aria-labelledby="suitability-heading"
+          data-team-pane="candidates"
+        >
           <div className="team-dynamics__section-heading">
             <div>
               <p className="section-kicker">候補比較</p>

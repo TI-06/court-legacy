@@ -27,11 +27,15 @@ for (const viewport of [
     ).toBeVisible();
 
     await teamTabs.getByRole("tab", { name: "役職" }).click();
-    await expect(page.getByRole("button", { name: "役職を保存" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "役職を保存" }),
+    ).toBeVisible();
     await teamTabs.getByRole("tab", { name: "主将候補" }).click();
     await expect(page.getByRole("heading", { name: "主将適性" })).toBeVisible();
     await teamTabs.getByRole("tab", { name: "注意点" }).click();
-    await expect(page.getByRole("heading", { name: "気になる選手" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "気になる選手" }),
+    ).toBeVisible();
 
     await primary.getByRole("button", { name: "戦術" }).click();
     const tacticTabs = page.getByRole("tablist", { name: "戦術内メニュー" });

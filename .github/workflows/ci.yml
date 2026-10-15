@@ -53,11 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect formatting diff
-        run: |
-          npx prettier src/features/team/TeamDynamicsPanel.tsx src/features/team/TeamTacticsPanel.tsx tests/e2e/phase61-team-inner-tabs.spec.ts --write
-          git diff -U0 -- src/features/team/TeamDynamicsPanel.tsx src/features/team/TeamTacticsPanel.tsx tests/e2e/phase61-team-inner-tabs.spec.ts
-          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
