@@ -2739,8 +2739,7 @@
     flex: 0 0 auto;
   }
 
-  .game-page-frame:has(.player-hub--mobile-panels)
-    > .game-page-frame__content {
+  .game-page-frame:has(.player-hub--mobile-panels) > .game-page-frame__content {
     display: flex;
     flex: 1 1 0;
     min-height: 0;
@@ -2792,7 +2791,10 @@
     scrollbar-width: thin;
   }
 
-  .player-hub--mobile-panels .team-dynamics__heading > div:first-child > p:last-child,
+  .player-hub--mobile-panels
+    .team-dynamics__heading
+    > div:first-child
+    > p:last-child,
   .player-hub--mobile-panels .team-tactics__hero > div > p:last-child {
     display: none;
   }
