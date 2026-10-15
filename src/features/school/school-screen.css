@@ -1690,3 +1690,49 @@
     display: none;
   }
 }
+
+/* Phase61: split historical records into compact game-view submenus. */
+.school-history-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 11px;
+}
+
+.school-history-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 7px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-history-tabs button[aria-selected="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.school-history-pane {
+  display: block;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .school-record-content--history {
+    gap: 7px;
+  }
+
+  .school-history-pane {
+    max-height: clamp(120px, calc(100dvh - 395px), 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
