@@ -730,7 +730,7 @@ function MatchScreenContent({
               />
             ) : null}
 
-              <MatchResultStoryPanel state={state} match={result.match} />
+            <MatchResultStoryPanel state={state} match={result.match} />
           </div>
 
           <BottomSheet
