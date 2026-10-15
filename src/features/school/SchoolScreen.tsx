@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -182,6 +182,15 @@ export function SchoolScreen({
   onPurchaseSpecialProject,
 }: SchoolScreenProps) {
   const [view, setView] = useState<SchoolView>(consumeSchoolViewAfterScouting);
+  const [facilityPage, setFacilityPage] = useState(0);
+  const [facilityViewportHeight, setFacilityViewportHeight] = useState(() =>
+    typeof window === "undefined" ? 844 : window.innerHeight,
+  );
+  useEffect(() => {
+    const updateHeight = () => setFacilityViewportHeight(window.innerHeight);
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
   const [managementView, setManagementView] = useState<SchoolManagementView>(
     consumeSchoolManagementViewAfterScouting,
   );
@@ -473,7 +482,12 @@ export function SchoolScreen({
               <span>資金 {school.funds}</span>
             </div>
             <div className="facility-grid">
-              {facilityOverview.map(({ definition, evaluation }) => {
+              {facilityOverview
+                .slice(
+                  facilityPage * (facilityViewportHeight < 740 ? 2 : 4),
+                  (facilityPage + 1) * (facilityViewportHeight < 740 ? 2 : 4),
+                )
+                .map(({ definition, evaluation }) => {
                 const missingFunds = Math.max(
                   0,
                   evaluation.cost - school.funds,
@@ -528,6 +542,36 @@ export function SchoolScreen({
                 );
               })}
             </div>
+            {facilityOverview.length >
+            (facilityViewportHeight < 740 ? 2 : 4) ? (
+              <nav aria-label="設備一覧のページ切替" className="school-facility-pager">
+                <button
+                  disabled={facilityPage === 0}
+                  onClick={() => setFacilityPage((page) => Math.max(0, page - 1))}
+                  type="button"
+                >
+                  ‹ 前へ
+                </button>
+                <span>
+                  {facilityPage + 1} /{" "}
+                  {Math.ceil(
+                    facilityOverview.length /
+                      (facilityViewportHeight < 740 ? 2 : 4),
+                  )}
+                </span>
+                <button
+                  disabled={
+                    (facilityPage + 1) *
+                      (facilityViewportHeight < 740 ? 2 : 4) >=
+                    facilityOverview.length
+                  }
+                  onClick={() => setFacilityPage((page) => page + 1)}
+                  type="button"
+                >
+                  次へ ›
+                </button>
+              </nav>
+            ) : null}
           </section>
 
           <section
