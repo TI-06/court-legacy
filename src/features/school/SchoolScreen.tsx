@@ -1196,7 +1196,8 @@ export function SchoolScreen({
               className="school-record-content school-record-content--history"
               data-testid="school-record-history"
             >
-              <div
+              {viewport.width <= 520 ? (
+                <div
                 aria-label="学校の歴史内メニュー"
                 className="school-history-tabs"
                 role="tablist"
@@ -1218,8 +1219,9 @@ export function SchoolScreen({
                     {label}
                   </button>
                 ))}
-              </div>
-              {historyView === "rivalries" ? (
+                </div>
+              ) : null}
+              {viewport.width > 520 || historyView === "rivalries" ? (
                 <div
                   aria-label="対戦史の記録"
                   className="school-history-pane"
@@ -1232,7 +1234,7 @@ export function SchoolScreen({
                   )}
                 </div>
               ) : null}
-              {historyView === "seasons" ? (
+              {viewport.width > 520 || historyView === "seasons" ? (
                 <div
                   aria-label="年度別の記録"
                   className="school-history-pane"
@@ -1249,7 +1251,7 @@ export function SchoolScreen({
                   )}
                 </div>
               ) : null}
-              {historyView === "graduates" ? (
+              {viewport.width > 520 || historyView === "graduates" ? (
                 <div
                   aria-label="卒業生の記録"
                   className="school-history-pane"
