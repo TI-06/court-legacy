@@ -187,6 +187,9 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [historyView, setHistoryView] = useState<
+    "rivalries" | "seasons" | "graduates"
+  >("graduates");
   const [specialProjectKind, setSpecialProjectKind] =
     useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
@@ -1190,57 +1193,112 @@ export function SchoolScreen({
 
           {recordView === "history" ? (
             <div
-              className="school-record-content"
+              className="school-record-content school-record-content--history"
               data-testid="school-record-history"
             >
-              {seasonProgress ? (
-                <>
-                  <SchoolLegacyPanel presentation={seasonProgress.legacy} />
-                  <SchoolSeasonHistory
-                    presentations={seasonProgress.archivedSeasons}
-                  />
-                </>
-              ) : null}
-
-              <section
-                className="school-alumni-section"
-                aria-labelledby="alumni-heading"
-              >
-                <div className="school-subsection-heading">
-                  <div>
-                    <h4 id="alumni-heading">卒業生記録</h4>
-                    <small>学校を巣立った選手</small>
-                  </div>
-                  <span>{graduates.length}人</span>
+              {viewport.width <= 520 ? (
+                <div
+                  aria-label="学校の歴史内メニュー"
+                  className="school-history-tabs"
+                  role="tablist"
+                >
+                  {(
+                    [
+                      ["rivalries", "対戦史"],
+                      ["seasons", "年度別"],
+                      ["graduates", "卒業生"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      aria-selected={historyView === id}
+                      key={id}
+                      onClick={() => setHistoryView(id)}
+                      role="tab"
+                      type="button"
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
-                {graduates.length === 0 ? (
-                  <p className="school-empty-state">
-                    卒業生の記録はまだありません
+              ) : null}
+              {viewport.width > 520 || historyView === "rivalries" ? (
+                <div
+                  aria-label="対戦史の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
+                  {seasonProgress ? (
+                    <SchoolLegacyPanel presentation={seasonProgress.legacy} />
+                  ) : null}
+                  <p className="school-empty-state school-history-no-rivals">
+                    対戦史はまだありません
                   </p>
-                ) : (
-                  <>
-                    <div className="alumni-list">
-                      {recentGraduates.map((graduate) => (
-                        <AlumniRow
-                          graduate={graduate}
-                          key={`${graduate.playerId}-${graduate.graduationYear}`}
-                        />
-                      ))}
+                </div>
+              ) : null}
+              {viewport.width > 520 || historyView === "seasons" ? (
+                <div
+                  aria-label="年度別の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
+                  {seasonProgress?.archivedSeasons.length ? (
+                    <SchoolSeasonHistory
+                      presentations={seasonProgress.archivedSeasons}
+                    />
+                  ) : (
+                    <p className="school-empty-state">
+                      過去の年度記録はまだありません
+                    </p>
+                  )}
+                </div>
+              ) : null}
+              {viewport.width > 520 || historyView === "graduates" ? (
+                <div
+                  aria-label="卒業生の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
+                  <section
+                    className="school-alumni-section"
+                    aria-labelledby="alumni-heading"
+                  >
+                    <div className="school-subsection-heading">
+                      <div>
+                        <h4 id="alumni-heading">卒業生記録</h4>
+                        <small>学校を巣立った選手</small>
+                      </div>
+                      <span>{graduates.length}人</span>
                     </div>
-                    {graduates.length > recentGraduates.length ? (
-                      <button
-                        aria-label={`卒業生${graduates.length}人をすべて見る`}
-                        className="school-alumni-section__all"
-                        onClick={() => setAlumniHistoryOpen(true)}
-                        type="button"
-                      >
-                        <span>すべての卒業生</span>
-                        <b aria-hidden="true">›</b>
-                      </button>
-                    ) : null}
-                  </>
-                )}
-              </section>
+                    {graduates.length === 0 ? (
+                      <p className="school-empty-state">
+                        卒業生の記録はまだありません
+                      </p>
+                    ) : (
+                      <>
+                        <div className="alumni-list">
+                          {recentGraduates.map((graduate) => (
+                            <AlumniRow
+                              graduate={graduate}
+                              key={`${graduate.playerId}-${graduate.graduationYear}`}
+                            />
+                          ))}
+                        </div>
+                        {graduates.length > recentGraduates.length ? (
+                          <button
+                            aria-label={`卒業生${graduates.length}人をすべて見る`}
+                            className="school-alumni-section__all"
+                            onClick={() => setAlumniHistoryOpen(true)}
+                            type="button"
+                          >
+                            <span>すべての卒業生</span>
+                            <b aria-hidden="true">›</b>
+                          </button>
+                        ) : null}
+                      </>
+                    )}
+                  </section>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </section>
