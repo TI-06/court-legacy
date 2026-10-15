@@ -150,6 +150,10 @@ export function TeamTacticsPanel({
   const masteryTier =
     masteryTierLabels[teamIdentityMasteryTier(currentIdentity.mastery)];
 
+  const [mobilePanel, setMobilePanel] = useState<
+    "identity" | "tactics" | "defense"
+  >("tactics");
+
   const updateDraft = <Axis extends keyof MatchTacticPlan>(
     axis: Axis,
     value: MatchTacticPlan[Axis],
@@ -170,133 +174,171 @@ export function TeamTacticsPanel({
         </div>
       </section>
 
-      <section className="team-tactics__identity" aria-label="チーム哲学">
-        <div className="team-tactics__identity-heading">
-          <div>
-            <p className="section-kicker">TEAM IDENTITY</p>
-            <h3>チーム哲学</h3>
-          </div>
-          <span>
-            {masteryTier} {currentIdentity.mastery}
-          </span>
-        </div>
-
-        <div className="team-tactics__identity-current">
-          <div>
-            <span>現在</span>
-            <strong>{currentIdentityDefinition.label}</strong>
-            <small>{currentIdentityDefinition.description}</small>
-          </div>
-          <div
-            aria-label={`チーム哲学习熟度 ${currentIdentity.mastery}`}
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={currentIdentity.mastery}
-            className="team-tactics__identity-meter"
-            role="progressbar"
+      <nav
+        className="team-inner-nav"
+        aria-label="戦術内メニュー"
+        role="tablist"
+      >
+        {(
+          [
+            ["tactics", "基本戦術"],
+            ["defense", "守備配置"],
+            ["identity", "チーム哲学"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-selected={mobilePanel === id}
+            key={id}
+            onClick={() => setMobilePanel(id)}
+            role="tab"
+            type="button"
           >
-            <i style={{ width: `${currentIdentity.mastery}%` }} />
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div
+        className="team-tactics__pane"
+        data-active={mobilePanel === "identity"}
+      >
+        <section className="team-tactics__identity" aria-label="チーム哲学">
+          <div className="team-tactics__identity-heading">
+            <div>
+              <p className="section-kicker">TEAM IDENTITY</p>
+              <h3>チーム哲学</h3>
+            </div>
+            <span>
+              {masteryTier} {currentIdentity.mastery}
+            </span>
           </div>
-        </div>
 
-        <div
-          aria-label="チーム哲学を選択"
-          className="team-tactics__identity-choices"
-          role="group"
-        >
-          {TEAM_IDENTITY_DEFINITIONS.map((definition) => (
-            <button
-              aria-pressed={identityDraft === definition.id}
-              className="team-tactics__identity-choice"
-              disabled={pending}
-              key={definition.id}
-              onClick={() =>
-                setIdentityDraftState({
-                  baseStyle: currentIdentity.style,
-                  style: definition.id,
-                })
-              }
-              type="button"
+          <div className="team-tactics__identity-current">
+            <div>
+              <span>現在</span>
+              <strong>{currentIdentityDefinition.label}</strong>
+              <small>{currentIdentityDefinition.description}</small>
+            </div>
+            <div
+              aria-label={`チーム哲学习熟度 ${currentIdentity.mastery}`}
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={currentIdentity.mastery}
+              className="team-tactics__identity-meter"
+              role="progressbar"
             >
-              <strong>{definition.label}</strong>
-              <small>{definition.description}</small>
-            </button>
-          ))}
-        </div>
+              <i style={{ width: `${currentIdentity.mastery}%` }} />
+            </div>
+          </div>
 
-        <div className="team-tactics__identity-fit">
-          <span>現在の戦術との一致度</span>
-          <strong>{identityAlignment}%</strong>
-        </div>
+          <div
+            aria-label="チーム哲学を選択"
+            className="team-tactics__identity-choices"
+            role="group"
+          >
+            {TEAM_IDENTITY_DEFINITIONS.map((definition) => (
+              <button
+                aria-pressed={identityDraft === definition.id}
+                className="team-tactics__identity-choice"
+                disabled={pending}
+                key={definition.id}
+                onClick={() =>
+                  setIdentityDraftState({
+                    baseStyle: currentIdentity.style,
+                    style: definition.id,
+                  })
+                }
+                type="button"
+              >
+                <strong>{definition.label}</strong>
+                <small>{definition.description}</small>
+              </button>
+            ))}
+          </div>
 
-        {!identityUnchanged ? (
-          <p className="team-tactics__identity-warning">
-            方針を変更すると、習熟度は最大30から再スタートします。
-          </p>
-        ) : null}
+          <div className="team-tactics__identity-fit">
+            <span>現在の戦術との一致度</span>
+            <strong>{identityAlignment}%</strong>
+          </div>
+
+          {!identityUnchanged ? (
+            <p className="team-tactics__identity-warning">
+              方針を変更すると、習熟度は最大30から再スタートします。
+            </p>
+          ) : null}
+
+          <button
+            aria-label="チーム哲学を保存"
+            className="team-tactics__save"
+            disabled={pending || identityUnchanged}
+            onClick={() => onSaveIdentity(identityDraft)}
+            type="button"
+          >
+            {pending ? "チーム哲学を保存しています…" : "チーム哲学を保存"}
+          </button>
+        </section>
+      </div>
+
+      <div
+        className="team-tactics__pane"
+        data-active={mobilePanel === "tactics"}
+      >
+        <TacticChoiceGroup<ServePlan>
+          label="サーブ戦術"
+          onChange={(serve) => updateDraft("serve", serve)}
+          options={serveTacticOptions}
+          pending={pending}
+          value={draft.serve}
+        />
+        <TacticChoiceGroup<AttackPlan>
+          label="攻撃戦術"
+          onChange={(attack) => updateDraft("attack", attack)}
+          options={attackTacticOptions}
+          pending={pending}
+          value={draft.attack}
+        />
+        <TacticChoiceGroup<BlockPlan>
+          label="ブロック戦術"
+          onChange={(block) => updateDraft("block", block)}
+          options={blockTacticOptions}
+          pending={pending}
+          value={draft.block}
+        />
 
         <button
-          aria-label="チーム哲学を保存"
+          aria-label="基本戦術を保存"
           className="team-tactics__save"
-          disabled={pending || identityUnchanged}
-          onClick={() => onSaveIdentity(identityDraft)}
+          disabled={pending || unchanged}
+          onClick={() => onSave({ ...draft })}
           type="button"
         >
-          {pending ? "チーム哲学を保存しています…" : "チーム哲学を保存"}
+          {pending ? "基本戦術を保存しています…" : "基本戦術を保存"}
         </button>
-      </section>
+      </div>
 
-      <TacticChoiceGroup<ServePlan>
-        label="サーブ戦術"
-        onChange={(serve) => updateDraft("serve", serve)}
-        options={serveTacticOptions}
-        pending={pending}
-        value={draft.serve}
-      />
-      <TacticChoiceGroup<AttackPlan>
-        label="攻撃戦術"
-        onChange={(attack) => updateDraft("attack", attack)}
-        options={attackTacticOptions}
-        pending={pending}
-        value={draft.attack}
-      />
-      <TacticChoiceGroup<BlockPlan>
-        label="ブロック戦術"
-        onChange={(block) => updateDraft("block", block)}
-        options={blockTacticOptions}
-        pending={pending}
-        value={draft.block}
-      />
-
-      <TacticChoiceGroup<DefenseBias>
-        label="守備配置"
-        onChange={(value) =>
-          setDefenseDraftState({ baseValue: currentDefenseBias, value })
-        }
-        options={defenseBiasOptions}
-        pending={pending}
-        value={defenseDraft}
-      />
-
-      <button
-        aria-label="守備配置を保存"
-        className="team-tactics__save"
-        disabled={pending || defenseUnchanged}
-        onClick={() => onSaveDefenseBias(defenseDraft)}
-        type="button"
+      <div
+        className="team-tactics__pane"
+        data-active={mobilePanel === "defense"}
       >
-        {pending ? "守備配置を保存しています…" : "守備配置を保存"}
-      </button>
+        <TacticChoiceGroup<DefenseBias>
+          label="守備配置"
+          onChange={(value) =>
+            setDefenseDraftState({ baseValue: currentDefenseBias, value })
+          }
+          options={defenseBiasOptions}
+          pending={pending}
+          value={defenseDraft}
+        />
 
-      <button
-        aria-label="基本戦術を保存"
-        className="team-tactics__save"
-        disabled={pending || unchanged}
-        onClick={() => onSave({ ...draft })}
-        type="button"
-      >
-        {pending ? "基本戦術を保存しています…" : "基本戦術を保存"}
-      </button>
+        <button
+          aria-label="守備配置を保存"
+          className="team-tactics__save"
+          disabled={pending || defenseUnchanged}
+          onClick={() => onSaveDefenseBias(defenseDraft)}
+          type="button"
+        >
+          {pending ? "守備配置を保存しています…" : "守備配置を保存"}
+        </button>
+      </div>
     </main>
   );
 }
