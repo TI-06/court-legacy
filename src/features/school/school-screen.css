@@ -1682,8 +1682,7 @@
 }
 
 @media (max-width: 520px) {
-  .school-panel--management .school-special-project-kind-tabs +
-  .school-special-project-group .school-special-project-group__heading {
+  .school-special-project-group__heading {
     display: none;
   }
 }
