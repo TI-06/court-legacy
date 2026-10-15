@@ -56,7 +56,8 @@ test("mobile navigation motion respects reduced-motion settings", async ({
   const player = navigation.getByRole("button", { name: "選手" });
 
   const animation = async () =>
-    page.locator(".bottom-game-nav__item[aria-current='page'] .game-icon")
+    page
+      .locator(".bottom-game-nav__item[aria-current='page'] .game-icon")
       .evaluate((element) => getComputedStyle(element).animationName);
 
   await expect(home).toHaveAttribute("aria-current", "page");
@@ -70,7 +71,9 @@ test("mobile navigation motion respects reduced-motion settings", async ({
   const playerTabs = page.locator(".player-hub__tabs");
   await expect(playerTabs).toBeVisible();
   expect(
-    await playerTabs.evaluate((element) => getComputedStyle(element).animationName),
+    await playerTabs.evaluate(
+      (element) => getComputedStyle(element).animationName,
+    ),
   ).toBe("none");
 
   const width = await page.evaluate(() => ({
