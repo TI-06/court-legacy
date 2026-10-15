@@ -187,6 +187,9 @@ export function SchoolScreen({
     consumeSchoolManagementViewAfterScouting,
   );
   const [recordView, setRecordView] = useState<SchoolRecordView>("season");
+  const [historyView, setHistoryView] = useState<
+    "rivalries" | "seasons" | "graduates"
+  >("graduates");
   const [specialProjectKind, setSpecialProjectKind] =
     useState<SchoolSpecialProjectKind>("annual-contract");
   const [facilityPage, setFacilityPage] = useState(0);
@@ -1190,18 +1193,66 @@ export function SchoolScreen({
 
           {recordView === "history" ? (
             <div
-              className="school-record-content"
+              className="school-record-content school-record-content--history"
               data-testid="school-record-history"
             >
-              {seasonProgress ? (
-                <>
-                  <SchoolLegacyPanel presentation={seasonProgress.legacy} />
-                  <SchoolSeasonHistory
-                    presentations={seasonProgress.archivedSeasons}
-                  />
-                </>
+              <div
+                aria-label="学校の歴史内メニュー"
+                className="school-history-tabs"
+                role="tablist"
+              >
+                {(
+                  [
+                    ["rivalries", "対戦史"],
+                    ["seasons", "年度別"],
+                    ["graduates", "卒業生"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    aria-selected={historyView === id}
+                    key={id}
+                    onClick={() => setHistoryView(id)}
+                    role="tab"
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {historyView === "rivalries" ? (
+                <div
+                  aria-label="対戦史の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
+                  {seasonProgress ? (
+                    <SchoolLegacyPanel presentation={seasonProgress.legacy} />
+                  ) : (
+                    <p className="school-empty-state">対戦史はまだありません</p>
+                  )}
+                </div>
               ) : null}
-
+              {historyView === "seasons" ? (
+                <div
+                  aria-label="年度別の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
+                  {seasonProgress?.archivedSeasons.length ? (
+                    <SchoolSeasonHistory
+                      presentations={seasonProgress.archivedSeasons}
+                    />
+                  ) : (
+                    <p className="school-empty-state">過去の年度記録はまだありません</p>
+                  )}
+                </div>
+              ) : null}
+              {historyView === "graduates" ? (
+                <div
+                  aria-label="卒業生の記録"
+                  className="school-history-pane"
+                  role="tabpanel"
+                >
               <section
                 className="school-alumni-section"
                 aria-labelledby="alumni-heading"
@@ -1241,6 +1292,8 @@ export function SchoolScreen({
                   </>
                 )}
               </section>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </section>
