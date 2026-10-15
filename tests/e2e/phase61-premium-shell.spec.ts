@@ -43,3 +43,42 @@ for (const width of [320, 390, 480]) {
     await expect(playerTab).toHaveAttribute("aria-current", "page");
   });
 }
+
+test("mobile navigation motion respects reduced-motion settings", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+
+  const navigation = page.getByRole("navigation", { name: "主要メニュー" });
+  const home = navigation.getByRole("button", { name: "ホーム" });
+  const player = navigation.getByRole("button", { name: "選手" });
+
+  const animation = async () =>
+    page
+      .locator(".bottom-game-nav__item[aria-current='page'] .game-icon")
+      .evaluate((element) => getComputedStyle(element).animationName);
+
+  await expect(home).toHaveAttribute("aria-current", "page");
+  expect(await animation()).toBe("game-nav-icon-select");
+  await player.click();
+  await expect(player).toHaveAttribute("aria-current", "page");
+  expect(await animation()).toBe("game-nav-icon-select");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await animation()).toBe("none");
+  const playerTabs = page.locator(".player-hub__tabs");
+  await expect(playerTabs).toBeVisible();
+  expect(
+    await playerTabs.evaluate(
+      (element) => getComputedStyle(element).animationName,
+    ),
+  ).toBe("none");
+
+  const width = await page.evaluate(() => ({
+    body: document.body.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+  }));
+  expect(width.body).toBeLessThanOrEqual(width.viewport);
+});

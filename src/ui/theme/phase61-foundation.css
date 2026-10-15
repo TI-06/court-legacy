@@ -365,3 +365,68 @@
     transition: none;
   }
 }
+
+/* Phase63: short compositor-only motion; no positional layout shifts. */
+@keyframes game-view-reveal {
+  from {
+    opacity: 0.72;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes game-nav-icon-select {
+  from {
+    transform: scale(0.88);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 520px) and (prefers-reduced-motion: no-preference) {
+  .game-page-frame .home-command-summary,
+  .game-page-frame .player-hub__tabs,
+  .game-page-frame .school-panel,
+  .game-page-frame .match-live-hero,
+  .game-page-frame .match-result-hero {
+    animation: game-view-reveal 160ms ease-out both;
+  }
+
+  .game-page-frame .bottom-game-nav__item[aria-current="page"] .game-icon {
+    animation: game-nav-icon-select 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .game-page-frame .bottom-game-nav__item,
+  .game-page-frame .player-hub__tabs button,
+  .game-page-frame .school-management-tabs button,
+  .game-page-frame .match-result-detail-tabs button {
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color 130ms ease,
+      border-color 130ms ease,
+      color 130ms ease,
+      filter 130ms ease;
+  }
+
+  .game-page-frame .bottom-game-nav__item:active,
+  .game-page-frame .player-hub__tabs button:active,
+  .game-page-frame .school-management-tabs button:active,
+  .game-page-frame .match-result-detail-tabs button:active {
+    filter: brightness(1.22);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-page-frame .home-command-summary,
+  .game-page-frame .player-hub__tabs,
+  .game-page-frame .school-panel,
+  .game-page-frame .match-live-hero,
+  .game-page-frame .match-result-hero,
+  .game-page-frame .bottom-game-nav__item[aria-current="page"] .game-icon {
+    animation: none;
+  }
+}
