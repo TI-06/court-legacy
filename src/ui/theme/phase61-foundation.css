@@ -402,35 +402,33 @@
 }
 
 @media (prefers-reduced-motion: no-preference) and (max-width: 520px) {
-  .game-page-frame[data-reduced-motion="false"]
-    > .game-page-frame__content {
-    animation: phase63-scene-enter 180ms ease-out both;
+  .game-page-frame[data-reduced-motion="false"] > .game-page-frame__content {
+    animation: phase63-scene-enter 180ms ease-out backwards;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .game-page-frame[data-reduced-motion="false"]
-    .game-header__date {
+  .game-page-frame[data-reduced-motion="false"] .game-header__date {
     animation: phase63-week-update 440ms ease-out both;
   }
 
   .game-page-frame[data-reduced-motion="false"]
     .bottom-game-nav__item--active
     .game-icon {
-    animation: phase63-nav-selected 190ms cubic-bezier(0.2, 0.8, 0.3, 1.2)
-      both;
+    animation: phase63-nav-selected 190ms cubic-bezier(0.2, 0.8, 0.3, 1.2) both;
   }
 
   .game-page-frame[data-reduced-motion="false"]
     .bottom-game-nav__item:enabled:active,
   .game-page-frame[data-reduced-motion="false"]
     .game-header__action:enabled:active,
+  .game-page-frame[data-reduced-motion="false"] .game-button:enabled:active,
   .game-page-frame[data-reduced-motion="false"]
-    .game-button:enabled:active,
+    .player-hub__tabs
+    button:enabled:active,
   .game-page-frame[data-reduced-motion="false"]
-    .player-hub__tabs button:enabled:active,
-  .game-page-frame[data-reduced-motion="false"]
-    .team-inner-nav button:enabled:active {
+    .team-inner-nav
+    button:enabled:active {
     transform: scale(0.97);
     transition: transform 85ms ease-out;
   }
