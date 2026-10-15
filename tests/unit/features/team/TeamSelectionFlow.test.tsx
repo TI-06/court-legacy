@@ -111,9 +111,10 @@ describe("team selection direct-touch UI", () => {
     );
 
     expect(screen.queryByRole("dialog", { name: /の起用先$/ })).toBeNull();
-    expect(
-      screen.getByRole("tab", { name: "コート" }),
-    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "コート" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     await waitFor(() =>
       expect(screen.getByText("編成は有効です")).toBeInTheDocument(),
     );
