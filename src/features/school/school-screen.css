@@ -1639,7 +1639,9 @@
   border: 1px solid rgb(85 198 212 / 35%);
   border-radius: 9px;
 }
-.school-facility-pager button:disabled { opacity: .35; }
+.school-facility-pager button:disabled {
+  opacity: 0.35;
+}
 .school-facility-pager span {
   color: var(--game-text-muted);
   font-size: 12px;

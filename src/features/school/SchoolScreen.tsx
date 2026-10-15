@@ -488,346 +488,354 @@ export function SchoolScreen({
                   (facilityPage + 1) * (facilityViewportHeight < 740 ? 2 : 4),
                 )
                 .map(({ definition, evaluation }) => {
-                const missingFunds = Math.max(
-                  0,
-                  evaluation.cost - school.funds,
-                );
-                const status =
-                  evaluation.reason === "max-level"
-                    ? "最大Lv"
-                    : evaluation.reason === "insufficient-funds"
-                      ? `あと${missingFunds}必要`
-                      : evaluation.reason === "invalid-level"
-                        ? "要確認"
-                        : `次 ${evaluation.cost}`;
-                return (
-                  <button
-                    aria-label={`${definition.name}の詳細`}
-                    className={
-                      evaluation.allowed
-                        ? "facility-tile facility-tile--available"
-                        : "facility-tile"
-                    }
-                    data-testid="facility-tile"
-                    key={definition.key}
-                    onClick={() => {
-                      setSelectedFacility(definition.key);
-                      setSelectedUpgradeLevels(1);
-                    }}
-                    type="button"
-                  >
-                    <span className="facility-tile__top">
-                      <strong>{compactFacilityName(definition.name)}</strong>
-                      <b>Lv.{evaluation.currentLevel} / 50</b>
-                    </span>
-                    <progress
-                      aria-label={`${definition.name} レベル進捗`}
-                      className="facility-tile__progress"
-                      max={50}
-                      value={evaluation.currentLevel}
-                    />
-                    <small
+                  const missingFunds = Math.max(
+                    0,
+                    evaluation.cost - school.funds,
+                  );
+                  const status =
+                    evaluation.reason === "max-level"
+                      ? "最大Lv"
+                      : evaluation.reason === "insufficient-funds"
+                        ? `あと${missingFunds}必要`
+                        : evaluation.reason === "invalid-level"
+                          ? "要確認"
+                          : `次 ${evaluation.cost}`;
+                  return (
+                    <button
+                      aria-label={`${definition.name}の詳細`}
                       className={
                         evaluation.allowed
-                          ? undefined
-                          : "facility-tile__warning"
+                          ? "facility-tile facility-tile--available"
+                          : "facility-tile"
                       }
+                      data-testid="facility-tile"
+                      key={definition.key}
+                      onClick={() => {
+                        setSelectedFacility(definition.key);
+                        setSelectedUpgradeLevels(1);
+                      }}
+                      type="button"
                     >
-                      {status}
-                    </small>
-                    <span className="facility-tile__detail" aria-hidden="true">
-                      詳細 ›
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {facilityOverview.length >
-            (facilityViewportHeight < 740 ? 2 : 4) ? (
-              <nav aria-label="設備一覧のページ切替" className="school-facility-pager">
-                <button
-                  disabled={facilityPage === 0}
-                  onClick={() => setFacilityPage((page) => Math.max(0, page - 1))}
-                  type="button"
-                >
-                  ‹ 前へ
-                </button>
-                <span>
-                  {facilityPage + 1} /{" "}
-                  {Math.ceil(
-                    facilityOverview.length /
-                      (facilityViewportHeight < 740 ? 2 : 4),
-                  )}
-                </span>
-                <button
-                  disabled={
-                    (facilityPage + 1) *
-                      (facilityViewportHeight < 740 ? 2 : 4) >=
-                    facilityOverview.length
-                  }
-                  onClick={() => setFacilityPage((page) => page + 1)}
-                  type="button"
-                >
-                  次へ ›
-                </button>
-              </nav>
-            ) : null}
-          </section>
-
-          <section
-            aria-labelledby="staff-heading"
-            className="school-management-section"
-            hidden={managementView !== "staff"}
-          >
-            <div className="school-staff-command-heading">
-              <div>
-                <h4 id="staff-heading">スタッフ</h4>
-                <small>{ASSISTANT_COACH_OPTIONS.length}候補</small>
+                      <span className="facility-tile__top">
+                        <strong>{compactFacilityName(definition.name)}</strong>
+                        <b>Lv.{evaluation.currentLevel} / 50</b>
+                      </span>
+                      <progress
+                        aria-label={`${definition.name} レベル進捗`}
+                        className="facility-tile__progress"
+                        max={50}
+                        value={evaluation.currentLevel}
+                      />
+                      <small
+                        className={
+                          evaluation.allowed
+                            ? undefined
+                            : "facility-tile__warning"
+                        }
+                      >
+                        {status}
+                      </small>
+                      <span
+                        className="facility-tile__detail"
+                        aria-hidden="true"
+                      >
+                        詳細 ›
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <span>資金 {school.funds}</span>
-            </div>
-
-            {assistantCoachContract && assistantCoachContractOption ? (
-              <div
-                className="assistant-coach-current"
-                data-testid="assistant-coach-current"
+              {facilityOverview.length >
+              (facilityViewportHeight < 740 ? 2 : 4) ? (
+                <nav
+                aria-label="設備一覧のページ切替"
+                className="school-facility-pager"
               >
-                <span>契約中</span>
-                <strong>
-                  {assistantCoachRankLabels[assistantCoachContract.rank]}
-                  {assistantCoachContract.specialty
-                    ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
-                    : "・総合"}
-                </strong>
-                <small>
-                  {state.calendar.academicYear}年度・全体成長 +
-                  {assistantCoachContractOption.generalPercent - 100}%
-                </small>
-              </div>
-            ) : (
-              <p className="assistant-coach-none">
-                現在契約中のコーチはいません
-              </p>
-            )}
-
-            <div className="assistant-coach-grid">
-              {ASSISTANT_COACH_OPTIONS.map((option) => {
-                const contractedThisYear =
-                  assistantCoachContract?.contractYearIndex === state.yearIndex;
-                const affordable = option.annualCost <= school.funds;
-                const status = contractedThisYear
-                  ? "今年度契約済み"
-                  : affordable
-                    ? "詳細で契約"
-                    : `あと${option.annualCost - school.funds}必要`;
-                return (
                   <button
-                    aria-label={`${option.name}の詳細`}
-                    className={
-                      !contractedThisYear && affordable
-                        ? "assistant-coach-card assistant-coach-card--available"
-                        : "assistant-coach-card"
-                    }
-                    data-testid={`assistant-coach-${option.rank}`}
-                    key={option.rank}
-                    onClick={() => setSelectedCoachRank(option.rank)}
+                    disabled={facilityPage === 0}
+                    onClick={() =>
+                    setFacilityPage((page) => Math.max(0, page - 1))
+                  }
                     type="button"
                   >
-                    <span className="assistant-coach-card__heading">
-                      <strong>{option.name}</strong>
-                      <span>年間 {option.annualCost}</span>
-                    </span>
-                    <span className="assistant-coach-effects">
-                      <span>全体 +{option.generalPercent - 100}%</span>
-                      {option.specialtyPercent ? (
-                        <span>専門 +{option.specialtyPercent - 100}%</span>
-                      ) : (
-                        <span>総合指導</span>
-                      )}
-                      {option.conditionPercent ? (
-                        <span>低調子 +{option.conditionPercent - 100}%</span>
-                      ) : null}
-                      {option.firstYearPercent ? (
-                        <span>1年生 +{option.firstYearPercent - 100}%</span>
-                      ) : null}
-                    </span>
-                    <span className="assistant-coach-card__summary">
-                      <small>{status}</small>
-                      <b aria-hidden="true">詳細 ›</b>
-                    </span>
+                    ‹ 前へ
                   </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="investment-heading"
-            className="school-management-section"
-            hidden={managementView !== "investments"}
-          >
-            <div className="school-staff-command-heading">
-              <div>
-                <h4 id="investment-heading">年間強化予算</h4>
-                <small>施設Lv50後も戦略的に資金を使えます</small>
-              </div>
-              <span>資金 {school.funds}</span>
-            </div>
-
-            <div className="school-investment-grid">
-              {[
-                {
-                  category: "development" as const,
-                  title: "育成重点",
-                  options: [
-                    [
-                      "attack",
-                      "攻撃強化",
-                      "攻撃系の練習成長 +10%",
-                      SCHOOL_INVESTMENT_COSTS.development,
-                    ],
-                    [
-                      "defense",
-                      "守備強化",
-                      "守備系の練習成長 +10%",
-                      SCHOOL_INVESTMENT_COSTS.development,
-                    ],
-                    [
-                      "physical",
-                      "フィジカル強化",
-                      "身体能力系の練習成長 +10%",
-                      SCHOOL_INVESTMENT_COSTS.development,
-                    ],
-                  ] as const,
-                  selected: investmentPlan?.developmentFocus,
-                },
-                {
-                  category: "external-coach" as const,
-                  title: "外部専門コーチ",
-                  options: [
-                    [
-                      "attacker",
-                      "アタッカー",
-                      "OH・OPの専門練習 +15%",
-                      SCHOOL_INVESTMENT_COSTS["external-coach"],
-                    ],
-                    [
-                      "setter",
-                      "セッター",
-                      "Sの専門練習 +15%",
-                      SCHOOL_INVESTMENT_COSTS["external-coach"],
-                    ],
-                    [
-                      "blocker",
-                      "ブロッカー",
-                      "MBの専門練習 +15%",
-                      SCHOOL_INVESTMENT_COSTS["external-coach"],
-                    ],
-                    [
-                      "libero",
-                      "リベロ",
-                      "Lの専門練習 +15%",
-                      SCHOOL_INVESTMENT_COSTS["external-coach"],
-                    ],
-                  ] as const,
-                  selected: investmentPlan?.externalSpecialist,
-                },
-                {
-                  category: "camp" as const,
-                  title: "強化合宿",
-                  options: [
-                    [
-                      "intensive",
-                      "強化合宿",
-                      "合宿成長 +12%・特能進展率UP",
-                      SCHOOL_INVESTMENT_COSTS.camp.intensive,
-                    ],
-                    [
-                      "elite",
-                      "全国強豪合同合宿",
-                      "合宿成長 +25%・特能進展率さらにUP",
-                      SCHOOL_INVESTMENT_COSTS.camp.elite,
-                    ],
-                  ] as const,
-                  selected: investmentPlan?.campTier,
-                },
-                {
-                  category: "scouting" as const,
-                  title: "スカウト遠征",
-                  options: [
-                    [
-                      "regional",
-                      "地方重点",
-                      "検索候補 +1・有望選手率UP",
-                      SCHOOL_INVESTMENT_COSTS.scouting.regional,
-                    ],
-                    [
-                      "national",
-                      "全国重点",
-                      "検索候補 +2・上位候補率UP",
-                      SCHOOL_INVESTMENT_COSTS.scouting.national,
-                    ],
-                  ] as const,
-                  selected: investmentPlan?.scoutingTier,
-                },
-              ].map((group) => {
-                const unlock = schoolInvestmentUnlock(state, group.category);
-                const requiredFacility = FACILITY_DEFINITIONS.find(
-                  (definition) => definition.key === unlock.facility,
-                );
-                return (
-                  <section
-                    className={
-                      unlock.unlocked
-                        ? "school-investment-card"
-                        : "school-investment-card school-investment-card--locked"
+                  <span>
+                    {facilityPage + 1} /{" "}
+                    {Math.ceil(
+                      facilityOverview.length /
+                        (facilityViewportHeight < 740 ? 2 : 4),
+                    )}
+                  </span>
+                  <button
+                    disabled={
+                      (facilityPage + 1) *
+                        (facilityViewportHeight < 740 ? 2 : 4) >=
+                      facilityOverview.length
                     }
-                    key={group.category}
+                    onClick={() => setFacilityPage((page) => page + 1)}
+                    type="button"
                   >
-                    <div className="school-investment-card__heading">
-                      <strong>{group.title}</strong>
-                      <span>
-                        {group.selected
-                          ? "設定済み"
-                          : unlock.unlocked
-                            ? "選択可能"
-                            : `${compactFacilityName(
-                                requiredFacility?.name ?? "対象施設",
-                              )} Lv.${unlock.currentLevel}/${unlock.requiredLevel}`}
+                    次へ ›
+                  </button>
+                </nav>
+              ) : null}
+            </section>
+
+            <section
+              aria-labelledby="staff-heading"
+              className="school-management-section"
+              hidden={managementView !== "staff"}
+            >
+              <div className="school-staff-command-heading">
+                <div>
+                  <h4 id="staff-heading">スタッフ</h4>
+                  <small>{ASSISTANT_COACH_OPTIONS.length}候補</small>
+                </div>
+                <span>資金 {school.funds}</span>
+              </div>
+
+              {assistantCoachContract && assistantCoachContractOption ? (
+                <div
+                  className="assistant-coach-current"
+                  data-testid="assistant-coach-current"
+                >
+                  <span>契約中</span>
+                  <strong>
+                    {assistantCoachRankLabels[assistantCoachContract.rank]}
+                    {assistantCoachContract.specialty
+                      ? `・${assistantCoachSpecialtyLabels[assistantCoachContract.specialty]}`
+                      : "・総合"}
+                  </strong>
+                  <small>
+                    {state.calendar.academicYear}年度・全体成長 +
+                    {assistantCoachContractOption.generalPercent - 100}%
+                  </small>
+                </div>
+              ) : (
+                <p className="assistant-coach-none">
+                  現在契約中のコーチはいません
+                </p>
+              )}
+
+              <div className="assistant-coach-grid">
+                {ASSISTANT_COACH_OPTIONS.map((option) => {
+                  const contractedThisYear =
+                    assistantCoachContract?.contractYearIndex === state.yearIndex;
+                  const affordable = option.annualCost <= school.funds;
+                  const status = contractedThisYear
+                    ? "今年度契約済み"
+                    : affordable
+                      ? "詳細で契約"
+                      : `あと${option.annualCost - school.funds}必要`;
+                  return (
+                    <button
+                      aria-label={`${option.name}の詳細`}
+                      className={
+                        !contractedThisYear && affordable
+                          ? "assistant-coach-card assistant-coach-card--available"
+                          : "assistant-coach-card"
+                      }
+                      data-testid={`assistant-coach-${option.rank}`}
+                      key={option.rank}
+                      onClick={() => setSelectedCoachRank(option.rank)}
+                      type="button"
+                    >
+                      <span className="assistant-coach-card__heading">
+                        <strong>{option.name}</strong>
+                        <span>年間 {option.annualCost}</span>
                       </span>
-                    </div>
-                    <div className="school-investment-options">
-                      {group.options.map(([option, label, effect, cost]) => {
-                        const evaluation = evaluateSchoolInvestment(
-                          state,
-                          group.category,
-                          option,
-                        );
-                        const selected = group.selected === option;
-                        return (
-                          <button
-                            aria-pressed={selected}
-                            disabled={!evaluation.allowed || selected}
-                            key={option}
-                            onClick={() =>
-                              onPurchaseInvestment?.(group.category, option)
-                            }
-                            type="button"
-                          >
-                            <span>
-                              <strong>{label}</strong>
-                              <small>
-                                {unlock.unlocked
-                                  ? effect
-                                  : `${compactFacilityName(
-                                      requiredFacility?.name ?? "対象施設",
-                                    )} Lv.50で解禁`}
-                              </small>
-                            </span>
-                            <b>{selected ? "適用中" : cost}</b>
-                          </button>
-                        );
-                      })}
+                      <span className="assistant-coach-effects">
+                        <span>全体 +{option.generalPercent - 100}%</span>
+                        {option.specialtyPercent ? (
+                          <span>専門 +{option.specialtyPercent - 100}%</span>
+                        ) : (
+                          <span>総合指導</span>
+                        )}
+                        {option.conditionPercent ? (
+                          <span>低調子 +{option.conditionPercent - 100}%</span>
+                        ) : null}
+                        {option.firstYearPercent ? (
+                          <span>1年生 +{option.firstYearPercent - 100}%</span>
+                        ) : null}
+                      </span>
+                      <span className="assistant-coach-card__summary">
+                        <small>{status}</small>
+                        <b aria-hidden="true">詳細 ›</b>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section
+              aria-labelledby="investment-heading"
+              className="school-management-section"
+              hidden={managementView !== "investments"}
+            >
+              <div className="school-staff-command-heading">
+                <div>
+                  <h4 id="investment-heading">年間強化予算</h4>
+                  <small>施設Lv50後も戦略的に資金を使えます</small>
+                </div>
+                <span>資金 {school.funds}</span>
+              </div>
+
+              <div className="school-investment-grid">
+                {[
+                  {
+                    category: "development" as const,
+                    title: "育成重点",
+                    options: [
+                      [
+                        "attack",
+                        "攻撃強化",
+                        "攻撃系の練習成長 +10%",
+                        SCHOOL_INVESTMENT_COSTS.development,
+                      ],
+                      [
+                        "defense",
+                        "守備強化",
+                        "守備系の練習成長 +10%",
+                        SCHOOL_INVESTMENT_COSTS.development,
+                      ],
+                      [
+                        "physical",
+                        "フィジカル強化",
+                        "身体能力系の練習成長 +10%",
+                        SCHOOL_INVESTMENT_COSTS.development,
+                      ],
+                    ] as const,
+                    selected: investmentPlan?.developmentFocus,
+                  },
+                  {
+                    category: "external-coach" as const,
+                    title: "外部専門コーチ",
+                    options: [
+                      [
+                        "attacker",
+                        "アタッカー",
+                        "OH・OPの専門練習 +15%",
+                        SCHOOL_INVESTMENT_COSTS["external-coach"],
+                      ],
+                      [
+                        "setter",
+                        "セッター",
+                        "Sの専門練習 +15%",
+                        SCHOOL_INVESTMENT_COSTS["external-coach"],
+                      ],
+                      [
+                        "blocker",
+                        "ブロッカー",
+                        "MBの専門練習 +15%",
+                        SCHOOL_INVESTMENT_COSTS["external-coach"],
+                      ],
+                      [
+                        "libero",
+                        "リベロ",
+                        "Lの専門練習 +15%",
+                        SCHOOL_INVESTMENT_COSTS["external-coach"],
+                      ],
+                    ] as const,
+                    selected: investmentPlan?.externalSpecialist,
+                  },
+                  {
+                    category: "camp" as const,
+                    title: "強化合宿",
+                    options: [
+                      [
+                        "intensive",
+                        "強化合宿",
+                        "合宿成長 +12%・特能進展率UP",
+                        SCHOOL_INVESTMENT_COSTS.camp.intensive,
+                      ],
+                      [
+                        "elite",
+                        "全国強豪合同合宿",
+                        "合宿成長 +25%・特能進展率さらにUP",
+                        SCHOOL_INVESTMENT_COSTS.camp.elite,
+                      ],
+                    ] as const,
+                    selected: investmentPlan?.campTier,
+                  },
+                  {
+                    category: "scouting" as const,
+                    title: "スカウト遠征",
+                    options: [
+                      [
+                        "regional",
+                        "地方重点",
+                        "検索候補 +1・有望選手率UP",
+                        SCHOOL_INVESTMENT_COSTS.scouting.regional,
+                      ],
+                      [
+                        "national",
+                        "全国重点",
+                        "検索候補 +2・上位候補率UP",
+                        SCHOOL_INVESTMENT_COSTS.scouting.national,
+                      ],
+                    ] as const,
+                    selected: investmentPlan?.scoutingTier,
+                  },
+                ].map((group) => {
+                  const unlock = schoolInvestmentUnlock(state, group.category);
+                  const requiredFacility = FACILITY_DEFINITIONS.find(
+                    (definition) => definition.key === unlock.facility,
+                  );
+                  return (
+                    <section
+                      className={
+                        unlock.unlocked
+                          ? "school-investment-card"
+                          : "school-investment-card school-investment-card--locked"
+                      }
+                      key={group.category}
+                    >
+                      <div className="school-investment-card__heading">
+                        <strong>{group.title}</strong>
+                        <span>
+                          {group.selected
+                            ? "設定済み"
+                            : unlock.unlocked
+                              ? "選択可能"
+                              : `${compactFacilityName(
+                                  requiredFacility?.name ?? "対象施設",
+                                )} Lv.${unlock.currentLevel}/${unlock.requiredLevel}`}
+                        </span>
+                      </div>
+                      <div className="school-investment-options">
+                        {group.options.map(([option, label, effect, cost]) => {
+                          const evaluation = evaluateSchoolInvestment(
+                            state,
+                            group.category,
+                            option,
+                          );
+                          const selected = group.selected === option;
+                          return (
+                            <button
+                              aria-pressed={selected}
+                              disabled={!evaluation.allowed || selected}
+                              key={option}
+                              onClick={() =>
+                                onPurchaseInvestment?.(group.category, option)
+                              }
+                              type="button"
+                            >
+                              <span>
+                                <strong>{label}</strong>
+                                <small>
+                                  {unlock.unlocked
+                                    ? effect
+                                    : `${compactFacilityName(
+                                        requiredFacility?.name ?? "対象施設",
+                                      )} Lv.50で解禁`}
+                                </small>
+                              </span>
+                              <b>{selected ? "適用中" : cost}</b>
+                            </button>
+                          );
+                        })}
                     </div>
                   </section>
                 );

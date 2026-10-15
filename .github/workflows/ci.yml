@@ -53,11 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Prettier diff
-        run: |
-          npx prettier src/features/school/SchoolScreen.tsx src/features/school/school-screen.css --write
-          git diff -- src/features/school/SchoolScreen.tsx src/features/school/school-screen.css
-          exit 1
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
