@@ -368,9 +368,7 @@ for (const viewport of [
       ["卒業生", "卒業生の記録"],
     ] as const) {
       await innerTabs.getByRole("tab", { name: label }).click();
-      await expect(
-        page.getByRole("tabpanel", { name: panel }),
-      ).toBeVisible();
+      await expect(page.getByRole("tabpanel", { name: panel })).toBeVisible();
       await expect(innerTabs.getByRole("tab", { name: label })).toHaveAttribute(
         "aria-selected",
         "true",
