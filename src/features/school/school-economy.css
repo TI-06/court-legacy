@@ -470,3 +470,50 @@
     white-space: normal;
   }
 }
+
+/* Phase61: focused mobile budget category navigation. */
+.school-investment-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 7px 0 8px;
+  padding: 3px;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 11px;
+}
+
+.school-investment-tabs button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 3px;
+  color: var(--game-text-muted, #a9b8ca);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.school-investment-tabs button[aria-selected="true"] {
+  color: #071321;
+  background: var(--game-accent, #f47a18);
+}
+
+.school-investment-card[hidden] {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .school-investment-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .school-investment-card {
+    min-width: 0;
+    max-height: min(340px, calc(100dvh - 310px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}

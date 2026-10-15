@@ -291,3 +291,46 @@ test("short 320px screen pages through all assistant coaches", async ({
   await expect(cards.first()).toHaveText(firstCoach ?? "");
   await expectSchoolNoHorizontalOverflow(page);
 });
+
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 360, height: 667 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+]) {
+  test(`mobile school investment categories at ${viewport.width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page
+      .getByRole("navigation", { name: "主要メニュー" })
+      .getByRole("button", { name: "学校", exact: true })
+      .click();
+    await page
+      .getByRole("tablist", { name: "運営メニュー", exact: true })
+      .getByRole("tab", { name: "強化予算" })
+      .click();
+    const tabs = page.getByRole("tablist", {
+      name: "年間強化予算のカテゴリ",
+    });
+    await expect(tabs.getByRole("tab")).toHaveCount(4);
+    const cards = page.locator(".school-investment-card:not([hidden])");
+    await expect(cards).toHaveCount(1);
+    for (const [label, category] of [
+      ["育成重点", "育成重点"],
+      ["専門コーチ", "外部専門コーチ"],
+      ["強化合宿", "強化合宿"],
+      ["遠征", "スカウト遠征"],
+    ] as const) {
+      await tabs.getByRole("tab", { name: label, exact: true }).click();
+      await expect(cards).toHaveCount(1);
+      await expect(cards).toContainText(category);
+      await expect(tabs.getByRole("tab", { name: label })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expectSchoolNoHorizontalOverflow(page);
+    }
+  });
+}
