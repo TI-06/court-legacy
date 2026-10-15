@@ -1779,6 +1779,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .team-screen--direct .bench-player-card > span {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
   .team-screen--direct .court-player-button {
     min-height: 66px;
   }

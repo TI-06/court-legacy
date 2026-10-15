@@ -350,6 +350,7 @@ export function TeamScreen({
     if (!next) return;
     emitSelection(next);
     setBenchDeployPlayerId(null);
+    setLineupPane("court");
   };
 
   const toggleStarterLock = (playerId: PlayerId) => {
