@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 for (const viewport of [
   { width: 320, height: 568 },
@@ -73,7 +73,7 @@ for (const viewport of [
   });
 }
 
-async function expectPlayerPanelFits(page: import("@playwright/test").Page) {
+async function expectPlayerPanelFits(page: Page) {
   const geometry = await page.evaluate(() => {
     const root = document.querySelector(".player-hub--mobile-panels")!;
     const nav = document.querySelector(".bottom-game-nav")!;
