@@ -61,13 +61,30 @@ test("mobile navigation motion respects reduced-motion settings", async ({
       .evaluate((element) => getComputedStyle(element).animationName);
 
   await expect(home).toHaveAttribute("aria-current", "page");
+  await expect(page.locator(".game-page-frame")).toHaveAttribute(
+    "data-reduced-motion",
+    "false",
+  );
+  const gameContent = page.locator(".game-page-frame__content");
+  const originalContent = await gameContent.elementHandle();
+  const date = page.locator(".game-header__date");
+  expect(
+    await date.evaluate((element) => getComputedStyle(element).animationName),
+  ).toBe("phase63-week-update");
   expect(await animation()).toBe("game-nav-icon-select");
   await player.click();
   await expect(player).toHaveAttribute("aria-current", "page");
+  const contentStillMounted = await originalContent?.evaluate(
+    (element) => element.isConnected,
+  );
+  expect(contentStillMounted).toBe(true);
   expect(await animation()).toBe("game-nav-icon-select");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   expect(await animation()).toBe("none");
+  expect(
+    await date.evaluate((element) => getComputedStyle(element).animationName),
+  ).toBe("none");
   const playerTabs = page.locator(".player-hub__tabs");
   await expect(playerTabs).toBeVisible();
   expect(

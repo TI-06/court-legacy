@@ -168,6 +168,15 @@ for (const width of [320, 360, 390, 414, 480]) {
       page.getByRole("heading", { name: "試合ダイジェスト" }),
     ).toBeVisible();
     await expect(page.getByTestId("event-sequence")).toContainText("1 /");
+    if (width === 390) {
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await expect(page.getByTestId("match-live-home-points")).toBeVisible();
+      await expect(page.getByTestId("match-live-away-points")).toBeVisible();
+      await expect(page.locator(".match-screen--live")).toHaveAttribute(
+        "data-reduced-motion",
+        "false",
+      );
+    }
     await expectNoHorizontalOverflow(page);
 
     if (width === 390) {
@@ -177,6 +186,12 @@ for (const width of [320, 360, 390, 414, 480]) {
 
     await finishInteractiveMatch(page);
     await expect(page.getByRole("heading", { name: "試合結果" })).toBeVisible();
+    if (width === 390) {
+      const verdictMotion = await page
+        .getByTestId("match-result-verdict")
+        .evaluate((element) => getComputedStyle(element).animationName);
+      expect(verdictMotion).toBe("phase63-result-stamp");
+    }
     await expectNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "結果を確認して次へ" }).click();

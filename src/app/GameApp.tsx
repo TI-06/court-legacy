@@ -1696,6 +1696,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
       <GamePageFrame
         activeTab={activeTab}
         dateLabel={formatGameDate(gameState.date)}
+        reducedMotion={gameState.settings.reducedMotion}
         onChangeTab={changeTab}
         onOpenCalendar={() => setCalendarOpen(true)}
         operation={cloudSession.operation}

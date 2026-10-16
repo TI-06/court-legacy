@@ -30,7 +30,9 @@ export function GameHeader({
         <span className="game-header__brand">COURT LEGACY</span>
         <p>{schoolName}</p>
         <div className="game-header__meta">
-          <span>{dateLabel}</span>
+          <span className="game-header__date" key={dateLabel}>
+            {dateLabel}
+          </span>
           <span>{resolvedProgressLabel}</span>
         </div>
       </div>

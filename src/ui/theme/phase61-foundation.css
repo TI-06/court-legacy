@@ -430,3 +430,30 @@
     animation: none;
   }
 }
+
+/* Phase63: week-specific update. Do not remount the game view on tab changes. */
+@keyframes phase63-week-update {
+  from {
+    color: var(--game-reward);
+    opacity: 0.72;
+  }
+
+  to {
+    color: inherit;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .game-page-frame[data-reduced-motion="false"] .game-header__date {
+    animation: phase63-week-update 380ms ease-out both;
+  }
+}
+
+/* The game setting is stronger than per-component animation rules. */
+.game-page-frame[data-reduced-motion="true"] *,
+.game-page-frame[data-reduced-motion="true"] *::before,
+.game-page-frame[data-reduced-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
