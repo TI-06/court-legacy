@@ -362,7 +362,7 @@ for (const viewport of [
         expect(sizes.points).toBeGreaterThanOrEqual(27);
       }
       const result = await clearance(
-        ".match-result-body"
+        ".match-result-body",
         ".match-result-actions--fixed",
       );
       expect(result.contentBottom).toBeLessThanOrEqual(result.actionTop + 1);
