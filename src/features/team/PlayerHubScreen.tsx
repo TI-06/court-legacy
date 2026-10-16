@@ -9,6 +9,9 @@ import type { Player, Position } from "../../domain/model/Player";
 import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
+import type { ShopItemId } from "../../domain/shop/shopCatalog";
+import type { ShopStatusResponse, ShopUseTarget } from "../../domain/shop/shopContracts";
+import type { SpecialCoachFocus } from "../../domain/shop/shopEffects";
 import {
   selectPlayerRelationships,
   specialRelationshipKindLabel,
@@ -114,7 +117,26 @@ interface PlayerHubScreenProps {
     selection: TeamSelection,
   ) => void | Promise<void>;
   onDeleteLineupPreset?: (slot: SavedLineupSlot) => void | Promise<void>;
+  shopStatus?: ShopStatusResponse | null;
+  shopLoading?: boolean;
+  shopPending?: boolean;
+  shopError?: string | null;
+  shopResultMessage?: string | null;
+  shopRetryAvailable?: boolean;
+  onLoadShopItems?: () => void;
+  onRetryShopItem?: () => void;
+  onOpenItemShop?: () => void;
+  onUseShopItem?: (itemId: ShopItemId, target: ShopUseTarget) => void;
 }
+
+const coachItemFocusOptions: { focus: SpecialCoachFocus; label: string }[] = [
+  { focus: "spike", label: "スパイク" },
+  { focus: "serve", label: "サーブ" },
+  { focus: "receive", label: "レシーブ" },
+  { focus: "block", label: "ブロック" },
+  { focus: "physical", label: "フィジカル" },
+  { focus: "decision", label: "判断力" },
+];
 
 type HubMode = "roster" | "lineup" | "dynamics" | "tactics";
 export type PlayerDetailMode = "ability" | "growth" | "personality" | "record";
@@ -299,6 +321,16 @@ export function PlayerHubScreen({
   onSetTeamDefenseBias,
   onSaveLineupPreset,
   onDeleteLineupPreset,
+  shopStatus = null,
+  shopLoading = false,
+  shopPending = false,
+  shopError = null,
+  shopResultMessage = null,
+  shopRetryAvailable = false,
+  onLoadShopItems,
+  onRetryShopItem,
+  onOpenItemShop,
+  onUseShopItem,
 }: PlayerHubScreenProps) {
   const [mode, setMode] = useState<HubMode>("roster");
   const [detailMode, setDetailMode] =
@@ -314,6 +346,8 @@ export function PlayerHubScreen({
   );
   const [coachRecommendationsOpen, setCoachRecommendationsOpen] =
     useState(false);
+  const [playerItemSheetOpen, setPlayerItemSheetOpen] = useState(false);
+  const [coachItemFocusOpen, setCoachItemFocusOpen] = useState(false);
   const [seasonStatsOpen, setSeasonStatsOpen] = useState(false);
   const [statsScope, setStatsScope] = useState<"season" | "legacy">("season");
   const [coachTargetPlayerIds, setCoachTargetPlayerIds] = useState<PlayerId[]>(
@@ -905,14 +939,29 @@ export function PlayerHubScreen({
 
     return (
       <main className="app-content player-hub player-detail">
-        <button
-          aria-label="選手一覧へ戻る"
-          className="player-detail__back"
-          onClick={() => setSelectedPlayerId(null)}
-          type="button"
-        >
-          ‹ 選手一覧
-        </button>
+        <div className="player-detail__top-actions">
+          <button
+            aria-label="選手一覧へ戻る"
+            className="player-detail__back"
+            onClick={() => setSelectedPlayerId(null)}
+            type="button"
+          >
+            ‹ 選手一覧
+          </button>
+          {onUseShopItem && onLoadShopItems ? (
+            <button
+              className="player-detail__item-button"
+              onClick={() => {
+                setCoachItemFocusOpen(false);
+                setPlayerItemSheetOpen(true);
+                onLoadShopItems();
+              }}
+              type="button"
+            >
+              アイテムを使う
+            </button>
+          ) : null}
+        </div>
 
         <section className="player-detail__summary">
           <div className="player-detail__identity">
@@ -1561,6 +1610,116 @@ export function PlayerHubScreen({
 
         {trainingSaveBar}
         {trainingSheet}
+        {onUseShopItem ? (
+          <BottomSheet
+            description={`${playerName(selectedPlayer)}に使うアイテムを選んでください。`}
+            onClose={() => {
+              setPlayerItemSheetOpen(false);
+              setCoachItemFocusOpen(false);
+            }}
+            open={playerItemSheetOpen}
+            title="選手アイテム"
+          >
+            <div className="player-detail__item-sheet" data-testid="player-detail-items">
+              {shopError ? (
+                <div className="player-detail__item-notice" role="alert">
+                  <span>{shopError}</span>
+                  <button
+                    onClick={shopRetryAvailable ? onRetryShopItem : onLoadShopItems}
+                    type="button"
+                  >
+                    {shopRetryAvailable ? "同じ操作を再試行" : "再読み込み"}
+                  </button>
+                </div>
+              ) : null}
+              {shopResultMessage && !shopError ? (
+                <p className="player-detail__item-notice" role="status">
+                  {shopResultMessage}
+                </p>
+              ) : null}
+              {shopLoading || !shopStatus ? (
+                <p className="player-detail__item-notice" role="status">
+                  {shopLoading ? "所持アイテムを確認中…" : "所持品を読み込めませんでした"}
+                </p>
+              ) : coachItemFocusOpen ? (
+                <>
+                  <button
+                    className="player-detail__item-back"
+                    onClick={() => setCoachItemFocusOpen(false)}
+                    type="button"
+                  >
+                    ‹ アイテム選択へ
+                  </button>
+                  <p className="player-detail__item-notice">
+                    特別コーチで伸ばす能力を選択
+                  </p>
+                  <div className="player-detail__item-focuses">
+                    {coachItemFocusOptions.map(({ focus, label }) => (
+                      <button
+                        disabled={shopPending || !shopStatus.items.find((item) => item.itemId === "special-coach")?.canUse}
+                        key={focus}
+                        onClick={() => {
+                          onUseShopItem("special-coach", {
+                            type: "special-coach",
+                            playerId: selectedPlayer.id,
+                            focus,
+                          });
+                          setCoachItemFocusOpen(false);
+                        }}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="player-detail__item-choices">
+                  {(["fatigue-recovery", "special-coach"] as const).map((itemId) => {
+                    const item = shopStatus.items.find((entry) => entry.itemId === itemId);
+                    const eligible = itemId === "fatigue-recovery"
+                      ? selectedPlayer.fatigue > 0 || selectedPlayer.condition < 100
+                      : selectedPlayer.injury === null;
+                    return (
+                      <button
+                        disabled={shopPending || !item?.canUse || !eligible}
+                        key={itemId}
+                        onClick={() => {
+                          if (itemId === "fatigue-recovery") {
+                            onUseShopItem(itemId, {
+                              type: "player",
+                              playerId: selectedPlayer.id,
+                            });
+                          } else {
+                            setCoachItemFocusOpen(true);
+                          }
+                        }}
+                        type="button"
+                      >
+                        <span>
+                          <strong>{item?.displayName ?? (itemId === "fatigue-recovery" ? "疲労回復" : "特別コーチ")}</strong>
+                          <small>{itemId === "fatigue-recovery"
+                            ? `疲労 ${selectedPlayer.fatigue}・状態 ${selectedPlayer.condition}`
+                            : "育成したい能力を選んで強化"}</small>
+                        </span>
+                        <b>{item?.quantityOwned ?? 0}個</b>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {onOpenItemShop ? (
+                <button
+                  className="player-detail__item-shop-link"
+                  onClick={onOpenItemShop}
+                  type="button"
+                >
+                  ショップへ
+                </button>
+              ) : null}
+            </div>
+          </BottomSheet>
+        ) : null}
       </main>
     );
   }
