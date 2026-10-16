@@ -3139,7 +3139,9 @@
   }
 
   .player-hub--paged .player-roster__abilities > span,
-  .player-hub--paged .player-roster__abilities > .player-roster__training-action {
+  .player-hub--paged
+    .player-roster__abilities
+    > .player-roster__training-action {
     min-height: 28px;
   }
 

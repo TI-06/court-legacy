@@ -121,7 +121,9 @@ describe("Phase54 current-season leaderboard", () => {
       (id) => state.players[id]!,
     );
     const libero = players.find((player) => player.preferredPosition === "L")!;
-    const attacker = players.find((player) => player.preferredPosition === "OH")!;
+    const attacker = players.find(
+      (player) => player.preferredPosition === "OH",
+    )!;
 
     libero.career.seasonStats = {
       academicYear: state.calendar.academicYear,
@@ -163,5 +165,4 @@ describe("Phase54 current-season leaderboard", () => {
     )!;
     expect(receives.rows.some((row) => row.playerId === libero.id)).toBe(true);
   });
-
 });
