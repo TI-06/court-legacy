@@ -2823,7 +2823,6 @@
   }
 }
 
-
 /* Player-specific item actions: accessible without leaving the player screen. */
 .player-detail__top-actions {
   display: flex;

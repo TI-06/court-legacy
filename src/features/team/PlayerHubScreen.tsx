@@ -10,7 +10,10 @@ import type { TeamTactics } from "../../domain/model/School";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 import type { PlayerId } from "../../domain/model/identifiers";
 import type { ShopItemId } from "../../domain/shop/shopCatalog";
-import type { ShopStatusResponse, ShopUseTarget } from "../../domain/shop/shopContracts";
+import type {
+  ShopStatusResponse,
+  ShopUseTarget,
+} from "../../domain/shop/shopContracts";
 import type { SpecialCoachFocus } from "../../domain/shop/shopEffects";
 import {
   selectPlayerRelationships,
@@ -1620,12 +1623,17 @@ export function PlayerHubScreen({
             open={playerItemSheetOpen}
             title="選手アイテム"
           >
-            <div className="player-detail__item-sheet" data-testid="player-detail-items">
+            <div
+              className="player-detail__item-sheet"
+              data-testid="player-detail-items"
+            >
               {shopError ? (
                 <div className="player-detail__item-notice" role="alert">
                   <span>{shopError}</span>
                   <button
-                    onClick={shopRetryAvailable ? onRetryShopItem : onLoadShopItems}
+                    onClick={
+                      shopRetryAvailable ? onRetryShopItem : onLoadShopItems
+                    }
                     type="button"
                   >
                     {shopRetryAvailable ? "同じ操作を再試行" : "再読み込み"}
@@ -1639,7 +1647,9 @@ export function PlayerHubScreen({
               ) : null}
               {shopLoading || !shopStatus ? (
                 <p className="player-detail__item-notice" role="status">
-                  {shopLoading ? "所持アイテムを確認中…" : "所持品を読み込めませんでした"}
+                  {shopLoading
+                    ? "所持アイテムを確認中…"
+                    : "所持品を読み込めませんでした"}
                 </p>
               ) : coachItemFocusOpen ? (
                 <>
@@ -1656,7 +1666,12 @@ export function PlayerHubScreen({
                   <div className="player-detail__item-focuses">
                     {coachItemFocusOptions.map(({ focus, label }) => (
                       <button
-                        disabled={shopPending || !shopStatus.items.find((item) => item.itemId === "special-coach")?.canUse}
+                        disabled={
+                          shopPending ||
+                          !shopStatus.items.find(
+                            (item) => item.itemId === "special-coach",
+                          )?.canUse
+                        }
                         key={focus}
                         onClick={() => {
                           onUseShopItem("special-coach", {
@@ -1675,37 +1690,50 @@ export function PlayerHubScreen({
                 </>
               ) : (
                 <div className="player-detail__item-choices">
-                  {(["fatigue-recovery", "special-coach"] as const).map((itemId) => {
-                    const item = shopStatus.items.find((entry) => entry.itemId === itemId);
-                    const eligible = itemId === "fatigue-recovery"
-                      ? selectedPlayer.fatigue > 0 || selectedPlayer.condition < 100
-                      : selectedPlayer.injury === null;
-                    return (
-                      <button
-                        disabled={shopPending || !item?.canUse || !eligible}
-                        key={itemId}
-                        onClick={() => {
-                          if (itemId === "fatigue-recovery") {
-                            onUseShopItem(itemId, {
-                              type: "player",
-                              playerId: selectedPlayer.id,
-                            });
-                          } else {
-                            setCoachItemFocusOpen(true);
-                          }
-                        }}
-                        type="button"
-                      >
-                        <span>
-                          <strong>{item?.displayName ?? (itemId === "fatigue-recovery" ? "疲労回復" : "特別コーチ")}</strong>
-                          <small>{itemId === "fatigue-recovery"
-                            ? `疲労 ${selectedPlayer.fatigue}・状態 ${selectedPlayer.condition}`
-                            : "育成したい能力を選んで強化"}</small>
-                        </span>
-                        <b>{item?.quantityOwned ?? 0}個</b>
-                      </button>
-                    );
-                  })}
+                  {(["fatigue-recovery", "special-coach"] as const).map(
+                    (itemId) => {
+                      const item = shopStatus.items.find(
+                        (entry) => entry.itemId === itemId,
+                      );
+                      const eligible =
+                        itemId === "fatigue-recovery"
+                          ? selectedPlayer.fatigue > 0 ||
+                            selectedPlayer.condition < 100
+                          : selectedPlayer.injury === null;
+                      return (
+                        <button
+                          disabled={shopPending || !item?.canUse || !eligible}
+                          key={itemId}
+                          onClick={() => {
+                            if (itemId === "fatigue-recovery") {
+                              onUseShopItem(itemId, {
+                                type: "player",
+                                playerId: selectedPlayer.id,
+                              });
+                            } else {
+                              setCoachItemFocusOpen(true);
+                            }
+                          }}
+                          type="button"
+                        >
+                          <span>
+                            <strong>
+                              {item?.displayName ??
+                                (itemId === "fatigue-recovery"
+                                  ? "疲労回復"
+                                  : "特別コーチ")}
+                            </strong>
+                            <small>
+                              {itemId === "fatigue-recovery"
+                                ? `疲労 ${selectedPlayer.fatigue}・状態 ${selectedPlayer.condition}`
+                                : "育成したい能力を選んで強化"}
+                            </small>
+                          </span>
+                          <b>{item?.quantityOwned ?? 0}個</b>
+                        </button>
+                      );
+                    },
+                  )}
                 </div>
               )}
               {onOpenItemShop ? (

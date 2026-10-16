@@ -87,8 +87,12 @@ describe("player detail item actions", () => {
 
   it("disables item use when stock is empty and keeps shop access available", () => {
     const { onUseShopItem, onOpenItemShop, sheet } = renderItemActions(0);
-    expect(within(sheet).getByRole("button", { name: /疲労回復/ })).toBeDisabled();
-    expect(within(sheet).getByRole("button", { name: /特別コーチ/ })).toBeDisabled();
+    expect(
+      within(sheet).getByRole("button", { name: /疲労回復/ }),
+    ).toBeDisabled();
+    expect(
+      within(sheet).getByRole("button", { name: /特別コーチ/ }),
+    ).toBeDisabled();
     fireEvent.click(within(sheet).getByRole("button", { name: "ショップへ" }));
     expect(onOpenItemShop).toHaveBeenCalledTimes(1);
     expect(onUseShopItem).not.toHaveBeenCalled();
