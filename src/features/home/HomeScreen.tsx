@@ -23,6 +23,7 @@ import "../../ui/ui.css";
 import { DevelopmentGoalAchievementSheet } from "./DevelopmentGoalAchievementSheet";
 import { HomeCommandCenter } from "./HomeCommandCenter";
 import { HomeQuickItems } from "./HomeQuickItems";
+import type { ShopUsePresentation } from "../shop/shopUsePresentation";
 import {
   selectHomeCommandCenter,
   type HomeCommandAction,
@@ -51,6 +52,7 @@ interface HomeScreenProps {
   shopPending?: boolean;
   shopResultMessage?: string | null;
   shopRetryAvailable?: boolean;
+  latestShopUseResult?: ShopUsePresentation | null;
   onLoadItems?: () => void;
   onRetryShopMutation?: () => void;
   onOpenShop?: () => void;
@@ -84,6 +86,7 @@ export function HomeScreen({
   shopPending = false,
   shopResultMessage = null,
   shopRetryAvailable = false,
+  latestShopUseResult = null,
   onLoadItems,
   onRetryShopMutation = () => undefined,
   onOpenShop = () => undefined,
@@ -218,6 +221,7 @@ export function HomeScreen({
               onUse={onUseShopItem}
               pending={shopPending || operationPending}
               resultMessage={shopResultMessage}
+              latestUseResult={latestShopUseResult}
               retryAvailable={shopRetryAvailable}
               state={state}
               status={shopStatus}
