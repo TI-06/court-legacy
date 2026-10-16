@@ -2690,7 +2690,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .match-screen[data-reduced-motion="false"] .match-scoreboard__point[data-scored="true"] {
+  .match-screen[data-reduced-motion="false"]
+    .match-scoreboard__point[data-scored="true"] {
     display: inline-block;
     animation: phase63-point-scored 220ms ease-out both;
   }

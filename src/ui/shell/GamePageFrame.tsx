@@ -34,7 +34,10 @@ export function GamePageFrame({
     progressLabel ?? `就任中${reputationLabel ? `・${reputationLabel}` : ""}`;
 
   return (
-    <div className="game-page-frame" data-reduced-motion={reducedMotion ? "true" : "false"}>
+    <div
+      className="game-page-frame"
+      data-reduced-motion={reducedMotion ? "true" : "false"}
+    >
       <GameHeader
         dateLabel={dateLabel}
         onOpenCalendar={onOpenCalendar}

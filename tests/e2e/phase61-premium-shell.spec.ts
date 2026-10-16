@@ -74,9 +74,10 @@ test("mobile navigation motion respects reduced-motion settings", async ({
   expect(await animation()).toBe("game-nav-icon-select");
   await player.click();
   await expect(player).toHaveAttribute("aria-current", "page");
-  expect(await originalContent?.evaluate((element) => element.isConnected)).toBe(
-    true,
+  const contentStillMounted = await originalContent?.evaluate(
+    (element) => element.isConnected,
   );
+  expect(contentStillMounted).toBe(true);
   expect(await animation()).toBe("game-nav-icon-select");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
