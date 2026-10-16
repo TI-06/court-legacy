@@ -9,16 +9,49 @@
 - URLパラメータは表示切替だけです。認証情報やログイン済みの扱いはURLで渡しません。
 - 管理者情報はゲームユーザーのSupabase認証と独立しています。
 
+## 公開画面
+
+- 管理画面: https://court-legacy.utiltoools.workers.dev/?admin=1
+- 公開API: https://court-legacy.utiltoools.workers.dev/api/health
+- 通常ゲーム画面は変更せず、URL末尾の `?admin=1` の場合だけ管理ログイン画面に切り替えます。
+
 ## 初回設定（デプロイ担当者）
 
-1. Supabaseに `supabase/migrations/202610170001_admin_dashboard.sql` を適用します。管理RPCとログイン試行回数制限を作成します。
-2. Cloudflare Workersのシークレットを次のコマンドでそれぞれ登録します（対話入力）。
-   - `npx wrangler secret put ADMIN_PASSWORD` → テスト段階だけ `admintest` を入力
-   - `npx wrangler secret put ADMIN_SESSION_SECRET` → 英数字混在のランダム値を32文字以上入力（例示値やパスワードは使い回さない）
-3. `ADMIN_USERNAME` は省略時に `admin` です。変更したい場合は Workersの環境変数に設定します。
-4. Workerをデプロイします。シークレット未設定では管理ログインAPIは503を返し、全データ閲覧を禁止します。
+1. Supabaseに `supabase/migrations/202610170001_admin_dashboard.sql` を適用します（**適用済み**）。
+2. [Cloudflareダッシュボード](https://dash.cloudflare.com/)で **Workers & Pages → court-legacy → Settings → Variables and Secrets** を開きます。
+3. 下記2項目を **Secret（暗号化されたシークレット）** タイプで追加します。通常のPlaintext変数には登録しないでください。
 
-**公開運用前に必ず `admintest` を十分長い専用パスワードへ変更してください。** この組み合わせは推測されやすく、長期間そのまま公開することは想定していません。
+   | 変数名 | 値 | 登録方法 |
+   | --- | --- | --- |
+   | `ADMIN_PASSWORD` | テスト時のみ指定値 `admintest` | Secret |
+   | `ADMIN_SESSION_SECRET` | 32文字以上のランダム文字列 | Secret |
+
+4. `ADMIN_SESSION_SECRET` はWindowsでも `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` で生成できます。ここで生成した値はGitHubやチャットに貼らず、Cloudflareだけに登録します。
+5. **Deploy** でシークレットを反映します（main の最新コードも公開済みか確認）。
+6. ローカルPCで `npm run admin:check` を実行し、3つの検査がすべて「正常」であることを確認します。
+7. 管理画面URLを開いてログインし、件数が表示されることを確認します。
+
+GitHubの `main` は既存のCloudflare Git連携によって自動ビルド・デプロイされる構成です。コード反映と**シークレット登録は別の作業**です。
+
+**公開運用前に必ず `admintest` を長く予測しにくいパスワードへ変更してください。** この組み合わせはテスト用としてのみ使用してください。
+
+### 公開確認コマンド
+
+```bash
+npm run admin:check
+# 別環境を確認する場合
+npm run admin:check -- https://example.workers.dev
+```
+
+このチェックはGETリクエストのみ使用し、パスワードの送信・ログイン試行・ユーザーデータ変更を一切しません。
+
+| 終了コード | 意味 |
+| --- | --- |
+| 0 | 公開Worker、管理API、未認証アクセス制御が正常 |
+| 1 | Worker未応答・予期しないレスポンス |
+| 2 | 管理APIは配信済みだが、Cloudflare Secretsが未設定 |
+| 3 | 管理APIが公開されていない（古いデプロイ等） |
+
 
 ## 管理画面の見方
 
