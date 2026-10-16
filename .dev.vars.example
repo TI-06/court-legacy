@@ -1,2 +1,5 @@
 SUPABASE_URL=
 SUPABASE_SECRET_KEY=
+ADMIN_USERNAME=admin
+# Configure ADMIN_PASSWORD and ADMIN_SESSION_SECRET only as local secrets or Cloudflare Worker secrets.
+# Never commit the actual password or session key.
