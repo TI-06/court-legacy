@@ -99,7 +99,9 @@ export function deriveCourtRally(
         previous.type === "point" ||
         previous.type === "set-end" ||
         previous.type === "match-end"
-      ) break;
+      ) {
+        break;
+      }
       if (playForEvent(previous) !== "rally") indices.unshift(index);
     }
   }

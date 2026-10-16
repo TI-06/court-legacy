@@ -93,12 +93,7 @@ describe("Phase60 read-only live court", () => {
     ]);
     expect(rally.map((step) => step.sequence)).toEqual([1, 2, 3, 4]);
     expect(rally[1]!.fromHome).toBe(false);
-    const nextRally = deriveCourtRally(
-      match,
-      5,
-      homeSelection,
-      awaySelection,
-    );
+    const nextRally = deriveCourtRally(match, 5, homeSelection, awaySelection);
     expect(nextRally).toHaveLength(1);
 
     const { rerender } = render(
