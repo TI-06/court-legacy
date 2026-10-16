@@ -93,9 +93,13 @@ describe("Phase60 read-only live court", () => {
     ]);
     expect(rally.map((step) => step.sequence)).toEqual([1, 2, 3, 4]);
     expect(rally[1]!.fromHome).toBe(false);
-    expect(deriveCourtRally(match, 5, homeSelection, awaySelection)).toHaveLength(
-      1,
+    const nextRally = deriveCourtRally(
+      match,
+      5,
+      homeSelection,
+      awaySelection,
     );
+    expect(nextRally).toHaveLength(1);
 
     const { rerender } = render(
       <LiveCourtAnimation
@@ -126,10 +130,11 @@ describe("Phase60 read-only live court", () => {
       />,
     );
     expect(screen.getAllByTestId("live-court-rally-trail")).toHaveLength(1);
-    expect(screen.getByTestId("live-court-ball").querySelector("animateMotion")).toBeNull();
+    const ball = screen.getByTestId("live-court-ball");
+    expect(ball.querySelector("animateMotion")).toBeNull();
   });
 
-  it("uses distinct ball trajectories without crossing the net for set/receive/block", () => {
+  it("uses distinct ball trajectories without crossing the net", () => {
     for (const play of ["receive", "set", "block"] as const) {
       const home = courtTrajectory(play, true)!;
       const away = courtTrajectory(play, false)!;

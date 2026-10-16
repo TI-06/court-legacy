@@ -95,7 +95,10 @@ export function LiveCourtAnimation({
         <span>コートビュー</span>
         <div className="court-live__playback">
           {rally.length > 1 ? (
-            <small aria-label="このラリーのプレー" data-testid="live-court-rally-steps">
+            <small
+              aria-label="このラリーのプレー"
+              data-testid="live-court-rally-steps"
+            >
               {rally.map((step) => PLAY_LABEL[step.play]).join(" → ")}
             </small>
           ) : null}

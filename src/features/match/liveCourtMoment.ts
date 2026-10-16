@@ -126,9 +126,12 @@ export function courtTrajectory(
   play: CourtPlay,
   fromHome: boolean,
 ): CourtTrajectory | null {
-  const geometry: Partial<
-    Record<CourtPlay, { start: [number, number]; end: [number, number]; arc: number }>
-  > = {
+  type Geometry = {
+    start: [number, number];
+    end: [number, number];
+    arc: number;
+  };
+  const geometry: Partial<Record<CourtPlay, Geometry>> = {
     serve: { start: [72, 88], end: [244, 103], arc: 18 },
     receive: { start: [89, 107], end: [146, 80], arc: 60 },
     set: { start: [136, 94], end: [158, 57], arc: 20 },
