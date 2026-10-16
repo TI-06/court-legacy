@@ -187,26 +187,24 @@ describe("match flow", () => {
     expect(cards).toHaveLength(ownPlayers.length);
 
     for (const card of cards) {
-      const playerName = within(card)
-        .getByText((content, element) =>
-          element?.classList.contains("match-player-review__identity") ===
-          false &&
-          element?.tagName === "STRONG" &&
-          ownPlayers.some((player) => player.name === content),
-        )
-        .textContent;
+      const playerName = card.querySelector(
+        ".match-player-review__identity > strong",
+      )?.textContent;
       const stats = ownPlayers.find((player) => player.name === playerName);
       if (!stats) throw new Error("Expected player not found in match summary");
       const rate =
         stats.attackAttempts > 0
           ? `${Math.round((stats.attackPoints / stats.attackAttempts) * 100)}%`
           : "—";
-      const primary = card.querySelector(".match-player-review__primary");
-      expect(primary).not.toBeNull();
-      expect(within(primary as HTMLElement).getByText(rate)).toBeInTheDocument();
-      expect(
-        within(primary as HTMLElement).getByText(String(stats.points)),
-      ).toBeInTheDocument();
+      const values = card.querySelectorAll(
+        ".match-player-review__primary > div strong",
+      );
+      expect(values).toHaveLength(3);
+      expect(values[0]?.textContent).toBe(String(stats.points));
+      expect(values[1]?.textContent?.replace(/\s+/g, "")).toBe(
+        `${stats.attackPoints}/${stats.attackAttempts}`,
+      );
+      expect(values[2]?.textContent).toBe(rate);
     }
     expect(JSON.stringify(fixture.result)).toBe(original);
   });

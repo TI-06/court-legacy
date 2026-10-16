@@ -347,9 +347,9 @@ for (const viewport of [
         const cards = page.getByTestId("match-player-result-card");
         expect(await cards.count()).toBeGreaterThan(0);
         const firstCard = cards.first();
-        await expect(firstCard.locator(".match-player-review__rank")).toHaveText(
-          "01",
-        );
+        await expect(
+          firstCard.locator(".match-player-review__rank"),
+        ).toHaveText("01");
         await expect(
           firstCard.locator(".match-player-review__primary > div"),
         ).toHaveCount(3);
