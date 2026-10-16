@@ -1,7 +1,13 @@
 import type { MatchEvent, MatchState } from "../../domain/model/Match";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
 
-export type CourtPlay = "serve" | "receive" | "set" | "attack" | "block" | "rally";
+export type CourtPlay =
+  | "serve"
+  | "receive"
+  | "set"
+  | "attack"
+  | "block"
+  | "rally";
 function playForEvent(event: MatchEvent): CourtPlay {
   if (event.type === "serve") return "serve";
   if (event.type === "set") return "set";
