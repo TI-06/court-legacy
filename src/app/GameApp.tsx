@@ -1472,6 +1472,35 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onSetTeamIdentity={saveTeamIdentity}
         onSetTeamTactics={saveTeamTactics}
         planningPending={cloudSession.operation.status === "submitting"}
+        shopStatus={
+          shopStatus?.revision === cloudSession.snapshot.revision
+            ? shopStatus
+            : null
+        }
+        shopLoading={shopLoading}
+        shopPending={
+          shopPendingAction !== null ||
+          cloudSession.operation.status === "submitting"
+        }
+        shopError={shopError}
+        shopResultMessage={shopResultMessage}
+        shopRetryAvailable={shopRetryRequest !== null}
+        onLoadShopItems={() => {
+          setShopResultMessage(null);
+          setLatestShopUseResult(null);
+          void loadShop();
+        }}
+        onRetryShopItem={() => {
+          if (shopRetryRequest) void retryShopMutation();
+          else void loadShop();
+        }}
+        onOpenItemShop={() => {
+          setActiveTab("more");
+          openShop();
+        }}
+        onUseShopItem={(itemId, target) => {
+          void consumeShopItemFromUi(itemId, target);
+        }}
         tacticsPending={cloudSession.operation.status === "submitting"}
         trainingPending={cloudSession.operation.status === "submitting"}
         selection={teamSelection}
