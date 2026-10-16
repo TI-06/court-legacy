@@ -1,0 +1,20 @@
+name: Phase69 Layout Diagnosis
+on:
+  push:
+    branches: [fix/phase69-mobile-player-tab-and-bottom-gap-20261017]
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: npm ci --no-audit --fund=false
+      - run: npx playwright install --with-deps chromium
+      - name: Inspect geometry at 390px
+        shell: bash
+        run: |
+          npx playwright test tests/e2e/phase69-player-tab-size-and-footer-gap.spec.ts --grep '390x844' --reporter=line || true
