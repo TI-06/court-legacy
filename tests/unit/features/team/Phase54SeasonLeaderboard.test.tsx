@@ -14,7 +14,7 @@ describe("Phase54 season leaderboard UI", () => {
       academicYear: state.calendar.academicYear,
       appearances: 3,
       setsPlayed: 7,
-      points: 24,
+      points: 21,
       attackPoints: 15,
       attackAttempts: 25,
       blocks: 2,
@@ -70,7 +70,7 @@ describe("Phase54 season leaderboard UI", () => {
     expect(
       within(pointsSection).getByText(`${first.lastName} ${first.firstName}`),
     ).toBeVisible();
-    expect(within(pointsSection).getByText("24")).toBeVisible();
+    expect(within(pointsSection).getByText("21")).toBeVisible();
 
     fireEvent.click(
       within(pointsSection).getByRole("button", {
@@ -88,7 +88,7 @@ describe("Phase54 season leaderboard UI", () => {
     const seasonRecord = screen.getByRole("region", {
       name: "今季公式戦成績",
     });
-    expect(within(seasonRecord).getByText("24")).toBeVisible();
+    expect(within(seasonRecord).getByText("21")).toBeVisible();
     expect(within(seasonRecord).getByText("60%")).toBeVisible();
     expect(within(seasonRecord).getByText("63%")).toBeVisible();
   });
