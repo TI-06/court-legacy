@@ -88,7 +88,7 @@ function signed(value: number): string {
   return value >= 0 ? `+${value}` : `${value}`;
 }
 
-function ShopUseResultPanel({
+export function ShopUseResultPanel({
   presentation,
   state,
 }: {
@@ -178,7 +178,10 @@ function ShopUseResultPanel({
           <span>能力成長 {signed(totalAbilityGrowth)}</span>
           {changedAbilities.map(([ability, value]) => (
             <span key={ability}>
-              {abilityLabels[ability]} {signed(value)}
+              {abilityLabels[ability]}{" "}
+              {player && typeof player.abilities[ability] === "number"
+                ? `${player.abilities[ability] - value} → ${player.abilities[ability]} (${signed(value)})`
+                : signed(value)}
             </span>
           ))}
           <span>疲労 {signed(fatigueChange)}</span>
