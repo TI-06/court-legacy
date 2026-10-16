@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
-import { createDemoGame, gameData } from "../../../src/app/createDemoGame";
-import { PHASE5_SHOP_ITEMS } from "../../../src/domain/shop/shopCatalog";
-import type { ShopStatusResponse } from "../../../src/domain/shop/shopContracts";
-import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
-import { PlayerHubScreen } from "../../../src/features/team/PlayerHubScreen";
+import { createDemoGame, gameData } from "../../../../src/app/createDemoGame";
+import { PHASE5_SHOP_ITEMS } from "../../../../src/domain/shop/shopCatalog";
+import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
+import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
+import { PlayerHubScreen } from "../../../../src/features/team/PlayerHubScreen";
 
 function makeStatus(owned: number): ShopStatusResponse {
   return {
