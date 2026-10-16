@@ -291,6 +291,40 @@ describe("Phase 13 Home command center", () => {
     expect(props.onMarkNotificationRead).toHaveBeenCalledWith(notification.id);
   });
 
+  it("plays unread training feedback only on its first news view", () => {
+    const props = createProps();
+    const notification = trainingNotification(props.state);
+    props.state.notifications.items = [notification];
+    render(<HomeScreen {...props} />);
+
+    const newsTab = screen.getByRole("tab", { name: /最近の動き/ });
+    expect(newsTab).toHaveAttribute("data-unread-events", "true");
+    fireEvent.click(newsTab);
+
+    const news = screen.getByRole("button", {
+      name: /今週の練習結果 スパイク練習/,
+    });
+    expect(news).toHaveAttribute("data-event-motion", "training");
+    fireEvent.click(screen.getByRole("tab", { name: /やること/ }));
+    fireEvent.click(newsTab);
+    expect(news).not.toHaveAttribute("data-event-motion");
+  });
+
+  it("does not play a new-event animation for read notifications", () => {
+    const props = createProps();
+    props.state.notifications.items = [trainingNotification(props.state, true)];
+    render(<HomeScreen {...props} />);
+
+    const newsTab = screen.getByRole("tab", { name: /最近の動き/ });
+    expect(newsTab).toHaveAttribute("data-unread-events", "false");
+    fireEvent.click(newsTab);
+    expect(
+      screen.getByRole("button", {
+        name: /今週の練習結果 スパイク練習/,
+      }),
+    ).not.toHaveAttribute("data-event-motion");
+  });
+
   it("promotes a training rank-up in Home news and the result sheet", () => {
     const props = createProps();
     const notification = trainingNotification(props.state);
@@ -308,6 +342,11 @@ describe("Phase 13 Home command center", () => {
     fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
 
     expect(screen.getByText("NEW 能力ランクアップ！")).toBeVisible();
+    expect(
+      screen.getByRole("button", {
+        name: /今週の練習結果 スパイク練習/,
+      }),
+    ).toHaveAttribute("data-event-motion", "rank-up");
     expect(screen.getByText(/跳躍 E→D/)).toBeVisible();
 
     fireEvent.click(
@@ -346,6 +385,9 @@ describe("Phase 13 Home command center", () => {
     fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
 
     expect(screen.getByText("NEW シーズン目標達成！")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: /シーズン目標達成！/ }),
+    ).toHaveAttribute("data-event-motion", "achievement");
     expect(screen.getByText("公式戦2勝・年度末 +100")).toBeVisible();
 
     fireEvent.click(

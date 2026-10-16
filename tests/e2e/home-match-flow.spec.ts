@@ -206,6 +206,30 @@ for (const width of [320, 360, 390, 414, 480]) {
       .getByRole("button", { name: /今週の練習結果/ })
       .first();
     await expect(trainingResult).toBeVisible();
+    if (width === 390) {
+      await expect(trainingResult).toHaveAttribute(
+        "data-event-motion",
+        /^(training|rank-up)$/,
+      );
+      const animation = await trainingResult.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          name: style.animationName,
+          duration: style.animationDuration,
+          iterations: style.animationIterationCount,
+        };
+      });
+      expect(animation.name).toMatch(/^home-news-/);
+      expect(parseFloat(animation.duration)).toBeLessThanOrEqual(0.4);
+      expect(animation.iterations).toBe("1");
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      expect(
+        await trainingResult.evaluate(
+          (element) => getComputedStyle(element).animationName,
+        ),
+      ).toBe("none");
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+    }
     await trainingResult.click();
     const dialog = page.getByRole("dialog", { name: "今週の練習結果" });
     await expect(dialog).toBeVisible();
