@@ -307,7 +307,11 @@ describe("Phase 13 Home command center", () => {
     expect(news).toHaveAttribute("data-event-motion", "training");
     fireEvent.click(screen.getByRole("tab", { name: /やること/ }));
     fireEvent.click(newsTab);
-    expect(news).not.toHaveAttribute("data-event-motion");
+    expect(
+      screen.getByRole("button", {
+        name: /今週の練習結果 スパイク練習/,
+      }),
+    ).not.toHaveAttribute("data-event-motion");
   });
 
   it("does not play a new-event animation for read notifications", () => {
