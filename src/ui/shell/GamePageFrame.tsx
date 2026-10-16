@@ -8,6 +8,7 @@ import type { AppTab } from "./appNavigation";
 interface GamePageFrameProps {
   activeTab: AppTab;
   children: ReactNode;
+  reducedMotion?: boolean;
   schoolName: string;
   dateLabel: string;
   progressLabel?: string;
@@ -20,6 +21,7 @@ interface GamePageFrameProps {
 export function GamePageFrame({
   activeTab,
   children,
+  reducedMotion = false,
   schoolName,
   dateLabel,
   progressLabel,
@@ -32,7 +34,7 @@ export function GamePageFrame({
     progressLabel ?? `就任中${reputationLabel ? `・${reputationLabel}` : ""}`;
 
   return (
-    <div className="game-page-frame">
+    <div className="game-page-frame" data-reduced-motion={reducedMotion ? "true" : "false"}>
       <GameHeader
         dateLabel={dateLabel}
         onOpenCalendar={onOpenCalendar}

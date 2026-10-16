@@ -2653,3 +2653,49 @@
     margin-block: 3px;
   }
 }
+
+/* Phase63: animations only for authoritative point and verdict events. */
+@keyframes phase63-point-scored {
+  0% {
+    transform: translateY(3px) scale(0.94);
+    opacity: 0.7;
+  }
+
+  55% {
+    transform: translateY(-2px) scale(1.12);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes phase63-result-stamp {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.45;
+  }
+
+  70% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .match-screen[data-reduced-motion="false"] .match-scoreboard__point[data-scored="true"] {
+    display: inline-block;
+    animation: phase63-point-scored 220ms ease-out both;
+  }
+
+  .match-screen[data-reduced-motion="false"] .match-result-verdict {
+    animation: phase63-result-stamp 380ms ease-out both;
+  }
+}

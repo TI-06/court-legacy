@@ -336,6 +336,12 @@ function MatchScreenContent({
   ).length;
   const currentEvent = presentedEvents.at(-1);
   const currentRawEvent = result.match.eventLog[revealedEventIndex] ?? null;
+  const homeScoredPoint =
+    currentRawEvent?.type === "point" &&
+    currentRawEvent.winnerSchoolId === result.match.homeSchoolId;
+  const awayScoredPoint =
+    currentRawEvent?.type === "point" &&
+    currentRawEvent.winnerSchoolId === result.match.awaySchoolId;
   const winnerDisplayName = result.analysis
     ? presentation?.homeTeam.schoolId === result.analysis.winnerSchoolId
       ? presentation.homeTeam.displayName
@@ -414,6 +420,7 @@ function MatchScreenContent({
         matchComplete ? " match-screen--result" : " match-screen--live"
       }${decisionReady ? " match-screen--decision" : ""}`}
       data-result-view={matchComplete ? resultView : undefined}
+      data-reduced-motion={reducedMotion ? "true" : "false"}
     >
       {!matchComplete ? (
         <>
@@ -430,7 +437,14 @@ function MatchScreenContent({
           <section className="match-scoreboard" aria-label="現在のスコア">
             <article>
               <span>{homeShortName}</span>
-              <strong>{currentEvent.score.split(" - ")[0]}</strong>
+              <strong
+                className="match-scoreboard__point"
+                data-testid="match-live-home-points"
+                data-scored={homeScoredPoint ? "true" : "false"}
+                key={currentEvent.score.split(" - ")[0]}
+              >
+                {currentEvent.score.split(" - ")[0]}
+              </strong>
               <small>
                 セット {revealedHomeSets} ・ 戦力 {homeStrength}
               </small>
@@ -443,7 +457,14 @@ function MatchScreenContent({
             </div>
             <article>
               <span>{awayShortName}</span>
-              <strong>{currentEvent.score.split(" - ")[1]}</strong>
+              <strong
+                className="match-scoreboard__point"
+                data-testid="match-live-away-points"
+                data-scored={awayScoredPoint ? "true" : "false"}
+                key={currentEvent.score.split(" - ")[1]}
+              >
+                {currentEvent.score.split(" - ")[1]}
+              </strong>
               <small>
                 セット {revealedAwaySets} ・ 戦力 {awayStrength}
               </small>

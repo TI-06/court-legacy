@@ -430,3 +430,40 @@
     animation: none;
   }
 }
+
+/* Phase63: week-specific update. Do not remount the game view on tab changes. */
+@keyframes phase63-week-update {
+  from {
+    color: var(--game-reward);
+    opacity: 0.72;
+  }
+
+  to {
+    color: inherit;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .game-page-frame[data-reduced-motion="false"] .game-header__date {
+    animation: phase63-week-update 380ms ease-out both;
+  }
+}
+
+@media (max-width: 520px) {
+  .game-page-frame[data-reduced-motion="true"] .home-command-summary,
+  .game-page-frame[data-reduced-motion="true"] .player-hub__tabs,
+  .game-page-frame[data-reduced-motion="true"] .school-panel,
+  .game-page-frame[data-reduced-motion="true"] .match-live-hero,
+  .game-page-frame[data-reduced-motion="true"] .match-result-hero,
+  .game-page-frame[data-reduced-motion="true"] .bottom-game-nav__item[aria-current="page"] .game-icon {
+    animation: none;
+  }
+
+  .game-page-frame[data-reduced-motion="true"] .bottom-game-nav__item,
+  .game-page-frame[data-reduced-motion="true"] .player-hub__tabs button,
+  .game-page-frame[data-reduced-motion="true"] .school-management-tabs button,
+  .game-page-frame[data-reduced-motion="true"] .match-result-detail-tabs button {
+    transition: none;
+  }
+}
