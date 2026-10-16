@@ -122,7 +122,12 @@ export function buildPlayerSeasonPresentation(
     academicYear,
     appearances: stats?.appearances ?? 0,
     setsPlayed: stats?.setsPlayed ?? 0,
-    points: stats?.points ?? 0,
+    // Older saves included defensive rallies and opponent errors in points.
+    // Keep the player detail aligned with the season scoring leaderboard.
+    points:
+      (stats?.attackPoints ?? 0) +
+      (stats?.blocks ?? 0) +
+      (stats?.serviceAces ?? 0),
     blocks: stats?.blocks ?? 0,
     serviceAces: stats?.serviceAces ?? 0,
     attackSuccessRate: percentage(
