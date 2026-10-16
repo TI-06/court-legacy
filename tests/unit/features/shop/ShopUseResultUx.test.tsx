@@ -133,6 +133,28 @@ describe("Phase 5 shop use result UX", () => {
     expect(screen.queryByText(/平均疲労/)).toBeNull();
   });
 
+  it("shows one camp confirmation when the generic success message is also present", () => {
+    render(
+      <ResultShopScreen
+        error={null}
+        latestUseResult={{
+          itemId: "training-camp",
+          result: { pending: true, scheduledDate: "2026-04-01" },
+        }}
+        loading={false}
+        onBack={vi.fn()}
+        onRetry={vi.fn()}
+        resultMessage="合宿を予約しました ✓"
+        status={emptyStatus()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "強化合宿を予約しました" }),
+    ).toBeVisible();
+    expect(screen.queryByText("合宿を予約しました ✓")).toBeNull();
+  });
+
   it("shows special-coach growth details for the selected player", () => {
     const state = createDemoGame();
     const school = state.schools[state.userSchoolId]!;
