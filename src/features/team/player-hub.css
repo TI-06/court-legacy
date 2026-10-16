@@ -2822,3 +2822,123 @@
     padding: 8px;
   }
 }
+
+
+/* Player-specific item actions: accessible without leaving the player screen. */
+.player-detail__top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 8px;
+}
+
+.player-detail__item-button {
+  min-height: 44px;
+  padding: 0 12px;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  background: #bb5213;
+  border: 1px solid rgb(255 196 129 / 50%);
+  border-radius: 10px;
+}
+
+.player-detail__item-sheet {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.player-detail__item-choices,
+.player-detail__item-focuses {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.player-detail__item-choices button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 66px;
+  padding: 10px 12px;
+  gap: 12px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  text-align: left;
+  background: rgb(18 47 71 / 92%);
+  border: 1px solid rgb(137 190 217 / 26%);
+  border-radius: 11px;
+}
+
+.player-detail__item-choices button > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.player-detail__item-choices button strong {
+  font-size: 15px;
+}
+
+.player-detail__item-choices button small {
+  color: #c2d3e2;
+  font-size: 12px;
+}
+
+.player-detail__item-choices button b {
+  flex: 0 0 auto;
+  font-size: 15px;
+}
+
+.player-detail__item-choices button:disabled,
+.player-detail__item-focuses button:disabled {
+  opacity: 0.45;
+}
+
+.player-detail__item-focuses {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.player-detail__item-focuses button,
+.player-detail__item-shop-link,
+.player-detail__item-back,
+.player-detail__item-notice button {
+  min-height: 44px;
+  padding: 9px 12px;
+  color: var(--game-text, #f4f7fb);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  background: rgb(32 88 114 / 65%);
+  border: 1px solid rgb(137 190 217 / 30%);
+  border-radius: 9px;
+}
+
+.player-detail__item-back {
+  justify-self: start;
+}
+
+.player-detail__item-shop-link {
+  width: 100%;
+}
+
+.player-detail__item-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px;
+  gap: 8px;
+  color: #c9f3da;
+  font-size: 13px;
+  background: rgb(14 47 63 / 90%);
+  border-radius: 9px;
+}
+
+.player-detail__item-notice[role="alert"] {
+  color: #ffccbd;
+}
