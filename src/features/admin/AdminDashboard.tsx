@@ -122,7 +122,7 @@ function DailyChart({ daily }: { daily: Overview["daily"] }) {
         <div
           className="admin-chart__day"
           key={day.date}
-          title={`${day.date}　新規登録 ${day.registrations}件 / 操作記録 ${day.operations}件`}
+          title={`${day.date} 新規登録 ${day.registrations}件 / 操作記録 ${day.operations}件`}
         >
           <div className="admin-chart__bars">
             <span
@@ -175,9 +175,9 @@ export function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>("summary");
   const [overview, setOverview] = useState<Overview | null>(null);
-  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewLoading, setOverviewLoading] = useState(true);
   const [accounts, setAccounts] = useState<AccountsResponse | null>(null);
-  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [search, setSearch] = useState("");
   const [offset, setOffset] = useState(0);
@@ -208,7 +208,6 @@ export function AdminDashboard() {
   useEffect(() => {
     if (loginState !== "signed-in") return;
     const abort = new AbortController();
-    setOverviewLoading(true);
     void adminFetch<Overview>("/api/admin/overview", { signal: abort.signal })
       .then((result) => {
         if (!abort.signal.aborted) setOverview(result);
@@ -228,7 +227,6 @@ export function AdminDashboard() {
   useEffect(() => {
     if (loginState !== "signed-in") return;
     const abort = new AbortController();
-    setAccountsLoading(true);
     const params = new URLSearchParams({ search, offset: String(offset) });
     void adminFetch<AccountsResponse>(
       `/api/admin/accounts?${params.toString()}`,
