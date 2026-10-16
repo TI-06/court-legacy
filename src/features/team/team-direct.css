@@ -1833,3 +1833,22 @@
     }
   }
 }
+
+/* Phase69: the lineup screen has no fixed edit bar. Keep its content flush
+ * against the bottom game navigation while preserving scrolling in each pane. */
+@media (max-width: 520px) {
+  .game-page-frame .player-hub--lineup {
+    padding-bottom: calc(var(--bottom-navigation-height) + 3px);
+  }
+
+  .game-page-frame .player-hub--lineup > .team-screen--direct {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .game-page-frame .team-screen--direct .team-lineup-pane[data-active="true"] {
+    flex: 1 1 0;
+    min-height: 0;
+    scroll-padding-bottom: 8px;
+  }
+}

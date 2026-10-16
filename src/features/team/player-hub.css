@@ -2949,3 +2949,95 @@
   font-size: 13px;
   padding: 6px 9px;
 }
+
+/* Phase69: a mode switch must never turn the four-item hub menu into a
+ * flex/grid filler. Reserve only the actual fixed bottom navigation height. */
+@media (max-width: 520px) {
+  .game-page-frame .player-hub--paged > .player-hub__tabs,
+  .game-page-frame .player-hub--lineup > .player-hub__tabs,
+  .game-page-frame .player-hub--mobile-panels > .player-hub__tabs {
+    box-sizing: border-box;
+    flex: 0 0 58px;
+    height: 58px;
+    min-height: 58px;
+    align-self: stretch;
+    align-content: start;
+    grid-template-rows: 48px;
+  }
+
+  .game-page-frame .player-hub--paged > .player-hub__tabs button,
+  .game-page-frame .player-hub--lineup > .player-hub__tabs button,
+  .game-page-frame .player-hub--mobile-panels > .player-hub__tabs button {
+    height: 48px;
+    min-height: 48px;
+  }
+
+  .game-page-frame .player-hub--paged,
+  .game-page-frame .player-hub--mobile-panels {
+    padding-bottom: calc(var(--bottom-navigation-height) + 3px);
+  }
+
+  /* The active inner pane gets the remaining real space, not an extra action
+   * bar allowance: only the global fixed five-item menu is present. */
+  .player-hub--mobile-panels > .team-tactics,
+  .player-hub--mobile-panels > .team-dynamics {
+    min-height: 0;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .player-hub--mobile-panels > .team-dynamics {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) and (max-height: 740px) {
+  .game-page-frame .player-hub--paged > .player-hub__tabs,
+  .game-page-frame .player-hub--lineup > .player-hub__tabs,
+  .game-page-frame .player-hub--mobile-panels > .player-hub__tabs {
+    flex-basis: 48px;
+    height: 48px;
+    min-height: 48px;
+    grid-template-rows: 38px;
+  }
+
+  .game-page-frame .player-hub--paged > .player-hub__tabs button,
+  .game-page-frame .player-hub--lineup > .player-hub__tabs button,
+  .game-page-frame .player-hub--mobile-panels > .player-hub__tabs button {
+    height: 38px;
+    min-height: 38px;
+  }
+}
+
+/* Phase69 follow-up: both the player hub and the nested tactics panel carried
+ * .app-content footer padding. Use one explicit row layout and one footer
+ * reservation so short panes cannot drift away from the main tabs. */
+@media (max-width: 520px) {
+  .game-page-frame .game-page-frame__content > .player-hub--lineup,
+  .game-page-frame .game-page-frame__content > .player-hub--mobile-panels {
+    display: grid;
+    grid-template-rows: 58px minmax(0, 1fr);
+    align-content: stretch;
+    justify-content: stretch;
+    padding-bottom: calc(var(--bottom-navigation-height) + 3px);
+  }
+
+  .game-page-frame .player-hub--lineup > .team-screen--direct,
+  .game-page-frame .player-hub--mobile-panels > .team-tactics,
+  .game-page-frame .player-hub--mobile-panels > .team-dynamics {
+    min-height: 0;
+    height: 100%;
+    align-self: stretch;
+  }
+
+  .game-page-frame .player-hub--mobile-panels > .team-tactics,
+  .game-page-frame .player-hub--mobile-panels > .team-dynamics {
+    padding: 0;
+  }
+}
+
+@media (max-width: 520px) and (max-height: 740px) {
+  .game-page-frame .game-page-frame__content > .player-hub--lineup,
+  .game-page-frame .game-page-frame__content > .player-hub--mobile-panels {
+    grid-template-rows: 48px minmax(0, 1fr);
+  }
+}
