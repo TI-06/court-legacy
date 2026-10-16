@@ -750,11 +750,11 @@ function MatchScreenContent({
                   const next = RESULT_DETAIL_TABS[nextIndex];
                   if (!next) return;
                   selectResultView(next[0]);
-                  event.currentTarget
-                    .parentElement?.querySelectorAll<HTMLButtonElement>(
+                  const tabButtons =
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
                       '[role="tab"]',
-                    )
-                    [nextIndex]?.focus();
+                    );
+                  tabButtons?.[nextIndex]?.focus();
                 }}
                 role="tab"
                 tabIndex={resultView === id ? 0 : -1}

@@ -318,9 +318,7 @@ for (const viewport of [
         "aria-selected",
         "true",
       );
-      await expect(
-        page.getByRole("tabpanel", { name: tab }),
-      ).toBeVisible();
+      await expect(page.getByRole("tabpanel", { name: tab })).toBeVisible();
       await expect(page.locator(visible)).toBeVisible();
       const typographyTarget =
         tab === "総合評価"
@@ -353,13 +351,10 @@ for (const viewport of [
         });
         expect(scrolled).toBeGreaterThan(0);
         await tabs.getByRole("tab", { name: "振り返り" }).click();
-        await expect(tabs.getByRole("tab", { name: "振り返り" })).toHaveAttribute(
-          "aria-selected",
-          "true",
-        );
-        expect(
-          await details.evaluate((element) => element.scrollTop),
-        ).toBe(0);
+        await expect(
+          tabs.getByRole("tab", { name: "振り返り" }),
+        ).toHaveAttribute("aria-selected", "true");
+        expect(await details.evaluate((element) => element.scrollTop)).toBe(0);
       }
     }
 
