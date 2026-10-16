@@ -1,0 +1,26 @@
+name: Format Phase69 Mobile Layout
+on:
+  push:
+    branches: [fix/phase69-mobile-player-tab-and-bottom-gap-20261017]
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write src/features/team/player-hub.css src/features/team/team-direct.css src/ui/theme/game-theme.css tests/e2e/phase69-player-tab-size-and-footer-gap.spec.ts
+      - name: Commit formatted sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/team/player-hub.css src/features/team/team-direct.css src/ui/theme/game-theme.css tests/e2e/phase69-player-tab-size-and-footer-gap.spec.ts
+          if ! git diff --staged --quiet; then
+            git commit -m "style(mobile): format Phase69 layout fix"
+            git push origin HEAD:fix/phase69-mobile-player-tab-and-bottom-gap-20261017
+          fi
