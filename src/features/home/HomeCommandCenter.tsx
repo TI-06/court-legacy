@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { BottomSheet } from "../../ui/BottomSheet";
 import type {
   CharacterTraitDiscoveredNotification,
@@ -45,6 +45,41 @@ const priorityLabels: Record<HomeCommandPriority, string> = {
   normal: "今週",
   complete: "完了",
 };
+
+type NewsMotionKind =
+  | "training"
+  | "rank-up"
+  | "achievement"
+  | "relationship"
+  | "discovery"
+  | "recovery";
+
+function homeNewsMotionKind(
+  news: HomeCommandCenterModel["news"][number],
+): NewsMotionKind | null {
+  if (!("notification" in news) || news.notification.readAtGameDate !== null) {
+    return null;
+  }
+  switch (news.kind) {
+    case "training-result":
+      return news.notification.payload.players.some(
+        (player) => (player.rankUps?.length ?? 0) > 0,
+      )
+        ? "rank-up"
+        : "training";
+    case "season-goal-achieved":
+    case "development-goal-achieved":
+      return "achievement";
+    case "special-relationship":
+      return "relationship";
+    case "character-trait-discovered":
+      return "discovery";
+    case "concern-resolution":
+      return "recovery";
+    default:
+      return null;
+  }
+}
 
 function rankMovementLabel(movement: number): string {
   if (movement > 0) return `▲${movement}`;
@@ -103,6 +138,11 @@ export function HomeCommandCenter({
   >("official");
   const [selectedDesk, setSelectedDesk] = useState<"tasks" | "news">("tasks");
   const { summary } = model;
+  const weekKey = `${summary.dateLabel}:${summary.weekLabel}`;
+  const playedNewsIds = useRef(new Set<string>());
+  const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(
+    null,
+  );
   const briefingTabs = [
     ...(summary.official ? [{ id: "official" as const, label: "公式戦" }] : []),
     ...(summary.season ? [{ id: "season" as const, label: "今季" }] : []),
@@ -118,6 +158,22 @@ export function HomeCommandCenter({
   const visibleNews = model.news.slice(0, 1);
   const activeDesk =
     selectedDesk === "news" && model.news.length === 0 ? "tasks" : selectedDesk;
+  const hasUnseenNews = model.news.some(
+    (news) => homeNewsMotionKind(news) !== null,
+  );
+
+  const showNews = () => {
+    const candidate = model.news.find(
+      (news) => homeNewsMotionKind(news) !== null,
+    );
+    if (candidate && !playedNewsIds.current.has(candidate.id)) {
+      playedNewsIds.current.add(candidate.id);
+      setHighlightedNewsId(candidate.id);
+    } else {
+      setHighlightedNewsId(null);
+    }
+    setSelectedDesk("news");
+  };
 
   const renderTask = (task: HomeCommandTask) => {
     if (task.kind === "action") {
@@ -173,6 +229,11 @@ export function HomeCommandCenter({
           aria-label={`今週の練習結果 ${news.notification.payload.teamTrainingMenuName}`}
           className={`home-command-news-row${unread ? " is-unread" : ""}`}
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() => onOpenTrainingNotification(news.notification)}
           type="button"
@@ -194,6 +255,11 @@ export function HomeCommandCenter({
           aria-label={`${news.title} ${news.detail}`}
           className={`home-command-news-row${unread ? " is-unread" : ""}`}
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() => onOpenSeasonGoalAchievement(news.notification)}
           type="button"
@@ -213,6 +279,11 @@ export function HomeCommandCenter({
           aria-label={`${news.title} ${news.detail}`}
           className={`home-command-news-row${unread ? " is-unread" : ""}`}
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() => onOpenDevelopmentGoalAchievement(news.notification)}
           type="button"
@@ -232,6 +303,11 @@ export function HomeCommandCenter({
           aria-label={`${news.title} ${news.detail}`}
           className={`home-command-news-row${unread ? " is-unread" : ""}`}
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() => onOpenRelationshipNotification(news.notification)}
           type="button"
@@ -251,6 +327,11 @@ export function HomeCommandCenter({
           aria-label={`${news.title} ${news.detail}`}
           className={`home-command-news-row${unread ? " is-unread" : ""}`}
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() =>
             onAcknowledgeCharacterTraitNotification(news.notification)
@@ -271,6 +352,11 @@ export function HomeCommandCenter({
           aria-label={`${news.title} ${news.detail}`}
           className="home-command-news-row"
           data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
           key={news.id}
           onClick={() =>
             onCommand({ target: "player", playerId: news.playerId })
@@ -289,6 +375,11 @@ export function HomeCommandCenter({
       <article
         className="home-command-news-row is-static"
         data-testid="home-command-news"
+        data-event-motion={
+          highlightedNewsId === news.id
+            ? (homeNewsMotionKind(news) ?? undefined)
+            : undefined
+        }
         key={news.id}
       >
         <span>
@@ -310,7 +401,7 @@ export function HomeCommandCenter({
           <div>
             <span>今週</span>
             <h2 id="home-week-heading">
-              <span className="home-command-summary__date">
+              <span className="home-command-summary__date" key={weekKey}>
                 {summary.dateLabel}・{summary.weekLabel}
               </span>
               {summary.camp ? (
@@ -494,7 +585,10 @@ export function HomeCommandCenter({
             aria-selected={activeDesk === "tasks"}
             className={activeDesk === "tasks" ? "is-active" : ""}
             id="home-command-desk-tab-tasks"
-            onClick={() => setSelectedDesk("tasks")}
+            onClick={() => {
+              setSelectedDesk("tasks");
+              setHighlightedNewsId(null);
+            }}
             role="tab"
             type="button"
           >
@@ -504,9 +598,10 @@ export function HomeCommandCenter({
             <button
               aria-controls="home-command-desk-panel"
               aria-selected={activeDesk === "news"}
+              data-unread-events={hasUnseenNews ? "true" : "false"}
               className={activeDesk === "news" ? "is-active" : ""}
               id="home-command-desk-tab-news"
-              onClick={() => setSelectedDesk("news")}
+              onClick={showNews}
               role="tab"
               type="button"
             >

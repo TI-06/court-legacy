@@ -847,3 +847,76 @@
     font-size: 10px;
   }
 }
+
+/* Phase63: bounded reactions to saved game events; no idle loop or layout changes. */
+@keyframes home-week-advance {
+  from {
+    opacity: 0.62;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-news-reveal {
+  from {
+    opacity: 0.68;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-news-achievement {
+  from {
+    opacity: 0.65;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.game-page-frame .home-command-desk-tabs button[data-unread-events="true"] {
+  position: relative;
+}
+
+.game-page-frame
+  .home-command-desk-tabs
+  button[data-unread-events="true"]::after {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  content: "";
+  background: var(--game-accent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@media (max-width: 520px) and (prefers-reduced-motion: no-preference) {
+  .game-page-frame[data-reduced-motion="false"] .home-command-summary__date {
+    animation: home-week-advance 280ms ease-out both;
+  }
+
+  .game-page-frame[data-reduced-motion="false"]
+    .home-command-news-row[data-event-motion] {
+    animation: home-news-reveal 260ms ease-out both;
+  }
+
+  .game-page-frame[data-reduced-motion="false"]
+    .home-command-news-row[data-event-motion="rank-up"],
+  .game-page-frame[data-reduced-motion="false"]
+    .home-command-news-row[data-event-motion="achievement"] {
+    animation: home-news-achievement 340ms ease-out both;
+  }
+}
