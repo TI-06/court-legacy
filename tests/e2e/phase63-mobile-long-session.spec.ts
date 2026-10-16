@@ -149,7 +149,10 @@ for (const scenario of [
 
     // Warm up all five screens before taking a memory baseline.
     for (const label of tabNames) {
-      const button = navigation.getByRole("button", { name: label, exact: true });
+      const button = navigation.getByRole("button", {
+        name: label,
+        exact: true,
+      });
       await button.click();
       await expect(button).toHaveAttribute("aria-current", "page");
     }
@@ -212,6 +215,16 @@ for (const scenario of [
       ),
       pageErrors: errors,
     };
+    console.info(
+      `[phase63-mobile-long-session] ${JSON.stringify({
+        viewport: scenario.width,
+        transitions: result.transitions,
+        p95NavigationMs: result.p95NavigationMs,
+        heapIncreaseBytes: result.heapIncreaseBytes,
+        nodeIncrease: result.nodeIncrease,
+        p95FinalFrameMs: result.p95FinalFrameMs,
+      })}`,
+    );
     await testInfo.attach("mobile-long-session.json", {
       body: Buffer.from(JSON.stringify(result, null, 2)),
       contentType: "application/json",
