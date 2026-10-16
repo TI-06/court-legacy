@@ -21,10 +21,10 @@
 2. [Cloudflareダッシュボード](https://dash.cloudflare.com/)で **Workers & Pages → court-legacy → Settings → Variables and Secrets** を開きます。
 3. 下記2項目を **Secret（暗号化されたシークレット）** タイプで追加します。通常のPlaintext変数には登録しないでください。
 
-   | 変数名 | 値 | 登録方法 |
-   | --- | --- | --- |
-   | `ADMIN_PASSWORD` | テスト時のみ指定値 `admintest` | Secret |
-   | `ADMIN_SESSION_SECRET` | 32文字以上のランダム文字列 | Secret |
+   | 変数名                 | 値                             | 登録方法 |
+   | ---------------------- | ------------------------------ | -------- |
+   | `ADMIN_PASSWORD`       | テスト時のみ指定値 `admintest` | Secret   |
+   | `ADMIN_SESSION_SECRET` | 32文字以上のランダム文字列     | Secret   |
 
 4. `ADMIN_SESSION_SECRET` はWindowsでも `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` で生成できます。ここで生成した値はGitHubやチャットに貼らず、Cloudflareだけに登録します。
 5. **Deploy** でシークレットを反映します（main の最新コードも公開済みか確認）。
@@ -45,13 +45,12 @@ npm run admin:check -- https://example.workers.dev
 
 このチェックはGETリクエストのみ使用し、パスワードの送信・ログイン試行・ユーザーデータ変更を一切しません。
 
-| 終了コード | 意味 |
-| --- | --- |
-| 0 | 公開Worker、管理API、未認証アクセス制御が正常 |
-| 1 | Worker未応答・予期しないレスポンス |
-| 2 | 管理APIは配信済みだが、Cloudflare Secretsが未設定 |
-| 3 | 管理APIが公開されていない（古いデプロイ等） |
-
+| 終了コード | 意味                                              |
+| ---------- | ------------------------------------------------- |
+| 0          | 公開Worker、管理API、未認証アクセス制御が正常     |
+| 1          | Worker未応答・予期しないレスポンス                |
+| 2          | 管理APIは配信済みだが、Cloudflare Secretsが未設定 |
+| 3          | 管理APIが公開されていない（古いデプロイ等）       |
 
 ## 管理画面の見方
 
