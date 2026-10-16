@@ -40,6 +40,7 @@ export interface WorkerDependencies {
   scoutingStore?: ScoutingStore;
   pvpStore?: PvPStore;
   shopStore?: ShopStore;
+  adminHandler?: (request: Request) => Promise<Response>;
   createCreationNonce?: () => string;
   createPvpMatchNonce?: () => string;
   now?: () => Date;
@@ -168,6 +169,10 @@ export function createRouter(
 
     if (!url.pathname.startsWith("/api/")) {
       return notFound();
+    }
+
+    if (url.pathname.startsWith("/api/admin/")) {
+      return deps.adminHandler ? deps.adminHandler(request) : notFound();
     }
 
     if (request.method === "OPTIONS") {

@@ -1,3 +1,4 @@
+import { createAdminHandler } from "./admin/adminHandler";
 import type { AccountAuthService } from "./auth/AccountAuthService";
 import { SupabaseAccountAuthService } from "./auth/AccountAuthService";
 import { createVerifyAccessToken } from "./auth/verifyAccessToken";
@@ -110,6 +111,7 @@ export default {
       scoutingStore: createLazyScoutingStore(env),
       pvpStore: createLazyPvpStore(env),
       shopStore: createLazyShopStore(env),
+      adminHandler: createAdminHandler(env, () => createSupabaseAdmin(env)),
     });
     return router(request);
   },
