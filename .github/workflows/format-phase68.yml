@@ -1,0 +1,30 @@
+name: Format Phase68 source
+on:
+  push:
+    branches:
+      - feat/phase68-admin-dashboard-20261017
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/phase68-admin-dashboard-20261017
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npx prettier --write worker/admin/adminHandler.ts worker/router.ts worker/index.ts worker/env.ts src/features/admin/AdminDashboard.tsx src/features/admin/admin-dashboard.css src/app/ApplicationRoot.tsx tests/unit/worker/adminDashboard.test.ts tests/unit/features/admin/AdminDashboard.test.tsx
+      - name: Commit formatted source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add worker/admin/adminHandler.ts worker/router.ts worker/index.ts worker/env.ts src/features/admin/AdminDashboard.tsx src/features/admin/admin-dashboard.css src/app/ApplicationRoot.tsx tests/unit/worker/adminDashboard.test.ts tests/unit/features/admin/AdminDashboard.test.tsx
+          if ! git diff --staged --quiet; then
+            git commit -m "style(admin): apply Prettier"
+            git push origin HEAD:feat/phase68-admin-dashboard-20261017
+          fi
