@@ -22,6 +22,7 @@
     "soak:smoke": "node scripts/runBalanceSoak.mjs --preset smoke",
     "soak:balance": "node scripts/runBalanceSoak.mjs --preset balance",
     "soak:long": "node scripts/runBalanceSoak.mjs --preset long",
+    "admin:check": "node scripts/checkAdminDeployment.mjs",
     "release:check": "node scripts/verifyReleaseEvidence.mjs",
     "release:gate": "node scripts/runReleaseGate.mjs",
     "verify": "node scripts/verify.mjs"
