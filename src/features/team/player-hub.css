@@ -2941,3 +2941,11 @@
 .player-detail__item-notice[role="alert"] {
   color: #ffccbd;
 }
+
+.player-detail__item-sheet .shop-use-result h3 {
+  font-size: 15px;
+}
+.player-detail__item-sheet .shop-use-result__metrics span {
+  font-size: 13px;
+  padding: 6px 9px;
+}
