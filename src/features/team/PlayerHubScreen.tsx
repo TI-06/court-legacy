@@ -64,6 +64,8 @@ import { buildSchoolLegacyLeaderboard } from "./playerLegacyLeaderboard";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { individualTrainingInstructions } from "../../data/individualTrainingInstructions";
 import { BottomSheet } from "../../ui/BottomSheet";
+import { ShopUseResultPanel } from "../shop/ShopScreen";
+import type { ShopUsePresentation } from "../shop/shopUsePresentation";
 import { MobileChoiceSheet } from "../../ui/MobileChoiceSheet";
 import { StatBar } from "../../ui/theme/StatBar";
 import { TeamDynamicsPanel } from "./TeamDynamicsPanel";
@@ -125,6 +127,7 @@ interface PlayerHubScreenProps {
   shopPending?: boolean;
   shopError?: string | null;
   shopResultMessage?: string | null;
+  latestShopUseResult?: ShopUsePresentation | null;
   shopRetryAvailable?: boolean;
   onLoadShopItems?: () => void;
   onRetryShopItem?: () => void;
@@ -329,6 +332,7 @@ export function PlayerHubScreen({
   shopPending = false,
   shopError = null,
   shopResultMessage = null,
+  latestShopUseResult = null,
   shopRetryAvailable = false,
   onLoadShopItems,
   onRetryShopItem,
@@ -1644,6 +1648,13 @@ export function PlayerHubScreen({
                 <p className="player-detail__item-notice" role="status">
                   {shopResultMessage}
                 </p>
+              ) : null}
+              {latestShopUseResult &&
+              (latestShopUseResult.target?.type === "player" ||
+                latestShopUseResult.target?.type === "special-coach") &&
+              latestShopUseResult.target.playerId === selectedPlayer.id &&
+              !shopError ? (
+                <ShopUseResultPanel presentation={latestShopUseResult} state={state} />
               ) : null}
               {shopLoading || !shopStatus ? (
                 <p className="player-detail__item-notice" role="status">
