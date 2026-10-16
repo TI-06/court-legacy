@@ -318,6 +318,7 @@ for (const viewport of [
         "aria-selected",
         "true",
       );
+      await expect(page.getByRole("tabpanel", { name: tab })).toBeVisible();
       await expect(page.locator(visible)).toBeVisible();
       const typographyTarget =
         tab === "総合評価"
@@ -342,7 +343,35 @@ for (const viewport of [
       expect(result.contentBottom).toBeLessThanOrEqual(result.actionTop + 1);
       expect(result.actionBottom).toBeLessThanOrEqual(result.navTop + 1);
       expect(result.bodyWidth).toBeLessThanOrEqual(result.viewportWidth + 1);
+      if (tab === "選手") {
+        const details = page.locator(".match-result-body");
+        const scrolled = await details.evaluate((element) => {
+          element.scrollTop = element.scrollHeight;
+          return element.scrollTop;
+        });
+        expect(scrolled).toBeGreaterThan(0);
+        await tabs.getByRole("tab", { name: "振り返り" }).click();
+        await expect(
+          tabs.getByRole("tab", { name: "振り返り" }),
+        ).toHaveAttribute("aria-selected", "true");
+        expect(await details.evaluate((element) => element.scrollTop)).toBe(0);
+      }
     }
+
+    if (viewport.width === 390) {
+      await tabs.getByRole("tab", { name: "チーム" }).focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(tabs.getByRole("tab", { name: "選手" })).toBeFocused();
+      await expect(tabs.getByRole("tab", { name: "選手" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await page.keyboard.press("Home");
+      await expect(tabs.getByRole("tab", { name: "総合評価" })).toBeFocused();
+      await page.keyboard.press("End");
+      await expect(tabs.getByRole("tab", { name: "振り返り" })).toBeFocused();
+    }
+
     const height = await page.evaluate(() => ({
       documentHeight: document.documentElement.scrollHeight,
       viewportHeight: document.documentElement.clientHeight,

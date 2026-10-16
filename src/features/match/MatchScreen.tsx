@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PendingMatchPresentation } from "../../domain/calendar/advanceWeekOutcome";
 import type { MatchStepResult } from "../../domain/match/simulateMatch";
 import type { GameState } from "../../domain/model/GameState";
@@ -44,6 +44,15 @@ interface MatchScreenProps {
 
 type PlaybackSpeed = 1 | 2 | 4;
 type PlaybackMode = "rally" | "points";
+
+const RESULT_DETAIL_TABS = [
+  ["review", "総合評価"],
+  ["team", "チーム"],
+  ["players", "選手"],
+  ["recap", "振り返り"],
+] as const;
+
+type MatchResultView = (typeof RESULT_DETAIL_TABS)[number][0];
 
 function nextPlaybackEventIndex(
   eventLog: readonly { type: string }[],
@@ -101,9 +110,15 @@ function MatchScreenContent({
   const speed: PlaybackSpeed = 4;
   const playbackMode: PlaybackMode = "points";
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
-  const [resultView, setResultView] = useState<
-    "review" | "team" | "players" | "recap"
-  >("review");
+  const [resultView, setResultView] = useState<MatchResultView>("review");
+  const resultBodyRef = useRef<HTMLDivElement>(null);
+
+  const selectResultView = (nextView: MatchResultView) => {
+    // The same independently scrollable pane is reused across four result tabs.
+    // Keep a long player list from opening the next tab halfway down.
+    if (resultBodyRef.current) resultBodyRef.current.scrollTop = 0;
+    setResultView(nextView);
+  };
   const [skipTargetMatchId, setSkipTargetMatchId] = useState<string | null>(
     null,
   );
@@ -704,19 +719,45 @@ function MatchScreenContent({
             className="match-result-detail-tabs"
             role="tablist"
           >
-            {(
-              [
-                ["review", "総合評価"],
-                ["team", "チーム"],
-                ["players", "選手"],
-                ["recap", "振り返り"],
-              ] as const
-            ).map(([id, label]) => (
+            {RESULT_DETAIL_TABS.map(([id, label], index) => (
               <button
+                aria-controls="match-result-detail-panel"
                 aria-selected={resultView === id}
+                id={`match-result-tab-${id}`}
                 key={id}
-                onClick={() => setResultView(id)}
+                onClick={() => selectResultView(id)}
+                onKeyDown={(event) => {
+                  let nextIndex: number;
+                  switch (event.key) {
+                    case "ArrowRight":
+                      nextIndex = (index + 1) % RESULT_DETAIL_TABS.length;
+                      break;
+                    case "ArrowLeft":
+                      nextIndex =
+                        (index - 1 + RESULT_DETAIL_TABS.length) %
+                        RESULT_DETAIL_TABS.length;
+                      break;
+                    case "Home":
+                      nextIndex = 0;
+                      break;
+                    case "End":
+                      nextIndex = RESULT_DETAIL_TABS.length - 1;
+                      break;
+                    default:
+                      return;
+                  }
+                  event.preventDefault();
+                  const next = RESULT_DETAIL_TABS[nextIndex];
+                  if (!next) return;
+                  selectResultView(next[0]);
+                  const tabButtons =
+                    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
+                      '[role="tab"]',
+                    );
+                  tabButtons?.[nextIndex]?.focus();
+                }}
                 role="tab"
+                tabIndex={resultView === id ? 0 : -1}
                 type="button"
               >
                 {label}
@@ -724,9 +765,12 @@ function MatchScreenContent({
             ))}
           </nav>
           <div
-            aria-label="試合結果の詳細"
+            aria-labelledby={`match-result-tab-${resultView}`}
             className="match-result-body"
+            id="match-result-detail-panel"
+            ref={resultBodyRef}
             role="tabpanel"
+            tabIndex={0}
           >
             <MatchResultStats
               state={state}
