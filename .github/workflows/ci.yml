@@ -53,8 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Phase63 home focused tests (temporary)
-        run: npx vitest run tests/unit/features/home/HomeScreen.test.tsx --reporter=verbose
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence

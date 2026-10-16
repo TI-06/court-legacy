@@ -322,8 +322,12 @@ describe("Phase 13 Home command center", () => {
     const newsTab = screen.getByRole("tab", { name: /最近の動き/ });
     expect(newsTab).toHaveAttribute("data-unread-events", "false");
     fireEvent.click(newsTab);
+    fireEvent.click(
+      screen.getByRole("button", { name: "ニュースをすべて見る" }),
+    );
+    const allNews = screen.getByRole("dialog", { name: "最近の動き" });
     expect(
-      screen.getByRole("button", {
+      within(allNews).getByRole("button", {
         name: /今週の練習結果 スパイク練習/,
       }),
     ).not.toHaveAttribute("data-event-motion");
