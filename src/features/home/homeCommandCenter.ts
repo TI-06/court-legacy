@@ -738,7 +738,9 @@ function buildTasks(
 
 function buildNews(state: GameState): HomeCommandNews[] {
   const candidates: NewsCandidate[] = [];
-  const scoutingResult = selectHomeScoutingNotifications(state.notifications)[0];
+  const scoutingResult = selectHomeScoutingNotifications(
+    state.notifications,
+  )[0];
   const notification = selectHomeTrainingNotifications(state.notifications)[0];
   const concernResolution = selectHomeConcernResolutionNotifications(
     state.notifications,

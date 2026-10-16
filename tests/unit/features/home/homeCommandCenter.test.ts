@@ -89,9 +89,9 @@ function trainingNotification(
 describe("selectHomeCommandCenter", () => {
   it("shows only confirmed server recruitment actions in Home news", () => {
     const state = createDemoGame();
-    expect(select(state).news.some((news) => news.kind === "scouting-result")).toBe(
-      false,
-    );
+    expect(
+      select(state).news.some((news) => news.kind === "scouting-result"),
+    ).toBe(false);
 
     state.notifications.items = [
       {
@@ -116,7 +116,9 @@ describe("selectHomeCommandCenter", () => {
     });
 
     state.notifications.items[0]!.readAtGameDate = state.date;
-    expect(select(state).news.find((news) => news.kind === "scouting-result")).toMatchObject({
+    expect(
+      select(state).news.find((news) => news.kind === "scouting-result"),
+    ).toMatchObject({
       title: "入学確約が成立！",
     });
   });

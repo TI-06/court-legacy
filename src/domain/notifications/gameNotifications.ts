@@ -683,7 +683,8 @@ export function selectHomeScoutingNotifications(
   state: GameNotificationState,
 ): ScoutingResultNotification[] {
   const items = state.items.filter(
-    (item): item is ScoutingResultNotification => item.type === "scouting-result",
+    (item): item is ScoutingResultNotification =>
+      item.type === "scouting-result",
   );
   const newest = items[items.length - 1];
   return newest ? [newest] : [];
