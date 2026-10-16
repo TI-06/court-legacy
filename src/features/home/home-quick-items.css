@@ -95,3 +95,11 @@
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
 }
+
+.home-quick-items .shop-use-result h3 {
+  font-size: 15px;
+}
+.home-quick-items .shop-use-result__metrics span {
+  font-size: 13px;
+  padding: 6px 9px;
+}

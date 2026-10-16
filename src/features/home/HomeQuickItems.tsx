@@ -11,6 +11,8 @@ import {
   type SpecialCoachFocus,
 } from "../../domain/shop/shopEffects";
 import { BottomSheet } from "../../ui/BottomSheet";
+import { ShopUseResultPanel } from "../shop/ShopScreen";
+import type { ShopUsePresentation } from "../shop/shopUsePresentation";
 import "./home-quick-items.css";
 
 const HOME_ITEM_IDS: readonly ShopItemId[] = [
@@ -37,6 +39,7 @@ interface HomeQuickItemsProps {
   pending: boolean;
   resultMessage: string | null;
   retryAvailable: boolean;
+  latestUseResult?: ShopUsePresentation | null;
   onRetry: () => void;
   onRetryMutation: () => void;
   onOpenShop: () => void;
@@ -51,6 +54,7 @@ export function HomeQuickItems({
   pending,
   resultMessage,
   retryAvailable,
+  latestUseResult = null,
   onRetry,
   onRetryMutation,
   onOpenShop,
@@ -110,6 +114,9 @@ export function HomeQuickItems({
         <p className="home-quick-items__success" role="status">
           {resultMessage}
         </p>
+      ) : null}
+      {latestUseResult && !error ? (
+        <ShopUseResultPanel presentation={latestUseResult} state={state} />
       ) : null}
       {state.shopEffects?.pendingTrainingCamp ? (
         <p className="home-quick-items__success">
