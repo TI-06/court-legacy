@@ -1,4 +1,9 @@
 import { useState } from "react";
+import type { ShopItemId } from "../../domain/shop/shopCatalog";
+import type {
+  ShopStatusResponse,
+  ShopUseTarget,
+} from "../../domain/shop/shopContracts";
 import type { GameDataRegistry } from "../../data/dataRegistry";
 import { gameDataBootstrap } from "../../data/gameData";
 import type { SimulateMatchResult } from "../../domain/match/simulateMatch";
@@ -17,6 +22,7 @@ import { StickyActionBar } from "../../ui/StickyActionBar";
 import "../../ui/ui.css";
 import { DevelopmentGoalAchievementSheet } from "./DevelopmentGoalAchievementSheet";
 import { HomeCommandCenter } from "./HomeCommandCenter";
+import { HomeQuickItems } from "./HomeQuickItems";
 import {
   selectHomeCommandCenter,
   type HomeCommandAction,
@@ -39,6 +45,16 @@ interface HomeScreenProps {
   onDeclinePracticeOffer?: () => void;
   operationPending?: boolean;
   onMarkNotificationRead: (notificationId: string) => Promise<void> | void;
+  shopStatus?: ShopStatusResponse | null;
+  shopLoading?: boolean;
+  shopError?: string | null;
+  shopPending?: boolean;
+  shopResultMessage?: string | null;
+  shopRetryAvailable?: boolean;
+  onLoadItems?: () => void;
+  onRetryShopMutation?: () => void;
+  onOpenShop?: () => void;
+  onUseShopItem?: (itemId: ShopItemId, target?: ShopUseTarget) => void;
 
   // Transitional compatibility for the existing GameApp wiring. Task 3 replaces
   // these callbacks with the HomeCommandAction contract and removes this bridge.
@@ -62,6 +78,16 @@ export function HomeScreen({
   onDeclinePracticeOffer = () => undefined,
   operationPending = false,
   onMarkNotificationRead,
+  shopStatus = null,
+  shopLoading = false,
+  shopError = null,
+  shopPending = false,
+  shopResultMessage = null,
+  shopRetryAvailable = false,
+  onLoadItems,
+  onRetryShopMutation = () => undefined,
+  onOpenShop = () => undefined,
+  onUseShopItem,
   onOpenSchool = () => undefined,
   onOpenTeam = () => undefined,
   onOpenMatch = () => undefined,
@@ -180,6 +206,24 @@ export function HomeScreen({
         model={model}
         onAcceptPracticeOffer={onAcceptPracticeOffer}
         onCommand={dispatchCommand}
+        onOpenItems={onLoadItems}
+        itemsPanel={
+          onUseShopItem && onLoadItems ? (
+            <HomeQuickItems
+              error={shopError}
+              loading={shopLoading}
+              onOpenShop={onOpenShop}
+              onRetry={onLoadItems}
+              onRetryMutation={onRetryShopMutation}
+              onUse={onUseShopItem}
+              pending={shopPending || operationPending}
+              resultMessage={shopResultMessage}
+              retryAvailable={shopRetryAvailable}
+              state={state}
+              status={shopStatus}
+            />
+          ) : null
+        }
         onDeclinePracticeOffer={onDeclinePracticeOffer}
         onOpenTrainingNotification={openNotification}
         onOpenRelationshipNotification={acknowledgeRelationshipNotification}

@@ -11,6 +11,10 @@ import {
   type TrainingResultNotification,
 } from "../../../../src/domain/notifications/gameNotifications";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
+import {
+  PHASE5_SHOP_ITEMS,
+} from "../../../../src/domain/shop/shopCatalog";
+import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 
 function createProps(state = createDemoGame()) {
   state.weeklySchedule.practiceMatch.incomingOffer = null;
@@ -78,6 +82,61 @@ function trainingNotification(
 }
 
 describe("Phase 13 Home command center", () => {
+  it("uses a stocked training camp from Home without visiting Inventory", () => {
+    const props = createProps();
+    const onUseShopItem = vi.fn();
+    const onLoadItems = vi.fn();
+    const shopStatus: ShopStatusResponse = {
+      revision: 1,
+      academicYearIndex: 1,
+      items: PHASE5_SHOP_ITEMS.map((item) => ({
+        ...item,
+        purchasedCount: 1,
+        usedCount: 0,
+        quantityOwned: item.itemId === "training-camp" ? 1 : 0,
+        canPurchase: true,
+        purchaseBlockedReason: null,
+        canUse: item.itemId === "training-camp",
+        useBlockedReason:
+          item.itemId === "training-camp" ? null : "inventory_empty",
+      })),
+    };
+    render(
+      <HomeScreen
+        {...props}
+        onLoadItems={onLoadItems}
+        onUseShopItem={onUseShopItem}
+        shopStatus={shopStatus}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "アイテム" }));
+    expect(onLoadItems).toHaveBeenCalledOnce();
+    const panel = screen.getByTestId("home-quick-items");
+    expect(within(panel).getByText("強化合宿")).toBeVisible();
+    fireEvent.click(within(panel).getByRole("button", { name: "使用" }));
+    expect(onUseShopItem).toHaveBeenCalledWith("training-camp");
+  });
+
+  it("does not allow using an empty item from the Home desk", () => {
+    const props = createProps();
+    const onUseShopItem = vi.fn();
+    render(
+      <HomeScreen
+        {...props}
+        onLoadItems={vi.fn()}
+        onUseShopItem={onUseShopItem}
+        shopStatus={{
+          revision: 1,
+          academicYearIndex: 1,
+          items: [],
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "アイテム" }));
+    expect(screen.getByText("使用できるアイテムはありません")).toBeVisible();
+    expect(onUseShopItem).not.toHaveBeenCalled();
+  });
+
   it("renders a compact weekly summary, coaching tasks and a sticky week action", () => {
     const props = createProps();
     const { container } = render(<HomeScreen {...props} />);

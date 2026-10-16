@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { BottomSheet } from "../../ui/BottomSheet";
 import type {
   CharacterTraitDiscoveredNotification,
@@ -21,6 +21,8 @@ interface HomeCommandCenterProps {
   model: HomeCommandCenterModel;
   operationPending: boolean;
   onCommand: (action: HomeCommandAction) => void;
+  onOpenItems?: () => void;
+  itemsPanel?: ReactNode;
   onAcceptPracticeOffer: () => void;
   onDeclinePracticeOffer: () => void;
   onOpenTrainingNotification: (
@@ -130,6 +132,8 @@ export function HomeCommandCenter({
   model,
   operationPending,
   onCommand,
+  onOpenItems,
+  itemsPanel,
   onAcceptPracticeOffer,
   onDeclinePracticeOffer,
   onOpenTrainingNotification,
@@ -144,7 +148,9 @@ export function HomeCommandCenter({
   const [selectedBriefing, setSelectedBriefing] = useState<
     "official" | "season" | "rival"
   >("official");
-  const [selectedDesk, setSelectedDesk] = useState<"tasks" | "news">("tasks");
+  const [selectedDesk, setSelectedDesk] = useState<
+    "tasks" | "news" | "items"
+  >("tasks");
   const { summary } = model;
   const weekKey = `${summary.dateLabel}:${summary.weekLabel}`;
   const playedNewsIds = useRef(new Set<string>());
@@ -640,6 +646,23 @@ export function HomeCommandCenter({
               最近の動き <small>{model.news.length}</small>
             </button>
           ) : null}
+          {itemsPanel ? (
+            <button
+              aria-controls="home-command-desk-panel"
+              aria-selected={activeDesk === "items"}
+              className={activeDesk === "items" ? "is-active" : ""}
+              id="home-command-desk-tab-items"
+              onClick={() => {
+                setSelectedDesk("items");
+                setHighlightedNewsId(null);
+                onOpenItems?.();
+              }}
+              role="tab"
+              type="button"
+            >
+              アイテム
+            </button>
+          ) : null}
         </div>
         <div
           aria-labelledby={`home-command-desk-tab-${activeDesk}`}
@@ -671,6 +694,8 @@ export function HomeCommandCenter({
                 </div>
               )}
             </>
+          ) : activeDesk === "items" ? (
+            itemsPanel
           ) : (
             <>
               <div className="home-command-section__heading">

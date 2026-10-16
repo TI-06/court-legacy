@@ -1426,6 +1426,29 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         onCommand={handleHomeCommand}
         onDeclinePracticeOffer={() => void declinePracticeOffer()}
         onMarkNotificationRead={markNotificationRead}
+        onLoadItems={() => {
+          setShopResultMessage(null);
+          setLatestShopUseResult(null);
+          void loadShop();
+        }}
+        onOpenShop={() => {
+          setActiveTab("more");
+          openShop();
+        }}
+        onRetryShopMutation={() => void retryShopMutation()}
+        onUseShopItem={(itemId, target) => {
+          void consumeShopItemFromUi(itemId, target);
+        }}
+        shopError={shopError}
+        shopLoading={shopLoading}
+        shopPending={shopPendingAction !== null}
+        shopResultMessage={shopResultMessage}
+        shopRetryAvailable={shopRetryRequest !== null}
+        shopStatus={
+          shopStatus?.revision === cloudSession.snapshot.revision
+            ? shopStatus
+            : null
+        }
         operationPending={cloudSession.operation.status === "submitting"}
         state={gameState}
       />

@@ -1,0 +1,89 @@
+/* Phase66: compact item actions stay inside the existing home desk tab. */
+.home-quick-items {
+  display: grid;
+  min-width: 0;
+  gap: 9px;
+}
+
+.home-quick-items__heading,
+.home-quick-items__row,
+.home-quick-items__error {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home-quick-items__heading strong {
+  font-size: 14px;
+}
+
+.home-quick-items button {
+  min-height: 40px;
+  padding: 7px 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  background: rgb(61 143 172 / 26%);
+  border: 1px solid rgb(114 213 223 / 36%);
+  border-radius: 9px;
+}
+
+.home-quick-items button:disabled {
+  opacity: 0.45;
+}
+
+.home-quick-items__list,
+.home-quick-items__targets {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.home-quick-items__row {
+  padding: 8px;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 10px;
+}
+
+.home-quick-items__row > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.home-quick-items__row strong {
+  font-size: 14px;
+}
+
+.home-quick-items__row small {
+  color: #a6c6d0;
+  font-size: 12px;
+}
+
+.home-quick-items__error,
+.home-quick-items__success,
+.home-quick-items__empty {
+  margin: 0;
+  padding: 9px;
+  color: #e0f0f2;
+  font-size: 12px;
+  background: rgb(255 255 255 / 6%);
+  border-radius: 9px;
+}
+
+.home-quick-items__error {
+  flex-wrap: wrap;
+  color: #ffd1c4;
+}
+
+.home-quick-items__success {
+  color: #b8f5d4;
+}
+
+.home-quick-items__targets button {
+  min-height: 46px;
+  text-align: left;
+}

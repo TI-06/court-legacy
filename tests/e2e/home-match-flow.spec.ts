@@ -336,8 +336,33 @@ for (const viewport of [
         fontSize,
         `${tab} typography at ${viewport.width}px`,
       ).toBeGreaterThanOrEqual(11);
+      if (tab === "チーム") {
+        const sizes = await page.locator(".match-box-score__row").first().evaluate(
+          (row) => ({
+            label: parseFloat(getComputedStyle(row.querySelector("span")!).fontSize),
+            number: parseFloat(getComputedStyle(row.querySelector("strong")!).fontSize),
+            height: row.getBoundingClientRect().height,
+          }),
+        );
+        expect(sizes.label).toBeGreaterThanOrEqual(15);
+        expect(sizes.number).toBeGreaterThanOrEqual(21);
+        expect(sizes.height).toBeGreaterThanOrEqual(58);
+      }
+      if (tab === "選手") {
+        const sizes = await page
+          .locator(".match-player-review__primary")
+          .first()
+          .evaluate((box) => ({
+            label: parseFloat(getComputedStyle(box.querySelector("small")!).fontSize),
+            points: parseFloat(
+              getComputedStyle(box.querySelector("strong")!).fontSize,
+            ),
+          }));
+        expect(sizes.label).toBeGreaterThanOrEqual(11);
+        expect(sizes.points).toBeGreaterThanOrEqual(27);
+      }
       const result = await clearance(
-        ".match-result-body",
+        ".match-result-body"
         ".match-result-actions--fixed",
       );
       expect(result.contentBottom).toBeLessThanOrEqual(result.actionTop + 1);
