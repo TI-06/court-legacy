@@ -324,7 +324,7 @@ describe("recordOfficialTournamentOutcome", () => {
       );
     }
     expect(next.players[first]!.career.points).toBe(
-      state.players[first]!.career.points + 2,
+      state.players[first]!.career.points + 1,
     );
     expect(next.players[second]!.career.points).toBe(
       state.players[second]!.career.points + 1,
@@ -343,7 +343,8 @@ describe("recordOfficialTournamentOutcome", () => {
       academicYear: state.calendar.academicYear,
       appearances: 1,
       setsPlayed: 3,
-      points: 2,
+      points: 1,
+      defensePoints: 1,
       blocks: 0,
       serviceAces: 0,
     });

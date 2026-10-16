@@ -178,7 +178,9 @@ describe("GameApp shop flow", () => {
     );
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText("合宿を予約しました ✓")).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "強化合宿を予約しました" }),
+    ).toBeVisible();
     expect(within(panel).queryByRole("button", { name: "使用" })).toBeNull();
   });
 
@@ -322,7 +324,9 @@ describe("GameApp shop flow", () => {
     );
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(4));
-    expect(await screen.findByText("合宿を予約しました ✓")).toBeVisible();
+    expect(
+      await screen.findByRole("heading", { name: "強化合宿を予約しました" }),
+    ).toBeVisible();
     expect(await screen.findByText("所持アイテムはありません。")).toBeVisible();
   });
 
