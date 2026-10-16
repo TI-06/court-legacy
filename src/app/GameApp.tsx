@@ -1443,6 +1443,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         shopLoading={shopLoading}
         shopPending={shopPendingAction !== null}
         shopResultMessage={shopResultMessage}
+        latestShopUseResult={latestShopUseResult}
         shopRetryAvailable={shopRetryRequest !== null}
         shopStatus={
           shopStatus?.revision === cloudSession.snapshot.revision
@@ -1484,6 +1485,7 @@ export function GameApp({ snapshot, session, auth, api }: GameAppProps) {
         }
         shopError={shopError}
         shopResultMessage={shopResultMessage}
+        latestShopUseResult={latestShopUseResult}
         shopRetryAvailable={shopRetryRequest !== null}
         onLoadShopItems={() => {
           setShopResultMessage(null);
