@@ -173,8 +173,16 @@ describe("Phase 5 shop use result UX", () => {
       screen.getByText(`${player.lastName} ${player.firstName}`),
     ).toBeVisible();
     expect(screen.getByText("能力成長 +5")).toBeVisible();
-    expect(screen.getByText("スパイク +3")).toBeVisible();
-    expect(screen.getByText("ジャンプ +2")).toBeVisible();
+    expect(
+      screen.getByText(
+        `スパイク ${player.abilities.spike - 3} → ${player.abilities.spike} (+3)`,
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        `ジャンプ ${player.abilities.jump - 2} → ${player.abilities.jump} (+2)`,
+      ),
+    ).toBeVisible();
     expect(screen.getByText("疲労 +6")).toBeVisible();
   });
 
