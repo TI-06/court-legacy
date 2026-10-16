@@ -404,55 +404,91 @@ export function MatchResultStats({
             <p className="section-kicker">PLAYER REVIEW</p>
             <h2 id="player-review-heading">選手評価</h2>
           </div>
-          <small>自校のみ</small>
+          <small>評価順・自校のみ</small>
         </div>
         <div className="match-player-review__list">
-          {userPlayers.map(({ stats, evaluation: playerEvaluation }) => (
-            <article key={stats.playerId}>
-              <header>
-                <div>
-                  <strong>{stats.name}</strong>
-                  <small>{stats.position}</small>
+          {userPlayers.map(({ stats, evaluation: playerEvaluation }, index) => {
+            const attackRate =
+              stats.attackAttempts > 0
+                ? `${Math.round((stats.attackPoints / stats.attackAttempts) * 100)}%`
+                : "—";
+            const isMvp = stats.playerId === evaluation.teamMvpPlayerId;
+            return (
+              <article
+                className={`match-player-review__card${isMvp ? " is-mvp" : ""}`}
+                data-testid="match-player-result-card"
+                key={stats.playerId}
+              >
+                <header>
+                  <span
+                    aria-label={`評価順位 ${index + 1}位`}
+                    className="match-player-review__rank"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="match-player-review__identity">
+                    <strong title={stats.name}>{stats.name}</strong>
+                    <div>
+                      <small>{stats.position}</small>
+                      {isMvp ? (
+                        <span className="match-player-review__mvp">MVP</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <span
+                    className={
+                      playerEvaluation?.rated
+                        ? "match-player-review__grade"
+                        : "match-player-review__grade is-unrated"
+                    }
+                  >
+                    <small>評価</small>
+                    <b>{playerEvaluation?.grade ?? "--"}</b>
+                    <strong>
+                      {playerEvaluation?.score ?? "—"}
+                      {playerEvaluation?.score === null ||
+                      playerEvaluation?.score === undefined
+                        ? ""
+                        : "点"}
+                    </strong>
+                  </span>
+                </header>
+                <div className="match-player-review__primary">
+                  <div>
+                    <small>得点</small>
+                    <strong>{stats.points}</strong>
+                  </div>
+                  <div>
+                    <small>攻撃決定 / 試行</small>
+                    <strong>
+                      {stats.attackPoints}
+                      <em> / {stats.attackAttempts}</em>
+                    </strong>
+                  </div>
+                  <div>
+                    <small>攻撃決定率</small>
+                    <strong>{attackRate}</strong>
+                  </div>
                 </div>
-                <span
-                  className={
-                    playerEvaluation?.rated
-                      ? "match-player-review__grade"
-                      : "match-player-review__grade is-unrated"
-                  }
-                >
-                  <b>{playerEvaluation?.grade ?? "--"}</b>
-                  <small>{playerEvaluation?.score ?? "評価なし"}</small>
-                </span>
-              </header>
-              <div className="match-player-review__metrics">
-                <span>
-                  <small>得点</small>
-                  <b>{stats.points}</b>
-                </span>
-                <span>
-                  <small>ATT</small>
-                  <b>
-                    {stats.attackPoints}/{stats.attackAttempts}
-                  </b>
-                </span>
-                <span>
-                  <small>BLK</small>
-                  <b>{stats.blockPoints}</b>
-                </span>
-                <span>
-                  <small>ACE</small>
-                  <b>{stats.serviceAces}</b>
-                </span>
-                <span>
-                  <small>REC</small>
-                  <b>
-                    {stats.perfectReceives}/{stats.receiveAttempts}
-                  </b>
-                </span>
-              </div>
-            </article>
-          ))}
+                <div className="match-player-review__metrics">
+                  <span>
+                    <small>ブロック</small>
+                    <b>{stats.blockPoints}</b>
+                  </span>
+                  <span>
+                    <small>サーブACE</small>
+                    <b>{stats.serviceAces}</b>
+                  </span>
+                  <span>
+                    <small>好レシーブ / 試行</small>
+                    <b>
+                      {stats.perfectReceives}/{stats.receiveAttempts}
+                    </b>
+                  </span>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
     </>
