@@ -53,6 +53,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
+      - name: Inspect Phase65 player card formatting (temporary)
+        run: |
+          npx prettier src/features/match/match.css tests/e2e/home-match-flow.spec.ts tests/unit/features/match/MatchFlow.test.tsx --write
+          git diff -- src/features/match/match.css tests/e2e/home-match-flow.spec.ts tests/unit/features/match/MatchFlow.test.tsx
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
