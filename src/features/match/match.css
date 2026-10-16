@@ -2989,3 +2989,10 @@
     gap: 3px;
   }
 }
+/* Phase64 follow-up: make keyboard focus visible in the result tab rail. */
+@media (max-width: 520px) {
+  .match-screen--result .match-result-detail-tabs button:focus-visible {
+    outline: 2px solid #ffe19a;
+    outline-offset: -2px;
+  }
+}
