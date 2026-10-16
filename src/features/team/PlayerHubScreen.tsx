@@ -1654,7 +1654,10 @@ export function PlayerHubScreen({
                 latestShopUseResult.target?.type === "special-coach") &&
               latestShopUseResult.target.playerId === selectedPlayer.id &&
               !shopError ? (
-                <ShopUseResultPanel presentation={latestShopUseResult} state={state} />
+                <ShopUseResultPanel
+                  presentation={latestShopUseResult}
+                  state={state}
+                />
               ) : null}
               {shopLoading || !shopStatus ? (
                 <p className="player-detail__item-notice" role="status">
