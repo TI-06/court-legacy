@@ -37,7 +37,8 @@ for (const viewport of [
         const panel = document.querySelector(
           '.team-lineup-pane[data-active="true"], .team-tactics__pane[data-active="true"], .team-dynamics__pane[data-active="true"]',
         );
-        if (!headerTabs || !fixedNav) throw new Error("mobile navigation missing");
+        if (!headerTabs || !fixedNav)
+          throw new Error("mobile navigation missing");
 
         const tabs = headerTabs.getBoundingClientRect();
         const nav = fixedNav.getBoundingClientRect();
@@ -47,8 +48,9 @@ for (const viewport of [
           tabToContentGap: panel
             ? Math.min(
                 pane!.top - tabs.bottom,
-                document.querySelector(".team-lineup-sections")?.getBoundingClientRect()
-                  .top ?? pane!.top,
+                document
+                  .querySelector(".team-lineup-sections")
+                  ?.getBoundingClientRect().top ?? pane!.top,
               )
             : 0,
           paneToNavGap: pane ? nav.top - pane.bottom : null,
