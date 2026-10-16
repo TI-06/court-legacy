@@ -73,7 +73,7 @@ begin
     ), 0),
     'currentPlayers', coalesce(sum(
       case when jsonb_typeof(state->'players') = 'object'
-        then jsonb_object_length(state->'players') else 0 end
+        then (select count(*) from jsonb_object_keys(state->'players')) else 0 end
     ), 0)
   ) into v_games from public.game_saves;
 
