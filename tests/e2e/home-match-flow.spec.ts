@@ -344,6 +344,42 @@ for (const viewport of [
       expect(result.actionBottom).toBeLessThanOrEqual(result.navTop + 1);
       expect(result.bodyWidth).toBeLessThanOrEqual(result.viewportWidth + 1);
       if (tab === "選手") {
+        const cards = page.getByTestId("match-player-result-card");
+        expect(await cards.count()).toBeGreaterThan(0);
+        const firstCard = cards.first();
+        await expect(
+          firstCard.locator(".match-player-review__rank"),
+        ).toHaveText("01");
+        await expect(
+          firstCard.locator(".match-player-review__primary > div"),
+        ).toHaveCount(3);
+        await expect(
+          firstCard.locator(".match-player-review__metrics > span"),
+        ).toHaveCount(3);
+        const cardLayout = await firstCard.evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+          const headline = element.querySelector(
+            ".match-player-review__identity > strong",
+          )!;
+          const points = element.querySelector(
+            ".match-player-review__primary > div:first-child strong",
+          )!;
+          return {
+            left: rect.left,
+            right: rect.right,
+            nameFont: parseFloat(getComputedStyle(headline).fontSize),
+            pointsFont: parseFloat(getComputedStyle(points).fontSize),
+            cardScrollWidth: element.scrollWidth,
+            cardClientWidth: element.clientWidth,
+          };
+        });
+        expect(cardLayout.left).toBeGreaterThanOrEqual(-1);
+        expect(cardLayout.right).toBeLessThanOrEqual(viewport.width + 1);
+        expect(cardLayout.cardScrollWidth).toBeLessThanOrEqual(
+          cardLayout.cardClientWidth + 1,
+        );
+        expect(cardLayout.nameFont).toBeGreaterThanOrEqual(16);
+        expect(cardLayout.pointsFont).toBeGreaterThanOrEqual(23);
         const details = page.locator(".match-result-body");
         const scrolled = await details.evaluate((element) => {
           element.scrollTop = element.scrollHeight;

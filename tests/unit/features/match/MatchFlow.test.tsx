@@ -10,6 +10,7 @@ import {
 } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
 import { MatchScreen } from "../../../../src/features/match/MatchScreen";
+import { buildMatchStatSummary } from "../../../../src/features/match/matchPresentation";
 
 function createMatchFixture() {
   const state = createDemoGame();
@@ -163,6 +164,49 @@ describe("match flow", () => {
       screen.queryByRole("heading", { name: "次戦への改善提案" }),
     ).toBeNull();
     expect(JSON.stringify(fixture.result)).toBe(resultBefore);
+  });
+
+  it("ranks player cards by review and shows real attack rates without mutating the match", () => {
+    const fixture = createMatchFixture();
+    const original = JSON.stringify(fixture.result);
+    const summary = buildMatchStatSummary(fixture.state, fixture.result.match);
+    const ownPlayers = summary.players.filter(
+      (player) => player.schoolId === fixture.state.userSchoolId,
+    );
+
+    render(
+      <MatchScreen
+        {...fixture}
+        onReturnHome={vi.fn()}
+        onStart={vi.fn()}
+        reducedMotion={true}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "結果まで進む" }));
+    const cards = screen.getAllByTestId("match-player-result-card");
+    expect(cards).toHaveLength(ownPlayers.length);
+
+    for (const card of cards) {
+      const playerName = card.querySelector(
+        ".match-player-review__identity > strong",
+      )?.textContent;
+      const stats = ownPlayers.find((player) => player.name === playerName);
+      if (!stats) throw new Error("Expected player not found in match summary");
+      const rate =
+        stats.attackAttempts > 0
+          ? `${Math.round((stats.attackPoints / stats.attackAttempts) * 100)}%`
+          : "—";
+      const values = card.querySelectorAll(
+        ".match-player-review__primary > div strong",
+      );
+      expect(values).toHaveLength(3);
+      expect(values[0]?.textContent).toBe(String(stats.points));
+      expect(values[1]?.textContent?.replace(/\s+/g, "")).toBe(
+        `${stats.attackPoints}/${stats.attackAttempts}`,
+      );
+      expect(values[2]?.textContent).toBe(rate);
+    }
+    expect(JSON.stringify(fixture.result)).toBe(original);
   });
 
   it("uses progression presentation names and continues weekly progression", () => {
