@@ -450,24 +450,10 @@
   }
 }
 
-@media (max-width: 520px) {
-  .game-page-frame[data-reduced-motion="true"] .home-command-summary,
-  .game-page-frame[data-reduced-motion="true"] .player-hub__tabs,
-  .game-page-frame[data-reduced-motion="true"] .school-panel,
-  .game-page-frame[data-reduced-motion="true"] .match-live-hero,
-  .game-page-frame[data-reduced-motion="true"] .match-result-hero,
-  .game-page-frame[data-reduced-motion="true"]
-    .bottom-game-nav__item[aria-current="page"]
-    .game-icon {
-    animation: none;
-  }
-
-  .game-page-frame[data-reduced-motion="true"] .bottom-game-nav__item,
-  .game-page-frame[data-reduced-motion="true"] .player-hub__tabs button,
-  .game-page-frame[data-reduced-motion="true"]
-    .school-management-tabs button,
-  .game-page-frame[data-reduced-motion="true"]
-    .match-result-detail-tabs button {
-    transition: none;
-  }
+/* The game setting is stronger than per-component animation rules. */
+.game-page-frame[data-reduced-motion="true"] *,
+.game-page-frame[data-reduced-motion="true"] *::before,
+.game-page-frame[data-reduced-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
 }
