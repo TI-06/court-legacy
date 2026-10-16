@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { BottomSheet } from "../../ui/BottomSheet";
 import type {
   CharacterTraitDiscoveredNotification,
@@ -57,10 +57,7 @@ type NewsMotionKind =
 function homeNewsMotionKind(
   news: HomeCommandCenterModel["news"][number],
 ): NewsMotionKind | null {
-  if (
-    !("notification" in news) ||
-    news.notification.readAtGameDate !== null
-  ) {
+  if (!("notification" in news) || news.notification.readAtGameDate !== null) {
     return null;
   }
   switch (news.kind) {
@@ -142,9 +139,7 @@ export function HomeCommandCenter({
   const [selectedDesk, setSelectedDesk] = useState<"tasks" | "news">("tasks");
   const { summary } = model;
   const weekKey = `${summary.dateLabel}:${summary.weekLabel}`;
-  const previousWeekKey = useRef(weekKey);
   const playedNewsIds = useRef(new Set<string>());
-  const [weekFeedbackKey, setWeekFeedbackKey] = useState<string | null>(null);
   const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(
     null,
   );
@@ -167,25 +162,18 @@ export function HomeCommandCenter({
     (news) => homeNewsMotionKind(news) !== null,
   );
 
-  useEffect(() => {
-    if (previousWeekKey.current === weekKey) return;
-    previousWeekKey.current = weekKey;
-    setWeekFeedbackKey(weekKey);
-    if (hasUnseenNews) setSelectedDesk("news");
-  }, [weekKey, hasUnseenNews]);
-
-  useEffect(() => {
-    const candidate =
-      activeDesk === "news" || newsOpen
-        ? model.news.find((news) => homeNewsMotionKind(news) !== null)
-        : undefined;
-    if (!candidate || playedNewsIds.current.has(candidate.id)) {
+  const showNews = () => {
+    const candidate = model.news.find(
+      (news) => homeNewsMotionKind(news) !== null,
+    );
+    if (candidate && !playedNewsIds.current.has(candidate.id)) {
+      playedNewsIds.current.add(candidate.id);
+      setHighlightedNewsId(candidate.id);
+    } else {
       setHighlightedNewsId(null);
-      return;
     }
-    playedNewsIds.current.add(candidate.id);
-    setHighlightedNewsId(candidate.id);
-  }, [activeDesk, newsOpen, model.news]);
+    setSelectedDesk("news");
+  };
 
   const renderTask = (task: HomeCommandTask) => {
     if (task.kind === "action") {
@@ -387,11 +375,11 @@ export function HomeCommandCenter({
       <article
         className="home-command-news-row is-static"
         data-testid="home-command-news"
-          data-event-motion={
-            highlightedNewsId === news.id
-              ? (homeNewsMotionKind(news) ?? undefined)
-              : undefined
-          }
+        data-event-motion={
+          highlightedNewsId === news.id
+            ? (homeNewsMotionKind(news) ?? undefined)
+            : undefined
+        }
         key={news.id}
       >
         <span>
@@ -407,7 +395,6 @@ export function HomeCommandCenter({
       <section
         className="home-command-summary"
         data-testid="home-command-summary"
-        data-week-feedback={weekFeedbackKey === weekKey ? "advance" : undefined}
         aria-labelledby="home-week-heading"
       >
         <div className="home-command-summary__top">
@@ -598,7 +585,10 @@ export function HomeCommandCenter({
             aria-selected={activeDesk === "tasks"}
             className={activeDesk === "tasks" ? "is-active" : ""}
             id="home-command-desk-tab-tasks"
-            onClick={() => setSelectedDesk("tasks")}
+            onClick={() => {
+              setSelectedDesk("tasks");
+              setHighlightedNewsId(null);
+            }}
             role="tab"
             type="button"
           >
@@ -611,7 +601,7 @@ export function HomeCommandCenter({
               data-unread-events={hasUnseenNews ? "true" : "false"}
               className={activeDesk === "news" ? "is-active" : ""}
               id="home-command-desk-tab-news"
-              onClick={() => setSelectedDesk("news")}
+              onClick={showNews}
               role="tab"
               type="button"
             >

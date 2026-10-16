@@ -889,7 +889,9 @@
   position: relative;
 }
 
-.game-page-frame .home-command-desk-tabs button[data-unread-events="true"]::after {
+.game-page-frame
+  .home-command-desk-tabs
+  button[data-unread-events="true"]::after {
   position: absolute;
   top: 7px;
   right: 7px;
@@ -903,7 +905,6 @@
 
 @media (max-width: 520px) and (prefers-reduced-motion: no-preference) {
   .game-page-frame[data-reduced-motion="false"]
-    .home-command-summary[data-week-feedback="advance"]
     .home-command-summary__date {
     animation: home-week-advance 280ms ease-out both;
   }

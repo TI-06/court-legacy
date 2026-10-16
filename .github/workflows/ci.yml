@@ -53,10 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Phase63 home Prettier changes (temporary)
-        run: |
-          npx prettier src/features/home/HomeCommandCenter.tsx src/features/home/home-phase61.css --write
-          git diff -- src/features/home/HomeCommandCenter.tsx src/features/home/home-phase61.css
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence
