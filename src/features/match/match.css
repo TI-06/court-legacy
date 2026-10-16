@@ -3202,3 +3202,123 @@
     font-size: 23px;
   }
 }
+
+/* Phase66: genuinely readable team and player result surfaces on phones. */
+@media (max-width: 520px) {
+  .match-screen--result .match-result-detail-tabs button {
+    min-height: 50px;
+    font-size: 15px;
+  }
+
+  .match-screen--result .match-box-score,
+  .match-screen--result .match-player-review {
+    padding: 13px;
+  }
+
+  .match-screen--result .match-game-heading h2 {
+    font-size: 20px;
+  }
+
+  .match-screen--result .match-box-score__header {
+    min-height: 46px;
+    padding-inline: 5px;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .match-screen--result .match-box-score__row {
+    min-height: 58px;
+    padding-inline: 4px;
+  }
+
+  .match-screen--result .match-box-score__row span {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .match-screen--result .match-box-score__row strong {
+    font-size: 23px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .match-screen--result .match-player-review__list article {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .match-screen--result .match-player-review__identity > strong {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .match-screen--result .match-player-review__identity small {
+    font-size: 13px;
+  }
+
+  .match-screen--result .match-player-review__grade b {
+    font-size: 27px;
+  }
+
+  .match-screen--result .match-player-review__grade > strong {
+    font-size: 14px;
+  }
+
+  .match-screen--result .match-player-review__primary > div {
+    min-height: 74px;
+    padding: 8px 3px;
+  }
+
+  .match-screen--result .match-player-review__primary small {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .match-screen--result .match-player-review__primary strong {
+    font-size: 22px;
+  }
+
+  .match-screen--result .match-player-review__primary > div:first-child strong {
+    font-size: 29px;
+  }
+
+  .match-screen--result .match-player-review__metrics span {
+    min-height: 53px;
+    padding: 7px 3px;
+  }
+
+  .match-screen--result .match-player-review__metrics small {
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .match-screen--result .match-player-review__metrics b {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 350px) {
+  .match-screen--result .match-box-score,
+  .match-screen--result .match-player-review {
+    padding: 10px;
+  }
+
+  .match-screen--result .match-box-score__row strong {
+    font-size: 21px;
+  }
+
+  .match-screen--result .match-player-review__list article {
+    padding: 9px;
+  }
+
+  .match-screen--result .match-player-review__primary small {
+    font-size: 11px;
+  }
+
+  .match-screen--result .match-player-review__primary strong {
+    font-size: 20px;
+  }
+
+  .match-screen--result .match-player-review__primary > div:first-child strong {
+    font-size: 27px;
+  }
+}

@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -102,6 +108,80 @@ function renderShopApp(api: GameApiClient, snapshot = createSnapshot()) {
 }
 
 describe("GameApp shop flow", () => {
+  it("loads inventory on Home item tab and consumes a camp through the existing API", async () => {
+    const initial = createSnapshot(1);
+    const after = createSnapshot(2);
+    after.state.shopEffects = {
+      pendingTrainingCamp: {
+        sourceItemId: "training-camp",
+        scheduledDate: after.state.date,
+      },
+    };
+    const stocked = updateShopItem(createShopStatus(1), "training-camp", {
+      quantityOwned: 1,
+      canUse: true,
+      useBlockedReason: null,
+    });
+    const consumed = updateShopItem(createShopStatus(2), "training-camp", {
+      quantityOwned: 0,
+      usedCount: 1,
+    });
+    const getShop = vi
+      .fn<NonNullable<GameApiClient["getShop"]>>()
+      .mockResolvedValueOnce(stocked)
+      .mockResolvedValueOnce(consumed);
+    const useShopItem = vi.fn<NonNullable<GameApiClient["useShopItem"]>>(
+      async (_token, request) => ({
+        operationId: request.operationId,
+        operationType: "use",
+        revision: 2,
+        academicYearIndex: 1,
+        itemId: request.itemId,
+        quantityOwned: 0,
+        purchasedCount: 1,
+        usedCount: 1,
+        result: { pending: true },
+      }),
+    );
+    const bootstrap = vi.fn<GameApiClient["bootstrap"]>().mockResolvedValue({
+      status: "ready",
+      game: after,
+    });
+    render(
+      <GameApp
+        api={{
+          bootstrap,
+          onboard: vi.fn(),
+          applyAction: vi.fn(),
+          getShop,
+          useShopItem,
+        }}
+        auth={authClient()}
+        session={session}
+        snapshot={initial}
+      />,
+    );
+
+    expect(getShop).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("tab", { name: "アイテム" }));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(1));
+    const panel = await screen.findByTestId("home-quick-items");
+    fireEvent.click(within(panel).getByRole("button", { name: "使用" }));
+    await waitFor(() => expect(useShopItem).toHaveBeenCalledTimes(1));
+    expect(useShopItem).toHaveBeenCalledWith(
+      session.accessToken,
+      expect.objectContaining({
+        revision: 1,
+        itemId: "training-camp",
+        operationId: expect.any(String),
+      }),
+    );
+    await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("合宿を予約しました ✓")).toBeVisible();
+    expect(within(panel).queryByRole("button", { name: "使用" })).toBeNull();
+  });
+
   it("opens Shop from More and loads the current-year shop status", async () => {
     const snapshot = createSnapshot();
     const getShop = vi.fn<NonNullable<GameApiClient["getShop"]>>(async () =>
