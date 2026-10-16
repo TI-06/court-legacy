@@ -135,19 +135,19 @@ export function HomeQuickItems({
               (item.itemId === "training-efficiency-boost" &&
                 Boolean(state.shopEffects?.nextTrainingGrowthBoost));
             return (
-            <article className="home-quick-items__row" key={item.itemId}>
-              <div>
-                <strong>{item.displayName}</strong>
-                <small>所持 {item.quantityOwned}個</small>
-              </div>
-              <button
-                disabled={unusable || !item.canUse || alreadyActive}
-                onClick={() => chooseItem(item.itemId)}
-                type="button"
-              >
-                {pending ? "処理中…" : alreadyActive ? "適用中" : "使用"}
-              </button>
-            </article>
+              <article className="home-quick-items__row" key={item.itemId}>
+                <div>
+                  <strong>{item.displayName}</strong>
+                  <small>所持 {item.quantityOwned}個</small>
+                </div>
+                <button
+                  disabled={unusable || !item.canUse || alreadyActive}
+                  onClick={() => chooseItem(item.itemId)}
+                  type="button"
+                >
+                  {pending ? "処理中…" : alreadyActive ? "適用中" : "使用"}
+                </button>
+              </article>
             );
           })}
         </div>

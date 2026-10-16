@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { GameApp } from "../../../src/app/GameApp";
 import { createDemoGame } from "../../../src/app/createDemoGame";
@@ -160,9 +166,7 @@ describe("GameApp shop flow", () => {
     fireEvent.click(screen.getByRole("tab", { name: "アイテム" }));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(1));
     const panel = await screen.findByTestId("home-quick-items");
-    fireEvent.click(
-      within(panel).getByRole("button", { name: "使用" }),
-    );
+    fireEvent.click(within(panel).getByRole("button", { name: "使用" }));
     await waitFor(() => expect(useShopItem).toHaveBeenCalledTimes(1));
     expect(useShopItem).toHaveBeenCalledWith(
       session.accessToken,
@@ -175,11 +179,8 @@ describe("GameApp shop flow", () => {
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("合宿を予約しました ✓")).toBeVisible();
-    expect(
-      within(panel).queryByRole("button", { name: "使用" }),
-    ).toBeNull();
+    expect(within(panel).queryByRole("button", { name: "使用" })).toBeNull();
   });
-
 
   it("opens Shop from More and loads the current-year shop status", async () => {
     const snapshot = createSnapshot();
