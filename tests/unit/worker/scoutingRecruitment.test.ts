@@ -162,6 +162,20 @@ describe("scouting recruitment route", () => {
       ],
     });
     expect(persisted.state.recruiting?.committedCandidates).toHaveLength(1);
+    expect(persisted.state.notifications.items).toContainEqual({
+      id: "scouting-result:recruit-op-001",
+      type: "scouting-result",
+      createdGameDate: snapshot.state.date,
+      academicYearIndex: snapshot.state.yearIndex,
+      weekOfYear: snapshot.state.calendar.weekOfYear,
+      readAtGameDate: null,
+      payload: {
+        candidateId: candidate.player.id,
+        displayName: `${candidate.player.lastName} ${candidate.player.firstName}`,
+        action: "commit",
+        committedCount: 1,
+      },
+    });
 
     const body = await response.json();
     expect(body.outcome).toEqual({
@@ -342,6 +356,20 @@ describe("scouting recruitment route", () => {
           visits: 1,
           recommendationUsed: false,
         },
+      },
+    });
+    expect(persisted.state.notifications.items).toContainEqual({
+      id: "scouting-result:recruit-op-visit",
+      type: "scouting-result",
+      createdGameDate: snapshot.state.date,
+      academicYearIndex: snapshot.state.yearIndex,
+      weekOfYear: snapshot.state.calendar.weekOfYear,
+      readAtGameDate: null,
+      payload: {
+        candidateId: candidate.player.id,
+        displayName: `${candidate.player.lastName} ${candidate.player.firstName}`,
+        action: "visit",
+        committedCount: 0,
       },
     });
     const body = await response.json();

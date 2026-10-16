@@ -16,6 +16,8 @@ import {
   selectHomeSeasonGoalAchievementNotifications,
   selectHomeSpecialRelationshipNotifications,
   selectHomeTrainingNotifications,
+  selectHomeScoutingNotifications,
+  type ScoutingResultNotification,
   type CharacterTraitDiscoveredNotification,
   type ConcernResolutionNotification,
   type DevelopmentGoalAchievementNotification,
@@ -155,6 +157,13 @@ export type HomeCommandTask =
     });
 
 export type HomeCommandNews =
+  | {
+      id: string;
+      kind: "scouting-result";
+      title: string;
+      detail: string;
+      notification: ScoutingResultNotification;
+    }
   | {
       id: string;
       kind: "training-result";
@@ -729,6 +738,9 @@ function buildTasks(
 
 function buildNews(state: GameState): HomeCommandNews[] {
   const candidates: NewsCandidate[] = [];
+  const scoutingResult = selectHomeScoutingNotifications(
+    state.notifications,
+  )[0];
   const notification = selectHomeTrainingNotifications(state.notifications)[0];
   const concernResolution = selectHomeConcernResolutionNotifications(
     state.notifications,
@@ -744,6 +756,29 @@ function buildNews(state: GameState): HomeCommandNews[] {
   const seasonGoalAchievement = selectHomeSeasonGoalAchievementNotifications(
     state.notifications,
   )[0];
+
+  if (scoutingResult) {
+    const { action, displayName, committedCount } = scoutingResult.payload;
+    const title =
+      action === "commit"
+        ? "入学確約が成立！"
+        : action === "visit"
+          ? "学校訪問が完了"
+          : "推薦枠を使用";
+    candidates.push({
+      order: scoutingResult.readAtGameDate === null ? -3 : 37,
+      news: {
+        id: `news:scouting:${scoutingResult.id}`,
+        kind: "scouting-result",
+        title,
+        detail:
+          action === "commit"
+            ? `${displayName}・確約 ${committedCount}/7名`
+            : `${displayName}・スカウト結果を確認`,
+        notification: scoutingResult,
+      },
+    });
+  }
 
   if (seasonGoalAchievement) {
     const items = seasonGoalAchievement.payload.items;

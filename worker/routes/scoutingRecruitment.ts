@@ -4,6 +4,10 @@ import {
   RECRUITMENT_COMMIT_LIMIT,
   type RecruitmentAction,
 } from "../../src/domain/scouting/recruitmentEngagement";
+import {
+  appendNotification,
+  buildScoutingResultNotification,
+} from "../../src/domain/notifications/gameNotifications";
 import type { GameStore, PersistedOperationResponse } from "../data/GameStore";
 import { RevisionConflictError } from "../data/GameStore";
 import type { ScoutingStore } from "../data/ScoutingStore";
@@ -208,11 +212,24 @@ export function createScoutingRecruitmentHandler(
         pool,
         insights,
       ).find((report) => report.candidateId === candidate.player.id);
+      const nextState = {
+        ...applied.state,
+        notifications: appendNotification(
+          applied.state.notifications,
+          buildScoutingResultNotification(applied.state, {
+            operationId: parsed.data.operationId,
+            candidateId: candidate.player.id,
+            displayName: `${candidate.player.lastName} ${candidate.player.firstName}`,
+            action,
+            committedCount: currentCommitments.length,
+          }),
+        ),
+      };
       const response: PersistedOperationResponse = {
         game: {
           ...snapshot,
           revision: snapshot.revision + 1,
-          state: applied.state,
+          state: nextState,
         },
         operationId: parsed.data.operationId,
         outcome: {
@@ -230,7 +247,7 @@ export function createScoutingRecruitmentHandler(
           operationId: parsed.data.operationId,
           expectedRevision: snapshot.revision,
           previousState: snapshot.state,
-          state: applied.state,
+          state: nextState,
           teamSelection: snapshot.teamSelection,
           response,
         });
@@ -278,6 +295,16 @@ export function createScoutingRecruitmentHandler(
         committedCandidateIds,
         committedCandidates,
       },
+      notifications: appendNotification(
+        snapshot.state.notifications,
+        buildScoutingResultNotification(snapshot.state, {
+          operationId: parsed.data.operationId,
+          candidateId: candidate.player.id,
+          displayName: `${candidate.player.lastName} ${candidate.player.firstName}`,
+          action,
+          committedCount: committedCandidateIds.length,
+        }),
+      ),
     };
     const outcome = {
       candidateId: candidate.player.id,

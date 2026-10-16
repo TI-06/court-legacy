@@ -793,6 +793,25 @@ const characterTraitDiscoveredNotificationSchema = z
   })
   .strict();
 
+const scoutingResultNotificationSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal("scouting-result"),
+    createdGameDate: gameDateSchema,
+    academicYearIndex: z.number().int().positive(),
+    weekOfYear: z.number().int().positive(),
+    readAtGameDate: gameDateSchema.nullable(),
+    payload: z
+      .object({
+        candidateId: playerIdSchema,
+        displayName: z.string().min(1),
+        action: z.enum(["visit", "recommendation", "commit"]),
+        committedCount: z.number().int().min(0).max(7),
+      })
+      .strict(),
+  })
+  .strict();
+
 const gameNotificationSchema = z.discriminatedUnion("type", [
   trainingResultNotificationSchema,
   concernResolutionNotificationSchema,
@@ -800,6 +819,7 @@ const gameNotificationSchema = z.discriminatedUnion("type", [
   characterTraitDiscoveredNotificationSchema,
   developmentGoalAchievementNotificationSchema,
   seasonGoalAchievementNotificationSchema,
+  scoutingResultNotificationSchema,
 ]);
 
 const notificationStateSchema = z

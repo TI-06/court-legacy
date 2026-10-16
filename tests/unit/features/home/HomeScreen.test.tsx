@@ -333,6 +333,37 @@ describe("Phase 13 Home command center", () => {
     ).not.toHaveAttribute("data-event-motion");
   });
 
+  it("opens scouting from confirmed recruitment news and marks it read", () => {
+    const props = createProps();
+    props.state.notifications.items = [
+      {
+        id: "scouting-result:home-commit",
+        type: "scouting-result",
+        createdGameDate: props.state.date,
+        academicYearIndex: props.state.yearIndex,
+        weekOfYear: props.state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          candidateId: "candidate-home" as never,
+          displayName: "山田 一郎",
+          action: "commit",
+          committedCount: 1,
+        },
+      },
+    ];
+    render(<HomeScreen {...props} />);
+    fireEvent.click(screen.getByRole("tab", { name: /最近の動き/ }));
+    const news = screen.getByRole("button", {
+      name: /入学確約が成立！ 山田 一郎/,
+    });
+    expect(news).toHaveAttribute("data-event-motion", "scouting");
+    fireEvent.click(news);
+    expect(props.onMarkNotificationRead).toHaveBeenCalledWith(
+      "scouting-result:home-commit",
+    );
+    expect(props.onCommand).toHaveBeenCalledWith({ target: "scouting" });
+  });
+
   it("promotes a training rank-up in Home news and the result sheet", () => {
     const props = createProps();
     const notification = trainingNotification(props.state);
