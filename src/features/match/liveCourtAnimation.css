@@ -27,6 +27,50 @@
   font-size: 0.76rem;
 }
 
+.court-live__playback {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+}
+
+.court-live__playback small {
+  min-width: 0;
+  max-width: 69%;
+  overflow: hidden;
+  color: #b9d8e2;
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.court-live__playback strong {
+  flex-shrink: 0;
+}
+
+.court-live__route {
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.court-live__route--animate {
+  stroke-dasharray: 280;
+  animation: court-live-route-draw 100ms ease-out both;
+}
+
+@keyframes court-live-route-draw {
+  from {
+    stroke-dashoffset: 280;
+    opacity: 0;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 .court-live__field {
   display: block;
   width: 100%;
@@ -57,6 +101,10 @@
   animation: court-live-jump 170ms ease-out both;
 }
 
+.court-live__actor--set {
+  animation: court-live-set 170ms ease-out both;
+}
+
 .court-live__actor--receive {
   animation: court-live-dig 170ms ease-out both;
 }
@@ -79,73 +127,15 @@
   }
 }
 
+@keyframes court-live-set {
+  50% {
+    transform: translateY(-6px) scale(1.06);
+  }
+}
+
 @keyframes court-live-dig {
   50% {
     transform: translateY(5px) scale(1.08, 0.92);
-  }
-}
-
-.court-live__ball--home {
-  animation: court-live-forward 170ms ease-out both;
-}
-
-.court-live__ball--away {
-  animation: court-live-backward 170ms ease-out both;
-}
-
-.court-live__ball--home.court-live__ball--receive {
-  animation-name: court-live-receive-home;
-}
-
-.court-live__ball--away.court-live__ball--receive {
-  animation-name: court-live-receive-away;
-}
-
-@keyframes court-live-forward {
-  0% {
-    transform: translate(0, 0);
-  }
-  45% {
-    transform: translate(48px, -22px);
-  }
-  100% {
-    transform: translate(105px, 0);
-  }
-}
-
-@keyframes court-live-backward {
-  0% {
-    transform: translate(0, 0);
-  }
-  45% {
-    transform: translate(-48px, -22px);
-  }
-  100% {
-    transform: translate(-105px, 0);
-  }
-}
-
-@keyframes court-live-receive-home {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(28px, -15px);
-  }
-  100% {
-    transform: translate(60px, 0);
-  }
-}
-
-@keyframes court-live-receive-away {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-28px, -15px);
-  }
-  100% {
-    transform: translate(-60px, 0);
   }
 }
 
@@ -185,6 +175,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .court-live__ball,
+  .court-live__route,
   .court-live__actor,
   .court-live__celebration,
   .court-live__skill-burst {
