@@ -62,6 +62,35 @@ for (const viewport of [
           viewportWidth: document.documentElement.clientWidth,
         };
       });
+      if (mode !== "選手") {
+        const details = await page.evaluate(() => {
+          const selectors = [
+            ".game-page-frame__content",
+            ".player-hub--lineup",
+            ".player-hub--mobile-panels",
+            ".team-screen--direct",
+            ".team-tactics",
+            ".team-dynamics",
+            '.team-lineup-pane[data-active="true"]',
+            '.team-tactics__pane[data-active="true"]',
+            '.team-dynamics__pane[data-active="true"]',
+          ];
+          return Object.fromEntries(
+            selectors.flatMap((selector) => {
+              const element = document.querySelector(selector);
+              if (!element) return [];
+              const box = element.getBoundingClientRect();
+              const css = getComputedStyle(element);
+              return [[selector, {
+                y: Math.round(box.y), bottom: Math.round(box.bottom),
+                height: Math.round(box.height), paddingBottom: css.paddingBottom,
+                flex: css.flex, minHeight: css.minHeight,
+              }]];
+            }),
+          );
+        });
+        console.log("PHASE69_LAYOUT", viewport.width, mode, JSON.stringify({ ...metrics, details }));
+      }
       const expectedHeight = viewport.height <= 740 ? 48 : 58;
       expect(metrics.tabHeight).toBeGreaterThanOrEqual(expectedHeight - 1);
       expect(metrics.tabHeight).toBeLessThanOrEqual(expectedHeight + 1);
