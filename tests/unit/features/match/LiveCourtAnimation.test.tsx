@@ -4,7 +4,11 @@ import { createDemoGame } from "../../../../src/app/createDemoGame";
 import type { MatchState } from "../../../../src/domain/model/Match";
 import { selectPracticeOpponent } from "../../../../src/domain/selectors/matchSelectors";
 import { autoSelectTeam } from "../../../../src/domain/team/autoSelectTeam";
-import { deriveCourtMoment } from "../../../../src/features/match/liveCourtMoment";
+import {
+  courtTrajectory,
+  deriveCourtMoment,
+  deriveCourtRally,
+} from "../../../../src/features/match/liveCourtMoment";
 import { LiveCourtAnimation } from "../../../../src/features/match/LiveCourtAnimation";
 
 function fixture() {
@@ -56,6 +60,90 @@ describe("Phase60 read-only live court", () => {
       actorSlot: homeSelection.rotation[0]!.slot,
       actorSide: "home",
     });
+  });
+
+  it("derives a bounded, past-only serve/receive/set/attack rally", () => {
+    const { match, homeSelection, awaySelection } = fixture();
+    const serve = match.eventLog[0]!;
+    const point = match.eventLog[1]!;
+    match.eventLog = [
+      { ...serve, sequence: 1, type: "serve" },
+      {
+        ...serve,
+        sequence: 2,
+        type: "receive",
+        actorPlayerId: awaySelection.rotation[1]!.playerId,
+      },
+      { ...serve, sequence: 3, type: "set" },
+      { ...serve, sequence: 4, type: "attack" },
+      { ...point, sequence: 5 },
+      { ...serve, sequence: 6, type: "serve", setNumber: 2 },
+    ];
+    expect(
+      deriveCourtRally(match, 3, homeSelection, awaySelection).map(
+        (step) => step.play,
+      ),
+    ).toEqual(["attack"]);
+    const rally = deriveCourtRally(match, 4, homeSelection, awaySelection);
+    expect(rally.map((step) => step.play)).toEqual([
+      "serve",
+      "receive",
+      "set",
+      "attack",
+    ]);
+    expect(rally.map((step) => step.sequence)).toEqual([1, 2, 3, 4]);
+    expect(rally[1]!.fromHome).toBe(false);
+    const nextRally = deriveCourtRally(match, 5, homeSelection, awaySelection);
+    expect(nextRally).toHaveLength(1);
+
+    const { rerender } = render(
+      <LiveCourtAnimation
+        match={match}
+        homeSelection={homeSelection}
+        awaySelection={awaySelection}
+        visibleEventIndex={4}
+        playing={true}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.getAllByTestId("live-court-rally-trail")).toHaveLength(4);
+    expect(screen.getByTestId("live-court-rally-steps")).toHaveTextContent(
+      "サーブ → レシーブ → トス → スパイク",
+    );
+    expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
+      "data-motion",
+      "attack",
+    );
+    rerender(
+      <LiveCourtAnimation
+        match={match}
+        homeSelection={homeSelection}
+        awaySelection={awaySelection}
+        visibleEventIndex={3}
+        playing={false}
+        reducedMotion={true}
+      />,
+    );
+    expect(screen.getAllByTestId("live-court-rally-trail")).toHaveLength(1);
+    const ball = screen.getByTestId("live-court-ball");
+    expect(ball.querySelector("animateMotion")).toBeNull();
+  });
+
+  it("uses distinct ball trajectories without crossing the net", () => {
+    for (const play of ["receive", "set", "block"] as const) {
+      const home = courtTrajectory(play, true)!;
+      const away = courtTrajectory(play, false)!;
+      expect(home.startX).toBeLessThan(180);
+      expect(home.endX).toBeLessThan(180);
+      expect(away.startX).toBeGreaterThan(180);
+      expect(away.endX).toBeGreaterThan(180);
+      expect(home.path).not.toEqual(away.path);
+    }
+    for (const play of ["serve", "attack"] as const) {
+      expect(courtTrajectory(play, true)!.endX).toBeGreaterThan(180);
+      expect(courtTrajectory(play, false)!.endX).toBeLessThan(180);
+    }
+    expect(courtTrajectory("rally", true)).toBeNull();
   });
 
   it("never reveals future point effects before the event is shown", () => {

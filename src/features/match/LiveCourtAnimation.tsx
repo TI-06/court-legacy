@@ -1,6 +1,11 @@
 import type { MatchState } from "../../domain/model/Match";
 import type { TeamSelection } from "../../domain/model/TeamSelection";
-import { deriveCourtMoment, type CourtPlay } from "./liveCourtMoment";
+import {
+  courtTrajectory,
+  deriveCourtMoment,
+  deriveCourtRally,
+  type CourtPlay,
+} from "./liveCourtMoment";
 import { pointCelebrationForEvent } from "./pointCelebration";
 import { getSpecialAbilityDefinition } from "../../domain/player/specialAbilities";
 import "./liveCourtAnimation.css";
@@ -33,6 +38,7 @@ const AWAY_SPOTS = [
 
 const PLAY_LABEL: Record<CourtPlay, string> = {
   serve: "サーブ",
+  set: "トス",
   attack: "スパイク",
   block: "ブロック",
   receive: "レシーブ",
@@ -56,34 +62,27 @@ export function LiveCourtAnimation({
     homeSelection,
     awaySelection,
   );
+  const rally = deriveCourtRally(
+    match,
+    visibleEventIndex,
+    homeSelection,
+    awaySelection,
+  );
+  const trajectories = rally.flatMap((step) => {
+    const trajectory = courtTrajectory(step.play, step.fromHome);
+    return trajectory ? [{ ...step, trajectory }] : [];
+  });
+  const lastTrajectory = courtTrajectory(moment.play, moment.fromHome);
   const celebration = pointCelebrationForEvent(event, match);
   const scoringSkill =
     celebration && event.scoringSpecialAbilityId
       ? getSpecialAbilityDefinition(event.scoringSpecialAbilityId)
       : null;
   const direction = moment.fromHome ? "home" : "away";
-  const receive = moment.play === "receive";
-  const animate = playing && !reducedMotion && moment.play !== "rally";
-  const ballStartX = receive
-    ? moment.fromHome
-      ? 85
-      : 275
-    : moment.fromHome
-      ? 145
-      : 215;
-  const ballEndX = receive
-    ? moment.fromHome
-      ? 145
-      : 215
-    : moment.fromHome
-      ? 250
-      : 110;
+  const animate = playing && !reducedMotion && lastTrajectory !== null;
   const actorMotionClass = animate
     ? `court-live__actor court-live__actor--${moment.play} court-live__actor--${direction}`
     : "court-live__actor";
-  const ballMotionClass = animate
-    ? `court-live__ball court-live__ball--${direction} court-live__ball--${moment.play}`
-    : "court-live__ball";
 
   return (
     <section
@@ -94,7 +93,17 @@ export function LiveCourtAnimation({
     >
       <div className="court-live__caption">
         <span>コートビュー</span>
-        <strong>{PLAY_LABEL[moment.play]}</strong>
+        <div className="court-live__playback">
+          {rally.length > 1 ? (
+            <small
+              aria-label="このラリーのプレー"
+              data-testid="live-court-rally-steps"
+            >
+              {rally.map((step) => PLAY_LABEL[step.play]).join(" → ")}
+            </small>
+          ) : null}
+          <strong>{PLAY_LABEL[moment.play]}</strong>
+        </div>
       </div>
       <svg
         aria-hidden="true"
@@ -112,6 +121,25 @@ export function LiveCourtAnimation({
           fill="none"
         />
         <path d="M180 12V146" stroke="#e8f2f8" strokeWidth="6" opacity=".92" />
+        {trajectories.map((step, index) => (
+          <path
+            key={step.sequence}
+            className={
+              animate
+                ? "court-live__route court-live__route--animate"
+                : "court-live__route"
+            }
+            d={step.trajectory.path}
+            data-testid="live-court-rally-trail"
+            data-motion={step.play}
+            data-side={step.fromHome ? "home" : "away"}
+            fill="none"
+            stroke={step.fromHome ? "#a1e7f2" : "#ffe0b6"}
+            strokeWidth={index === trajectories.length - 1 ? 2.5 : 1.5}
+            opacity={index === trajectories.length - 1 ? 0.85 : 0.35}
+            style={animate ? { animationDelay: `${index * 32}ms` } : undefined}
+          />
+        ))}
         {homeSelection.rotation.map(({ slot }, index) => {
           const [x, y] = HOME_SPOTS[index]!;
           const active =
@@ -245,15 +273,25 @@ export function LiveCourtAnimation({
         <circle
           key={event.sequence}
           data-testid="live-court-ball"
-          className={ballMotionClass}
+          className="court-live__ball"
           data-animated={animate ? "true" : "false"}
-          cx={animate ? ballStartX : ballEndX}
-          cy="79"
+          data-motion={moment.play}
+          cx={animate ? 0 : (lastTrajectory?.endX ?? 180)}
+          cy={animate ? 0 : (lastTrajectory?.endY ?? 79)}
           r="7"
           fill="#fff4ac"
           stroke="#fff"
           strokeWidth="2"
-        />
+        >
+          {animate && lastTrajectory ? (
+            <animateMotion
+              dur="175ms"
+              fill="freeze"
+              path={lastTrajectory.path}
+              repeatCount="1"
+            />
+          ) : null}
+        </circle>
       </svg>
     </section>
   );
