@@ -38,6 +38,7 @@ describe("user match performance snapshot", () => {
     const starterId = homeSelection.rotation[0]!.playerId;
     const receiverId = homeSelection.rotation[1]!.playerId;
     const benchId = homeSelection.benchPlayerIds[0]!;
+    const liberoId = homeSelection.liberoPlayerId!;
     const awayId = awaySelection.rotation[0]!.playerId;
 
     const match: MatchState = {
@@ -124,6 +125,26 @@ describe("user match performance snapshot", () => {
           winnerSchoolId: state.userSchoolId,
           detailCode: "point.block",
         }),
+        event({
+          sequence: 8,
+          type: "point",
+          homeScore: 23,
+          awayScore: 20,
+          actorPlayerId: liberoId,
+          targetPlayerId: awayId,
+          winnerSchoolId: state.userSchoolId,
+          detailCode: "point.defense",
+        }),
+        event({
+          sequence: 9,
+          type: "point",
+          homeScore: 24,
+          awayScore: 20,
+          actorPlayerId: liberoId,
+          targetPlayerId: awayId,
+          winnerSchoolId: state.userSchoolId,
+          detailCode: "point.serve-error",
+        }),
       ],
       randomSeed: state.seed,
       randomCursor: 7,
@@ -157,5 +178,9 @@ describe("user match performance snapshot", () => {
     expect(bench.successfulDigs).toBe(1);
     expect(bench.blockPoints).toBe(1);
     expect(bench.points).toBe(1);
+    const libero = snapshot.players.get(liberoId)!;
+    expect(libero.defensePoints).toBe(1);
+    expect(libero.points).toBe(0);
+    expect(libero.clutchPoints).toBe(0);
   });
 });
