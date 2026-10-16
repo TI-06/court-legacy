@@ -34,10 +34,19 @@ function request(path: string, init: RequestInit = {}) {
   return new Request(origin + path, init);
 }
 
-function loginRequest(username: string, password: string, extra: HeadersInit = {}) {
+function loginRequest(
+  username: string,
+  password: string,
+  extra: HeadersInit = {},
+) {
   return request("/api/admin/login", {
     method: "POST",
-    headers: { origin, "content-type": "application/json", "cf-connecting-ip": "203.0.113.4", ...extra },
+    headers: {
+      origin,
+      "content-type": "application/json",
+      "cf-connecting-ip": "203.0.113.4",
+      ...extra,
+    },
     body: JSON.stringify({ username, password }),
   });
 }
@@ -52,7 +61,10 @@ afterEach(() => vi.unstubAllGlobals());
 describe("admin management authentication", () => {
   it("fails closed without deployment secrets", async () => {
     const db = fakeDatabase();
-    const admin = createAdminHandler({}, () => db as unknown as SupabaseAdminClient);
+    const admin = createAdminHandler(
+      {},
+      () => db as unknown as SupabaseAdminClient,
+    );
     const response = await admin(request("/api/admin/session"));
     expect(response.status).toBe(503);
     expect(db.rpc).not.toHaveBeenCalled();
@@ -60,8 +72,19 @@ describe("admin management authentication", () => {
 
   it("requires same-origin login and independently rate limits attempts", async () => {
     const db = fakeDatabase();
-    const admin = createAdminHandler(settings, () => db as unknown as SupabaseAdminClient);
-    expect((await admin(loginRequest("admin", "wrong", { origin: "https://elsewhere.example" }))).status).toBe(403);
+    const admin = createAdminHandler(
+      settings,
+      () => db as unknown as SupabaseAdminClient,
+    );
+    expect(
+      (
+        await admin(
+          loginRequest("admin", "wrong", {
+            origin: "https://elsewhere.example",
+          }),
+        )
+      ).status,
+    ).toBe(403);
     expect(db.rpc).not.toHaveBeenCalled();
 
     for (let i = 0; i < 5; i += 1) {
@@ -75,7 +98,11 @@ describe("admin management authentication", () => {
 
   it("signs an HttpOnly cookie, rejects tampering/expiry and never calls regular game auth", async () => {
     const db = fakeDatabase();
-    const admin = createAdminHandler(settings, () => db as unknown as SupabaseAdminClient, () => seconds);
+    const admin = createAdminHandler(
+      settings,
+      () => db as unknown as SupabaseAdminClient,
+      () => seconds,
+    );
     const denied = await admin(request("/api/admin/overview"));
     expect(denied.status).toBe(401);
     expect(db.rpc).not.toHaveBeenCalled();
@@ -88,25 +115,45 @@ describe("admin management authentication", () => {
     expect(setCookie).toContain("Secure");
     expect(setCookie).not.toContain("admintest");
     const cookie = setCookie.split(";")[0]!;
-    const overview = await admin(request("/api/admin/overview", { headers: { cookie } }));
+    const overview = await admin(
+      request("/api/admin/overview", { headers: { cookie } }),
+    );
     expect(overview.status).toBe(200);
     expect((await overview.json()).accounts.total).toBe(18);
     expect(overview.headers.get("cache-control")).toContain("no-store");
 
     const tampered = cookie.replace(/.$/, "z");
-    expect((await admin(request("/api/admin/overview", { headers: { cookie: tampered } }))).status).toBe(401);
-    const list = await admin(request("/api/admin/accounts?search=a&offset=0", { headers: { cookie } }));
+    expect(
+      (
+        await admin(
+          request("/api/admin/overview", { headers: { cookie: tampered } }),
+        )
+      ).status,
+    ).toBe(401);
+    const list = await admin(
+      request("/api/admin/accounts?search=a&offset=0", { headers: { cookie } }),
+    );
     expect(list.status).toBe(200);
 
     seconds += 7201;
-    expect((await admin(request("/api/admin/overview", { headers: { cookie } }))).status).toBe(401);
+    expect(
+      (await admin(request("/api/admin/overview", { headers: { cookie } })))
+        .status,
+    ).toBe(401);
   });
 
   it("logs out via same origin and clears cookie", async () => {
     const db = fakeDatabase();
-    const admin = createAdminHandler(settings, () => db as unknown as SupabaseAdminClient);
-    expect((await admin(request("/api/admin/logout", { method: "POST" }))).status).toBe(403);
-    const logout = await admin(request("/api/admin/logout", { method: "POST", headers: { origin } }));
+    const admin = createAdminHandler(
+      settings,
+      () => db as unknown as SupabaseAdminClient,
+    );
+    expect(
+      (await admin(request("/api/admin/logout", { method: "POST" }))).status,
+    ).toBe(403);
+    const logout = await admin(
+      request("/api/admin/logout", { method: "POST", headers: { origin } }),
+    );
     expect(logout.status).toBe(200);
     expect(logout.headers.get("set-cookie")).toContain("Max-Age=0");
   });

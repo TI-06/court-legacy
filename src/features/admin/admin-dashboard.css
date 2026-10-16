@@ -1,5 +1,6 @@
 /* Desktop-first administration area, completely separate from the mobile game shell. */
-.admin-layout, .admin-login {
+.admin-layout,
+.admin-login {
   font-family: Inter, "Noto Sans JP", system-ui, sans-serif;
   color: #e9f0f9;
   background: #0a1220;
@@ -252,8 +253,12 @@
   border-radius: 4px 4px 0 0;
 }
 
-.admin-chart__bar--users { background: #62bedc; }
-.admin-chart__bar--actions { background: #dfac60; }
+.admin-chart__bar--users {
+  background: #62bedc;
+}
+.admin-chart__bar--actions {
+  background: #dfac60;
+}
 
 .admin-chart__day small {
   height: 13px;
@@ -278,8 +283,12 @@
   border-radius: 3px;
 }
 
-.admin-legend__users::before { background: #62bedc; }
-.admin-legend__actions::before { background: #dfac60; }
+.admin-legend__users::before {
+  background: #62bedc;
+}
+.admin-legend__actions::before {
+  background: #dfac60;
+}
 
 .admin-note {
   color: #91a4bc;
@@ -302,7 +311,9 @@
   font-size: 13px;
 }
 
-.admin-ranking__caption strong { font-variant-numeric: tabular-nums; }
+.admin-ranking__caption strong {
+  font-variant-numeric: tabular-nums;
+}
 
 .admin-ranking__track {
   height: 7px;
@@ -335,7 +346,10 @@
   font-size: 13px;
 }
 
-.admin-table-scroller { overflow-x: auto; min-width: 0; }
+.admin-table-scroller {
+  overflow-x: auto;
+  min-width: 0;
+}
 
 .admin-table {
   width: 100%;
@@ -366,7 +380,9 @@
   color: #8fabc4;
 }
 
-.admin-table tbody tr:hover { background: #1b3044; }
+.admin-table tbody tr:hover {
+  background: #1b3044;
+}
 
 .admin-pagination {
   display: flex;
@@ -466,14 +482,28 @@
 }
 
 @media (max-width: 1200px) {
-  .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .admin-two-columns { grid-template-columns: minmax(0, 1fr); }
+  .admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-two-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 800px) {
-  .admin-layout { grid-template-columns: 185px minmax(0, 1fr); }
-  .admin-main { padding: 24px 18px 60px; }
-  .admin-sidebar { padding-inline: 10px; }
-  .admin-chart { gap: 2px; }
-  .admin-chart__day small { font-size: 8px; }
+  .admin-layout {
+    grid-template-columns: 185px minmax(0, 1fr);
+  }
+  .admin-main {
+    padding: 24px 18px 60px;
+  }
+  .admin-sidebar {
+    padding-inline: 10px;
+  }
+  .admin-chart {
+    gap: 2px;
+  }
+  .admin-chart__day small {
+    font-size: 8px;
+  }
 }
