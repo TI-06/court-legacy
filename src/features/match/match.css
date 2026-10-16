@@ -2888,7 +2888,12 @@
     flex-wrap: wrap;
   }
 
-  .match-screen--result .match-player-review__list article > header > div strong {
+  .match-screen--result
+    .match-player-review__list
+    article
+    > header
+    > div
+    strong {
     font-size: 14px;
   }
 

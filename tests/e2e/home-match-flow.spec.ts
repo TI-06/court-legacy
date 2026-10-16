@@ -331,9 +331,10 @@ for (const viewport of [
         .locator(typographyTarget)
         .first()
         .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-      expect(fontSize, `${tab} typography at ${viewport.width}px`).toBeGreaterThanOrEqual(
-        11,
-      );
+      expect(
+        fontSize,
+        `${tab} typography at ${viewport.width}px`,
+      ).toBeGreaterThanOrEqual(11);
       const result = await clearance(
         ".match-result-body",
         ".match-result-actions--fixed",
