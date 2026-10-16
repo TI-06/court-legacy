@@ -1,0 +1,23 @@
+name: Admin Production Readiness Probe
+on:
+  push:
+    branches: [feat/phase68-admin-production-check-20261017]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Check live Worker without credentials
+        shell: bash
+        run: |
+          set +e
+          node scripts/checkAdminDeployment.mjs
+          result=$?
+          echo "Production admin readiness check exit code: ${result}" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::Production readiness result: ${result} (0 ready, 2 missing secrets, 3 old deployment)"
+          exit 0
