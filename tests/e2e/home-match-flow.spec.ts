@@ -302,6 +302,11 @@ for (const viewport of [
     const tabs = page.getByRole("tablist", { name: "試合結果の表示切替" });
     await expect(tabs.getByRole("tab")).toHaveCount(4);
 
+    const heroTypography = await page
+      .locator(".match-result-score b")
+      .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+    expect(heroTypography).toBeGreaterThanOrEqual(28);
+
     for (const [tab, visible] of [
       ["総合評価", ".match-review-summary"],
       ["チーム", ".match-box-score"],
@@ -314,6 +319,21 @@ for (const viewport of [
         "true",
       );
       await expect(page.locator(visible)).toBeVisible();
+      const typographyTarget =
+        tab === "総合評価"
+          ? ".match-review-summary__categories small"
+          : tab === "チーム"
+            ? ".match-box-score__row span"
+            : tab === "選手"
+              ? ".match-player-review__metrics small"
+              : ".practice-match-review__facts small";
+      const fontSize = await page
+        .locator(typographyTarget)
+        .first()
+        .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+      expect(fontSize, `${tab} typography at ${viewport.width}px`).toBeGreaterThanOrEqual(
+        11,
+      );
       const result = await clearance(
         ".match-result-body",
         ".match-result-actions--fixed",
