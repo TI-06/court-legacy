@@ -337,13 +337,18 @@ for (const viewport of [
         `${tab} typography at ${viewport.width}px`,
       ).toBeGreaterThanOrEqual(11);
       if (tab === "チーム") {
-        const sizes = await page.locator(".match-box-score__row").first().evaluate(
-          (row) => ({
-            label: parseFloat(getComputedStyle(row.querySelector("span")!).fontSize),
-            number: parseFloat(getComputedStyle(row.querySelector("strong")!).fontSize),
+        const sizes = await page
+          .locator(".match-box-score__row")
+          .first()
+          .evaluate((row) => ({
+            label: parseFloat(
+              getComputedStyle(row.querySelector("span")!).fontSize,
+            ),
+            number: parseFloat(
+              getComputedStyle(row.querySelector("strong")!).fontSize,
+            ),
             height: row.getBoundingClientRect().height,
-          }),
-        );
+          }));
         expect(sizes.label).toBeGreaterThanOrEqual(15);
         expect(sizes.number).toBeGreaterThanOrEqual(21);
         expect(sizes.height).toBeGreaterThanOrEqual(58);
@@ -353,7 +358,9 @@ for (const viewport of [
           .locator(".match-player-review__primary")
           .first()
           .evaluate((box) => ({
-            label: parseFloat(getComputedStyle(box.querySelector("small")!).fontSize),
+            label: parseFloat(
+              getComputedStyle(box.querySelector("small")!).fontSize,
+            ),
             points: parseFloat(
               getComputedStyle(box.querySelector("strong")!).fontSize,
             ),

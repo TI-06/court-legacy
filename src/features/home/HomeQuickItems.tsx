@@ -68,9 +68,10 @@ export function HomeQuickItems({
     targetItem === "fatigue-recovery"
       ? players.filter((player) => player.fatigue > 0 || player.condition < 100)
       : players.filter((player) => player.injury === null);
-  const items = HOME_ITEM_IDS.map(
-    (id) => status?.items.find((item) => item.itemId === id),
-  ).filter((item) => item !== undefined && item.quantityOwned > 0);
+  const items = HOME_ITEM_IDS.flatMap((id) => {
+    const item = status?.items.find((entry) => entry.itemId === id);
+    return item && item.quantityOwned > 0 ? [item] : [];
+  });
   const unusable = pending || loading;
 
   const closeTargets = () => {
@@ -97,7 +98,10 @@ export function HomeQuickItems({
       {error ? (
         <div className="home-quick-items__error" role="alert">
           <span>{error}</span>
-          <button onClick={retryAvailable ? onRetryMutation : onRetry} type="button">
+          <button
+            onClick={retryAvailable ? onRetryMutation : onRetry}
+            type="button"
+          >
             {retryAvailable ? "同じ操作を再試行" : "再読み込み"}
           </button>
         </div>
@@ -118,25 +122,34 @@ export function HomeQuickItems({
         </p>
       ) : items.length === 0 ? (
         <p className="home-quick-items__empty">
-          {status ? "使用できるアイテムはありません" : "所持品を読み込めませんでした"}
+          {status
+            ? "使用できるアイテムはありません"
+            : "所持品を読み込めませんでした"}
         </p>
       ) : (
         <div className="home-quick-items__list">
-          {items.map((item) => (
+          {items.map((item) => {
+            const alreadyActive =
+              (item.itemId === "training-camp" &&
+                Boolean(state.shopEffects?.pendingTrainingCamp)) ||
+              (item.itemId === "training-efficiency-boost" &&
+                Boolean(state.shopEffects?.nextTrainingGrowthBoost));
+            return (
             <article className="home-quick-items__row" key={item.itemId}>
               <div>
                 <strong>{item.displayName}</strong>
                 <small>所持 {item.quantityOwned}個</small>
               </div>
               <button
-                disabled={unusable || !item.canUse}
+                disabled={unusable || !item.canUse || alreadyActive}
                 onClick={() => chooseItem(item.itemId)}
                 type="button"
               >
-                {pending ? "処理中…" : "使用"}
+                {pending ? "処理中…" : alreadyActive ? "適用中" : "使用"}
               </button>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
       <BottomSheet

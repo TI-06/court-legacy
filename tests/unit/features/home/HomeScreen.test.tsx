@@ -11,9 +11,7 @@ import {
   type TrainingResultNotification,
 } from "../../../../src/domain/notifications/gameNotifications";
 import { HomeScreen } from "../../../../src/features/home/HomeScreen";
-import {
-  PHASE5_SHOP_ITEMS,
-} from "../../../../src/domain/shop/shopCatalog";
+import { PHASE5_SHOP_ITEMS } from "../../../../src/domain/shop/shopCatalog";
 import type { ShopStatusResponse } from "../../../../src/domain/shop/shopContracts";
 
 function createProps(state = createDemoGame()) {

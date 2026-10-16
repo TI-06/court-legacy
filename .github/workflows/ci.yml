@@ -53,11 +53,6 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
-      - name: Inspect Phase66 formatting and focused Home tests (temporary)
-        run: |
-          npx prettier src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/HomeQuickItems.tsx src/features/home/home-quick-items.css src/features/match/match.css tests/e2e/home-match-flow.spec.ts tests/unit/features/home/HomeScreen.test.tsx src/app/GameApp.tsx --write
-          git diff -- src/features/home/HomeCommandCenter.tsx src/features/home/HomeScreen.tsx src/features/home/HomeQuickItems.tsx src/features/home/home-quick-items.css src/features/match/match.css tests/e2e/home-match-flow.spec.ts tests/unit/features/home/HomeScreen.test.tsx src/app/GameApp.tsx
-          npx vitest run tests/unit/features/home/HomeScreen.test.tsx tests/unit/app/GameApp.shop.test.tsx --reporter=verbose
       - name: Verify formatting, lint, types, tests, and build
         run: npm run verify
       - name: Verify release metadata and evidence

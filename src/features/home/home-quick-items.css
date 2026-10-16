@@ -87,3 +87,11 @@
   min-height: 46px;
   text-align: left;
 }
+
+/* Only the item panel scrolls; the existing Home command desk stays compact. */
+.game-page-frame .home-command-desk-panel:has(.home-quick-items) {
+  max-height: min(240px, 34dvh);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}

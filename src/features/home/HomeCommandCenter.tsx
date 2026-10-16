@@ -148,9 +148,9 @@ export function HomeCommandCenter({
   const [selectedBriefing, setSelectedBriefing] = useState<
     "official" | "season" | "rival"
   >("official");
-  const [selectedDesk, setSelectedDesk] = useState<
-    "tasks" | "news" | "items"
-  >("tasks");
+  const [selectedDesk, setSelectedDesk] = useState<"tasks" | "news" | "items">(
+    "tasks",
+  );
   const { summary } = model;
   const weekKey = `${summary.dateLabel}:${summary.weekLabel}`;
   const playedNewsIds = useRef(new Set<string>());
