@@ -68,9 +68,10 @@ for (const viewport of [
 
     const nav = page.getByRole("navigation", { name: "主要メニュー" });
     await nav.getByRole("button", { name: "選手" }).click();
-    await expect(
-      nav.getByRole("button", { name: "選手" }),
-    ).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("button", { name: "選手" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     await nav.getByRole("button", { name: "ホーム" }).click();
     await expect(home).toBeVisible();
 
