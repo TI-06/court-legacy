@@ -5,6 +5,7 @@ import type {
   DevelopmentGoalAchievementNotification,
   SeasonGoalAchievementNotification,
   SpecialRelationshipNotification,
+  ScoutingResultNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
 import type {
@@ -37,6 +38,9 @@ interface HomeCommandCenterProps {
   onAcknowledgeCharacterTraitNotification: (
     notification: CharacterTraitDiscoveredNotification,
   ) => void;
+  onOpenScoutingNotification: (
+    notification: ScoutingResultNotification,
+  ) => void;
 }
 
 const priorityLabels: Record<HomeCommandPriority, string> = {
@@ -52,7 +56,8 @@ type NewsMotionKind =
   | "achievement"
   | "relationship"
   | "discovery"
-  | "recovery";
+  | "recovery"
+  | "scouting";
 
 function homeNewsMotionKind(
   news: HomeCommandCenterModel["news"][number],
@@ -76,6 +81,8 @@ function homeNewsMotionKind(
       return "discovery";
     case "concern-resolution":
       return "recovery";
+    case "scouting-result":
+      return "scouting";
     default:
       return null;
   }
@@ -130,6 +137,7 @@ export function HomeCommandCenter({
   onOpenDevelopmentGoalAchievement,
   onOpenSeasonGoalAchievement,
   onAcknowledgeCharacterTraitNotification,
+  onOpenScoutingNotification,
 }: HomeCommandCenterProps) {
   const [tasksOpen, setTasksOpen] = useState(false);
   const [newsOpen, setNewsOpen] = useState(false);
@@ -222,6 +230,30 @@ export function HomeCommandCenter({
   };
 
   const renderNews = (news: HomeCommandCenterModel["news"][number]) => {
+    if (news.kind === "scouting-result") {
+      const unread = news.notification.readAtGameDate === null;
+      return (
+        <button
+          aria-label={`${news.title} ${news.detail}`}
+          className={`home-command-news-row${unread ? " is-unread" : ""}`}
+          data-testid="home-command-news"
+          data-event-motion={
+            highlightedNewsId === news.id
+              ? (homeNewsMotionKind(news) ?? undefined)
+              : undefined
+          }
+          key={news.id}
+          onClick={() => onOpenScoutingNotification(news.notification)}
+          type="button"
+        >
+          <span>
+            <strong>{unread ? `NEW ${news.title}` : news.title}</strong>
+            <small>{news.detail}</small>
+          </span>
+          <b aria-hidden="true">›</b>
+        </button>
+      );
+    }
     if (news.kind === "training-result") {
       const unread = news.notification.readAtGameDate === null;
       return (

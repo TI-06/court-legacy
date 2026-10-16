@@ -9,6 +9,7 @@ import type {
   DevelopmentGoalAchievementNotification,
   SeasonGoalAchievementNotification,
   SpecialRelationshipNotification,
+  ScoutingResultNotification,
   TrainingResultNotification,
 } from "../../domain/notifications/gameNotifications";
 import { BottomSheet } from "../../ui/BottomSheet";
@@ -124,6 +125,15 @@ export function HomeScreen({
     }
   };
 
+  const openScoutingNotification = (
+    notification: ScoutingResultNotification,
+  ) => {
+    if (notification.readAtGameDate === null) {
+      void onMarkNotificationRead(notification.id);
+    }
+    dispatchCommand({ target: "scouting" });
+  };
+
   const requestAdvance = () => {
     if (operationPending) return;
     if (model.advance.requiresConfirmation) {
@@ -175,6 +185,7 @@ export function HomeScreen({
         onOpenRelationshipNotification={acknowledgeRelationshipNotification}
         onOpenDevelopmentGoalAchievement={openDevelopmentGoalAchievement}
         onOpenSeasonGoalAchievement={openSeasonGoalAchievement}
+        onOpenScoutingNotification={openScoutingNotification}
         onAcknowledgeCharacterTraitNotification={
           acknowledgeCharacterTraitNotification
         }

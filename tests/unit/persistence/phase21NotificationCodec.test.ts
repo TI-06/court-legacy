@@ -61,6 +61,29 @@ describe("Phase21 notification codec", () => {
     );
   });
 
+  it("round-trips authoritative scouting results without save migration", () => {
+    const state = createDemoGame();
+    state.notifications.items = [
+      {
+        id: "scouting-result:op-test",
+        type: "scouting-result",
+        createdGameDate: state.date,
+        academicYearIndex: state.yearIndex,
+        weekOfYear: state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          candidateId: "candidate-test" as never,
+          displayName: "田中 太郎",
+          action: "commit",
+          committedCount: 3,
+        },
+      },
+    ];
+    expect(decodeGameState(encodeGameState(state)).notifications).toEqual(
+      state.notifications,
+    );
+  });
+
   it("round-trips character trait discovery notifications", () => {
     const state = createDemoGame();
     const playerId = state.schools[state.userSchoolId]!.playerIds[0]!;

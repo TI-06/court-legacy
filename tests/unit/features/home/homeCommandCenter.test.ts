@@ -87,6 +87,40 @@ function trainingNotification(
 }
 
 describe("selectHomeCommandCenter", () => {
+  it("shows only confirmed server recruitment actions in Home news", () => {
+    const state = createDemoGame();
+    expect(select(state).news.some((news) => news.kind === "scouting-result")).toBe(
+      false,
+    );
+
+    state.notifications.items = [
+      {
+        id: "scouting-result:phase63",
+        type: "scouting-result",
+        createdGameDate: state.date,
+        academicYearIndex: state.yearIndex,
+        weekOfYear: state.calendar.weekOfYear,
+        readAtGameDate: null,
+        payload: {
+          candidateId: "candidate-63" as never,
+          displayName: "田中 太郎",
+          action: "commit",
+          committedCount: 2,
+        },
+      },
+    ];
+    expect(select(state).news[0]).toMatchObject({
+      kind: "scouting-result",
+      title: "入学確約が成立！",
+      detail: "田中 太郎・確約 2/7名",
+    });
+
+    state.notifications.items[0]!.readAtGameDate = state.date;
+    expect(select(state).news.find((news) => news.kind === "scouting-result")).toMatchObject({
+      title: "入学確約が成立！",
+    });
+  });
+
   it("builds the weekly summary with the Phase17 season goal and rankings", () => {
     const model = select();
 

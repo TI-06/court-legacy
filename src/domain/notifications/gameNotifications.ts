@@ -25,6 +25,7 @@ import type {
   SpecialRelationshipTransition,
 } from "../relationships/relationshipTypes";
 import type { AbilityKey } from "../validation/gameDataSchema";
+import type { RecruitmentAction } from "../scouting/recruitmentEngagement";
 
 export interface TrainingResultRankUp {
   area: DevelopmentGoalArea;
@@ -160,13 +161,56 @@ export interface SeasonGoalAchievementNotification {
   };
 }
 
+/** Persisted only after an authoritative, successful recruitment action. */
+export interface ScoutingResultNotification {
+  id: string;
+  type: "scouting-result";
+  createdGameDate: GameDate;
+  academicYearIndex: number;
+  weekOfYear: number;
+  readAtGameDate: GameDate | null;
+  payload: {
+    candidateId: PlayerId;
+    displayName: string;
+    action: RecruitmentAction;
+    committedCount: number;
+  };
+}
+
+export function buildScoutingResultNotification(
+  state: GameState,
+  input: {
+    operationId: string;
+    candidateId: PlayerId;
+    displayName: string;
+    action: RecruitmentAction;
+    committedCount: number;
+  },
+): ScoutingResultNotification {
+  return {
+    id: `scouting-result:${input.operationId}`,
+    type: "scouting-result",
+    createdGameDate: state.date,
+    academicYearIndex: state.yearIndex,
+    weekOfYear: state.calendar.weekOfYear,
+    readAtGameDate: null,
+    payload: {
+      candidateId: input.candidateId,
+      displayName: input.displayName,
+      action: input.action,
+      committedCount: input.committedCount,
+    },
+  };
+}
+
 export type GameNotification =
   | TrainingResultNotification
   | ConcernResolutionNotification
   | SpecialRelationshipNotification
   | CharacterTraitDiscoveredNotification
   | DevelopmentGoalAchievementNotification
-  | SeasonGoalAchievementNotification;
+  | SeasonGoalAchievementNotification
+  | ScoutingResultNotification;
 
 export interface GameNotificationState {
   items: GameNotification[];
@@ -630,6 +674,16 @@ export function selectHomeCharacterTraitNotifications(
   const items = state.items.filter(
     (item): item is CharacterTraitDiscoveredNotification =>
       item.type === "character-trait-discovered",
+  );
+  const newest = items[items.length - 1];
+  return newest ? [newest] : [];
+}
+
+export function selectHomeScoutingNotifications(
+  state: GameNotificationState,
+): ScoutingResultNotification[] {
+  const items = state.items.filter(
+    (item): item is ScoutingResultNotification => item.type === "scouting-result",
   );
   const newest = items[items.length - 1];
   return newest ? [newest] : [];
