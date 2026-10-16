@@ -110,17 +110,11 @@ export function HomeQuickItems({
           </button>
         </div>
       ) : null}
-      {resultMessage && !error ? (
+      {!error && latestUseResult ? (
+        <ShopUseResultPanel presentation={latestUseResult} state={state} />
+      ) : !error && resultMessage ? (
         <p className="home-quick-items__success" role="status">
           {resultMessage}
-        </p>
-      ) : null}
-      {latestUseResult && !error ? (
-        <ShopUseResultPanel presentation={latestUseResult} state={state} />
-      ) : null}
-      {state.shopEffects?.pendingTrainingCamp ? (
-        <p className="home-quick-items__success">
-          強化合宿を予約中・次週に結果を確認できます
         </p>
       ) : null}
       {loading ? (

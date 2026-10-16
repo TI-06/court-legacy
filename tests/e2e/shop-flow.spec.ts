@@ -133,9 +133,9 @@ test("mobile shop repeatedly purchases and uses fatigue recovery without annual 
       .getByRole("button", { name: "疲労回復を使用", exact: true })
       .click();
     await page.locator(".shop-target-list button").first().click();
-    await expect(page.getByText("使用しました ✓")).toBeVisible({
-      timeout: 2_500,
-    });
+    await expect(
+      page.getByRole("heading", { name: "疲労回復の結果" }),
+    ).toBeVisible({ timeout: 2_500 });
   }
 
   await openShopFromInventory(page);

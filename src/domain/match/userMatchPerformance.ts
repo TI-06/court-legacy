@@ -160,14 +160,18 @@ export function buildUserMatchPerformanceSnapshot(
       continue;
     }
 
-    actor.points += 1;
-    const clutch = isClutchPoint(
-      event.setNumber,
-      event.homeScore,
-      event.awayScore,
-    );
-    if (clutch) {
-      actor.clutchPoints += 1;
+    // Team points from an opponent serve error or a defensive dig are not
+    // individual scoring points. Otherwise liberos top the points chart.
+    const individualPoint =
+      event.detailCode === "point.attack" ||
+      event.detailCode === "point.block" ||
+      event.detailCode === "point.serve-ace";
+    const clutch =
+      individualPoint &&
+      isClutchPoint(event.setNumber, event.homeScore, event.awayScore);
+    if (individualPoint) {
+      actor.points += 1;
+      if (clutch) actor.clutchPoints += 1;
     }
     if (event.detailCode === "point.attack") {
       actor.attackPoints += 1;

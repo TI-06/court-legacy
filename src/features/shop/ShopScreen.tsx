@@ -392,6 +392,21 @@ export function ShopScreen({
     authoritativeBalance !== undefined
       ? `資金 +${lastGrantAmount.toLocaleString("ja-JP")} / 残高 ${authoritativeBalance.toLocaleString("ja-JP")}`
       : resultMessage;
+  // The detailed result is itself the success confirmation. Showing a second
+  // generic banner duplicates text and wastes scarce mobile vertical space.
+  const hasDetailedUseResult =
+    latestUseResult !== null &&
+    [
+      "fatigue-recovery",
+      "training-camp",
+      "special-coach",
+      "training-efficiency-boost",
+      "extra-scout-candidate",
+      "generational-scout-candidate",
+    ].includes(latestUseResult.itemId);
+  const visibleResultMessage = hasDetailedUseResult
+    ? null
+    : displayedResultMessage;
 
   const schoolPlayers = useMemo(() => {
     if (!state) return [];
@@ -492,7 +507,7 @@ export function ShopScreen({
         </div>
       ) : null}
 
-      {loading || displayedResultMessage || latestUseResult ? (
+      {loading || visibleResultMessage || latestUseResult ? (
         <div
           aria-live="polite"
           className="shop-screen__feedback-layer"
@@ -508,7 +523,7 @@ export function ShopScreen({
             </p>
           ) : (
             <>
-              {displayedResultMessage ? (
+              {visibleResultMessage ? (
                 <p className="shop-screen__feedback shop-screen__feedback--success">
                   <span
                     aria-hidden="true"
@@ -516,7 +531,7 @@ export function ShopScreen({
                   >
                     ✓
                   </span>
-                  <strong>{displayedResultMessage}</strong>
+                  <strong>{visibleResultMessage}</strong>
                 </p>
               ) : null}
               {latestUseResult ? (

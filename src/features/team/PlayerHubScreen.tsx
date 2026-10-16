@@ -387,16 +387,17 @@ export function PlayerHubScreen({
     () => selectPlayerHubRoster({ state, selection, filter, sort }),
     [state, selection, filter, sort],
   );
-  // A paged roster replaces page scrolling on phones. Filtering/sorting
-  // always operates on the full roster, and staged training is not discarded.
+  // The compact mobile header leaves room for four full player cards on
+  // standard-height phones. Reserve a smaller page when batch training is
+  // staged so the save bar cannot cover the fourth player.
   const rosterPageSize =
     viewport.width > 520
       ? Math.max(1, rosterItems.length)
       : viewport.height < 620
         ? 1
-        : viewport.height < 760
+        : viewport.height < 740
           ? 2
-          : viewport.height < 900
+          : viewport.height < 800 || Object.keys(trainingDrafts).length > 0
             ? 3
             : 4;
   const rosterPageCount = Math.max(

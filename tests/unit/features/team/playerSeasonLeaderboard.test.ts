@@ -115,4 +115,54 @@ describe("Phase54 current-season leaderboard", () => {
       result.sections.find((section) => section.id === "receive-rate")!.rows,
     ).toEqual([]);
   });
+  it("excludes historical defensive rally points credited to liberos", () => {
+    const state = createDemoGame();
+    const players = state.schools[state.userSchoolId]!.playerIds.map(
+      (id) => state.players[id]!,
+    );
+    const libero = players.find((player) => player.preferredPosition === "L")!;
+    const attacker = players.find(
+      (player) => player.preferredPosition === "OH",
+    )!;
+
+    libero.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 4,
+      setsPlayed: 10,
+      points: 90,
+      attackPoints: 0,
+      attackAttempts: 0,
+      blocks: 0,
+      serviceAces: 0,
+      receiveAttempts: 40,
+      perfectReceives: 30,
+      defensePoints: 90,
+      idealSets: 0,
+      successfulDigs: 40,
+    };
+    attacker.career.seasonStats = {
+      academicYear: state.calendar.academicYear,
+      appearances: 4,
+      setsPlayed: 10,
+      points: 12,
+      attackPoints: 10,
+      attackAttempts: 20,
+      blocks: 1,
+      serviceAces: 1,
+      receiveAttempts: 10,
+      perfectReceives: 6,
+      defensePoints: 0,
+      idealSets: 0,
+      successfulDigs: 2,
+    };
+
+    const ranking = buildTeamSeasonLeaderboard(state);
+    const points = ranking.sections.find((section) => section.id === "points")!;
+    expect(points.rows[0]).toMatchObject({ playerId: attacker.id, value: 12 });
+    expect(points.rows.some((row) => row.playerId === libero.id)).toBe(false);
+    const receives = ranking.sections.find(
+      (section) => section.id === "receive-rate",
+    )!;
+    expect(receives.rows.some((row) => row.playerId === libero.id)).toBe(true);
+  });
 });

@@ -57,9 +57,14 @@ function numericRows(
   const rows = players
     .map((player) => {
       const stats = currentStats(player, academicYear);
+      // Historical saves can contain team rally points attributed to the
+      // libero. Derive individual scoring from the three legitimate sources
+      // instead of trusting the legacy points aggregate.
       const value =
         category === "points"
-          ? (stats?.points ?? 0)
+          ? (stats?.attackPoints ?? 0) +
+            (stats?.blocks ?? 0) +
+            (stats?.serviceAces ?? 0)
           : category === "blocks"
             ? (stats?.blocks ?? 0)
             : (stats?.serviceAces ?? 0);

@@ -22,9 +22,9 @@ for (const viewport of [
     const expectedRows =
       viewport.height < 620
         ? 1
-        : viewport.height < 760
+        : viewport.height < 740
           ? 2
-          : viewport.height < 900
+          : viewport.height < 800
             ? 3
             : 4;
     await expect(rows).toHaveCount(expectedRows);
@@ -59,8 +59,16 @@ for (const viewport of [
         lastRowBottom:
           rows.lastElementChild?.getBoundingClientRect().bottom ?? 0,
         rosterBottom: rows.getBoundingClientRect().bottom,
+        headingHeight: document
+          .querySelector(".player-hub__heading")!
+          .getBoundingClientRect().height,
+        controlsHeight: document
+          .querySelector(".player-hub__controls")!
+          .getBoundingClientRect().height,
       };
     });
+    expect(geometry.headingHeight).toBeLessThanOrEqual(26);
+    expect(geometry.controlsHeight).toBeLessThanOrEqual(54);
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
     expect(geometry.bodyHeight).toBeLessThanOrEqual(
       geometry.viewportHeight + 1,

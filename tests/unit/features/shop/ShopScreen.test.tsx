@@ -188,7 +188,7 @@ describe("ShopScreen", () => {
     expect(screen.getByText("疲労回復")).toBeVisible();
   });
 
-  it("renders purchase and use feedback in an overlay so the item grid does not shift", () => {
+  it("shows detailed item feedback in the overlay without stacking a generic banner", () => {
     const state = createDemoGame();
     renderShop({
       state,
@@ -203,7 +203,7 @@ describe("ShopScreen", () => {
       name: "",
     });
     expect(feedback).toHaveClass("shop-screen__feedback-layer");
-    expect(feedback).toHaveTextContent("購入しました ✓");
+    expect(feedback).not.toHaveTextContent("購入しました ✓");
     expect(feedback).toHaveTextContent("次回練習の成長効率 +20%");
     expect(screen.getByRole("region", { name: "商品一覧" })).toBeVisible();
   });

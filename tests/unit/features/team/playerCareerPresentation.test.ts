@@ -106,7 +106,7 @@ describe("Phase54 player career presentation", () => {
       buildPlayerSeasonPresentation(player, state.calendar.academicYear),
     ).toMatchObject({
       appearances: 4,
-      points: 31,
+      points: 26,
       blocks: 5,
       serviceAces: 3,
       attackSuccessRate: 60,
