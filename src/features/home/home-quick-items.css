@@ -103,3 +103,17 @@
   font-size: 13px;
   padding: 6px 9px;
 }
+
+/* Pending camp is a single compact status, not a second success card and
+ * a disabled duplicate inventory row. */
+.home-quick-items__reservation {
+  margin: 0;
+  padding: 7px 9px;
+  color: #c7f6df;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  background: rgb(53 154 112 / 11%);
+  border: 1px solid rgb(113 212 164 / 22%);
+  border-radius: 9px;
+}
