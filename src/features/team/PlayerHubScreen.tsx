@@ -399,14 +399,11 @@ export function PlayerHubScreen({
           : viewport.height < 840
             ? 4
             : 5;
+  const hasPendingTraining = Object.keys(trainingDrafts).length > 0;
   const rosterPageSize =
     viewport.width > 520
       ? Math.max(1, rosterItems.length)
-      : Math.max(
-          1,
-          mobileRosterPageSize -
-            (Object.keys(trainingDrafts).length > 0 ? 1 : 0),
-        );
+      : Math.max(1, mobileRosterPageSize - (hasPendingTraining ? 1 : 0));
   const rosterPageCount = Math.max(
     1,
     Math.ceil(rosterItems.length / rosterPageSize),
