@@ -69,3 +69,97 @@
     border-radius: 16px;
   }
 }
+
+/* Keep the timing with the tournament heading on every screen size. */
+.match-official-entry__copy {
+  grid-column: 1 / -1;
+}
+
+.match-official-entry__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.match-official-entry__title .section-kicker {
+  margin: 0;
+}
+
+.match-official-entry__title h2 {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .game-page-frame .match-hub-screen > .match-official-entry {
+    grid-template-columns: minmax(0, 1fr) 108px;
+    grid-template-rows: auto;
+    align-items: center;
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .game-page-frame .match-hub-screen > .match-official-entry .match-official-entry__copy {
+    grid-column: 1;
+    grid-row: 1;
+    overflow: hidden;
+    display: grid;
+    gap: 2px;
+  }
+
+  .match-official-entry__title {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .match-official-entry__title .section-kicker {
+    display: none;
+  }
+
+  .match-official-entry__title h2 {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .match-official-entry__title .match-official-entry__timing {
+    min-height: 20px;
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+
+  .match-official-entry__copy > strong {
+    overflow: hidden;
+    margin: 0;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .match-official-entry__copy > p:last-child {
+    overflow: hidden;
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .game-page-frame .match-hub-screen > .match-official-entry > button {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px;
+    border-radius: 9px;
+    font-size: 11px;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 350px) {
+  .game-page-frame .match-hub-screen > .match-official-entry {
+    grid-template-columns: minmax(0, 1fr) 102px;
+    padding: 7px 8px;
+  }
+}

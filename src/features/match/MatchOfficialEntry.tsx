@@ -42,12 +42,14 @@ export function MatchOfficialEntry({ state, onOpen }: MatchOfficialEntryProps) {
       aria-labelledby="match-official-entry-heading"
     >
       <div className="match-official-entry__copy">
-        <p className="section-kicker">OFFICIAL</p>
-        <h2 id="match-official-entry-heading">公式大会</h2>
+        <div className="match-official-entry__title">
+          <p className="section-kicker">OFFICIAL</p>
+          <h2 id="match-official-entry-heading">公式大会</h2>
+          <span className="match-official-entry__timing">{timingLabel}</span>
+        </div>
         <strong>{tournamentLabel}</strong>
-        <p>{detail}</p>
+        <p title={detail}>{detail}</p>
       </div>
-      <span className="match-official-entry__timing">{timingLabel}</span>
       <button aria-label="大会表を見る" onClick={onOpen} type="button">
         大会表を見る
       </button>
