@@ -32,9 +32,7 @@ for (const viewport of [
       pvp.getByRole("button", { name: "対人戦を開く" }),
     ).toBeVisible();
 
-    await expect(
-      pvp.getByText("公開チームで全国の監督と対戦。"),
-    ).toBeVisible();
+    await expect(pvp.getByText("公開チームで全国の監督と対戦。")).toBeVisible();
 
     const sizes = await page.evaluate(() => {
       const position = (selector: string) =>
