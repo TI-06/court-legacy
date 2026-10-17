@@ -109,6 +109,9 @@ function MatchScreenContent({
   const [playing, setPlaying] = useState(!reducedMotion);
   const [speed, setSpeed] = useState<PlaybackSpeed>(4);
   const playbackMode: PlaybackMode = "points";
+  const togglePlaybackSpeed = () => {
+    setSpeed((current) => (current === 4 ? 1 : 4));
+  };
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
   const [resultView, setResultView] = useState<MatchResultView>("review");
   const resultBodyRef = useRef<HTMLDivElement>(null);
@@ -594,9 +597,7 @@ function MatchScreenContent({
                   type="button"
                   disabled={reducedMotion}
                   aria-pressed={speed === 1}
-                  onClick={() =>
-                    setSpeed((current) => (current === 4 ? 1 : 4))
-                  }
+                  onClick={togglePlaybackSpeed}
                 >
                   {speed === 4 ? "等速で見る" : "4倍速に戻す"}
                 </button>
