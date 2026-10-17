@@ -17,6 +17,8 @@ interface LiveCourtAnimationProps {
   awaySelection: TeamSelection;
   reducedMotion: boolean;
   playing: boolean;
+  /** Interval until the next displayed event, used only for visual playback. */
+  playbackDurationMs?: number;
 }
 
 const HOME_SPOTS = [
@@ -52,6 +54,7 @@ export function LiveCourtAnimation({
   awaySelection,
   reducedMotion,
   playing,
+  playbackDurationMs = 200,
 }: LiveCourtAnimationProps) {
   const event = match.eventLog[visibleEventIndex];
   if (!event) return null;
@@ -80,6 +83,14 @@ export function LiveCourtAnimation({
       : null;
   const direction = moment.fromHome ? "home" : "away";
   const animate = playing && !reducedMotion && lastTrajectory !== null;
+  // A point can contain up to four logged actions. Play them in order within
+  // the existing score-step interval; do not change match simulation or timing.
+  const replayDurationMs = Math.max(160, playbackDurationMs - 16);
+  const replayStepMs = Math.floor(
+    replayDurationMs / Math.max(1, trajectories.length),
+  );
+  const replayEndMs = replayStepMs * trajectories.length;
+  const replayRally = animate && trajectories.length > 1;
   const actorMotionClass = animate
     ? `court-live__actor court-live__actor--${moment.play} court-live__actor--${direction}`
     : "court-live__actor";
@@ -137,7 +148,14 @@ export function LiveCourtAnimation({
             stroke={step.fromHome ? "#a1e7f2" : "#ffe0b6"}
             strokeWidth={index === trajectories.length - 1 ? 2.5 : 1.5}
             opacity={index === trajectories.length - 1 ? 0.85 : 0.35}
-            style={animate ? { animationDelay: `${index * 32}ms` } : undefined}
+            style={
+              animate
+                ? {
+                    animationDelay: `${index * replayStepMs}ms`,
+                    animationDuration: `${replayStepMs}ms`,
+                  }
+                : undefined
+            }
           />
         ))}
         {homeSelection.rotation.map(({ slot }, index) => {
@@ -270,24 +288,73 @@ export function LiveCourtAnimation({
             </text>
           </g>
         ) : null}
+        {replayRally ? (
+          <g data-testid="live-court-rally-replay" aria-hidden="true">
+            {trajectories.map((step, index) => (
+              <circle
+                key={step.sequence}
+                className="court-live__ball"
+                data-testid="live-court-replay-ball"
+                data-motion={step.play}
+                data-side={step.fromHome ? "home" : "away"}
+                cx="0"
+                cy="0"
+                r="7"
+                fill="#fff4ac"
+                stroke="#fff"
+                strokeWidth="2"
+                opacity="0"
+              >
+                <animateMotion
+                  begin={`${index * replayStepMs}ms`}
+                  dur={`${replayStepMs}ms`}
+                  fill="freeze"
+                  path={step.trajectory.path}
+                  repeatCount="1"
+                />
+                <animate
+                  attributeName="opacity"
+                  begin={`${index * replayStepMs}ms`}
+                  dur={`${replayStepMs}ms`}
+                  keyTimes="0;0.08;0.92;1"
+                  values="0;1;1;0"
+                  fill="freeze"
+                  repeatCount="1"
+                />
+              </circle>
+            ))}
+          </g>
+        ) : null}
         <circle
           key={event.sequence}
           data-testid="live-court-ball"
           className="court-live__ball"
           data-animated={animate ? "true" : "false"}
           data-motion={moment.play}
-          cx={animate ? 0 : (lastTrajectory?.endX ?? 180)}
-          cy={animate ? 0 : (lastTrajectory?.endY ?? 79)}
+          cx={animate && !replayRally ? 0 : (lastTrajectory?.endX ?? 180)}
+          cy={animate && !replayRally ? 0 : (lastTrajectory?.endY ?? 79)}
+          opacity={replayRally ? 0 : 1}
           r="7"
           fill="#fff4ac"
           stroke="#fff"
           strokeWidth="2"
         >
-          {animate && lastTrajectory ? (
+          {animate && lastTrajectory && !replayRally ? (
             <animateMotion
-              dur="175ms"
+              dur={`${replayDurationMs}ms`}
               fill="freeze"
               path={lastTrajectory.path}
+              repeatCount="1"
+            />
+          ) : null}
+          {replayRally ? (
+            <animate
+              attributeName="opacity"
+              begin="0ms"
+              dur={`${replayEndMs}ms`}
+              keyTimes="0;0.99;1"
+              values="0;0;1"
+              fill="freeze"
               repeatCount="1"
             />
           ) : null}
