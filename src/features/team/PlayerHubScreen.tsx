@@ -387,19 +387,26 @@ export function PlayerHubScreen({
     () => selectPlayerHubRoster({ state, selection, filter, sort }),
     [state, selection, filter, sort],
   );
-  // The compact mobile header leaves room for four full player cards on
-  // standard-height phones. Reserve a smaller page when batch training is
-  // staged so the save bar cannot cover the fourth player.
+  // Five complete rows fit on taller phones without shrinking ability grades.
+  // Keep one row clear when edits are pending so the save bar stays visible.
+  const mobileRosterPageSize =
+    viewport.height < 620
+      ? 1
+      : viewport.height < 740
+        ? 2
+        : viewport.height < 800
+          ? 3
+          : viewport.height < 840
+            ? 4
+            : 5;
   const rosterPageSize =
     viewport.width > 520
       ? Math.max(1, rosterItems.length)
-      : viewport.height < 620
-        ? 1
-        : viewport.height < 740
-          ? 2
-          : viewport.height < 800 || Object.keys(trainingDrafts).length > 0
-            ? 3
-            : 4;
+      : Math.max(
+          1,
+          mobileRosterPageSize -
+            (Object.keys(trainingDrafts).length > 0 ? 1 : 0),
+        );
   const rosterPageCount = Math.max(
     1,
     Math.ceil(rosterItems.length / rosterPageSize),
