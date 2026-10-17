@@ -85,7 +85,7 @@ describe("home quick-item feedback", () => {
             canPurchase: true,
             purchaseBlockedReason: null,
             canUse: false,
-            useBlockedReason: "effect_already_active",
+            useBlockedReason: "use_limit_reached",
           }],
         }}
       />,
