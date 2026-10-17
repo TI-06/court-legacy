@@ -2357,13 +2357,31 @@
 
 .match-playback-mode {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.match-playback-mode__label {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.match-playback-mode__label strong {
+  font-size: 0.76rem;
+}
+
+.match-playback-mode__label small {
+  color: #607382;
+  font-size: 0.62rem;
 }
 
 .match-playback-mode button {
-  min-height: 30px !important;
-  font-size: 0.58rem !important;
+  min-height: 44px !important;
+  padding: 5px 10px !important;
+  font-size: 0.72rem !important;
+  white-space: nowrap;
 }
 
 .match-playback-mode button[aria-pressed="true"] {
