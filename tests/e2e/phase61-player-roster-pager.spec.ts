@@ -72,9 +72,7 @@ for (const viewport of [
     expect(geometry.lastRowBottom).toBeLessThanOrEqual(
       geometry.rosterBottom + 1,
     );
-    expect(geometry.lastRowBottom).toBeLessThanOrEqual(
-      geometry.navTop + 1,
-    );
+    expect(geometry.lastRowBottom).toBeLessThanOrEqual(geometry.navTop + 1);
     expect(geometry.pagerBottom).toBeLessThanOrEqual(geometry.navTop + 1);
   });
 }
