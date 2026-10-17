@@ -34,10 +34,12 @@ describe("home quick-item feedback", () => {
       />,
     );
 
+    expect(screen.getByRole("status", { name: "" })).toHaveTextContent(
+      "強化合宿：予約中（次週結果）",
+    );
     expect(
-      screen.getByRole("status", { name: "" }),
-    ).toHaveTextContent("強化合宿：予約中（次週結果）");
-    expect(screen.queryByRole("heading", { name: "強化合宿を予約しました" })).toBeNull();
+      screen.queryByRole("heading", { name: "強化合宿を予約しました" }),
+    ).toBeNull();
     expect(screen.queryByText("合宿を予約しました ✓")).toBeNull();
     expect(screen.queryByText(/使用できるアイテムはありません/)).toBeNull();
   });
@@ -71,22 +73,24 @@ describe("home quick-item feedback", () => {
         status={{
           revision: 1,
           academicYearIndex: 1,
-          items: [{
-            itemId: "training-camp",
-            displayName: "強化合宿",
-            description: "合宿",
-            priceYen: 0,
-            annualPurchaseLimit: 20,
-            annualUseLimit: 20,
-            inventoryLimit: null,
-            purchasedCount: 2,
-            usedCount: 1,
-            quantityOwned: 1,
-            canPurchase: true,
-            purchaseBlockedReason: null,
-            canUse: false,
-            useBlockedReason: "use_limit_reached",
-          }],
+          items: [
+            {
+              itemId: "training-camp",
+              displayName: "強化合宿",
+              description: "合宿",
+              priceYen: 0,
+              annualPurchaseLimit: 20,
+              annualUseLimit: 20,
+              inventoryLimit: null,
+              purchasedCount: 2,
+              usedCount: 1,
+              quantityOwned: 1,
+              canPurchase: true,
+              purchaseBlockedReason: null,
+              canUse: false,
+              useBlockedReason: "use_limit_reached",
+            },
+          ],
         }}
       />,
     );
@@ -125,7 +129,9 @@ describe("home quick-item feedback", () => {
       />,
     );
 
-    expect(screen.getByText("次回練習の成長効率 +15% を有効化しました")).toBeVisible();
+    expect(
+      screen.getByText("次回練習の成長効率 +15% を有効化しました"),
+    ).toBeVisible();
     expect(screen.queryByText("強化合宿：予約中（次週結果）")).toBeNull();
   });
 

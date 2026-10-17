@@ -74,8 +74,8 @@ export function HomeQuickItems({
       : players.filter((player) => player.injury === null);
   const trainingCampReserved = Boolean(
     state.shopEffects?.pendingTrainingCamp ||
-      (latestUseResult?.itemId === "training-camp" &&
-        latestUseResult.result.pending === true),
+    (latestUseResult?.itemId === "training-camp" &&
+      latestUseResult.result.pending === true),
   );
   const items = HOME_ITEM_IDS.flatMap((id) => {
     // A reserved camp is no longer an actionable item. Its status is shown
@@ -118,7 +118,9 @@ export function HomeQuickItems({
           </button>
         </div>
       ) : null}
-      {!error && latestUseResult && latestUseResult.itemId !== "training-camp" ? (
+      {!error &&
+      latestUseResult &&
+      latestUseResult.itemId !== "training-camp" ? (
         <ShopUseResultPanel presentation={latestUseResult} state={state} />
       ) : !error &&
         !latestUseResult &&
