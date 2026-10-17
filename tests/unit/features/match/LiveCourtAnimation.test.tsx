@@ -129,6 +129,77 @@ describe("Phase60 read-only live court", () => {
     expect(ball.querySelector("animateMotion")).toBeNull();
   });
 
+  it("replays only the four logged plays in order and keeps an accessible static finish", () => {
+    const { match, homeSelection, awaySelection } = fixture();
+    const serve = match.eventLog[0]!;
+    const point = match.eventLog[1]!;
+    match.eventLog = [
+      { ...serve, sequence: 1, type: "serve" },
+      {
+        ...serve,
+        sequence: 2,
+        type: "receive",
+        actorPlayerId: awaySelection.rotation[1]!.playerId,
+      },
+      { ...serve, sequence: 3, type: "set" },
+      { ...serve, sequence: 4, type: "attack" },
+      { ...point, sequence: 5 },
+    ];
+    const props = { match, homeSelection, awaySelection };
+    const { rerender } = render(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={4}
+        playing={true}
+        reducedMotion={false}
+        playbackDurationMs={800}
+      />,
+    );
+    const replay = screen.getAllByTestId("live-court-replay-ball");
+    expect(replay.map((ball) => ball.getAttribute("data-motion"))).toEqual([
+      "serve",
+      "receive",
+      "set",
+      "attack",
+    ]);
+    expect(replay.map((ball) => ball.querySelector("animateMotion")?.getAttribute("begin"))).toEqual([
+      "0ms", "196ms", "392ms", "588ms",
+    ]);
+    expect(replay[1]!.querySelector("animateMotion")).toHaveAttribute(
+      "path",
+      courtTrajectory("receive", false)!.path,
+    );
+    expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
+      "opacity", "0",
+    );
+    expect(screen.getByTestId("live-court-ball").querySelector("animateMotion")).toBeNull();
+
+    rerender(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={4}
+        playing={false}
+        reducedMotion={false}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-rally-replay")).toBeNull();
+    expect(screen.getByTestId("live-court-ball")).toHaveAttribute("opacity", "1");
+    expect(screen.getByTestId("live-court-ball").querySelector("animateMotion")).toBeNull();
+
+    rerender(
+      <LiveCourtAnimation
+        {...props}
+        visibleEventIndex={4}
+        playing={true}
+        reducedMotion={true}
+      />,
+    );
+    expect(screen.queryByTestId("live-court-rally-replay")).toBeNull();
+    expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
+      "data-animated", "false",
+    );
+  });
+
   it("uses distinct ball trajectories without crossing the net", () => {
     for (const play of ["receive", "set", "block"] as const) {
       const home = courtTrajectory(play, true)!;
