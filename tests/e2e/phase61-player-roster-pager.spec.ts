@@ -28,8 +28,8 @@ for (const viewport of [
           : viewport.height < 800
             ? 3
             : viewport.height < 840
-               ? 4
-               : 5;
+              ? 4
+              : 5;
     await expect(rows).toHaveCount(expectedRows);
 
     const firstPlayer = await rows
