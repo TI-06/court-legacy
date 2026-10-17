@@ -354,14 +354,18 @@ export function SchoolScreen({
     definition,
     evaluation: evaluateFacilityUpgrade(state, school.id, definition.key),
   }));
+  // Two-column tiles: normal phones can display all eight facilities.
+  // Only shorter viewports need paging to clear the fixed bottom navigation.
   const facilityPageSize =
     viewport.width > 520
       ? facilityOverview.length
       : viewport.height < 620
-        ? 1
-        : viewport.height < 740
-          ? 2
-          : 4;
+        ? 2
+        : viewport.height < 700
+          ? 4
+          : viewport.height < 760
+            ? 6
+            : facilityOverview.length;
   const facilityPageCount = Math.max(
     1,
     Math.ceil(facilityOverview.length / facilityPageSize),
@@ -375,9 +379,9 @@ export function SchoolScreen({
     ({ evaluation }) => evaluation.allowed,
   ).length;
   const staffPageSize =
-    viewport.width > 520
+    viewport.width > 520 || viewport.height >= 760
       ? ASSISTANT_COACH_OPTIONS.length
-      : viewport.height < 740
+      : viewport.height < 620
         ? 1
         : 2;
   const staffPageCount = Math.max(

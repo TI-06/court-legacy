@@ -119,12 +119,12 @@ test("small 320px school facility paging", async ({ page }) => {
   const pager = page.getByRole("navigation", {
     name: "設備一覧のページ切替",
   });
-  await expect(page.getByTestId("facility-tile")).toHaveCount(1);
-  await expect(pager).toContainText("1 / 8");
+  await expect(page.getByTestId("facility-tile")).toHaveCount(2);
+  await expect(pager).toContainText("1 / 4");
   await pager.getByRole("button", { name: "次の設備ページ" }).click();
-  await expect(pager).toContainText("2 / 8");
+  await expect(pager).toContainText("2 / 4");
   await expect(
-    page.getByRole("button", { name: "トレーニング設備の詳細" }),
+    page.getByRole("button", { name: "分析室の詳細" }),
   ).toBeVisible();
   await expectSchoolNoHorizontalOverflow(page);
 });
@@ -139,19 +139,13 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(primary.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("heading", { name: "運営" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "設備" })).toBeVisible();
-    await expect(page.getByTestId("facility-tile")).toHaveCount(4);
-    const pager = page.getByRole("navigation", {
-      name: "設備一覧のページ切替",
-    });
-    await expect(pager).toContainText("1 / 2");
-    await pager.getByRole("button", { name: "次の設備ページ" }).click();
-    await expect(page.getByTestId("facility-tile")).toHaveCount(4);
-    await expect(pager).toContainText("2 / 2");
+    await expect(page.getByTestId("facility-tile")).toHaveCount(8);
+    await expect(
+      page.getByRole("navigation", { name: "設備一覧のページ切替" }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "学習設備の詳細" }),
     ).toBeVisible();
-    await pager.getByRole("button", { name: "前の設備ページ" }).click();
-    await expect(pager).toContainText("1 / 2");
     await expect(page.getByText("強化可能 8/8")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
@@ -166,15 +160,10 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await management.getByRole("tab", { name: "コーチ" }).click();
     await expect(page.getByRole("heading", { name: "スタッフ" })).toBeVisible();
     await expect(page.getByText("4候補")).toBeVisible();
-    const coachPager = page.getByRole("navigation", {
-      name: "コーチ一覧のページ切替",
-    });
-    await expect(page.locator(".assistant-coach-card")).toHaveCount(2);
-    await expect(coachPager).toContainText("1 / 2");
-    await coachPager.getByRole("button", { name: "次のコーチページ" }).click();
-    await expect(coachPager).toContainText("2 / 2");
-    await expect(page.locator(".assistant-coach-card")).toHaveCount(2);
-    await coachPager.getByRole("button", { name: "前のコーチページ" }).click();
+    await expect(page.locator(".assistant-coach-card")).toHaveCount(4);
+    await expect(
+      page.getByRole("navigation", { name: "コーチ一覧のページ切替" }),
+    ).toHaveCount(0);
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
       await expectCoachGridAboveNavigation(page);
