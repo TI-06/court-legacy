@@ -25,15 +25,21 @@ for (const viewport of [
     await expect(
       practice.getByRole("heading", { name: "練習試合の予定" }),
     ).toBeVisible();
-    await expect(official.getByRole("button", { name: "大会表を見る" })).toBeVisible();
-    await expect(pvp.getByRole("button", { name: "対人戦を開く" })).toBeVisible();
+    await expect(
+      official.getByRole("button", { name: "大会表を見る" }),
+    ).toBeVisible();
+    await expect(
+      pvp.getByRole("button", { name: "対人戦を開く" }),
+    ).toBeVisible();
 
     const sizes = await page.evaluate(() => {
       const position = (selector: string) =>
         document.querySelector(selector)!.getBoundingClientRect();
       const official = position(".match-official-entry");
       const pvp = position(".match-pvp-entry");
-      const practice = document.querySelector(".match-hub-screen > .practice-planning")!;
+      const practice = document.querySelector(
+        ".match-hub-screen > .practice-planning",
+      )!;
       const practiceRect = practice.getBoundingClientRect();
       const heading = position(".practice-planning__heading");
       const nav = position(".bottom-game-nav");
@@ -77,7 +83,9 @@ for (const viewport of [
         documentHeight: document.documentElement.scrollHeight,
         viewportHeight: document.documentElement.clientHeight,
       }));
-      expect(after.documentHeight).toBeLessThanOrEqual(after.viewportHeight + 1);
+      expect(after.documentHeight).toBeLessThanOrEqual(
+        after.viewportHeight + 1,
+      );
     }
   });
 }

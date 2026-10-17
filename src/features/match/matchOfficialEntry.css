@@ -100,7 +100,10 @@
     border-radius: 12px;
   }
 
-  .game-page-frame .match-hub-screen > .match-official-entry .match-official-entry__copy {
+  .game-page-frame
+    .match-hub-screen
+    > .match-official-entry
+    .match-official-entry__copy {
     grid-column: 1;
     grid-row: 1;
     overflow: hidden;

@@ -3339,7 +3339,8 @@
     flex: 0 0 auto;
   }
 
-  .game-page-frame:has(.match-hub-screen > .practice-planning) > .game-page-frame__content {
+  .game-page-frame:has(.match-hub-screen > .practice-planning)
+    > .game-page-frame__content {
     display: flex;
     flex: 1 1 0;
     min-height: 0;
