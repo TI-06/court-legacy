@@ -72,7 +72,15 @@ export function HomeQuickItems({
     targetItem === "fatigue-recovery"
       ? players.filter((player) => player.fatigue > 0 || player.condition < 100)
       : players.filter((player) => player.injury === null);
+  const trainingCampReserved = Boolean(
+    state.shopEffects?.pendingTrainingCamp ||
+      (latestUseResult?.itemId === "training-camp" &&
+        latestUseResult.result.pending === true),
+  );
   const items = HOME_ITEM_IDS.flatMap((id) => {
+    // A reserved camp is no longer an actionable item. Its status is shown
+    // once above the list, even after consuming the final inventory item.
+    if (id === "training-camp" && trainingCampReserved) return [];
     const item = status?.items.find((entry) => entry.itemId === id);
     return item && item.quantityOwned > 0 ? [item] : [];
   });
@@ -110,7 +118,11 @@ export function HomeQuickItems({
           </button>
         </div>
       ) : null}
-      {!error && latestUseResult ? (
+      {!error && trainingCampReserved ? (
+        <p className="home-quick-items__reservation" role="status">
+          強化合宿：予約中（次週結果）
+        </p>
+      ) : !error && latestUseResult ? (
         <ShopUseResultPanel presentation={latestUseResult} state={state} />
       ) : !error && resultMessage ? (
         <p className="home-quick-items__success" role="status">
@@ -122,11 +134,13 @@ export function HomeQuickItems({
           所持アイテムを確認中…
         </p>
       ) : items.length === 0 ? (
-        <p className="home-quick-items__empty">
-          {status
-            ? "使用できるアイテムはありません"
-            : "所持品を読み込めませんでした"}
-        </p>
+        trainingCampReserved ? null : (
+          <p className="home-quick-items__empty">
+            {status
+              ? "使用できるアイテムはありません"
+              : "所持品を読み込めませんでした"}
+          </p>
+        )
       ) : (
         <div className="home-quick-items__list">
           {items.map((item) => {
