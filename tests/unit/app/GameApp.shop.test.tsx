@@ -178,9 +178,9 @@ describe("GameApp shop flow", () => {
     );
     await waitFor(() => expect(bootstrap).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getShop).toHaveBeenCalledTimes(2));
-    expect(
-      await within(panel).findByRole("status"),
-    ).toHaveTextContent("強化合宿：予約中（次週結果）");
+    expect(await within(panel).findByRole("status")).toHaveTextContent(
+      "強化合宿：予約中（次週結果）",
+    );
     expect(
       within(panel).queryByRole("heading", { name: "強化合宿を予約しました" }),
     ).toBeNull();
