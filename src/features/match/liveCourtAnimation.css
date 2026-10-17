@@ -82,6 +82,11 @@
   filter: drop-shadow(0 0 4px rgb(255 255 255 / 65%));
 }
 
+/* A rally is one finite sequence; each ball and route is animated only once. */
+.court-live__route--animate {
+  will-change: stroke-dashoffset;
+}
+
 .court-live__actor {
   transform-box: fill-box;
   transform-origin: center;
