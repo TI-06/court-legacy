@@ -107,8 +107,11 @@ function MatchScreenContent({
 }: MatchScreenProps) {
   const [visibleEventIndex, setVisibleEventIndex] = useState(0);
   const [playing, setPlaying] = useState(!reducedMotion);
-  const speed: PlaybackSpeed = 4;
+  const [speed, setSpeed] = useState<PlaybackSpeed>(4);
   const playbackMode: PlaybackMode = "points";
+  const togglePlaybackSpeed = () => {
+    setSpeed((current) => (current === 4 ? 1 : 4));
+  };
   const [matchGrowthOpen, setMatchGrowthOpen] = useState(true);
   const [resultView, setResultView] = useState<MatchResultView>("review");
   const resultBodyRef = useRef<HTMLDivElement>(null);
@@ -495,6 +498,7 @@ function MatchScreenContent({
               awaySelection={result.match.awaySelection}
               reducedMotion={reducedMotion}
               playing={playing && !segmentRevealed}
+              playbackDurationMs={Math.round(800 / speed)}
             />
           ) : null}
 
@@ -584,8 +588,19 @@ function MatchScreenContent({
           ) : (
             <section className="match-controls" aria-label="再生操作">
               <div className="match-playback-mode" aria-label="再生モード">
-                <strong>得点推移・4倍速</strong>
-                <small>試合開始後は自動再生します</small>
+                <div className="match-playback-mode__label">
+                  <strong>得点推移・{speed}倍速</strong>
+                  <small>実際のプレー順に再生</small>
+                </div>
+                <button
+                  className="match-playback-mode__speed"
+                  type="button"
+                  disabled={reducedMotion}
+                  aria-pressed={speed === 1}
+                  onClick={togglePlaybackSpeed}
+                >
+                  {speed === 4 ? "等速で見る" : "4倍速に戻す"}
+                </button>
               </div>
               <div className="match-playback-row">
                 <button
