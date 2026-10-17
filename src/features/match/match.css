@@ -3391,12 +3391,11 @@
   }
 
   .match-hub-screen .match-pvp-entry__copy > p:last-child {
-    overflow: hidden;
     margin: 3px 0 0;
     font-size: 10px;
     line-height: 1.3;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .game-page-frame .match-hub-screen > .match-pvp-entry > button {
