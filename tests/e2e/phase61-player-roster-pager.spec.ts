@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
 for (const viewport of [
-  { width: 320, height: 568 },
-  { width: 360, height: 667 },
-  { width: 390, height: 844 },
-  { width: 430, height: 932 },
+  { width: 320, height: 568, rows: 1 },
+  { width: 360, height: 667, rows: 2 },
+  { width: 390, height: 800, rows: 4 },
+  { width: 390, height: 844, rows: 5 },
+  { width: 430, height: 932, rows: 5 },
 ]) {
   test(`Player roster ${viewport.width}x${viewport.height}`, async ({
     page,
@@ -19,15 +20,7 @@ for (const viewport of [
     });
     const rows = page.getByTestId("roster-player-row");
     await expect(pager).toBeVisible();
-    const expectedRows =
-      viewport.height < 620
-        ? 1
-        : viewport.height < 740
-          ? 2
-          : viewport.height < 800
-            ? 3
-            : 4;
-    await expect(rows).toHaveCount(expectedRows);
+    await expect(rows).toHaveCount(viewport.rows);
 
     const firstPlayer = await rows
       .first()
@@ -79,6 +72,7 @@ for (const viewport of [
     expect(geometry.lastRowBottom).toBeLessThanOrEqual(
       geometry.rosterBottom + 1,
     );
+    expect(geometry.lastRowBottom).toBeLessThanOrEqual(geometry.navTop + 1);
     expect(geometry.pagerBottom).toBeLessThanOrEqual(geometry.navTop + 1);
   });
 }
