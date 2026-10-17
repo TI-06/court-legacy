@@ -594,7 +594,9 @@ function MatchScreenContent({
                   type="button"
                   disabled={reducedMotion}
                   aria-pressed={speed === 1}
-                  onClick={() => setSpeed((current) => current === 4 ? 1 : 4)}
+                  onClick={() =>
+                    setSpeed((current) => (current === 4 ? 1 : 4))
+                  }
                 >
                   {speed === 4 ? "等速で見る" : "4倍速に戻す"}
                 </button>
