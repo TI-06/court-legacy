@@ -118,15 +118,18 @@ export function HomeQuickItems({
           </button>
         </div>
       ) : null}
-      {!error && trainingCampReserved ? (
-        <p className="home-quick-items__reservation" role="status">
-          強化合宿：予約中（次週結果）
-        </p>
-      ) : !error && latestUseResult ? (
+      {!error && latestUseResult && latestUseResult.itemId !== "training-camp" ? (
         <ShopUseResultPanel presentation={latestUseResult} state={state} />
-      ) : !error && resultMessage ? (
+      ) : !error &&
+        !latestUseResult &&
+        resultMessage &&
+        !resultMessage.includes("合宿を予約") ? (
         <p className="home-quick-items__success" role="status">
           {resultMessage}
+        </p>
+      ) : !error && trainingCampReserved ? (
+        <p className="home-quick-items__reservation" role="status">
+          強化合宿：予約中（次週結果）
         </p>
       ) : null}
       {loading ? (
