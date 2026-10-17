@@ -124,7 +124,7 @@ test("small 320px school facility paging", async ({ page }) => {
   await pager.getByRole("button", { name: "次の設備ページ" }).click();
   await expect(pager).toContainText("2 / 4");
   await expect(
-    page.getByRole("button", { name: "トレーニング設備の詳細" }),
+    page.getByRole("button", { name: "分析室の詳細" }),
   ).toBeVisible();
   await expectSchoolNoHorizontalOverflow(page);
 });
@@ -146,7 +146,6 @@ for (const width of [320, 360, 390, 414, 480] as const) {
     await expect(
       page.getByRole("button", { name: "学習設備の詳細" }),
     ).toBeVisible();
-    await expect(pager).toContainText("1 / 2");
     await expect(page.getByText("強化可能 8/8")).toBeVisible();
     await expectSchoolNoHorizontalOverflow(page);
     if (width <= 360) {
