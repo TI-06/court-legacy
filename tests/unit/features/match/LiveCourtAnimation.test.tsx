@@ -162,17 +162,22 @@ describe("Phase60 read-only live court", () => {
       "set",
       "attack",
     ]);
-    expect(replay.map((ball) => ball.querySelector("animateMotion")?.getAttribute("begin"))).toEqual([
-      "0ms", "196ms", "392ms", "588ms",
-    ]);
+    expect(
+      replay.map((ball) =>
+        ball.querySelector("animateMotion")?.getAttribute("begin"),
+      ),
+    ).toEqual(["0ms", "196ms", "392ms", "588ms"]);
     expect(replay[1]!.querySelector("animateMotion")).toHaveAttribute(
       "path",
       courtTrajectory("receive", false)!.path,
     );
     expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
-      "opacity", "0",
+      "opacity",
+      "0",
     );
-    expect(screen.getByTestId("live-court-ball").querySelector("animateMotion")).toBeNull();
+    expect(
+      screen.getByTestId("live-court-ball").querySelector("animateMotion"),
+    ).toBeNull();
 
     rerender(
       <LiveCourtAnimation
@@ -183,8 +188,13 @@ describe("Phase60 read-only live court", () => {
       />,
     );
     expect(screen.queryByTestId("live-court-rally-replay")).toBeNull();
-    expect(screen.getByTestId("live-court-ball")).toHaveAttribute("opacity", "1");
-    expect(screen.getByTestId("live-court-ball").querySelector("animateMotion")).toBeNull();
+    expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
+      "opacity",
+      "1",
+    );
+    expect(
+      screen.getByTestId("live-court-ball").querySelector("animateMotion"),
+    ).toBeNull();
 
     rerender(
       <LiveCourtAnimation
@@ -196,7 +206,8 @@ describe("Phase60 read-only live court", () => {
     );
     expect(screen.queryByTestId("live-court-rally-replay")).toBeNull();
     expect(screen.getByTestId("live-court-ball")).toHaveAttribute(
-      "data-animated", "false",
+      "data-animated",
+      "false",
     );
   });
 
