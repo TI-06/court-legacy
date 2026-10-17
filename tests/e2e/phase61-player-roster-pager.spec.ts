@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 for (const viewport of [
   { width: 320, height: 568 },
   { width: 360, height: 667 },
+  { width: 390, height: 800 },
   { width: 390, height: 844 },
   { width: 430, height: 932 },
 ]) {
@@ -26,7 +27,9 @@ for (const viewport of [
           ? 2
           : viewport.height < 800
             ? 3
-            : 4;
+            : viewport.height < 840
+               ? 4
+               : 5;
     await expect(rows).toHaveCount(expectedRows);
 
     const firstPlayer = await rows
@@ -78,6 +81,9 @@ for (const viewport of [
     );
     expect(geometry.lastRowBottom).toBeLessThanOrEqual(
       geometry.rosterBottom + 1,
+    );
+    expect(geometry.lastRowBottom).toBeLessThanOrEqual(
+      geometry.navTop + 1,
     );
     expect(geometry.pagerBottom).toBeLessThanOrEqual(geometry.navTop + 1);
   });
