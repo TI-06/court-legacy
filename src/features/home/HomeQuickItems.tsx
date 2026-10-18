@@ -18,6 +18,9 @@ import "./home-quick-items.css";
 const HOME_ITEM_IDS: readonly ShopItemId[] = [
   "training-camp",
   "training-efficiency-boost",
+  "team-recovery-kit",
+  "team-bonding-meeting",
+  "video-analysis-session",
   "fatigue-recovery",
   "special-coach",
 ];
