@@ -135,6 +135,95 @@ describe("resolveShopUse", () => {
     );
   });
 
+  it("applies team care only to current-school players and caps status", async () => {
+    const snapshot = createSnapshot();
+    const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
+    const ids = school.playerIds;
+    const outsiderId = Object.keys(snapshot.state.players).find(
+      (id) => !ids.includes(id as (typeof ids)[number]),
+    );
+    const outsider = outsiderId ? structuredClone(snapshot.state.players[outsiderId]!) : null;
+    for (const id of ids) {
+      const player = snapshot.state.players[id]!;
+      player.fatigue = 20;
+      player.condition = 80;
+    }
+    const resolved = await resolveShopUse({
+      snapshot,
+      request: request("team-recovery-kit"),
+    });
+    expect(resolved.targetType).toBe("team");
+    expect(resolved.publicResult).toMatchObject({
+      changedPlayerCount: ids.length,
+      totalFatigueChange: ids.length * -15,
+      totalConditionChange: ids.length * 10,
+    });
+    expect(resolved.state.players[ids[0]!]!.fatigue).toBe(5);
+    expect(resolved.state.players[ids[0]!]!.condition).toBe(90);
+    if (outsiderId && outsider) {
+      expect(resolved.state.players[outsiderId]).toEqual(outsider);
+    }
+    expect(snapshot.state.players[ids[0]!]!.fatigue).toBe(20);
+  });
+
+  it("supports morale talks and capped film study with an actual fatigue tradeoff", async () => {
+    const snapshot = createSnapshot();
+    const ids = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds;
+    for (const id of ids) {
+      const player = snapshot.state.players[id]!;
+      player.morale = 91;
+      player.trust = 98;
+      player.fatigue = 99;
+      player.abilities.decision = 99;
+    }
+    const meeting = await resolveShopUse({
+      snapshot,
+      request: request("team-bonding-meeting"),
+    });
+    expect(meeting.state.players[ids[0]!]!.morale).toBe(99);
+    expect(meeting.state.players[ids[0]!]!.trust).toBe(100);
+    expect(meeting.publicResult).toMatchObject({
+      totalMoraleChange: ids.length * 8,
+      totalTrustChange: ids.length * 2,
+    });
+    const film = await resolveShopUse({
+      snapshot,
+      request: request("video-analysis-session"),
+    });
+    expect(film.state.players[ids[0]!]!.abilities.decision).toBe(100);
+    expect(film.state.players[ids[0]!]!.fatigue).toBe(100);
+    expect(film.publicResult).toMatchObject({
+      changedPlayerCount: ids.length,
+      totalDecisionChange: ids.length,
+      totalFatigueChange: ids.length,
+    });
+    expect(snapshot.state.players[ids[0]!]!.abilities.decision).toBe(99);
+  });
+
+  it("rejects team items with invalid targets or no possible benefit", async () => {
+    const snapshot = createSnapshot();
+    const ids = snapshot.state.schools[snapshot.state.userSchoolId]!.playerIds;
+    for (const id of ids) {
+      const player = snapshot.state.players[id]!;
+      player.fatigue = 0;
+      player.condition = 100;
+    }
+    await expectResolutionCode(
+      resolveShopUse({ snapshot, request: request("team-recovery-kit") }),
+      "invalid_target",
+    );
+    await expectResolutionCode(
+      resolveShopUse({
+        snapshot,
+        request: request("team-bonding-meeting", {
+          type: "player",
+          playerId: ids[0]!,
+        }),
+      }),
+      "invalid_target",
+    );
+  });
+
   it("queues an extra candidate for the next search without touching the current pool", async () => {
     const snapshot = createSnapshot();
     const { pool, store } = createScoutingContext(snapshot);
