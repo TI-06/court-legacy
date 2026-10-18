@@ -1,5 +1,21 @@
 import { spawnSync } from "node:child_process";
 
+// TEMP: report exact formatting adjustments for the team-item change.
+if (process.env.CI) {
+  const file = "worker/shop/resolveShopUse.ts";
+  const formatted = spawnSync("npx", ["prettier", file], { encoding: "utf8" });
+  if (formatted.status === 0) {
+    const changes = spawnSync("diff", ["-u", file, "-"], {
+      input: formatted.stdout,
+      encoding: "utf8",
+    });
+    console.log("TEAM_ITEM_FORMAT_DIFF_BEGIN");
+    console.log(changes.stdout || "No diff");
+    console.log("TEAM_ITEM_FORMAT_DIFF_END");
+    spawnSync("npx", ["prettier", "--write", file], { encoding: "utf8" });
+  }
+}
+
 const commands = [
   ["Formatting", "npm", ["run", "format:check"]],
   ["Lint", "npm", ["run", "lint"]],
