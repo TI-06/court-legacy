@@ -1,4 +1,7 @@
-import type { EventChoiceDefinition, EventEffect } from "../../domain/validation/gameDataSchema";
+import type {
+  EventChoiceDefinition,
+  EventEffect,
+} from "../../domain/validation/gameDataSchema";
 
 export interface EventChoiceImpact {
   label: string;
@@ -19,10 +22,15 @@ const abilityLabels: Record<string, string> = {
 };
 const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
 
-export function describeEventChoiceEffect(effect: EventEffect): EventChoiceImpact {
+export function describeEventChoiceEffect(
+  effect: EventEffect,
+): EventChoiceImpact {
   switch (effect.type) {
     case "ability-change":
-      return { label: `${abilityLabels[effect.ability]} ${sign(effect.amount)}`, tone: effect.amount < 0 ? "down" : "up" };
+      return {
+        label: `${abilityLabels[effect.ability]} ${sign(effect.amount)}`,
+        tone: effect.amount < 0 ? "down" : "up",
+      };
     case "morale-change":
     case "trust-change":
     case "relationship-change":
@@ -35,12 +43,21 @@ export function describeEventChoiceEffect(effect: EventEffect): EventChoiceImpac
         "reputation-change": "評判",
         "funds-change": "資金",
       }[effect.type];
-      return { label: `${label} ${sign(effect.amount)}`, tone: effect.amount < 0 ? "down" : "up" };
+      return {
+        label: `${label} ${sign(effect.amount)}`,
+        tone: effect.amount < 0 ? "down" : "up",
+      };
     }
     case "fatigue-change":
-      return { label: `疲労 ${sign(effect.amount)}`, tone: effect.amount > 0 ? "down" : "up" };
+      return {
+        label: `疲労 ${sign(effect.amount)}`,
+        tone: effect.amount > 0 ? "down" : "up",
+      };
     case "facility-change":
-      return { label: `設備 ${sign(effect.amount)}`, tone: effect.amount < 0 ? "down" : "up" };
+      return {
+        label: `設備 ${sign(effect.amount)}`,
+        tone: effect.amount < 0 ? "down" : "up",
+      };
     case "injury-set":
       return { label: `負傷（${effect.weeks}週）`, tone: "down" };
     case "injury-clear":
@@ -60,12 +77,17 @@ export function describeEventChoiceEffect(effect: EventEffect): EventChoiceImpac
     case "special-relationship-remove":
       return { label: "特別な関係を解消", tone: "neutral" };
     case "schedule-event":
-      return { label: `${effect.afterWeeks}週後に展開（${effect.probability}%）`, tone: "neutral" };
+      return {
+        label: `${effect.afterWeeks}週後に展開（${effect.probability}%）`,
+        tone: "neutral",
+      };
   }
 }
 
 /** All labels describe authored effects, not predicted post-cap values. */
-export function previewEventChoice(choice: EventChoiceDefinition): EventChoiceImpact[] {
+export function previewEventChoice(
+  choice: EventChoiceDefinition,
+): EventChoiceImpact[] {
   const impacts = choice.effects.map(describeEventChoiceEffect);
   if (choice.followUp) {
     impacts.push({
