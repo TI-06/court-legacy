@@ -128,6 +128,37 @@ export function ShopUseResultPanel({
     );
   }
 
+  if (
+    presentation.itemId === "team-recovery-kit" ||
+    presentation.itemId === "team-bonding-meeting" ||
+    presentation.itemId === "video-analysis-session"
+  ) {
+    const changed = asNumber(result.changedPlayerCount);
+    if (changed === null) return null;
+    const rows = [
+      ["疲労", asNumber(result.totalFatigueChange)],
+      ["状態", asNumber(result.totalConditionChange)],
+      ["士気", asNumber(result.totalMoraleChange)],
+      ["信頼", asNumber(result.totalTrustChange)],
+      ["判断力", asNumber(result.totalDecisionChange)],
+    ] as const;
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>チーム全体への効果</h3>
+        <p>{changed}人に反映しました</p>
+        <div className="shop-use-result__metrics">
+          {rows
+            .filter(([, amount]) => amount !== null && amount !== 0)
+            .map(([name, amount]) => (
+              <span key={name}>
+                {name} 合計 {signed(amount!)}
+              </span>
+            ))}
+        </div>
+      </section>
+    );
+  }
+
   if (presentation.itemId === "training-camp") {
     if (result.pending !== true) return null;
 
@@ -261,7 +292,12 @@ function ProductCard({
           <span>受取回数 {item.purchasedCount}</span>
         ) : (
           <>
-            <span>購入 {item.purchasedCount}</span>
+            <span>
+              購入 {item.purchasedCount}
+              {item.annualPurchaseLimit < 2_000_000_000
+                ? `/${item.annualPurchaseLimit}`
+                : ""}
+            </span>
             <span>使用 {item.usedCount}</span>
             <span>所持 {item.quantityOwned}</span>
           </>
@@ -401,6 +437,9 @@ export function ShopScreen({
       "training-camp",
       "special-coach",
       "training-efficiency-boost",
+      "team-recovery-kit",
+      "team-bonding-meeting",
+      "video-analysis-session",
       "extra-scout-candidate",
       "generational-scout-candidate",
     ].includes(latestUseResult.itemId);
@@ -634,7 +673,7 @@ export function ShopScreen({
         <>
           <p className="shop-screen__year">
             {view === "products"
-              ? `年度 ${status.academicYearIndex} ・ 購入・使用回数の制限なし`
+              ? `年度 ${status.academicYearIndex} ・ アイテムごとに購入上限あり`
               : `年度 ${status.academicYearIndex} ・ 未使用アイテムは翌年度以降も持ち越し可`}
           </p>
 
