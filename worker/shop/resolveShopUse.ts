@@ -458,9 +458,7 @@ function resolveSpecialCoach(input: ResolveShopUseInput): ResolvedShopUse {
  * Deliberately bounded team-wide support. This updates only current-school
  * players and returns aggregate numbers, not hidden player attributes.
  */
-function resolveTeamSupportItem(
-  input: ResolveShopUseInput,
-): ResolvedShopUse {
+function resolveTeamSupportItem(input: ResolveShopUseInput): ResolvedShopUse {
   const base = cloneBase(input.snapshot);
   const school = base.state.schools[base.state.userSchoolId];
   if (!school) {
