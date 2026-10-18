@@ -27,7 +27,11 @@ describe("event choice effect preview", () => {
       label: "挑戦",
       detail: "特殊能力のチャンス",
       effects: [
-        { type: "special-ability-acquire", abilityId: "gold_absolute_ace", amount: 1 },
+        {
+          type: "special-ability-acquire",
+          abilityId: "gold_absolute_ace",
+          amount: 1,
+        },
         { type: "fatigue-change", amount: -8 },
       ],
       followUp: {
