@@ -103,7 +103,8 @@ describe("ShopScreen", () => {
       ),
     ).toBeVisible();
     expect(screen.getByText("所持 2")).toBeVisible();
-    expect(screen.getByText(/購入・使用回数の制限なし/)).toBeVisible();
+    expect(screen.getByText(/アイテムごとに購入上限あり/)).toBeVisible();
+    expect(screen.getByText("購入 0/1")).toBeVisible();
   });
 
   it("renders fund grants as immediate claims", () => {
