@@ -142,7 +142,9 @@ describe("resolveShopUse", () => {
     const outsiderId = Object.keys(snapshot.state.players).find(
       (id) => !ids.includes(id as (typeof ids)[number]),
     );
-    const outsider = outsiderId ? structuredClone(snapshot.state.players[outsiderId]!) : null;
+    const outsider = outsiderId
+      ? structuredClone(snapshot.state.players[outsiderId]!)
+      : null;
     for (const id of ids) {
       const player = snapshot.state.players[id]!;
       player.fatigue = 20;
