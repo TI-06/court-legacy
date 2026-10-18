@@ -328,3 +328,97 @@
   background: linear-gradient(90deg, #2e8bd8, #f47a18);
   border-radius: inherit;
 }
+
+/* Phase75: keep all event decisions accessible on short phones without pushing
+   the story or the last action behind a fixed bottom navigation. */
+.fullscreen-event__actions:has(.event-choice-list) {
+  max-height: min(56dvh, 440px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.fullscreen-event .event-choice {
+  display: grid;
+  align-content: center;
+  width: 100%;
+  padding: 10px 12px;
+  gap: 5px;
+  text-align: left;
+}
+
+.fullscreen-event .event-choice__impacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.fullscreen-event .event-choice__impacts small {
+  padding: 3px 6px;
+  color: #e4eef8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.25;
+  background: rgb(101 155 203 / 17%);
+  border: 1px solid rgb(157 194 227 / 22%);
+  border-radius: 6px;
+}
+
+.fullscreen-event .event-choice__impacts small[data-tone="up"] {
+  color: #a9f5cb;
+  background: rgb(29 136 83 / 18%);
+  border-color: rgb(91 202 142 / 25%);
+}
+
+.fullscreen-event .event-choice__impacts small[data-tone="down"] {
+  color: #ffd2be;
+  background: rgb(182 70 49 / 20%);
+  border-color: rgb(226 115 91 / 26%);
+}
+
+@media (max-width: 520px) {
+  .fullscreen-event__header {
+    padding-block: 10px 9px;
+  }
+
+  .fullscreen-event__header h2 {
+    font-size: clamp(1.1rem, 5vw, 1.55rem);
+  }
+
+  .fullscreen-event__header p {
+    margin-top: 3px;
+    font-size: 0.72rem;
+  }
+
+  .fullscreen-event__content {
+    padding-block: 9px 12px;
+    gap: 9px;
+  }
+
+  .fullscreen-event .event-actor-card {
+    padding: 6px 8px;
+  }
+
+  .fullscreen-event .event-story {
+    padding: 10px 11px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .fullscreen-event__actions:has(.event-choice-list) {
+    padding-block: 8px;
+  }
+
+  .fullscreen-event .event-choice {
+    min-height: 58px;
+    padding: 8px 10px;
+  }
+
+  .fullscreen-event .event-choice strong {
+    font-size: 0.85rem;
+  }
+
+  .fullscreen-event .event-choice span {
+    font-size: 0.72rem;
+  }
+}
