@@ -430,11 +430,13 @@ export function FullscreenEventExperience({
                 </strong>
                 <span>{choice.detail}</span>
                 <span className="event-choice__impacts" aria-label="選択の効果">
-                  {previewEventChoice(choice).slice(0, 3).map((impact, impactIndex) => (
-                    <small data-tone={impact.tone} key={impactIndex}>
-                      {impact.label}
-                    </small>
-                  ))}
+                  {previewEventChoice(choice)
+                    .slice(0, 3)
+                    .map((impact, impactIndex) => (
+                      <small data-tone={impact.tone} key={impactIndex}>
+                        {impact.label}
+                      </small>
+                    ))}
                   {previewEventChoice(choice).length > 3 ? (
                     <small data-tone="neutral">
                       ほか{previewEventChoice(choice).length - 3}件
