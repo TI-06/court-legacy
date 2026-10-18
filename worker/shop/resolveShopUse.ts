@@ -500,7 +500,8 @@ function resolveTeamSupportItem(
     const conditionChange = next.condition - player.condition;
     const moraleChange = next.morale - player.morale;
     const trustChange = next.trust - player.trust;
-    const decisionChange = next.abilities.decision - player.abilities.decision;
+    const decisionChange =
+      next.abilities.decision - player.abilities.decision;
     if (
       fatigueChange === 0 &&
       conditionChange === 0 &&
