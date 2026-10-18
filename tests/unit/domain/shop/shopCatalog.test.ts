@@ -75,21 +75,20 @@ describe("Phase 5 shop catalog", () => {
     expect(shopFundsGrantAmount("fatigue-recovery")).toBeNull();
   });
 
-  it("limits the new powerful team items without touching existing items", () => {
-    expect(getShopItemDefinition("team-recovery-kit")).toMatchObject({
-      targetKind: "team",
-      annualPurchaseLimit: 2,
-      annualUseLimit: 2,
-    });
-    expect(getShopItemDefinition("team-bonding-meeting")).toMatchObject({
-      targetKind: "team",
-      annualPurchaseLimit: 2,
-    });
-    expect(getShopItemDefinition("video-analysis-session")).toMatchObject({
-      targetKind: "team",
-      annualPurchaseLimit: 1,
-      annualUseLimit: 1,
-    });
+  it("keeps new team support items unlimited during the trial period", () => {
+    for (const itemId of [
+      "team-recovery-kit",
+      "team-bonding-meeting",
+      "video-analysis-session",
+    ] as const) {
+      expect(getShopItemDefinition(itemId)).toMatchObject({
+        targetKind: "team",
+        priceYen: 0,
+        annualPurchaseLimit: 2_000_000_000,
+        annualUseLimit: 2_000_000_000,
+        inventoryLimit: null,
+      });
+    }
   });
 
   it("keeps item display order stable", () => {
