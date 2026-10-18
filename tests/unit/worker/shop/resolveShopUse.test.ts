@@ -139,12 +139,10 @@ describe("resolveShopUse", () => {
     const snapshot = createSnapshot();
     const school = snapshot.state.schools[snapshot.state.userSchoolId]!;
     const ids = school.playerIds;
-    const outsiderId = Object.keys(snapshot.state.players).find(
-      (id) => !ids.includes(id as (typeof ids)[number]),
+    const outsider = Object.values(snapshot.state.players).find(
+      (player) => !ids.includes(player.id),
     );
-    const outsider = outsiderId
-      ? structuredClone(snapshot.state.players[outsiderId]!)
-      : null;
+    const outsiderBefore = outsider ? structuredClone(outsider) : null;
     for (const id of ids) {
       const player = snapshot.state.players[id]!;
       player.fatigue = 20;
@@ -162,8 +160,8 @@ describe("resolveShopUse", () => {
     });
     expect(resolved.state.players[ids[0]!]!.fatigue).toBe(5);
     expect(resolved.state.players[ids[0]!]!.condition).toBe(90);
-    if (outsiderId && outsider) {
-      expect(resolved.state.players[outsiderId]).toEqual(outsider);
+    if (outsiderBefore) {
+      expect(resolved.state.players[outsiderBefore.id]).toEqual(outsiderBefore);
     }
     expect(snapshot.state.players[ids[0]!]!.fatigue).toBe(20);
   });
