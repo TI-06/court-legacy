@@ -292,12 +292,7 @@ function ProductCard({
           <span>受取回数 {item.purchasedCount}</span>
         ) : (
           <>
-            <span>
-              購入 {item.purchasedCount}
-              {item.annualPurchaseLimit < 2_000_000_000
-                ? `/${item.annualPurchaseLimit}`
-                : ""}
-            </span>
+            <span>購入 {item.purchasedCount}</span>
             <span>使用 {item.usedCount}</span>
             <span>所持 {item.quantityOwned}</span>
           </>
@@ -673,7 +668,7 @@ export function ShopScreen({
         <>
           <p className="shop-screen__year">
             {view === "products"
-              ? `年度 ${status.academicYearIndex} ・ アイテムごとに購入上限あり`
+              ? `年度 ${status.academicYearIndex} ・ 購入・使用回数の制限なし`
               : `年度 ${status.academicYearIndex} ・ 未使用アイテムは翌年度以降も持ち越し可`}
           </p>
 
