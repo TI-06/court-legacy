@@ -1,0 +1,23 @@
+name: Save Failure Recurrence Diagnostic
+
+on:
+  push:
+    branches:
+      - diag/save-failure-recurrence
+
+permissions:
+  contents: read
+
+jobs:
+  save-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+      - name: Run save recurrence diagnostic
+        run: npx vitest run tests/unit/diagnostics/saveFailureRecurrenceDiagnostic.test.ts --reporter=verbose
