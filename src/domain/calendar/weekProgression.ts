@@ -123,9 +123,15 @@ export function advanceOneWeek(
     "medical-support",
   );
 
-  for (const [playerId, player] of Object.entries(state.players) as Array<
-    [PlayerId, Player]
-  >) {
+  const activePlayerIds = new Set(
+    Object.values(state.schools).flatMap((school) => school.playerIds),
+  );
+
+  for (const playerId of activePlayerIds) {
+    const player = state.players[playerId];
+    if (!player) {
+      continue;
+    }
     const result = recoverPlayer(
       player,
       medicalSupportActive && userPlayerIds.has(playerId) ? 2 : 1,

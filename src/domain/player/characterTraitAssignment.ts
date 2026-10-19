@@ -47,8 +47,13 @@ export function ensureCharacterTraitAssignments(
   const characterTraitIds = [...data.characterTraits.keys()];
   let players: GameState["players"] | null = null;
 
-  for (const player of Object.values(state.players)) {
-    if (player.hiddenTraitAssignmentInitialized === true) {
+  const activePlayerIds = new Set(
+    Object.values(state.schools).flatMap((school) => school.playerIds),
+  );
+
+  for (const playerId of activePlayerIds) {
+    const player = state.players[playerId];
+    if (!player || player.hiddenTraitAssignmentInitialized === true) {
       continue;
     }
 

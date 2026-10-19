@@ -68,6 +68,27 @@ describe("Phase21 character trait assignment", () => {
     ]);
   });
 
+  it("does not backfill character traits for retained alumni", () => {
+    const state = structuredClone(createDemoGame());
+    const school = state.schools[state.userSchoolId]!;
+    const alumniId = school.playerIds[0]!;
+    school.playerIds = school.playerIds.filter(
+      (playerId) => playerId !== alumniId,
+    );
+    school.alumniPlayerIds = [...school.alumniPlayerIds, alumniId];
+    const alumni = state.players[alumniId]!;
+    alumni.hiddenTraitIds = [];
+    alumni.revealedHiddenTraitIds = [];
+    alumni.hiddenTraitAssignmentInitialized = false;
+
+    const next = ensureCharacterTraitAssignments(state, data);
+
+    expect(next.players[alumniId]!.hiddenTraitAssignmentInitialized).toBe(
+      false,
+    );
+    expect(next.players[alumniId]!.hiddenTraitIds).toEqual([]);
+  });
+
   it("returns the original state and player map when no backfill is needed", () => {
     const state = structuredClone(createDemoGame());
     const playersBefore = state.players;
