@@ -1,0 +1,92 @@
+-- Save endurance: keep shop item use atomic while sending only a compact state delta.
+--
+-- The existing commit_shop_item_use function remains the single authority for
+-- inventory, yearly counters, scouting side effects, replay handling, and the
+-- final game_saves update. This wrapper reconstructs the next state inside
+-- Postgres, avoiding ~1 MB full-state request bodies from the Worker.
+
+create or replace function public.commit_shop_item_use_v2(
+  p_user_id uuid,
+  p_operation_id text,
+  p_request_fingerprint text,
+  p_expected_revision bigint,
+  p_item_id text,
+  p_state_delta jsonb,
+  p_team_selection jsonb,
+  p_target_type text,
+  p_target_id text,
+  p_safe_request jsonb,
+  p_public_result jsonb,
+  p_scouting_cycle_key text,
+  p_scouting_candidates jsonb,
+  p_scouting_insight jsonb
+)
+returns table(
+  operation_id text,
+  operation_type text,
+  request_fingerprint text,
+  revision bigint,
+  academic_year_index integer,
+  item_id text,
+  quantity_owned integer,
+  purchased_count integer,
+  used_count integer,
+  response jsonb,
+  replayed boolean
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_current_state jsonb;
+  v_next_state jsonb;
+begin
+  if jsonb_typeof(p_state_delta) <> 'object' then
+    raise exception using errcode = '22023', message = 'invalid_shop_use_payload';
+  end if;
+
+  select save.state
+    into v_current_state
+  from public.game_saves as save
+  where save.user_id = p_user_id;
+
+  if not found then
+    raise exception using errcode = 'P0002', message = 'game_not_initialized';
+  end if;
+
+  v_next_state := public.apply_jsonb_state_delta(
+    v_current_state,
+    p_state_delta
+  );
+
+  return query
+  select *
+  from public.commit_shop_item_use(
+    p_user_id,
+    p_operation_id,
+    p_request_fingerprint,
+    p_expected_revision,
+    p_item_id,
+    v_next_state,
+    p_team_selection,
+    p_target_type,
+    p_target_id,
+    p_safe_request,
+    p_public_result,
+    p_scouting_cycle_key,
+    p_scouting_candidates,
+    p_scouting_insight
+  );
+end;
+$$;
+
+revoke execute on function public.commit_shop_item_use_v2(
+  uuid, text, text, bigint, text, jsonb, jsonb, text, text,
+  jsonb, jsonb, text, jsonb, jsonb
+) from public, anon, authenticated;
+
+grant execute on function public.commit_shop_item_use_v2(
+  uuid, text, text, bigint, text, jsonb, jsonb, text, text,
+  jsonb, jsonb, text, jsonb, jsonb
+) to service_role;
