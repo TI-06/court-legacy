@@ -3,6 +3,7 @@ import { createDemoGame } from "../../../src/app/createDemoGame";
 import { playerId, type GameDate } from "../../../src/domain/model/identifiers";
 import type { TrainingResultNotification } from "../../../src/domain/notifications/gameNotifications";
 import { autoSelectTeam } from "../../../src/domain/team/autoSelectTeam";
+import { MAX_PLAYER_DEVELOPMENT_WEEKS } from "../../../src/domain/player/playerDevelopmentHistory";
 import { MAX_RIVAL_ALUMNI_PER_SCHOOL } from "../../../src/domain/world/rivalWorldProgression";
 import type { CloudGameSnapshot } from "../../../worker/data/GameStore";
 import { applyGameAction } from "../../../worker/game/applyGameAction";
@@ -119,6 +120,38 @@ describe("compactGameSnapshot", () => {
     for (const id of rival.playerIds) {
       expect(compacted.state.players[id]).toBeDefined();
     }
+  });
+
+  it("self-heals legacy saves with more development weeks than the UI consumes", () => {
+    const snapshot = snapshotWithNotifications();
+    snapshot.state.notifications.items = [];
+    const template = {
+      gameDate: "2026-04-01" as GameDate,
+      academicYearIndex: 1,
+      weekOfYear: 1,
+      trainingMenuId: "training.spike",
+      players: [],
+    };
+    snapshot.state.history.playerDevelopmentWeeks = Array.from(
+      { length: 52 },
+      (_, index) => ({
+        ...template,
+        gameDate: `2026-04-${String((index % 28) + 1).padStart(2, "0")}` as GameDate,
+        weekOfYear: index + 1,
+      }),
+    );
+
+    const compacted = compactGameSnapshot(snapshot);
+
+    expect(compacted.state.history.playerDevelopmentWeeks).toHaveLength(
+      MAX_PLAYER_DEVELOPMENT_WEEKS,
+    );
+    expect(
+      compacted.state.history.playerDevelopmentWeeks[0]?.weekOfYear,
+    ).toBe(52 - MAX_PLAYER_DEVELOPMENT_WEEKS + 1);
+    expect(
+      compacted.state.history.playerDevelopmentWeeks.at(-1)?.weekOfYear,
+    ).toBe(52);
   });
 
   it("self-heals a completed match by dropping its large live event log", () => {

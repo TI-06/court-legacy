@@ -83,7 +83,7 @@ describe("playerDevelopmentHistory", () => {
     expect(twice).toEqual(once);
   });
 
-  it("retains only the newest 52 weekly entries", () => {
+  it("retains only the newest 12 weekly entries used by player growth UI", () => {
     const state = createDemoGame();
     const result = trainingResult(state);
     let history = [] as ReturnType<typeof appendPlayerDevelopmentWeek>;
