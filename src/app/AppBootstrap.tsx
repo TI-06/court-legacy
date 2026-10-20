@@ -220,7 +220,10 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
 
   if (view.status === "checking-auth")
     return (
-      <div className="app-bootstrap-status volleyball-loading-fullscreen" role="status">
+      <div
+        className="app-bootstrap-status volleyball-loading-fullscreen"
+        role="status"
+      >
         <VolleyballLoader size="large" />
         <strong>アカウントを確認しています…</strong>
       </div>
@@ -235,7 +238,10 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
     );
   if (view.status === "loading-cloud")
     return (
-      <div className="app-bootstrap-status volleyball-loading-fullscreen" role="status">
+      <div
+        className="app-bootstrap-status volleyball-loading-fullscreen"
+        role="status"
+      >
         <VolleyballLoader size="large" />
         <strong>学校データを読み込んでいます…</strong>
       </div>
