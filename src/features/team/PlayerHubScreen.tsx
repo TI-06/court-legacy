@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useEffect, useMemo, useState } from "react";
 import { isWeeklyActionCompleted } from "../../domain/calendar/weekProgression";
 import type {
@@ -597,6 +598,7 @@ export function PlayerHubScreen({
           onClick={() => void saveTrainingDrafts()}
           type="button"
         >
+          {trainingPending ? <VolleyballLoader size="tiny" /> : null}
           {trainingPending
             ? "保存中…"
             : `まとめて保存（${trainingDraftCount}人）`}
@@ -1666,7 +1668,8 @@ export function PlayerHubScreen({
               ) : null}
               {shopLoading || !shopStatus ? (
                 <p className="player-detail__item-notice" role="status">
-                  {shopLoading
+                  {shopLoading ? <VolleyballLoader size="small" /> : null}
+                   {shopLoading
                     ? "所持アイテムを確認中…"
                     : "所持品を読み込めませんでした"}
                 </p>
