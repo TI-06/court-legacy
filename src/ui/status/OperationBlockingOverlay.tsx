@@ -1,4 +1,5 @@
 import type { OperationState } from "../../app/useGameSession";
+import { VolleyballLoader } from "./VolleyballLoader";
 import "./operation-status.css";
 
 export function OperationBlockingOverlay({
@@ -18,10 +19,7 @@ export function OperationBlockingOverlay({
         className="operation-blocking-overlay__panel"
         role="status"
       >
-        <span
-          className="operation-blocking-overlay__spinner"
-          aria-hidden="true"
-        />
+        <VolleyballLoader size="large" />
         <strong>{operation.label}</strong>
         <small>処理が完了するまでお待ちください</small>
       </div>
