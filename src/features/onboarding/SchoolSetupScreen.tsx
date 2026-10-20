@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useState, type FormEvent } from "react";
 import type {
   AccountProfile,
@@ -133,6 +134,7 @@ export function SchoolSetupScreen({
         ) : null}
         {pending ? (
           <div className="onboarding-status" role="status">
+            <VolleyballLoader size="small" />
             学校データを作成しています…
           </div>
         ) : null}
