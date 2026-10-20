@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import type {
   PvpChallengeResponse,
   PvpHistoryEntry,
@@ -219,7 +220,7 @@ export function PvpScreen({
 
       {loading ? (
         <section className="pvp-loading-card" role="status" aria-live="polite">
-          <span className="pvp-spinner" aria-hidden="true" />
+          <VolleyballLoader size="medium" />
           <div>
             <strong>対人戦データを読み込んでいます…</strong>
             <p>公開チーム・ランキング・対戦履歴を同期中です。</p>
