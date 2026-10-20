@@ -16,6 +16,9 @@ describe("OperationStatusBar", () => {
     );
 
     expect(screen.getByRole("status")).toHaveTextContent("保存中…");
+    expect(screen.getByTestId("volleyball-loader")).toHaveClass(
+      "volleyball-loader--tiny",
+    );
   });
 
   it("shows the saved state after a successful operation", () => {
