@@ -68,7 +68,8 @@
 }
 
 @keyframes volleyball-rally {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(-31px, 5px);
   }
 
@@ -100,7 +101,8 @@
 }
 
 @keyframes volleyball-shadow {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-31px) scale(1);
     opacity: 0.42;
   }
