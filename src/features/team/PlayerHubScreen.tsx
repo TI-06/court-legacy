@@ -1669,7 +1669,7 @@ export function PlayerHubScreen({
               {shopLoading || !shopStatus ? (
                 <p className="player-detail__item-notice" role="status">
                   {shopLoading ? <VolleyballLoader size="small" /> : null}
-                   {shopLoading
+                  {shopLoading
                     ? "所持アイテムを確認中…"
                     : "所持品を読み込めませんでした"}
                 </p>
