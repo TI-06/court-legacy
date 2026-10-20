@@ -28,9 +28,7 @@ describe("VolleyballLoader", () => {
   );
 
   it("does not create timers or additional status announcements", () => {
-    const { container } = render(
-      <VolleyballLoader size="small" />,
-    );
+    const { container } = render(<VolleyballLoader size="small" />);
     expect(container.querySelectorAll("[role='status']")).toHaveLength(0);
     expect(screen.getByTestId("volleyball-loader")).toHaveAttribute(
       "aria-hidden",
