@@ -167,6 +167,7 @@ export function HomeQuickItems({
                   onClick={() => chooseItem(item.itemId)}
                   type="button"
                 >
+                  {pending ? <VolleyballLoader size="tiny" /> : null}
                   {pending ? "処理中…" : alreadyActive ? "適用中" : "使用"}
                 </button>
               </article>
