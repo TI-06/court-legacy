@@ -402,6 +402,7 @@ export function AdminDashboard() {
             </p>
           </div>
           <button disabled={overviewLoading} onClick={refresh} type="button">
+            {overviewLoading ? <VolleyballLoader size="tiny" /> : null}
             {overviewLoading ? "更新中…" : "データ更新"}
           </button>
         </header>
