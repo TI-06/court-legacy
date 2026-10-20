@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -398,7 +399,7 @@ export function ScoutingScreen({
 
       {loading ? (
         <section className="scouting-state" role="status">
-          <span className="scouting-spinner" aria-hidden="true" />
+          <VolleyballLoader size="medium" />
           <div>
             <strong>候補を調査しています…</strong>
             <p>中学での実績やプレー評価をまとめています。</p>
