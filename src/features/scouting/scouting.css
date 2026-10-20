@@ -171,22 +171,6 @@
   font-size: 0.7rem;
 }
 
-.scouting-spinner {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  border: 3px solid #d7e6e9;
-  border-top-color: #2d7b89;
-  border-radius: 50%;
-  animation: scouting-spin 0.9s linear infinite;
-}
-
-@keyframes scouting-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .scouting-error {
   align-items: stretch;
   justify-content: space-between;
@@ -556,12 +540,6 @@
 
   .scouting-stars {
     font-size: 0.74rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scouting-spinner {
-    animation: none;
   }
 }
 
