@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useMemo, useState } from "react";
 import {
   buildPreMatchLineupPreset,
@@ -1051,6 +1052,7 @@ export function PreMatchLineupScreen({
         }
         type="button"
       >
+        {pending ? <VolleyballLoader size="tiny" /> : null}
         {pending ? "試合を開始しています…" : "この編成・戦術で試合開始"}
       </button>
     </main>
