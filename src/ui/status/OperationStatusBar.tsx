@@ -1,10 +1,12 @@
 import type { OperationState } from "../../app/useGameSession";
+import { VolleyballLoader } from "./VolleyballLoader";
 import "./operation-status.css";
 
 export function OperationStatusBar({ state }: { state: OperationState }) {
   if (state.status === "submitting") {
     return (
       <span aria-live="polite" className="operation-status" role="status">
+        <VolleyballLoader size="tiny" />
         保存中…
       </span>
     );
