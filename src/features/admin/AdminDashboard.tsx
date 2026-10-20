@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useEffect, useState, type FormEvent } from "react";
 import "./admin-dashboard.css";
 
@@ -413,9 +414,14 @@ export function AdminDashboard() {
 
         {!overview ? (
           <section className="admin-panel" role="status">
-            {overviewLoading
-              ? "集計データを読み込んでいます…"
-              : "集計データを取得できませんでした"}
+            {overviewLoading ? (
+              <>
+                <VolleyballLoader size="medium" />
+                集計データを読み込んでいます…
+              </>
+            ) : (
+              "集計データを取得できませんでした"
+            )}
           </section>
         ) : (
           <>
@@ -565,7 +571,10 @@ export function AdminDashboard() {
                     </tbody>
                   </table>
                   {accountsLoading ? (
-                    <p role="status">アカウントを読み込み中…</p>
+                    <p role="status">
+                      <VolleyballLoader size="small" />
+                      アカウントを読み込み中…
+                    </p>
                   ) : null}
                   {!accountsLoading && accounts?.rows.length === 0 ? (
                     <p className="admin-empty">
