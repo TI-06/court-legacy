@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -276,6 +277,7 @@ function ProductCard({
         onClick={() => onPurchase(item.itemId)}
         type="button"
       >
+        {purchasePending ? <VolleyballLoader size="tiny" /> : null}
         {purchasePending
           ? isGrant
             ? "受け取り処理中…"
@@ -337,6 +339,7 @@ function InventoryCard({
         onClick={() => onUse(item.itemId)}
         type="button"
       >
+        {usePending ? <VolleyballLoader size="tiny" /> : null}
         {usePending
           ? "効果を反映中…"
           : scoutingTargetRequired
@@ -515,10 +518,7 @@ export function ShopScreen({
         >
           {loading ? (
             <p className="shop-screen__feedback shop-screen__feedback--loading">
-              <span
-                aria-hidden="true"
-                className="shop-screen__feedback-spinner"
-              />
+              <VolleyballLoader size="small" />
               <strong>読み込み中…</strong>
             </p>
           ) : (

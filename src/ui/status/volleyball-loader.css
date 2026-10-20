@@ -1,0 +1,181 @@
+/* One volleyball rally animation, reused across every busy state. */
+.volleyball-loader {
+  display: inline-flex;
+  width: 38px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.volleyball-loader--tiny {
+  width: 24px;
+  height: 14px;
+}
+
+.volleyball-loader--medium {
+  width: 68px;
+  height: 34px;
+}
+
+.volleyball-loader--large {
+  width: 136px;
+  height: 68px;
+}
+
+.volleyball-loader__court {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.volleyball-loader__floor {
+  stroke: #69b7d0;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+
+.volleyball-loader__net {
+  stroke: #b9e0f0;
+  stroke-width: 1.15;
+  opacity: 0.74;
+}
+
+.volleyball-loader__net-top {
+  stroke: #f4f9ff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.volleyball-loader__shadow {
+  fill: #3e6684;
+  opacity: 0.38;
+  transform-origin: 60px 48px;
+  animation: volleyball-shadow 1.25s ease-in-out infinite;
+}
+
+.volleyball-loader__ball-flight {
+  animation: volleyball-rally 1.25s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+.volleyball-loader__ball-spin {
+  transform-origin: 60px 31px;
+  animation: volleyball-ball-spin 1.25s linear infinite;
+}
+
+@keyframes volleyball-rally {
+  0% {
+    transform: translate(-31px, 5px);
+    opacity: 0;
+  }
+
+  8% {
+    transform: translate(-31px, 5px);
+    opacity: 1;
+  }
+
+  24% {
+    transform: translate(-15px, -13px);
+  }
+
+  48% {
+    transform: translate(0, -19px);
+  }
+
+  72% {
+    transform: translate(18px, -12px);
+  }
+
+  88% {
+    transform: translate(31px, 5px);
+    opacity: 1;
+  }
+
+  94% {
+    transform: translate(31px, 0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translate(-31px, 5px);
+    opacity: 0;
+  }
+}
+
+@keyframes volleyball-ball-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes volleyball-shadow {
+  0%,
+  100% {
+    transform: translateX(-31px) scale(1);
+    opacity: 0.42;
+  }
+
+  48% {
+    transform: translateX(0) scale(0.65);
+    opacity: 0.18;
+  }
+
+  88% {
+    transform: translateX(31px) scale(1);
+    opacity: 0.42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .volleyball-loader__ball-flight,
+  .volleyball-loader__ball-spin,
+  .volleyball-loader__shadow {
+    animation: none;
+  }
+
+  .volleyball-loader__ball-flight {
+    transform: translate(-13px, -8px);
+  }
+}
+
+/* First boot and authentication use the same loader in a fixed-size stage. */
+.volleyball-loading-fullscreen {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  color: #eff6ff;
+  font-size: 0.9rem;
+  text-align: center;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    #173751 0%,
+    #0c1d2e 54%,
+    #06121f 100%
+  );
+}
+
+.volleyball-loading-fullscreen strong {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.volleyball-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.volleyball-loading-inline > .volleyball-loader {
+  flex-shrink: 0;
+}

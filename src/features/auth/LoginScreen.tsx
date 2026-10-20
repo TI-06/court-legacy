@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useState, type FormEvent } from "react";
 import type {
   AccountRegistrationInput,
@@ -190,6 +191,7 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
               value={password}
             />
             <button className="login-primary" disabled={pending} type="submit">
+              {pending ? <VolleyballLoader size="tiny" /> : null}
               {pending ? "ログイン中…" : "ログインする"}
             </button>
             <button
@@ -283,6 +285,7 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
               value={schoolName}
             />
             <button className="login-primary" disabled={pending} type="submit">
+              {pending ? <VolleyballLoader size="tiny" /> : null}
               {pending ? "登録中…" : "この内容で登録"}
             </button>
             <button
@@ -311,6 +314,7 @@ export function LoginScreen({ authClient }: LoginScreenProps) {
               value={email}
             />
             <button className="login-primary" disabled={pending} type="submit">
+              {pending ? <VolleyballLoader size="tiny" /> : null}
               {pending ? "送信中…" : "再設定メールを送信"}
             </button>
             <button

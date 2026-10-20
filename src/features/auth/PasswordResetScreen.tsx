@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useState, type FormEvent } from "react";
 import type { AuthClient } from "../../services/auth/AuthClient";
 import "./auth.css";
@@ -79,6 +80,7 @@ export function PasswordResetScreen({
             value={confirmation}
           />
           <button className="login-primary" disabled={pending} type="submit">
+            {pending ? <VolleyballLoader size="tiny" /> : null}
             {pending ? "変更中…" : "新しいパスワードを設定"}
           </button>
         </form>

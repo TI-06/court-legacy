@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import {
@@ -73,6 +74,7 @@ export function TournamentScreen({
     return (
       <main className="app-content tournament-screen">
         <section className="tournament-empty" role="status">
+          <VolleyballLoader size="medium" />
           <strong>大会情報を読み込んでいます…</strong>
           <p>組み合わせが確定すると、ここに大会表が表示されます。</p>
           <button onClick={onBack} type="button">

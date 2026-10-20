@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useEffect, useMemo, useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { SchoolReputation } from "../../domain/model/School";
@@ -1149,7 +1150,10 @@ export function SchoolScreen({
 
       {view === "scouting" ? (
         <section className="school-panel school-panel--loading-scouting">
-          <p className="school-empty-state">スカウト候補を読み込んでいます…</p>
+          <p className="school-empty-state" role="status">
+            <VolleyballLoader size="small" />
+            スカウト候補を読み込んでいます…
+          </p>
         </section>
       ) : null}
 

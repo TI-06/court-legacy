@@ -18,6 +18,8 @@ describe("OperationBlockingOverlay", () => {
       "練習設定を保存しています…",
     );
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByTestId("volleyball-loader")).toBeVisible();
+    expect(screen.queryByRole("img")).toBeNull();
   });
 
   it("does not block the viewport for inline facility-style operations", () => {

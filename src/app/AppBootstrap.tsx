@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { CloudGameSnapshot } from "../../worker/data/GameStore";
 import { LoginScreen } from "../features/auth/LoginScreen";
+import { VolleyballLoader } from "../ui/status/VolleyballLoader";
 import { PasswordResetScreen } from "../features/auth/PasswordResetScreen";
 import { SchoolSetupScreen } from "../features/onboarding/SchoolSetupScreen";
 import type { AuthClient, AuthSession } from "../services/auth/AuthClient";
@@ -219,8 +220,12 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
 
   if (view.status === "checking-auth")
     return (
-      <div className="app-bootstrap-status" role="status">
-        アカウントを確認しています…
+      <div
+        className="app-bootstrap-status volleyball-loading-fullscreen"
+        role="status"
+      >
+        <VolleyballLoader size="large" />
+        <strong>アカウントを確認しています…</strong>
       </div>
     );
   if (view.status === "signed-out") return <LoginScreen authClient={auth} />;
@@ -233,8 +238,12 @@ export function AppBootstrap({ auth, api, renderGame }: AppBootstrapProps) {
     );
   if (view.status === "loading-cloud")
     return (
-      <div className="app-bootstrap-status" role="status">
-        学校データを読み込んでいます…
+      <div
+        className="app-bootstrap-status volleyball-loading-fullscreen"
+        role="status"
+      >
+        <VolleyballLoader size="large" />
+        <strong>学校データを読み込んでいます…</strong>
       </div>
     );
   if (view.status === "needs-onboarding")

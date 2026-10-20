@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import type { AcademicYearTransitionSummary } from "../../domain/calendar/academicYearProgression";
 import type { GameState } from "../../domain/model/GameState";
 import type { Player } from "../../domain/model/Player";
@@ -445,6 +446,7 @@ export function YearTransitionDialog({
           onClick={onClose}
           type="button"
         >
+          {ambitionPending ? <VolleyballLoader size="tiny" /> : null}
           {ambitionPending
             ? "方針を保存中…"
             : ambitionSelectionPending
