@@ -17,6 +17,9 @@ describe("Phase 5 shop catalog", () => {
       "fatigue-recovery",
       "special-coach",
       "training-efficiency-boost",
+      "team-recovery-kit",
+      "team-bonding-meeting",
+      "video-analysis-session",
       "funds-grant-300",
       "funds-grant-1000",
       "funds-grant-3000",
@@ -72,9 +75,25 @@ describe("Phase 5 shop catalog", () => {
     expect(shopFundsGrantAmount("fatigue-recovery")).toBeNull();
   });
 
+  it("keeps new team support items unlimited during the trial period", () => {
+    for (const itemId of [
+      "team-recovery-kit",
+      "team-bonding-meeting",
+      "video-analysis-session",
+    ] as const) {
+      expect(getShopItemDefinition(itemId)).toMatchObject({
+        targetKind: "team",
+        priceYen: 0,
+        annualPurchaseLimit: 2_000_000_000,
+        annualUseLimit: 2_000_000_000,
+        inventoryLimit: null,
+      });
+    }
+  });
+
   it("keeps item display order stable", () => {
     expect(PHASE5_SHOP_ITEMS.map((item) => item.sortOrder)).toEqual([
-      5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      5, 10, 15, 20, 30, 40, 50, 60, 70, 72, 74, 76, 80, 90, 100,
     ]);
   });
 });

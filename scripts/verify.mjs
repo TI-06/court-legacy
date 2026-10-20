@@ -13,6 +13,7 @@ for (const [label, command, arguments_] of commands) {
   const result = spawnSync(command, arguments_, {
     encoding: "utf8",
     shell: process.platform === "win32",
+    maxBuffer: 16 * 1024 * 1024,
   });
 
   if (result.status !== 0) {

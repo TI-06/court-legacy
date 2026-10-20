@@ -454,6 +454,88 @@ function resolveSpecialCoach(input: ResolveShopUseInput): ResolvedShopUse {
   };
 }
 
+/**
+ * Deliberately bounded team-wide support. This updates only current-school
+ * players and returns aggregate numbers, not hidden player attributes.
+ */
+function resolveTeamSupportItem(input: ResolveShopUseInput): ResolvedShopUse {
+  const base = cloneBase(input.snapshot);
+  const school = base.state.schools[base.state.userSchoolId];
+  if (!school) {
+    throw new ShopUseResolutionError("target_not_found");
+  }
+  const kind = input.request.itemId;
+  if (
+    kind !== "team-recovery-kit" &&
+    kind !== "team-bonding-meeting" &&
+    kind !== "video-analysis-session"
+  ) {
+    throw new ShopUseResolutionError("invalid_target");
+  }
+
+  let changedPlayerCount = 0;
+  let totalFatigueChange = 0;
+  let totalConditionChange = 0;
+  let totalMoraleChange = 0;
+  let totalTrustChange = 0;
+  let totalDecisionChange = 0;
+
+  for (const id of school.playerIds) {
+    const player = base.state.players[id];
+    if (!player) continue;
+    const next = { ...player, abilities: { ...player.abilities } };
+    if (kind === "team-recovery-kit") {
+      next.fatigue = Math.max(0, player.fatigue - 15);
+      next.condition = Math.min(100, player.condition + 10);
+    } else if (kind === "team-bonding-meeting") {
+      next.morale = Math.min(100, player.morale + 8);
+      next.trust = Math.min(100, player.trust + 4);
+    } else if (player.abilities.decision < 100) {
+      next.abilities.decision = Math.min(100, player.abilities.decision + 1);
+      next.fatigue = Math.min(100, player.fatigue + 3);
+    }
+    const fatigueChange = next.fatigue - player.fatigue;
+    const conditionChange = next.condition - player.condition;
+    const moraleChange = next.morale - player.morale;
+    const trustChange = next.trust - player.trust;
+    const decisionChange = next.abilities.decision - player.abilities.decision;
+    if (
+      fatigueChange === 0 &&
+      conditionChange === 0 &&
+      moraleChange === 0 &&
+      trustChange === 0 &&
+      decisionChange === 0
+    ) {
+      continue;
+    }
+    base.state.players[id] = next;
+    changedPlayerCount += 1;
+    totalFatigueChange += fatigueChange;
+    totalConditionChange += conditionChange;
+    totalMoraleChange += moraleChange;
+    totalTrustChange += trustChange;
+    totalDecisionChange += decisionChange;
+  }
+
+  if (changedPlayerCount === 0) {
+    throw new ShopUseResolutionError("invalid_target");
+  }
+  return {
+    ...base,
+    targetType: "team",
+    targetId: null,
+    safeRequest: {},
+    publicResult: {
+      changedPlayerCount,
+      totalFatigueChange,
+      totalConditionChange,
+      totalMoraleChange,
+      totalTrustChange,
+      totalDecisionChange,
+    },
+  };
+}
+
 function resolveTrainingEfficiencyBoost(
   input: ResolveShopUseInput,
 ): ResolvedShopUse {
@@ -530,6 +612,10 @@ export async function resolveShopUse(
       return resolveSpecialCoach(input);
     case "training-efficiency-boost":
       return resolveTrainingEfficiencyBoost(input);
+    case "team-recovery-kit":
+    case "team-bonding-meeting":
+    case "video-analysis-session":
+      return resolveTeamSupportItem(input);
     case "funds-grant-300":
     case "funds-grant-1000":
     case "funds-grant-3000":

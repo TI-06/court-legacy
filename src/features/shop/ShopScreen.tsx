@@ -129,6 +129,37 @@ export function ShopUseResultPanel({
     );
   }
 
+  if (
+    presentation.itemId === "team-recovery-kit" ||
+    presentation.itemId === "team-bonding-meeting" ||
+    presentation.itemId === "video-analysis-session"
+  ) {
+    const changed = asNumber(result.changedPlayerCount);
+    if (changed === null) return null;
+    const rows = [
+      ["疲労", asNumber(result.totalFatigueChange)],
+      ["状態", asNumber(result.totalConditionChange)],
+      ["士気", asNumber(result.totalMoraleChange)],
+      ["信頼", asNumber(result.totalTrustChange)],
+      ["判断力", asNumber(result.totalDecisionChange)],
+    ] as const;
+    return (
+      <section className="shop-use-result" aria-live="polite">
+        <h3>チーム全体への効果</h3>
+        <p>{changed}人に反映しました</p>
+        <div className="shop-use-result__metrics">
+          {rows
+            .filter(([, amount]) => amount !== null && amount !== 0)
+            .map(([name, amount]) => (
+              <span key={name}>
+                {name} 合計 {signed(amount!)}
+              </span>
+            ))}
+        </div>
+      </section>
+    );
+  }
+
   if (presentation.itemId === "training-camp") {
     if (result.pending !== true) return null;
 
@@ -404,6 +435,9 @@ export function ShopScreen({
       "training-camp",
       "special-coach",
       "training-efficiency-boost",
+      "team-recovery-kit",
+      "team-bonding-meeting",
+      "video-analysis-session",
       "extra-scout-candidate",
       "generational-scout-candidate",
     ].includes(latestUseResult.itemId);
