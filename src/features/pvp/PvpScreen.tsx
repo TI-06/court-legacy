@@ -117,6 +117,7 @@ function OpponentCard({
         onClick={() => onChallenge(opponent.snapshotId)}
         type="button"
       >
+        {pending ? <VolleyballLoader size="tiny" /> : null}
         {pending ? "対戦結果を計算中…" : "この学校に挑戦"}
       </button>
     </article>
@@ -210,6 +211,7 @@ export function PvpScreen({
           onClick={onPublish}
           type="button"
         >
+          {publishing ? <VolleyballLoader size="tiny" /> : null}
           {publishing
             ? "チーム公開中…"
             : publishedTeam
