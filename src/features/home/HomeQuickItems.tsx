@@ -1,3 +1,4 @@
+import { VolleyballLoader } from "../../ui/status/VolleyballLoader";
 import { useState } from "react";
 import type { GameState } from "../../domain/model/GameState";
 import type { PlayerId } from "../../domain/model/identifiers";
@@ -136,6 +137,7 @@ export function HomeQuickItems({
       ) : null}
       {loading ? (
         <p className="home-quick-items__empty" role="status">
+          <VolleyballLoader size="small" />
           所持アイテムを確認中…
         </p>
       ) : items.length === 0 ? (
