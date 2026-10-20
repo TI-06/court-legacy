@@ -277,6 +277,7 @@ function ProductCard({
         onClick={() => onPurchase(item.itemId)}
         type="button"
       >
+        {purchasePending ? <VolleyballLoader size="tiny" /> : null}
         {purchasePending
           ? isGrant
             ? "受け取り処理中…"
@@ -338,6 +339,7 @@ function InventoryCard({
         onClick={() => onUse(item.itemId)}
         type="button"
       >
+        {usePending ? <VolleyballLoader size="tiny" /> : null}
         {usePending
           ? "効果を反映中…"
           : scoutingTargetRequired
